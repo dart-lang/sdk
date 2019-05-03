@@ -6,7 +6,7 @@ import '../../scanner/token.dart' show Token;
 
 import '../fasta_codes.dart' as fasta;
 
-import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN;
+import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN, STRING_TOKEN;
 
 import 'identifier_context.dart';
 
@@ -624,7 +624,8 @@ class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
 
     // Recovery
     if (isOneOfOrEof(identifier, const [';', '=', ',', '{', '}']) ||
-        looksLikeStatementStart(identifier)) {
+        looksLikeStatementStart(identifier) ||
+        identifier.kind == STRING_TOKEN) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: fasta.templateExpectedIdentifier.withArguments(identifier));
     } else {

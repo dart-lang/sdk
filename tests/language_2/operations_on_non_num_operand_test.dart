@@ -10,8 +10,8 @@
 
 import "package:expect/expect.dart";
 
-@AssumeDynamic()
-@NoInline()
+@pragma('dart2js:assumeDynamic')
+@pragma('dart2js:noInline')
 confuse(x) => x;
 
 class Thing1 {
@@ -36,39 +36,39 @@ class Thing1 {
 }
 
 class Thing2 {
-  @NoInline()
+  @pragma('dart2js:noInline')
   operator &(b) => this;
-  @NoInline()
+  @pragma('dart2js:noInline')
   operator |(b) => this;
-  @NoInline()
+  @pragma('dart2js:noInline')
   operator ^(b) => this;
-  @NoInline()
+  @pragma('dart2js:noInline')
   operator <<(b) => this;
-  @NoInline()
+  @pragma('dart2js:noInline')
   operator >>(b) => this;
 
-  @NoInline()
+  @pragma('dart2js:noInline')
   operator +(b) => this;
-  @NoInline()
+  @pragma('dart2js:noInline')
   operator -(b) => this;
-  @NoInline()
+  @pragma('dart2js:noInline')
   operator *(b) => this;
-  @NoInline()
+  @pragma('dart2js:noInline')
   operator /(b) => this;
-  @NoInline()
+  @pragma('dart2js:noInline')
   operator ~/(b) => this;
-  @NoInline()
+  @pragma('dart2js:noInline')
   operator %(b) => this;
-  @NoInline()
+  @pragma('dart2js:noInline')
   remainder(b) => this;
 
-  @NoInline()
+  @pragma('dart2js:noInline')
   operator <(b) => this;
-  @NoInline()
+  @pragma('dart2js:noInline')
   operator <=(b) => this;
-  @NoInline()
+  @pragma('dart2js:noInline')
   operator >(b) => this;
-  @NoInline()
+  @pragma('dart2js:noInline')
   operator >=(b) => this;
 }
 

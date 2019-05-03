@@ -4,7 +4,8 @@
 
 library fasta.dill_class_builder;
 
-import 'package:kernel/ast.dart' show Class, DartType, Member, Supertype;
+import 'package:kernel/ast.dart'
+    show Class, DartType, Member, Supertype, TypeParameter;
 
 import '../problems.dart' show unimplemented;
 
@@ -12,9 +13,11 @@ import '../kernel/kernel_builder.dart'
     show
         KernelClassBuilder,
         KernelTypeBuilder,
+        KernelTypeVariableBuilder,
         LibraryBuilder,
         MemberBuilder,
-        Scope;
+        Scope,
+        TypeVariableBuilder;
 
 import '../modifier.dart' show abstractMask;
 
@@ -40,6 +43,15 @@ class DillClassBuilder extends KernelClassBuilder {
                 isModifiable: false),
             parent,
             cls.fileOffset);
+
+  List<TypeVariableBuilder> get typeVariables {
+    List<TypeVariableBuilder> typeVariables = super.typeVariables;
+    if (typeVariables == null && cls.typeParameters.isNotEmpty) {
+      typeVariables = super.typeVariables =
+          computeTypeVariableBuilders(library, cls.typeParameters);
+    }
+    return typeVariables;
+  }
 
   Uri get fileUri => cls.fileUri;
 
@@ -132,4 +144,16 @@ KernelTypeBuilder computeTypeBuilder(
   return supertype == null
       ? null
       : library.loader.computeTypeBuilder(supertype.asInterfaceType);
+}
+
+List<TypeVariableBuilder> computeTypeVariableBuilders(
+    DillLibraryBuilder library, List<TypeParameter> typeParameters) {
+  if (typeParameters == null || typeParameters.length == 0) return null;
+  List<TypeVariableBuilder> result =
+      new List.filled(typeParameters.length, null);
+  for (int i = 0; i < result.length; i++) {
+    result[i] =
+        new KernelTypeVariableBuilder.fromKernel(typeParameters[i], library);
+  }
+  return result;
 }

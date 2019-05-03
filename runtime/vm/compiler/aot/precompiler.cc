@@ -126,19 +126,6 @@ static void Jump(const Error& error) {
   Thread::Current()->long_jump_base()->Jump(1, error);
 }
 
-TypeRangeCache::TypeRangeCache(Precompiler* precompiler,
-                               Thread* thread,
-                               intptr_t num_cids)
-    : precompiler_(precompiler),
-      thread_(thread),
-      lower_limits_(thread->zone()->Alloc<intptr_t>(num_cids)),
-      upper_limits_(thread->zone()->Alloc<intptr_t>(num_cids)) {
-  for (intptr_t i = 0; i < num_cids; i++) {
-    lower_limits_[i] = kNotComputed;
-    upper_limits_[i] = kNotComputed;
-  }
-}
-
 RawError* Precompiler::CompileAll() {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -807,6 +794,8 @@ void Precompiler::AddConstObject(const class Instance& instance) {
         Z, Closure::Cast(instance).instantiator_type_arguments()));
     AddTypeArguments(TypeArguments::Handle(
         Z, Closure::Cast(instance).function_type_arguments()));
+    AddTypeArguments(TypeArguments::Handle(
+        Z, Closure::Cast(instance).delayed_type_arguments()));
     return;
   }
 
@@ -877,8 +866,8 @@ void Precompiler::AddField(const Field& field) {
       // Should not be in the middle of initialization while precompiling.
       ASSERT(value.raw() != Object::transition_sentinel().raw());
 
-      if (!field.HasInitializer() ||
-          !Function::Handle(Z, field.Initializer()).HasCode()) {
+      if (!field.HasInitializerFunction() ||
+          !Function::Handle(Z, field.InitializerFunction()).HasCode()) {
         if (FLAG_trace_precompiler) {
           THR_Print("Precompiling initializer for %s\n", field.ToCString());
         }
@@ -890,7 +879,7 @@ void Precompiler::AddField(const Field& field) {
         const Function& initializer =
             Function::Handle(Z, CompileStaticInitializer(field));
         ASSERT(!initializer.IsNull());
-        field.SetInitializer(initializer);
+        field.SetInitializerFunction(initializer);
         AddCalleesOf(initializer, gop_offset);
       }
     }
@@ -987,6 +976,7 @@ void Precompiler::AddAnnotatedRoots() {
   auto& cls = Class::Handle(Z);
   auto& members = Array::Handle(Z);
   auto& function = Function::Handle(Z);
+  auto& function2 = Function::Handle(Z);
   auto& field = Field::Handle(Z);
   auto& metadata = Array::Handle(Z);
   auto& reusable_object_handle = Object::Handle(Z);
@@ -1051,13 +1041,23 @@ void Precompiler::AddAnnotatedRoots() {
         if (function.has_pragma()) {
           metadata ^= lib.GetMetadata(function);
           if (metadata.IsNull()) continue;
-          if (FindEntryPointPragma(isolate(), metadata, &reusable_field_handle,
-                                   &reusable_object_handle) !=
-              EntryPointPragma::kAlways) {
-            continue;
+          auto type =
+              FindEntryPointPragma(isolate(), metadata, &reusable_field_handle,
+                                   &reusable_object_handle);
+
+          if (type == EntryPointPragma::kAlways ||
+              type == EntryPointPragma::kCallOnly) {
+            AddFunction(function);
           }
 
-          AddFunction(function);
+          if ((type == EntryPointPragma::kAlways ||
+               type == EntryPointPragma::kGetterOnly) &&
+              function.kind() != RawFunction::kConstructor &&
+              !function.IsSetterFunction()) {
+            function2 = function.ImplicitClosureFunction();
+            AddFunction(function2);
+          }
+
           if (function.IsGenerativeConstructor()) {
             AddInstantiatedClass(cls);
           }
@@ -1508,7 +1508,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
   for (intptr_t i = 0; i < types.length(); i++) {
     const AbstractType& type = types.At(i);
 
-    if (type.InVMHeap()) {
+    if (type.InVMIsolateHeap()) {
       // The only important types in the vm isolate are "dynamic"/"void", which
       // will get their optimized top-type testing stub installed at creation.
       continue;
@@ -2221,9 +2221,9 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   const auto pool_attachment = FLAG_use_bare_instructions
                                    ? Code::PoolAttachment::kNotAttachPool
                                    : Code::PoolAttachment::kAttachPool;
-  const Code& code =
-      Code::Handle(Code::FinalizeCode(function, graph_compiler, assembler,
-                                      pool_attachment, optimized(), stats));
+  const Code& code = Code::Handle(
+      Code::FinalizeCodeAndNotify(function, graph_compiler, assembler,
+                                  pool_attachment, optimized(), stats));
   code.set_is_optimized(optimized());
   code.set_owner(function);
   if (!function.IsOptimizable()) {

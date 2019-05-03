@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         DynamicType,
         FunctionType,
         InterfaceType,
+        InvalidType,
         NamedType,
         TypeParameterType,
         VoidType;
@@ -177,8 +178,12 @@ abstract class StandardBounds {
       return _functionStandardUpperBound(type1, type2);
     }
 
+    if (type1 is InvalidType || type2 is InvalidType) {
+      return const InvalidType();
+    }
+
     // Should never happen. As a defensive measure, return the dynamic type.
-    assert(false);
+    assert(false, "type1 = $type1; type2 = $type2");
     return const DynamicType();
   }
 

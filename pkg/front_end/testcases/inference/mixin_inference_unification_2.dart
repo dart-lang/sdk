@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=error*/
-
 class I<X, Y> {}
 
 class M0<T> implements I<T, List<T>> {}
@@ -16,7 +14,6 @@ class M1<T> implements I<List<T>, T> {}
 // U0 = List<U1>
 // U1 = List<U0>
 // which has no finite solution
-class /*@error=AmbiguousSupertypes*/ /*@error=AmbiguousSupertypes*/ A
-    extends Object with M0, M1 {}
+class A extends Object with M0, M1 {}
 
 main() {}

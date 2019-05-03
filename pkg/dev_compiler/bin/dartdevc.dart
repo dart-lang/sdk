@@ -42,16 +42,34 @@ class _CompilerWorker extends AsyncWorkerLoop {
   _CompilerWorker(this._startupArgs, AsyncWorkerConnection workerConnection)
       : super(connection: workerConnection);
 
+  /// Keeps track of our last compilation result so it can potentially be
+  /// re-used in a worker.
+  CompilerResult lastResult;
+
   /// Performs each individual work request.
   Future<WorkResponse> performRequest(WorkRequest request) async {
     var args = _startupArgs.merge(request.arguments);
     var output = StringBuffer();
-    var result = await runZoned(() => compile(args), zoneSpecification:
-        ZoneSpecification(print: (self, parent, zone, message) {
+    var context = args.reuseResult ? lastResult : null;
+    lastResult = await runZoned(() => compile(args, previousResult: context),
+        zoneSpecification:
+            ZoneSpecification(print: (self, parent, zone, message) {
       output.writeln(message.toString());
     }));
+
+    if (lastResult.crashed && context != null) {
+      // TODO(vsm): See https://github.com/dart-lang/sdk/issues/36644.
+      // If the CFE is crashing with previous state, then clear compilation
+      // state and try again.
+      output.clear();
+      lastResult = await runZoned(() => compile(args, previousResult: null),
+          zoneSpecification:
+              ZoneSpecification(print: (self, parent, zone, message) {
+        output.writeln(message.toString());
+      }));
+    }
     return WorkResponse()
-      ..exitCode = result.success ? 0 : 1
+      ..exitCode = lastResult.success ? 0 : 1
       ..output = output.toString();
   }
 }

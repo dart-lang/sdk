@@ -8,10 +8,12 @@ import 'package:compiler/src/helpers/helpers.dart';
 class CollectingOutput implements StatsOutput {
   final StringBuffer sb = new StringBuffer();
 
+  @override
   void println(String text) {
     sb.write('$text\n');
   }
 
+  @override
   String toString() => sb.toString();
 }
 

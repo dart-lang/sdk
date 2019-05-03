@@ -5,15 +5,11 @@
 library dart2js.compile_time_constant_evaluator;
 
 import 'common/tasks.dart' show CompilerTask, Measurer;
-import 'constants/constant_system.dart';
 import 'elements/entities.dart';
 
 /// A [ConstantEnvironment] provides access for constants compiled for variable
 /// initializers.
-abstract class ConstantEnvironment {
-  /// The [ConstantSystem] used by this environment.
-  ConstantSystem get constantSystem;
-}
+abstract class ConstantEnvironment {}
 
 /// A [BackendConstantEnvironment] provides access to constants needed for
 /// backend implementation.

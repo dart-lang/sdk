@@ -67,5 +67,11 @@ main() {
         new File("../tests/standalone_2/io/process_std_io_script.dart");
   }
   Expect.isTrue(scriptFile.existsSync());
-  test(Process.start(Platform.executable, [scriptFile.path, "1"]), 0);
+  test(
+      Process.start(
+          Platform.executable,
+          []
+            ..addAll(Platform.executableArguments)
+            ..addAll([scriptFile.path, "1"])),
+      0);
 }

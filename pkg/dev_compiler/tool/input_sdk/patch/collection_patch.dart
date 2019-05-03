@@ -465,7 +465,7 @@ class _CustomHashSet<E> extends _InternalSet<E>
         var equals = _equals;
         for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
           E k = JS('', '#[#]', buckets, i);
-          if (equals(k, key)) return JS('', '#', k);
+          if (equals(k, key)) return k;
         }
       }
     }

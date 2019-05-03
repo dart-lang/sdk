@@ -10,7 +10,6 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/transformations/constants.dart' show ConstantsBackend;
 import 'invocation_mirror_constants.dart';
 
 const Iterable<String> _allowedDartSchemePaths = const <String>[
@@ -31,7 +30,8 @@ bool maybeEnableNative(Uri uri) {
   bool allowedTestLibrary() {
     String scriptName = uri.path;
     return scriptName.contains('tests/compiler/dart2js_native') ||
-        scriptName.contains('tests/compiler/dart2js_extra');
+        scriptName.contains('tests/compiler/dart2js_extra') ||
+        scriptName.contains('generated_tests/dart2js_native/native_test');
   }
 
   bool allowedDartLibrary() {
@@ -45,14 +45,18 @@ bool maybeEnableNative(Uri uri) {
 /// A kernel [Target] to configure the Dart Front End for dart2js.
 class Dart2jsTarget extends Target {
   final TargetFlags flags;
+  @override
   final String name;
 
   Dart2jsTarget(this.name, this.flags);
 
+  @override
   bool get legacyMode => flags.legacyMode;
 
+  @override
   bool get enableNoSuchMethodForwarders => !flags.legacyMode;
 
+  @override
   List<String> get extraRequiredLibraries => _requiredLibraries[name];
 
   @override
@@ -73,6 +77,9 @@ class Dart2jsTarget extends Target {
 
   @override
   bool get errorOnUnexactWebIntLiterals => true;
+
+  @override
+  bool get supportsSetLiterals => true;
 
   @override
   void performModularTransformationsOnLibraries(
@@ -140,10 +147,9 @@ class Dart2jsTarget extends Target {
     return new ir.InvalidExpression(null);
   }
 
-  // TODO(askesc): Return specialized dart2js constants backend.
   @override
   ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      new ConstantsBackend();
+      const Dart2jsConstantsBackend();
 }
 
 // TODO(sigmund): this "extraRequiredLibraries" needs to be removed...
@@ -188,3 +194,10 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:mirrors',
   ]
 };
+
+class Dart2jsConstantsBackend extends ConstantsBackend {
+  const Dart2jsConstantsBackend();
+
+  @override
+  NumberSemantics get numberSemantics => NumberSemantics.js;
+}

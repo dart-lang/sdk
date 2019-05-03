@@ -801,9 +801,9 @@ Dart_Handle DartUtils::EnvironmentCallback(Dart_Handle name) {
 Dart_CObject CObject::api_null_ = {Dart_CObject_kNull, {0}};
 Dart_CObject CObject::api_true_ = {Dart_CObject_kBool, {true}};
 Dart_CObject CObject::api_false_ = {Dart_CObject_kBool, {false}};
-CObject CObject::null_ = CObject(&api_null_);
-CObject CObject::true_ = CObject(&api_true_);
-CObject CObject::false_ = CObject(&api_false_);
+CObject CObject::null_(&api_null_);
+CObject CObject::true_(&api_true_);
+CObject CObject::false_(&api_false_);
 
 CObject* CObject::Null() {
   return &null_;

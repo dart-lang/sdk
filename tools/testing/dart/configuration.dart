@@ -59,7 +59,7 @@ class TestConfiguration {
       this.testDriverErrorPort,
       this.localIP,
       this.keepGeneratedFiles,
-      this.dart2jsOptions,
+      this.sharedOptions,
       String packages,
       this.packageRoot,
       this.suiteDirectory,
@@ -116,8 +116,6 @@ class TestConfiguration {
   bool get useBlobs => configuration.useBlobs;
   bool get useSdk => configuration.useSdk;
   bool get useEnableAsserts => configuration.enableAsserts;
-  bool get useDart2JSWithKernel => configuration.useDart2JSWithKernel;
-  bool get useDart2JSOldFrontend => configuration.useDart2JSOldFrontEnd;
 
   // Various file paths.
 
@@ -142,10 +140,13 @@ class TestConfiguration {
   final bool keepGeneratedFiles;
 
   /// Extra dart2js options passed to the testing script.
-  final List<String> dart2jsOptions;
+  List<String> get dart2jsOptions => configuration.dart2jsOptions;
 
   /// Extra VM options passed to the testing script.
   List<String> get vmOptions => configuration.vmOptions;
+
+  /// Extra general options passed to the testing script.
+  final List<String> sharedOptions;
 
   String _packages;
 
@@ -183,9 +184,9 @@ class TestConfiguration {
       Compiler.dartkb,
       Compiler.dartkp,
       Compiler.fasta,
+      Compiler.dart2js,
     ];
-    return fastaCompilers.contains(compiler) ||
-        (compiler == Compiler.dart2js && !useDart2JSOldFrontend);
+    return fastaCompilers.contains(compiler);
   }
 
   /// The base directory named for this configuration, like:
@@ -232,19 +233,11 @@ class TestConfiguration {
       return const ["--ignore-unrecognized-flags"];
     }
 
-    var args = ['--generate-code-with-compile-time-errors', '--test-mode'];
-    if (isChecked) args.add('--enable-checked-mode');
-
-    if (!runtime.isBrowser) {
-      args.add("--allow-mock-compilation");
-      args.add("--categories=all");
-    }
+    var args = ['--test-mode'];
 
     if (isMinified) args.add("--minify");
     if (isCsp) args.add("--csp");
     if (useEnableAsserts) args.add("--enable-asserts");
-    if (useDart2JSWithKernel) args.add("--use-kernel");
-    if (useDart2JSOldFrontend) args.add("--use-old-frontend");
     return args;
   }
 
@@ -442,6 +435,7 @@ class TestConfiguration {
         'csp': isCsp,
         'system': system.name,
         'vm_options': vmOptions,
+        'dart2js_options': dart2jsOptions,
         'fasta': usesFasta,
         'use_sdk': useSdk,
         'builder_tag': builderTag,
@@ -449,8 +443,6 @@ class TestConfiguration {
         'no_preview_dart_2': noPreviewDart2,
         'use_cfe': useAnalyzerCfe,
         'analyzer_use_fasta_parser': useAnalyzerFastaParser,
-        'dart2js_with_kernel': useDart2JSWithKernel,
-        'dart2js_old_frontend': useDart2JSOldFrontend,
         'enable_asserts': useEnableAsserts,
         'hot_reload': hotReload,
         'hot_reload_rollback': hotReloadRollback,

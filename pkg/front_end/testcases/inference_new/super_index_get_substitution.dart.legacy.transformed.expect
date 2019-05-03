@@ -19,7 +19,7 @@ class B<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::B<self::B::T>
     : super core::Object::•()
     ;
-  operator [](self::E<self::B::T> x) → self::D<self::B::T>
+  operator [](generic-covariant-impl self::E<self::B::T> x) → self::D<self::B::T>
     return null;
 }
 class C<U extends core::Object = dynamic> extends self::B<asy::Future<self::C::U>> {

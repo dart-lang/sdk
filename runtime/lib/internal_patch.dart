@@ -68,7 +68,7 @@ final bool is64Bit = _inquireIs64Bit();
 
 bool _inquireIs64Bit() native "Internal_inquireIs64Bit";
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 @pragma("vm:exact-result-type", bool)
 bool _classRangeCheck(int cid, int lowerLimit, int upperLimit) {
   return cid >= lowerLimit && cid <= upperLimit;
@@ -99,13 +99,13 @@ class Lists {
 // function type arguments (may be null). The result is null if both input
 // vectors are null or is a newly allocated and canonicalized vector of length
 // 'totalLen'.
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 _prependTypeArguments(functionTypeArguments, parentTypeArguments, parentLen,
     totalLen) native "Internal_prependTypeArguments";
 
 // Check that a set of type arguments satisfy the type parameter bounds on a
 // closure.
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 _boundsCheckForPartialInstantiation(closure, typeArgs)
     native "Internal_boundsCheckForPartialInstantiation";
 

@@ -5,6 +5,16 @@
 #ifndef RUNTIME_PLATFORM_GLOBALS_H_
 #define RUNTIME_PLATFORM_GLOBALS_H_
 
+#if __cplusplus >= 201703L            // C++17
+#define FALL_THROUGH [[fallthrough]]  // NOLINT
+#elif defined(__GNUC__) && __GNUC__ >= 7
+#define FALL_THROUGH __attribute__((fallthrough));
+#elif defined(__clang__)
+#define FALL_THROUGH [[clang::fallthrough]]  // NOLINT
+#else
+#define FALL_THROUGH ((void)0)
+#endif
+
 // __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
 // enable platform independent printf format specifiers.
 #ifndef __STDC_FORMAT_MACROS
@@ -342,10 +352,17 @@ typedef simd128_value_t fpu_register_t;
 #error Unknown architecture.
 #endif
 
-// Disable background threads by default on armv5te. The relevant
-// implementations are uniprocessors.
-#if !defined(TARGET_ARCH_ARM_5TE)
-#define ARCH_IS_MULTI_CORE 1
+// Determine whether HOST_ARCH equals TARGET_ARCH.
+#if defined(HOST_ARCH_ARM) && defined(TARGET_ARCH_ARM)
+#define HOST_ARCH_EQUALS_TARGET_ARCH 1
+#elif defined(HOST_ARCH_ARM64) && defined(TARGET_ARCH_ARM64)
+#define HOST_ARCH_EQUALS_TARGET_ARCH 1
+#elif defined(HOST_ARCH_IA32) && defined(TARGET_ARCH_IA32)
+#define HOST_ARCH_EQUALS_TARGET_ARCH 1
+#elif defined(HOST_ARCH_X64) && defined(TARGET_ARCH_X64)
+#define HOST_ARCH_EQUALS_TARGET_ARCH 1
+#else
+// HOST_ARCH != TARGET_ARCH.
 #endif
 
 #if !defined(TARGET_OS_ANDROID) && !defined(TARGET_OS_FUCHSIA) &&              \
@@ -368,6 +385,20 @@ typedef simd128_value_t fpu_register_t;
 #else
 #error Automatic target OS detection failed.
 #endif
+#endif
+
+// Determine whether dual mapping of code pages is supported.
+// We test dual mapping on linux x64 and deploy it on fuchsia.
+#if !defined(DART_PRECOMPILED_RUNTIME) &&                                      \
+    (defined(TARGET_OS_LINUX) && defined(TARGET_ARCH_X64) ||                   \
+     defined(TARGET_OS_FUCHSIA))
+#define DUAL_MAPPING_SUPPORTED 1
+#endif
+
+// Disable background threads by default on armv5te. The relevant
+// implementations are uniprocessors.
+#if !defined(TARGET_ARCH_ARM_5TE)
+#define ARCH_IS_MULTI_CORE 1
 #endif
 
 // Short form printf format specifiers
@@ -513,8 +544,8 @@ inline double MicrosecondsToMilliseconds(int64_t micros) {
 #if !defined(DISALLOW_COPY_AND_ASSIGN)
 #define DISALLOW_COPY_AND_ASSIGN(TypeName)                                     \
  private:                                                                      \
-  TypeName(const TypeName&);                                                   \
-  void operator=(const TypeName&)
+  TypeName(const TypeName&) = delete;                                          \
+  void operator=(const TypeName&) = delete
 #endif  // !defined(DISALLOW_COPY_AND_ASSIGN)
 
 // A macro to disallow all the implicit constructors, namely the default
@@ -525,7 +556,7 @@ inline double MicrosecondsToMilliseconds(int64_t micros) {
 #if !defined(DISALLOW_IMPLICIT_CONSTRUCTORS)
 #define DISALLOW_IMPLICIT_CONSTRUCTORS(TypeName)                               \
  private:                                                                      \
-  TypeName();                                                                  \
+  TypeName() = delete;                                                         \
   DISALLOW_COPY_AND_ASSIGN(TypeName)
 #endif  // !defined(DISALLOW_IMPLICIT_CONSTRUCTORS)
 

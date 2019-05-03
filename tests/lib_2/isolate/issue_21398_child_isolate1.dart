@@ -6,7 +6,7 @@ import 'dart:isolate';
 import "package:expect/expect.dart";
 
 main(List<String> args, message) {
-  var sendPort1 = args[0] as SendPort;
-  var sendPort2 = args[1] as SendPort;
+  var sendPort1 = message[0] as SendPort;
+  var sendPort2 = message[1] as SendPort;
   sendPort2.send(sendPort1);
 }

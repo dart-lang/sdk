@@ -303,15 +303,16 @@ class TestCase : TestCaseBase {
                                         bool allow_compile_errors = false,
                                         const char* multiroot_filepaths = NULL,
                                         const char* multiroot_scheme = NULL);
-  static Dart_Handle LoadTestScript(const char* script,
-                                    Dart_NativeEntryResolver resolver,
-                                    const char* lib_uri = USER_TEST_URI,
-                                    bool finalize = true,
-                                    bool allow_compile_errors = false);
+  static Dart_Handle LoadTestScript(
+      const char* script,
+      Dart_NativeEntryResolver resolver,
+      const char* lib_uri = RESOLVED_USER_TEST_URI,
+      bool finalize = true,
+      bool allow_compile_errors = false);
   static Dart_Handle LoadTestScriptWithErrors(
       const char* script,
       Dart_NativeEntryResolver resolver = NULL,
-      const char* lib_uri = USER_TEST_URI,
+      const char* lib_uri = RESOLVED_USER_TEST_URI,
       bool finalize = true);
   static Dart_Handle LoadTestLibrary(const char* lib_uri,
                                      const char* script,

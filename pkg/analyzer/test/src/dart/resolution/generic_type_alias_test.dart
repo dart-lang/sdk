@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -29,7 +29,7 @@ typedef G = Function<S>();
 C<G> x;
 ''');
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
       [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT],
     );
   }
@@ -41,7 +41,7 @@ class C<T> {}
 C<Function<S>()> x;
 ''');
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
       [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT],
     );
   }
@@ -55,7 +55,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
       [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT],
     );
   }
@@ -69,7 +69,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
       [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT],
     );
   }
@@ -85,7 +85,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
       [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT],
     );
   }
@@ -97,7 +97,7 @@ typedef T F<T>(T t);
 F<Function<S>()> x;
 ''');
     await resolveTestFile();
-    assertTestErrors(
+    assertTestErrorsWithCodes(
       [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT],
     );
   }

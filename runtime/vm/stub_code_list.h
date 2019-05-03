@@ -75,7 +75,9 @@ namespace dart {
   V(StackOverflowSharedWithFPURegs)                                            \
   V(StackOverflowSharedWithoutFPURegs)                                         \
   V(OneArgCheckInlineCacheWithExactnessCheck)                                  \
-  V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)
+  V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)                         \
+  V(EnterSafepoint)                                                            \
+  V(ExitSafepoint)
 
 #else
 #define VM_STUB_CODE_LIST(V)                                                   \

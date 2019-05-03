@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
 import '../common.dart';
 import '../common_elements.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../deferred_load.dart';
 import '../elements/entities.dart';
@@ -16,8 +17,8 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../ir/closure.dart';
 import '../js_backend/annotations.dart';
-import '../js_backend/allocator_analysis.dart';
 import '../js_backend/backend_usage.dart';
+import '../js_backend/field_analysis.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
@@ -28,7 +29,6 @@ import '../options.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
 import '../universe/feature.dart';
-import '../universe/member_usage.dart';
 import '../universe/selector.dart';
 import '../world.dart';
 import 'closure.dart';
@@ -192,8 +192,8 @@ class JsClosedWorldBuilder {
         map.toBackendFunctionSet(oldNoSuchMethodData.otherImpls),
         map.toBackendFunctionSet(oldNoSuchMethodData.forwardingSyntaxImpls));
 
-    JAllocatorAnalysis allocatorAnalysis =
-        JAllocatorAnalysis.from(closedWorld.allocatorAnalysis, map, _options);
+    JFieldAnalysis allocatorAnalysis =
+        JFieldAnalysis.from(closedWorld, map, _options);
 
     AnnotationsDataImpl oldAnnotationsData = closedWorld.annotationsData;
     AnnotationsData annotationsData = new AnnotationsDataImpl(
@@ -201,19 +201,6 @@ class JsClosedWorldBuilder {
 
     OutputUnitData outputUnitData =
         _convertOutputUnitData(map, kOutputUnitData, closureData);
-
-    Set<FieldEntity> elidedFields = new Set();
-    closedWorld.liveMemberUsage
-        .forEach((MemberEntity member, MemberUsage memberUsage) {
-      // TODO(johnniwinther): Should elided static fields be removed from the
-      // J model? Static setters might still assign to them.
-      if (member.isField &&
-          !memberUsage.hasRead &&
-          !closedWorld.annotationsData.hasNoElision(member) &&
-          !closedWorld.nativeData.isNativeMember(member)) {
-        elidedFields.add(map.toBackendMember(member));
-      }
-    });
 
     return new JsClosedWorld(
         _elementMap,
@@ -239,8 +226,7 @@ class JsClosedWorldBuilder {
         annotationsData,
         _globalLocalsMap,
         closureData,
-        outputUnitData,
-        elidedFields);
+        outputUnitData);
   }
 
   BackendUsage _convertBackendUsage(
@@ -354,25 +340,12 @@ class JsClosedWorldBuilder {
     Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior =
         map.toBackendMemberMap(
             nativeData.nativeFieldStoreBehavior, convertNativeBehavior);
-    Map<LibraryEntity, String> jsInteropLibraryNames =
-        map.toBackendLibraryMap(nativeData.jsInteropLibraries, identity);
-    Set<ClassEntity> anonymousJsInteropClasses =
-        map.toBackendClassSet(nativeData.anonymousJsInteropClasses);
-    Map<ClassEntity, String> jsInteropClassNames =
-        map.toBackendClassMap(nativeData.jsInteropClasses, identity);
-    Map<MemberEntity, String> jsInteropMemberNames =
-        map.toBackendMemberMap(nativeData.jsInteropMembers, identity);
-
     return new NativeDataImpl(
         nativeBasicData,
         nativeMemberName,
         nativeMethodBehavior,
         nativeFieldLoadBehavior,
-        nativeFieldStoreBehavior,
-        jsInteropLibraryNames,
-        anonymousJsInteropClasses,
-        jsInteropClassNames,
-        jsInteropMemberNames);
+        nativeFieldStoreBehavior);
   }
 
   InterceptorData _convertInterceptorData(JsToFrontendMap map,
@@ -608,7 +581,7 @@ abstract class JsToFrontendMap {
 
   DartType toBackendType(DartType type, {bool allowFreeVariables: false});
 
-  ConstantValue toBackendConstant(ConstantValue value);
+  ConstantValue toBackendConstant(ConstantValue value, {bool allowNull: false});
 
   Set<LibraryEntity> toBackendLibrarySet(Iterable<LibraryEntity> set) {
     return set.map(toBackendLibrary).toSet();
@@ -687,6 +660,7 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
 
   JsToFrontendMapImpl(this._backend);
 
+  @override
   DartType toBackendType(DartType type, {bool allowFreeVariables: false}) =>
       type == null
           ? null
@@ -704,14 +678,17 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
     return toBackendLibrary(entity);
   }
 
+  @override
   LibraryEntity toBackendLibrary(covariant IndexedLibrary library) {
     return _backend.libraries.getEntity(library.libraryIndex);
   }
 
+  @override
   ClassEntity toBackendClass(covariant IndexedClass cls) {
     return _backend.classes.getEntity(cls.classIndex);
   }
 
+  @override
   MemberEntity toBackendMember(covariant IndexedMember member) {
     return _backend.members.getEntity(member.memberIndex);
   }
@@ -730,7 +707,15 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
         .getEntity(indexedTypeVariable.typeVariableIndex);
   }
 
-  ConstantValue toBackendConstant(ConstantValue constant) {
+  @override
+  ConstantValue toBackendConstant(ConstantValue constant,
+      {bool allowNull: false}) {
+    if (constant == null) {
+      if (!allowNull) {
+        throw new UnsupportedError('Null not allowed as constant value.');
+      }
+      return null;
+    }
     return constant.accept(new _ConstantConverter(toBackendEntity), null);
   }
 }
@@ -842,19 +827,28 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   _ConstantConverter(this.toBackendEntity)
       : typeConverter = new _TypeConverter();
 
+  @override
   ConstantValue visitNull(NullConstantValue constant, _) => constant;
+  @override
   ConstantValue visitInt(IntConstantValue constant, _) => constant;
+  @override
   ConstantValue visitDouble(DoubleConstantValue constant, _) => constant;
+  @override
   ConstantValue visitBool(BoolConstantValue constant, _) => constant;
+  @override
   ConstantValue visitString(StringConstantValue constant, _) => constant;
+  @override
   ConstantValue visitSynthetic(SyntheticConstantValue constant, _) => constant;
+  @override
   ConstantValue visitNonConstant(NonConstantValue constant, _) => constant;
 
+  @override
   ConstantValue visitFunction(FunctionConstantValue constant, _) {
     return new FunctionConstantValue(toBackendEntity(constant.element),
         typeConverter.visit(constant.type, toBackendEntity));
   }
 
+  @override
   ConstantValue visitList(ListConstantValue constant, _) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     List<ConstantValue> entries = _handleValues(constant.entries);
@@ -864,18 +858,35 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     return new ListConstantValue(type, entries);
   }
 
-  ConstantValue visitMap(MapConstantValue constant, _) {
-    var type = typeConverter.visit(constant.type, toBackendEntity);
-    List<ConstantValue> keys = _handleValues(constant.keys);
-    List<ConstantValue> values = _handleValues(constant.values);
-    if (identical(keys, constant.keys) &&
-        identical(values, constant.values) &&
-        type == constant.type) {
+  @override
+  ConstantValue visitSet(
+      covariant constant_system.JavaScriptSetConstant constant, _) {
+    DartType type = typeConverter.visit(constant.type, toBackendEntity);
+    MapConstantValue entries = constant.entries.accept(this, null);
+    if (identical(entries, constant.entries) && type == constant.type) {
       return constant;
     }
-    return new MapConstantValue(type, keys, values);
+    return new constant_system.JavaScriptSetConstant(type, entries);
   }
 
+  @override
+  ConstantValue visitMap(
+      covariant constant_system.JavaScriptMapConstant constant, _) {
+    DartType type = typeConverter.visit(constant.type, toBackendEntity);
+    ListConstantValue keys = constant.keyList.accept(this, null);
+    List<ConstantValue> values = _handleValues(constant.values);
+    ConstantValue protoValue = constant.protoValue?.accept(this, null);
+    if (identical(keys, constant.keys) &&
+        identical(values, constant.values) &&
+        type == constant.type &&
+        protoValue == constant.protoValue) {
+      return constant;
+    }
+    return new constant_system.JavaScriptMapConstant(
+        type, keys, values, protoValue, constant.onlyStringKeys);
+  }
+
+  @override
   ConstantValue visitConstructed(ConstructedConstantValue constant, _) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     Map<FieldEntity, ConstantValue> fields = {};
@@ -887,6 +898,7 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     return new ConstructedConstantValue(type, fields);
   }
 
+  @override
   ConstantValue visitType(TypeConstantValue constant, _) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     DartType representedType =
@@ -897,18 +909,21 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     return new TypeConstantValue(representedType, type);
   }
 
+  @override
   ConstantValue visitInterceptor(InterceptorConstantValue constant, _) {
     // Interceptor constants are only created in the SSA graph builder.
     throw new UnsupportedError(
         "Unexpected visitInterceptor ${constant.toStructuredText()}");
   }
 
+  @override
   ConstantValue visitDeferredGlobal(DeferredGlobalConstantValue constant, _) {
     // Deferred global constants are only created in the SSA graph builder.
     throw new UnsupportedError(
         "Unexpected DeferredGlobalConstantValue ${constant.toStructuredText()}");
   }
 
+  @override
   ConstantValue visitInstantiation(InstantiationConstantValue constant, _) {
     ConstantValue function = constant.function.accept(this, null);
     List<DartType> typeArguments =

@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.23.0';
+const String PROTOCOL_VERSION = '1.26.0';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -118,8 +118,8 @@ const String COMPLETION_NOTIFICATION_AVAILABLE_SUGGESTIONS_REMOVED_LIBRARIES =
     'removedLibraries';
 const String COMPLETION_NOTIFICATION_RESULTS = 'completion.results';
 const String COMPLETION_NOTIFICATION_RESULTS_ID = 'id';
-const String COMPLETION_NOTIFICATION_RESULTS_INCLUDED_SUGGESTION_KINDS =
-    'includedSuggestionKinds';
+const String COMPLETION_NOTIFICATION_RESULTS_INCLUDED_ELEMENT_KINDS =
+    'includedElementKinds';
 const String
     COMPLETION_NOTIFICATION_RESULTS_INCLUDED_SUGGESTION_RELEVANCE_TAGS =
     'includedSuggestionRelevanceTags';
@@ -140,6 +140,9 @@ const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_FILE = 'file';
 const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_ID = 'id';
 const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_LABEL = 'label';
 const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS_OFFSET = 'offset';
+const String COMPLETION_REQUEST_LIST_TOKEN_DETAILS =
+    'completion.listTokenDetails';
+const String COMPLETION_REQUEST_LIST_TOKEN_DETAILS_FILE = 'file';
 const String COMPLETION_REQUEST_REGISTER_LIBRARY_PATHS =
     'completion.registerLibraryPaths';
 const String COMPLETION_REQUEST_REGISTER_LIBRARY_PATHS_PATHS = 'paths';
@@ -151,6 +154,7 @@ const String COMPLETION_RESPONSE_GET_SUGGESTIONS_ID = 'id';
 const String COMPLETION_RESPONSE_GET_SUGGESTION_DETAILS_CHANGE = 'change';
 const String COMPLETION_RESPONSE_GET_SUGGESTION_DETAILS_COMPLETION =
     'completion';
+const String COMPLETION_RESPONSE_LIST_TOKEN_DETAILS_TOKENS = 'tokens';
 const String DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS = 'diagnostic.getDiagnostics';
 const String DIAGNOSTIC_REQUEST_GET_SERVER_PORT = 'diagnostic.getServerPort';
 const String DIAGNOSTIC_RESPONSE_GET_DIAGNOSTICS_CONTEXTS = 'contexts';
@@ -197,6 +201,7 @@ const String EDIT_REQUEST_GET_STATEMENT_COMPLETION_OFFSET = 'offset';
 const String EDIT_REQUEST_IMPORT_ELEMENTS = 'edit.importElements';
 const String EDIT_REQUEST_IMPORT_ELEMENTS_ELEMENTS = 'elements';
 const String EDIT_REQUEST_IMPORT_ELEMENTS_FILE = 'file';
+const String EDIT_REQUEST_IMPORT_ELEMENTS_OFFSET = 'offset';
 const String EDIT_REQUEST_IS_POSTFIX_COMPLETION_APPLICABLE =
     'edit.isPostfixCompletionApplicable';
 const String EDIT_REQUEST_IS_POSTFIX_COMPLETION_APPLICABLE_FILE = 'file';

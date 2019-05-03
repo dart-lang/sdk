@@ -15,11 +15,13 @@ import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/ir/scope.dart';
 import 'package:compiler/src/ir/static_type.dart';
 import 'package:compiler/src/ir/util.dart';
+import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:compiler/src/kernel/loader.dart';
 import 'package:compiler/src/util/uri_extras.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir
     show RedirectingFactoryBody;
+import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -69,13 +71,23 @@ run(Uri entryPoint, String allowedListPath,
 }
 
 class StaticTypeVisitorBase extends StaticTypeVisitor {
+  @override
   VariableScopeModel variableScopeModel;
+
+  ir.ConstantEvaluator _constantEvaluator;
 
   StaticTypeVisitorBase(
       ir.Component component, ir.ClassHierarchy classHierarchy)
       : super(
             new ir.TypeEnvironment(new ir.CoreTypes(component), classHierarchy),
-            classHierarchy);
+            classHierarchy) {
+    _constantEvaluator = new ir.ConstantEvaluator(
+        const Dart2jsConstantsBackend(),
+        const {},
+        typeEnvironment,
+        false,
+        const ir.SimpleErrorReporter());
+  }
 
   @override
   bool get useAsserts => false;
@@ -95,7 +107,8 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
       // Skip synthetic .dill members.
       return;
     }
-    variableScopeModel = ScopeModel.computeScopeModel(node)?.variableScopeModel;
+    variableScopeModel =
+        new ScopeModel.from(node, _constantEvaluator).variableScopeModel;
     super.visitProcedure(node);
     variableScopeModel = null;
   }
@@ -106,7 +119,8 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
       // Skip synthetic .dill members.
       return;
     }
-    variableScopeModel = ScopeModel.computeScopeModel(node)?.variableScopeModel;
+    variableScopeModel =
+        new ScopeModel.from(node, _constantEvaluator).variableScopeModel;
     super.visitField(node);
     variableScopeModel = null;
   }
@@ -117,7 +131,8 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
       // Skip synthetic .dill members.
       return;
     }
-    variableScopeModel = ScopeModel.computeScopeModel(node)?.variableScopeModel;
+    variableScopeModel =
+        new ScopeModel.from(node, _constantEvaluator).variableScopeModel;
     super.visitConstructor(node);
     variableScopeModel = null;
   }
@@ -291,6 +306,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     }
   }
 
+  @override
   ir.DartType visitNode(ir.Node node) {
     ir.DartType staticType = node?.accept(this);
     assert(

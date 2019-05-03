@@ -92,7 +92,7 @@ getMangledTypeName(Type t) {
 /// type.
 // Don't inline.  Let the JS engine inline this.  The call expression is much
 // more compact that the inlined expansion.
-@NoInline()
+@pragma('dart2js:noInline')
 Object setRuntimeTypeInfo(Object target, var rti) {
   assert(rti == null || isJsArray(rti));
   String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
@@ -121,9 +121,9 @@ getRuntimeTypeArguments(interceptor, object, substitutionName) {
 /// [substitutionName].
 ///
 /// Called from generated code.
-@NoThrows()
-@NoSideEffects()
-@NoInline()
+@pragma('dart2js:noThrows')
+@pragma('dart2js:noSideEffects')
+@pragma('dart2js:noInline')
 getRuntimeTypeArgumentIntercepted(
     interceptor, Object target, String substitutionName, int index) {
   var arguments =
@@ -135,9 +135,9 @@ getRuntimeTypeArgumentIntercepted(
 /// [substitutionName].
 ///
 /// Called from generated code.
-@NoThrows()
-@NoSideEffects()
-@NoInline()
+@pragma('dart2js:noThrows')
+@pragma('dart2js:noSideEffects')
+@pragma('dart2js:noInline')
 getRuntimeTypeArgument(Object target, String substitutionName, int index) {
   var arguments = getRuntimeTypeArguments(target, target, substitutionName);
   return arguments == null ? null : getIndex(arguments, index);
@@ -146,9 +146,9 @@ getRuntimeTypeArgument(Object target, String substitutionName, int index) {
 /// Returns the [index]th type argument of [target].
 ///
 /// Called from generated code.
-@NoThrows()
-@NoSideEffects()
-@NoInline()
+@pragma('dart2js:noThrows')
+@pragma('dart2js:noSideEffects')
+@pragma('dart2js:noInline')
 getTypeArgumentByIndex(Object target, int index) {
   var rti = getRuntimeTypeInfo(target);
   return rti == null ? null : getIndex(rti, index);
@@ -169,7 +169,7 @@ String _getRuntimeTypeAsString(var rti, List<String> genericContext) {
 /// Returns a human-readable representation of the type representation [rti].
 ///
 /// Called from generated code.
-@NoInline()
+@pragma('dart2js:noInline')
 String runtimeTypeToString(var rti) {
   return _runtimeTypeToString(rti, null);
 }
@@ -541,7 +541,7 @@ computeSignature(var signature, var context, var contextName) {
 
 /// Returns `true` if the runtime type representation [type] is a top type.
 /// That is, either `dynamic`, `void` or `Object`.
-@ForceInline()
+@pragma('dart2js:tryInline')
 bool isTopType(var type) {
   return isDartDynamicTypeRti(type) ||
       isDartVoidTypeRti(type) ||
@@ -551,7 +551,7 @@ bool isTopType(var type) {
 
 /// Returns `true` if the runtime type representation [type] is a supertype of
 /// [Null].
-@ForceInline()
+@pragma('dart2js:tryInline')
 bool isSupertypeOfNull(var type) {
   return isSupertypeOfNullBase(type) || isSupertypeOfNullRecursive(type);
 }
@@ -561,7 +561,7 @@ bool isSupertypeOfNull(var type) {
 ///
 /// This method doesn't handle `FutureOr<Null>`. This is handle by
 /// [isSupertypeOfNullRecursive] because it requires a recursive check.
-@ForceInline()
+@pragma('dart2js:tryInline')
 bool isSupertypeOfNullBase(var type) {
   return isDartDynamicTypeRti(type) ||
       isDartObjectTypeRti(type) ||
@@ -593,7 +593,7 @@ bool isSupertypeOfNullRecursive(var type) {
 /// [type].
 ///
 /// For instance `num` of `FutureOr<num>`.
-@ForceInline()
+@pragma('dart2js:tryInline')
 Object getFutureOrArgument(var type) {
   assert(isDartFutureOrType(type));
   var typeArgumentTag = JS_GET_NAME(JsGetName.FUTURE_OR_TYPE_ARGUMENT_TAG);
@@ -917,7 +917,7 @@ bool isGenericFunctionTypeParameter(var type) {
 /// type parameters matching the number of types in [parameters].
 ///
 /// Called from generated code.
-@NoInline()
+@pragma('dart2js:noInline')
 instantiatedGenericFunctionType(genericFunctionRti, parameters) {
   if (genericFunctionRti == null) return null;
 

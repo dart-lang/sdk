@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "bin/abi_version.h"
 #include "bin/log.h"
 #include "bin/options.h"
 #include "bin/platform.h"
@@ -119,13 +120,14 @@ void Options::PrintVersion() {
 // clang-format off
 void Options::PrintUsage() {
   Log::PrintErr(
-      "Usage: dart [<vm-flags>] <dart-script-file> [<dart-options>]\n"
+      "Usage: dart [<vm-flags>] <dart-script-file> [<script-arguments>]\n"
       "\n"
-      "Executes the Dart script passed as <dart-script-file>.\n"
+      "Executes the Dart script <dart-script-file> with "
+      "the given list of <script-arguments>.\n"
       "\n");
   if (!Options::verbose_option()) {
     Log::PrintErr(
-"Common options:\n"
+"Common VM flags:\n"
 "--enable-asserts\n"
 "  Enable assert statements.\n"
 "--help or -h\n"
@@ -190,8 +192,14 @@ void Options::PrintUsage() {
 "  enables tracing of library and script loading\n"
 "\n"
 "--enable-vm-service[=<port>[/<bind-address>]]\n"
-"  enables the VM service and listens on specified port for connections\n"
+"  Enables the VM service and listens on specified port for connections\n"
 "  (default port number is 8181, default bind address is localhost).\n"
+"\n"
+"--disable-service-auth-codes\n"
+"  Disables the requirement for an authentication code to communicate with\n"
+"  the VM service. Authentication codes help protect against CSRF attacks,\n"
+"  so it is not recommended to disable them unless behind a firewall on a\n"
+"  secure device.\n"
 "\n"
 "--root-certs-file=<path>\n"
 "  The path to a file containing the trusted root certificates to use for\n"
@@ -324,7 +332,31 @@ bool Options::ProcessObserveOption(const char* arg,
   return true;
 }
 
-static bool checked_set = false;
+int Options::target_abi_version_ = Options::kAbiVersionUnset;
+bool Options::ProcessAbiVersionOption(const char* arg,
+                                      CommandLineOptions* vm_options) {
+  const char* value = OptionProcessor::ProcessOption(arg, "--use_abi_version=");
+  if (value == NULL) {
+    return false;
+  }
+  int ver = 0;
+  for (int i = 0; value[i]; ++i) {
+    if (value[i] >= '0' && value[i] <= '9') {
+      ver = (ver * 10) + value[i] - '0';
+    } else {
+      Log::PrintErr("--use_abi_version must be an int\n");
+      return false;
+    }
+  }
+  if (ver < AbiVersion::GetOldestSupported() ||
+      ver > AbiVersion::GetCurrent()) {
+    Log::PrintErr("--use_abi_version must be between %d and %d inclusive\n",
+                  AbiVersion::GetOldestSupported(), AbiVersion::GetCurrent());
+    return false;
+  }
+  target_abi_version_ = ver;
+  return true;
+}
 
 int Options::ParseArguments(int argc,
                             char** argv,
@@ -349,14 +381,7 @@ int Options::ParseArguments(int argc,
       i++;
     } else {
       // Check if this flag is a potentially valid VM flag.
-      const char* kChecked = "-c";
-      const char* kCheckedFull = "--checked";
-      if ((strncmp(argv[i], kChecked, strlen(kChecked)) == 0) ||
-          (strncmp(argv[i], kCheckedFull, strlen(kCheckedFull)) == 0)) {
-        checked_set = true;
-        i++;
-        continue;  // '-c' is not a VM flag so don't add to vm options.
-      } else if (!OptionProcessor::IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
+      if (!OptionProcessor::IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
         break;
       }
       // The following two flags are processed by both the embedder and
@@ -457,9 +482,6 @@ int Options::ParseArguments(int argc,
         "Specifying an option to generate a snapshot and"
         " run using a snapshot is invalid.\n");
     return -1;
-  }
-  if (checked_set) {
-    vm_options->AddArgument("--enable-asserts");
   }
 
   // If --snapshot is given without --snapshot-kind, default to script snapshot.

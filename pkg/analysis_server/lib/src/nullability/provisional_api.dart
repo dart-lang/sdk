@@ -18,6 +18,10 @@ export 'package:analysis_server/src/nullability/transitional_api.dart'
 
 /// Kinds of fixes that might be performed by nullability migration.
 class NullabilityFixKind {
+  /// An import needs to be added.
+  static const addImport =
+      const NullabilityFixKind._(appliedMessage: 'Add an import');
+
   /// A formal parameter needs to have a required annotation added.
   static const addRequired =
       const NullabilityFixKind._(appliedMessage: 'Add a required annotation');
@@ -77,9 +81,16 @@ class NullabilityMigration {
             permissive: permissive, assumptions: assumptions);
 
   void finish() {
-    _analyzerMigration.finish().forEach((pm) {
-      listener.addFix(_SingleNullabilityFix(pm));
-    });
+    for (var entry in _analyzerMigration.finish().entries) {
+      var source = entry.key;
+      for (var potentialModification in entry.value) {
+        var fix = _SingleNullabilityFix(source, potentialModification);
+        listener.addFix(fix);
+        for (var edit in potentialModification.modifications) {
+          listener.addEdit(fix, edit);
+        }
+      }
+    }
   }
 
   void prepareInput(ResolvedUnitResult result) {
@@ -94,6 +105,10 @@ class NullabilityMigration {
 /// [NullabilityMigrationListener] is used by [NullabilityMigration]
 /// to communicate source changes or "fixes" to the client.
 abstract class NullabilityMigrationListener {
+  /// [addEdit] is called once for each source edit, in the order in which they
+  /// appear in the source file.
+  void addEdit(SingleNullabilityFix fix, SourceEdit edit);
+
   /// [addFix] is called once for each source change.
   void addFix(SingleNullabilityFix fix);
 }
@@ -110,18 +125,11 @@ abstract class SingleNullabilityFix {
 
   /// File to change.
   Source get source;
-
-  /// Individual source edits to achieve the change.  May be returned in any
-  /// order.
-  Iterable<SourceEdit> get sourceEdits;
 }
 
 /// Implementation of [SingleNullabilityFix] used internally by
 /// [NullabilityMigration].
 class _SingleNullabilityFix extends SingleNullabilityFix {
-  @override
-  final List<SourceEdit> sourceEdits;
-
   @override
   final Source source;
 
@@ -129,7 +137,7 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
   final NullabilityFixKind kind;
 
   factory _SingleNullabilityFix(
-      analyzer.PotentialModification potentialModification) {
+      Source source, analyzer.PotentialModification potentialModification) {
     // TODO(paulberry): once everything is migrated into the analysis server,
     // the migration engine can just create SingleNullabilityFix objects
     // directly and set their kind appropriately; we won't need to translate the
@@ -140,19 +148,20 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
     } else if (potentialModification is analyzer.DecoratedTypeAnnotation) {
       kind = NullabilityFixKind.makeTypeNullable;
     } else if (potentialModification is analyzer.ConditionalModification) {
-      kind = potentialModification.discard.keepFalse.value
+      kind = potentialModification.discard.keepFalse
           ? NullabilityFixKind.discardThen
           : NullabilityFixKind.discardElse;
+    } else if (potentialModification is analyzer.PotentiallyAddImport) {
+      kind = NullabilityFixKind.addImport;
     } else if (potentialModification is analyzer.PotentiallyAddRequired) {
       kind = NullabilityFixKind.addRequired;
     } else {
       throw new UnimplementedError('TODO(paulberry)');
     }
-    return _SingleNullabilityFix._(potentialModification.modifications.toList(),
-        potentialModification.source, kind);
+    return _SingleNullabilityFix._(source, kind);
   }
 
-  _SingleNullabilityFix._(this.sourceEdits, this.source, this.kind);
+  _SingleNullabilityFix._(this.source, this.kind);
 
   /// TODO(paulberry): do something better
   Location get location => null;

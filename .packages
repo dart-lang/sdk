@@ -16,7 +16,6 @@ analyzer_plugin:pkg/analyzer_plugin/lib
 args:third_party/pkg/args/lib
 async:third_party/pkg/async/lib
 async_helper:pkg/async_helper/lib
-barback:third_party/pkg/barback/lib
 bazel_worker:third_party/pkg/bazel_worker/lib
 boolean_selector:third_party/pkg/boolean_selector/lib
 build_integration:pkg/build_integration/lib
@@ -48,7 +47,6 @@ http_parser:third_party/pkg/http_parser/lib
 http_retry:third_party/pkg/http_retry/lib
 http_throttle:third_party/pkg/http_throttle/lib
 intl:third_party/pkg/intl/lib
-isolate:third_party/pkg/isolate/lib
 js:pkg/js/lib
 js_ast:pkg/js_ast/lib
 js_runtime:sdk/lib/_internal/js_runtime/lib
@@ -64,12 +62,13 @@ mockito:third_party/pkg/mockito/lib
 mustache:third_party/pkg/mustache/lib
 oauth2:third_party/pkg/oauth2/lib
 observatory:runtime/observatory/lib
+observatory_test_package:runtime/observatory/tests/service/observatory_test_package
 package_config:third_party/pkg_tested/package_config/lib
 package_resolver:third_party/pkg_tested/package_resolver/lib
 path:third_party/pkg/path/lib
-plugin:third_party/pkg/plugin/lib
+pedantic:third_party/pkg/pedantic/lib
 pool:third_party/pkg/pool/lib
-protobuf:third_party/pkg/protobuf/lib
+protobuf:third_party/pkg/protobuf/protobuf/lib
 pub:third_party/pkg/pub/lib
 pub_semver:third_party/pkg/pub_semver/lib
 quiver:third_party/pkg/quiver/lib
@@ -90,7 +89,9 @@ stream_channel:third_party/pkg/stream_channel/lib
 string_scanner:third_party/pkg/string_scanner/lib
 telemetry:pkg/telemetry/lib
 term_glyph:third_party/pkg/term_glyph/lib
-test:third_party/pkg/test/lib
+test:third_party/pkg/test/pkgs/test/lib
+test_api:third_party/pkg/test/pkgs/test_api/lib
+test_core:third_party/pkg/test/pkgs/test_core/lib
 test_dart:tools/testing/dart
 test_descriptor:third_party/pkg/test_descriptor/lib
 test_process:third_party/pkg/test_process/lib
@@ -99,7 +100,6 @@ testing:pkg/testing/lib
 typed_data:third_party/pkg/typed_data/lib
 unittest:third_party/pkg/unittest/lib
 usage:third_party/pkg/usage/lib
-utf:third_party/pkg/utf/lib
 vm:pkg/vm/lib
 watcher:third_party/pkg/watcher/lib
 web_components:third_party/pkg/web_components/lib

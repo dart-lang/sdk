@@ -13,9 +13,10 @@ import 'package:analysis_server/src/services/correction/selection_analyzer.dart'
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -53,6 +54,7 @@ class AssistProcessor {
   final TypeProvider typeProvider;
   final String file;
   final CorrectionUtils utils;
+  final Flutter flutter;
 
   final List<Assist> assists = <Assist>[];
 
@@ -66,7 +68,8 @@ class AssistProcessor {
         sessionHelper = AnalysisSessionHelper(context.resolveResult.session),
         typeProvider = context.resolveResult.typeProvider,
         file = context.resolveResult.path,
-        utils = new CorrectionUtils(context.resolveResult);
+        utils = new CorrectionUtils(context.resolveResult),
+        flutter = Flutter.of(context.resolveResult.session);
 
   /**
    * Returns the EOL to use for this [CompilationUnit].
@@ -101,6 +104,7 @@ class AssistProcessor {
     await _addProposal_convertMapConstructorToMapLiteral();
     await _addProposal_convertPartOfToUri();
     await _addProposal_convertSetConstructorToSetLiteral();
+    await _addProposal_convertToAbsoluteImport();
     await _addProposal_convertToAsyncFunctionBody();
     await _addProposal_convertToBlockFunctionBody();
     await _addProposal_convertToDoubleQuotedString();
@@ -114,6 +118,7 @@ class AssistProcessor {
     await _addProposal_convertToIsNotEmpty();
     await _addProposal_convertToMultilineString();
     await _addProposal_convertToNormalParameter();
+    await _addProposal_convertToNullAware();
     await _addProposal_convertToSingleQuotedString();
     await _addProposal_encapsulateField();
     await _addProposal_exchangeOperands();
@@ -129,6 +134,7 @@ class AssistProcessor {
     await _addProposal_flutterWrapWidget();
     await _addProposal_flutterWrapWidgets();
     await _addProposal_importAddShow();
+    await _addProposal_inlineAdd();
     await _addProposal_introduceLocalTestedType();
     await _addProposal_invertIf();
     await _addProposal_joinIfStatementInner();
@@ -145,7 +151,7 @@ class AssistProcessor {
 
     if (experimentStatus.control_flow_collections) {
       await _addProposal_convertConditionalExpressionToIfElement();
-      await _addProposal_convertMapFromIterableToIfLiteral();
+      await _addProposal_convertMapFromIterableToForLiteral();
     }
     if (experimentStatus.spread_collections) {
       await _addProposal_convertAddAllToSpread();
@@ -164,6 +170,18 @@ class AssistProcessor {
       await _addProposal_convertClassToMixin();
     } else if (assistKind == DartAssistKind.CONVERT_TO_INT_LITERAL) {
       await _addProposal_convertToIntLiteral();
+    } else if (assistKind == DartAssistKind.CONVERT_TO_SPREAD) {
+      if (experimentStatus.spread_collections) {
+        await _addProposal_convertAddAllToSpread();
+      }
+    } else if (assistKind == DartAssistKind.CONVERT_TO_FOR_ELEMENT) {
+      if (experimentStatus.control_flow_collections) {
+        await _addProposal_convertMapFromIterableToForLiteral();
+      }
+    } else if (assistKind == DartAssistKind.CONVERT_TO_IF_ELEMENT) {
+      if (experimentStatus.control_flow_collections) {
+        await _addProposal_convertConditionalExpressionToIfElement();
+      }
     }
     return assists;
   }
@@ -219,12 +237,16 @@ class AssistProcessor {
     DeclaredIdentifier declaredIdentifier =
         node.thisOrAncestorOfType<DeclaredIdentifier>();
     if (declaredIdentifier == null) {
-      ForEachStatement forEach = node.thisOrAncestorOfType<ForEachStatement>();
+      ForStatement forEach = node.thisOrAncestorMatching(
+          (node) => node is ForStatement && node.forLoopParts is ForEachParts);
+      ForEachParts forEachParts = forEach?.forLoopParts;
       int offset = node.offset;
       if (forEach != null &&
-          forEach.iterable != null &&
-          offset < forEach.iterable.offset) {
-        declaredIdentifier = forEach.loopVariable;
+          forEachParts.iterable != null &&
+          offset < forEachParts.iterable.offset) {
+        declaredIdentifier = forEachParts is ForEachPartsWithDeclaration
+            ? forEachParts.loopVariable
+            : null;
       }
     }
     if (declaredIdentifier == null) {
@@ -442,17 +464,20 @@ class AssistProcessor {
     CascadeExpression cascade = invocation.thisOrAncestorOfType();
     NodeList<Expression> sections = cascade.cascadeSections;
     Expression target = cascade.target;
-    if (target is! ListLiteral2 || sections[0] != invocation) {
+    if (target is! ListLiteral || sections[0] != invocation) {
+      // TODO(brianwilkerson) Consider extending this to handle set literals.
       _coverageMarker();
       return;
     }
 
     bool isEmptyListLiteral(Expression expression) =>
-        expression is ListLiteral2 && expression.elements.isEmpty;
+        expression is ListLiteral && expression.elements.isEmpty;
 
-    ListLiteral2 list = target;
+    ListLiteral list = target;
     Expression argument = invocation.argumentList.arguments[0];
     String elementText;
+    AssistKind kind = DartAssistKind.CONVERT_TO_SPREAD;
+    List<String> args = null;
     if (argument is BinaryExpression &&
         argument.operator.type == TokenType.QUESTION_QUESTION) {
       Expression right = argument.rightOperand;
@@ -471,14 +496,34 @@ class AssistProcessor {
         String thenText = utils.getNodeText(argument.thenExpression);
         elementText = 'if ($conditionText) ...$thenText';
       }
+    } else if (argument is ListLiteral) {
+      // ..addAll([ ... ])
+      NodeList<CollectionElement> elements = argument.elements;
+      if (elements.isEmpty) {
+        // TODO(brianwilkerson) Consider adding a cleanup for the empty list
+        //  case. We can essentially remove the whole invocation because it does
+        //  nothing.
+        return;
+      }
+      int startOffset = elements.first.offset;
+      int endOffset = elements.last.end;
+      elementText = utils.getText(startOffset, endOffset - startOffset);
+      kind = DartAssistKind.INLINE_INVOCATION;
+      args = ['addAll'];
     }
     elementText ??= '...${utils.getNodeText(argument)}';
     DartChangeBuilder changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+      if (list.elements.isNotEmpty) {
+        // ['a']..addAll(['b', 'c']);
+        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+      } else {
+        // []..addAll(['b', 'c']);
+        builder.addSimpleInsertion(list.leftBracket.end, elementText);
+      }
       builder.addDeletion(range.node(invocation));
     });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_SPREAD);
+    _addAssistFromBuilder(changeBuilder, kind, args: args);
   }
 
   Future<void> _addProposal_convertClassToMixin() async {
@@ -538,8 +583,8 @@ class AssistProcessor {
   }
 
   Future<void> _addProposal_convertConditionalExpressionToIfElement() async {
-    AstNode node = this.node;
-    if (node is! ConditionalExpression) {
+    AstNode node = this.node.thisOrAncestorOfType<ConditionalExpression>();
+    if (node == null) {
       _coverageMarker();
       return;
     }
@@ -549,8 +594,7 @@ class AssistProcessor {
       nodeToReplace = parent;
       parent = parent.parent;
     }
-    // TODO(brianwilkerson) Consider adding support for map literals.
-    if (parent is ListLiteral2 || parent is SetLiteral2) {
+    if (parent is ListLiteral || (parent is SetOrMapLiteral && parent.isSet)) {
       ConditionalExpression conditional = node;
       Expression condition = conditional.condition.unParenthesized;
       Expression thenExpression = conditional.thenExpression.unParenthesized;
@@ -857,10 +901,6 @@ class AssistProcessor {
       hasTypeArgs = target.typeArguments != null;
       openRange = range.token(target.leftBracket);
       closeRange = range.startEnd(target.rightBracket, invocation);
-    } else if (target is ListLiteral2) {
-      hasTypeArgs = target.typeArguments != null;
-      openRange = range.token(target.leftBracket);
-      closeRange = range.startEnd(target.rightBracket, invocation);
     } else {
       _coverageMarker();
       return;
@@ -919,7 +959,7 @@ class AssistProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_MAP_LITERAL);
   }
 
-  Future<void> _addProposal_convertMapFromIterableToIfLiteral() async {
+  Future<void> _addProposal_convertMapFromIterableToForLiteral() async {
     //
     // Ensure that the selection is inside an invocation of Map.fromIterable.
     //
@@ -1073,7 +1113,7 @@ class AssistProcessor {
         builder.write(' }');
       });
     });
-    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_IF_ELEMENT);
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_FOR_ELEMENT);
   }
 
   Future<void> _addProposal_convertPartOfToUri() async {
@@ -1126,11 +1166,6 @@ class AssistProcessor {
       }
       if (arguments[0] is ListLiteral) {
         ListLiteral elements = arguments[0] as ListLiteral;
-        elementTypeArguments = elements.typeArguments;
-        elementsRange =
-            range.endStart(elements.leftBracket, elements.rightBracket);
-      } else if (arguments[0] is ListLiteral2) {
-        ListLiteral2 elements = arguments[0] as ListLiteral2;
         elementTypeArguments = elements.typeArguments;
         elementsRange =
             range.endStart(elements.leftBracket, elements.rightBracket);
@@ -1192,6 +1227,29 @@ class AssistProcessor {
       });
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_SET_LITERAL);
+  }
+
+  Future<void> _addProposal_convertToAbsoluteImport() async {
+    var node = this.node;
+    if (node is StringLiteral) {
+      node = node.parent;
+    }
+    if (node is ImportDirective) {
+      var importDirective = node;
+      var importUri = node.uriSource?.uri;
+      if (importUri?.scheme != 'package') {
+        return;
+      }
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (builder) {
+        builder.addSimpleReplacement(
+            range.node(importDirective.uri), "'$importUri'");
+      });
+      _addAssistFromBuilder(
+        changeBuilder,
+        DartAssistKind.CONVERT_INTO_ABSOLUTE_IMPORT,
+      );
+    }
   }
 
   Future<void> _addProposal_convertToAsyncFunctionBody() async {
@@ -1430,26 +1488,30 @@ class AssistProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // find enclosing ForEachStatement
-    ForEachStatement forEachStatement =
-        node.thisOrAncestorOfType<ForEachStatement>();
+    ForStatement forEachStatement = node.thisOrAncestorMatching(
+        (node) => node is ForStatement && node.forLoopParts is ForEachParts);
     if (forEachStatement == null) {
       _coverageMarker();
       return;
     }
+    ForEachParts forEachParts = forEachStatement.forLoopParts;
     if (selectionOffset < forEachStatement.offset ||
         forEachStatement.rightParenthesis.end < selectionOffset) {
       _coverageMarker();
       return;
     }
     // loop should declare variable
-    DeclaredIdentifier loopVariable = forEachStatement.loopVariable;
+    DeclaredIdentifier loopVariable =
+        forEachParts is ForEachPartsWithDeclaration
+            ? forEachParts.loopVariable
+            : null;
     if (loopVariable == null) {
       _coverageMarker();
       return;
     }
     // iterable should be VariableElement
     String listName;
-    Expression iterable = forEachStatement.iterable;
+    Expression iterable = forEachParts.iterable;
     if (iterable is SimpleIdentifier &&
         iterable.staticElement is VariableElement) {
       listName = iterable.name;
@@ -1593,7 +1655,7 @@ class AssistProcessor {
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       if (getExpressionParentPrecedence(prefExpression) >=
-          TokenClass.RELATIONAL_OPERATOR.precedence) {
+          Precedence.relational) {
         builder.addDeletion(range.token(prefExpression.operator));
       } else {
         builder.addDeletion(
@@ -1647,7 +1709,7 @@ class AssistProcessor {
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       if (getExpressionParentPrecedence(prefExpression) >=
-          TokenClass.RELATIONAL_OPERATOR.precedence) {
+          Precedence.relational) {
         builder.addDeletion(range.token(prefExpression.operator));
       } else {
         builder.addDeletion(
@@ -1791,6 +1853,95 @@ class AssistProcessor {
       });
       _addAssistFromBuilder(
           changeBuilder, DartAssistKind.CONVERT_TO_NORMAL_PARAMETER);
+    }
+  }
+
+  Future<void> _addProposal_convertToNullAware() async {
+    AstNode node = this.node;
+    if (node is! ConditionalExpression) {
+      _coverageMarker();
+      return;
+    }
+    ConditionalExpression conditional = node;
+    Expression condition = conditional.condition.unParenthesized;
+    SimpleIdentifier identifier;
+    Expression nullExpression;
+    Expression nonNullExpression;
+    int periodOffset;
+
+    if (condition is BinaryExpression) {
+      //
+      // Identify the variable being compared to `null`, or return if the
+      // condition isn't a simple comparison of `null` to a variable's value.
+      //
+      Expression leftOperand = condition.leftOperand;
+      Expression rightOperand = condition.rightOperand;
+      if (leftOperand is NullLiteral && rightOperand is SimpleIdentifier) {
+        identifier = rightOperand;
+      } else if (rightOperand is NullLiteral &&
+          leftOperand is SimpleIdentifier) {
+        identifier = leftOperand;
+      } else {
+        _coverageMarker();
+        return;
+      }
+      if (identifier.staticElement is! LocalElement) {
+        _coverageMarker();
+        return;
+      }
+      //
+      // Identify the expression executed when the variable is `null` and when
+      // it is non-`null`. Return if the `null` expression isn't a null literal
+      // or if the non-`null` expression isn't a method invocation whose target
+      // is the save variable being compared to `null`.
+      //
+      if (condition.operator.type == TokenType.EQ_EQ) {
+        nullExpression = conditional.thenExpression;
+        nonNullExpression = conditional.elseExpression;
+      } else if (condition.operator.type == TokenType.BANG_EQ) {
+        nonNullExpression = conditional.thenExpression;
+        nullExpression = conditional.elseExpression;
+      }
+      if (nullExpression == null || nonNullExpression == null) {
+        _coverageMarker();
+        return;
+      }
+      if (nullExpression.unParenthesized is! NullLiteral) {
+        _coverageMarker();
+        return;
+      }
+      Expression unwrappedExpression = nonNullExpression.unParenthesized;
+      Expression target;
+      Token operator;
+      if (unwrappedExpression is MethodInvocation) {
+        target = unwrappedExpression.target;
+        operator = unwrappedExpression.operator;
+      } else if (unwrappedExpression is PrefixedIdentifier) {
+        target = unwrappedExpression.prefix;
+        operator = unwrappedExpression.period;
+      } else {
+        _coverageMarker();
+        return;
+      }
+      if (operator.type != TokenType.PERIOD) {
+        _coverageMarker();
+        return;
+      }
+      if (!(target is SimpleIdentifier &&
+          target.staticElement == identifier.staticElement)) {
+        _coverageMarker();
+        return;
+      }
+      periodOffset = operator.offset;
+
+      DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(range.startStart(node, nonNullExpression));
+        builder.addSimpleInsertion(periodOffset, '?');
+        builder.addDeletion(range.endEnd(nonNullExpression, node));
+      });
+      _addAssistFromBuilder(
+          changeBuilder, DartAssistKind.CONVERT_TO_NULL_AWARE);
     }
   }
 
@@ -2120,9 +2271,13 @@ class AssistProcessor {
     }
 
     var statefulWidgetClass = await sessionHelper.getClass(
-        flutter.WIDGETS_LIBRARY_URI, 'StatefulWidget');
-    var stateClass =
-        await sessionHelper.getClass(flutter.WIDGETS_LIBRARY_URI, 'State');
+      flutter.widgetsUri,
+      'StatefulWidget',
+    );
+    var stateClass = await sessionHelper.getClass(
+      flutter.widgetsUri,
+      'State',
+    );
     if (statefulWidgetClass == null || stateClass == null) {
       return;
     }
@@ -2233,12 +2388,12 @@ class AssistProcessor {
 
     AstNode parentList = widget.parent;
     if (parentList is ListLiteral) {
-      List<Expression> parentElements = parentList.elements;
+      List<CollectionElement> parentElements = parentList.elements;
       int index = parentElements.indexOf(widget);
       if (index != parentElements.length - 1) {
         var changeBuilder = _newDartChangeBuilder();
         await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          Expression nextWidget = parentElements[index + 1];
+          CollectionElement nextWidget = parentElements[index + 1];
           var nextRange = range.node(nextWidget);
           var nextText = utils.getRangeText(nextRange);
 
@@ -2267,12 +2422,12 @@ class AssistProcessor {
 
     AstNode parentList = widget.parent;
     if (parentList is ListLiteral) {
-      List<Expression> parentElements = parentList.elements;
+      List<CollectionElement> parentElements = parentList.elements;
       int index = parentElements.indexOf(widget);
       if (index > 0) {
         var changeBuilder = _newDartChangeBuilder();
         await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          Expression previousWidget = parentElements[index - 1];
+          CollectionElement previousWidget = parentElements[index - 1];
           var previousRange = range.node(previousWidget);
           var previousText = utils.getRangeText(previousRange);
 
@@ -2299,7 +2454,7 @@ class AssistProcessor {
     }
 
     // Prepare the list of our children.
-    List<Expression> childrenExpressions;
+    List<CollectionElement> childrenExpressions;
     {
       var childrenArgument = flutter.findChildrenArgument(widgetCreation);
       var childrenExpression = childrenArgument?.expression;
@@ -2410,7 +2565,7 @@ class AssistProcessor {
     String widgetSrc = utils.getNodeText(widgetExpr);
 
     var streamBuilderElement = await sessionHelper.getClass(
-      flutter.WIDGETS_LIBRARY_URI,
+      flutter.widgetsUri,
       'StreamBuilder',
     );
     if (streamBuilderElement == null) {
@@ -2421,7 +2576,10 @@ class AssistProcessor {
     await changeBuilder.addFileEdit(file, (builder) {
       builder.addReplacement(range.node(widgetExpr), (builder) {
         builder.writeType(streamBuilderElement.type);
-        builder.writeln('<Object>(');
+
+        builder.write('<');
+        builder.addSimpleLinkedEdit('type', 'Object');
+        builder.writeln('>(');
 
         String indentOld = utils.getLinePrefix(widgetExpr.offset);
         String indentNew1 = indentOld + utils.getIndent(1);
@@ -2460,21 +2618,21 @@ class AssistProcessor {
     await _addProposal_flutterWrapWidgetImpl();
     await _addProposal_flutterWrapWidgetImpl(
         kind: DartAssistKind.FLUTTER_WRAP_CENTER,
-        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentLibraryUri: flutter.widgetsUri,
         parentClassName: 'Center',
         widgetValidator: (expr) {
           return !flutter.isExactWidgetTypeCenter(expr.staticType);
         });
     await _addProposal_flutterWrapWidgetImpl(
         kind: DartAssistKind.FLUTTER_WRAP_CONTAINER,
-        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentLibraryUri: flutter.widgetsUri,
         parentClassName: 'Container',
         widgetValidator: (expr) {
           return !flutter.isExactWidgetTypeContainer(expr.staticType);
         });
     await _addProposal_flutterWrapWidgetImpl(
         kind: DartAssistKind.FLUTTER_WRAP_PADDING,
-        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentLibraryUri: flutter.widgetsUri,
         parentClassName: 'Padding',
         leadingLines: ['padding: const EdgeInsets.all(8.0),'],
         widgetValidator: (expr) {
@@ -2588,7 +2746,7 @@ class AssistProcessor {
       ClassElement parentClassElement =
           await sessionHelper.getClass(parentLibraryUri, parentClassName);
       ClassElement widgetClassElement =
-          await sessionHelper.getClass(flutter.WIDGETS_LIBRARY_URI, 'Widget');
+          await sessionHelper.getClass(flutter.widgetsUri, 'Widget');
       if (parentClassElement == null || widgetClassElement == null) {
         return;
       }
@@ -2630,11 +2788,11 @@ class AssistProcessor {
 
     await addAssist(
         kind: DartAssistKind.FLUTTER_WRAP_COLUMN,
-        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentLibraryUri: flutter.widgetsUri,
         parentClassName: 'Column');
     await addAssist(
         kind: DartAssistKind.FLUTTER_WRAP_ROW,
-        parentLibraryUri: flutter.WIDGETS_LIBRARY_URI,
+        parentLibraryUri: flutter.widgetsUri,
         parentClassName: 'Row');
   }
 
@@ -2681,6 +2839,48 @@ class AssistProcessor {
       builder.addSimpleInsertion(importDirective.end - 1, showCombinator);
     });
     _addAssistFromBuilder(changeBuilder, DartAssistKind.IMPORT_ADD_SHOW);
+  }
+
+  Future<void> _addProposal_inlineAdd() async {
+    AstNode node = this.node;
+    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
+      _coverageMarker();
+      return;
+    }
+    SimpleIdentifier name = node;
+    MethodInvocation invocation = node.parent;
+    if (name != invocation.methodName ||
+        name.name != 'add' ||
+        !invocation.isCascaded ||
+        invocation.argumentList.arguments.length != 1) {
+      _coverageMarker();
+      return;
+    }
+    CascadeExpression cascade = invocation.thisOrAncestorOfType();
+    NodeList<Expression> sections = cascade.cascadeSections;
+    Expression target = cascade.target;
+    if (target is! ListLiteral || sections[0] != invocation) {
+      // TODO(brianwilkerson) Consider extending this to handle set literals.
+      _coverageMarker();
+      return;
+    }
+    ListLiteral list = target;
+    Expression argument = invocation.argumentList.arguments[0];
+    String elementText = utils.getNodeText(argument);
+
+    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      if (list.elements.isNotEmpty) {
+        // ['a']..add(e);
+        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+      } else {
+        // []..add(e);
+        builder.addSimpleInsertion(list.leftBracket.end, elementText);
+      }
+      builder.addDeletion(range.node(invocation));
+    });
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.INLINE_INVOCATION,
+        args: ['add']);
   }
 
   Future<void> _addProposal_introduceLocalTestedType() async {
@@ -3112,7 +3312,7 @@ class AssistProcessor {
     if (node is! ListLiteral) {
       return;
     }
-    if ((node as ListLiteral).elements.any((Expression exp) =>
+    if ((node as ListLiteral).elements.any((CollectionElement exp) =>
         !(exp is InstanceCreationExpression &&
             flutter.isWidgetCreation(exp)))) {
       _coverageMarker();
@@ -3905,8 +4105,6 @@ class AssistProcessor {
   /// set literal rather than a map literal.
   bool _listHasUnambiguousElement(AstNode node) {
     if (node is ListLiteral && node.elements.length > 0) {
-      return true;
-    } else if (node is ListLiteral2) {
       for (CollectionElement element in node.elements) {
         if (_isUnambiguousElement(element)) {
           return true;

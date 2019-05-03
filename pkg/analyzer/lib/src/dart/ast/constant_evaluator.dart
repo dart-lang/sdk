@@ -261,29 +261,20 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   @override
   Object visitListLiteral(ListLiteral node) {
     List<Object> list = new List<Object>();
-    for (Expression element in node.elements) {
-      Object value = element.accept(this);
-      if (identical(value, NOT_A_CONSTANT)) {
-        return value;
-      }
-      list.add(value);
-    }
-    return list;
-  }
-
-  @override
-  Object visitMapLiteral(MapLiteral node) {
-    Map<String, Object> map = new HashMap<String, Object>();
-    for (MapLiteralEntry entry in node.entries) {
-      Object key = entry.key.accept(this);
-      Object value = entry.value.accept(this);
-      if (key is String && !identical(value, NOT_A_CONSTANT)) {
-        map[key] = value;
+    for (CollectionElement element in node.elements) {
+      if (element is Expression) {
+        Object value = element.accept(this);
+        if (identical(value, NOT_A_CONSTANT)) {
+          return value;
+        }
+        list.add(value);
       } else {
+        // There are a lot of constants that this class does not support, so we
+        // didn't add support for the extended collection support.
         return NOT_A_CONSTANT;
       }
     }
-    return map;
+    return list;
   }
 
   @override
@@ -334,6 +325,30 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitPropertyAccess(PropertyAccess node) => _getConstantValue(null);
+
+  @override
+  Object visitSetOrMapLiteral(SetOrMapLiteral node) {
+    // There are a lot of constants that this class does not support, so we
+    // didn't add support for set literals. As a result, this assumes that we're
+    // looking at a map literal until we prove otherwise.
+    Map<String, Object> map = new HashMap<String, Object>();
+    for (CollectionElement element in node.elements) {
+      if (element is MapLiteralEntry) {
+        Object key = element.key.accept(this);
+        Object value = element.value.accept(this);
+        if (key is String && !identical(value, NOT_A_CONSTANT)) {
+          map[key] = value;
+        } else {
+          return NOT_A_CONSTANT;
+        }
+      } else {
+        // There are a lot of constants that this class does not support, so
+        // we didn't add support for the extended collection support.
+        return NOT_A_CONSTANT;
+      }
+    }
+    return map;
+  }
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) =>

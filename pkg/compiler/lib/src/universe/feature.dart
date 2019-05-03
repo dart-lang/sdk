@@ -103,12 +103,14 @@ class MapLiteralUse {
 
   MapLiteralUse(this.type, {this.isConstant: false, this.isEmpty: false});
 
+  @override
   int get hashCode {
     return type.hashCode * 13 +
         isConstant.hashCode * 17 +
         isEmpty.hashCode * 19;
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! MapLiteralUse) return false;
@@ -117,9 +119,36 @@ class MapLiteralUse {
         isEmpty == other.isEmpty;
   }
 
+  @override
   String toString() {
     return 'MapLiteralUse($type,isConstant:$isConstant,isEmpty:$isEmpty)';
   }
+}
+
+/// Describes a use of a set literal in the program.
+class SetLiteralUse {
+  final InterfaceType type;
+  final bool isConstant;
+  final bool isEmpty;
+
+  SetLiteralUse(this.type, {this.isConstant: false, this.isEmpty: false});
+
+  @override
+  int get hashCode =>
+      type.hashCode * 13 + isConstant.hashCode * 17 + isEmpty.hashCode * 19;
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! SetLiteralUse) return false;
+    return type == other.type &&
+        isConstant == other.isConstant &&
+        isEmpty == other.isEmpty;
+  }
+
+  @override
+  String toString() =>
+      'SetLiteralUse($type,isConstant:$isConstant,isEmpty:$isEmpty)';
 }
 
 /// Describes the use of a list literal in the program.
@@ -130,12 +159,14 @@ class ListLiteralUse {
 
   ListLiteralUse(this.type, {this.isConstant: false, this.isEmpty: false});
 
+  @override
   int get hashCode {
     return type.hashCode * 13 +
         isConstant.hashCode * 17 +
         isEmpty.hashCode * 19;
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! ListLiteralUse) return false;
@@ -144,6 +175,7 @@ class ListLiteralUse {
         isEmpty == other.isEmpty;
   }
 
+  @override
   String toString() {
     return 'ListLiteralUse($type,isConstant:$isConstant,isEmpty:$isEmpty)';
   }
@@ -162,11 +194,13 @@ class RuntimeTypeUse {
 
   RuntimeTypeUse(this.kind, this.receiverType, this.argumentType);
 
+  @override
   int get hashCode =>
       kind.hashCode * 13 +
       receiverType.hashCode * 17 +
       argumentType.hashCode * 19;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! RuntimeTypeUse) return false;
@@ -197,6 +231,7 @@ class RuntimeTypeUse {
     return sb.toString();
   }
 
+  @override
   String toString() => 'RuntimeTypeUse(kind=$kind,receiver=$receiverType'
       ',argument=$argumentType)';
 }
@@ -215,9 +250,11 @@ class GenericInstantiation {
   /// Short textual representation use for testing.
   String get shortText => '<${typeArguments.join(',')}>';
 
+  @override
   int get hashCode =>
       Hashing.listHash(typeArguments, Hashing.objectHash(functionType));
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! GenericInstantiation) return false;
@@ -225,6 +262,7 @@ class GenericInstantiation {
         equalElements(typeArguments, other.typeArguments);
   }
 
+  @override
   String toString() {
     return 'GenericInstantiation(functionType:$functionType,'
         'typeArguments:$typeArguments)';

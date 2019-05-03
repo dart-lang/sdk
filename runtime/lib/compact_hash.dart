@@ -8,7 +8,7 @@
 
 // This function takes care of rehashing of the linked hashmaps in [objects]. We
 // do this eagerly after snapshot deserialization.
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 void _rehashObjects(List objects) {
   final int length = objects.length;
   for (int i = 0; i < length; ++i) {
@@ -614,6 +614,11 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
   // is not required by the spec. (For instance, always using an identity set
   // would be technically correct, albeit surprising.)
   Set<E> toSet() => new _CompactLinkedHashSet<E>()..addAll(this);
+
+  // This method is called by [_rehashObjects] (see above).
+  void _regenerateIndex() {
+    _rehash();
+  }
 }
 
 class _CompactLinkedIdentityHashSet<E> extends _CompactLinkedHashSet<E>

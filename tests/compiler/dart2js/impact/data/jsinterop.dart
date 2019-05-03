@@ -7,14 +7,19 @@ library jsinterop;
 
 import 'package:js/js.dart';
 
-/*element: main:static=[testJsInteropClass(0),testJsInteropMethod(0),testOptionalGenericFunctionTypeArgument(0)]*/
+/*element: main:
+ static=[
+  testJsInteropClass(0),
+  testJsInteropMethod(0),
+  testOptionalGenericFunctionTypeArgument(0)]
+*/
 main() {
   testOptionalGenericFunctionTypeArgument();
   testJsInteropMethod();
   testJsInteropClass();
 }
 
-/*strong.element: testJsInteropMethod:*/
+/*element: testJsInteropMethod:*/
 @JS()
 external int testJsInteropMethod();
 
@@ -23,7 +28,7 @@ class JsInteropClass {
   /*element: JsInteropClass.:static=[JavaScriptObject.(0)]*/
   external JsInteropClass();
 
-  /*strong.element: JsInteropClass.method:
+  /*element: JsInteropClass.method:
    type=[
     native:ApplicationCacheErrorEvent,
     native:DomError,
@@ -43,7 +48,7 @@ class JsInteropClass {
   external double method();
 }
 
-/*strong.element: testJsInteropClass:
+/*element: testJsInteropClass:
  dynamic=[JavaScriptObject.method(0)],
  static=[JsInteropClass.(0)]
 */
@@ -54,7 +59,7 @@ typedef void Callback<T>(T value);
 /*element: GenericClass.:static=[JavaScriptObject.(0)]*/
 @JS()
 class GenericClass<T> {
-  /*strong.element: GenericClass.method:
+  /*element: GenericClass.method:
    static=[
     checkSubtype(4),
     getRuntimeTypeArgument(3),
@@ -75,7 +80,7 @@ class GenericClass<T> {
   external GenericClass method([Callback<T> callback]);
 }
 
-/*strong.element: testOptionalGenericFunctionTypeArgument:
+/*element: testOptionalGenericFunctionTypeArgument:
  dynamic=[JavaScriptObject.method(0)],
  static=[GenericClass.(0)]
 */

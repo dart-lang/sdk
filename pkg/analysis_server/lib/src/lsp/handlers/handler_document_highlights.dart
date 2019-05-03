@@ -18,8 +18,8 @@ class DocumentHighlightsHandler extends MessageHandler<
   Method get handlesMessage => Method.textDocument_documentHighlight;
 
   @override
-  TextDocumentPositionParams convertParams(Map<String, dynamic> json) =>
-      TextDocumentPositionParams.fromJson(json);
+  LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
+      TextDocumentPositionParams.jsonHandler;
 
   Future<ErrorOr<List<DocumentHighlight>>> handle(
       TextDocumentPositionParams params) async {

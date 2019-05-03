@@ -13,18 +13,24 @@ import '../elements/types.dart';
 const String kElementPrefix = 'k:';
 
 class KLibrary extends IndexedLibrary {
+  @override
   final String name;
+  @override
   final Uri canonicalUri;
 
   KLibrary(this.name, this.canonicalUri);
 
+  @override
   String toString() => '${kElementPrefix}library($name)';
 }
 
 class KClass extends IndexedClass {
+  @override
   final KLibrary library;
 
+  @override
   final String name;
+  @override
   final bool isAbstract;
 
   KClass(this.library, this.name, {this.isAbstract});
@@ -32,21 +38,27 @@ class KClass extends IndexedClass {
   @override
   bool get isClosure => false;
 
+  @override
   String toString() => '${kElementPrefix}class($name)';
 }
 
 class KTypedef extends IndexedTypedef {
+  @override
   final KLibrary library;
 
+  @override
   final String name;
 
   KTypedef(this.library, this.name);
 
+  @override
   String toString() => '${kElementPrefix}typedef($name)';
 }
 
 abstract class KMember extends IndexedMember {
+  @override
   final KLibrary library;
+  @override
   final KClass enclosingClass;
   final Name _name;
   final bool _isStatic;
@@ -54,8 +66,10 @@ abstract class KMember extends IndexedMember {
   KMember(this.library, this.enclosingClass, this._name, {bool isStatic: false})
       : _isStatic = isStatic;
 
+  @override
   String get name => _name.text;
 
+  @override
   Name get memberName => _name;
 
   @override
@@ -93,14 +107,18 @@ abstract class KMember extends IndexedMember {
 
   String get _kind;
 
+  @override
   String toString() => '${kElementPrefix}$_kind'
       '(${enclosingClass != null ? '${enclosingClass.name}.' : ''}$name)';
 }
 
 abstract class KFunction extends KMember
     implements FunctionEntity, IndexedFunction {
+  @override
   final ParameterStructure parameterStructure;
+  @override
   final bool isExternal;
+  @override
   final AsyncMarker asyncMarker;
 
   KFunction(KLibrary library, KClass enclosingClass, Name name,
@@ -111,6 +129,7 @@ abstract class KFunction extends KMember
 
 abstract class KConstructor extends KFunction
     implements ConstructorEntity, IndexedConstructor {
+  @override
   final bool isConst;
 
   KConstructor(
@@ -135,6 +154,7 @@ abstract class KConstructor extends KFunction
   @override
   bool get isFromEnvironmentConstructor => false;
 
+  @override
   String get _kind => 'constructor';
 }
 
@@ -169,26 +189,8 @@ class KFactoryConstructor extends KConstructor {
   bool get isGenerativeConstructor => false;
 }
 
-class KConstructorBody extends KFunction implements ConstructorBodyEntity {
-  final ConstructorEntity constructor;
-
-  KConstructorBody(this.constructor)
-      : super(
-            constructor.library,
-            constructor.enclosingClass,
-            constructor.memberName,
-            constructor.parameterStructure,
-            AsyncMarker.SYNC,
-            isStatic: false,
-            isExternal: false);
-
-  @override
-  bool get isFunction => true;
-
-  String get _kind => 'constructor_body';
-}
-
 class KMethod extends KFunction {
+  @override
   final bool isAbstract;
 
   KMethod(KLibrary library, KClass enclosingClass, Name name,
@@ -200,10 +202,12 @@ class KMethod extends KFunction {
   @override
   bool get isFunction => true;
 
+  @override
   String get _kind => 'method';
 }
 
 class KGetter extends KFunction {
+  @override
   final bool isAbstract;
 
   KGetter(KLibrary library, KClass enclosingClass, Name name,
@@ -216,10 +220,12 @@ class KGetter extends KFunction {
   @override
   bool get isGetter => true;
 
+  @override
   String get _kind => 'getter';
 }
 
 class KSetter extends KFunction {
+  @override
   final bool isAbstract;
 
   KSetter(KLibrary library, KClass enclosingClass, Name name,
@@ -234,11 +240,14 @@ class KSetter extends KFunction {
   @override
   bool get isSetter => true;
 
+  @override
   String get _kind => 'setter';
 }
 
 class KField extends KMember implements FieldEntity, IndexedField {
+  @override
   final bool isAssignable;
+  @override
   final bool isConst;
 
   KField(KLibrary library, KClass enclosingClass, Name name,
@@ -248,21 +257,27 @@ class KField extends KMember implements FieldEntity, IndexedField {
   @override
   bool get isField => true;
 
+  @override
   String get _kind => 'field';
 }
 
 class KTypeVariable extends IndexedTypeVariable {
+  @override
   final Entity typeDeclaration;
+  @override
   final String name;
+  @override
   final int index;
 
   KTypeVariable(this.typeDeclaration, this.name, this.index);
 
+  @override
   String toString() =>
       '${kElementPrefix}type_variable(${typeDeclaration.name}.$name)';
 }
 
 class KLocalFunction implements Local {
+  @override
   final String name;
   final MemberEntity memberContext;
   final Entity executableContext;
@@ -272,19 +287,24 @@ class KLocalFunction implements Local {
   KLocalFunction(
       this.name, this.memberContext, this.executableContext, this.node);
 
+  @override
   String toString() => '${kElementPrefix}local_function'
       '(${memberContext.name}.${name ?? '<anonymous>'})';
 }
 
 class KLocalTypeVariable implements TypeVariableEntity {
+  @override
   final Entity typeDeclaration;
+  @override
   final String name;
+  @override
   final int index;
   DartType bound;
   DartType defaultType;
 
   KLocalTypeVariable(this.typeDeclaration, this.name, this.index);
 
+  @override
   String toString() =>
       '${kElementPrefix}local_type_variable(${typeDeclaration.name}.$name)';
 }

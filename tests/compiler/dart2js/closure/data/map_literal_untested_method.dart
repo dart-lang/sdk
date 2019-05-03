@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 
-@NoInline()
+@pragma('dart2js:noInline')
 method<T>() {
   /*omit.*/
   /*strong.fields=[T],free=[T]*/
@@ -12,7 +12,7 @@ method<T>() {
   return local;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o == null;
 
 main() {

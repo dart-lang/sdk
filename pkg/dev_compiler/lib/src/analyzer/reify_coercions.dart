@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/type.dart' show DartType;
 import 'package:analyzer/src/dart/ast/ast.dart' show FunctionBodyImpl;
 import 'package:analyzer/src/dart/ast/utilities.dart'
     show AstCloner, NodeReplacer;
-import 'package:analyzer/src/dart/element/type.dart' show DynamicTypeImpl;
 import 'package:analyzer/src/generated/parser.dart' show ResolutionCopier;
 import 'package:analyzer/src/task/strong/ast_properties.dart' as ast_properties;
 
@@ -67,6 +66,13 @@ class CoercionReifier extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  visitSpreadElement(SpreadElement node) {
+    // Skip visiting the expression so we can handle all casts during code
+    // generation.
+    node.expression.visitChildren(this);
+  }
+
+  @override
   visitMethodInvocation(MethodInvocation node) {
     if (isInlineJS(node.methodName.staticElement)) {
       // Don't cast our inline-JS code in SDK.
@@ -82,29 +88,26 @@ class CoercionReifier extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  visitForEachStatement(ForEachStatement node) {
-    // Visit other children.
-    node.iterable.accept(this);
-    node.body.accept(this);
+  void visitForStatement(ForStatement node) {
+    var forLoopParts = node.forLoopParts;
+    if (forLoopParts is ForEachParts) {
+      // Visit other children.
+      forLoopParts.iterable.accept(this);
+      node.body.accept(this);
+    } else {
+      super.visitForStatement(node);
+    }
+  }
 
-    // If needed, assert a cast inside the body before the variable is read.
-    var variable = node.identifier ?? node.loopVariable.identifier;
-    var castType = ast_properties.getImplicitCast(variable);
-    if (castType != null) {
-      // Build the cast. We will place this cast in the body, so need to clone
-      // the variable's AST node and clear out its static type (otherwise we
-      // will optimize away the cast).
-      var cast = castExpression(
-          _clone(variable)..staticType = DynamicTypeImpl.instance, castType);
-
-      var body = node.body;
-      var blockBody = <Statement>[ast.expressionStatement(cast)];
-      if (body is Block) {
-        blockBody.addAll(body.statements);
-      } else {
-        blockBody.add(body);
-      }
-      _replaceNode(node, body, ast.block(blockBody));
+  @override
+  void visitForElement(ForElement node) {
+    var forLoopParts = node.forLoopParts;
+    if (forLoopParts is ForEachParts) {
+      // Visit other children.
+      forLoopParts.iterable.accept(this);
+      node.body.accept(this);
+    } else {
+      super.visitForElement(node);
     }
   }
 
@@ -131,6 +134,12 @@ class _TreeCloner extends AstCloner {
           clone, ast_properties.getImplicitCast(node));
       ast_properties.setImplicitOperationCast(
           clone, ast_properties.getImplicitOperationCast(node));
+      ast_properties.setImplicitSpreadCast(
+          clone, ast_properties.getImplicitSpreadCast(node));
+      ast_properties.setImplicitSpreadKeyCast(
+          clone, ast_properties.getImplicitSpreadKeyCast(node));
+      ast_properties.setImplicitSpreadValueCast(
+          clone, ast_properties.getImplicitSpreadValueCast(node));
       ast_properties.setIsDynamicInvoke(
           clone, ast_properties.isDynamicInvoke(node));
     }

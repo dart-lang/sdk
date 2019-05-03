@@ -63,6 +63,7 @@ class ServiceIsolate : public AllStatic {
   static void SetLoadPort(Dart_Port port);
   static void FinishedExiting();
   static void FinishedInitializing();
+  static void InitializingFailed();
   static void MaybeMakeServiceIsolate(Isolate* isolate);
   static Dart_IsolateCreateCallback create_callback() {
     return create_callback_;
@@ -70,8 +71,13 @@ class ServiceIsolate : public AllStatic {
 
   static Dart_IsolateCreateCallback create_callback_;
   static Monitor* monitor_;
-  static bool initializing_;
-  static bool shutting_down_;
+  enum State {
+    kStopped,
+    kStarting,
+    kStarted,
+    kStopping,
+  };
+  static State state_;
   static Isolate* isolate_;
   static Dart_Port port_;
   static Dart_Port load_port_;

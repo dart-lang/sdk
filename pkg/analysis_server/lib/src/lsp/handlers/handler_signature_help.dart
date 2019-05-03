@@ -10,6 +10,7 @@ import 'package:analysis_server/src/computer/computer_signature.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
 class SignatureHelpHandler
     extends MessageHandler<TextDocumentPositionParams, SignatureHelp> {
@@ -17,8 +18,8 @@ class SignatureHelpHandler
   Method get handlesMessage => Method.textDocument_signatureHelp;
 
   @override
-  TextDocumentPositionParams convertParams(Map<String, dynamic> json) =>
-      TextDocumentPositionParams.fromJson(json);
+  LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
+      TextDocumentPositionParams.jsonHandler;
 
   Future<ErrorOr<SignatureHelp>> handle(
       TextDocumentPositionParams params) async {
@@ -28,7 +29,15 @@ class SignatureHelpHandler
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
 
     return offset.mapResult((offset) {
-      final computer = new DartUnitSignatureComputer(unit.result.unit, offset);
+      final computer = new DartUnitSignatureComputer(
+          // TODO(brianwilkerson) Add declarationsTracker to server in order to
+          //  enable dartdoc processing.
+//          server.declarationsTracker
+//              .getContext(unit.result.session.analysisContext)
+//              .dartdocDirectiveInfo,
+          new DartdocDirectiveInfo(),
+          unit.result.unit,
+          offset);
       if (!computer.offsetIsValid) {
         return success(); // No error, just no valid hover.
       }

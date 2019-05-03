@@ -2,6 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Testing Bigints with and without intrinsics.
+// VMOptions=--intrinsify --no-enable-asserts
+// VMOptions=--intrinsify --enable-asserts
+// VMOptions=--no-intrinsify --enable-asserts
+// VMOptions=--optimization-counter-threshold=5 --no-background-compilation
+
 // Test for JavaScript specific BigInt behaviour. Any JavaScript number (double)
 // that is an integral value is a Dart 'int' value, so any BigInt that has a
 // value that is exactly a double integral value should return `true` for

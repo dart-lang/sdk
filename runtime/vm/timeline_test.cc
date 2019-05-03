@@ -100,8 +100,7 @@ class TimelineTestHelper : public AllStatic {
 
 TEST_CASE(TimelineEventIsValid) {
   // Create a test stream.
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   TimelineEvent event;
   TimelineTestHelper::SetStream(&event, &stream);
@@ -120,8 +119,7 @@ TEST_CASE(TimelineEventIsValid) {
 
 TEST_CASE(TimelineEventDuration) {
   // Create a test stream.
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   // Create a test event.
   TimelineEvent event;
@@ -136,8 +134,7 @@ TEST_CASE(TimelineEventDuration) {
 
 TEST_CASE(TimelineEventDurationPrintJSON) {
   // Create a test stream.
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   // Create a test event.
   TimelineEvent event;
@@ -167,8 +164,7 @@ TEST_CASE(TimelineEventPrintSystrace) {
   char buffer[kBufferLength];
 
   // Create a test stream.
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   // Create a test event.
   TimelineEvent event;
@@ -212,8 +208,7 @@ TEST_CASE(TimelineEventPrintSystrace) {
 
 TEST_CASE(TimelineEventArguments) {
   // Create a test stream.
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   // Create a test event.
   TimelineEvent event;
@@ -233,8 +228,7 @@ TEST_CASE(TimelineEventArguments) {
 
 TEST_CASE(TimelineEventArgumentsPrintJSON) {
   // Create a test stream.
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   // Create a test event.
   TimelineEvent event;
@@ -296,8 +290,7 @@ TEST_CASE(TimelineEventCallbackRecorderBasic) {
   }
 
   // Create a test stream.
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   TimelineEvent* event = NULL;
 
@@ -468,8 +461,7 @@ TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
 }
 
 TEST_CASE(TimelineRingRecorderJSONOrder) {
-  TimelineStream stream;
-  stream.Init("testStream", true);
+  TimelineStream stream("testStream", "testStream", true);
 
   TimelineEventRingRecorder* recorder =
       new TimelineEventRingRecorder(TimelineEventBlock::kBlockSize * 2);

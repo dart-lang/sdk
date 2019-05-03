@@ -558,9 +558,7 @@ void OS::SleepMicros(int64_t micros) {
   }
 }
 
-// TODO(regis, iposva): When this function is no longer called from the
-// CodeImmutability test in object_test.cc, it will be called only from the
-// simulator, which means that only the Intel implementation is needed.
+// TODO(regis): Function called only from the simulator.
 void OS::DebugBreak() {
   __builtin_trap();
 }
@@ -660,6 +658,8 @@ void OS::PrintErr(const char* format, ...) {
 void OS::Init() {}
 
 void OS::Cleanup() {}
+
+void OS::PrepareToAbort() {}
 
 void OS::Abort() {
   abort();

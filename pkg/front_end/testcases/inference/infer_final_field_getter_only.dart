@@ -10,7 +10,7 @@ abstract class A {
 }
 
 class B extends A {
-  final /*@topType=int*/ x;
+  final x;
 
   B(this.x);
 }

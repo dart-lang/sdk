@@ -337,6 +337,7 @@ namespace dart {
 //        Jump T         ;; jump if not equal
 //
 //  - If<Cond>Null rA
+//    If<Cond>NullTOS
 //
 //    Cond is Eq or Ne. Skips the next instruction unless the given condition
 //    holds.
@@ -489,6 +490,10 @@ namespace dart {
 //    Store value FP[rD] into object FP[rA] at offset (in words)
 //    stored in the following Nop instruction. Used to access fields with
 //    large offsets.
+//
+//  - StoreUntagged rA, B, rC
+//
+//    Like StoreField, but assumes that FP[rC] is untagged.
 //
 //  - StoreFieldTOS D
 //
@@ -719,6 +724,10 @@ namespace dart {
 //    InstanceCall ... <- lazy deopt inside first call
 //    InstanceCall ... <- patches second call with Deopt
 //
+//  - NullError
+//
+//    Throws a NullError.
+//
 // BYTECODE LIST FORMAT
 //
 // Bytecode list below is specified using the following format:
@@ -858,6 +867,8 @@ namespace dart {
   V(IfEqStrictNum,                       A_D, reg, reg, ___) \
   V(IfEqNull,                              A, reg, ___, ___) \
   V(IfNeNull,                              A, reg, ___, ___) \
+  V(IfEqNullTOS,                           0, ___, ___, ___) \
+  V(IfNeNullTOS,                           0, ___, ___, ___) \
   V(CreateArrayTOS,                        0, ___, ___, ___) \
   V(CreateArrayOpt,                    A_B_C, reg, reg, reg) \
   V(Allocate,                              D, lit, ___, ___) \
@@ -866,14 +877,17 @@ namespace dart {
   V(AllocateTOpt,                        A_D, reg, lit, ___) \
   V(StoreIndexedTOS,                       0, ___, ___, ___) \
   V(StoreIndexed,                      A_B_C, reg, reg, reg) \
-  V(StoreIndexedUint8,                 A_B_C, reg, reg, reg) \
-  V(StoreIndexedExternalUint8,         A_B_C, reg, reg, reg) \
   V(StoreIndexedOneByteString,         A_B_C, reg, reg, reg) \
+  V(StoreIndexedUint8,                 A_B_C, reg, reg, reg) \
   V(StoreIndexedUint32,                A_B_C, reg, reg, reg) \
   V(StoreIndexedFloat32,               A_B_C, reg, reg, reg) \
   V(StoreIndexed4Float32,              A_B_C, reg, reg, reg) \
   V(StoreIndexedFloat64,               A_B_C, reg, reg, reg) \
   V(StoreIndexed8Float64,              A_B_C, reg, reg, reg) \
+  V(StoreIndexedUntaggedUint8,         A_B_C, reg, reg, reg) \
+  V(StoreIndexedUntaggedUint32,        A_B_C, reg, reg, reg) \
+  V(StoreIndexedUntaggedFloat32,       A_B_C, reg, reg, reg) \
+  V(StoreIndexedUntaggedFloat64,       A_B_C, reg, reg, reg) \
   V(NoSuchMethod,                          0, ___, ___, ___) \
   V(TailCall,                              0, ___, ___, ___) \
   V(TailCallOpt,                         A_D, reg, reg, ___) \
@@ -885,20 +899,25 @@ namespace dart {
   V(StoreFpRelativeSlotOpt,             A_B_Y, reg, reg, reg) \
   V(LoadIndexedTOS,                        0, ___, ___, ___) \
   V(LoadIndexed,                       A_B_C, reg, reg, reg) \
+  V(LoadIndexedOneByteString,          A_B_C, reg, reg, reg) \
+  V(LoadIndexedTwoByteString,          A_B_C, reg, reg, reg) \
   V(LoadIndexedUint8,                  A_B_C, reg, reg, reg) \
   V(LoadIndexedInt8,                   A_B_C, reg, reg, reg) \
   V(LoadIndexedInt32,                  A_B_C, reg, reg, reg) \
   V(LoadIndexedUint32,                 A_B_C, reg, reg, reg) \
-  V(LoadIndexedExternalUint8,          A_B_C, reg, reg, reg) \
-  V(LoadIndexedExternalInt8,           A_B_C, reg, reg, reg) \
   V(LoadIndexedFloat32,                A_B_C, reg, reg, reg) \
   V(LoadIndexed4Float32,               A_B_C, reg, reg, reg) \
   V(LoadIndexedFloat64,                A_B_C, reg, reg, reg) \
   V(LoadIndexed8Float64,               A_B_C, reg, reg, reg) \
-  V(LoadIndexedOneByteString,          A_B_C, reg, reg, reg) \
-  V(LoadIndexedTwoByteString,          A_B_C, reg, reg, reg) \
+  V(LoadIndexedUntaggedInt8,           A_B_C, reg, reg, reg) \
+  V(LoadIndexedUntaggedUint8,          A_B_C, reg, reg, reg) \
+  V(LoadIndexedUntaggedInt32,          A_B_C, reg, reg, reg) \
+  V(LoadIndexedUntaggedUint32,         A_B_C, reg, reg, reg) \
+  V(LoadIndexedUntaggedFloat32,        A_B_C, reg, reg, reg) \
+  V(LoadIndexedUntaggedFloat64,        A_B_C, reg, reg, reg) \
   V(StoreField,                        A_B_C, reg, num, reg) \
   V(StoreFieldExt,                       A_D, reg, reg, ___) \
+  V(StoreUntagged,                     A_B_C, reg, num, reg) \
   V(StoreFieldTOS,                         D, num, ___, ___) \
   V(LoadField,                         A_B_C, reg, reg, num) \
   V(LoadFieldExt,                        A_D, reg, reg, ___) \
@@ -937,7 +956,8 @@ namespace dart {
   V(DebugStep,                             0, ___, ___, ___) \
   V(DebugBreak,                            A, num, ___, ___) \
   V(Deopt,                               A_D, num, num, ___) \
-  V(DeoptRewind,                           0, ___, ___, ___)
+  V(DeoptRewind,                           0, ___, ___, ___) \
+  V(NullError,                             0, ___, ___, ___)
 
 // clang-format on
 
@@ -1090,6 +1110,21 @@ enum FpuRegister {
 };
 const FpuRegister FpuTMP = kFakeFpuRegister;
 const intptr_t kNumberOfFpuRegisters = 1;
+
+static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
+    "R0",  "R1",  "R2",  "R3",  "R4",  "R5",  "R6",  "R7",  "R8",  "R9",  "R10",
+    "R11", "R12", "R13", "R14", "R15", "R16", "R17", "R18", "R19", "R20", "R21",
+    "R22", "R23", "R24", "R25", "R26", "R27", "R28", "R29", "R30", "R31",
+#if defined(ARCH_IS_64_BIT)
+    "R32", "R33", "R34", "R35", "R36", "R37", "R38", "R39", "R40", "R41", "R42",
+    "R43", "R44", "R45", "R46", "R47", "R48", "R49", "R50", "R51", "R52", "R53",
+    "R54", "R55", "R56", "R57", "R58", "R59", "R60", "R61", "R62", "R63",
+#endif
+};
+
+static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
+    "F0",
+};
 
 // After a comparison, the condition NEXT_IS_TRUE means the following
 // instruction is executed if the comparison is true and skipped over overwise.

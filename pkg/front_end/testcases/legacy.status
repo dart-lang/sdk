@@ -11,6 +11,7 @@ bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
 call: Fail # Test can't run.
 constructor_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
 constructor_initializer_invalid: RuntimeError # Fails execution after recovery
+control_flow_collection: RuntimeError
 duplicated_field_initializer: RuntimeError
 external_import: RuntimeError # Expected -- test uses import which doesn't exist.
 fallthrough: Fail # Missing FallThroughError.
@@ -35,6 +36,7 @@ invocations: Fail
 micro: Fail # External method marked abstract.
 minimum_int: Crash # Min int literal not supported in non-strong mode.
 named_parameters: Fail # Missing types and unnecessary default values.
+operator_method_not_found: RuntimeError # Expected
 optional: Fail # Unnecessary default values.
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
@@ -42,7 +44,7 @@ rasta/bad_continue: Fail
 rasta/bad_default_constructor: Fail # Compile-time error destroys program.
 rasta/bad_explicit_super_constructor: RuntimeError
 rasta/bad_implicit_super_constructor: RuntimeError
-rasta/bad_interpolation: Fail
+rasta/bad_interpolation: RuntimeError
 rasta/bad_redirection: Fail
 rasta/bad_setter_initializer: RuntimeError
 rasta/bad_unicode: Fail
@@ -68,7 +70,6 @@ rasta/issue_000041: RuntimeError
 rasta/issue_000042: Fail
 rasta/issue_000043: Fail
 rasta/issue_000044: Fail
-rasta/issue_000045: Fail
 rasta/issue_000046: RuntimeError
 rasta/issue_000047: Fail
 rasta/issue_000081: Fail
@@ -112,6 +113,7 @@ regress/issue_35258: RuntimeError # Expected
 regress/issue_35259: RuntimeError # Expected
 regress/issue_35260: RuntimeError # Expected
 regress/issue_35266: RuntimeError # Expected
+regress/issue_36400: RuntimeError
 reject_generic_function_types_in_bounds: RuntimeError # Expected
 runtime_checks/implicit_downcast_constructor_initializer: RuntimeError # Test exercises strong mode semantics
 runtime_checks/implicit_downcast_do: RuntimeError # Test exercises strong mode semantics

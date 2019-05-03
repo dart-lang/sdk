@@ -24,7 +24,8 @@ import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
-import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+import '../api_prototype/experimental_flags.dart'
+    show defaultExperimentalFlags, ExperimentalFlag;
 
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
@@ -155,6 +156,10 @@ class ProcessedOptions {
 
   Ticker ticker;
 
+  Uri get packagesUriRaw => _raw.packagesFileUri;
+
+  bool get enableAsserts => _raw.enableAsserts;
+
   bool get verbose => _raw.verbose;
 
   bool get verify => _raw.verify;
@@ -178,6 +183,8 @@ class ProcessedOptions {
   final Uri output;
 
   final Map<String, String> environmentDefines;
+
+  bool get errorOnUnevaluatedConstant => _raw.errorOnUnevaluatedConstant;
 
   /// Initializes a [ProcessedOptions] object wrapping the given [rawOptions].
   ProcessedOptions({CompilerOptions options, List<Uri> inputs, this.output})
@@ -306,9 +313,11 @@ class ProcessedOptions {
       _raw.target ?? new NoneTarget(new TargetFlags(legacyMode: legacyMode));
 
   bool isExperimentEnabled(ExperimentalFlag flag) {
+    assert(defaultExperimentalFlags.containsKey(flag),
+        "No default value for $flag.");
     // TODO(askesc): Determine default flag value from specification file.
     if (flag == ExperimentalFlag.setLiterals) return true;
-    return _raw.experimentalFlags[flag] ?? false;
+    return _raw.experimentalFlags[flag] ?? defaultExperimentalFlags[flag];
   }
 
   /// Get an outline component that summarizes the SDK, if any.

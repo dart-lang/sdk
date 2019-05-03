@@ -45,7 +45,11 @@ import 'dart:_foreign_helper'
 import 'dart:_interceptors';
 import 'dart:_internal' as _symbol_dev;
 import 'dart:_internal'
-    show EfficientLengthIterable, MappedIterable, IterableElementError;
+    show
+        EfficientLengthIterable,
+        MappedIterable,
+        IterableElementError,
+        SubListIterable;
 
 import 'dart:_native_typed_data';
 
@@ -70,7 +74,7 @@ abstract class InternalMap {}
 
 /// Extracts the JavaScript-constructor name from the given isCheckProperty.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
-@ForceInline()
+@pragma('dart2js:tryInline')
 String isCheckPropertyToJsConstructorName(String isCheckProperty) {
   return JS_BUILTIN('returns:String;depends:none;effects:none',
       JsBuiltin.isCheckPropertyToJsConstructorName, isCheckProperty);
@@ -78,7 +82,7 @@ String isCheckPropertyToJsConstructorName(String isCheckProperty) {
 
 /// Returns true if the given [type] is a function type object.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
-@ForceInline()
+@pragma('dart2js:tryInline')
 bool isDartFunctionType(Object type) {
   // Function type test is using the `in` operator which doesn't work on
   // primitive types.
@@ -89,7 +93,7 @@ bool isDartFunctionType(Object type) {
 
 /// Returns true if the given [type] is a FutureOr type object.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
-@ForceInline()
+@pragma('dart2js:tryInline')
 bool isDartFutureOrType(Object type) {
   // FutureOr test is using the `in` operator which doesn't work on primitive
   // types.
@@ -98,7 +102,7 @@ bool isDartFutureOrType(Object type) {
       'returns:bool;effects:none;depends:none', JsBuiltin.isFutureOrType, type);
 }
 
-@ForceInline()
+@pragma('dart2js:tryInline')
 bool isDartVoidTypeRti(Object type) {
   return JS_BUILTIN(
       'returns:bool;effects:none;depends:none', JsBuiltin.isVoidType, type);
@@ -107,7 +111,7 @@ bool isDartVoidTypeRti(Object type) {
 /// Retrieves the class name from type information stored on the constructor of
 /// [type].
 // TODO(floitsch): move this to foreign_helper.dart or similar.
-@ForceInline()
+@pragma('dart2js:tryInline')
 String rawRtiToJsConstructorName(Object rti) {
   return JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, rti);
 }
@@ -135,7 +139,7 @@ jsConstructorNameToRti(String constructorName) {
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 // TODO(floitsch): we should call getInterceptor ourselves, but currently
 //    getInterceptor is not GVNed.
-@ForceInline()
+@pragma('dart2js:tryInline')
 Object getRawRuntimeType(Object o) {
   return JS_BUILTIN('', JsBuiltin.rawRuntimeType, o);
 }
@@ -144,7 +148,7 @@ Object getRawRuntimeType(Object o) {
 ///
 /// The argument [other] is the name of the other type, as computed by
 /// [runtimeTypeToString].
-@ForceInline()
+@pragma('dart2js:tryInline')
 bool builtinIsSubtype(type, String other) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
       JsBuiltin.isSubtype, other, type);
@@ -152,7 +156,7 @@ bool builtinIsSubtype(type, String other) {
 
 /// Returns true if the given [type] is _the_ `Function` type.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
-@ForceInline()
+@pragma('dart2js:tryInline')
 bool isDartFunctionTypeRti(Object type) {
   return JS_BUILTIN(
       'returns:bool;effects:none;depends:none',
@@ -162,7 +166,7 @@ bool isDartFunctionTypeRti(Object type) {
 }
 
 /// Returns true if the given [type] is _the_ `Null` type.
-@ForceInline()
+@pragma('dart2js:tryInline')
 bool isNullType(Object type) {
   return JS_BUILTIN(
       'returns:bool;effects:none;depends:none',
@@ -173,13 +177,13 @@ bool isNullType(Object type) {
 
 /// Returns whether the given type is the dynamic type.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
-@ForceInline()
+@pragma('dart2js:tryInline')
 bool isDartDynamicTypeRti(type) {
   return JS_BUILTIN(
       'returns:bool;effects:none;depends:none', JsBuiltin.isDynamicType, type);
 }
 
-@ForceInline()
+@pragma('dart2js:tryInline')
 bool isDartJsInteropTypeArgumentRti(type) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
       JsBuiltin.isJsInteropTypeArgument, type);
@@ -187,7 +191,7 @@ bool isDartJsInteropTypeArgumentRti(type) {
 
 /// Returns whether the given type is _the_ Dart Object type.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
-@ForceInline()
+@pragma('dart2js:tryInline')
 bool isDartObjectTypeRti(type) {
   return JS_BUILTIN(
       'returns:bool;effects:none;depends:none',
@@ -198,7 +202,7 @@ bool isDartObjectTypeRti(type) {
 
 /// Returns whether the given type is _the_ null type.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
-@ForceInline()
+@pragma('dart2js:tryInline')
 bool isNullTypeRti(type) {
   return JS_BUILTIN(
       'returns:bool;effects:none;depends:none',
@@ -209,7 +213,7 @@ bool isNullTypeRti(type) {
 
 /// Returns the metadata of the given [index].
 // TODO(floitsch): move this to foreign_helper.dart or similar.
-@ForceInline()
+@pragma('dart2js:tryInline')
 getMetadata(int index) {
   return JS_BUILTIN(
       'returns:var;effects:none;depends:none', JsBuiltin.getMetadata, index);
@@ -217,7 +221,7 @@ getMetadata(int index) {
 
 /// Returns the type of the given [index].
 // TODO(floitsch): move this to foreign_helper.dart or similar.
-@ForceInline()
+@pragma('dart2js:tryInline')
 getType(int index) {
   return JS_BUILTIN(
       'returns:var;effects:none;depends:none', JsBuiltin.getType, index);
@@ -281,7 +285,7 @@ void throwInvalidReflectionError(String memberName) {
 /// By default, whenever a method is invoked for the first time, it prints an id
 /// and the method name to the console. This can be overriden by adding a top
 /// level `dartCallInstrumentation` hook in JavaScript.
-@NoInline()
+@pragma('dart2js:noInline')
 void traceHelper(dynamic /*int*/ id, dynamic /*String*/ qualifiedName) {
   // Note: this method is written mostly in JavaScript to prevent a stack
   // overflow. In particular, we use dynamic argument types because with with
@@ -503,7 +507,7 @@ class Primitives {
   /// Returns the type of [object] as a string (including type arguments).
   ///
   /// In minified mode, uses the unminified names if available.
-  @NoInline()
+  @pragma('dart2js:noInline')
   static String objectTypeName(Object object) {
     String className = _objectClassName(object);
     String arguments = joinArguments(getRuntimeTypeInfo(object), 0);
@@ -582,7 +586,7 @@ class Primitives {
     return "Instance of '$name'";
   }
 
-  static num dateNow() => JS('int', r'Date.now()');
+  static int dateNow() => JS('int', r'Date.now()');
 
   static void initTicker() {
     if (timerFrequency != null) return;
@@ -799,7 +803,7 @@ class Primitives {
   // that the result is really an integer, because the JavaScript implementation
   // may return -0.0 instead of 0.
   //
-  // They are marked as @NoThrows() because `receiver` comes from a receiver of
+  // They are marked as @pragma('dart2js:noThrows') because `receiver` comes from a receiver of
   // a method on DateTime (i.e. is not `null`).
 
   // TODO(sra): These methods are GVN-able. dart2js should implement an
@@ -809,63 +813,63 @@ class Primitives {
   // year). Is it possible to factor them so that the `Date` is visible and can
   // be GVN-ed without a lot of code bloat?
 
-  @NoSideEffects()
-  @NoThrows()
-  @NoInline()
+  @pragma('dart2js:noSideEffects')
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
   static getYear(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
         : JS('int', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
   }
 
-  @NoSideEffects()
-  @NoThrows()
-  @NoInline()
+  @pragma('dart2js:noSideEffects')
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
   static getMonth(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'#.getMonth() + 1', lazyAsJsDate(receiver));
   }
 
-  @NoSideEffects()
-  @NoThrows()
-  @NoInline()
+  @pragma('dart2js:noSideEffects')
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
   static getDay(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
   }
 
-  @NoSideEffects()
-  @NoThrows()
-  @NoInline()
+  @pragma('dart2js:noSideEffects')
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
   static getHours(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
   }
 
-  @NoSideEffects()
-  @NoThrows()
-  @NoInline()
+  @pragma('dart2js:noSideEffects')
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
   static getMinutes(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
   }
 
-  @NoSideEffects()
-  @NoThrows()
-  @NoInline()
+  @pragma('dart2js:noSideEffects')
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
   static getSeconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS('JSUInt31', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
         : JS('JSUInt31', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
   }
 
-  @NoSideEffects()
-  @NoThrows()
-  @NoInline()
+  @pragma('dart2js:noSideEffects')
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
   static getMilliseconds(DateTime receiver) {
     return (receiver.isUtc)
         ? JS(
@@ -873,9 +877,9 @@ class Primitives {
         : JS('JSUInt31', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
   }
 
-  @NoSideEffects()
-  @NoThrows()
-  @NoInline()
+  @pragma('dart2js:noSideEffects')
+  @pragma('dart2js:noThrows')
+  @pragma('dart2js:noInline')
   static getWeekday(DateTime receiver) {
     int weekday = (receiver.isUtc)
         ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
@@ -1168,7 +1172,7 @@ class JsCache {
 /// Called by generated code to throw an illegal-argument exception,
 /// for example, if a non-integer index is given to an optimized
 /// indexed access.
-@NoInline()
+@pragma('dart2js:noInline')
 iae(argument) {
   throw argumentErrorValue(argument);
 }
@@ -1178,7 +1182,7 @@ iae(argument) {
 /// also be called when the index is not an integer, in which case it throws an
 /// illegal-argument exception instead, like [iae], or when the receiver is
 /// null.
-@NoInline()
+@pragma('dart2js:noInline')
 ioore(receiver, index) {
   if (receiver == null) receiver.length; // Force a NoSuchMethodError.
   throw diagnoseIndexError(receiver, index);
@@ -1186,7 +1190,7 @@ ioore(receiver, index) {
 
 /// Diagnoses an indexing error. Returns the ArgumentError or RangeError that
 /// describes the problem.
-@NoInline()
+@pragma('dart2js:noInline')
 Error diagnoseIndexError(indexable, index) {
   if (index is! int) return new ArgumentError.value(index, 'index');
   int length = indexable.length;
@@ -1201,7 +1205,7 @@ Error diagnoseIndexError(indexable, index) {
 
 /// Diagnoses a range error. Returns the ArgumentError or RangeError that
 /// describes the problem.
-@NoInline()
+@pragma('dart2js:noInline')
 Error diagnoseRangeError(start, end, length) {
   if (start is! int) {
     return new ArgumentError.value(start, 'start');
@@ -1225,7 +1229,7 @@ stringLastIndexOfUnchecked(receiver, element, start) =>
     JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
 
 /// 'factory' for constructing ArgumentError.value to keep the call sites small.
-@NoInline()
+@pragma('dart2js:noInline')
 ArgumentError argumentErrorValue(object) {
   return new ArgumentError.value(object);
 }
@@ -1235,7 +1239,7 @@ checkNull(object) {
   return object;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 num checkNum(value) {
   if (value is! num) throw argumentErrorValue(value);
   return value;
@@ -1260,7 +1264,7 @@ String checkString(value) {
 ///
 /// The code in [unwrapException] deals with getting the original Dart
 /// object out of the wrapper again.
-@NoInline()
+@pragma('dart2js:noInline')
 wrapException(ex) {
   if (ex == null) ex = new NullThrownError();
   var wrapper = JS('', 'new Error()');
@@ -1319,19 +1323,19 @@ throwAbstractClassInstantiationError(className) {
 //
 //     a.length == startLength || throwConcurrentModificationError(a)
 //
-// TODO(sra): We would like to annotate this as @NoSideEffects() so that loops
+// TODO(sra): We would like to annotate this as @pragma('dart2js:noSideEffects') so that loops
 // with no other effects can recognize that the array length does not
 // change. However, in the usual case where the loop does have other effects,
 // that causes the length in the loop condition to be phi(startLength,a.length),
 // which causes confusion in range analysis and the insertion of a bounds check.
-@NoInline()
+@pragma('dart2js:noInline')
 checkConcurrentModificationError(sameLength, collection) {
   if (true != sameLength) {
     throwConcurrentModificationError(collection);
   }
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 throwConcurrentModificationError(collection) {
   throw new ConcurrentModificationError(collection);
 }
@@ -1919,6 +1923,17 @@ fillLiteralMap(keyValuePairs, Map result) {
     var key = getIndex(keyValuePairs, index++);
     var value = getIndex(keyValuePairs, index++);
     result[key] = value;
+  }
+  return result;
+}
+
+/// Called by generated code to build a set literal.
+fillLiteralSet(values, Set result) {
+  // TODO(johnniwinther): Use JSArray to optimize this code instead of calling
+  // [getLength] and [getIndex].
+  int length = getLength(values);
+  for (int index = 0; index < length; index++) {
+    result.add(getIndex(values, index));
   }
   return result;
 }
@@ -2511,12 +2526,12 @@ class BoundClosure extends TearOffClosure {
         "${Primitives.objectToHumanReadableString(receiver)}";
   }
 
-  @NoInline()
+  @pragma('dart2js:noInline')
   static selfOf(BoundClosure closure) => closure._self;
 
   static targetOf(BoundClosure closure) => closure._target;
 
-  @NoInline()
+  @pragma('dart2js:noInline')
   static receiverOf(BoundClosure closure) => closure._receiver;
 
   static nameOf(BoundClosure closure) => closure._name;
@@ -2539,8 +2554,8 @@ class BoundClosure extends TearOffClosure {
     return receiverFieldNameCache;
   }
 
-  @NoInline()
-  @NoSideEffects()
+  @pragma('dart2js:noInline')
+  @pragma('dart2js:noSideEffects')
   static String computeFieldNamed(String fieldName) {
     var template = new BoundClosure('self', 'target', 'receiver', 'name');
     var names = JSArray.markFixedList(
@@ -2648,11 +2663,9 @@ class JSName {
 /// and casts. We specialize each primitive type (eg int, bool), and use the
 /// compiler's convention to do is-checks on regular objects.
 boolConversionCheck(value) {
-  if (value is bool) return value;
-  // One of the following checks will always fail.
-  boolTypeCheck(value);
-  assert(value != null);
-  return false;
+  // The value from kernel should always be true, false, or null.
+  if (value == null) assertThrow('boolean expression must not be null');
+  return value;
 }
 
 stringTypeCheck(value) {
@@ -2932,7 +2945,7 @@ futureOrCheck(o, futureOrRti) => assertSubtypeOfRuntimeType(o, futureOrRti);
 
 futureOrCast(o, futureOrRti) => subtypeOfRuntimeTypeCast(o, futureOrRti);
 
-@NoInline()
+@pragma('dart2js:noInline')
 void checkDeferredIsLoaded(String loadId, String uri) {
   if (!_loadedLibraries.contains(loadId)) {
     throw new DeferredNotLoadedError(uri);
@@ -3010,7 +3023,7 @@ void assertThrow(Object message) {
 
 /// Helper function for implementing asserts without messages.
 /// The compiler treats this specially.
-@NoInline()
+@pragma('dart2js:noInline')
 void assertHelper(condition) {
   if (assertTest(condition)) throw new AssertionError();
 }
@@ -3391,7 +3404,7 @@ class _UnreachableError extends AssertionError {
   String toString() => 'Assertion failed: Reached dead code';
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 void assertUnreachable() {
   throw new _UnreachableError();
 }

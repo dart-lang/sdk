@@ -316,17 +316,30 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     return raw_weak->VisitPointersNonvirtual(this);
   }
 
-  void FinalizeInstructions() {
+  void ProcessDeferredMarking() {
     RawObject* raw_obj;
     while ((raw_obj = deferred_work_list_.Pop()) != NULL) {
-      ASSERT(raw_obj->IsInstructions());
-      RawInstructions* instr = static_cast<RawInstructions*>(raw_obj);
-      if (TryAcquireMarkBit(instr)) {
-        intptr_t size = instr->HeapSize();
+      ASSERT(raw_obj->IsHeapObject() && raw_obj->IsOldObject());
+      // N.B. We are scanning the object even if it is already marked.
+      const intptr_t class_id = raw_obj->GetClassId();
+      intptr_t size;
+      if (class_id != kWeakPropertyCid) {
+        size = raw_obj->VisitPointersNonvirtual(this);
+      } else {
+        RawWeakProperty* raw_weak = static_cast<RawWeakProperty*>(raw_obj);
+        size = ProcessWeakProperty(raw_weak);
+      }
+      // Add the size only if we win the marking race to prevent
+      // double-counting.
+      if (TryAcquireMarkBit(raw_obj)) {
         marked_bytes_ += size;
-        NOT_IN_PRODUCT(UpdateLiveOld(kInstructionsCid, size));
+        NOT_IN_PRODUCT(UpdateLiveOld(class_id, size));
       }
     }
+  }
+
+  void FinalizeDeferredMarking() {
+    ProcessDeferredMarking();
     deferred_work_list_.Finalize();
   }
 
@@ -368,6 +381,10 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   }
 
   static bool TryAcquireMarkBit(RawObject* raw_obj) {
+    if (FLAG_write_protect_code && raw_obj->IsInstructions()) {
+      // A non-writable alias mapping may exist for instruction pages.
+      raw_obj = HeapPage::ToWritable(raw_obj);
+    }
     if (!sync) {
       raw_obj->SetMarkBitUnsynchronized();
       return true;
@@ -376,6 +393,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     }
   }
 
+  DART_FORCE_INLINE
   void MarkObject(RawObject* raw_obj) {
     // Fast exit if the raw object is immediate or in new space. No memory
     // access.
@@ -486,8 +504,9 @@ void GCMarker::Prologue() {
   isolate_->ReleaseStoreBuffers();
 
 #ifndef DART_PRECOMPILED_RUNTIME
-  if (isolate_->IsMutatorThreadScheduled()) {
-    Interpreter* interpreter = isolate_->mutator_thread()->interpreter();
+  Thread* mutator_thread = isolate_->mutator_thread();
+  if (mutator_thread != NULL) {
+    Interpreter* interpreter = mutator_thread->interpreter();
     if (interpreter != NULL) {
       interpreter->MajorGC();
     }
@@ -648,6 +667,8 @@ class ParallelMarkTask : public ThreadPool::Task {
       // Phase 1: Iterate over roots and drain marking stack in tasks.
       marker_->IterateRoots(visitor_);
 
+      visitor_->ProcessDeferredMarking();
+
       bool more_to_mark = false;
       do {
         do {
@@ -701,7 +722,7 @@ class ParallelMarkTask : public ThreadPool::Task {
         barrier_->Sync();
       } while (more_to_mark);
 
-      visitor_->FinalizeInstructions();
+      visitor_->FinalizeDeferredMarking();
 
       // Phase 2: Weak processing and follow-up marking on main thread.
       barrier_->Sync();
@@ -919,8 +940,9 @@ void GCMarker::MarkObjects(PageSpace* page_space, bool collect_code) {
                                 skipped_code_functions);
       ResetRootSlices();
       IterateRoots(&mark);
+      mark.ProcessDeferredMarking();
       mark.DrainMarkingStack();
-      mark.FinalizeInstructions();
+      mark.FinalizeDeferredMarking();
       {
         TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
         MarkingWeakVisitor mark_weak(thread);

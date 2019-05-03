@@ -127,12 +127,6 @@ class Compiler : public AllStatic {
   // on compilation failure.
   static RawObject* ExecuteOnce(SequenceNode* fragment);
 
-  // Evaluates the initializer expression of the given static field.
-  //
-  // The return value is either a RawInstance on success or a RawError
-  // on compilation failure.
-  static RawObject* EvaluateStaticInitializer(const Field& field);
-
   // Generates local var descriptors and sets it in 'code'. Do not call if the
   // local var descriptor already exists.
   static void ComputeLocalVarDescriptors(const Code& code);
@@ -163,46 +157,57 @@ class BackgroundCompiler {
 
   static void Start(Isolate* isolate) {
     ASSERT(Thread::Current()->IsMutatorThread());
-    if (isolate->background_compiler() != NULL) {
+    if (FLAG_enable_interpreter && isolate->background_compiler() != NULL) {
       isolate->background_compiler()->Start();
+    }
+    if (isolate->optimizing_background_compiler() != NULL) {
+      isolate->optimizing_background_compiler()->Start();
     }
   }
   static void Stop(Isolate* isolate) {
     ASSERT(Thread::Current()->IsMutatorThread());
-    if (isolate->background_compiler() != NULL) {
+    if (FLAG_enable_interpreter && isolate->background_compiler() != NULL) {
       isolate->background_compiler()->Stop();
+    }
+    if (isolate->optimizing_background_compiler() != NULL) {
+      isolate->optimizing_background_compiler()->Stop();
     }
   }
   static void Enable(Isolate* isolate) {
     ASSERT(Thread::Current()->IsMutatorThread());
-    if (isolate->background_compiler() != NULL) {
+    if (FLAG_enable_interpreter && isolate->background_compiler() != NULL) {
       isolate->background_compiler()->Enable();
+    }
+    if (isolate->optimizing_background_compiler() != NULL) {
+      isolate->optimizing_background_compiler()->Enable();
     }
   }
   static void Disable(Isolate* isolate) {
     ASSERT(Thread::Current()->IsMutatorThread());
-    if (isolate->background_compiler() != NULL) {
+    if (FLAG_enable_interpreter && isolate->background_compiler() != NULL) {
       isolate->background_compiler()->Disable();
     }
-  }
-  static bool IsDisabled(Isolate* isolate) {
-    ASSERT(Thread::Current()->IsMutatorThread());
-    if (isolate->background_compiler() != NULL) {
-      return isolate->background_compiler()->IsDisabled();
+    if (isolate->optimizing_background_compiler() != NULL) {
+      isolate->optimizing_background_compiler()->Disable();
     }
-    return false;
   }
-  static bool IsRunning(Isolate* isolate) {
+  static bool IsDisabled(Isolate* isolate, bool optimizing_compiler) {
     ASSERT(Thread::Current()->IsMutatorThread());
-    if (isolate->background_compiler() != NULL) {
-      return isolate->background_compiler()->IsRunning();
+    if (optimizing_compiler) {
+      if (isolate->optimizing_background_compiler() != NULL) {
+        return isolate->optimizing_background_compiler()->IsDisabled();
+      }
+    } else {
+      if (FLAG_enable_interpreter && isolate->background_compiler() != NULL) {
+        return isolate->background_compiler()->IsDisabled();
+      }
     }
     return false;
   }
 
-  // Call to optimize a function in the background, enters the function in the
-  // compilation queue.
-  void CompileOptimized(const Function& function);
+  // Call to compile (unoptimized or optimized) a function in the background,
+  // enters the function in the compilation queue.
+  void Compile(const Function& function);
 
   void VisitPointers(ObjectPointerVisitor* visitor);
 

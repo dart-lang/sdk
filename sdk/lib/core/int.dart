@@ -278,7 +278,7 @@ abstract class int extends num {
   double truncateToDouble();
 
   /**
-   * Returns a String-representation of this integer.
+   * Returns a string representation of this integer.
    *
    * The returned string is parsable by [parse].
    * For any `int` `i`, it is guaranteed that
@@ -299,8 +299,9 @@ abstract class int extends num {
   /**
    * Parse [source] as a, possibly signed, integer literal and return its value.
    *
-   * The [source] must be either a non-empty sequence of base-[radix] digits,
+   * The [source] must be a non-empty sequence of base-[radix] digits,
    * optionally prefixed with a minus or plus sign ('-' or '+').
+   * It must not be `null`.
    *
    * The [radix] must be in the range 2..36. The digits used are
    * first the decimal digits 0..9, and then the letters 'a'..'z' with
@@ -319,7 +320,7 @@ abstract class int extends num {
    * For any int `n` and valid radix `r`, it is guaranteed that
    * `n == int.parse(n.toRadixString(r), radix: r)`.
    *
-   * If the [source] does not contain a valid integer literal,
+   * If the [source] string does not contain a valid integer literal,
    * optionally prefixed by a sign, a [FormatException] is thrown
    * (unless the deprecated [onError] parameter is used, see below).
    *
@@ -335,7 +336,7 @@ abstract class int extends num {
    * Instead of `int.parse(string, onError: (string) => ...)`,
    * you should use `int.tryParse(string) ?? (...)`.
    *
-   * When source is not valid and [onError] is provided,
+   * When the source string is not valid and [onError] is provided,
    * whenever a [FormatException] would be thrown,
    * [onError] is instead called with [source] as argument,
    * and the result of that call is returned by [parse].
@@ -347,7 +348,8 @@ abstract class int extends num {
    * Parse [source] as a, possibly signed, integer literal and return its value.
    *
    * Like [parse] except that this function returns `null` where a
-   * similar call to [parse] would throw a [FormatException].
+   * similar call to [parse] would throw a [FormatException],
+   * and the [source] must still not be `null`.
    */
   external static int tryParse(String source, {int radix});
 }

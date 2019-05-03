@@ -11,8 +11,8 @@ import 'package:expect/expect.dart' show NoInline, AssumeDynamic;
 
 import 'js_dispatch_property_test_lib.dart';
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
 main() {

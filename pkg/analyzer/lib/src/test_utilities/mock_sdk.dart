@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -143,9 +143,12 @@ external bool identical(Object a, Object b);
 
 void print(Object object) {}
 
-class bool extends Object {
+abstract class bool extends Object {
   external const factory bool.fromEnvironment(String name,
       {bool defaultValue: false});
+  bool operator &(bool other);
+  bool operator |(bool other);
+  bool operator ^(bool other);
 }
 
 abstract class Comparable<T> {
@@ -218,6 +221,8 @@ abstract class int extends num {
 
   int operator ~();
 
+  int gcd(int other);
+
   external static int parse(String source,
       {int radix, int onError(String source)});
 }
@@ -266,9 +271,9 @@ class List<E> implements Iterable<E> {
 }
 
 class Map<K, V> {
-  factory Map() => {}
+  factory Map() => null;
   factory Map.fromIterable(Iterable iterable,
-      {K key(element), V value(element)}) => {}
+      {K key(element), V value(element)}) => null;
   Iterable<K> get keys => null;
   int get length => 0;
   Iterable<V> get values => null;
@@ -335,6 +340,7 @@ abstract class String implements Comparable<String>, Pattern {
   external factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int end]);
   List<int> get codeUnits;
+  int indexOf(Pattern pattern, [int start]);
   bool get isEmpty => false;
   bool get isNotEmpty => false;
   int get length => 0;

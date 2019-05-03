@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.15-dev
+# Dart VM Service Protocol 3.17-dev
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.15-dev_ of the Dart VM Service Protocol. This
+This document describes of _version 3.17-dev_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -31,7 +31,8 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [evaluateInFrame](#evaluateinframe)
   - [getFlagList](#getflaglist)
   - [getIsolate](#getisolate)
-  - [getScripts](#getisolatescripts)
+  - [getMemoryUsage](#getmemoryusage)
+  - [getScripts](#getscripts)
   - [getObject](#getobject)
   - [getSourceReport](#getsourcereport)
   - [getStack](#getstack)
@@ -75,6 +76,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [Library](#library)
   - [LibraryDependency](#librarydependency)
   - [MapAssociation](#mapassociation)
+  - [MemoryUsage](#memoryusage)
   - [Message](#message)
   - [Null](#null)
   - [Object](#object)
@@ -479,7 +481,8 @@ Note that breakpoints are added and removed on a per-isolate basis.
 @Instance|@Error|Sentinel invoke(string isolateId,
                                  string targetId,
                                  string selector,
-                                 string[] argumentIds)
+                                 string[] argumentIds,
+                                 bool disableBreakpoints [optional])
 ```
 
 The _invoke_ RPC is used to perform regular method invocation on some receiver,
@@ -490,6 +493,10 @@ _targetId_ may refer to a [Library](#library), [Class](#class), or
 [Instance](#instance).
 
 Each elements of _argumentId_ may refer to an [Instance](#instance).
+
+If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
+result of this invocation are ignored, including pauses resulting from a call
+to `debugger()` from `dart:developer`. Defaults to false if not provided.
 
 If _targetId_ or any element of _argumentIds_ is a temporary id which has
 expired, then the _Expired_ [Sentinel](#sentinel) is returned.
@@ -513,7 +520,8 @@ reference will be returned.
 @Instance|@Error|Sentinel evaluate(string isolateId,
                                    string targetId,
                                    string expression,
-                                   map<string,string> scope [optional])
+                                   map<string,string> scope [optional],
+                                   bool disableBreakpoints [optional])
 ```
 
 The _evaluate_ RPC is used to evaluate an expression in the context of
@@ -535,6 +543,9 @@ which is a child scope of the class or library for instance/class or library
 targets respectively. This means bindings provided in _scope_ may shadow
 instance members, class members and top-level members.
 
+If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
+result of this evaluation are ignored. Defaults to false if not provided.
+
 If expression is failed to parse and compile, then [rpc error](#rpc-error) 113
 "Expression compilation error" is returned.
 
@@ -550,7 +561,8 @@ reference will be returned.
 @Instance|@Error|Sentinel evaluateInFrame(string isolateId,
                                           int frameIndex,
                                           string expression,
-                                          map<string,string> scope [optional])
+                                          map<string,string> scope [optional],
+                                          bool disableBreakpoints [optional])
 ```
 
 The _evaluateInFrame_ RPC is used to evaluate an expression in the
@@ -563,6 +575,9 @@ These bindings will be added to the scope in which the expression is evaluated,
 which is a child scope of the frame's current scope. This means bindings
 provided in _scope_ may shadow instance members, class members, top-level
 members, parameters and locals.
+
+If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
+result of this evaluation are ignored. Defaults to false if not provided.
 
 If expression is failed to parse and compile, then [rpc error](#rpc-error) 113
 "Expression compilation error" is returned.
@@ -591,6 +606,20 @@ Isolate|Sentinel getIsolate(string isolateId)
 ```
 
 The _getIsolate_ RPC is used to lookup an _Isolate_ object by its _id_.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+See [Isolate](#isolate).
+
+### getMemoryUsage
+
+```
+MemoryUsage|Sentinel getMemoryUsage(string isolateId)
+```
+
+The _getMemoryUsage_ RPC is used to lookup an isolate's memory usage
+statistics by its _id_.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
@@ -905,7 +934,7 @@ Success streamListen(string streamId)
 The _streamListen_ RPC subscribes to a stream in the VM. Once
 subscribed, the client will begin receiving events from the stream.
 
-If the client is not subscribed to the stream, the _103_ (Stream already
+If the client is already subscribed to the stream, the _103_ (Stream already
 subscribed) error code is returned.
 
 The _streamId_ parameter may have the following published values:
@@ -1037,7 +1066,7 @@ _BeingInitialized_ [Sentinel](#sentinel).
 ### BoundVariable
 
 ```
-class BoundVariable {
+class BoundVariable extends Response {
   string name;
   @Instance|@TypeArguments|Sentinel value;
 
@@ -1279,7 +1308,7 @@ enum ErrorKind {
   // The isolate has encountered a Dart language error in the program.
   LanguageError,
 
-  // The isolate has encounted an internal error. These errors should be
+  // The isolate has encountered an internal error. These errors should be
   // reported as bugs.
   InternalError,
 
@@ -2194,6 +2223,31 @@ class MapAssociation {
 }
 ```
 
+### MemoryUsage
+
+```
+class MemoryUsage extends Response {
+  // The amount of non-Dart memory that is retained by Dart objects. For
+  // example, memory associated with Dart objects through APIs such as
+  // Dart_NewWeakPersistentHandle and Dart_NewExternalTypedData.  This usage is
+  // only as accurate as the values supplied to these APIs from the VM embedder or
+  // native extensions. This external memory applies GC pressure, but is separate
+  // from heapUsage and heapCapacity.
+  int externalUsage;
+
+  // The total capacity of the heap in bytes. This is the amount of memory used
+  // by the Dart heap from the perspective of the operating system.
+  int heapCapacity;
+
+  // The current heap memory usage in bytes. Heap usage is always less than or
+  // equal to the heap capacity.
+  int heapUsage;
+}
+```
+
+An _MemoryUsage_ object provides heap usage information for a specific
+isolate at a given point in time.
+
 ### Message
 
 ```
@@ -2251,6 +2305,11 @@ class @Object extends Response {
   // A unique identifier for an Object. Passed to the
   // getObject RPC to load this Object.
   string id;
+
+  // Provided and set to true if the id of an Object is fixed. If true, the id
+  // of an Object is guaranteed not to change or expire. The object may, however,
+  // still be _Collected_.
+  bool fixedId [optional];
 }
 ```
 
@@ -2263,6 +2322,11 @@ class Object extends Response {
   //
   // Some objects may get a new id when they are reloaded.
   string id;
+
+  // Provided and set to true if the id of an Object is fixed. If true, the id
+  // of an Object is guaranteed not to change or expire. The object may, however,
+  // still be _Collected_.
+  bool fixedId [optional];
 
   // If an object is allocated in the Dart heap, it will have
   // a corresponding class object.
@@ -2692,6 +2756,9 @@ _@VM_ is a reference to a _VM_ object.
 
 ```
 class VM extends Response {
+  // A name identifying this vm. Not guaranteed to be unique.
+  string name;
+
   // Word length on target architecture (e.g. 32, 64).
   int architectureBits;
 
@@ -2738,5 +2805,7 @@ version | comments
 3.12 | Add 'getScripts' RPC and `ScriptList` object.
 3.13 | Class 'mixin' field now properly set for kernel transformed mixin applications.
 3.14 | Flag 'profile_period' can now be set at runtime, allowing for the profiler sample rate to be changed while the program is running.
+3.15 | Added `disableBreakpoints` parameter to `invoke`, `evaluate`, and `evaluateInFrame`.
+3.16 | Add 'getMemoryUsage' RPC and 'MemoryUsage' object.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

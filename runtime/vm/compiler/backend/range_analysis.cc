@@ -64,12 +64,8 @@ void RangeAnalysis::CollectValues() {
 
   for (intptr_t i = 0; i < graph_entry->SuccessorCount(); ++i) {
     auto successor = graph_entry->SuccessorAt(i);
-    if (successor->IsFunctionEntry() || successor->IsCatchBlockEntry()) {
-      auto function_entry = successor->AsFunctionEntry();
-      auto catch_entry = successor->AsCatchBlockEntry();
-      const auto& initial = function_entry != nullptr
-                                ? *function_entry->initial_definitions()
-                                : *catch_entry->initial_definitions();
+    if (auto entry = successor->AsBlockEntryWithInitialDefs()) {
+      const auto& initial = *entry->initial_definitions();
       for (intptr_t j = 0; j < initial.length(); ++j) {
         Definition* current = initial[j];
         if (IsIntegerDefinition(current)) {
@@ -215,31 +211,31 @@ bool RangeAnalysis::ConstrainValueAfterBranch(Value* use, Definition* defn) {
 void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
   for (Value* use = defn->input_use_list(); use != NULL;
        use = use->next_use()) {
-    if (use->instruction()->IsBranch()) {
+    if (auto branch = use->instruction()->AsBranch()) {
       if (ConstrainValueAfterBranch(use, defn)) {
-        Value* other_value = use->instruction()->InputAt(1 - use->use_index());
+        Value* other_value = branch->InputAt(1 - use->use_index());
         if (!IsIntegerDefinition(other_value->definition())) {
           ConstrainValueAfterBranch(other_value, other_value->definition());
         }
       }
-    } else if (use->instruction()->IsCheckArrayBound()) {
-      ConstrainValueAfterCheckArrayBound(use, defn);
+    } else if (auto check = use->instruction()->AsCheckBoundBase()) {
+      ConstrainValueAfterCheckBound(use, check, defn);
     }
   }
 }
 
-void RangeAnalysis::ConstrainValueAfterCheckArrayBound(Value* use,
-                                                       Definition* defn) {
-  CheckArrayBoundInstr* check = use->instruction()->AsCheckArrayBound();
-  intptr_t use_index = use->use_index();
+void RangeAnalysis::ConstrainValueAfterCheckBound(Value* use,
+                                                  CheckBoundBase* check,
+                                                  Definition* defn) {
+  const intptr_t use_index = use->use_index();
 
   Range* constraint_range = NULL;
-  if (use_index == CheckArrayBoundInstr::kIndexPos) {
+  if (use_index == CheckBoundBase::kIndexPos) {
     Definition* length = check->length()->definition();
     constraint_range = new (Z) Range(RangeBoundary::FromConstant(0),
                                      RangeBoundary::FromDefinition(length, -1));
   } else {
-    ASSERT(use_index == CheckArrayBoundInstr::kLengthPos);
+    ASSERT(use_index == CheckBoundBase::kLengthPos);
     Definition* index = check->index()->definition();
     constraint_range = new (Z)
         Range(RangeBoundary::FromDefinition(index, 1), RangeBoundary::MaxSmi());
@@ -699,7 +695,6 @@ class Scheduler {
         last, instr, last->env(),
         instr->IsDefinition() ? FlowGraph::kValue : FlowGraph::kEffect);
     instr->CopyDeoptIdFrom(*last);
-    instr->env()->set_deopt_id(instr->deopt_id_);
 
     map_.Insert(instr);
     emitted_.Add(instr);
@@ -1322,11 +1317,12 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
 
     for (intptr_t i = 0; i < bounds_checks_.length(); i++) {
       // Is this a non-speculative check bound?
-      GenericCheckBoundInstr* aot_check =
-          bounds_checks_[i]->AsGenericCheckBound();
+      auto aot_check = bounds_checks_[i]->AsGenericCheckBound();
       if (aot_check != nullptr) {
-        RangeBoundary array_length =
-            RangeBoundary::FromDefinition(aot_check->length()->definition());
+        auto length = aot_check->length()
+                          ->definition()
+                          ->OriginalDefinitionIgnoreBoxingAndConstraints();
+        auto array_length = RangeBoundary::FromDefinition(length);
         if (aot_check->IsRedundant(array_length)) {
           aot_check->ReplaceUsesWith(aot_check->index()->definition());
           aot_check->RemoveFromGraph();
@@ -2329,6 +2325,31 @@ void Range::Mul(const Range* left_range,
   *result_max = RangeBoundary::PositiveInfinity();
 }
 
+void Range::TruncDiv(const Range* left_range,
+                     const Range* right_range,
+                     RangeBoundary* result_min,
+                     RangeBoundary* result_max) {
+  ASSERT(left_range != nullptr);
+  ASSERT(right_range != nullptr);
+  ASSERT(result_min != nullptr);
+  ASSERT(result_max != nullptr);
+
+  if (left_range->OnlyGreaterThanOrEqualTo(0) &&
+      right_range->OnlyGreaterThanOrEqualTo(1)) {
+    const int64_t left_max = ConstantAbsMax(left_range);
+    const int64_t left_min = ConstantAbsMin(left_range);
+    const int64_t right_max = ConstantAbsMax(right_range);
+    const int64_t right_min = ConstantAbsMin(right_range);
+
+    *result_max = RangeBoundary::FromConstant(left_max / right_min);
+    *result_min = RangeBoundary::FromConstant(left_min / right_max);
+    return;
+  }
+
+  *result_min = RangeBoundary::NegativeInfinity();
+  *result_max = RangeBoundary::PositiveInfinity();
+}
+
 // Both the a and b ranges are >= 0.
 bool Range::OnlyPositiveOrZero(const Range& a, const Range& b) {
   return a.OnlyGreaterThanOrEqualTo(0) && b.OnlyGreaterThanOrEqualTo(0);
@@ -2390,6 +2411,10 @@ void Range::BinaryOp(const Token::Kind op,
 
     case Token::kMUL:
       Range::Mul(left_range, right_range, &min, &max);
+      break;
+
+    case Token::kTRUNCDIV:
+      Range::TruncDiv(left_range, right_range, &min, &max);
       break;
 
     case Token::kSHL:
@@ -2605,7 +2630,8 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
                      RangeBoundary::FromConstant(Array::kMaxElements));
       break;
 
-    case Slot::Kind::kTypedData_length:
+    case Slot::Kind::kTypedDataBase_length:
+    case Slot::Kind::kTypedDataView_offset_in_bytes:
       *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
       break;
 
@@ -2630,6 +2656,9 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kClosure_function:
     case Slot::Kind::kClosure_function_type_arguments:
     case Slot::Kind::kClosure_instantiator_type_arguments:
+    case Slot::Kind::kPointer_c_memory_address:
+    case Slot::Kind::kTypedDataBase_data_field:
+    case Slot::Kind::kTypedDataView_data:
       // Not an integer valued field.
       UNREACHABLE();
       break;
@@ -2867,12 +2896,17 @@ void UnboxInt64Instr::InferRange(RangeAnalysis* analysis, Range* range) {
   }
 }
 
-void UnboxedIntConverterInstr::InferRange(RangeAnalysis* analysis,
-                                          Range* range) {
-  ASSERT((from() == kUnboxedInt32) || (from() == kUnboxedInt64) ||
-         (from() == kUnboxedUint32));
-  ASSERT((to() == kUnboxedInt32) || (to() == kUnboxedInt64) ||
-         (to() == kUnboxedUint32));
+void IntConverterInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  if (from() == kUntagged || to() == kUntagged) {
+    ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
+           (from() == kUnboxedIntPtr && to() == kUntagged));
+  } else {
+    ASSERT(from() == kUnboxedInt32 || from() == kUnboxedInt64 ||
+           from() == kUnboxedUint32);
+    ASSERT(to() == kUnboxedInt32 || to() == kUnboxedInt64 ||
+           to() == kUnboxedUint32);
+  }
+
   const Range* value_range = value()->definition()->range();
   if (Range::IsUnknown(value_range)) {
     return;

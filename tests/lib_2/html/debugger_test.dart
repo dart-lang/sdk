@@ -157,9 +157,10 @@ window.ExampleJSClass = function ExampleJSClass(x) {
   // The verify golden match test cases does the final comparison of golden
   // to expected output.
   addGolden(String name, value) {
+    var text = format(value);
     actual.write('Test: $name\n'
         'Value:\n'
-        '${format(value)}\n'
+        '$text\n'
         '-----------------------------------\n');
   }
 
@@ -279,7 +280,7 @@ window.ExampleJSClass = function ExampleJSClass(x) {
 
   group('Module formatting', () {
     var moduleNames = _debugger.getModuleNames();
-    var testModuleName = "tests_lib_2_html_debugger_test/debugger_test";
+    var testModuleName = "debugger_test";
     expect(moduleNames.contains(testModuleName), isTrue);
 
     addAllNestedFormatterGoldens(
@@ -301,7 +302,8 @@ window.ExampleJSClass = function ExampleJSClass(x) {
 
   group('Class formatting', () {
     addNestedFormatterGoldens('TestClass', new TestClass(17));
-    addNestedFormatterGoldens('MouseEvent', new MouseEvent("click"));
+    // TODO(jmesserly): this includes a timeStamp, so it varies each run.
+    //addNestedFormatterGoldens('MouseEvent', new MouseEvent("click"));
     // This is a good class to test as it has statics and a deep inheritance hierarchy
     addNestedFormatterGoldens('HttpRequest', new HttpRequest());
   });
@@ -329,10 +331,8 @@ window.ExampleJSClass = function ExampleJSClass(x) {
           'the diff using your favorite diff tool to make sure the custom '
           'formatting output has not regressed.';
       print(helpMessage);
-      print(actualStr);
       // Copy text to clipboard on page click. We can't copy to the clipboard
       // without a click due to Chrome security.
-      var body = document.body;
       TextAreaElement textField = new Element.tag('textarea');
       textField.maxLength = 100000000;
       textField.text = actualStr;

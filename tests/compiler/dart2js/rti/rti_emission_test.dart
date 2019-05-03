@@ -125,12 +125,15 @@ class RtiEmissionDataComputer extends DataComputer<String> {
 
 class RtiClassEmissionIrComputer extends DataRegistry<String>
     with ComputeValueMixin {
+  @override
   final Compiler compiler;
   final JsToElementMap _elementMap;
+  @override
   final Map<Id, ActualData<String>> actualMap;
 
   RtiClassEmissionIrComputer(this.compiler, this._elementMap, this.actualMap);
 
+  @override
   DiagnosticReporter get reporter => compiler.reporter;
 
   void computeClassValue(ClassEntity cls) {
@@ -145,6 +148,7 @@ class RtiMemberEmissionIrComputer extends IrDataExtractor<String>
     with ComputeValueMixin {
   final JsToElementMap _elementMap;
   final ClosureData _closureDataLookup;
+  @override
   final Compiler compiler;
 
   RtiMemberEmissionIrComputer(

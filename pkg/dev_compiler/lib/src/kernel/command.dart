@@ -19,7 +19,10 @@ import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 import '../compiler/js_names.dart' as JS;
 import '../compiler/module_builder.dart';
 import '../compiler/shared_command.dart';
+import '../compiler/shared_compiler.dart';
+import '../flutter/track_widget_constructor_locations.dart';
 import '../js_ast/js_ast.dart' as JS;
+import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 
 import 'analyzer_to_kernel.dart';
@@ -32,9 +35,12 @@ const _binaryName = 'dartdevc -k';
 ///
 /// Returns `true` if the program compiled without any fatal errors.
 Future<CompilerResult> compile(List<String> args,
-    {fe.InitializedCompilerState compilerState}) async {
+    {fe.InitializedCompilerState compilerState,
+    bool useIncrementalCompiler: false}) async {
   try {
-    return await _compile(args, compilerState: compilerState);
+    return await _compile(args,
+        compilerState: compilerState,
+        useIncrementalCompiler: useIncrementalCompiler);
   } catch (error, stackTrace) {
     print('''
 We're sorry, you've found a bug in our compiler.
@@ -60,17 +66,21 @@ String _usageMessage(ArgParser ddcArgParser) =>
     '${ddcArgParser.usage}';
 
 Future<CompilerResult> _compile(List<String> args,
-    {fe.InitializedCompilerState compilerState}) async {
+    {fe.InitializedCompilerState compilerState,
+    bool useIncrementalCompiler: false}) async {
   // TODO(jmesserly): refactor options to share code with dartdevc CLI.
   var argParser = ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
         abbr: 'h', help: 'Display this message.', negatable: false)
     ..addOption('out', abbr: 'o', help: 'Output file (required).')
     ..addOption('packages', help: 'The package spec file to use.')
-    // TODO(jmesserly): should default to `false` and be hidden.
-    // For now this is very helpful in debugging the compiler.
+    // TODO(jmesserly): is this still useful for us, or can we remove it now?
     ..addFlag('summarize-text',
-        help: 'emit API summary in a .js.txt file', defaultsTo: true)
+        help: 'emit API summary in a .js.txt file',
+        defaultsTo: false,
+        hide: true)
+    ..addFlag('track-widget-creation',
+        help: 'enable inspecting of Flutter widgets', hide: true)
     // TODO(jmesserly): add verbose help to show hidden options
     ..addOption('dart-sdk-summary',
         help: 'The path to the Dart SDK summary file.', hide: true)
@@ -86,7 +96,23 @@ Future<CompilerResult> _compile(List<String> args,
   SharedCompilerOptions.addArguments(argParser);
 
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
-  var argResults = argParser.parse(filterUnknownArguments(args, argParser));
+  ArgResults argResults;
+  try {
+    argResults = argParser.parse(filterUnknownArguments(args, argParser));
+  } on FormatException catch (error) {
+    print(error);
+    print(_usageMessage(argParser));
+    return CompilerResult(64);
+  }
+
+  var output = argResults['out'] as String;
+  if (output == null) {
+    print('Please specify the output file location. For example:\n'
+        '    -o PATH/TO/OUTPUT_FILE.js'
+        '');
+    print(_usageMessage(argParser));
+    return CompilerResult(64);
+  }
 
   if (argResults['help'] as bool || args.isEmpty) {
     print(_usageMessage(argParser));
@@ -188,17 +214,38 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   var oldCompilerState = compilerState;
-  compilerState = await fe.initializeCompiler(
-      oldCompilerState,
-      sourcePathToUri(sdkSummaryPath),
-      sourcePathToUri(packageFile),
-      sourcePathToUri(librarySpecPath),
-      summaryModules.keys.toList(),
-      DevCompilerTarget(),
-      fileSystem: fileSystem,
-      experiments: experiments);
+  List<Component> doneInputSummaries;
+  fe.IncrementalCompiler incrementalCompiler;
+  fe.WorkerInputComponent cachedSdkInput;
+  if (useAnalyzer || !useIncrementalCompiler) {
+    compilerState = await fe.initializeCompiler(
+        oldCompilerState,
+        sourcePathToUri(sdkSummaryPath),
+        sourcePathToUri(packageFile),
+        sourcePathToUri(librarySpecPath),
+        summaryModules.keys.toList(),
+        DevCompilerTarget(),
+        fileSystem: fileSystem,
+        experiments: experiments);
+  } else {
+    doneInputSummaries = new List<Component>(summaryModules.length);
+    compilerState = await fe.initializeIncrementalCompiler(
+        oldCompilerState,
+        doneInputSummaries,
+        sourcePathToUri(sdkSummaryPath),
+        sourcePathToUri(packageFile),
+        sourcePathToUri(librarySpecPath),
+        summaryModules.keys.toList(),
+        DevCompilerTarget(),
+        fileSystem: fileSystem,
+        experiments: experiments);
+    incrementalCompiler = compilerState.incrementalCompiler;
+    cachedSdkInput =
+        compilerState.workerInputCache[sourcePathToUri(sdkSummaryPath)];
+  }
 
-  var output = argResults['out'] as String;
+  List<Uri> inputSummaries = compilerState.options.inputSummaries;
+
   // TODO(jmesserly): is there a cleaner way to do this?
   //
   // Ideally we'd manage our own batch compilation caching rather than rely on
@@ -213,8 +260,26 @@ Future<CompilerResult> _compile(List<String> args,
     converter.dispose();
   }
 
-  fe.DdcResult result =
-      await fe.compile(compilerState, inputs, diagnosticMessageHandler);
+  var hierarchy;
+  fe.DdcResult result;
+  if (useAnalyzer || !useIncrementalCompiler) {
+    result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
+  } else {
+    Component incrementalComponent = await incrementalCompiler.computeDelta(
+        entryPoints: inputs, fullComponent: true);
+    hierarchy = incrementalCompiler.userCode.loader.hierarchy;
+    result = new fe.DdcResult(incrementalComponent, doneInputSummaries);
+
+    // Workaround for DDC relying on isExternal being set to true.
+    for (var lib in cachedSdkInput.component.libraries) {
+      lib.isExternal = true;
+    }
+    for (Component c in doneInputSummaries) {
+      for (Library lib in c.libraries) {
+        lib.isExternal = true;
+      }
+    }
+  }
   if (result == null || !succeeded) {
     return CompilerResult(1, kernelState: compilerState);
   }
@@ -246,16 +311,26 @@ Future<CompilerResult> _compile(List<String> args,
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
   if (argResults['summarize-text'] as bool) {
-    var sink = File(output + '.txt').openWrite();
-    kernel.Printer(sink, showExternal: false).writeComponentFile(component);
-    outFiles.add(sink.flush().then((_) => sink.close()));
+    StringBuffer sb = new StringBuffer();
+    kernel.Printer(sb, showExternal: false).writeComponentFile(component);
+    outFiles.add(File(output + '.txt').writeAsString(sb.toString()));
   }
-  var target = compilerState.options.target as DevCompilerTarget;
-  var compiler =
-      ProgramCompiler(component, target.hierarchy, options, declaredVariables);
+  if (hierarchy == null) {
+    var target = compilerState.options.target as DevCompilerTarget;
+    hierarchy = target.hierarchy;
+  }
 
-  var jsModule = compiler.emitModule(component, result.inputSummaries,
-      compilerState.options.inputSummaries, summaryModules);
+  // TODO(jmesserly): remove this hack once Flutter SDK has a `dartdevc` with
+  // support for the widget inspector.
+  if (argResults['track-widget-creation'] as bool) {
+    WidgetCreatorTracker(hierarchy).transform(component);
+  }
+
+  var compiler =
+      ProgramCompiler(component, hierarchy, options, declaredVariables);
+
+  var jsModule = compiler.emitModule(
+      component, result.inputSummaries, inputSummaries, summaryModules);
 
   // TODO(jmesserly): support for multiple output formats?
   //
@@ -263,7 +338,8 @@ Future<CompilerResult> _compile(List<String> args,
   // --single-out-file is used, but that option does not appear to be used by
   // any of our build systems.
   var jsCode = jsProgramToCode(jsModule, options.moduleFormats.first,
-      buildSourceMap: argResults['source-map'] as bool,
+      buildSourceMap: options.sourceMap,
+      inlineSourceMap: options.inlineSourceMap,
       jsUrl: path.toUri(output).toString(),
       mapUrl: path.toUri(output + '.map').toString(),
       bazelMapping: options.bazelMapping,
@@ -299,6 +375,7 @@ class JSCode {
 
 JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
     {bool buildSourceMap = false,
+    bool inlineSourceMap = false,
     String jsUrl,
     String mapUrl,
     Map<String, String> bazelMapping,
@@ -332,6 +409,10 @@ JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
   }
 
   var text = printer.getText();
+  var rawSourceMap = inlineSourceMap
+      ? js.escapedString(json.encode(builtMap), "'").value
+      : 'null';
+  text = text.replaceFirst(SharedCompiler.sourceMapLocationID, rawSourceMap);
 
   return JSCode(text, builtMap);
 }

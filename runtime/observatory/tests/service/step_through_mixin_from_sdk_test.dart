@@ -33,23 +33,23 @@ class Foo extends Object with ListMixin<int> {
 
 List<String> stops = [];
 List<String> expected = [
-  "$file:${LINE+0}:17", // on "Foo" (in "new Foo()")
-  "$file:${LINE+1}:11", // on "="
-  "list.dart:105:24", // on parameter to "contains"
-  "list.dart:106:23", // on "length" in "this.length"
-  "list.dart:107:16", // on "=" in "i = 0"
-  "list.dart:107:23", // on "<" in "i < length"
-  "list.dart:108:15", // on "[" in "this[i]"
-  "$file:${LINE+13}:23", // on parameter in "operator []"
-  "$file:${LINE+14}:5", // on "return"
-  "list.dart:108:19", // on "=="
-  "list.dart:109:26", // on "length" in "this.length"
-  "list.dart:109:18", // on "!="
-  "list.dart:107:34", // on "++" in "i++"
-  "list.dart:107:23", // on "<" in "i < length"
-  "list.dart:113:5", // on "return"
-  "$file:${LINE+4}:5", // on "print"
-  "$file:${LINE+6}:1" // on ending '}'
+  "$file:${LINE + 0}:17", // on "Foo" (in "new Foo()")
+  "$file:${LINE + 1}:11", // on "="
+  "list.dart:100:24", // on parameter to "contains"
+  "list.dart:101:23", // on "length" in "this.length"
+  "list.dart:102:16", // on "=" in "i = 0"
+  "list.dart:102:23", // on "<" in "i < length"
+  "list.dart:103:15", // on "[" in "this[i]"
+  "$file:${LINE + 13}:23", // on parameter in "operator []"
+  "$file:${LINE + 14}:5", // on "return"
+  "list.dart:103:19", // on "=="
+  "list.dart:104:26", // on "length" in "this.length"
+  "list.dart:104:18", // on "!="
+  "list.dart:102:34", // on "++" in "i++"
+  "list.dart:102:23", // on "<" in "i < length"
+  "list.dart:108:5", // on "return"
+  "$file:${LINE + 4}:5", // on "print"
+  "$file:${LINE + 6}:1" // on ending '}'
 ];
 
 var tests = <IsolateTest>[

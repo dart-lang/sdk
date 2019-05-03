@@ -5,15 +5,15 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=dynamic*/ x = null;
-var /*@topType=int*/ y = 3;
+var x = null;
+var y = 3;
 
 class A {
-  static var /*@topType=dynamic*/ x = null;
-  static var /*@topType=int*/ y = 3;
+  static var x = null;
+  static var y = 3;
 
-  var /*@topType=dynamic*/ x2 = null;
-  var /*@topType=int*/ y2 = 3;
+  var x2 = null;
+  var y2 = 3;
 }
 
 main() {

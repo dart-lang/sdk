@@ -60,6 +60,31 @@ static inline void ForwardTo(uword original, uword target) {
   *reinterpret_cast<uword*>(original) = target | kForwarded;
 }
 
+static inline void objcpy(void* dst, const void* src, size_t size) {
+  // A memcopy specialized for objects. We can assume:
+  //  - dst and src do not overlap
+  ASSERT(
+      (reinterpret_cast<uword>(dst) + size <= reinterpret_cast<uword>(src)) ||
+      (reinterpret_cast<uword>(src) + size <= reinterpret_cast<uword>(dst)));
+  //  - dst and src are word aligned
+  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(dst), sizeof(uword)));
+  ASSERT(Utils::IsAligned(reinterpret_cast<uword>(src), sizeof(uword)));
+  //  - size is strictly positive
+  ASSERT(size > 0);
+  //  - size is a multiple of double words
+  ASSERT(Utils::IsAligned(size, 2 * sizeof(uword)));
+
+  uword* __restrict dst_cursor = reinterpret_cast<uword*>(dst);
+  const uword* __restrict src_cursor = reinterpret_cast<const uword*>(src);
+  do {
+    uword a = *src_cursor++;
+    uword b = *src_cursor++;
+    *dst_cursor++ = a;
+    *dst_cursor++ = b;
+    size -= (2 * sizeof(uword));
+  } while (size > 0);
+}
+
 class ScavengerVisitor : public ObjectPointerVisitor {
  public:
   explicit ScavengerVisitor(Isolate* isolate,
@@ -73,6 +98,44 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         page_space_(scavenger->heap_->old_space()),
         bytes_promoted_(0),
         visiting_old_object_(NULL) {}
+
+  virtual void VisitTypedDataViewPointers(RawTypedDataView* view,
+                                          RawObject** first,
+                                          RawObject** last) {
+    // First we forward all fields of the typed data view.
+    VisitPointers(first, last);
+
+    if (view->ptr()->data_ == nullptr) {
+      ASSERT(ValueFromRawSmi(view->ptr()->offset_in_bytes_) == 0 &&
+             ValueFromRawSmi(view->ptr()->length_) == 0);
+      return;
+    }
+
+    // Validate 'this' is a typed data view.
+    const uword view_header =
+        *reinterpret_cast<uword*>(RawObject::ToAddr(view));
+    ASSERT(!IsForwarding(view_header) || view->IsOldObject());
+    ASSERT(RawObject::IsTypedDataViewClassId(view->GetClassIdMayBeSmi()));
+
+    // Validate that the backing store is not a forwarding word.
+    RawTypedDataBase* td = view->ptr()->typed_data_;
+    ASSERT(td->IsHeapObject());
+    const uword td_header = *reinterpret_cast<uword*>(RawObject::ToAddr(td));
+    ASSERT(!IsForwarding(td_header) || td->IsOldObject());
+
+    // We can always obtain the class id from the forwarded backing store.
+    const classid_t cid = td->GetClassId();
+
+    // If we have external typed data we can simply return since the backing
+    // store lives in C-heap and will not move.
+    if (RawObject::IsExternalTypedDataClassId(cid)) {
+      return;
+    }
+
+    // Now we update the inner pointer.
+    ASSERT(RawObject::IsTypedDataClassId(cid));
+    view->RecomputeDataFieldForInternalTypedData();
+  }
 
   void VisitPointers(RawObject** first, RawObject** last) {
     ASSERT(Utils::IsAligned(first, sizeof(*first)));
@@ -135,14 +198,11 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       new_addr = ForwardedAddr(header);
     } else {
       intptr_t size = raw_obj->HeapSize();
-      NOT_IN_PRODUCT(intptr_t cid = raw_obj->GetClassId());
-      NOT_IN_PRODUCT(ClassTable* class_table = isolate()->class_table());
       // Check whether object should be promoted.
       if (scavenger_->survivor_end_ <= raw_addr) {
         // Not a survivor of a previous scavenge. Just copy the object into the
         // to space.
         new_addr = scavenger_->AllocateGC(size);
-        NOT_IN_PRODUCT(class_table->UpdateLiveNew(cid, size));
       } else {
         // TODO(iposva): Experiment with less aggressive promotion. For example
         // a coin toss determines if an object is promoted or whether it should
@@ -150,27 +210,24 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         //
         // This object is a survivor of a previous scavenge. Attempt to promote
         // the object.
-        new_addr =
-            page_space_->TryAllocatePromoLocked(size, PageSpace::kForceGrowth);
+        new_addr = page_space_->TryAllocatePromoLocked(size);
         if (new_addr != 0) {
           // If promotion succeeded then we need to remember it so that it can
           // be traversed later.
           scavenger_->PushToPromotedStack(new_addr);
           bytes_promoted_ += size;
-          NOT_IN_PRODUCT(class_table->UpdateAllocatedOld(cid, size));
         } else {
           // Promotion did not succeed. Copy into the to space instead.
           scavenger_->failed_to_promote_ = true;
           new_addr = scavenger_->AllocateGC(size);
-          NOT_IN_PRODUCT(class_table->UpdateLiveNew(cid, size));
         }
       }
       // During a scavenge we always succeed to at least copy all of the
       // current objects to the to space.
       ASSERT(new_addr != 0);
       // Copy the object to the new location.
-      memmove(reinterpret_cast<void*>(new_addr),
-              reinterpret_cast<void*>(raw_addr), size);
+      objcpy(reinterpret_cast<void*>(new_addr),
+             reinterpret_cast<void*>(raw_addr), size);
 
       RawObject* new_obj = RawObject::FromAddr(new_addr);
       if (new_obj->IsOldObject()) {
@@ -187,6 +244,10 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         tags =
             RawObject::OldAndNotMarkedBit::update(!thread_->is_marking(), tags);
         new_obj->ptr()->tags_ = tags;
+      }
+
+      if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {
+        reinterpret_cast<RawTypedData*>(new_obj)->RecomputeDataField();
       }
 
       // Remember forwarding address.
@@ -428,6 +489,7 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate) {
   NOT_IN_PRODUCT(isolate->class_table()->ResetCountersNew());
 
   isolate->ReleaseStoreBuffers();
+  AbandonTLABs(isolate);
 
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
@@ -646,18 +708,22 @@ void Scavenger::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
 
 void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
   Thread* thread = Thread::Current();
+  NOT_IN_PRODUCT(ClassTable* class_table = thread->isolate()->class_table());
 
   // Iterate until all work has been drained.
   while ((resolved_top_ < top_) || PromotedStackHasMore()) {
     while (resolved_top_ < top_) {
       RawObject* raw_obj = RawObject::FromAddr(resolved_top_);
       intptr_t class_id = raw_obj->GetClassId();
+      intptr_t size;
       if (class_id != kWeakPropertyCid) {
-        resolved_top_ += raw_obj->VisitPointersNonvirtual(visitor);
+        size = raw_obj->VisitPointersNonvirtual(visitor);
       } else {
         RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
-        resolved_top_ += ProcessWeakProperty(raw_weak, visitor);
+        size = ProcessWeakProperty(raw_weak, visitor);
       }
+      NOT_IN_PRODUCT(class_table->UpdateLiveNewGC(class_id, size));
+      resolved_top_ += size;
     }
     {
       // Visit all the promoted objects and update/scavenge their internal
@@ -669,7 +735,12 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
         // objects to be resolved in the to space.
         ASSERT(!raw_object->IsRemembered());
         visitor->VisitingOldObject(raw_object);
-        raw_object->VisitPointersNonvirtual(visitor);
+        intptr_t size = raw_object->VisitPointersNonvirtual(visitor);
+#if defined(PRODUCT)
+        USE(size);
+#else
+        class_table->UpdateAllocatedOldGC(raw_object->GetClassId(), size);
+#endif
         if (raw_object->IsMarked()) {
           // Complete our promise from ScavengePointer. Note that marker cannot
           // visit this object until it pops a block from the mark stack, which
@@ -830,11 +901,12 @@ void Scavenger::ProcessWeakReferences() {
   }
 }
 
-void Scavenger::MakeAllTLABsIterable(Isolate* isolate) const {
-  MonitorLocker ml(isolate->threads_lock(), false);
+void Scavenger::MakeNewSpaceIterable() const {
   ASSERT(Thread::Current()->IsAtSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
          (Thread::Current()->task_kind() == Thread::kCompactorTask));
+  Isolate* isolate = heap_->isolate();
+  MonitorLocker ml(isolate->threads_lock(), false);
   Thread* current = heap_->isolate()->thread_registry()->active_list();
   while (current != NULL) {
     if (current->HasActiveTLAB()) {
@@ -843,22 +915,12 @@ void Scavenger::MakeAllTLABsIterable(Isolate* isolate) const {
     current = current->next();
   }
   Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
+  if (mutator_thread != NULL) {
     heap_->MakeTLABIterable(mutator_thread);
   }
 }
 
-void Scavenger::MakeNewSpaceIterable() const {
-  ASSERT(heap_ != NULL);
-  ASSERT(Thread::Current()->IsAtSafepoint() ||
-         (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
-         (Thread::Current()->task_kind() == Thread::kCompactorTask));
-  if (!scavenging_) {
-    MakeAllTLABsIterable(heap_->isolate());
-  }
-}
-
-void Scavenger::AbandonAllTLABs(Isolate* isolate) {
+void Scavenger::AbandonTLABs(Isolate* isolate) {
   ASSERT(Thread::Current()->IsAtSafepoint());
   MonitorLocker ml(isolate->threads_lock(), false);
   Thread* current = isolate->thread_registry()->active_list();
@@ -867,7 +929,7 @@ void Scavenger::AbandonAllTLABs(Isolate* isolate) {
     current = current->next();
   }
   Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (!isolate->IsMutatorThreadScheduled())) {
+  if (mutator_thread != NULL) {
     heap_->AbandonRemainingTLAB(mutator_thread);
   }
 }
@@ -972,13 +1034,6 @@ void Scavenger::Scavenge() {
   int64_t safe_point = OS::GetCurrentMonotonicMicros();
   heap_->RecordTime(kSafePoint, safe_point - start);
 
-  AbandonAllTLABs(isolate);
-
-  Thread* mutator_thread = isolate->mutator_thread();
-  if ((mutator_thread != NULL) && (mutator_thread->HasActiveTLAB())) {
-    heap_->AbandonRemainingTLAB(mutator_thread);
-  }
-
   // TODO(koda): Make verification more compatible with concurrent sweep.
   if (FLAG_verify_before_gc && !FLAG_concurrent_sweep) {
     OS::PrintErr("Verifying before Scavenge...");
@@ -987,7 +1042,6 @@ void Scavenger::Scavenge() {
   }
 
   // Prepare for a scavenge.
-  MakeNewSpaceIterable();
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;

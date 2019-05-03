@@ -52,7 +52,9 @@ class B {}
     var uriStr = 'package:test/a.dart';
 
     newFile(path, content: r'''
-class A {}
+class A {
+  A.a();
+}
 ''');
 
     var set = await waitForSetWithUri(uriStr);
@@ -72,8 +74,31 @@ class A {}
     "flags": 0
   },
   "relevanceTags": [
-    "package:test/a.dart::A"
+    "package:test/a.dart::A",
+    "A"
   ]
+}
+''');
+    assertJsonText(_getSuggestion(set, 'A.a'), '''
+{
+  "label": "A.a",
+  "element": {
+    "kind": "CONSTRUCTOR",
+    "name": "a",
+    "location": {
+      "file": ${jsonOfPath(path)},
+      "offset": 14,
+      "length": 0,
+      "startLine": 2,
+      "startColumn": 5
+    },
+    "flags": 0,
+    "parameters": "()",
+    "returnType": "A"
+  },
+  "parameterNames": [],
+  "parameterTypes": [],
+  "requiredParameterCount": 0
 }
 ''');
   }
@@ -106,7 +131,8 @@ enum MyEnum {
     "flags": 0
   },
   "relevanceTags": [
-    "package:test/a.dart::MyEnum"
+    "package:test/a.dart::MyEnum",
+    "MyEnum"
   ]
 }
 ''');
@@ -126,7 +152,8 @@ enum MyEnum {
     "flags": 0
   },
   "relevanceTags": [
-    "package:test/a.dart::MyEnum"
+    "package:test/a.dart::MyEnum",
+    "aaa"
   ]
 }
 ''');
@@ -146,7 +173,8 @@ enum MyEnum {
     "flags": 0
   },
   "relevanceTags": [
-    "package:test/a.dart::MyEnum"
+    "package:test/a.dart::MyEnum",
+    "bbb"
   ]
 }
 ''');
@@ -181,7 +209,8 @@ var stringV = 'hi';
     "returnType": ""
   },
   "relevanceTags": [
-    "dart:core::bool"
+    "dart:core::bool",
+    "boolV"
   ]
 }
 ''');
@@ -202,7 +231,8 @@ var stringV = 'hi';
     "returnType": ""
   },
   "relevanceTags": [
-    "dart:core::int"
+    "dart:core::int",
+    "intV"
   ]
 }
 ''');
@@ -223,7 +253,8 @@ var stringV = 'hi';
     "returnType": ""
   },
   "relevanceTags": [
-    "dart:core::double"
+    "dart:core::double",
+    "doubleV"
   ]
 }
 ''');
@@ -244,7 +275,8 @@ var stringV = 'hi';
     "returnType": ""
   },
   "relevanceTags": [
-    "dart:core::String"
+    "dart:core::String",
+    "stringV"
   ]
 }
 ''');

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=set-literals,spread-collections
+// SharedOptions=--enable-experiment=spread-collections
 
 // Test how spread interacts with inference.
 import 'package:expect/expect.dart';
@@ -60,12 +60,12 @@ void testBottomUpInference() {
 void testTopDownInference() {
   // Lists.
   Iterable<T> expectIntIterable<T>() {
-    Expect.identical(int, T);
+    Expect.equals(int, T);
     return [];
   }
 
   Iterable<T> expectDynamicIterable<T>() {
-    Expect.identical(dynamic, T);
+    Expect.equals(dynamic, T);
     return [];
   }
 
@@ -78,14 +78,14 @@ void testTopDownInference() {
 
   // Maps.
   Map<K, V> expectIntStringMap<K, V>() {
-    Expect.identical(int, K);
-    Expect.identical(String, V);
+    Expect.equals(int, K);
+    Expect.equals(String, V);
     return {};
   }
 
   Map<K, V> expectDynamicDynamicMap<K, V>() {
-    Expect.identical(dynamic, K);
-    Expect.identical(dynamic, V);
+    Expect.equals(dynamic, K);
+    Expect.equals(dynamic, V);
     return {};
   }
 
@@ -99,12 +99,12 @@ void testTopDownInference() {
 
   // Sets.
   Set<T> expectIntSet<T>() {
-    Expect.identical(int, T);
+    Expect.equals(int, T);
     return Set();
   }
 
   Set<T> expectDynamicSet<T>() {
-    Expect.identical(dynamic, T);
+    Expect.equals(dynamic, T);
     return Set();
   }
 
@@ -113,5 +113,5 @@ void testTopDownInference() {
   Expect.setEquals(<int>{}, <int>{...expectIntSet()});
 
   // Bottom up-inference from elements is not pushed back down into spread.
-  Expect.setEquals(<int>{}, {1, ...expectDynamicSet()});
+  Expect.setEquals(<int>{1}, {1, ...expectDynamicSet()});
 }

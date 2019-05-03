@@ -8,7 +8,6 @@ library jsinterop;
 /*class: global#JavaScriptObject:checks=[$isA,$isC],instance*/
 
 import 'package:js/js.dart';
-import 'package:expect/expect.dart';
 
 /*class: A:checkedInstance,checks=[],instance*/
 @JS()
@@ -46,7 +45,7 @@ class F {
   F();
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is A || o is C || o is E;
 
 main() {

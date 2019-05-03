@@ -34,9 +34,9 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
     newFile(testPath, content: code);
     var resolveResult = await session.getResolvedUnit(testPath);
     return new DartUnitOutlineComputer(
-            testPath, resolveResult.lineInfo, resolveResult.unit,
-            withBasicFlutter: true)
-        .compute();
+      resolveResult,
+      withBasicFlutter: true,
+    ).compute();
   }
 }
 
@@ -411,6 +411,66 @@ enum MyEnum {
       _isEnumConstant(outlines_MyEnum[1], 'B');
       _isEnumConstant(outlines_MyEnum[2], 'C');
     }
+  }
+
+  test_genericTypeAlias_incomplete() async {
+    Outline unitOutline = await _computeOutline('''
+typedef F = Object;
+''');
+    List<Outline> topOutlines = unitOutline.children;
+    expect(topOutlines, hasLength(1));
+    // F
+    Outline outline_F = topOutlines[0];
+    Element element_F = outline_F.element;
+    expect(element_F.kind, ElementKind.FUNCTION_TYPE_ALIAS);
+    expect(element_F.name, "F");
+    {
+      Location location = element_F.location;
+      expect(location.offset, testCode.indexOf("F ="));
+      expect(location.length, 'F'.length);
+    }
+    expect(element_F.parameters, '');
+    expect(element_F.returnType, '');
+  }
+
+  test_genericTypeAlias_minimal() async {
+    Outline unitOutline = await _computeOutline('''
+typedef F = void Function();
+''');
+    List<Outline> topOutlines = unitOutline.children;
+    expect(topOutlines, hasLength(1));
+    // F
+    Outline outline_F = topOutlines[0];
+    Element element_F = outline_F.element;
+    expect(element_F.kind, ElementKind.FUNCTION_TYPE_ALIAS);
+    expect(element_F.name, "F");
+    {
+      Location location = element_F.location;
+      expect(location.offset, testCode.indexOf("F ="));
+      expect(location.length, 'F'.length);
+    }
+    expect(element_F.parameters, '()');
+    expect(element_F.returnType, 'void');
+  }
+
+  test_genericTypeAlias_noReturnType() async {
+    Outline unitOutline = await _computeOutline('''
+typedef F = Function();
+''');
+    List<Outline> topOutlines = unitOutline.children;
+    expect(topOutlines, hasLength(1));
+    // F
+    Outline outline_F = topOutlines[0];
+    Element element_F = outline_F.element;
+    expect(element_F.kind, ElementKind.FUNCTION_TYPE_ALIAS);
+    expect(element_F.name, "F");
+    {
+      Location location = element_F.location;
+      expect(location.offset, testCode.indexOf("F ="));
+      expect(location.length, 'F'.length);
+    }
+    expect(element_F.parameters, '()');
+    expect(element_F.returnType, '');
   }
 
   test_groupAndTest() async {

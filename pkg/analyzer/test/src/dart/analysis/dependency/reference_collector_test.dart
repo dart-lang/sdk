@@ -20,6 +20,7 @@ main() {
     defineReflectiveTests(ImplReferenceCollectorTest);
     defineReflectiveTests(ShadowReferenceCollectorTest);
     defineReflectiveTests(StatementReferenceCollectorTest);
+    defineReflectiveTests(StatementReferenceCollectorTest_SpreadCollections);
     defineReflectiveTests(TypeReferenceCollectorTest);
   });
 }
@@ -1385,10 +1386,6 @@ test() {
 
 @reflectiveTest
 class ExpressionReferenceCollectorTest_SetLiterals extends _Base {
-  @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.set_literals];
-
   test_setLiteral() async {
     var library = await buildTestLibrary(a, r'''
 test() {
@@ -2158,6 +2155,14 @@ test() sync* {
 ''');
     _assertImpl(library, 'test', NodeKind.FUNCTION, unprefixed: ['x']);
   }
+}
+
+@reflectiveTest
+class StatementReferenceCollectorTest_SpreadCollections
+    extends StatementReferenceCollectorTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [EnableString.spread_collections];
 }
 
 @reflectiveTest

@@ -27,8 +27,8 @@ void test(var f, String constructorName) {
 
 int m1() => null;
 String m2() => null;
-m3() => null;
-m4(int i) => null;
+Null m3() => null;
+Null m4(int i) => null;
 
 main() {
   test((m) => new C.c1(m), 'c1');

@@ -16,9 +16,6 @@ typedef void ErrorHandler(TreeNode node, String message);
 abstract class TypeEnvironment extends SubtypeTester {
   final CoreTypes coreTypes;
 
-  @override
-  final bool legacyMode;
-
   InterfaceType thisType;
 
   DartType returnType;
@@ -29,12 +26,10 @@ abstract class TypeEnvironment extends SubtypeTester {
   /// be tolerated.  See [typeError].
   ErrorHandler errorHandler;
 
-  TypeEnvironment.fromSubclass(this.coreTypes, {this.legacyMode: false});
+  TypeEnvironment.fromSubclass(this.coreTypes);
 
-  factory TypeEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy,
-      {bool legacyMode: false}) {
-    return new HierarchyBasedTypeEnvironment(coreTypes, hierarchy,
-        legacyMode: legacyMode);
+  factory TypeEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy) {
+    return new HierarchyBasedTypeEnvironment(coreTypes, hierarchy);
   }
 
   InterfaceType get objectType => coreTypes.objectClass.rawType;
@@ -161,7 +156,8 @@ abstract class SubtypeTester {
   InterfaceType get rawFunctionType;
   Class get futureOrClass;
   InterfaceType futureType(DartType type);
-  bool get legacyMode;
+
+  static List<Object> typeChecks;
 
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass);
 
@@ -169,6 +165,19 @@ abstract class SubtypeTester {
   /// overridden in subclasses.
   bool isTop(DartType type) =>
       type is DynamicType || type is VoidType || type == objectType;
+
+  /// Can be use to collect type checks. To use:
+  /// 1. Rename `isSubtypeOf` to `_isSubtypeOf`.
+  /// 2. Rename `_collect_isSubtypeOf` to `isSubtypeOf`.
+  /// 3. Comment out the call to `_isSubtypeOf` below.
+  // ignore:unused_element
+  bool _collect_isSubtypeOf(DartType subtype, DartType supertype) {
+    bool result = true;
+    // result = _isSubtypeOf(subtype, supertype);
+    typeChecks ??= <Object>[];
+    typeChecks.add([subtype, supertype, result]);
+    return result;
+  }
 
   /// Returns true if [subtype] is a subtype of [supertype].
   bool isSubtypeOf(DartType subtype, DartType supertype) {
@@ -183,8 +192,7 @@ abstract class SubtypeTester {
     if (isTop(supertype)) return true;
 
     // Handle FutureOr<T> union type.
-    if (!legacyMode &&
-        subtype is InterfaceType &&
+    if (subtype is InterfaceType &&
         identical(subtype.classNode, futureOrClass)) {
       var subtypeArg = subtype.typeArguments[0];
       if (supertype is InterfaceType &&
@@ -201,8 +209,7 @@ abstract class SubtypeTester {
           isSubtypeOf(subtypeArg, supertype);
     }
 
-    if (!legacyMode &&
-        supertype is InterfaceType &&
+    if (supertype is InterfaceType &&
         identical(supertype.classNode, futureOrClass)) {
       // given t2 is Future<A> | A, then:
       // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A

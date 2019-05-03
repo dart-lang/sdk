@@ -2,83 +2,50 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/spread_collection.dart:6:26: Error: Unexpected token '...'.
-//   final aList = <int>[1, ...[2], ...?[3]];
-//                          ^^^
-//
-// pkg/front_end/testcases/spread_collection.dart:6:34: Error: Unexpected token '...?'.
-//   final aList = <int>[1, ...[2], ...?[3]];
-//                                  ^^^^
-//
-// pkg/front_end/testcases/spread_collection.dart:7:33: Error: Unexpected token '...'.
-//   final aMap = <int, int>{1: 1, ...{2: 2}, ...?{3: 3}};
-//                                 ^^^
-//
-// pkg/front_end/testcases/spread_collection.dart:7:44: Error: Unexpected token '...?'.
-//   final aMap = <int, int>{1: 1, ...{2: 2}, ...?{3: 3}};
-//                                            ^^^^
-//
-// pkg/front_end/testcases/spread_collection.dart:8:25: Error: Unexpected token '...'.
-//   final aSet = <int>{1, ...[2], ...?[3]};
-//                         ^^^
-//
-// pkg/front_end/testcases/spread_collection.dart:8:33: Error: Unexpected token '...?'.
-//   final aSet = <int>{1, ...[2], ...?[3]};
-//                                 ^^^^
-//
-// pkg/front_end/testcases/spread_collection.dart:9:22: Error: Unexpected token '...'.
+// pkg/front_end/testcases/spread_collection.dart:9:21: Error: Not enough type information to disambiguate between literal set and literal map.
+// Try providing type arguments for the literal explicitly to disambiguate it.
 //   final aSetOrMap = {...foo()};
-//                      ^^^
-//
-// pkg/front_end/testcases/spread_collection.dart:6:29: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
-//  - 'List' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//   final aList = <int>[1, ...[2], ...?[3]];
-//                             ^
-//
-// pkg/front_end/testcases/spread_collection.dart:6:38: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
-//  - 'List' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//   final aList = <int>[1, ...[2], ...?[3]];
-//                                      ^
-//
-// pkg/front_end/testcases/spread_collection.dart:8:28: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
-//  - 'List' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//   final aSet = <int>{1, ...[2], ...?[3]};
-//                            ^
-//
-// pkg/front_end/testcases/spread_collection.dart:8:37: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
-//  - 'List' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//   final aSet = <int>{1, ...[2], ...?[3]};
-//                                     ^
+//                     ^
 //
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
 
 static method main() → dynamic {
-  final core::List<core::int> aList = <core::int>[1, let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/spread_collection.dart:6:29: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
- - 'List' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  final aList = <int>[1, ...[2], ...?[3]];
-                            ^" in <core::int>[2] as{TypeError} core::int, let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/spread_collection.dart:6:38: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
- - 'List' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  final aList = <int>[1, ...[2], ...?[3]];
-                                     ^" in <core::int>[3] as{TypeError} core::int];
-  final core::Map<core::int, core::int> aMap = <core::int, core::int>{1: 1};
-  final core::Set<core::int> aSet = let final core::Set<core::int> #t3 = col::LinkedHashSet::•<core::int>() in let final core::bool #t4 = #t3.{core::Set::add}(1) in let final core::bool #t5 = #t3.{core::Set::add}(let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/spread_collection.dart:8:28: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
- - 'List' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  final aSet = <int>{1, ...[2], ...?[3]};
-                           ^" in <core::int>[2] as{TypeError} core::int) in let final core::bool #t7 = #t3.{core::Set::add}(let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/spread_collection.dart:8:37: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
- - 'List' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  final aSet = <int>{1, ...[2], ...?[3]};
-                                    ^" in <core::int>[3] as{TypeError} core::int) in #t3;
-  final core::Map<dynamic, dynamic> aSetOrMap = <dynamic, dynamic>{};
+  final core::List<core::int> aList = block {
+    final core::List<core::int> #t1 = <core::int>[];
+    #t1.{core::List::add}(1);
+    for (final core::int #t2 in <core::int>[2])
+      #t1.{core::List::add}(#t2);
+    final dynamic #t3 = <core::int>[3];
+    if(!#t3.{core::Object::==}(null))
+      for (final core::int #t4 in #t3)
+        #t1.{core::List::add}(#t4);
+  } =>#t1;
+  final core::Map<core::int, core::int> aMap = block {
+    final core::Map<core::int, core::int> #t5 = <core::int, core::int>{};
+    #t5.{core::Map::[]=}(1, 1);
+    for (final core::MapEntry<core::int, core::int> #t6 in <core::int, core::int>{2: 2}.{core::Map::entries})
+      #t5.{core::Map::[]=}(#t6.{core::MapEntry::key}, #t6.{core::MapEntry::value});
+    final core::Map<dynamic, dynamic> #t7 = <core::int, core::int>{3: 3};
+    if(!#t7.{core::Object::==}(null))
+      for (final core::MapEntry<core::int, core::int> #t8 in #t7.{core::Map::entries})
+        #t5.{core::Map::[]=}(#t8.{core::MapEntry::key}, #t8.{core::MapEntry::value});
+  } =>#t5;
+  final core::Set<core::int> aSet = block {
+    final core::Set<core::int> #t9 = col::LinkedHashSet::•<core::int>();
+    #t9.{core::Set::add}(1);
+    for (final core::int #t10 in <core::int>[2])
+      #t9.{core::Set::add}(#t10);
+    final dynamic #t11 = <core::int>[3];
+    if(!#t11.{core::Object::==}(null))
+      for (final core::int #t12 in #t11)
+        #t9.{core::Set::add}(#t12);
+  } =>#t9;
+  final dynamic aSetOrMap = invalid-expression "pkg/front_end/testcases/spread_collection.dart:9:21: Error: Not enough type information to disambiguate between literal set and literal map.
+Try providing type arguments for the literal explicitly to disambiguate it.
+  final aSetOrMap = {...foo()};
+                    ^";
   core::print(aList);
   core::print(aSet);
   core::print(aMap);

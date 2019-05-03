@@ -9,11 +9,15 @@ class ConstClass {
   /*element: ConstClass.x:OutputUnit(2, {lib1, lib2})*/
   final x;
 
-  /*element: ConstClass.:OutputUnit(2, {lib1, lib2})*/
+  /*strong.element: ConstClass.:OutputUnit(2, {lib1, lib2})*/
   const ConstClass(this.x);
 }
 
-/*element: x:OutputUnit(2, {lib1, lib2})*/
+/*strong.element: x:OutputUnit(2, {lib1, lib2})*/
+/*strongConst.element: x:
+ OutputUnit(2, {lib1, lib2}),
+ constants=[ConstructedConstant(ConstClass(x=ConstructedConstant(ConstClass(x=IntConstant(1)))))=OutputUnit(2, {lib1, lib2})]
+*/
 var x = const ConstClass(const ConstClass(1));
 
 /*class: C:OutputUnit(1, {lib1})*/
@@ -36,7 +40,11 @@ class C {
 
 /*class: C1:OutputUnit(main, {})*/
 class C1 {
-  /*element: C1.foo:OutputUnit(3, {lib2})*/
+  /*strong.element: C1.foo:OutputUnit(3, {lib2})*/
+  /*strongConst.element: C1.foo:
+   OutputUnit(3, {lib2}),
+   constants=[MapConstant({})=OutputUnit(3, {lib2})]
+  */
   static var foo = const {};
   var bar = const {};
 }
@@ -55,10 +63,18 @@ class C2 {
 
 /*class: C3:OutputUnit(1, {lib1})*/
 class C3 {
-  /*element: C3.foo:OutputUnit(3, {lib2})*/
+  /*strong.element: C3.foo:OutputUnit(3, {lib2})*/
+  /*strongConst.element: C3.foo:
+   OutputUnit(3, {lib2}),
+   constants=[ConstructedConstant(ConstClass(x=ConstructedConstant(ConstClass(x=IntConstant(1)))))=OutputUnit(2, {lib1, lib2})]
+  */
   static final foo = const ConstClass(const ConstClass(1));
 
-  /*element: C3.bar:OutputUnit(1, {lib1})*/
+  /*strong.element: C3.bar:OutputUnit(1, {lib1})*/
+  /*strongConst.element: C3.bar:
+   OutputUnit(1, {lib1}),
+   constants=[ConstructedConstant(ConstClass(x=ConstructedConstant(ConstClass(x=IntConstant(1)))))=OutputUnit(2, {lib1, lib2})]
+  */
   final bar = const ConstClass(const ConstClass(1));
 
   /*element: C3.:OutputUnit(1, {lib1})*/
@@ -79,8 +95,8 @@ class C4 {
 
 /*class: C5:OutputUnit(1, {lib1})*/
 class C5 {
-  /*element: C5.foo:OutputUnit(3, {lib2})*/
-  static const foo = /*OutputUnit(3, {lib2})*/ const [
+  /*strong.element: C5.foo:OutputUnit(3, {lib2})*/
+  static const foo = /*strong.OutputUnit(3, {lib2})*/ const [
     const {1: 3}
   ];
 

@@ -8,9 +8,9 @@ library test;
 typedef void F<T>(T x);
 
 class C<T> {
-  T /*@covariance=genericImpl*/ x;
-  void set y(T /*@covariance=genericImpl*/ value) {}
-  void f(T /*@covariance=genericImpl*/ value) {
+  T x;
+  void set y(T value) {}
+  void f(T value) {
     this.x = value;
     this.y = value;
   }

@@ -22,6 +22,7 @@ import 'package:kernel/ast.dart'
         FunctionType,
         Instantiation,
         InterfaceType,
+        InvalidType,
         InvocationExpression,
         Let,
         ListLiteral,
@@ -51,8 +52,6 @@ import 'package:kernel/ast.dart'
         VoidType;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
-import 'package:kernel/class_hierarchy.dart' as kernel show MixinInferrer;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
@@ -106,7 +105,6 @@ import '../kernel/kernel_shadow_ast.dart'
         ExpressionJudgment,
         ShadowClass,
         ShadowField,
-        ShadowMember,
         ShadowTypeInferenceEngine,
         ShadowTypeInferrer,
         VariableDeclarationJudgment,
@@ -118,8 +116,6 @@ import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 import '../names.dart' show callName, unaryMinusName;
 
 import '../problems.dart' show internalProblem, unexpected, unhandled;
-
-import '../source/source_loader.dart' show SourceLoader;
 
 import 'inference_helper.dart' show InferenceHelper;
 
@@ -549,7 +545,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   TypeInferrerImpl.private(
       this.engine, this.uri, bool topLevel, this.thisType, this.library)
-      : classHierarchy = engine.classHierarchy,
+      : assert((topLevel && library == null) || (!topLevel && library != null)),
+        classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel,
@@ -681,21 +678,22 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (!typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
       // Error: not assignable.  Perform error recovery.
       var parent = expression.parent;
-      var errorNode = helper.wrapInProblem(
-          new AsExpression(
-              expression,
-              // TODO(ahe): The outline phase doesn't correctly remove invalid
-              // uses of type variables, for example, on static members. Once
-              // that has been fixed, we should always be able to use
-              // [expectedType] directly here.
-              hasAnyTypeVariables(expectedType)
-                  ? const BottomType()
-                  : expectedType)
-            ..isTypeError = true
-            ..fileOffset = expression.fileOffset,
-          (template ?? templateInvalidAssignment)
-              .withArguments(actualType, expectedType),
-          noLength);
+      Expression errorNode = new AsExpression(
+          expression,
+          // TODO(ahe): The outline phase doesn't correctly remove invalid
+          // uses of type variables, for example, on static members. Once
+          // that has been fixed, we should always be able to use
+          // [expectedType] directly here.
+          hasAnyTypeVariables(expectedType) ? const BottomType() : expectedType)
+        ..isTypeError = true
+        ..fileOffset = expression.fileOffset;
+      if (expectedType is! InvalidType && actualType is! InvalidType) {
+        errorNode = helper.wrapInProblem(
+            errorNode,
+            (template ?? templateInvalidAssignment)
+                .withArguments(actualType, expectedType),
+            noLength);
+      }
       parent?.replaceChild(expression, errorNode);
       return errorNode;
     } else {
@@ -763,6 +761,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (!isTopLevel &&
         interfaceMember == null &&
         receiverType is! DynamicType &&
+        receiverType is! InvalidType &&
         !(receiverType == coreTypes.functionClass.rawType &&
             name.name == 'call') &&
         errorTemplate != null) {
@@ -1844,7 +1843,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         member = member is SyntheticAccessor
             ? SyntheticAccessor.getField(member)
             : member;
-        ShadowMember.resolveInferenceNode(member);
+        TypeInferenceEngine.resolveInferenceNode(member);
         return member;
       }
     }
@@ -1906,29 +1905,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
     }
     return false;
-  }
-}
-
-// TODO(ahe): I'm working on removing this.
-class KernelHierarchyMixinInferrerCallback implements kernel.MixinInferrer {
-  final SourceLoader loader;
-  final bool legacyMode;
-
-  KernelHierarchyMixinInferrerCallback(this.loader, this.legacyMode);
-
-  @override
-  void infer(ClassHierarchy hierarchy, Class classNode) {
-    if (legacyMode) return;
-    Supertype mixedInType = classNode.mixedInType;
-    List<DartType> typeArguments = mixedInType.typeArguments;
-    if (typeArguments.isEmpty || typeArguments.first is! UnknownType) return;
-    new KernelHierarchyMixinInferrer(
-            hierarchy,
-            loader,
-            new TypeConstraintGatherer(
-                new TypeSchemaEnvironment(loader.coreTypes, hierarchy),
-                mixedInType.classNode.typeParameters))
-        .infer(classNode);
   }
 }
 
@@ -2071,26 +2047,6 @@ abstract class MixinInferrer {
     for (int i = 0; i < mixedInType.typeArguments.length; ++i) {
       mixedInType.typeArguments[i] = bounds[i];
     }
-  }
-}
-
-// TODO(ahe): I'm working on removing this.
-class KernelHierarchyMixinInferrer extends MixinInferrer {
-  final ClassHierarchy hierarchy;
-  final SourceLoader loader;
-
-  KernelHierarchyMixinInferrer(
-      this.hierarchy, this.loader, TypeConstraintGatherer gatherer)
-      : super(loader.coreTypes, gatherer);
-
-  @override
-  Supertype asInstantiationOf(Supertype type, Class superclass) {
-    return hierarchy.asInstantiationOf(type, superclass);
-  }
-
-  @override
-  void reportProblem(Message message, Class cls) {
-    loader.addProblem(message, cls.fileOffset, noLength, cls.fileUri);
   }
 }
 

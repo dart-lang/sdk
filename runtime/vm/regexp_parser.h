@@ -23,7 +23,10 @@ class RegExpBuilder : public ZoneAllocated {
   void AddAtom(RegExpTree* tree);
   void AddAssertion(RegExpTree* tree);
   void NewAlternative();  // '|'
-  void AddQuantifierToAtom(intptr_t min,
+  // Attempt to add a quantifier to the last atom added. The return value
+  // denotes whether the attempt succeeded, since some atoms like lookbehind
+  // cannot be quantified.
+  bool AddQuantifierToAtom(intptr_t min,
                            intptr_t max,
                            RegExpQuantifier::QuantifierType type);
   RegExpTree* ToRegExp();
@@ -48,6 +51,8 @@ class RegExpBuilder : public ZoneAllocated {
 #define LAST(x)
 #endif
 };
+
+using RegExpCaptureName = ZoneGrowableArray<uint16_t>;
 
 class RegExpParser : public ValueObject {
  public:
@@ -93,9 +98,7 @@ class RegExpParser : public ValueObject {
   bool simple();
   bool contains_anchor() { return contains_anchor_; }
   void set_contains_anchor() { contains_anchor_ = true; }
-  intptr_t captures_started() {
-    return captures_ == NULL ? 0 : captures_->length();
-  }
+  intptr_t captures_started() { return captures_started_; }
   intptr_t position() { return next_pos_ - 1; }
 
   static const intptr_t kMaxCaptures = 1 << 16;
@@ -105,8 +108,8 @@ class RegExpParser : public ValueObject {
   enum SubexpressionType {
     INITIAL,
     CAPTURE,  // All positive values represent captures.
-    POSITIVE_LOOKAHEAD,
-    NEGATIVE_LOOKAHEAD,
+    POSITIVE_LOOKAROUND,
+    NEGATIVE_LOOKAROUND,
     GROUPING
   };
 
@@ -114,12 +117,16 @@ class RegExpParser : public ValueObject {
    public:
     RegExpParserState(RegExpParserState* previous_state,
                       SubexpressionType group_type,
+                      RegExpLookaround::Type lookaround_type,
                       intptr_t disjunction_capture_index,
+                      const RegExpCaptureName* capture_name,
                       Zone* zone)
         : previous_state_(previous_state),
           builder_(new (zone) RegExpBuilder()),
           group_type_(group_type),
-          disjunction_capture_index_(disjunction_capture_index) {}
+          lookaround_type_(lookaround_type),
+          disjunction_capture_index_(disjunction_capture_index),
+          capture_name_(capture_name) {}
     // Parser state of containing expression, if any.
     RegExpParserState* previous_state() { return previous_state_; }
     bool IsSubexpression() { return previous_state_ != NULL; }
@@ -127,10 +134,20 @@ class RegExpParser : public ValueObject {
     RegExpBuilder* builder() { return builder_; }
     // Type of regexp being parsed (parenthesized group or entire regexp).
     SubexpressionType group_type() { return group_type_; }
+    // Lookahead or lookbehind.
+    RegExpLookaround::Type lookaround_type() { return lookaround_type_; }
     // Index in captures array of first capture in this sub-expression, if any.
     // Also the capture index of this sub-expression itself, if group_type
     // is CAPTURE.
     intptr_t capture_index() { return disjunction_capture_index_; }
+    const RegExpCaptureName* capture_name() const { return capture_name_; }
+
+    bool IsNamedCapture() const { return capture_name_ != nullptr; }
+
+    // Check whether the parser is inside a capture group with the given index.
+    bool IsInsideCaptureGroup(intptr_t index);
+    // Check whether the parser is inside a capture group with the given name.
+    bool IsInsideCaptureGroup(const RegExpCaptureName* name);
 
    private:
     // Linked list implementation of stack of states.
@@ -139,9 +156,41 @@ class RegExpParser : public ValueObject {
     RegExpBuilder* builder_;
     // Stored disjunction type (capture, look-ahead or grouping), if any.
     SubexpressionType group_type_;
+    // Stored read direction.
+    const RegExpLookaround::Type lookaround_type_;
     // Stored disjunction's capture index (if any).
     intptr_t disjunction_capture_index_;
+    // Stored capture name (if any).
+    const RegExpCaptureName* const capture_name_;
   };
+
+  // Return the 1-indexed RegExpCapture object, allocate if necessary.
+  RegExpCapture* GetCapture(intptr_t index);
+
+  // Creates a new named capture at the specified index. Must be called exactly
+  // once for each named capture. Fails if a capture with the same name is
+  // encountered.
+  void CreateNamedCaptureAtIndex(const RegExpCaptureName* name, intptr_t index);
+
+  // Parses the name of a capture group (?<name>pattern). The name must adhere
+  // to IdentifierName in the ECMAScript standard.
+  const RegExpCaptureName* ParseCaptureGroupName();
+
+  bool ParseNamedBackReference(RegExpBuilder* builder,
+                               RegExpParserState* state);
+  RegExpParserState* ParseOpenParenthesis(RegExpParserState* state);
+  intptr_t GetNamedCaptureIndex(const RegExpCaptureName* name);
+
+  // After the initial parsing pass, patch corresponding RegExpCapture objects
+  // into all RegExpBackReferences. This is done after initial parsing in order
+  // to avoid complicating cases in which references come before the capture.
+  void PatchNamedBackReferences();
+
+  RawArray* CreateCaptureNameMap();
+
+  // Returns true iff the pattern contains named captures. May call
+  // ScanForCaptures to look ahead at the remaining pattern.
+  bool HasNamedCaptures();
 
   Zone* zone() { return zone_; }
 
@@ -154,9 +203,12 @@ class RegExpParser : public ValueObject {
 
   Zone* zone_;
   ZoneGrowableArray<RegExpCapture*>* captures_;
+  ZoneGrowableArray<RegExpCapture*>* named_captures_;
+  ZoneGrowableArray<RegExpBackReference*>* named_back_references_;
   const String& in_;
   uint32_t current_;
   intptr_t next_pos_;
+  intptr_t captures_started_;
   // The capture count is only valid after we have scanned for captures.
   intptr_t capture_count_;
   bool has_more_;
@@ -164,6 +216,7 @@ class RegExpParser : public ValueObject {
   bool simple_;
   bool contains_anchor_;
   bool is_scanned_for_captures_;
+  bool has_named_captures_;
 };
 
 }  // namespace dart

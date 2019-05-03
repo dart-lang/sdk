@@ -11,49 +11,51 @@ import '../canonical_name.dart' show CanonicalName;
 import 'text_serializer.dart' show Tagger;
 
 class DeserializationEnvironment<T extends Node> {
-  final Map<String, T> locals = <String, T>{};
-
   final DeserializationEnvironment<T> parent;
 
-  final Set<String> usedNames = new Set<String>();
+  final Map<String, T> locals = <String, T>{};
 
-  DeserializationEnvironment(this.parent) {
-    if (parent != null) {
-      usedNames.addAll(parent.usedNames);
-    }
-  }
+  final Map<String, T> binders = <String, T>{};
+
+  final Set<String> usedNames;
+
+  DeserializationEnvironment(this.parent)
+      : usedNames = parent?.usedNames?.toSet() ?? new Set<String>();
 
   T lookup(String name) => locals[name] ?? parent?.lookup(name);
 
-  T add(String name, T node) {
+  T addBinder(String name, T node) {
     if (usedNames.contains(name)) {
       throw StateError("name '$name' is already declared in this scope");
     }
     usedNames.add(name);
-    return locals[name] = node;
+    return binders[name] = node;
+  }
+
+  void close() {
+    locals.addAll(binders);
+    binders.clear();
   }
 }
 
 class SerializationEnvironment<T extends Node> {
+  final SerializationEnvironment<T> parent;
+
   final Map<T, String> locals = new Map<T, String>.identity();
+
+  final Map<T, String> binders = new Map<T, String>.identity();
 
   int nameCount;
 
-  final SerializationEnvironment<T> parent;
-
-  static const String separator = "^";
-
-  static final int codeOfZero = "0".codeUnitAt(0);
-
-  static final int codeOfNine = "9".codeUnitAt(0);
-
-  SerializationEnvironment(this.parent) {
-    nameCount = (parent?.nameCount ?? 0);
-  }
+  SerializationEnvironment(this.parent) : nameCount = parent?.nameCount ?? 0;
 
   String lookup(T node) => locals[node] ?? parent?.lookup(node);
 
-  String add(T node, String name) {
+  String addBinder(T node, String name) {
+    final String separator = "^";
+    final int codeOfZero = "0".codeUnitAt(0);
+    final int codeOfNine = "9".codeUnitAt(0);
+
     int prefixLength = name.length - 1;
     bool isOnlyDigits = true;
     while (prefixLength >= 0 && name[prefixLength] != separator) {
@@ -65,7 +67,12 @@ class SerializationEnvironment<T extends Node> {
       prefixLength = name.length;
     }
     String prefix = name.substring(0, prefixLength);
-    return locals[node] = "$prefix$separator${nameCount++}";
+    return binders[node] = "$prefix$separator${nameCount++}";
+  }
+
+  void close() {
+    locals.addAll(binders);
+    binders.clear();
   }
 }
 
@@ -415,5 +422,127 @@ class Optional<T> extends TextSerializer<T> {
     } else {
       contents.writeTo(buffer, object, state);
     }
+  }
+}
+
+/// Introduces a binder to the environment.
+///
+/// Serializes an object and uses it as a binder for the name that is retrieved
+/// from the object using [nameGetter] and (temporarily) modified using
+/// [nameSetter].  The binder is added to the enclosing environment.
+class Binder<T extends Node> extends TextSerializer<T> {
+  final TextSerializer<T> contents;
+  final String Function(T) nameGetter;
+  final void Function(T, String) nameSetter;
+
+  const Binder(this.contents, this.nameGetter, this.nameSetter);
+
+  T readFrom(Iterator<Object> stream, DeserializationState state) {
+    T object = contents.readFrom(stream, state);
+    state.environment.addBinder(nameGetter(object), object);
+    return object;
+  }
+
+  void writeTo(StringBuffer buffer, T object, SerializationState state) {
+    String oldName = nameGetter(object);
+    String newName = state.environment.addBinder(object, oldName);
+    nameSetter(object, newName);
+    contents.writeTo(buffer, object, state);
+    nameSetter(object, oldName);
+  }
+}
+
+/// Binds binders from one term in the other.
+///
+/// Serializes a [Tuple2] of [pattern] and [term], closing [term] over the
+/// binders found in [pattern].  The binders aren't added to the enclosing
+/// environment.
+class Bind<P, T> extends TextSerializer<Tuple2<P, T>> {
+  final TextSerializer<P> pattern;
+  final TextSerializer<T> term;
+
+  const Bind(this.pattern, this.term);
+
+  Tuple2<P, T> readFrom(Iterator<Object> stream, DeserializationState state) {
+    var bindingState = new DeserializationState(
+        new DeserializationEnvironment(state.environment), state.nameRoot);
+    P first = pattern.readFrom(stream, bindingState);
+    bindingState.environment.close();
+    T second = term.readFrom(stream, bindingState);
+    return new Tuple2(first, second);
+  }
+
+  void writeTo(
+      StringBuffer buffer, Tuple2<P, T> tuple, SerializationState state) {
+    var bindingState =
+        new SerializationState(new SerializationEnvironment(state.environment));
+    pattern.writeTo(buffer, tuple.first, bindingState);
+    bindingState.environment.close();
+    buffer.write(' ');
+    term.writeTo(buffer, tuple.second, bindingState);
+  }
+}
+
+/// Binds binders from one term in the other and adds them to the environment.
+///
+/// Serializes a [Tuple2] of [pattern] and [term], closing [term] over the
+/// binders found in [pattern].  The binders are added to the enclosing
+/// environment.
+class Rebind<P, T> extends TextSerializer<Tuple2<P, T>> {
+  final TextSerializer<P> pattern;
+  final TextSerializer<T> term;
+
+  const Rebind(this.pattern, this.term);
+
+  Tuple2<P, T> readFrom(Iterator<Object> stream, DeserializationState state) {
+    P first = pattern.readFrom(stream, state);
+    var closedState = new DeserializationState(
+        new DeserializationEnvironment(state.environment)
+          ..binders.addAll(state.environment.binders)
+          ..close(),
+        state.nameRoot);
+    T second = term.readFrom(stream, closedState);
+    return new Tuple2(first, second);
+  }
+
+  void writeTo(
+      StringBuffer buffer, Tuple2<P, T> tuple, SerializationState state) {
+    pattern.writeTo(buffer, tuple.first, state);
+    var closedState =
+        new SerializationState(new SerializationEnvironment(state.environment)
+          ..binders.addAll(state.environment.binders)
+          ..close());
+    buffer.write(' ');
+    term.writeTo(buffer, tuple.second, closedState);
+  }
+}
+
+class Zip<T, T1, T2> extends TextSerializer<List<T>> {
+  final TextSerializer<Tuple2<List<T1>, List<T2>>> lists;
+  final T Function(T1, T2) zip;
+  final Tuple2<T1, T2> Function(T) unzip;
+
+  const Zip(this.lists, this.zip, this.unzip);
+
+  List<T> readFrom(Iterator<Object> stream, DeserializationState state) {
+    Tuple2<List<T1>, List<T2>> toZip = lists.readFrom(stream, state);
+    List<T1> firsts = toZip.first;
+    List<T2> seconds = toZip.second;
+    List<T> zipped = new List<T>(toZip.first.length);
+    for (int i = 0; i < zipped.length; ++i) {
+      zipped[i] = zip(firsts[i], seconds[i]);
+    }
+    return zipped;
+  }
+
+  void writeTo(StringBuffer buffer, List<T> zipped, SerializationState state) {
+    List<T1> firsts = new List<T1>(zipped.length);
+    List<T2> seconds = new List<T2>(zipped.length);
+    for (int i = 0; i < zipped.length; ++i) {
+      Tuple2<T1, T2> tuple = unzip(zipped[i]);
+      firsts[i] = tuple.first;
+      seconds[i] = tuple.second;
+    }
+    lists.writeTo(buffer, new Tuple2(firsts, seconds), state);
   }
 }

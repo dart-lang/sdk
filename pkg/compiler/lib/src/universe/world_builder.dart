@@ -91,6 +91,7 @@ abstract class SelectorConstraintsStrategy {
 class StrongModeWorldStrategy implements SelectorConstraintsStrategy {
   const StrongModeWorldStrategy();
 
+  @override
   StrongModeWorldConstraints createSelectorConstraints(
       Selector selector, Object initialConstraint) {
     return new StrongModeWorldConstraints()
@@ -151,6 +152,7 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
     return _constraints.add(constraint);
   }
 
+  @override
   String toString() {
     if (isAll) {
       return '<all>';
@@ -190,6 +192,7 @@ class StrongModeConstraint {
 
   bool get isThis => relation == ClassRelation.thisExpression;
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is StrongModeConstraint &&
@@ -197,8 +200,10 @@ class StrongModeConstraint {
         relation == other.relation;
   }
 
+  @override
   int get hashCode => cls.hashCode * 13;
 
+  @override
   String toString() => 'StrongModeConstraint($cls,$relation)';
 }
 
@@ -216,8 +221,8 @@ abstract class WorldBuilder {
   /// All types that are checked either through is, as or checked mode checks.
   Iterable<DartType> get isChecks;
 
-  /// All directly instantiated types, that is, the types of the directly
-  /// instantiated classes.
+  /// All directly instantiated types, that is, the types of
+  /// [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<InterfaceType> get instantiatedTypes;
 

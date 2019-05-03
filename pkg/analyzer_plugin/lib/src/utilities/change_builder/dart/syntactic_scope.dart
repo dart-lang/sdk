@@ -142,18 +142,6 @@ class SyntacticScopeNamesCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitForEachStatement(ForEachStatement node) {
-    if (!_isCoveredBy(node)) return;
-
-    if (node.loopVariable != null && _isCoveredBy(node.body)) {
-      _addName(node.loopVariable.identifier);
-    }
-
-    node.iterable?.accept(this);
-    node.body.accept(this);
-  }
-
-  @override
   void visitForElement(ForElement node) {
     if (!_isCoveredBy(node)) return;
 
@@ -166,22 +154,9 @@ class SyntacticScopeNamesCollector extends RecursiveAstVisitor<void> {
   void visitForStatement(ForStatement node) {
     if (!_isCoveredBy(node)) return;
 
-    if (node.variables != null) {
-      _addVariables(node.variables);
-    }
-
-    node.condition?.accept(this);
-    node.updaters?.accept(this);
-    node.body.accept(this);
-  }
-
-  @override
-  void visitForStatement2(ForStatement2 node) {
-    if (!_isCoveredBy(node)) return;
-
     _addForLoopParts(node.forLoopParts, node.body);
 
-    super.visitForStatement2(node);
+    super.visitForStatement(node);
   }
 
   @override
@@ -250,6 +225,20 @@ class SyntacticScopeNamesCollector extends RecursiveAstVisitor<void> {
     _visitClassOrMixinMembers(node);
   }
 
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    // `TypeName^` is recovered as `<noType> TypeName;`, remove the name.
+    var variableList = node.variables;
+    if (variableList.keyword == null && variableList.type == null) {
+      for (var variable in variableList.variables) {
+        names.remove(variable.name.name);
+      }
+      return;
+    }
+
+    super.visitTopLevelVariableDeclaration(node);
+  }
+
   void _addForLoopParts(ForLoopParts forLoopParts, AstNode body) {
     if (forLoopParts is ForEachPartsWithDeclaration) {
       if (_isCoveredBy(body)) {
@@ -263,6 +252,8 @@ class SyntacticScopeNamesCollector extends RecursiveAstVisitor<void> {
   void _addFormalParameter(FormalParameter parameter) {
     if (parameter is DefaultFormalParameter) {
       _addFormalParameter(parameter.parameter);
+    } else if (parameter is FieldFormalParameter) {
+      _addName(parameter.identifier);
     } else if (parameter is FunctionTypedFormalParameter) {
       _addName(parameter.identifier);
       var parameters = parameter.parameters;
@@ -283,9 +274,10 @@ class SyntacticScopeNamesCollector extends RecursiveAstVisitor<void> {
   }
 
   void _addName(SimpleIdentifier node) {
-    if (node != null) {
-      names.add(node.name);
-    }
+    if (node == null) return;
+    if (node.end == offset) return;
+
+    names.add(node.name);
   }
 
   void _addTypeParameters(TypeParameterList typeParameterList) {

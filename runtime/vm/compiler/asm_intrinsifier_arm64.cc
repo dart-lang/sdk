@@ -168,7 +168,7 @@ static int GetScaleFactor(intptr_t size) {
   /* R1: new object end address. */                                            \
   __ ldr(R2, Address(SP, kArrayLengthStackOffset)); /* Array length. */        \
   __ StoreIntoObjectNoBarrier(                                                 \
-      R0, FieldAddress(R0, target::TypedData::length_offset()), R2);           \
+      R0, FieldAddress(R0, target::TypedDataBase::length_offset()), R2);       \
   /* Initialize all array elements to 0. */                                    \
   /* R0: new object start as a tagged pointer. */                              \
   /* R1: new object end address. */                                            \
@@ -177,6 +177,8 @@ static int GetScaleFactor(intptr_t size) {
   /* data area to be initialized. */                                           \
   __ mov(R3, ZR);                                                              \
   __ AddImmediate(R2, R0, target::TypedData::InstanceSize() - 1);              \
+  __ StoreInternalPointer(                                                     \
+      R0, FieldAddress(R0, target::TypedDataBase::data_field_offset()), R2);   \
   Label init_loop, done;                                                       \
   __ Bind(&init_loop);                                                         \
   __ cmp(R2, Operand(R1));                                                     \

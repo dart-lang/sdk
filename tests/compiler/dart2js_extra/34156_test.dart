@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/dart2js.dart' as dart2js;
 import 'package:expect/expect.dart';
 
-@dart2js.tryInline
+@pragma('dart2js:tryInline')
 // This function should not be inlined. Multiple returns and try-catch cannot
 // currently be inlined correctly.
 method() {

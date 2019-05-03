@@ -32,7 +32,8 @@ import 'package:js_ast/src/precedence.dart' as js_precedence;
 import '../../../compiler_new.dart';
 import '../../common.dart';
 import '../../compiler.dart' show Compiler;
-import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
+import '../../constants/values.dart'
+    show ConstantValue, FunctionConstantValue, NullConstantValue;
 import '../../common_elements.dart' show CommonElements;
 import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
@@ -89,7 +90,7 @@ class ModelEmitter {
         compiler.codegenWorldBuilder,
         _closedWorld.rtiNeed,
         compiler.backend.rtiEncoder,
-        _closedWorld.allocatorAnalysis,
+        _closedWorld.fieldAnalysis,
         task,
         this.generateConstantReference,
         constantListGenerator);

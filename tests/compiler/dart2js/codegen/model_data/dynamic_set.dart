@@ -4,47 +4,55 @@
 
 /*element: main:calls=*,params=0*/
 main() {
-  method1(new Class1a());
-  method2(new Class2a<int>());
-  method3(new Class3a());
-  method3(new Class3b());
-  method4(new Class4a());
-  method4(new Class4b());
+  method1(new Class1a()..field1);
+  method2(new Class2a<int>()..field2);
+  method3(new Class3a()..field3);
+  method3(new Class3b()..field3);
+  method4(new Class4a()..field4);
+  method4(new Class4b()..field4);
 }
 
 class Class1a {
-  /*element: Class1a.field1:elided*/
+  /*element: Class1a.field1:emitted*/
   int field1;
 }
 
-/*element: method1:params=1*/
+/*element: method1:assign=[field1],params=1*/
 @pragma('dart2js:noInline')
 method1(dynamic c) {
   c.field1 = 42;
 }
 
 class Class2a<T> {
-  /*strong.element: Class2a.field2:checked,elided*/
-  /*omit.element: Class2a.field2:elided*/
+  /*strong.element: Class2a.field2:checked,emitted*/
+  /*omit.element: Class2a.field2:emitted*/
+  /*strongConst.element: Class2a.field2:checked,emitted*/
+  /*omitConst.element: Class2a.field2:emitted*/
   T field2;
 }
 
 /*strong.element: method2:calls=[set$field2(1)],params=1*/
-/*omit.element: method2:params=1*/
+/*omit.element: method2:assign=[field2],params=1*/
+/*strongConst.element: method2:calls=[set$field2(1)],params=1*/
+/*omitConst.element: method2:assign=[field2],params=1*/
 @pragma('dart2js:noInline')
 method2(dynamic c) {
   c.field2 = 42;
 }
 
 class Class3a {
-  /*strong.element: Class3a.field3:checked,elided*/
-  /*omit.element: Class3a.field3:elided,set=simple*/
+  /*strong.element: Class3a.field3:checked,emitted*/
+  /*omit.element: Class3a.field3:emitted,set=simple*/
+  /*strongConst.element: Class3a.field3:checked,emitted*/
+  /*omitConst.element: Class3a.field3:emitted,set=simple*/
   int field3;
 }
 
 class Class3b {
-  /*strong.element: Class3b.field3:checked,elided*/
-  /*omit.element: Class3b.field3:elided,set=simple*/
+  /*strong.element: Class3b.field3:checked,emitted*/
+  /*omit.element: Class3b.field3:emitted,set=simple*/
+  /*strongConst.element: Class3b.field3:checked,emitted*/
+  /*omitConst.element: Class3b.field3:emitted,set=simple*/
   int field3;
 }
 
@@ -55,14 +63,19 @@ method3(dynamic c) {
 }
 
 class Class4a {
-  /*strong.element: Class4a.field4:checked,elided*/
-  /*omit.element: Class4a.field4:elided,set=simple*/
+  /*strong.element: Class4a.field4:checked,emitted*/
+  /*omit.element: Class4a.field4:emitted,set=simple*/
+  /*strongConst.element: Class4a.field4:checked,emitted*/
+  /*omitConst.element: Class4a.field4:emitted,set=simple*/
   int field4;
 }
 
 class Class4b implements Class4a {
-  /*strong.element: Class4b.field4:checked,elided*/
-  /*omit.element: Class4b.field4:elided,set=simple*/
+  /*strong.element: Class4b.field4:checked,emitted*/
+  /*omit.element: Class4b.field4:emitted,set=simple*/
+  /*strongConst.element: Class4b.field4:checked,emitted*/
+  /*omitConst.element: Class4b.field4:emitted,set=simple*/
+  @override
   int field4;
 }
 

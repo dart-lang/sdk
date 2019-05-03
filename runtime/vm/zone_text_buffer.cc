@@ -50,12 +50,7 @@ void ZoneTextBuffer::AddString(const char* s) {
 void ZoneTextBuffer::EnsureCapacity(intptr_t len) {
   intptr_t remaining = capacity_ - length_;
   if (remaining <= len) {
-    const int kBufferSpareCapacity = 64;  // Somewhat arbitrary.
-    // TODO(turnidge): do we need to guard against overflow or other
-    // security issues here? Text buffers are used by the debugger
-    // to send user-controlled data (e.g. values of string variables) to
-    // the debugger front-end.
-    intptr_t new_capacity = capacity_ + len + kBufferSpareCapacity;
+    intptr_t new_capacity = capacity_ + Utils::Maximum(capacity_, len);
     buffer_ = zone_->Realloc<char>(buffer_, capacity_, new_capacity);
     capacity_ = new_capacity;
   }

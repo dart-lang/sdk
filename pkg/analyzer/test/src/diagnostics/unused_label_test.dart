@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,12 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class UnusedLabelTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
+class UnusedLabelTest extends DriverResolutionTest {
   test_unused_inSwitch() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(x) {
   switch (x) {
     label: case 0:
@@ -32,7 +29,7 @@ f(x) {
   }
 
   test_unused_onWhile() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(condition()) {
   label: while (condition()) {
     break;

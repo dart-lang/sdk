@@ -107,21 +107,31 @@ class StatementAnalyzer extends SelectionAnalyzer {
   @override
   Object visitForStatement(ForStatement node) {
     super.visitForStatement(node);
-    List<AstNode> selectedNodes = this.selectedNodes;
-    bool containsInit = _contains(selectedNodes, node.initialization) ||
-        _contains(selectedNodes, node.variables);
-    bool containsCondition = _contains(selectedNodes, node.condition);
-    bool containsUpdaters = _containsAny(selectedNodes, node.updaters);
-    bool containsBody = _contains(selectedNodes, node.body);
-    if (containsInit && containsCondition) {
-      invalidSelection(
-          "Operation not applicable to a 'for' statement's initializer and condition.");
-    } else if (containsCondition && containsUpdaters) {
-      invalidSelection(
-          "Operation not applicable to a 'for' statement's condition and updaters.");
-    } else if (containsUpdaters && containsBody) {
-      invalidSelection(
-          "Operation not applicable to a 'for' statement's updaters and body.");
+    var forLoopParts = node.forLoopParts;
+    if (forLoopParts is ForParts) {
+      List<AstNode> selectedNodes = this.selectedNodes;
+      bool containsInit;
+      if (forLoopParts is ForPartsWithExpression) {
+        containsInit = _contains(selectedNodes, forLoopParts.initialization);
+      } else if (forLoopParts is ForPartsWithDeclarations) {
+        containsInit = _contains(selectedNodes, forLoopParts.variables);
+      } else {
+        throw new StateError('Unrecognized for loop parts');
+      }
+      bool containsCondition = _contains(selectedNodes, forLoopParts.condition);
+      bool containsUpdaters =
+          _containsAny(selectedNodes, forLoopParts.updaters);
+      bool containsBody = _contains(selectedNodes, node.body);
+      if (containsInit && containsCondition) {
+        invalidSelection(
+            "Operation not applicable to a 'for' statement's initializer and condition.");
+      } else if (containsCondition && containsUpdaters) {
+        invalidSelection(
+            "Operation not applicable to a 'for' statement's condition and updaters.");
+      } else if (containsUpdaters && containsBody) {
+        invalidSelection(
+            "Operation not applicable to a 'for' statement's updaters and body.");
+      }
     }
     return null;
   }

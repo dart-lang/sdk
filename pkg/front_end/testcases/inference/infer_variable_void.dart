@@ -6,7 +6,7 @@
 library test;
 
 void f() {}
-var /*@topType=void*/ x = /*info:USE_OF_VOID_RESULT*/ f();
+var x = /*info:USE_OF_VOID_RESULT*/ f();
 
 main() {
   x;

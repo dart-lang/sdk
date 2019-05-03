@@ -225,7 +225,8 @@ class Dart2TypeSystem extends TypeSystem {
       DartType returnContextType,
       {ErrorReporter errorReporter,
       AstNode errorNode,
-      bool downwards: false}) {
+      bool downwards: false,
+      bool isConst: false}) {
     // TODO(jmesserly): expose typeFormals on ParameterizedType.
     List<TypeParameterElement> typeFormals = typeFormalsAsElements(genericType);
     if (typeFormals.isEmpty) {
@@ -242,6 +243,9 @@ class Dart2TypeSystem extends TypeSystem {
         genericType is FunctionType ? genericType.returnType : genericType;
 
     if (returnContextType != null) {
+      if (isConst) {
+        returnContextType = _eliminateTypeVariables(returnContextType);
+      }
       inferrer.constrainReturnType(declaredReturnType, returnContextType);
     }
 
@@ -577,6 +581,9 @@ class Dart2TypeSystem extends TypeSystem {
   ///
   /// In practice this will always replace `?` with either bottom or top
   /// (dynamic), depending on the position of `?`.
+  ///
+  /// This implements the operation the spec calls "least closure", or
+  /// sometimes "least closure with respect to `?`".
   DartType lowerBoundForType(DartType type) {
     return _substituteForUnknownType(type, lowerBound: true);
   }
@@ -641,8 +648,35 @@ class Dart2TypeSystem extends TypeSystem {
   ///
   /// In practice this will always replace `?` with either bottom or top
   /// (dynamic), depending on the position of `?`.
+  ///
+  /// This implements the operation the spec calls "greatest closure", or
+  /// sometimes "greatest closure with respect to `?`".
   DartType upperBoundForType(DartType type) {
     return _substituteForUnknownType(type);
+  }
+
+  /**
+   * Eliminates type variables from the context [type], replacing them with
+   * `Null` or `Object` as appropriate.
+   *
+   * For example in `List<T> list = const []`, the context type for inferring
+   * the list should be changed from `List<T>` to `List<Null>` so the constant
+   * doesn't depend on the type variables `T` (because it can't be canonicalized
+   * at compile time, as `T` is unknown).
+   *
+   * Conceptually this is similar to the "least closure", except instead of
+   * eliminating `?` ([UnknownInferredType]) it eliminates all type variables
+   * ([TypeParameterType]).
+   *
+   * The equivalent CFE code can be found in the `TypeVariableEliminator` class.
+   */
+  DartType _eliminateTypeVariables(DartType type) {
+    return _substituteType(type, true, (type, lowerBound) {
+      if (type is TypeParameterType) {
+        return lowerBound ? typeProvider.nullType : typeProvider.objectType;
+      }
+      return type;
+    });
   }
 
   /**
@@ -885,22 +919,46 @@ class Dart2TypeSystem extends TypeSystem {
     return false;
   }
 
+  /**
+   * Returns the greatest or least closure of [type], which replaces `?`
+   * ([UnknownInferredType]) with `dynamic` or `Null` as appropriate.
+   *
+   * If [lowerBound] is true, this will return the "least closure", otherwise
+   * it returns the "greatest closure".
+   */
   DartType _substituteForUnknownType(DartType type, {bool lowerBound: false}) {
-    if (identical(type, UnknownInferredType.instance)) {
-      if (lowerBound) {
-        // TODO(jmesserly): this should be the bottom type, once it can be
-        // reified.
-        return typeProvider.nullType;
+    return _substituteType(type, lowerBound, (type, lowerBound) {
+      if (identical(type, UnknownInferredType.instance)) {
+        return lowerBound ? typeProvider.nullType : typeProvider.dynamicType;
       }
-      return typeProvider.dynamicType;
+      return type;
+    });
+  }
+
+  /**
+   * Apply the [visitType] substitution to [type], using the result value if
+   * different, otherwise recursively apply the substitution.
+   *
+   * This method is used for substituting `?` ([UnknownInferredType]) with its
+   * greatest/least closure, and for eliminating type parameters for inference
+   * of `const` objects.
+   *
+   * See also [_eliminateTypeVariables] and [_substituteForUnknownType].
+   */
+  DartType _substituteType(DartType type, bool lowerBound,
+      DartType Function(DartType, bool) visitType) {
+    // Apply the substitution to this type, and return the result if different.
+    var newType = visitType(type, lowerBound);
+    if (!identical(newType, type)) {
+      return newType;
     }
     if (type is InterfaceTypeImpl) {
       // Generic types are covariant, so keep the constraint direction.
-      var newTypeArgs = _transformList(type.typeArguments,
-          (t) => _substituteForUnknownType(t, lowerBound: lowerBound));
+      var newTypeArgs = _transformList(
+          type.typeArguments, (t) => _substituteType(t, lowerBound, visitType));
       if (identical(type.typeArguments, newTypeArgs)) return type;
       return new InterfaceTypeImpl(
-          type.element, type.prunedTypedefs, type.nullability)
+          type.element, type.prunedTypedefs, type.nullabilitySuffix)
         ..typeArguments = newTypeArgs;
     }
     if (type is FunctionType) {
@@ -908,8 +966,7 @@ class Dart2TypeSystem extends TypeSystem {
       var returnType = type.returnType;
       var newParameters = _transformList(parameters, (ParameterElement p) {
         // Parameters are contravariant, so flip the constraint direction.
-        var newType =
-            _substituteForUnknownType(p.type, lowerBound: !lowerBound);
+        var newType = _substituteType(p.type, !lowerBound, visitType);
         return new ParameterElementImpl.synthetic(
             p.name,
             newType,
@@ -917,8 +974,7 @@ class Dart2TypeSystem extends TypeSystem {
             p.parameterKind);
       });
       // Return type is covariant.
-      var newReturnType =
-          _substituteForUnknownType(returnType, lowerBound: lowerBound);
+      var newReturnType = _substituteType(returnType, lowerBound, visitType);
       if (identical(parameters, newParameters) &&
           identical(returnType, newReturnType)) {
         return type;
@@ -926,7 +982,7 @@ class Dart2TypeSystem extends TypeSystem {
 
       return new FunctionTypeImpl.synthetic(
           newReturnType, type.typeFormals, newParameters,
-          nullability: (type as TypeImpl).nullability);
+          nullabilitySuffix: (type as TypeImpl).nullabilitySuffix);
     }
     return type;
   }
@@ -1866,12 +1922,39 @@ abstract class TypeSystem implements public.TypeSystem {
    */
   bool isMoreSpecificThan(DartType leftType, DartType rightType);
 
+  @override
+  bool isNonNullable(DartType type) {
+    if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
+      return false;
+    } else if (type.isDartAsyncFutureOr) {
+      isNonNullable((type as InterfaceType).typeArguments[0]);
+    }
+    return (type as TypeImpl).nullabilitySuffix != NullabilitySuffix.question &&
+        (type is TypeParameterType ? isNonNullable(type.bound) : true);
+  }
+
+  @override
+  bool isNullable(DartType type) {
+    if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
+      return true;
+    } else if (type.isDartAsyncFutureOr) {
+      isNullable((type as InterfaceType).typeArguments[0]);
+    }
+    return (type as TypeImpl).nullabilitySuffix != NullabilitySuffix.none;
+  }
+
   /// Check that [f1] is a subtype of [f2] for a member override.
   ///
   /// This is different from the normal function subtyping in two ways:
   /// - we know the function types are strict arrows,
   /// - it allows opt-in covariant parameters.
   bool isOverrideSubtypeOf(FunctionType f1, FunctionType f2);
+
+  @override
+  bool isPotentiallyNonNullable(DartType type) => !isNullable(type);
+
+  @override
+  bool isPotentiallyNullable(DartType type) => !isNonNullable(type);
 
   /**
    * Return `true` if the [leftType] is a subtype of the [rightType] (that is,
@@ -1912,41 +1995,25 @@ abstract class TypeSystem implements public.TypeSystem {
    * Searches the superinterfaces of [type] for implementations of [genericType]
    * and returns the most specific type argument used for that generic type.
    *
+   * For a more general/robust solution, use [InterfaceTypeImpl.asInstanceOf].
+   *
    * For example, given [type] `List<int>` and [genericType] `Iterable<T>`,
    * returns [int].
    *
    * Returns `null` if [type] does not implement [genericType].
    */
-  // TODO(jmesserly): this is very similar to code used for flattening futures.
-  // The only difference is, because of a lack of TypeProvider, the other method
-  // has to match the Future type by its name and library. Here was are passed
-  // in the correct type.
   DartType mostSpecificTypeArgument(DartType type, DartType genericType) {
     if (type is! InterfaceType) return null;
+    if (genericType is! InterfaceType) return null;
 
-    // Walk the superinterface hierarchy looking for [genericType].
-    List<DartType> candidates = <DartType>[];
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-    void recurse(InterfaceType interface) {
-      if (interface.element == genericType.element &&
-          interface.typeArguments.isNotEmpty) {
-        candidates.add(interface.typeArguments[0]);
-      }
-      if (visitedClasses.add(interface.element)) {
-        if (interface.superclass != null) {
-          recurse(interface.superclass);
-        }
-        interface.mixins.forEach(recurse);
-        interface.interfaces.forEach(recurse);
-        visitedClasses.remove(interface.element);
-      }
+    var asInstanceOf = (type as InterfaceTypeImpl)
+        .asInstanceOf((genericType as InterfaceType).element);
+
+    if (asInstanceOf != null) {
+      return asInstanceOf.typeArguments[0];
     }
 
-    recurse(type);
-
-    // Since the interface may be implemented multiple times with different
-    // type arguments, choose the best one.
-    return InterfaceTypeImpl.findMostSpecificType(candidates, this);
+    return null;
   }
 
   /**
@@ -2191,7 +2258,7 @@ class UnknownInferredType extends TypeImpl {
   bool get isDynamic => true;
 
   @override
-  Nullability get nullability => Nullability.indeterminate;
+  NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.star;
 
   @override
   bool operator ==(Object object) => identical(object, this);
@@ -2253,7 +2320,7 @@ class UnknownInferredType extends TypeImpl {
   }
 
   @override
-  TypeImpl withNullability(Nullability nullability) => this;
+  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) => this;
 
   /// Given a [type] T, return true if it does not have an unknown type `?`.
   static bool isKnown(DartType type) => !isUnknown(type);

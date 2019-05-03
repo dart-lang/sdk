@@ -32,8 +32,10 @@ abstract class CompilerTask {
   /// only measure time if measurements are enabled.
   bool get _isDisabled => _watch == null;
 
-  /// Name to use for reporting timing information. Subclasses should override
-  /// this with a proper name, otherwise we use the runtime type of the task.
+  /// Name to use for reporting timing information.
+  ///
+  /// Subclasses should override this with a proper name, otherwise we use the
+  /// runtime type of the task.
   String get name => "Unknown task '${this.runtimeType}'";
 
   bool get isRunning => _watch?.isRunning == true;
@@ -208,6 +210,7 @@ abstract class CompilerTask {
 }
 
 class GenericTask extends CompilerTask {
+  @override
   final String name;
   GenericTask(this.name, Measurer measurer) : super(measurer);
 }
@@ -230,6 +233,7 @@ class Measurer {
   final bool enableTaskMeasurements;
 
   static int _hashCodeGenerator = 197;
+  @override
   final int hashCode = _hashCodeGenerator++;
 
   Measurer({this.enableTaskMeasurements: false});

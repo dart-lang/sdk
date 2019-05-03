@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -204,7 +204,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   Expression parseLogicalOrExpression(String code);
 
-  MapLiteral parseMapLiteral(
+  SetOrMapLiteral parseMapLiteral(
       Token token, String typeArgumentsCode, String code);
 
   MapLiteralEntry parseMapLiteralEntry(String code);
@@ -3000,11 +3000,8 @@ class Foo {
   }
 
   void test_expectedInterpolationIdentifier() {
-    StringLiteral literal = parseExpression("'\$x\$'", errors: [
-      usingFastaParser
-          ? expectedError(ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING, 4, 1)
-          : expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 4, 1)
-    ]);
+    StringLiteral literal = parseExpression("'\$x\$'",
+        errors: [expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 4, 1)]);
     expectNotNullIfNoErrors(literal);
   }
 
@@ -3012,11 +3009,8 @@ class Foo {
     // The scanner inserts an empty string token between the two $'s; we need to
     // make sure that the MISSING_IDENTIFIER error that is generated has a
     // nonzero width so that it will show up in the editor UI.
-    StringLiteral literal = parseExpression("'\$\$foo'", errors: [
-      usingFastaParser
-          ? expectedError(ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING, 2, 1)
-          : expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1)
-    ]);
+    StringLiteral literal = parseExpression("'\$\$foo'",
+        errors: [expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1)]);
     expectNotNullIfNoErrors(literal);
   }
 
@@ -3938,12 +3932,32 @@ class Wrong<T> {
     );
   }
 
+  void test_invalidInterpolation_missingClosingBrace_issue35900() {
+    parseCompilationUnit(r"main () { print('${x' '); }",
+        errors: usingFastaParser
+            ? [
+                expectedError(ScannerErrorCode.EXPECTED_TOKEN, 23, 1),
+                expectedError(
+                    ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 26, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 3),
+                expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 23, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 27, 0),
+              ]
+            : [
+                expectedError(ScannerErrorCode.EXPECTED_TOKEN, 23, 1),
+                expectedError(
+                    ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 26, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 3),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 23, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 23, 1),
+                expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 23, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 23, 1),
+              ]);
+  }
+
   void test_invalidInterpolationIdentifier_startWithDigit() {
-    StringLiteral literal = parseExpression("'\$1'", errors: [
-      usingFastaParser
-          ? expectedError(ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING, 2, 1)
-          : expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1)
-    ]);
+    StringLiteral literal = parseExpression("'\$1'",
+        errors: [expectedError(ScannerErrorCode.MISSING_IDENTIFIER, 2, 1)]);
     expectNotNullIfNoErrors(literal);
   }
 
@@ -4697,18 +4711,16 @@ class Wrong<T> {
     createParser('(a, {b: 0)');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]
-        : [expectedError(ScannerErrorCode.EXPECTED_TOKEN, 9, 1)]);
+    listener
+        .assertErrors([expectedError(ScannerErrorCode.EXPECTED_TOKEN, 9, 1)]);
   }
 
   void test_missingTerminatorForParameterGroup_optional() {
     createParser('(a, [b = 0)');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]
-        : [expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)]);
+    listener
+        .assertErrors([expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)]);
   }
 
   void test_missingTypedefParameters_nonVoid() {
@@ -5365,6 +5377,20 @@ main() {
         errors: [expectedError(ParserErrorCode.TYPEDEF_IN_CLASS, 10, 7)]);
   }
 
+  void test_unexpectedCommaThenInterpolation() {
+    // https://github.com/Dart-Code/Dart-Code/issues/1548
+    parseCompilationUnit(r"main() { String s = 'a' 'b', 'c$foo'; return s; }",
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 29, 2),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 29, 2),
+              ]
+            : [
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 29, 2),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 29, 1),
+              ]);
+  }
+
   void test_unexpectedTerminatorForParameterGroup_named() {
     createParser('(a, b})');
     FormalParameterList list = parser.parseFormalParameterList();
@@ -5698,7 +5724,7 @@ void main() {
     if (usingFastaParser) {
       listener.assertErrors([
         expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)
+        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)
       ]);
     } else {
       listener.assertErrors([
@@ -5717,7 +5743,7 @@ void main() {
     if (usingFastaParser) {
       listener.assertErrors([
         expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)
+        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)
       ]);
     } else {
       listener.assertErrors([
@@ -6288,9 +6314,9 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseConstExpression('const <A, B> {}');
     expect(expression, isNotNull);
     assertNoErrors();
-    var literal = expression as MapLiteral;
+    var literal = expression as SetOrMapLiteral;
     expect(literal.leftBracket, isNotNull);
-    expect(literal.entries, hasLength(0));
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
     expect(literal.typeArguments, isNotNull);
   }
@@ -6299,9 +6325,9 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseExpression('const <A, B {}',
         errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1)]);
     expect(expression, isNotNull);
-    var literal = expression as MapLiteral;
+    var literal = expression as SetOrMapLiteral;
     expect(literal.leftBracket, isNotNull);
-    expect(literal.entries, hasLength(0));
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
     expect(literal.typeArguments, isNotNull);
   }
@@ -6310,9 +6336,9 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseConstExpression('const {}');
     expect(expression, isNotNull);
     assertNoErrors();
-    var literal = expression as MapLiteral;
+    var literal = expression as SetOrMapLiteral;
     expect(literal.leftBracket, isNotNull);
-    expect(literal.entries, hasLength(0));
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
     expect(literal.typeArguments, isNull);
   }
@@ -6893,11 +6919,11 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     TypedLiteral literal = parseListOrMapLiteral(null, "{'1' : 1}");
     expect(literal, isNotNull);
     assertNoErrors();
-    var mapLiteral = literal as MapLiteral;
+    var mapLiteral = literal as SetOrMapLiteral;
     expect(mapLiteral.constKeyword, isNull);
     expect(mapLiteral.typeArguments, isNull);
     expect(mapLiteral.leftBracket, isNotNull);
-    expect(mapLiteral.entries, hasLength(1));
+    expect(mapLiteral.elements, hasLength(1));
     expect(mapLiteral.rightBracket, isNotNull);
   }
 
@@ -6906,11 +6932,11 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
         parseListOrMapLiteral(null, "<String, int> {'1' : 1}");
     expect(literal, isNotNull);
     assertNoErrors();
-    var mapLiteral = literal as MapLiteral;
+    var mapLiteral = literal as SetOrMapLiteral;
     expect(mapLiteral.constKeyword, isNull);
     expect(mapLiteral.typeArguments, isNotNull);
     expect(mapLiteral.leftBracket, isNotNull);
-    expect(mapLiteral.entries, hasLength(1));
+    expect(mapLiteral.elements, hasLength(1));
     expect(mapLiteral.rightBracket, isNotNull);
   }
 
@@ -6938,40 +6964,41 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
 
   void test_parseMapLiteral_empty() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.CONST);
-    MapLiteral literal = parseMapLiteral(token, '<String, int>', '{}');
+    SetOrMapLiteral literal = parseMapLiteral(token, '<String, int>', '{}');
     expect(literal, isNotNull);
     assertNoErrors();
     expect(literal.constKeyword.keyword, Keyword.CONST);
     expect(literal.typeArguments, isNotNull);
     expect(literal.leftBracket, isNotNull);
-    expect(literal.entries, hasLength(0));
+    expect(literal.elements, hasLength(0));
     expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseMapLiteral_multiple() {
-    MapLiteral literal = parseMapLiteral(null, null, "{'a' : b, 'x' : y}");
+    SetOrMapLiteral literal = parseMapLiteral(null, null, "{'a' : b, 'x' : y}");
     expect(literal, isNotNull);
     assertNoErrors();
     expect(literal.leftBracket, isNotNull);
-    expect(literal.entries, hasLength(2));
+    expect(literal.elements, hasLength(2));
     expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseMapLiteral_multiple_trailing_comma() {
-    MapLiteral literal = parseMapLiteral(null, null, "{'a' : b, 'x' : y,}");
+    SetOrMapLiteral literal =
+        parseMapLiteral(null, null, "{'a' : b, 'x' : y,}");
     expect(literal, isNotNull);
     assertNoErrors();
     expect(literal.leftBracket, isNotNull);
-    expect(literal.entries, hasLength(2));
+    expect(literal.elements, hasLength(2));
     expect(literal.rightBracket, isNotNull);
   }
 
   void test_parseMapLiteral_single() {
-    MapLiteral literal = parseMapLiteral(null, null, "{'x' : y}");
+    SetOrMapLiteral literal = parseMapLiteral(null, null, "{'x' : y}");
     expect(literal, isNotNull);
     assertNoErrors();
     expect(literal.leftBracket, isNotNull);
-    expect(literal.entries, hasLength(1));
+    expect(literal.elements, hasLength(1));
     expect(literal.rightBracket, isNotNull);
   }
 
@@ -7255,7 +7282,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('{}');
     expect(expression, isNotNull);
     assertNoErrors();
-    var literal = expression as MapLiteral;
+    var literal = expression as SetOrMapLiteral;
     expect(literal.typeArguments, isNull);
     expect(literal, isNotNull);
   }
@@ -7264,7 +7291,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('<A, B>{}');
     expect(expression, isNotNull);
     assertNoErrors();
-    var literal = expression as MapLiteral;
+    var literal = expression as SetOrMapLiteral;
     expect(literal.typeArguments, isNotNull);
     expect(literal.typeArguments.arguments, hasLength(2));
   }
@@ -7888,6 +7915,18 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(throwExpression.expression, isNotNull);
   }
 
+  void test_parseUnaryExpression_decrement_identifier_index() {
+    PrefixExpression expression = parseExpression('--a[0]');
+    expect(expression, isNotNull);
+    assertNoErrors();
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.MINUS_MINUS);
+    expect(expression.operand, isNotNull);
+    IndexExpression operand = expression.operand as IndexExpression;
+    expect(operand.realTarget, const TypeMatcher<SimpleIdentifier>());
+    expect(operand.index is IntegerLiteral, isTrue);
+  }
+
   void test_parseUnaryExpression_decrement_normal() {
     PrefixExpression expression = parseUnaryExpression('--x');
     expect(expression, isNotNull);
@@ -7940,6 +7979,18 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(operand.operand, isNotNull);
   }
 
+  void test_parseUnaryExpression_increment_identifier_index() {
+    PrefixExpression expression = parseExpression('++a[0]');
+    expect(expression, isNotNull);
+    assertNoErrors();
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.PLUS_PLUS);
+    expect(expression.operand, isNotNull);
+    IndexExpression operand = expression.operand as IndexExpression;
+    expect(operand.realTarget, const TypeMatcher<SimpleIdentifier>());
+    expect(operand.index is IntegerLiteral, isTrue);
+  }
+
   void test_parseUnaryExpression_increment_normal() {
     PrefixExpression expression = parseUnaryExpression('++x');
     expect(expression, isNotNull);
@@ -7971,6 +8022,18 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     PropertyAccess operand = expression.operand as PropertyAccess;
     expect(operand.target is SuperExpression, isTrue);
     expect(operand.propertyName.name, "x");
+  }
+
+  void test_parseUnaryExpression_minus_identifier_index() {
+    PrefixExpression expression = parseExpression('-a[0]');
+    expect(expression, isNotNull);
+    assertNoErrors();
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.MINUS);
+    expect(expression.operand, isNotNull);
+    IndexExpression operand = expression.operand as IndexExpression;
+    expect(operand.realTarget, const TypeMatcher<SimpleIdentifier>());
+    expect(operand.index is IntegerLiteral, isTrue);
   }
 
   void test_parseUnaryExpression_minus_normal() {
@@ -8025,6 +8088,18 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.TILDE);
     expect(expression.operand, isNotNull);
+  }
+
+  void test_parseUnaryExpression_tilde_identifier_index() {
+    PrefixExpression expression = parseExpression('~a[0]');
+    expect(expression, isNotNull);
+    assertNoErrors();
+    expect(expression.operator, isNotNull);
+    expect(expression.operator.type, TokenType.TILDE);
+    expect(expression.operand, isNotNull);
+    IndexExpression operand = expression.operand as IndexExpression;
+    expect(operand.realTarget, const TypeMatcher<SimpleIdentifier>());
+    expect(operand.index is IntegerLiteral, isTrue);
   }
 }
 
@@ -9543,7 +9618,10 @@ class ParserTestCase extends EngineTestCase
   List<Expression> parseExpressionList(String code) {
     if (usingFastaParser) {
       createParser('[$code]');
-      return (parser.parseExpression2() as ListLiteral).elements.toList();
+      return (parser.parseExpression2() as ListLiteral)
+          .elements
+          .toList()
+          .cast<Expression>();
     } else {
       createParser(code);
       return parser.parseExpressionList();
@@ -9679,7 +9757,7 @@ class ParserTestCase extends EngineTestCase
   }
 
   @override
-  MapLiteral parseMapLiteral(
+  SetOrMapLiteral parseMapLiteral(
       Token token, String typeArgumentsCode, String code) {
     if (usingFastaParser) {
       String sc = '';
@@ -9691,7 +9769,7 @@ class ParserTestCase extends EngineTestCase
       }
       sc += code;
       createParser(sc);
-      return parser.parseExpression2() as MapLiteral;
+      return parser.parseExpression2() as SetOrMapLiteral;
     } else {
       TypeArgumentList typeArguments;
       if (typeArgumentsCode != null) {
@@ -9707,7 +9785,7 @@ class ParserTestCase extends EngineTestCase
   MapLiteralEntry parseMapLiteralEntry(String code) {
     if (usingFastaParser) {
       var mapLiteral = parseMapLiteral(null, null, '{ $code }');
-      return mapLiteral.entries.single;
+      return mapLiteral.elements.single;
     } else {
       createParser(code);
       return parser.parseMapLiteralEntry();
@@ -10869,10 +10947,11 @@ class C {
     ]);
     expect(statement, isForStatement);
     expect(statement.toSource(), 'for (String item; i;) {}');
-    expect(statement.leftSeparator, isNotNull);
-    expect(statement.leftSeparator.type, TokenType.SEMICOLON);
-    expect(statement.rightSeparator, isNotNull);
-    expect(statement.rightSeparator.type, TokenType.SEMICOLON);
+    var forParts = statement.forLoopParts as ForParts;
+    expect(forParts.leftSeparator, isNotNull);
+    expect(forParts.leftSeparator.type, TokenType.SEMICOLON);
+    expect(forParts.rightSeparator, isNotNull);
+    expect(forParts.rightSeparator.type, TokenType.SEMICOLON);
   }
 
   void test_incompleteLocalVariable_atTheEndOfBlock() {
@@ -11130,6 +11209,7 @@ class C {
     MethodDeclaration method = declaration.members[0];
     expect(method.name.name, 'C');
     expect(method.isGetter, isTrue);
+    expect(method.parameters, isNull);
   }
 
   void test_issue_34610_initializers() {
@@ -11161,6 +11241,30 @@ class C {
   }
 
   void test_issue_34610_missing_param() {
+    final unit = parseCompilationUnit('class C { C => null; }',
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1)]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 18, 2),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 18, 2),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 18, 2),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 21, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 21, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 25, 1),
+              ]);
+    ClassDeclaration declaration = unit.declarations[0];
+    if (usingFastaParser) {
+      ConstructorDeclaration constructor = declaration.members[0];
+      expect(constructor.name, isNull);
+      expect(constructor.parameters, isNotNull);
+      expect(constructor.parameters.parameters, hasLength(0));
+    } else {
+      FieldDeclaration field = declaration.members[0];
+      expect(field.fields.type.toSource(), 'C');
+    }
+  }
+
+  void test_issue_34610_named_missing_param() {
     final unit = parseCompilationUnit('class C { C.named => null; }',
         errors: usingFastaParser
             ? [expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1)]
@@ -11182,6 +11286,38 @@ class C {
       FieldDeclaration field = declaration.members[0];
       expect(field.fields.type.toSource(), 'C.named');
     }
+  }
+
+  void test_issue_34610_set() {
+    final unit = parseCompilationUnit('class C { set C.named => null; }',
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 14, 1),
+                expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 15, 1),
+                expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 16, 5),
+              ]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1),
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1),
+                expectedError(
+                    ParserErrorCode.STATIC_SETTER_WITHOUT_BODY, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 15, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 15, 1),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 22, 2),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 22, 2),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 22, 2),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 25, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 25, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 29, 1),
+              ]);
+    ClassDeclaration declaration = unit.declarations[0];
+    MethodDeclaration method = declaration.members[0];
+    expect(method.name.name, 'C');
+    expect(method.isSetter, isTrue);
+    expect(method.parameters, isNotNull);
+    expect(method.parameters.parameters, hasLength(usingFastaParser ? 0 : 1));
   }
 
   void test_keywordInPlaceOfIdentifier() {
@@ -14576,15 +14712,15 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     String code = 'await for (element in list) {}';
-    var forStatement = _parseAsyncStatement(code) as ForEachStatement;
+    var forStatement = _parseAsyncStatement(code) as ForStatement;
     assertNoErrors();
-    expect(forStatement.awaitKeyword, isNotNull);
+    expect(forStatement.awaitKeyword, usingFastaParser ? isNotNull : isNull);
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    expect(forStatement.loopVariable, isNull);
-    expect(forStatement.identifier, isNotNull);
-    expect(forStatement.inKeyword, isNotNull);
-    expect(forStatement.iterable, isNotNull);
+    var forEachParts = forStatement.forLoopParts as ForEachPartsWithIdentifier;
+    expect(forEachParts.identifier, isNotNull);
+    expect(forEachParts.inKeyword, isNotNull);
+    expect(forEachParts.iterable, isNotNull);
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }
@@ -14594,15 +14730,15 @@ main() {
     // entry parsing is enabled by default
     var forStatement =
         parseStatement('for (void Function<T>(T) element in list) {}')
-            as ForEachStatement;
+            as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    expect(forStatement.loopVariable, isNotNull);
-    expect(forStatement.identifier, isNull);
-    expect(forStatement.inKeyword, isNotNull);
-    expect(forStatement.iterable, isNotNull);
+    var forEachParts = forStatement.forLoopParts as ForEachPartsWithDeclaration;
+    expect(forEachParts.loopVariable, isNotNull);
+    expect(forEachParts.inKeyword, isNotNull);
+    expect(forEachParts.iterable, isNotNull);
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }
@@ -14611,15 +14747,15 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     var forStatement =
-        parseStatement('for (element in list) {}') as ForEachStatement;
+        parseStatement('for (element in list) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    expect(forStatement.loopVariable, isNull);
-    expect(forStatement.identifier, isNotNull);
-    expect(forStatement.inKeyword, isNotNull);
-    expect(forStatement.iterable, isNotNull);
+    var forEachParts = forStatement.forLoopParts as ForEachPartsWithIdentifier;
+    expect(forEachParts.identifier, isNotNull);
+    expect(forEachParts.inKeyword, isNotNull);
+    expect(forEachParts.iterable, isNotNull);
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }
@@ -14628,16 +14764,16 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     var forStatement =
-        parseStatement('for (@A var element in list) {}') as ForEachStatement;
+        parseStatement('for (@A var element in list) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    expect(forStatement.loopVariable, isNotNull);
-    expect(forStatement.loopVariable.metadata, hasLength(1));
-    expect(forStatement.identifier, isNull);
-    expect(forStatement.inKeyword, isNotNull);
-    expect(forStatement.iterable, isNotNull);
+    var forEachParts = forStatement.forLoopParts as ForEachPartsWithDeclaration;
+    expect(forEachParts.loopVariable, isNotNull);
+    expect(forEachParts.loopVariable.metadata, hasLength(1));
+    expect(forEachParts.inKeyword, isNotNull);
+    expect(forEachParts.iterable, isNotNull);
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }
@@ -14646,15 +14782,15 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     var forStatement =
-        parseStatement('for (A element in list) {}') as ForEachStatement;
+        parseStatement('for (A element in list) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    expect(forStatement.loopVariable, isNotNull);
-    expect(forStatement.identifier, isNull);
-    expect(forStatement.inKeyword, isNotNull);
-    expect(forStatement.iterable, isNotNull);
+    var forEachParts = forStatement.forLoopParts as ForEachPartsWithDeclaration;
+    expect(forEachParts.loopVariable, isNotNull);
+    expect(forEachParts.inKeyword, isNotNull);
+    expect(forEachParts.iterable, isNotNull);
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }
@@ -14663,15 +14799,15 @@ main() {
     // TODO(danrubel): remove this once control flow and spread collection
     // entry parsing is enabled by default
     var forStatement =
-        parseStatement('for (var element in list) {}') as ForEachStatement;
+        parseStatement('for (var element in list) {}') as ForStatement;
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    expect(forStatement.loopVariable, isNotNull);
-    expect(forStatement.identifier, isNull);
-    expect(forStatement.inKeyword, isNotNull);
-    expect(forStatement.iterable, isNotNull);
+    var forEachParts = forStatement.forLoopParts as ForEachPartsWithDeclaration;
+    expect(forEachParts.loopVariable, isNotNull);
+    expect(forEachParts.inKeyword, isNotNull);
+    expect(forEachParts.iterable, isNotNull);
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }
@@ -14683,12 +14819,12 @@ main() {
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    expect(forStatement.variables, isNull);
-    expect(forStatement.initialization, isNull);
-    expect(forStatement.leftSeparator, isNotNull);
-    expect(forStatement.condition, isNotNull);
-    expect(forStatement.rightSeparator, isNotNull);
-    expect(forStatement.updaters, hasLength(0));
+    var forParts = forStatement.forLoopParts as ForPartsWithExpression;
+    expect(forParts.initialization, isNull);
+    expect(forParts.leftSeparator, isNotNull);
+    expect(forParts.condition, isNotNull);
+    expect(forParts.rightSeparator, isNotNull);
+    expect(forParts.updaters, hasLength(0));
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }
@@ -14701,12 +14837,12 @@ main() {
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    expect(forStatement.variables, isNull);
-    expect(forStatement.initialization, isNull);
-    expect(forStatement.leftSeparator, isNotNull);
-    expect(forStatement.condition, isNotNull);
-    expect(forStatement.rightSeparator, isNotNull);
-    expect(forStatement.updaters, hasLength(1));
+    var forParts = forStatement.forLoopParts as ForPartsWithExpression;
+    expect(forParts.initialization, isNull);
+    expect(forParts.leftSeparator, isNotNull);
+    expect(forParts.condition, isNotNull);
+    expect(forParts.rightSeparator, isNotNull);
+    expect(forParts.updaters, hasLength(1));
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }
@@ -14719,12 +14855,12 @@ main() {
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    expect(forStatement.variables, isNull);
-    expect(forStatement.initialization, isNotNull);
-    expect(forStatement.leftSeparator, isNotNull);
-    expect(forStatement.condition, isNotNull);
-    expect(forStatement.rightSeparator, isNotNull);
-    expect(forStatement.updaters, hasLength(1));
+    var forParts = forStatement.forLoopParts as ForPartsWithExpression;
+    expect(forParts.initialization, isNotNull);
+    expect(forParts.leftSeparator, isNotNull);
+    expect(forParts.condition, isNotNull);
+    expect(forParts.rightSeparator, isNotNull);
+    expect(forParts.updaters, hasLength(1));
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }
@@ -14736,15 +14872,15 @@ main() {
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    VariableDeclarationList variables = forStatement.variables;
+    var forParts = forStatement.forLoopParts as ForPartsWithDeclarations;
+    VariableDeclarationList variables = forParts.variables;
     expect(variables, isNotNull);
     expect(variables.metadata, hasLength(0));
     expect(variables.variables, hasLength(1));
-    expect(forStatement.initialization, isNull);
-    expect(forStatement.leftSeparator, isNotNull);
-    expect(forStatement.condition, isNull);
-    expect(forStatement.rightSeparator, isNotNull);
-    expect(forStatement.updaters, hasLength(0));
+    expect(forParts.leftSeparator, isNotNull);
+    expect(forParts.condition, isNull);
+    expect(forParts.rightSeparator, isNotNull);
+    expect(forParts.updaters, hasLength(0));
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }
@@ -14757,15 +14893,15 @@ main() {
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    VariableDeclarationList variables = forStatement.variables;
+    var forParts = forStatement.forLoopParts as ForPartsWithDeclarations;
+    VariableDeclarationList variables = forParts.variables;
     expect(variables, isNotNull);
     expect(variables.metadata, hasLength(1));
     expect(variables.variables, hasLength(1));
-    expect(forStatement.initialization, isNull);
-    expect(forStatement.leftSeparator, isNotNull);
-    expect(forStatement.condition, isNull);
-    expect(forStatement.rightSeparator, isNotNull);
-    expect(forStatement.updaters, hasLength(0));
+    expect(forParts.leftSeparator, isNotNull);
+    expect(forParts.condition, isNull);
+    expect(forParts.rightSeparator, isNotNull);
+    expect(forParts.updaters, hasLength(0));
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }
@@ -14778,14 +14914,14 @@ main() {
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    VariableDeclarationList variables = forStatement.variables;
+    var forParts = forStatement.forLoopParts as ForPartsWithDeclarations;
+    VariableDeclarationList variables = forParts.variables;
     expect(variables, isNotNull);
     expect(variables.variables, hasLength(1));
-    expect(forStatement.initialization, isNull);
-    expect(forStatement.leftSeparator, isNotNull);
-    expect(forStatement.condition, isNotNull);
-    expect(forStatement.rightSeparator, isNotNull);
-    expect(forStatement.updaters, hasLength(0));
+    expect(forParts.leftSeparator, isNotNull);
+    expect(forParts.condition, isNotNull);
+    expect(forParts.rightSeparator, isNotNull);
+    expect(forParts.updaters, hasLength(0));
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }
@@ -14798,14 +14934,14 @@ main() {
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    VariableDeclarationList variables = forStatement.variables;
+    var forParts = forStatement.forLoopParts as ForPartsWithDeclarations;
+    VariableDeclarationList variables = forParts.variables;
     expect(variables, isNotNull);
     expect(variables.variables, hasLength(1));
-    expect(forStatement.initialization, isNull);
-    expect(forStatement.leftSeparator, isNotNull);
-    expect(forStatement.condition, isNotNull);
-    expect(forStatement.rightSeparator, isNotNull);
-    expect(forStatement.updaters, hasLength(1));
+    expect(forParts.leftSeparator, isNotNull);
+    expect(forParts.condition, isNotNull);
+    expect(forParts.rightSeparator, isNotNull);
+    expect(forParts.updaters, hasLength(1));
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }
@@ -14819,14 +14955,14 @@ main() {
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    VariableDeclarationList variables = forStatement.variables;
+    var forParts = forStatement.forLoopParts as ForPartsWithDeclarations;
+    VariableDeclarationList variables = forParts.variables;
     expect(variables, isNotNull);
     expect(variables.variables, hasLength(2));
-    expect(forStatement.initialization, isNull);
-    expect(forStatement.leftSeparator, isNotNull);
-    expect(forStatement.condition, isNotNull);
-    expect(forStatement.rightSeparator, isNotNull);
-    expect(forStatement.updaters, hasLength(2));
+    expect(forParts.leftSeparator, isNotNull);
+    expect(forParts.condition, isNotNull);
+    expect(forParts.rightSeparator, isNotNull);
+    expect(forParts.updaters, hasLength(2));
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }
@@ -14839,14 +14975,14 @@ main() {
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    VariableDeclarationList variables = forStatement.variables;
+    var forParts = forStatement.forLoopParts as ForPartsWithDeclarations;
+    VariableDeclarationList variables = forParts.variables;
     expect(variables, isNotNull);
     expect(variables.variables, hasLength(1));
-    expect(forStatement.initialization, isNull);
-    expect(forStatement.leftSeparator, isNotNull);
-    expect(forStatement.condition, isNull);
-    expect(forStatement.rightSeparator, isNotNull);
-    expect(forStatement.updaters, hasLength(1));
+    expect(forParts.leftSeparator, isNotNull);
+    expect(forParts.condition, isNull);
+    expect(forParts.rightSeparator, isNotNull);
+    expect(forParts.updaters, hasLength(1));
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }
@@ -14858,12 +14994,12 @@ main() {
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
     expect(forStatement.leftParenthesis, isNotNull);
-    expect(forStatement.variables, isNull);
-    expect(forStatement.initialization, isNull);
-    expect(forStatement.leftSeparator, isNotNull);
-    expect(forStatement.condition, isNull);
-    expect(forStatement.rightSeparator, isNotNull);
-    expect(forStatement.updaters, hasLength(1));
+    var forParts = forStatement.forLoopParts as ForPartsWithExpression;
+    expect(forParts.initialization, isNull);
+    expect(forParts.leftSeparator, isNotNull);
+    expect(forParts.condition, isNull);
+    expect(forParts.rightSeparator, isNotNull);
+    expect(forParts.updaters, hasLength(1));
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
   }

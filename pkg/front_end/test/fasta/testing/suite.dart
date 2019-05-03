@@ -131,7 +131,9 @@ class FastaContext extends ChainContext with MatchContext {
   final Uri vm;
   final bool legacyMode;
   final bool onlyCrashes;
+  final bool enableControlFlowCollections;
   final bool enableSetLiterals;
+  final bool enableSpreadCollections;
   final bool skipVm;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
@@ -155,7 +157,9 @@ class FastaContext extends ChainContext with MatchContext {
       this.legacyMode,
       this.platformBinaries,
       this.onlyCrashes,
+      this.enableControlFlowCollections,
       this.enableSetLiterals,
+      this.enableSpreadCollections,
       bool ignoreExpectations,
       this.updateExpectations,
       bool updateComments,
@@ -243,7 +247,12 @@ class FastaContext extends ChainContext with MatchContext {
     Uri sdk = Uri.base.resolve("sdk/");
     Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
     Uri packages = Uri.base.resolve(".packages");
+    bool legacyMode = environment.containsKey(LEGACY_MODE);
+    bool enableControlFlowCollections =
+        environment["enableControlFlowCollections"] != "false" && !legacyMode;
     bool enableSetLiterals = environment["enableSetLiterals"] != "false";
+    bool enableSpreadCollections =
+        environment["enableSpreadCollections"] != "false" && !legacyMode;
     var options = new ProcessedOptions(
         options: new CompilerOptions()
           ..onDiagnostic = (DiagnosticMessage message) {
@@ -252,10 +261,12 @@ class FastaContext extends ChainContext with MatchContext {
           ..sdkRoot = sdk
           ..packagesFileUri = packages
           ..experimentalFlags = <ExperimentalFlag, bool>{
-            ExperimentalFlag.setLiterals: enableSetLiterals
+            ExperimentalFlag.controlFlowCollections:
+                enableControlFlowCollections,
+            ExperimentalFlag.setLiterals: enableSetLiterals,
+            ExperimentalFlag.spreadCollections: enableSpreadCollections,
           });
     UriTranslator uriTranslator = await options.getUriTranslator();
-    bool legacyMode = environment.containsKey(LEGACY_MODE);
     bool onlyCrashes = environment["onlyCrashes"] == "true";
     bool ignoreExpectations = environment["ignoreExpectations"] == "true";
     bool updateExpectations = environment["updateExpectations"] == "true";
@@ -274,7 +285,9 @@ class FastaContext extends ChainContext with MatchContext {
             ? computePlatformBinariesLocation(forceBuildDir: true)
             : Uri.base.resolve(platformBinaries),
         onlyCrashes,
+        enableControlFlowCollections,
         enableSetLiterals,
+        enableSpreadCollections,
         ignoreExpectations,
         updateExpectations,
         updateComments,
@@ -341,7 +354,10 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
             errors.writeAll(message.plainTextFormatted, "\n");
           }
           ..experimentalFlags = <ExperimentalFlag, bool>{
-            ExperimentalFlag.setLiterals: context.enableSetLiterals
+            ExperimentalFlag.controlFlowCollections:
+                context.enableControlFlowCollections,
+            ExperimentalFlag.setLiterals: context.enableSetLiterals,
+            ExperimentalFlag.spreadCollections: context.enableSpreadCollections,
           },
         inputs: <Uri>[description.uri]);
     return await CompilerContext.runWithOptions(options, (_) async {

@@ -61,8 +61,7 @@ typedef DirectChainedHashMap<RawCodeKeyValueTrait> RawCodeSet;
 
 static RawObject* AllocateUninitialized(PageSpace* old_space, intptr_t size) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
-  uword address =
-      old_space->TryAllocateDataBumpLocked(size, PageSpace::kForceGrowth);
+  uword address = old_space->TryAllocateDataBumpLocked(size);
   if (address == 0) {
     OUT_OF_MEMORY();
   }
@@ -72,14 +71,12 @@ static RawObject* AllocateUninitialized(PageSpace* old_space, intptr_t size) {
 void Deserializer::InitializeHeader(RawObject* raw,
                                     intptr_t class_id,
                                     intptr_t size,
-                                    bool is_vm_isolate,
                                     bool is_canonical) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uint32_t tags = 0;
   tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
-  tags = RawObject::VMHeapObjectTag::update(is_vm_isolate, tags);
-  tags = RawObject::CanonicalObjectTag::update(is_canonical, tags);
+  tags = RawObject::CanonicalBit::update(is_canonical, tags);
   tags = RawObject::OldBit::update(true, tags);
   tags = RawObject::OldAndNotMarkedBit::update(true, tags);
   tags = RawObject::OldAndNotRememberedBit::update(true, tags);
@@ -225,7 +222,6 @@ class ClassDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
     ClassTable* table = d->isolate()->class_table();
 
     for (intptr_t id = predefined_start_index_; id < predefined_stop_index_;
@@ -256,8 +252,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawClass* cls = reinterpret_cast<RawClass*>(d->Ref(id));
-      Deserializer::InitializeHeader(cls, kClassCid, Class::InstanceSize(),
-                                     is_vm_object);
+      Deserializer::InitializeHeader(cls, kClassCid, Class::InstanceSize());
       ReadFromTo(cls);
 
       intptr_t class_id = d->ReadCid();
@@ -361,8 +356,6 @@ class TypeArgumentsDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawTypeArguments* type_args =
           reinterpret_cast<RawTypeArguments*>(d->Ref(id));
@@ -370,7 +363,7 @@ class TypeArgumentsDeserializationCluster : public DeserializationCluster {
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(type_args, kTypeArgumentsCid,
                                      TypeArguments::InstanceSize(length),
-                                     is_vm_object, is_canonical);
+                                     is_canonical);
       type_args->ptr()->length_ = Smi::New(length);
       type_args->ptr()->hash_ = Smi::New(d->Read<int32_t>());
       type_args->ptr()->instantiations_ =
@@ -439,12 +432,10 @@ class PatchClassDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawPatchClass* cls = reinterpret_cast<RawPatchClass*>(d->Ref(id));
       Deserializer::InitializeHeader(cls, kPatchClassCid,
-                                     PatchClass::InstanceSize(), is_vm_object);
+                                     PatchClass::InstanceSize());
       ReadFromTo(cls);
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() != Snapshot::kFullAOT) {
@@ -511,7 +502,7 @@ class FunctionSerializationCluster : public SerializationCluster {
       if (kind != Snapshot::kFullAOT) {
         s->WriteTokenPosition(func->ptr()->token_pos_);
         s->WriteTokenPosition(func->ptr()->end_token_pos_);
-        s->Write<int32_t>(func->ptr()->kernel_offset_);
+        s->Write<uint32_t>(func->ptr()->binary_declaration_);
       }
 #endif
       s->Write<uint32_t>(func->ptr()->packed_fields_);
@@ -541,12 +532,11 @@ class FunctionDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     Snapshot::Kind kind = d->kind();
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawFunction* func = reinterpret_cast<RawFunction*>(d->Ref(id));
       Deserializer::InitializeHeader(func, kFunctionCid,
-                                     Function::InstanceSize(), is_vm_object);
+                                     Function::InstanceSize());
       ReadFromTo(func);
 
       if (kind == Snapshot::kFull) {
@@ -572,7 +562,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       if (kind != Snapshot::kFullAOT) {
         func->ptr()->token_pos_ = d->ReadTokenPosition();
         func->ptr()->end_token_pos_ = d->ReadTokenPosition();
-        func->ptr()->kernel_offset_ = d->Read<int32_t>();
+        func->ptr()->binary_declaration_ = d->Read<uint32_t>();
       }
 #endif
       func->ptr()->packed_fields_ = d->Read<uint32_t>();
@@ -700,12 +690,10 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawClosureData* data = reinterpret_cast<RawClosureData*>(d->Ref(id));
       Deserializer::InitializeHeader(data, kClosureDataCid,
-                                     ClosureData::InstanceSize(), is_vm_object);
+                                     ClosureData::InstanceSize());
       if (d->kind() == Snapshot::kFullAOT) {
         data->ptr()->context_scope_ = ContextScope::null();
       } else {
@@ -772,12 +760,10 @@ class SignatureDataDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawSignatureData* data = reinterpret_cast<RawSignatureData*>(d->Ref(id));
-      Deserializer::InitializeHeader(
-          data, kSignatureDataCid, SignatureData::InstanceSize(), is_vm_object);
+      Deserializer::InitializeHeader(data, kSignatureDataCid,
+                                     SignatureData::InstanceSize());
       ReadFromTo(data);
     }
   }
@@ -837,14 +823,11 @@ class RedirectionDataDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawRedirectionData* data =
           reinterpret_cast<RawRedirectionData*>(d->Ref(id));
       Deserializer::InitializeHeader(data, kRedirectionDataCid,
-                                     RedirectionData::InstanceSize(),
-                                     is_vm_object);
+                                     RedirectionData::InstanceSize());
       ReadFromTo(data);
     }
   }
@@ -882,7 +865,7 @@ class FieldSerializationCluster : public SerializationCluster {
       s->Push(field->ptr()->value_.offset_);
     }
     // Write out the initializer function
-    s->Push(field->ptr()->initializer_);
+    s->Push(field->ptr()->initializer_function_);
     if (kind != Snapshot::kFullAOT) {
       // Write out the saved initial value
       s->Push(field->ptr()->saved_initial_value_);
@@ -932,8 +915,8 @@ class FieldSerializationCluster : public SerializationCluster {
       } else {
         WriteField(field, value_.offset_);
       }
-      // Write out the initializer function or saved initial value.
-      WriteField(field, initializer_);
+      // Write out the initializer function and initial value if not in AOT.
+      WriteField(field, initializer_function_);
       if (kind != Snapshot::kFullAOT) {
         WriteField(field, saved_initial_value_);
       }
@@ -952,7 +935,7 @@ class FieldSerializationCluster : public SerializationCluster {
         s->WriteCid(field->ptr()->is_nullable_);
         s->Write<int8_t>(field->ptr()->static_type_exactness_state_);
 #if !defined(DART_PRECOMPILED_RUNTIME)
-        s->Write<int32_t>(field->ptr()->kernel_offset_);
+        s->Write<uint32_t>(field->ptr()->binary_declaration_);
 #endif
       }
       s->Write<uint16_t>(field->ptr()->kind_bits_);
@@ -981,12 +964,10 @@ class FieldDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     Snapshot::Kind kind = d->kind();
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawField* field = reinterpret_cast<RawField*>(d->Ref(id));
-      Deserializer::InitializeHeader(field, kFieldCid, Field::InstanceSize(),
-                                     is_vm_object);
+      Deserializer::InitializeHeader(field, kFieldCid, Field::InstanceSize());
       ReadFromTo(field);
       if (kind != Snapshot::kFullAOT) {
         field->ptr()->token_pos_ = d->ReadTokenPosition();
@@ -995,7 +976,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field->ptr()->is_nullable_ = d->ReadCid();
         field->ptr()->static_type_exactness_state_ = d->Read<int8_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
-        field->ptr()->kernel_offset_ = d->Read<int32_t>();
+        field->ptr()->binary_declaration_ = d->Read<uint32_t>();
 #endif
       }
       field->ptr()->kind_bits_ = d->Read<uint16_t>();
@@ -1080,12 +1061,10 @@ class ScriptDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawScript* script = reinterpret_cast<RawScript*>(d->Ref(id));
-      Deserializer::InitializeHeader(script, kScriptCid, Script::InstanceSize(),
-                                     is_vm_object);
+      Deserializer::InitializeHeader(script, kScriptCid,
+                                     Script::InstanceSize());
       ReadFromTo(script);
       script->ptr()->line_offset_ = d->Read<int32_t>();
       script->ptr()->col_offset_ = d->Read<int32_t>();
@@ -1156,12 +1135,9 @@ class LibraryDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawLibrary* lib = reinterpret_cast<RawLibrary*>(d->Ref(id));
-      Deserializer::InitializeHeader(lib, kLibraryCid, Library::InstanceSize(),
-                                     is_vm_object);
+      Deserializer::InitializeHeader(lib, kLibraryCid, Library::InstanceSize());
       ReadFromTo(lib);
       lib->ptr()->native_entry_resolver_ = NULL;
       lib->ptr()->native_entry_symbol_resolver_ = NULL;
@@ -1232,12 +1208,10 @@ class NamespaceDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawNamespace* ns = reinterpret_cast<RawNamespace*>(d->Ref(id));
       Deserializer::InitializeHeader(ns, kNamespaceCid,
-                                     Namespace::InstanceSize(), is_vm_object);
+                                     Namespace::InstanceSize());
       ReadFromTo(ns);
     }
   }
@@ -1299,14 +1273,11 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawKernelProgramInfo* info =
           reinterpret_cast<RawKernelProgramInfo*>(d->Ref(id));
       Deserializer::InitializeHeader(info, kKernelProgramInfoCid,
-                                     KernelProgramInfo::InstanceSize(),
-                                     is_vm_object);
+                                     KernelProgramInfo::InstanceSize());
       ReadFromTo(info);
     }
   }
@@ -1433,8 +1404,6 @@ class CodeDeserializationCluster : public DeserializationCluster {
   ~CodeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
-    const bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     start_index_ = d->next_index();
     PageSpace* old_space = d->heap()->old_space();
     const intptr_t count = d->ReadUnsigned();
@@ -1449,7 +1418,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code_order = static_cast<RawArray*>(
           AllocateUninitialized(old_space, Array::InstanceSize(count)));
       Deserializer::InitializeHeader(code_order, kArrayCid,
-                                     Array::InstanceSize(count), is_vm_object,
+                                     Array::InstanceSize(count),
                                      /*is_canonical=*/false);
       code_order->ptr()->type_arguments_ = TypeArguments::null();
       code_order->ptr()->length_ = Smi::New(code_order_length);
@@ -1472,12 +1441,9 @@ class CodeDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    const bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawCode* code = reinterpret_cast<RawCode*>(d->Ref(id));
-      Deserializer::InitializeHeader(code, kCodeCid, Code::InstanceSize(0),
-                                     is_vm_object);
+      Deserializer::InitializeHeader(code, kCodeCid, Code::InstanceSize(0));
 
       RawInstructions* instr = d->ReadInstructions();
 
@@ -1601,12 +1567,11 @@ class BytecodeDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     ASSERT(d->kind() == Snapshot::kFullJIT);
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawBytecode* bytecode = reinterpret_cast<RawBytecode*>(d->Ref(id));
       Deserializer::InitializeHeader(bytecode, kBytecodeCid,
-                                     Bytecode::InstanceSize(), is_vm_object);
+                                     Bytecode::InstanceSize());
       bytecode->ptr()->instructions_ = 0;
       bytecode->ptr()->instructions_size_ = d->Read<int32_t>();
       ReadFromTo(bytecode);
@@ -1742,12 +1707,11 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
     for (intptr_t id = start_index_; id < stop_index_; id += 1) {
       intptr_t length = d->ReadUnsigned();
       RawObjectPool* pool = reinterpret_cast<RawObjectPool*>(d->Ref(id + 0));
-      Deserializer::InitializeHeader(
-          pool, kObjectPoolCid, ObjectPool::InstanceSize(length), is_vm_object);
+      Deserializer::InitializeHeader(pool, kObjectPoolCid,
+                                     ObjectPool::InstanceSize(length));
       pool->ptr()->length_ = length;
       for (intptr_t j = 0; j < length; j++) {
         const uint8_t entry_bits = d->Read<uint8_t>();
@@ -1796,7 +1760,8 @@ class RODataSerializationCluster : public SerializationCluster {
     // will be loaded into read-only memory. Extra bytes due to allocation
     // rounding need to be deterministically set for reliable deduplication in
     // shared images.
-    if (object->IsVMHeapObject()) {
+    if (object->InVMIsolateHeap() ||
+        s->isolate()->heap()->old_space()->IsObjectFromImagePages(object)) {
       // This object is already read-only.
     } else {
       Object::FinalizeReadOnlyObject(object);
@@ -1951,15 +1916,12 @@ class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawExceptionHandlers* handlers =
           reinterpret_cast<RawExceptionHandlers*>(d->Ref(id));
       intptr_t length = d->ReadUnsigned();
       Deserializer::InitializeHeader(handlers, kExceptionHandlersCid,
-                                     ExceptionHandlers::InstanceSize(length),
-                                     is_vm_object);
+                                     ExceptionHandlers::InstanceSize(length));
       handlers->ptr()->num_entries_ = length;
       handlers->ptr()->handled_types_data_ =
           reinterpret_cast<RawArray*>(d->ReadRef());
@@ -2042,13 +2004,11 @@ class ContextDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawContext* context = reinterpret_cast<RawContext*>(d->Ref(id));
       intptr_t length = d->ReadUnsigned();
-      Deserializer::InitializeHeader(
-          context, kContextCid, Context::InstanceSize(length), is_vm_object);
+      Deserializer::InitializeHeader(context, kContextCid,
+                                     Context::InstanceSize(length));
       context->ptr()->num_variables_ = length;
       context->ptr()->parent_ = reinterpret_cast<RawContext*>(d->ReadRef());
       for (intptr_t j = 0; j < length; j++) {
@@ -2120,14 +2080,11 @@ class ContextScopeDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawContextScope* scope = reinterpret_cast<RawContextScope*>(d->Ref(id));
       intptr_t length = d->ReadUnsigned();
       Deserializer::InitializeHeader(scope, kContextScopeCid,
-                                     ContextScope::InstanceSize(length),
-                                     is_vm_object);
+                                     ContextScope::InstanceSize(length));
       scope->ptr()->num_variables_ = length;
       scope->ptr()->is_implicit_ = d->Read<bool>();
       ReadFromTo(scope, length);
@@ -2188,14 +2145,11 @@ class UnlinkedCallDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawUnlinkedCall* unlinked =
           reinterpret_cast<RawUnlinkedCall*>(d->Ref(id));
       Deserializer::InitializeHeader(unlinked, kUnlinkedCallCid,
-                                     UnlinkedCall::InstanceSize(),
-                                     is_vm_object);
+                                     UnlinkedCall::InstanceSize());
       ReadFromTo(unlinked);
     }
   }
@@ -2258,12 +2212,9 @@ class ICDataDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawICData* ic = reinterpret_cast<RawICData*>(d->Ref(id));
-      Deserializer::InitializeHeader(ic, kICDataCid, ICData::InstanceSize(),
-                                     is_vm_object);
+      Deserializer::InitializeHeader(ic, kICDataCid, ICData::InstanceSize());
       ReadFromTo(ic);
       NOT_IN_PRECOMPILED(ic->ptr()->deopt_id_ = d->Read<int32_t>());
       ic->ptr()->state_bits_ = d->Read<int32_t>();
@@ -2326,14 +2277,11 @@ class MegamorphicCacheDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawMegamorphicCache* cache =
           reinterpret_cast<RawMegamorphicCache*>(d->Ref(id));
       Deserializer::InitializeHeader(cache, kMegamorphicCacheCid,
-                                     MegamorphicCache::InstanceSize(),
-                                     is_vm_object);
+                                     MegamorphicCache::InstanceSize());
       ReadFromTo(cache);
       cache->ptr()->filled_entry_count_ = d->Read<int32_t>();
     }
@@ -2420,14 +2368,11 @@ class SubtypeTestCacheDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawSubtypeTestCache* cache =
           reinterpret_cast<RawSubtypeTestCache*>(d->Ref(id));
       Deserializer::InitializeHeader(cache, kSubtypeTestCacheCid,
-                                     SubtypeTestCache::InstanceSize(),
-                                     is_vm_object);
+                                     SubtypeTestCache::InstanceSize());
       cache->ptr()->cache_ = reinterpret_cast<RawArray*>(d->ReadRef());
     }
   }
@@ -2489,13 +2434,10 @@ class LanguageErrorDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawLanguageError* error = reinterpret_cast<RawLanguageError*>(d->Ref(id));
       Deserializer::InitializeHeader(error, kLanguageErrorCid,
-                                     LanguageError::InstanceSize(),
-                                     is_vm_object);
+                                     LanguageError::InstanceSize());
       ReadFromTo(error);
       error->ptr()->token_pos_ = d->ReadTokenPosition();
       error->ptr()->report_after_token_ = d->Read<bool>();
@@ -2558,14 +2500,11 @@ class UnhandledExceptionDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawUnhandledException* exception =
           reinterpret_cast<RawUnhandledException*>(d->Ref(id));
       Deserializer::InitializeHeader(exception, kUnhandledExceptionCid,
-                                     UnhandledException::InstanceSize(),
-                                     is_vm_object);
+                                     UnhandledException::InstanceSize());
       ReadFromTo(exception);
     }
   }
@@ -2660,13 +2599,12 @@ class InstanceDeserializationCluster : public DeserializationCluster {
     intptr_t next_field_offset = next_field_offset_in_words_ << kWordSizeLog2;
     intptr_t instance_size =
         Object::RoundedAllocationSize(instance_size_in_words_ * kWordSize);
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawInstance* instance = reinterpret_cast<RawInstance*>(d->Ref(id));
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(instance, cid_, instance_size,
-                                     is_vm_object, is_canonical);
+                                     is_canonical);
       intptr_t offset = Instance::NextFieldOffset();
       while (offset < next_field_offset) {
         RawObject** p = reinterpret_cast<RawObject**>(
@@ -2745,14 +2683,11 @@ class LibraryPrefixDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawLibraryPrefix* prefix =
           reinterpret_cast<RawLibraryPrefix*>(d->Ref(id));
       Deserializer::InitializeHeader(prefix, kLibraryPrefixCid,
-                                     LibraryPrefix::InstanceSize(),
-                                     is_vm_object);
+                                     LibraryPrefix::InstanceSize());
       ReadFromTo(prefix);
       prefix->ptr()->num_imports_ = d->Read<uint16_t>();
       prefix->ptr()->is_deferred_load_ = d->Read<bool>();
@@ -2852,13 +2787,12 @@ class TypeDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    const bool is_vm_isolate = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = canonical_start_index_; id < canonical_stop_index_;
          id++) {
       RawType* type = reinterpret_cast<RawType*>(d->Ref(id));
+      bool is_canonical = true;
       Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
-                                     is_vm_isolate, true);
+                                     is_canonical);
       ReadFromTo(type);
       type->ptr()->token_pos_ = d->ReadTokenPosition();
       type->ptr()->type_state_ = d->Read<int8_t>();
@@ -2866,8 +2800,9 @@ class TypeDeserializationCluster : public DeserializationCluster {
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawType* type = reinterpret_cast<RawType*>(d->Ref(id));
+      bool is_canonical = false;
       Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
-                                     is_vm_isolate);
+                                     is_canonical);
       ReadFromTo(type);
       type->ptr()->token_pos_ = d->ReadTokenPosition();
       type->ptr()->type_state_ = d->Read<int8_t>();
@@ -2962,12 +2897,10 @@ class TypeRefDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    const bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawTypeRef* type = reinterpret_cast<RawTypeRef*>(d->Ref(id));
-      Deserializer::InitializeHeader(type, kTypeRefCid, TypeRef::InstanceSize(),
-                                     is_vm_object);
+      Deserializer::InitializeHeader(type, kTypeRefCid,
+                                     TypeRef::InstanceSize());
       ReadFromTo(type);
     }
   }
@@ -3026,7 +2959,7 @@ class TypeParameterSerializationCluster : public SerializationCluster {
       s->Write<int32_t>(type->ptr()->parameterized_class_id_);
       s->WriteTokenPosition(type->ptr()->token_pos_);
       s->Write<int16_t>(type->ptr()->index_);
-      s->Write<int8_t>(type->ptr()->type_state_);
+      s->Write<uint8_t>(type->ptr()->flags_);
     }
   }
 
@@ -3052,17 +2985,15 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawTypeParameter* type = reinterpret_cast<RawTypeParameter*>(d->Ref(id));
-      Deserializer::InitializeHeader(
-          type, kTypeParameterCid, TypeParameter::InstanceSize(), is_vm_object);
+      Deserializer::InitializeHeader(type, kTypeParameterCid,
+                                     TypeParameter::InstanceSize());
       ReadFromTo(type);
       type->ptr()->parameterized_class_id_ = d->Read<int32_t>();
       type->ptr()->token_pos_ = d->ReadTokenPosition();
       type->ptr()->index_ = d->Read<int16_t>();
-      type->ptr()->type_state_ = d->Read<int8_t>();
+      type->ptr()->flags_ = d->Read<uint8_t>();
     }
   }
 
@@ -3140,14 +3071,11 @@ class ClosureDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawClosure* closure = reinterpret_cast<RawClosure*>(d->Ref(id));
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(closure, kClosureCid,
-                                     Closure::InstanceSize(), is_vm_object,
-                                     is_canonical);
+                                     Closure::InstanceSize(), is_canonical);
       ReadFromTo(closure);
     }
   }
@@ -3204,7 +3132,6 @@ class MintDeserializationCluster : public DeserializationCluster {
 
   void ReadAlloc(Deserializer* d) {
     PageSpace* old_space = d->heap()->old_space();
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
 
     start_index_ = d->next_index();
     intptr_t count = d->ReadUnsigned();
@@ -3217,7 +3144,7 @@ class MintDeserializationCluster : public DeserializationCluster {
         RawMint* mint = static_cast<RawMint*>(
             AllocateUninitialized(old_space, Mint::InstanceSize()));
         Deserializer::InitializeHeader(mint, kMintCid, Mint::InstanceSize(),
-                                       is_vm_object, is_canonical);
+                                       is_canonical);
         mint->ptr()->value_ = value;
         d->AssignRef(mint);
       }
@@ -3293,13 +3220,11 @@ class DoubleDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawDouble* dbl = reinterpret_cast<RawDouble*>(d->Ref(id));
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(dbl, kDoubleCid, Double::InstanceSize(),
-                                     is_vm_object, is_canonical);
+                                     is_canonical);
       dbl->ptr()->value_ = d->Read<double>();
     }
   }
@@ -3361,15 +3286,13 @@ class GrowableObjectArrayDeserializationCluster
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawGrowableObjectArray* list =
           reinterpret_cast<RawGrowableObjectArray*>(d->Ref(id));
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(list, kGrowableObjectArrayCid,
                                      GrowableObjectArray::InstanceSize(),
-                                     is_vm_object, is_canonical);
+                                     is_canonical);
       ReadFromTo(list);
     }
   }
@@ -3439,7 +3362,6 @@ class TypedDataDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
     intptr_t element_size = TypedData::ElementSizeInBytes(cid_);
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
@@ -3447,12 +3369,90 @@ class TypedDataDeserializationCluster : public DeserializationCluster {
       intptr_t length = d->ReadUnsigned();
       bool is_canonical = d->Read<bool>();
       intptr_t length_in_bytes = length * element_size;
-      Deserializer::InitializeHeader(data, cid_,
-                                     TypedData::InstanceSize(length_in_bytes),
-                                     is_vm_object, is_canonical);
+      Deserializer::InitializeHeader(
+          data, cid_, TypedData::InstanceSize(length_in_bytes), is_canonical);
       data->ptr()->length_ = Smi::New(length);
+      data->RecomputeDataField();
       uint8_t* cdata = reinterpret_cast<uint8_t*>(data->ptr()->data());
       d->ReadBytes(cdata, length_in_bytes);
+    }
+  }
+
+ private:
+  const intptr_t cid_;
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class TypedDataViewSerializationCluster : public SerializationCluster {
+ public:
+  explicit TypedDataViewSerializationCluster(intptr_t cid)
+      : SerializationCluster("TypedDataView"), cid_(cid) {}
+  ~TypedDataViewSerializationCluster() {}
+
+  void Trace(Serializer* s, RawObject* object) {
+    RawTypedDataView* view = TypedDataView::RawCast(object);
+    objects_.Add(view);
+
+    PushFromTo(view);
+  }
+
+  void WriteAlloc(Serializer* s) {
+    const intptr_t count = objects_.length();
+    s->WriteCid(cid_);
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      RawTypedDataView* view = objects_[i];
+      s->AssignRef(view);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    const intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      RawTypedDataView* view = objects_[i];
+      AutoTraceObject(view);
+      s->Write<bool>(view->IsCanonical());
+      WriteFromTo(view);
+    }
+  }
+
+ private:
+  const intptr_t cid_;
+  GrowableArray<RawTypedDataView*> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class TypedDataViewDeserializationCluster : public DeserializationCluster {
+ public:
+  explicit TypedDataViewDeserializationCluster(intptr_t cid) : cid_(cid) {}
+  ~TypedDataViewDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      d->AssignRef(
+          AllocateUninitialized(old_space, TypedDataView::InstanceSize()));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d) {
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      RawTypedDataView* view = reinterpret_cast<RawTypedDataView*>(d->Ref(id));
+      const bool is_canonical = d->Read<bool>();
+      Deserializer::InitializeHeader(view, cid_, TypedDataView::InstanceSize(),
+                                     is_canonical);
+      ReadFromTo(view);
+    }
+  }
+
+  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+    auto& view = TypedDataView::Handle(zone);
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      view ^= refs.At(id);
+      view.RecomputeDataField();
     }
   }
 
@@ -3520,15 +3520,14 @@ class ExternalTypedDataDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
     intptr_t element_size = ExternalTypedData::ElementSizeInBytes(cid_);
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawExternalTypedData* data =
           reinterpret_cast<RawExternalTypedData*>(d->Ref(id));
       intptr_t length = d->ReadUnsigned();
-      Deserializer::InitializeHeader(
-          data, cid_, ExternalTypedData::InstanceSize(), is_vm_object);
+      Deserializer::InitializeHeader(data, cid_,
+                                     ExternalTypedData::InstanceSize());
       data->ptr()->length_ = Smi::New(length);
       d->Align(ExternalTypedData::kDataSerializationAlignment);
       data->ptr()->data_ = const_cast<uint8_t*>(d->CurrentBufferAddress());
@@ -3594,12 +3593,10 @@ class StackTraceDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawStackTrace* trace = reinterpret_cast<RawStackTrace*>(d->Ref(id));
       Deserializer::InitializeHeader(trace, kStackTraceCid,
-                                     StackTrace::InstanceSize(), is_vm_object);
+                                     StackTrace::InstanceSize());
       ReadFromTo(trace);
     }
   }
@@ -3659,12 +3656,10 @@ class RegExpDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawRegExp* regexp = reinterpret_cast<RawRegExp*>(d->Ref(id));
-      Deserializer::InitializeHeader(regexp, kRegExpCid, RegExp::InstanceSize(),
-                                     is_vm_object);
+      Deserializer::InitializeHeader(regexp, kRegExpCid,
+                                     RegExp::InstanceSize());
       ReadFromTo(regexp);
       regexp->ptr()->num_registers_ = d->Read<int32_t>();
       regexp->ptr()->type_flags_ = d->Read<int8_t>();
@@ -3725,14 +3720,11 @@ class WeakPropertyDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawWeakProperty* property =
           reinterpret_cast<RawWeakProperty*>(d->Ref(id));
       Deserializer::InitializeHeader(property, kWeakPropertyCid,
-                                     WeakProperty::InstanceSize(),
-                                     is_vm_object);
+                                     WeakProperty::InstanceSize());
       ReadFromTo(property);
     }
   }
@@ -3824,15 +3816,13 @@ class LinkedHashMapDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
     PageSpace* old_space = d->heap()->old_space();
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawLinkedHashMap* map = reinterpret_cast<RawLinkedHashMap*>(d->Ref(id));
       bool is_canonical = d->Read<bool>();
-      Deserializer::InitializeHeader(map, kLinkedHashMapCid,
-                                     LinkedHashMap::InstanceSize(),
-                                     is_vm_object, is_canonical);
+      Deserializer::InitializeHeader(
+          map, kLinkedHashMapCid, LinkedHashMap::InstanceSize(), is_canonical);
 
       map->ptr()->type_arguments_ =
           reinterpret_cast<RawTypeArguments*>(d->ReadRef());
@@ -3935,14 +3925,12 @@ class ArrayDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawArray* array = reinterpret_cast<RawArray*>(d->Ref(id));
       intptr_t length = d->ReadUnsigned();
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(array, cid_, Array::InstanceSize(length),
-                                     is_vm_object, is_canonical);
+                                     is_canonical);
       array->ptr()->type_arguments_ =
           reinterpret_cast<RawTypeArguments*>(d->ReadRef());
       array->ptr()->length_ = Smi::New(length);
@@ -4017,15 +4005,13 @@ class OneByteStringDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawOneByteString* str = reinterpret_cast<RawOneByteString*>(d->Ref(id));
       intptr_t length = d->ReadUnsigned();
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(str, kOneByteStringCid,
                                      OneByteString::InstanceSize(length),
-                                     is_vm_object, is_canonical);
+                                     is_canonical);
       str->ptr()->length_ = Smi::New(length);
       String::SetCachedHash(str, d->Read<int32_t>());
       for (intptr_t j = 0; j < length; j++) {
@@ -4096,15 +4082,13 @@ class TwoByteStringDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    bool is_vm_object = d->isolate() == Dart::vm_isolate();
-
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawTwoByteString* str = reinterpret_cast<RawTwoByteString*>(d->Ref(id));
       intptr_t length = d->ReadUnsigned();
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(str, kTwoByteStringCid,
                                      TwoByteString::InstanceSize(length),
-                                     is_vm_object, is_canonical);
+                                     is_canonical);
       str->ptr()->length_ = Smi::New(length);
       String::SetCachedHash(str, d->Read<int32_t>());
       uint8_t* cdata = reinterpret_cast<uint8_t*>(str->ptr()->data());
@@ -4217,10 +4201,12 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
   return NULL;
 #else
   Zone* Z = zone_;
-  if ((cid >= kNumPredefinedCids) || (cid == kInstanceCid) ||
-      RawObject::IsTypedDataViewClassId(cid)) {
+  if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
     Push(isolate()->class_table()->At(cid));
     return new (Z) InstanceSerializationCluster(cid);
+  }
+  if (RawObject::IsTypedDataViewClassId(cid)) {
+    return new (Z) TypedDataViewSerializationCluster(cid);
   }
   if (RawObject::IsExternalTypedDataClassId(cid)) {
     return new (Z) ExternalTypedDataSerializationCluster(cid);
@@ -4346,7 +4332,10 @@ void Serializer::WriteInstructions(RawInstructions* instr, RawCode* code) {
   ASSERT(code != Code::null());
 
   const intptr_t offset = image_writer_->GetTextOffsetFor(instr, code);
-  ASSERT(offset != 0);
+  if (offset == 0) {
+    // Code should have been removed by DropCodeWithoutReusableInstructions.
+    UnexpectedObject(code, "Expected instructions to reuse");
+  }
   Write<int32_t>(offset);
 
   // If offset < 0, it's pointing to a shared instruction. We don't profile
@@ -4696,6 +4685,12 @@ void Serializer::AddVMIsolateBaseObjects() {
                 "<empty>");
   AddBaseObject(Object::empty_exception_handlers().raw(), "ExceptionHandlers",
                 "<empty>");
+  AddBaseObject(Object::implicit_getter_bytecode().raw(), "Bytecode",
+                "<implicit getter>");
+  AddBaseObject(Object::implicit_setter_bytecode().raw(), "Bytecode",
+                "<implicit setter>");
+  AddBaseObject(Object::method_extractor_bytecode().raw(), "Bytecode",
+                "<method extractor>");
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
@@ -4724,8 +4719,7 @@ void Serializer::AddVMIsolateBaseObjects() {
   }
 }
 
-intptr_t Serializer::WriteVMSnapshot(const Array& symbols,
-                                     ZoneGrowableArray<Object*>* seeds) {
+intptr_t Serializer::WriteVMSnapshot(const Array& symbols) {
   NoSafepointScope no_safepoint;
 
   AddVMIsolateBaseObjects();
@@ -4735,11 +4729,6 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols,
   if (Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
       Push(StubCode::EntryAt(i).raw());
-    }
-  }
-  if (seeds != NULL) {
-    for (intptr_t i = 0; i < seeds->length(); i++) {
-      Push((*seeds)[i]->raw());
     }
   }
 
@@ -4837,9 +4826,11 @@ Deserializer::~Deserializer() {
 DeserializationCluster* Deserializer::ReadCluster() {
   intptr_t cid = ReadCid();
   Zone* Z = zone_;
-  if ((cid >= kNumPredefinedCids) || (cid == kInstanceCid) ||
-      RawObject::IsTypedDataViewClassId(cid)) {
+  if (cid >= kNumPredefinedCids || cid == kInstanceCid) {
     return new (Z) InstanceDeserializationCluster(cid);
+  }
+  if (RawObject::IsTypedDataViewClassId(cid)) {
+    return new (Z) TypedDataViewDeserializationCluster(cid);
   }
   if (RawObject::IsExternalTypedDataClassId(cid)) {
     return new (Z) ExternalTypedDataDeserializationCluster(cid);
@@ -5155,6 +5146,9 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::empty_descriptors().raw());
   AddBaseObject(Object::empty_var_descriptors().raw());
   AddBaseObject(Object::empty_exception_handlers().raw());
+  AddBaseObject(Object::implicit_getter_bytecode().raw());
+  AddBaseObject(Object::implicit_setter_bytecode().raw());
+  AddBaseObject(Object::method_extractor_bytecode().raw());
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);
@@ -5280,92 +5274,6 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   Bootstrap::SetupNativeResolver();
 }
 
-// Iterates the program structure looking for objects to write into
-// the VM isolate's snapshot, causing them to be shared across isolates.
-// Duplicates will be removed by Serializer::Push.
-class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
- public:
-  SeedVMIsolateVisitor(Zone* zone, bool include_code)
-      : zone_(zone),
-        include_code_(include_code),
-        seeds_(new (zone) ZoneGrowableArray<Object*>(4 * KB)),
-        script_(Script::Handle(zone)),
-        code_(Code::Handle(zone)),
-        stack_maps_(Array::Handle(zone)),
-        library_(Library::Handle(zone)),
-        kernel_program_info_(KernelProgramInfo::Handle(zone)) {}
-
-  void Visit(const Class& cls) {
-    script_ = cls.script();
-    if (!script_.IsNull()) {
-      Visit(script_);
-    }
-
-    library_ = cls.library();
-    AddSeed(library_.kernel_data());
-
-    if (!include_code_) return;
-
-    code_ = cls.allocation_stub();
-    Visit(code_);
-  }
-
-  void Visit(const Function& function) {
-    script_ = function.script();
-    if (!script_.IsNull()) {
-      Visit(script_);
-    }
-
-    if (!include_code_) return;
-
-    code_ = function.CurrentCode();
-    Visit(code_);
-    code_ = function.unoptimized_code();
-    Visit(code_);
-  }
-
-  void Visit(const Script& script) {
-    kernel_program_info_ = script_.kernel_program_info();
-    if (!kernel_program_info_.IsNull()) {
-      AddSeed(kernel_program_info_.string_offsets());
-      AddSeed(kernel_program_info_.string_data());
-      AddSeed(kernel_program_info_.canonical_names());
-      AddSeed(kernel_program_info_.metadata_payloads());
-      AddSeed(kernel_program_info_.metadata_mappings());
-      AddSeed(kernel_program_info_.constants());
-    }
-  }
-
-  ZoneGrowableArray<Object*>* seeds() { return seeds_; }
-
- private:
-  void Visit(const Code& code) {
-    ASSERT(include_code_);
-    if (code.IsNull()) return;
-
-    AddSeed(code.pc_descriptors());
-    AddSeed(code.code_source_map());
-
-    stack_maps_ = code_.stackmaps();
-    if (!stack_maps_.IsNull()) {
-      for (intptr_t i = 0; i < stack_maps_.Length(); i++) {
-        AddSeed(stack_maps_.At(i));
-      }
-    }
-  }
-
-  void AddSeed(RawObject* seed) { seeds_->Add(&Object::Handle(zone_, seed)); }
-
-  Zone* zone_;
-  bool include_code_;
-  ZoneGrowableArray<Object*>* seeds_;
-  Script& script_;
-  Code& code_;
-  Array& stack_maps_;
-  Library& library_;
-  KernelProgramInfo& kernel_program_info_;
-};
-
 #if defined(DART_PRECOMPILER)
 DEFINE_FLAG(charp,
             write_v8_snapshot_profile_to,
@@ -5388,9 +5296,6 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
       isolate_snapshot_size_(0),
       vm_image_writer_(vm_image_writer),
       isolate_image_writer_(isolate_image_writer),
-      seeds_(NULL),
-      saved_symbol_table_(Array::Handle(zone())),
-      new_vm_symbol_table_(Array::Handle(zone())),
       clustered_vm_size_(0),
       clustered_isolate_size_(0),
       mapped_data_size_(0),
@@ -5406,36 +5311,6 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
   isolate()->ValidateConstants();
 #endif  // DEBUG
 
-  // TODO(rmacnak): The special case for AOT causes us to always generate the
-  // same VM isolate snapshot for every app. AOT snapshots should be cleaned up
-  // so the VM isolate snapshot is generated separately and each app is
-  // generated from a VM that has loaded this snapshots, much like app-jit
-  // snapshots.
-  if ((vm_snapshot_data_buffer != NULL) && (kind != Snapshot::kFullAOT)) {
-    TIMELINE_DURATION(thread(), Isolate, "PrepareNewVMIsolate");
-
-    SeedVMIsolateVisitor visitor(thread()->zone(),
-                                 Snapshot::IncludesCode(kind));
-    ProgramVisitor::VisitClasses(&visitor);
-    ProgramVisitor::VisitFunctions(&visitor);
-    seeds_ = visitor.seeds();
-
-    // Tuck away the current symbol table.
-    saved_symbol_table_ = object_store->symbol_table();
-
-    // Create a unified symbol table that will be written as the vm isolate's
-    // symbol table.
-    new_vm_symbol_table_ = Symbols::UnifiedSymbolTable();
-
-    // Create an empty symbol table that will be written as the isolate's symbol
-    // table.
-    Symbols::SetupSymbolTable(isolate());
-  } else {
-    // Reuse the current vm isolate.
-    saved_symbol_table_ = object_store->symbol_table();
-    new_vm_symbol_table_ = Dart::vm_isolate()->object_store()->symbol_table();
-  }
-
 #if defined(DART_PRECOMPILER)
   if (FLAG_write_v8_snapshot_profile_to != nullptr) {
     profile_writer_ = new (zone()) V8SnapshotProfileWriter(zone());
@@ -5443,14 +5318,7 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
 #endif
 }
 
-FullSnapshotWriter::~FullSnapshotWriter() {
-  // We may run Dart code afterwards, restore the symbol table if needed.
-  if (!saved_symbol_table_.IsNull()) {
-    isolate()->object_store()->set_symbol_table(saved_symbol_table_);
-    saved_symbol_table_ = Array::null();
-  }
-  new_vm_symbol_table_ = Array::null();
-}
+FullSnapshotWriter::~FullSnapshotWriter() {}
 
 intptr_t FullSnapshotWriter::WriteVMSnapshot() {
   TIMELINE_DURATION(thread(), Isolate, "WriteVMSnapshot");
@@ -5464,10 +5332,11 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
   serializer.WriteVersionAndFeatures(true);
   // VM snapshot roots are:
   // - the symbol table
-  // - all the token streams
   // - the stub code (App-AOT, App-JIT or Core-JIT)
-  intptr_t num_objects =
-      serializer.WriteVMSnapshot(new_vm_symbol_table_, seeds_);
+
+  const Array& symbols =
+      Array::Handle(Dart::vm_isolate()->object_store()->symbol_table());
+  intptr_t num_objects = serializer.WriteVMSnapshot(symbols);
   serializer.FillHeader(serializer.kind());
   clustered_vm_size_ = serializer.bytes_written();
 

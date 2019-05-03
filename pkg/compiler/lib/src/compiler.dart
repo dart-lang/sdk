@@ -78,7 +78,7 @@ abstract class Compiler {
 
   api.CompilerOutput get outputProvider => _outputProvider;
 
-  Uri _mainLibraryUri;
+  List<CodeLocation> _userCodeLocations = <CodeLocation>[];
 
   JClosedWorld backendClosedWorldForTesting;
 
@@ -221,7 +221,8 @@ abstract class Compiler {
         measurer.startWallClock();
 
         return new Future.sync(() => runInternal(uri))
-            .catchError((error) => _reporter.onError(uri, error))
+            .catchError((error, StackTrace stackTrace) =>
+                _reporter.onError(uri, error, stackTrace))
             .whenComplete(() {
           measurer.stopWallClock();
         }).then((_) {
@@ -230,20 +231,7 @@ abstract class Compiler {
       });
 
   Future runInternal(Uri uri) async {
-    // TODO(ahe): This prevents memory leaks when invoking the compiler
-    // multiple times. Implement a better mechanism where we can store
-    // such caches in the compiler and get access to them through a
-    // suitably maintained static reference to the current compiler.
-    clearStringTokenCanonicalizer();
-    Selector.canonicalizedValues.clear();
-
-    // The selector objects held in static fields must remain canonical.
-    for (Selector selector in Selectors.ALL) {
-      Selector.canonicalizedValues
-          .putIfAbsent(selector.hashCode, () => <Selector>[])
-          .add(selector);
-    }
-
+    clearState();
     assert(uri != null);
     // As far as I can tell, this branch is only used by test code.
     reporter.log('Compiling $uri (${options.buildId})');
@@ -251,6 +239,10 @@ abstract class Compiler {
     if (options.readDataUri != null) {
       GlobalTypeInferenceResults results =
           await serializationTask.deserialize();
+      if (options.debugGlobalInference) {
+        performGlobalTypeInference(results.closedWorld);
+        return;
+      }
       generateJavaScriptCode(results);
     } else {
       KernelResult result = await kernelLoader.load(uri);
@@ -260,7 +252,6 @@ abstract class Compiler {
         return;
       }
       if (options.cfeOnly) return;
-      _mainLibraryUri = result.rootLibraryUri;
 
       frontendStrategy.registerLoadedLibraries(result);
       for (Uri uri in result.libraries) {
@@ -279,6 +270,23 @@ abstract class Compiler {
       }
 
       await compileFromKernel(result.rootLibraryUri, result.libraries);
+    }
+  }
+
+  /// Clear the internal compiler state to prevent memory leaks when invoking
+  /// the compiler multiple times (e.g. in batch mode).
+  // TODO(ahe): implement a better mechanism where we can store
+  // such caches in the compiler and get access to them through a
+  // suitably maintained static reference to the current compiler.
+  void clearState() {
+    clearStringTokenCanonicalizer();
+    Selector.canonicalizedValues.clear();
+
+    // The selector objects held in static fields must remain canonical.
+    for (Selector selector in Selectors.ALL) {
+      Selector.canonicalizedValues
+          .putIfAbsent(selector.hashCode, () => <Selector>[])
+          .add(selector);
     }
   }
 
@@ -391,6 +399,7 @@ abstract class Compiler {
   }
 
   void compileFromKernel(Uri rootLibraryUri, Iterable<Uri> libraries) {
+    _userCodeLocations.add(new CodeLocation(rootLibraryUri));
     selfTask.measureSubtask("compileFromKernel", () {
       JClosedWorld closedWorld = selfTask.measureSubtask("computeClosedWorld",
           () => computeClosedWorld(rootLibraryUri, libraries));
@@ -562,23 +571,9 @@ abstract class Compiler {
     if (element == null) return assumeInUserCode;
     Uri libraryUri = _uriFromElement(element);
     if (libraryUri == null) return false;
-    Iterable<CodeLocation> userCodeLocations =
-        computeUserCodeLocations(assumeInUserCode: assumeInUserCode);
-    return userCodeLocations.any(
+    if (_userCodeLocations.isEmpty && assumeInUserCode) return true;
+    return _userCodeLocations.any(
         (CodeLocation codeLocation) => codeLocation.inSameLocation(libraryUri));
-  }
-
-  Iterable<CodeLocation> computeUserCodeLocations(
-      {bool assumeInUserCode: false}) {
-    List<CodeLocation> userCodeLocations = <CodeLocation>[];
-    if (_mainLibraryUri != null) {
-      userCodeLocations.add(new CodeLocation(_mainLibraryUri));
-    }
-    if (userCodeLocations.isEmpty && assumeInUserCode) {
-      // Assume in user code since [mainApp] has not been set yet.
-      userCodeLocations.add(const AnyLocation());
-    }
-    return userCodeLocations;
   }
 
   /// Return a canonical URI for the source of [element].
@@ -669,6 +664,7 @@ class SuppressionInfo {
 
 class CompilerDiagnosticReporter extends DiagnosticReporter {
   final Compiler compiler;
+  @override
   final DiagnosticOptions options;
 
   Entity _currentElement;
@@ -686,6 +682,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
 
   Entity get currentElement => _currentElement;
 
+  @override
   DiagnosticMessage createMessage(Spannable spannable, MessageKind messageKind,
       [Map arguments = const {}]) {
     SourceSpan span = spanFromSpannable(spannable);
@@ -694,22 +691,26 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     return new DiagnosticMessage(span, spannable, message);
   }
 
+  @override
   void reportError(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     reportDiagnosticInternal(message, infos, api.Diagnostic.ERROR);
   }
 
+  @override
   void reportWarning(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     reportDiagnosticInternal(message, infos, api.Diagnostic.WARNING);
   }
 
+  @override
   void reportHint(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     reportDiagnosticInternal(message, infos, api.Diagnostic.HINT);
   }
 
   @deprecated
+  @override
   void reportInfo(Spannable node, MessageKind messageKind,
       [Map arguments = const {}]) {
     reportDiagnosticInternal(createMessage(node, messageKind, arguments),
@@ -775,6 +776,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
   /// Perform an operation, [f], returning the return value from [f].  If an
   /// error occurs then report it as having occurred during compilation of
   /// [element].  Can be nested.
+  @override
   withCurrentElement(Entity element, f()) {
     Entity old = currentElement;
     _currentElement = element;
@@ -828,6 +830,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     throw 'No error location.';
   }
 
+  @override
   SourceSpan spanFromSpannable(Spannable spannable) {
     if (spannable == CURRENT_ELEMENT_SPANNABLE) {
       spannable = currentElement;
@@ -848,6 +851,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     }
   }
 
+  @override
   internalError(Spannable spannable, reason) {
     String message = tryToString(reason);
     reportDiagnosticInternal(
@@ -882,6 +886,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     return element != null ? element : currentElement;
   }
 
+  @override
   void log(message) {
     Message msg = MessageTemplate.TEMPLATES[MessageKind.GENERIC]
         .message({'text': '$message'});
@@ -897,7 +902,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     }
   }
 
-  onError(Uri uri, error) {
+  onError(Uri uri, error, StackTrace stackTrace) {
     try {
       if (!hasCrashed) {
         hasCrashed = true;
@@ -915,7 +920,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     } catch (doubleFault) {
       // Ignoring exceptions in exception handling.
     }
-    throw error;
+    return new Future.error(error, stackTrace);
   }
 
   @override
@@ -949,11 +954,13 @@ class _MapImpactCacheDeleter implements ImpactCacheDeleter {
   final Map<Entity, WorldImpact> _impactCache;
   _MapImpactCacheDeleter(this._impactCache);
 
+  @override
   void uncacheWorldImpact(Entity element) {
     if (retainDataForTesting) return;
     _impactCache.remove(element);
   }
 
+  @override
   void emptyCache() {
     if (retainDataForTesting) return;
     _impactCache.clear();
@@ -963,7 +970,11 @@ class _MapImpactCacheDeleter implements ImpactCacheDeleter {
 class _EmptyEnvironment implements Environment {
   const _EmptyEnvironment();
 
+  @override
   String valueOf(String key) => null;
+
+  @override
+  Map<String, String> toMap() => const {};
 }
 
 /// Interface for showing progress during compilation.
@@ -986,6 +997,7 @@ class ProgressImpl implements Progress {
 
   ProgressImpl(this._reporter);
 
+  @override
   void showProgress(String prefix, int count, String suffix) {
     if (_stopwatch.elapsedMilliseconds > 500) {
       _reporter.log('$prefix$count$suffix');
@@ -993,6 +1005,7 @@ class ProgressImpl implements Progress {
     }
   }
 
+  @override
   void startPhase() {
     _stopwatch.reset();
   }
@@ -1004,12 +1017,14 @@ class ProgressImpl implements Progress {
 class InteractiveProgress implements Progress {
   final Stopwatch _stopwatchPhase = new Stopwatch()..start();
   final Stopwatch _stopwatchInterval = new Stopwatch()..start();
+  @override
   void startPhase() {
     print('');
     _stopwatchPhase.reset();
     _stopwatchInterval.reset();
   }
 
+  @override
   void showProgress(String prefix, int count, String suffix) {
     if (_stopwatchInterval.elapsedMilliseconds > 500) {
       var time = _stopwatchPhase.elapsedMilliseconds / 1000;

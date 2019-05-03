@@ -6,29 +6,28 @@ GRAMMAR=../../docs/language/Dart.g
 JAVA_PATH=/usr/lib/jvm/java-7-openjdk-amd64/bin
 JAVA=$(JAVA_PATH)/java
 JAVAC=javac
-ANTLR_JAR=/usr/share/java/antlr3-runtime.jar
-ANTLR_FILES=DartLexer.java DartParser.java Dart.tokens
-ANTLR_CMD=PATH=$(JAVA_PATH):$(PATH) antlr3 -dfa -fo . $<
-JAVA_FILES=DartLexer.java DartParser.java
-CLASS_FILES=SpecParser.class SpecParserRunner.class DartLexer.class DartParser.class
+ANTLR_JAR=/usr/share/java/antlr4-runtime.jar
+ANTLR_FILES=DartLexer.java DartParser.java DartLexer.tokens
+ANTLR_CMD=PATH=$(JAVA_PATH):$(PATH) antlr4 $<
+GENERATED_JAVA_FILES=DartLexer.java DartParser.java
 
 .PHONY: default parser clean touch parse_hello
 
-default: $(JAVA_FILES)
+default: $(GENERATED_JAVA_FILES) compile
 
-parser: SpecParser.class
+compile: SpecParser.class
 
 SpecParser.class: $(ANTLR_FILES) SpecParser.java
 	$(JAVAC) -cp .:$(ANTLR_JAR) SpecParser.java
 
-%Lexer.java: ../../docs/language/%.g Makefile ; $(ANTLR_CMD)
+%Lexer.java: %.g Makefile ; $(ANTLR_CMD)
 
-%Parser.java: ../../docs/language/%.g Makefile ; $(ANTLR_CMD)
+%Parser.java: %.g Makefile ; $(ANTLR_CMD)
 
-%.tokens: ../../docs/language/%.g Makefile ; $(ANTLR_CMD)
+%.tokens: %.g Makefile ; $(ANTLR_CMD)
 
 clean:
-	rm -f $(CLASS_FILES) $(ANTLR_FILES)
+	rm -f *.class $(ANTLR_FILES)
 
 touch:
 	touch $(GRAMMAR)

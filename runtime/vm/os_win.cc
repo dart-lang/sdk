@@ -336,9 +336,13 @@ void OS::Cleanup() {
   // ThreadLocalData::Cleanup();
 }
 
-void OS::Abort() {
+void OS::PrepareToAbort() {
   // TODO(zra): Remove once VM shuts down cleanly.
   private_flag_windows_run_tls_destructors = false;
+}
+
+void OS::Abort() {
+  PrepareToAbort();
   abort();
 }
 

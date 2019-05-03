@@ -411,7 +411,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   const char* resolved_url_chars = url_chars;
   if (IsPackageSchemeURL(url_chars)) {
     resolved_url = ResolvePackageUri(url_chars);
-    DART_CHECK_VALID(resolved_url);
+    EXPECT_VALID(resolved_url);
     if (Dart_IsError(Dart_StringToCString(resolved_url, &resolved_url_chars))) {
       return Dart_NewApiError("unable to convert resolved uri to string");
     }
@@ -429,8 +429,10 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   }
 }
 
-static intptr_t BuildSourceFilesArray(Dart_SourceFile** sourcefiles,
-                                      const char* script) {
+static intptr_t BuildSourceFilesArray(
+    Dart_SourceFile** sourcefiles,
+    const char* script,
+    const char* script_url = RESOLVED_USER_TEST_URI) {
   ASSERT(sourcefiles != NULL);
   ASSERT(script != NULL);
 
@@ -440,7 +442,7 @@ static intptr_t BuildSourceFilesArray(Dart_SourceFile** sourcefiles,
   }
 
   *sourcefiles = new Dart_SourceFile[num_test_libs + 1];
-  (*sourcefiles)[0].uri = RESOLVED_USER_TEST_URI;
+  (*sourcefiles)[0].uri = script_url;
   (*sourcefiles)[0].source = script;
   for (intptr_t i = 0; i < num_test_libs; ++i) {
     (*sourcefiles)[i + 1].uri = test_libs_->At(i).url;
@@ -469,7 +471,7 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
     }
 #endif  // ifndef PRODUCT
     Dart_SourceFile* sourcefiles = NULL;
-    intptr_t num_sources = BuildSourceFilesArray(&sourcefiles, script);
+    intptr_t num_sources = BuildSourceFilesArray(&sourcefiles, script, lib_url);
     Dart_Handle result =
         LoadTestScriptWithDFE(num_sources, sourcefiles, resolver,
                               finalize_classes, true, allow_compile_errors);
@@ -501,9 +503,9 @@ Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
 
     // TODO(32618): Kernel doesn't correctly represent the root library.
     lib = Dart_LookupLibrary(Dart_NewStringFromCString(sourcefiles[0].uri));
-    DART_CHECK_VALID(lib);
+    EXPECT_VALID(lib);
     Dart_Handle result = Dart_SetRootLibrary(lib);
-    DART_CHECK_VALID(result);
+    EXPECT_VALID(result);
 
     Dart_SetNativeResolver(lib, resolver, NULL);
     return lib;
@@ -534,7 +536,7 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
 
   Dart_Handle lib =
       Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
-  DART_CHECK_VALID(lib);
+  EXPECT_VALID(lib);
 
   // Ensure kernel buffer isn't leaked after test is run.
   AddToKernelBuffers(kernel_buffer);
@@ -542,15 +544,15 @@ Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
   // BOGUS: Kernel doesn't correctly represent the root library.
   lib = Dart_LookupLibrary(Dart_NewStringFromCString(
       entry_script_uri != NULL ? entry_script_uri : sourcefiles[0].uri));
-  DART_CHECK_VALID(lib);
+  EXPECT_VALID(lib);
   result = Dart_SetRootLibrary(lib);
-  DART_CHECK_VALID(result);
+  EXPECT_VALID(result);
 
   result = Dart_SetNativeResolver(lib, resolver, NULL);
-  DART_CHECK_VALID(result);
+  EXPECT_VALID(result);
   if (finalize) {
     result = Dart_FinalizeLoading(false);
-    DART_CHECK_VALID(result);
+    EXPECT_VALID(result);
   }
   return lib;
 }
@@ -641,7 +643,7 @@ Dart_Handle TestCase::LoadCoreTestScript(const char* script,
 Dart_Handle TestCase::lib() {
   Dart_Handle url = NewString(TestCase::url());
   Dart_Handle lib = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(lib);
+  EXPECT_VALID(lib);
   ASSERT(Dart_IsLibrary(lib));
   return lib;
 }
@@ -708,8 +710,8 @@ void AssemblerTest::Assemble() {
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction, true, false,
                     false, false, false, cls, TokenPosition::kMinSource));
-  code_ = Code::FinalizeCode(function, nullptr, assembler_,
-                             Code::PoolAttachment::kAttachPool);
+  code_ = Code::FinalizeCodeAndNotify(function, nullptr, assembler_,
+                                      Code::PoolAttachment::kAttachPool);
   code_.set_owner(function);
   code_.set_exception_handlers(Object::empty_exception_handlers());
 #ifndef PRODUCT

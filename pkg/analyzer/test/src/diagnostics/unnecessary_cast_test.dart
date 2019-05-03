@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class UnnecessaryCastTest extends ResolverTestCase {
+class UnnecessaryCastTest extends DriverResolutionTest {
   test_conditionalExpression() async {
     await assertNoErrorsInCode(r'''
 abstract class I {}
@@ -57,6 +57,17 @@ class B<T extends A> {
 ''');
   }
 
+  test_generics() async {
+    // dartbug.com/18953
+    assertErrorCodesInCode(r'''
+import 'dart:async';
+Future<int> f() => new Future.value(0);
+void g(bool c) {
+  (c ? f(): new Future.value(0) as Future<int>).then((int value) {});
+}
+''', [HintCode.UNNECESSARY_CAST]);
+  }
+
   test_parameter_A() async {
     // dartbug.com/13855, dartbug.com/13732
     await assertNoErrorsInCode(r'''
@@ -81,7 +92,7 @@ m(v) {
   }
 
   test_type_supertype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(int i) {
   var b = i as Object;
 }
@@ -89,23 +100,9 @@ m(int i) {
   }
 
   test_type_type() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m(num i) {
   var b = i as num;
-}
-''', [HintCode.UNNECESSARY_CAST]);
-  }
-
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  test_generics() async {
-    // dartbug.com/18953
-    assertErrorsInCode(r'''
-import 'dart:async';
-Future<int> f() => new Future.value(0);
-void g(bool c) {
-  (c ? f(): new Future.value(0) as Future<int>).then((int value) {});
 }
 ''', [HintCode.UNNECESSARY_CAST]);
   }

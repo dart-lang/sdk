@@ -17,13 +17,17 @@ namespace bin {
 
 class ThreadStartData {
  public:
-  ThreadStartData(Thread::ThreadStartFunction function, uword parameter)
-      : function_(function), parameter_(parameter) {}
+  ThreadStartData(const char* name,
+                  Thread::ThreadStartFunction function,
+                  uword parameter)
+      : name_(name), function_(function), parameter_(parameter) {}
 
+  const char* name() const { return name_; }
   Thread::ThreadStartFunction function() const { return function_; }
   uword parameter() const { return parameter_; }
 
  private:
+  const char* name_;
   Thread::ThreadStartFunction function_;
   uword parameter_;
 
@@ -46,8 +50,10 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
   return 0;
 }
 
-int Thread::Start(ThreadStartFunction function, uword parameter) {
-  ThreadStartData* start_data = new ThreadStartData(function, parameter);
+int Thread::Start(const char* name,
+                  ThreadStartFunction function,
+                  uword parameter) {
+  ThreadStartData* start_data = new ThreadStartData(name, function, parameter);
   uint32_t tid;
   uintptr_t thread = _beginthreadex(NULL, Thread::GetMaxStackSize(),
                                     ThreadEntry, start_data, 0, &tid);

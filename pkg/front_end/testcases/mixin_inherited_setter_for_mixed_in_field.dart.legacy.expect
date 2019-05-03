@@ -8,11 +8,11 @@ class A extends core::Object {
     ;
 }
 class C<T extends self::A = dynamic> extends core::Object {
-  field self::C::T _field = null;
+  generic-covariant-impl field self::C::T _field = null;
   synthetic constructor •() → self::C<self::C::T>
     : super core::Object::•()
     ;
-  method foo(self::C::T x) → dynamic {
+  method foo(generic-covariant-impl self::C::T x) → dynamic {
     this.{self::C::_field} = x;
   }
 }

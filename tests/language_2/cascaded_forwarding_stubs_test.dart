@@ -24,7 +24,9 @@ abstract class I2 {
 }
 
 // E contains a forwarding stub for f which ensures that `y` is type checked.
-class E extends D implements I2 {}
+class E extends D implements I2 {
+  void f(B x, B y);
+}
 
 main() {
   E e = new E();

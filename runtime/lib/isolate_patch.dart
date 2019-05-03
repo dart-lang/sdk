@@ -107,7 +107,7 @@ void _isolateScheduleImmediate(void callback()) {
   _pendingImmediateCallback = callback;
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 void _runPendingImmediateCallback() {
   if (_pendingImmediateCallback != null) {
     var callback = _pendingImmediateCallback;
@@ -124,7 +124,7 @@ _ImmediateCallback _removePendingImmediateCallback() {
 
 /// The embedder can execute this function to get hold of
 /// [_isolateScheduleImmediate] above.
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 Function _getIsolateScheduleImmediateClosure() {
   return _isolateScheduleImmediate;
 }
@@ -156,14 +156,14 @@ class _RawReceivePortImpl implements RawReceivePort {
   _get_sendport() native "RawReceivePortImpl_get_sendport";
 
   // Called from the VM to retrieve the handler for a message.
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   static _lookupHandler(int id) {
     var result = _handlerMap[id];
     return result;
   }
 
   // Called from the VM to dispatch to the handler.
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   static void _handleMessage(Function handler, var message) {
     // TODO(floitsch): this relies on the fact that any exception aborts the
     // VM. Once we have non-fatal global exceptions we need to catch errors
@@ -197,7 +197,7 @@ class _RawReceivePortImpl implements RawReceivePort {
 @pragma("vm:entry-point")
 class _SendPortImpl implements SendPort {
   /*--- public interface ---*/
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   void send(var message) {
     _sendInternal(message);
   }
@@ -227,7 +227,7 @@ typedef _BinaryFunction(Null args, Null message);
  * initial message.  Defers execution of the entry point until the
  * isolate is in the message loop.
  */
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 void _startMainIsolate(Function entryPoint, List<String> args) {
   _startIsolate(
       null, // no parent port
@@ -245,7 +245,7 @@ void _startMainIsolate(Function entryPoint, List<String> args) {
  * once support for @pragma("vm:entry_point", "get") as documented in
  * https://github.com/dart-lang/sdk/issues/35720 lands.
  */
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 Function _getStartMainIsolateFunction() {
   return _startMainIsolate;
 }
@@ -254,7 +254,7 @@ Function _getStartMainIsolateFunction() {
  * Takes the real entry point as argument and invokes it with the initial
  * message.
  */
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 void _startIsolate(
     SendPort parentPort,
     Function entryPoint,
@@ -316,6 +316,9 @@ class Isolate {
   static Isolate get current => _currentIsolate;
 
   @patch
+  String get debugName => _getDebugName(controlPort);
+
+  @patch
   static Future<Uri> get packageRoot {
     var hook = VMLibraryHooks.packageRootUriFuture;
     if (hook == null) {
@@ -352,7 +355,8 @@ class Isolate {
       {bool paused: false,
       bool errorsAreFatal,
       SendPort onExit,
-      SendPort onError}) async {
+      SendPort onError,
+      String debugName}) async {
     // `paused` isn't handled yet.
     RawReceivePort readyPort;
     try {
@@ -377,8 +381,18 @@ class Isolate {
         script = await Isolate.resolvePackageUri(script);
       }
 
-      _spawnFunction(readyPort.sendPort, script.toString(), entryPoint, message,
-          paused, errorsAreFatal, onExit, onError, null, packageConfig);
+      _spawnFunction(
+          readyPort.sendPort,
+          script.toString(),
+          entryPoint,
+          message,
+          paused,
+          errorsAreFatal,
+          onExit,
+          onError,
+          null,
+          packageConfig,
+          debugName);
       return await _spawnCommon(readyPort);
     } catch (e, st) {
       if (readyPort != null) {
@@ -398,7 +412,8 @@ class Isolate {
       Map<String, String> environment,
       Uri packageRoot,
       Uri packageConfig,
-      bool automaticPackageResolution: false}) async {
+      bool automaticPackageResolution: false,
+      String debugName}) async {
     RawReceivePort readyPort;
     if (environment != null) {
       throw new UnimplementedError("environment");
@@ -467,7 +482,8 @@ class Isolate {
           null,
           /* environment */
           packageRootString,
-          packageConfigString);
+          packageConfigString,
+          debugName);
       return await _spawnCommon(readyPort);
     } catch (e) {
       if (readyPort != null) {
@@ -524,7 +540,8 @@ class Isolate {
       SendPort onExit,
       SendPort onError,
       String packageRoot,
-      String packageConfig) native "Isolate_spawnFunction";
+      String packageConfig,
+      String debugName) native "Isolate_spawnFunction";
 
   static void _spawnUri(
       SendPort readyPort,
@@ -538,9 +555,13 @@ class Isolate {
       bool checked,
       List environment,
       String packageRoot,
-      String packageConfig) native "Isolate_spawnUri";
+      String packageConfig,
+      String debugName) native "Isolate_spawnUri";
 
   static void _sendOOB(port, msg) native "Isolate_sendOOB";
+
+  static String _getDebugName(SendPort controlPort)
+      native "Isolate_getDebugName";
 
   @patch
   void _pause(Capability resumeCapability) {

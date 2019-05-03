@@ -44,8 +44,8 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
   Method get handlesMessage => Method.textDocument_documentSymbol;
 
   @override
-  DocumentSymbolParams convertParams(Map<String, dynamic> json) =>
-      DocumentSymbolParams.fromJson(json);
+  LspJsonHandler<DocumentSymbolParams> get jsonHandler =>
+      DocumentSymbolParams.jsonHandler;
 
   Future<ErrorOr<Either2<List<DocumentSymbol>, List<SymbolInformation>>>>
       handle(DocumentSymbolParams params) async {
@@ -112,8 +112,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     String path,
     ResolvedUnitResult unit,
   ) {
-    final computer =
-        new DartUnitOutlineComputer(path, unit.lineInfo, unit.unit);
+    final computer = new DartUnitOutlineComputer(unit);
     final outline = computer.compute();
 
     if (clientSupportsDocumentSymbol) {

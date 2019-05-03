@@ -61,11 +61,6 @@ class SummaryBasedDartSdk implements DartSdk {
       SourceFactory factory = new SourceFactory(
           [new DartUriResolver(this)], null, resourceProvider);
       _analysisContext.sourceFactory = factory;
-      SummaryDataStore dataStore =
-          new SummaryDataStore([], resourceProvider: resourceProvider);
-      dataStore.addBundle(null, _bundle);
-      _analysisContext.resultProvider =
-          new InputPackagesResultProvider(_analysisContext, dataStore);
     }
     return _analysisContext;
   }
@@ -133,6 +128,7 @@ class SummaryTypeProvider extends TypeProviderBase {
   InterfaceType _listType;
   InterfaceType _mapType;
   InterfaceType _mapObjectObjectType;
+  InterfaceType _neverType;
   DartObjectImpl _nullObject;
   InterfaceType _nullType;
   InterfaceType _numType;
@@ -268,6 +264,12 @@ class SummaryTypeProvider extends TypeProviderBase {
     assert(_coreLibrary != null);
     _mapType ??= _getType(_coreLibrary, "Map");
     return _mapType;
+  }
+
+  @override
+  InterfaceType get neverType {
+    assert(_coreLibrary != null);
+    return _neverType ??= _getType(_coreLibrary, 'Never');
   }
 
   @override

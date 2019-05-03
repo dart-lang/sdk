@@ -766,8 +766,10 @@ class C {
     String variableName = "v";
     DeclaredIdentifier variableIdentifier =
         AstTestFactory.declaredIdentifier3('v');
-    Statement statement = AstTestFactory.forEachStatement(variableIdentifier,
-        AstTestFactory.listLiteral(), AstTestFactory.block());
+    Statement statement = AstTestFactory.forStatement(
+        AstTestFactory.forEachPartsWithDeclaration(
+            variableIdentifier, AstTestFactory.listLiteral()),
+        AstTestFactory.block());
     _setNodeSourceRange(statement, 100, 110);
     MethodDeclaration method = AstTestFactory.methodDeclaration2(
         null,
@@ -796,11 +798,12 @@ class C {
     String variableName = "v";
     VariableDeclaration variableIdentifier =
         AstTestFactory.variableDeclaration('v');
-    ForStatement statement = AstTestFactory.forStatement2(
-        AstTestFactory.variableDeclarationList(
-            null, AstTestFactory.typeName4('T'), [variableIdentifier]),
-        null,
-        null,
+    ForStatement statement = AstTestFactory.forStatement(
+        AstTestFactory.forPartsWithDeclarations(
+            AstTestFactory.variableDeclarationList(
+                null, AstTestFactory.typeName4('T'), [variableIdentifier]),
+            null,
+            null),
         AstTestFactory.block());
     _setNodeSourceRange(statement, 100, 110);
     MethodDeclaration method = AstTestFactory.methodDeclaration2(

@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class TypeCheckIsNullTest extends DriverResolutionTest {
   test_is_Null() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 bool m(i) {
   return i is Null;
 }

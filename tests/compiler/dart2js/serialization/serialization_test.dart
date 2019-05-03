@@ -13,12 +13,16 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     Directory libDir = new Directory.fromUri(Platform.script.resolve('libs'));
+    print('--testing without CFE constants-----------------------------------');
     await checkTests(dataDir, options: [], args: args, libDirectory: libDir);
+    print('--testing with CFE constants--------------------------------------');
+    await checkTests(dataDir,
+        options: [], args: args, libDirectory: libDir, testCFEConstants: true);
   });
 }
 
 Future checkTests(Directory dataDir,
-    {bool testStrongMode: true,
+    {bool testCFEConstants: false,
     List<String> options: const <String>[],
     List<String> args: const <String>[],
     Directory libDirectory: null,
@@ -50,6 +54,10 @@ Future checkTests(Directory dataDir,
     if (shouldContinue) continued = true;
     testCount++;
     List<String> testOptions = options.toList();
+    if (testCFEConstants) {
+      testOptions
+          .add('${Flags.enableLanguageExperiments}=constant-update-2018');
+    }
     testOptions.add(Flags.dumpInfo);
     testOptions.add('--out=out.js');
     if (onTest != null) {

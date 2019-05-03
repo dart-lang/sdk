@@ -3,9 +3,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "JSArray<String> length 3"
+    "List<String> length 3"
 ]
 -----------------------------------
 Test: List<String> formatting body
@@ -26,7 +26,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "0: "
             ],
@@ -50,7 +50,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "1: "
             ],
@@ -74,7 +74,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "2: "
             ],
@@ -95,7 +95,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[class]]: "
         ],
@@ -122,9 +122,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "JSArray<Object> length 3"
+    "List<Object> length 3"
 ]
 -----------------------------------
 Test: List<Object> instance body
@@ -145,7 +145,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "0: "
             ],
@@ -169,7 +169,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "1: "
             ],
@@ -193,7 +193,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "2: "
             ],
@@ -214,7 +214,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[class]]: "
         ],
@@ -241,9 +241,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "JSArray<Object> implements List<Object>, JSIndexable<Object>"
+    "List<Object> implements List<Object>, JSIndexable<Object>"
 ]
 -----------------------------------
 Test: List<Object> definition formatting body
@@ -253,79 +253,6 @@ Value:
     {
         "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
     },
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": ""
-                },
-                "[[Static members]]"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "markFixedList: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "markUnmodifiableList: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
     [
         "li",
         {
@@ -351,7 +278,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "+: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "add: "
         ],
@@ -379,7 +334,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "addAll: "
         ],
@@ -407,7 +362,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "any: "
         ],
@@ -435,7 +390,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "asMap: "
         ],
@@ -463,7 +418,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "cast: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "checkGrowable: "
         ],
@@ -491,7 +474,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "checkMutable: "
         ],
@@ -519,7 +502,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "clear: "
         ],
@@ -547,7 +530,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "contains: "
         ],
@@ -575,7 +558,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "elementAt: "
         ],
@@ -603,7 +586,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "every: "
         ],
@@ -631,7 +614,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "expand: "
         ],
@@ -659,7 +642,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "fillRange: "
         ],
@@ -687,7 +670,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "firstWhere: "
         ],
@@ -715,7 +698,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "fold: "
         ],
@@ -743,7 +726,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "followedBy: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "forEach: "
         ],
@@ -771,7 +782,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "getRange: "
         ],
@@ -799,7 +810,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "indexOf: "
         ],
@@ -827,7 +838,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "indexWhere: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "insert: "
         ],
@@ -855,7 +894,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "insertAll: "
         ],
@@ -883,7 +922,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "join: "
         ],
@@ -911,7 +950,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "lastIndexOf: "
         ],
@@ -939,7 +978,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "lastIndexWhere: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "lastWhere: "
         ],
@@ -967,7 +1034,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "map: "
         ],
@@ -995,7 +1062,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "reduce: "
         ],
@@ -1023,7 +1090,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "remove: "
         ],
@@ -1051,7 +1118,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "removeAt: "
         ],
@@ -1079,7 +1146,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "removeLast: "
         ],
@@ -1107,7 +1174,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "removeRange: "
         ],
@@ -1135,7 +1202,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "removeWhere: "
         ],
@@ -1163,7 +1230,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "replaceRange: "
         ],
@@ -1191,7 +1258,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "retainWhere: "
         ],
@@ -1219,7 +1286,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "setAll: "
         ],
@@ -1247,7 +1314,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "setRange: "
         ],
@@ -1275,7 +1342,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "shuffle: "
         ],
@@ -1303,7 +1370,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "singleWhere: "
         ],
@@ -1331,7 +1398,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "skip: "
         ],
@@ -1359,7 +1426,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "skipWhile: "
         ],
@@ -1387,7 +1454,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "sort: "
         ],
@@ -1415,7 +1482,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "sublist: "
         ],
@@ -1443,7 +1510,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "take: "
         ],
@@ -1471,7 +1538,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "takeWhile: "
         ],
@@ -1499,7 +1566,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "toList: "
         ],
@@ -1527,7 +1594,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "toSet: "
         ],
@@ -1555,7 +1622,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "toString: "
         ],
@@ -1583,7 +1650,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "where: "
         ],
@@ -1611,7 +1678,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "whereType: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "_equals: "
         ],
@@ -1639,7 +1734,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "_get: "
         ],
@@ -1667,7 +1762,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "_removeWhere: "
         ],
@@ -1695,7 +1790,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "_set: "
         ],
@@ -1723,7 +1818,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[base class]]: "
         ],
@@ -1750,9 +1845,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "JSArray<int> length 200"
+    "List<int> length 200"
 ]
 -----------------------------------
 Test: List<int> large instance body
@@ -1812,7 +1907,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[class]]: "
         ],
@@ -1839,9 +1934,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "JSArray<int> implements List<int>, JSIndexable<int>"
+    "List<int> implements List<int>, JSIndexable<int>"
 ]
 -----------------------------------
 Test: List<int> large definition formatting body
@@ -1851,79 +1946,6 @@ Value:
     {
         "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
     },
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": ""
-                },
-                "[[Static members]]"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "markFixedList: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "markUnmodifiableList: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
     [
         "li",
         {
@@ -1949,7 +1971,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "+: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "add: "
         ],
@@ -1977,7 +2027,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "addAll: "
         ],
@@ -2005,7 +2055,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "any: "
         ],
@@ -2033,7 +2083,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "asMap: "
         ],
@@ -2061,7 +2111,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "cast: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "checkGrowable: "
         ],
@@ -2089,7 +2167,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "checkMutable: "
         ],
@@ -2117,7 +2195,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "clear: "
         ],
@@ -2145,7 +2223,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "contains: "
         ],
@@ -2173,7 +2251,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "elementAt: "
         ],
@@ -2201,7 +2279,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "every: "
         ],
@@ -2229,7 +2307,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "expand: "
         ],
@@ -2257,7 +2335,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "fillRange: "
         ],
@@ -2285,7 +2363,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "firstWhere: "
         ],
@@ -2313,7 +2391,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "fold: "
         ],
@@ -2341,7 +2419,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "followedBy: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "forEach: "
         ],
@@ -2369,7 +2475,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "getRange: "
         ],
@@ -2397,7 +2503,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "indexOf: "
         ],
@@ -2425,7 +2531,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "indexWhere: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "insert: "
         ],
@@ -2453,7 +2587,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "insertAll: "
         ],
@@ -2481,7 +2615,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "join: "
         ],
@@ -2509,7 +2643,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "lastIndexOf: "
         ],
@@ -2537,7 +2671,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "lastIndexWhere: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "lastWhere: "
         ],
@@ -2565,7 +2727,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "map: "
         ],
@@ -2593,7 +2755,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "reduce: "
         ],
@@ -2621,7 +2783,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "remove: "
         ],
@@ -2649,7 +2811,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "removeAt: "
         ],
@@ -2677,7 +2839,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "removeLast: "
         ],
@@ -2705,7 +2867,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "removeRange: "
         ],
@@ -2733,7 +2895,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "removeWhere: "
         ],
@@ -2761,7 +2923,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "replaceRange: "
         ],
@@ -2789,7 +2951,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "retainWhere: "
         ],
@@ -2817,7 +2979,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "setAll: "
         ],
@@ -2845,7 +3007,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "setRange: "
         ],
@@ -2873,7 +3035,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "shuffle: "
         ],
@@ -2901,7 +3063,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "singleWhere: "
         ],
@@ -2929,7 +3091,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "skip: "
         ],
@@ -2957,7 +3119,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "skipWhile: "
         ],
@@ -2985,7 +3147,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "sort: "
         ],
@@ -3013,7 +3175,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "sublist: "
         ],
@@ -3041,7 +3203,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "take: "
         ],
@@ -3069,7 +3231,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "takeWhile: "
         ],
@@ -3097,7 +3259,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "toList: "
         ],
@@ -3125,7 +3287,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "toSet: "
         ],
@@ -3153,7 +3315,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "toString: "
         ],
@@ -3181,7 +3343,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "where: "
         ],
@@ -3209,7 +3371,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "whereType: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "_equals: "
         ],
@@ -3237,7 +3427,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "_get: "
         ],
@@ -3265,7 +3455,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "_removeWhere: "
         ],
@@ -3293,7 +3483,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "_set: "
         ],
@@ -3321,7 +3511,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[base class]]: "
         ],
@@ -3348,7 +3538,7 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
     "MappedListIterable<String, String> length 3"
 ]
@@ -3371,7 +3561,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "0: "
             ],
@@ -3395,7 +3585,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "1: "
             ],
@@ -3419,7 +3609,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "2: "
             ],
@@ -3440,7 +3630,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[class]]: "
         ],
@@ -3467,7 +3657,7 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
     "MappedListIterable<String, String>"
 ]
@@ -3504,7 +3694,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "elementAt: "
         ],
@@ -3532,7 +3722,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[base class]]: "
         ],
@@ -3559,9 +3749,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "_HashSet length 3"
+    "_HashSet<dynamic> length 3"
 ]
 -----------------------------------
 Test: Set instance body
@@ -3582,7 +3772,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "0: "
             ],
@@ -3606,7 +3796,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "1: "
             ],
@@ -3630,7 +3820,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "2: "
             ],
@@ -3651,7 +3841,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[class]]: "
         ],
@@ -3678,9 +3868,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "_HashSet implements LinkedHashSet"
+    "_HashSet<dynamic> implements HashSet<dynamic>, LinkedHashSet<dynamic>"
 ]
 -----------------------------------
 Test: Set definition formatting body
@@ -3690,51 +3880,6 @@ Value:
     {
         "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
     },
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": ""
-                },
-                "[[Static members]]"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "setToString: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
     [
         "li",
         {
@@ -3760,7 +3905,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "add: "
         ],
@@ -3788,7 +3933,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "addAll: "
         ],
@@ -3816,7 +3961,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "contains: "
         ],
@@ -3844,7 +3989,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "lookup: "
         ],
@@ -3872,7 +4017,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "remove: "
         ],
@@ -3900,7 +4045,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "_newSet: "
         ],
@@ -3928,7 +4073,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "_newSimilarSet: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[base class]]: "
         ],
@@ -3955,7 +4128,7 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
     "IdentityMap<String, int> length 3"
 ]
@@ -3975,7 +4148,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "0: "
         ],
@@ -4003,7 +4176,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "1: "
         ],
@@ -4031,7 +4204,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "2: "
         ],
@@ -4059,7 +4232,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "[[instance members]]: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "asObject"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[class]]: "
         ],
@@ -4086,9 +4287,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "LinkedMap length 3"
+    "LinkedMap<dynamic, dynamic> length 3"
 ]
 -----------------------------------
 Test: Map<dynamic, dynamic> instance body
@@ -4106,7 +4307,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "0: "
         ],
@@ -4134,7 +4335,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "1: "
         ],
@@ -4162,7 +4363,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "2: "
         ],
@@ -4190,7 +4391,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "[[instance members]]: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "asObject"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[class]]: "
         ],
@@ -4217,9 +4446,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "LinkedMap"
+    "LinkedMap<dynamic, dynamic>"
 ]
 -----------------------------------
 Test: Map<dynamic, dynamic> definition formatting body
@@ -4254,7 +4483,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "addAll: "
         ],
@@ -4282,7 +4511,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "clear: "
         ],
@@ -4310,63 +4539,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "containsKey: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "containsValue: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "putIfAbsent: "
         ],
@@ -4394,7 +4567,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "remove: "
         ],
@@ -4422,35 +4595,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "toString: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "_get: "
         ],
@@ -4478,7 +4623,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "_set: "
         ],
@@ -4506,7 +4651,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[base class]]: "
         ],
@@ -4533,9 +4678,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "(int, int) -> int"
+    "(int, int) => int"
 ]
 -----------------------------------
 Test: Function formatting body
@@ -4556,7 +4701,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "signature: "
             ],
@@ -4565,7 +4710,7 @@ Value:
                 {
                     "style": "margin-left: 13px"
                 },
-                "(int, int) -> int"
+                "(int, int) => int"
             ]
         ]
     ],
@@ -4577,7 +4722,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "JavaScript Function: "
         ],
@@ -4604,9 +4749,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "(String, (Event) -> bool) -> dynamic"
+    "(String, (Event$) => bool) => Null"
 ]
 -----------------------------------
 Test: Function with functon arguments formatting body
@@ -4627,7 +4772,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "signature: "
             ],
@@ -4636,7 +4781,7 @@ Value:
                 {
                     "style": "margin-left: 13px"
                 },
-                "(String, (Event) -> bool) -> dynamic"
+                "(String, (Event$) => bool) => Null"
             ]
         ]
     ],
@@ -4648,7 +4793,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "JavaScript Function: "
         ],
@@ -4679,7 +4824,7 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
     "TestClass"
 ]
@@ -4698,9 +4843,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "Object"
+    "Instance of 'Object'"
 ]
 -----------------------------------
 Test: Object formatting body
@@ -4718,7 +4863,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "runtimeType: "
         ],
@@ -4746,7 +4891,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[class]]: "
         ],
@@ -4773,7 +4918,7 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
     "TestClass"
 ]
@@ -4792,7 +4937,7 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
     "HttpRequest"
 ]
@@ -4811,9 +4956,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "Library Module: tests_lib_2_html_debugger_test/debugger_test"
+    "Library Module: debugger_test"
 ]
 -----------------------------------
 Test: Test library Module body
@@ -4851,7 +4996,7 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
     "<FILE>"
 ]
@@ -4871,7 +5016,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "TestClass: "
         ],
@@ -4899,9 +5044,9 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
-            "TestGenericClass: "
+            "TestGenericClass<dynamic, dynamic>: "
         ],
         [
             "span",
@@ -4927,7 +5072,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "devtoolsFormatters: "
         ],
@@ -4955,7 +5100,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "replacer: "
         ],
@@ -4983,7 +5128,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "format: "
         ],
@@ -5011,7 +5156,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "FormattedObject: "
         ],
@@ -5039,7 +5184,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "extractNestedFormattedObjects: "
         ],
@@ -5067,7 +5212,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "main: "
         ],
@@ -5094,7 +5239,7 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
     "StackTrace"
 ]
@@ -5104,7 +5249,7 @@ Value:
 [
     "ol",
     {
-        "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;color: rgb(196, 26, 22);"
+        "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;background-color: thistle;color: rgb(196, 26, 22);"
     },
     [
         "li",
@@ -5119,7 +5264,7 @@ Value:
                 {
                     "style": ""
                 },
-                "Error"
+                "Error: Instance of 'Error'"
             ]
         ]
     ],
@@ -5385,9 +5530,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "TestClass"
+    "Instance of 'TestClass'"
 ]
 -----------------------------------
 Test: TestClass instance body
@@ -5408,7 +5553,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "date: "
             ],
@@ -5432,7 +5577,7 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "name: "
             ],
@@ -5452,2548 +5597,8 @@ Value:
         },
         [
             "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "someInt: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "42"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "someObject: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "someString: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "Hello world"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "[[class]]: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "asClass"
-                    }
-                }
-            ]
-        ]
-    ]
-]
------------------------------------
-Test: TestClass definition formatting header
-Value:
-[
-    "span",
-    {
-        "style": "background-color: #d9edf7;"
-    },
-    "TestClass"
-]
------------------------------------
-Test: TestClass definition formatting body
-Value:
-[
-    "ol",
-    {
-        "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
-    },
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": ""
-                },
-                "[[Static members]]"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "exampleStaticMethod: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": ""
-                },
-                "[[Instance Methods]]"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "addOne: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "last: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "nameAndDate: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "returnObject: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "[[base class]]: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "asClass"
-                    }
-                }
-            ]
-        ]
-    ]
-]
------------------------------------
-Test: MouseEvent instance header
-Value:
-[
-    "span",
-    {
-        "style": "background-color: #d9edf7;"
-    },
-    "MouseEvent"
-]
------------------------------------
-Test: MouseEvent instance body
-Value:
-[
-    "ol",
-    {
-        "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
-    },
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "altKey: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "false"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "bubbles: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "true"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "button: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "buttons: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "cancelable: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "true"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "client: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "ctrlKey: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "false"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "dataTransfer: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "null"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "defaultPrevented: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "false"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "detail: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "eventPhase: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "fromElement: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "isTrusted: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "false"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "layer: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "metaKey: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "false"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "movement: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "offset: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "<Exception thrown> Unsupported operation: offsetX is only supported on elements"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "page: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "path: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "region: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "null"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "relatedTarget: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "scoped: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "null"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "screen: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "shiftKey: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "false"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "sourceCapabilities: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "timeStamp: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "5099.7300000000005"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "toElement: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "type: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "click"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "_clientX: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "_clientY: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_get_currentTarget: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_get_relatedTarget: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_get_target: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_get_view: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "_layerX: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "_layerY: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "_movementX: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "_movementY: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "_pageX: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "_pageY: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "_screenX: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "_screenY: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "_selector: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "null"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "_which: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "1"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "[[class]]: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "asClass"
-                    }
-                }
-            ]
-        ]
-    ]
-]
------------------------------------
-Test: MouseEvent definition formatting header
-Value:
-[
-    "span",
-    {
-        "style": "background-color: #d9edf7;"
-    },
-    "MouseEvent"
-]
------------------------------------
-Test: MouseEvent definition formatting body
-Value:
-[
-    "ol",
-    {
-        "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
-    },
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": ""
-                },
-                "[[Static members]]"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_create_1: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_create_2: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": ""
-                },
-                "[[Instance Methods]]"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "getModifierState: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_initMouseEvent: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_initMouseEvent_1: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "[[base class]]: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "asClass"
-                    }
-                }
-            ]
-        ]
-    ]
-]
------------------------------------
-Test: HttpRequest instance header
-Value:
-[
-    "span",
-    {
-        "style": "background-color: #d9edf7;"
-    },
-    "HttpRequest"
-]
------------------------------------
-Test: HttpRequest instance body
-Value:
-[
-    "ol",
-    {
-        "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
-    },
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "onReadyStateChange: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "readyState: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "response: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                ""
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "responseHeaders: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "responseText: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                ""
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "responseType: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                ""
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "responseUrl: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                ""
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "responseXml: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "status: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "statusText: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                ""
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "timeout: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "0"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "upload: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "withCredentials: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                "false"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
-                },
-                "_get_response: "
-            ],
-            [
-                "span",
-                {
-                    "style": "margin-left: 13px"
-                },
-                ""
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "[[class]]: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "asClass"
-                    }
-                }
-            ]
-        ]
-    ]
-]
------------------------------------
-Test: HttpRequest definition formatting header
-Value:
-[
-    "span",
-    {
-        "style": "background-color: #d9edf7;"
-    },
-    "HttpRequest"
-]
------------------------------------
-Test: HttpRequest definition formatting body
-Value:
-[
-    "ol",
-    {
-        "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
-    },
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": ""
-                },
-                "[[Static members]]"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "getString: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "postFormData: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "request: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "requestCrossOrigin: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "_create_1: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {},
-            [
-                "span",
-                {
-                    "style": ""
-                },
-                "[[Instance Methods]]"
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "abort: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "getAllResponseHeaders: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "getResponseHeader: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "open: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "overrideMimeType: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "send: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "setRequestHeader: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "[[base class]]: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "asClass"
-                    }
-                }
-            ]
-        ]
-    ]
-]
------------------------------------
-Test: TestGenericClass instance header
-Value:
-[
-    "span",
-    {
-        "style": "background-color: #d9edf7;"
-    },
-    "TestGenericClass<int, List>"
-]
------------------------------------
-Test: TestGenericClass instance body
-Value:
-[
-    "ol",
-    {
-        "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
-    },
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "runtimeType: "
         ],
@@ -8024,7 +5629,1217 @@ Value:
             [
                 "span",
                 {
-                    "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "someInt: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "42"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "someObject: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "someString: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "Hello world"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "[[class]]: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "asClass"
+                    }
+                }
+            ]
+        ]
+    ]
+]
+-----------------------------------
+Test: TestClass definition formatting header
+Value:
+[
+    "span",
+    {
+        "style": "background-color: #d9edf7;color: black"
+    },
+    "TestClass"
+]
+-----------------------------------
+Test: TestClass definition formatting body
+Value:
+[
+    "ol",
+    {
+        "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
+    },
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": ""
+                },
+                "[[Instance Methods]]"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "addOne: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "last: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "nameAndDate: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "returnObject: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "[[base class]]: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "asClass"
+                    }
+                }
+            ]
+        ]
+    ]
+]
+-----------------------------------
+Test: HttpRequest instance header
+Value:
+[
+    "span",
+    {
+        "style": "background-color: #d9edf7;color: black"
+    },
+    "[object XMLHttpRequest]"
+]
+-----------------------------------
+Test: HttpRequest instance body
+Value:
+[
+    "ol",
+    {
+        "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
+    },
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "readyState: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "0"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "responseText: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                ""
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "responseType: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                ""
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "responseUrl: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                ""
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "responseXml: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "status: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "0"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "statusText: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                ""
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "timeout: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "0"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "upload: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "withCredentials: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                "false"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "_get_response: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                ""
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "on: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "onAbort: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "onError: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "onLoad: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "onLoadEnd: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "onLoadStart: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "onProgress: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "onReadyStateChange: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "onTimeout: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+                },
+                "response: "
+            ],
+            [
+                "span",
+                {
+                    "style": "margin-left: 13px"
+                },
+                ""
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "responseHeaders: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "runtimeType: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "[[class]]: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "asClass"
+                    }
+                }
+            ]
+        ]
+    ]
+]
+-----------------------------------
+Test: HttpRequest definition formatting header
+Value:
+[
+    "span",
+    {
+        "style": "background-color: #d9edf7;color: black"
+    },
+    "HttpRequest"
+]
+-----------------------------------
+Test: HttpRequest definition formatting body
+Value:
+[
+    "ol",
+    {
+        "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
+    },
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": ""
+                },
+                "[[Instance Methods]]"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "abort: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "getAllResponseHeaders: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "getResponseHeader: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "open: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "overrideMimeType: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "send: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "setRequestHeader: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "[[base class]]: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "asClass"
+                    }
+                }
+            ]
+        ]
+    ]
+]
+-----------------------------------
+Test: TestGenericClass instance header
+Value:
+[
+    "span",
+    {
+        "style": "background-color: #d9edf7;color: black"
+    },
+    "Instance of 'TestGenericClass<int, List<dynamic>>'"
+]
+-----------------------------------
+Test: TestGenericClass instance body
+Value:
+[
+    "ol",
+    {
+        "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
+    },
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
                 },
                 "x: "
             ],
@@ -8045,7 +6860,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "runtimeType: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[class]]: "
         ],
@@ -8072,9 +6915,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "TestGenericClass<int, List>"
+    "TestGenericClass<int, List<dynamic>>"
 ]
 -----------------------------------
 Test: TestGenericClass definition formatting body
@@ -8109,7 +6952,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "noSuchMethod: "
         ],
@@ -8137,7 +6980,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "toString: "
         ],
@@ -8165,7 +7008,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "_equals: "
         ],
@@ -8193,7 +7036,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[base class]]: "
         ],
@@ -8220,9 +7063,9 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
-    "TestGenericClass<JSObject<ExampleJSClass>, int>"
+    "Instance of 'TestGenericClass<JSObject<ExampleJSClass>, int>'"
 ]
 -----------------------------------
 Test: TestGenericClassJSInterop instance body
@@ -8240,35 +7083,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
-            },
-            "runtimeType: "
-        ],
-        [
-            "span",
-            {
-                "style": "margin-left: 13px"
-            },
-            [
-                "object",
-                {
-                    "object": "<OBJECT>",
-                    "config": {
-                        "name": "none"
-                    }
-                }
-            ]
-        ]
-    ],
-    [
-        "li",
-        {
-            "style": "padding-left: 13px;"
-        },
-        [
-            "span",
-            {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "x: "
         ],
@@ -8296,7 +7111,35 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "runtimeType: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {
+                        "name": "none"
+                    }
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[class]]: "
         ],
@@ -8323,7 +7166,7 @@ Value:
 [
     "span",
     {
-        "style": "background-color: #d9edf7;"
+        "style": "background-color: #d9edf7;color: black"
     },
     "TestGenericClass<JSObject<ExampleJSClass>, int>"
 ]
@@ -8360,7 +7203,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "noSuchMethod: "
         ],
@@ -8388,7 +7231,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "toString: "
         ],
@@ -8416,7 +7259,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "_equals: "
         ],
@@ -8444,7 +7287,7 @@ Value:
         [
             "span",
             {
-                "style": "color: rgb(136, 19, 145); margin-right: -13px"
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
             },
             "[[base class]]: "
         ],

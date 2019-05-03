@@ -15,6 +15,10 @@
 
 namespace dart {
 
+bool RawObject::InVMIsolateHeap() const {
+  return Dart::vm_isolate()->heap()->Contains(ToAddr(this));
+}
+
 void RawObject::Validate(Isolate* isolate) const {
   if (Object::void_class_ == reinterpret_cast<RawClass*>(kHeapObjectTag)) {
     // Validation relies on properly initialized class classes. Skip if the
@@ -269,22 +273,25 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 #undef RAW_VISITPOINTERS
 #define RAW_VISITPOINTERS(clazz) case kExternalTypedData##clazz##Cid:
     CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS) {
-      RawExternalTypedData* raw_obj =
-          reinterpret_cast<RawExternalTypedData*>(this);
+      auto raw_obj = reinterpret_cast<RawExternalTypedData*>(this);
       size = RawExternalTypedData::VisitExternalTypedDataPointers(raw_obj,
                                                                   visitor);
       break;
     }
 #undef RAW_VISITPOINTERS
-#define RAW_VISITPOINTERS(clazz) case kTypedData##clazz##ViewCid:
-    CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS)
     case kByteDataViewCid:
+#define RAW_VISITPOINTERS(clazz) case kTypedData##clazz##ViewCid:
+      CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS) {
+        auto raw_obj = reinterpret_cast<RawTypedDataView*>(this);
+        size = RawTypedDataView::VisitTypedDataViewPointers(raw_obj, visitor);
+        break;
+      }
+#undef RAW_VISITPOINTERS
     case kByteBufferCid: {
       RawInstance* raw_obj = reinterpret_cast<RawInstance*>(this);
       size = RawInstance::VisitInstancePointers(raw_obj, visitor);
       break;
     }
-#undef RAW_VISITPOINTERS
     case kFfiPointerCid: {
       RawPointer* raw_obj = reinterpret_cast<RawPointer*>(this);
       size = RawPointer::VisitPointerPointers(raw_obj, visitor);
@@ -348,6 +355,22 @@ bool RawObject::FindObject(FindObjectVisitor* visitor) {
     ASSERT(raw_obj->IsHeapObject());                                           \
     ASSERT_UNCOMPRESSED(Type);                                                 \
     visitor->VisitPointers(raw_obj->from(), raw_obj->to());                    \
+    return Type::InstanceSize();                                               \
+  }
+
+// It calls the from() and to() methods on the raw object to get the first and
+// last cells that need visiting.
+//
+// Though as opposed to Similar to [REGULAR_VISITOR] this visitor will call the
+// specializd VisitTypedDataViewPointers
+#define TYPED_DATA_VIEW_VISITOR(Type)                                          \
+  intptr_t Raw##Type::Visit##Type##Pointers(Raw##Type* raw_obj,                \
+                                            ObjectPointerVisitor* visitor) {   \
+    /* Make sure that we got here with the tagged pointer as this. */          \
+    ASSERT(raw_obj->IsHeapObject());                                           \
+    ASSERT_UNCOMPRESSED(Type);                                                 \
+    visitor->VisitTypedDataViewPointers(raw_obj, raw_obj->from(),              \
+                                        raw_obj->to());                        \
     return Type::InstanceSize();                                               \
   }
 
@@ -427,6 +450,7 @@ REGULAR_VISITOR(ExternalTwoByteString)
 COMPRESSED_VISITOR(GrowableObjectArray)
 COMPRESSED_VISITOR(LinkedHashMap)
 COMPRESSED_VISITOR(ExternalTypedData)
+TYPED_DATA_VIEW_VISITOR(TypedDataView)
 REGULAR_VISITOR(ReceivePort)
 REGULAR_VISITOR(StackTrace)
 REGULAR_VISITOR(RegExp)
@@ -463,6 +487,7 @@ VARIABLE_NULL_VISITOR(OneByteString, Smi::Value(raw_obj->ptr()->length_))
 VARIABLE_NULL_VISITOR(TwoByteString, Smi::Value(raw_obj->ptr()->length_))
 // Abstract types don't have their visitor called.
 UNREACHABLE_VISITOR(AbstractType)
+UNREACHABLE_VISITOR(TypedDataBase)
 UNREACHABLE_VISITOR(Error)
 UNREACHABLE_VISITOR(Number)
 UNREACHABLE_VISITOR(Integer)

@@ -209,9 +209,11 @@ main() {
 
 const String TEST_17 = """
 var a;
+int x = 0;
 
 main() {
-  if (main()) {
+  (print)(x++);
+  if (x == 0) {
     a = true;
   } else {
     a = false;
@@ -235,7 +237,7 @@ main() {
 
 main() {
   runTests() async {
-    test(String code, String expected) async {
+    test(String code, Pattern expected) async {
       String generated = await compile(code,
           disableInlining: false, disableTypeInference: false);
       Expect.isTrue(
@@ -250,7 +252,7 @@ main() {
     await test(TEST_4, 'return t1 + t1');
     await test(TEST_5, 'return 84');
     await test(TEST_6, 'return 84');
-    await test(TEST_7, 'return 32');
+    await test(TEST_7, RegExp('return( .* =)? 32'));
     await test(TEST_8, 'return a.a');
     await test(TEST_9, 'return a.a');
     await test(TEST_10, 'return 2');
@@ -260,7 +262,8 @@ main() {
     await test(TEST_14, 'return t1[0]');
     await test(TEST_15, 'return 42');
     await test(TEST_16, 'return \$.a');
-    await test(TEST_17, 'return t1');
+    await test(TEST_17,
+        RegExp(r'return (t1|\$\.x === 0 \? \$\.a = true : \$\.a = false);'));
     await test(TEST_18, 'return t1');
   }
 

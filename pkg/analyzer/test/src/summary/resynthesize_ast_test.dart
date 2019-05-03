@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22,11 +22,9 @@ class ApplyCheckElementTextReplacements {
   }
 }
 
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
 @reflectiveTest
 class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
-    with ResynthesizeTestCases, ResynthesizeTestHelpers {
+    with ResynthesizeTestCases, GetElementTestCases, ResynthesizeTestHelpers {
   @failingTest // See dartbug.com/32290
   test_const_constructor_inferred_args() =>
       super.test_const_constructor_inferred_args();
@@ -37,27 +35,24 @@ class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
   @failingTest // See dartbug.com/33441
   test_const_map_inferredType() => super.test_const_map_inferredType();
 
+  @failingTest // See dartbug.com/33441
+  test_const_set_inferredType() => super.test_const_set_inferredType();
+
   @override
   @failingTest
-  test_syntheticFunctionType_genericClosure() async {
-    await super.test_syntheticFunctionType_genericClosure();
+  test_defaultValue_refersToGenericClass() async {
+    await super.test_defaultValue_refersToGenericClass();
+  }
+
+  @override
+  @failingTest
+  test_infer_generic_typedef_complex() async {
+    await super.test_infer_generic_typedef_complex();
   }
 
   @override
   @failingTest
   test_syntheticFunctionType_inGenericClass() async {
     await super.test_syntheticFunctionType_inGenericClass();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_noArguments() async {
-    await super.test_syntheticFunctionType_noArguments();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_withArguments() async {
-    await super.test_syntheticFunctionType_withArguments();
   }
 }

@@ -17,16 +17,23 @@ import '../../compiler_new.dart';
 /// a UTF-8 encoded [List<int>] of bytes.
 abstract class SourceFile<T> implements Input<T>, LocationProvider {
   /// The absolute URI of the source file.
+  @override
   Uri get uri;
 
+  @override
   InputKind get inputKind => InputKind.UTF8;
 
   kernel.Source cachedKernelSource;
 
   kernel.Source get kernelSource {
-    return cachedKernelSource ??=
-        new kernel.Source(lineStarts, slowUtf8ZeroTerminatedBytes())
-          ..cachedText = slowText();
+    // TODO(johnniwinther): Instead of creating a new Source object,
+    // we should use the one provided by the front-end.
+    return cachedKernelSource ??= new kernel.Source(
+        lineStarts,
+        slowUtf8ZeroTerminatedBytes(),
+        uri /* TODO(jensj): What is the import URI? */,
+        uri)
+      ..cachedText = slowText();
   }
 
   /// The name of the file.
@@ -83,6 +90,7 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
     return starts;
   }
 
+  @override
   kernel.Location getLocation(int offset) {
     return kernelSource.getLocation(null, offset);
   }
@@ -172,6 +180,7 @@ List<int> _zeroTerminateIfNecessary(List<int> bytes) {
 }
 
 class Utf8BytesSourceFile extends SourceFile<List<int>> {
+  @override
   final Uri uri;
 
   /// The UTF-8 encoded content of the source file.
@@ -184,22 +193,27 @@ class Utf8BytesSourceFile extends SourceFile<List<int>> {
   Utf8BytesSourceFile(this.uri, List<int> content)
       : this.zeroTerminatedContent = _zeroTerminateIfNecessary(content);
 
+  @override
   List<int> get data => zeroTerminatedContent;
 
+  @override
   String slowText() {
     // Don't convert the trailing zero byte.
     return utf8.decoder
         .convert(zeroTerminatedContent, 0, zeroTerminatedContent.length - 1);
   }
 
+  @override
   List<int> slowUtf8ZeroTerminatedBytes() => zeroTerminatedContent;
 
+  @override
   String slowSubstring(int start, int end) {
     // TODO(lry): to make this faster, the scanner could record the UTF-8 slack
     // for all positions of the source text. We could use [:content.sublist:].
     return slowText().substring(start, end);
   }
 
+  @override
   int get length {
     if (lengthCache == -1) {
       // During scanning the length is not yet assigned, so we use a slow path.
@@ -208,17 +222,20 @@ class Utf8BytesSourceFile extends SourceFile<List<int>> {
     return lengthCache;
   }
 
+  @override
   set length(int v) => lengthCache = v;
   int lengthCache = -1;
 }
 
 class CachingUtf8BytesSourceFile extends Utf8BytesSourceFile {
   String cachedText;
+  @override
   final String filename;
 
   CachingUtf8BytesSourceFile(Uri uri, this.filename, List<int> content)
       : super(uri, content);
 
+  @override
   String slowText() {
     if (cachedText == null) {
       cachedText = super.slowText();
@@ -228,7 +245,9 @@ class CachingUtf8BytesSourceFile extends Utf8BytesSourceFile {
 }
 
 class StringSourceFile extends SourceFile<List<int>> {
+  @override
   final Uri uri;
+  @override
   final String filename;
   final String text;
 
@@ -240,26 +259,35 @@ class StringSourceFile extends SourceFile<List<int>> {
   StringSourceFile.fromName(String filename, String text)
       : this(new Uri(path: filename), filename, text);
 
+  @override
   List<int> get data => utf8.encode(text);
 
+  @override
   int get length => text.length;
+  @override
   set length(int v) {}
 
+  @override
   String slowText() => text;
 
+  @override
   List<int> slowUtf8ZeroTerminatedBytes() {
     return _zeroTerminateIfNecessary(utf8.encode(text));
   }
 
+  @override
   String slowSubstring(int start, int end) => text.substring(start, end);
 }
 
 /// Binary input data.
 class Binary implements Input<List<int>> {
+  @override
   final Uri uri;
+  @override
   final List<int> data;
 
   Binary(this.uri, this.data);
 
+  @override
   InputKind get inputKind => InputKind.binary;
 }

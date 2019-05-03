@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class UndefinedOperatorTest extends DriverResolutionTest {
   test_binaryExpression() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 f(var a) {
   if (a is A) {
@@ -27,7 +27,7 @@ f(var a) {
   }
 
   test_binaryExpression_inSubtype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 class B extends A {
   operator +(B b) {}
@@ -41,7 +41,7 @@ f(var a) {
   }
 
   test_indexBoth() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 f(var a) {
   if (a is A) {
@@ -55,7 +55,7 @@ f(var a) {
   }
 
   test_indexBoth_inSubtype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 class B extends A {
   operator [](int index) {}
@@ -72,7 +72,7 @@ f(var a) {
   }
 
   test_indexGetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 f(var a) {
   if (a is A) {
@@ -83,7 +83,7 @@ f(var a) {
   }
 
   test_indexGetter_inSubtype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 class B extends A {
   operator [](int index) {}
@@ -97,7 +97,7 @@ f(var a) {
   }
 
   test_indexSetter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 f(var a) {
   if (a is A) {
@@ -108,7 +108,7 @@ f(var a) {
   }
 
   test_indexSetter_inSubtype() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 class B extends A {
   operator []=(i, v) {}

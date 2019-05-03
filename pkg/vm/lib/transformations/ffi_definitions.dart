@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library kernel.transformations.ffi_definitions;
+library vm.transformations.ffi_definitions;
 
 import 'dart:math' as math;
 
@@ -13,10 +13,10 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiTypeMismatch,
         templateFfiFieldInitializer;
 
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
+import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 
 import 'ffi.dart'
@@ -63,12 +63,19 @@ import 'ffi.dart'
 ///   static int sizeOf() => 24;
 /// }
 ReplacedMembers transformLibraries(
+    Component component,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
     List<Library> libraries,
     DiagnosticReporter diagnosticReporter) {
-  final transformer =
-      new _FfiDefinitionTransformer(hierarchy, coreTypes, diagnosticReporter);
+  final LibraryIndex index = LibraryIndex(
+      component, const ["dart:ffi", "dart:_internal", "dart:core"]);
+  if (!index.containsLibrary("dart:ffi")) {
+    // if dart:ffi is not loaded, do not do the transformation
+    return ReplacedMembers({}, {});
+  }
+  final transformer = new _FfiDefinitionTransformer(
+      index, coreTypes, hierarchy, diagnosticReporter);
   libraries.forEach(transformer.visitLibrary);
   return ReplacedMembers(
       transformer.replacedGetters, transformer.replacedSetters);
@@ -76,12 +83,28 @@ ReplacedMembers transformLibraries(
 
 /// Checks and expands the dart:ffi @struct and field annotations.
 class _FfiDefinitionTransformer extends FfiTransformer {
+  final LibraryIndex index;
+  final Field _internalIs64Bit;
+  final Constructor _unimplementedErrorCtor;
+  static const String _errorOn32BitMessage =
+      "Code-gen for FFI structs is not supported on 32-bit platforms.";
+
   Map<Field, Procedure> replacedGetters = {};
   Map<Field, Procedure> replacedSetters = {};
 
-  _FfiDefinitionTransformer(ClassHierarchy hierarchy, CoreTypes coreTypes,
-      DiagnosticReporter diagnosticReporter)
-      : super(hierarchy, coreTypes, diagnosticReporter) {}
+  _FfiDefinitionTransformer(this.index, CoreTypes coreTypes,
+      ClassHierarchy hierarchy, DiagnosticReporter diagnosticReporter)
+      : _internalIs64Bit = index.getTopLevelMember('dart:_internal', 'is64Bit'),
+        _unimplementedErrorCtor =
+            index.getMember('dart:core', 'UnimplementedError', ''),
+        super(index, coreTypes, hierarchy, diagnosticReporter) {}
+
+  Statement guardOn32Bit(Statement body) {
+    final Throw error = Throw(ConstructorInvocation(_unimplementedErrorCtor,
+        Arguments([StringLiteral(_errorOn32BitMessage)])));
+    return IfStatement(
+        StaticGet(_internalIs64Bit), body, ExpressionStatement(error));
+  }
 
   @override
   visitClass(Class node) {
@@ -231,8 +254,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         pointerName,
         ProcedureKind.Getter,
         FunctionNode(
-            ReturnStatement(MethodInvocation(offsetExpression, castMethod.name,
-                Arguments([], types: [pointerType]), castMethod)),
+            guardOn32Bit(ReturnStatement(MethodInvocation(
+                offsetExpression,
+                castMethod.name,
+                Arguments([], types: [pointerType]),
+                castMethod))),
             returnType: pointerType));
 
     // Sample output:
@@ -241,11 +267,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         field.name,
         ProcedureKind.Getter,
         FunctionNode(
-            ReturnStatement(MethodInvocation(
+            guardOn32Bit(ReturnStatement(MethodInvocation(
                 PropertyGet(ThisExpression(), pointerName, pointerGetter),
                 loadMethod.name,
                 Arguments([], types: [field.type]),
-                loadMethod)),
+                loadMethod))),
             returnType: field.type));
 
     // Sample output:
@@ -255,11 +281,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         field.name,
         ProcedureKind.Setter,
         FunctionNode(
-            ReturnStatement(MethodInvocation(
+            guardOn32Bit(ReturnStatement(MethodInvocation(
                 PropertyGet(ThisExpression(), pointerName, pointerGetter),
                 storeMethod.name,
                 Arguments([VariableGet(argument)]),
-                storeMethod)),
+                storeMethod))),
             returnType: VoidType(),
             positionalParameters: [argument]));
 
@@ -281,7 +307,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
 
     // replace in place to avoid going over use sites
-    sizeOf.function = FunctionNode(ReturnStatement(IntLiteral(size)),
+    sizeOf.function = FunctionNode(
+        guardOn32Bit(ReturnStatement(IntLiteral(size))),
         returnType: InterfaceType(intClass));
     sizeOf.isExternal = false;
   }
@@ -333,6 +360,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   bool _hasAnnotation(Class node) {
+    // Pre constant 2018 update.
+    // TODO(dacoharkes): Remove pre constant 2018 after constants change landed.
     for (Expression e in node.annotations) {
       if (e is StaticGet) {
         if (e.target == structField) {
@@ -340,7 +369,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         }
       }
     }
-    return false;
+    Iterable<Class> postConstant2018 = node.annotations
+        .whereType<ConstantExpression>()
+        .map((expr) => expr.constant)
+        .whereType<InstanceConstant>()
+        .map((constant) => constant.classNode);
+    return postConstant2018.contains(structClass);
   }
 
   void _preventTreeShaking(Class node) {
@@ -359,11 +393,20 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   Iterable<NativeType> _getAnnotations(Field node) {
-    return node.annotations
+    Iterable<NativeType> preConstant2018 = node.annotations
         .whereType<ConstructorInvocation>()
         .map((expr) => expr.target.parent)
         .map((klass) => _getFieldType(klass))
         .where((type) => type != null);
+    Iterable<NativeType> postConstant2018 = node.annotations
+        .whereType<ConstantExpression>()
+        .map((expr) => expr.constant)
+        .whereType<InstanceConstant>()
+        .map((constant) => constant.classNode)
+        .map((klass) => _getFieldType(klass))
+        .where((type) => type != null);
+    // TODO(dacoharkes): Remove preConstant2018 after constants change landed.
+    return postConstant2018.followedBy(preConstant2018);
   }
 }
 

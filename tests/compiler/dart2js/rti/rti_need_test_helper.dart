@@ -318,12 +318,15 @@ abstract class IrMixin implements ComputeValueMixin {
 
 class RtiClassNeedIrComputer extends DataRegistry<String>
     with ComputeValueMixin, IrMixin {
+  @override
   final Compiler compiler;
   final JsToElementMap _elementMap;
+  @override
   final Map<Id, ActualData<String>> actualMap;
 
   RtiClassNeedIrComputer(this.compiler, this._elementMap, this.actualMap);
 
+  @override
   DiagnosticReporter get reporter => compiler.reporter;
 
   void computeClassValue(ClassEntity cls) {
@@ -339,6 +342,7 @@ class RtiMemberNeedIrComputer extends IrDataExtractor<String>
     with ComputeValueMixin, IrMixin {
   final JsToElementMap _elementMap;
   final ClosureData _closureDataLookup;
+  @override
   final Compiler compiler;
 
   RtiMemberNeedIrComputer(

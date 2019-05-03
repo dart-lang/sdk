@@ -57,11 +57,14 @@ DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 HeapPage* HeapPage::Allocate(intptr_t size_in_words,
                              PageType type,
                              const char* name) {
-  bool is_executable = (type == kExecutable);
-  // Create the new page executable (RWX) only if we're not in W^X mode
-  bool create_executable = !FLAG_write_protect_code && is_executable;
+#if defined(TARGET_ARCH_DBC)
+  bool executable = false;
+#else
+  bool executable = type == kExecutable;
+#endif
+
   VirtualMemory* memory = VirtualMemory::AllocateAligned(
-      size_in_words << kWordSizeLog2, kPageSize, create_executable, name);
+      size_in_words << kWordSizeLog2, kPageSize, executable, name);
   if (memory == NULL) {
     return NULL;
   }
@@ -214,7 +217,7 @@ void HeapPage::WriteProtect(bool read_only) {
 
   VirtualMemory::Protection prot;
   if (read_only) {
-    if (type_ == kExecutable) {
+    if ((type_ == kExecutable) && (memory_->AliasOffset() == 0)) {
       prot = VirtualMemory::kReadExecute;
     } else {
       prot = VirtualMemory::kReadOnly;
@@ -546,6 +549,11 @@ void PageSpace::AllocateExternal(intptr_t cid, intptr_t size) {
   AtomicOperations::IncrementBy(&(usage_.external_in_words), size_in_words);
   NOT_IN_PRODUCT(
       heap_->isolate()->class_table()->UpdateAllocatedExternalOld(cid, size));
+}
+
+void PageSpace::PromoteExternal(intptr_t cid, intptr_t size) {
+  intptr_t size_in_words = size >> kWordSizeLog2;
+  AtomicOperations::IncrementBy(&(usage_.external_in_words), size_in_words);
 }
 
 void PageSpace::FreeExternal(intptr_t size) {
@@ -1274,36 +1282,28 @@ void PageSpace::Compact(Thread* thread) {
   }
 }
 
-uword PageSpace::TryAllocateDataBumpInternal(intptr_t size,
-                                             GrowthPolicy growth_policy,
-                                             bool is_locked) {
+uword PageSpace::TryAllocateDataBumpLocked(intptr_t size) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   intptr_t remaining = bump_end_ - bump_top_;
-  if (remaining < size) {
+  if (UNLIKELY(remaining < size)) {
     // Checking this first would be logical, but needlessly slow.
     if (size >= kAllocatablePageSize) {
-      return is_locked ? TryAllocateDataLocked(size, growth_policy)
-                       : TryAllocate(size, HeapPage::kData, growth_policy);
+      return TryAllocateDataLocked(size, kForceGrowth);
     }
     FreeListElement* block =
-        is_locked ? freelist_[HeapPage::kData].TryAllocateLargeLocked(size)
-                  : freelist_[HeapPage::kData].TryAllocateLarge(size);
+        freelist_[HeapPage::kData].TryAllocateLargeLocked(size);
     if (block == NULL) {
       // Allocating from a new page (if growth policy allows) will have the
       // side-effect of populating the freelist with a large block. The next
       // bump allocation request will have a chance to consume that block.
       // TODO(koda): Could take freelist lock just once instead of twice.
-      return TryAllocateInFreshPage(size, HeapPage::kData, growth_policy,
-                                    is_locked);
+      return TryAllocateInFreshPage(size, HeapPage::kData, kForceGrowth,
+                                    true /* is_locked*/);
     }
     intptr_t block_size = block->HeapSize();
     if (remaining > 0) {
-      if (is_locked) {
-        freelist_[HeapPage::kData].FreeLocked(bump_top_, remaining);
-      } else {
-        freelist_[HeapPage::kData].Free(bump_top_, remaining);
-      }
+      freelist_[HeapPage::kData].FreeLocked(bump_top_, remaining);
     }
     bump_top_ = reinterpret_cast<uword>(block);
     bump_end_ = bump_top_ + block_size;
@@ -1312,8 +1312,11 @@ uword PageSpace::TryAllocateDataBumpInternal(intptr_t size,
   ASSERT(remaining >= size);
   uword result = bump_top_;
   bump_top_ += size;
-  AtomicOperations::IncrementBy(&(usage_.used_in_words),
-                                (size >> kWordSizeLog2));
+
+  // No need for atomic operation: This is either running during a scavenge or
+  // isolate snapshot loading.
+  usage_.used_in_words += (size >> kWordSizeLog2);
+
 // Note: Remaining block is unwalkable until MakeIterable is called.
 #ifdef DEBUG
   if (bump_top_ < bump_end_) {
@@ -1325,28 +1328,17 @@ uword PageSpace::TryAllocateDataBumpInternal(intptr_t size,
   return result;
 }
 
-uword PageSpace::TryAllocateDataBump(intptr_t size,
-                                     GrowthPolicy growth_policy) {
-  return TryAllocateDataBumpInternal(size, growth_policy, false);
-}
-
-uword PageSpace::TryAllocateDataBumpLocked(intptr_t size,
-                                           GrowthPolicy growth_policy) {
-  return TryAllocateDataBumpInternal(size, growth_policy, true);
-}
-
-uword PageSpace::TryAllocatePromoLocked(intptr_t size,
-                                        GrowthPolicy growth_policy) {
+uword PageSpace::TryAllocatePromoLocked(intptr_t size) {
   FreeList* freelist = &freelist_[HeapPage::kData];
   uword result = freelist->TryAllocateSmallLocked(size);
   if (result != 0) {
-    AtomicOperations::IncrementBy(&(usage_.used_in_words),
-                                  (size >> kWordSizeLog2));
+    // No need for atomic operation: we're at a safepoint.
+    usage_.used_in_words += (size >> kWordSizeLog2);
     return result;
   }
-  result = TryAllocateDataBumpLocked(size, growth_policy);
+  result = TryAllocateDataBumpLocked(size);
   if (result != 0) return result;
-  return TryAllocateDataLocked(size, growth_policy);
+  return TryAllocateDataLocked(size, PageSpace::kForceGrowth);
 }
 
 void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
@@ -1377,6 +1369,18 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   MutexLocker ml(pages_lock_);
   page->next_ = image_pages_;
   image_pages_ = page;
+}
+
+bool PageSpace::IsObjectFromImagePages(dart::RawObject* object) {
+  uword object_addr = RawObject::ToAddr(object);
+  HeapPage* image_page = image_pages_;
+  while (image_page != nullptr) {
+    if (image_page->Contains(object_addr)) {
+      return true;
+    }
+    image_page = image_page->next();
+  }
+  return false;
 }
 
 PageSpaceController::PageSpaceController(Heap* heap,

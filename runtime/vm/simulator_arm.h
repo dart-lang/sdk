@@ -16,7 +16,7 @@
 #error Do not include simulator_arm.h directly; use simulator.h.
 #endif
 
-#include "vm/constants_arm.h"
+#include "vm/constants.h"
 
 namespace dart {
 

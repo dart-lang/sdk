@@ -41,9 +41,6 @@ String _makeAuthToken() {
 // The randomly generated auth token used to access the VM service.
 final String serviceAuthToken = _makeAuthToken();
 
-// TODO(johnmccutchan): Enable the auth token and drop the origin check.
-final bool useAuthToken = const bool.fromEnvironment('DART_SERVICE_USE_AUTH');
-
 // This is for use by the embedder. It is a map from the isolateId to
 // anything implementing IsolateEmbedderData. When an isolate goes away,
 // the cleanup method will be invoked after being removed from the map.
@@ -596,62 +593,6 @@ class VMService extends MessageRouter {
     return encodeSuccess(message);
   }
 
-  Future<String> _getCrashDump(Message message) async {
-    var client = message.client;
-    final perIsolateRequests = [
-      // ?isolateId=<isolate id> will be appended to each of these requests.
-      // Isolate information.
-      Uri.parse('getIsolate'),
-      // State of heap.
-      Uri.parse('_getAllocationProfile'),
-      // Call stack + local variables.
-      Uri.parse('getStack?_full=true'),
-    ];
-
-    // Snapshot of running isolates.
-    var isolates = runningIsolates.isolates.values.toList();
-
-    // Collect the mapping from request uris to responses.
-    var responses = {};
-
-    // Request VM.
-    var getVM = Uri.parse('getVM');
-    var getVmResponse =
-        (await new Message.fromUri(client, getVM).sendToVM()).decodeJson();
-    responses[getVM.toString()] = getVmResponse['result'];
-
-    // Request command line flags.
-    var getFlagList = Uri.parse('getFlagList');
-    var getFlagListResponse =
-        (await new Message.fromUri(client, getFlagList).sendToVM())
-            .decodeJson();
-    responses[getFlagList.toString()] = getFlagListResponse['result'];
-
-    // Make requests to each isolate.
-    for (var isolate in isolates) {
-      for (var request in perIsolateRequests) {
-        var message = new Message.forIsolate(client, request, isolate);
-        // Decode the JSON and and insert it into the map. The map key
-        // is the request Uri.
-        var response = (await isolate.routeRequest(this, message)).decodeJson();
-        responses[message.toUri().toString()] = response['result'];
-      }
-      // Dump the object id ring requests.
-      var message =
-          new Message.forIsolate(client, Uri.parse('_dumpIdZone'), isolate);
-      var response = (await isolate.routeRequest(this, message)).decodeJson();
-      // Insert getObject requests into responses map.
-      for (var object in response['result']['objects']) {
-        final requestUri =
-            'getObject&isolateId=${isolate.serviceId}?objectId=${object["id"]}';
-        responses[requestUri] = object;
-      }
-    }
-
-    // Encode the entire crash dump.
-    return encodeResult(message, responses);
-  }
-
   Future<Response> routeRequest(VMService _, Message message) async {
     return new Response.from(await _routeRequestImpl(message));
   }
@@ -660,10 +601,6 @@ class VMService extends MessageRouter {
     try {
       if (message.completed) {
         return await message.response;
-      }
-      // TODO(turnidge): Update to json rpc.  BEFORE SUBMIT.
-      if (message.method == '_getCrashDump') {
-        return await _getCrashDump(message);
       }
       if (message.method == 'streamListen') {
         return await _streamListen(message);
@@ -702,7 +639,7 @@ class VMService extends MessageRouter {
   }
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 RawReceivePort boot() {
   // Return the port we expect isolate control messages on.
   return isolateControlPort;

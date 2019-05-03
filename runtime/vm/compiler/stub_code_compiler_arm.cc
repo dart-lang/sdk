@@ -4,6 +4,9 @@
 
 #include "vm/globals.h"
 
+// For `AllocateObjectInstr::WillAllocateNewOrRemembered`
+#include "vm/compiler/backend/il.h"
+
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
 #include "vm/compiler/stub_code_compiler.h"
@@ -14,7 +17,7 @@
 #include "vm/code_entry_kind.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/locations.h"
-#include "vm/constants_arm.h"
+#include "vm/constants.h"
 #include "vm/instructions.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/tags.h"
@@ -31,6 +34,34 @@ DEFINE_FLAG(bool,
 DECLARE_FLAG(bool, precompiled_mode);
 
 namespace compiler {
+
+// Ensures that [R0] is a new object, if not it will be added to the remembered
+// set via a leaf runtime call.
+//
+// WARNING: This might clobber all registers except for [R0], [THR] and [FP].
+// The caller should simply call LeaveStubFrame() and return.
+static void EnsureIsNewOrRemembered(Assembler* assembler,
+                                    bool preserve_registers = true) {
+  // If the object is not remembered we call a leaf-runtime to add it to the
+  // remembered set.
+  Label done;
+  __ tst(R0, Operand(1 << target::ObjectAlignment::kNewObjectBitPosition));
+  __ BranchIf(NOT_ZERO, &done);
+
+  if (preserve_registers) {
+    __ EnterCallRuntimeFrame(0);
+  } else {
+    __ ReserveAlignedFrameSpace(0);
+  }
+  // [R0] already contains first argument.
+  __ mov(R1, Operand(THR));
+  __ CallRuntime(kAddAllocatedObjectToRememberedSetRuntimeEntry, 2);
+  if (preserve_registers) {
+    __ LeaveCallRuntimeFrame();
+  }
+
+  __ Bind(&done);
+}
 
 // Input parameters:
 //   LR : return address.
@@ -239,6 +270,26 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
+  RegisterSet all_registers;
+  all_registers.AddAllGeneralRegisters();
+  __ PushRegisters(all_registers);
+  __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ blx(R0);
+  __ PopRegisters(all_registers);
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+  RegisterSet all_registers;
+  all_registers.AddAllGeneralRegisters();
+  __ PushRegisters(all_registers);
+  __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ blx(R0);
+  __ PopRegisters(all_registers);
+  __ Ret();
+}
+
 void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
     Assembler* assembler) {
   GenerateSharedStub(
@@ -362,6 +413,12 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ StoreToOffset(kWord, R2, THR,
                    target::Thread::top_exit_frame_info_offset());
 
+  // Restore the global object pool after returning from runtime (old space is
+  // moving, so the GOP could have been relocated).
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
+  }
+
   __ LeaveStubFrame();
   __ Ret();
 }
@@ -455,6 +512,12 @@ void StubCodeCompiler::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   __ LoadImmediate(R2, 0);
   __ StoreToOffset(kWord, R2, THR,
                    target::Thread::top_exit_frame_info_offset());
+
+  // Restore the global object pool after returning from runtime (old space is
+  // moving, so the GOP could have been relocated).
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
+  }
 
   __ LeaveStubFrame();
   __ Ret();
@@ -943,6 +1006,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   // Pop arguments; result is popped in IP.
   __ PopList((1 << R1) | (1 << R2) | (1 << IP));  // R2 is restored.
   __ mov(R0, Operand(IP));
+
+  // Write-barrier elimination might be enabled for this array (depending on the
+  // array length). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler);
+
   __ LeaveStubFrame();
   __ Ret();
 }
@@ -1083,9 +1152,140 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Ret();
 }
 
+// Called when invoking compiled Dart code from interpreted Dart code.
+// Input parameters:
+//   LR : points to return address.
+//   R0 : raw code object of the Dart function to call.
+//   R1 : arguments raw descriptor array.
+//   R2 : address of first argument.
+//   R3 : current thread.
 void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
     Assembler* assembler) {
-  __ Unimplemented("Interpreter not yet supported");
+#if defined(DART_PRECOMPILED_RUNTIME)
+  __ Stop("Not using interpreter");
+#else
+  __ Push(LR);  // Marker for the profiler.
+  __ EnterFrame((1 << FP) | (1 << LR), 0);
+
+  // Push code object to PC marker slot.
+  __ ldr(IP,
+         Address(R3,
+                 target::Thread::invoke_dart_code_from_bytecode_stub_offset()));
+  __ Push(IP);
+
+  // Save new context and C++ ABI callee-saved registers.
+  __ PushList(kAbiPreservedCpuRegs);
+
+  const DRegister firstd = EvenDRegisterOf(kAbiFirstPreservedFpuReg);
+  if (TargetCPUFeatures::vfp_supported()) {
+    ASSERT(2 * kAbiPreservedFpuRegCount < 16);
+    // Save FPU registers. 2 D registers per Q register.
+    __ vstmd(DB_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
+  } else {
+    __ sub(SP, SP, Operand(kAbiPreservedFpuRegCount * kFpuRegisterSize));
+  }
+
+  // Set up THR, which caches the current thread in Dart code.
+  if (THR != R3) {
+    __ mov(THR, Operand(R3));
+  }
+
+  // Save the current VMTag on the stack.
+  __ LoadFromOffset(kWord, R9, THR, target::Thread::vm_tag_offset());
+  __ Push(R9);
+
+  // Save top resource and top exit frame info. Use R4-6 as temporary registers.
+  // StackFrameIterator reads the top exit frame info saved in this frame.
+  __ LoadFromOffset(kWord, R9, THR,
+                    target::Thread::top_exit_frame_info_offset());
+  __ LoadFromOffset(kWord, R4, THR, target::Thread::top_resource_offset());
+  __ LoadImmediate(R8, 0);
+  __ StoreToOffset(kWord, R8, THR, target::Thread::top_resource_offset());
+  __ StoreToOffset(kWord, R8, THR,
+                   target::Thread::top_exit_frame_info_offset());
+
+  // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
+  // with the code below.
+  __ Push(R4);
+#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -26);
+#else
+  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -27);
+#endif
+  __ Push(R9);
+
+  // Mark that the thread is executing Dart code. Do this after initializing the
+  // exit link for the profiler.
+  __ LoadImmediate(R9, VMTag::kDartCompiledTagId);
+  __ StoreToOffset(kWord, R9, THR, target::Thread::vm_tag_offset());
+
+  // Load arguments descriptor array into R4, which is passed to Dart code.
+  __ mov(R4, Operand(R1));
+
+  // Load number of arguments into R9 and adjust count for type arguments.
+  __ ldr(R3,
+         FieldAddress(R4, target::ArgumentsDescriptor::type_args_len_offset()));
+  __ ldr(R9, FieldAddress(R4, target::ArgumentsDescriptor::count_offset()));
+  __ cmp(R3, Operand(0));
+  __ AddImmediate(R9, R9, target::ToRawSmi(1),
+                  NE);  // Include the type arguments.
+  __ SmiUntag(R9);
+
+  // R2 points to first argument.
+  // Set up arguments for the Dart call.
+  Label push_arguments;
+  Label done_push_arguments;
+  __ CompareImmediate(R9, 0);  // check if there are arguments.
+  __ b(&done_push_arguments, EQ);
+  __ LoadImmediate(R1, 0);
+  __ Bind(&push_arguments);
+  __ ldr(R3, Address(R2));
+  __ Push(R3);
+  __ AddImmediate(R2, target::kWordSize);
+  __ AddImmediate(R1, 1);
+  __ cmp(R1, Operand(R9));
+  __ b(&push_arguments, LT);
+  __ Bind(&done_push_arguments);
+
+  // Call the Dart code entrypoint.
+  __ LoadImmediate(PP, 0);  // GC safe value into PP.
+  __ mov(CODE_REG, Operand(R0));
+  __ ldr(R0, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  __ blx(R0);  // R4 is the arguments descriptor array.
+
+  // Get rid of arguments pushed on the stack.
+  __ AddImmediate(
+      SP, FP,
+      target::frame_layout.exit_link_slot_from_entry_fp * target::kWordSize);
+
+  // Restore the saved top exit frame info and top resource back into the
+  // Isolate structure. Uses R9 as a temporary register for this.
+  __ Pop(R9);
+  __ StoreToOffset(kWord, R9, THR,
+                   target::Thread::top_exit_frame_info_offset());
+  __ Pop(R9);
+  __ StoreToOffset(kWord, R9, THR, target::Thread::top_resource_offset());
+
+  // Restore the current VMTag from the stack.
+  __ Pop(R4);
+  __ StoreToOffset(kWord, R4, THR, target::Thread::vm_tag_offset());
+
+  // Restore C++ ABI callee-saved registers.
+  if (TargetCPUFeatures::vfp_supported()) {
+    // Restore FPU registers. 2 D registers per Q register.
+    __ vldmd(IA_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
+  } else {
+    __ AddImmediate(SP, kAbiPreservedFpuRegCount * kFpuRegisterSize);
+  }
+  // Restore CPU registers.
+  __ PopList(kAbiPreservedCpuRegs);
+  __ set_constant_pool_allowed(false);
+
+  // Restore the frame pointer and return.
+  __ LeaveFrame((1 << FP) | (1 << LR));
+  __ Drop(1);
+  __ Ret();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // Called for inline allocation of contexts.
@@ -1206,6 +1406,12 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
   __ Drop(1);  // Pop number of context variables argument.
   __ Pop(R0);  // Pop the new context object.
+
+  // Write-barrier elimination might be enabled for this context (depending on
+  // the size). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+
   // R0: new object
   // Restore the frame pointer.
   __ LeaveStubFrame();
@@ -1534,6 +1740,14 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
       kInstanceReg,
       Address(SP,
               2 * target::kWordSize));  // Pop result (newly allocated object).
+
+  ASSERT(kInstanceReg == R0);
+  if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
+    // Write-barrier elimination is enabled for [cls] and we therefore need to
+    // ensure that the object is in new-space or has remembered bit set.
+    EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+  }
+
   __ LeaveDartFrameAndReturn();         // Restores correct SP.
 }
 
@@ -2032,12 +2246,86 @@ void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
   __ Branch(FieldAddress(R0, target::Function::entry_point_offset()));
 }
 
+// Stub for interpreting a function call.
+// R4: Arguments descriptor.
+// R0: Function.
 void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
-  __ Unimplemented("Interpreter not yet supported");
+#if defined(DART_PRECOMPILED_RUNTIME)
+  __ Stop("Not using interpreter")
+#else
+  __ EnterStubFrame();
+
+#if defined(DEBUG)
+  {
+    Label ok;
+    // Check that we are always entering from Dart code.
+    __ LoadFromOffset(kWord, R8, THR, target::Thread::vm_tag_offset());
+    __ CompareImmediate(R8, VMTag::kDartCompiledTagId);
+    __ b(&ok, EQ);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Adjust arguments count for type arguments vector.
+  __ LoadFieldFromOffset(kWord, R2, R4,
+                         target::ArgumentsDescriptor::count_offset());
+  __ SmiUntag(R2);
+  __ LoadFieldFromOffset(kWord, R1, R4,
+                         target::ArgumentsDescriptor::type_args_len_offset());
+  __ cmp(R1, Operand(0));
+  __ AddImmediate(R2, R2, 1, NE);  // Include the type arguments.
+
+  // Compute argv.
+  __ mov(R3, Operand(R2, LSL, 2));
+  __ add(R3, FP, Operand(R3));
+  __ AddImmediate(R3,
+                  target::frame_layout.param_end_from_fp * target::kWordSize);
+
+  // Indicate decreasing memory addresses of arguments with negative argc.
+  __ rsb(R2, R2, Operand(0));
+
+  // Align frame before entering C++ world. Fifth argument passed on the stack.
+  __ ReserveAlignedFrameSpace(1 * target::kWordSize);
+
+  // Pass arguments in registers.
+  // R0: Function.
+  __ mov(R1, Operand(R4));  // Arguments descriptor.
+  // R2: Negative argc.
+  // R3: Argv.
+  __ str(THR, Address(SP, 0));  // Fifth argument: Thread.
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to Dart VM C++ code.
+  __ StoreToOffset(kWord, FP, THR,
+                   target::Thread::top_exit_frame_info_offset());
+
+  // Mark that the thread is executing VM code.
+  __ LoadFromOffset(kWord, R5, THR,
+                    target::Thread::interpret_call_entry_point_offset());
+  __ StoreToOffset(kWord, R5, THR, target::Thread::vm_tag_offset());
+
+  __ blx(R5);
+
+  // Mark that the thread is executing Dart code.
+  __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
+  __ StoreToOffset(kWord, R2, THR, target::Thread::vm_tag_offset());
+
+  // Reset exit frame information in Isolate structure.
+  __ LoadImmediate(R2, 0);
+  __ StoreToOffset(kWord, R2, THR,
+                   target::Thread::top_exit_frame_info_offset());
+
+  __ LeaveStubFrame();
+  __ Ret();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // R9: Contains an ICData.
 void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   __ LoadImmediate(R0, 0);
   // Preserve arguments descriptor and make room for result.
@@ -2047,9 +2335,13 @@ void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ LeaveStubFrame();
   __ mov(CODE_REG, Operand(R0));
   __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+#endif  // defined(PRODUCT)
 }
 
 void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   __ LoadImmediate(R0, 0);
   // Make room for result.
@@ -2058,12 +2350,13 @@ void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ PopList((1 << CODE_REG));
   __ LeaveStubFrame();
   __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+#endif  // defined(PRODUCT)
 }
 
 // Called only from unoptimized code. All relevant registers have been saved.
 void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 #if defined(PRODUCT)
-  __ Ret();
+  __ Stop("No debugging in PRODUCT mode");
 #else
   // Check single stepping.
   Label stepping, done_stepping;

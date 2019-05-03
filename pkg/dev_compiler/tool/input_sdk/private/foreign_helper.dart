@@ -132,6 +132,8 @@ T JS<T>(String typeDescription, String codeTemplate,
 /// Similar behaviour to `JS` from `package:js/js.dart` (but usable from runtime
 /// files), and not to be confused with `JSName` from `js_helper` (which deals
 /// with names of externs).
+// TODO(jmesserly): remove this in favor of js_helper's `@JSName`
+// (Currently they have slightly different semantics, but they can be unified.)
 class JSExportName {
   final String name;
   const JSExportName(this.name);

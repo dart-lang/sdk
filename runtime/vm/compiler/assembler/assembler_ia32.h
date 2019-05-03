@@ -11,7 +11,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
-#include "vm/constants_ia32.h"
+#include "vm/constants.h"
 #include "vm/constants_x86.h"
 #include "vm/pointer_tagging.h"
 
@@ -466,7 +466,7 @@ class Assembler : public AssemblerBase {
   F(sub, 0x2b, 0x29, 5)                                                        \
   F(sbb, 0x1b, 0x19, 3)                                                        \
   F(cmp, 0x3b, 0x39, 7)
-// clang-format on
+  // clang-format on
 
 #define DECLARE_ALU(op, opcode, opcode2, modrm_opcode)                         \
   void op##l(Register dst, Register src) { Alu(4, opcode, dst, src); }         \
@@ -620,6 +620,11 @@ class Assembler : public AssemblerBase {
                                 const Address& dest,
                                 const Object& value);
 
+  // Stores a non-tagged value into a heap object.
+  void StoreInternalPointer(Register object,
+                            const Address& dest,
+                            Register value);
+
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
   void ZeroInitSmiField(const Address& dest);
@@ -639,6 +644,12 @@ class Assembler : public AssemblerBase {
   void EnterFrame(intptr_t frame_space);
   void LeaveFrame();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
+
+  // Require a temporary register 'tmp'.
+  // Clobber all non-CPU registers (e.g. XMM registers and the "FPU stack").
+  void TransitionGeneratedToNative(Register destination_address,
+                                   Register scratch);
+  void TransitionNativeToGenerated(Register scratch);
 
   // Create a frame for calling into runtime that preserves all volatile
   // registers.  Frame's RSP is guaranteed to be correctly aligned and
@@ -805,9 +816,6 @@ class Assembler : public AssemblerBase {
   void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
-
-  static const char* RegisterName(Register reg);
-  static const char* FpuRegisterName(FpuRegister reg);
 
   // Check if the given value is an integer value that can be directly
   // emdedded into the code without additional XORing with jit_cookie.

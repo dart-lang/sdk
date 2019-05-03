@@ -40,7 +40,8 @@ class HeapPage {
   HeapPage* next() const { return next_; }
   void set_next(HeapPage* next) { next_ = next; }
 
-  bool Contains(uword addr) { return memory_->Contains(addr); }
+  bool Contains(uword addr) const { return memory_->Contains(addr); }
+  intptr_t AliasOffset() const { return memory_->AliasOffset(); }
 
   uword object_start() const { return memory_->start() + ObjectStartOffset(); }
   uword object_end() const { return object_end_; }
@@ -70,7 +71,8 @@ class HeapPage {
   }
 
   // Warning: This does not work for objects on image pages because image pages
-  // are not aligned.
+  // are not aligned. However, it works for objects on large pages, because
+  // only one object is allocated per large page.
   static HeapPage* Of(RawObject* obj) {
     ASSERT(obj->IsHeapObject());
     ASSERT(obj->IsOldObject());
@@ -78,8 +80,43 @@ class HeapPage {
                                        kPageMask);
   }
 
-  static HeapPage* Of(uintptr_t addr) {
+  // Warning: This does not work for addresses on image pages or on large pages.
+  static HeapPage* Of(uword addr) {
     return reinterpret_cast<HeapPage*>(addr & kPageMask);
+  }
+
+  // Warning: This does not work for objects on image pages.
+  static RawObject* ToExecutable(RawObject* obj) {
+    HeapPage* page = Of(obj);
+    VirtualMemory* memory = page->memory_;
+    const intptr_t alias_offset = memory->AliasOffset();
+    if (alias_offset == 0) {
+      return obj;  // Not aliased.
+    }
+    uword addr = RawObject::ToAddr(obj);
+    if (memory->Contains(addr)) {
+      return RawObject::FromAddr(addr + alias_offset);
+    }
+    // obj is executable.
+    ASSERT(memory->ContainsAlias(addr));
+    return obj;
+  }
+
+  // Warning: This does not work for objects on image pages.
+  static RawObject* ToWritable(RawObject* obj) {
+    HeapPage* page = Of(obj);
+    VirtualMemory* memory = page->memory_;
+    const intptr_t alias_offset = memory->AliasOffset();
+    if (alias_offset == 0) {
+      return obj;  // Not aliased.
+    }
+    uword addr = RawObject::ToAddr(obj);
+    if (memory->ContainsAlias(addr)) {
+      return RawObject::FromAddr(addr - alias_offset);
+    }
+    // obj is writable.
+    ASSERT(memory->Contains(addr));
+    return obj;
   }
 
   // 1 card = 128 slots.
@@ -360,6 +397,7 @@ class PageSpace {
   }
 
   void AllocateExternal(intptr_t cid, intptr_t size);
+  void PromoteExternal(intptr_t cid, intptr_t size);
   void FreeExternal(intptr_t size);
 
   // Bulk data allocation.
@@ -391,10 +429,9 @@ class PageSpace {
   void set_phase(Phase val) { phase_ = val; }
 
   // Attempt to allocate from bump block rather than normal freelist.
-  uword TryAllocateDataBump(intptr_t size, GrowthPolicy growth_policy);
-  uword TryAllocateDataBumpLocked(intptr_t size, GrowthPolicy growth_policy);
+  uword TryAllocateDataBumpLocked(intptr_t size);
   // Prefer small freelist blocks, then chip away at the bump block.
-  uword TryAllocatePromoLocked(intptr_t size, GrowthPolicy growth_policy);
+  uword TryAllocatePromoLocked(intptr_t size);
 
   void SetupImagePage(void* pointer, uword size, bool is_executable);
 
@@ -407,6 +444,8 @@ class PageSpace {
   void set_enable_concurrent_mark(bool enable_concurrent_mark) {
     enable_concurrent_mark_ = enable_concurrent_mark;
   }
+
+  bool IsObjectFromImagePages(RawObject* object);
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -436,9 +475,6 @@ class PageSpace {
                                HeapPage::PageType type,
                                GrowthPolicy growth_policy,
                                bool is_locked);
-  uword TryAllocateDataBumpInternal(intptr_t size,
-                                    GrowthPolicy growth_policy,
-                                    bool is_locked);
   // Makes bump block walkable; do not call concurrently with mutator.
   void MakeIterable() const;
   HeapPage* AllocatePage(HeapPage::PageType type, bool link = true);

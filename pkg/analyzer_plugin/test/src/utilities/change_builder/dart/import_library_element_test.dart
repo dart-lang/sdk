@@ -16,6 +16,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportLibraryElementTest);
     defineReflectiveTests(ImportLibraryElement_existingImport_Test);
+    defineReflectiveTests(ImportLibraryElement_incompleteCode_Test);
     defineReflectiveTests(ImportLibraryElement_newImport_withoutPrefix_Test);
     defineReflectiveTests(ImportLibraryElement_newImport_withPrefix_Test);
   });
@@ -154,6 +155,47 @@ import 'package:test/b.dart' as p;
       uriStr: 'package:test/b.dart',
       name: 'C',
       expectedPrefix: 'p',
+    );
+  }
+}
+
+@reflectiveTest
+class ImportLibraryElement_incompleteCode_Test extends _Base {
+  test_formalParameter() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    newFile('/home/test/lib/b.dart', content: r'''
+export 'a.dart';
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+f(A^) {}
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'A',
+      expectedCode: r'''
+import 'package:test/a.dart';
+
+f(A) {}
+''',
+    );
+  }
+
+  test_topLevelVariable() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    newFile('/home/test/lib/b.dart', content: r'''
+export 'a.dart';
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+A^
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'A',
+      expectedCode: r'''
+import 'package:test/a.dart';
+
+A
+''',
     );
   }
 }
@@ -468,11 +510,9 @@ class C {}
     );
   }
 
-  @failingTest
   test_shadowed_class_inPart() async {
     newFile('/home/test/lib/a.dart', content: 'class C {}');
     newFile('/home/test/lib/p.dart', content: 'class C {}');
-    // TODO(scheglov) "import" must be before "part"
     await _assertImportLibraryElement(
       initialCode: r'''
 part 'p.dart';
@@ -735,8 +775,8 @@ class _Base extends AbstractContextTest with DartChangeBuilderMixin {
     var resolvedLibrary = await session.getResolvedLibrary(path);
     var requestedLibrary = await session.getLibraryByUri(uriStr);
 
-    var element = requestedLibrary.exportNamespace.get(name);
-    expect(element, isNotNull, reason: '`$name` in $uriStr');
+    var requestedElement = requestedLibrary.exportNamespace.get(name);
+    expect(requestedElement, isNotNull, reason: '`$name` in $uriStr');
 
     var builder = newBuilder();
     await builder.addFileEdit(path, (builder) {
@@ -745,7 +785,7 @@ class _Base extends AbstractContextTest with DartChangeBuilderMixin {
         targetPath: path,
         targetOffset: offset,
         requestedLibrary: requestedLibrary,
-        requestedName: name,
+        requestedElement: requestedElement,
       );
       expect(result.prefix, expectedPrefix);
     });

@@ -15,7 +15,6 @@ namespace dart {
   V(BreakpointRuntimeHandler)                                                  \
   V(SingleStepHandler)                                                         \
   V(CloneContext)                                                              \
-  V(ExtractMethod)                                                             \
   V(GetFieldForDispatch)                                                       \
   V(ResolveCallFunction)                                                       \
   V(FixCallersTarget)                                                          \
@@ -33,6 +32,7 @@ namespace dart {
   V(InstantiateType)                                                           \
   V(InstantiateTypeArguments)                                                  \
   V(InvokeClosureNoSuchMethod)                                                 \
+  V(InvokeNoSuchMethod)                                                        \
   V(InvokeNoSuchMethodDispatcher)                                              \
   V(MegamorphicCacheMissHandler)                                               \
   V(OptimizeInvokedFunction)                                                   \
@@ -64,6 +64,8 @@ namespace dart {
   V(void, StoreBufferBlockProcess, Thread*)                                    \
   V(void, MarkingStackBlockProcess, Thread*)                                   \
   V(void, RememberCard, RawObject*, RawObject**)                               \
+  V(RawObject*, AddAllocatedObjectToRememberedSet, RawObject* object,          \
+    Thread* thread)                                                            \
   V(double, LibcPow, double, double)                                           \
   V(double, DartModulo, double, double)                                        \
   V(double, LibcFloor, double)                                                 \
@@ -77,7 +79,10 @@ namespace dart {
   V(double, LibcAsin, double)                                                  \
   V(double, LibcAtan, double)                                                  \
   V(double, LibcAtan2, double, double)                                         \
-  V(RawBool*, CaseInsensitiveCompareUC16, RawString*, RawSmi*, RawSmi*, RawSmi*)
+  V(RawBool*, CaseInsensitiveCompareUC16, RawString*, RawSmi*, RawSmi*,        \
+    RawSmi*)                                                                   \
+  V(void, EnterSafepoint)                                                      \
+  V(void, ExitSafepoint)
 
 }  // namespace dart
 

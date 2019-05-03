@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test/test.dart';
@@ -14,80 +13,12 @@ import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(EqualValuesInConstSetTest);
+    defineReflectiveTests(StaticWarningCodeTest);
   });
 }
 
 @reflectiveTest
-class EqualValuesInConstSetTest extends ResolverTestCase {
-  @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  test_simpleValues() async {
-    Source source = addSource('var s = const {0, 1, 0};');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.EQUAL_VALUES_IN_CONST_SET]);
-    verify([source]);
-  }
-
-  test_valuesWithEqualTypeParams() async {
-    Source source = addSource(r'''
-class A<T> {
-  const A();
-}
-var s = const {A<int>(), A<int>()};
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.EQUAL_VALUES_IN_CONST_SET]);
-    verify([source]);
-  }
-
-  test_valuesWithUnequalTypeParams() async {
-    // No error should be produced because A<int> and A<num> are different
-    // types.
-    Source source = addSource(r'''
-class A<T> {
-  const A();
-}
-const s = {A<int>(), A<num>()};
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-}
-
-abstract class StaticWarningCodeTest extends ResolverTestCase {
-  fail_argumentTypeNotAssignable_tearOff_required() async {
-    Source source = addSource(r'''
-class C {
-  Object/*=T*/ f/*<T>*/(Object/*=T*/ x) => x;
-}
-g(C c) {
-  var h = c.f/*<int>*/;
-  print(h('s'));
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
-  fail_undefinedIdentifier_commentReference() async {
-    Source source = addSource(r'''
-/** [m] xxx [new B.c] */
-class A {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      StaticWarningCode.UNDEFINED_IDENTIFIER,
-      StaticWarningCode.UNDEFINED_IDENTIFIER
-    ]);
-  }
-
+class StaticWarningCodeTest extends ResolverTestCase {
   test_ambiguousImport_as() async {
     Source source = addSource(r'''
 import 'lib1.dart';
@@ -111,9 +42,7 @@ import 'dart:async2';
 Future v;
 ''');
     await computeAnalysisResult(source);
-    if (enableNewAnalysisDriver) {
-      assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
-    }
+    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
   test_ambiguousImport_extends() async {
@@ -645,6 +574,22 @@ main() {
     verify([source]);
   }
 
+  @failingTest
+  test_argumentTypeNotAssignable_tearOff_required() async {
+    Source source = addSource(r'''
+class C {
+  Object/*=T*/ f/*<T>*/(Object/*=T*/ x) => x;
+}
+g(C c) {
+  var h = c.f/*<int>*/;
+  print(h('s'));
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
   test_assignmentToClass() async {
     Source source = addSource('''
 class C {}
@@ -1008,37 +953,6 @@ void f() {
     InstanceCreationExpression init = a.variables.variables[0].initializer;
     expect(init.staticType,
         classA.declaredElement.type.instantiate([typeProvider.intType]));
-  }
-
-  test_equalKeysInMap() async {
-    Source source = addSource("var m = {'a' : 0, 'b' : 1, 'a' : 2};");
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.EQUAL_KEYS_IN_MAP]);
-    verify([source]);
-  }
-
-  test_equalKeysInMap_withEqualTypeParams() async {
-    Source source = addSource(r'''
-class A<T> {
-  const A();
-}
-var m = {const A<int>(): 0, const A<int>(): 1};''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.EQUAL_KEYS_IN_MAP]);
-    verify([source]);
-  }
-
-  test_equalKeysInMap_withUnequalTypeParams() async {
-    // No error should be produced because A<int> and A<num> are different
-    // types.
-    Source source = addSource(r'''
-class A<T> {
-  const A();
-}
-var m = {const A<int>(): 0, const A<num>(): 1};''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
   }
 
   test_exportDuplicatedLibraryNamed() async {
@@ -2324,27 +2238,6 @@ class B implements I<int>, J<String> {
     verify([source]);
   }
 
-  test_listElementTypeNotAssignable() async {
-    Source source = addSource("var v = <String> [42];");
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
-  test_mapKeyTypeNotAssignable() async {
-    Source source = addSource("var v = <String, int > {1 : 2};");
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
-  test_mapValueTypeNotAssignable() async {
-    Source source = addSource("var v = <String, String> {'a' : 2};");
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
-    verify([source]);
-  }
-
   test_mismatchedAccessorTypes_topLevel() async {
     Source source = addSource(r'''
 int get g { return 0; }
@@ -3577,6 +3470,19 @@ f(var p) {
     Source source = addSource("f() { boolean v; }");
     await computeAnalysisResult(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_CLASS_BOOLEAN]);
+  }
+
+  @failingTest
+  test_undefinedIdentifier_commentReference() async {
+    Source source = addSource(r'''
+/** [m] xxx [new B.c] */
+class A {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      StaticWarningCode.UNDEFINED_IDENTIFIER,
+      StaticWarningCode.UNDEFINED_IDENTIFIER
+    ]);
   }
 
   test_undefinedIdentifier_for() async {

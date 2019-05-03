@@ -23,7 +23,7 @@ class B {
   @pragma('dart2js:noElision')
   static var g;
 
-  @NoInline()
+  @pragma('dart2js:noInline')
   method1(a) {
     g = '(Method1Tag)'; // Tag to identify compiled JavaScript method.
     A x = makeA();
@@ -34,7 +34,7 @@ class B {
     return x.foo(3, 10, 30);
   }
 
-  @NoInline()
+  @pragma('dart2js:noInline')
   method2() {
     g = '(Method2Tag)';
     A x = makeA();
@@ -43,7 +43,7 @@ class B {
     return r1 + r2;
   }
 
-  @NoInline()
+  @pragma('dart2js:noInline')
   method3() {
     g = '(Method3Tag)';
     A x = makeA();

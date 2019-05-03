@@ -4,9 +4,11 @@
 
 // Patch file for dart:developer library.
 
-import 'dart:_js_helper' show patch, ForceInline;
-import 'dart:_foreign_helper' show JS;
+import 'dart:_js_helper' show patch, ForceInline, ReifyFunctionTypes;
+import 'dart:_foreign_helper' show JS, JSExportName;
+import 'dart:_runtime' as dart;
 import 'dart:async';
+import 'dart:convert' show json;
 import 'dart:isolate';
 
 @patch
@@ -59,6 +61,33 @@ ServiceExtensionHandler _lookupExtension(String method) {
 _registerExtension(String method, ServiceExtensionHandler handler) {
   _extensions[method] = handler;
   JS('', 'console.debug("dart.developer.registerExtension", #)', method);
+}
+
+/// Returns a JS `Promise` that resolves with the result of invoking
+/// [methodName] with an [encodedJson] map as its parameters.
+///
+/// This is used by the VM Service Prototcol to invoke extensions registered
+/// with [registerExtension]. For example, in JS:
+///
+///     await sdk.developer.invokeExtension(
+/// .         "ext.flutter.inspector.getRootWidget", '{"objectGroup":""}');
+///
+@JSExportName('invokeExtension')
+@ReifyFunctionTypes(false)
+_invokeExtension(String methodName, String encodedJson) {
+  // TODO(vsm): We should factor this out as future<->promise.
+  return JS('', 'new #.Promise(#)', dart.global_,
+      (Function(Object) resolve, Function(Object) reject) async {
+    try {
+      var method = _lookupExtension(methodName);
+      var parameters = (json.decode(encodedJson) as Map).cast<String, String>();
+      var result = await method(methodName, parameters);
+      resolve(result._toString());
+    } catch (e) {
+      // TODO(vsm): Reject or encode in result?
+      reject('$e');
+    }
+  });
 }
 
 @patch

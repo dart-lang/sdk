@@ -39,6 +39,7 @@ class EnqueueTask extends CompilerTask {
   CodegenEnqueuer codegenEnqueuerForTesting;
   final Compiler compiler;
 
+  @override
   String get name => 'Enqueue';
 
   EnqueueTask(Compiler compiler)
@@ -189,12 +190,14 @@ abstract class EnqueuerImpl extends Enqueuer {
 
   ImpactStrategy get impactStrategy => _impactStrategy;
 
+  @override
   void open(ImpactStrategy impactStrategy, FunctionEntity mainMethod,
       Iterable<Uri> libraries) {
     _impactStrategy = impactStrategy;
     listener.onQueueOpen(this, mainMethod, libraries);
   }
 
+  @override
   void close() {
     // TODO(johnniwinther): Set [_impactStrategy] to `null` and [queueIsClosed]
     // to `true` here.
@@ -224,9 +227,11 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   static const ImpactUseCase IMPACT_USE =
       const ImpactUseCase('ResolutionEnqueuer');
 
+  @override
   final CompilerTask task;
   final String name;
   final CompilerOptions _options;
+  @override
   final EnqueuerListener listener;
 
   final Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
@@ -235,6 +240,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   final WorkItemBuilder _workItemBuilder;
   final DiagnosticReporter _reporter;
 
+  @override
   bool queueIsClosed = false;
 
   WorldImpactVisitor _impactVisitor;
@@ -251,8 +257,10 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
 
+  @override
   ResolutionWorldBuilder get worldBuilder => _worldBuilder;
 
+  @override
   bool get queueIsEmpty => _queue.isEmpty;
 
   @override
@@ -262,8 +270,10 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     }
   }
 
+  @override
   Iterable<ClassEntity> get processedClasses => _worldBuilder.processedClasses;
 
+  @override
   void applyImpact(WorldImpact worldImpact, {var impactSource}) {
     if (worldImpact.isEmpty) return;
     impactStrategy.visitImpact(
@@ -283,12 +293,14 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     });
   }
 
+  @override
   bool checkNoEnqueuedInvokedInstanceMethods(
       ElementEnvironment elementEnvironment) {
     if (Enqueuer.skipEnqueuerCheckForTesting) return true;
     return checkEnqueuerConsistency(elementEnvironment);
   }
 
+  @override
   void checkClass(ClassEntity cls) {
     _worldBuilder.processClassMembers(cls,
         (MemberEntity member, EnumSet<MemberUse> useSet) {
@@ -296,7 +308,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         _reporter.internalError(member,
             'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
       }
-    });
+    }, dryRun: true);
   }
 
   /// Callback for applying the use of a [member].
@@ -330,12 +342,14 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     }
   }
 
+  @override
   void processDynamicUse(DynamicUse dynamicUse) {
     task.measure(() {
       _worldBuilder.registerDynamicUse(dynamicUse, _applyMemberUse);
     });
   }
 
+  @override
   void processConstantUse(ConstantUse constantUse) {
     task.measure(() {
       if (_worldBuilder.registerConstantUse(constantUse)) {
@@ -346,6 +360,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     });
   }
 
+  @override
   void processStaticUse(StaticUse staticUse) {
     _worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
     // TODO(johnniwinther): Add `ResolutionWorldBuilder.registerConstructorUse`
@@ -367,10 +382,12 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     }
   }
 
+  @override
   void processTypeUse(TypeUse typeUse) {
     DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
+      case TypeUseKind.CONST_INSTANTIATION:
         _registerInstantiatedType(type, globalDependency: false);
         break;
       case TypeUseKind.NATIVE_INSTANTIATION:
@@ -439,6 +456,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         _queue.isNotEmpty || _recentClasses.isNotEmpty || _recentConstants);
   }
 
+  @override
   void forEach(void f(WorkItem work)) {
     _forEach(f);
     if (onEmptyForTesting != null) {
@@ -447,18 +465,23 @@ class ResolutionEnqueuer extends EnqueuerImpl {
     }
   }
 
+  @override
   void logSummary(void log(String message)) {
     log('Resolved ${processedEntities.length} elements.');
     listener.logSummary(log);
   }
 
+  @override
   String toString() => 'Enqueuer($name)';
 
+  @override
   Iterable<MemberEntity> get processedEntities =>
       _worldBuilder.processedMembers;
 
+  @override
   ImpactUseCase get impactUse => IMPACT_USE;
 
+  @override
   bool get isResolutionQueue => true;
 
   /// Registers [entity] as processed by the resolution enqueuer. Used only for

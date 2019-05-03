@@ -28,11 +28,13 @@ import 'package:usage/uuid/uuid.dart';
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart'
     show
+        asFileUri,
         compileToKernel,
         parseCommandLineDefines,
         convertFileOrUriArgumentToUri,
         createFrontEndTarget,
         createFrontEndFileSystem,
+        setVMEnvironmentDefines,
         writeDepfile;
 
 ArgParser argParser = new ArgParser(allowTrailingOptions: true)
@@ -115,16 +117,16 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
 String usage = '''
 Usage: server [options] [input.dart]
 
-If input dart source code is provided on the command line, then the server
-compiles it, generates dill file and exits.
-If no input dart source is provided on the command line, server waits for
+If filename or uri pointing to the entrypoint is provided on the command line,
+then the server compiles it, generates dill file and exits.
+If no entrypoint is provided on the command line, server waits for
 instructions from stdin.
 
 Instructions:
 - compile <input.dart>
 - recompile [<input.dart>] <boundary-key>
-<path/to/updated/file1.dart>
-<path/to/updated/file2.dart>
+<invalidated file uri>
+<invalidated file uri>
 ...
 <boundary-key>
 - accept
@@ -152,20 +154,20 @@ enum _State {
 
 /// Actions that every compiler should implement.
 abstract class CompilerInterface {
-  /// Compile given Dart program identified by `filename` with given list of
+  /// Compile given Dart program identified by `entryPoint` with given list of
   /// `options`. When `generator` parameter is omitted, new instance of
   /// `IncrementalKernelGenerator` is created by this method. Main use for this
   /// parameter is for mocking in tests.
   /// Returns [true] if compilation was successful and produced no errors.
   Future<bool> compile(
-    String filename,
+    String entryPoint,
     ArgResults options, {
     IncrementalCompiler generator,
   });
 
   /// Assuming some Dart program was previously compiled, recompile it again
   /// taking into account some changed(invalidated) sources.
-  Future<Null> recompileDelta({String filename});
+  Future<Null> recompileDelta({String entryPoint});
 
   /// Accept results of previous compilation so that next recompilation cycle
   /// won't recompile sources that were previously reported as changed.
@@ -240,30 +242,27 @@ class FrontendCompiler implements CompilerInterface {
   String _kernelBinaryFilenameFull;
   String _initializeFromDill;
 
+  Set<Uri> previouslyReportedDependencies = Set<Uri>();
+
   final ProgramTransformer transformer;
 
   final List<String> errors = new List<String>();
 
-  void setMainSourceFilename(String filename) {
-    final Uri filenameUri = _getFileOrUri(filename);
-    _mainSource = filenameUri;
-  }
-
   @override
   Future<bool> compile(
-    String filename,
+    String entryPoint,
     ArgResults options, {
     IncrementalCompiler generator,
   }) async {
     _options = options;
     _fileSystem = createFrontEndFileSystem(
         options['filesystem-scheme'], options['filesystem-root']);
-    setMainSourceFilename(filename);
-    _kernelBinaryFilenameFull = _options['output-dill'] ?? '$filename.dill';
+    _mainSource = _getFileOrUri(entryPoint);
+    _kernelBinaryFilenameFull = _options['output-dill'] ?? '$entryPoint.dill';
     _kernelBinaryFilenameIncremental = _options['output-incremental-dill'] ??
         (_options['output-dill'] != null
             ? '${_options['output-dill']}.incremental.dill'
-            : '$filename.incremental.dill');
+            : '$entryPoint.incremental.dill');
     _kernelBinaryFilename = _kernelBinaryFilenameFull;
     _initializeFromDill =
         _options['initialize-from-dill'] ?? _kernelBinaryFilenameFull;
@@ -333,6 +332,9 @@ class FrontendCompiler implements CompilerInterface {
     Component component;
     if (options['incremental']) {
       _compilerOptions = compilerOptions;
+      setVMEnvironmentDefines(environmentDefines, _compilerOptions);
+
+      _compilerOptions.omitPlatform = false;
       _generator =
           generator ?? _createGenerator(new Uri.file(_initializeFromDill));
       await invalidateIfInitializingFromDill();
@@ -359,6 +361,8 @@ class FrontendCompiler implements CompilerInterface {
       await writeDillFile(component, _kernelBinaryFilename,
           filterExternal: importDill != null);
 
+      _outputStream.writeln(boundaryKey);
+      await _outputDependenciesDelta(component);
       _outputStream
           .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
       final String depfile = options['depfile'];
@@ -371,6 +375,27 @@ class FrontendCompiler implements CompilerInterface {
     } else
       _outputStream.writeln(boundaryKey);
     return errors.isEmpty;
+  }
+
+  void _outputDependenciesDelta(Component component) async {
+    Set<Uri> uris = new Set<Uri>();
+    for (Uri uri in component.uriToSource.keys) {
+      // Skip empty or corelib dependencies.
+      if (uri == null || uri.scheme == 'org-dartlang-sdk') continue;
+      uris.add(uri);
+    }
+    for (Uri uri in uris) {
+      if (previouslyReportedDependencies.contains(uri)) {
+        continue;
+      }
+      _outputStream.writeln('+${await asFileUri(_fileSystem, uri)}');
+    }
+    for (Uri uri in previouslyReportedDependencies) {
+      if (!uris.contains(uri)) {
+        _outputStream.writeln('-${await asFileUri(_fileSystem, uri)}');
+      }
+    }
+    previouslyReportedDependencies = uris;
   }
 
   writeDillFile(Component component, String filename,
@@ -430,7 +455,15 @@ class FrontendCompiler implements CompilerInterface {
         // Ignore errors that might be caused by non-file uris.
         continue nextUri;
       }
-      if (!await entity.exists()) {
+
+      bool exists;
+      try {
+        exists = await entity.exists();
+      } catch (e) {
+        exists = false;
+      }
+
+      if (!exists) {
         _generator.invalidate(uri);
         continue nextUri;
       }
@@ -449,12 +482,12 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   @override
-  Future<Null> recompileDelta({String filename}) async {
+  Future<Null> recompileDelta({String entryPoint}) async {
     final String boundaryKey = new Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
     await invalidateIfInitializingFromDill();
-    if (filename != null) {
-      setMainSourceFilename(filename);
+    if (entryPoint != null) {
+      _mainSource = _getFileOrUri(entryPoint);
     }
     errors.clear();
     final Component deltaProgram =
@@ -464,6 +497,8 @@ class FrontendCompiler implements CompilerInterface {
       transformer.transform(deltaProgram);
     }
     await writeDillFile(deltaProgram, _kernelBinaryFilename);
+    _outputStream.writeln(boundaryKey);
+    await _outputDependenciesDelta(deltaProgram);
     _outputStream
         .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
     _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
@@ -674,7 +709,7 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
   _State state = _State.READY_FOR_INSTRUCTION;
   _CompileExpressionRequest compileExpressionRequest;
   String boundaryKey;
-  String recompileFilename;
+  String recompileEntryPoint;
   input
       .transform(utf8.decoder)
       .transform(const LineSplitter())
@@ -686,17 +721,17 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
         const String COMPILE_EXPRESSION_INSTRUCTION_SPACE =
             'compile-expression ';
         if (string.startsWith(COMPILE_INSTRUCTION_SPACE)) {
-          final String filename =
+          final String entryPoint =
               string.substring(COMPILE_INSTRUCTION_SPACE.length);
-          await compiler.compile(filename, options, generator: generator);
+          await compiler.compile(entryPoint, options, generator: generator);
         } else if (string.startsWith(RECOMPILE_INSTRUCTION_SPACE)) {
-          // 'recompile [<filename>] <boundarykey>'
+          // 'recompile [<entryPoint>] <boundarykey>'
           //   where <boundarykey> can't have spaces
           final String remainder =
               string.substring(RECOMPILE_INSTRUCTION_SPACE.length);
           final int spaceDelim = remainder.lastIndexOf(' ');
           if (spaceDelim > -1) {
-            recompileFilename = remainder.substring(0, spaceDelim);
+            recompileEntryPoint = remainder.substring(0, spaceDelim);
             boundaryKey = remainder.substring(spaceDelim + 1);
           } else {
             boundaryKey = remainder;
@@ -730,7 +765,7 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
         break;
       case _State.RECOMPILE_LIST:
         if (string == boundaryKey) {
-          compiler.recompileDelta(filename: recompileFilename);
+          compiler.recompileDelta(entryPoint: recompileEntryPoint);
           state = _State.READY_FOR_INSTRUCTION;
         } else
           compiler.invalidate(Uri.base.resolve(string));

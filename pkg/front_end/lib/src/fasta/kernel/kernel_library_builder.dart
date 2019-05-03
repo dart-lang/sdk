@@ -32,7 +32,6 @@ import 'package:kernel/ast.dart'
         StaticInvocation,
         StringLiteral,
         Supertype,
-        TreeNode,
         Typedef,
         TypeParameter,
         TypeParameterType,
@@ -97,6 +96,7 @@ import '../loader.dart' show Loader;
 import '../modifier.dart'
     show
         abstractMask,
+        hasConstConstructorMask,
         hasInitializerMask,
         initializingFormalMask,
         mixinDeclarationMask,
@@ -124,7 +124,7 @@ import 'kernel_builder.dart'
         DynamicTypeBuilder,
         EnumConstantInfo,
         FormalParameterBuilder,
-        ImplicitType,
+        ImplicitFieldType,
         InvalidTypeBuilder,
         KernelClassBuilder,
         KernelConstructorBuilder,
@@ -294,12 +294,16 @@ class KernelLibraryBuilder
       isMixinDeclaration = true;
       modifiers = (modifiers & ~mixinDeclarationMask) | abstractMask;
     }
+    if (declaration.hasConstConstructor) {
+      modifiers |= hasConstConstructorMask;
+    }
     ClassBuilder cls = new SourceClassBuilder(
         metadata,
         modifiers,
         className,
         typeVariables,
-        applyMixins(supertype, charOffset, className, isMixinDeclaration,
+        applyMixins(supertype, startCharOffset, charOffset, charEndOffset,
+            className, isMixinDeclaration,
             typeVariables: typeVariables),
         interfaces,
         classScope,
@@ -375,8 +379,13 @@ class KernelLibraryBuilder
     return typeVariablesByName;
   }
 
-  KernelTypeBuilder applyMixins(KernelTypeBuilder type, int charOffset,
-      String subclassName, bool isMixinDeclaration,
+  KernelTypeBuilder applyMixins(
+      KernelTypeBuilder type,
+      int startCharOffset,
+      int charOffset,
+      int charEndOffset,
+      String subclassName,
+      bool isMixinDeclaration,
       {String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
@@ -549,9 +558,9 @@ class KernelLibraryBuilder
             }
           }
         }
-        final int startCharOffset =
+        final int computedStartCharOffset =
             (isNamedMixinApplication ? metadata : null) == null
-                ? charOffset
+                ? startCharOffset
                 : metadata.first.charOffset;
         SourceClassBuilder application = new SourceClassBuilder(
             isNamedMixinApplication ? metadata : null,
@@ -571,9 +580,9 @@ class KernelLibraryBuilder
                 isModifiable: false),
             this,
             <ConstructorReferenceBuilder>[],
-            startCharOffset,
+            computedStartCharOffset,
             charOffset,
-            TreeNode.noOffset,
+            charEndOffset,
             mixedInType: isMixinDeclaration ? null : mixin);
         if (isNamedMixinApplication) {
           loader.target.metadataCollector?.setDocumentationComment(
@@ -601,11 +610,13 @@ class KernelLibraryBuilder
       int modifiers,
       KernelTypeBuilder mixinApplication,
       List<KernelTypeBuilder> interfaces,
-      int charOffset) {
+      int startCharOffset,
+      int charOffset,
+      int charEndOffset) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(name).resolveTypes(typeVariables, this);
-    KernelNamedTypeBuilder supertype = applyMixins(
-        mixinApplication, charOffset, name, false,
+    KernelNamedTypeBuilder supertype = applyMixins(mixinApplication,
+        startCharOffset, charOffset, charEndOffset, name, false,
         documentationComment: documentationComment,
         metadata: metadata,
         name: name,
@@ -634,7 +645,8 @@ class KernelLibraryBuilder
     addBuilder(name, field, charOffset);
     if (initializerTokenForInference != null) {
       assert(type == null);
-      field.target.type = new ImplicitType(field, initializerTokenForInference);
+      field.target.type =
+          new ImplicitFieldType(field, initializerTokenForInference);
     }
     loader.target.metadataCollector
         ?.setDocumentationComment(field.target, documentationComment);
@@ -681,6 +693,7 @@ class KernelLibraryBuilder
     if (nativeMethodName != null) {
       addNativeMethod(procedure);
     }
+    if (procedure.isConst) currentDeclaration?.hasConstConstructor = true;
   }
 
   void addProcedure(
@@ -813,11 +826,19 @@ class KernelLibraryBuilder
       List<MetadataBuilder> metadata,
       String name,
       List<EnumConstantInfo> enumConstantInfos,
+      int startCharOffset,
       int charOffset,
       int charEndOffset) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
-    KernelEnumBuilder builder = new KernelEnumBuilder(metadataCollector,
-        metadata, name, enumConstantInfos, this, charOffset, charEndOffset);
+    KernelEnumBuilder builder = new KernelEnumBuilder(
+        metadataCollector,
+        metadata,
+        name,
+        enumConstantInfos,
+        this,
+        startCharOffset,
+        charOffset,
+        charEndOffset);
     addBuilder(name, builder, charOffset);
     metadataCollector?.setDocumentationComment(
         builder.target, documentationComment);

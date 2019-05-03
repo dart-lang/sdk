@@ -59,6 +59,9 @@ class JsonCyclicError extends JsonUnsupportedObjectError {
 ///
 ///     var encoded = json.encode([1, 2, { "a": null }]);
 ///     var decoded = json.decode('["foo", { "bar": 499 }]');
+///
+/// The top-level [jsonEncode] and [jsonDecode] functions may be used instead if
+/// a local variable shadows the [json] constant.
 const JsonCodec json = JsonCodec();
 
 /// Converts [value] to a JSON string.
@@ -71,7 +74,8 @@ const JsonCodec json = JsonCodec();
 /// If [toEncodable] is omitted, it defaults to a function that returns the
 /// result of calling `.toJson()` on the unencodable object.
 ///
-/// Shorthand for [json.encode].
+/// Shorthand for [json.encode]. Useful if a local variable shadows the global
+/// [json] constant.
 String jsonEncode(Object object, {Object toEncodable(Object nonEncodable)}) =>
     json.encode(object, toEncodable: toEncodable);
 
@@ -84,12 +88,10 @@ String jsonEncode(Object object, {Object toEncodable(Object nonEncodable)}) =>
 ///
 /// The default [reviver] (when not provided) is the identity function.
 ///
-/// Shorthand for [json.decode].
+/// Shorthand for [json.decode]. Useful if a local variable shadows the global
+/// [json] constant.
 dynamic jsonDecode(String source, {Object reviver(Object key, Object value)}) =>
     json.decode(source, reviver: reviver);
-
-typedef _Reviver(Object key, Object value);
-typedef _ToEncodable(var o);
 
 /// A [JsonCodec] encodes JSON objects to strings and decodes strings to
 /// JSON objects.
@@ -99,8 +101,8 @@ typedef _ToEncodable(var o);
 ///     var encoded = json.encode([1, 2, { "a": null }]);
 ///     var decoded = json.decode('["foo", { "bar": 499 }]');
 class JsonCodec extends Codec<Object, String> {
-  final _Reviver _reviver;
-  final _ToEncodable _toEncodable;
+  final Function(Object key, Object value) _reviver;
+  final Function(dynamic) _toEncodable;
 
   /// Creates a `JsonCodec` with the given reviver and encoding function.
   ///
@@ -188,7 +190,7 @@ class JsonEncoder extends Converter<Object, String> {
 
   /// Function called on non-encodable objects to return a replacement
   /// encodable object that will be encoded in the orignal's place.
-  final _ToEncodable _toEncodable;
+  final Function(dynamic) _toEncodable;
 
   /// Creates a JSON encoder.
   ///
@@ -303,7 +305,7 @@ class JsonUtf8Encoder extends Converter<Object, List<int>> {
   final List<int> _indent;
 
   /// Function called with each un-encodable object encountered.
-  final _ToEncodable _toEncodable;
+  final Function(dynamic) _toEncodable;
 
   /// UTF-8 buffer size.
   final int _bufferSize;
@@ -408,7 +410,7 @@ class JsonUtf8Encoder extends Converter<Object, List<int>> {
 /// The sink only accepts one value, but will produce output in a chunked way.
 class _JsonEncoderSink extends ChunkedConversionSink<Object> {
   final String _indent;
-  final _ToEncodable _toEncodable;
+  final Function(dynamic) _toEncodable;
   final StringConversionSink _sink;
   bool _isDone = false;
 
@@ -437,7 +439,7 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object> {
   /// The byte sink receiveing the encoded chunks.
   final ByteConversionSink _sink;
   final List<int> _indent;
-  final _ToEncodable _toEncodable;
+  final Function(dynamic) _toEncodable;
   final int _bufferSize;
   bool _isDone = false;
   _JsonUtf8EncoderSink(
@@ -468,7 +470,7 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object> {
 
 /// This class parses JSON strings and builds the corresponding objects.
 class JsonDecoder extends Converter<String, Object> {
-  final _Reviver _reviver;
+  final Function(Object key, Object value) _reviver;
 
   /// Constructs a new JsonDecoder.
   ///
@@ -531,7 +533,7 @@ abstract class _JsonStringifier {
   final List _seen = [];
 
   /// Function called for each un-encodable object encountered.
-  final _ToEncodable _toEncodable;
+  final Function(dynamic) _toEncodable;
 
   _JsonStringifier(toEncodable(o))
       : _toEncodable = toEncodable ?? _defaultToEncodable;
@@ -863,15 +865,13 @@ class _JsonStringStringifierPretty extends _JsonStringStringifier
   }
 }
 
-typedef void _AddChunk(Uint8List list, int start, int end);
-
 /// Specialization of [_JsonStringifier] that writes the JSON as UTF-8.
 ///
 /// The JSON text is UTF-8 encoded and written to [Uint8List] buffers.
 /// The buffers are then passed back to a user provided callback method.
 class _JsonUtf8Stringifier extends _JsonStringifier {
   final int bufferSize;
-  final _AddChunk addChunk;
+  final void Function(Uint8List list, int start, int end) addChunk;
   Uint8List buffer;
   int index = 0;
 

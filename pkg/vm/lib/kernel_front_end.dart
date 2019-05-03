@@ -13,6 +13,11 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem, MultiRootFileSystemEntity;
 
+// TODO(askesc): We should not need to call the constant evaluator
+// explicitly once constant-update-2018 is shipped.
+import 'package:front_end/src/api_prototype/constant_evaluator.dart'
+    as constants;
+
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -30,7 +35,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         parseExperimentalFlags,
         printDiagnosticMessage;
 
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/ast.dart'
     show Component, Field, Library, Reference, StaticGet;
@@ -39,7 +43,6 @@ import 'package:kernel/binary/limited_ast_to_binary.dart'
     show LimitedBinaryPrinter;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
-import 'package:kernel/transformations/constants.dart' as constants;
 import 'package:kernel/vm/constants_native_effects.dart' as vm_constants;
 
 import 'bytecode/ast_remover.dart' show ASTRemover;
@@ -54,6 +57,8 @@ import 'transformations/mixin_deduplication.dart' as mixin_deduplication
     show transformComponent;
 import 'transformations/no_dynamic_invocations_annotator.dart'
     as no_dynamic_invocations_annotator show transformComponent;
+import 'transformations/protobuf_aware_treeshaker/transformer.dart'
+    as protobuf_tree_shaker;
 import 'transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 import 'transformations/obfuscation_prohibitions_annotator.dart'
@@ -90,6 +95,9 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: true);
+  args.addFlag('protobuf-tree-shaker',
+      help: 'Enable protobuf tree shaker transformation in AOT mode.',
+      defaultsTo: false);
   args.addMultiOption('define',
       abbr: 'D',
       help: 'The values for the environment constants (e.g. -Dkey=value).');
@@ -105,6 +113,8 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false);
   args.addFlag('emit-bytecode-source-positions',
       help: 'Emit source positions in bytecode', defaultsTo: false);
+  args.addFlag('emit-bytecode-annotations',
+      help: 'Emit Dart annotations in bytecode', defaultsTo: false);
   args.addFlag('drop-ast',
       help: 'Drop AST for members with bytecode', defaultsTo: false);
   args.addFlag('show-bytecode-size-stat',
@@ -113,6 +123,8 @@ void declareCompilerOptions(ArgParser args) {
       help: 'Generate bytecode in the bleeding edge format', defaultsTo: false);
   args.addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features to enable.');
+  args.addFlag('help',
+      abbr: 'h', negatable: false, help: 'Print this help message.');
 }
 
 /// Create ArgParser and populate it with options consumed by [runCompiler].
@@ -130,6 +142,11 @@ const int compileTimeErrorExitCode = 254;
 /// and return exit code.
 Future<int> runCompiler(ArgResults options, String usage) async {
   final String platformKernel = options['platform'];
+
+  if (options['help']) {
+    print(usage);
+    return successExitCode;
+  }
 
   if ((options.rest.length != 1) || (platformKernel == null)) {
     print(usage);
@@ -149,10 +166,12 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool genBytecode = options['gen-bytecode'];
   final bool emitBytecodeSourcePositions =
       options['emit-bytecode-source-positions'];
+  final bool emitBytecodeAnnotations = options['emit-bytecode-annotations'];
   final bool dropAST = options['drop-ast'];
   final bool useFutureBytecodeFormat = options['use-future-bytecode-format'];
   final bool enableAsserts = options['enable-asserts'];
   final bool enableConstantEvaluation = options['enable-constant-evaluation'];
+  final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final bool showBytecodeSizeStat = options['show-bytecode-size-stat'];
   final List<String> experimentalFlags = options['enable-experiment'];
@@ -207,10 +226,12 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
       emitBytecodeSourcePositions: emitBytecodeSourcePositions,
+      emitBytecodeAnnotations: emitBytecodeAnnotations,
       dropAST: dropAST && !splitOutputByPackages,
       useFutureBytecodeFormat: useFutureBytecodeFormat,
       enableAsserts: enableAsserts,
-      enableConstantEvaluation: enableConstantEvaluation);
+      enableConstantEvaluation: enableConstantEvaluation,
+      useProtobufTreeShaker: useProtobufTreeShaker);
 
   errorPrinter.printCompilationMessages();
 
@@ -244,6 +265,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
       emitBytecodeSourcePositions: emitBytecodeSourcePositions,
+      emitBytecodeAnnotations: emitBytecodeAnnotations,
       dropAST: dropAST,
       showBytecodeSizeStat: showBytecodeSizeStat,
       useFutureBytecodeFormat: useFutureBytecodeFormat,
@@ -264,33 +286,19 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     Map<String, String> environmentDefines,
     bool genBytecode: false,
     bool emitBytecodeSourcePositions: false,
+    bool emitBytecodeAnnotations: false,
     bool dropAST: false,
     bool useFutureBytecodeFormat: false,
     bool enableAsserts: false,
-    bool enableConstantEvaluation: true}) async {
+    bool enableConstantEvaluation: true,
+    bool useProtobufTreeShaker: false}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onDiagnostic);
   options.onDiagnostic = errorDetector;
 
+  setVMEnvironmentDefines(environmentDefines, options);
   final component = await kernelForProgram(source, options);
-
-  // If we don't default back to the current VM we'll add environment defines
-  // for the core libraries.
-  if (component != null && environmentDefines != null) {
-    if (environmentDefines['dart.vm.product'] == 'true') {
-      environmentDefines['dart.developer.causal_async_stacks'] = 'false';
-    }
-    environmentDefines['dart.isVM'] = 'true';
-    for (final library in component.libraries) {
-      if (library.importUri.scheme == 'dart') {
-        final path = library.importUri.path;
-        if (!path.startsWith('_')) {
-          environmentDefines['dart.library.${path}'] = 'true';
-        }
-      }
-    }
-  }
 
   // Run global transformations only if component is correct.
   if (aot && component != null) {
@@ -302,6 +310,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
         environmentDefines,
         enableAsserts,
         enableConstantEvaluation,
+        useProtobufTreeShaker,
         errorDetector);
   }
 
@@ -309,6 +318,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     await runWithFrontEndCompilerContext(source, options, component, () {
       generateBytecode(component,
           emitSourcePositions: emitBytecodeSourcePositions,
+          emitAnnotations: emitBytecodeAnnotations,
           useFutureBytecodeFormat: useFutureBytecodeFormat,
           environmentDefines: environmentDefines);
     });
@@ -324,6 +334,30 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   return component;
 }
 
+void setVMEnvironmentDefines(
+    Map<String, dynamic> environmentDefines, CompilerOptions options) {
+  // TODO(alexmarkov): move this logic into VmTarget and call from front-end
+  // in order to have the same defines when compiling platform.
+  assert(environmentDefines != null);
+  if (environmentDefines['dart.vm.product'] == 'true') {
+    environmentDefines['dart.developer.causal_async_stacks'] = 'false';
+  }
+  environmentDefines['dart.isVM'] = 'true';
+  // TODO(dartbug.com/36460): Derive dart.library.* definitions from platform.
+  for (String library in options.target.extraRequiredLibraries) {
+    Uri libraryUri = Uri.parse(library);
+    if (libraryUri.scheme == 'dart') {
+      final path = libraryUri.path;
+      if (!path.startsWith('_')) {
+        environmentDefines['dart.library.${path}'] = 'true';
+      }
+    }
+  }
+  // dart:core is not mentioned in Target.extraRequiredLibraries.
+  environmentDefines['dart.library.core'] = 'true';
+  options.environmentDefines = environmentDefines;
+}
+
 Future _runGlobalTransformations(
     Uri source,
     CompilerOptions compilerOptions,
@@ -332,6 +366,7 @@ Future _runGlobalTransformations(
     Map<String, String> environmentDefines,
     bool enableAsserts,
     bool enableConstantEvaluation,
+    bool useProtobufTreeShaker,
     ErrorDetector errorDetector) async {
   if (errorDetector.hasCompilationErrors) return;
 
@@ -359,6 +394,18 @@ Future _runGlobalTransformations(
   } else {
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);
+  }
+
+  if (useProtobufTreeShaker) {
+    if (!useGlobalTypeFlowAnalysis) {
+      throw 'Protobuf tree shaker requires type flow analysis (--tfa)';
+    }
+
+    protobuf_tree_shaker.removeUnusedProtoReferences(
+        component, coreTypes, null);
+
+    globalTypeFlow.transformComponent(
+        compilerOptions.target, coreTypes, component);
   }
 
   // TODO(35069): avoid recomputing CSA by reading it from the platform files.
@@ -401,16 +448,14 @@ Future _performConstantEvaluation(
   final vmConstants = new vm_constants.VmConstantsBackend(coreTypes);
 
   await runWithFrontEndCompilerContext(source, compilerOptions, component, () {
-    final hierarchy = new ClassHierarchy(component);
-    final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
-
     // TFA will remove constants fields which are unused (and respects the
     // vm/embedder entrypoints).
     constants.transformComponent(component, vmConstants, environmentDefines,
-        new ForwardConstantEvaluationErrors(typeEnvironment),
+        new ForwardConstantEvaluationErrors(),
         keepFields: true,
         evaluateAnnotations: true,
-        enableAsserts: enableAsserts);
+        enableAsserts: enableAsserts,
+        desugarSets: !compilerOptions.target.supportsSetLiterals);
   });
 }
 
@@ -517,7 +562,7 @@ FileSystem createFrontEndFileSystem(
 /// absolute URI.
 ///
 /// If virtual multi-root file system is used, or [input] can be parsed to a
-/// URI with 'package' scheme, then [input] is interpreted as URI.
+/// URI with 'package' or 'file' scheme, then [input] is interpreted as URI.
 /// Otherwise [input] is interpreted as a file path.
 Uri convertFileOrUriArgumentToUri(FileSystem fileSystem, String input) {
   if (input == null) {
@@ -530,7 +575,7 @@ Uri convertFileOrUriArgumentToUri(FileSystem fileSystem, String input) {
   }
   try {
     Uri uri = Uri.parse(input);
-    if (uri.scheme == 'package') {
+    if (uri.scheme == 'package' || uri.scheme == 'file') {
       return uri;
     }
   } on FormatException {
@@ -551,6 +596,9 @@ Future<Uri> asFileUri(FileSystem fileSystem, Uri uri) async {
 /// Convert URI to a package URI if it is inside one of the packages.
 Future<Uri> convertToPackageUri(
     FileSystem fileSystem, Uri uri, Uri packagesUri) async {
+  if (uri.scheme == 'package') {
+    return uri;
+  }
   // Convert virtual URI to a real file URI.
   String uriString = (await asFileUri(fileSystem, uri)).toString();
   List<String> packages;
@@ -599,6 +647,7 @@ Future writeOutputSplitByPackages(
   Map<String, String> environmentDefines,
   bool genBytecode: false,
   bool emitBytecodeSourcePositions: false,
+  bool emitBytecodeAnnotations: false,
   bool dropAST: false,
   bool showBytecodeSizeStat: false,
   bool useFutureBytecodeFormat: false,
@@ -636,8 +685,10 @@ Future writeOutputSplitByPackages(
       final IOSink sink = new File(filename).openWrite();
 
       final main = component.mainMethod;
+      final problems = component.problemsAsJson;
       if (package != 'main') {
         component.mainMethod = null;
+        component.problemsAsJson = null;
       }
 
       ASTRemover astRemover;
@@ -648,6 +699,7 @@ Future writeOutputSplitByPackages(
         generateBytecode(component,
             libraries: libraries,
             emitSourcePositions: emitBytecodeSourcePositions,
+            emitAnnotations: emitBytecodeAnnotations,
             useFutureBytecodeFormat: useFutureBytecodeFormat,
             environmentDefines: environmentDefines);
 
@@ -662,10 +714,12 @@ Future writeOutputSplitByPackages(
       final BinaryPrinter printer = new LimitedBinaryPrinter(sink,
           (lib) => packageFor(lib) == package, false /* excludeUriToSource */);
       printer.writeComponentFile(component);
-      component.mainMethod = main;
+
       if (genBytecode && dropAST) {
         astRemover.restoreAST();
       }
+      component.mainMethod = main;
+      component.problemsAsJson = problems;
 
       await sink.close();
     }
@@ -716,3 +770,6 @@ Future<void> writeDepfile(FileSystem fileSystem, Component component,
   file.write('\n');
   await file.close();
 }
+
+// Used by kernel_front_end_test.dart
+main() {}

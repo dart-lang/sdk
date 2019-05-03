@@ -5,7 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=bool*/ a = true;
+var a = true;
 
 main() {
   var /*@type=bool*/ b = false;

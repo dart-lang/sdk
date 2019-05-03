@@ -29,6 +29,7 @@ part 'dictionary_type_mask.dart';
 part 'flat_type_mask.dart';
 part 'forwarding_type_mask.dart';
 part 'map_type_mask.dart';
+part 'set_type_mask.dart';
 part 'type_mask.dart';
 part 'union_type_mask.dart';
 part 'value_type_mask.dart';
@@ -57,6 +58,8 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask _constListType;
   TypeMask _fixedListType;
   TypeMask _growableListType;
+  TypeMask _setType;
+  TypeMask _constSetType;
   TypeMask _mapType;
   TypeMask _constMapType;
   TypeMask _stringType;
@@ -140,6 +143,14 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask get growableListType =>
       _growableListType ??= new TypeMask.nonNullExact(
           commonElements.jsExtendableArrayClass, _closedWorld);
+
+  @override
+  TypeMask get setType => _setType ??=
+      new TypeMask.nonNullSubtype(commonElements.setLiteralClass, _closedWorld);
+
+  @override
+  TypeMask get constSetType => _constSetType ??= new TypeMask.nonNullSubtype(
+      commonElements.constSetLiteralClass, _closedWorld);
 
   @override
   TypeMask get mapType => _mapType ??=
@@ -705,6 +716,11 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
+  bool isSet(TypeMask value) {
+    return value.isSet;
+  }
+
+  @override
   bool isContainer(TypeMask value) {
     return value.isContainer;
   }
@@ -742,6 +758,21 @@ class CommonMasks implements AbstractValueDomain {
       Map<String, AbstractValue> mappings) {
     return new DictionaryTypeMask(
         forwardTo, allocationNode, allocationElement, key, value, mappings);
+  }
+
+  @override
+  AbstractValue createSetValue(AbstractValue forwardTo, Object allocationNode,
+      MemberEntity allocationElement, AbstractValue elementType) {
+    return new SetTypeMask(
+        forwardTo, allocationNode, allocationElement, elementType);
+  }
+
+  @override
+  AbstractValue getSetElementType(AbstractValue value) {
+    if (value is SetTypeMask) {
+      return value.elementType ?? dynamicType;
+    }
+    return dynamicType;
   }
 
   @override

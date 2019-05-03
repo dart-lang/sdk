@@ -21,6 +21,14 @@ namespace kernel {
 
 #define Z (zone_)
 
+// Returns static type of the parameter if it can be trusted (was type checked
+// by caller) and dynamic otherwise.
+static CompileType ParameterType(LocalVariable* param) {
+  return param->was_type_checked_by_caller()
+             ? CompileType::FromAbstractType(param->type())
+             : CompileType::Dynamic();
+}
+
 bool PrologueBuilder::PrologueSkippableOnUncheckedEntry(
     const Function& function) {
   return !function.HasOptionalParameters() &&
@@ -29,7 +37,7 @@ bool PrologueBuilder::PrologueSkippableOnUncheckedEntry(
 
 bool PrologueBuilder::HasEmptyPrologue(const Function& function) {
   return !function.HasOptionalParameters() && !function.IsGeneric() &&
-         !function.IsClosureFunction();
+         !function.CanReceiveDynamicInvocation();
 }
 
 BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
@@ -41,7 +49,7 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
 
   const bool load_optional_arguments = function_.HasOptionalParameters();
   const bool expect_type_args = function_.IsGeneric();
-  const bool check_arguments = function_.IsClosureFunction();
+  const bool check_arguments = function_.CanReceiveDynamicInvocation();
 
   Fragment prologue = Fragment(entry);
   JoinEntryInstr* nsm = NULL;
@@ -73,12 +81,13 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
 
   // Always do this to preserve deoptid numbering.
   JoinEntryInstr* normal_code = BuildJoinEntry();
-  prologue += Goto(normal_code);
+  Fragment jump_to_normal_code = Goto(normal_code);
 
   if (is_empty_prologue) {
     *prologue_info = PrologueInfo(-1, -1);
     return entry;
   } else {
+    prologue += jump_to_normal_code;
     *prologue_info =
         PrologueInfo(previous_block_id, normal_code->block_id() - 1);
     return normal_code;
@@ -182,7 +191,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
     copy_args_prologue += LoadLocal(optional_count_var);
     copy_args_prologue += LoadFpRelativeSlot(
         kWordSize * (compiler::target::frame_layout.param_end_from_fp +
-                     num_fixed_params - param));
+                     num_fixed_params - param),
+        ParameterType(ParameterVariable(param)));
     copy_args_prologue +=
         StoreLocalRaw(TokenPosition::kNoSource, ParameterVariable(param));
     copy_args_prologue += Drop();
@@ -202,7 +212,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
       good += LoadLocal(optional_count_var);
       good += LoadFpRelativeSlot(
           kWordSize * (compiler::target::frame_layout.param_end_from_fp +
-                       num_fixed_params - param));
+                       num_fixed_params - param),
+          ParameterType(ParameterVariable(param)));
       good += StoreLocalRaw(TokenPosition::kNoSource, ParameterVariable(param));
       good += Drop();
 
@@ -300,7 +311,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
         }
         good += SmiBinaryOp(Token::kSUB, /* truncate= */ true);
         good += LoadFpRelativeSlot(
-            kWordSize * compiler::target::frame_layout.param_end_from_fp);
+            kWordSize * compiler::target::frame_layout.param_end_from_fp,
+            ParameterType(ParameterVariable(opt_param_position[i])));
 
         // Copy down.
         good += StoreLocalRaw(TokenPosition::kNoSource,
@@ -383,9 +395,7 @@ Fragment PrologueBuilder::BuildFixedParameterLengthChecks(JoinEntryInstr* nsm) {
 }
 
 Fragment PrologueBuilder::BuildClosureContextHandling() {
-  LocalScope* scope = parsed_function_->node_sequence()->scope();
-  LocalVariable* closure_parameter = scope->VariableAt(0);
-
+  LocalVariable* closure_parameter = parsed_function_->ParameterVariable(0);
   LocalVariable* context = parsed_function_->current_context_var();
 
   // Load closure.context & store it into the context variable.
@@ -407,7 +417,8 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
   store_type_args += LoadArgDescriptor();
   store_type_args += LoadNativeField(Slot::ArgumentsDescriptor_count());
   store_type_args += LoadFpRelativeSlot(
-      kWordSize * (1 + compiler::target::frame_layout.param_end_from_fp));
+      kWordSize * (1 + compiler::target::frame_layout.param_end_from_fp),
+      CompileType::CreateNullable(/*is_nullable=*/true, kTypeArgumentsCid));
   store_type_args += StoreLocal(TokenPosition::kNoSource, type_args_var);
   store_type_args += Drop();
 
@@ -419,8 +430,7 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
   handling += TestTypeArgsLen(store_null, store_type_args, 0);
 
   if (parsed_function_->function().IsClosureFunction()) {
-    LocalVariable* closure =
-        parsed_function_->node_sequence()->scope()->VariableAt(0);
+    LocalVariable* closure = parsed_function_->ParameterVariable(0);
 
     // Currently, delayed type arguments can only be introduced through type
     // inference in the FE. So if they are present, we can assume they are

@@ -14,7 +14,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/class_id.h"
-#include "vm/constants_arm64.h"
+#include "vm/constants.h"
 #include "vm/hash_map.h"
 #include "vm/simulator.h"
 
@@ -472,10 +472,6 @@ class Assembler : public AssemblerBase {
   void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
-
-  static const char* RegisterName(Register reg);
-
-  static const char* FpuRegisterName(FpuRegister reg);
 
   void SetPrologueOffset() {
     if (prologue_offset_ == -1) {
@@ -1265,11 +1261,9 @@ class Assembler : public AssemblerBase {
     ldr(reg, Address(SP, 1 * target::kWordSize, Address::PostIndex));
   }
   void PushPair(Register low, Register high) {
-    ASSERT((low != PP) && (high != PP));
     stp(low, high, Address(SP, -2 * target::kWordSize, Address::PairPreIndex));
   }
   void PopPair(Register low, Register high) {
-    ASSERT((low != PP) && (high != PP));
     ldp(low, high, Address(SP, 2 * target::kWordSize, Address::PairPostIndex));
   }
   void PushFloat(VRegister reg) {
@@ -1475,6 +1469,11 @@ class Assembler : public AssemblerBase {
                                       int32_t offset,
                                       const Object& value);
 
+  // Stores a non-tagged value into a heap object.
+  void StoreInternalPointer(Register object,
+                            const Address& dest,
+                            Register value);
+
   // Object pool, loading from pool, etc.
   void LoadPoolPointer(Register pp = PP);
 
@@ -1527,6 +1526,12 @@ class Assembler : public AssemblerBase {
   void EnterFrame(intptr_t frame_size);
   void LeaveFrame();
   void Ret() { ret(LR); }
+
+  // These require that CSP and SP are equal and aligned.
+  // These require a scratch register (in addition to TMP/TMP2).
+  void TransitionGeneratedToNative(Register destination_address,
+                                   Register scratch);
+  void TransitionNativeToGenerated(Register scratch);
 
   void CheckCodePointer();
   void RestoreCodePointer();

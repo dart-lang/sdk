@@ -19,5 +19,5 @@ main() async {
   Expect.isFalse(confuse(a.C) == confuse(a.D));
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 confuse(x) => x;

@@ -5,7 +5,7 @@
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,13 +14,12 @@ main() {
 }
 
 @reflectiveTest
-class UnusedCatchStackTest extends ResolverTestCase {
+class UnusedCatchStackTest extends DriverResolutionTest {
   @override
-  bool get enableNewAnalysisDriver => true;
+  bool get enableUnusedLocalVariable => true;
 
   test_on_unusedStack() async {
-    enableUnusedLocalVariable = true;
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   try {
   } on String catch (exception, stackTrace) {
@@ -30,7 +29,6 @@ main() {
   }
 
   test_on_usedStack() async {
-    enableUnusedLocalVariable = true;
     await assertNoErrorsInCode(r'''
 main() {
   try {
@@ -42,8 +40,7 @@ main() {
   }
 
   test_unusedStack() async {
-    enableUnusedLocalVariable = true;
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   try {
   } catch (exception, stackTrace) {
@@ -53,7 +50,6 @@ main() {
   }
 
   test_usedStack() async {
-    enableUnusedLocalVariable = true;
     await assertNoErrorsInCode(r'''
 main() {
   try {

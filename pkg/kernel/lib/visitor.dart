@@ -38,6 +38,10 @@ abstract class ExpressionVisitor<R> {
       defaultExpression(node);
   R visitStringConcatenation(StringConcatenation node) =>
       defaultExpression(node);
+  R visitListConcatenation(ListConcatenation node) => defaultExpression(node);
+  R visitSetConcatenation(SetConcatenation node) => defaultExpression(node);
+  R visitMapConcatenation(MapConcatenation node) => defaultExpression(node);
+  R visitInstanceCreation(InstanceCreation node) => defaultExpression(node);
   R visitIsExpression(IsExpression node) => defaultExpression(node);
   R visitAsExpression(AsExpression node) => defaultExpression(node);
   R visitSymbolLiteral(SymbolLiteral node) => defaultExpression(node);
@@ -57,6 +61,7 @@ abstract class ExpressionVisitor<R> {
   R visitBoolLiteral(BoolLiteral node) => defaultBasicLiteral(node);
   R visitNullLiteral(NullLiteral node) => defaultBasicLiteral(node);
   R visitLet(Let node) => defaultExpression(node);
+  R visitBlockExpression(BlockExpression node) => defaultExpression(node);
   R visitInstantiation(Instantiation node) => defaultExpression(node);
   R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
@@ -160,6 +165,10 @@ class TreeVisitor<R>
       defaultExpression(node);
   R visitStringConcatenation(StringConcatenation node) =>
       defaultExpression(node);
+  R visitListConcatenation(ListConcatenation node) => defaultExpression(node);
+  R visitSetConcatenation(SetConcatenation node) => defaultExpression(node);
+  R visitMapConcatenation(MapConcatenation node) => defaultExpression(node);
+  R visitInstanceCreation(InstanceCreation node) => defaultExpression(node);
   R visitIsExpression(IsExpression node) => defaultExpression(node);
   R visitAsExpression(AsExpression node) => defaultExpression(node);
   R visitSymbolLiteral(SymbolLiteral node) => defaultExpression(node);
@@ -179,6 +188,7 @@ class TreeVisitor<R>
   R visitBoolLiteral(BoolLiteral node) => defaultBasicLiteral(node);
   R visitNullLiteral(NullLiteral node) => defaultBasicLiteral(node);
   R visitLet(Let node) => defaultExpression(node);
+  R visitBlockExpression(BlockExpression node) => defaultExpression(node);
   R visitInstantiation(Instantiation node) => defaultExpression(node);
   R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
@@ -280,6 +290,8 @@ class DartTypeVisitor1<R, T> {
 }
 
 class ConstantVisitor<R> {
+  const ConstantVisitor();
+
   R defaultConstant(Constant node) => null;
 
   R visitNullConstant(NullConstant node) => defaultConstant(node);
@@ -290,6 +302,7 @@ class ConstantVisitor<R> {
   R visitSymbolConstant(SymbolConstant node) => defaultConstant(node);
   R visitMapConstant(MapConstant node) => defaultConstant(node);
   R visitListConstant(ListConstant node) => defaultConstant(node);
+  R visitSetConstant(SetConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
   R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
       defaultConstant(node);
@@ -344,6 +357,7 @@ class Visitor<R> extends TreeVisitor<R>
   R visitSymbolConstant(SymbolConstant node) => defaultConstant(node);
   R visitMapConstant(MapConstant node) => defaultConstant(node);
   R visitListConstant(ListConstant node) => defaultConstant(node);
+  R visitSetConstant(SetConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
   R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
       defaultConstant(node);
@@ -372,6 +386,8 @@ class Visitor<R> extends TreeVisitor<R>
   R visitMapConstantReference(MapConstant node) =>
       defaultConstantReference(node);
   R visitListConstantReference(ListConstant node) =>
+      defaultConstantReference(node);
+  R visitSetConstantReference(SetConstant node) =>
       defaultConstantReference(node);
   R visitInstanceConstantReference(InstanceConstant node) =>
       defaultConstantReference(node);
@@ -490,6 +506,14 @@ abstract class ExpressionVisitor1<R, T> {
       defaultExpression(node, arg);
   R visitStringConcatenation(StringConcatenation node, T arg) =>
       defaultExpression(node, arg);
+  R visitListConcatenation(ListConcatenation node, T arg) =>
+      defaultExpression(node, arg);
+  R visitSetConcatenation(SetConcatenation node, T arg) =>
+      defaultExpression(node, arg);
+  R visitMapConcatenation(MapConcatenation node, T arg) =>
+      defaultExpression(node, arg);
+  R visitInstanceCreation(InstanceCreation node, T arg) =>
+      defaultExpression(node, arg);
   R visitIsExpression(IsExpression node, T arg) => defaultExpression(node, arg);
   R visitAsExpression(AsExpression node, T arg) => defaultExpression(node, arg);
   R visitSymbolLiteral(SymbolLiteral node, T arg) =>
@@ -516,6 +540,8 @@ abstract class ExpressionVisitor1<R, T> {
   R visitBoolLiteral(BoolLiteral node, T arg) => defaultBasicLiteral(node, arg);
   R visitNullLiteral(NullLiteral node, T arg) => defaultBasicLiteral(node, arg);
   R visitLet(Let node, T arg) => defaultExpression(node, arg);
+  R visitBlockExpression(BlockExpression node, T arg) =>
+      defaultExpression(node, arg);
   R visitInstantiation(Instantiation node, T arg) =>
       defaultExpression(node, arg);
   R visitLoadLibrary(LoadLibrary node, T arg) => defaultExpression(node, arg);

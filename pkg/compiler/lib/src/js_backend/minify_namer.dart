@@ -16,21 +16,35 @@ class MinifyNamer extends Namer
     fieldRegistry = new _FieldNamingRegistry(this);
   }
 
+  @override
   _FieldNamingRegistry fieldRegistry;
 
+  @override
   String get isolateName => 'I';
+  @override
   String get isolatePropertiesName => 'p';
+  @override
   bool get shouldMinify => true;
 
+  @override
   final String getterPrefix = 'g';
+  @override
   final String setterPrefix = 's';
+  @override
   final String callPrefix = ''; // this will create function names $<n>
+  @override
   String get operatorIsPrefix => r'$i';
+  @override
   String get operatorAsPrefix => r'$a';
+  @override
   String get callCatchAllName => r'$C';
+  @override
   String get requiredParameterField => r'$R';
+  @override
   String get defaultValuesField => r'$D';
+  @override
   String get operatorSignature => r'$S';
+  @override
   String get genericInstantiationPrefix => r'$I';
 
   final ALPHABET_CHARACTERS = 52; // a-zA-Z.

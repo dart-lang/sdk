@@ -2,55 +2,61 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' show max;
+
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/file_system/file_system.dart';
 
 /// A general task for performing a fix.
 abstract class FixCodeTask {
-  /// [processUnit] is called for each compilation unit.
-  Future<void> processUnit(ResolvedUnitResult result);
+  /// Number of times [processUnit] should be called for each compilation unit.
+  int get numPhases;
 
-  /// [finish] is called after [processUnit] (and [processUnit2] if this
-  /// is a FixCodeTask2) has been called for each compilation unit.
+  /// [processPackage] is called once for each package
+  /// before [processUnit] is called for any compilation unit in any package.
+  Future<void> processPackage(Folder pkgFolder);
+
+  /// [processUnit] is called for each phase and compilation unit.
+  ///
+  /// First [processUnit] will be called once for each compilation unit with
+  /// [phase] set to 0; then it will be called for each compilation unit with
+  /// [phase] set to 1; and so on through `numPhases-1`.
+  Future<void> processUnit(int phase, ResolvedUnitResult result);
+
+  /// [finish] is called after [processUnit] has been called for each
+  /// phase and compilation unit.
   Future<void> finish();
-}
-
-/// A general task for performing a fix which needs a 2nd pass.
-abstract class FixCodeTask2 extends FixCodeTask {
-  /// [processUnit2] is called for each compilation unit
-  /// after [processUnit] has been called for each compilation unit.
-  Future<void> processUnit2(ResolvedUnitResult result);
 }
 
 /// A processor used by [EditDartFix] to manage [FixCodeTask]s.
 mixin FixCodeProcessor {
-  final codeTasks = <FixCodeTask>[];
-  final codeTasks2 = <FixCodeTask2>[];
+  final _codeTasks = <FixCodeTask>[];
+
+  int _numPhases = 0;
 
   Future<void> finishCodeTasks() async {
-    for (FixCodeTask task in codeTasks) {
+    for (FixCodeTask task in _codeTasks) {
       await task.finish();
     }
   }
 
-  bool get needsSecondPass => codeTasks2.isNotEmpty;
+  int get numPhases => _numPhases;
 
-  Future<void> processCodeTasks(ResolvedUnitResult result) async {
-    for (FixCodeTask task in codeTasks) {
-      await task.processUnit(result);
+  Future<void> processCodeTasks(int phase, ResolvedUnitResult result) async {
+    for (FixCodeTask task in _codeTasks) {
+      await task.processUnit(phase, result);
     }
   }
 
-  Future<void> processCodeTasks2(ResolvedUnitResult result) async {
-    for (FixCodeTask2 task in codeTasks) {
-      await task.processUnit2(result);
+  void processPackage(Folder pkgFolder) async {
+    for (FixCodeTask task in _codeTasks) {
+      await task.processPackage(pkgFolder);
     }
   }
 
   void registerCodeTask(FixCodeTask task) {
-    codeTasks.add(task);
-    if (task is FixCodeTask2) {
-      codeTasks2.add(task);
-    }
+    _codeTasks.add(task);
+    _numPhases = max(_numPhases, task.numPhases);
   }
 }

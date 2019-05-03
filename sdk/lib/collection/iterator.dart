@@ -4,12 +4,10 @@
 
 part of dart.collection;
 
-/**
- * The [HasNextIterator] class wraps an [Iterator] and provides methods to
- * iterate over an object using `hasNext` and `next`.
- *
- * An [HasNextIterator] does not implement the [Iterator] interface.
- */
+/// The [HasNextIterator] class wraps an [Iterator] and provides methods to
+/// iterate over an object using `hasNext` and `next`.
+///
+/// An [HasNextIterator] does not implement the [Iterator] interface.
 class HasNextIterator<E> {
   static const int _HAS_NEXT_AND_NEXT_IN_CURRENT = 0;
   static const int _NO_NEXT = 1;
@@ -28,7 +26,7 @@ class HasNextIterator<E> {
   E next() {
     // Call to hasNext is necessary to make sure we are positioned at the first
     // element when we start iterating.
-    if (!hasNext) throw new StateError("No more elements");
+    if (!hasNext) throw StateError("No more elements");
     assert(_state == _HAS_NEXT_AND_NEXT_IN_CURRENT);
     E result = _iterator.current;
     _move();

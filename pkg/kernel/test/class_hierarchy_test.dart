@@ -111,7 +111,7 @@ class A {}
     _assertLibraryText(libWithB, '''
 library test_b;
 import self as self;
-import "./test.dart" as test;
+import "test.dart" as test;
 
 class B extends test::A {}
 ''');

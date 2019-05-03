@@ -307,14 +307,18 @@ class BoxLocal extends Local {
 
   BoxLocal(this.container);
 
+  @override
   String get name => container.name;
 
+  @override
   bool operator ==(other) {
     return other is BoxLocal && other.container == container;
   }
 
+  @override
   int get hashCode => container.hashCode;
 
+  @override
   String toString() => 'BoxLocal($name)';
 }
 
@@ -324,12 +328,15 @@ class ThisLocal extends Local {
 
   ThisLocal(this.enclosingClass);
 
+  @override
   String get name => 'this';
 
+  @override
   bool operator ==(other) {
     return other is ThisLocal && other.enclosingClass == enclosingClass;
   }
 
+  @override
   int get hashCode => enclosingClass.hashCode;
 }
 
@@ -339,15 +346,19 @@ class TypeVariableLocal implements Local {
 
   TypeVariableLocal(this.typeVariable);
 
+  @override
   String get name => typeVariable.element.name;
 
+  @override
   int get hashCode => typeVariable.hashCode;
 
+  @override
   bool operator ==(other) {
     if (other is! TypeVariableLocal) return false;
     return typeVariable == other.typeVariable;
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('type_variable_local(');

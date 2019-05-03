@@ -15,20 +15,18 @@ import '../helpers/program_lookup.dart';
 import '../helpers/memory_compiler.dart';
 
 const String code = '''
-import 'package:meta/dart2js.dart';
-
 class A<T> {
   final field;
 
-  @noInline
+  @pragma('dart2js:noInline')
   factory A.fact(t) => new A(t);
 
-  @noInline
+  @pragma('dart2js:noInline')
   A(t) : field = t is T;
 }
 
 // A call to A.fact.
-@noInline
+@pragma('dart2js:noInline')
 callAfact() => new A<int>.fact(0).runtimeType;
 
 main() {

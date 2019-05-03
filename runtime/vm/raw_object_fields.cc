@@ -56,7 +56,7 @@ namespace dart {
   F(Field, guarded_list_length_)                                               \
   F(Field, dependent_code_)                                                    \
   F(Field, type_test_cache_)                                                   \
-  F(Field, initializer_)                                                       \
+  F(Field, initializer_function_)                                              \
   F(Script, url_)                                                              \
   F(Script, resolved_url_)                                                     \
   F(Script, compile_time_constants_)                                           \
@@ -71,7 +71,7 @@ namespace dart {
   F(Library, dictionary_)                                                      \
   F(Library, metadata_)                                                        \
   F(Library, toplevel_class_)                                                  \
-  F(Library, patch_classes_)                                                   \
+  F(Library, owned_scripts_)                                                   \
   F(Library, imports_)                                                         \
   F(Library, exports_)                                                         \
   F(Library, load_error_)                                                      \
@@ -178,6 +178,7 @@ namespace dart {
   F(StackTrace, code_array_)                                                   \
   F(StackTrace, pc_offset_array_)                                              \
   F(RegExp, num_bracket_expressions_)                                          \
+  F(RegExp, capture_name_map_)                                                 \
   F(RegExp, pattern_)                                                          \
   F(RegExp, external_one_byte_function_)                                       \
   F(RegExp, external_two_byte_function_)                                       \

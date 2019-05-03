@@ -31,7 +31,7 @@ void FlowGraphCompiler::ArchSpecificInitialization() {
 
     const auto& stub =
         Code::ZoneHandle(object_store->write_barrier_wrappers_stub());
-    if (!stub.InVMHeap()) {
+    if (!stub.InVMIsolateHeap()) {
       assembler_->generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
         const intptr_t offset_into_target =
             Thread::WriteBarrierWrappersOffsetForRegister(reg);
@@ -42,7 +42,7 @@ void FlowGraphCompiler::ArchSpecificInitialization() {
 
     const auto& array_stub =
         Code::ZoneHandle(object_store->array_write_barrier_stub());
-    if (!array_stub.InVMHeap()) {
+    if (!array_stub.InVMIsolateHeap()) {
       assembler_->generate_invoke_array_write_barrier_ = [&]() {
         AddPcRelativeCallStubTarget(array_stub);
         assembler_->GenerateUnRelocatedPcRelativeCall();
@@ -648,11 +648,11 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   Label done;
   if (!test_cache.IsNull()) {
     // Generate runtime call.
-    __ PushObject(Object::null_object());       // Make room for the result.
-    __ pushq(RAX);                              // Push the instance.
-    __ PushObject(type);                        // Push the type.
-    __ pushq(RDX);                              // Instantiator type arguments.
-    __ pushq(RCX);                              // Function type arguments.
+    __ PushObject(Object::null_object());  // Make room for the result.
+    __ pushq(RAX);                         // Push the instance.
+    __ PushObject(type);                   // Push the type.
+    __ pushq(RDX);                         // Instantiator type arguments.
+    __ pushq(RCX);                         // Function type arguments.
     __ LoadUniqueObject(RAX, test_cache);
     __ pushq(RAX);
     GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
@@ -787,7 +787,7 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
       __ PushObject(value.constant());
     } else {
       ASSERT(value.IsStackSlot());
-      __ pushq(value.ToStackSlotAddress());
+      __ pushq(LocationToStackSlotAddress(value));
     }
   }
 }
@@ -854,7 +854,7 @@ void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
 // needs to be updated to match.
 void FlowGraphCompiler::EmitFrameEntry() {
   if (flow_graph().IsCompiledForOsr()) {
-    intptr_t extra_slots = StackSize() - flow_graph().num_stack_locals();
+    const intptr_t extra_slots = ExtraStackSlotsOnOsrEntry();
     ASSERT(extra_slots >= 0);
     __ EnterOsrFrame(extra_slots * kWordSize);
   } else {
@@ -932,15 +932,19 @@ void FlowGraphCompiler::CompileGraph() {
   VisitBlocks();
 
   __ int3();
-  ASSERT(assembler()->constant_pool_allowed());
-  GenerateDeferredCode();
+
+  if (!fully_intrinsified_) {
+    ASSERT(assembler()->constant_pool_allowed());
+    GenerateDeferredCode();
+  }
 }
 
 void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      const Code& stub,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions && !stub.InVMHeap()) {
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+      !stub.InVMIsolateHeap()) {
     AddPcRelativeCallStubTarget(stub);
     __ GenerateUnRelocatedPcRelativeCall();
     EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
@@ -1150,8 +1154,8 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   }
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
-  GenerateStaticDartCall(deopt_id, token_pos,
-                         RawPcDescriptors::kOther, locs, function, entry_kind);
+  GenerateStaticDartCall(deopt_id, token_pos, RawPcDescriptors::kOther, locs,
+                         function, entry_kind);
   __ Drop(count_with_type_args, RCX);
 }
 
@@ -1307,18 +1311,18 @@ void ParallelMoveResolver::EmitMove(int index) {
       ASSERT((destination.base_reg() != FPREG) ||
              ((-compiler::target::frame_layout.VariableIndexForFrameSlot(
                   destination.stack_index())) < compiler_->StackSize()));
-      __ movq(destination.ToStackSlotAddress(), source.reg());
+      __ movq(LocationToStackSlotAddress(destination), source.reg());
     }
   } else if (source.IsStackSlot()) {
     ASSERT((source.base_reg() != FPREG) ||
            ((-compiler::target::frame_layout.VariableIndexForFrameSlot(
                 source.stack_index())) < compiler_->StackSize()));
     if (destination.IsRegister()) {
-      __ movq(destination.reg(), source.ToStackSlotAddress());
+      __ movq(destination.reg(), LocationToStackSlotAddress(source));
     } else {
       ASSERT(destination.IsStackSlot());
-      MoveMemoryToMemory(destination.ToStackSlotAddress(),
-                         source.ToStackSlotAddress());
+      MoveMemoryToMemory(LocationToStackSlotAddress(destination),
+                         LocationToStackSlotAddress(source));
     }
   } else if (source.IsFpuRegister()) {
     if (destination.IsFpuRegister()) {
@@ -1327,27 +1331,27 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ movaps(destination.fpu_reg(), source.fpu_reg());
     } else {
       if (destination.IsDoubleStackSlot()) {
-        __ movsd(destination.ToStackSlotAddress(), source.fpu_reg());
+        __ movsd(LocationToStackSlotAddress(destination), source.fpu_reg());
       } else {
         ASSERT(destination.IsQuadStackSlot());
-        __ movups(destination.ToStackSlotAddress(), source.fpu_reg());
+        __ movups(LocationToStackSlotAddress(destination), source.fpu_reg());
       }
     }
   } else if (source.IsDoubleStackSlot()) {
     if (destination.IsFpuRegister()) {
-      __ movsd(destination.fpu_reg(), source.ToStackSlotAddress());
+      __ movsd(destination.fpu_reg(), LocationToStackSlotAddress(source));
     } else {
       ASSERT(destination.IsDoubleStackSlot());
-      __ movsd(XMM0, source.ToStackSlotAddress());
-      __ movsd(destination.ToStackSlotAddress(), XMM0);
+      __ movsd(XMM0, LocationToStackSlotAddress(source));
+      __ movsd(LocationToStackSlotAddress(destination), XMM0);
     }
   } else if (source.IsQuadStackSlot()) {
     if (destination.IsFpuRegister()) {
-      __ movups(destination.fpu_reg(), source.ToStackSlotAddress());
+      __ movups(destination.fpu_reg(), LocationToStackSlotAddress(source));
     } else {
       ASSERT(destination.IsQuadStackSlot());
-      __ movups(XMM0, source.ToStackSlotAddress());
-      __ movups(destination.ToStackSlotAddress(), XMM0);
+      __ movups(XMM0, LocationToStackSlotAddress(source));
+      __ movups(LocationToStackSlotAddress(destination), XMM0);
     }
   } else {
     ASSERT(source.IsConstant());
@@ -1371,11 +1375,12 @@ void ParallelMoveResolver::EmitSwap(int index) {
   if (source.IsRegister() && destination.IsRegister()) {
     __ xchgq(destination.reg(), source.reg());
   } else if (source.IsRegister() && destination.IsStackSlot()) {
-    Exchange(source.reg(), destination.ToStackSlotAddress());
+    Exchange(source.reg(), LocationToStackSlotAddress(destination));
   } else if (source.IsStackSlot() && destination.IsRegister()) {
-    Exchange(destination.reg(), source.ToStackSlotAddress());
+    Exchange(destination.reg(), LocationToStackSlotAddress(source));
   } else if (source.IsStackSlot() && destination.IsStackSlot()) {
-    Exchange(destination.ToStackSlotAddress(), source.ToStackSlotAddress());
+    Exchange(LocationToStackSlotAddress(destination),
+             LocationToStackSlotAddress(source));
   } else if (source.IsFpuRegister() && destination.IsFpuRegister()) {
     __ movaps(XMM0, source.fpu_reg());
     __ movaps(source.fpu_reg(), destination.fpu_reg());
@@ -1388,8 +1393,8 @@ void ParallelMoveResolver::EmitSwap(int index) {
     XmmRegister reg =
         source.IsFpuRegister() ? source.fpu_reg() : destination.fpu_reg();
     Address slot_address = source.IsFpuRegister()
-                               ? destination.ToStackSlotAddress()
-                               : source.ToStackSlotAddress();
+                               ? LocationToStackSlotAddress(destination)
+                               : LocationToStackSlotAddress(source);
 
     if (double_width) {
       __ movsd(XMM0, slot_address);
@@ -1400,8 +1405,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
     }
     __ movaps(reg, XMM0);
   } else if (source.IsDoubleStackSlot() && destination.IsDoubleStackSlot()) {
-    const Address& source_slot_address = source.ToStackSlotAddress();
-    const Address& destination_slot_address = destination.ToStackSlotAddress();
+    const Address& source_slot_address = LocationToStackSlotAddress(source);
+    const Address& destination_slot_address =
+        LocationToStackSlotAddress(destination);
 
     ScratchFpuRegisterScope ensure_scratch(this, XMM0);
     __ movsd(XMM0, source_slot_address);
@@ -1409,8 +1415,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
     __ movsd(destination_slot_address, XMM0);
     __ movsd(source_slot_address, ensure_scratch.reg());
   } else if (source.IsQuadStackSlot() && destination.IsQuadStackSlot()) {
-    const Address& source_slot_address = source.ToStackSlotAddress();
-    const Address& destination_slot_address = destination.ToStackSlotAddress();
+    const Address& source_slot_address = LocationToStackSlotAddress(source);
+    const Address& destination_slot_address =
+        LocationToStackSlotAddress(destination);
 
     ScratchFpuRegisterScope ensure_scratch(this, XMM0);
     __ movups(XMM0, source_slot_address);

@@ -8,16 +8,16 @@ library test;
 typedef F<T>(T x);
 
 class C<T> {
-  void f(T /*@covariance=genericImpl*/ x) {}
-  void g1(T /*@covariance=genericImpl*/ x) {
+  void f(T x) {}
+  void g1(T x) {
     this.f(x);
   }
 
-  void g2(T /*@covariance=genericImpl*/ x) {
+  void g2(T x) {
     f(x);
   }
 
-  void g3(C<T> /*@covariance=genericImpl*/ c, T /*@covariance=genericImpl*/ x) {
+  void g3(C<T> c, T x) {
     c.f(x);
   }
 
@@ -27,7 +27,7 @@ class C<T> {
 class D extends C<int> {}
 
 class E extends C<num> {
-  void f(covariant int /*@covariance=explicit*/ x) {}
+  void f(covariant int x) {}
 }
 
 test() {

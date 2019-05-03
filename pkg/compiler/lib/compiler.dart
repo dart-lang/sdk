@@ -170,5 +170,6 @@ class Diagnostic {
   /// diagnostic kinds.
   const Diagnostic(this.ordinal, this.name);
 
+  @override
   String toString() => name;
 }

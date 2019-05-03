@@ -300,7 +300,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
     _enterFrame(node);
 
     if (node is Field) {
-      node.initializer.accept(this);
+      node.initializer?.accept(this);
     } else {
       assert(node is Procedure ||
           node is Constructor ||
@@ -595,6 +595,16 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   @override
   visitBlock(Block node) {
     _visitWithScope(node);
+  }
+
+  @override
+  visitBlockExpression(BlockExpression node) {
+    // Not using _visitWithScope as Block inside BlockExpression does not have
+    // a scope.
+    _enterScope(node);
+    visitList(node.body.statements, this);
+    node.value.accept(this);
+    _leaveScope();
   }
 
   @override
@@ -959,7 +969,7 @@ class _Allocator extends RecursiveVisitor<Null> {
 
     if (node is Field) {
       _allocateSpecialVariables();
-      node.initializer.accept(this);
+      node.initializer?.accept(this);
     } else {
       assert(node is Procedure ||
           node is Constructor ||
@@ -1034,6 +1044,15 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitBlock(Block node) {
     _visit(node, scope: true);
+  }
+
+  @override
+  visitBlockExpression(BlockExpression node) {
+    // Not using _visit as Block inside BlockExpression does not have a scope.
+    _enterScope(node);
+    visitList(node.body.statements, this);
+    node.value.accept(this);
+    _leaveScope();
   }
 
   @override

@@ -10,7 +10,7 @@ abstract class B {}
 
 class C = B with A;
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o.runtimeType;
 
 main() {

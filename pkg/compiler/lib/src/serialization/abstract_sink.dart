@@ -43,6 +43,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     _importIndex = new IndexedSink<ImportEntity>(this);
   }
 
+  @override
   void begin(String tag) {
     if (useDataKinds) {
       _tags ??= <String>[];
@@ -51,6 +52,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     }
   }
 
+  @override
   void end(Object tag) {
     if (useDataKinds) {
       _end(tag);
@@ -207,6 +209,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     _writeIntInternal(value);
   }
 
+  @override
   void writeTreeNode(ir.TreeNode value) {
     _writeDataKind(DataKind.treeNode);
     _writeTreeNode(value);
@@ -229,6 +232,12 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     } else if (value is ir.TypeParameter) {
       _writeEnumInternal(_TreeNodeKind.typeParameter);
       _writeTypeParameter(value);
+    } else if (value is ConstantReference) {
+      _writeEnumInternal(_TreeNodeKind.constant);
+      _writeTreeNode(value.expression);
+      _ConstantNodeIndexerVisitor indexer = new _ConstantNodeIndexerVisitor();
+      value.expression.constant.accept(indexer);
+      _writeIntInternal(indexer.getIndex(value.constant));
     } else {
       _writeEnumInternal(_TreeNodeKind.node);
       ir.TreeNode member = value;
@@ -294,22 +303,27 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     if (useDataKinds) _writeEnumInternal(kind);
   }
 
+  @override
   void writeLibrary(IndexedLibrary value) {
     writeInt(value.libraryIndex);
   }
 
+  @override
   void writeClass(IndexedClass value) {
     writeInt(value.classIndex);
   }
 
+  @override
   void writeTypedef(IndexedTypedef value) {
     writeInt(value.typedefIndex);
   }
 
+  @override
   void writeMember(IndexedMember value) {
     writeInt(value.memberIndex);
   }
 
+  @override
   void writeLocal(Local local) {
     if (local is JLocal) {
       writeEnum(LocalKind.jLocal);
@@ -395,11 +409,18 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
         writeDartType(constant.type);
         writeConstants(constant.entries);
         break;
-      case ConstantValueKind.MAP:
-        MapConstantValue constant = value;
+      case ConstantValueKind.SET:
+        constant_system.JavaScriptSetConstant constant = value;
         writeDartType(constant.type);
-        writeConstants(constant.keys);
+        writeConstant(constant.entries);
+        break;
+      case ConstantValueKind.MAP:
+        constant_system.JavaScriptMapConstant constant = value;
+        writeDartType(constant.type);
+        writeConstant(constant.keyList);
         writeConstants(constant.values);
+        writeConstantOrNull(constant.protoValue);
+        writeBool(constant.onlyStringKeys);
         break;
       case ConstantValueKind.CONSTRUCTED:
         ConstructedConstantValue constant = value;

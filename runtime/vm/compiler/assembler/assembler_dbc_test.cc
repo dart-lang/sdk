@@ -75,9 +75,9 @@ static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
   const char* dummy_function_name = "dummy_instance_function";
   const Function& dummy_instance_function =
       Function::Handle(CreateFunction(dummy_function_name));
-  Code& code = Code::Handle(
-      Code::FinalizeCode(dummy_instance_function, nullptr, &_assembler_,
-                         Code::PoolAttachment::kAttachPool));
+  Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
+      dummy_instance_function, nullptr, &_assembler_,
+      Code::PoolAttachment::kAttachPool));
   dummy_instance_function.AttachCode(code);
 
   // Make a dummy ICData.
@@ -1678,6 +1678,70 @@ ASSEMBLER_TEST_GENERATE(IfNeNullNotNull, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(IfNeNullNotNull, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(IfEqNullTOSNotNull, assembler) {
+  Label branch_taken;
+  __ PushConstant(Smi::Handle(Smi::New(-1)));
+  __ IfEqNullTOS();
+  __ Jump(&branch_taken);
+  __ PushConstant(Smi::Handle(Smi::New(42)));
+  __ ReturnTOS();
+  __ Bind(&branch_taken);
+  __ PushConstant(Smi::Handle(Smi::New(0)));
+  __ ReturnTOS();
+}
+
+ASSEMBLER_TEST_RUN(IfEqNullTOSNotNull, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(IfEqNullTOSIsNull, assembler) {
+  Label branch_taken;
+  __ PushConstant(Object::null_object());
+  __ IfEqNullTOS();
+  __ Jump(&branch_taken);
+  __ PushConstant(Smi::Handle(Smi::New(0)));
+  __ ReturnTOS();
+  __ Bind(&branch_taken);
+  __ PushConstant(Smi::Handle(Smi::New(42)));
+  __ ReturnTOS();
+}
+
+ASSEMBLER_TEST_RUN(IfEqNullTOSIsNull, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(IfNeNullTOSNotNull, assembler) {
+  Label branch_taken;
+  __ PushConstant(Smi::Handle(Smi::New(-1)));
+  __ IfNeNullTOS();
+  __ Jump(&branch_taken);
+  __ PushConstant(Smi::Handle(Smi::New(0)));
+  __ ReturnTOS();
+  __ Bind(&branch_taken);
+  __ PushConstant(Smi::Handle(Smi::New(42)));
+  __ ReturnTOS();
+}
+
+ASSEMBLER_TEST_RUN(IfNeNullTOSNotNull, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(IfNeNullTOSIsNull, assembler) {
+  Label branch_taken;
+  __ PushConstant(Object::null_object());
+  __ IfNeNullTOS();
+  __ Jump(&branch_taken);
+  __ PushConstant(Smi::Handle(Smi::New(42)));
+  __ ReturnTOS();
+  __ Bind(&branch_taken);
+  __ PushConstant(Smi::Handle(Smi::New(0)));
+  __ ReturnTOS();
+}
+
+ASSEMBLER_TEST_RUN(IfNeNullTOSIsNull, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
 

@@ -26,8 +26,10 @@ class ClassTable;
 class Closure;
 class Code;
 class ExternalTypedData;
+class TypedDataBase;
 class GrowableObjectArray;
 class Heap;
+class Instance;
 class Instructions;
 class LanguageError;
 class Library;
@@ -37,6 +39,7 @@ class PassiveObject;
 class ObjectStore;
 class MegamorphicCache;
 class PageSpace;
+class TypedDataView;
 class RawApiError;
 class RawArray;
 class RawCapability;
@@ -86,6 +89,7 @@ class RawTwoByteString;
 class RawType;
 class RawTypeArguments;
 class RawTypedData;
+class RawTypedDataView;
 class RawTypeParameter;
 class RawTypeRef;
 class RawUnhandledException;
@@ -98,8 +102,8 @@ class UnhandledException;
 // Serialized object header encoding is as follows:
 // - Smi: the Smi value is written as is (last bit is not tagged).
 // - VM object (from VM isolate): (object id in vm isolate | 0x3)
-//   This valus is serialized as a negative number.
-//   (note VM objects are never serialized they are expected to be found
+//   This value is serialized as a negative number.
+//   (note VM objects are never serialized, they are expected to be found
 //    using ths unique ID assigned to them).
 // - Reference to object that has already been written: (object id | 0x3)
 //   This valus is serialized as a positive number.
@@ -270,42 +274,21 @@ class BaseReader {
 
 class BackRefNode : public ValueObject {
  public:
-  BackRefNode(Object* reference,
-              DeserializeState state,
-              bool defer_canonicalization)
-      : reference_(reference),
-        state_(state),
-        defer_canonicalization_(defer_canonicalization),
-        patch_records_(NULL) {}
+  BackRefNode(Object* reference, DeserializeState state)
+      : reference_(reference), state_(state) {}
   Object* reference() const { return reference_; }
   bool is_deserialized() const { return state_ == kIsDeserialized; }
   void set_state(DeserializeState state) { state_ = state; }
-  bool defer_canonicalization() const { return defer_canonicalization_; }
-  ZoneGrowableArray<intptr_t>* patch_records() const { return patch_records_; }
 
   BackRefNode& operator=(const BackRefNode& other) {
     reference_ = other.reference_;
     state_ = other.state_;
-    defer_canonicalization_ = other.defer_canonicalization_;
-    patch_records_ = other.patch_records_;
     return *this;
-  }
-
-  void AddPatchRecord(intptr_t patch_object_id, intptr_t patch_offset) {
-    if (defer_canonicalization_) {
-      if (patch_records_ == NULL) {
-        patch_records_ = new ZoneGrowableArray<intptr_t>();
-      }
-      patch_records_->Add(patch_object_id);
-      patch_records_->Add(patch_offset);
-    }
   }
 
  private:
   Object* reference_;
   DeserializeState state_;
-  bool defer_canonicalization_;
-  ZoneGrowableArray<intptr_t>* patch_records_;
 };
 
 // Reads a snapshot into objects.
@@ -321,13 +304,16 @@ class SnapshotReader : public BaseReader {
   Array* ArrayHandle() { return &array_; }
   Class* ClassHandle() { return &cls_; }
   Code* CodeHandle() { return &code_; }
+  Instance* InstanceHandle() { return &instance_; }
   Instructions* InstructionsHandle() { return &instructions_; }
   String* StringHandle() { return &str_; }
   AbstractType* TypeHandle() { return &type_; }
   TypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
   GrowableObjectArray* TokensHandle() { return &tokens_; }
   ExternalTypedData* DataHandle() { return &data_; }
+  TypedDataBase* TypedDataBaseHandle() { return &typed_data_base_; }
   TypedData* TypedDataHandle() { return &typed_data_; }
+  TypedDataView* TypedDataViewHandle() { return &typed_data_view_; }
   Function* FunctionHandle() { return &function_; }
   Snapshot::Kind kind() const { return kind_; }
 
@@ -335,10 +321,7 @@ class SnapshotReader : public BaseReader {
   RawObject* ReadObject();
 
   // Add object to backward references.
-  void AddBackRef(intptr_t id,
-                  Object* obj,
-                  DeserializeState state,
-                  bool defer_canonicalization = false);
+  void AddBackRef(intptr_t id, Object* obj, DeserializeState state);
 
   // Get an object from the backward references list.
   Object* GetBackRef(intptr_t id);
@@ -367,19 +350,15 @@ class SnapshotReader : public BaseReader {
   void RunDelayedTypePostprocessing();
 
   void EnqueueRehashingOfMap(const LinkedHashMap& map);
+  void EnqueueRehashingOfSet(const Object& set);
   RawObject* RunDelayedRehashingOfMaps();
 
   RawClass* ReadClassId(intptr_t object_id);
   RawObject* ReadStaticImplicitClosure(intptr_t object_id, intptr_t cls_header);
 
   // Implementation to read an object.
-  RawObject* ReadObjectImpl(bool as_reference,
-                            intptr_t patch_object_id = kInvalidPatchIndex,
-                            intptr_t patch_offset = 0);
-  RawObject* ReadObjectImpl(intptr_t header,
-                            bool as_reference,
-                            intptr_t patch_object_id,
-                            intptr_t patch_offset);
+  RawObject* ReadObjectImpl(bool as_reference);
+  RawObject* ReadObjectImpl(intptr_t header, bool as_reference);
 
   // Read a Dart Instance object.
   RawObject* ReadInstance(intptr_t object_id, intptr_t tags, bool as_reference);
@@ -389,18 +368,7 @@ class SnapshotReader : public BaseReader {
 
   // Read an object that was serialized as an Id (singleton in object store,
   // or an object that was already serialized before).
-  RawObject* ReadIndexedObject(intptr_t object_id,
-                               intptr_t patch_object_id,
-                               intptr_t patch_offset);
-
-  // Add a patch record for the object so that objects whose canonicalization
-  // is deferred can be back patched after they are canonicalized.
-  void AddPatchRecord(intptr_t object_id,
-                      intptr_t patch_object_id,
-                      intptr_t patch_offset);
-
-  // Process all the deferred canonicalization entries and patch all references.
-  void ProcessDeferredCanonicalizations();
+  RawObject* ReadIndexedObject(intptr_t object_id);
 
   // Decode class id from the header field.
   intptr_t LookupInternalClass(intptr_t class_header);
@@ -425,6 +393,7 @@ class SnapshotReader : public BaseReader {
   PageSpace* old_space_;           // Old space of the current isolate.
   Class& cls_;                     // Temporary Class handle.
   Code& code_;                     // Temporary Code handle.
+  Instance& instance_;             // Temporary Instance handle
   Instructions& instructions_;     // Temporary Instructions handle
   Object& obj_;                    // Temporary Object handle.
   PassiveObject& pobj_;            // Temporary PassiveObject handle.
@@ -436,9 +405,12 @@ class SnapshotReader : public BaseReader {
   TypeArguments& type_arguments_;  // Temporary type argument handle.
   GrowableObjectArray& tokens_;    // Temporary tokens handle.
   ExternalTypedData& data_;        // Temporary stream data handle.
+  TypedDataBase& typed_data_base_;  // Temporary typed data base handle.
   TypedData& typed_data_;          // Temporary typed data handle.
+  TypedDataView& typed_data_view_;  // Temporary typed data view handle.
   Function& function_;             // Temporary function handle.
   UnhandledException& error_;      // Error handle.
+  const Class& set_class_;         // The LinkedHashSet class.
   intptr_t max_vm_isolate_object_id_;
   ZoneGrowableArray<BackRefNode>* backward_references_;
   GrowableObjectArray& types_to_postprocess_;
@@ -471,6 +443,7 @@ class SnapshotReader : public BaseReader {
   friend class SignatureData;
   friend class SubtypeTestCache;
   friend class Type;
+  friend class TypedDataView;
   friend class TypeArguments;
   friend class TypeParameter;
   friend class TypeRef;
@@ -743,6 +716,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawStackTrace;
   friend class RawSubtypeTestCache;
   friend class RawType;
+  friend class RawTypedDataView;
   friend class RawTypeRef;
   friend class RawTypeArguments;
   friend class RawTypeParameter;

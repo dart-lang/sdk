@@ -76,7 +76,7 @@ var b = new A().g;
   }
 
   test_implicitlyTyped() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   get g => 0;
 }
@@ -85,7 +85,7 @@ var b = new A().g;
   }
 
   test_implicitlyTyped_call() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   get g => () => 0;
 }
@@ -95,7 +95,7 @@ var b = a.g();
   }
 
   test_implicitlyTyped_field() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   var g = 0;
 }
@@ -104,7 +104,7 @@ var b = new A().g;
   }
 
   test_implicitlyTyped_field_call() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   var g = () => 0;
 }
@@ -114,7 +114,7 @@ var b = a.g();
   }
 
   test_implicitlyTyped_field_prefixedIdentifier() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   var g = 0;
 }
@@ -126,7 +126,7 @@ var b = a.g;
   test_implicitlyTyped_fn() async {
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because f is
     // generic, so the type of a.x might affect the type of b.
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   var x = 0;
 }
@@ -178,7 +178,7 @@ var b = a[a.x];
   test_implicitlyTyped_invoke() async {
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because the
     // closure is generic, so the type of a.x might affect the type of b.
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   var x = 0;
 }
@@ -214,7 +214,7 @@ var b = ((y) => 0)(a.x);
   test_implicitlyTyped_method() async {
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because f is
     // generic, so the type of a.x might affect the type of b.
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   var x = 0;
   int f<T>(int x) => 0;
@@ -253,7 +253,7 @@ var b = a.f(a.x);
   test_implicitlyTyped_new() async {
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because B is
     // generic, so the type of a.x might affect the type of b.
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   var x = 0;
 }
@@ -316,7 +316,7 @@ var b = new foo.B<int>(a.x);
   test_implicitlyTyped_new_named() async {
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because B is
     // generic, so the type of a.x might affect the type of b.
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   var x = 0;
 }
@@ -384,7 +384,7 @@ class B<T> {
 ''');
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because B is
     // generic, so the type of a.x might affect the type of b.
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 import 'lib1.dart' as foo;
 class A {
   var x = 0;
@@ -395,7 +395,7 @@ var b = new foo.B(a.x);
   }
 
   test_implicitlyTyped_prefixedIdentifier() async {
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   get g => 0;
 }
@@ -407,7 +407,7 @@ var b = a.g;
   test_implicitlyTyped_propertyAccessLhs() async {
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because the type
     // of a.x affects the lookup of y, which in turn affects the type of b.
-    await assertErrorsInCode('''
+    await assertErrorCodesInCode('''
 class A {
   var x = new B();
   int operator[](int value) => 0;

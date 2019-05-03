@@ -23,8 +23,6 @@ class Configuration {
   final String builderTag;
   final bool fastStartup;
   final int timeout;
-  final bool dart2JsWithKernel;
-  final bool dart2JsOldFrontend;
   final bool enableAsserts;
   final bool hotReload;
   final bool hotReloadRollback;
@@ -48,8 +46,6 @@ class Configuration {
       this.builderTag,
       this.fastStartup,
       this.timeout,
-      this.dart2JsWithKernel,
-      this.dart2JsOldFrontend,
       this.enableAsserts,
       this.hotReload,
       this.hotReloadRollback,
@@ -75,8 +71,6 @@ class Configuration {
         json["builder_tag"],
         json["fast_startup"],
         json["timeout"],
-        json["dart2js_with_kernel"] ?? false,
-        json["dart2js_old_frontend"] ?? false,
         json["enable_asserts"] ?? false,
         json["hot_reload"] ?? false,
         json["hot_reload_rollback"] ?? false,
@@ -103,8 +97,6 @@ class Configuration {
       _boolToArg("use-sdk", useSdk),
       _stringToArg("builder-tag", builderTag),
       _boolToArg("fast-startup", fastStartup),
-      _boolToArg("dart2js-with-kernel", dart2JsWithKernel),
-      _boolToArg("dart2js-old-frontend", dart2JsOldFrontend),
       _boolToArg("enable-asserts", enableAsserts),
       _boolToArg("hot-reload", hotReload),
       _boolToArg("hot-reload-rollback", hotReloadRollback),
@@ -119,7 +111,7 @@ class Configuration {
   String toCsvString() {
     return "$mode;$arch;$compiler;$runtime;$checked;$strong;$hostChecked;"
         "$minified;$csp;$fasta;$system;$vmOptions;$useSdk;$builderTag;$fastStartup;"
-        "$dart2JsWithKernel;$dart2JsOldFrontend;$enableAsserts;$hotReload;"
+        "$enableAsserts;$hotReload;"
         "$hotReloadRollback;$noPreviewDart2;$selectors";
   }
 

@@ -96,7 +96,9 @@ class CrashingDiagnostics extends DiagnosticCollector {
 }
 
 class CrashingMap implements Map<String, String> {
+  @override
   operator [](_) => throw EXCEPTION;
 
+  @override
   noSuchMethod(_) => null;
 }

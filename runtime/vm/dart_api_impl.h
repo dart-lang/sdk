@@ -186,9 +186,18 @@ class Api : AllStatic {
 
   // Returns true if the handle holds a Smi.
   static bool IsSmi(Dart_Handle handle) {
-    // TODO(turnidge): Assumes RawObject* is at offset zero.  Fix.
+    // Important: we do not require current thread to be in VM state because
+    // we do not dereference the handle.
     RawObject* raw = *(reinterpret_cast<RawObject**>(handle));
     return !raw->IsHeapObject();
+  }
+
+  // Returns the value of a Smi.
+  static intptr_t SmiValue(Dart_Handle handle) {
+    // Important: we do not require current thread to be in VM state because
+    // we do not dereference the handle.
+    RawObject* value = *(reinterpret_cast<RawObject**>(handle));
+    return Smi::Value(static_cast<RawSmi*>(value));
   }
 
   // Returns true if the handle holds a Dart Instance.
@@ -204,16 +213,8 @@ class Api : AllStatic {
     return RawObject::IsErrorClassId(ClassId(handle));
   }
 
-  // Returns the value of a Smi.
-  static intptr_t SmiValue(Dart_Handle handle) {
-    // TODO(turnidge): Assumes RawObject* is at offset zero.  Fix.
-    uword value = *(reinterpret_cast<uword*>(handle));
-    return Smi::ValueFromRaw(value);
-  }
-
   static intptr_t ClassId(Dart_Handle handle) {
-    // TODO(turnidge): Assumes RawObject* is at offset zero.  Fix.
-    RawObject* raw = *(reinterpret_cast<RawObject**>(handle));
+    RawObject* raw = UnwrapHandle(handle);
     if (!raw->IsHeapObject()) {
       return kSmiCid;
     }
@@ -294,16 +295,17 @@ class Api : AllStatic {
 
   static RawString* GetEnvironmentValue(Thread* thread, const String& name);
 
-  static bool ffiEnabled() {
+  static bool IsFfiEnabled() {
     // dart:ffi is not implemented for the following configurations
-#if !defined(TARGET_ARCH_X64)
-    // https://github.com/dart-lang/sdk/issues/35774
-    return false;
-#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS)
-    // https://github.com/dart-lang/sdk/issues/35760 Arm32 && Android
-    // https://github.com/dart-lang/sdk/issues/35771 Windows
-    // https://github.com/dart-lang/sdk/issues/35772 Arm64
+#if defined(TARGET_ARCH_DBC)
     // https://github.com/dart-lang/sdk/issues/35773 DBC
+    return false;
+#elif defined(TARGET_ARCH_ARM) &&                                              \
+    !(defined(TARGET_OS_ANDROID) || defined(TARGET_OS_MACOS_IOS))
+    // TODO(36309): Support hardfp calling convention.
+    return false;
+#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS) &&                \
+    !defined(TARGET_OS_ANDROID) && !defined(TARGET_OS_WINDOWS)
     return false;
 #else
     // dart:ffi is also not implemented for precompiled in which case

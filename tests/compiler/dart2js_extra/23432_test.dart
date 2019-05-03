@@ -15,8 +15,8 @@ class N {
   }
 }
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 get NEVER => false;
 
 main() {

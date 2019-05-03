@@ -5,6 +5,7 @@
 #include "vm/version.h"
 
 #include "vm/cpu.h"
+#include "vm/flags.h"
 #include "vm/os.h"
 
 namespace dart {
@@ -27,6 +28,14 @@ const char* Version::SnapshotString() {
 
 const char* Version::CommitString() {
   return commit_;
+}
+
+int Version::CurrentAbiVersion() {
+  return {{ABI_VERSION}};
+}
+
+int Version::OldestSupportedAbiVersion() {
+  return {{OLDEST_SUPPORTED_ABI_VERSION}};
 }
 
 const char* Version::snapshot_hash_ = "{{SNAPSHOT_HASH}}";

@@ -40,20 +40,27 @@ class JSNumber extends Interceptor implements double {
 
   bool get isNegative => (this == 0) ? (1 / this) < 0 : this < 0;
 
-  bool get isNaN => JS('bool', r'isNaN(#)', this);
+  bool get isNaN => JS(
+      'returns:bool;effects:none;depends:none;throws:never;gvn:true',
+      r'isNaN(#)',
+      this);
 
   bool get isInfinite {
     return JS('bool', r'# == (1/0)', this) || JS('bool', r'# == (-1/0)', this);
   }
 
-  bool get isFinite => JS('bool', r'isFinite(#)', this);
+  bool get isFinite => JS(
+      'returns:bool;effects:none;depends:none;throws:never;gvn:true',
+      r'isFinite(#)',
+      this);
 
   JSNumber remainder(num b) {
     if (b is! num) throw argumentErrorValue(b);
     return JS('num', r'# % #', this, b);
   }
 
-  @NoInline() // Use invoke_dynamic_specializer instead of inlining.
+  // Use invoke_dynamic_specializer instead of inlining.
+  @pragma('dart2js:noInline')
   JSNumber abs() => JS(
       'returns:num;effects:none;depends:none;throws:never;gvn:true',
       r'Math.abs(#)',
@@ -452,7 +459,8 @@ class JSInt extends JSNumber implements int {
   const JSInt();
 
   @override
-  @NoInline() // Use invoke_dynamic_specializer instead of inlining.
+  // Use invoke_dynamic_specializer instead of inlining.
+  @pragma('dart2js:noInline')
   JSInt abs() => JS(
       'returns:int;effects:none;depends:none;throws:never;gvn:true',
       r'Math.abs(#)',

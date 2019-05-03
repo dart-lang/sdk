@@ -41,13 +41,27 @@ f() {
 ''');
   }
 
+  test_addAll_expression_toEmptyList() async {
+    await resolveTestUnit('''
+f() {
+  var ints = [1, 2, 3];
+  print([]..addAl/*caret*/l(ints.map((i) => i.toString()))..addAll(['c']));
+}
+''');
+    await assertHasAssist('''
+f() {
+  var ints = [1, 2, 3];
+  print([...ints.map((i) => i.toString())]..addAll(['c']));
+}
+''');
+  }
+
   test_addAll_literal() async {
+    // This case is covered by the INLINE_INVOCATION assist.
     await resolveTestUnit('''
 var l = ['a']..add/*caret*/All(['b'])..addAll(['c']);
 ''');
-    await assertHasAssist('''
-var l = ['a', ...['b']]..addAll(['c']);
-''');
+    await assertNoAssist();
   }
 
   test_addAll_nonLiteralTarget() async {

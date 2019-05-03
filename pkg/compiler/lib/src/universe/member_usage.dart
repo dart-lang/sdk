@@ -5,15 +5,18 @@
 import 'dart:math' as Math;
 
 import '../common.dart';
+import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../js_model/elements.dart' show JSignatureMethod;
 import '../util/enumset.dart';
 import 'call_structure.dart';
 
 abstract class AbstractUsage<T> {
-  final EnumSet<T> _pendingUse = new EnumSet<T>();
+  final EnumSet<T> _pendingUse;
 
-  AbstractUsage() {
+  AbstractUsage.cloned(this._pendingUse);
+
+  AbstractUsage() : this._pendingUse = new EnumSet<T>() {
     _pendingUse.addAll(_originalUse);
   }
 
@@ -37,7 +40,10 @@ abstract class AbstractUsage<T> {
 abstract class MemberUsage extends AbstractUsage<MemberUse> {
   final MemberEntity entity;
 
-  MemberUsage.internal(this.entity);
+  MemberUsage.internal(this.entity) : super();
+
+  MemberUsage.cloned(this.entity, EnumSet<MemberUse> pendingUse)
+      : super.cloned(pendingUse);
 
   factory MemberUsage(MemberEntity member,
       {bool isNative: false, bool trackParameters: false}) {
@@ -69,6 +75,8 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
 
   /// `true` if [entity] has been initialized.
   bool get hasInit => true;
+
+  Iterable<ConstantValue> get initialConstants => null;
 
   /// `true` if [entity] has been read as a value. For a field this is a normal
   /// read access, for a function this is a closurization.
@@ -115,6 +123,13 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
   /// no-op.
   EnumSet<MemberUse> init() => MemberUses.NONE;
 
+  /// Registers the [entity] has been initialized with [constant] and returns
+  /// the new [MemberUse]s that it caused.
+  ///
+  /// For a field this is the initial write access, for a function this is a
+  /// no-op.
+  EnumSet<MemberUse> constantInit(ConstantValue constant) => MemberUses.NONE;
+
   /// Registers a read of the value of [entity] and returns the new [MemberUse]s
   /// that it caused.
   ///
@@ -140,29 +155,63 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
   @override
   EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
 
+  @override
   int get hashCode => entity.hashCode;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! MemberUsage) return false;
     return entity == other.entity;
   }
 
+  MemberUsage clone();
+
+  bool dataEquals(MemberUsage other) {
+    assert(entity == other.entity);
+    return hasInit == other.hasInit &&
+        hasRead == other.hasRead &&
+        hasInvoke == other.hasInvoke &&
+        hasWrite == other.hasWrite &&
+        hasPendingClosurizationUse == other.hasPendingClosurizationUse &&
+        hasPendingNormalUse == other.hasPendingNormalUse &&
+        fullyUsed == other.fullyUsed &&
+        isFullyInvoked == other.isFullyInvoked &&
+        _pendingUse == other._pendingUse &&
+        appliedUse == other.appliedUse;
+  }
+
+  @override
   String toString() => '$entity:${appliedUse.iterable(MemberUse.values)}';
 }
 
 class FieldUsage extends MemberUsage {
-  bool hasInit = false;
-  bool hasRead = false;
-  bool hasWrite = false;
+  @override
+  bool hasInit;
+  @override
+  bool hasRead;
+  @override
+  bool hasWrite;
+
+  List<ConstantValue> _initialConstants;
+
+  FieldUsage.cloned(FieldEntity field, EnumSet<MemberUse> pendingUse,
+      {this.hasInit, this.hasRead, this.hasWrite})
+      : super.cloned(field, pendingUse);
 
   FieldUsage(FieldEntity field, {bool isNative: false})
-      : super.internal(field) {
+      : hasInit = false,
+        hasRead = false,
+        hasWrite = false,
+        super.internal(field) {
     // TODO(johnniwinther): Track native fields through member usage.
     if (!isNative) {
       init();
     }
   }
+
+  @override
+  Iterable<ConstantValue> get initialConstants => _initialConstants ?? const [];
 
   @override
   bool get hasPendingNormalUse => !fullyUsed;
@@ -181,6 +230,13 @@ class FieldUsage extends MemberUsage {
       result = result.union(MemberUses.PARTIAL_USE_ONLY);
     }
     return result;
+  }
+
+  @override
+  EnumSet<MemberUse> constantInit(ConstantValue constant) {
+    _initialConstants ??= [];
+    _initialConstants.add(constant);
+    return init();
   }
 
   @override
@@ -221,20 +277,41 @@ class FieldUsage extends MemberUsage {
     return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
   }
 
+  @override
+  MemberUsage clone() {
+    return new FieldUsage.cloned(entity, _pendingUse.clone(),
+        hasInit: hasInit, hasRead: hasRead, hasWrite: hasWrite);
+  }
+
+  @override
   String toString() => 'FieldUsage($entity,hasInit=$hasInit,hasRead=$hasRead,'
-      'hasWrite=$hasWrite,pendingUse=${_pendingUse.iterable(MemberUse.values)}';
+      'hasWrite=$hasWrite,pendingUse=${_pendingUse.iterable(MemberUse.values)},'
+      'initialConstants=${initialConstants.map((c) => c.toStructuredText())})';
 }
 
 class FinalFieldUsage extends MemberUsage {
-  bool hasInit = false;
-  bool hasRead = false;
+  @override
+  bool hasInit;
+  @override
+  bool hasRead;
+
+  List<ConstantValue> _initialConstants;
+
+  FinalFieldUsage.cloned(FieldEntity field, EnumSet<MemberUse> pendingUse,
+      {this.hasInit, this.hasRead})
+      : super.cloned(field, pendingUse);
 
   FinalFieldUsage(FieldEntity field, {bool isNative: false})
-      : super.internal(field) {
+      : this.hasInit = false,
+        this.hasRead = false,
+        super.internal(field) {
     if (!isNative) {
       init();
     }
   }
+
+  @override
+  Iterable<ConstantValue> get initialConstants => _initialConstants ?? const [];
 
   @override
   bool get hasPendingNormalUse => !fullyUsed;
@@ -253,6 +330,13 @@ class FinalFieldUsage extends MemberUsage {
       result = result.union(MemberUses.PARTIAL_USE_ONLY);
     }
     return result;
+  }
+
+  @override
+  EnumSet<MemberUse> constantInit(ConstantValue constant) {
+    _initialConstants ??= [];
+    _initialConstants.add(constant);
+    return init();
   }
 
   @override
@@ -280,15 +364,32 @@ class FinalFieldUsage extends MemberUsage {
     return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
   }
 
+  @override
+  MemberUsage clone() {
+    return new FinalFieldUsage.cloned(entity, _pendingUse.clone(),
+        hasInit: hasInit, hasRead: hasRead);
+  }
+
+  @override
   String toString() => 'FinalFieldUsage($entity,hasInit=$hasInit,'
-      'hasRead=$hasRead,pendingUse=${_pendingUse.iterable(MemberUse.values)}';
+      'hasRead=$hasRead,pendingUse=${_pendingUse.iterable(MemberUse.values)},'
+      'initialConstants=${initialConstants.map((c) => c.toStructuredText())})';
 }
 
 class FunctionUsage extends MemberUsage {
-  bool hasInvoke = false;
-  bool hasRead = false;
+  @override
+  bool hasInvoke;
+  @override
+  bool hasRead;
 
-  FunctionUsage(FunctionEntity function) : super.internal(function) {
+  FunctionUsage.cloned(FunctionEntity function, EnumSet<MemberUse> pendingUse,
+      {this.hasInvoke, this.hasRead})
+      : super.cloned(function, pendingUse);
+
+  FunctionUsage(FunctionEntity function)
+      : this.hasInvoke = false,
+        this.hasRead = false,
+        super.internal(function) {
     if (function is JSignatureMethod) {
       // We mark signature methods as "always used" to prevent them from being
       // optimized away.
@@ -297,11 +398,14 @@ class FunctionUsage extends MemberUsage {
     }
   }
 
+  @override
   FunctionEntity get entity => super.entity;
 
+  @override
   EnumSet<MemberUse> get _originalUse =>
       entity.isInstanceMember ? MemberUses.ALL_INSTANCE : MemberUses.ALL_STATIC;
 
+  @override
   bool get hasPendingClosurizationUse => entity.isInstanceMember
       ? _pendingUse.contains(MemberUse.CLOSURIZE_INSTANCE)
       : _pendingUse.contains(MemberUse.CLOSURIZE_STATIC);
@@ -346,15 +450,28 @@ class FunctionUsage extends MemberUsage {
   @override
   ParameterStructure get invokedParameters =>
       hasInvoke ? entity.parameterStructure : null;
+
+  @override
+  MemberUsage clone() {
+    return new FunctionUsage.cloned(entity, _pendingUse.clone(),
+        hasInvoke: hasInvoke, hasRead: hasRead);
+  }
 }
 
 class ParameterTrackingFunctionUsage extends MemberUsage {
-  bool hasRead = false;
+  @override
+  bool hasRead;
 
   final ParameterUsage _parameterUsage;
 
+  ParameterTrackingFunctionUsage.cloned(FunctionEntity function,
+      this._parameterUsage, EnumSet<MemberUse> pendingUse,
+      {this.hasRead})
+      : super.cloned(function, pendingUse);
+
   ParameterTrackingFunctionUsage(FunctionEntity function)
-      : _parameterUsage = new ParameterUsage(function.parameterStructure),
+      : hasRead = false,
+        _parameterUsage = new ParameterUsage(function.parameterStructure),
         super.internal(function) {
     if (function is JSignatureMethod) {
       // We mark signature methods as "always used" to prevent them from being
@@ -364,12 +481,15 @@ class ParameterTrackingFunctionUsage extends MemberUsage {
     }
   }
 
+  @override
   bool get hasInvoke => _parameterUsage.hasInvoke;
 
+  @override
   bool get hasPendingClosurizationUse => entity.isInstanceMember
       ? _pendingUse.contains(MemberUse.CLOSURIZE_INSTANCE)
       : _pendingUse.contains(MemberUse.CLOSURIZE_STATIC);
 
+  @override
   EnumSet<MemberUse> get _originalUse =>
       entity.isInstanceMember ? MemberUses.ALL_INSTANCE : MemberUses.ALL_STATIC;
 
@@ -420,6 +540,7 @@ class ParameterTrackingFunctionUsage extends MemberUsage {
   @override
   bool get hasPendingNormalUse => !isFullyInvoked;
 
+  @override
   bool get isFullyInvoked => _parameterUsage.isFullyUsed;
 
   @override
@@ -427,12 +548,26 @@ class ParameterTrackingFunctionUsage extends MemberUsage {
 
   @override
   ParameterStructure get invokedParameters => _parameterUsage.invokedParameters;
+
+  @override
+  MemberUsage clone() {
+    return new ParameterTrackingFunctionUsage.cloned(
+        entity, _parameterUsage.clone(), _pendingUse.clone(),
+        hasRead: hasRead);
+  }
 }
 
 class GetterUsage extends MemberUsage {
-  bool hasRead = false;
+  @override
+  bool hasRead;
 
-  GetterUsage(FunctionEntity getter) : super.internal(getter);
+  GetterUsage.cloned(FunctionEntity getter, EnumSet<MemberUse> pendingUse,
+      {this.hasRead})
+      : super.cloned(getter, pendingUse);
+
+  GetterUsage(FunctionEntity getter)
+      : hasRead = false,
+        super.internal(getter);
 
   @override
   bool get fullyUsed => hasRead;
@@ -451,12 +586,25 @@ class GetterUsage extends MemberUsage {
 
   @override
   EnumSet<MemberUse> fullyUse() => read();
+
+  @override
+  MemberUsage clone() {
+    return new GetterUsage.cloned(entity, _pendingUse.clone(),
+        hasRead: hasRead);
+  }
 }
 
 class SetterUsage extends MemberUsage {
-  bool hasWrite = false;
+  @override
+  bool hasWrite;
 
-  SetterUsage(FunctionEntity setter) : super.internal(setter);
+  SetterUsage.cloned(FunctionEntity setter, EnumSet<MemberUse> pendingUse,
+      {this.hasWrite})
+      : super.cloned(setter, pendingUse);
+
+  SetterUsage(FunctionEntity setter)
+      : hasWrite = false,
+        super.internal(setter);
 
   @override
   bool get fullyUsed => hasWrite;
@@ -472,15 +620,31 @@ class SetterUsage extends MemberUsage {
 
   @override
   EnumSet<MemberUse> fullyUse() => write();
+
+  @override
+  MemberUsage clone() {
+    return new SetterUsage.cloned(entity, _pendingUse.clone(),
+        hasWrite: hasWrite);
+  }
 }
 
 class ConstructorUsage extends MemberUsage {
-  bool hasInvoke = false;
+  @override
+  bool hasInvoke;
 
-  ConstructorUsage(ConstructorEntity constructor) : super.internal(constructor);
+  ConstructorUsage.cloned(
+      ConstructorEntity constructor, EnumSet<MemberUse> pendingUse,
+      {this.hasInvoke})
+      : super.cloned(constructor, pendingUse);
 
+  ConstructorUsage(ConstructorEntity constructor)
+      : hasInvoke = false,
+        super.internal(constructor);
+
+  @override
   ConstructorEntity get entity => super.entity;
 
+  @override
   EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
 
   @override
@@ -503,17 +667,29 @@ class ConstructorUsage extends MemberUsage {
   @override
   ParameterStructure get invokedParameters =>
       hasInvoke ? entity.parameterStructure : null;
+
+  @override
+  MemberUsage clone() {
+    return new ConstructorUsage.cloned(entity, _pendingUse.clone(),
+        hasInvoke: hasInvoke);
+  }
 }
 
 class ParameterTrackingConstructorUsage extends MemberUsage {
   final ParameterUsage _parameterUsage;
 
+  ParameterTrackingConstructorUsage.cloned(ConstructorEntity constructor,
+      this._parameterUsage, EnumSet<MemberUse> pendingUse)
+      : super.cloned(constructor, pendingUse);
+
   ParameterTrackingConstructorUsage(ConstructorEntity constructor)
       : _parameterUsage = new ParameterUsage(constructor.parameterStructure),
         super.internal(constructor);
 
+  @override
   ConstructorEntity get entity => super.entity;
 
+  @override
   EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
 
   @override
@@ -548,10 +724,17 @@ class ParameterTrackingConstructorUsage extends MemberUsage {
   @override
   bool get hasPendingNormalUse => !isFullyInvoked;
 
+  @override
   bool get isFullyInvoked => _parameterUsage.isFullyUsed;
 
   @override
   ParameterStructure get invokedParameters => _parameterUsage.invokedParameters;
+
+  @override
+  MemberUsage clone() {
+    return new ParameterTrackingConstructorUsage.cloned(
+        entity, _parameterUsage.clone(), _pendingUse.clone());
+  }
 }
 
 /// Enum class for the possible kind of use of [MemberEntity] objects.
@@ -599,7 +782,7 @@ class ClassUsage extends AbstractUsage<ClassUse> {
 
   final ClassEntity cls;
 
-  ClassUsage(this.cls);
+  ClassUsage(this.cls) : super();
 
   EnumSet<ClassUse> instantiate() {
     if (isInstantiated) {
@@ -620,6 +803,7 @@ class ClassUsage extends AbstractUsage<ClassUse> {
   @override
   EnumSet<ClassUse> get _originalUse => ClassUses.ALL;
 
+  @override
   String toString() => '$cls:${appliedUse.iterable(ClassUse.values)}';
 }
 
@@ -641,12 +825,19 @@ typedef void ClassUsedCallback(ClassEntity cls, EnumSet<ClassUse> useSet);
 // TODO(johnniwinther): Merge this with [MemberUsage].
 abstract class StaticMemberUsage extends AbstractUsage<MemberUse>
     implements MemberUsage {
+  @override
   final MemberEntity entity;
 
-  bool hasNormalUse = false;
+  bool hasNormalUse;
   bool get hasClosurization => false;
 
-  StaticMemberUsage.internal(this.entity);
+  StaticMemberUsage.cloned(this.entity, EnumSet<MemberUse> pendingUse,
+      {this.hasNormalUse: false})
+      : super.cloned(pendingUse);
+
+  StaticMemberUsage.internal(this.entity)
+      : this.hasNormalUse = false,
+        super();
 
   EnumSet<MemberUse> normalUse() {
     if (hasNormalUse) {
@@ -658,15 +849,26 @@ abstract class StaticMemberUsage extends AbstractUsage<MemberUse>
 
   EnumSet<MemberUse> tearOff();
 
+  @override
   EnumSet<MemberUse> init() => normalUse();
 
+  @override
+  EnumSet<MemberUse> constantInit(ConstantValue constant) => normalUse();
+
+  @override
   EnumSet<MemberUse> read() => tearOff();
 
+  @override
   EnumSet<MemberUse> write() => normalUse();
 
+  @override
   EnumSet<MemberUse> invoke(CallStructure callStructure) => normalUse();
 
+  @override
   EnumSet<MemberUse> fullyUse() => normalUse();
+
+  @override
+  Iterable<ConstantValue> get initialConstants => null;
 
   @override
   bool get hasPendingNormalUse => _pendingUse.contains(MemberUse.NORMAL);
@@ -677,12 +879,34 @@ abstract class StaticMemberUsage extends AbstractUsage<MemberUse>
   @override
   EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
 
+  @override
+  bool dataEquals(MemberUsage other) {
+    assert(entity == other.entity);
+    return hasInit == other.hasInit &&
+        hasRead == other.hasRead &&
+        hasInvoke == other.hasInvoke &&
+        hasWrite == other.hasWrite &&
+        hasPendingClosurizationUse == other.hasPendingClosurizationUse &&
+        hasPendingNormalUse == other.hasPendingNormalUse &&
+        fullyUsed == other.fullyUsed &&
+        isFullyInvoked == other.isFullyInvoked &&
+        _pendingUse == other._pendingUse &&
+        appliedUse == other.appliedUse;
+  }
+
+  @override
   String toString() => '$entity:${appliedUse.iterable(MemberUse.values)}';
 }
 
 class GeneralStaticMemberUsage extends StaticMemberUsage {
   GeneralStaticMemberUsage(MemberEntity entity) : super.internal(entity);
 
+  GeneralStaticMemberUsage.cloned(
+      MemberEntity entity, EnumSet<MemberUse> pendingUse,
+      {bool hasNormalUse})
+      : super.cloned(entity, pendingUse, hasNormalUse: hasNormalUse);
+
+  @override
   EnumSet<MemberUse> tearOff() => normalUse();
 
   @override
@@ -705,18 +929,34 @@ class GeneralStaticMemberUsage extends StaticMemberUsage {
 
   @override
   ParameterStructure get invokedParameters => null;
+
+  @override
+  MemberUsage clone() {
+    return new GeneralStaticMemberUsage.cloned(entity, _pendingUse.clone(),
+        hasNormalUse: hasNormalUse);
+  }
 }
 
 class StaticFunctionUsage extends StaticMemberUsage {
-  bool hasClosurization = false;
+  @override
+  bool hasClosurization;
 
-  StaticFunctionUsage(FunctionEntity entity) : super.internal(entity);
+  StaticFunctionUsage(FunctionEntity entity)
+      : hasClosurization = false,
+        super.internal(entity);
 
+  StaticFunctionUsage.cloned(
+      FunctionEntity entity, EnumSet<MemberUse> pendingUse,
+      {bool hasNormalUse, this.hasClosurization})
+      : super.cloned(entity, pendingUse, hasNormalUse: hasNormalUse);
+
+  @override
   FunctionEntity get entity => super.entity;
 
   @override
   bool get hasInit => true;
 
+  @override
   EnumSet<MemberUse> tearOff() {
     if (hasClosurization) {
       return MemberUses.NONE;
@@ -747,6 +987,12 @@ class StaticFunctionUsage extends StaticMemberUsage {
   @override
   ParameterStructure get invokedParameters =>
       hasInvoke ? entity.parameterStructure : null;
+
+  @override
+  MemberUsage clone() {
+    return new StaticFunctionUsage.cloned(entity, _pendingUse.clone(),
+        hasNormalUse: hasNormalUse, hasClosurization: hasClosurization);
+  }
 }
 
 /// Object used for tracking parameter use in constructor and method
@@ -786,6 +1032,16 @@ class ParameterUsage {
           new Set<String>.from(_parameterStructure.namedParameters);
     }
   }
+
+  ParameterUsage.cloned(this._parameterStructure,
+      {bool hasInvoke,
+      int providedPositionalParameters,
+      bool areAllTypeParametersProvided,
+      Set<String> unprovidedNamedParameters})
+      : _hasInvoke = hasInvoke,
+        _providedPositionalParameters = providedPositionalParameters,
+        _areAllTypeParametersProvided = areAllTypeParametersProvided,
+        _unprovidedNamedParameters = unprovidedNamedParameters;
 
   bool invoke(CallStructure callStructure) {
     if (isFullyUsed) return false;
@@ -847,5 +1103,13 @@ class ParameterUsage {
                 .where((n) => !_unprovidedNamedParameters.contains(n))
                 .toList(),
         _areAllTypeParametersProvided ? _parameterStructure.typeParameters : 0);
+  }
+
+  ParameterUsage clone() {
+    return new ParameterUsage.cloned(_parameterStructure,
+        hasInvoke: _hasInvoke,
+        providedPositionalParameters: _providedPositionalParameters,
+        areAllTypeParametersProvided: _areAllTypeParametersProvided,
+        unprovidedNamedParameters: _unprovidedNamedParameters?.toSet());
   }
 }

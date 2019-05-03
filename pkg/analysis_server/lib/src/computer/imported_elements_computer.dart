@@ -39,10 +39,28 @@ class ImportedElementsComputer {
    * Compute and return the list of imported elements.
    */
   List<ImportedElements> compute() {
+    if (_regionIncludesDirectives()) {
+      return const <ImportedElements>[];
+    }
     _Visitor visitor =
         new _Visitor(unit.declaredElement.library, offset, offset + length);
     unit.accept(visitor);
     return visitor.importedElements.values.toList();
+  }
+
+  /**
+   * Return `true` if the region being copied includes any directives. This
+   * really only needs to check for import and export directives, but excluding
+   * other directives is unlikely to hurt the UX.
+   */
+  bool _regionIncludesDirectives() {
+    NodeList<Directive> directives = unit.directives;
+    if (directives.isEmpty) {
+      return false;
+    }
+    // This might be overly restrictive if there are directives after the first
+    // declaration, but that should be a rare case given that it's invalid.
+    return offset < directives.last.end;
   }
 }
 
@@ -99,14 +117,11 @@ class _Visitor extends UnifyingAstVisitor<void> {
         String prefix = '';
         AstNode parent = node.parent;
         if (parent is PrefixedIdentifier && parent.identifier == node) {
-          SimpleIdentifier prefixIdentifier = parent.prefix;
-          if (prefixIdentifier.offset <= endOffset &&
-              prefixIdentifier.end >= startOffset) {
-            Element prefixElement = prefixIdentifier.staticElement;
-            if (prefixElement is PrefixElement) {
-              prefix = prefixElement.name;
-            }
-          }
+          prefix = _getPrefixFrom(parent.prefix);
+        } else if (parent is MethodInvocation &&
+            parent.methodName == node &&
+            parent.target is SimpleIdentifier) {
+          prefix = _getPrefixFrom(parent.target);
         }
         String key = '$prefix;$path';
         ImportedElements elements = importedElements.putIfAbsent(
@@ -118,6 +133,16 @@ class _Visitor extends UnifyingAstVisitor<void> {
         }
       }
     }
+  }
+
+  String _getPrefixFrom(SimpleIdentifier identifier) {
+    if (identifier.offset <= endOffset && identifier.end >= startOffset) {
+      Element prefixElement = identifier.staticElement;
+      if (prefixElement is PrefixElement) {
+        return prefixElement.name;
+      }
+    }
+    return '';
   }
 
   static bool _isConstructorDeclarationReturnType(SimpleIdentifier node) {

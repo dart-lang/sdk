@@ -21,6 +21,7 @@ class EditDartFix
   final AnalysisServer server;
 
   final Request request;
+  final pkgFolders = <Folder>[];
   final fixFolders = <Folder>[];
   final fixFiles = <File>[];
 
@@ -78,11 +79,21 @@ class EditDartFix
               contextManager.isInAnalysisRoot(filePath))) {
         return new Response.fileNotAnalyzed(request, filePath);
       }
+      var pkgFolder =
+          findPkgFolder(contextManager.getContextFolderFor(filePath));
+      if (pkgFolder != null && !pkgFolders.contains(pkgFolder)) {
+        pkgFolders.add(pkgFolder);
+      }
       if (res is Folder) {
         fixFolders.add(res);
       } else {
         fixFiles.add(res);
       }
+    }
+
+    // Process each package
+    for (Folder pkgFolder in pkgFolders) {
+      await processPackage(pkgFolder);
     }
 
     // Process each source file.
@@ -100,11 +111,13 @@ class EditDartFix
           hasErrors = true;
         }
         await processLints(result);
-        await processCodeTasks(result);
+        if (numPhases > 0) {
+          await processCodeTasks(0, result);
+        }
       });
-      if (needsSecondPass) {
+      for (int phase = 1; phase < numPhases; phase++) {
         await processResources((ResolvedUnitResult result) async {
-          await processCodeTasks2(result);
+          await processCodeTasks(phase, result);
         });
       }
       await finishLints();
@@ -131,6 +144,17 @@ class EditDartFix
       hasErrors,
       listener.sourceChange.edits,
     ).toResponse(request.id);
+  }
+
+  Folder findPkgFolder(Folder folder) {
+    while (folder != null) {
+      if (folder.getChild('analysis_options.yaml').exists ||
+          folder.getChild('pubspec.yaml').exists) {
+        return folder;
+      }
+      folder = folder.parent;
+    }
+    return null;
   }
 
   /// Return `true` if the path in within the set of `included` files

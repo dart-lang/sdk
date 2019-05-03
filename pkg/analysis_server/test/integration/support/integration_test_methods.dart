@@ -1155,6 +1155,33 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Inspect analysis server's knowledge about all of a file's tokens including
+   * their lexeme, type, and what element kinds would have been appropriate for
+   * the token's program location.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The path to the file from which tokens should be returned.
+   *
+   * Returns
+   *
+   * tokens: List<TokenDetails>
+   *
+   *   A list of the file's scanned tokens including analysis information about
+   *   them.
+   */
+  Future<CompletionListTokenDetailsResult> sendCompletionListTokenDetails(
+      String file) async {
+    var params = new CompletionListTokenDetailsParams(file).toJson();
+    var result = await server.send("completion.listTokenDetails", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new CompletionListTokenDetailsResult.fromJson(
+        decoder, 'result', result);
+  }
+
+  /**
    * Reports the completion suggestions that should be presented to the user.
    * The set of suggestions included in the notification is always a complete
    * list that supersedes any previously reported suggestions.
@@ -1194,15 +1221,11 @@ abstract class IntegrationTestMixin {
    *
    * includedSuggestionSets: List<IncludedSuggestionSet> (optional)
    *
-   *   This field is experimental.
-   *
    *   References to AvailableSuggestionSet objects previously sent to the
    *   client. The client can include applicable names from the referenced
    *   library in code completion suggestions.
    *
-   * includedSuggestionKinds: List<ElementKind> (optional)
-   *
-   *   This field is experimental.
+   * includedElementKinds: List<ElementKind> (optional)
    *
    *   The client is expected to check this list against the ElementKind sent
    *   in IncludedSuggestionSet to decide whether or not these symbols should
@@ -1210,8 +1233,6 @@ abstract class IntegrationTestMixin {
    *
    * includedSuggestionRelevanceTags: List<IncludedSuggestionRelevanceTag>
    * (optional)
-   *
-   *   This field is experimental.
    *
    *   The client is expected to check this list against the values of the
    *   field relevanceTags of AvailableSuggestion to decide if the suggestion
@@ -2005,6 +2026,13 @@ abstract class IntegrationTestMixin {
    *
    *   The elements to be made accessible in the specified file.
    *
+   * offset: int (optional)
+   *
+   *   The offset at which the specified elements need to be made accessible.
+   *   If provided, this is used to guard against adding imports for text that
+   *   would be inserted into a comment, string literal, or other location
+   *   where the imports would not be necessary.
+   *
    * Returns
    *
    * edit: SourceFileEdit (optional)
@@ -2017,8 +2045,10 @@ abstract class IntegrationTestMixin {
    *   that need to be applied.
    */
   Future<EditImportElementsResult> sendEditImportElements(
-      String file, List<ImportedElements> elements) async {
-    var params = new EditImportElementsParams(file, elements).toJson();
+      String file, List<ImportedElements> elements,
+      {int offset}) async {
+    var params =
+        new EditImportElementsParams(file, elements, offset: offset).toJson();
     var result = await server.send("edit.importElements", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new EditImportElementsResult.fromJson(decoder, 'result', result);

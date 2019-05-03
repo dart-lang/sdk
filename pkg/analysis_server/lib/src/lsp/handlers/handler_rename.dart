@@ -16,8 +16,8 @@ class PrepareRenameHandler
   Method get handlesMessage => Method.textDocument_prepareRename;
 
   @override
-  TextDocumentPositionParams convertParams(Map<String, dynamic> json) =>
-      TextDocumentPositionParams.fromJson(json);
+  LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
+      TextDocumentPositionParams.jsonHandler;
 
   @override
   Future<ErrorOr<RangeAndPlaceholder>> handle(
@@ -68,8 +68,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
   Method get handlesMessage => Method.textDocument_rename;
 
   @override
-  RenameParams convertParams(Map<String, dynamic> json) =>
-      RenameParams.fromJson(json);
+  LspJsonHandler<RenameParams> get jsonHandler => RenameParams.jsonHandler;
 
   @override
   Future<ErrorOr<WorkspaceEdit>> handle(RenameParams params) async {

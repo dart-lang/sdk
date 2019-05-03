@@ -61,10 +61,12 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   // A "greedy loop" is a loop that is both greedy and with a simple
   // body. It has a particularly simple implementation.
   virtual void CheckGreedyLoop(BlockLabel* on_tos_equals_current_position);
-  virtual void CheckNotAtStart(BlockLabel* on_not_at_start);
+  virtual void CheckNotAtStart(intptr_t cp_offset, BlockLabel* on_not_at_start);
   virtual void CheckNotBackReference(intptr_t start_reg,
+                                     bool read_backward,
                                      BlockLabel* on_no_match);
   virtual void CheckNotBackReferenceIgnoreCase(intptr_t start_reg,
+                                               bool read_backward,
                                                BlockLabel* on_no_match);
   virtual void CheckNotCharacter(uint32_t c, BlockLabel* on_not_equal);
   virtual void CheckNotCharacterAfterAnd(uint32_t c,

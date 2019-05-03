@@ -165,14 +165,15 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   }
 #endif
 
-  if (FLAG_enable_interpreter) {
-#if defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
-    return strdup(
-        "--enable-interpreter is not supported when targeting "
-        "a sim* architecture.");
-#endif  // defined(USING_SIMULATOR) || defined(TARGET_ARCH_DBC)
+#if defined(TARGET_ARCH_DBC)
+  // DBC instructions are never executable.
+  FLAG_write_protect_code = false;
+#endif
 
-    FLAG_use_field_guards = false;
+  if (FLAG_enable_interpreter) {
+#if defined(TARGET_ARCH_DBC)
+    return strdup("--enable-interpreter is not supported with DBC");
+#endif  // defined(TARGET_ARCH_DBC)
   }
 
   FrameLayout::Init();
@@ -525,10 +526,7 @@ char* Dart::Cleanup() {
   StoreBuffer::Cleanup();
   Object::Cleanup();
   SemiSpace::Cleanup();
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // Stubs are generated when not precompiled, clean them up.
   StubCode::Cleanup();
-#endif
   // Delete the current thread's TLS and set it's TLS to null.
   // If it is the last thread then the destructor would call
   // OSThread::Cleanup.
@@ -760,6 +758,10 @@ const char* Dart::FeaturesString(Isolate* isolate,
     }
     buffer.AddString(FLAG_causal_async_stacks ? " causal_async_stacks"
                                               : " no-causal_async_stacks");
+
+    buffer.AddString((FLAG_enable_interpreter || FLAG_use_bytecode_compiler)
+                         ? " bytecode"
+                         : " no-bytecode");
 
 // Generated code must match the host architecture and ABI.
 #if defined(TARGET_ARCH_ARM)

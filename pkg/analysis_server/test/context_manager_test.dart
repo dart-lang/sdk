@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/sdk.dart';
@@ -30,7 +31,6 @@ import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/avoid_as.dart';
 import 'package:path/path.dart' as path;
-import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart';
@@ -1722,9 +1722,6 @@ abstract class ContextManagerTest with ResourceProviderMixin {
       .firstWhere((ErrorProcessor p) => p.appliesTo(error), orElse: () => null);
 
   void processRequiredPlugins() {
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
-
     registerLintRules();
   }
 
@@ -1981,7 +1978,9 @@ include: package:boo/other_options.yaml
     String sdkExtPath = '$projPath/sdk_ext';
     newFile('$projPath/test', content: 'test.dart');
     newFile('$sdkExtPath/entry.dart');
-    List<int> bytes = new SummaryBuilder([], null).build();
+    List<int> bytes = new SummaryBuilder(
+            [], RestrictedAnalysisContext(analysisOptions, null, null))
+        .build();
     newFileWithBytes('$projPath/sdk.ds', bytes);
     // Setup _embedder.yaml.
     newFile('$libPath/_embedder.yaml', content: r'''
@@ -2045,8 +2044,10 @@ linter:
 
     expect(
         lintNames,
-        unorderedEquals(
-            ['avoid_as' /* embedder */, 'camel_case_types' /* options */]));
+        unorderedEquals([
+          'avoid_as' /* embedder */,
+          'camel_case_types' /* options */
+        ]));
 
     // Sanity check embedder libs.
     var source = sourceFactory.forUri('dart:foobar');
@@ -2498,20 +2499,12 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
 
     ContextBuilder builder =
         createContextBuilder(folder, options, useSummaries: true);
-    AnalysisContext context = builder.buildContext(folder.path);
-    SourceFactory sourceFactory = context.sourceFactory;
-    AnalysisOptions analysisOptions = context.analysisOptions;
-    context.dispose();
+    builder.analysisDriverScheduler = scheduler;
+    builder.byteStore = MemoryByteStore();
+    builder.performanceLog = logger;
+    builder.fileContentOverlay = FileContentOverlay();
+    currentDriver = builder.buildDriver(contextRoot);
 
-    currentDriver = new AnalysisDriver(
-        scheduler,
-        logger,
-        resourceProvider,
-        new MemoryByteStore(),
-        new FileContentOverlay(),
-        contextRoot,
-        sourceFactory,
-        analysisOptions);
     driverMap[path] = currentDriver;
     currentDriver.exceptions.listen((ExceptionResult result) {
       AnalysisEngine.instance.logger

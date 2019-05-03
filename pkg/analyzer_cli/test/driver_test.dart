@@ -806,6 +806,30 @@ flutter:
       expect(exitCode, 0);
     });
   }
+
+  test_manifestFileChecks() async {
+    await withTempDirAsync((tempDir) async {
+      String filePath =
+          path.join(tempDir, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
+      new File(filePath).writeAsStringSync('''
+analyzer:
+  optional-checks:
+    chrome-os-manifest-checks: true
+''');
+      String manifestPath =
+          path.join(tempDir, AnalysisEngine.ANDROID_MANIFEST_FILE);
+      new File(manifestPath).writeAsStringSync('''
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.software.home_screen" />
+</manifest>
+''');
+      await drive(manifestPath, options: filePath);
+      expect(bulletToDash(outSink),
+          contains("warning - This feature is not supported on Chrome OS"));
+      expect(exitCode, 0);
+    });
+  }
 }
 
 @reflectiveTest

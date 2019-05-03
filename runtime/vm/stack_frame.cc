@@ -29,6 +29,7 @@ const FrameLayout invalid_frame_layout = {
     /*.first_object_from_fp = */ -1,
     /*.last_fixed_object_from_fp = */ -1,
     /*.param_end_from_fp = */ -1,
+    /*.last_param_from_entry_sp = */ -1,
     /*.first_local_from_fp = */ -1,
     /*.dart_fixed_frame_size = */ -1,
     /*.saved_caller_pp_from_fp = */ -1,
@@ -40,6 +41,7 @@ const FrameLayout default_frame_layout = {
     /*.first_object_from_fp = */ kFirstObjectSlotFromFp,
     /*.last_fixed_object_from_fp = */ kLastFixedObjectSlotFromFp,
     /*.param_end_from_fp = */ kParamEndSlotFromFp,
+    /*.last_param_from_entry_sp = */ kLastParamSlotFromEntrySp,
     /*.first_local_from_fp = */ kFirstLocalSlotFromFp,
     /*.dart_fixed_frame_size = */ kDartFrameFixedSize,
     /*.saved_caller_pp_from_fp = */ kSavedCallerPpSlotFromFp,
@@ -51,6 +53,7 @@ const FrameLayout bare_instructions_frame_layout = {
     /*.last_fixed_object_from_fp = */ kLastFixedObjectSlotFromFp +
         2,  // No saved CODE, PP slots
     /*.param_end_from_fp = */ kParamEndSlotFromFp,
+    /*.last_param_from_entry_sp = */ kLastParamSlotFromEntrySp,
     /*.first_local_from_fp =*/kFirstLocalSlotFromFp +
         2,  // No saved CODE, PP slots.
     /*.dart_fixed_frame_size =*/kDartFrameFixedSize -
@@ -384,8 +387,17 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 #if !defined(TARGET_ARCH_DBC)
   // For normal unoptimized Dart frames and Stub frames each slot
   // between the first and last included are tagged objects.
-  RawObject** first = reinterpret_cast<RawObject**>(
-      is_interpreted() ? fp() + (kKBCFirstObjectSlotFromFp * kWordSize) : sp());
+  if (is_interpreted()) {
+    // Do not visit caller's pc or caller's fp.
+    RawObject** first =
+        reinterpret_cast<RawObject**>(fp()) + kKBCFirstObjectSlotFromFp;
+    RawObject** last =
+        reinterpret_cast<RawObject**>(fp()) + kKBCLastFixedObjectSlotFromFp;
+
+    visitor->VisitPointers(first, last);
+  }
+  RawObject** first =
+      reinterpret_cast<RawObject**>(is_interpreted() ? fp() : sp());
   RawObject** last = reinterpret_cast<RawObject**>(
       is_interpreted()
           ? sp()
@@ -402,9 +414,11 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 RawFunction* StackFrame::LookupDartFunction() const {
   if (is_interpreted()) {
-    const Bytecode& bytecode = Bytecode::Handle(LookupDartBytecode());
-    ASSERT(!bytecode.IsNull());
-    return bytecode.function();
+    RawObject* result = *(reinterpret_cast<RawFunction**>(
+        fp() + kKBCFunctionSlotFromFp * kWordSize));
+    ASSERT((result == Object::null()) ||
+           (result->GetClassId() == kFunctionCid));
+    return reinterpret_cast<RawFunction*>(result);
   }
   const Code& code = Code::Handle(LookupDartCode());
   if (!code.IsNull()) {

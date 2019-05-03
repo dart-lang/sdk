@@ -9,6 +9,7 @@ import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
+import '../js_backend/field_analysis.dart';
 import '../js_backend/namer.dart' show Namer;
 import '../js_backend/interceptor_data.dart' show InterceptorData;
 import '../options.dart';
@@ -108,8 +109,14 @@ class ClassStubGenerator {
         }
         return js('#.#()', [receiver, getterName]);
       } else {
-        jsAst.Name fieldName = _namer.instanceFieldPropertyName(member);
-        return js('#.#', [receiver, fieldName]);
+        FieldAnalysisData fieldData =
+            _closedWorld.fieldAnalysis.getFieldData(member);
+        if (fieldData.isEffectivelyConstant) {
+          return _emitter.constantReference(fieldData.constantValue);
+        } else {
+          jsAst.Name fieldName = _namer.instanceFieldPropertyName(member);
+          return js('#.#', [receiver, fieldName]);
+        }
       }
     }
 

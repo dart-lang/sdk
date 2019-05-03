@@ -954,7 +954,7 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
     field.SetFieldType(type);
     if (track_exactness && IsPotentialExactGeneric(type)) {
       field.set_static_type_exactness_state(
-          StaticTypeExactnessState::Unitialized());
+          StaticTypeExactnessState::Uninitialized());
     }
   }
   // Finalize function signatures and check for conflicts in super classes and
@@ -1088,19 +1088,6 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     interface_class.AddDirectImplementor(cls,
                                          /* is_mixin = */ i == mixin_index);
   }
-
-  if (FLAG_use_cha_deopt) {
-    // Invalidate all CHA code which depends on knowing the implementors of any
-    // of the interfaces implemented by this new class.
-    ClassTable* class_table = thread->isolate()->class_table();
-    GrowableArray<intptr_t> cids;
-    InterfaceFinder finder(zone, class_table, &cids);
-    finder.FindAllInterfaces(cls);
-    for (intptr_t j = 0; j < cids.length(); ++j) {
-      interface_class = class_table->At(cids[j]);
-      interface_class.DisableCHAImplementorUsers();
-    }
-  }
 }
 
 void ClassFinalizer::FinalizeClass(const Class& cls) {
@@ -1169,6 +1156,22 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     RemoveCHAOptimizedCode(cls, cids);
   }
 
+  if (FLAG_use_cha_deopt) {
+    Zone* zone = thread->zone();
+    ClassTable* class_table = thread->isolate()->class_table();
+    auto& interface_class = Class::Handle(zone);
+
+    // We scan every interface this [cls] implements and invalidate all CHA code
+    // which depends on knowing the implementors of that interface.
+    GrowableArray<intptr_t> cids;
+    InterfaceFinder finder(zone, class_table, &cids);
+    finder.FindAllInterfaces(cls);
+    for (intptr_t j = 0; j < cids.length(); ++j) {
+      interface_class = class_table->At(cids[j]);
+      interface_class.DisableCHAImplementorUsers();
+    }
+  }
+
   if (cls.is_enum_class()) {
     AllocateEnumValues(cls);
   }
@@ -1178,6 +1181,14 @@ RawError* ClassFinalizer::LoadClassMembers(const Class& cls) {
   ASSERT(Thread::Current()->IsMutatorThread());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    // TODO(36584) : We expect is_type_finalized to be true for all classes
+    // here, but with eager reading of the constant table we get into
+    // situations where we see classes whose types have not been finalized yet,
+    // the real solution is to implement lazy evaluation of constants. This is
+    // a temporary workaround until lazy evaluation is implemented.
+    if (!cls.is_type_finalized()) {
+      FinalizeTypesInClass(cls);
+    }
     ClassFinalizer::FinalizeClass(cls);
     return Error::null();
   } else {
@@ -1225,6 +1236,12 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   sentinel.SetStaticValue(enum_value, true);
   sentinel.RecordStore(enum_value);
 
+  const GrowableObjectArray& pending_unevaluated_const_fields =
+      GrowableObjectArray::Handle(zone,
+                                  thread->isolate()
+                                      ->object_store()
+                                      ->pending_unevaluated_const_fields());
+
   if (enum_cls.kernel_offset() > 0) {
     Error& error = Error::Handle(zone);
     for (intptr_t i = 0; i < fields.Length(); i++) {
@@ -1234,12 +1251,19 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
         continue;
       }
       // The eager evaluation of the enum values is required for hot-reload (see
-      // commit e3ecc87).
+      // commit e3ecc87). However, while busy loading the constant table, we
+      // need to postpone this evaluation until table is done.
       if (!FLAG_precompiled_mode) {
         if (field.IsUninitialized()) {
-          error = field.EvaluateInitializer();
-          if (!error.IsNull()) {
-            ReportError(error);
+          if (pending_unevaluated_const_fields.IsNull()) {
+            // Evaluate right away.
+            error = field.Initialize();
+            if (!error.IsNull()) {
+              ReportError(error);
+            }
+          } else {
+            // Postpone evaluation until we have a constant table.
+            pending_unevaluated_const_fields.Add(field);
           }
         }
       }
@@ -1387,52 +1411,6 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   Error& error = Error::Handle(zone);
   TypeParameter& type_param = TypeParameter::Handle(zone);
 
-  // First verify field offsets of all the TypedDataView classes.
-  for (intptr_t cid = kTypedDataInt8ArrayViewCid;
-       cid <= kTypedDataFloat32x4ArrayViewCid; cid++) {
-    cls = class_table.At(cid);  // Get the TypedDataView class.
-    error = cls.EnsureIsFinalized(thread);
-    ASSERT(error.IsNull());
-    cls = cls.SuperClass();  // Get it's super class '_TypedListView'.
-    cls = cls.SuperClass();
-    fields_array ^= cls.fields();
-    ASSERT(fields_array.Length() == TypedDataView::NumberOfFields());
-    field ^= fields_array.At(0);
-    ASSERT(field.Offset() == TypedDataView::data_offset());
-    name ^= field.name();
-    expected_name ^= String::New("_typedData");
-    ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
-    field ^= fields_array.At(1);
-    ASSERT(field.Offset() == TypedDataView::offset_in_bytes_offset());
-    name ^= field.name();
-    ASSERT(name.Equals("offsetInBytes"));
-    field ^= fields_array.At(2);
-    ASSERT(field.Offset() == TypedDataView::length_offset());
-    name ^= field.name();
-    ASSERT(name.Equals("length"));
-  }
-
-  // Now verify field offsets of '_ByteDataView' class.
-  cls = class_table.At(kByteDataViewCid);
-  error = cls.EnsureIsFinalized(thread);
-  ASSERT(error.IsNull());
-  fields_array ^= cls.fields();
-  ASSERT(fields_array.Length() == TypedDataView::NumberOfFields());
-  field ^= fields_array.At(0);
-  ASSERT(field.Offset() == TypedDataView::data_offset());
-  name ^= field.name();
-  expected_name ^= String::New("_typedData");
-  ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
-  field ^= fields_array.At(1);
-  ASSERT(field.Offset() == TypedDataView::offset_in_bytes_offset());
-  name ^= field.name();
-  expected_name ^= String::New("_offset");
-  ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
-  field ^= fields_array.At(2);
-  ASSERT(field.Offset() == TypedDataView::length_offset());
-  name ^= field.name();
-  ASSERT(name.Equals("length"));
-
   // Now verify field offsets of '_ByteBuffer' class.
   cls = class_table.At(kByteBufferCid);
   error = cls.EnsureIsFinalized(thread);
@@ -1532,6 +1510,7 @@ void ClassFinalizer::SortClasses() {
   RemapClassIds(old_to_new_cid);
   delete[] old_to_new_cid;
   RehashTypes();  // Types use cid's as part of their hashes.
+  I->RehashConstants();  // Const objects use cid's as part of their hashes.
 }
 
 class CidRewriteVisitor : public ObjectVisitor {

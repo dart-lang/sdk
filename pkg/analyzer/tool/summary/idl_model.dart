@@ -7,6 +7,8 @@
  * semantic model of the IDL used to code generate summary serialization and
  * deserialization code.
  */
+import 'package:meta/meta.dart';
+
 /**
  * Information about a single class defined in the IDL.
  */
@@ -32,9 +34,16 @@ class ClassDeclaration extends Declaration {
    */
   final bool isDeprecated;
 
-  ClassDeclaration(String documentation, String name, this.isTopLevel,
-      this.fileIdentifier, this.isDeprecated)
-      : super(documentation, name);
+  final String variantField;
+
+  ClassDeclaration({
+    @required String documentation,
+    @required this.fileIdentifier,
+    @required String name,
+    @required this.isDeprecated,
+    @required this.isTopLevel,
+    @required this.variantField,
+  }) : super(documentation, name);
 
   /**
    * Get the non-deprecated fields defined in the class.
@@ -105,9 +114,20 @@ class FieldDeclaration extends Declaration {
    */
   final bool isInformative;
 
-  FieldDeclaration(String documentation, String name, this.type, this.id,
-      this.isDeprecated, this.isInformative)
-      : super(documentation, name);
+  /**
+   * Maps logical property names to variants in which this field is available.
+   */
+  final Map<String, List<String>> variantMap;
+
+  FieldDeclaration({
+    @required String documentation,
+    @required String name,
+    @required this.type,
+    @required this.id,
+    @required this.isDeprecated,
+    @required this.isInformative,
+    @required this.variantMap,
+  }) : super(documentation, name);
 }
 
 /**
@@ -126,6 +146,20 @@ class FieldType {
   final bool isList;
 
   FieldType(this.typeName, this.isList);
+
+  @override
+  int get hashCode {
+    var hash = 0x3fffffff & typeName.hashCode;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ isList.hashCode));
+    return hash;
+  }
+
+  bool operator ==(Object other) {
+    if (other is FieldType) {
+      return other.typeName == typeName && other.isList == isList;
+    }
+    return false;
+  }
 
   @override
   String toString() => isList ? 'List<$typeName>' : typeName;

@@ -9,7 +9,9 @@ part of dart.core;
  */
 class Stopwatch {
   /**
-   * Cached frequency of the system. Must be initialized in [_initTicker];
+   * Cached frequency of the system in Hz (ticks per second).
+   *
+   * Must be initialized in [_initTicker];
    */
   static int _frequency;
 
@@ -94,22 +96,18 @@ class Stopwatch {
    * The [elapsedTicks] counter converted to a [Duration].
    */
   Duration get elapsed {
-    return new Duration(microseconds: elapsedMicroseconds);
+    return Duration(microseconds: elapsedMicroseconds);
   }
 
   /**
    * The [elapsedTicks] counter converted to microseconds.
    */
-  int get elapsedMicroseconds {
-    return (elapsedTicks * 1000000) ~/ frequency;
-  }
+  external int get elapsedMicroseconds;
 
   /**
    * The [elapsedTicks] counter converted to milliseconds.
    */
-  int get elapsedMilliseconds {
-    return (elapsedTicks * 1000) ~/ frequency;
-  }
+  external int get elapsedMilliseconds;
 
   /**
    * Whether the [Stopwatch] is currently running.

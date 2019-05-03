@@ -2,27 +2,27 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/warn_unresolved_sends.dart:49:39: Warning: Getter not found: 'missingField'.
+// pkg/front_end/testcases/warn_unresolved_sends.dart:48:39: Warning: Getter not found: 'missingField'.
 //     this. /*@warning=GetterNotFound*/ missingField;
 //                                       ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/warn_unresolved_sends.dart:50:39: Warning: Setter not found: 'missingField'.
+// pkg/front_end/testcases/warn_unresolved_sends.dart:49:39: Warning: Setter not found: 'missingField'.
 //     this. /*@warning=SetterNotFound*/ missingField = 0;
 //                                       ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/warn_unresolved_sends.dart:51:39: Warning: Method not found: 'missingMethod'.
+// pkg/front_end/testcases/warn_unresolved_sends.dart:50:39: Warning: Method not found: 'missingMethod'.
 //     this. /*@warning=MethodNotFound*/ missingMethod();
 //                                       ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/warn_unresolved_sends.dart:53:33: Warning: Getter not found: 'missingField'.
+// pkg/front_end/testcases/warn_unresolved_sends.dart:52:33: Warning: Getter not found: 'missingField'.
 //     /*@warning=GetterNotFound*/ missingField;
 //                                 ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/warn_unresolved_sends.dart:54:33: Warning: Setter not found: 'missingField'.
+// pkg/front_end/testcases/warn_unresolved_sends.dart:53:33: Warning: Setter not found: 'missingField'.
 //     /*@warning=SetterNotFound*/ missingField = 0;
 //                                 ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/warn_unresolved_sends.dart:55:33: Warning: Method not found: 'missingMethod'.
+// pkg/front_end/testcases/warn_unresolved_sends.dart:54:33: Warning: Method not found: 'missingMethod'.
 //     /*@warning=MethodNotFound*/ missingMethod();
 //                                 ^^^^^^^^^^^^^
 //

@@ -95,6 +95,12 @@
           The name, as a string, of the error code associated with this error.
         </p>
       </field>
+      <field name="url" optional="true">
+        <ref>String</ref>
+        <p>
+          The URL of a page containing documentation associated with this error.
+        </p>
+      </field>
       <field name="hasFix" optional="true">
         <ref>bool</ref>
         <p>
@@ -204,13 +210,6 @@
           Text to be displayed in, for example, a completion pop-up. This field
           is only defined if the displayed text should be different than the
           completion.  Otherwise it is omitted.
-        </p>
-      </field>
-      <field name="elementUri" optional="true">
-        <ref>String</ref>
-        <p>
-          The URI of the element corresponding to this suggestion. It will be
-          set whenever analysis server is able to compute it.
         </p>
       </field>
       <field name="selectionOffset">
@@ -344,13 +343,6 @@
         <p>
           The type of the options parameter being suggested. This field is
           omitted if the parameterName field is omitted.
-        </p>
-      </field>
-      <field name="importUri" optional="true">
-        <ref>String</ref>
-        <p>
-          The import to be added if the suggestion is out of scope and needs
-          an import to be added to be in scope.
         </p>
       </field>
     </object>

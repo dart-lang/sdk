@@ -55,6 +55,7 @@ M2:
   classSetters:
 
 Object with M1:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: M1
@@ -86,6 +87,7 @@ Object with M1:
   interfaceSetters:
 
 _C&Object&M1 with M2:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _C&Object&M1
@@ -118,6 +120,7 @@ _C&Object&M1 with M2:
   interfaceSetters:
 
 C:
+  Longest path to Object: 4
   superclasses:
     Object
       -> _C&Object&M1
@@ -169,6 +172,7 @@ G1:
   classSetters:
 
 Object with G1<S>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: G1<S>
@@ -200,6 +204,7 @@ Object with G1<S>:
   interfaceSetters:
 
 D:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _D&Object&G1<S>
@@ -232,6 +237,7 @@ D:
   interfaceSetters:
 
 Object with M1:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: M1
@@ -263,6 +269,7 @@ Object with M1:
   interfaceSetters:
 
 _B&Object&M1 with M2:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _B&Object&M1
@@ -295,6 +302,7 @@ _B&Object&M1 with M2:
   interfaceSetters:
 
 B:
+  Longest path to Object: 4
   superclasses:
     Object
       -> _B&Object&M1

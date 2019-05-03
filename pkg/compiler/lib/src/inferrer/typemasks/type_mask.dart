@@ -48,6 +48,7 @@ class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
     return _masks.add(mask);
   }
 
+  @override
   String toString() {
     if (isAll) {
       return '<all>';
@@ -98,6 +99,7 @@ enum TypeMaskKind {
   flat,
   union,
   container,
+  set,
   map,
   dictionary,
   value,
@@ -230,6 +232,8 @@ abstract class TypeMask implements AbstractValue {
         return new UnionTypeMask.readFromDataSource(source, closedWorld);
       case TypeMaskKind.container:
         return new ContainerTypeMask.readFromDataSource(source, closedWorld);
+      case TypeMaskKind.set:
+        return new SetTypeMask.readFromDataSource(source, closedWorld);
       case TypeMaskKind.map:
         return new MapTypeMask.readFromDataSource(source, closedWorld);
       case TypeMaskKind.dictionary:
@@ -329,6 +333,9 @@ abstract class TypeMask implements AbstractValue {
   /// Returns `true` if this mask is a [ContainerTypeMask].
   bool get isContainer;
 
+  /// Returns `true` if this mask is a [SetTypeMask].
+  bool get isSet;
+
   /// Returns `true` if this mask is a [MapTypeMask].
   bool get isMap;
 
@@ -355,6 +362,7 @@ abstract class TypeMask implements AbstractValue {
   ///
   /// Note: This may differ from semantic equality in the set containment sense.
   ///   Use [containsMask] and [isInMask] for that, instead.
+  @override
   bool operator ==(other);
 
   /// If this returns `true`, [other] is guaranteed to be a supertype of this
@@ -392,7 +400,10 @@ abstract class TypeMask implements AbstractValue {
   TypeMask intersection(TypeMask other, JClosedWorld closedWorld);
 
   /// Returns whether [element] is a potential target when being invoked on this
-  /// type mask. [name] is used to ensure library privacy is taken into account.
+  /// type mask.
+  ///
+  ///
+  /// [name] is used to ensure library privacy is taken into account.
   bool canHit(MemberEntity element, Name name, JClosedWorld closedWorld);
 
   /// Returns whether this [TypeMask] applied to [selector] can hit a

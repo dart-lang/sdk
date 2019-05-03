@@ -40,6 +40,7 @@ mutableListDynamicIndex(dynamic index) {
 /*strong.element: mutableDynamicListDynamicIndex:Specializer=[!Index]*/
 /*omit.element: mutableDynamicListDynamicIndex:Specializer=[Index]*/
 @pragma('dart2js:noInline')
+@pragma('dart2js:disableFinal')
 mutableDynamicListDynamicIndex(dynamic index) {
   dynamic list = [0];
   return list[index];

@@ -19,10 +19,8 @@ abstract class TypeChecker {
   final bool ignoreSdk;
   TypeEnvironment environment;
 
-  TypeChecker(this.coreTypes, this.hierarchy,
-      {bool legacyMode: false, this.ignoreSdk: true})
-      : environment =
-            new TypeEnvironment(coreTypes, hierarchy, legacyMode: legacyMode);
+  TypeChecker(this.coreTypes, this.hierarchy, {this.ignoreSdk: true})
+      : environment = new TypeEnvironment(coreTypes, hierarchy);
 
   void checkComponent(Component component) {
     for (var library in component.libraries) {
@@ -489,6 +487,12 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitBlockExpression(BlockExpression node) {
+    visitStatement(node.body);
+    return visitExpression(node.value);
+  }
+
+  @override
   DartType visitInstantiation(Instantiation node) {
     DartType type = visitExpression(node.expression);
     if (type is! FunctionType) {
@@ -679,6 +683,48 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitListConcatenation(ListConcatenation node) {
+    DartType type = environment.literalListType(node.typeArgument);
+    for (Expression part in node.lists) {
+      DartType partType = visitExpression(part);
+      checkAssignable(node, type, partType);
+    }
+    return type;
+  }
+
+  @override
+  DartType visitSetConcatenation(SetConcatenation node) {
+    DartType type = environment.literalSetType(node.typeArgument);
+    for (Expression part in node.sets) {
+      DartType partType = visitExpression(part);
+      checkAssignable(node, type, partType);
+    }
+    return type;
+  }
+
+  @override
+  DartType visitMapConcatenation(MapConcatenation node) {
+    DartType type = environment.literalMapType(node.keyType, node.valueType);
+    for (Expression part in node.maps) {
+      DartType partType = visitExpression(part);
+      checkAssignable(node, type, partType);
+    }
+    return type;
+  }
+
+  @override
+  DartType visitInstanceCreation(InstanceCreation node) {
+    Substitution substitution = Substitution.fromPairs(
+        node.classNode.typeParameters, node.typeArguments);
+    node.fieldValues.forEach((Reference fieldRef, Expression value) {
+      DartType fieldType = substitution.substituteType(fieldRef.asField.type);
+      DartType valueType = visitExpression(value);
+      checkAssignable(node, fieldType, valueType);
+    });
+    return new InterfaceType(node.classNode, node.typeArguments);
+  }
+
+  @override
   DartType visitStringLiteral(StringLiteral node) {
     return environment.stringType;
   }
@@ -762,6 +808,11 @@ class TypeCheckingVisitor
   @override
   DartType visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
     return environment.objectType;
+  }
+
+  @override
+  visitConstantExpression(ConstantExpression node) {
+    return node.type;
   }
 
   @override
@@ -988,11 +1039,4 @@ class TypeCheckingVisitor
 
   @override
   visitInvalidInitializer(InvalidInitializer node) {}
-
-  @override
-  visitConstantExpression(ConstantExpression node) {
-    // Without explicitly running the "constants" transformation, we should
-    // never get here!
-    throw 'unreachable';
-  }
 }

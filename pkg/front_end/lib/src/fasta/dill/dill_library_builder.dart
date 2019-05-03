@@ -53,7 +53,7 @@ import 'dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   final Library library;
 
-  final DillLoader loader;
+  DillLoader loader;
 
   /// Exports that can't be serialized.
   ///

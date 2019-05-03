@@ -19,7 +19,7 @@ class UnusedCatchClauseTest extends DriverResolutionTest {
   bool get enableUnusedLocalVariable => true;
 
   test_on_unusedException() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 main() {
   try {
   } on String catch (exception) {

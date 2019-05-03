@@ -5,24 +5,19 @@
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 
 void sendFlutterNotificationOutline(
-    AnalysisServer server,
-    String file,
-    String content,
-    LineInfo lineInfo,
-    CompilationUnit dartUnit,
-    TypeProvider typeProvider) {
+    AnalysisServer server, ResolvedUnitResult resolvedUnit) {
   _sendNotification(server, () {
-    var computer = new FlutterOutlineComputer(
-        file, content, lineInfo, dartUnit, typeProvider);
+    var computer = new FlutterOutlineComputer(resolvedUnit);
     protocol.FlutterOutline outline = computer.compute();
     // send notification
-    var params = new protocol.FlutterOutlineParams(file, outline,
-        instrumentedCode: computer.instrumentedCode);
+    var params = new protocol.FlutterOutlineParams(
+      resolvedUnit.path,
+      outline,
+      instrumentedCode: computer.instrumentedCode,
+    );
     server.sendNotification(params.toNotification());
   });
 }

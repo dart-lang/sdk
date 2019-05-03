@@ -35,6 +35,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   final int length;
 
   CorrectionUtils utils;
+  Flutter flutter;
 
   ClassElement classBuildContext;
   ClassElement classKey;
@@ -75,6 +76,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       this.searchEngine, this.resolveResult, this.offset, this.length)
       : sessionHelper = new AnalysisSessionHelper(resolveResult.session) {
     utils = new CorrectionUtils(resolveResult);
+    flutter = Flutter.of(resolveResult.session);
   }
 
   @override
@@ -182,8 +184,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     _enclosingClassElement = _enclosingClassNode?.declaredElement;
 
     // new MyWidget(...)
-    InstanceCreationExpression newExpression = identifyNewExpression(node);
-    if (isWidgetCreation(newExpression)) {
+    var newExpression = flutter.identifyNewExpression(node);
+    if (flutter.isWidgetCreation(newExpression)) {
       _expression = newExpression;
       return new RefactoringStatus();
     }
@@ -201,7 +203,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       if (statements.isNotEmpty) {
         var lastStatement = statements.last;
         if (lastStatement is ReturnStatement &&
-            isWidgetExpression(lastStatement.expression)) {
+            flutter.isWidgetExpression(lastStatement.expression)) {
           _statements = statements;
           _statementsRange = range.startEnd(statements.first, statements.last);
           return new RefactoringStatus();
@@ -219,7 +221,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       }
       if (node is MethodDeclaration) {
         DartType returnType = node.returnType?.type;
-        if (isWidgetType(returnType) && node.body != null) {
+        if (flutter.isWidgetType(returnType) && node.body != null) {
           _method = node;
           return new RefactoringStatus();
         }
@@ -240,10 +242,11 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     Future<ClassElement> getClass(String name) async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
       await null;
-      const uri = 'package:flutter/widgets.dart';
-      var element = await sessionHelper.getClass(uri, name);
+      var element = await sessionHelper.getClass(flutter.widgetsUri, name);
       if (element == null) {
-        result.addFatalError("Unable to find '$name' in $uri");
+        result.addFatalError(
+          "Unable to find '$name' in ${flutter.widgetsUri}",
+        );
       }
       return element;
     }

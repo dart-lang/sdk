@@ -243,8 +243,6 @@ class TemplateSlowPathCode : public SlowPathCode {
   }
 };
 
-#if !defined(TARGET_ARCH_DBC)
-
 // Slow path code which calls runtime entry to throw an exception.
 class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
  public:
@@ -297,8 +295,6 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
                                               compiler);
   }
 };
-
-#endif  // !defined(TARGET_ARCH_DBC)
 
 class FlowGraphCompiler : public ValueObject {
  private:
@@ -639,7 +635,14 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitComment(Instruction* instr);
 
+  // Returns stack size (number of variables on stack for unoptimized
+  // code, or number of spill slots for optimized code).
   intptr_t StackSize() const;
+
+  // Returns the number of extra stack slots used during an Osr entry
+  // (values for all [ParameterInstr]s, representing local variables
+  // and expression stack values, are already on the stack).
+  intptr_t ExtraStackSlotsOnOsrEntry() const;
 
   // Returns assembler label associated with the given block entry.
   Label* GetJumpLabel(BlockEntryInstr* block_entry) const;
@@ -814,6 +817,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitFrameEntry();
 
+  bool TryIntrinsifyHelper();
   void AddPcRelativeCallTarget(const Function& function,
                                Code::EntryKind entry_kind);
   void AddPcRelativeCallStubTarget(const Code& stub_code);
@@ -1027,6 +1031,7 @@ class FlowGraphCompiler : public ValueObject {
   // True while emitting intrinsic code.
   bool intrinsic_mode_;
   Label* intrinsic_slow_path_label_ = nullptr;
+  bool fully_intrinsified_ = false;
   CodeStatistics* stats_;
 
   const Class& double_class_;

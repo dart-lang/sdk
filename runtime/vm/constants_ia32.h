@@ -5,9 +5,13 @@
 #ifndef RUNTIME_VM_CONSTANTS_IA32_H_
 #define RUNTIME_VM_CONSTANTS_IA32_H_
 
+#ifndef RUNTIME_VM_CONSTANTS_H_
+#error Do not include constants_ia32.h directly; use constants.h instead.
+#endif
+
 #include "platform/assert.h"
 
-namespace dart {
+namespace arch_ia32 {
 
 enum Register {
   EAX = 0,
@@ -53,6 +57,12 @@ const FpuRegister FpuTMP = XMM0;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
+static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
+    "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"};
+
+static const char* fpu_reg_names[kNumberOfXmmRegisters] = {
+    "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7"};
+
 // Register aliases.
 const Register TMP = kNoRegister;   // No scratch register used by assembler.
 const Register TMP2 = kNoRegister;  // No second assembler scratch register.
@@ -88,7 +98,7 @@ enum ScaleFactor {
   TIMES_4 = 2,
   TIMES_8 = 3,
   TIMES_16 = 4,
-  TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
+  TIMES_HALF_WORD_SIZE = ::dart::kWordSizeLog2 - 1
 };
 
 class Instr {
@@ -107,7 +117,7 @@ class Instr {
   // reference to an instruction is to convert a pointer. There is no way
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
-  static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
+  static Instr* At(::dart::uword pc) { return reinterpret_cast<Instr*>(pc); }
 
  private:
   DISALLOW_ALLOCATION();
@@ -119,6 +129,38 @@ class Instr {
 // becomes important to us.
 const int MAX_NOP_SIZE = 8;
 
-}  // namespace dart
+class CallingConventions {
+ public:
+  static const Register ArgumentRegisters[];
+  static const intptr_t kArgumentRegisters = 0;
+  static const intptr_t kNumArgRegs = 0;
+
+  static const XmmRegister FpuArgumentRegisters[];
+  static const intptr_t kXmmArgumentRegisters = 0;
+  static const intptr_t kNumFpuArgRegs = 0;
+
+  static const bool kArgumentIntRegXorFpuReg = false;
+
+  // Whether floating-point values should be passed as integers ("softfp" vs
+  // "hardfp").
+  static constexpr bool kAbiSoftFP = false;
+
+  static constexpr Register kReturnReg = EAX;
+  static constexpr Register kSecondReturnReg = EDX;
+
+  // Floating point values are returned on the "FPU stack" (in "ST" registers).
+  static constexpr XmmRegister kReturnFpuReg = kNoXmmRegister;
+
+  static constexpr Register kFirstCalleeSavedCpuReg = EBX;
+  static constexpr Register kFirstNonArgumentRegister = EAX;
+  static constexpr Register kSecondNonArgumentRegister = ECX;
+
+  // Whether 64-bit arguments must be aligned to an even register or 8-byte
+  // stack address. On IA32, 64-bit integers and floating-point values do *not*
+  // need to be 8-byte aligned.
+  static constexpr bool kAlignArguments = false;
+};
+
+}  // namespace arch_ia32
 
 #endif  // RUNTIME_VM_CONSTANTS_IA32_H_

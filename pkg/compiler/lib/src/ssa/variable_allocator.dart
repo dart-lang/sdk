@@ -4,6 +4,7 @@
 
 import '../common.dart';
 import '../js_backend/js_backend.dart';
+import 'codegen.dart' show CodegenPhase;
 import 'nodes.dart';
 
 /// The [LiveRange] class covers a range where an instruction is live.
@@ -15,6 +16,7 @@ class LiveRange {
     assert(start <= end);
   }
 
+  @override
   String toString() => '[$start $end[';
 }
 
@@ -55,6 +57,7 @@ class LiveInterval {
     return false;
   }
 
+  @override
   String toString() {
     List<String> res = new List<String>();
     for (final interval in ranges) res.add(interval.toString());
@@ -147,13 +150,14 @@ class LiveEnvironment {
   bool get isEmpty => liveInstructions.isEmpty && loopMarkers.isEmpty;
   bool contains(HInstruction instruction) =>
       liveInstructions.containsKey(instruction);
+  @override
   String toString() => liveInstructions.toString();
 }
 
 /// Builds the live intervals of each instruction. The algorithm visits
 /// the graph post-dominator tree to find the last uses of an
 /// instruction, and computes the liveIns of each basic block.
-class SsaLiveIntervalBuilder extends HBaseVisitor {
+class SsaLiveIntervalBuilder extends HBaseVisitor with CodegenPhase {
   final Set<HInstruction> generateAtUseSite;
   final Set<HInstruction> controlFlowOperators;
 
@@ -173,6 +177,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
       : liveInstructions = new Map<HBasicBlock, LiveEnvironment>(),
         liveIntervals = new Map<HInstruction, LiveInterval>();
 
+  @override
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);
     if (!liveInstructions[graph.entry].isEmpty) {
@@ -250,6 +255,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     }
   }
 
+  @override
   void visitBasicBlock(HBasicBlock block) {
     LiveEnvironment environment =
         new LiveEnvironment(liveIntervals, instructionId);
@@ -355,6 +361,7 @@ class Copy<T> {
 
   Copy(this.source, this.destination);
 
+  @override
   String toString() => '$destination <- $source';
 }
 
@@ -380,6 +387,7 @@ class CopyHandler {
     assignments.add(new Copy<HInstruction>(source, destination));
   }
 
+  @override
   String toString() => 'Copies: $copies, assignments: $assignments';
 
   bool get isEmpty => copies.isEmpty && assignments.isEmpty;
@@ -561,7 +569,7 @@ class VariableNamer {
 /// instruction, it frees the names of the inputs that die at that
 /// instruction, and allocates a name to the instruction. For each phi,
 /// it adds a copy to the CopyHandler of the corresponding predecessor.
-class SsaVariableAllocator extends HBaseVisitor {
+class SsaVariableAllocator extends HBaseVisitor with CodegenPhase {
   final Namer _namer;
   final Map<HBasicBlock, LiveEnvironment> liveInstructions;
   final Map<HInstruction, LiveInterval> liveIntervals;
@@ -573,10 +581,12 @@ class SsaVariableAllocator extends HBaseVisitor {
       this.generateAtUseSite)
       : this.names = new VariableNames();
 
+  @override
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
   }
 
+  @override
   void visitBasicBlock(HBasicBlock block) {
     VariableNamer variableNamer =
         new VariableNamer(liveInstructions[block], names, _namer);

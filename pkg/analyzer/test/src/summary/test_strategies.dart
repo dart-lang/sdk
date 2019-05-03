@@ -1,14 +1,14 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -22,7 +22,6 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
-import 'package:analyzer/src/task/api/general.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:path/path.dart' show posix;
 import 'package:test/test.dart';
@@ -35,19 +34,22 @@ String absUri(String path) {
   return posix.toUri(absolutePath).toString();
 }
 
-CompilationUnit _parseText(
+CompilationUnit parseText(
   String text, {
   ExperimentStatus experimentStatus,
 }) {
   experimentStatus ??= ExperimentStatus();
   CharSequenceReader reader = new CharSequenceReader(text);
   Scanner scanner =
-      new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER);
+      new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER)
+        ..enableGtGtGt = experimentStatus.constant_update_2018;
   Token token = scanner.tokenize();
-  Parser parser =
-      new Parser(NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER)
-        ..enableSetLiterals = experimentStatus.set_literals
-        ..enableNonNullable = experimentStatus.non_nullable;
+  Parser parser = new Parser(
+      NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER)
+    ..enableNonNullable = experimentStatus.non_nullable
+    ..enableSpreadCollections = experimentStatus.spread_collections
+    ..enableControlFlowCollections = experimentStatus.control_flow_collections
+    ..enableTripleShift = experimentStatus.triple_shift;
   CompilationUnit unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
   return unit;
@@ -99,7 +101,9 @@ abstract class ResynthesizeTestStrategy {
 
   void set allowMissingFiles(bool value);
 
-  AnalysisContextImpl get context;
+  set declaredVariables(DeclaredVariables declaredVariables);
+
+  bool get isAstBasedSummary => false;
 
   MemoryResourceProvider get resourceProvider;
 
@@ -115,12 +119,10 @@ abstract class ResynthesizeTestStrategy {
 
   Source addTestSource(String code, [Uri uri]);
 
-  void checkMinimalResynthesisWork(
-      TestSummaryResynthesizer resynthesizer, LibraryElement library);
+  void checkMinimalResynthesisWork(TestSummaryResynthesizer resynthesizer,
+      Uri expectedLibraryUri, List<Uri> expectedUnitUriList);
 
   TestSummaryResynthesizer encodeLibrary(Source source);
-
-  void prepareAnalysisContext([AnalysisOptions options]);
 }
 
 /// Implementation of [SummaryBlackBoxTestStrategy] that drives summary
@@ -136,6 +138,9 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
       <String, UnlinkedUnitBuilder>{};
 
   PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
+
+  @override
+  bool get isAstBasedSummary => false;
 
   TestSummaryResynthesizer encodeLibrary(Source source) {
     _serializeLibrary(source);
@@ -170,17 +175,24 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
     }
 
     Set<String> nonSdkLibraryUris = serializedSources
-        .where((Source source) =>
-            !source.isInSystemLibrary &&
-            context.computeKindOf(source) == SourceKind.LIBRARY)
+        .where((Source source) => !source.isInSystemLibrary)
         .map((Source source) => source.uri.toString())
         .toSet();
 
+    var analysisOptions = AnalysisOptionsImpl()
+      ..enabledExperiments = experimentStatus.toStringList();
+
     Map<String, LinkedLibrary> linkedSummaries = link(nonSdkLibraryUris,
-        getDependency, getUnit, context.declaredVariables.get);
+        getDependency, getUnit, declaredVariables, analysisOptions);
+
+    var analysisContext = RestrictedAnalysisContext(
+      analysisOptions,
+      declaredVariables,
+      sourceFactory,
+    );
 
     return new TestSummaryResynthesizer(
-        context,
+        analysisContext,
         new Map<String, UnlinkedUnit>()
           ..addAll(SerializedMockSdk.instance.uriToUnlinkedUnit)
           ..addAll(unlinkedSummaries),
@@ -204,17 +216,21 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
       }
     }
     return uriToUnit.putIfAbsent(uriStr, () {
-      int modificationTime = context.computeResult(source, MODIFICATION_TIME);
-      if (modificationTime < 0) {
+      var file = getFile(source.fullName);
+
+      String contents;
+      if (file.exists) {
+        contents = file.readAsStringSync();
+      } else {
         // Source does not exist.
         if (!allowMissingFiles) {
           fail('Unexpectedly tried to get unlinked summary for $source');
         }
-        return null;
+        contents = '';
       }
 
-      String contents = context.getContents(source).data;
-      CompilationUnit unit = _parseText(contents);
+      CompilationUnit unit =
+          parseText(contents, experimentStatus: experimentStatus);
 
       UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
       bundleAssembler.addUnlinkedUnit(source, unlinkedUnit);
@@ -231,7 +247,7 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
     }
 
     UnlinkedUnit getPart(String absoluteUri) {
-      Source source = context.sourceFactory.forUri(absoluteUri);
+      Source source = sourceFactory.forUri(absoluteUri);
       return _getUnlinkedUnit(source);
     }
 
@@ -242,9 +258,9 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
     UnlinkedUnit definingUnit = _getUnlinkedUnit(librarySource);
     if (definingUnit != null) {
       LinkedLibraryBuilder linkedLibrary = prelink(librarySource.uri.toString(),
-          definingUnit, getPart, getImport, context.declaredVariables.get);
+          definingUnit, getPart, getImport, declaredVariables);
       linkedLibrary.dependencies.skip(1).forEach((LinkedDependency d) {
-        Source source = context.sourceFactory.forUri(d.uri);
+        Source source = sourceFactory.forUri(d.uri);
         _serializeLibrary(source);
       });
     }
@@ -263,6 +279,7 @@ class SerializedMockSdk {
   final Map<String, UnlinkedUnit> uriToUnlinkedUnit;
 
   final Map<String, LinkedLibrary> uriToLinkedLibrary;
+
   SerializedMockSdk._(this.uriToUnlinkedUnit, this.uriToLinkedLibrary);
 
   static SerializedMockSdk _serializeMockSdk() {
@@ -368,11 +385,12 @@ class SummaryBlackBoxTestStrategyPrelink
     }
 
     linked = new LinkedLibrary.fromBuffer(prelink(
-        _linkerInputs._testDartUri.toString(),
-        _linkerInputs._unlinkedDefiningUnit,
-        getPart,
-        getImport,
-        (String declaredVariable) => null).toBuffer());
+            _linkerInputs._testDartUri.toString(),
+            _linkerInputs._unlinkedDefiningUnit,
+            getPart,
+            getImport,
+            DeclaredVariables())
+        .toBuffer());
     _validateLinkedLibrary(linked);
   }
 }
@@ -432,9 +450,9 @@ class SummaryLinkerTestStrategyTwoPhase extends _SummaryBaseTestStrategyTwoPhase
     Map<String, LinkedLibraryBuilder> linkedLibraries = setupForLink(
         _linkerInputs.linkedLibraries,
         _linkerInputs.getUnit,
-        _linkerInputs.getDeclaredVariable);
+        _linkerInputs.declaredVariables);
     linker = new Linker(linkedLibraries, _linkerInputs.getDependency,
-        _linkerInputs.getUnit, null);
+        _linkerInputs.getUnit, null, analysisOptions);
   }
 }
 
@@ -472,11 +490,9 @@ class _LinkerInputs {
       this._dependentLinkedLibraries,
       this._dependentUnlinkedUnits);
 
-  Set<String> get linkedLibraries => _uriToUnit.keys.toSet();
+  DeclaredVariables get declaredVariables => DeclaredVariables();
 
-  String getDeclaredVariable(String name) {
-    return null;
-  }
+  Set<String> get linkedLibraries => _uriToUnit.keys.toSet();
 
   LinkedLibrary getDependency(String absoluteUri) {
     Map<String, LinkedLibrary> sdkLibraries =
@@ -519,6 +535,9 @@ abstract class _SummaryBaseTestStrategyTwoPhase
 
   _LinkerInputs _linkerInputs;
 
+  AnalysisOptions get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = experimentStatus.toStringList();
+
   bool get _allowMissingFiles;
 
   @override
@@ -528,7 +547,7 @@ abstract class _SummaryBaseTestStrategyTwoPhase
 
   @override
   void addNamedSource(String filePath, String contents) {
-    CompilationUnit unit = _parseText(contents);
+    CompilationUnit unit = parseText(contents);
     UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
     _filesToLink.uriToUnit[absUri(filePath)] = unlinkedUnit;
   }
@@ -543,7 +562,8 @@ abstract class _SummaryBaseTestStrategyTwoPhase
         linkerInputs.linkedLibraries,
         linkerInputs.getDependency,
         linkerInputs.getUnit,
-        linkerInputs.getDeclaredVariable);
+        linkerInputs.declaredVariables,
+        analysisOptions);
     linkedLibraries.forEach(assembler.addLinkedLibrary);
     linkerInputs._uriToUnit.forEach((String uri, UnlinkedUnit unit) {
       assembler.addUnlinkedUnitViaUri(uri, unit);
@@ -552,8 +572,7 @@ abstract class _SummaryBaseTestStrategyTwoPhase
   }
 
   UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text) =>
-      serializeAstUnlinked(
-          _parseText(text, experimentStatus: experimentStatus));
+      serializeAstUnlinked(parseText(text, experimentStatus: experimentStatus));
 
   _LinkerInputs _createLinkerInputs(String text,
       {String path: '/test.dart', String uri}) {
@@ -608,7 +627,8 @@ abstract class _SummaryBlackBoxTestStrategyTwoPhase
         _linkerInputs.linkedLibraries,
         _linkerInputs.getDependency,
         _linkerInputs.getUnit,
-        (name) => null)[_linkerInputs._testDartUri.toString()];
+        DeclaredVariables(),
+        analysisOptions)[_linkerInputs._testDartUri.toString()];
     expect(linked, isNotNull);
     _validateLinkedLibrary(linked);
     unlinkedUnits = <UnlinkedUnit>[_linkerInputs._unlinkedDefiningUnit];

@@ -82,6 +82,16 @@ method8b(a, {b, c}) {}
 @pragma('dart2js:noInline')
 method8c(a, {b, c}) {}
 
+/*element: method9a:params=2*/
+@pragma('dart2js:noInline')
+@pragma('dart2js:noElision')
+method9a([a, b]) {}
+
+/*element: method9b:params=2*/
+@pragma('dart2js:noInline')
+@pragma('dart2js:noElision')
+method9b({a, b}) {}
+
 /*element: main:
  calls=[
   method1(0),
@@ -107,7 +117,9 @@ method8c(a, {b, c}) {}
   method7c(3),
   method8a(1),
   method8b(2),
-  method8c(2)],
+  method8c(2),
+  method9a(2),
+  method9b(2)],
  params=0
 */
 main() {
@@ -142,4 +154,7 @@ main() {
   method8a(null);
   method8b(null, b: null);
   method8c(null, c: null);
+
+  method9a();
+  method9b();
 }

@@ -639,11 +639,11 @@ class Runes extends Iterable<int> {
   final String string;
   Runes(this.string);
 
-  RuneIterator get iterator => new RuneIterator(string);
+  RuneIterator get iterator => RuneIterator(string);
 
   int get last {
     if (string.length == 0) {
-      throw new StateError('No elements.');
+      throw StateError('No elements.');
     }
     int length = string.length;
     int code = string.codeUnitAt(length - 1);
@@ -716,7 +716,7 @@ class RuneIterator implements BidirectionalIterator<int> {
         index < string.length &&
         _isLeadSurrogate(string.codeUnitAt(index - 1)) &&
         _isTrailSurrogate(string.codeUnitAt(index))) {
-      throw new ArgumentError('Index inside surrogate pair: $index');
+      throw ArgumentError('Index inside surrogate pair: $index');
     }
   }
 

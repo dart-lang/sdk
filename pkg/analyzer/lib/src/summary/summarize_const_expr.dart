@@ -127,6 +127,13 @@ abstract class AbstractConstExprSerializer {
   /// Return `true` if the given [name] is a parameter reference.
   bool isParameterName(String name);
 
+  /// Removes the [count] variables that were most recently added to the scope
+  /// by [pushVariableName].
+  void popVariableNames(int count);
+
+  /// Pushes a variable with the given [name] onto the current scope.
+  void pushVariableName(String name);
+
   /// Serialize the given [expr] expression into this serializer state.
   void serialize(Expression expr) {
     try {
@@ -247,6 +254,9 @@ abstract class AbstractConstExprSerializer {
       EntityRefBuilder ref = serializeIdentifierSequence(expr);
       references.add(ref);
       operations.add(UnlinkedExprOperation.assignToRef);
+    } else if (expr is SimpleIdentifier && isParameterName(expr.name)) {
+      strings.add(expr.name);
+      operations.add(UnlinkedExprOperation.assignToParameter);
     } else if (expr is PropertyAccess) {
       if (!expr.isCascaded) {
         _serialize(expr.target);
@@ -293,8 +303,10 @@ abstract class AbstractConstExprSerializer {
   }
 
   /// Serialize the given [expr] expression into this serializer state.
-  void _serialize(Expression expr) {
-    if (expr is IntegerLiteral) {
+  void _serialize(Expression expr, {bool emptyExpressionPermitted: false}) {
+    if (emptyExpressionPermitted && expr == null) {
+      operations.add(UnlinkedExprOperation.pushEmptyExpression);
+    } else if (expr is IntegerLiteral) {
       int value = expr.value ?? 0;
       if (value >= 0) {
         _pushInt(value);
@@ -344,10 +356,8 @@ abstract class AbstractConstExprSerializer {
           typeName.typeArguments != null);
     } else if (expr is ListLiteral) {
       _serializeListLiteral(expr);
-    } else if (expr is MapLiteral) {
-      _serializeMapLiteral(expr);
-    } else if (expr is SetLiteral) {
-      _serializeSetLiteral(expr);
+    } else if (expr is SetOrMapLiteral) {
+      _serializeSetOrMapLiteral(expr);
     } else if (expr is MethodInvocation) {
       _serializeMethodInvocation(expr);
     } else if (expr is BinaryExpression) {
@@ -507,6 +517,8 @@ abstract class AbstractConstExprSerializer {
       operations.add(UnlinkedExprOperation.bitOr);
     } else if (operator == TokenType.GT_GT) {
       operations.add(UnlinkedExprOperation.bitShiftRight);
+    } else if (operator == TokenType.GT_GT_GT) {
+      operations.add(UnlinkedExprOperation.bitShiftRightLogical);
     } else if (operator == TokenType.LT_LT) {
       operations.add(UnlinkedExprOperation.bitShiftLeft);
     } else if (operator == TokenType.PLUS) {
@@ -536,10 +548,107 @@ abstract class AbstractConstExprSerializer {
     }
   }
 
+  void _serializeCollectionElement(CollectionElement element) {
+    if (element is Expression) {
+      _serialize(element);
+    } else if (element is MapLiteralEntry) {
+      _serialize(element.key);
+      _serialize(element.value);
+      operations.add(UnlinkedExprOperation.makeMapLiteralEntry);
+    } else if (element is SpreadElement) {
+      _serialize(element.expression);
+      bool isNullAware = element.spreadOperator.type ==
+          TokenType.PERIOD_PERIOD_PERIOD_QUESTION;
+      operations.add(isNullAware
+          ? UnlinkedExprOperation.nullAwareSpreadElement
+          : UnlinkedExprOperation.spreadElement);
+    } else if (element is IfElement) {
+      _serialize(element.condition);
+      _serializeCollectionElement(element.thenElement);
+      var elseElement = element.elseElement;
+      if (elseElement == null) {
+        operations.add(UnlinkedExprOperation.ifElement);
+      } else {
+        _serializeCollectionElement(elseElement);
+        operations.add(UnlinkedExprOperation.ifElseElement);
+      }
+    } else if (element is ForElement) {
+      isValidConst = false;
+      var parts = element.forLoopParts;
+      int numVariablesToPop = 0;
+      if (parts is ForParts) {
+        if (parts is ForPartsWithExpression) {
+          _serialize(parts.initialization, emptyExpressionPermitted: true);
+        } else if (parts is ForPartsWithDeclarations) {
+          for (var variable in parts.variables.variables) {
+            operations.add(UnlinkedExprOperation.variableDeclarationStart);
+            var name = variable.name.name;
+            strings.add(name);
+            pushVariableName(name);
+            ++numVariablesToPop;
+            _serialize(variable.initializer, emptyExpressionPermitted: true);
+            operations.add(UnlinkedExprOperation.variableDeclaration);
+            ints.add(0);
+          }
+          var type = parts.variables.type;
+          if (type == null) {
+            operations
+                .add(UnlinkedExprOperation.forInitializerDeclarationsUntyped);
+          } else {
+            references.add(serializeType(type));
+            operations
+                .add(UnlinkedExprOperation.forInitializerDeclarationsTyped);
+          }
+          ints.add(parts.variables.variables.length);
+        } else {
+          throw StateError('Unrecognized for parts');
+        }
+        _serialize(parts.condition, emptyExpressionPermitted: true);
+        for (var updater in parts.updaters) {
+          _serialize(updater);
+        }
+        operations.add(UnlinkedExprOperation.forParts);
+        ints.add(parts.updaters.length);
+      } else if (parts is ForEachParts) {
+        if (parts is ForEachPartsWithIdentifier) {
+          _serialize(parts.identifier);
+          _serialize(parts.iterable);
+          operations.add(UnlinkedExprOperation.forEachPartsWithIdentifier);
+        } else if (parts is ForEachPartsWithDeclaration) {
+          _serialize(parts.iterable);
+          var type = parts.loopVariable.type;
+          if (type == null) {
+            operations
+                .add(UnlinkedExprOperation.forEachPartsWithUntypedDeclaration);
+          } else {
+            references.add(serializeType(type));
+            operations
+                .add(UnlinkedExprOperation.forEachPartsWithTypedDeclaration);
+          }
+          var name = parts.loopVariable.identifier.name;
+          strings.add(name);
+          pushVariableName(name);
+          ++numVariablesToPop;
+        } else {
+          throw StateError('Unrecognized for parts');
+        }
+      } else {
+        throw StateError('Unrecognized for parts');
+      }
+      _serializeCollectionElement(element.body);
+      popVariableNames(numVariablesToPop);
+      operations.add(element.awaitKeyword == null
+          ? UnlinkedExprOperation.forElement
+          : UnlinkedExprOperation.forElementWithAwait);
+    } else {
+      throw new StateError('Unsupported CollectionElement: $element');
+    }
+  }
+
   void _serializeListLiteral(ListLiteral expr) {
     if (forConst || expr.typeArguments == null) {
-      List<Expression> elements = expr.elements;
-      elements.forEach(_serialize);
+      List<CollectionElement> elements = expr.elements;
+      elements.forEach(_serializeCollectionElement);
       ints.add(elements.length);
     } else {
       ints.add(0);
@@ -550,26 +659,6 @@ abstract class AbstractConstExprSerializer {
       operations.add(UnlinkedExprOperation.makeTypedList);
     } else {
       operations.add(UnlinkedExprOperation.makeUntypedList);
-    }
-  }
-
-  void _serializeMapLiteral(MapLiteral expr) {
-    if (forConst || expr.typeArguments == null) {
-      for (MapLiteralEntry entry in expr.entries) {
-        _serialize(entry.key);
-        _serialize(entry.value);
-      }
-      ints.add(expr.entries.length);
-    } else {
-      ints.add(0);
-    }
-    if (expr.typeArguments != null &&
-        expr.typeArguments.arguments.length == 2) {
-      references.add(serializeType(expr.typeArguments.arguments[0]));
-      references.add(serializeType(expr.typeArguments.arguments[1]));
-      operations.add(UnlinkedExprOperation.makeTypedMap);
-    } else {
-      operations.add(UnlinkedExprOperation.makeUntypedMap);
     }
   }
 
@@ -652,20 +741,26 @@ abstract class AbstractConstExprSerializer {
     }
   }
 
-  void _serializeSetLiteral(SetLiteral expr) {
+  void _serializeSetOrMapLiteral(SetOrMapLiteral expr) {
     if (forConst || expr.typeArguments == null) {
-      List<Expression> elements = expr.elements;
-      elements.forEach(_serialize);
-      ints.add(elements.length);
+      for (CollectionElement element in expr.elements) {
+        _serializeCollectionElement(element);
+      }
+      ints.add(expr.elements.length);
     } else {
       ints.add(0);
     }
-    if (expr.typeArguments != null &&
-        expr.typeArguments.arguments.length == 1) {
-      references.add(serializeType(expr.typeArguments.arguments[0]));
+
+    List<TypeAnnotation> typeArguments = expr.typeArguments?.arguments;
+    if (typeArguments != null && typeArguments.length == 2) {
+      references.add(serializeType(typeArguments[0]));
+      references.add(serializeType(typeArguments[1]));
+      operations.add(UnlinkedExprOperation.makeTypedMap2);
+    } else if (typeArguments != null && typeArguments.length == 1) {
+      references.add(serializeType(typeArguments[0]));
       operations.add(UnlinkedExprOperation.makeTypedSet);
     } else {
-      operations.add(UnlinkedExprOperation.makeUntypedSet);
+      operations.add(UnlinkedExprOperation.makeUntypedSetOrMap);
     }
   }
 

@@ -7,6 +7,7 @@ library dart2js.src.options;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import 'commandline_options.dart' show Flags;
+import 'util/util.dart';
 
 /// Options used for controlling diagnostic messages.
 abstract class DiagnosticOptions {
@@ -51,6 +52,19 @@ class CompilerOptions implements DiagnosticOptions {
   /// If not null then [packageRoot] should be null.
   Uri packageConfig;
 
+  /// List of kernel files to load.
+  ///
+  /// When compiling modularly, this contains kernel files that are needed
+  /// to compile a single module.
+  ///
+  /// When linking, this contains all kernel files that form part of the final
+  /// program.
+  ///
+  /// At this time, this list points to full kernel files. In the future, we may
+  /// use a list of outline files for modular compiles, and only use full kernel
+  /// files for linking.
+  List<Uri> dillDependencies;
+
   /// Location from which serialized inference data is read.
   ///
   /// If this is set, the [entryPoint] is expected to be a .dill file and the
@@ -66,12 +80,25 @@ class CompilerOptions implements DiagnosticOptions {
   /// [outputUri].
   bool cfeOnly = false;
 
+  /// Flag only meant for dart2js developers to iterate on global inference
+  /// changes.
+  ///
+  /// When working on large apps this flag allows to load serialized data for
+  /// the app (via --read-data), reuse its closed world, and rerun the global
+  /// inference phase (even though the serialized data already contains a global
+  /// inference result).
+  bool debugGlobalInference = false;
+
   /// Resolved constant "environment" values passed to the compiler via the `-D`
   /// flags.
   Map<String, String> environment = const <String, String>{};
 
   /// Flags enabling language experiments.
   Map<fe.ExperimentalFlag, bool> languageExperiments = {};
+
+  /// `true` if CFE performs constant evaluation.
+  bool get useCFEConstants =>
+      languageExperiments[fe.ExperimentalFlag.constantUpdate2018];
 
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
@@ -127,15 +154,19 @@ class CompilerOptions implements DiagnosticOptions {
   bool disableProgramSplit = false;
 
   /// Diagnostic option: If `true`, warnings cause the compilation to fail.
+  @override
   bool fatalWarnings = false;
 
   /// Diagnostic option: Emit terse diagnostics without howToFix.
+  @override
   bool terseDiagnostics = false;
 
   /// Diagnostic option: If `true`, warnings are not reported.
+  @override
   bool suppressWarnings = false;
 
   /// Diagnostic option: If `true`, hints are not reported.
+  @override
   bool suppressHints = false;
 
   /// Diagnostic option: List of packages for which warnings and hints are
@@ -152,11 +183,14 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to disable optimization for need runtime type information.
   bool disableRtiOptimization = false;
 
-  /// Whether to emit a .json file with a summary of the information used by the
-  /// compiler during optimization. This includes resolution details,
-  /// dependencies between elements, results of type inference, and the output
-  /// code for each function.
+  /// Whether to emit a summary of the information used by the compiler during
+  /// optimization. This includes resolution details, dependencies between
+  /// elements, results of type inference, and data about generated code.
   bool dumpInfo = false;
+
+  /// Whether to use the new dump-info binary format. This will be the default
+  /// after a transitional period.
+  bool useDumpInfoBinaryFormat = false;
 
   /// Whether we allow passing an extra argument to `assert`, containing a
   /// reason for why an assertion fails. (experimental)
@@ -164,10 +198,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// This is only included so that tests can pass the --assert-message flag
   /// without causing dart2js to crash. The flag has no effect.
   bool enableAssertMessage = true;
-
-  /// Whether the user specified a flag to allow the use of dart:mirrors. This
-  /// silences a warning produced by the compiler.
-  bool enableExperimentalMirrors = false;
 
   /// Whether to enable minification
   // TODO(sigmund): rename to minify
@@ -191,7 +221,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
 
-  /// URI of the main output if the compiler is generating source maps.
+  /// URI of the main output of the compiler.
   Uri outputUri;
 
   /// Location of the libraries specification file.
@@ -237,6 +267,13 @@ class CompilerOptions implements DiagnosticOptions {
   /// This is an internal configuration option derived from other flags.
   CheckPolicy implicitDowncastCheckPolicy;
 
+  /// What the compiler should do with a boolean value in a condition context
+  /// when the language specification says it is a runtime error for it to be
+  /// null.
+  ///
+  /// This is an internal configuration option derived from other flags.
+  CheckPolicy conditionCheckPolicy;
+
   /// Whether to generate code compliant with content security policy (CSP).
   bool useContentSecurityPolicy = false;
 
@@ -265,9 +302,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// This is an experimental feature.
   bool experimentalTrackAllocations = false;
 
-  /// Expermental optimization.
-  bool experimentLocalNames = false;
-
   /// Experimental part file function generation.
   bool experimentStartupFunctions = false;
 
@@ -279,6 +313,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// If [true], the compiler will emit code that logs whenever a method is
   /// called.
   bool experimentCallInstrumentation = false;
+
+  /// Experimental use of the new (Q2 2019) RTI system.
+  bool experimentNewRti = false;
 
   /// The path to the file that contains the profiled allocations.
   ///
@@ -298,6 +335,11 @@ class CompilerOptions implements DiagnosticOptions {
   /// Create an options object by parsing flags from [options].
   static CompilerOptions parse(List<String> options,
       {Uri librariesSpecificationUri, Uri platformBinaries}) {
+    Map<fe.ExperimentalFlag, bool> languageExperiments =
+        _extractExperiments(options);
+    if (equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
+      platformBinaries ??= fe.computePlatformBinariesLocation();
+    }
     return new CompilerOptions()
       ..librariesSpecificationUri = librariesSpecificationUri
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
@@ -316,7 +358,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..suppressHints = _hasOption(options, Flags.suppressHints)
       ..shownPackageWarnings =
           _extractOptionalCsvOption(options, Flags.showPackageWarnings)
-      ..languageExperiments = _extractExperiments(options)
+      ..languageExperiments = languageExperiments
       ..disableInlining = _hasOption(options, Flags.disableInlining)
       ..disableProgramSplit = _hasOption(options, Flags.disableProgramSplit)
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
@@ -325,8 +367,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..disableRtiOptimization =
           _hasOption(options, Flags.disableRtiOptimization)
       ..dumpInfo = _hasOption(options, Flags.dumpInfo)
-      ..enableExperimentalMirrors =
-          _hasOption(options, Flags.enableExperimentalMirrors)
+      ..useDumpInfoBinaryFormat =
+          _hasOption(options, "${Flags.dumpInfo}=binary")
       ..enableMinification = _hasOption(options, Flags.minify)
       .._disableMinification = _hasOption(options, Flags.noMinify)
       ..enableNativeLiveTypeAnalysis =
@@ -337,12 +379,12 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.experimentalTrackAllocations)
       ..experimentalAllocationsPath = _extractStringOption(
           options, "${Flags.experimentalAllocationsPath}=", null)
-      ..experimentLocalNames = _hasOption(options, Flags.experimentLocalNames)
       ..experimentStartupFunctions =
           _hasOption(options, Flags.experimentStartupFunctions)
       ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
+      ..experimentNewRti = _hasOption(options, Flags.experimentNewRti)
       ..generateCodeWithCompileTimeErrors =
           _hasOption(options, Flags.generateCodeWithCompileTimeErrors)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
@@ -366,9 +408,12 @@ class CompilerOptions implements DiagnosticOptions {
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
       ..verbose = _hasOption(options, Flags.verbose)
       ..showInternalProgress = _hasOption(options, Flags.progress)
+      ..dillDependencies =
+          _extractUriListOption(options, '${Flags.dillDependencies}')
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
       ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
-      ..cfeOnly = _hasOption(options, Flags.cfeOnly);
+      ..cfeOnly = _hasOption(options, Flags.cfeOnly)
+      ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference);
   }
 
   void validate() {
@@ -389,7 +434,8 @@ class CompilerOptions implements DiagnosticOptions {
     if (packageRoot != null && !packageRoot.path.endsWith("/")) {
       throw new ArgumentError("[packageRoot] must end with a /");
     }
-    if (platformBinaries == null) {
+    if (platformBinaries == null &&
+        equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
       throw new ArgumentError("Missing required ${Flags.platformBinaries}");
     }
   }
@@ -427,9 +473,11 @@ class CompilerOptions implements DiagnosticOptions {
     if (omitImplicitChecks) {
       parameterCheckPolicy = CheckPolicy.trusted;
       implicitDowncastCheckPolicy = CheckPolicy.trusted;
+      conditionCheckPolicy = CheckPolicy.trusted;
     } else {
       parameterCheckPolicy = CheckPolicy.checked;
       implicitDowncastCheckPolicy = CheckPolicy.checked;
+      conditionCheckPolicy = CheckPolicy.checked;
     }
 
     if (_disableMinification) {
@@ -438,14 +486,17 @@ class CompilerOptions implements DiagnosticOptions {
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.
+  @override
   bool get showAllPackageWarnings {
     return shownPackageWarnings != null && shownPackageWarnings.isEmpty;
   }
 
   /// Returns `true` if warnings and hints are hidden for all packages.
+  @override
   bool get hidePackageWarnings => shownPackageWarnings == null;
 
   /// Returns `true` if warnings should be should for [uri].
+  @override
   bool showPackageWarningsFor(Uri uri) {
     if (showAllPackageWarnings) {
       return true;
@@ -474,6 +525,7 @@ class CheckPolicy {
   static const trusted = const CheckPolicy(isTrusted: true);
   static const checked = const CheckPolicy(isEmitted: true);
 
+  @override
   String toString() => 'CheckPolicy(isTrusted=$isTrusted,'
       'isEmitted=$isEmitted)';
 }
@@ -511,6 +563,15 @@ List<String> _extractOptionalCsvOption(List<String> options, String flag) {
     }
   }
   return null;
+}
+
+/// Extract list of comma separated Uris provided for [flag]. Returns an
+/// empty list if [option] contain [flag] without arguments. Returns `null` if
+/// [option] doesn't contain [flag] with or without arguments.
+List<Uri> _extractUriListOption(List<String> options, String flag) {
+  List<String> stringUris = _extractOptionalCsvOption(options, flag);
+  if (stringUris == null) return null;
+  return stringUris.map(Uri.parse).toList();
 }
 
 Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+ * Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
  * for details. All rights reserved. Use of this source code is governed by a
  * BSD-style license that can be found in the LICENSE file.
  *
@@ -48,11 +48,22 @@ public class IncludedSuggestionSet {
   private final int relevance;
 
   /**
+   * The optional string that should be displayed instead of the uri of the referenced
+   * AvailableSuggestionSet.
+   *
+   * For example libraries in the "test" directory of a package have only "file://" URIs, so are
+   * usually long, and don't look nice, but actual import directives will use relative URIs, which
+   * are short, so we probably want to display such relative URIs to the user.
+   */
+  private final String displayUri;
+
+  /**
    * Constructor for {@link IncludedSuggestionSet}.
    */
-  public IncludedSuggestionSet(int id, int relevance) {
+  public IncludedSuggestionSet(int id, int relevance, String displayUri) {
     this.id = id;
     this.relevance = relevance;
+    this.displayUri = displayUri;
   }
 
   @Override
@@ -61,7 +72,8 @@ public class IncludedSuggestionSet {
       IncludedSuggestionSet other = (IncludedSuggestionSet) obj;
       return
         other.id == id &&
-        other.relevance == relevance;
+        other.relevance == relevance &&
+        ObjectUtilities.equals(other.displayUri, displayUri);
     }
     return false;
   }
@@ -69,7 +81,8 @@ public class IncludedSuggestionSet {
   public static IncludedSuggestionSet fromJson(JsonObject jsonObject) {
     int id = jsonObject.get("id").getAsInt();
     int relevance = jsonObject.get("relevance").getAsInt();
-    return new IncludedSuggestionSet(id, relevance);
+    String displayUri = jsonObject.get("displayUri") == null ? null : jsonObject.get("displayUri").getAsString();
+    return new IncludedSuggestionSet(id, relevance, displayUri);
   }
 
   public static List<IncludedSuggestionSet> fromJsonArray(JsonArray jsonArray) {
@@ -82,6 +95,18 @@ public class IncludedSuggestionSet {
       list.add(fromJson(iterator.next().getAsJsonObject()));
     }
     return list;
+  }
+
+  /**
+   * The optional string that should be displayed instead of the uri of the referenced
+   * AvailableSuggestionSet.
+   *
+   * For example libraries in the "test" directory of a package have only "file://" URIs, so are
+   * usually long, and don't look nice, but actual import directives will use relative URIs, which
+   * are short, so we probably want to display such relative URIs to the user.
+   */
+  public String getDisplayUri() {
+    return displayUri;
   }
 
   /**
@@ -104,6 +129,7 @@ public class IncludedSuggestionSet {
     HashCodeBuilder builder = new HashCodeBuilder();
     builder.append(id);
     builder.append(relevance);
+    builder.append(displayUri);
     return builder.toHashCode();
   }
 
@@ -111,6 +137,9 @@ public class IncludedSuggestionSet {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("id", id);
     jsonObject.addProperty("relevance", relevance);
+    if (displayUri != null) {
+      jsonObject.addProperty("displayUri", displayUri);
+    }
     return jsonObject;
   }
 
@@ -121,7 +150,9 @@ public class IncludedSuggestionSet {
     builder.append("id=");
     builder.append(id + ", ");
     builder.append("relevance=");
-    builder.append(relevance);
+    builder.append(relevance + ", ");
+    builder.append("displayUri=");
+    builder.append(displayUri);
     builder.append("]");
     return builder.toString();
   }

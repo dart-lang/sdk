@@ -13,33 +13,31 @@ import '../helpers/program_lookup.dart';
 import '../helpers/memory_compiler.dart';
 
 const String code = '''
-import 'package:meta/dart2js.dart';
-
 // This needs one-arg instantiation.
-@noInline
+@pragma('dart2js:noInline')
 T f1a<T>(T t) => t;
 
 // This needs no instantiation because it is not closurized.
-@noInline
+@pragma('dart2js:noInline')
 T f1b<T>(T t1, T t2) => t1;
 
 class Class {
   // This needs two-arg instantiation.
-  @noInline
+  @pragma('dart2js:noInline')
   bool f2a<T, S>(T t, S s) => t == s;
 
   // This needs no instantiation because it is not closurized.
-  @noInline
+  @pragma('dart2js:noInline')
   bool f2b<T, S>(T t, S s1, S s2) => t == s1;
 }
 
-@noInline
+@pragma('dart2js:noInline')
 int method1(int i, int Function(int) f) => f(i);
 
-@noInline
+@pragma('dart2js:noInline')
 bool method2(int a, int b, bool Function(int, int) f) => f(a, b);
 
-@noInline
+@pragma('dart2js:noInline')
 int method3(int a, int b, int c, int Function(int, int, int) f) => f(a, b, c);
 
 main() {

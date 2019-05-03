@@ -66,7 +66,7 @@ to a change being released in a dev channel release.
 
 [TODO: Link to an issue template for this]
 
-* Email `announce@dartlang.org, flutter-announce@googlegroups.com`,:
+* Email Dart Announce (`announce@dartlang.org`):
 
   * Subject: 'Breaking change [bug ID]: [short summary]'
 
@@ -76,6 +76,9 @@ to a change being released in a dev channel release.
 
   * A request that developers may leave comments in the linked issue, if this
     breaking change poses a severe problem.
+
+* Once you have sent the announce email, please let `aadilmaan@google.com` know
+as he will help drive the request through approval review process.
 
 ### Step 2: Approval
 

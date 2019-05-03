@@ -136,6 +136,14 @@ class BaseFlowGraphBuilder {
   Fragment LoadNativeField(const Slot& native_field);
   Fragment LoadIndexed(intptr_t index_scale);
 
+  Fragment LoadUntagged(intptr_t offset);
+  Fragment StoreUntagged(intptr_t offset);
+  Fragment ConvertUntaggedToIntptr();
+  Fragment ConvertIntptrToUntagged();
+  Fragment UnboxSmiToIntptr();
+
+  Fragment AddIntptrIntegers();
+
   void SetTempIndex(Definition* definition);
 
   Fragment LoadLocal(LocalVariable* variable);
@@ -197,6 +205,9 @@ class BaseFlowGraphBuilder {
   JoinEntryInstr* BuildJoinEntry();
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
 
+  Fragment StrictCompare(TokenPosition position,
+                         Token::Kind kind,
+                         bool number_check = false);
   Fragment StrictCompare(Token::Kind kind, bool number_check = false);
   Fragment Goto(JoinEntryInstr* destination);
   Fragment IntConstant(int64_t value);
@@ -204,7 +215,7 @@ class BaseFlowGraphBuilder {
   Fragment NullConstant();
   Fragment SmiRelationalOp(Token::Kind kind);
   Fragment SmiBinaryOp(Token::Kind op, bool is_truncating = false);
-  Fragment LoadFpRelativeSlot(intptr_t offset);
+  Fragment LoadFpRelativeSlot(intptr_t offset, CompileType result_type);
   Fragment StoreFpRelativeSlot(intptr_t offset);
   Fragment BranchIfTrue(TargetEntryInstr** then_entry,
                         TargetEntryInstr** otherwise_entry,
@@ -218,7 +229,10 @@ class BaseFlowGraphBuilder {
   Fragment BranchIfStrictEqual(TargetEntryInstr** then_entry,
                                TargetEntryInstr** otherwise_entry);
   Fragment Return(TokenPosition position);
-  Fragment CheckStackOverflow(TokenPosition position, intptr_t loop_depth);
+  Fragment CheckStackOverflow(TokenPosition position,
+                              intptr_t stack_depth,
+                              intptr_t loop_depth);
+  Fragment CheckStackOverflowInPrologue(TokenPosition position);
   Fragment ThrowException(TokenPosition position);
   Fragment TailCall(const Code& code);
 
@@ -262,13 +276,21 @@ class BaseFlowGraphBuilder {
   Fragment AssertBool(TokenPosition position);
   Fragment BooleanNegate();
   Fragment AllocateContext(const GrowableArray<LocalVariable*>& scope);
+  Fragment AllocateClosure(TokenPosition position,
+                           const Function& closure_function);
   Fragment CreateArray();
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);
+  Fragment LoadClassId();
 
   // Returns true if we are building a graph for inlining of a call site that
   // enters the function through the unchecked entry.
   bool InliningUncheckedEntry() const { return inlining_unchecked_entry_; }
+
+  // Returns depth of expression stack.
+  intptr_t GetStackDepth() const {
+    return stack_ == nullptr ? 0 : stack_->definition()->temp_index() + 1;
+  }
 
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }

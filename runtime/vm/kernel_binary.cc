@@ -68,7 +68,8 @@ Program* Program::ReadFrom(Reader* reader, const char** error) {
   }
 
   uint32_t formatVersion = reader->ReadUInt32();
-  if (formatVersion != kBinaryFormatVersion) {
+  if ((formatVersion < kMinSupportedKernelFormatVersion) ||
+      (formatVersion > kMaxSupportedKernelFormatVersion)) {
     if (error != nullptr) {
       *error = kKernelInvalidBinaryFormatVersion;
     }
@@ -76,6 +77,7 @@ Program* Program::ReadFrom(Reader* reader, const char** error) {
   }
 
   Program* program = new Program();
+  program->binary_version_ = formatVersion;
   program->kernel_data_ = reader->buffer();
   program->kernel_data_size_ = reader->size();
 

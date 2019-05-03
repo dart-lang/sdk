@@ -1178,8 +1178,8 @@ f(a) async {
   @failingTest
   test_KEYWORD_awaitForIn_map() async {
     addTestFile('''
-f(a, b) async {
-  return {await for(var b in a) b};
+f(a) async {
+  return {await for(var b in a) b : 0};
 }
 ''');
     await prepareHighlights();
@@ -1191,7 +1191,7 @@ f(a, b) async {
   @failingTest
   test_KEYWORD_awaitForIn_set() async {
     addTestFile('''
-f(a, b) async {
+f(a) async {
   return {await for(var b in a) b};
 }
 ''');

@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
-
 main() {
   Class. /*1:main*/ test();
 }
 
 class Class {
-  @NoInline()
+  @pragma('dart2js:noInline')
   static test() {
     /*2:Class.test*/ throw '>ExceptionMarker<';
   }

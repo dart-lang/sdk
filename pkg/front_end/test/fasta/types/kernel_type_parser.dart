@@ -6,6 +6,7 @@ import "package:kernel/ast.dart"
     show
         BottomType,
         Class,
+        Component,
         DartType,
         DynamicType,
         FunctionType,
@@ -24,6 +25,8 @@ import "package:kernel/ast.dart"
 
 import "package:kernel/src/bounds_checks.dart" show calculateBounds;
 
+import "mock_sdk.dart" show mockSdk;
+
 import "type_parser.dart" as type_parser show parse;
 
 import "type_parser.dart"
@@ -38,13 +41,34 @@ import "type_parser.dart"
         ParsedVoidType,
         Visitor;
 
+Component parseComponent(String source, Uri uri) {
+  Uri coreUri = Uri.parse("dart:core");
+  KernelEnvironment coreEnvironment = new KernelEnvironment(coreUri, coreUri);
+  Library coreLibrary =
+      parseLibrary(coreUri, mockSdk, environment: coreEnvironment);
+  KernelEnvironment libraryEnvironment =
+      new KernelEnvironment(uri, uri).extend(coreEnvironment.declarations);
+  Library library = parseLibrary(uri, source, environment: libraryEnvironment);
+  library.name = "lib";
+  return new Component(libraries: <Library>[coreLibrary, library]);
+}
+
 Library parseLibrary(Uri uri, String text,
     {Uri fileUri, KernelEnvironment environment}) {
   fileUri ??= uri;
   environment ??= new KernelEnvironment(uri, fileUri);
   Library library =
       new Library(uri, fileUri: fileUri, name: uri.path.replaceAll("/", "."));
-  for (ParsedType type in type_parser.parse(text)) {
+  List<ParsedType> types = type_parser.parse(text);
+  for (ParsedType type in types) {
+    if (type is ParsedClass) {
+      String name = type.name;
+      environment[name] = new Class(fileUri: fileUri, name: name)
+        ..typeParameters.addAll(
+            new List<TypeParameter>.filled(type.typeVariables.length, null));
+    }
+  }
+  for (ParsedType type in types) {
     Node node = environment.kernelFromParsedType(type);
     if (node is Class) {
       library.addClass(node);
@@ -64,7 +88,9 @@ class KernelEnvironment {
 
   final Map<String, TreeNode> declarations = <String, TreeNode>{};
 
-  KernelEnvironment(this.uri, this.fileUri);
+  final KernelEnvironment parent;
+
+  KernelEnvironment(this.uri, this.fileUri, [this.parent]);
 
   Node kernelFromParsedType(ParsedType type) {
     Node node = type.accept(const KernelFromParsedType(), this);
@@ -76,7 +102,12 @@ class KernelEnvironment {
   Class get objectClass => this["Object"];
 
   TreeNode operator [](String name) {
-    return declarations[name] ?? (throw "Not found: $name");
+    TreeNode result = declarations[name];
+    if (result == null && parent != null) {
+      return parent[name];
+    }
+    if (result == null) throw "Not found: $name";
+    return result;
   }
 
   void operator []=(String name, TreeNode declaration) {
@@ -88,8 +119,7 @@ class KernelEnvironment {
   }
 
   KernelEnvironment extend(Map<String, TreeNode> declarations) {
-    return new KernelEnvironment(uri, fileUri)
-      ..declarations.addAll(this.declarations)
+    return new KernelEnvironment(uri, fileUri, this)
       ..declarations.addAll(declarations);
   }
 }
@@ -146,13 +176,14 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
 
   Class visitClass(ParsedClass node, KernelEnvironment environment) {
     String name = node.name;
-    Class cls =
-        environment[name] = new Class(fileUri: environment.fileUri, name: name);
+    Class cls = environment[name];
     ParameterEnvironment parameterEnvironment =
         computeTypeParameterEnvironment(node.typeVariables, environment);
     List<TypeParameter> parameters = parameterEnvironment.parameters;
     setParents(parameters, cls);
-    cls.typeParameters.addAll(parameters);
+    cls.typeParameters
+      ..clear()
+      ..addAll(parameters);
     {
       KernelEnvironment environment = parameterEnvironment.environment;
       InterfaceType type =
@@ -163,6 +194,11 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
         }
       } else {
         cls.supertype = toSupertype(type);
+      }
+      InterfaceType mixedInType =
+          node.mixedInType?.accept<Node, KernelEnvironment>(this, environment);
+      if (mixedInType != null) {
+        cls.mixedInType = toSupertype(mixedInType);
       }
       List<ParsedType> interfaces = node.interfaces;
       for (int i = 0; i < interfaces.length; i++) {
@@ -276,7 +312,7 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
         typeParameter
           ..bound = type
           // The default type will be overridden below, but we need to set it
-          // so [calculateBounds] can destinquish between explicit and implicit
+          // so [calculateBounds] can distinguish between explicit and implicit
           // bounds.
           ..defaultType = type;
       }

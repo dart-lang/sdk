@@ -4,8 +4,6 @@
 
 part of dart.convert;
 
-typedef void _ChunkedConversionCallback<T>(T accumulated);
-
 /// A [ChunkedConversionSink] is used to transmit data more efficiently between
 /// two converters during chunked conversions.
 ///
@@ -37,7 +35,7 @@ abstract class ChunkedConversionSink<T> implements Sink<T> {
 ///
 /// This class can be used to terminate a chunked conversion.
 class _SimpleCallbackSink<T> extends ChunkedConversionSink<T> {
-  final _ChunkedConversionCallback<List<T>> _callback;
+  final void Function(List<T>) _callback;
   final List<T> _accumulated = <T>[];
 
   _SimpleCallbackSink(this._callback);

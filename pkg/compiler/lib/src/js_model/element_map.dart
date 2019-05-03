@@ -144,10 +144,6 @@ abstract class JsToElementMap {
   js.Template getJsBuiltinTemplate(
       ConstantValue constant, CodeEmitterTask emitter);
 
-  /// Return the [ConstantValue] the initial value of [field] or `null` if
-  /// the initializer is not a constant expression.
-  ConstantValue getFieldConstantValue(FieldEntity field);
-
   /// Returns a [Spannable] for a message pointing to the IR [node] in the
   /// context of [member].
   Spannable getSpannable(MemberEntity member, ir.Node node);
@@ -388,6 +384,7 @@ class RegularMemberDefinition implements MemberDefinition {
   /// debugging data stream.
   static const String tag = 'regular-member-definition';
 
+  @override
   final ir.Member node;
 
   RegularMemberDefinition(this.node);
@@ -407,10 +404,13 @@ class RegularMemberDefinition implements MemberDefinition {
     sink.end(tag);
   }
 
+  @override
   SourceSpan get location => computeSourceSpanFromTreeNode(node);
 
+  @override
   MemberKind get kind => MemberKind.regular;
 
+  @override
   String toString() => 'RegularMemberDefinition(kind:$kind,'
       'node:$node,location:$location)';
 }
@@ -421,7 +421,9 @@ class SpecialMemberDefinition implements MemberDefinition {
   /// debugging data stream.
   static const String tag = 'special-member-definition';
 
+  @override
   final ir.TreeNode node;
+  @override
   final MemberKind kind;
 
   SpecialMemberDefinition(this.node, this.kind);
@@ -442,8 +444,10 @@ class SpecialMemberDefinition implements MemberDefinition {
     sink.end(tag);
   }
 
+  @override
   SourceSpan get location => computeSourceSpanFromTreeNode(node);
 
+  @override
   String toString() => 'SpecialMemberDefinition(kind:$kind,'
       'node:$node,location:$location)';
 }
@@ -484,6 +488,7 @@ class RegularClassDefinition implements ClassDefinition {
   /// debugging data stream.
   static const String tag = 'regular-class-definition';
 
+  @override
   final ir.Class node;
 
   RegularClassDefinition(this.node);
@@ -495,6 +500,7 @@ class RegularClassDefinition implements ClassDefinition {
     return new RegularClassDefinition(node);
   }
 
+  @override
   void writeToDataSink(DataSink sink) {
     sink.writeEnum(kind);
     sink.begin(tag);
@@ -502,10 +508,13 @@ class RegularClassDefinition implements ClassDefinition {
     sink.end(tag);
   }
 
+  @override
   SourceSpan get location => computeSourceSpanFromTreeNode(node);
 
+  @override
   ClassKind get kind => ClassKind.regular;
 
+  @override
   String toString() => 'RegularClassDefinition(kind:$kind,'
       'node:$node,location:$location)';
 }

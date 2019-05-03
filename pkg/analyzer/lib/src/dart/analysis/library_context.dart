@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -43,7 +42,7 @@ class LibraryContext {
   /// We use it as an approximation for the heap size of elements.
   int _linkedDataInBytes = 0;
 
-  AnalysisContextImpl analysisContext;
+  RestrictedAnalysisContext analysisContext;
   SummaryResynthesizer resynthesizer;
   InheritanceManager2 inheritanceManager;
 
@@ -63,18 +62,19 @@ class LibraryContext {
       store.addStore(externalSummaries);
     }
 
-    // Fill the store with summaries required for the initial library.
-    load(targetLibrary);
-
     analysisContext = new RestrictedAnalysisContext(
       analysisOptions,
       declaredVariables,
       sourceFactory,
     );
 
-    var provider = new InputPackagesResultProvider(analysisContext, store,
-        session: session);
-    resynthesizer = provider.resynthesizer;
+    // Fill the store with summaries required for the initial library.
+    load(targetLibrary);
+
+    resynthesizer = new StoreBasedSummaryResynthesizer(
+        analysisContext, session, sourceFactory, true, store);
+    analysisContext.typeProvider = resynthesizer.typeProvider;
+    resynthesizer.finishCoreAsyncLibraries();
 
     inheritanceManager = new InheritanceManager2(analysisContext.typeSystem);
   }
@@ -173,7 +173,7 @@ class LibraryContext {
       }, (String uri) {
         UnlinkedUnit unlinkedUnit = store.unlinkedMap[uri];
         return unlinkedUnit;
-      }, (_) => null);
+      }, DeclaredVariables(), analysisContext.analysisOptions);
       logger.writeln('Linked ${linkedLibraries.length} libraries.');
     });
 

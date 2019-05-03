@@ -1,6 +1,8 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// OtherResources=simple_reload/v1/main.dart simple_reload/v2/main.dart
 
 import 'test_helper.dart';
 import 'dart:async';

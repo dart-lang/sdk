@@ -11,6 +11,7 @@ import 'convert_documentation_into_block_test.dart'
     as convert_documentation_into_block;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
+import 'convert_into_absolute_import_test.dart' as convert_into_absolute_import;
 import 'convert_into_async_body_test.dart' as convert_into_async_body;
 import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
@@ -25,12 +26,14 @@ import 'convert_part_of_to_uri_test.dart' as convert_part_of_to_uri;
 import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
 import 'convert_to_field_parameter_test.dart' as convert_to_field_parameter;
+import 'convert_to_for_element_test.dart' as convert_to_for_element;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_list_literal_test.dart' as convert_to_list_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_multiline_string_test.dart' as convert_to_multiline_string;
 import 'convert_to_normal_parameter_test.dart' as convert_to_normal_parameter;
+import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
 import 'convert_to_single_quoted_string_test.dart'
     as convert_to_single_quoted_string;
@@ -53,6 +56,7 @@ import 'flutter_wrap_padding_test.dart' as flutter_wrap_padding;
 import 'flutter_wrap_row_test.dart' as flutter_wrap_row;
 import 'flutter_wrap_stream_builder_test.dart' as flutter_wrap_stream_builder;
 import 'import_add_show_test.dart' as import_add_show;
+import 'inline_invocation_test.dart' as inline_invocation;
 import 'introduce_local_cast_type_test.dart' as introduce_local_cast_type;
 import 'invert_if_statement_test.dart' as invert_if_statement;
 import 'join_if_with_inner_test.dart' as join_if_with_inner;
@@ -81,6 +85,7 @@ main() {
     convert_class_to_mixin.main();
     convert_documentation_into_block.main();
     convert_documentation_into_line.main();
+    convert_into_absolute_import.main();
     convert_into_async_body.main();
     convert_into_block_body.main();
     convert_into_expression_body.main();
@@ -93,12 +98,14 @@ main() {
     convert_part_of_to_uri.main();
     convert_to_double_quoted_string.main();
     convert_to_field_parameter.main();
+    convert_to_for_element.main();
     convert_to_if_element.main();
     convert_to_int_literal.main();
     convert_to_list_literal.main();
     convert_to_map_literal.main();
     convert_to_multiline_string.main();
     convert_to_normal_parameter.main();
+    convert_to_null_aware.main();
     convert_to_set_literal.main();
     convert_to_single_quoted_string.main();
     convert_to_spread.main();
@@ -119,6 +126,7 @@ main() {
     flutter_wrap_row.main();
     flutter_wrap_stream_builder.main();
     import_add_show.main();
+    inline_invocation.main();
     introduce_local_cast_type.main();
     invert_if_statement.main();
     join_if_with_inner.main();

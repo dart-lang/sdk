@@ -9,6 +9,7 @@
 
 #include "vm/compiler/backend/loops.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/il_test_helper.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/type_propagator.h"
 #include "vm/compiler/compiler_pass.h"
@@ -62,43 +63,18 @@ void TestString(BufferFormatter* f,
 
 // Helper method to build CFG and compute induction.
 static const char* ComputeInduction(Thread* thread, const char* script_chars) {
-  // Invoke the script.
-  Dart_Handle script = TestCase::LoadTestScript(script_chars, NULL);
-  Dart_Handle result = Dart_Invoke(script, NewString("main"), 0, NULL);
-  EXPECT_VALID(result);
+  // Load the script and exercise the code once.
+  const auto& root_library = Library::Handle(LoadTestScript(script_chars));
+  Invoke(root_library, "main");
 
-  // Find parsed function "foo".
-  TransitionNativeToVM transition(thread);
-  Zone* zone = thread->zone();
-  Library& lib =
-      Library::ZoneHandle(Library::RawCast(Api::UnwrapHandle(script)));
-  RawFunction* raw_func =
-      lib.LookupLocalFunction(String::Handle(Symbols::New(thread, "foo")));
-  ParsedFunction* parsed_function =
-      new (zone) ParsedFunction(thread, Function::ZoneHandle(zone, raw_func));
-  EXPECT(parsed_function != nullptr);
-
-  // Build flow graph.
-  CompilerState state(thread);
-  ZoneGrowableArray<const ICData*>* ic_data_array =
-      new (zone) ZoneGrowableArray<const ICData*>();
-  parsed_function->function().RestoreICDataMap(ic_data_array, true);
-  kernel::FlowGraphBuilder builder(parsed_function, ic_data_array, nullptr,
-                                   nullptr, true, DeoptId::kNone);
-  FlowGraph* flow_graph = builder.BuildGraph();
-  EXPECT(flow_graph != nullptr);
-
-  // Setup some pass data structures and perform minimum passes.
-  SpeculativeInliningPolicy speculative_policy(/*enable_blacklist*/ false);
-  CompilerPassState pass_state(thread, flow_graph, &speculative_policy);
-  JitCallSpecializer call_specializer(flow_graph, &speculative_policy);
-  pass_state.call_specializer = &call_specializer;
-  flow_graph->ComputeSSA(0, nullptr);
-  FlowGraphTypePropagator::Propagate(flow_graph);
-  call_specializer.ApplyICData();
-  flow_graph->SelectRepresentations();
-  FlowGraphTypePropagator::Propagate(flow_graph);
-  flow_graph->Canonicalize();
+  std::initializer_list<CompilerPass::Id> passes = {
+      CompilerPass::kComputeSSA,      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyICData,     CompilerPass::kSelectRepresentations,
+      CompilerPass::kTypePropagation, CompilerPass::kCanonicalize,
+  };
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses(passes);
 
   // Build loop hierarchy and find induction.
   const LoopHierarchy& hierarchy = flow_graph->GetLoopHierarchy();
@@ -116,15 +92,17 @@ static const char* ComputeInduction(Thread* thread, const char* script_chars) {
 // Induction tests.
 //
 
-TEST_CASE(BasicInductionUp) {
+ISOLATE_UNIT_TEST_CASE(BasicInductionUp) {
   const char* script_chars =
-      "foo() {\n"
-      "  for (int i = 0; i < 100; i++) {\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        for (int i = 0; i < 100; i++) {
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  LIN(0 + 1 * i) 100\n"  // phi
@@ -133,15 +111,17 @@ TEST_CASE(BasicInductionUp) {
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
-TEST_CASE(BasicInductionDown) {
+ISOLATE_UNIT_TEST_CASE(BasicInductionDown) {
   const char* script_chars =
-      "foo() {\n"
-      "  for (int i = 100; i > 0; i--) {\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        for (int i = 100; i > 0; i--) {
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  LIN(100 + -1 * i) 0\n"  // phi
@@ -150,15 +130,17 @@ TEST_CASE(BasicInductionDown) {
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
-TEST_CASE(BasicInductionStepUp) {
+ISOLATE_UNIT_TEST_CASE(BasicInductionStepUp) {
   const char* script_chars =
-      "foo() {\n"
-      "  for (int i = 10; i < 100; i += 2) {\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        for (int i = 10; i < 100; i += 2) {
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  LIN(10 + 2 * i)\n"  // phi
@@ -167,15 +149,17 @@ TEST_CASE(BasicInductionStepUp) {
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
-TEST_CASE(BasicInductionStepDown) {
+ISOLATE_UNIT_TEST_CASE(BasicInductionStepDown) {
   const char* script_chars =
-      "foo() {\n"
-      "  for (int i = 100; i >= 0; i -= 7) {\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        for (int i = 100; i >= 0; i -= 7) {
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  LIN(100 + -7 * i)\n"  // phi
@@ -184,19 +168,21 @@ TEST_CASE(BasicInductionStepDown) {
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
-TEST_CASE(BasicInductionLoopNest) {
+ISOLATE_UNIT_TEST_CASE(BasicInductionLoopNest) {
   const char* script_chars =
-      "foo() {\n"
-      "  for (int i = 0; i < 100; i++) {\n"
-      "    for (int j = 1; j < 100; j++) {\n"
-      "      for (int k = 2; k < 100; k++) {\n"
-      "      }\n"
-      "    }\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        for (int i = 0; i < 100; i++) {
+          for (int j = 1; j < 100; j++) {
+            for (int k = 2; k < 100; k++) {
+            }
+          }
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [2\n"
       "  LIN(0 + 1 * i) 100\n"  // i
@@ -213,18 +199,20 @@ TEST_CASE(BasicInductionLoopNest) {
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
-TEST_CASE(ChainInduction) {
+ISOLATE_UNIT_TEST_CASE(ChainInduction) {
   const char* script_chars =
-      "foo() {\n"
-      "  int j = 1;\n"
-      "  for (int i = 0; i < 100; i++) {\n"
-      "    j += 5;\n"
-      "    j += 7;\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        int j = 1;
+        for (int i = 0; i < 100; i++) {
+          j += 5;
+          j += 7;
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  LIN(1 + 12 * i)\n"     // phi (j)
@@ -236,21 +224,23 @@ TEST_CASE(ChainInduction) {
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
-TEST_CASE(TwoWayInduction) {
+ISOLATE_UNIT_TEST_CASE(TwoWayInduction) {
   const char* script_chars =
-      "foo() {\n"
-      "  int j = 123;\n"
-      "  for (int i = 0; i < 100; i++) {\n"
-      "     if (i == 10) {\n"
-      "       j += 3;\n"
-      "     } else {\n"
-      "       j += 3;\n"
-      "     }\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        int j = 123;
+        for (int i = 0; i < 100; i++) {
+           if (i == 10) {
+             j += 3;
+           } else {
+             j += 3;
+           }
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  LIN(123 + 3 * i)\n"    // phi (j)
@@ -263,19 +253,21 @@ TEST_CASE(TwoWayInduction) {
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
-TEST_CASE(DerivedInduction) {
+ISOLATE_UNIT_TEST_CASE(DerivedInduction) {
   const char* script_chars =
-      "foo() {\n"
-      "  for (int i = 1; i < 100; i++) {\n"
-      "    int a = i + 3;\n"
-      "    int b = i - 5;\n"
-      "    int c = i * 7;\n"
-      "    int d = - i;\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        for (int i = 1; i < 100; i++) {
+          int a = i + 3;
+          int b = i - 5;
+          int c = i * 7;
+          int d = - i;
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  LIN(1 + 1 * i) 100\n"  // phi
@@ -288,21 +280,23 @@ TEST_CASE(DerivedInduction) {
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
-TEST_CASE(WrapAroundAndDerived) {
+ISOLATE_UNIT_TEST_CASE(WrapAroundAndDerived) {
   const char* script_chars =
-      "foo() {\n"
-      "  int w = 99;\n"
-      "  for (int i = 0; i < 100; i++) {\n"
-      "    int a = w + 3;\n"
-      "    int b = w - 5;\n"
-      "    int c = w * 7;\n"
-      "    int d = - w;\n"
-      "    w = i;\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        int w = 99;
+        for (int i = 0; i < 100; i++) {
+          int a = w + 3;
+          int b = w - 5;
+          int c = w * 7;
+          int d = - w;
+          w = i;
+        }
+      }
+      main() {
+        foo();
+      }
+      )";
   const char* expected =
       "  [0\n"
       "  WRAP(99, LIN(0 + 1 * i))\n"    // phi (w)
@@ -316,23 +310,25 @@ TEST_CASE(WrapAroundAndDerived) {
   EXPECT_STREQ(ComputeInduction(thread, script_chars), expected);
 }
 
-TEST_CASE(PeriodicAndDerived) {
+ISOLATE_UNIT_TEST_CASE(PeriodicAndDerived) {
   const char* script_chars =
-      "foo() {\n"
-      "  int p1 = 3;\n"
-      "  int p2 = 5;\n"
-      "  for (int i = 0; i < 100; i++) {\n"
-      "    int a = p1 + 3;\n"
-      "    int b = p1 - 5;\n"
-      "    int c = p1 * 7;\n"
-      "    int d = - p1;\n"
-      "    p1 = - p1;\n"
-      "    p2 = 100 - p2;\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        int p1 = 3;
+        int p2 = 5;
+        for (int i = 0; i < 100; i++) {
+          int a = p1 + 3;
+          int b = p1 - 5;
+          int c = p1 * 7;
+          int d = - p1;
+          p1 = - p1;
+          p2 = 100 - p2;
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  PERIOD(3, -3)\n"       // phi(p1)
@@ -353,15 +349,17 @@ TEST_CASE(PeriodicAndDerived) {
 // Bound specific tests.
 //
 
-TEST_CASE(NonStrictConditionUp) {
+ISOLATE_UNIT_TEST_CASE(NonStrictConditionUp) {
   const char* script_chars =
-      "foo() {\n"
-      "  for (int i = 0; i <= 100; i++) {\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        for (int i = 0; i <= 100; i++) {
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  LIN(0 + 1 * i) 101\n"  // phi
@@ -371,16 +369,18 @@ TEST_CASE(NonStrictConditionUp) {
 }
 
 #ifndef TARGET_ARCH_DBC
-TEST_CASE(NonStrictConditionUpWrap) {
+ISOLATE_UNIT_TEST_CASE(NonStrictConditionUpWrap) {
   const char* script_chars =
-      "foo() {\n"
-      "  for (int i = 0x7ffffffffffffffe; i <= 0x7fffffffffffffff; i++) {\n"
-      "    if (i < 0) break;\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        for (int i = 0x7ffffffffffffffe; i <= 0x7fffffffffffffff; i++) {
+          if (i < 0) break;
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  LIN(9223372036854775806 + 1 * i)\n"  // phi
@@ -394,15 +394,17 @@ TEST_CASE(NonStrictConditionUpWrap) {
 }
 #endif
 
-TEST_CASE(NonStrictConditionDown) {
+ISOLATE_UNIT_TEST_CASE(NonStrictConditionDown) {
   const char* script_chars =
-      "foo() {\n"
-      "  for (int i = 100; i >= 0; i--) {\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        for (int i = 100; i >= 0; i--) {
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  LIN(100 + -1 * i) -1\n"  // phi
@@ -412,16 +414,18 @@ TEST_CASE(NonStrictConditionDown) {
 }
 
 #ifndef TARGET_ARCH_DBC
-TEST_CASE(NonStrictConditionDownWrap) {
+ISOLATE_UNIT_TEST_CASE(NonStrictConditionDownWrap) {
   const char* script_chars =
-      "foo() {\n"
-      "  for (int i = 0x8000000000000001; i >= 0x8000000000000000; i--) {\n"
-      "    if (i > 0) break;\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        for (int i = 0x8000000000000001; i >= 0x8000000000000000; i--) {
+          if (i > 0) break;
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  LIN(-9223372036854775807 + -1 * i)\n"  // phi
@@ -433,17 +437,20 @@ TEST_CASE(NonStrictConditionDownWrap) {
       "  ]\n";
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
+
 #endif
 
-TEST_CASE(NotEqualConditionUp) {
+ISOLATE_UNIT_TEST_CASE(NotEqualConditionUp) {
   const char* script_chars =
-      "foo() {\n"
-      "  for (int i = 10; i != 20; i++) {\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        for (int i = 10; i != 20; i++) {
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  LIN(10 + 1 * i) 20\n"  // phi
@@ -452,15 +459,17 @@ TEST_CASE(NotEqualConditionUp) {
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
-TEST_CASE(NotEqualConditionDown) {
+ISOLATE_UNIT_TEST_CASE(NotEqualConditionDown) {
   const char* script_chars =
-      "foo() {\n"
-      "  for (int i = 20; i != 10; i--) {\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        for (int i = 20; i != 10; i--) {
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  LIN(20 + -1 * i) 10\n"  // phi
@@ -469,16 +478,18 @@ TEST_CASE(NotEqualConditionDown) {
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
-TEST_CASE(SecondExitUp) {
+ISOLATE_UNIT_TEST_CASE(SecondExitUp) {
   const char* script_chars =
-      "foo() {\n"
-      "  for (int i = 0; i < 100; i++) {\n"
-      "     if (i >= 50) break;\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        for (int i = 0; i < 100; i++) {
+           if (i >= 50) break;
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  LIN(0 + 1 * i) 100 50\n"  // phi
@@ -487,16 +498,18 @@ TEST_CASE(SecondExitUp) {
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
-TEST_CASE(SecondExitDown) {
+ISOLATE_UNIT_TEST_CASE(SecondExitDown) {
   const char* script_chars =
-      "foo() {\n"
-      "  for (int i = 100; i > 0; i--) {\n"
-      "     if (i <= 10) break;\n"
-      "  }\n"
-      "}\n"
-      "main() {\n"
-      "  foo();\n"
-      "}\n";
+      R"(
+      foo() {
+        for (int i = 100; i > 0; i--) {
+           if (i <= 10) break;
+        }
+      }
+      main() {
+        foo();
+      }
+    )";
   const char* expected =
       "  [0\n"
       "  LIN(100 + -1 * i) 0 10\n"  // phi

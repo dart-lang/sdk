@@ -15,6 +15,9 @@ part of dart.convert;
 ///     var encoded = base64.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
 ///                                  0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
 ///     var decoded = base64.decode("YmzDpWLDpnJncsO4ZAo=");
+///
+/// The top-level [base64Encode] and [base64Decode] functions may be used
+/// instead if a local variable shadows the [base64] constant.
 const Base64Codec base64 = Base64Codec();
 
 /// A [base64url](https://tools.ietf.org/html/rfc4648) encoder and decoder.
@@ -32,7 +35,8 @@ const Base64Codec base64Url = Base64Codec.urlSafe();
 
 /// Encodes [bytes] using [base64](https://tools.ietf.org/html/rfc4648) encoding.
 ///
-/// Shorthand for [base64.encode].
+/// Shorthand for [base64.encode]. Useful if a local variable shadows the global
+/// [base64] constant.
 String base64Encode(List<int> bytes) => base64.encode(bytes);
 
 /// Encodes [bytes] using [base64url](https://tools.ietf.org/html/rfc4648) encoding.
@@ -42,7 +46,8 @@ String base64UrlEncode(List<int> bytes) => base64Url.encode(bytes);
 
 /// Decodes [base64](https://tools.ietf.org/html/rfc4648) or [base64url](https://tools.ietf.org/html/rfc4648) encoded bytes.
 ///
-/// Shorthand for [base64.decode].
+/// Shorthand for [base64.decode]. Useful if a local variable shadows the
+/// global [base64] constant.
 Uint8List base64Decode(String source) => base64.decode(source);
 
 // Constants used in more than one class.

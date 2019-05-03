@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/constant_verifier.dart';
+import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
@@ -27,10 +28,10 @@ import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
+import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -55,7 +56,7 @@ class LibraryAnalyzer {
   final TypeProvider _typeProvider;
 
   final TypeSystem _typeSystem;
-  bool isNonNullableMigrated = false;
+  bool isNonNullableLibrary = false;
   LibraryElement _libraryElement;
 
   LibraryScope _libraryScope;
@@ -67,6 +68,13 @@ class LibraryAnalyzer {
   final List<UsedImportedElements> _usedImportedElementsList = [];
   final List<UsedLocalElements> _usedLocalElementsList = [];
   final Map<FileState, List<PendingError>> _fileToPendingErrors = {};
+
+  /**
+   * Constants in the current library.
+   *
+   * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
+   */
+  final Set<ConstantEvaluationTarget> _libraryConstants = new Set();
 
   final Set<ConstantEvaluationTarget> _constants = new Set();
 
@@ -102,8 +110,9 @@ class LibraryAnalyzer {
     for (FileState file in _library.libraryFiles) {
       units[file] = _parse(file);
     }
-    isNonNullableMigrated = (units.values.first as CompilationUnitImpl)
-        .hasPragmaAnalyzerNonNullable;
+    // TODO(danrubel): Verify that all units are either nullable or non-nullable
+    isNonNullableLibrary =
+        (units.values.first as CompilationUnitImpl).isNonNullable;
 
     // Resolve URIs in directives to corresponding sources.
     units.forEach((file, unit) {
@@ -122,6 +131,7 @@ class LibraryAnalyzer {
     });
 
     units.values.forEach(_findConstants);
+    _clearConstantEvaluationResults();
     _computeConstants();
 
     PerformanceStatistics.errors.makeCurrentWhile(() {
@@ -172,6 +182,24 @@ class LibraryAnalyzer {
     return results;
   }
 
+  /**
+   * Clear evaluation results for all constants before computing them again.
+   * The reason is described in https://github.com/dart-lang/sdk/issues/35940
+   *
+   * Otherwise, we reuse results, including errors are recorded only when
+   * we evaluate constants resynthesized from summaries.
+   *
+   * TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
+   */
+  void _clearConstantEvaluationResults() {
+    for (var constant in _libraryConstants) {
+      if (constant is ConstFieldElementImpl_ofEnum) continue;
+      if (constant is ConstVariableElement) {
+        constant.evaluationResult = null;
+      }
+    }
+  }
+
   void _computeConstantErrors(
       ErrorReporter errorReporter, CompilationUnit unit) {
     ConstantVerifier constantVerifier = new ConstantVerifier(
@@ -203,8 +231,8 @@ class LibraryAnalyzer {
       errorListener.onError(pendingError.toAnalysisError());
     }
 
-    unit.accept(
-        new DeadCodeVerifier(errorReporter, typeSystem: _context.typeSystem));
+    unit.accept(new DeadCodeVerifier(errorReporter, isNonNullableLibrary,
+        typeSystem: _context.typeSystem));
 
     // Dart2js analysis.
     if (_analysisOptions.dart2jsHint) {
@@ -317,6 +345,7 @@ class LibraryAnalyzer {
     CodeChecker checker = new CodeChecker(
       _typeProvider,
       _context.typeSystem,
+      _inheritance,
       errorListener,
       _analysisOptions,
     );
@@ -379,6 +408,7 @@ class LibraryAnalyzer {
   void _findConstants(CompilationUnit unit) {
     ConstantFinder constantFinder = new ConstantFinder();
     unit.accept(constantFinder);
+    _libraryConstants.addAll(constantFinder.constantsToCompute);
     _constants.addAll(constantFinder.constantsToCompute);
 
     var dependenciesFinder = new ConstantExpressionsDependenciesFinder();
@@ -603,12 +633,12 @@ class LibraryAnalyzer {
 
     new TypeParameterBoundsResolver(
             _context.typeSystem, _libraryElement, source, errorListener,
-            isNonNullableMigrated: isNonNullableMigrated)
+            isNonNullableUnit: isNonNullableLibrary)
         .resolveTypeBounds(unit);
 
     unit.accept(new TypeResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
-        isNonNullableMigrated: isNonNullableMigrated));
+        isNonNullableUnit: isNonNullableLibrary));
 
     unit.accept(new VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,

@@ -82,7 +82,10 @@ class Mapping {
 class LibraryIndex {
  public:
   // |kernel_data| is the kernel data for one library alone.
-  explicit LibraryIndex(const ExternalTypedData& kernel_data);
+  // binary_version can be -1 in which case some parts of the index might not
+  // be read.
+  explicit LibraryIndex(const ExternalTypedData& kernel_data,
+                        int32_t binary_version);
 
   intptr_t class_count() const { return class_count_; }
   intptr_t procedure_count() const { return procedure_count_; }
@@ -106,8 +109,17 @@ class LibraryIndex {
     return -1;
   }
 
+  bool HasSourceReferences() {
+    if (binary_version_ < 25) return false;
+    return true;
+  }
+
+  intptr_t SourceReferencesOffset() { return source_references_offset_; }
+
  private:
   Reader reader_;
+  int32_t binary_version_;
+  intptr_t source_references_offset_;
   intptr_t class_index_offset_;
   intptr_t class_count_;
   intptr_t procedure_index_offset_;
@@ -147,9 +159,36 @@ class ClassIndex {
   DISALLOW_COPY_AND_ASSIGN(ClassIndex);
 };
 
+struct UriToSourceTableEntry : public ZoneAllocated {
+  UriToSourceTableEntry() {}
+
+  const String* uri = nullptr;
+  const String* sources = nullptr;
+  const TypedData* line_starts = nullptr;
+};
+
+struct UriToSourceTableTrait {
+  typedef UriToSourceTableEntry* Value;
+  typedef const UriToSourceTableEntry* Key;
+  typedef UriToSourceTableEntry* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) { return key->uri->Hash(); }
+
+  static inline bool IsKeyEqual(Pair kv, Key key) {
+    // Only compare uri.
+    return kv->uri->CompareTo(*key->uri) == 0;
+  }
+};
+
 class KernelLoader : public ValueObject {
  public:
-  explicit KernelLoader(Program* program);
+  explicit KernelLoader(
+      Program* program,
+      DirectChainedHashMap<UriToSourceTableTrait>* uri_to_source_table);
   static Object& LoadEntireProgram(Program* program,
                                    bool process_pending_classes = true);
 
@@ -175,6 +214,10 @@ class KernelLoader : public ValueObject {
                                     bool* is_empty_program,
                                     intptr_t* p_num_classes,
                                     intptr_t* p_num_procedures);
+
+  static RawString* FindSourceForScript(const uint8_t* kernel_buffer,
+                                        intptr_t kernel_buffer_length,
+                                        const String& url);
 
   RawLibrary* LoadLibrary(intptr_t index);
 
@@ -248,7 +291,8 @@ class KernelLoader : public ValueObject {
                const ExternalTypedData& kernel_data,
                intptr_t data_program_offset);
 
-  void InitializeFields();
+  void InitializeFields(
+      DirectChainedHashMap<UriToSourceTableTrait>* uri_to_source_table);
   static void index_programs(kernel::Reader* reader,
                              GrowableArray<intptr_t>* subprogram_file_starts);
   void walk_incremental_kernel(BitVector* modified_libs,
@@ -261,8 +305,6 @@ class KernelLoader : public ValueObject {
 
   void ReadInferredType(const Field& field, intptr_t kernel_offset);
   void CheckForInitializer(const Field& field);
-
-  void FixCoreLibraryScriptUri(const Library& library, const Script& script);
 
   void LoadClass(const Library& library,
                  const Class& toplevel_class,
@@ -284,22 +326,21 @@ class KernelLoader : public ValueObject {
   RawArray* MakeFieldsArray();
   RawArray* MakeFunctionsArray();
 
-  RawScript* LoadScriptAt(intptr_t index);
+  RawScript* LoadScriptAt(
+      intptr_t index,
+      DirectChainedHashMap<UriToSourceTableTrait>* uri_to_source_table);
 
   // If klass's script is not the script at the uri index, return a PatchClass
   // for klass whose script corresponds to the uri index.
   // Otherwise return klass.
   const Object& ClassForScriptAt(const Class& klass, intptr_t source_uri_index);
-  RawScript* ScriptAt(intptr_t source_uri_index,
-                      StringIndex import_uri = StringIndex());
+  RawScript* ScriptAt(intptr_t source_uri_index) {
+    return kernel_program_info_.ScriptAt(source_uri_index);
+  }
 
   void GenerateFieldAccessors(const Class& klass,
                               const Field& field,
                               FieldHelper* field_helper);
-
-  void SetupFieldAccessorFunction(const Class& klass,
-                                  const Function& function,
-                                  const AbstractType& field_type);
 
   void LoadLibraryImportsAndExports(Library* library,
                                     const Class& toplevel_class);
@@ -344,14 +385,7 @@ class KernelLoader : public ValueObject {
 
   void EnsurePotentialPragmaFunctions() {
     potential_pragma_functions_ =
-        kernel_program_info_.potential_pragma_functions();
-    if (potential_pragma_functions_.IsNull()) {
-      // To avoid too many grows in this array, we'll set it's initial size to
-      // something close to the actual number of potential native functions.
-      potential_pragma_functions_ = GrowableObjectArray::New(100, Heap::kNew);
-      kernel_program_info_.set_potential_pragma_functions(
-          potential_pragma_functions_);
-    }
+        translation_helper_.EnsurePotentialPragmaFunctions();
   }
 
   void EnsurePotentialExtensionLibraries() {

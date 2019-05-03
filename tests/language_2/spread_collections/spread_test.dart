@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=set-literals,spread-collections
+// SharedOptions=--enable-experiment=spread-collections
 
 import 'package:expect/expect.dart';
 
@@ -19,7 +19,6 @@ void main() {
   testSet();
   testDuplicateKeys();
   testKeyOrder();
-  testCastFailures();
 }
 
 void testList() {
@@ -51,7 +50,8 @@ void testList() {
   // Does not deep flatten.
   var innerList = <int>[3];
   Expect.listEquals(
-      <int>[1, 2, innerList, 4], <int>[1, ...<int>[2, innerList, 4]]);
+      <Object>[1, 2, innerList, 4],
+      <Object>[1, ...<Object>[2, innerList, 4]]);
 
   // Downcast element.
   Expect.listEquals(list, <int>[...<num>[1, 2, 3, 4]]);
@@ -195,28 +195,4 @@ void testKeyOrder() {
   transcript.clear();
   set = <Equality>{log(e1a), ...<Equality>[log(e1b), log(e2a), log(e2b)]};
   Expect.equals("1:a,1:b,2:a,2:b", transcript.join(","));
-}
-
-void testCastFailures() {
-  dynamic nonIterable = 3;
-  Expect.throwsCastError(() => <int>[...nonIterable]);
-  Expect.throwsCastError(() => <int>{...nonIterable});
-
-  dynamic nonMap = 3;
-  Expect.throwsCastError(() => <int, int>{...nonMap});
-
-  dynamic wrongIterableType = <String>["s"];
-  Expect.throwsCastError(() => <int>[...wrongIterableType]);
-  Expect.throwsCastError(() => <int>{...wrongIterableType});
-
-  dynamic wrongKeyType = <String, int>{"s": 1};
-  dynamic wrongValueType = <int, String>{1: "s"};
-  Expect.throwsCastError(() => <int, int>{...wrongKeyType});
-  Expect.throwsCastError(() => <int, int>{...wrongValueType});
-
-  // Mismatched collection types.
-  Expect.throwsCastError(() => <int>[...map]);
-  Expect.throwsCastError(() => <int, int>{...list});
-  Expect.throwsCastError(() => <int, int>{...set});
-  Expect.throwsCastError(() => <int>{...map});
 }

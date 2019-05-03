@@ -6,11 +6,11 @@ library ssa;
 
 import '../common/codegen.dart' show CodegenWorkItem, CodegenRegistry;
 import '../common/tasks.dart' show CompilerTask, Measurer;
-import '../constants/values.dart';
-import '../elements/entities.dart' show FieldEntity, MemberEntity;
+import '../elements/entities.dart' show MemberEntity;
 import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
+import '../js_backend/field_analysis.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend, FunctionCompiler;
 import '../universe/call_structure.dart';
 import '../universe/use.dart';
@@ -33,12 +33,14 @@ class SsaFunctionCompiler implements FunctionCompiler {
         optimizer = new SsaOptimizerTask(backend),
         backend = backend;
 
+  @override
   void onCodegenStart() {
     _builder.onCodegenStart();
   }
 
   /// Generates JavaScript code for `work.element`.
-  /// Using the ssa builder, optimizer and codegenerator.
+  /// Using the ssa builder, optimizer and code generator.
+  @override
   js.Fun compile(CodegenWorkItem work, JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults) {
     HGraph graph = _builder.build(work, closedWorld, globalInferenceResults);
@@ -62,6 +64,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
     return result;
   }
 
+  @override
   Iterable<CompilerTask> get tasks {
     return <CompilerTask>[_builder, optimizer, generator];
   }
@@ -82,6 +85,7 @@ class SsaBuilderTask extends CompilerTask {
   SsaBuilderTask(this._backend, this._sourceInformationFactory)
       : super(_backend.compiler.measurer);
 
+  @override
   String get name => 'SSA builder';
 
   void onCodegenStart() {
@@ -98,8 +102,6 @@ class SsaBuilderTask extends CompilerTask {
 }
 
 abstract class SsaBuilderFieldMixin {
-  ConstantValue getFieldInitialConstantValue(covariant FieldEntity field);
-
   /// Handle field initializer of [element]. Returns `true` if no code
   /// is needed for the field.
   ///
@@ -112,10 +114,11 @@ abstract class SsaBuilderFieldMixin {
   bool handleConstantField(MemberEntity element, CodegenRegistry registry,
       JClosedWorld closedWorld) {
     if (element.isField) {
-      ConstantValue initialValue = getFieldInitialConstantValue(element);
-      if (initialValue != null) {
+      FieldAnalysisData fieldData =
+          closedWorld.fieldAnalysis.getFieldData(element);
+      if (fieldData.initialValue != null) {
         registry.worldImpact
-            .registerConstantUse(new ConstantUse.init(initialValue));
+            .registerConstantUse(new ConstantUse.init(fieldData.initialValue));
         // We don't need to generate code for static or top-level
         // variables. For instance variables, we may need to generate
         // the checked setter.
@@ -124,11 +127,9 @@ abstract class SsaBuilderFieldMixin {
           /// constant value.
           return true;
         }
-      } else {
-        // If the constant-handler was not able to produce a result we have to
-        // go through the builder (below) to generate the lazy initializer for
-        // the static variable.
-        // We also need to register the use of the cyclic-error helper.
+      } else if (fieldData.isLazy) {
+        // The generated initializer needs be wrapped in the cyclic-error
+        // helper.
         registry.worldImpact.registerStaticUse(new StaticUse.staticInvoke(
             closedWorld.commonElements.cyclicThrowHelper,
             CallStructure.ONE_ARG));

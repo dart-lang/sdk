@@ -85,9 +85,11 @@ class DynamicUse {
 
   List<DartType> get typeArguments => const <DartType>[];
 
+  @override
   int get hashCode => Hashing.listHash(
       typeArguments, Hashing.objectsHash(selector, receiverConstraint));
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! DynamicUse) return false;
@@ -96,6 +98,7 @@ class DynamicUse {
         equalElements(typeArguments, other.typeArguments);
   }
 
+  @override
   String toString() => '$selector,$receiverConstraint';
 }
 
@@ -112,6 +115,7 @@ class GenericDynamicUse extends DynamicUse {
         "${typeArguments?.length ?? 0} were passed.");
   }
 
+  @override
   List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
 }
 
@@ -120,6 +124,7 @@ class GenericDynamicUse extends DynamicUse {
 /// This is used in the codegen phase where receivers are constrained to a
 /// type mask or similar.
 class ConstrainedDynamicUse extends DynamicUse {
+  @override
   final Object receiverConstraint;
   final List<DartType> _typeArguments;
 
@@ -134,6 +139,7 @@ class ConstrainedDynamicUse extends DynamicUse {
         "${_typeArguments?.length ?? 0} were passed.");
   }
 
+  @override
   List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
 }
 
@@ -154,7 +160,8 @@ enum StaticUseKind {
   INVOKE,
   GET,
   SET,
-  INIT,
+  FIELD_INIT,
+  FIELD_CONSTANT_INIT,
 }
 
 /// Statically known use of an [Entity].
@@ -163,16 +170,19 @@ enum StaticUseKind {
 class StaticUse {
   final Entity element;
   final StaticUseKind kind;
+  @override
   final int hashCode;
   final InterfaceType type;
   final CallStructure callStructure;
   final ImportEntity deferredImport;
+  final ConstantValue constant;
 
   StaticUse.internal(Entity element, this.kind,
       {this.type,
       this.callStructure,
       this.deferredImport,
-      typeArgumentsHash: 0})
+      typeArgumentsHash: 0,
+      this.constant})
       : this.element = element,
         this.hashCode = Hashing.listHash([
           element,
@@ -180,7 +190,8 @@ class StaticUse {
           type,
           typeArgumentsHash,
           callStructure,
-          deferredImport
+          deferredImport,
+          constant
         ]);
 
   /// Short textual representation use for testing.
@@ -192,7 +203,7 @@ class StaticUse {
       case StaticUseKind.SET:
         sb.write('set:');
         break;
-      case StaticUseKind.INIT:
+      case StaticUseKind.FIELD_INIT:
         sb.write('init:');
         break;
       case StaticUseKind.CLOSURE:
@@ -225,6 +236,15 @@ class StaticUse {
         sb.write(callStructure.getOrderedNamedArguments().join(','));
       }
       sb.write(')');
+    }
+    if (deferredImport != null) {
+      sb.write('{');
+      sb.write(deferredImport.name);
+      sb.write('}');
+    }
+    if (constant != null) {
+      sb.write('=');
+      sb.write(constant.toStructuredText());
     }
     return sb.toString();
   }
@@ -309,7 +329,7 @@ class StaticUse {
             "or static method."));
     assert(element.isField,
         failedAt(element, "Static init element $element must be a field."));
-    return new StaticUse.internal(element, StaticUseKind.INIT);
+    return new StaticUse.internal(element, StaticUseKind.FIELD_INIT);
   }
 
   /// Invocation of a super method [element] with the given [callStructure].
@@ -529,7 +549,18 @@ class StaticUse {
         element.isInstanceMember,
         failedAt(
             element, "Field init element $element must be an instance field."));
-    return new StaticUse.internal(element, StaticUseKind.INIT);
+    return new StaticUse.internal(element, StaticUseKind.FIELD_INIT);
+  }
+
+  /// Constant initialization of an instance field [element].
+  factory StaticUse.fieldConstantInit(
+      FieldEntity element, ConstantValue constant) {
+    assert(
+        element.isInstanceMember,
+        failedAt(
+            element, "Field init element $element must be an instance field."));
+    return new StaticUse.internal(element, StaticUseKind.FIELD_CONSTANT_INIT,
+        constant: constant);
   }
 
   /// Read access of an instance field or boxed field [element].
@@ -588,21 +619,26 @@ class StaticUse {
     return new GenericStaticUse.methodInlining(element, typeArguments);
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    if (other is! StaticUse) return false;
-    return element == other.element &&
+    return other is StaticUse &&
+        element == other.element &&
         kind == other.kind &&
         type == other.type &&
         callStructure == other.callStructure &&
-        equalElements(typeArguments, other.typeArguments);
+        equalElements(typeArguments, other.typeArguments) &&
+        deferredImport == other.deferredImport &&
+        constant == other.constant;
   }
 
+  @override
   String toString() =>
       'StaticUse($element,$kind,$type,$typeArguments,$callStructure)';
 }
 
 class GenericStaticUse extends StaticUse {
+  @override
   final List<DartType> typeArguments;
 
   GenericStaticUse(Entity entity, StaticUseKind kind,
@@ -633,6 +669,7 @@ enum TypeUseKind {
   TYPE_LITERAL,
   INSTANTIATION,
   NATIVE_INSTANTIATION,
+  CONST_INSTANTIATION,
   IMPLICIT_CAST,
   PARAMETER_CHECK,
   RTI_VALUE,
@@ -643,6 +680,7 @@ enum TypeUseKind {
 class TypeUse {
   final DartType type;
   final TypeUseKind kind;
+  @override
   final int hashCode;
   final ImportEntity deferredImport;
 
@@ -670,6 +708,9 @@ class TypeUse {
       case TypeUseKind.INSTANTIATION:
         sb.write('inst:');
         break;
+      case TypeUseKind.CONST_INSTANTIATION:
+        sb.write('const:');
+        break;
       case TypeUseKind.NATIVE_INSTANTIATION:
         sb.write('native:');
         break;
@@ -687,6 +728,11 @@ class TypeUse {
         break;
     }
     sb.write(type);
+    if (deferredImport != null) {
+      sb.write('{');
+      sb.write(deferredImport.name);
+      sb.write('}');
+    }
     return sb.toString();
   }
 
@@ -733,6 +779,13 @@ class TypeUse {
     return new TypeUse.internal(type, TypeUseKind.INSTANTIATION);
   }
 
+  /// [type] used in a constant instantiation, like `const T();`.
+  factory TypeUse.constInstantiation(
+      InterfaceType type, ImportEntity deferredImport) {
+    return new TypeUse.internal(
+        type, TypeUseKind.CONST_INSTANTIATION, deferredImport);
+  }
+
   /// [type] used in a native instantiation.
   factory TypeUse.nativeInstantiation(InterfaceType type) {
     return new TypeUse.internal(type, TypeUseKind.NATIVE_INSTANTIATION);
@@ -758,30 +811,22 @@ class TypeUse {
     return new TypeUse.internal(type, TypeUseKind.TYPE_ARGUMENT);
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! TypeUse) return false;
     return type == other.type && kind == other.kind;
   }
 
+  @override
   String toString() => 'TypeUse($type,$kind)';
-}
-
-enum ConstantUseKind {
-  // A constant that is directly accessible in code.
-  DIRECT,
-  // A constant that is only accessible through other constants.
-  INDIRECT,
 }
 
 /// Use of a [ConstantValue].
 class ConstantUse {
   final ConstantValue value;
-  final ConstantUseKind kind;
-  final int hashCode;
 
-  ConstantUse._(this.value, this.kind)
-      : this.hashCode = Hashing.objectHash(value, kind.hashCode);
+  ConstantUse._(this.value);
 
   /// Short textual representation use for testing.
   String get shortText {
@@ -789,31 +834,24 @@ class ConstantUse {
   }
 
   /// Constant used as the initial value of a field.
-  ConstantUse.init(ConstantValue value) : this._(value, ConstantUseKind.DIRECT);
+  ConstantUse.init(ConstantValue value) : this._(value);
 
   /// Type constant used for registration of custom elements.
-  ConstantUse.customElements(TypeConstantValue value)
-      : this._(value, ConstantUseKind.DIRECT);
-
-  /// Constant used through mirrors.
-  // TODO(johnniwinther): Maybe if this is `DIRECT` and we can avoid the
-  // extra calls to `addCompileTimeConstantForEmission`.
-  ConstantUse.mirrors(ConstantValue value)
-      : this._(value, ConstantUseKind.INDIRECT);
-
-  /// Constant used for accessing type variables through mirrors.
-  ConstantUse.typeVariableMirror(ConstantValue value)
-      : this._(value, ConstantUseKind.DIRECT);
+  ConstantUse.customElements(TypeConstantValue value) : this._(value);
 
   /// Constant literal used on code.
-  ConstantUse.literal(ConstantValue value)
-      : this._(value, ConstantUseKind.DIRECT);
+  ConstantUse.literal(ConstantValue value) : this._(value);
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! ConstantUse) return false;
     return value == other.value;
   }
 
-  String toString() => 'ConstantUse(${value.toStructuredText()},$kind)';
+  @override
+  int get hashCode => value.hashCode;
+
+  @override
+  String toString() => 'ConstantUse(${value.toStructuredText()})';
 }

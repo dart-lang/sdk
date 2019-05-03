@@ -102,6 +102,11 @@ class WidgetA extends StatelessWidget {
     expect(attribute.label, '…');
   }
 
+  test_attributes_setLiteral() async {
+    var attribute = await _getAttribute('test', '{1, 2}');
+    expect(attribute.label, '{…}');
+  }
+
   test_attributes_string_interpolation() async {
     FlutterOutline unitOutline = await _computeOutline(r'''
 import 'package:flutter/widgets.dart';
@@ -198,6 +203,33 @@ class MyWidget extends StatelessWidget {
       expect(textOutline.offset, offset);
       expect(textOutline.length, text.length);
     }
+  }
+
+  test_children_withCollectionElements() async {
+    FlutterOutline unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    bool includeB = true;
+    return new Column(children: [
+      const Text('aaa'),
+      if (includeB) const Text('bbb'),
+      for (int s in ['ccc', 'ddd'] const Text(s),
+    ]);
+  }
+}
+''');
+
+    expect(_toText(unitOutline), r'''
+(D) MyWidget
+  (D) build
+    Column
+      Text
+      Text
+      Text
+''');
   }
 
   test_codeOffsetLength() async {
@@ -626,8 +658,7 @@ class MyWidget extends StatelessWidget {
     testCode = code;
     newFile(testPath, content: code);
     resolveResult = await session.getResolvedUnit(testPath);
-    computer = new FlutterOutlineComputer(testPath, testCode,
-        resolveResult.lineInfo, resolveResult.unit, resolveResult.typeProvider);
+    computer = new FlutterOutlineComputer(resolveResult);
     return computer.compute();
   }
 

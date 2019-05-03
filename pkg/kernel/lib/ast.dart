@@ -155,8 +155,6 @@ abstract class TreeNode extends Node {
 
   Component get enclosingComponent => parent?.enclosingComponent;
 
-  Library get enclosingLibrary => parent?.enclosingLibrary;
-
   /// Returns the best known source location of the given AST node, or `null` if
   /// the node is orphaned.
   ///
@@ -468,8 +466,6 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   Location _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
-
-  Library get enclosingLibraray => this;
 }
 
 /// An import or export declaration in a library.
@@ -664,6 +660,10 @@ class Typedef extends NamedNode implements FileUriNode {
     }
     annotations.add(node);
     node.parent = this;
+  }
+
+  Location _getLocationInEnclosingFile(int offset) {
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -2215,6 +2215,9 @@ abstract class Expression extends TreeNode {
     while (type is TypeParameterType) {
       type = (type as TypeParameterType).parameter.bound;
     }
+    if (type == types.nullType) {
+      return superclass.bottomType;
+    }
     if (type is InterfaceType) {
       var upcastType = types.getTypeAsInstanceOf(type, superclass);
       if (upcastType != null) return upcastType;
@@ -3208,6 +3211,166 @@ class StringConcatenation extends Expression {
   }
 }
 
+/// Concatenate lists into a single list.
+///
+/// If [lists] is empty then an empty list is returned.
+///
+/// These arise from spread and control-flow elements in const list literals
+/// containing unevaluated subexpressions. They only ever occur within
+/// unevaluated constants in constant expressions.
+class ListConcatenation extends Expression {
+  DartType typeArgument;
+  final List<Expression> lists;
+
+  ListConcatenation(this.lists, {this.typeArgument: const DynamicType()}) {
+    setParents(lists, this);
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return types.literalListType(typeArgument);
+  }
+
+  accept(ExpressionVisitor v) => v.visitListConcatenation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitListConcatenation(this, arg);
+
+  visitChildren(Visitor v) {
+    typeArgument?.accept(v);
+    visitList(lists, v);
+  }
+
+  transformChildren(Transformer v) {
+    typeArgument = v.visitDartType(typeArgument);
+    transformList(lists, v, this);
+  }
+}
+
+/// Concatenate sets into a single set.
+///
+/// If [sets] is empty then an empty set is returned.
+///
+/// These arise from spread and control-flow elements in const set literals
+/// containing unevaluated subexpressions. They only ever occur within
+/// unevaluated constants in constant expressions.
+///
+/// Duplicated values in or across the sets will result in a compile-time error
+/// during constant evaluation.
+class SetConcatenation extends Expression {
+  DartType typeArgument;
+  final List<Expression> sets;
+
+  SetConcatenation(this.sets, {this.typeArgument: const DynamicType()}) {
+    setParents(sets, this);
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return types.literalSetType(typeArgument);
+  }
+
+  accept(ExpressionVisitor v) => v.visitSetConcatenation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitSetConcatenation(this, arg);
+
+  visitChildren(Visitor v) {
+    typeArgument?.accept(v);
+    visitList(sets, v);
+  }
+
+  transformChildren(Transformer v) {
+    typeArgument = v.visitDartType(typeArgument);
+    transformList(sets, v, this);
+  }
+}
+
+/// Concatenate maps into a single map.
+///
+/// If [maps] is empty then an empty map is returned.
+///
+/// These arise from spread and control-flow elements in const map literals
+/// containing unevaluated subexpressions. They only ever occur within
+/// unevaluated constants in constant expressions.
+///
+/// Duplicated keys in or across the maps will result in a compile-time error
+/// during constant evaluation.
+class MapConcatenation extends Expression {
+  DartType keyType;
+  DartType valueType;
+  final List<Expression> maps;
+
+  MapConcatenation(this.maps,
+      {this.keyType: const DynamicType(),
+      this.valueType: const DynamicType()}) {
+    setParents(maps, this);
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    return types.literalMapType(keyType, valueType);
+  }
+
+  accept(ExpressionVisitor v) => v.visitMapConcatenation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitMapConcatenation(this, arg);
+
+  visitChildren(Visitor v) {
+    keyType?.accept(v);
+    valueType?.accept(v);
+    visitList(maps, v);
+  }
+
+  transformChildren(Transformer v) {
+    keyType = v.visitDartType(keyType);
+    valueType = v.visitDartType(valueType);
+    transformList(maps, v, this);
+  }
+}
+
+/// Create an instance directly from the field values.
+///
+/// This expression arises from const constructor calls when one or more field
+/// initializing expressions, field initializers or assert initializers contain
+/// unevaluated expressions. They only ever occur within unevaluated constants
+/// in constant expressions.
+class InstanceCreation extends Expression {
+  final Reference classReference;
+  final List<DartType> typeArguments;
+  final Map<Reference, Expression> fieldValues;
+  final List<AssertStatement> asserts;
+
+  InstanceCreation(
+      this.classReference, this.typeArguments, this.fieldValues, this.asserts);
+
+  Class get classNode => classReference.asClass;
+
+  DartType getStaticType(TypeEnvironment types) {
+    return typeArguments.isEmpty
+        ? classNode.rawType
+        : new InterfaceType(classNode, typeArguments);
+  }
+
+  accept(ExpressionVisitor v) => v.visitInstanceCreation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitInstanceCreation(this, arg);
+
+  visitChildren(Visitor v) {
+    classReference.asClass.acceptReference(v);
+    visitList(typeArguments, v);
+    for (final Reference reference in fieldValues.keys) {
+      reference.asField.acceptReference(v);
+    }
+    for (final Expression value in fieldValues.values) {
+      value.accept(v);
+    }
+    visitList(asserts, v);
+  }
+
+  transformChildren(Transformer v) {
+    fieldValues.forEach((Reference fieldRef, Expression value) {
+      Expression transformed = value.accept(v);
+      if (transformed != null && !identical(value, transformed)) {
+        fieldValues[fieldRef] = transformed;
+        transformed.parent = this;
+      }
+    });
+    transformList(asserts, v, this);
+  }
+}
+
 /// Expression of form `x is T`.
 class IsExpression extends Expression {
   Expression operand;
@@ -3337,7 +3500,7 @@ class BoolLiteral extends BasicLiteral {
 class NullLiteral extends BasicLiteral {
   Object get value => null;
 
-  DartType getStaticType(TypeEnvironment types) => const BottomType();
+  DartType getStaticType(TypeEnvironment types) => types.nullType;
 
   accept(ExpressionVisitor v) => v.visitNullLiteral(this);
   accept1(ExpressionVisitor1 v, arg) => v.visitNullLiteral(this, arg);
@@ -3597,22 +3760,25 @@ class FunctionExpression extends Expression {
 
 class ConstantExpression extends Expression {
   Constant constant;
+  DartType type;
 
-  ConstantExpression(this.constant) {
+  ConstantExpression(this.constant, [this.type = const DynamicType()]) {
     assert(constant != null);
   }
 
-  DartType getStaticType(TypeEnvironment types) => constant.getType(types);
+  DartType getStaticType(TypeEnvironment types) => type;
 
   accept(ExpressionVisitor v) => v.visitConstantExpression(this);
   accept1(ExpressionVisitor1 v, arg) => v.visitConstantExpression(this, arg);
 
   visitChildren(Visitor v) {
     constant?.acceptReference(v);
+    type?.accept(v);
   }
 
   transformChildren(Transformer v) {
     constant = v.visitConstant(constant);
+    type = v.visitDartType(type);
   }
 }
 
@@ -3644,6 +3810,37 @@ class Let extends Expression {
     if (body != null) {
       body = body.accept(v);
       body?.parent = this;
+    }
+  }
+}
+
+class BlockExpression extends Expression {
+  Block body;
+  Expression value;
+
+  BlockExpression(this.body, this.value) {
+    body?.parent = this;
+    value?.parent = this;
+  }
+
+  DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
+
+  accept(ExpressionVisitor v) => v.visitBlockExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitBlockExpression(this, arg);
+
+  visitChildren(Visitor v) {
+    body?.accept(v);
+    value?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (body != null) {
+      body = body.accept(v);
+      body?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept(v);
+      value?.parent = this;
     }
   }
 }
@@ -5319,6 +5516,38 @@ class ListConstant extends Constant {
       types.literalListType(typeArgument);
 }
 
+class SetConstant extends Constant {
+  final DartType typeArgument;
+  final List<Constant> entries;
+
+  SetConstant(this.typeArgument, this.entries);
+
+  visitChildren(Visitor v) {
+    typeArgument.accept(v);
+    for (final Constant constant in entries) {
+      constant.acceptReference(v);
+    }
+  }
+
+  accept(ConstantVisitor v) => v.visitSetConstant(this);
+  acceptReference(Visitor v) => v.visitSetConstantReference(this);
+
+  String toString() => '${this.runtimeType}<$typeArgument>($entries)';
+
+  int _cachedHashCode;
+  int get hashCode {
+    return _cachedHashCode ??= typeArgument.hashCode ^ listHashCode(entries);
+  }
+
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SetConstant &&
+          other.typeArgument == typeArgument &&
+          listEquals(other.entries, entries));
+
+  DartType getType(TypeEnvironment types) => types.literalSetType(typeArgument);
+}
+
 class InstanceConstant extends Constant {
   final Reference classReference;
   final List<DartType> typeArguments;
@@ -5526,6 +5755,10 @@ class Component extends TreeNode {
       : root = nameRoot ?? new CanonicalName.root(),
         libraries = libraries ?? <Library>[],
         uriToSource = uriToSource ?? <Uri, Source>{} {
+    adoptChildren();
+  }
+
+  void adoptChildren() {
     if (libraries != null) {
       for (int i = 0; i < libraries.length; ++i) {
         // The libraries are owned by this component, and so are their canonical
@@ -5778,9 +6011,13 @@ class Source {
 
   final List<int> source;
 
+  final Uri importUri;
+
+  final Uri fileUri;
+
   String cachedText;
 
-  Source(this.lineStarts, this.source);
+  Source(this.lineStarts, this.source, this.importUri, this.fileUri);
 
   /// Return the text corresponding to [line] which is a 1-based line
   /// number. The returned line contains no line separators.
@@ -5939,7 +6176,7 @@ Location _getLocationInComponent(Component component, Uri fileUri, int offset) {
 /// This function will return "S with M1" and "S with M1, M2", respectively.
 String demangleMixinApplicationName(String name) {
   List<String> nameParts = name.split('&');
-  if (nameParts.length < 2) return name;
+  if (nameParts.length < 2 || name == "&") return name;
   String demangledName = nameParts[1];
   for (int i = 2; i < nameParts.length; i++) {
     demangledName += (i == 2 ? " with " : ", ") + nameParts[i];

@@ -63,7 +63,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _CLASS_IN_CLASS,
   _COLON_IN_PLACE_OF_IN,
   _CONSTRUCTOR_WITH_RETURN_TYPE,
-  _CONST_AFTER_FACTORY,
+  _MODIFIER_OUT_OF_ORDER,
   _CONST_AND_COVARIANT,
   _CONST_AND_FINAL,
   _CONST_AND_VAR,
@@ -100,6 +100,11 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER,
   _STACK_OVERFLOW,
   _MISSING_CATCH_OR_FINALLY,
+  _EXPERIMENT_NOT_ENABLED,
+  _EXPECTED_ELSE_OR_COMMA,
+  _INVALID_SUPER_IN_INITIALIZER,
+  _INVALID_THIS_IN_INITIALIZER,
+  _TYPE_BEFORE_FACTORY,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -135,11 +140,6 @@ const ParserErrorCode _COLON_IN_PLACE_OF_IN = const ParserErrorCode(
 const ParserErrorCode _CONSTRUCTOR_WITH_RETURN_TYPE = const ParserErrorCode(
     'CONSTRUCTOR_WITH_RETURN_TYPE', r"Constructors can't have a return type.",
     correction: "Try removing the return type.");
-
-const ParserErrorCode _CONST_AFTER_FACTORY = const ParserErrorCode(
-    'CONST_AFTER_FACTORY',
-    r"The modifier 'const' should be before the modifier 'factory'.",
-    correction: "Try re-ordering the modifiers.");
 
 const ParserErrorCode _CONST_AND_COVARIANT = const ParserErrorCode(
     'CONST_AND_COVARIANT',
@@ -212,7 +212,7 @@ const ParserErrorCode _DIRECTIVE_AFTER_DECLARATION = const ParserErrorCode(
 
 const ParserErrorCode _DUPLICATED_MODIFIER = const ParserErrorCode(
     'DUPLICATED_MODIFIER', r"The modifier '#lexeme' was already specified.",
-    correction: "Try removing all but one occurance of the modifier.");
+    correction: "Try removing all but one occurence of the modifier.");
 
 const ParserErrorCode _DUPLICATE_DEFERRED = const ParserErrorCode(
     'DUPLICATE_DEFERRED',
@@ -238,12 +238,21 @@ const ParserErrorCode _EQUALITY_CANNOT_BE_EQUALITY_OPERAND = const ParserErrorCo
     r"An equality expression can't be an operand of another equality expression.",
     correction: "Try re-writing the expression.");
 
+const ParserErrorCode _EXPECTED_ELSE_OR_COMMA = const ParserErrorCode(
+    'EXPECTED_ELSE_OR_COMMA', r"Expected 'else' or comma.");
+
 const ParserErrorCode _EXPECTED_INSTEAD = const ParserErrorCode(
     'EXPECTED_INSTEAD', r"Expected '#string' instead of this.");
 
+const ParserErrorCode _EXPERIMENT_NOT_ENABLED = const ParserErrorCode(
+    'EXPERIMENT_NOT_ENABLED',
+    r"This requires the '#string' experiment to be enabled.",
+    correction:
+        "Try enabling this experiment by adding it to the command line when compiling and running.");
+
 const ParserErrorCode _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
     const ParserErrorCode('EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
-        r"Export directives must preceed part directives.",
+        r"Export directives must precede part directives.",
         correction:
             "Try moving the export directives before the part directives.");
 
@@ -347,7 +356,7 @@ const ParserErrorCode _IMPLEMENTS_BEFORE_WITH = const ParserErrorCode(
 
 const ParserErrorCode _IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
     const ParserErrorCode('IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE',
-        r"Import directives must preceed part directives.",
+        r"Import directives must precede part directives.",
         correction:
             "Try moving the import directives before the part directives.");
 
@@ -374,6 +383,14 @@ const ParserErrorCode _INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER =
     const ParserErrorCode('INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER',
         r"The operator '?.' cannot be used with 'super' because 'super' cannot be null.",
         correction: "Try replacing '?.' with '.'");
+
+const ParserErrorCode _INVALID_SUPER_IN_INITIALIZER = const ParserErrorCode(
+    'INVALID_SUPER_IN_INITIALIZER',
+    r"Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')");
+
+const ParserErrorCode _INVALID_THIS_IN_INITIALIZER = const ParserErrorCode(
+    'INVALID_THIS_IN_INITIALIZER',
+    r"Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())");
 
 const ParserErrorCode _INVALID_UNICODE_ESCAPE = const ParserErrorCode(
     'INVALID_UNICODE_ESCAPE',
@@ -417,7 +434,7 @@ const ParserErrorCode _MISSING_INITIALIZER =
 
 const ParserErrorCode _MISSING_KEYWORD_OPERATOR = const ParserErrorCode(
     'MISSING_KEYWORD_OPERATOR',
-    r"Operator declarations must be preceeded by the keyword 'operator'.",
+    r"Operator declarations must be preceded by the keyword 'operator'.",
     correction: "Try adding the keyword 'operator'.");
 
 const ParserErrorCode _MISSING_PREFIX_IN_DEFERRED_IMPORT =
@@ -427,6 +444,11 @@ const ParserErrorCode _MISSING_PREFIX_IN_DEFERRED_IMPORT =
 
 const ParserErrorCode _MISSING_STATEMENT =
     const ParserErrorCode('MISSING_STATEMENT', r"Expected a statement.");
+
+const ParserErrorCode _MODIFIER_OUT_OF_ORDER = const ParserErrorCode(
+    'MODIFIER_OUT_OF_ORDER',
+    r"The modifier '#string' should be before the modifier '#string2'.",
+    correction: "Try re-ordering the modifiers.");
 
 const ParserErrorCode _MULTIPLE_EXTENDS_CLAUSES = const ParserErrorCode(
     'MULTIPLE_EXTENDS_CLAUSES',
@@ -528,6 +550,10 @@ const ParserErrorCode _TYPE_ARGUMENTS_ON_TYPE_VARIABLE = const ParserErrorCode(
     'TYPE_ARGUMENTS_ON_TYPE_VARIABLE',
     r"Can't use type arguments with type variable '#name'.",
     correction: "Try removing the type arguments.");
+
+const ParserErrorCode _TYPE_BEFORE_FACTORY = const ParserErrorCode(
+    'TYPE_BEFORE_FACTORY', r"Factory constructors cannot have a return type.",
+    correction: "Try removing the type appearing before 'factory'.");
 
 const ParserErrorCode _VAR_AND_TYPE = const ParserErrorCode('VAR_AND_TYPE',
     r"Variables can't be declared using both 'var' and a type name.",

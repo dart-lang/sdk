@@ -278,29 +278,7 @@ T Expect::NotNull(const T p) {
     if (!(cond)) dart::Assert(__FILE__, __LINE__).Fail("expected: %s", #cond); \
   } while (false)
 
-// The COMPILE_ASSERT macro can be used to verify that a compile time
-// expression is true. For example, you could use it to verify the
-// size of a static array:
-//
-//   COMPILE_ASSERT(ARRAYSIZE(content_type_names) == CONTENT_NUM_TYPES);
-//
-// or to make sure a struct is smaller than a certain size:
-//
-//   COMPILE_ASSERT(sizeof(foo) < 128);
-//
-
-template <bool>
-struct CompileAssert {};
-// Macro to concatenate two tokens. The helper is need to proper expansion
-// in case an argument is a macro itself.
-#if !defined(COMPILE_ASSERT)
-#define COMPILE_ASSERT_JOIN(a, b) COMPILE_ASSERT_JOIN_HELPER(a, b)
-#define COMPILE_ASSERT_JOIN_HELPER(a, b) a##b
-#define COMPILE_ASSERT(expr)                                                   \
-  DART_UNUSED typedef CompileAssert<(static_cast<bool>(expr))>                 \
-      COMPILE_ASSERT_JOIN(CompileAssertTypeDef,                                \
-                          __LINE__)[static_cast<bool>(expr) ? 1 : -1]
-#endif  // !defined(COMPILE_ASSERT)
+#define COMPILE_ASSERT(expr) static_assert(expr, "")
 
 #if defined(TESTING)
 

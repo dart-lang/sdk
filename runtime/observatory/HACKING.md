@@ -62,8 +62,8 @@ Follow the code review [instructions][code_review] to be able to successfully
 submit your code.
 
 The main reviewers for Observatory related CLs are:
-  - turnidge
-  - johnmccutchan
+  - asiva
+  - bkonyi
   - rmacnak
 
 ## Write a new service test

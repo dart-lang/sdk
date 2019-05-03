@@ -64,11 +64,9 @@ library_for_all_configs("libdart_vm") {
     extra_deps = [
       # TODO(US-399): Remove time_service specific code when it is no longer
       # necessary.
-      "//garnet/public/lib/component/cpp",
+      "//sdk/lib/sys/cpp",
       "//sdk/fidl/fuchsia.timezone",
 
-      # TODO(zra): When the platform-specific timeline code is moved out to
-      # the embedder, this can go away.
       "//zircon/public/lib/fbl",
       "//zircon/public/lib/trace-engine",
     ]
@@ -85,6 +83,12 @@ library_for_all_configs("libdart_vm") {
 
 library_for_all_configs("libdart_lib") {
   target_type = "source_set"
+  if (is_fuchsia) {
+    extra_deps = [
+      "//zircon/public/lib/fbl",
+      "//zircon/public/lib/trace-engine",
+    ]
+  }
   include_dirs = [ ".." ]
   allsources =
       async_runtime_sources + collection_runtime_sources +
@@ -98,47 +102,68 @@ library_for_all_configs("libdart_lib") {
   nosnapshot_sources = []
 }
 
-compile_platform("vm_legacy_platform") {
-  single_root_scheme = "org-dartlang-sdk"
-  single_root_base = rebase_path("../../")
-  libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
+template("gen_vm_platform") {
+  assert(defined(invoker.output_postfix),
+         "Must define output postfix (e.g., '_strong'")
+  compile_platform(target_name) {
+    output_postfix = invoker.output_postfix
+    if (defined(invoker.add_implicit_vm_platform_dependency)) {
+      add_implicit_vm_platform_dependency =
+          invoker.add_implicit_vm_platform_dependency
+    }
+    single_root_scheme = "org-dartlang-sdk"
+    single_root_base = rebase_path("../../")
+    libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
+    outputs = [
+      "$root_out_dir/vm_platform" + output_postfix + ".dill",
+      "$root_out_dir/vm_outline" + output_postfix + ".dill",
+    ]
+    args = [ "dart:core" ]
+    is_product_flag = dart_runtime_mode == "release"
+    allow_causal_async_stacks = !is_product_flag
+    args += [
+      "-Ddart.vm.product=$is_product_flag",
+      "-Ddart.developer.causal_async_stacks=$allow_causal_async_stacks",
+      "-Ddart.isVM=true",
+    ]
 
-  outputs = [
-    "$root_out_dir/vm_platform.dill",
-    "$root_out_dir/vm_outline.dill",
-  ]
-
-  args = [
-    "--legacy-mode",
-    "dart:core",
-  ]
+    if (defined(invoker.exclude_source) && invoker.exclude_source) {
+      args += [ "--exclude-source" ]
+    }
+    if (defined(invoker.legacy) && invoker.legacy) {
+      args += [ "--legacy-mode" ]
+      outline = "vm_outline_strong.dill"
+    } else {
+      outline = "vm_outline" + output_postfix + ".dill"
+    }
+    if (dart_platform_bytecode) {
+      args += [ "--bytecode" ]
+    }
+  }
 }
 
-compile_platform("vm_platform") {
+gen_vm_platform("vm_legacy_platform") {
+  exclude_source = false
+  legacy = true
+  output_postfix = ""
+}
+
+gen_vm_platform("vm_platform") {
   add_implicit_vm_platform_dependency = false
+  exclude_source = false
+  output_postfix = "_strong"
+}
 
-  single_root_scheme = "org-dartlang-sdk"
-  single_root_base = rebase_path("../../")
-  libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
-
-  outputs = [
-    "$root_out_dir/vm_platform_strong.dill",
-    "$root_out_dir/vm_outline_strong.dill",
-  ]
-
-  args = [
-    "--exclude-source",
-    "dart:core",
-  ]
-
-  if (dart_platform_bytecode) {
-    args += [ "--bytecode" ]
-  }
+gen_vm_platform("vm_platform_stripped") {
+  add_implicit_vm_platform_dependency = false
+  exclude_source = true
+  output_postfix = "_strong_stripped"
 }
 
 group("kernel_platform_files") {
   public_deps = [
     ":vm_legacy_platform",
     ":vm_platform",
+    ":vm_platform_stripped",
   ]
 }

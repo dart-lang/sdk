@@ -116,6 +116,10 @@ void ThreadInterrupter::Cleanup() {
 
 // Delay between interrupts.
 void ThreadInterrupter::SetInterruptPeriod(intptr_t period) {
+  if (!initialized_) {
+    // Profiler may not be enabled.
+    return;
+  }
   MonitorLocker ml(monitor_);
   if (shutdown_) {
     return;

@@ -1,15 +1,14 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:package_config/packages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import 'abstract_context.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class SourceFactoryImplTest extends AbstractContextTest {
+class SourceFactoryImplTest with ResourceProviderMixin {
   void test_restoreUri() {
     String libPath = convertPath('/pkgs/somepkg/lib');
     Uri libUri = getFolder(libPath).toUri();
@@ -27,7 +26,7 @@ class SourceFactoryImplTest extends AbstractContextTest {
       <UriResolver>[new ResourceUriResolver(resourceProvider)],
       new _MockPackages(packageUriMap),
     );
-    Source libSource = newSource('/pkgs/somepkg/lib');
+    Source libSource = newFile('/pkgs/somepkg/lib').createSource();
     Uri uri = sourceFactory.restoreUri(libSource);
     try {
       expect(uri, Uri.parse('package:foo/'));

@@ -80,7 +80,7 @@ class Deprecated {
 /**
  * Marks a feature as [Deprecated] until the next release.
  */
-const Deprecated deprecated = const Deprecated("next release");
+const Deprecated deprecated = Deprecated("next release");
 
 class _Override {
   const _Override();
@@ -111,7 +111,7 @@ class _Override {
  * For example, the annotation is intentionally not used in the Dart platform
  * libraries, since they only depend on themselves.
  */
-const Object override = const _Override();
+const Object override = _Override();
 
 /**
  * An annotation class that was used during development of Dart 2.
@@ -184,7 +184,7 @@ class _Proxy {
  * types.
  */
 @deprecated
-const Object proxy = const _Proxy();
+const Object proxy = _Proxy();
 
 /**
  * A hint to tools.

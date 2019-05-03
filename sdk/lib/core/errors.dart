@@ -278,7 +278,7 @@ class RangeError extends ArgumentError {
   static void checkValueInInterval(int value, int minValue, int maxValue,
       [String name, String message]) {
     if (value < minValue || value > maxValue) {
-      throw new RangeError.range(value, minValue, maxValue, name, message);
+      throw RangeError.range(value, minValue, maxValue, name, message);
     }
   }
 
@@ -299,7 +299,7 @@ class RangeError extends ArgumentError {
     // Comparing with `0` as receiver produces better dart2js type inference.
     if (0 > index || index >= length) {
       name ??= "index";
-      throw new RangeError.index(index, indexable, name, message, length);
+      throw RangeError.index(index, indexable, name, message, length);
     }
   }
 
@@ -325,12 +325,12 @@ class RangeError extends ArgumentError {
     // Ditto `start > end` below.
     if (0 > start || start > length) {
       startName ??= "start";
-      throw new RangeError.range(start, 0, length, startName, message);
+      throw RangeError.range(start, 0, length, startName, message);
     }
     if (end != null) {
       if (start > end || end > length) {
         endName ??= "end";
-        throw new RangeError.range(end, start, length, endName, message);
+        throw RangeError.range(end, start, length, endName, message);
       }
       return end;
     }
@@ -343,7 +343,7 @@ class RangeError extends ArgumentError {
    * Throws if the value is negative.
    */
   static void checkNotNegative(int value, [String name, String message]) {
-    if (value < 0) throw new RangeError.range(value, 0, null, name, message);
+    if (value < 0) throw RangeError.range(value, 0, null, name, message);
   }
 
   String get _errorName => "RangeError";

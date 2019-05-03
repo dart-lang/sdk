@@ -66,20 +66,6 @@ DECLARE_FLAG(bool, reload_every_back_off);
 DECLARE_FLAG(bool, trace_reload);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
-#if !defined(PRODUCT)
-static void CheckedModeHandler(bool value) {
-  FLAG_enable_asserts = value;
-}
-
-// --enable-checked-mode and --checked both enable checked mode which is
-// equivalent to setting --enable-asserts and --enable-type-checks.
-DEFINE_FLAG_HANDLER(CheckedModeHandler,
-                    enable_checked_mode,
-                    "Enable checked mode.");
-
-DEFINE_FLAG_HANDLER(CheckedModeHandler, checked, "Enable checked mode.");
-#endif  // !defined(PRODUCT)
-
 static void DeterministicModeHandler(bool value) {
   if (value) {
     FLAG_background_compilation = false;  // Timing dependent.
@@ -880,6 +866,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       heap_(NULL),
       isolate_flags_(0),
       background_compiler_(NULL),
+      optimizing_background_compiler_(NULL),
 #if !defined(PRODUCT)
       debugger_(NULL),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
@@ -965,7 +952,11 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
         "         See dartbug.com/30524 for more information.\n");
   }
 
-  NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(this));
+  if (FLAG_enable_interpreter) {
+    NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(this));
+  }
+  NOT_IN_PRECOMPILED(optimizing_background_compiler_ =
+                         new BackgroundCompiler(this));
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
@@ -980,8 +971,13 @@ Isolate::~Isolate() {
   delete reverse_pc_lookup_cache_;
   reverse_pc_lookup_cache_ = nullptr;
 
-  delete background_compiler_;
-  background_compiler_ = NULL;
+  if (FLAG_enable_interpreter) {
+    delete background_compiler_;
+    background_compiler_ = NULL;
+  }
+
+  delete optimizing_background_compiler_;
+  optimizing_background_compiler_ = NULL;
 
 #if !defined(PRODUCT)
   delete debugger_;
@@ -1876,8 +1872,12 @@ void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
   BackgroundCompiler::Stop(this);
-  delete background_compiler_;
-  background_compiler_ = NULL;
+  if (FLAG_enable_interpreter) {
+    delete background_compiler_;
+    background_compiler_ = NULL;
+  }
+  delete optimizing_background_compiler_;
+  optimizing_background_compiler_ = NULL;
 
 #if defined(DEBUG)
   if (heap_ != NULL && FLAG_verify_on_transition) {
@@ -1999,6 +1999,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   if (background_compiler() != NULL) {
     background_compiler()->VisitPointers(visitor);
+  }
+  if (optimizing_background_compiler() != NULL) {
+    optimizing_background_compiler()->VisitPointers(visitor);
   }
 
 #if !defined(PRODUCT)
@@ -2288,6 +2291,14 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 
   jsobj.AddProperty("_threads", thread_registry_);
 }
+
+void Isolate::PrintMemoryUsageJSON(JSONStream* stream) {
+  if (!FLAG_support_service) {
+    return;
+  }
+  heap()->PrintMemoryUsageJSON(stream);
+}
+
 #endif
 
 void Isolate::set_tag_table(const GrowableObjectArray& value) {
@@ -2633,6 +2644,18 @@ intptr_t Isolate::IsolateListLength() {
   return count;
 }
 
+Isolate* Isolate::LookupIsolateByPort(Dart_Port port) {
+  MonitorLocker ml(isolates_list_monitor_);
+  Isolate* current = isolates_list_head_;
+  while (current != NULL) {
+    if (current->main_port() == port) {
+      return current;
+    }
+    current = current->next_;
+  }
+  return NULL;
+}
+
 bool Isolate::AddIsolateToList(Isolate* isolate) {
   MonitorLocker ml(isolates_list_monitor_);
   if (!creation_enabled_) {
@@ -2918,7 +2941,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      bool paused,
                                      bool errors_are_fatal,
                                      Dart_Port on_exit_port,
-                                     Dart_Port on_error_port)
+                                     Dart_Port on_error_port,
+                                     const char* debug_name)
     : isolate_(NULL),
       parent_port_(parent_port),
       origin_id_(origin_id),
@@ -2931,6 +2955,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
+      debug_name_(debug_name),
       serialized_args_(NULL),
       serialized_message_(message_buffer->StealMessage()),
       spawn_count_monitor_(spawn_count_monitor),
@@ -2967,7 +2992,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      bool paused,
                                      bool errors_are_fatal,
                                      Dart_Port on_exit_port,
-                                     Dart_Port on_error_port)
+                                     Dart_Port on_error_port,
+                                     const char* debug_name)
     : isolate_(NULL),
       parent_port_(parent_port),
       origin_id_(ILLEGAL_PORT),
@@ -2980,6 +3006,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
+      debug_name_(debug_name),
       serialized_args_(args_buffer->StealMessage()),
       serialized_message_(message_buffer->StealMessage()),
       spawn_count_monitor_(spawn_count_monitor),
@@ -3001,6 +3028,7 @@ IsolateSpawnState::~IsolateSpawnState() {
   delete[] library_url_;
   delete[] class_name_;
   delete[] function_name_;
+  delete[] debug_name_;
   delete serialized_args_;
   delete serialized_message_;
 }

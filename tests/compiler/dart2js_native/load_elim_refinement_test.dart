@@ -12,7 +12,7 @@ class B extends A {
   int b;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 escape(v) {
   g = v;
 }

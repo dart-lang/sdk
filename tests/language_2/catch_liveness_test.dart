@@ -4,12 +4,12 @@
 
 import "package:expect/expect.dart";
 
-@AssumeDynamic()
-@NoInline()
+@pragma('dart2js:assumeDynamic')
+@pragma('dart2js:noInline')
 foo() => 1;
 
-@AssumeDynamic()
-@NoInline()
+@pragma('dart2js:assumeDynamic')
+@pragma('dart2js:noInline')
 throwException() => throw 'x';
 
 main() {

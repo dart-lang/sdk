@@ -8,7 +8,8 @@ import 'dart:collection' show Queue;
 
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
-import 'common_elements.dart' show ElementEnvironment, KElementEnvironment;
+import 'common_elements.dart'
+    show CommonElements, ElementEnvironment, KElementEnvironment;
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart'
     show
@@ -51,6 +52,7 @@ class OutputUnit implements Comparable<OutputUnit> {
 
   OutputUnit(this.isMainOutput, this.name, this._imports);
 
+  @override
   int compareTo(OutputUnit other) {
     if (identical(this, other)) return 0;
     if (isMainOutput && !other.isMainOutput) return -1;
@@ -76,6 +78,7 @@ class OutputUnit implements Comparable<OutputUnit> {
 
   Set<ImportEntity> get importsForTesting => _imports;
 
+  @override
   String toString() => "OutputUnit($name, $_imports)";
 }
 
@@ -83,7 +86,7 @@ class OutputUnit implements Comparable<OutputUnit> {
 /// import is loaded. Elements that are used by several deferred imports are in
 /// shared OutputUnits.
 abstract class DeferredLoadTask extends CompilerTask {
-  /// The name of this task.
+  @override
   String get name => 'Deferred Loading';
 
   /// The OutputUnit that will be loaded when the program starts.
@@ -142,6 +145,9 @@ abstract class DeferredLoadTask extends CompilerTask {
 
   KElementEnvironment get elementEnvironment =>
       compiler.frontendStrategy.elementEnvironment;
+
+  CommonElements get commonElements => compiler.frontendStrategy.commonElements;
+
   DiagnosticReporter get reporter => compiler.reporter;
 
   /// Given [imports] that refer to an element from a library, determine whether
@@ -245,42 +251,17 @@ abstract class DeferredLoadTask extends CompilerTask {
   void collectConstantsInBody(MemberEntity element, Dependencies dependencies);
 
   /// Recursively collects all the dependencies of [type].
-  void _collectTypeDependencies(DartType type, Dependencies dependencies) {
-    if (type is FunctionType) {
-      _collectFunctionTypeDependencies(type, dependencies);
-    } else if (type is TypedefType) {
-      _collectTypeArgumentDependencies(type.typeArguments, dependencies);
-      _collectTypeDependencies(type.unaliased, dependencies);
-    } else if (type is InterfaceType) {
-      _collectTypeArgumentDependencies(type.typeArguments, dependencies);
-      // TODO(sigmund): when we are able to split classes from types in our
-      // runtime-type representation, this should track type.element as a type
-      // dependency instead.
-      dependencies.addClass(type.element);
-    }
+  void _collectTypeDependencies(DartType type, Dependencies dependencies,
+      [ImportEntity import]) {
+    new TypeDependencyVisitor(dependencies, import, commonElements).visit(type);
   }
 
   void _collectTypeArgumentDependencies(
-      Iterable<DartType> typeArguments, Dependencies dependencies) {
+      Iterable<DartType> typeArguments, Dependencies dependencies,
+      [ImportEntity import]) {
     if (typeArguments == null) return;
-    typeArguments.forEach((t) => _collectTypeDependencies(t, dependencies));
-  }
-
-  void _collectFunctionTypeDependencies(
-      FunctionType type, Dependencies dependencies) {
-    for (FunctionTypeVariable typeVariable in type.typeVariables) {
-      _collectTypeDependencies(typeVariable.bound, dependencies);
-    }
-    for (DartType argumentType in type.parameterTypes) {
-      _collectTypeDependencies(argumentType, dependencies);
-    }
-    for (DartType argumentType in type.optionalParameterTypes) {
-      _collectTypeDependencies(argumentType, dependencies);
-    }
-    for (DartType argumentType in type.namedParameterTypes) {
-      _collectTypeDependencies(argumentType, dependencies);
-    }
-    _collectTypeDependencies(type.returnType, dependencies);
+    new TypeDependencyVisitor(dependencies, import, commonElements)
+        .visitList(typeArguments);
   }
 
   /// Extract any dependencies that are known from the impact of [element].
@@ -299,8 +280,7 @@ abstract class DeferredLoadTask extends CompilerTask {
                 failedAt(usedEntity, "Unexpected static use $staticUse."));
             KLocalFunction localFunction = usedEntity;
             // TODO(sra): Consult KClosedWorld to see if signature is needed.
-            _collectFunctionTypeDependencies(
-                localFunction.functionType, dependencies);
+            _collectTypeDependencies(localFunction.functionType, dependencies);
             dependencies.localFunctions.add(localFunction);
           }
           switch (staticUse.kind) {
@@ -335,6 +315,10 @@ abstract class DeferredLoadTask extends CompilerTask {
                 dependencies.addClass(
                     interface.element, typeUse.deferredImport);
               }
+              break;
+            case TypeUseKind.CONST_INSTANTIATION:
+              _collectTypeDependencies(
+                  type, dependencies, typeUse.deferredImport);
               break;
             case TypeUseKind.INSTANTIATION:
             case TypeUseKind.NATIVE_INSTANTIATION:
@@ -604,14 +588,6 @@ abstract class DeferredLoadTask extends CompilerTask {
       }
     });
   }
-
-  /// Adds extra dependencies coming from mirror usage.
-  void addDeferredMirrorElements(WorkQueue queue);
-
-  /// Add extra dependencies coming from mirror usage in [root] marking it with
-  /// [newSet].
-  void addMirrorElementsForLibrary(
-      WorkQueue queue, LibraryEntity root, ImportSet newSet);
 
   /// Computes a unique string for the name field for each outputUnit.
   void _createOutputUnits() {
@@ -1092,6 +1068,7 @@ class ImportSet {
     return result;
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('ImportSet(size: $length, ');
@@ -1200,6 +1177,7 @@ class ClassWorkItem extends WorkItem {
 
   ClassWorkItem(this.cls, ImportSet newSet) : super(newSet);
 
+  @override
   void update(DeferredLoadTask task, WorkQueue queue) {
     queue.pendingClasses.remove(cls);
     ImportSet oldSet = task._classToSet[cls];
@@ -1215,6 +1193,7 @@ class MemberWorkItem extends WorkItem {
 
   MemberWorkItem(this.member, ImportSet newSet) : super(newSet);
 
+  @override
   void update(DeferredLoadTask task, WorkQueue queue) {
     queue.pendingMembers.remove(member);
     ImportSet oldSet = task._memberToSet[member];
@@ -1230,6 +1209,7 @@ class ConstantWorkItem extends WorkItem {
 
   ConstantWorkItem(this.constant, ImportSet newSet) : super(newSet);
 
+  @override
   void update(DeferredLoadTask task, WorkQueue queue) {
     queue.pendingConstants.remove(constant);
     ImportSet oldSet = task._constantToSet[constant];
@@ -1459,6 +1439,21 @@ class OutputUnitData {
     return outputUnitTo._imports.containsAll(outputUnitFrom._imports);
   }
 
+  /// Returns `true` if constant [to] is reachable from element [from] without
+  /// crossing a deferred import.
+  ///
+  /// For example, if we have two deferred libraries `A` and `B` that both
+  /// import a library `C`, then even though elements from `A` and `C` end up in
+  /// different output units, there is a non-deferred path between `A` and `C`.
+  bool hasOnlyNonDeferredImportPathsToConstant(
+      MemberEntity from, ConstantValue to) {
+    OutputUnit outputUnitFrom = outputUnitForMember(from);
+    OutputUnit outputUnitTo = outputUnitForConstant(to);
+    if (outputUnitTo == mainOutputUnit) return true;
+    if (outputUnitFrom == mainOutputUnit) return false;
+    return outputUnitTo._imports.containsAll(outputUnitFrom._imports);
+  }
+
   /// Registers that a constant is used in the same deferred output unit as
   /// [field].
   void registerConstantDeferredUse(
@@ -1581,5 +1576,74 @@ class DependencyInfo {
       imports = null;
       isDeferred = false;
     }
+  }
+}
+
+class TypeDependencyVisitor implements DartTypeVisitor<void, Null> {
+  final Dependencies _dependencies;
+  final ImportEntity _import;
+  final CommonElements _commonElements;
+
+  TypeDependencyVisitor(this._dependencies, this._import, this._commonElements);
+
+  @override
+  void visit(DartType type, [_]) {
+    type.accept(this, null);
+  }
+
+  void visitList(List<DartType> types) {
+    types.forEach(visit);
+  }
+
+  @override
+  void visitFutureOrType(FutureOrType type, Null argument) {
+    _dependencies.addClass(_commonElements.futureClass);
+    visit(type.typeArgument);
+  }
+
+  @override
+  void visitDynamicType(DynamicType type, Null argument) {
+    // Nothing to add.
+  }
+
+  @override
+  void visitTypedefType(TypedefType type, Null argument) {
+    visitList(type.typeArguments);
+    visit(type.unaliased);
+  }
+
+  @override
+  void visitInterfaceType(InterfaceType type, Null argument) {
+    visitList(type.typeArguments);
+    // TODO(sigmund): when we are able to split classes from types in our
+    // runtime-type representation, this should track type.element as a type
+    // dependency instead.
+    _dependencies.addClass(type.element, _import);
+  }
+
+  @override
+  void visitFunctionType(FunctionType type, Null argument) {
+    for (FunctionTypeVariable typeVariable in type.typeVariables) {
+      visit(typeVariable.bound);
+    }
+    visitList(type.parameterTypes);
+    visitList(type.optionalParameterTypes);
+    visitList(type.namedParameterTypes);
+    visit(type.returnType);
+  }
+
+  @override
+  void visitFunctionTypeVariable(FunctionTypeVariable type, Null argument) {
+    // Nothing to add. Handled in [visitFunctionType].
+  }
+
+  @override
+  void visitTypeVariableType(TypeVariableType type, Null argument) {
+    // TODO(johnniwinther): Do we need to collect the bound?
+  }
+
+  @override
+  void visitVoidType(VoidType type, Null argument) {
+    // Nothing to add.
   }
 }

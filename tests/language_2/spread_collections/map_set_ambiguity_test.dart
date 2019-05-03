@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=set-literals,spread-collections
+// SharedOptions=--enable-experiment=spread-collections
 
 // Test cases where the syntax is ambiguous between maps and sets.
 import 'dart:collection';
@@ -19,7 +19,8 @@ void main() {
 void testBottomUpInference() {
   Map<int, int> map = {};
   Set<int> set = Set();
-  dynamic dyn = map;
+  dynamic dynMap = map;
+  dynamic dynSet = set;
   Iterable<int> iterable = [];
   CustomSet customSet = CustomSet();
   CustomMap customMap = CustomMap();
@@ -31,25 +32,25 @@ void testBottomUpInference() {
   // Expect.type<...>({...dyn});
   Expect.type<Set<int>>({...iterable});
   Expect.type<Set<int>>({...customSet});
-  Expect.type<Map<int, int>>({...customMap});
+  Expect.type<Map<int, String>>({...customMap});
 
   Expect.type<Map<int, int>>({...map, ...map});
   // Expect.type<...>({...map, ...set});
-  Expect.type<Map<dynamic, dynamic>>({...map, ...dyn});
+  Expect.type<Map<dynamic, dynamic>>({...map, ...dynMap});
   // Expect.type<...>({...map, ...iterable});
   // Expect.type<...>({...map, ...customSet});
-  Expect.type<Map<int, int>>({...map, ...customMap});
+  Expect.type<Map<int, Object>>({...map, ...customMap});
 
   Expect.type<Set<int>>({...set, ...set});
-  Expect.type<Set<dynamic>>({...set, ...dyn});
+  Expect.type<Set<dynamic>>({...set, ...dynSet});
   Expect.type<Set<int>>({...set, ...iterable});
   Expect.type<Set<int>>({...set, ...customSet});
   // Expect.type<...>({...set, ...customMap});
 
   // Expect.type<...>({...dyn, ...dyn});
-  Expect.type<Set<dynamic>>({...dyn, ...iterable});
-  Expect.type<Set<dynamic>>({...dyn, ...customSet});
-  Expect.type<Map<dynamic, dynamic>>({...dyn, ...customMap});
+  Expect.type<Set<dynamic>>({...dynSet, ...iterable});
+  Expect.type<Set<dynamic>>({...dynSet, ...customSet});
+  Expect.type<Map<dynamic, dynamic>>({...dynMap, ...customMap});
 
   Expect.type<Set<int>>({...iterable, ...iterable});
   Expect.type<Set<int>>({...iterable, ...customSet});
@@ -58,7 +59,7 @@ void testBottomUpInference() {
   Expect.type<Set<int>>({...customSet, ...customSet});
   // Expect.type<...>({...customSet, ...customMap});
 
-  Expect.type<Map<int, int>>({...customMap, ...customMap});
+  Expect.type<Map<int, String>>({...customMap, ...customMap});
 }
 
 void testTopDownInference() {

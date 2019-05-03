@@ -769,7 +769,11 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
     StackZone zone(thread);
     HandleScope scope(thread);
 
-    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(thread));
+    Dart_Handle result = Api::CheckAndFinalizePendingClasses(thread);
+    {
+      TransitionVMToNative to_native(thread);
+      EXPECT_VALID(result);
+    }
     timer1.Stop();
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
@@ -793,72 +797,6 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
     // Invoke a function which returns an object.
     Dart_Handle cls = Dart_GetClass(TestCase::lib(), NewString("FieldsTest"));
     result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
-    EXPECT_VALID(result);
-    Dart_ExitScope();
-  }
-  Dart_ShutdownIsolate();
-  free(isolate_snapshot_data_buffer);
-}
-
-VM_UNIT_TEST_CASE(FullSnapshot1) {
-  // This buffer has to be static for this to compile with Visual Studio.
-  // If it is not static compilation of this file with Visual Studio takes
-  // more than 30 minutes!
-  static const char kFullSnapshotScriptChars[] = {
-#include "snapshot_test.dat"
-  };
-  const char* kScriptChars = kFullSnapshotScriptChars;
-
-  uint8_t* isolate_snapshot_data_buffer;
-
-  // Start an Isolate, load a script and create a full snapshot.
-  Timer timer1(true, "Snapshot_test");
-  timer1.Start();
-  {
-    TestIsolateScope __test_isolate__;
-
-    Thread* thread = Thread::Current();
-    StackZone zone(thread);
-    HandleScope scope(thread);
-
-    // Create a test library and Load up a test script in it.
-    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(thread));
-    timer1.Stop();
-    OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
-
-    // Write snapshot with object content.
-    {
-      TransitionNativeToVM transition(thread);
-      FullSnapshotWriter writer(
-          Snapshot::kFull, NULL, &isolate_snapshot_data_buffer,
-          &malloc_allocator, NULL, /*image_writer*/ nullptr);
-      writer.WriteFullSnapshot();
-    }
-
-    // Invoke a function which returns an object.
-    Dart_Handle cls = Dart_GetClass(lib, NewString("FieldsTest"));
-    Dart_Handle result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
-    EXPECT_VALID(result);
-  }
-
-  // Now Create another isolate using the snapshot and execute a method
-  // from the script.
-  Timer timer2(true, "Snapshot_test");
-  timer2.Start();
-  TestCase::CreateTestIsolateFromSnapshot(isolate_snapshot_data_buffer);
-  {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-    timer2.Stop();
-    OS::PrintErr("From Snapshot: %" Pd64 "us\n", timer2.TotalElapsedTime());
-
-    // Invoke a function which returns an object.
-    Dart_Handle cls = Dart_GetClass(TestCase::lib(), NewString("FieldsTest"));
-    Dart_Handle result = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
-    if (Dart_IsError(result)) {
-      // Print the error.  It is probably an unhandled exception.
-      fprintf(stderr, "%s\n", Dart_GetError(result));
-    }
     EXPECT_VALID(result);
     Dart_ExitScope();
   }

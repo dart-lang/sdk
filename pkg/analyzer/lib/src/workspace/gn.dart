@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -267,15 +267,14 @@ class GnWorkspace extends Workspace {
    * that file cannot be found, looks for standard output directory locations.
    */
   static Folder _getOutDirectory(String root, ResourceProvider provider) {
+    const String fuchsiaDirConfigFile = '.fx-build-dir';
+
     path.Context pathContext = provider.pathContext;
-    File config = provider.getFile(pathContext.join(root, '.config'));
-    if (config.exists) {
-      String content = config.readAsStringSync();
-      Match match =
-          new RegExp(r'^FUCHSIA_BUILD_DIR=["\x27](.+)["\x27]$', multiLine: true)
-              .firstMatch(content);
-      if (match != null) {
-        String buildDirPath = match.group(1);
+    File configFile =
+        provider.getFile(pathContext.join(root, fuchsiaDirConfigFile));
+    if (configFile.exists) {
+      String buildDirPath = configFile.readAsStringSync().trim();
+      if (buildDirPath.isNotEmpty) {
         if (pathContext.isRelative(buildDirPath)) {
           buildDirPath = pathContext.join(root, buildDirPath);
         }

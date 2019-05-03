@@ -10,18 +10,23 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
   final List<String> openWorkspacePaths;
-  IntializedMessageHandler(LspAnalysisServer server, this.openWorkspacePaths)
+  final bool onlyAnalyzeProjectsWithOpenFiles;
+  IntializedMessageHandler(LspAnalysisServer server, this.openWorkspacePaths,
+      this.onlyAnalyzeProjectsWithOpenFiles)
       : super(server);
   Method get handlesMessage => Method.initialized;
 
   @override
-  InitializedParams convertParams(Map<String, dynamic> json) =>
-      InitializedParams.fromJson(json);
+  LspJsonHandler<InitializedParams> get jsonHandler =>
+      InitializedParams.jsonHandler;
 
   ErrorOr<void> handle(InitializedParams params) {
-    server.messageHandler = new InitializedStateMessageHandler(server);
+    server.messageHandler = new InitializedStateMessageHandler(
+        server, onlyAnalyzeProjectsWithOpenFiles);
 
-    server.setAnalysisRoots(openWorkspacePaths);
+    if (!onlyAnalyzeProjectsWithOpenFiles) {
+      server.setAnalysisRoots(openWorkspacePaths);
+    }
 
     return success();
   }

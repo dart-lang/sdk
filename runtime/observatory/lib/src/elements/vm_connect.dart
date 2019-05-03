@@ -16,8 +16,6 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/src/elements/vm_connect_target.dart';
 
-typedef void CrashDumpLoadCallback(Map dump);
-
 class VMConnectElement extends HtmlElement implements Renderable {
   static const tag =
       const Tag<VMConnectElement>('vm-connect', dependencies: const [
@@ -31,24 +29,21 @@ class VMConnectElement extends HtmlElement implements Renderable {
 
   Stream<RenderedEvent<VMConnectElement>> get onRendered => _r.onRendered;
 
-  CrashDumpLoadCallback _loadDump;
   M.NotificationRepository _notifications;
   M.TargetRepository _targets;
   StreamSubscription _targetsSubscription;
 
   String _address;
 
-  factory VMConnectElement(M.TargetRepository targets,
-      CrashDumpLoadCallback loadDump, M.NotificationRepository notifications,
+  factory VMConnectElement(
+      M.TargetRepository targets, M.NotificationRepository notifications,
       {String address: '', RenderingQueue queue}) {
     assert(address != null);
-    assert(loadDump != null);
     assert(notifications != null);
     assert(targets != null);
     VMConnectElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler<VMConnectElement>(e, queue: queue);
     e._address = address;
-    e._loadDump = loadDump;
     e._notifications = notifications;
     e._targets = targets;
     return e;
@@ -124,19 +119,6 @@ class VMConnectElement extends HtmlElement implements Renderable {
                     ..text = 'Run Standalone with: \'--observe\'',
                 ],
               new DivElement()..classes = ['flex-item-20-percent'],
-              new DivElement()
-                ..classes = ['flex-item-40-percent']
-                ..children = <Element>[
-                  new HeadingElement.h2()..text = 'View crash dump',
-                  new BRElement(),
-                  _createCrushDumpLoader(),
-                  new BRElement(),
-                  new BRElement(),
-                  new PreElement()
-                    ..classes = ['well']
-                    ..text = 'Request a crash dump with:\n'
-                        '\'curl $host:$port/_getCrashDump > dump.json\'',
-                ]
             ],
         ],
       new ViewFooterElement(queue: _r.queue)
@@ -156,20 +138,6 @@ class VMConnectElement extends HtmlElement implements Renderable {
       _address = textbox.value;
     });
     return textbox;
-  }
-
-  FileUploadInputElement _createCrushDumpLoader() {
-    FileUploadInputElement e = new FileUploadInputElement()
-      ..id = 'crashDumpFile';
-    e.onChange.listen((_) {
-      var reader = new FileReader();
-      reader.readAsText(e.files[0]);
-      reader.onLoad.listen((_) {
-        var crashDump = json.decode(reader.result);
-        _loadDump(crashDump);
-      });
-    });
-    return e;
   }
 
   void _createAndConnect() {

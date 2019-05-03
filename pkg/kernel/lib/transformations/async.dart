@@ -90,12 +90,12 @@ class ExpressionLifter extends Transformer {
   /// surrounding context.
   Expression rewrite(Expression expression, List<Statement> outer) {
     assert(statements.isEmpty);
-    assert(nameIndex == 0);
+    var saved = seenAwait;
     seenAwait = false;
     Expression result = expression.accept(this);
     outer.addAll(statements.reversed);
     statements.clear();
-    nameIndex = 0;
+    seenAwait = seenAwait || saved;
     return result;
   }
 
@@ -502,5 +502,43 @@ class ExpressionLifter extends Transformer {
     var nestedRewriter =
         new RecursiveContinuationRewriter(continuationRewriter.helper);
     return node.accept(nestedRewriter);
+  }
+
+  TreeNode visitBlockExpression(BlockExpression expr) {
+    return transform(expr, () {
+      expr.value = expr.value.accept(this)..parent = expr;
+      List<Statement> body = <Statement>[];
+      for (Statement stmt in expr.body.statements.reversed) {
+        Statement translation = stmt.accept(this);
+        if (translation != null) body.add(translation);
+      }
+      expr.body = new Block(body.reversed.toList())..parent = expr;
+    });
+  }
+
+  TreeNode defaultStatement(Statement stmt) {
+    // This method translates a statement nested in an expression (e.g., in a
+    // block expression).  It produces a translated statement, a list of
+    // statements which are side effects necessary for any await, and a flag
+    // indicating whether there was an await in the statement or to its right.
+    // The translated statement can be null in the case where there was already
+    // an await to the right.
+
+    // The translation is accumulating two lists of statements, an inner list
+    // which is a reversed list of effects needed for the current expression and
+    // an outer list which represents the block containing the current
+    // statement.  We need to preserve both of those from side effects.
+    List<Statement> savedInner = statements;
+    List<Statement> savedOuter = continuationRewriter.statements;
+    statements = <Statement>[];
+    continuationRewriter.statements = <Statement>[];
+    stmt.accept(continuationRewriter);
+
+    List<Statement> results = continuationRewriter.statements;
+    statements = savedInner;
+    continuationRewriter.statements = savedOuter;
+    if (!seenAwait && results.length == 1) return results.first;
+    statements.addAll(results.reversed);
+    return null;
   }
 }

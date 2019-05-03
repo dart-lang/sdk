@@ -10,6 +10,7 @@
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
+#include "vm/compiler/backend/flow_graph_checker.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/type_propagator.h"
@@ -535,8 +536,11 @@ static bool IsSmallLeaf(FlowGraph* graph) {
         if (!function.always_inline() && !function.IsRecognized()) {
           return false;
         }
-        static constexpr intptr_t kAvgListedMethodSize = 20;
-        instruction_count += (inl_size == 0 ? kAvgListedMethodSize : inl_size);
+        if (!function.always_inline()) {
+          static constexpr intptr_t kAvgListedMethodSize = 20;
+          instruction_count +=
+              (inl_size == 0 ? kAvgListedMethodSize : inl_size);
+        }
       }
     }
   }
@@ -1059,6 +1063,10 @@ class CallSiteInliner : public ValueObject {
         {
           callee_graph = builder.BuildGraph();
 
+#if defined(DEBUG)
+          FlowGraphChecker(callee_graph).Check();
+#endif
+
           CalleeGraphValidator::Validate(callee_graph);
         }
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
@@ -1066,15 +1074,14 @@ class CallSiteInliner : public ValueObject {
         if (FLAG_precompiled_mode) {
           callee_graph->PopulateWithICData(parsed_function->function());
         }
-#else
+#endif
+
         // If we inline a function which is intrinsified without a fall-through
         // to IR code, we will not have any ICData attached, so we do it
         // manually here.
-        if (function.is_intrinsic()) {
+        if (!FLAG_precompiled_mode && function.is_intrinsic()) {
           callee_graph->PopulateWithICData(parsed_function->function());
         }
-#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&           \
-    // !defined(TARGET_ARCH_IA32)
 
         // The parameter stubs are a copy of the actual arguments providing
         // concrete information about the values, for example constant values,
@@ -2554,19 +2561,30 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
         break;
       }
       case kTypedDataInt8ArrayCid:
+        FALL_THROUGH;
       case kTypedDataUint8ArrayCid:
+        FALL_THROUGH;
       case kTypedDataUint8ClampedArrayCid:
+        FALL_THROUGH;
       case kExternalTypedDataUint8ArrayCid:
+        FALL_THROUGH;
       case kExternalTypedDataUint8ClampedArrayCid:
+        FALL_THROUGH;
       case kTypedDataInt16ArrayCid:
+        FALL_THROUGH;
       case kTypedDataUint16ArrayCid:
+        FALL_THROUGH;
       case kTypedDataInt32ArrayCid:
+        FALL_THROUGH;
       case kTypedDataUint32ArrayCid:
+        FALL_THROUGH;
       case kTypedDataInt64ArrayCid:
+        FALL_THROUGH;
       case kTypedDataUint64ArrayCid:
         ASSERT(value_type.IsIntType());
-      // Fall through.
+        FALL_THROUGH;
       case kTypedDataFloat32ArrayCid:
+        FALL_THROUGH;
       case kTypedDataFloat64ArrayCid: {
         type_args = flow_graph->constant_null();
         ASSERT((array_cid != kTypedDataFloat32ArrayCid &&
@@ -2844,59 +2862,25 @@ static void PrepareInlineTypedArrayBoundsCheck(FlowGraph* flow_graph,
 
 // Emits preparatory code for a typed getter/setter.
 // Handles three cases:
-//   (1) dynamic:  generates a conditional on the receiver cid
-//                 that handles external (load untagged) and
-//                 internal storage at runtime.
-//   (2) external: generates load untagged.
+//   (1) dynamic:  generates load untagged (internal or external)
+//   (2) external: generates load untagged
 //   (3) internal: no code required.
 static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
                                          Instruction* call,
                                          Definition* receiver,
                                          intptr_t array_cid,
                                          Definition** array,
-                                         Instruction** cursor,
-                                         TargetEntryInstr** block_external,
-                                         TargetEntryInstr** block_internal) {
-  if (array_cid == kDynamicCid) {
-    // Dynamic case:   runtime resolution between external/internal typed data.
-    //                 cid = LoadCid
-    //                 if cid in [ kExternalTypedDataInt8ArrayCid,
-    //                             kExternalTypedDataFloat64x2ArrayCid ]
-    // block_external: LoadUntagged
-    //                 ..
-    //                 else
-    // block_internal: ..
-    //
-    // TODO(ajcbik): as suggested above, subtract + single unsigned test.
-    //
-    LoadClassIdInstr* load_cid =
-        new (Z) LoadClassIdInstr(new (Z) Value(receiver));
-    *cursor = flow_graph->AppendTo(*cursor, load_cid, NULL, FlowGraph::kValue);
-    ConstantInstr* cid_lo = flow_graph->GetConstant(
-        Smi::ZoneHandle(Smi::New(kExternalTypedDataInt8ArrayCid)));
-    RelationalOpInstr* le_lo = new (Z)
-        RelationalOpInstr(call->token_pos(), Token::kLTE, new (Z) Value(cid_lo),
-                          new (Z) Value(load_cid), kSmiCid, call->deopt_id());
-    ConstantInstr* cid_hi = flow_graph->GetConstant(
-        Smi::ZoneHandle(Smi::New(kExternalTypedDataFloat64x2ArrayCid)));
-    RelationalOpInstr* le_hi = new (Z) RelationalOpInstr(
-        call->token_pos(), Token::kLTE, new (Z) Value(load_cid),
-        new (Z) Value(cid_hi), kSmiCid, call->deopt_id());
-    *cursor = flow_graph->NewDiamond(*cursor, call,
-                                     FlowGraph::LogicalAnd(le_lo, le_hi),
-                                     block_external, block_internal);
-    LoadUntaggedInstr* elements = new (Z) LoadUntaggedInstr(
-        new (Z) Value(*array), ExternalTypedData::data_offset());
-    flow_graph->InsertAfter(*block_external, elements, NULL, FlowGraph::kValue);
-    *array = elements;  // return load untagged definition in array
-  } else if (RawObject::IsExternalTypedDataClassId(array_cid)) {
-    // External typed data: load untagged.
-    LoadUntaggedInstr* elements = new (Z) LoadUntaggedInstr(
-        new (Z) Value(*array), ExternalTypedData::data_offset());
+                                         Instruction** cursor) {
+  if (array_cid == kDynamicCid ||
+      RawObject::IsExternalTypedDataClassId(array_cid)) {
+    // Internal or External typed data: load untagged.
+    auto elements = new (Z) LoadUntaggedInstr(
+        new (Z) Value(*array), TypedDataBase::data_field_offset());
     *cursor = flow_graph->AppendTo(*cursor, elements, NULL, FlowGraph::kValue);
     *array = elements;
   } else {
     // Internal typed data: no action.
+    ASSERT(RawObject::IsTypedDataClassId(array_cid));
   }
 }
 
@@ -2954,33 +2938,11 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   // Generates a template for the load, either a dynamic conditional
   // that dispatches on external and internal storage, or a single
   // case that deals with either external or internal storage.
-  TargetEntryInstr* block_external = nullptr;
-  TargetEntryInstr* block_internal = nullptr;
   PrepareInlineByteArrayBaseOp(flow_graph, call, receiver, array_cid, &array,
-                               &cursor, &block_external, &block_internal);
+                               &cursor);
 
   // Fill out the generated template with loads.
-  if (array_cid == kDynamicCid) {
-    ASSERT(block_external != nullptr && block_internal != nullptr);
-    // Load from external in block_external and internal in block_internal
-    // (resolves (B)). The former loads from "array", which is the returned
-    // load untagged definition. The latter loads from the original "receiver".
-    LoadIndexedInstr* load1 = NewLoad(flow_graph, call, array, index, view_cid);
-    ASSERT(block_external->next() == array);
-    flow_graph->InsertAfter(
-        block_external->next(), load1,
-        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
-        FlowGraph::kValue);
-    LoadIndexedInstr* load2 =
-        NewLoad(flow_graph, call, receiver, index, view_cid);
-    flow_graph->InsertAfter(
-        block_internal, load2,
-        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
-        FlowGraph::kValue);
-    // Construct phi of external and internal load.
-    *last = flow_graph->AddPhi(cursor->AsJoinEntry(), load1, load2);
-  } else {
-    ASSERT(block_external == nullptr && block_internal == nullptr);
+  {
     // Load from either external or internal.
     LoadIndexedInstr* load = NewLoad(flow_graph, call, array, index, view_cid);
     flow_graph->AppendTo(
@@ -3170,31 +3132,11 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   // Generates a template for the store, either a dynamic conditional
   // that dispatches on external and internal storage, or a single
   // case that deals with either external or internal storage.
-  TargetEntryInstr* block_external = nullptr;
-  TargetEntryInstr* block_internal = nullptr;
   PrepareInlineByteArrayBaseOp(flow_graph, call, receiver, array_cid, &array,
-                               &cursor, &block_external, &block_internal);
+                               &cursor);
 
   // Fill out the generated template with stores.
-  if (array_cid == kDynamicCid) {
-    ASSERT(block_external != nullptr && block_internal != nullptr);
-    // Store to external in block_external and internal in block_internal
-    // (resolves (B)). The former stores to "array", which is the returned
-    // load untagged definition. The latter stores to the original "receiver".
-    ASSERT(block_external->next() == array);
-    flow_graph->InsertAfter(
-        block_external->next(),
-        NewStore(flow_graph, call, array, index, stored_value, view_cid),
-        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
-        FlowGraph::kEffect);
-    flow_graph->InsertAfter(
-        block_internal,
-        NewStore(flow_graph, call, receiver, index, stored_value, view_cid),
-        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
-        FlowGraph::kEffect);
-    *last = cursor;
-  } else {
-    ASSERT(block_external == nullptr && block_internal == nullptr);
+  {
     // Store on either external or internal.
     StoreIndexedInstr* store =
         NewStore(flow_graph, call, array, index, stored_value, view_cid);
@@ -4091,7 +4033,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
                              call->GetBlock()->try_index(), DeoptId::kNone);
       (*entry)->InheritDeoptTarget(Z, call);
       ASSERT(!call->HasUses());
-      *last = NULL;  // Empty body.
+      *last = NULL;    // Empty body.
       *result = NULL;  // Since no uses of original call, result will be unused.
       return true;
     }

@@ -120,7 +120,7 @@ class TargetRepository implements M.TargetRepository {
       scheme: 'ws',
       host: host ?? serverAddress.host,
       port: int.tryParse(port ?? '') ?? serverAddress.port,
-      path: '/ws',
+      path: serverAddress.path.isEmpty ? '/ws' : serverAddress.path + 'ws',
     );
     return wsAddress.toString();
   }

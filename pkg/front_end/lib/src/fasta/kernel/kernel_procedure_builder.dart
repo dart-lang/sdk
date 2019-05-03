@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart'
     show
         Arguments,
         AsyncMarker,
+        Class,
         Constructor,
         ConstructorInvocation,
         DartType,
@@ -34,9 +35,6 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
 
-import '../../base/instrumentation.dart'
-    show Instrumentation, InstrumentationValueForType;
-
 import '../loader.dart' show Loader;
 
 import '../messages.dart'
@@ -55,6 +53,9 @@ import '../messages.dart'
 import '../problems.dart' show unexpected;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../type_inference/type_inference_engine.dart'
+    show IncludesTypeParametersCovariantly;
 
 import 'kernel_builder.dart'
     show
@@ -145,15 +146,34 @@ abstract class KernelFunctionBuilder
   FunctionNode buildFunction(LibraryBuilder library) {
     assert(function == null);
     FunctionNode result = new FunctionNode(body, asyncMarker: asyncModifier);
+    IncludesTypeParametersCovariantly needsCheckVisitor;
+    if (!isConstructor && !isFactory && parent is ClassBuilder) {
+      Class enclosingClass = parent.target;
+      if (enclosingClass.typeParameters.isNotEmpty) {
+        needsCheckVisitor = new IncludesTypeParametersCovariantly(
+            enclosingClass.typeParameters);
+      }
+    }
     if (typeVariables != null) {
       for (KernelTypeVariableBuilder t in typeVariables) {
-        result.typeParameters.add(t.parameter);
+        TypeParameter parameter = t.parameter;
+        result.typeParameters.add(parameter);
+        if (needsCheckVisitor != null) {
+          if (parameter.bound.accept(needsCheckVisitor)) {
+            parameter.isGenericCovariantImpl = true;
+          }
+        }
       }
       setParents(result.typeParameters, result);
     }
     if (formals != null) {
       for (KernelFormalParameterBuilder formal in formals) {
         VariableDeclaration parameter = formal.build(library, 0);
+        if (needsCheckVisitor != null) {
+          if (parameter.type.accept(needsCheckVisitor)) {
+            parameter.isGenericCovariantImpl = true;
+          }
+        }
         if (formal.isNamed) {
           result.namedParameters.add(parameter);
         } else {
@@ -342,26 +362,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   }
 
   Procedure get target => origin.procedure;
-
-  @override
-  void instrumentTopLevelInference(Instrumentation instrumentation) {
-    bool isEligibleForTopLevelInference = this.isEligibleForTopLevelInference;
-    if ((isEligibleForTopLevelInference || isSetter) && returnType == null) {
-      instrumentation.record(procedure.fileUri, procedure.fileOffset, 'topType',
-          new InstrumentationValueForType(procedure.function.returnType));
-    }
-    if (isEligibleForTopLevelInference) {
-      if (formals != null) {
-        for (var formal in formals) {
-          if (formal.type == null) {
-            VariableDeclaration formalTarget = formal.target;
-            instrumentation.record(procedure.fileUri, formalTarget.fileOffset,
-                'topType', new InstrumentationValueForType(formalTarget.type));
-          }
-        }
-      }
-    }
-  }
 
   @override
   int finishPatch() {
@@ -566,7 +566,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
 
     origin.constructor.isExternal = constructor.isExternal;
     origin.constructor.function = constructor.function;
-    origin.constructor.function.parent = constructor.function;
+    origin.constructor.function.parent = origin.constructor;
     origin.constructor.initializers = constructor.initializers;
     setParents(origin.constructor.initializers, origin.constructor);
     return 1;

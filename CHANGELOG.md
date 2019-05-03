@@ -1,3 +1,245 @@
+## 2.3.0 - 2019-05-08
+
+The focus in this release is on the new "UI-as-code" language features which
+make collections more expressive and declarative.
+
+### Language
+
+Flutter is growing rapidly, which means many Dart users are building UI in code
+out of big deeply-nested expressions. Our goal with 2.3.0 was to [make that kind
+of code easier to write and maintain][ui-as-code]. Collection literals are a
+large component, so we focused on three features to make collections more
+powerful. We'll use list literals in the examples below, but these features also
+work in map and set literals.
+
+[ui-as-code]: https://medium.com/dartlang/making-dart-a-better-language-for-ui-f1ccaf9f546c
+
+#### Spread
+
+Placing `...` before an expression inside a collection literal unpacks the
+result of the expression and inserts its elements directly inside the new
+collection. Where before you had to write something like this:
+
+```dart
+CupertinoPageScaffold(
+  child: ListView(children: [
+    Tab2Header()
+  ]..addAll(buildTab2Conversation())
+    ..add(buildFooter())),
+);
+```
+
+Now you can write this:
+
+```dart
+CupertinoPageScaffold(
+  child: ListView(children: [
+    Tab2Header(),
+    ...buildTab2Conversation(),
+    buildFooter()
+  ]),
+);
+```
+
+If you know the expression might evaluate to null and you want to treat that as
+equivalent to zero elements, you can use the null-aware spread `...?`.
+
+#### Collection if
+
+Sometimes you might want to include one or more elements in a collection only
+under certain conditions. If you're lucky, you can use a `?:` operator to
+selectively swap out a single element, but if you want to exchange more than one
+or omit elements, you are forced to write imperative code like this:
+
+```dart
+Widget build(BuildContext context) {
+  var children = [
+    IconButton(icon: Icon(Icons.menu)),
+    Expanded(child: title)
+  ];
+
+  if (isAndroid) {
+    children.add(IconButton(icon: Icon(Icons.search)));
+  }
+
+  return Row(children: children);
+}
+```
+
+We now allow `if` inside collection literals to conditionally omit or (with
+`else`) swap out an element:
+
+```dart
+Widget build(BuildContext context) {
+  return Row(
+    children: [
+      IconButton(icon: Icon(Icons.menu)),
+      Expanded(child: title),
+      if (isAndroid)
+        IconButton(icon: Icon(Icons.search)),
+    ],
+  );
+}
+```
+
+Unlike the existing `?:` operator, a collection `if` can be composed with
+spreads to conditionally include or omit multiple items:
+
+```dart
+Widget build(BuildContext context) {
+  return Row(
+    children: [
+      IconButton(icon: Icon(Icons.menu)),
+      if (isAndroid) ...[
+        Expanded(child: title),
+        IconButton(icon: Icon(Icons.search)),
+      ]
+    ],
+  );
+}
+```
+
+#### Collection for
+
+In many cases, the higher-order methods on Iterable give you a declarative way
+to modify a collection in the context of a single expression. But some
+operations, especially involving both transforming and filtering, can be
+cumbersome to express in a functional style.
+
+To solve this problem, you can use `for` inside a collection literal. Each
+iteration of the loop produces an element which is then inserted in the
+resulting collection. Consider the following code:
+
+```dart
+var command = [
+  engineDartPath,
+  frontendServer,
+  ...fileSystemRoots.map((root) => "--filesystem-root=$root"),
+  ...entryPoints
+      .where((entryPoint) => fileExists("lib/$entryPoint.json"))
+      .map((entryPoint) => "lib/$entryPoint"),
+  mainPath
+];
+```
+
+With a collection `for`, the code becomes simpler:
+
+```dart
+var command = [
+  engineDartPath,
+  frontendServer,
+  for (var root in fileSystemRoots) "--filesystem-root=$root",
+  for (var entryPoint in entryPoints)
+    if (fileExists("lib/$entryPoint.json")) "lib/$entryPoint",
+  mainPath
+];
+```
+
+As you can see, all three of these features can be freely composed. For full
+details of the changes, see [the official proposal][ui-as-code proposal].
+
+[ui-as-code proposal]: https://github.com/dart-lang/language/blob/master/accepted/future-releases/unified-collections/feature-specification.md
+
+**Note: These features are not currently supported in *const* collection
+literals. In a future release, we intend to relax this restriction and allow
+spread and collection `if` inside const collections.**
+
+### Core library changes
+
+#### `dart:isolate`
+
+*   Added `debugName` property to `Isolate`.
+*   Added `debugName` optional parameter to `Isolate.spawn` and
+    `Isolate.spawnUri`.
+
+#### `dart:core`
+
+*   RegExp patterns can now use lookbehind assertions.
+*   RegExp patterns can now use named capture groups and named backreferences.
+    Currently, named group matches can only be retrieved in Dart either by the
+    implicit index of the named group or by downcasting the returned Match
+    object to the type RegExpMatch. The RegExpMatch interface contains methods
+    for retrieving the available group names and retrieving a match by group
+    name.
+
+### Dart VM
+
+*   The VM service now requires an authentication code by default. This behavior
+    can be disabled by providing the `--disable-service-auth-codes` flag.
+
+*   Support for deprecated flags '-c' and '--checked' has been removed.
+
+### Dart for the Web
+
+#### dart2js
+
+A binary format was added to dump-info. The old JSON format is still available
+and provided by default, but we are starting to deprecate it. The new binary
+format is more compact and cheaper to generate. On some large apps we tested, it
+was 4x faster to serialize and used 6x less memory.
+
+To use the binary format today, use `--dump-info=binary`, instead of
+`--dump-info`.
+
+What to expect next?
+
+*   The [visualizer tool][visualizer] will not be updated to support the new
+    binary format, but you can find several command-line tools at
+    `package:dart2js_info` that provide similar features to those in the
+    visualizer.
+
+*   The command-line tools in `package:dart2js_info` also work with the old JSON
+    format, so you can start using them even before you enable the new format.
+
+*   In a future release `--dump-info` will default to `--dump-info=binary`. At
+    that point, there will be an option to fallback to the JSON format, but the
+    visualizer tool will be deprecated.
+
+*   A release after that, the JSON format will no longer be available from
+    dart2js, but may be available from a command-line tool in
+    `package:dart2js_info`.
+
+[visualizer]: https://dart-lang.github.io/dump-info-visualizer/
+
+### Tools
+
+#### dartfmt
+
+*   Tweak set literal formatting to follow other collection literals.
+*   Add support for "UI as code" features.
+*   Properly format trailing commas in assertions.
+*   Improve indentation of adjacent strings in argument lists.
+
+#### Linter
+
+The Linter was updated to `0.1.86`, which includes the following changes:
+
+*   Added the following lints: `prefer_inlined_adds`,
+    `prefer_for_elements_to_map_fromIterable`,
+    `prefer_if_elements_to_conditional_expressions`,
+    `diagnostic_describe_all_properties`.
+*   Updated `file_names` to skip prefixed-extension Dart files (`.css.dart`,
+  `.g.dart`, etc.).
+*   Fixed false positives in `unnecessary_parenthesis`.
+
+#### Pub client
+
+*   Added a CHANGELOG validator that complains if you `pub publish` without
+    mentioning the current version.
+*   Removed validation of library names when doing `pub publish`.
+*   Added support for `pub global activate`ing package from a custom pub URL.
+*   Added subcommand: `pub logout`. Logs you out of the current session.
+
+#### Dart native
+
+Initial support for compiling Dart apps to native machine code has been added.
+Two new tools have been added to the `bin` folder of the Dart SDK:
+
+* `dart2aot`: AOT (ahead-of-time) compiles a Dart program to native
+machine code. The tool is supported on Windows, macOS, and Linux.
+
+* `dartaotruntime`: A small runtime used for executing an AOT compiled program.
+
 ## 2.2.0 - 2019-02-26
 
 ### Language

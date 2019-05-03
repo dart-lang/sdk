@@ -8,7 +8,7 @@ class Foo {
   var field = 10;
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 getField(x) {
   x.field;
   return 34;

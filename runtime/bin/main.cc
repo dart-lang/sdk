@@ -12,6 +12,7 @@
 #include "include/dart_embedder_api.h"
 #include "include/dart_tools_api.h"
 
+#include "bin/abi_version.h"
 #include "bin/builtin.h"
 #include "bin/console.h"
 #include "bin/crashpad.h"
@@ -353,6 +354,14 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
+  if (Options::gen_snapshot_kind() == kAppJIT) {
+    // If we sort, we must do it for all isolates, not just the main isolate,
+    // otherwise isolates related by spawnFunction will disagree on CIDs and
+    // cannot correctly send each other messages.
+    result = Dart_SortClasses();
+    CHECK_RESULT(result);
+  }
+
   // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();
   Dart_ExitIsolate();
@@ -371,7 +380,6 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 // For now we only support the kernel isolate coming up from an
 // application snapshot or from a .dill file.
 static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
-                                                const char* main,
                                                 const char* package_root,
                                                 const char* packages_config,
                                                 Dart_IsolateFlags* flags,
@@ -416,9 +424,10 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
     isolate_data =
         new IsolateData(uri, package_root, packages_config, app_snapshot);
     isolate = Dart_CreateIsolate(
-        DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
-        isolate_snapshot_instructions, app_isolate_shared_data,
-        app_isolate_shared_instructions, flags, isolate_data, error);
+        DART_KERNEL_ISOLATE_NAME, DART_KERNEL_ISOLATE_NAME,
+        isolate_snapshot_data, isolate_snapshot_instructions,
+        app_isolate_shared_data, app_isolate_shared_instructions, flags,
+        isolate_data, error);
   }
   if (isolate == NULL) {
     // Clear error from app snapshot and re-trying from kernel file.
@@ -435,8 +444,9 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
         const_cast<uint8_t*>(kernel_service_buffer),
         kernel_service_buffer_size);
     isolate = Dart_CreateIsolateFromKernel(
-        DART_KERNEL_ISOLATE_NAME, main, kernel_service_buffer,
-        kernel_service_buffer_size, flags, isolate_data, error);
+        DART_KERNEL_ISOLATE_NAME, DART_KERNEL_ISOLATE_NAME,
+        kernel_service_buffer, kernel_service_buffer_size, flags, isolate_data,
+        error);
   }
 
   if (isolate == NULL) {
@@ -455,7 +465,6 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
 // For now we only support the service isolate coming up from sources
 // which are compiled by the VM parser.
 static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
-                                                 const char* main,
                                                  const char* package_root,
                                                  const char* packages_config,
                                                  Dart_IsolateFlags* flags,
@@ -472,9 +481,9 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   const uint8_t* isolate_snapshot_instructions =
       app_isolate_snapshot_instructions;
   isolate = Dart_CreateIsolate(
-      script_uri, main, isolate_snapshot_data, isolate_snapshot_instructions,
-      app_isolate_shared_data, app_isolate_shared_instructions, flags,
-      isolate_data, error);
+      script_uri, DART_VM_SERVICE_ISOLATE_NAME, isolate_snapshot_data,
+      isolate_snapshot_instructions, app_isolate_shared_data,
+      app_isolate_shared_instructions, flags, isolate_data, error);
 #else
   // JIT: Service isolate uses the core libraries snapshot.
 
@@ -485,9 +494,9 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   const uint8_t* isolate_snapshot_instructions =
       core_isolate_snapshot_instructions;
   isolate = Dart_CreateIsolate(
-      script_uri, NULL, isolate_snapshot_data, isolate_snapshot_instructions,
-      app_isolate_shared_data, app_isolate_shared_instructions, flags,
-      isolate_data, error);
+      script_uri, DART_VM_SERVICE_ISOLATE_NAME, isolate_snapshot_data,
+      isolate_snapshot_instructions, app_isolate_shared_data,
+      app_isolate_shared_instructions, flags, isolate_data, error);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (isolate == NULL) {
     delete isolate_data;
@@ -500,10 +509,10 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   CHECK_RESULT(result);
 
   // Load embedder specific bits and return.
-  if (!VmService::Setup(Options::vm_service_server_ip(),
-                        Options::vm_service_server_port(),
-                        Options::vm_service_dev_mode(),
-                        Options::trace_loading(), Options::deterministic())) {
+  if (!VmService::Setup(
+          Options::vm_service_server_ip(), Options::vm_service_server_port(),
+          Options::vm_service_dev_mode(), Options::vm_service_auth_disabled(),
+          Options::trace_loading(), Options::deterministic())) {
     *error = strdup(VmService::GetErrorMessage());
     return NULL;
   }
@@ -521,7 +530,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
 // Returns newly created Isolate on success, NULL on failure.
 static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
                                                 const char* script_uri,
-                                                const char* main,
+                                                const char* name,
                                                 const char* package_root,
                                                 const char* packages_config,
                                                 Dart_IsolateFlags* flags,
@@ -597,7 +606,8 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   Dart_Isolate isolate = NULL;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (!isolate_run_app_snapshot && (isolate_snapshot_data == NULL)) {
+  if ((!isolate_run_app_snapshot && (isolate_snapshot_data == NULL)) ||
+      (Options::target_abi_version() != Options::kAbiVersionUnset)) {
     const uint8_t* platform_kernel_buffer = NULL;
     intptr_t platform_kernel_buffer_size = 0;
     dfe.LoadPlatform(&platform_kernel_buffer, &platform_kernel_buffer_size);
@@ -618,17 +628,17 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     // application kernel binary is self contained or an incremental binary.
     // Isolate should be created only if it is a self contained kernel binary.
     isolate = Dart_CreateIsolateFromKernel(
-        script_uri, main, platform_kernel_buffer, platform_kernel_buffer_size,
+        script_uri, name, platform_kernel_buffer, platform_kernel_buffer_size,
         flags, isolate_data, error);
   } else {
     isolate = Dart_CreateIsolate(
-        script_uri, main, isolate_snapshot_data, isolate_snapshot_instructions,
+        script_uri, name, isolate_snapshot_data, isolate_snapshot_instructions,
         app_isolate_shared_data, app_isolate_shared_instructions, flags,
         isolate_data, error);
   }
 #else
   isolate = Dart_CreateIsolate(
-      script_uri, main, isolate_snapshot_data, isolate_snapshot_instructions,
+      script_uri, name, isolate_snapshot_data, isolate_snapshot_instructions,
       app_isolate_shared_data, app_isolate_shared_instructions, flags,
       isolate_data, error);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -669,35 +679,18 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   int exit_code = 0;
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
   if (strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0) {
-    return CreateAndSetupKernelIsolate(script_uri, main, package_root,
-                                       package_config, flags, error,
-                                       &exit_code);
+    return CreateAndSetupKernelIsolate(script_uri, package_root, package_config,
+                                       flags, error, &exit_code);
   }
 #endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
   if (strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0) {
-    return CreateAndSetupServiceIsolate(script_uri, main, package_root,
-                                        package_config, flags, error,
-                                        &exit_code);
+    return CreateAndSetupServiceIsolate(
+        script_uri, package_root, package_config, flags, error, &exit_code);
   }
   bool is_main_isolate = false;
   return CreateIsolateAndSetupHelper(is_main_isolate, script_uri, main,
                                      package_root, package_config, flags,
                                      callback_data, error, &exit_code);
-}
-
-char* BuildIsolateName(const char* script_name, const char* func_name) {
-  // Skip past any slashes in the script name.
-  const char* last_slash = strrchr(script_name, '/');
-  if (last_slash != NULL) {
-    script_name = last_slash + 1;
-  }
-
-  const char* kFormat = "%s/%s";
-  intptr_t len = strlen(script_name) + strlen(func_name) + 2;
-  char* buffer = new char[len];
-  ASSERT(buffer != NULL);
-  snprintf(buffer, len, kFormat, script_name, func_name);
-  return buffer;
 }
 
 static void OnIsolateShutdown(void* callback_data) {
@@ -810,7 +803,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   char* error = NULL;
   bool is_main_isolate = true;
   int exit_code = 0;
-  char* isolate_name = BuildIsolateName(script_name, "main");
   Dart_IsolateFlags flags;
   Dart_IsolateFlagsInitialize(&flags);
 
@@ -820,7 +812,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       &exit_code);
 
   if (isolate == NULL) {
-    delete[] isolate_name;
     Log::PrintErr("%s\n", error);
     free(error);
     error = NULL;
@@ -835,7 +826,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     Platform::Exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
   main_isolate = isolate;
-  delete[] isolate_name;
 
   Dart_EnterIsolate(isolate);
   ASSERT(isolate == Dart_CurrentIsolate());
@@ -872,16 +862,23 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     }
 
     if (Options::gen_snapshot_kind() == kAppJIT) {
-      result = Dart_SortClasses();
-      CHECK_RESULT(result);
       LoadBytecode();
     }
 
+    if (Options::load_compilation_trace_filename() != NULL) {
+      uint8_t* buffer = NULL;
+      intptr_t size = 0;
+      ReadFile(Options::load_compilation_trace_filename(), &buffer, &size);
+      result = Dart_LoadCompilationTrace(buffer, size);
+      free(buffer);
+      CHECK_RESULT(result);
+    }
     if (Options::load_type_feedback_filename() != NULL) {
       uint8_t* buffer = NULL;
       intptr_t size = 0;
       ReadFile(Options::load_type_feedback_filename(), &buffer, &size);
       result = Dart_LoadTypeFeedback(buffer, size);
+      free(buffer);
       CHECK_RESULT(result);
     }
 
@@ -920,6 +917,13 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     }
     CHECK_RESULT(result);
 
+    if (Options::save_compilation_trace_filename() != NULL) {
+      uint8_t* buffer = NULL;
+      intptr_t size = 0;
+      result = Dart_SaveCompilationTrace(&buffer, &size);
+      CHECK_RESULT(result);
+      WriteFile(Options::save_compilation_trace_filename(), buffer, size);
+    }
     if (Options::save_type_feedback_filename() != NULL) {
       uint8_t* buffer = NULL;
       intptr_t size = 0;
@@ -1103,7 +1107,7 @@ void main(int argc, char** argv) {
 // Note: must read platform only *after* VM flags are parsed because
 // they might affect how the platform is loaded.
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  dfe.Init();
+  dfe.Init(Options::target_abi_version());
   uint8_t* application_kernel_buffer = NULL;
   intptr_t application_kernel_buffer_size = 0;
   dfe.ReadScript(script_name, &application_kernel_buffer,

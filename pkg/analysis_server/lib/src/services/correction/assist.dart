@@ -51,7 +51,7 @@ class DartAssistKind {
       "Convert to line documentation comment",
       associatedErrorCodes: <String>['slash_for_doc_comments']);
   static const CONVERT_INTO_ASYNC_BODY = const AssistKind(
-      'dart.assist.convert.bodyToAsync', 30, "Convert to async function body");
+      'dart.assist.convert.bodyToAsync', 29, "Convert to async function body");
   static const CONVERT_INTO_BLOCK_BODY = const AssistKind(
       'dart.assist.convert.bodyToBlock', 30, "Convert to block body");
   static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(
@@ -60,6 +60,11 @@ class DartAssistKind {
   static const CONVERT_INTO_FINAL_FIELD = const AssistKind(
       'dart.assist.convert.getterToFinalField', 30, "Convert to final field",
       associatedErrorCodes: <String>['prefer_final_fields']);
+  static const CONVERT_INTO_ABSOLUTE_IMPORT = const AssistKind(
+      'dart.assist.convert.relativeToAbsoluteImport',
+      30,
+      "Convert to absolute import",
+      associatedErrorCodes: <String>['avoid_relative_lib_imports']);
   static const CONVERT_INTO_FOR_INDEX = const AssistKind(
       'dart.assist.convert.forEachToForIndex', 30, "Convert to for-index loop");
   static const CONVERT_INTO_GENERIC_FUNCTION_SYNTAX = const AssistKind(
@@ -83,8 +88,16 @@ class DartAssistKind {
       'dart.assist.convert.toConstructorFieldParameter',
       30,
       "Convert to field formal parameter");
+  static const CONVERT_TO_FOR_ELEMENT = const AssistKind(
+      'dart.assist.convertToForElement', 30, "Convert to a 'for' element",
+      associatedErrorCodes: <String>[
+        'prefer_for_elements_to_map_fromIterable'
+      ]);
   static const CONVERT_TO_IF_ELEMENT = const AssistKind(
-      'dart.assist.convertToIfElement', 30, "Convert to an 'if' element");
+      'dart.assist.convertToIfElement', 30, "Convert to an 'if' element",
+      associatedErrorCodes: <String>[
+        'prefer_if_elements_to_conditional_expressions'
+      ]);
   static const CONVERT_TO_INT_LITERAL = const AssistKind(
       'dart.assist.convert.toIntLiteral', 30, "Convert to an int literal",
       associatedErrorCodes: <String>['prefer_int_literals']);
@@ -104,6 +117,9 @@ class DartAssistKind {
       'dart.assist.convert.toConstructorNormalParameter',
       30,
       "Convert to normal parameter");
+  static const CONVERT_TO_NULL_AWARE = const AssistKind(
+      'dart.assist.convert.toNullAware', 30, "Convert to use '?.'",
+      associatedErrorCodes: <String>['prefer_null_aware_operators']);
   static const CONVERT_TO_SET_LITERAL = const AssistKind(
       'dart.assist.convert.toSetLiteral', 30, "Convert to set literal",
       // todo (brianwilkerson): unify w/ fix
@@ -114,7 +130,8 @@ class DartAssistKind {
       "Convert to single quoted string",
       associatedErrorCodes: <String>['prefer_single_quotes']);
   static const CONVERT_TO_SPREAD = const AssistKind(
-      'dart.assist.convertToSpread', 30, "Convert to a spread");
+      'dart.assist.convertToSpread', 30, "Convert to a spread",
+      associatedErrorCodes: <String>['prefer_spread_collections']);
   static const ENCAPSULATE_FIELD =
       const AssistKind('dart.assist.encapsulateField', 30, "Encapsulate field");
   static const EXCHANGE_OPERANDS =
@@ -153,6 +170,9 @@ class DartAssistKind {
       'dart.assist.flutter.wrap.streamBuilder', 30, "Wrap with StreamBuilder");
   static const IMPORT_ADD_SHOW = const AssistKind(
       'dart.assist.addShowCombinator', 30, "Add explicit 'show' combinator");
+  static const INLINE_INVOCATION = const AssistKind(
+      'dart.assist.inline', 30, "Inline invocation of '{0}'",
+      associatedErrorCodes: <String>['prefer_inlined_adds']);
   static const INTRODUCE_LOCAL_CAST_TYPE = const AssistKind(
       'dart.assist.introduceLocalCast',
       30,

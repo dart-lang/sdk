@@ -10,11 +10,11 @@ class C {
 }
 
 class D extends C {
-  void set x(covariant int /*@covariance=explicit*/ value) {}
+  void set x(covariant int value) {}
 }
 
 class E implements D {
-  int /*@covariance=explicit*/ x;
+  int x;
 }
 
 main() {}

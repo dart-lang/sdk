@@ -7,8 +7,6 @@ library fasta.source_class_builder;
 import 'package:kernel/ast.dart'
     show Class, Constructor, Member, Supertype, TreeNode;
 
-import '../../base/instrumentation.dart' show Instrumentation;
-
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../fasta_codes.dart'
@@ -256,13 +254,6 @@ class SourceClassBuilder extends KernelClassBuilder
     if (!isPatch) {
       cls.setupApiMembers(library.loader.interfaceResolver);
     }
-  }
-
-  @override
-  void instrumentTopLevelInference(Instrumentation instrumentation) {
-    scope.forEach((name, declaration) {
-      declaration.instrumentTopLevelInference(instrumentation);
-    });
   }
 
   @override

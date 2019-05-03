@@ -103,7 +103,6 @@ class _LabelVisitor extends LocalDeclarationVisitor {
         suggestion.element = createLocalElement(
             request.source, protocol.ElementKind.LABEL, label.label,
             returnType: NO_RETURN_TYPE);
-        suggestion.elementUri = request.source.toString();
       }
     }
   }

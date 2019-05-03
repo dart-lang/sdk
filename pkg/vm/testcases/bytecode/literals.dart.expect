@@ -1,45 +1,17 @@
-library #lib;
-import self as self;
-import "dart:core" as core;
+main = #lib::main;
+ [@vm.bytecode=
+ComponentBytecodeMetadata {
 
-typedef GenericFunctionType = <X extends core::Object = dynamic>(X) → X;
-class A extends core::Object {
-  final field core::int index;
-  final field core::String _name;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack           0
-  PushConstant         CP#0
-  ReturnTOS
+Bytecode (version: stable)
+Main library: #lib
+
 }
-ConstantPool {
-  [0] = ObjectRef const <#lib::A> [const #lib::A {#lib::A::index (field): const 0, #lib::A::_name (field): 'A.elem1'}, const #lib::A {#lib::A::index (field): const 1, #lib::A::_name (field): 'A.elem2'}, const #lib::A {#lib::A::index (field): const 2, #lib::A::_name (field): 'A.elem3'}, const #lib::A {#lib::A::index (field): const 3, #lib::A::_name (field): 'A.elem4'}]
-}
-]  static const field core::List<self::A> values = const <self::A>[self::A::elem1, self::A::elem2, self::A::elem3, self::A::elem4];
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack           0
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = ObjectRef const #lib::A {#lib::A::index (field): const 0, #lib::A::_name (field): 'A.elem1'}
-}
-]  static const field self::A elem1 = const self::A::•(0, "A.elem1");
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack           0
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = ObjectRef const #lib::A {#lib::A::index (field): const 1, #lib::A::_name (field): 'A.elem2'}
-}
-]  static const field self::A elem2 = const self::A::•(1, "A.elem2");
-[@vm.bytecode=
+] [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+Field 'c1', type = #lib::A, getter = 'get:c1', reflectable, static, const, final
+    initializer 
 Bytecode {
   Entry                0
   CheckStack           0
@@ -49,210 +21,16 @@ Bytecode {
 ConstantPool {
   [0] = ObjectRef const #lib::A {#lib::A::index (field): const 2, #lib::A::_name (field): 'A.elem3'}
 }
-]  static const field self::A elem3 = const self::A::•(2, "A.elem3");
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack           0
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = ObjectRef const #lib::A {#lib::A::index (field): const 3, #lib::A::_name (field): 'A.elem4'}
-}
-]  static const field self::A elem4 = const self::A::•(3, "A.elem4");
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack           0
-  Push                 FP[-7]
-  Push                 FP[-6]
-  StoreFieldTOS        CP#0
-  Push                 FP[-7]
-  Push                 FP[-5]
-  StoreFieldTOS        CP#2
-  Push                 FP[-7]
-  DirectCall           1, CP#4
-  Drop1
-  PushNull
-  ReturnTOS
-}
-ConstantPool {
-  [0] = InstanceField #lib::A::index (field)
-  [1] = Reserved
-  [2] = InstanceField #lib::A::_name (field)
-  [3] = Reserved
-  [4] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
-  [5] = Reserved
-}
-]  const constructor •(core::int index, core::String _name) → self::A
-    : self::A::index = index, self::A::_name = _name, super core::Object::•()
-    ;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack           0
-  Push                 FP[-5]
-  DirectCall           1, CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = DirectCall '#lib::A::get:_name', ArgDesc num-args 1, num-type-args 0, names []
-  [1] = Reserved
-}
-]  method toString() → core::String
-    return this.{=self::A::_name};
-}
-class B extends core::Object {
-  final field core::int i;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack           0
-  Push                 FP[-6]
-  Push                 FP[-5]
-  StoreFieldTOS        CP#0
-  Push                 FP[-6]
-  DirectCall           1, CP#2
-  Drop1
-  PushNull
-  ReturnTOS
-}
-ConstantPool {
-  [0] = InstanceField #lib::B::i (field)
-  [1] = Reserved
-  [2] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
-  [3] = Reserved
-}
-]  const constructor •(core::int i) → self::B
-    : self::B::i = i, super core::Object::•()
-    ;
-}
-class C extends self::B {
-  final field core::int j;
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack           0
-  Push                 FP[-8]
-  Push                 FP[-7]
-  Push                 FP[-6]
-  AddInt
-  StoreFieldTOS        CP#0
-  Push                 FP[-8]
-  Push                 FP[-5]
-  PushInt              5
-  MulInt
-  DirectCall           2, CP#2
-  Drop1
-  PushNull
-  ReturnTOS
-}
-ConstantPool {
-  [0] = InstanceField #lib::C::j (field)
-  [1] = Reserved
-  [2] = DirectCall '#lib::B:: (constructor)', ArgDesc num-args 2, num-type-args 0, names []
-  [3] = Reserved
-}
-]  const constructor •(core::int a, core::int b, core::int c) → self::C
-    : self::C::j = a.{core::num::+}(b), super self::B::•(c.{core::num::*}(5))
-    ;
-}
-class D extends core::Object {
-  final field dynamic x;
-  final field dynamic y;
-[@vm.bytecode=
-Bytecode {
-  EntryOptional        2, 1, 0
-  LoadConstant         r2, CP#0
-  Frame                0
-  CheckStack           0
-  Push                 r0
-  Push                 r1
-  StoreFieldTOS        CP#1
-  Push                 r0
-  Push                 r2
-  StoreFieldTOS        CP#3
-  Push                 r0
-  DirectCall           1, CP#5
-  Drop1
-  PushNull
-  ReturnTOS
-}
-ConstantPool {
-  [0] = ObjectRef null
-  [1] = InstanceField #lib::D::x (field)
-  [2] = Reserved
-  [3] = InstanceField #lib::D::y (field)
-  [4] = Reserved
-  [5] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
-  [6] = Reserved
-}
-]  const constructor •(dynamic x, [dynamic y = null]) → self::D
-    : self::D::x = x, self::D::y = y, super core::Object::•()
-    ;
-}
-class E<T extends core::Object = dynamic> extends core::Object {
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack           0
-  Push                 FP[-5]
-  DirectCall           1, CP#0
-  Drop1
-  PushNull
-  ReturnTOS
-}
-ConstantPool {
-  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
-  [1] = Reserved
-}
-]  const constructor •() → self::E<self::E::T>
-    : super core::Object::•()
-    ;
-}
-class F<P extends core::Object = dynamic, Q extends core::Object = dynamic> extends self::E<core::Map<self::F::P, self::F::Q>> {
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack           0
-  Push                 FP[-5]
-  DirectCall           1, CP#0
-  Drop1
-  PushNull
-  ReturnTOS
-}
-ConstantPool {
-  [0] = DirectCall '#lib::E:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
-  [1] = Reserved
-}
-]  const constructor •() → self::F<self::F::P, self::F::Q>
-    : super self::E::•()
-    ;
-}
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack           0
-  PushConstant         CP#0
-  ReturnTOS
-}
-ConstantPool {
-  [0] = ObjectRef const #lib::A {#lib::A::index (field): const 2, #lib::A::_name (field): 'A.elem3'}
-}
-]static const field self::A c1 = self::A::elem3;
-static const field core::String c2 = "hello!";
-[@vm.bytecode=
-Bytecode {
-  Entry                0
-  CheckStack           0
-  PushInt              6
-  ReturnTOS
-}
-ConstantPool {
-}
-]static const field core::int c3 = self::c2.{core::String::length};
-[@vm.bytecode=
+
+
+Field 'c2', type = dart:core::String, reflectable, static, const, final
+    value = 'hello!'
+
+Field 'c3', type = dart:core::int, reflectable, static, const, final
+    value = const 6
+
+Field 'c4', type = #lib::C, getter = 'get:c4', reflectable, static, const, final
+    initializer 
 Bytecode {
   Entry                0
   CheckStack           0
@@ -262,8 +40,10 @@ Bytecode {
 ConstantPool {
   [0] = ObjectRef const #lib::C {#lib::C::j (field): const 3, #lib::B::i (field): const 15}
 }
-]static const field self::C c4 = const self::C::•(1, 2, 3);
-[@vm.bytecode=
+
+
+Field 'c5', type = #lib::D, getter = 'get:c5', reflectable, static, const, final
+    initializer 
 Bytecode {
   Entry                0
   CheckStack           0
@@ -273,9 +53,16 @@ Bytecode {
 ConstantPool {
   [0] = ObjectRef const #lib::D {#lib::D::x (field): const #lib::B {#lib::B::i (field): const 4}, #lib::D::y (field): null}
 }
-]static const field self::D c5 = const self::D::•(const self::B::•(4));
-static field core::double fieldWithDoubleLiteralInitializer = 1.0;
-[@vm.bytecode=
+
+
+Field 'fieldWithDoubleLiteralInitializer', type = dart:core::double, reflectable, static
+    value = const 1.0
+
+Function 'test_constants1', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type void
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -305,14 +92,13 @@ ConstantPool {
   [4] = ObjectRef const #lib::C {#lib::C::j (field): const 3, #lib::B::i (field): const 15}
   [5] = ObjectRef const #lib::D {#lib::D::x (field): const #lib::B {#lib::B::i (field): const 4}, #lib::D::y (field): null}
 }
-]static method test_constants1() → void {
-  core::print(self::c1);
-  core::print(self::c2);
-  core::print(self::c3);
-  core::print(self::c4);
-  core::print(self::c5);
-}
-[@vm.bytecode=
+
+
+Function 'test_constants2', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type void
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -346,15 +132,13 @@ ConstantPool {
   [5] = ObjectRef const dart:core::_ImmutableMap < dart:core::String, #lib::A > {dart:core::_ImmutableMap::_kvPairs (field): const <dynamic> ['E2', const #lib::A {#lib::A::index (field): const 1, #lib::A::_name (field): 'A.elem2'}, 'E4', const #lib::A {#lib::A::index (field): const 3, #lib::A::_name (field): 'A.elem4'}]}
   [6] = ObjectRef const #lib::D {#lib::D::x (field): const #lib::C {#lib::C::j (field): const 9, #lib::B::i (field): const 30}, #lib::D::y (field): const dart:core::_ImmutableMap < dart:core::String, dart:core::Object > {dart:core::_ImmutableMap::_kvPairs (field): const <dynamic> ['foo', const 42, 'bar', const #lib::B {#lib::B::i (field): const 6}]}}
 }
-]static method test_constants2() → void {
-  core::print(42);
-  core::print("foo");
-  core::print(self::A::elem2);
-  core::print(const <core::Object>[42, "foo", core::int]);
-  core::print(const <core::String, self::A>{"E2": self::A::elem2, "E4": self::A::elem4});
-  core::print(const self::D::•(const self::C::•(4, 5, 6), const <core::String, core::Object>{"foo": 42, "bar": const self::B::•(self::c2.{core::String::length})}));
-}
-[@vm.bytecode=
+
+
+Function 'test_list_literal', static, reflectable, debuggable
+    parameters [dart:core::int 'a'] (required: 1)
+    return-type void
+
+
 Bytecode {
   Entry                1
   CheckStack           0
@@ -416,11 +200,14 @@ ConstantPool {
   [8] = Reserved
   [9] = ObjectRef 'b'
 }
-]static method test_list_literal(core::int a) → void {
-  core::print(<core::int>[1, a, 3]);
-  core::print(<core::String>["a", a.{core::int::toString}(), "b"]);
-}
-[@vm.bytecode=
+
+
+Function 'test_map_literal', static, reflectable, debuggable
+    type-params <dart:core::Object T>
+    parameters [dart:core::int 'a', dart:core::int 'b', #lib::test_map_literal::TypeParam/0 'c'] (required: 3)
+    return-type void
+
+
 Bytecode {
   Entry                2
   CheckStack           0
@@ -517,13 +304,13 @@ ConstantPool {
   [11] = ObjectRef const <dynamic> []
   [12] = ObjectRef < #lib::test_map_literal::TypeParam/0, dart:core::int >
 }
-]static method test_map_literal<T extends core::Object = dynamic>(core::int a, core::int b, self::test_map_literal::T c) → void {
-  core::print(<core::int, core::int>{1: a, b: 2});
-  core::print(<core::String, core::int>{"foo": a, b.{core::int::toString}(): 3});
-  core::print(<core::String, self::test_map_literal::T>{});
-  core::print(<self::test_map_literal::T, core::int>{c: 4});
-}
-[@vm.bytecode=
+
+
+Function 'test_symbol', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type void
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -542,11 +329,14 @@ ConstantPool {
   [2] = Reserved
   [3] = ObjectRef const '_private_symbol'
 }
-]static method test_symbol() → void {
-  core::print(#test_symbol);
-  core::print(#_private_symbol);
-}
-[@vm.bytecode=
+
+
+Function 'test_type_literal', static, reflectable, debuggable
+    type-params <dart:core::Object T>
+    parameters [] (required: 0)
+    return-type void
+
+
 Bytecode {
   Entry                1
   CheckStack           0
@@ -568,11 +358,13 @@ ConstantPool {
   [2] = Reserved
   [3] = Type #lib::test_type_literal::TypeParam/0
 }
-]static method test_type_literal<T extends core::Object = dynamic>() → void {
-  core::print(core::String);
-  core::print(self::test_type_literal::T);
-}
-[@vm.bytecode=
+
+
+Function 'testGenericConstInstance', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -582,9 +374,13 @@ Bytecode {
 ConstantPool {
   [0] = ObjectRef const #lib::F < dart:core::Map < dart:core::int, dart:core::String >, dart:core::int, dart:core::String > {}
 }
-]static method testGenericConstInstance() → dynamic
-  return const self::F::•<core::int, core::String>();
-[@vm.bytecode=
+
+
+Function 'testGenericFunctionTypeLiteral', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -594,9 +390,13 @@ Bytecode {
 ConstantPool {
   [0] = Type FunctionType <dart:core::Object X> (null::TypeParam/0) -> null::TypeParam/0
 }
-]static method testGenericFunctionTypeLiteral() → dynamic
-  return <X extends core::Object = dynamic>(X) → X;
-[@vm.bytecode=
+
+
+Function 'testFieldWithDoubleLiteralInitializer', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -607,9 +407,13 @@ Bytecode {
 ConstantPool {
   [0] = StaticField #lib::fieldWithDoubleLiteralInitializer (field)
 }
-]static method testFieldWithDoubleLiteralInitializer() → dynamic
-  return self::fieldWithDoubleLiteralInitializer;
-[@vm.bytecode=
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -618,4 +422,439 @@ Bytecode {
 }
 ConstantPool {
 }
-]static method main() → dynamic {}
+
+}
+
+}
+]library #lib from "#lib" as #lib {
+
+  typedef GenericFunctionType = <X extends dart.core::Object = dynamic>(X) → X;
+[@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+Field 'index', type = dart:core::int, getter = 'get:index', reflectable, final
+    value = null
+
+Field '_name', type = dart:core::String, getter = 'get:_name', reflectable, final
+    value = null
+
+Field 'values', type = dart:core::List < #lib::A >, getter = 'get:values', reflectable, static, const, final
+    initializer 
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const <#lib::A> [const #lib::A {#lib::A::index (field): const 0, #lib::A::_name (field): 'A.elem1'}, const #lib::A {#lib::A::index (field): const 1, #lib::A::_name (field): 'A.elem2'}, const #lib::A {#lib::A::index (field): const 2, #lib::A::_name (field): 'A.elem3'}, const #lib::A {#lib::A::index (field): const 3, #lib::A::_name (field): 'A.elem4'}]
+}
+
+
+Field 'elem1', type = #lib::A, getter = 'get:elem1', reflectable, static, const, final
+    initializer 
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const #lib::A {#lib::A::index (field): const 0, #lib::A::_name (field): 'A.elem1'}
+}
+
+
+Field 'elem2', type = #lib::A, getter = 'get:elem2', reflectable, static, const, final
+    initializer 
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const #lib::A {#lib::A::index (field): const 1, #lib::A::_name (field): 'A.elem2'}
+}
+
+
+Field 'elem3', type = #lib::A, getter = 'get:elem3', reflectable, static, const, final
+    initializer 
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const #lib::A {#lib::A::index (field): const 2, #lib::A::_name (field): 'A.elem3'}
+}
+
+
+Field 'elem4', type = #lib::A, getter = 'get:elem4', reflectable, static, const, final
+    initializer 
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef const #lib::A {#lib::A::index (field): const 3, #lib::A::_name (field): 'A.elem4'}
+}
+
+
+Function '', constructor, const, reflectable, debuggable
+    parameters [dart:core::int 'index', dart:core::String '_name'] (required: 2)
+    return-type #lib::A
+
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-7]
+  Push                 FP[-6]
+  StoreFieldTOS        CP#0
+  Push                 FP[-7]
+  Push                 FP[-5]
+  StoreFieldTOS        CP#2
+  Push                 FP[-7]
+  DirectCall           1, CP#4
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InstanceField #lib::A::index (field)
+  [1] = Reserved
+  [2] = InstanceField #lib::A::_name (field)
+  [3] = Reserved
+  [4] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+}
+
+
+Function 'toString', reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dart:core::String
+
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           1, CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall '#lib::A::get:_name', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+}
+
+}
+]  class A extends dart.core::Object {
+    final field dart.core::int index;
+    final field dart.core::String _name;
+    static const field dart.core::List<#lib::A> values = #C13;
+    static const field #lib::A elem1 = #C3;
+    static const field #lib::A elem2 = #C6;
+    static const field #lib::A elem3 = #C9;
+    static const field #lib::A elem4 = #C12;
+    const constructor •(dart.core::int index, dart.core::String _name) → #lib::A
+      : #lib::A::index = index, #lib::A::_name = _name, super dart.core::Object::•()
+      ;
+    method toString() → dart.core::String
+      return this.{=#lib::A::_name};
+  }
+[@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+Field 'i', type = dart:core::int, getter = 'get:i', reflectable, final
+    value = null
+
+Function '', constructor, const, reflectable, debuggable
+    parameters [dart:core::int 'i'] (required: 1)
+    return-type #lib::B
+
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-6]
+  Push                 FP[-5]
+  StoreFieldTOS        CP#0
+  Push                 FP[-6]
+  DirectCall           1, CP#2
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InstanceField #lib::B::i (field)
+  [1] = Reserved
+  [2] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+}
+
+}
+
+}
+]  class B extends dart.core::Object {
+    final field dart.core::int i;
+    const constructor •(dart.core::int i) → #lib::B
+      : #lib::B::i = i, super dart.core::Object::•()
+      ;
+  }
+[@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+Field 'j', type = dart:core::int, getter = 'get:j', reflectable, final
+    value = null
+
+Function '', constructor, const, reflectable, debuggable
+    parameters [dart:core::int 'a', dart:core::int 'b', dart:core::int 'c'] (required: 3)
+    return-type #lib::C
+
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-8]
+  Push                 FP[-7]
+  Push                 FP[-6]
+  AddInt
+  StoreFieldTOS        CP#0
+  Push                 FP[-8]
+  Push                 FP[-5]
+  PushInt              5
+  MulInt
+  DirectCall           2, CP#2
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = InstanceField #lib::C::j (field)
+  [1] = Reserved
+  [2] = DirectCall '#lib::B:: (constructor)', ArgDesc num-args 2, num-type-args 0, names []
+  [3] = Reserved
+}
+
+}
+
+}
+]  class C extends #lib::B {
+    final field dart.core::int j;
+    const constructor •(dart.core::int a, dart.core::int b, dart.core::int c) → #lib::C
+      : #lib::C::j = a.{dart.core::num::+}(b), super #lib::B::•(c.{dart.core::num::*}(5))
+      ;
+  }
+[@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+Field 'x', type = dynamic, getter = 'get:x', reflectable, final
+    value = null
+
+Field 'y', type = dynamic, getter = 'get:y', reflectable, final
+    value = null
+
+Function '', constructor, const, has-optional-positional-params, reflectable, debuggable
+    parameters [dynamic 'x', dynamic 'y'] (required: 1)
+    return-type #lib::D
+
+
+Bytecode {
+  EntryOptional        2, 1, 0
+  LoadConstant         r2, CP#0
+  Frame                0
+  CheckStack           0
+  Push                 r0
+  Push                 r1
+  StoreFieldTOS        CP#1
+  Push                 r0
+  Push                 r2
+  StoreFieldTOS        CP#3
+  Push                 r0
+  DirectCall           1, CP#5
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef null
+  [1] = InstanceField #lib::D::x (field)
+  [2] = Reserved
+  [3] = InstanceField #lib::D::y (field)
+  [4] = Reserved
+  [5] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [6] = Reserved
+}
+
+}
+
+}
+]  class D extends dart.core::Object {
+    final field dynamic x;
+    final field dynamic y;
+    const constructor •(dynamic x, [dynamic y = #C14]) → #lib::D
+      : #lib::D::x = x, #lib::D::y = y, super dart.core::Object::•()
+      ;
+  }
+[@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+
+Function '', constructor, const, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type #lib::E < #lib::E::TypeParam/0 >
+
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           1, CP#0
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+}
+
+}
+]  class E<T extends dart.core::Object = dynamic> extends dart.core::Object {
+    const constructor •() → #lib::E<#lib::E::T>
+      : super dart.core::Object::•()
+      ;
+  }
+[@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+
+Function '', constructor, const, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type #lib::F < dart:core::Map < #lib::F::TypeParam/0, #lib::F::TypeParam/1 >, #lib::F::TypeParam/0, #lib::F::TypeParam/1 >
+
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           1, CP#0
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall '#lib::E:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+}
+
+}
+]  class F<P extends dart.core::Object = dynamic, Q extends dart.core::Object = dynamic> extends #lib::E<dart.core::Map<#lib::F::P, #lib::F::Q>> {
+    const constructor •() → #lib::F<#lib::F::P, #lib::F::Q>
+      : super #lib::E::•()
+      ;
+  }
+  static const field #lib::A c1 = #C9;
+  static const field dart.core::String c2 = #C15;
+  static const field dart.core::int c3 = #C16;
+  static const field #lib::C c4 = #C18;
+  static const field #lib::D c5 = #C21;
+  static field dart.core::double fieldWithDoubleLiteralInitializer = 1.0;
+  static method test_constants1() → void {
+    dart.core::print(#C9);
+    dart.core::print(#C15);
+    dart.core::print(#C16);
+    dart.core::print(#C18);
+    dart.core::print(#C21);
+  }
+  static method test_constants2() → void {
+    dart.core::print(42);
+    dart.core::print("foo");
+    dart.core::print(#C6);
+    dart.core::print(#C25);
+    dart.core::print(#C29);
+    dart.core::print(#C37);
+  }
+  static method test_list_literal(dart.core::int a) → void {
+    dart.core::print(<dart.core::int>[1, a, 3]);
+    dart.core::print(<dart.core::String>["a", a.{dart.core::int::toString}(), "b"]);
+  }
+  static method test_map_literal<T extends dart.core::Object = dynamic>(dart.core::int a, dart.core::int b, #lib::test_map_literal::T c) → void {
+    dart.core::print(<dart.core::int, dart.core::int>{1: a, b: 2});
+    dart.core::print(<dart.core::String, dart.core::int>{"foo": a, b.{dart.core::int::toString}(): 3});
+    dart.core::print(<dart.core::String, #lib::test_map_literal::T>{});
+    dart.core::print(<#lib::test_map_literal::T, dart.core::int>{c: 4});
+  }
+  static method test_symbol() → void {
+    dart.core::print(#C38);
+    dart.core::print(#C39);
+  }
+  static method test_type_literal<T extends dart.core::Object = dynamic>() → void {
+    dart.core::print(dart.core::String);
+    dart.core::print(#lib::test_type_literal::T);
+  }
+  static method testGenericConstInstance() → dynamic
+    return #C40;
+  static method testGenericFunctionTypeLiteral() → dynamic
+    return <X extends dart.core::Object = dynamic>(X) → X;
+  static method testFieldWithDoubleLiteralInitializer() → dynamic
+    return #lib::fieldWithDoubleLiteralInitializer;
+  static method main() → dynamic {}
+}
+constants  {
+  #C1 = 0
+  #C2 = "A.elem1"
+  #C3 = #lib::A {index: #C1, #lib::_name: #C2}
+  #C4 = 1
+  #C5 = "A.elem2"
+  #C6 = #lib::A {index: #C4, #lib::_name: #C5}
+  #C7 = 2
+  #C8 = "A.elem3"
+  #C9 = #lib::A {index: #C7, #lib::_name: #C8}
+  #C10 = 3
+  #C11 = "A.elem4"
+  #C12 = #lib::A {index: #C10, #lib::_name: #C11}
+  #C13 = ListConstant<#lib::A>(#C3, #C6, #C9, #C12)
+  #C14 = null
+  #C15 = "hello!"
+  #C16 = 6
+  #C17 = 15
+  #C18 = #lib::C {j: #C10, i: #C17}
+  #C19 = 4
+  #C20 = #lib::B {i: #C19}
+  #C21 = #lib::D {x: #C20, y: #C14}
+  #C22 = 42
+  #C23 = "foo"
+  #C24 = TypeLiteralConstant(dart.core::int)
+  #C25 = ListConstant<dart.core::Object>(#C22, #C23, #C24)
+  #C26 = "E2"
+  #C27 = "E4"
+  #C28 = ListConstant<dynamic>(#C26, #C6, #C27, #C12)
+  #C29 = dart.core::_ImmutableMap<dart.core::String, #lib::A> {dart.core::_kvPairs: #C28}
+  #C30 = 9
+  #C31 = 30
+  #C32 = #lib::C {j: #C30, i: #C31}
+  #C33 = "bar"
+  #C34 = #lib::B {i: #C16}
+  #C35 = ListConstant<dynamic>(#C23, #C22, #C33, #C34)
+  #C36 = dart.core::_ImmutableMap<dart.core::String, dart.core::Object> {dart.core::_kvPairs: #C35}
+  #C37 = #lib::D {x: #C32, y: #C36}
+  #C38 = #test_symbol
+  #C39 = ##lib::_private_symbol
+  #C40 = #lib::F<dart.core::int, dart.core::String> {}
+}

@@ -84,7 +84,7 @@ setDispatchProperty(object, value) {
 
 // Avoid inlining this method because inlining gives us multiple allocation
 // points for records which is bad because it leads to polymorphic access.
-@NoInline()
+@pragma('dart2js:noInline')
 makeDispatchRecord(interceptor, proto, extension, indexability) {
   // Dispatch records are stored in the prototype chain, and in some cases, on
   // instances.

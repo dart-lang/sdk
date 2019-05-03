@@ -239,12 +239,15 @@ class ExceptionHandlerFinder : public StackResource {
   }
 
   void ExecuteCatchEntryMoves(const CatchEntryMoves& moves) {
+    Zone* zone = Thread::Current()->zone();
+    auto& value = Object::Handle(zone);
+    auto& dst_values = Array::Handle(zone, Array::New(moves.count()));
+
     uword fp = handler_fp;
     ObjectPool* pool = nullptr;
     for (int j = 0; j < moves.count(); j++) {
       const CatchEntryMove& move = moves.At(j);
 
-      RawObject* value;
       switch (move.source_kind()) {
         case CatchEntryMove::SourceKind::kConstant:
           if (pool == nullptr) {
@@ -295,64 +298,28 @@ class ExceptionHandlerFinder : public StackResource {
           UNREACHABLE();
       }
 
-      *TaggedSlotAt(fp, move.dest_slot()) = value;
+      dst_values.SetAt(j, value);
+    }
+
+    {
+      NoSafepointScope no_safepoint_scope;
+
+      for (int j = 0; j < moves.count(); j++) {
+        const CatchEntryMove& move = moves.At(j);
+        value = dst_values.At(j);
+        *TaggedSlotAt(fp, move.dest_slot()) = value.raw();
+      }
     }
   }
 
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
   void ReadCompressedCatchEntryMoves() {
-    intptr_t pc_offset = pc_ - code_->PayloadStart();
-    const TypedData& td = TypedData::Handle(code_->catch_entry_moves_maps());
-    NoSafepointScope no_safepoint;
-    ReadStream stream(static_cast<uint8_t*>(td.DataAddr(0)), td.Length());
+    const intptr_t pc_offset = pc_ - code_->PayloadStart();
+    const auto& td = TypedData::Handle(code_->catch_entry_moves_maps());
 
-    intptr_t prefix_length = 0, suffix_length = 0, suffix_offset = 0;
-    while (stream.PendingBytes() > 0) {
-      intptr_t target_pc_offset = Reader::Read(&stream);
-      prefix_length = Reader::Read(&stream);
-      suffix_length = Reader::Read(&stream);
-      suffix_offset = Reader::Read(&stream);
-      if (pc_offset == target_pc_offset) {
-        break;
-      }
-
-      // Skip the moves.
-      for (intptr_t j = 0; j < prefix_length; j++) {
-        CatchEntryMove::ReadFrom(&stream);
-      }
-    }
-    ASSERT((stream.PendingBytes() > 0) || (prefix_length == 0));
-
-    CatchEntryMoves* moves =
-        CatchEntryMoves::Allocate(prefix_length + suffix_length);
-    for (int j = 0; j < prefix_length; j++) {
-      moves->At(j) = CatchEntryMove::ReadFrom(&stream);
-    }
-    ReadCompressedCatchEntryMovesSuffix(&stream, suffix_offset, suffix_length,
-                                        moves, prefix_length);
-    catch_entry_moves_ = moves;
+    CatchEntryMovesMapReader reader(td);
+    catch_entry_moves_ = reader.ReadMovesForPcOffset(pc_offset);
   }
-
-  void ReadCompressedCatchEntryMovesSuffix(ReadStream* stream,
-                                           intptr_t offset,
-                                           intptr_t length,
-                                           CatchEntryMoves* moves,
-                                           intptr_t moves_offset) {
-    stream->SetPosition(offset);
-    Reader::Read(stream);  // skip pc_offset
-    Reader::Read(stream);  // skip variables
-    intptr_t suffix_length = Reader::Read(stream);
-    intptr_t suffix_offset = Reader::Read(stream);
-    intptr_t to_read = length - suffix_length;
-    for (int j = 0; j < to_read; j++) {
-      moves->At(moves_offset + j) = CatchEntryMove::ReadFrom(stream);
-    }
-    if (suffix_length > 0) {
-      ReadCompressedCatchEntryMovesSuffix(stream, suffix_offset, suffix_length,
-                                          moves, moves_offset + to_read);
-    }
-  }
-
 #else
   void GetCatchEntryMovesFromDeopt(intptr_t num_vars, StackFrame* frame) {
     Isolate* isolate = thread_->isolate();
@@ -414,6 +381,79 @@ void CatchEntryMove::WriteTo(WriteStream* stream) {
   Writer::Write(stream, dest_and_kind_);
 }
 #endif
+
+CatchEntryMoves* CatchEntryMovesMapReader::ReadMovesForPcOffset(
+    intptr_t pc_offset) {
+  NoSafepointScope no_safepoint;
+
+  ReadStream stream(static_cast<uint8_t*>(bytes_.DataAddr(0)), bytes_.Length());
+
+  intptr_t position = 0;
+  intptr_t length = 0;
+  FindEntryForPc(&stream, pc_offset, &position, &length);
+
+  return ReadCompressedCatchEntryMovesSuffix(&stream, position, length);
+}
+
+void CatchEntryMovesMapReader::FindEntryForPc(ReadStream* stream,
+                                              intptr_t pc_offset,
+                                              intptr_t* position,
+                                              intptr_t* length) {
+  using Reader = ReadStream::Raw<sizeof(intptr_t), intptr_t>;
+
+  while (stream->PendingBytes() > 0) {
+    const intptr_t stream_position = stream->Position();
+    const intptr_t target_pc_offset = Reader::Read(stream);
+    const intptr_t prefix_length = Reader::Read(stream);
+    const intptr_t suffix_length = Reader::Read(stream);
+    Reader::Read(stream);  // Skip suffix_offset
+    if (pc_offset == target_pc_offset) {
+      *position = stream_position;
+      *length = prefix_length + suffix_length;
+      return;
+    }
+
+    // Skip the prefix moves.
+    for (intptr_t j = 0; j < prefix_length; j++) {
+      CatchEntryMove::ReadFrom(stream);
+    }
+  }
+
+  UNREACHABLE();
+}
+
+CatchEntryMoves* CatchEntryMovesMapReader::ReadCompressedCatchEntryMovesSuffix(
+    ReadStream* stream,
+    intptr_t offset,
+    intptr_t length) {
+  using Reader = ReadStream::Raw<sizeof(intptr_t), intptr_t>;
+
+  CatchEntryMoves* moves = CatchEntryMoves::Allocate(length);
+
+  intptr_t remaining_length = length;
+
+  intptr_t moves_offset = 0;
+  while (remaining_length > 0) {
+    stream->SetPosition(offset);
+    Reader::Read(stream);  // skip pc_offset
+    Reader::Read(stream);  // skip prefix length
+    const intptr_t suffix_length = Reader::Read(stream);
+    const intptr_t suffix_offset = Reader::Read(stream);
+    const intptr_t to_read = remaining_length - suffix_length;
+    if (to_read > 0) {
+      for (int j = 0; j < to_read; j++) {
+        // The prefix is written from the back.
+        moves->At(moves_offset + to_read - j - 1) =
+            CatchEntryMove::ReadFrom(stream);
+      }
+      remaining_length -= to_read;
+      moves_offset += to_read;
+    }
+    offset = suffix_offset;
+  }
+
+  return moves;
+}
 
 static void FindErrorHandler(uword* handler_pc,
                              uword* handler_sp,
@@ -529,18 +569,6 @@ void Exceptions::JumpToFrame(Thread* thread,
   uword fp_for_clearing =
       (clear_deopt_at_target ? frame_pointer + 1 : frame_pointer);
   ClearLazyDeopts(thread, fp_for_clearing);
-#if defined(USING_SIMULATOR)
-  // Unwinding of the C++ frames and destroying of their stack resources is done
-  // by the simulator, because the target stack_pointer is a simulated stack
-  // pointer and not the C++ stack pointer.
-
-  // Continue simulating at the given pc in the given frame after setting up the
-  // exception object in the kExceptionObjectReg register and the stacktrace
-  // object (may be raw null) in the kStackTraceObjectReg register.
-
-  Simulator::Current()->JumpToFrame(program_counter, stack_pointer,
-                                    frame_pointer, thread);
-#else
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // TODO(regis): We still possibly need to unwind interpreter frames if they
@@ -553,6 +581,19 @@ void Exceptions::JumpToFrame(Thread* thread,
     }
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#if defined(USING_SIMULATOR)
+  // Unwinding of the C++ frames and destroying of their stack resources is done
+  // by the simulator, because the target stack_pointer is a simulated stack
+  // pointer and not the C++ stack pointer.
+
+  // Continue simulating at the given pc in the given frame after setting up the
+  // exception object in the kExceptionObjectReg register and the stacktrace
+  // object (may be raw null) in the kStackTraceObjectReg register.
+
+  Simulator::Current()->JumpToFrame(program_counter, stack_pointer,
+                                    frame_pointer, thread);
+#else
 
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.

@@ -9,20 +9,6 @@ import 'messages.dart' as msg;
 Severity rewriteSeverity(
     Severity severity, msg.Code<Object> code, Uri fileUri) {
   if (severity != Severity.ignored) {
-    if (code == msg.codeFinalFieldNotInitialized) {
-      // TODO(johnniwinther): Use external getters instead of final fields.
-      // See https://github.com/dart-lang/sdk/issues/33762
-      for (String path in [
-        "/pkg/dev_compiler/tool/input_sdk/private/js_string.dart",
-        "/sdk/lib/html/dart2js/html_dart2js.dart",
-        "/sdk/lib/svg/dart2js/svg_dart2js.dart",
-        "/sdk/lib/_internal/js_runtime/lib/native_typed_data.dart"
-      ]) {
-        if (fileUri.path.endsWith(path)) {
-          return Severity.ignored;
-        }
-      }
-    }
     return severity;
   }
 

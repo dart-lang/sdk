@@ -34,8 +34,6 @@ import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as p;
-import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:yaml/yaml.dart';
 
 AnalysisOptionsProvider _optionsProvider = new AnalysisOptionsProvider();
@@ -125,9 +123,7 @@ class LintDriver {
 
   final LinterOptions options;
 
-  LintDriver(this.options) {
-    _processPlugins();
-  }
+  LintDriver(this.options);
 
   /// Return the number of sources that have been analyzed so far.
   int get numSourcesAnalyzed => _sourcesAnalyzed.length;
@@ -251,13 +247,6 @@ class LintDriver {
       }
     }
     return null;
-  }
-
-  void _processPlugins() {
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
   }
 }
 

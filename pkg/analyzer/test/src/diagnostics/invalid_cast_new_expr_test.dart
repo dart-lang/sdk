@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,15 +15,13 @@ main() {
 }
 
 @reflectiveTest
-class InvalidCastNewExprTest extends ResolverTestCase {
+class InvalidCastNewExprTest extends DriverResolutionTest {
   @override
-  List<String> get enabledExperiments => ['set-literals'];
-
-  @override
-  bool get enableNewAnalysisDriver => true;
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = ['set-literals'];
 
   test_listLiteral_const() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 const c = <B>[A()];
 class A {
   const A();
@@ -30,11 +29,14 @@ class A {
 class B extends A {
   const B();
 }
-''', [StrongModeCode.INVALID_CAST_NEW_EXPR]);
+''', [
+      StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+      StrongModeCode.INVALID_CAST_NEW_EXPR,
+    ]);
   }
 
   test_listLiteral_nonConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 var c = <B>[A()];
 class A {
   const A();
@@ -46,7 +48,7 @@ class B extends A {
   }
 
   test_setLiteral_const() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 const c = <B>{A()};
 class A {
   const A();
@@ -54,11 +56,14 @@ class A {
 class B extends A {
   const B();
 }
-''', [StrongModeCode.INVALID_CAST_NEW_EXPR]);
+''', [
+      StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
+      StrongModeCode.INVALID_CAST_NEW_EXPR,
+    ]);
   }
 
   test_setLiteral_nonConst() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 var c = <B>{A()};
 class A {
   const A();

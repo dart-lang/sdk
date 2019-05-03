@@ -56,50 +56,19 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
  private:
   Thread* thread() const { return flow_graph_builder_->thread_; }
 
-  FlowGraph* BuildGraphOfFieldInitializer();
-  FlowGraph* BuildGraphOfFieldAccessor(LocalVariable* setter_value);
+  void ParseKernelASTFunction();
+  void ReadForwardingStubTarget(const Function& function);
+  void EvaluateConstFieldValue(const Field& field);
   void SetupDefaultParameterValues();
+  void ReadDefaultFunctionTypeArguments(const Function& function);
+
+  FlowGraph* BuildGraphOfFieldInitializer();
   Fragment BuildFieldInitializer(NameIndex canonical_name);
   Fragment BuildInitializers(const Class& parent_class);
-  FlowGraph* BuildGraphOfImplicitClosureFunction(const Function& function);
   FlowGraph* BuildGraphOfFunction(bool constructor);
-  FlowGraph* BuildGraphOfDynamicInvocationForwarder();
-  FlowGraph* BuildGraphOfNoSuchMethodForwarder(
-      const Function& function,
-      bool is_implicit_closure_function,
-      bool throw_no_such_method_error = false);
 
   Fragment BuildExpression(TokenPosition* position = NULL);
   Fragment BuildStatement();
-
-  // Indicates which form of the unchecked entrypoint we are compiling.
-  //
-  // kNone:
-  //
-  //   There is no unchecked entrypoint: the unchecked entry is set to NULL in
-  //   the 'GraphEntryInstr'.
-  //
-  // kSeparate:
-  //
-  //   The normal and unchecked entrypoint each point to their own versions of
-  //   the prologue, containing exactly those checks which need to be performed
-  //   on either side. Both sides jump directly to the body after performing
-  //   their prologue.
-  //
-  // kSharedWithVariable:
-  //
-  //   A temporary variable is allocated and initialized to 0 on normal entry
-  //   and 2 on unchecked entry. Code which should be ommitted on the unchecked
-  //   entrypoint is made conditional on this variable being equal to 0.
-  //
-  struct UncheckedEntryPointStyle_ {
-    enum Style {
-      kNone = 0,
-      kSeparate = 1,
-      kSharedWithVariable = 2,
-    };
-  };
-  typedef UncheckedEntryPointStyle_::Style UncheckedEntryPointStyle;
 
   // Kernel offset:
   //   start of function expression -> end of function body statement
@@ -121,27 +90,13 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment SetupCapturedParameters(const Function& dart_function);
   Fragment ShortcutForUserDefinedEquals(const Function& dart_function,
                                         LocalVariable* first_parameter);
-  Fragment TypeArgumentsHandling(const Function& dart_function,
-                                 intptr_t type_parameters_offset);
+  Fragment TypeArgumentsHandling(const Function& dart_function);
   void CheckArgumentTypesAsNecessary(const Function& dart_function,
                                      intptr_t type_parameters_offset,
                                      Fragment* explicit_checks,
                                      Fragment* implicit_checks,
                                      Fragment* implicit_redefinitions);
   Fragment CompleteBodyWithYieldContinuations(Fragment body);
-  FunctionEntryInstr* BuildSeparateUncheckedEntryPoint(
-      BlockEntryInstr* normal_entry,
-      Fragment normal_prologue,
-      Fragment extra_prologue,
-      Fragment shared_prologue,
-      Fragment body);
-  FunctionEntryInstr* BuildSharedUncheckedEntryPoint(
-      Fragment prologue_from_normal_entry,
-      Fragment skippable_checks,
-      Fragment redefinitions_if_skipped,
-      Fragment body);
-
-  Fragment BuildEntryPointsIntrospection();
 
   static UncheckedEntryPointStyle ChooseEntryPointStyle(
       const Function& dart_function,
@@ -149,8 +104,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
       const Fragment& first_time_prologue,
       const Fragment& every_time_prologue,
       const Fragment& type_args_handling);
-
-  void RecordUncheckedEntryPoint(FunctionEntryInstr* extra_entry);
 
   void loop_depth_inc();
   void loop_depth_dec();
@@ -161,6 +114,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void catch_depth_dec();
   void try_depth_inc();
   void try_depth_dec();
+  intptr_t block_expression_depth();
+  void block_expression_depth_inc();
+  void block_expression_depth_dec();
   intptr_t CurrentTryIndex();
   intptr_t AllocateTryIndex();
   LocalVariable* CurrentException();
@@ -242,33 +198,13 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
       bool use_unchecked_entry = false,
       const CallSiteAttributesMetadata* call_site_attrs = nullptr);
 
-  enum TypeChecksToBuild {
-    kCheckAllTypeParameterBounds,
-    kCheckNonCovariantTypeParameterBounds,
-    kCheckCovariantTypeParameterBounds,
-  };
-
-  // Does not move the cursor.
-  Fragment BuildDefaultTypeHandling(const Function& function,
-                                    intptr_t type_parameters_offset);
-
-  struct PushedArguments {
-    intptr_t type_args_len;
-    intptr_t argument_count;
-    Array& argument_names;
-  };
-  Fragment PushAllArguments(PushedArguments* pushed);
-
-  void BuildArgumentTypeChecks(TypeChecksToBuild mode,
-                               Fragment* explicit_checks,
-                               Fragment* implicit_checks,
-                               Fragment* implicit_redefinitions);
-
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();
   Fragment TranslateInstantiatedTypeArguments(
       const TypeArguments& type_arguments);
-  Fragment StrictCompare(Token::Kind kind, bool number_check = false);
+  Fragment StrictCompare(TokenPosition position,
+                         Token::Kind kind,
+                         bool number_check = false);
   Fragment AllocateObject(TokenPosition position,
                           const Class& klass,
                           intptr_t argument_count);
@@ -378,6 +314,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildMapLiteral(bool is_const, TokenPosition* position);
   Fragment BuildFunctionExpression();
   Fragment BuildLet(TokenPosition* position);
+  Fragment BuildBlockExpression();
   Fragment BuildBigIntLiteral(TokenPosition* position);
   Fragment BuildStringLiteral(TokenPosition* position);
   Fragment BuildIntLiteral(uint8_t payload, TokenPosition* position);
@@ -386,7 +323,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildBoolLiteral(bool value, TokenPosition* position);
   Fragment BuildNullLiteral(TokenPosition* position);
   Fragment BuildFutureNullValue(TokenPosition* position);
-  Fragment BuildConstantExpression(TokenPosition* position);
+  Fragment BuildConstantExpression(TokenPosition* position, Tag tag);
   Fragment BuildPartialTearoffInstantiation(TokenPosition* position);
 
   Fragment BuildExpressionStatement();

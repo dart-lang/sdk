@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -69,6 +69,9 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
 
   @override
   bool get hasLoadLibraryFunction => wrappedUnit.hasLoadLibraryFunction;
+
+  @override
+  bool get hasOptionalTypeArgs => wrappedUnit.hasOptionalTypeArgs;
 
   @override
   bool get hasOverride => wrappedUnit.hasOverride;
@@ -259,6 +262,9 @@ class WrappedImportElement implements ImportElement {
 
   @override
   bool get hasLiteral => wrappedImport.hasLiteral;
+
+  @override
+  bool get hasOptionalTypeArgs => wrappedImport.hasOptionalTypeArgs;
 
   @override
   bool get hasOverride => wrappedImport.hasOverride;
@@ -464,6 +470,9 @@ class WrappedLibraryElement implements LibraryElement {
 
   @override
   bool get hasLoadLibraryFunction => wrappedLib.hasLoadLibraryFunction;
+
+  @override
+  bool get hasOptionalTypeArgs => wrappedLib.hasOptionalTypeArgs;
 
   @override
   bool get hasOverride => wrappedLib.hasOverride;

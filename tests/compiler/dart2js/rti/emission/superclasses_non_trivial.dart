@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/dart2js.dart';
-
 /*class: A:checkedInstance,checks=[],indirectInstance*/
 class A<T> {}
 
@@ -13,7 +11,7 @@ class B<S, T> extends A<T> {} // Non-trivial substitution of A.
 /*class: C:checks=[],instance*/
 class C<S, T> extends B<S, T> {} // Non-trivial substitution of A
 
-@noInline
+@pragma('dart2js:noInline')
 test(o) => o is A<String>;
 
 main() {

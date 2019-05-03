@@ -81,7 +81,8 @@ void CompilerDeoptInfo::AllocateIncomingParametersRecursive(
         it.CurrentValue()->definition()->IsPushArgument()) {
       it.SetCurrentLocation(Location::StackSlot(
           compiler::target::frame_layout.FrameSlotForVariableIndex(
-              -*stack_height)));
+              -*stack_height),
+          FPREG));
       (*stack_height)++;
     }
   }
@@ -174,14 +175,13 @@ bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
       (SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
       (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
       (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid));
-  return field.is_unboxing_candidate() && !field.is_final() &&
-         !field.is_nullable() && valid_class;
+  return field.is_unboxing_candidate() && !field.is_nullable() && valid_class;
 }
 
 bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
   return field.is_unboxing_candidate() &&
          (FlowGraphCompiler::IsUnboxedField(field) ||
-          (!field.is_final() && (field.guarded_cid() == kIllegalCid)));
+          (field.guarded_cid() == kIllegalCid));
 }
 
 void FlowGraphCompiler::InitCompiler() {
@@ -216,7 +216,7 @@ void FlowGraphCompiler::InitCompiler() {
     }
   }
 
-  if (!is_optimizing()) {
+  if (!is_optimizing() && FLAG_reorder_basic_blocks) {
     // Initialize edge counter array.
     const intptr_t num_counters = flow_graph_.preorder().length();
     const Array& edge_counters =
@@ -321,12 +321,12 @@ void FlowGraphCompiler::CompactBlocks() {
 }
 
 intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
-  // On ARM64 we cannot use the position of the label bound in the
-  // FunctionEntryInstr, because `FunctionEntryInstr::EmitNativeCode` does not
-  // emit the monomorphic entry and frame entry (instead on ARM64 this is done
-  // in FlowGraphCompiler::CompileGraph()).
-  //
-  // See http://dartbug.com/34162
+// On ARM64 we cannot use the position of the label bound in the
+// FunctionEntryInstr, because `FunctionEntryInstr::EmitNativeCode` does not
+// emit the monomorphic entry and frame entry (instead on ARM64 this is done
+// in FlowGraphCompiler::CompileGraph()).
+//
+// See http://dartbug.com/34162
 #if defined(TARGET_ARCH_ARM64)
   return 0;
 #endif
@@ -345,7 +345,7 @@ intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
     return target->Position();
   }
 
-  // Intrinsification happened.
+// Intrinsification happened.
 #ifdef DART_PRECOMPILER
   if (parsed_function().function().IsDynamicFunction()) {
     return Instructions::kMonomorphicEntryOffset;
@@ -560,6 +560,14 @@ void FlowGraphCompiler::VisitBlocks() {
     StatsEnd(entry);
     pending_deoptimization_env_ = NULL;
     EndCodeSourceRange(entry->token_pos());
+
+    // The function was fully intrinsified, so there's no need to generate any
+    // more code.
+    if (fully_intrinsified_) {
+      ASSERT(entry == flow_graph().graph_entry()->normal_entry());
+      break;
+    }
+
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
@@ -613,6 +621,14 @@ intptr_t FlowGraphCompiler::StackSize() const {
   } else {
     return parsed_function_.num_stack_locals();
   }
+}
+
+intptr_t FlowGraphCompiler::ExtraStackSlotsOnOsrEntry() const {
+  ASSERT(flow_graph().IsCompiledForOsr());
+  const intptr_t stack_depth =
+      flow_graph().graph_entry()->osr_entry()->stack_depth();
+  const intptr_t num_stack_locals = flow_graph().num_stack_locals();
+  return StackSize() - stack_depth - num_stack_locals;
 }
 
 Label* FlowGraphCompiler::GetJumpLabel(BlockEntryInstr* block_entry) const {
@@ -953,8 +969,8 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
   for (Environment::DeepIterator it(env); !it.Done(); it.Advance()) {
     Location loc = it.CurrentLocation();
     Value* value = it.CurrentValue();
-    it.SetCurrentLocation(loc.RemapForSlowPath(value->definition(),
-                                               cpu_reg_slots, fpu_reg_slots));
+    it.SetCurrentLocation(LocationRemapForSlowPath(
+        loc, value->definition(), cpu_reg_slots, fpu_reg_slots));
   }
 
   return env;
@@ -1066,7 +1082,9 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
 // No debugger: no var descriptors.
 #else
   // TODO(alexmarkov): revise local vars descriptors when compiling bytecode
-  if (code.is_optimized() || flow_graph().function().HasBytecode()) {
+  if (code.is_optimized() ||
+      flow_graph().function().is_declared_in_bytecode() ||
+      flow_graph().function().HasBytecode()) {
     // Optimized code does not need variable descriptors. They are
     // only stored in the unoptimized version.
     code.set_var_descriptors(Object::empty_var_descriptors());
@@ -1153,6 +1171,14 @@ void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
 
 // Returns 'true' if regular code generation should be skipped.
 bool FlowGraphCompiler::TryIntrinsify() {
+  if (TryIntrinsifyHelper()) {
+    fully_intrinsified_ = true;
+    return true;
+  }
+  return false;
+}
+
+bool FlowGraphCompiler::TryIntrinsifyHelper() {
   Label exit;
   set_intrinsic_slow_path_label(&exit);
 
@@ -1258,7 +1284,7 @@ static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
   switch (ic_data.NumArgsTested()) {
     case 1:
 #if defined(TARGET_ARCH_X64)
-      if (ic_data.IsTrackingExactness()) {
+      if (ic_data.is_tracking_exactness()) {
         if (optimized) {
           return StubCode::OneArgOptimizedCheckInlineCacheWithExactnessCheck();
         } else {
@@ -1267,12 +1293,12 @@ static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
       }
 #else
       // TODO(dartbug.com/34170) Port exactness tracking to other platforms.
-      ASSERT(!ic_data.IsTrackingExactness());
+      ASSERT(!ic_data.is_tracking_exactness());
 #endif
       return optimized ? StubCode::OneArgOptimizedCheckInlineCache()
                        : StubCode::OneArgCheckInlineCache();
     case 2:
-      ASSERT(!ic_data.IsTrackingExactness());
+      ASSERT(!ic_data.is_tracking_exactness());
       return optimized ? StubCode::TwoArgsOptimizedCheckInlineCache()
                        : StubCode::TwoArgsCheckInlineCache();
     default:
@@ -1758,7 +1784,7 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     ASSERT(res->TypeArgsLen() ==
            ArgumentsDescriptor(arguments_descriptor).TypeArgsLen());
     ASSERT(!res->is_static_call());
-    ASSERT(res->StaticReceiverType() == receiver_type.raw());
+    ASSERT(res->receivers_static_type() == receiver_type.raw());
     return res;
   }
   const ICData& ic_data = ICData::ZoneHandle(
@@ -1808,6 +1834,9 @@ intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
     threshold = FLAG_reoptimization_counter_threshold;
   } else if (parsed_function_.function().IsIrregexpFunction()) {
     threshold = FLAG_regexp_optimization_counter_threshold;
+  } else if (FLAG_randomize_optimization_counter) {
+    threshold = Thread::Current()->GetRandomUInt64() %
+                FLAG_optimization_counter_threshold;
   } else {
     const intptr_t basic_blocks = flow_graph().preorder().length();
     ASSERT(basic_blocks > 0);
@@ -1817,11 +1846,27 @@ intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
       threshold = FLAG_optimization_counter_threshold;
     }
   }
+
+  // Threshold = 0 doesn't make sense because we increment the counter before
+  // testing against the threshold. Perhaps we could interpret it to mean
+  // "generate optimized code immediately without unoptimized compilation
+  // first", but this isn't supported in our pipeline because there would be no
+  // code for the optimized code to deoptimize into.
+  if (threshold == 0) threshold = 1;
+
+  // See Compiler::CanOptimizeFunction. In short, we have to allow the
+  // unoptimized code to run at least once to prevent an infinite compilation
+  // loop.
+  if (threshold == 1 && parsed_function().function().HasBreakpoint()) {
+    threshold = 2;
+  }
+
   return threshold;
 }
 
 const Class& FlowGraphCompiler::BoxClassFor(Representation rep) {
   switch (rep) {
+    case kUnboxedFloat:
     case kUnboxedDouble:
       return double_class();
     case kUnboxedFloat32x4:
@@ -2059,7 +2104,10 @@ bool FlowGraphCompiler::GenerateSubtypeRangeCheck(Register class_id_reg,
                                                   Label* is_subtype) {
   HierarchyInfo* hi = Thread::Current()->hierarchy_info();
   if (hi != NULL) {
-    const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
+    const CidRangeVector& ranges =
+        hi->SubtypeRangesForClass(type_class,
+                                  /*include_abstract=*/false,
+                                  /*exclude_null=*/false);
     if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
       GenerateCidRangesCheck(assembler(), class_id_reg, ranges, is_subtype);
       return true;
@@ -2161,7 +2209,10 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
       const bool can_use_simple_cid_range_test =
           hi->CanUseSubtypeRangeCheckFor(dst_type);
       if (can_use_simple_cid_range_test) {
-        const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
+        const CidRangeVector& ranges =
+            hi->SubtypeRangesForClass(type_class,
+                                      /*include_abstract=*/false,
+                                      /*exclude_null=*/false);
         if (ranges.length() <= kMaxNumberOfCidRangesToTest) {
           if (is_non_smi) {
             __ LoadClassId(scratch_reg, instance_reg);

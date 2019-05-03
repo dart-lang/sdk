@@ -5,7 +5,7 @@ import "dart:core" as core;
 class C<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T>
     ;
-  method f(self::C::T x) → void
+  method f(generic-covariant-impl self::C::T x) → void
     ;
 }
 static method g1(self::C<core::num> c) → void

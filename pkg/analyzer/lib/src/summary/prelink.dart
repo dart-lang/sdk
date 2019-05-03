@@ -1,7 +1,8 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -21,17 +22,11 @@ LinkedLibraryBuilder prelink(
     UnlinkedUnit definingUnit,
     GetPartCallback getPart,
     GetImportCallback getImport,
-    GetDeclaredVariable getDeclaredVariable) {
-  return new _Prelinker(definingUnitUri, definingUnit, getPart, getImport,
-          getDeclaredVariable)
+    DeclaredVariables declaredVariables) {
+  return new _Prelinker(
+          definingUnitUri, definingUnit, getPart, getImport, declaredVariables)
       .prelink();
 }
-
-/**
- * Return the raw string value of the variable with the given [name],
- * or `null` of the variable is not defined.
- */
-typedef String GetDeclaredVariable(String name);
 
 /**
  * Type of the callback used by the prelinker to obtain public namespace
@@ -219,7 +214,7 @@ class _Prelinker {
   final UnlinkedUnit definingUnit;
   final GetPartCallback getPart;
   final GetImportCallback getImport;
-  final GetDeclaredVariable getDeclaredVariable;
+  final DeclaredVariables declaredVariables;
 
   /**
    * Cache of values returned by [getImport].
@@ -263,7 +258,7 @@ class _Prelinker {
   final Map<String, _ExportNamespace> exportNamespaces = {};
 
   _Prelinker(this.definingUnitUri, this.definingUnit, this.getPart,
-      this.getImport, this.getDeclaredVariable) {
+      this.getImport, this.declaredVariables) {
     partCache[definingUnitUri] = definingUnit;
     importCache[definingUnitUri] = definingUnit.publicNamespace;
   }
@@ -719,7 +714,7 @@ class _Prelinker {
   String _selectUri(
       String defaultUri, List<UnlinkedConfiguration> configurations) {
     for (UnlinkedConfiguration configuration in configurations) {
-      if (getDeclaredVariable(configuration.name) == configuration.value) {
+      if (declaredVariables.get(configuration.name) == configuration.value) {
         return configuration.uri;
       }
     }

@@ -38,6 +38,7 @@ B:
     B.x
 
 A:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: B

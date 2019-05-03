@@ -126,10 +126,19 @@ class BytecodeFlowGraphBuilder {
   void StoreLocal(Operand local_index);
   void LoadLocal(Operand local_index);
   Value* Pop();
+  intptr_t GetStackDepth() const;
+  bool IsStackEmpty() const;
   ArgumentArray GetArguments(int count);
   void PropagateStackState(intptr_t target_pc);
+  void DropUnusedValuesFromStack();
   void BuildJumpIfStrictCompare(Token::Kind cmp_kind);
+  void BuildPrimitiveOp(const String& name,
+                        Token::Kind token_kind,
+                        const AbstractType& static_receiver_type,
+                        int num_args);
   void BuildIntOp(const String& name, Token::Kind token_kind, int num_args);
+  void BuildDoubleOp(const String& name, Token::Kind token_kind, int num_args);
+  void BuildInterfaceCallCommon(bool is_unchecked_call);
 
   void BuildInstruction(KernelBytecode::Opcode opcode);
 

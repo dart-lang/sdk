@@ -22,8 +22,6 @@ class Flags {
   static const String enableCheckedMode = '--enable-checked-mode';
   static const String enableAsserts = '--enable-asserts';
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
-  static const String enableExperimentalMirrors =
-      '--enable-experimental-mirrors';
   static const String experimentalTrackAllocations =
       '--experimental-track-allocations';
   static const String experimentalAllocationsPath =
@@ -42,6 +40,8 @@ class Flags {
   // Add instrumentation to log every method call.
   static const String experimentCallInstrumentation =
       '--experiment-call-instrumentation';
+
+  static const String experimentNewRti = '--experiment-new-rti';
 
   static const String enableLanguageExperiments = '--enable-experiment';
 
@@ -81,9 +81,11 @@ class Flags {
   static const String progress = '--show-internal-progress';
   static const String version = '--version';
 
+  static const String dillDependencies = '--dill-dependencies';
   static const String readData = '--read-data';
   static const String writeData = '--write-data';
   static const String cfeOnly = '--cfe-only';
+  static const String debugGlobalInference = '--debug-global-inference';
 
   static const String serverMode = '--server-mode';
 

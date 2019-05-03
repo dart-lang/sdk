@@ -100,15 +100,20 @@ class DeadStoreElimination : public AllStatic {
 
 class DeadCodeElimination : public AllStatic {
  public:
+  // Discover phis that have no real (non-phi) uses and don't escape into
+  // deoptimization environments and eliminate them.
   static void EliminateDeadPhis(FlowGraph* graph);
+
+  // Remove phis that are not marked alive from the graph.
+  static void RemoveDeadAndRedundantPhisFromTheGraph(FlowGraph* graph);
 };
 
 // Optimize spill stores inside try-blocks by identifying values that always
 // contain a single known constant at catch block entry.
-class TryCatchAnalyzer : public AllStatic {
- public:
-  static void Optimize(FlowGraph* flow_graph);
-};
+// If is_aot is passed then this optimization can assume that no deoptimization
+// can occur and environments assigned to instructions are only used to
+// compute try/catch sync moves.
+void OptimizeCatchEntryStates(FlowGraph* flow_graph, bool is_aot);
 
 // Loop invariant code motion.
 class LICM : public ValueObject {

@@ -59,6 +59,14 @@ class Class {
 
   /*element: Class.constructor7c:invoke=(1,c)*/
   Class.constructor7c(a, {b, c}) {}
+
+  /*element: Class.constructor8a:invoke=(0)*/
+  @pragma('dart2js:noElision')
+  Class.constructor8a([a, b]) {}
+
+  /*element: Class.constructor8b:invoke=(0)*/
+  @pragma('dart2js:noElision')
+  Class.constructor8b({a, b}) {}
 }
 
 /*element: main:invoke*/
@@ -92,4 +100,7 @@ main() {
   new Class.constructor7a(null);
   new Class.constructor7b(null, b: null);
   new Class.constructor7c(null, c: null);
+
+  new Class.constructor8a();
+  new Class.constructor8b();
 }

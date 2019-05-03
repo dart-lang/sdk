@@ -317,6 +317,8 @@ class RegExpCompiler : public ValueObject {
 
   inline bool ignore_case() { return ignore_case_; }
   inline bool one_byte() const { return is_one_byte_; }
+  bool read_backward() { return read_backward_; }
+  void set_read_backward(bool value) { read_backward_ = value; }
   FrequencyCollator* frequency_collator() { return &frequency_collator_; }
 
   intptr_t current_expansion_factor() { return current_expansion_factor_; }
@@ -337,6 +339,7 @@ class RegExpCompiler : public ValueObject {
   bool ignore_case_;
   bool is_one_byte_;
   bool reg_exp_too_big_;
+  bool read_backward_;
   intptr_t current_expansion_factor_;
   FrequencyCollator frequency_collator_;
   Zone* zone_;
@@ -368,6 +371,7 @@ RegExpCompiler::RegExpCompiler(intptr_t capture_count,
       ignore_case_(ignore_case),
       is_one_byte_(is_one_byte),
       reg_exp_too_big_(false),
+      read_backward_(false),
       current_expansion_factor_(1),
       zone_(Thread::Current()->zone()) {
   accept_ = new (Z) EndNode(EndNode::ACCEPT, Z);
@@ -520,7 +524,8 @@ void Trace::PerformDeferredActions(RegExpMacroAssembler* assembler,
     intptr_t value = 0;
     bool absolute = false;
     bool clear = false;
-    intptr_t store_position = -1;
+    static const intptr_t kNoStore = kMinInt32;
+    intptr_t store_position = kNoStore;
     // This is a little tricky because we are scanning the actions in reverse
     // historical order (newest first).
     for (DeferredAction* action = actions_; action != NULL;
@@ -540,7 +545,7 @@ void Trace::PerformDeferredActions(RegExpMacroAssembler* assembler,
             // can set undo_action to ACTION_IGNORE if we know there is no
             // value to restore.
             undo_action = ACTION_RESTORE;
-            ASSERT(store_position == -1);
+            ASSERT(store_position == kNoStore);
             ASSERT(!clear);
             break;
           }
@@ -548,14 +553,14 @@ void Trace::PerformDeferredActions(RegExpMacroAssembler* assembler,
             if (!absolute) {
               value++;
             }
-            ASSERT(store_position == -1);
+            ASSERT(store_position == kNoStore);
             ASSERT(!clear);
             undo_action = ACTION_RESTORE;
             break;
           case ActionNode::STORE_POSITION: {
             Trace::DeferredCapture* pc =
                 static_cast<Trace::DeferredCapture*>(action);
-            if (!clear && store_position == -1) {
+            if (!clear && store_position == kNoStore) {
               store_position = pc->cp_offset();
             }
 
@@ -579,7 +584,7 @@ void Trace::PerformDeferredActions(RegExpMacroAssembler* assembler,
             // Since we're scanning in reverse order, if we've already
             // set the position we have to ignore historically earlier
             // clearing operations.
-            if (store_position == -1) {
+            if (store_position == kNoStore) {
               clear = true;
             }
             undo_action = ACTION_RESTORE;
@@ -602,7 +607,7 @@ void Trace::PerformDeferredActions(RegExpMacroAssembler* assembler,
     }
     // Perform the chronologically last action (or accumulated increment)
     // for the register.
-    if (store_position != -1) {
+    if (store_position != kNoStore) {
       assembler->WriteCurrentPositionToRegister(reg, store_position);
     } else if (clear) {
       assembler->ClearRegisters(reg, reg);
@@ -979,7 +984,7 @@ static inline bool EmitAtomLetter(Zone* zone,
     }
     case 4:
       macro_assembler->CheckCharacter(chars[3], &ok);
-    // Fall through!
+      FALL_THROUGH;
     case 3:
       macro_assembler->CheckCharacter(chars[0], &ok);
       macro_assembler->CheckCharacter(chars[1], &ok);
@@ -1494,6 +1499,7 @@ void AssertionNode::FillInBMInfo(intptr_t offset,
 intptr_t BackReferenceNode::EatsAtLeast(intptr_t still_to_find,
                                         intptr_t budget,
                                         bool not_at_start) {
+  if (read_backward()) return 0;
   if (budget <= 0) return 0;
   return on_success()->EatsAtLeast(still_to_find, budget - 1, not_at_start);
 }
@@ -1501,6 +1507,7 @@ intptr_t BackReferenceNode::EatsAtLeast(intptr_t still_to_find,
 intptr_t TextNode::EatsAtLeast(intptr_t still_to_find,
                                intptr_t budget,
                                bool not_at_start) {
+  if (read_backward()) return 0;
   intptr_t answer = Length();
   if (answer >= still_to_find) return answer;
   if (budget <= 0) return answer;
@@ -1509,9 +1516,9 @@ intptr_t TextNode::EatsAtLeast(intptr_t still_to_find,
          on_success()->EatsAtLeast(still_to_find - answer, budget - 1, true);
 }
 
-intptr_t NegativeLookaheadChoiceNode::EatsAtLeast(intptr_t still_to_find,
-                                                  intptr_t budget,
-                                                  bool not_at_start) {
+intptr_t NegativeLookaroundChoiceNode::EatsAtLeast(intptr_t still_to_find,
+                                                   intptr_t budget,
+                                                   bool not_at_start) {
   if (budget <= 0) return 0;
   // Alternative 0 is the negative lookahead, alternative 1 is what comes
   // afterwards.
@@ -1519,7 +1526,7 @@ intptr_t NegativeLookaheadChoiceNode::EatsAtLeast(intptr_t still_to_find,
   return node->EatsAtLeast(still_to_find, budget - 1, not_at_start);
 }
 
-void NegativeLookaheadChoiceNode::GetQuickCheckDetails(
+void NegativeLookaroundChoiceNode::GetQuickCheckDetails(
     QuickCheckDetails* details,
     RegExpCompiler* compiler,
     intptr_t filled_in,
@@ -1682,6 +1689,9 @@ void TextNode::GetQuickCheckDetails(QuickCheckDetails* details,
   ASSERT(details->characters() == 1 ||
          (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__));
 #endif
+  // Do not collect any quick check details if the text node reads backward,
+  // since it reads in the opposite direction than we use for quick checks.
+  if (read_backward()) return;
   ASSERT(characters_filled_in < details->characters());
   intptr_t characters = details->characters();
   intptr_t char_mask;
@@ -1838,8 +1848,9 @@ void QuickCheckDetails::Clear() {
 }
 
 void QuickCheckDetails::Advance(intptr_t by, bool one_byte) {
-  ASSERT(by >= 0);
-  if (by >= characters_) {
+  if (by >= characters_ || by < 0) {
+    // check that by < 0 => characters_ == 0
+    ASSERT(by >= 0 || characters_ == 0);
     Clear();
     return;
   }
@@ -2060,8 +2071,8 @@ RegExpNode* ChoiceNode::FilterOneByte(intptr_t depth, bool ignore_case) {
   return this;
 }
 
-RegExpNode* NegativeLookaheadChoiceNode::FilterOneByte(intptr_t depth,
-                                                       bool ignore_case) {
+RegExpNode* NegativeLookaroundChoiceNode::FilterOneByte(intptr_t depth,
+                                                        bool ignore_case) {
   if (info()->replacement_calculated) return replacement();
   if (depth < 0) return this;
   if (info()->visited) return this;
@@ -2294,9 +2305,9 @@ void AssertionNode::Emit(RegExpCompiler* compiler, Trace* trace) {
         return;
       }
       if (trace->at_start() == Trace::UNKNOWN) {
-        assembler->CheckNotAtStart(trace->backtrack());
+        assembler->CheckNotAtStart(trace->cp_offset(), trace->backtrack());
         Trace at_start_trace = *trace;
-        at_start_trace.set_at_start(true);
+        at_start_trace.set_at_start(Trace::TRUE_VALUE);
         on_success()->Emit(compiler, &at_start_trace);
         return;
       }
@@ -2365,9 +2376,10 @@ void TextNode::TextEmitPass(RegExpCompiler* compiler,
   BlockLabel* backtrack = trace->backtrack();
   QuickCheckDetails* quick_check = trace->quick_check_performed();
   intptr_t element_count = elms_->length();
+  intptr_t backward_offset = read_backward() ? -Length() : 0;
   for (intptr_t i = preloaded ? 0 : element_count - 1; i >= 0; i--) {
     TextElement elm = elms_->At(i);
-    intptr_t cp_offset = trace->cp_offset() + elm.cp_offset();
+    intptr_t cp_offset = trace->cp_offset() + elm.cp_offset() + backward_offset;
     if (elm.text_type() == TextElement::ATOM) {
       ZoneGrowableArray<uint16_t>* quarks = elm.atom()->data();
       for (intptr_t j = preloaded ? 0 : quarks->length() - 1; j >= 0; j--) {
@@ -2395,9 +2407,11 @@ void TextNode::TextEmitPass(RegExpCompiler* compiler,
             break;
         }
         if (emit_function != NULL) {
-          bool bound_checked = emit_function(
-              Z, compiler, quarks->At(j), backtrack, cp_offset + j,
-              *checked_up_to < cp_offset + j, preloaded);
+          const bool bounds_check =
+              *checked_up_to < (cp_offset + j) || read_backward();
+          bool bound_checked =
+              emit_function(Z, compiler, quarks->At(j), backtrack,
+                            cp_offset + j, bounds_check, preloaded);
           if (bound_checked) UpdateBoundsCheck(cp_offset + j, checked_up_to);
         }
       }
@@ -2407,8 +2421,9 @@ void TextNode::TextEmitPass(RegExpCompiler* compiler,
         if (first_element_checked && i == 0) continue;
         if (DeterminedAlready(quick_check, elm.cp_offset())) continue;
         RegExpCharacterClass* cc = elm.char_class();
+        bool bounds_check = *checked_up_to < cp_offset || read_backward();
         EmitCharClass(assembler, cc, one_byte, backtrack, cp_offset,
-                      *checked_up_to < cp_offset, preloaded, Z);
+                      bounds_check, preloaded, Z);
         UpdateBoundsCheck(cp_offset, checked_up_to);
       }
     }
@@ -2475,8 +2490,11 @@ void TextNode::Emit(RegExpCompiler* compiler, Trace* trace) {
   }
 
   Trace successor_trace(*trace);
-  successor_trace.set_at_start(false);
-  successor_trace.AdvanceCurrentPositionInTrace(Length(), compiler);
+  // If we advance backward, we may end up at the start.
+  successor_trace.AdvanceCurrentPositionInTrace(
+      read_backward() ? -Length() : Length(), compiler);
+  successor_trace.set_at_start(read_backward() ? Trace::UNKNOWN
+                                               : Trace::FALSE_VALUE);
   RecursionCheck rc(compiler);
   on_success()->Emit(compiler, &successor_trace);
 }
@@ -2487,7 +2505,6 @@ void Trace::InvalidateCurrentCharacter() {
 
 void Trace::AdvanceCurrentPositionInTrace(intptr_t by,
                                           RegExpCompiler* compiler) {
-  ASSERT(by > 0);
   // We don't have an instruction for shifting the current character register
   // down or for using a shifted value for anything so lets just forget that
   // we preloaded any characters into it.
@@ -2530,6 +2547,7 @@ intptr_t TextNode::GreedyLoopTextLength() {
 
 RegExpNode* TextNode::GetSuccessorOfOmnivorousTextNode(
     RegExpCompiler* compiler) {
+  if (read_backward()) return nullptr;
   if (elms_->length() != 1) return NULL;
   TextElement elm = elms_->At(0);
   if (elm.text_type() != TextElement::CHAR_CLASS) return NULL;
@@ -2574,7 +2592,7 @@ intptr_t ChoiceNode::GreedyLoopTextLengthForAlternative(
     SeqRegExpNode* seq_node = static_cast<SeqRegExpNode*>(node);
     node = seq_node->on_success();
   }
-  return length;
+  return read_backward() ? -length : length;
 }
 
 void LoopChoiceNode::AddLoopAlternative(GuardedAlternative alt) {
@@ -3002,7 +3020,7 @@ void BoyerMooreLookahead::EmitSkipInstructions(RegExpMacroAssembler* masm) {
 
 GreedyLoopState::GreedyLoopState(bool not_at_start) {
   counter_backtrack_trace_.set_backtrack(&label_);
-  if (not_at_start) counter_backtrack_trace_.set_at_start(false);
+  if (not_at_start) counter_backtrack_trace_.set_at_start(Trace::FALSE_VALUE);
 }
 
 void ChoiceNode::AssertGuardsMentionRegisters(Trace* trace) {
@@ -3115,7 +3133,7 @@ Trace* ChoiceNode::EmitGreedyLoop(RegExpCompiler* compiler,
   macro_assembler->PushCurrentPosition();
   BlockLabel greedy_match_failed;
   Trace greedy_match_trace;
-  if (not_at_start()) greedy_match_trace.set_at_start(false);
+  if (not_at_start()) greedy_match_trace.set_at_start(Trace::FALSE_VALUE);
   greedy_match_trace.set_backtrack(&greedy_match_failed);
   BlockLabel loop_label;
   macro_assembler->BindBlock(&loop_label);
@@ -3446,10 +3464,15 @@ void BackReferenceNode::Emit(RegExpCompiler* compiler, Trace* trace) {
 
   ASSERT(start_reg_ + 1 == end_reg_);
   if (compiler->ignore_case()) {
-    assembler->CheckNotBackReferenceIgnoreCase(start_reg_, trace->backtrack());
+    assembler->CheckNotBackReferenceIgnoreCase(start_reg_, read_backward(),
+                                               trace->backtrack());
   } else {
-    assembler->CheckNotBackReference(start_reg_, trace->backtrack());
+    assembler->CheckNotBackReference(start_reg_, read_backward(),
+                                     trace->backtrack());
   }
+  // We are going to advance backward, so we may end up at the start.
+  if (read_backward()) trace->set_at_start(Trace::UNKNOWN);
+
   on_success()->Emit(compiler, trace);
 }
 
@@ -3694,7 +3717,7 @@ RegExpNode* RegExpAtom::ToNode(RegExpCompiler* compiler,
   ZoneGrowableArray<TextElement>* elms =
       new (OZ) ZoneGrowableArray<TextElement>(1);
   elms->Add(TextElement::Atom(this));
-  return new (OZ) TextNode(elms, on_success);
+  return new (OZ) TextNode(elms, compiler->read_backward(), on_success);
 }
 
 RegExpNode* RegExpText::ToNode(RegExpCompiler* compiler,
@@ -3704,7 +3727,7 @@ RegExpNode* RegExpText::ToNode(RegExpCompiler* compiler,
   for (intptr_t i = 0; i < elements()->length(); i++) {
     elms->Add(elements()->At(i));
   }
-  return new (OZ) TextNode(elms, on_success);
+  return new (OZ) TextNode(elms, compiler->read_backward(), on_success);
 }
 
 static bool CompareInverseRanges(ZoneGrowableArray<CharacterRange>* ranges,
@@ -3795,7 +3818,7 @@ bool RegExpCharacterClass::is_standard() {
 
 RegExpNode* RegExpCharacterClass::ToNode(RegExpCompiler* compiler,
                                          RegExpNode* on_success) {
-  return new (OZ) TextNode(this, on_success);
+  return new (OZ) TextNode(this, compiler->read_backward(), on_success);
 }
 
 RegExpNode* RegExpDisjunction::ToNode(RegExpCompiler* compiler,
@@ -3931,7 +3954,9 @@ RegExpNode* RegExpQuantifier::ToNode(intptr_t min,
                 GuardedAlternative(body->ToNode(compiler, answer)));
           }
           answer = alternation;
-          if (not_at_start) alternation->set_not_at_start();
+          if (not_at_start && !compiler->read_backward()) {
+            alternation->set_not_at_start();
+          }
         }
         return answer;
       }
@@ -3942,9 +3967,9 @@ RegExpNode* RegExpQuantifier::ToNode(intptr_t min,
   bool needs_counter = has_min || has_max;
   intptr_t reg_ctr = needs_counter ? compiler->AllocateRegister()
                                    : RegExpCompiler::kNoRegister;
-  LoopChoiceNode* center =
-      new (zone) LoopChoiceNode(body->min_match() == 0, zone);
-  if (not_at_start) center->set_not_at_start();
+  LoopChoiceNode* center = new (zone)
+      LoopChoiceNode(body->min_match() == 0, compiler->read_backward(), zone);
+  if (not_at_start && !compiler->read_backward()) center->set_not_at_start();
   RegExpNode* loop_return =
       needs_counter ? static_cast<RegExpNode*>(
                           ActionNode::IncrementRegister(reg_ctr, center))
@@ -4015,12 +4040,13 @@ RegExpNode* RegExpAssertion::ToNode(RegExpCompiler* compiler,
           new ZoneGrowableArray<CharacterRange>(3);
       CharacterRange::AddClassEscape('n', newline_ranges);
       RegExpCharacterClass* newline_atom = new RegExpCharacterClass('n');
-      TextNode* newline_matcher = new TextNode(
-          newline_atom, ActionNode::PositiveSubmatchSuccess(
-                            stack_pointer_register, position_register,
-                            0,   // No captures inside.
-                            -1,  // Ignored if no captures.
-                            on_success));
+      TextNode* newline_matcher =
+          new TextNode(newline_atom, /*read_backwards=*/false,
+                       ActionNode::PositiveSubmatchSuccess(
+                           stack_pointer_register, position_register,
+                           0,   // No captures inside.
+                           -1,  // Ignored if no captures.
+                           on_success));
       // Create an end-of-input matcher.
       RegExpNode* end_of_line = ActionNode::BeginSubmatch(
           stack_pointer_register, position_register, newline_matcher);
@@ -4039,9 +4065,9 @@ RegExpNode* RegExpAssertion::ToNode(RegExpCompiler* compiler,
 
 RegExpNode* RegExpBackReference::ToNode(RegExpCompiler* compiler,
                                         RegExpNode* on_success) {
-  return new (OZ)
-      BackReferenceNode(RegExpCapture::StartRegister(index()),
-                        RegExpCapture::EndRegister(index()), on_success);
+  return new (OZ) BackReferenceNode(RegExpCapture::StartRegister(index()),
+                                    RegExpCapture::EndRegister(index()),
+                                    compiler->read_backward(), on_success);
 }
 
 RegExpNode* RegExpEmpty::ToNode(RegExpCompiler* compiler,
@@ -4049,8 +4075,47 @@ RegExpNode* RegExpEmpty::ToNode(RegExpCompiler* compiler,
   return on_success;
 }
 
-RegExpNode* RegExpLookahead::ToNode(RegExpCompiler* compiler,
-                                    RegExpNode* on_success) {
+RegExpLookaround::Builder::Builder(bool is_positive,
+                                   RegExpNode* on_success,
+                                   intptr_t stack_pointer_register,
+                                   intptr_t position_register,
+                                   intptr_t capture_register_count,
+                                   intptr_t capture_register_start)
+    : is_positive_(is_positive),
+      on_success_(on_success),
+      stack_pointer_register_(stack_pointer_register),
+      position_register_(position_register) {
+  if (is_positive_) {
+    on_match_success_ = ActionNode::PositiveSubmatchSuccess(
+        stack_pointer_register, position_register, capture_register_count,
+        capture_register_start, on_success);
+  } else {
+    on_match_success_ = new (OZ) NegativeSubmatchSuccess(
+        stack_pointer_register, position_register, capture_register_count,
+        capture_register_start, OZ);
+  }
+}
+
+RegExpNode* RegExpLookaround::Builder::ForMatch(RegExpNode* match) {
+  if (is_positive_) {
+    return ActionNode::BeginSubmatch(stack_pointer_register_,
+                                     position_register_, match);
+  } else {
+    Zone* zone = on_success_->zone();
+    // We use a ChoiceNode to represent the negative lookaround. The first
+    // alternative is the negative match. On success, the end node backtracks.
+    // On failure, the second alternative is tried and leads to success.
+    // NegativeLookaroundChoiceNode is a special ChoiceNode that ignores the
+    // first exit when calculating quick checks.
+    ChoiceNode* choice_node = new (zone) NegativeLookaroundChoiceNode(
+        GuardedAlternative(match), GuardedAlternative(on_success_), zone);
+    return ActionNode::BeginSubmatch(stack_pointer_register_,
+                                     position_register_, choice_node);
+  }
+}
+
+RegExpNode* RegExpLookaround::ToNode(RegExpCompiler* compiler,
+                                     RegExpNode* on_success) {
   intptr_t stack_pointer_register = compiler->AllocateRegister();
   intptr_t position_register = compiler->AllocateRegister();
 
@@ -4060,36 +4125,15 @@ RegExpNode* RegExpLookahead::ToNode(RegExpCompiler* compiler,
   intptr_t register_start =
       register_of_first_capture + capture_from_ * registers_per_capture;
 
-  RegExpNode* success;
-  if (is_positive()) {
-    RegExpNode* node = ActionNode::BeginSubmatch(
-        stack_pointer_register, position_register,
-        body()->ToNode(compiler,
-                       ActionNode::PositiveSubmatchSuccess(
-                           stack_pointer_register, position_register,
-                           register_count, register_start, on_success)));
-    return node;
-  } else {
-    // We use a ChoiceNode for a negative lookahead because it has most of
-    // the characteristics we need.  It has the body of the lookahead as its
-    // first alternative and the expression after the lookahead of the second
-    // alternative.  If the first alternative succeeds then the
-    // NegativeSubmatchSuccess will unwind the stack including everything the
-    // choice node set up and backtrack.  If the first alternative fails then
-    // the second alternative is tried, which is exactly the desired result
-    // for a negative lookahead.  The NegativeLookaheadChoiceNode is a special
-    // ChoiceNode that knows to ignore the first exit when calculating quick
-    // checks.
-
-    GuardedAlternative body_alt(
-        body()->ToNode(compiler, success = new (OZ) NegativeSubmatchSuccess(
-                                     stack_pointer_register, position_register,
-                                     register_count, register_start, OZ)));
-    ChoiceNode* choice_node = new (OZ) NegativeLookaheadChoiceNode(
-        body_alt, GuardedAlternative(on_success), OZ);
-    return ActionNode::BeginSubmatch(stack_pointer_register, position_register,
-                                     choice_node);
-  }
+  RegExpNode* result;
+  bool was_reading_backward = compiler->read_backward();
+  compiler->set_read_backward(type() == LOOKBEHIND);
+  Builder builder(is_positive(), on_success, stack_pointer_register,
+                  position_register, register_count, register_start);
+  RegExpNode* match = body_->ToNode(compiler, builder.on_match_success());
+  result = builder.ForMatch(match);
+  compiler->set_read_backward(was_reading_backward);
+  return result;
 }
 
 RegExpNode* RegExpCapture::ToNode(RegExpCompiler* compiler,
@@ -4101,8 +4145,14 @@ RegExpNode* RegExpCapture::ToNode(RegExpTree* body,
                                   intptr_t index,
                                   RegExpCompiler* compiler,
                                   RegExpNode* on_success) {
+  ASSERT(body != nullptr);
   intptr_t start_reg = RegExpCapture::StartRegister(index);
   intptr_t end_reg = RegExpCapture::EndRegister(index);
+  if (compiler->read_backward()) {
+    intptr_t tmp = end_reg;
+    end_reg = start_reg;
+    start_reg = tmp;
+  }
   RegExpNode* store_end = ActionNode::StorePosition(end_reg, true, on_success);
   RegExpNode* body_node = body->ToNode(compiler, store_end);
   return ActionNode::StorePosition(start_reg, true, body_node);
@@ -4112,8 +4162,14 @@ RegExpNode* RegExpAlternative::ToNode(RegExpCompiler* compiler,
                                       RegExpNode* on_success) {
   ZoneGrowableArray<RegExpTree*>* children = nodes();
   RegExpNode* current = on_success;
-  for (intptr_t i = children->length() - 1; i >= 0; i--) {
-    current = children->At(i)->ToNode(compiler, current);
+  if (compiler->read_backward()) {
+    for (intptr_t i = 0; i < children->length(); i++) {
+      current = children->At(i)->ToNode(compiler, current);
+    }
+  } else {
+    for (intptr_t i = children->length() - 1; i >= 0; i--) {
+      current = children->At(i)->ToNode(compiler, current);
+    }
   }
   return current;
 }
@@ -4686,8 +4742,9 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
       // at the start of input.
       ChoiceNode* first_step_node = new (zone) ChoiceNode(2, zone);
       first_step_node->AddAlternative(GuardedAlternative(captured_body));
-      first_step_node->AddAlternative(GuardedAlternative(new (zone) TextNode(
-          new (zone) RegExpCharacterClass('*'), loop_node)));
+      first_step_node->AddAlternative(GuardedAlternative(
+          new (zone) TextNode(new (zone) RegExpCharacterClass('*'),
+                              /*read_backwards=*/false, loop_node)));
       node = first_step_node;
     } else {
       node = loop_node;
@@ -4789,8 +4846,9 @@ RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
       // at the start of input.
       ChoiceNode* first_step_node = new (zone) ChoiceNode(2, zone);
       first_step_node->AddAlternative(GuardedAlternative(captured_body));
-      first_step_node->AddAlternative(GuardedAlternative(new (zone) TextNode(
-          new (zone) RegExpCharacterClass('*'), loop_node)));
+      first_step_node->AddAlternative(GuardedAlternative(
+          new (zone) TextNode(new (zone) RegExpCharacterClass('*'),
+                              /*read_backwards=*/false, loop_node)));
       node = first_step_node;
     } else {
       node = loop_node;

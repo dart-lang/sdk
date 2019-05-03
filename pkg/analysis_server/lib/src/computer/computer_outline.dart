@@ -3,33 +3,32 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
+import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart' as engine;
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /**
  * A computer for [CompilationUnit] outline.
  */
 class DartUnitOutlineComputer {
-  final String file;
-  final CompilationUnit unit;
-  final LineInfo lineInfo;
+  final ResolvedUnitResult resolvedUnit;
   final bool withBasicFlutter;
+  final Flutter flutter;
 
-  DartUnitOutlineComputer(this.file, this.lineInfo, this.unit,
-      {this.withBasicFlutter: false});
+  DartUnitOutlineComputer(this.resolvedUnit, {this.withBasicFlutter: false})
+      : flutter = Flutter.of(resolvedUnit.session);
 
   /**
    * Returns the computed outline, not `null`.
    */
   Outline compute() {
     List<Outline> unitContents = <Outline>[];
-    for (CompilationUnitMember unitMember in unit.declarations) {
+    for (CompilationUnitMember unitMember in resolvedUnit.unit.declarations) {
       if (unitMember is ClassDeclaration) {
         unitContents.add(_newClassOutline(
             unitMember, _outlinesForMembers(unitMember.members)));
@@ -85,10 +84,11 @@ class DartUnitOutlineComputer {
   }
 
   Location _getLocationOffsetLength(int offset, int length) {
-    CharacterLocation lineLocation = lineInfo.getLocation(offset);
+    CharacterLocation lineLocation = resolvedUnit.lineInfo.getLocation(offset);
     int startLine = lineLocation.lineNumber;
     int startColumn = lineLocation.columnNumber;
-    return new Location(file, offset, length, startLine, startColumn);
+    return new Location(
+        resolvedUnit.path, offset, length, startLine, startColumn);
   }
 
   Outline _newClassOutline(ClassDeclaration node, List<Outline> classContents) {
@@ -229,10 +229,10 @@ class DartUnitOutlineComputer {
 
   Outline _newGenericTypeAliasOutline(GenericTypeAlias node) {
     var functionType = node.functionType;
-    TypeAnnotation returnType = functionType.returnType;
+    TypeAnnotation returnType = functionType?.returnType;
     SimpleIdentifier nameNode = node.name;
     String name = nameNode.name;
-    FormalParameterList parameters = functionType.parameters;
+    FormalParameterList parameters = functionType?.parameters;
     String parametersStr = _safeToSource(parameters);
     String returnTypeStr = _safeToSource(returnType);
     Element element = new Element(
@@ -297,8 +297,8 @@ class DartUnitOutlineComputer {
   Outline _newUnitOutline(List<Outline> unitContents) {
     Element element = new Element(
         ElementKind.COMPILATION_UNIT, '<unit>', Element.makeFlags(),
-        location: _getLocationNode(unit));
-    return _nodeOutline(unit, element, unitContents);
+        location: _getLocationNode(resolvedUnit.unit));
+    return _nodeOutline(resolvedUnit.unit, element, unitContents);
   }
 
   Outline _newVariableOutline(String typeName, ElementKind kind,
@@ -434,12 +434,13 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
 
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (outlineComputer.withBasicFlutter && flutter.isWidgetCreation(node)) {
+    if (outlineComputer.withBasicFlutter &&
+        outlineComputer.flutter.isWidgetCreation(node)) {
       List<Outline> children = <Outline>[];
       node.argumentList
           .accept(new _FunctionBodyOutlinesVisitor(outlineComputer, children));
 
-      String text = flutter.getWidgetPresentationText(node);
+      String text = outlineComputer.flutter.getWidgetPresentationText(node);
       Element element = new Element(ElementKind.CONSTRUCTOR_INVOCATION, text, 0,
           location: outlineComputer._getLocationOffsetLength(node.offset, 0));
 

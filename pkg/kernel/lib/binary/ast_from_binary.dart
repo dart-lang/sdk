@@ -239,6 +239,15 @@ class BinaryBuilder {
           entries[i] = readConstantReference();
         }
         return new ListConstant(typeArgument, entries);
+      case ConstantTag.SetConstant:
+        final DartType typeArgument = readDartType();
+        final int length = readUInt();
+        final List<Constant> entries =
+            new List<Constant>.filled(length, null, growable: true);
+        for (int i = 0; i < length; i++) {
+          entries[i] = readConstantReference();
+        }
+        return new SetConstant(typeArgument, entries);
       case ConstantTag.InstanceConstant:
         final Reference classReference = readClassReference();
         final int typeArgumentCount = readUInt();
@@ -687,7 +696,11 @@ class BinaryBuilder {
         lineStarts[j] = lineStart;
         previousLineStart = lineStart;
       }
-      uriToSource[uri] = new Source(lineStarts, sourceCode);
+      List<int> importUriBytes = readByteList();
+      Uri importUri = importUriBytes.isEmpty
+          ? null
+          : Uri.parse(const Utf8Decoder().convert(importUriBytes));
+      uriToSource[uri] = new Source(lineStarts, sourceCode, importUri, uri);
     }
 
     // Read index.
@@ -1502,6 +1515,45 @@ class BinaryBuilder {
         int offset = readOffset();
         return new StringConcatenation(readExpressionList())
           ..fileOffset = offset;
+      case Tag.ListConcatenation:
+        int offset = readOffset();
+        var typeArgument = readDartType();
+        return new ListConcatenation(readExpressionList(),
+            typeArgument: typeArgument)
+          ..fileOffset = offset;
+      case Tag.SetConcatenation:
+        int offset = readOffset();
+        var typeArgument = readDartType();
+        return new SetConcatenation(readExpressionList(),
+            typeArgument: typeArgument)
+          ..fileOffset = offset;
+      case Tag.MapConcatenation:
+        int offset = readOffset();
+        var keyType = readDartType();
+        var valueType = readDartType();
+        return new MapConcatenation(readExpressionList(),
+            keyType: keyType, valueType: valueType)
+          ..fileOffset = offset;
+      case Tag.InstanceCreation:
+        int offset = readOffset();
+        Reference classReference = readClassReference();
+        List<DartType> typeArguments = readDartTypeList();
+        int fieldValueCount = readUInt();
+        Map<Reference, Expression> fieldValues = <Reference, Expression>{};
+        for (int i = 0; i < fieldValueCount; i++) {
+          final Reference fieldRef =
+              readCanonicalNameReference().getReference();
+          final Expression value = readExpression();
+          fieldValues[fieldRef] = value;
+        }
+        int assertCount = readUInt();
+        List<AssertStatement> asserts = new List<AssertStatement>(assertCount);
+        for (int i = 0; i < assertCount; i++) {
+          asserts[i] = readStatement();
+        }
+        return new InstanceCreation(
+            classReference, typeArguments, fieldValues, asserts)
+          ..fileOffset = offset;
       case Tag.IsExpression:
         int offset = readOffset();
         return new IsExpression(readExpression(), readDartType())
@@ -1593,12 +1645,21 @@ class BinaryBuilder {
         var body = readExpression();
         variableStack.length = stackHeight;
         return new Let(variable, body);
+      case Tag.BlockExpression:
+        int stackHeight = variableStack.length;
+        var statements = readStatementList();
+        var value = readExpression();
+        variableStack.length = stackHeight;
+        return new BlockExpression(new Block(statements), value);
       case Tag.Instantiation:
         var expression = readExpression();
         var typeArguments = readDartTypeList();
         return new Instantiation(expression, typeArguments);
       case Tag.ConstantExpression:
-        return new ConstantExpression(readConstantReference());
+        int offset = readOffset();
+        DartType type = readDartType();
+        Constant constant = readConstantReference();
+        return new ConstantExpression(constant, type)..fileOffset = offset;
       default:
         throw fail('unexpected expression tag: $tag');
     }

@@ -77,6 +77,7 @@ D:
     C._field
 
 Object with C<B>:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: C<B>
@@ -112,6 +113,7 @@ Object with C<B>:
     C._field
 
 Foo:
+  Longest path to Object: 3
   superclasses:
     Object
       -> _Foo&Object&C

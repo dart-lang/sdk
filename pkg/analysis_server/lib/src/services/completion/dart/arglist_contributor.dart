@@ -8,7 +8,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -182,6 +182,7 @@ class ArgListContributor extends DartCompletionContributor {
       // Optionally add Flutter child widget details.
       Element element = parameter.enclosingElement;
       if (element is ConstructorElement) {
+        var flutter = Flutter.of(request.result.session);
         if (flutter.isWidget(element.enclosingElement)) {
           String value = getDefaultStringParameterValue(parameter);
           if (value == '<Widget>[]') {
@@ -212,7 +213,6 @@ class ArgListContributor extends DartCompletionContributor {
       if (parameter is FieldFormalParameterElement) {
         _setDocumentation(suggestion, parameter.field?.documentationComment);
         suggestion.element = convertElement(parameter);
-        suggestion.elementUri = parameter.source.toString();
       }
 
       suggestions.add(suggestion);
@@ -260,6 +260,7 @@ class ArgListContributor extends DartCompletionContributor {
   }
 
   bool _isInFlutterCreation(DartCompletionRequest request) {
+    var flutter = Flutter.of(request.result.session);
     AstNode containingNode = request?.target?.containingNode;
     InstanceCreationExpression newExpr = containingNode != null
         ? flutter.identifyNewExpression(containingNode.parent)

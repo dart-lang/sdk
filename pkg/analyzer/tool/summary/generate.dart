@@ -2,57 +2,55 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * This file contains code to generate serialization/deserialization logic for
- * summaries based on an "IDL" description of the summary format (written in
- * stylized Dart).
- *
- * For each class in the "IDL" input, two corresponding classes are generated:
- * - A class with the same name which represents deserialized summary data in
- *   memory.  This class has read-only semantics.
- * - A "builder" class which can be used to generate serialized summary data.
- *   This class has write-only semantics.
- *
- * Each of the "builder" classes has a single `finish` method which writes
- * the entity being built into the given FlatBuffer and returns the `Offset`
- * reference to it.
- */
+/// This file contains code to generate serialization/deserialization logic for
+/// summaries based on an "IDL" description of the summary format (written in
+/// stylized Dart).
+///
+/// For each class in the "IDL" input, two corresponding classes are generated:
+/// - A class with the same name which represents deserialized summary data in
+///   memory.  This class has read-only semantics.
+/// - A "builder" class which can be used to generate serialized summary data.
+///   This class has write-only semantics.
+///
+/// Each of the "builder" classes has a single `finish` method which writes
+/// the entity being built into the given FlatBuffer and returns the `Offset`
+/// reference to it.
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_tool/tools.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/scanner/token.dart' show Token;
-import 'package:front_end/src/testing/package_root.dart' as package_root;
-import 'package:path/path.dart';
 
 import 'idl_model.dart' as idlModel;
 import 'mini_ast.dart';
 
-main() async {
-  String pkgPath = normalize(join(package_root.packageRoot, 'analyzer'));
-  await GeneratedContent.generateAll(pkgPath, allTargets);
+main(List<String> args) async {
+  if (args.length != 1) {
+    print('Error: IDL path is required');
+    print('usage: dart generate.dart path/to/idl.dart');
+  }
+  String idlPath = args[0];
+  await GeneratedContent.generateAll(
+      File(idlPath).parent.path, getAllTargets(idlPath));
 }
 
-final List<GeneratedContent> allTargets = <GeneratedContent>[
-  formatTarget,
-  schemaTarget
-];
+List<GeneratedContent> getAllTargets(String idlPath) {
+  final GeneratedFile formatTarget =
+      new GeneratedFile('format.dart', (_) async {
+    _CodeGenerator codeGenerator = new _CodeGenerator(idlPath);
+    codeGenerator.generateFormatCode();
+    return codeGenerator._outBuffer.toString();
+  });
 
-final GeneratedFile formatTarget =
-    new GeneratedFile('lib/src/summary/format.dart', (String pkgPath) async {
-  _CodeGenerator codeGenerator = new _CodeGenerator(pkgPath);
-  codeGenerator.generateFormatCode();
-  return codeGenerator._outBuffer.toString();
-});
+  final GeneratedFile schemaTarget = new GeneratedFile('format.fbs', (_) async {
+    _CodeGenerator codeGenerator = new _CodeGenerator(idlPath);
+    codeGenerator.generateFlatBufferSchema();
+    return codeGenerator._outBuffer.toString();
+  });
 
-final GeneratedFile schemaTarget =
-    new GeneratedFile('lib/src/summary/format.fbs', (String pkgPath) async {
-  _CodeGenerator codeGenerator = new _CodeGenerator(pkgPath);
-  codeGenerator.generateFlatBufferSchema();
-  return codeGenerator._outBuffer.toString();
-});
+  return <GeneratedContent>[formatTarget, schemaTarget];
+}
 
 typedef String _StringToString(String s);
 
@@ -60,24 +58,17 @@ class _CodeGenerator {
   static const String _throwDeprecated =
       "throw new UnimplementedError('attempt to access deprecated field')";
 
-  /**
-   * Buffer in which generated code is accumulated.
-   */
+  /// Buffer in which generated code is accumulated.
   final StringBuffer _outBuffer = new StringBuffer();
 
-  /**
-   * Current indentation level.
-   */
+  /// Current indentation level.
   String _indentation = '';
 
-  /**
-   * Semantic model of the "IDL" input file.
-   */
+  /// Semantic model of the "IDL" input file.
   idlModel.Idl _idl;
 
-  _CodeGenerator(String pkgPath) {
+  _CodeGenerator(String idlPath) {
     // Parse the input "IDL" file.
-    String idlPath = join(pkgPath, 'lib', 'src', 'summary', 'idl.dart');
     File idlFile = new File(idlPath);
     String idlText =
         idlFile.readAsStringSync().replaceAll(new RegExp('\r\n?'), '\n');
@@ -86,16 +77,13 @@ class _CodeGenerator {
     var startingToken = scanner.tokenize();
     var listener = new MiniAstBuilder();
     var parser = new MiniAstParser(listener);
-    parser.enableSetLiterals = IsEnabledByDefault.set_literals;
     parser.parseUnit(startingToken);
     extractIdl(listener.compilationUnit);
     checkIdl();
   }
 
-  /**
-   * Perform basic sanity checking of the IDL (over and above that done by
-   * [extractIdl]).
-   */
+  /// Perform basic sanity checking of the IDL (over and above that done by
+  /// [extractIdl]).
   void checkIdl() {
     _idl.classes.forEach((String name, idlModel.ClassDeclaration cls) {
       if (cls.fileIdentifier != null) {
@@ -145,10 +133,8 @@ class _CodeGenerator {
     });
   }
 
-  /**
-   * Generate a string representing the Dart type which should be used to
-   * represent [type] when deserialized.
-   */
+  /// Generate a string representing the Dart type which should be used to
+  /// represent [type] when deserialized.
   String dartType(idlModel.FieldType type) {
     String baseType = idlPrefix(type.typeName);
     if (type.isList) {
@@ -158,13 +144,11 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Generate a Dart expression representing the default value for a field
-   * having the given [type], or `null` if there is no default value.
-   *
-   * If [builder] is `true`, the returned type should be appropriate for use in
-   * a builder class.
-   */
+  /// Generate a Dart expression representing the default value for a field
+  /// having the given [type], or `null` if there is no default value.
+  ///
+  /// If [builder] is `true`, the returned type should be appropriate for use in
+  /// a builder class.
   String defaultValue(idlModel.FieldType type, bool builder) {
     if (type.isList) {
       if (builder) {
@@ -177,6 +161,8 @@ class _CodeGenerator {
     } else if (_idl.enums.containsKey(type.typeName)) {
       return '${idlPrefix(type.typeName)}.'
           '${_idl.enums[type.typeName].values[0].name}';
+    } else if (type.typeName == 'double') {
+      return '0.0';
     } else if (type.typeName == 'int') {
       return '0';
     } else if (type.typeName == 'String') {
@@ -188,10 +174,8 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Generate a string representing the Dart type which should be used to
-   * represent [type] while building a serialized data structure.
-   */
+  /// Generate a string representing the Dart type which should be used to
+  /// represent [type] while building a serialized data structure.
   String encodedType(idlModel.FieldType type) {
     String typeStr;
     if (_idl.classes.containsKey(type.typeName)) {
@@ -206,10 +190,8 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Process the AST in [idlParsed] and store the resulting semantic model in
-   * [_idl].  Also perform some error checking.
-   */
+  /// Process the AST in [idlParsed] and store the resulting semantic model in
+  /// [_idl].  Also perform some error checking.
   void extractIdl(CompilationUnit idlParsed) {
     _idl = new idlModel.Idl();
     for (CompilationUnitMember decl in idlParsed.declarations) {
@@ -218,6 +200,7 @@ class _CodeGenerator {
         bool isDeprecated = false;
         String fileIdentifier;
         String clsName = decl.name;
+        String variantField;
         for (Annotation annotation in decl.metadata) {
           if (annotation.arguments != null &&
               annotation.name == 'TopLevel' &&
@@ -240,11 +223,33 @@ class _CodeGenerator {
               annotation.name == 'deprecated' &&
               annotation.constructorName == null) {
             isDeprecated = true;
+          } else if (annotation.arguments != null &&
+              annotation.name == 'Variant' &&
+              annotation.constructorName == null) {
+            if (annotation.arguments.length == 1) {
+              Expression arg = annotation.arguments[0];
+              if (arg is StringLiteral) {
+                variantField = arg.stringValue;
+              } else {
+                throw new Exception(
+                  'Class `$clsName`: @Variant argument must be a string literal',
+                );
+              }
+            } else if (annotation.arguments.length != 0) {
+              throw Exception(
+                'Class `$clsName`: @Variant requires 1 argument',
+              );
+            }
           }
         }
-        String doc = _getNodeDoc(decl);
         idlModel.ClassDeclaration cls = new idlModel.ClassDeclaration(
-            doc, clsName, isTopLevel, fileIdentifier, isDeprecated);
+          documentation: _getNodeDoc(decl),
+          name: clsName,
+          isTopLevel: isTopLevel,
+          fileIdentifier: fileIdentifier,
+          isDeprecated: isDeprecated,
+          variantField: variantField,
+        );
         _idl.classes[clsName] = cls;
         String expectedBase = 'base.SummaryClass';
         if (decl.superclass == null || decl.superclass.name != expectedBase) {
@@ -253,61 +258,7 @@ class _CodeGenerator {
         }
         for (ClassMember classMember in decl.members) {
           if (classMember is MethodDeclaration && classMember.isGetter) {
-            String desc = '$clsName.${classMember.name}';
-            if (classMember.returnType == null) {
-              throw new Exception('Class member needs a type: $desc');
-            }
-            TypeName type = classMember.returnType;
-            bool isList = false;
-            if (type.name == 'List' &&
-                type.typeArguments != null &&
-                type.typeArguments.length == 1) {
-              isList = true;
-              type = type.typeArguments[0];
-            }
-            if (type.typeArguments != null) {
-              throw new Exception('Cannot handle type arguments in `$type`');
-            }
-            int id;
-            bool isDeprecated = false;
-            bool isInformative = false;
-            for (Annotation annotation in classMember.metadata) {
-              if (annotation.name == 'Id') {
-                if (id != null) {
-                  throw new Exception(
-                      'Duplicate @id annotation ($classMember)');
-                }
-                if (annotation.arguments == null) {
-                  throw new Exception('@Id must be passed an argument');
-                }
-                if (annotation.arguments.length != 1) {
-                  throw new Exception(
-                      '@Id must be passed exactly one argument ($desc)');
-                }
-                Expression expression = annotation.arguments[0];
-                if (expression is IntegerLiteral) {
-                  id = expression.value;
-                } else {
-                  throw new Exception(
-                      '@Id parameter must be an integer literal ($desc)');
-                }
-              } else if (annotation.name == 'deprecated') {
-                if (annotation.arguments != null) {
-                  throw new Exception('@deprecated does not take args ($desc)');
-                }
-                isDeprecated = true;
-              } else if (annotation.name == 'informative') {
-                isInformative = true;
-              }
-            }
-            if (id == null) {
-              throw new Exception('Missing @id annotation ($desc)');
-            }
-            String doc = _getNodeDoc(classMember);
-            idlModel.FieldType fieldType =
-                new idlModel.FieldType(type.name, isList);
-            cls.allFields.add(new idlModel.FieldDeclaration(doc,
-                classMember.name, fieldType, id, isDeprecated, isInformative));
+            _addFieldForGetter(cls, classMember);
           } else if (classMember is ConstructorDeclaration &&
               classMember.name.endsWith('fromBuffer')) {
             // Ignore `fromBuffer` declarations; they simply forward to the
@@ -332,10 +283,8 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Generate a string representing the FlatBuffer schema type which should be
-   * used to represent [type].
-   */
+  /// Generate a string representing the FlatBuffer schema type which should be
+  /// used to represent [type].
   String fbsType(idlModel.FieldType type) {
     String typeStr;
     switch (type.typeName) {
@@ -368,9 +317,7 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Entry point to the code generator when generating the "format.fbs" file.
-   */
+  /// Entry point to the code generator when generating the "format.fbs" file.
   void generateFlatBufferSchema() {
     outputHeader();
     for (idlModel.EnumDeclaration enm in _idl.enums.values) {
@@ -423,9 +370,7 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Entry point to the code generator when generating the "format.dart" file.
-   */
+  /// Entry point to the code generator when generating the "format.dart" file.
   void generateFormatCode() {
     outputHeader();
     out('library analyzer.src.summary.format;');
@@ -461,10 +406,8 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Add the prefix `idl.` to a type name, unless that type name is the name of
-   * a built-in type.
-   */
+  /// Add the prefix `idl.` to a type name, unless that type name is the name of
+  /// a built-in type.
   String idlPrefix(String s) {
     switch (s) {
       case 'bool':
@@ -477,9 +420,7 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Execute [callback] with two spaces added to [_indentation].
-   */
+  /// Execute [callback] with two spaces added to [_indentation].
   void indent(void callback()) {
     String oldIndentation = _indentation;
     try {
@@ -490,10 +431,8 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Add the string [s] to the output as a single line, indenting as
-   * appropriate.
-   */
+  /// Add the string [s] to the output as a single line, indenting as
+  /// appropriate.
   void out([String s = '']) {
     if (s == '') {
       _outBuffer.writeln('');
@@ -509,20 +448,183 @@ class _CodeGenerator {
   }
 
   void outputHeader() {
-    out('// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file');
+    out('// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file');
     out('// for details. All rights reserved. Use of this source code is governed by a');
     out('// BSD-style license that can be found in the LICENSE file.');
     out('//');
     out('// This file has been automatically generated.  Please do not edit it manually.');
-    out('// To regenerate the file, use the script "pkg/analyzer/tool/generate_files".');
+    out('// To regenerate the file, use the SDK script');
+    out('// "pkg/analyzer/tool/summary/generate.dart \$IDL_FILE_PATH",');
+    out('// or "pkg/analyzer/tool/generate_files" for the analyzer package IDL/sources.');
     out();
   }
 
-  /**
-   * Enclose [s] in quotes, escaping as necessary.
-   */
+  /// Enclose [s] in quotes, escaping as necessary.
   String quoted(String s) {
     return json.encode(s);
+  }
+
+  void _addFieldForGetter(
+    idlModel.ClassDeclaration cls,
+    MethodDeclaration getter,
+  ) {
+    var desc = '${cls.name}.${getter.name}';
+    if (getter.returnType == null) {
+      throw new Exception('Getter needs a type: $desc');
+    }
+
+    var type = getter.returnType;
+
+    var isList = false;
+    if (type.name == 'List' &&
+        type.typeArguments != null &&
+        type.typeArguments.length == 1) {
+      isList = true;
+      type = type.typeArguments[0];
+    }
+    if (type.typeArguments != null) {
+      throw new Exception('Cannot handle type arguments in `$type`');
+    }
+
+    int id;
+    List<String> variants;
+    bool isDeprecated = false;
+    bool isInformative = false;
+
+    for (Annotation annotation in getter.metadata) {
+      if (annotation.name == 'Id') {
+        if (id != null) {
+          throw new Exception('Duplicate @id annotation ($getter)');
+        }
+        if (annotation.arguments == null) {
+          throw Exception('@Id must be passed an argument ($desc)');
+        }
+        if (annotation.arguments.length != 1) {
+          throw Exception('@Id must be passed exactly one argument ($desc)');
+        }
+
+        var idExpression = annotation.arguments[0];
+        if (idExpression is IntegerLiteral) {
+          id = idExpression.value;
+        } else {
+          throw new Exception(
+            '@Id argument must be an integer literal ($desc)',
+          );
+        }
+      } else if (annotation.name == 'deprecated') {
+        if (annotation.arguments != null) {
+          throw new Exception('@deprecated does not take args ($desc)');
+        }
+        isDeprecated = true;
+      } else if (annotation.name == 'informative') {
+        isInformative = true;
+      } else if (annotation.name == 'VariantId') {
+        if (id != null) {
+          throw Exception('Cannot specify both @Id and @VariantId ($getter)');
+        }
+        if (variants != null) {
+          throw Exception('Duplicate @VariantId annotation ($getter)');
+        }
+
+        if (annotation.arguments == null) {
+          throw Exception('@VariantId must be given arguments ($desc)');
+        }
+        if (annotation.arguments.length != 2) {
+          throw Exception(
+            '@VariantId must be given exactly two arguments ($desc)',
+          );
+        }
+
+        var idExpression = annotation.arguments[0];
+        if (idExpression is IntegerLiteral) {
+          id = idExpression.value;
+        } else {
+          throw Exception(
+            '@VariantId argument must be an integer literal ($desc)',
+          );
+        }
+
+        var variantExpression = annotation.arguments[1];
+        if (variantExpression is NamedExpression) {
+          if (variantExpression.name == 'variant') {
+            variants = [variantExpression.expression.toCode()];
+          } else if (variantExpression.name == 'variantList') {
+            variants = (variantExpression.expression as ListLiteral)
+                .elements
+                .map((e) => e.toCode())
+                .toList();
+          } else {
+            throw Exception(
+              'Only "key" or "keyList" expected in @VariantId ($desc)',
+            );
+          }
+        } else {
+          throw Exception(
+            'The second argument of @VariantId must be named ($desc)',
+          );
+        }
+      }
+    }
+    if (id == null) {
+      throw new Exception('Missing @id annotation ($desc)');
+    }
+
+    var fieldType = new idlModel.FieldType(type.name, isList);
+
+    String name = getter.name;
+    Map<String, List<String>> variantMap;
+    if (variants != null) {
+      var fieldsWithSameId =
+          cls.allFields.where((field) => field.id == id).toList();
+      if (fieldsWithSameId.isNotEmpty) {
+        var existingField = fieldsWithSameId.first;
+        if (existingField.variantMap == null) {
+          throw Exception('$desc: id $id is already used as a non-variant '
+              'field: ${existingField.name}');
+        }
+
+        var map = existingField.variantMap;
+        for (var variant in variants) {
+          for (var logicalName in map.keys) {
+            if (map[logicalName].contains(variant)) {
+              throw Exception('$desc: id $id is already used for $logicalName');
+            }
+          }
+        }
+
+        if (existingField.type != fieldType) {
+          throw Exception(
+            '$desc: id $id is already used with type ${existingField.type}',
+          );
+        }
+
+        map.putIfAbsent(getter.name, () => <String>[]).addAll(variants);
+        return;
+      } else {
+        name = 'variantField_$id';
+        variantMap = <String, List<String>>{getter.name: variants};
+      }
+    }
+
+    cls.allFields.add(
+      idlModel.FieldDeclaration(
+        documentation: _getNodeDoc(getter),
+        name: name,
+        type: fieldType,
+        id: id,
+        isDeprecated: isDeprecated,
+        isInformative: isInformative,
+        variantMap: variantMap,
+      ),
+    );
+  }
+
+  Iterable<String> _computeVariants(idlModel.ClassDeclaration cls) {
+    return cls.fields
+        .map((f) => f.variantMap?.values ?? [])
+        .expand((v) => v)
+        .expand((v) => v)
+        .toSet();
   }
 
   void _generateBuilder(idlModel.ClassDeclaration cls) {
@@ -541,6 +643,7 @@ class _CodeGenerator {
         String typeStr = encodedType(type);
         out('$typeStr _$fieldName;');
       }
+
       // Generate getters and setters.
       for (idlModel.FieldDeclaration field in cls.allFields) {
         String fieldName = field.name;
@@ -549,47 +652,105 @@ class _CodeGenerator {
         String def = defaultValue(fieldType, true);
         String defSuffix = def == null ? '' : ' ??= $def';
         out();
-        out('@override');
         if (field.isDeprecated) {
+          out('@override');
           out('Null get $fieldName => $_throwDeprecated;');
         } else {
-          out('$typeStr get $fieldName => _$fieldName$defSuffix;');
-          out();
-          outDoc(field.documentation);
-          constructorParams.add('$typeStr $fieldName');
-          out('void set $fieldName($typeStr value) {');
-          indent(() {
-            String stateFieldName = '_' + fieldName;
-            // Validate that int(s) are non-negative.
-            if (fieldType.typeName == 'int') {
-              if (!fieldType.isList) {
-                out('assert(value == null || value >= 0);');
-              } else {
-                out('assert(value == null || value.every((e) => e >= 0));');
-              }
+          if (field.variantMap != null) {
+            for (var logicalName in field.variantMap.keys) {
+              var variants = field.variantMap[logicalName];
+              out('@override');
+              out('$typeStr get $logicalName {');
+              indent(() {
+                out(_variantAssertStatement(cls, variants));
+                out('return _${field.name}$defSuffix;');
+              });
+              out('}');
+              out();
             }
-            // Set the value.
-            out('this.$stateFieldName = value;');
-          });
-          out('}');
+          } else {
+            out('@override');
+            out('$typeStr get $fieldName => _$fieldName$defSuffix;');
+          }
+          out();
+
+          constructorParams.add('$typeStr $fieldName');
+
+          outDoc(field.documentation);
+
+          if (field.variantMap != null) {
+            for (var logicalName in field.variantMap.keys) {
+              var variants = field.variantMap[logicalName];
+              out('set $logicalName($typeStr value) {');
+              indent(() {
+                out(_variantAssertStatement(cls, variants));
+                _generateNonNegativeInt(fieldType);
+                out('_variantField_${field.id} = value;');
+              });
+              out('}');
+              out();
+            }
+          } else {
+            out('set $fieldName($typeStr value) {');
+            indent(() {
+              _generateNonNegativeInt(fieldType);
+              out('this._$fieldName = value;');
+            });
+            out('}');
+          }
         }
       }
       // Generate constructor.
       out();
-      out('$builderName({${constructorParams.join(', ')}})');
-      List<idlModel.FieldDeclaration> fields = cls.fields.toList();
-      for (int i = 0; i < fields.length; i++) {
-        idlModel.FieldDeclaration field = fields[i];
-        String prefix = i == 0 ? '  : ' : '    ';
-        String suffix = i == fields.length - 1 ? ';' : ',';
-        out('${prefix}_${field.name} = ${field.name}$suffix');
+      if (cls.variantField != null) {
+        for (var variant in _computeVariants(cls)) {
+          var constructorName = variant.split('.')[1];
+          out('$builderName.$constructorName({');
+
+          for (var field in cls.fields) {
+            if (field.variantMap != null) {
+              for (var property in field.variantMap.keys) {
+                if (field.variantMap[property].contains(variant)) {
+                  out('${encodedType(field.type)} $property,');
+                }
+              }
+            }
+          }
+
+          out('}) : ');
+
+          out('_${cls.variantField} = idl.$variant');
+
+          var separator = ',';
+          for (var field in cls.fields) {
+            if (field.variantMap != null) {
+              for (var property in field.variantMap.keys) {
+                if (field.variantMap[property].contains(variant)) {
+                  out('$separator _${field.name} = $property');
+                  separator = ', ';
+                }
+              }
+            }
+          }
+
+          out(';');
+          out();
+        }
+      } else {
+        out('$builderName({${constructorParams.join(', ')}})');
+        List<idlModel.FieldDeclaration> fields = cls.fields.toList();
+        for (int i = 0; i < fields.length; i++) {
+          idlModel.FieldDeclaration field = fields[i];
+          String prefix = i == 0 ? '  : ' : '    ';
+          String suffix = i == fields.length - 1 ? ';' : ',';
+          out('${prefix}_${field.name} = ${field.name}$suffix');
+        }
       }
+
       // Generate flushInformative().
       {
         out();
-        out('/**');
-        out(' * Flush [informative] data recursively.');
-        out(' */');
+        out('/// Flush [informative] data recursively.');
         out('void flushInformative() {');
         indent(() {
           for (idlModel.FieldDeclaration field in cls.fields) {
@@ -611,9 +772,7 @@ class _CodeGenerator {
       // Generate collectApiSignature().
       {
         out();
-        out('/**');
-        out(' * Accumulate non-[informative] data into [signature].');
-        out(' */');
+        out('/// Accumulate non-[informative] data into [signature].');
         out('void collectApiSignature(api_sig.ApiSignature signature) {');
         indent(() {
           List<idlModel.FieldDeclaration> sortedFields = cls.fields.toList()
@@ -736,6 +895,9 @@ class _CodeGenerator {
           } else if (fieldType.typeName == 'bool') {
             condition = '$valueName == true';
             writeCode = 'fbBuilder.addBool($index, true);';
+          } else if (fieldType.typeName == 'double') {
+            condition += ' && $valueName != ${defaultValue(fieldType, true)}';
+            writeCode = 'fbBuilder.addFloat64($index, $valueName);';
           } else if (fieldType.typeName == 'int') {
             condition += ' && $valueName != ${defaultValue(fieldType, true)}';
             writeCode = 'fbBuilder.addUint32($index, $valueName);';
@@ -829,6 +991,8 @@ class _CodeGenerator {
           }
         } else if (typeName == 'bool') {
           readCode = 'const fb.BoolReader()';
+        } else if (typeName == 'double') {
+          readCode = 'const fb.Float64Reader()';
         } else if (typeName == 'int') {
           readCode = 'const fb.Uint32Reader()';
         } else if (typeName == 'String') {
@@ -841,19 +1005,37 @@ class _CodeGenerator {
         assert(readCode != null);
         // Write the getter implementation.
         out();
-        out('@override');
         String returnType = dartType(type);
         if (field.isDeprecated) {
+          out('@override');
           out('Null get $fieldName => $_throwDeprecated;');
         } else {
-          out('$returnType get $fieldName {');
-          indent(() {
-            String readExpr =
-                '$readCode.vTableGet(_bc, _bcOffset, $index, $def)';
-            out('_$fieldName ??= $readExpr;');
-            out('return _$fieldName;');
-          });
-          out('}');
+          if (field.variantMap != null) {
+            for (var logicalName in field.variantMap.keys) {
+              var variants = field.variantMap[logicalName];
+              out('@override');
+              out('$returnType get $logicalName {');
+              indent(() {
+                out(_variantAssertStatement(cls, variants));
+                String readExpr =
+                    '$readCode.vTableGet(_bc, _bcOffset, $index, $def)';
+                out('_$fieldName ??= $readExpr;');
+                out('return _$fieldName;');
+              });
+              out('}');
+              out();
+            }
+          } else {
+            out('@override');
+            out('$returnType get $fieldName {');
+            indent(() {
+              String readExpr =
+                  '$readCode.vTableGet(_bc, _bcOffset, $index, $def)';
+              out('_$fieldName ??= $readExpr;');
+              out('return _$fieldName;');
+            });
+            out('}');
+          }
         }
       }
     });
@@ -865,61 +1047,138 @@ class _CodeGenerator {
     String mixinName = '_${name}Mixin';
     out('abstract class $mixinName implements ${idlPrefix(name)} {');
     indent(() {
+      String jsonCondition(idlModel.FieldType type, String name) {
+        if (type.isList) {
+          return '$name.isNotEmpty';
+        } else {
+          return '$name != ${defaultValue(type, false)}';
+        }
+      }
+
+      String jsonStore(idlModel.FieldType type, String name) {
+        _StringToString convertItem;
+        if (_idl.classes.containsKey(type.typeName)) {
+          convertItem = (String name) => '$name.toJson()';
+        } else if (_idl.enums.containsKey(type.typeName)) {
+          // TODO(paulberry): it would be better to generate a const list of
+          // strings so that we don't have to do this kludge.
+          convertItem = (String name) => "$name.toString().split('.')[1]";
+        } else if (type.typeName == 'double') {
+          convertItem =
+              (String name) => '$name.isFinite ? $name : $name.toString()';
+        }
+        String convertField;
+        if (convertItem == null) {
+          convertField = name;
+        } else if (type.isList) {
+          convertField = '$name.map((_value) =>'
+              ' ${convertItem('_value')}).toList()';
+        } else {
+          convertField = convertItem(name);
+        }
+        return '_result[${quoted(name)}] = $convertField';
+      }
+
       // Write toJson().
       out('@override');
       out('Map<String, Object> toJson() {');
       indent(() {
         out('Map<String, Object> _result = <String, Object>{};');
-        for (idlModel.FieldDeclaration field in cls.fields) {
-          String condition;
-          if (field.type.isList) {
-            condition = '${field.name}.isNotEmpty';
-          } else {
-            condition = '${field.name} != ${defaultValue(field.type, false)}';
-          }
-          _StringToString convertItem;
-          if (_idl.classes.containsKey(field.type.typeName)) {
-            convertItem = (String name) => '$name.toJson()';
-          } else if (_idl.enums.containsKey(field.type.typeName)) {
-            // TODO(paulberry): it would be better to generate a const list of
-            // strings so that we don't have to do this kludge.
-            convertItem = (String name) => "$name.toString().split('.')[1]";
-          } else if (field.type.typeName == 'double') {
-            convertItem =
-                (String name) => '$name.isFinite ? $name : $name.toString()';
-          }
-          String convertField;
-          if (convertItem == null) {
-            convertField = field.name;
-          } else if (field.type.isList) {
-            convertField = '${field.name}.map((_value) =>'
-                ' ${convertItem('_value')}).toList()';
-          } else {
-            convertField = convertItem(field.name);
-          }
-          String storeField = '_result[${quoted(field.name)}] = $convertField';
-          out('if ($condition) $storeField;');
+
+        if (cls.variantField != null) {
+          indent(() {
+            for (idlModel.FieldDeclaration field in cls.fields) {
+              if (field.variantMap == null) {
+                var condition = jsonCondition(field.type, field.name);
+                var storeField = jsonStore(field.type, field.name);
+                out('if ($condition) $storeField;');
+              }
+            }
+            for (var variant in _computeVariants(cls)) {
+              out('if (${cls.variantField} == idl.$variant) {');
+              indent(() {
+                for (idlModel.FieldDeclaration field in cls.fields) {
+                  if (field.variantMap != null) {
+                    for (var logicalName in field.variantMap.keys) {
+                      if (field.variantMap[logicalName].contains(variant)) {
+                        var condition = jsonCondition(field.type, logicalName);
+                        var storeField = jsonStore(field.type, logicalName);
+                        out('if ($condition) $storeField;');
+                      }
+                    }
+                  }
+                }
+              });
+              out('}');
+            }
+          });
+        } else {
+          indent(() {
+            for (idlModel.FieldDeclaration field in cls.fields) {
+              String condition = jsonCondition(field.type, field.name);
+              String storeField = jsonStore(field.type, field.name);
+              out('if ($condition) $storeField;');
+            }
+          });
         }
+
         out('return _result;');
       });
       out('}');
       out();
+
       // Write toMap().
       out('@override');
-      out('Map<String, Object> toMap() => {');
-      indent(() {
-        for (idlModel.FieldDeclaration field in cls.fields) {
-          String fieldName = field.name;
-          out('${quoted(fieldName)}: $fieldName,');
+      if (cls.variantField != null) {
+        out('Map<String, Object> toMap() {');
+        for (var variant in _computeVariants(cls)) {
+          out('if (${cls.variantField} == idl.$variant) {');
+          indent(() {
+            out('return {');
+            for (idlModel.FieldDeclaration field in cls.fields) {
+              if (field.variantMap != null) {
+                for (var logicalName in field.variantMap.keys) {
+                  if (field.variantMap[logicalName].contains(variant)) {
+                    out('${quoted(logicalName)}: $logicalName,');
+                  }
+                }
+              } else {
+                String fieldName = field.name;
+                out('${quoted(fieldName)}: $fieldName,');
+              }
+            }
+            out('};');
+          });
+          out('}');
         }
-      });
-      out('};');
+        out('throw StateError("Unexpected \$${cls.variantField}");');
+        out('}');
+      } else {
+        out('Map<String, Object> toMap() => {');
+        indent(() {
+          for (idlModel.FieldDeclaration field in cls.fields) {
+            String fieldName = field.name;
+            out('${quoted(fieldName)}: $fieldName,');
+          }
+        });
+        out('};');
+      }
       out();
       // Write toString().
       out('@override');
       out('String toString() => convert.json.encode(toJson());');
     });
     out('}');
+  }
+
+  void _generateNonNegativeInt(idlModel.FieldType fieldType) {
+    if (fieldType.typeName == 'int') {
+      if (!fieldType.isList) {
+        out('assert(value == null || value >= 0);');
+      } else {
+        out('assert(value == null || value.every((e) => e >= 0));');
+      }
+    }
   }
 
   void _generateReader(idlModel.ClassDeclaration cls) {
@@ -946,12 +1205,10 @@ class _CodeGenerator {
     out('}');
   }
 
-  /**
-   * Generate a call to the appropriate method of [ApiSignature] for the type
-   * [typeName], using the data named by [ref].  If [couldBeNull] is `true`,
-   * generate code to handle the possibility that [ref] is `null` (substituting
-   * in the appropriate default value).
-   */
+  /// Generate a call to the appropriate method of [ApiSignature] for the type
+  /// [typeName], using the data named by [ref].  If [couldBeNull] is `true`,
+  /// generate code to handle the possibility that [ref] is `null` (substituting
+  /// in the appropriate default value).
   void _generateSignatureCall(String typeName, String ref, bool couldBeNull) {
     if (_idl.enums.containsKey(typeName)) {
       if (couldBeNull) {
@@ -996,10 +1253,8 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Return the documentation text of the given [node], or `null` if the [node]
-   * does not have a comment.  Each line is `\n` separated.
-   */
+  /// Return the documentation text of the given [node], or `null` if the [node]
+  /// does not have a comment.  Each line is `\n` separated.
   String _getNodeDoc(AnnotatedNode node) {
     Comment comment = node.documentationComment;
     if (comment != null && comment.isDocumentation) {
@@ -1019,5 +1274,15 @@ class _CodeGenerator {
       }
     }
     return null;
+  }
+
+  String _variantAssertStatement(
+    idlModel.ClassDeclaration class_,
+    List<String> variants,
+  ) {
+    var assertCondition = variants
+        ?.map((key) => '${class_.variantField} == idl.$key')
+        ?.join(' || ');
+    return 'assert($assertCondition);';
   }
 }

@@ -23,8 +23,12 @@ struct FrameLayout {
   // The offset (in words) from FP to the last fixed object.
   int last_fixed_object_from_fp;
 
-  // The offset (in words) from FP to the first local.
+  // The offset (in words) from FP to the slot past the last parameter.
   int param_end_from_fp;
+
+  // The offset (in words) from SP on entry (before frame is setup) to
+  // the last parameter.
+  int last_param_from_entry_sp;
 
   // The offset (in words) from FP to the first local.
   int first_local_from_fp;

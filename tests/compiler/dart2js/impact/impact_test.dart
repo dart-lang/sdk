@@ -9,7 +9,6 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
-import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/universe/feature.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/universe/world_impact.dart';
@@ -21,17 +20,26 @@ import '../equivalence/id_equivalence_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+    Directory libDirectory =
+        new Directory.fromUri(Platform.script.resolve('libs'));
     print('Testing direct computation of ResolutionImpact');
     print('==================================================================');
     useImpactDataForTesting = false;
     await checkTests(dataDir, const ImpactDataComputer(),
-        args: args, testOmit: false, testFrontend: true);
+        libDirectory: libDirectory,
+        args: args,
+        testOmit: false,
+        testFrontend: true);
 
     print('Testing computation of ResolutionImpact through ImpactData');
     print('==================================================================');
     useImpactDataForTesting = true;
     await checkTests(dataDir, const ImpactDataComputer(),
-        args: args, testOmit: false, testFrontend: true);
+        libDirectory: libDirectory,
+        args: args,
+        testOmit: false,
+        testFrontend: true,
+        testCFEConstants: true);
   });
 }
 

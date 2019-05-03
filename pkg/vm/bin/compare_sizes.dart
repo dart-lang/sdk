@@ -157,6 +157,7 @@ class SeparatorRow extends Row {
         }
         return sb.toString() + '\n' + sb.toString();
     }
+    return null; // Make analyzer happy.
   }
 }
 
@@ -209,6 +210,7 @@ class Text {
         final diff = width - value.length;
         return ' ' * (diff ~/ 2) + value + (' ' * (diff - diff ~/ 2));
     }
+    return null; // Make analyzer happy.
   }
 
   int get length => value.length;

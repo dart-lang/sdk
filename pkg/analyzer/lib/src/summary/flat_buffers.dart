@@ -142,6 +142,19 @@ class Builder {
   }
 
   /**
+   * Add the [field] with the given 64-bit float [value].
+   */
+  void addFloat64(int field, double value, [double def]) {
+    _ensureCurrentVTable();
+    if (value != null && value != def) {
+      int size = 8;
+      _prepare(size, 1);
+      _trackField(field);
+      _setFloat64AtTail(_buf, _tail, value);
+    }
+  }
+
+  /**
    * Add the [field] with the given 32-bit signed integer [value].  The field is
    * not added if the [value] is equal to [def].
    */
@@ -755,6 +768,19 @@ class Uint8Reader extends Reader<int> {
 }
 
 /**
+ * The reader of 64-bit floats.
+ */
+class Float64Reader extends Reader<double> {
+  const Float64Reader() : super();
+
+  @override
+  int get size => 8;
+
+  @override
+  double read(BufferContext bc, int offset) => bc._getFloat64(offset);
+}
+
+/**
  * List of booleans backed by 8-bit unsigned integers.
  */
 class _FbBoolList with ListMixin<bool> implements List<bool> {
@@ -880,7 +906,7 @@ class _FbUint8List extends _FbList<int> {
  */
 class _VTable {
   final List<int> fieldTails = <int>[];
-  final List<int> fieldOffsets = <int>[];
+  List<int> fieldOffsets;
 
   /**
    * The size of the table that uses this VTable.
@@ -924,10 +950,11 @@ class _VTable {
    * Fill the [fieldOffsets] field.
    */
   void computeFieldOffsets(int tableTail) {
-    assert(fieldOffsets.isEmpty);
-    for (int fieldTail in fieldTails) {
-      int fieldOffset = fieldTail == null ? 0 : tableTail - fieldTail;
-      fieldOffsets.add(fieldOffset);
+    assert(fieldOffsets == null);
+    fieldOffsets = List<int>(fieldTails.length);
+    for (int i = 0; i < fieldTails.length; ++i) {
+      int fieldTail = fieldTails[i];
+      fieldOffsets[i] = fieldTail == null ? 0 : tableTail - fieldTail;
     }
   }
 

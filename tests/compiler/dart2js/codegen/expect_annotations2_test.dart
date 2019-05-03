@@ -5,25 +5,27 @@
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'package:compiler/compiler_new.dart';
+import 'package:compiler/src/commandline_options.dart';
 import '../helpers/memory_compiler.dart';
 
 const MEMORY_SOURCE_FILES = const {
   'main.dart': '''
         import 'package:expect/expect.dart';
 
-        @NoInline()
+        @pragma('dart2js:noInline')
         foo(y) => 49912344 + y;
 
         class A {
+          @pragma('dart2js:noElision')
           var field;
 
-          @NoInline()
+          @pragma('dart2js:noInline')
           A([this.field = 4711]);
 
-          @NoInline()
+          @pragma('dart2js:noInline')
           static bar(x) => x + 123455;
 
-          @NoInline()
+          @pragma('dart2js:noInline')
           gee(x, y) => x + y + 81234512;
         }
 
@@ -39,7 +41,9 @@ void main() {
   runTest() async {
     OutputCollector collector = new OutputCollector();
     await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
+        memorySourceFiles: MEMORY_SOURCE_FILES,
+        outputProvider: collector,
+        options: [Flags.testMode]);
     // Simply check that the constants of the small functions are still in the
     // output, and that we don't see the result of constant folding.
     String jsOutput = collector.getOutput('', OutputType.js);

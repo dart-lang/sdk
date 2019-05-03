@@ -38,6 +38,7 @@
 #include "vm/os_thread.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
+#include "vm/profiler_service.h"
 #include "vm/program_visitor.h"
 #include "vm/resolver.h"
 #include "vm/reusable_handles.h"
@@ -358,6 +359,7 @@ Dart_Handle Api::NewHandle(Thread* thread, RawObject* raw) {
 RawObject* Api::UnwrapHandle(Dart_Handle object) {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   ASSERT(thread->IsMutatorThread());
   ASSERT(thread->isolate() != NULL);
   ASSERT(!FLAG_verify_handles || thread->IsValidLocalHandle(object) ||
@@ -490,7 +492,7 @@ void Api::Init() {
 }
 
 static Dart_Handle InitNewReadOnlyApiHandle(RawObject* raw) {
-  ASSERT(raw->IsVMHeapObject());
+  ASSERT(raw->InVMIsolateHeap());
   LocalHandle* ref = Dart::AllocateReadOnlyApiHandle();
   ref->set_raw(raw);
   return ref->apiHandle();
@@ -693,14 +695,20 @@ void FinalizablePersistentHandle::Finalize(
 // --- Handles ---
 
 DART_EXPORT bool Dart_IsError(Dart_Handle handle) {
+  Thread* thread = Thread::Current();
+  TransitionNativeToVM transition(thread);
   return Api::IsError(handle);
 }
 
 DART_EXPORT bool Dart_IsApiError(Dart_Handle object) {
+  Thread* thread = Thread::Current();
+  TransitionNativeToVM transition(thread);
   return Api::ClassId(object) == kApiErrorCid;
 }
 
 DART_EXPORT bool Dart_IsUnhandledExceptionError(Dart_Handle object) {
+  Thread* thread = Thread::Current();
+  TransitionNativeToVM transition(thread);
   return Api::ClassId(object) == kUnhandledExceptionCid;
 }
 
@@ -712,10 +720,15 @@ DART_EXPORT bool Dart_IsCompilationError(Dart_Handle object) {
     const Instance& exc = Instance::Handle(Z, error.exception());
     return IsCompiletimeErrorObject(Z, exc);
   }
+
+  Thread* thread = Thread::Current();
+  TransitionNativeToVM transition(thread);
   return Api::ClassId(object) == kLanguageErrorCid;
 }
 
 DART_EXPORT bool Dart_IsFatalError(Dart_Handle object) {
+  Thread* thread = Thread::Current();
+  TransitionNativeToVM transition(thread);
   return Api::ClassId(object) == kUnwindErrorCid;
 }
 
@@ -793,12 +806,13 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
   return Api::NewHandle(T, UnhandledException::New(obj, stacktrace));
 }
 
-DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
+DART_EXPORT void Dart_PropagateError(Dart_Handle handle) {
   Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
   TransitionNativeToVM transition(thread);
   const Object& obj = Object::Handle(thread->zone(), Api::UnwrapHandle(handle));
   if (!obj.IsError()) {
-    return Api::NewError(
+    FATAL1(
         "%s expects argument 'handle' to be an error handle.  "
         "Did you forget to check Dart_IsError first?",
         CURRENT_FUNC);
@@ -806,7 +820,7 @@ DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
   if (thread->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // propagate an error here.
-    return Api::NewError("No Dart frames on stack, cannot propagate error.");
+    FATAL("No Dart frames on stack, cannot propagate error.");
   }
   // Unwind all the API scopes till the exit frame before propagating.
   const Error* error;
@@ -824,16 +838,6 @@ DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle) {
   }
   Exceptions::PropagateError(*error);
   UNREACHABLE();
-  return Api::NewError("Cannot reach here.  Internal error.");
-}
-
-DART_EXPORT void _Dart_ReportErrorHandle(const char* file,
-                                         int line,
-                                         const char* handle,
-                                         const char* message) {
-  fprintf(stderr, "%s:%d: error handle: '%s':\n    '%s'\n", file, line, handle,
-          message);
-  OS::Abort();
 }
 
 DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object) {
@@ -1032,7 +1036,7 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
 #if !defined(PRODUCT)
 #define VM_METRIC_API(type, variable, name, unit)                              \
   DART_EXPORT int64_t Dart_VM##variable##Metric() {                            \
-    return vm_metric_##variable##_.value();                                    \
+    return vm_metric_##variable.value();                                       \
   }
 VM_METRIC_LIST(VM_METRIC_API);
 #undef VM_METRIC_API
@@ -1062,43 +1066,8 @@ ISOLATE_METRIC_LIST(ISOLATE_METRIC_API);
 
 // --- Isolates ---
 
-static char* BuildIsolateName(const char* script_uri, const char* main) {
-  if (script_uri == NULL) {
-    // Just use the main as the name.
-    if (main == NULL) {
-      return strdup("isolate");
-    } else {
-      return strdup(main);
-    }
-  }
-
-  if (ServiceIsolate::NameEquals(script_uri) ||
-      (strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0)) {
-    return strdup(script_uri);
-  }
-
-  // Skip past any slashes and backslashes in the script uri.
-  const char* last_slash = strrchr(script_uri, '/');
-  if (last_slash != NULL) {
-    script_uri = last_slash + 1;
-  }
-  const char* last_backslash = strrchr(script_uri, '\\');
-  if (last_backslash != NULL) {
-    script_uri = last_backslash + 1;
-  }
-  if (main == NULL) {
-    main = "main";
-  }
-
-  char* chars = NULL;
-  intptr_t len = Utils::SNPrint(NULL, 0, "%s:%s()", script_uri, main) + 1;
-  chars = reinterpret_cast<char*>(malloc(len));
-  Utils::SNPrint(chars, len, "%s:%s()", script_uri, main);
-  return chars;
-}
-
 static Dart_Isolate CreateIsolate(const char* script_uri,
-                                  const char* main,
+                                  const char* name,
                                   const uint8_t* snapshot_data,
                                   const uint8_t* snapshot_instructions,
                                   const uint8_t* shared_data,
@@ -1109,7 +1078,6 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
                                   void* callback_data,
                                   char** error) {
   CHECK_NO_ISOLATE(Isolate::Current());
-  char* isolate_name = BuildIsolateName(script_uri, main);
 
   // Setup default flags in case none were passed.
   Dart_IsolateFlags api_flags;
@@ -1117,8 +1085,7 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
     Isolate::FlagsInitialize(&api_flags);
     flags = &api_flags;
   }
-  Isolate* I = Dart::CreateIsolate(isolate_name, *flags);
-  free(isolate_name);
+  Isolate* I = Dart::CreateIsolate((name == NULL) ? "isolate" : name, *flags);
   if (I == NULL) {
     if (error != NULL) {
       *error = strdup("Isolate creation failed");
@@ -1173,7 +1140,7 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags) {
 
 DART_EXPORT Dart_Isolate
 Dart_CreateIsolate(const char* script_uri,
-                   const char* main,
+                   const char* name,
                    const uint8_t* snapshot_data,
                    const uint8_t* snapshot_instructions,
                    const uint8_t* shared_data,
@@ -1182,21 +1149,21 @@ Dart_CreateIsolate(const char* script_uri,
                    void* callback_data,
                    char** error) {
   API_TIMELINE_DURATION(Thread::Current());
-  return CreateIsolate(script_uri, main, snapshot_data, snapshot_instructions,
+  return CreateIsolate(script_uri, name, snapshot_data, snapshot_instructions,
                        shared_data, shared_instructions, NULL, 0, flags,
                        callback_data, error);
 }
 
 DART_EXPORT Dart_Isolate
 Dart_CreateIsolateFromKernel(const char* script_uri,
-                             const char* main,
+                             const char* name,
                              const uint8_t* kernel_buffer,
                              intptr_t kernel_buffer_size,
                              Dart_IsolateFlags* flags,
                              void* callback_data,
                              char** error) {
   API_TIMELINE_DURATION(Thread::Current());
-  return CreateIsolate(script_uri, main, NULL, NULL, NULL, NULL, kernel_buffer,
+  return CreateIsolate(script_uri, name, NULL, NULL, NULL, NULL, kernel_buffer,
                        kernel_buffer_size, flags, callback_data, error);
 }
 
@@ -1279,6 +1246,24 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   T->EnterSafepoint();
 }
 
+DART_EXPORT void Dart_StartProfiling() {
+#if !defined(PRODUCT)
+  if (!FLAG_profiler) {
+    FLAG_profiler = true;
+    Profiler::Init();
+  }
+#endif  // !defined(PRODUCT)
+}
+
+DART_EXPORT void Dart_StopProfiling() {
+#if !defined(PRODUCT)
+  if (FLAG_profiler) {
+    Profiler::Cleanup();
+    FLAG_profiler = false;
+  }
+#endif  // !defined(PRODUCT)
+}
+
 DART_EXPORT void Dart_ThreadDisableProfiling() {
   OSThread* os_thread = OSThread::Current();
   if (os_thread == NULL) {
@@ -1293,6 +1278,39 @@ DART_EXPORT void Dart_ThreadEnableProfiling() {
     return;
   }
   os_thread->EnableThreadInterrupts();
+}
+
+DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port,
+                                             char** error) {
+#if defined(PRODUCT)
+  return false;
+#else
+  if (!FLAG_profiler) {
+    if (error != NULL) {
+      *error = strdup("The profiler is not running.");
+    }
+    return false;
+  }
+
+  const intptr_t kBufferLength = 512;
+  char method[kBufferLength];
+  intptr_t method_length = snprintf(method, kBufferLength, "{"
+      "\"jsonrpc\": \"2.0\","
+      "\"method\": \"_writeCpuProfileTimeline\","
+      "\"id\": \"\","
+      "\"params\": {\"isolateId\": \"isolates/%" Pd64 "\"}"
+    "}", main_port);
+  ASSERT(method_length <= kBufferLength);
+
+  char* response = NULL;
+  intptr_t response_length;
+  bool success = Dart_InvokeVMServiceMethod(
+      reinterpret_cast<uint8_t*>(method), method_length,
+      reinterpret_cast<uint8_t**>(&response), &response_length,
+      error);
+  free(response);
+  return success;
+#endif
 }
 
 DART_EXPORT bool Dart_ShouldPauseOnStart() {
@@ -1405,14 +1423,17 @@ DART_EXPORT void Dart_SetStickyError(Dart_Handle error) {
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
-  if ((isolate->sticky_error() != Error::null()) && !::Dart_IsNull(error)) {
+  const Error& error_handle = Api::UnwrapErrorHandle(Z, error);
+  if ((isolate->sticky_error() != Error::null()) &&
+      (error_handle.raw() != Object::null())) {
     FATAL1("%s expects there to be no sticky error.", CURRENT_FUNC);
   }
-  if (!::Dart_IsUnhandledExceptionError(error) && !::Dart_IsNull(error)) {
+  if (!error_handle.IsUnhandledException() &&
+      (error_handle.raw() != Object::null())) {
     FATAL1("%s expects the error to be an unhandled exception error or null.",
            CURRENT_FUNC);
   }
-  isolate->SetStickyError(Api::UnwrapErrorHandle(Z, error).raw());
+  isolate->SetStickyError(error_handle.raw());
 }
 
 DART_EXPORT bool Dart_HasStickyError() {
@@ -1489,7 +1510,7 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
   CHECK_NULL(isolate_snapshot_data_size);
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
-  if (::Dart_IsError(state)) {
+  if (Api::IsError(state)) {
     return state;
   }
   BackgroundCompiler::Stop(I);
@@ -1825,6 +1846,7 @@ DART_EXPORT Dart_Handle Dart_EmptyString() {
 }
 
 DART_EXPORT bool Dart_IsNull(Dart_Handle object) {
+  TransitionNativeToVM transition(Thread::Current());
   return Api::UnwrapHandle(object) == Object::null();
 }
 
@@ -1884,6 +1906,7 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
 DART_EXPORT bool Dart_IsInstance(Dart_Handle object) {
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   REUSABLE_OBJECT_HANDLESCOPE(thread);
   Object& ref = thread->ObjectHandle();
   ref = Api::UnwrapHandle(object);
@@ -1891,39 +1914,60 @@ DART_EXPORT bool Dart_IsInstance(Dart_Handle object) {
 }
 
 DART_EXPORT bool Dart_IsNumber(Dart_Handle object) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   return RawObject::IsNumberClassId(Api::ClassId(object));
 }
 
 DART_EXPORT bool Dart_IsInteger(Dart_Handle object) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   return RawObject::IsIntegerClassId(Api::ClassId(object));
 }
 
 DART_EXPORT bool Dart_IsDouble(Dart_Handle object) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   return Api::ClassId(object) == kDoubleCid;
 }
 
 DART_EXPORT bool Dart_IsBoolean(Dart_Handle object) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   return Api::ClassId(object) == kBoolCid;
 }
 
 DART_EXPORT bool Dart_IsString(Dart_Handle object) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   return RawObject::IsStringClassId(Api::ClassId(object));
 }
 
 DART_EXPORT bool Dart_IsStringLatin1(Dart_Handle object) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   return RawObject::IsOneByteStringClassId(Api::ClassId(object));
 }
 
 DART_EXPORT bool Dart_IsExternalString(Dart_Handle object) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   return RawObject::IsExternalStringClassId(Api::ClassId(object));
 }
 
 DART_EXPORT bool Dart_IsList(Dart_Handle object) {
+  DARTSCOPE(Thread::Current());
   if (RawObject::IsBuiltinListClassId(Api::ClassId(object))) {
     return true;
   }
 
-  DARTSCOPE(Thread::Current());
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(object));
   return GetListInstance(Z, obj) != Instance::null();
 }
@@ -1935,26 +1979,44 @@ DART_EXPORT bool Dart_IsMap(Dart_Handle object) {
 }
 
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   return Api::ClassId(object) == kLibraryCid;
 }
 
 DART_EXPORT bool Dart_IsType(Dart_Handle handle) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   return Api::ClassId(handle) == kTypeCid;
 }
 
 DART_EXPORT bool Dart_IsFunction(Dart_Handle handle) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   return Api::ClassId(handle) == kFunctionCid;
 }
 
 DART_EXPORT bool Dart_IsVariable(Dart_Handle handle) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   return Api::ClassId(handle) == kFieldCid;
 }
 
 DART_EXPORT bool Dart_IsTypeVariable(Dart_Handle handle) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   return Api::ClassId(handle) == kTypeParameterCid;
 }
 
 DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   return Api::ClassId(object) == kClosureCid;
 }
 
@@ -1971,6 +2033,9 @@ DART_EXPORT bool Dart_IsTearOff(Dart_Handle object) {
 }
 
 DART_EXPORT bool Dart_IsTypedData(Dart_Handle handle) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   intptr_t cid = Api::ClassId(handle);
   return RawObject::IsTypedDataClassId(cid) ||
          RawObject::IsExternalTypedDataClassId(cid) ||
@@ -1978,6 +2043,9 @@ DART_EXPORT bool Dart_IsTypedData(Dart_Handle handle) {
 }
 
 DART_EXPORT bool Dart_IsByteBuffer(Dart_Handle handle) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   return Api::ClassId(handle) == kByteBufferCid;
 }
 
@@ -2118,13 +2186,16 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
   API_TIMELINE_DURATION(thread);
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
-  intptr_t class_id = Api::ClassId(integer);
-  if (class_id == kSmiCid || class_id == kMintCid) {
+  if (Api::IsSmi(integer)) {
     *fits = true;
     return Api::Success();
   }
-  // Slow path for type error.
+  // Slow path for mints and type error.
   DARTSCOPE(thread);
+  if (Api::ClassId(integer) == kMintCid) {
+    *fits = true;
+    return Api::Success();
+  }
   const Integer& int_obj = Api::UnwrapIntegerHandle(Z, integer);
   ASSERT(int_obj.IsNull());
   RETURN_TYPE_ERROR(Z, integer, Integer);
@@ -2550,6 +2621,7 @@ DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str,
                                                intptr_t* size) {
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   ReusableObjectHandleScope reused_obj_handle(thread);
   const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
   if (str_obj.IsNull()) {
@@ -2568,6 +2640,7 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
                                                  void** peer) {
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   ReusableObjectHandleScope reused_obj_handle(thread);
   const String& str = Api::UnwrapStringHandle(reused_obj_handle, object);
   if (str.IsNull()) {
@@ -2778,7 +2851,7 @@ DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
           args.SetAt(1, index);
           Dart_Handle value =
               Api::NewHandle(T, DartEntry::InvokeFunction(function, args));
-          if (::Dart_IsError(value)) return value;
+          if (Api::IsError(value)) return value;
           result[i] = value;
         }
         return Api::Success();
@@ -2968,19 +3041,19 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
     }
   }
   if (RawObject::IsTypedDataViewClassId(obj.GetClassId())) {
-    const Instance& view = Instance::Cast(obj);
-    if (TypedDataView::ElementSizeInBytes(view) == 1) {
-      intptr_t view_length = Smi::Value(TypedDataView::Length(view));
+    const auto& view = TypedDataView::Cast(obj);
+    if (view.ElementSizeInBytes() == 1) {
+      const intptr_t view_length = Smi::Value(view.length());
       if (!Utils::RangeCheck(offset, length, view_length)) {
         return Api::NewError(
             "Invalid length passed in to access list elements");
       }
-      const Instance& data = Instance::Handle(TypedDataView::Data(view));
+      const auto& data = Instance::Handle(view.typed_data());
       if (data.IsTypedData()) {
         const TypedData& array = TypedData::Cast(data);
         if (array.ElementSizeInBytes() == 1) {
-          intptr_t data_offset =
-              Smi::Value(TypedDataView::OffsetInBytes(view)) + offset;
+          const intptr_t data_offset =
+              Smi::Value(view.offset_in_bytes()) + offset;
           // Range check already performed on the view object.
           ASSERT(Utils::RangeCheck(data_offset, length, array.Length()));
           return CopyBytes(array, data_offset, native_array, length);
@@ -3247,7 +3320,9 @@ static Dart_TypedData_Type GetType(intptr_t class_id) {
 }
 
 DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {
-  API_TIMELINE_DURATION(Thread::Current());
+  Thread* thread = Thread::Current();
+  API_TIMELINE_DURATION(thread);
+  TransitionNativeToVM transition(thread);
   intptr_t class_id = Api::ClassId(object);
   if (RawObject::IsTypedDataClassId(class_id) ||
       RawObject::IsTypedDataViewClassId(class_id)) {
@@ -3258,18 +3333,19 @@ DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {
 
 DART_EXPORT Dart_TypedData_Type
 Dart_GetTypeOfExternalTypedData(Dart_Handle object) {
-  API_TIMELINE_DURATION(Thread::Current());
+  Thread* thread = Thread::Current();
+  API_TIMELINE_DURATION(thread);
+  TransitionNativeToVM transition(thread);
   intptr_t class_id = Api::ClassId(object);
   if (RawObject::IsExternalTypedDataClassId(class_id)) {
     return GetType(class_id);
   }
   if (RawObject::IsTypedDataViewClassId(class_id)) {
     // Check if data object of the view is external.
-    Zone* zone = Thread::Current()->zone();
-    const Instance& view_obj = Api::UnwrapInstanceHandle(zone, object);
+    Zone* zone = thread->zone();
+    const auto& view_obj = Api::UnwrapTypedDataViewHandle(zone, object);
     ASSERT(!view_obj.IsNull());
-    const Instance& data_obj =
-        Instance::Handle(zone, TypedDataView::Data(view_obj));
+    const auto& data_obj = Instance::Handle(zone, view_obj.typed_data());
     if (ExternalTypedData::IsExternalTypedData(data_obj)) {
       return GetType(class_id);
     }
@@ -3349,7 +3425,7 @@ static Dart_Handle NewExternalByteData(
   Dart_Handle ext_data =
       NewExternalTypedData(thread, kExternalTypedDataUint8ArrayCid, data,
                            length, peer, external_allocation_size, callback);
-  if (::Dart_IsError(ext_data)) {
+  if (Api::IsError(ext_data)) {
     return ext_data;
   }
   Object& result = Object::Handle(zone);
@@ -3621,15 +3697,15 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     data_tmp = obj.DataAddr(0);
   } else {
     ASSERT(RawObject::IsTypedDataViewClassId(class_id));
-    const Instance& view_obj = Api::UnwrapInstanceHandle(Z, object);
+    const auto& view_obj = Api::UnwrapTypedDataViewHandle(Z, object);
     ASSERT(!view_obj.IsNull());
     Smi& val = Smi::Handle();
-    val ^= TypedDataView::Length(view_obj);
+    val ^= view_obj.length();
     length = val.Value();
     size_in_bytes = length * TypedDataView::ElementSizeInBytes(class_id);
-    val ^= TypedDataView::OffsetInBytes(view_obj);
+    val ^= view_obj.offset_in_bytes();
     intptr_t offset_in_bytes = val.Value();
-    const Instance& obj = Instance::Handle(TypedDataView::Data(view_obj));
+    const auto& obj = Instance::Handle(view_obj.typed_data());
     T->IncrementNoSafepointScopeDepth();
     START_NO_CALLBACK_SCOPE(T);
     if (TypedData::IsTypedData(obj)) {
@@ -3749,7 +3825,7 @@ static RawObject* ResolveConstructor(const char* current_func,
         current_func, constr_name.ToCString(), error_message.ToCString()));
     return ApiError::New(message);
   }
-  RawError* error = constructor.VerifyEntryPoint();
+  RawError* error = constructor.VerifyCallEntryPoint();
   if (error != Error::null()) return error;
   return constructor.raw();
 }
@@ -4043,7 +4119,7 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
   if (!constructor.IsNull() && constructor.IsGenerativeConstructor() &&
       constructor.AreValidArgumentCounts(
           kTypeArgsLen, number_of_arguments + extra_args, 0, NULL)) {
-    CHECK_ERROR_HANDLE(constructor.VerifyEntryPoint());
+    CHECK_ERROR_HANDLE(constructor.VerifyCallEntryPoint());
     // Create the argument list.
     // Constructors get the uninitialized object.
     if (!type_arguments.IsNull()) {
@@ -4057,7 +4133,7 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
     Array& args = Array::Handle(Z);
     result =
         SetupArguments(T, number_of_arguments, arguments, extra_args, &args);
-    if (!::Dart_IsError(result)) {
+    if (!Api::IsError(result)) {
       args.SetAt(0, instance);
       const Object& retval =
           Object::Handle(Z, DartEntry::InvokeFunction(constructor, args));
@@ -4116,7 +4192,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
 
     // Setup args and check for malformed arguments in the arguments list.
     result = SetupArguments(T, number_of_arguments, arguments, 0, &args);
-    if (::Dart_IsError(result)) {
+    if (Api::IsError(result)) {
       return result;
     }
     return Api::NewHandle(
@@ -4131,7 +4207,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
 
     // Setup args and check for malformed arguments in the arguments list.
     result = SetupArguments(T, number_of_arguments, arguments, 1, &args);
-    if (::Dart_IsError(result)) {
+    if (Api::IsError(result)) {
       return result;
     }
     args.SetAt(0, instance);
@@ -4154,7 +4230,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
 
     // Setup args and check for malformed arguments in the arguments list.
     result = SetupArguments(T, number_of_arguments, arguments, 0, &args);
-    if (::Dart_IsError(result)) {
+    if (Api::IsError(result)) {
       return result;
     }
 
@@ -4349,7 +4425,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
   CHECK_CALLBACK_STATE(thread);
-  if (Api::IsError(exception)) {
+  if (::Dart_IsError(exception)) {
     ::Dart_PropagateError(exception);
   }
   TransitionNativeToVM transition(thread);
@@ -4423,6 +4499,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
                                                          int* count) {
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   ReusableObjectHandleScope reused_obj_handle(thread);
   const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
   if (instance.IsNull()) {
@@ -4437,6 +4514,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
                                                     intptr_t* value) {
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   ReusableObjectHandleScope reused_obj_handle(thread);
   const Instance& instance = Api::UnwrapInstanceHandle(reused_obj_handle, obj);
   if (instance.IsNull()) {
@@ -4731,11 +4809,11 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   ASSERT(arguments->thread()->isolate() == Isolate::Current());
   ASSERT_CALLBACK_STATE(arguments->thread());
+  TransitionNativeToVM transition(arguments->thread());
   if ((retval != Api::Null()) && !Api::IsInstance(retval) &&
       !Api::IsError(retval)) {
     // Print the current stack trace to make the problematic caller
     // easier to find.
-    TransitionNativeToVM transition(arguments->thread());
     const StackTrace& stacktrace = GetCurrentStackTrace(0);
     OS::PrintErr("=== Current Trace:\n%s===\n", stacktrace.ToCString());
 
@@ -4752,6 +4830,7 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
 DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
                                                Dart_WeakPersistentHandle rval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  TransitionNativeToVM transition(arguments->thread());
 #if defined(DEBUG)
   Isolate* isolate = arguments->thread()->isolate();
   ASSERT(isolate == Isolate::Current());
@@ -4774,7 +4853,7 @@ RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
       return Symbols::False().raw();
     }
 
-    if (!Api::ffiEnabled() && name.Equals(Symbols::DartLibraryFfi())) {
+    if (!Api::IsFfiEnabled() && name.Equals(Symbols::DartLibraryFfi())) {
       return Symbols::False().raw();
     }
 
@@ -4863,6 +4942,7 @@ Dart_SetEnvironmentCallback(Dart_EnvironmentCallback callback) {
 DART_EXPORT void Dart_SetBooleanReturnValue(Dart_NativeArguments args,
                                             bool retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  TransitionNativeToVM transition(arguments->thread());
   ASSERT(arguments->thread()->isolate() == Isolate::Current());
   ASSERT_CALLBACK_STATE(arguments->thread());
   arguments->SetReturn(Bool::Get(retval));
@@ -4871,14 +4951,13 @@ DART_EXPORT void Dart_SetBooleanReturnValue(Dart_NativeArguments args,
 DART_EXPORT void Dart_SetIntegerReturnValue(Dart_NativeArguments args,
                                             int64_t retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  TransitionNativeToVM transition(arguments->thread());
   ASSERT(arguments->thread()->isolate() == Isolate::Current());
   ASSERT_CALLBACK_STATE(arguments->thread());
   if (Smi::IsValid(retval)) {
     Api::SetSmiReturnValue(arguments, static_cast<intptr_t>(retval));
   } else {
     // Slow path for Mints.
-    ASSERT_CALLBACK_STATE(arguments->thread());
-    TransitionNativeToVM transition(arguments->thread());
     Api::SetIntegerReturnValue(arguments, retval);
   }
 }
@@ -5264,7 +5343,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
 
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
-  if (::Dart_IsError(state)) {
+  if (Api::IsError(state)) {
     return state;
   }
 
@@ -5364,6 +5443,7 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
   }
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   REUSABLE_OBJECT_HANDLESCOPE(thread);
   Object& obj = thread->ObjectHandle();
   obj = Api::UnwrapHandle(object);
@@ -5383,6 +5463,7 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
 DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
   Thread* thread = Thread::Current();
   CHECK_ISOLATE(thread->isolate());
+  TransitionNativeToVM transition(thread);
   REUSABLE_OBJECT_HANDLESCOPE(thread);
   Object& obj = thread->ObjectHandle();
   obj = Api::UnwrapHandle(object);
@@ -5496,6 +5577,15 @@ DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies() {
   result = KernelIsolate::ListDependencies();
 #endif
   return result;
+}
+
+DART_EXPORT void Dart_SetDartLibrarySourcesKernel(
+    const uint8_t* platform_kernel,
+    const intptr_t platform_kernel_size) {
+#if !defined(PRODUCT)
+  Service::SetDartLibraryKernelForSources(platform_kernel,
+                                          platform_kernel_size);
+#endif
 }
 
 // --- Service support ---
@@ -5702,7 +5792,6 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   if (event == NULL) {
     return;
   }
-  label = strdup(label);
   switch (type) {
     case Dart_Timeline_Event_Begin:
       event->Begin(label, timestamp0);
@@ -5740,7 +5829,6 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
     default:
       FATAL("Unknown Dart_Timeline_Event_Type");
   }
-  event->set_owns_label(true);
   event->SetNumArguments(argument_count);
   for (intptr_t i = 0; i < argument_count; i++) {
     event->CopyArgument(i, argument_names[i], argument_values[i]);
@@ -5808,6 +5896,10 @@ Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer, intptr_t buffer_length) {
   API_TIMELINE_DURATION(thread);
   DARTSCOPE(thread);
   CHECK_NULL(buffer);
+  Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
+  if (Api::IsError(state)) {
+    return state;
+  }
   CompilationTraceLoader loader(thread);
   const Object& error =
       Object::Handle(loader.CompileTrace(buffer, buffer_length));
@@ -5827,6 +5919,10 @@ Dart_Handle Dart_LoadTypeFeedback(uint8_t* buffer, intptr_t buffer_length) {
   API_TIMELINE_DURATION(thread);
   DARTSCOPE(thread);
   CHECK_NULL(buffer);
+  Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
+  if (Api::IsError(state)) {
+    return state;
+  }
   ReadStream stream(buffer, buffer_length);
   TypeFeedbackLoader loader(thread);
   const Object& error = Object::Handle(loader.LoadFeedback(&stream));
@@ -5868,7 +5964,7 @@ DART_EXPORT Dart_Handle Dart_Precompile() {
     return Api::NewError("Flag --precompilation was not specified.");
   }
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
-  if (::Dart_IsError(result)) {
+  if (Api::IsError(result)) {
     return result;
   }
   CHECK_CALLBACK_STATE(T);
@@ -6090,7 +6186,7 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
   CHECK_NULL(isolate_snapshot_instructions_size);
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
-  if (::Dart_IsError(state)) {
+  if (Api::IsError(state)) {
     return state;
   }
   BackgroundCompiler::Stop(I);
@@ -6149,7 +6245,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   CHECK_NULL(isolate_snapshot_instructions_size);
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
-  if (::Dart_IsError(state)) {
+  if (Api::IsError(state)) {
     return state;
   }
   BackgroundCompiler::Stop(I);
@@ -6243,6 +6339,10 @@ DART_EXPORT void Dart_DumpNativeStackTrace(void* context) {
 #ifndef PRODUCT
   Profiler::DumpStackTrace(context);
 #endif
+}
+
+DART_EXPORT void Dart_PrepareToAbort() {
+  OS::PrepareToAbort();
 }
 
 }  // namespace dart

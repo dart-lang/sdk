@@ -1217,13 +1217,20 @@ class CommandExecutorImpl implements CommandExecutor {
           .runCommand(command.displayName, command, timeout, command.arguments);
     } else if (command is ScriptCommand) {
       return command.run();
-    } else if (command is AdbPrecompilationCommand) {
+    } else if (command is AdbPrecompilationCommand ||
+        command is AdbDartkCommand) {
       assert(adbDevicePool != null);
-      return adbDevicePool.acquireDevice().then((AdbDevice device) {
-        return _runAdbPrecompilationCommand(device, command, timeout)
-            .whenComplete(() {
-          adbDevicePool.releaseDevice(device);
-        });
+      return adbDevicePool.acquireDevice().then((AdbDevice device) async {
+        try {
+          if (command is AdbPrecompilationCommand) {
+            return await _runAdbPrecompilationCommand(device, command, timeout);
+          } else {
+            return await _runAdbDartkCommand(
+                device, command as AdbDartkCommand, timeout);
+          }
+        } finally {
+          await adbDevicePool.releaseDevice(device);
+        }
       });
     } else if (command is VmBatchCommand) {
       var name = command.displayName;
@@ -1293,6 +1300,70 @@ class CommandExecutorImpl implements CommandExecutor {
       var fun = steps[i];
       var commandStopwatch = new Stopwatch()..start();
       result = await fun();
+
+      writer.writeln("Executing ${result.command}");
+      if (result.stdout.length > 0) {
+        writer.writeln("Stdout:\n${result.stdout.trim()}");
+      }
+      if (result.stderr.length > 0) {
+        writer.writeln("Stderr:\n${result.stderr.trim()}");
+      }
+      writer.writeln("ExitCode: ${result.exitCode}");
+      writer.writeln("Time: ${commandStopwatch.elapsed}");
+      writer.writeln("");
+
+      // If one command fails, we stop processing the others and return
+      // immediately.
+      if (result.exitCode != 0) break;
+    }
+    return createCommandOutput(command, result.exitCode, result.timedOut,
+        utf8.encode('$writer'), [], stopwatch.elapsed, false);
+  }
+
+  Future<CommandOutput> _runAdbDartkCommand(
+      AdbDevice device, AdbDartkCommand command, int timeout) async {
+    final String buildPath = command.buildPath;
+    final String processTest = command.processTestFilename;
+    final String hostKernelFile = command.kernelFile;
+    final List<String> arguments = command.arguments;
+    final String devicedir = DartkAdbRuntimeConfiguration.DeviceDir;
+    final String deviceTestDir = DartkAdbRuntimeConfiguration.DeviceTestDir;
+
+    final timeoutDuration = new Duration(seconds: timeout);
+
+    final steps = <StepFunction>[];
+
+    steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
+    steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
+    steps.add(
+        () => device.pushCachedData("${buildPath}/dart", '$devicedir/dart'));
+    steps.add(() => device
+        .runAdbCommand(['push', hostKernelFile, '$deviceTestDir/out.dill']));
+
+    for (final String lib in command.extraLibraries) {
+      final String libname = "lib${lib}.so";
+      steps.add(() => device.runAdbCommand(
+          ['push', '${buildPath}/$libname', '$deviceTestDir/$libname']));
+    }
+
+    steps.add(() => device.runAdbShellCommand(
+        [
+          'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
+              '$devicedir/dart',
+        ]..addAll(arguments),
+        timeout: timeoutDuration));
+
+    final stopwatch = new Stopwatch()..start();
+    final writer = new StringBuffer();
+
+    await device.waitForBootCompleted();
+    await device.waitForDevice();
+
+    AdbCommandResult result;
+    for (var i = 0; i < steps.length; i++) {
+      var step = steps[i];
+      var commandStopwatch = new Stopwatch()..start();
+      result = await step();
 
       writer.writeln("Executing ${result.command}");
       if (result.stdout.length > 0) {

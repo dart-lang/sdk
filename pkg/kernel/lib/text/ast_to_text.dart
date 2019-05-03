@@ -448,6 +448,8 @@ class Printer extends Visitor<Null> {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
         write(prefix + '::' + node.name);
+      } else if (reference.canonicalName != null) {
+        write(reference.canonicalName.toString());
       } else {
         throw new UnimplementedError('${node.runtimeType}');
       }
@@ -474,6 +476,9 @@ class Printer extends Visitor<Null> {
           continue;
         }
         writeWord('external');
+      }
+      if (showMetadata) {
+        inner.writeMetadata(library);
       }
       writeAnnotationList(library.annotations);
       writeWord('library');
@@ -1270,6 +1275,66 @@ class Printer extends Visitor<Null> {
     state = WORD;
   }
 
+  visitListConcatenation(ListConcatenation node) {
+    bool first = true;
+    for (Expression part in node.lists) {
+      if (!first) writeSpaced('+');
+      writeExpression(part);
+      first = false;
+    }
+  }
+
+  visitSetConcatenation(SetConcatenation node) {
+    bool first = true;
+    for (Expression part in node.sets) {
+      if (!first) writeSpaced('+');
+      writeExpression(part);
+      first = false;
+    }
+  }
+
+  visitMapConcatenation(MapConcatenation node) {
+    bool first = true;
+    for (Expression part in node.maps) {
+      if (!first) writeSpaced('+');
+      writeExpression(part);
+      first = false;
+    }
+  }
+
+  visitInstanceCreation(InstanceCreation node) {
+    write('${node.classNode}');
+    if (node.typeArguments.isNotEmpty) {
+      writeSymbol('<');
+      writeList(node.typeArguments, writeType);
+      writeSymbol('>');
+    }
+    write(' {');
+    bool first = true;
+    node.fieldValues.forEach((Reference fieldRef, Expression value) {
+      if (!first) {
+        writeComma();
+      }
+      write('${fieldRef.asField.name}: ');
+      writeExpression(value);
+      first = false;
+    });
+    for (AssertStatement assert_ in node.asserts) {
+      if (!first) {
+        writeComma();
+      }
+      write('assert(');
+      writeExpression(assert_.condition);
+      if (assert_.message != null) {
+        writeComma();
+        writeExpression(assert_.message);
+      }
+      write(')');
+    }
+
+    write('}');
+  }
+
   visitIsExpression(IsExpression node) {
     writeExpression(node.operand, Precedence.BITWISE_OR);
     writeSpaced('is');
@@ -1390,6 +1455,13 @@ class Printer extends Visitor<Null> {
     writeVariableDeclaration(node.variable);
     writeSpaced('in');
     writeExpression(node.body);
+  }
+
+  visitBlockExpression(BlockExpression node) {
+    writeSpaced('block');
+    writeBlockBody(node.body.statements, asExpression: true);
+    writeSymbol(' =>');
+    writeExpression(node.value);
   }
 
   visitInstantiation(Instantiation node) {
@@ -1541,33 +1613,28 @@ class Printer extends Visitor<Null> {
     endLine(';');
   }
 
-  visitBlock(Block node) {
-    writeIndentation();
-    if (node.statements.isEmpty) {
-      endLine('{}');
-      return null;
+  void writeBlockBody(List<Statement> statements, {bool asExpression = false}) {
+    if (statements.isEmpty) {
+      asExpression ? writeSymbol('{}') : endLine('{}');
+      return;
     }
     endLine('{');
     ++indentation;
-    node.statements.forEach(writeNode);
+    statements.forEach(writeNode);
     --indentation;
     writeIndentation();
-    endLine('}');
+    asExpression ? writeSymbol('}') : endLine('}');
+  }
+
+  visitBlock(Block node) {
+    writeIndentation();
+    writeBlockBody(node.statements);
   }
 
   visitAssertBlock(AssertBlock node) {
     writeIndentation();
     writeSpaced('assert');
-    if (node.statements.isEmpty) {
-      endLine('{}');
-      return;
-    }
-    endLine('{');
-    ++indentation;
-    node.statements.forEach(writeNode);
-    --indentation;
-    writeIndentation();
-    endLine('}');
+    writeBlockBody(node.statements);
   }
 
   visitEmptyStatement(EmptyStatement node) {
@@ -1575,8 +1642,8 @@ class Printer extends Visitor<Null> {
     endLine(';');
   }
 
-  visitAssertStatement(AssertStatement node, {bool asExpr = false}) {
-    if (asExpr != true) {
+  visitAssertStatement(AssertStatement node, {bool asExpression = false}) {
+    if (!asExpression) {
       writeIndentation();
     }
     writeWord('assert');
@@ -1586,7 +1653,7 @@ class Printer extends Visitor<Null> {
       writeComma();
       writeExpression(node.message);
     }
-    if (asExpr != true) {
+    if (!asExpression) {
       endLine(');');
     } else {
       writeSymbol(')');
@@ -1863,7 +1930,7 @@ class Printer extends Visitor<Null> {
   }
 
   visitAssertInitializer(AssertInitializer node) {
-    visitAssertStatement(node.statement, asExpr: true);
+    visitAssertStatement(node.statement, asExpression: true);
   }
 
   defaultInitializer(Initializer node) {
@@ -1944,6 +2011,15 @@ class Printer extends Visitor<Null> {
     endLine('${node.runtimeType}<${node.typeArgument}>($entries)');
   }
 
+  visitSetConstant(SetConstant node) {
+    final String name = syntheticNames.nameConstant(node);
+    write('  $name = ');
+    final String entries = node.entries.map((Constant constant) {
+      return syntheticNames.nameConstant(constant);
+    }).join(', ');
+    endLine('${node.runtimeType}<${node.typeArgument}>($entries)');
+  }
+
   visitMapConstant(MapConstant node) {
     final String name = syntheticNames.nameConstant(node);
     write('  $name = ');
@@ -1971,20 +2047,25 @@ class Printer extends Visitor<Null> {
     node.fieldValues.forEach((Reference fieldRef, Constant constant) {
       final String name = syntheticNames.nameConstant(constant);
       if (!first) {
-        first = false;
         sb.write(', ');
       }
       sb.write('${fieldRef.asField.name}: $name');
+      first = false;
     });
     sb.write('}');
     endLine(sb.toString());
   }
 
+  visitStringConstant(StringConstant node) {
+    final String name = syntheticNames.nameConstant(node);
+    endLine('  $name = "${escapeString(node.value)}"');
+  }
+
   visitUnevaluatedConstant(UnevaluatedConstant node) {
     final String name = syntheticNames.nameConstant(node);
-    write('  $name = ');
+    write('  $name = (');
     writeExpression(node.expression);
-    endLine();
+    endLine(')');
   }
 
   defaultNode(Node node) {

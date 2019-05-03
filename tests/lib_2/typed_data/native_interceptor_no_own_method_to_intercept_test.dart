@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import 'dart:typed_data';
 
-@NoInline()
+@pragma('dart2js:noInline')
 use(s) => s;
 
 main() {

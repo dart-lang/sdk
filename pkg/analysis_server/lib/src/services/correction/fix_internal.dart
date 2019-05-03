@@ -15,9 +15,10 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -174,6 +175,7 @@ class FixProcessor {
   final LibraryElement unitLibraryElement;
   final CompilationUnit unit;
   final CorrectionUtils utils;
+  final Flutter flutter;
 
   final AnalysisError error;
   final int errorOffset;
@@ -194,6 +196,7 @@ class FixProcessor {
         unitLibraryElement = context.resolveResult.libraryElement,
         unit = context.resolveResult.unit,
         utils = CorrectionUtils(context.resolveResult),
+        flutter = Flutter.of(context.resolveResult.session),
         error = context.error,
         errorOffset = context.error.offset,
         errorLength = context.error.length;
@@ -206,9 +209,6 @@ class FixProcessor {
   String get eol => utils.endOfLine;
 
   Future<List<Fix>> compute() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-
     node = new NodeLocator2(errorOffset).searchWithin(unit);
     coveredNode = new NodeLocator2(errorOffset, errorOffset + errorLength - 1)
         .searchWithin(unit);
@@ -227,6 +227,7 @@ class FixProcessor {
       await _addFix_replaceWithConstInstanceCreation();
     }
     if (errorCode == CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT ||
+        errorCode == CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT ||
         errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT) {
       await _addFix_addAsync();
     }
@@ -331,7 +332,18 @@ class FixProcessor {
 //    }
     if (errorCode == HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE) {
       await _addFix_importAsync();
-      await _addFix_updateSdkConstraints();
+      await _addFix_updateSdkConstraints('2.1.0');
+    }
+    if (errorCode == HintCode.SDK_VERSION_SET_LITERAL) {
+      await _addFix_updateSdkConstraints('2.2.0');
+    }
+    if (errorCode == HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT ||
+        errorCode == HintCode.SDK_VERSION_BOOL_OPERATOR ||
+        errorCode == HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT ||
+        errorCode == HintCode.SDK_VERSION_GT_GT_GT_OPERATOR ||
+        errorCode == HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT ||
+        errorCode == HintCode.SDK_VERSION_UI_AS_CODE) {
+      await _addFix_updateSdkConstraints('2.2.2');
     }
     if (errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL) {
       await _addFix_isNotNull();
@@ -468,7 +480,8 @@ class FixProcessor {
     }
     if (errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER ||
         errorCode == StaticWarningCode.UNDEFINED_NAMED_PARAMETER) {
-      await _addFix_addMissingNamedArgument();
+      await _addFix_addMissingParameterNamed();
+      await _addFix_changeArgumentName();
     }
     if (errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE) {
       await _addFix_illegalAsyncReturnType();
@@ -545,6 +558,9 @@ class FixProcessor {
         CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE) {
       await _addFix_extendClassForMixin();
     }
+    if (errorCode == StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH) {
+      await _addFix_addMissingEnumCaseClauses();
+    }
     // lints
     if (errorCode is LintCode) {
       String name = errorCode.name;
@@ -581,8 +597,14 @@ class FixProcessor {
       if (name == LintNames.empty_statements) {
         await _addFix_removeEmptyStatement();
       }
+      if (name == LintNames.no_duplicate_case_values) {
+        await _addFix_removeCaseStatement();
+      }
       if (name == LintNames.non_constant_identifier_names) {
         await _addFix_renameToCamelCase();
+      }
+      if (name == LintNames.null_closures) {
+        await _addFix_replaceNullWithClosure();
       }
       if (name == LintNames.prefer_conditional_assignment) {
         await _addFix_replaceWithConditionalAssignment();
@@ -590,11 +612,17 @@ class FixProcessor {
       if (errorCode.name == LintNames.prefer_const_declarations) {
         await _addFix_replaceFinalWithConst();
       }
+      if (errorCode.name == LintNames.prefer_equal_for_default_values) {
+        await _addFix_replaceColonWithEquals();
+      }
       if (name == LintNames.prefer_final_fields) {
         await _addFix_makeVariableFinal();
       }
       if (name == LintNames.prefer_final_locals) {
         await _addFix_makeVariableFinal();
+      }
+      if (name == LintNames.prefer_is_empty) {
+        await _addFix_replaceWithIsEmpty();
       }
       if (name == LintNames.prefer_is_not_empty) {
         await _addFix_isNotEmpty();
@@ -602,17 +630,29 @@ class FixProcessor {
       if (name == LintNames.type_init_formals) {
         await _addFix_removeTypeAnnotation();
       }
-      if (name == LintNames.unnecessary_brace_in_string_interp) {
+      if (name == LintNames.unawaited_futures) {
+        await _addFix_addAwait();
+      }
+      if (name == LintNames.unnecessary_brace_in_string_interps) {
         await _addFix_removeInterpolationBraces();
+      }
+      if (name == LintNames.unnecessary_const) {
+        await _addFix_removeConstKeyword();
       }
       if (name == LintNames.unnecessary_lambdas) {
         await _addFix_replaceWithTearOff();
       }
-      if (name == LintNames.unnecessary_override) {
+      if (name == LintNames.unnecessary_new) {
+        await _addFix_removeNewKeyword();
+      }
+      if (name == LintNames.unnecessary_overrides) {
         await _addFix_removeMethodDeclaration();
       }
       if (name == LintNames.unnecessary_this) {
         await _addFix_removeThisExpression();
+      }
+      if (name == LintNames.use_rethrow_when_possible) {
+        await _addFix_replaceWithRethrow();
       }
     }
     // done
@@ -637,6 +677,14 @@ class FixProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.ADD_ASYNC);
     }
+  }
+
+  Future<void> _addFix_addAwait() async {
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleInsertion(node.offset, 'await ');
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_AWAIT);
   }
 
   Future<void> _addFix_addExplicitCast() async {
@@ -675,7 +723,7 @@ class FixProcessor {
       // TODO(brianwilkerson) Consider updating the right operand.
       return;
     }
-    bool needsParentheses = target.precedence < 15;
+    bool needsParentheses = target.precedence < Precedence.postfix;
     if (((_isDartCoreIterable(fromType) || _isDartCoreList(fromType)) &&
             _isDartCoreList(toType)) ||
         (_isDartCoreSet(fromType) && _isDartCoreSet(toType))) {
@@ -740,68 +788,67 @@ class FixProcessor {
     }
   }
 
-  Future<void> _addFix_addMissingNamedArgument() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    // Prepare the name of the missing parameter.
-    if (this.node is! SimpleIdentifier) {
-      return;
-    }
-    SimpleIdentifier node = this.node;
-    String name = node.name;
-
-    // We expect that the node is part of a NamedExpression.
-    if (node.parent?.parent is! NamedExpression) {
-      return;
-    }
-    NamedExpression namedExpression = node.parent.parent;
-
-    // We should be in an ArgumentList.
-    if (namedExpression.parent is! ArgumentList) {
-      return;
-    }
-    AstNode argumentList = namedExpression.parent;
-
-    // Prepare the invoked element.
-    var context = new _ExecutableParameters(sessionHelper, argumentList.parent);
-    if (context == null) {
-      return;
-    }
-
-    // We cannot add named parameters when there are positional positional.
-    if (context.optionalPositional.isNotEmpty) {
-      return;
-    }
-
-    Future<void> addParameter(int offset, String prefix, String suffix) async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
-      if (offset != null) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(context.file, (builder) {
-          builder.addInsertion(offset, (builder) {
-            builder.write(prefix);
-            builder.writeParameterMatchingArgument(
-                namedExpression, 0, new Set<String>());
-            builder.write(suffix);
-          });
-        });
-        _addFixFromBuilder(
-            changeBuilder, DartFixKind.ADD_MISSING_PARAMETER_NAMED,
-            args: [name]);
+  Future<void> _addFix_addMissingEnumCaseClauses() async {
+    SwitchStatement statement = node as SwitchStatement;
+    String enumName;
+    List<String> enumConstantNames = [];
+    DartType expressionType = statement.expression.staticType;
+    if (expressionType is InterfaceType) {
+      ClassElement enumElement = expressionType.element;
+      if (enumElement.isEnum) {
+        enumName = enumElement.name;
+        for (FieldElement field in enumElement.fields) {
+          if (!field.isSynthetic) {
+            enumConstantNames.add(field.name);
+          }
+        }
       }
     }
-
-    if (context.named.isNotEmpty) {
-      var prevNode = await context.getParameterNode(context.named.last);
-      await addParameter(prevNode?.end, ', ', '');
-    } else if (context.required.isNotEmpty) {
-      var prevNode = await context.getParameterNode(context.required.last);
-      await addParameter(prevNode?.end, ', {', '}');
-    } else {
-      var parameterList = await context.getParameterList();
-      await addParameter(parameterList?.leftParenthesis?.end, '{', '}');
+    if (enumName == null) {
+      return;
     }
+    for (SwitchMember member in statement.members) {
+      if (member is SwitchCase) {
+        Expression expression = member.expression;
+        if (expression is Identifier) {
+          Element element = expression.staticElement;
+          if (element is PropertyAccessorElement) {
+            enumConstantNames.remove(element.name);
+          }
+        }
+      }
+    }
+    if (enumConstantNames.isEmpty) {
+      return;
+    }
+
+    String statementIndent = utils.getLinePrefix(statement.offset);
+    String singleIndent = utils.getIndent(1);
+
+    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addInsertion(utils.getLineThis(statement.end), (builder) {
+        for (String constantName in enumConstantNames) {
+          builder.write(statementIndent);
+          builder.write(singleIndent);
+          builder.write('case ');
+          builder.write(enumName);
+          builder.write('.');
+          builder.write(constantName);
+          builder.writeln(':');
+          builder.write(statementIndent);
+          builder.write(singleIndent);
+          builder.write(singleIndent);
+          builder.writeln('// TODO: Handle this case.');
+          builder.write(statementIndent);
+          builder.write(singleIndent);
+          builder.write(singleIndent);
+          builder.writeln('break;');
+        }
+      });
+    });
+    _addFixFromBuilder(
+        changeBuilder, DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES);
   }
 
   Future<void> _addFix_addMissingParameter() async {
@@ -871,6 +918,66 @@ class FixProcessor {
         var offset = parameterList?.leftParenthesis?.end;
         await addParameter(kind, offset, prefix, ']');
       }
+    }
+  }
+
+  Future<void> _addFix_addMissingParameterNamed() async {
+    // Prepare the name of the missing parameter.
+    if (this.node is! SimpleIdentifier) {
+      return;
+    }
+    SimpleIdentifier node = this.node;
+    String name = node.name;
+
+    // We expect that the node is part of a NamedExpression.
+    if (node.parent?.parent is! NamedExpression) {
+      return;
+    }
+    NamedExpression namedExpression = node.parent.parent;
+
+    // We should be in an ArgumentList.
+    if (namedExpression.parent is! ArgumentList) {
+      return;
+    }
+    AstNode argumentList = namedExpression.parent;
+
+    // Prepare the invoked element.
+    var context = new _ExecutableParameters(sessionHelper, argumentList.parent);
+    if (context == null) {
+      return;
+    }
+
+    // We cannot add named parameters when there are positional positional.
+    if (context.optionalPositional.isNotEmpty) {
+      return;
+    }
+
+    Future<void> addParameter(int offset, String prefix, String suffix) async {
+      if (offset != null) {
+        var changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(context.file, (builder) {
+          builder.addInsertion(offset, (builder) {
+            builder.write(prefix);
+            builder.writeParameterMatchingArgument(
+                namedExpression, 0, new Set<String>());
+            builder.write(suffix);
+          });
+        });
+        _addFixFromBuilder(
+            changeBuilder, DartFixKind.ADD_MISSING_PARAMETER_NAMED,
+            args: [name]);
+      }
+    }
+
+    if (context.named.isNotEmpty) {
+      var prevNode = await context.getParameterNode(context.named.last);
+      await addParameter(prevNode?.end, ', ', '');
+    } else if (context.required.isNotEmpty) {
+      var prevNode = await context.getParameterNode(context.required.last);
+      await addParameter(prevNode?.end, ', {', '}');
+    } else {
+      var parameterList = await context.getParameterList();
+      await addParameter(parameterList?.leftParenthesis?.end, '{', '}');
     }
   }
 
@@ -1029,6 +1136,57 @@ class FixProcessor {
     }
   }
 
+  Future<void> _addFix_changeArgumentName() async {
+    const int maxDistance = 4;
+
+    List<String> getNamedParameterNames() {
+      AstNode namedExpression = node?.parent?.parent;
+      if (node is SimpleIdentifier &&
+          namedExpression is NamedExpression &&
+          namedExpression.name == node.parent &&
+          namedExpression.parent is ArgumentList) {
+        var parameters = _ExecutableParameters(
+          sessionHelper,
+          namedExpression.parent.parent,
+        );
+        return parameters?.namedNames;
+      }
+      return null;
+    }
+
+    int computeDistance(String current, String proposal) {
+      if ((current == 'child' && proposal == 'children') ||
+          (current == 'children' && proposal == 'child')) {
+        // Special case handling for 'child' and 'children' is unnecessary if
+        // `maxDistance >= 3`, but is included to prevent regression in case the
+        // value is changed to improve results.
+        return 1;
+      }
+      return levenshtein(current, proposal, maxDistance, caseSensitive: false);
+    }
+
+    List<String> names = getNamedParameterNames();
+    if (names == null || names.isEmpty) {
+      return;
+    }
+
+    SimpleIdentifier argumentName = node;
+    String invalidName = argumentName.name;
+    for (String proposedName in names) {
+      int distance = computeDistance(invalidName, proposedName);
+      if (distance <= maxDistance) {
+        DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(file, (builder) {
+          builder.addSimpleReplacement(range.node(argumentName), proposedName);
+        });
+        // TODO(brianwilkerson) Create a way to use the distance as part of the
+        //  computation of the priority (so that closer names sort first).
+        _addFixFromBuilder(changeBuilder, DartFixKind.CHANGE_ARGUMENT_NAME,
+            args: [proposedName]);
+      }
+    }
+  }
+
   Future<void> _addFix_changeToNearestPreciseValue() async {
     IntegerLiteral integer = node;
     String lexeme = integer.literal.lexeme;
@@ -1130,7 +1288,7 @@ class FixProcessor {
       NamedExpression named = node.parent?.parent;
       Expression expression = named.expression;
       if (expression is ListLiteral && expression.elements.length == 1) {
-        Expression widget = expression.elements[0];
+        CollectionElement widget = expression.elements[0];
         if (flutter.isWidgetExpression(widget)) {
           String widgetText = utils.getNodeText(widget);
           String indentOld = utils.getLinePrefix(widget.offset);
@@ -1342,7 +1500,7 @@ class FixProcessor {
         flutter.isExactlyStatefulWidgetType(superType)) {
       // Specialize for Flutter widgets.
       ClassElement keyClass =
-          await sessionHelper.getClass(flutter.WIDGETS_LIBRARY_URI, 'Key');
+          await sessionHelper.getClass(flutter.widgetsUri, 'Key');
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
           builder.write(targetLocation.prefix);
@@ -2218,7 +2376,8 @@ class FixProcessor {
         DartFixKind.IMPORT_ASYNC, Uri.parse('dart:async'));
   }
 
-  Future<void> _addFix_importLibrary(FixKind kind, Uri library) async {
+  Future<void> _addFix_importLibrary(FixKind kind, Uri library,
+      [String relativeURI = null]) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     String uriText;
@@ -2227,6 +2386,16 @@ class FixProcessor {
       uriText = builder.importLibrary(library);
     });
     _addFixFromBuilder(changeBuilder, kind, args: [uriText]);
+
+    if (relativeURI != null && relativeURI.isNotEmpty) {
+      var changeBuilder2 = _newDartChangeBuilder();
+      await changeBuilder2.addFileEdit(file, (DartFileEditBuilder builder) {
+        if (builder is DartFileEditBuilderImpl) {
+          builder.importLibraryWithRelativeUri(relativeURI);
+        }
+      });
+      _addFixFromBuilder(changeBuilder2, kind, args: [relativeURI]);
+    }
   }
 
   Future<void> _addFix_importLibrary_withElement(
@@ -2331,7 +2500,9 @@ class FixProcessor {
           fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT1;
         }
         // Add the fix.
-        await _addFix_importLibrary(fixKind, librarySource.uri);
+        var relativeURI =
+            _getRelativeURIFromLibrary(unitLibraryElement, librarySource);
+        await _addFix_importLibrary(fixKind, librarySource.uri, relativeURI);
       }
     }
   }
@@ -2638,6 +2809,28 @@ class FixProcessor {
     }
   }
 
+  Future<void> _addFix_removeCaseStatement() async {
+    if (coveredNode is SwitchCase) {
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(utils.getLinesRange(range.node(coveredNode)));
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_DUPLICATE_CASE);
+    }
+  }
+
+  Future<void> _addFix_removeConstKeyword() async {
+    final instanceCreationExpression = node;
+    if (instanceCreationExpression is InstanceCreationExpression) {
+      final constToken = instanceCreationExpression.keyword;
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(range.startStart(constToken, constToken.next));
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNNECESSARY_CONST);
+    }
+  }
+
   Future<void> _addFix_removeDeadCode() async {
     AstNode coveringNode = this.coveredNode;
     if (coveringNode is Expression) {
@@ -2859,6 +3052,18 @@ class FixProcessor {
     }
   }
 
+  Future<void> _addFix_removeNewKeyword() async {
+    final instanceCreationExpression = node;
+    if (instanceCreationExpression is InstanceCreationExpression) {
+      final newToken = instanceCreationExpression.keyword;
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(range.startStart(newToken, newToken.next));
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNNECESSARY_NEW);
+    }
+  }
+
   Future<void> _addFix_removeParameters_inGetterDeclaration() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -2956,7 +3161,7 @@ class FixProcessor {
     }
     AsExpression asExpression = coveredNode as AsExpression;
     Expression expression = asExpression.expression;
-    int expressionPrecedence = getExpressionPrecedence(expression);
+    Precedence expressionPrecedence = getExpressionPrecedence(expression);
     // remove 'as T' from 'e as T'
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -3064,6 +3269,17 @@ class FixProcessor {
         args: [newName]);
   }
 
+  Future<void> _addFix_replaceColonWithEquals() async {
+    if (node is DefaultFormalParameter) {
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleReplacement(
+            range.token((node as DefaultFormalParameter).separator), '=');
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_COLON_WITH_EQUALS);
+    }
+  }
+
   Future<void> _addFix_replaceFinalWithConst() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -3074,6 +3290,39 @@ class FixProcessor {
             range.token((node as VariableDeclarationList).keyword), 'const');
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_FINAL_WITH_CONST);
+    }
+  }
+
+  Future<void> _addFix_replaceNullWithClosure() async {
+    var nodeToFix;
+    var parameters = const <ParameterElement>[];
+    if (coveredNode is NamedExpression) {
+      NamedExpression namedExpression = coveredNode;
+      var expression = namedExpression.expression;
+      if (expression is NullLiteral) {
+        var element = namedExpression.element;
+        if (element is ParameterElement) {
+          var type = element.type;
+          if (type is FunctionType) {
+            parameters = type.parameters;
+          }
+        }
+        nodeToFix = expression;
+      }
+    } else if (coveredNode is NullLiteral) {
+      nodeToFix = coveredNode;
+    }
+
+    if (nodeToFix != null) {
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addReplacement(range.node(nodeToFix),
+            (DartEditBuilder builder) {
+          builder.writeParameters(parameters);
+          builder.write(' => null');
+        });
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_NULL_WITH_CLOSURE);
     }
   }
 
@@ -3156,6 +3405,110 @@ class FixProcessor {
       _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_IDENTIFIER);
     } else {
       await _addFix_removeTypeAnnotation();
+    }
+  }
+
+  Future<void> _addFix_replaceWithIsEmpty() async {
+    /// Return the value of an integer literal or prefix expression with a
+    /// minus and then an integer literal. For anything else, returns `null`.
+    int getIntValue(Expression expressions) {
+      // Copied from package:linter/src/rules/prefer_is_empty.dart.
+      if (expressions is IntegerLiteral) {
+        return expressions.value;
+      } else if (expressions is PrefixExpression) {
+        var operand = expressions.operand;
+        if (expressions.operator.type == TokenType.MINUS &&
+            operand is IntegerLiteral) {
+          return -operand.value;
+        }
+      }
+      return null;
+    }
+
+    /// Return the expression producing the object on which `length` is being
+    /// invoked, or `null` if there is no such expression.
+    Expression getLengthTarget(Expression expression) {
+      if (expression is PropertyAccess &&
+          expression.propertyName.name == 'length') {
+        return expression.target;
+      } else if (expression is PrefixedIdentifier &&
+          expression.identifier.name == 'length') {
+        return expression.prefix;
+      }
+      return null;
+    }
+
+    BinaryExpression binary = node.thisOrAncestorOfType();
+    TokenType operator = binary.operator.type;
+    String getter;
+    FixKind kind;
+    Expression lengthTarget;
+    int rightValue = getIntValue(binary.rightOperand);
+    if (rightValue != null) {
+      lengthTarget = getLengthTarget(binary.leftOperand);
+      if (rightValue == 0) {
+        if (operator == TokenType.EQ_EQ || operator == TokenType.LT_EQ) {
+          getter = 'isEmpty';
+          kind = DartFixKind.REPLACE_WITH_IS_EMPTY;
+        } else if (operator == TokenType.GT || operator == TokenType.BANG_EQ) {
+          getter = 'isNotEmpty';
+          kind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
+        }
+      } else if (rightValue == 1) {
+        // 'length >= 1' is same as 'isNotEmpty',
+        // and 'length < 1' is same as 'isEmpty'
+        if (operator == TokenType.GT_EQ) {
+          getter = 'isNotEmpty';
+          kind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
+        } else if (operator == TokenType.LT) {
+          getter = 'isEmpty';
+          kind = DartFixKind.REPLACE_WITH_IS_EMPTY;
+        }
+      }
+    } else {
+      int leftValue = getIntValue(binary.leftOperand);
+      if (leftValue != null) {
+        lengthTarget = getLengthTarget(binary.rightOperand);
+        if (leftValue == 0) {
+          if (operator == TokenType.EQ_EQ || operator == TokenType.GT_EQ) {
+            getter = 'isEmpty';
+            kind = DartFixKind.REPLACE_WITH_IS_EMPTY;
+          } else if (operator == TokenType.LT ||
+              operator == TokenType.BANG_EQ) {
+            getter = 'isNotEmpty';
+            kind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
+          }
+        } else if (leftValue == 1) {
+          // '1 <= length' is same as 'isNotEmpty',
+          // and '1 > length' is same as 'isEmpty'
+          if (operator == TokenType.LT_EQ) {
+            getter = 'isNotEmpty';
+            kind = DartFixKind.REPLACE_WITH_IS_NOT_EMPTY;
+          } else if (operator == TokenType.GT) {
+            getter = 'isEmpty';
+            kind = DartFixKind.REPLACE_WITH_IS_EMPTY;
+          }
+        }
+      }
+    }
+    if (lengthTarget == null || getter == null || kind == null) {
+      return;
+    }
+    String target = utils.getNodeText(lengthTarget);
+    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleReplacement(range.node(binary), '$target.$getter');
+    });
+    _addFixFromBuilder(changeBuilder, kind);
+  }
+
+  Future<void> _addFix_replaceWithRethrow() async {
+    if (coveredNode is ThrowExpression) {
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addSimpleReplacement(range.node(coveredNode), 'rethrow');
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.USE_RETHROW);
     }
   }
 
@@ -3577,7 +3930,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_FIELD_FORMAL_PARAMETERS);
   }
 
-  Future<void> _addFix_updateSdkConstraints() async {
+  Future<void> _addFix_updateSdkConstraints(String minimumVersion) async {
     Context context = resourceProvider.pathContext;
     File pubspecFile = null;
     Folder folder = resourceProvider.getFolder(context.dirname(file));
@@ -3605,13 +3958,13 @@ class FixProcessor {
       length = spaceOffset;
     }
     if (text == 'any') {
-      newText = '^2.1.0';
+      newText = '^$minimumVersion';
     } else if (text.startsWith('^')) {
-      newText = '^2.1.0';
+      newText = '^$minimumVersion';
     } else if (text.startsWith('>=')) {
-      newText = '>=2.1.0';
+      newText = '>=$minimumVersion';
     } else if (text.startsWith('>')) {
-      newText = '>=2.1.0';
+      newText = '>=$minimumVersion';
     }
     if (newText == null) {
       return;
@@ -3891,6 +4244,27 @@ class FixProcessor {
   }
 
   /**
+   * Return the relative uri from the passed [library] to the passed
+   * [source]. If the [source] is not in the LibraryElement, `null` is returned.
+   */
+  String _getRelativeURIFromLibrary(LibraryElement library, Source source) {
+    var librarySource = library?.librarySource;
+    if (librarySource == null) {
+      return null;
+    }
+    var pathCtx = resourceProvider.pathContext;
+    var libraryDirectory = pathCtx.dirname(librarySource.fullName);
+    var sourceDirectory = pathCtx.dirname(source.fullName);
+    if (pathCtx.isWithin(libraryDirectory, source.fullName) ||
+        pathCtx.isWithin(sourceDirectory, libraryDirectory)) {
+      String relativeFile =
+          pathCtx.relative(source.fullName, from: libraryDirectory);
+      return pathCtx.split(relativeFile).join('/');
+    }
+    return null;
+  }
+
+  /**
    * Returns an expected [DartType] of [expression], may be `null` if cannot be
    * inferred.
    */
@@ -4144,7 +4518,7 @@ class FixProcessor {
    * [exprPrecedence] - the effective precedence of [expr].
    */
   void _removeEnclosingParentheses(
-      DartFileEditBuilder builder, Expression expr, int exprPrecedence) {
+      DartFileEditBuilder builder, Expression expr, Precedence exprPrecedence) {
     while (expr.parent is ParenthesizedExpression) {
       ParenthesizedExpression parenthesized =
           expr.parent as ParenthesizedExpression;
@@ -4230,21 +4604,30 @@ class LintNames {
   static const String empty_catches = 'empty_catches';
   static const String empty_constructor_bodies = 'empty_constructor_bodies';
   static const String empty_statements = 'empty_statements';
+  static const String no_duplicate_case_values = 'no_duplicate_case_values';
   static const String non_constant_identifier_names =
       'non_constant_identifier_names';
+  static const String null_closures = 'null_closures';
   static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String prefer_conditional_assignment =
       'prefer_conditional_assignment';
   static const String prefer_const_declarations = 'prefer_const_declarations';
+  static const String prefer_equal_for_default_values =
+      'prefer_equal_for_default_values';
   static const String prefer_final_fields = 'prefer_final_fields';
   static const String prefer_final_locals = 'prefer_final_locals';
+  static const String prefer_is_empty = 'prefer_is_empty';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
   static const String type_init_formals = 'type_init_formals';
-  static const String unnecessary_brace_in_string_interp =
-      'unnecessary_brace_in_string_interp';
+  static const String unawaited_futures = 'unawaited_futures';
+  static const String unnecessary_brace_in_string_interps =
+      'unnecessary_brace_in_string_interps';
+  static const String unnecessary_const = 'unnecessary_const';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
-  static const String unnecessary_override = 'unnecessary_override';
+  static const String unnecessary_new = 'unnecessary_new';
+  static const String unnecessary_overrides = 'unnecessary_overrides';
   static const String unnecessary_this = 'unnecessary_this';
+  static const String use_rethrow_when_possible = 'use_rethrow_when_possible';
 }
 
 /**
@@ -4290,11 +4673,15 @@ class _ExecutableParameters {
   factory _ExecutableParameters(
       AnalysisSessionHelper sessionHelper, AstNode invocation) {
     Element element;
-    if (invocation is InstanceCreationExpression) {
+    // This doesn't handle FunctionExpressionInvocation.
+    if (invocation is Annotation) {
+      element = invocation.element;
+    } else if (invocation is InstanceCreationExpression) {
       element = invocation.staticElement;
-    }
-    if (invocation is MethodInvocation) {
+    } else if (invocation is MethodInvocation) {
       element = invocation.methodName.staticElement;
+    } else if (invocation is ConstructorReferenceNode) {
+      element = invocation.staticElement;
     }
     if (element is ExecutableElement && !element.isSynthetic) {
       return new _ExecutableParameters._(sessionHelper, element);
@@ -4316,6 +4703,10 @@ class _ExecutableParameters {
   }
 
   String get file => executable.source.fullName;
+
+  List<String> get namedNames {
+    return named.map((parameter) => parameter.name).toList();
+  }
 
   /**
    * Return the [FormalParameterList] of the [executable], or `null` is cannot

@@ -13,7 +13,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
-#include "vm/constants_x64.h"
+#include "vm/constants.h"
 #include "vm/constants_x86.h"
 #include "vm/hash_map.h"
 #include "vm/pointer_tagging.h"
@@ -305,6 +305,9 @@ class Assembler : public AssemblerBase {
   void popq(const Address& address) { EmitUnaryL(address, 0x8F, 0); }
 
   void setcc(Condition condition, ByteRegister dst);
+
+  void TransitionGeneratedToNative(Register destination_address);
+  void TransitionNativeToGenerated();
 
 // Register-register, register-address and address-register instructions.
 #define RR(width, name, ...)                                                   \
@@ -744,6 +747,11 @@ class Assembler : public AssemblerBase {
                                 const Address& dest,
                                 const Object& value);
 
+  // Stores a non-tagged value into a heap object.
+  void StoreInternalPointer(Register object,
+                            const Address& dest,
+                            Register value);
+
   // Stores a Smi value into a heap object field that always contains a Smi.
   void StoreIntoSmiField(const Address& dest, Register value);
   void ZeroInitSmiField(const Address& dest);
@@ -836,7 +844,7 @@ class Assembler : public AssemblerBase {
   //   ....
   //   locals space  <=== RSP
   //   saved PP
-  //   pc (used to derive the RawInstruction Object of the dart code)
+  //   code object (used to derive the RawInstruction Object of the dart code)
   //   saved RBP     <=== RBP
   //   ret PC
   //   .....
@@ -923,10 +931,6 @@ class Assembler : public AssemblerBase {
   void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
-
-  static const char* RegisterName(Register reg);
-
-  static const char* FpuRegisterName(FpuRegister reg);
 
   static Address ElementAddressForIntIndex(bool is_external,
                                            intptr_t cid,

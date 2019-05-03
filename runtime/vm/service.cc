@@ -121,6 +121,9 @@ StreamInfo Service::logging_stream("_Logging");
 StreamInfo Service::extension_stream("Extension");
 StreamInfo Service::timeline_stream("Timeline");
 
+const uint8_t* Service::dart_library_kernel_ = NULL;
+intptr_t Service::dart_library_kernel_len_ = 0;
+
 static StreamInfo* streams_[] = {
     &Service::vm_stream,      &Service::isolate_stream,
     &Service::debug_stream,   &Service::gc_stream,
@@ -170,13 +173,16 @@ RawObject* Service::RequestAssets() {
   Object& object = Object::Handle();
   {
     Api::Scope api_scope(T);
-    TransitionVMToNative transition(T);
-    if (get_service_assets_callback_ == NULL) {
-      return Object::null();
-    }
-    Dart_Handle handle = get_service_assets_callback_();
-    if (Dart_IsError(handle)) {
-      Dart_PropagateError(handle);
+    Dart_Handle handle;
+    {
+      TransitionVMToNative transition(T);
+      if (get_service_assets_callback_ == NULL) {
+        return Object::null();
+      }
+      handle = get_service_assets_callback_();
+      if (Dart_IsError(handle)) {
+        Dart_PropagateError(handle);
+      }
     }
     object = Api::UnwrapHandle(handle);
   }
@@ -507,7 +513,7 @@ class UIntParameter : public MethodParameter {
     return true;
   }
 
-  static intptr_t Parse(const char* value) {
+  static uintptr_t Parse(const char* value) {
     if (value == NULL) {
       return -1;
     }
@@ -955,6 +961,7 @@ void Service::SendEvent(const char* stream_id,
   bool result;
   {
     TransitionVMToNative transition(thread);
+
     Dart_CObject cbytes;
     cbytes.type = Dart_CObject_kExternalTypedData;
     cbytes.value.as_external_typed_data.type = Dart_TypedData_kUint8;
@@ -974,6 +981,7 @@ void Service::SendEvent(const char* stream_id,
     message.type = Dart_CObject_kArray;
     message.value.as_array.length = 2;
     message.value.as_array.values = elements;
+
     result = Dart_PostCObject(ServiceIsolate::Port(), &message);
   }
 
@@ -1111,6 +1119,22 @@ void Service::PostEvent(Isolate* isolate,
   ASSERT(kind != NULL);
   ASSERT(event != NULL);
 
+  if (FLAG_trace_service) {
+    if (isolate != NULL) {
+      OS::PrintErr(
+          "vm-service: Pushing ServiceEvent(isolate='%s', "
+          "isolateId='" ISOLATE_SERVICE_ID_FORMAT_STRING
+          "', kind='%s') to stream %s\n",
+          isolate->name(), static_cast<int64_t>(isolate->main_port()), kind,
+          stream_id);
+    } else {
+      OS::PrintErr(
+          "vm-service: Pushing ServiceEvent(isolate='<no current isolate>', "
+          "kind='%s') to stream %s\n",
+          kind, stream_id);
+    }
+  }
+
   // Message is of the format [<stream id>, <json string>].
   //
   // Build the event message in the C heap to avoid dart heap
@@ -1132,23 +1156,15 @@ void Service::PostEvent(Isolate* isolate,
   json_cobj.value.as_string = const_cast<char*>(event->ToCString());
   list_values[1] = &json_cobj;
 
-  if (FLAG_trace_service) {
-    if (isolate != NULL) {
-      OS::PrintErr(
-          "vm-service: Pushing ServiceEvent(isolate='%s', "
-          "isolateId='" ISOLATE_SERVICE_ID_FORMAT_STRING
-          "', kind='%s') to stream %s\n",
-          isolate->name(), static_cast<int64_t>(isolate->main_port()), kind,
-          stream_id);
-    } else {
-      OS::PrintErr(
-          "vm-service: Pushing ServiceEvent(isolate='<no current isolate>', "
-          "kind='%s') to stream %s\n",
-          kind, stream_id);
-    }
+  // In certain cases (e.g. in the implementation of Dart_IsolateMakeRunnable)
+  // we do not have a current isolate/thread.
+  auto thread = Thread::Current();
+  if (thread != nullptr) {
+    TransitionVMToNative transition(thread);
+    Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
+  } else {
+    Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
   }
-
-  Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
 }
 
 class EmbedderServiceHandler {
@@ -1318,6 +1334,12 @@ int64_t Service::MaxRSS() {
   return info.max_rss;
 }
 
+void Service::SetDartLibraryKernelForSources(const uint8_t* kernel_bytes,
+                                             intptr_t kernel_length) {
+  dart_library_kernel_ = kernel_bytes;
+  dart_library_kernel_len_ = kernel_length;
+}
+
 EmbedderServiceHandler* Service::FindRootEmbedderHandler(const char* name) {
   EmbedderServiceHandler* current = root_service_handler_head_;
   while (current != NULL) {
@@ -1352,6 +1374,16 @@ static const MethodParameter* get_isolate_params[] = {
 
 static bool GetIsolate(Thread* thread, JSONStream* js) {
   thread->isolate()->PrintJSON(js, false);
+  return true;
+}
+
+static const MethodParameter* get_memory_usage_params[] = {
+    ISOLATE_PARAMETER,
+    NULL,
+};
+
+static bool GetMemoryUsage(Thread* thread, JSONStream* js) {
+  thread->isolate()->PrintMemoryUsageJSON(js);
   return true;
 }
 
@@ -1456,7 +1488,8 @@ static bool GetUnusedChangesInLastReload(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_stack_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, new BoolParameter("_full", false), NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetStack(Thread* thread, JSONStream* js) {
@@ -1471,7 +1504,6 @@ static bool GetStack(Thread* thread, JSONStream* js) {
   DebuggerStackTrace* awaiter_stack = isolate->debugger()->AwaiterStackTrace();
   // Do we want the complete script object and complete local variable objects?
   // This is true for dump requests.
-  const bool full = BoolParameter::Parse(js->LookupParam("_full"), false);
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Stack");
   {
@@ -1481,7 +1513,7 @@ static bool GetStack(Thread* thread, JSONStream* js) {
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
-      frame->PrintToJSONObject(&jsobj, full);
+      frame->PrintToJSONObject(&jsobj);
       jsobj.AddProperty("index", i);
     }
   }
@@ -1492,7 +1524,7 @@ static bool GetStack(Thread* thread, JSONStream* js) {
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = async_causal_stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
-      frame->PrintToJSONObject(&jsobj, full);
+      frame->PrintToJSONObject(&jsobj);
       jsobj.AddProperty("index", i);
     }
   }
@@ -1503,7 +1535,7 @@ static bool GetStack(Thread* thread, JSONStream* js) {
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = awaiter_stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
-      frame->PrintToJSONObject(&jsobj, full);
+      frame->PrintToJSONObject(&jsobj);
       jsobj.AddProperty("index", i);
     }
   }
@@ -1556,20 +1588,6 @@ static bool TriggerEchoEvent(Thread* thread, JSONStream* js) {
   }
   JSONObject jsobj(js);
   return HandleCommonEcho(&jsobj, js);
-}
-
-static bool DumpIdZone(Thread* thread, JSONStream* js) {
-  // TODO(johnmccutchan): Respect _idZone parameter passed to RPC. For now,
-  // always send the ObjectIdRing.
-  //
-  ObjectIdRing* ring = thread->isolate()->object_id_ring();
-  ASSERT(ring != NULL);
-  // When printing the ObjectIdRing, force object id reuse policy.
-  RingServiceIdZone reuse_zone;
-  reuse_zone.Init(ring, ObjectIdRing::kReuseId);
-  js->set_id_zone(&reuse_zone);
-  ring->PrintJSON(js);
-  return true;
 }
 
 static bool Echo(Thread* thread, JSONStream* js) {
@@ -2343,6 +2361,11 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     return true;
   }
 
+  bool disable_breakpoints =
+      BoolParameter::Parse(js->LookupParam("disableBreakpoints"), false);
+  DisableBreakpointsScope db(thread->isolate()->debugger(),
+                             disable_breakpoints);
+
   Zone* zone = thread->zone();
   ObjectIdRing::LookupResult lookup_result;
   Object& receiver = Object::Handle(
@@ -2823,6 +2846,11 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
   }
 
   Isolate* isolate = thread->isolate();
+
+  bool disable_breakpoints =
+      BoolParameter::Parse(js->LookupParam("disableBreakpoints"), false);
+  DisableBreakpointsScope db(isolate->debugger(), disable_breakpoints);
+
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   intptr_t frame_pos = UIntParameter::Parse(js->LookupParam("frameIndex"));
   if (frame_pos >= stack->Length()) {
@@ -3787,6 +3815,11 @@ static const MethodParameter* get_cpu_profile_params[] = {
     NULL,
 };
 
+static const MethodParameter* write_cpu_profile_timeline_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
 // TODO(johnmccutchan): Rename this to GetCpuSamples.
 static bool GetCpuProfile(Thread* thread, JSONStream* js) {
   Profile::TagOrder tag_order =
@@ -3816,11 +3849,25 @@ static bool GetCpuProfileTimeline(Thread* thread, JSONStream* js) {
   Profile::TagOrder tag_order =
       EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
   int64_t time_origin_micros =
-      UIntParameter::Parse(js->LookupParam("timeOriginMicros"));
+      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
   int64_t time_extent_micros =
-      UIntParameter::Parse(js->LookupParam("timeExtentMicros"));
+      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
+  bool code_trie = BoolParameter::Parse(js->LookupParam("code"), false);
   ProfilerService::PrintTimelineJSON(js, tag_order, time_origin_micros,
-                                     time_extent_micros);
+                                     time_extent_micros, code_trie);
+  return true;
+}
+
+static bool WriteCpuProfileTimeline(Thread* thread, JSONStream* js) {
+  Profile::TagOrder tag_order =
+      EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
+  int64_t time_origin_micros =
+      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
+  int64_t time_extent_micros =
+      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
+  bool code_trie = BoolParameter::Parse(js->LookupParam("code"), true);
+  ProfilerService::AddToTimeline(tag_order, time_origin_micros,
+                                 time_extent_micros, code_trie);
   return true;
 }
 
@@ -4312,9 +4359,22 @@ static bool GetObject(Thread* thread, JSONStream* js) {
 
   // Handle heap objects.
   ObjectIdRing::LookupResult lookup_result;
-  const Object& obj =
-      Object::Handle(LookupHeapObject(thread, id, &lookup_result));
+  Object& obj = Object::Handle(LookupHeapObject(thread, id, &lookup_result));
   if (obj.raw() != Object::sentinel().raw()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // If obj is a script from dart:* and doesn't have source loaded, try and
+    // load the source before sending the response.
+    if (obj.IsScript()) {
+      const Script& script = Script::Cast(obj);
+      if (!script.HasSource() && script.IsPartOfDartColonLibrary() &&
+          Service::HasDartLibraryKernelForSources()) {
+        const uint8_t* kernel_buffer = Service::dart_library_kernel();
+        const intptr_t kernel_buffer_len =
+            Service::dart_library_kernel_length();
+        script.LoadSourceFromKernel(kernel_buffer, kernel_buffer_len);
+      }
+    }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     // We found a heap object for this id.  Return it.
     obj.PrintJSON(js, false);
     return true;
@@ -4767,7 +4827,6 @@ static bool GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
 
 // clang-format off
 static const ServiceMethodDescriptor service_methods_[] = {
-  { "_dumpIdZone", DumpIdZone, NULL },
   { "_echo", Echo,
     NULL },
   { "_respondWithMalformedJson", RespondWithMalformedJson,
@@ -4809,6 +4868,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_cpu_profile_params },
   { "_getCpuProfileTimeline", GetCpuProfileTimeline,
     get_cpu_profile_timeline_params },
+  { "_writeCpuProfileTimeline", WriteCpuProfileTimeline,
+    write_cpu_profile_timeline_params },
   { "getFlagList", GetFlagList,
     get_flag_list_params },
   { "_getHeapMap", GetHeapMap,
@@ -4819,6 +4880,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_instances_params },
   { "getIsolate", GetIsolate,
     get_isolate_params },
+  { "getMemoryUsage", GetMemoryUsage,
+    get_memory_usage_params },
   { "_getIsolateMetric", GetIsolateMetric,
     get_isolate_metric_params },
   { "_getIsolateMetricList", GetIsolateMetricList,

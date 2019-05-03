@@ -136,7 +136,9 @@ template("build_gen_snapshot") {
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
-    deps = extra_deps
+    deps = [ ":generate_abi_version_cc_file" ] + extra_deps
+
+    defines = [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
 
     sources = [
       "address_sanitizer.cc",
@@ -152,6 +154,7 @@ template("build_gen_snapshot") {
       "snapshot_utils.h",
 
       # Very limited native resolver provided.
+      "$target_gen_dir/abi_version.cc",
       "builtin_common.cc",
       "builtin_gen_snapshot.cc",
       "dfe.cc",
@@ -177,6 +180,13 @@ template("build_gen_snapshot") {
         "CoreFoundation.framework",
         "CoreServices.framework",
       ]
+    }
+
+    if (!is_win) {
+      # Adds all symbols to the dynamic symbol table, not just used ones.
+      # This is needed to make native extensions work. It is also needed to get
+      # symbols in VM-generated backtraces and profiles.
+      ldflags = [ "-rdynamic" ]
     }
 
     if (is_win) {
@@ -434,7 +444,7 @@ dart_io("standalone_dart_io") {
 
 gen_snapshot_action("generate_snapshot_bin") {
   deps = [
-    "../vm:vm_platform",
+    "../vm:vm_platform_stripped",
   ]
   vm_snapshot_data = "$target_gen_dir/vm_snapshot_data.bin"
   vm_snapshot_instructions = "$target_gen_dir/vm_snapshot_instructions.bin"
@@ -442,7 +452,7 @@ gen_snapshot_action("generate_snapshot_bin") {
   isolate_snapshot_instructions =
       "$target_gen_dir/isolate_snapshot_instructions.bin"
 
-  platform_dill = "$root_out_dir/vm_platform_strong.dill"
+  platform_dill = "$root_out_dir/vm_platform_strong_stripped.dill"
   inputs = [
     platform_dill,
   ]
@@ -640,11 +650,34 @@ source_set("dart_snapshot_cc") {
 source_set("dart_kernel_platform_cc") {
   visibility = [ ":*" ]
   deps = [
+    ":gen_kernel_bytecode_dill",
     ":kernel_service_dill_linkable",
     ":platform_strong_dill_linkable",
+    "../../utils/kernel-service:kernel_service_bytecode_dill",
   ]
   sources = get_target_outputs(":kernel_service_dill_linkable") +
             get_target_outputs(":platform_strong_dill_linkable")
+}
+
+action("generate_abi_version_cc_file") {
+  inputs = [
+    "../../tools/utils.py",
+    "../../tools/VERSION",
+    "abi_version_in.cc",
+  ]
+  output = "$target_gen_dir/abi_version.cc"
+  outputs = [
+    output,
+  ]
+
+  script = "../../tools/make_version.py"
+  args = [
+    "--quiet",
+    "--output",
+    rebase_path(output, root_build_dir),
+    "--input",
+    rebase_path("abi_version_in.cc", root_build_dir),
+  ]
 }
 
 template("dart_executable") {
@@ -695,6 +728,7 @@ template("dart_executable") {
              "//third_party/boringssl",
              "//third_party/zlib",
              ":crashpad",
+             ":generate_abi_version_cc_file",
            ] + extra_deps
 
     defines = extra_defines
@@ -724,13 +758,15 @@ template("dart_executable") {
                 "snapshot_utils.h",
                 "vmservice_impl.cc",
                 "vmservice_impl.h",
+                "$target_gen_dir/abi_version.cc",
               ] + extra_sources
 
     if (is_win) {
       ldflags = [ "/EXPORT:Dart_True" ]
     } else {
       # Adds all symbols to the dynamic symbol table, not just used ones.
-      # This is needed to make native extensions work.
+      # This is needed to make native extensions work. It is also needed to get
+      # symbols in VM-generated backtraces and profiles.
       ldflags = [ "-rdynamic" ]
     }
 
@@ -812,45 +848,27 @@ dart_executable("dart_precompiled_runtime_for_linking") {
   target_type = "static_library"
 }
 
+dart_executable("dartaotruntime") {
+  extra_configs = [ "..:dart_precompiled_runtime_config" ]
+  extra_deps = [ "..:libdart_precompiled_runtime" ]
+  extra_sources = [
+    "builtin.cc",
+    "snapshot_empty.cc",
+    "loader.cc",
+    "loader.h",
+    "gzip.cc",
+    "gzip.h",
+    "observatory_assets_empty.cc",
+  ]
+}
+
 executable("process_test") {
   sources = [
     "process_test.cc",
   ]
 }
 
-action("generate_snapshot_test_dat_file") {
-  snapshot_test_dat_file = "$root_gen_dir/snapshot_test.dat"
-  snapshot_test_in_dat_file = "../vm/snapshot_test_in.dat"
-  snapshot_test_dart_file = "../vm/snapshot_test.dart"
-  inputs = [
-    "../tools/create_string_literal.py",
-    snapshot_test_in_dat_file,
-    snapshot_test_dart_file,
-  ]
-
-  outputs = [
-    snapshot_test_dat_file,
-  ]
-
-  script = "../tools/create_string_literal.py"
-  args = [
-    "--output",
-    rebase_path(snapshot_test_dat_file),
-    "--input_cc",
-    rebase_path(snapshot_test_in_dat_file),
-    "--include",
-    "INTENTIONALLY_LEFT_BLANK",
-    "--var_name",
-    "INTENTIONALLY_LEFT_BLANK_TOO",
-    rebase_path(snapshot_test_dart_file),
-  ]
-}
-
 prebuilt_dart_action("gen_kernel_bytecode_dill") {
-  if (target_os == "fuchsia") {
-    testonly = true
-  }
-
   deps = [
     "../vm:vm_platform",
   ]
@@ -895,6 +913,10 @@ executable("run_vm_tests") {
     "..:dart_os_config",
     "..:dart_maybe_product_config",
   ]
+
+  if (dart_target_arch != "ia32") {
+    configs += [ "..:dart_precompiler_config" ]
+  }
   if (is_fuchsia) {
     configs -= [ "//build/config:symbol_visibility_hidden" ]
   }
@@ -904,10 +926,10 @@ executable("run_vm_tests") {
     ":dart_kernel_platform_cc",
     ":dart_snapshot_cc",
     ":gen_kernel_bytecode_dill",
-    ":generate_snapshot_test_dat_file",
+    ":generate_abi_version_cc_file",
     ":libdart_builtin",
     ":standalone_dart_io",
-    "..:libdart_jit",
+    "..:libdart_nosnapshot_with_precompiler",
     "//third_party/zlib",
   ]
   include_dirs = [
@@ -932,6 +954,7 @@ executable("run_vm_tests") {
   heap_tests = rebase_path(heap_sources_tests, ".", "../vm/heap")
 
   sources = [
+              "$target_gen_dir/abi_version.cc",
               "builtin.cc",
               "dfe.cc",
               "dfe.h",
@@ -943,6 +966,9 @@ executable("run_vm_tests") {
             ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests
 
   if (!is_win) {
+    # Adds all symbols to the dynamic symbol table, not just used ones.
+    # This is needed to make native extensions work. It is also needed to get
+    # symbols in VM-generated backtraces and profiles.
     ldflags = [ "-rdynamic" ]
   }
 

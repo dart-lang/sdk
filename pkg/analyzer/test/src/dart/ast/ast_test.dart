@@ -469,8 +469,6 @@ class InstanceCreationExpressionImplTest extends ResolverTestCase {
   String testSource;
   CompilationUnitImpl testUnit;
 
-  bool get enableNewAnalysisDriver => true;
-
   void assertIsConst(String snippet, bool expectedResult) {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);

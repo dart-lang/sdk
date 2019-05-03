@@ -154,6 +154,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       DartType type = typeUse.type;
       switch (typeUse.kind) {
         case TypeUseKind.INSTANTIATION:
+        case TypeUseKind.CONST_INSTANTIATION:
         case TypeUseKind.NATIVE_INSTANTIATION:
           break;
         case TypeUseKind.IS_CHECK:
@@ -222,6 +223,15 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       } else {
         transformed
             .registerTypeUse(new TypeUse.instantiation(mapLiteralUse.type));
+      }
+    }
+
+    for (SetLiteralUse setLiteralUse in worldImpact.setLiterals) {
+      if (setLiteralUse.isConstant) {
+        registerImpact(_impacts.constantSetLiteral);
+      } else {
+        transformed
+            .registerTypeUse(new TypeUse.instantiation(setLiteralUse.type));
       }
     }
 

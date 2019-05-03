@@ -193,6 +193,9 @@ class LoopInfo : public ZoneAllocated {
   // Returns true if given block is backedge of this loop.
   bool IsBackEdge(BlockEntryInstr* block) const;
 
+  // Returns true if given block is alway taken in this loop.
+  bool IsAlwaysTaken(BlockEntryInstr* block) const;
+
   // Returns true if given definition is a header phi for this loop.
   bool IsHeaderPhi(Definition* def) const;
 
@@ -220,6 +223,7 @@ class LoopInfo : public ZoneAllocated {
   BitVector* blocks() const { return blocks_; }
   const GrowableArray<BlockEntryInstr*>& back_edges() { return back_edges_; }
   ConstraintInstr* limit() const { return limit_; }
+  InductionVar* control() const { return control_; }
   LoopInfo* outer() const { return outer_; }
   LoopInfo* inner() const { return inner_; }
   LoopInfo* next() const { return next_; }
@@ -254,6 +258,9 @@ class LoopInfo : public ZoneAllocated {
   // TODO(ajcbik): very specific to smi range analysis,
   //               should we really store it here?
   ConstraintInstr* limit_;
+
+  // Control induction.
+  InductionVar* control_;
 
   // Loop hierarchy.
   LoopInfo* outer_;

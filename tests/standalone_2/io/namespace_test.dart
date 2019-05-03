@@ -180,16 +180,6 @@ doTestAsync() async {
   Expect.equals(FileSystemEntityType.directory, dirstat.type);
 }
 
-List<String> packageOptions() {
-  if (Platform.packageRoot != null) {
-    return <String>["--package-root=${Platform.packageRoot}"];
-  } else if (Platform.packageConfig != null) {
-    return <String>["--packages=${Platform.packageConfig}"];
-  } else {
-    return <String>[];
-  }
-}
-
 void setupTest() {
   // Create a namespace in /tmp.
   Directory namespace = Directory.systemTemp.createTempSync("namespace");
@@ -202,7 +192,7 @@ void setupTest() {
       ..writeAsStringSync(file1str);
 
     // Run the test and capture stdout.
-    var args = packageOptions();
+    var args = <String>[]..addAll(Platform.executableArguments);
     args.addAll([
       "--namespace=${namespace.path}",
       Platform.script.toFilePath(),

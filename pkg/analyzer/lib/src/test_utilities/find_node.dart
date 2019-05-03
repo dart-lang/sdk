@@ -91,10 +91,6 @@ class FindNode {
     return _node(search, (n) => n is FieldFormalParameter);
   }
 
-  ForEachStatement forEachStatement(String search) {
-    return _node(search, (n) => n is ForEachStatement);
-  }
-
   ForStatement forStatement(String search) {
     return _node(search, (n) => n is ForStatement);
   }
@@ -131,16 +127,16 @@ class FindNode {
     return _node(search, (n) => n is InstanceCreationExpression);
   }
 
+  IntegerLiteral integerLiteral(String search) {
+    return _node(search, (n) => n is IntegerLiteral);
+  }
+
   LibraryDirective library(String search) {
     return _node(search, (n) => n is LibraryDirective);
   }
 
   ListLiteral listLiteral(String search) {
     return _node(search, (n) => n is ListLiteral);
-  }
-
-  MapLiteral mapLiteral(String search) {
-    return _node(search, (n) => n is MapLiteral);
   }
 
   MethodDeclaration methodDeclaration(String search) {
@@ -153,6 +149,10 @@ class FindNode {
 
   MixinDeclaration mixin(String search) {
     return _node(search, (n) => n is MixinDeclaration);
+  }
+
+  NamedExpression namedExpression(String search) {
+    return _node(search, (n) => n is NamedExpression);
   }
 
   ParenthesizedExpression parenthesized(String search) {
@@ -187,8 +187,8 @@ class FindNode {
     return _node(search, (n) => n is RethrowExpression);
   }
 
-  SetLiteral setLiteral(String search) {
-    return _node(search, (n) => n is SetLiteral);
+  SetOrMapLiteral setOrMapLiteral(String search) {
+    return _node(search, (n) => n is SetOrMapLiteral);
   }
 
   SimpleIdentifier simple(String search) {
@@ -254,6 +254,10 @@ class FindNode {
 
   VariableDeclaration variableDeclaration(String search) {
     return _node(search, (n) => n is VariableDeclaration);
+  }
+
+  VariableDeclarationList variableDeclarationList(String search) {
+    return _node(search, (n) => n is VariableDeclarationList);
   }
 
   WhileStatement whileStatement(String search) {

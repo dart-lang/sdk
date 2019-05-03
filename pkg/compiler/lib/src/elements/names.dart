@@ -61,57 +61,77 @@ abstract class Name {
 }
 
 class PublicName implements Name {
+  @override
   final String text;
+  @override
   final bool isSetter;
 
   const PublicName(this.text, {this.isSetter: false});
 
+  @override
   Name get getter => isSetter ? new PublicName(text) : this;
 
+  @override
   Name get setter => isSetter ? this : new PublicName(text, isSetter: true);
 
+  @override
   bool isAccessibleFrom(LibraryEntity element) => true;
 
+  @override
   bool get isPrivate => false;
 
+  @override
   int get hashCode => similarHashCode;
 
+  @override
   bool operator ==(other) {
     if (other is! PublicName) return false;
     return isSimilarTo(other);
   }
 
+  @override
   bool isSimilarTo(Name other) =>
       text == other.text && isSetter == other.isSetter;
+  @override
   int get similarHashCode => text.hashCode + 11 * isSetter.hashCode;
 
+  @override
   LibraryEntity get library => null;
 
+  @override
   String toString() => isSetter ? '$text=' : text;
 }
 
 class PrivateName extends PublicName {
+  @override
   final LibraryEntity library;
 
   PrivateName(String text, this.library, {bool isSetter: false})
       : super(text, isSetter: isSetter);
 
+  @override
   Name get getter => isSetter ? new PrivateName(text, library) : this;
 
+  @override
   Name get setter {
     return isSetter ? this : new PrivateName(text, library, isSetter: true);
   }
 
+  @override
   bool isAccessibleFrom(LibraryEntity element) => library == element;
 
+  @override
   bool get isPrivate => true;
 
+  @override
   int get hashCode => super.hashCode + 13 * library.hashCode;
 
+  @override
   bool operator ==(other) {
     if (other is! PrivateName) return false;
     return super == (other) && library == other.library;
   }
 
+  @override
   String toString() => '${library.name}#${super.toString()}';
 }

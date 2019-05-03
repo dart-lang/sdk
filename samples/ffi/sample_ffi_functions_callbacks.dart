@@ -4,6 +4,8 @@
 
 import 'dart:ffi' as ffi;
 
+import 'dylib_utils.dart';
+
 import 'coordinate.dart';
 
 typedef NativeCoordinateOp = Coordinate Function(Coordinate);
@@ -33,7 +35,7 @@ main(List<String> arguments) {
   print('start main');
 
   ffi.DynamicLibrary ffiTestFunctions =
-      ffi.DynamicLibrary.open("ffi_test_functions");
+      dlopenPlatformSpecific("ffi_test_functions");
 
   {
     // pass a c pointer to a c function as an argument to a c function

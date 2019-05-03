@@ -14,6 +14,7 @@
  */
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import "package:status_file/expectation.dart";
 
@@ -468,9 +469,10 @@ class VMTestSuite extends TestSuite {
 
     var args = configuration.standardOptions.toList();
     if (configuration.compilerConfiguration.previewDart2) {
-      final dfePath = new Path("$buildDir/gen/kernel-service.dart.snapshot")
-          .absolute
-          .toNativePath();
+      final filename = configuration.architecture == Architecture.x64
+          ? '$buildDir/gen/kernel-service.dart.snapshot'
+          : '$buildDir/gen/kernel_service.dill';
+      final dfePath = new Path(filename).absolute.toNativePath();
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
       args.insert(0, '--dfe=$dfePath');
     }
@@ -565,10 +567,14 @@ class StandardTestSuite extends TestSuite {
           _testListPossibleFilenames
               .add(suiteDir.append('$s.dart').toNativePath());
           // If the test is a multitest, the filename doesn't include the label.
-          if (s.lastIndexOf('/') != -1) {
-            s = s.substring(0, s.lastIndexOf('/'));
-            _testListPossibleFilenames
-                .add(suiteDir.append('$s.dart').toNativePath());
+          // Also if it has multiple VMOptions.  If both, remove two labels.
+          for (var i in [1, 2]) {
+            // Twice
+            if (s.lastIndexOf('/') != -1) {
+              s = s.substring(0, s.lastIndexOf('/'));
+              _testListPossibleFilenames
+                  .add(suiteDir.append('$s.dart').toNativePath());
+            }
           }
         }
       }
@@ -804,7 +810,11 @@ class StandardTestSuite extends TestSuite {
       var isCrashExpected = expectations.contains(Expectation.crash);
       var commands = makeCommands(info, vmOptionsVariant, allVmOptions,
           commonArguments, isCrashExpected);
-      enqueueNewTestCase(testName, commands, expectations, info);
+      var variantTestName = testName;
+      if (vmOptionsList.length > 1) {
+        variantTestName = "$testName/$vmOptionsVariant";
+      }
+      enqueueNewTestCase(variantTestName, commands, expectations, info);
     }
   }
 
@@ -813,14 +823,23 @@ class StandardTestSuite extends TestSuite {
     var commands = <Command>[];
     var compilerConfiguration = configuration.compilerConfiguration;
     var sharedOptions = info.optionsFromFile['sharedOptions'] as List<String>;
+    var dartOptions = info.optionsFromFile['dartOptions'] as List<String>;
     var dart2jsOptions = info.optionsFromFile['dart2jsOptions'] as List<String>;
     var ddcOptions = info.optionsFromFile['ddcOptions'] as List<String>;
+
+    var isMultitest = info.optionsFromFile["isMultitest"] as bool;
+    assert(!isMultitest || dartOptions.isEmpty);
 
     var compileTimeArguments = <String>[];
     String tempDir;
     if (compilerConfiguration.hasCompiler) {
       compileTimeArguments = compilerConfiguration.computeCompilerArguments(
-          vmOptions, sharedOptions, dart2jsOptions, ddcOptions, args);
+          vmOptions,
+          sharedOptions,
+          dartOptions,
+          dart2jsOptions,
+          ddcOptions,
+          args);
       // Avoid doing this for analyzer.
       var path = info.filePath;
       if (vmOptionsVariant != 0) {
@@ -854,12 +873,18 @@ class StandardTestSuite extends TestSuite {
       return commands;
     }
 
+    vmOptions = vmOptions
+        .map((s) =>
+            s.replaceAll("__RANDOM__", "${Random().nextInt(0x7fffffff)}"))
+        .toList();
+
     List<String> runtimeArguments =
         compilerConfiguration.computeRuntimeArguments(
             configuration.runtimeConfiguration,
             info,
             vmOptions,
             sharedOptions,
+            dartOptions,
             args,
             compilationArtifact);
 
@@ -870,8 +895,13 @@ class StandardTestSuite extends TestSuite {
     }
 
     return commands
-      ..addAll(configuration.runtimeConfiguration.computeRuntimeCommands(this,
-          compilationArtifact, runtimeArguments, environment, isCrashExpected));
+      ..addAll(configuration.runtimeConfiguration.computeRuntimeCommands(
+          this,
+          compilationArtifact,
+          runtimeArguments,
+          environment,
+          info.optionsFromFile["sharedObjects"] as List<String>,
+          isCrashExpected));
   }
 
   CreateTest makeTestCaseCreator(Map<String, dynamic> optionsFromFile) {
@@ -1126,18 +1156,7 @@ class StandardTestSuite extends TestSuite {
       }
     }
 
-    var isMultitest = optionsFromFile["isMultitest"] as bool;
-    var dartOptions = optionsFromFile["dartOptions"] as List<String>;
-
-    assert(!isMultitest || dartOptions == null);
     args.add(filePath.toNativePath());
-    if (dartOptions != null) {
-      // TODO(ahe): Because we add [dartOptions] here,
-      // [CompilerConfiguration.computeCompilerArguments] has to discard them
-      // later. Perhaps it would be simpler to pass [dartOptions] to
-      // [CompilerConfiguration.computeRuntimeArguments].
-      args.addAll(dartOptions);
-    }
 
     return args;
   }
@@ -1198,6 +1217,11 @@ class StandardTestSuite extends TestSuite {
    *   .html instead of .dart exists, the test was intended to be a web test
    *   and no wrapping is necessary.
    *
+   *     // SharedObjects=foobar
+   *
+   *   - This test requires libfoobar.so, libfoobar.dylib or foobar.dll to be
+   *   in the system linker path of the VM.
+   *
    *   - 'test.dart' assumes tests fail if
    *   the process returns a non-zero exit code (in the case of web tests, we
    *   check for PASS/FAIL indications in the test output).
@@ -1213,6 +1237,7 @@ class StandardTestSuite extends TestSuite {
     RegExp environmentRegExp = new RegExp(r"// Environment=(.*)");
     RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
     RegExp otherResourcesRegExp = new RegExp(r"// OtherResources=(.*)");
+    RegExp sharedObjectsRegExp = new RegExp(r"// SharedObjects=(.*)");
     RegExp packageRootRegExp = new RegExp(r"// PackageRoot=(.*)");
     RegExp packagesRegExp = new RegExp(r"// Packages=(.*)");
     RegExp isolateStubsRegExp = new RegExp(r"// IsolateStubs=(.*)");
@@ -1315,6 +1340,12 @@ class StandardTestSuite extends TestSuite {
       otherResources.addAll(wordSplit(match[1]));
     }
 
+    var sharedObjects = <String>[];
+    matches = sharedObjectsRegExp.allMatches(contents);
+    for (var match in matches) {
+      sharedObjects.addAll(wordSplit(match[1]));
+    }
+
     var isMultitest = multiTestRegExp.hasMatch(contents);
     var isMultiHtmlTest = multiHtmlTestRegExp.hasMatch(contents);
     var isolateMatch = isolateStubsRegExp.firstMatch(contents);
@@ -1362,7 +1393,7 @@ class StandardTestSuite extends TestSuite {
       "sharedOptions": sharedOptions ?? <String>[],
       "dart2jsOptions": dart2jsOptions ?? <String>[],
       "ddcOptions": ddcOptions ?? <String>[],
-      "dartOptions": dartOptions,
+      "dartOptions": dartOptions ?? <String>[],
       "environment": environment,
       "packageRoot": packageRoot,
       "packages": packages,
@@ -1372,6 +1403,7 @@ class StandardTestSuite extends TestSuite {
       "hasStaticWarning": hasStaticWarning,
       "otherScripts": otherScripts,
       "otherResources": otherResources,
+      "sharedObjects": sharedObjects,
       "isMultitest": isMultitest,
       "isMultiHtmlTest": isMultiHtmlTest,
       "subtestNames": subtestNames,
@@ -1385,7 +1417,7 @@ class StandardTestSuite extends TestSuite {
       "vmOptions": const [const <String>[]],
       "sharedOptions": const <String>[],
       "dart2jsOptions": const <String>[],
-      "dartOptions": null,
+      "dartOptions": const <String>[],
       "packageRoot": null,
       "packages": null,
       "hasSyntaxError": false,

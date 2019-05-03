@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         InvalidType,
         Library,
+        NamedType,
         TypeParameter,
         TypeParameterType,
         TypedefType,
@@ -24,6 +25,8 @@ import '../kernel/kernel_builder.dart'
     show
         DynamicTypeBuilder,
         KernelClassBuilder,
+        KernelFormalParameterBuilder,
+        KernelFunctionTypeBuilder,
         KernelNamedTypeBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
@@ -31,6 +34,8 @@ import '../kernel/kernel_builder.dart'
         VoidTypeBuilder;
 
 import '../loader.dart' show Loader;
+
+import '../parser.dart' show FormalParameterKind;
 
 class TypeBuilderComputer implements DartTypeVisitor<KernelTypeBuilder> {
   final Loader<Library> loader;
@@ -75,8 +80,37 @@ class TypeBuilderComputer implements DartTypeVisitor<KernelTypeBuilder> {
     return new KernelNamedTypeBuilder(cls.name, arguments)..bind(cls);
   }
 
+  @override
   KernelTypeBuilder visitFunctionType(FunctionType node) {
-    throw "Not implemented";
+    KernelTypeBuilder returnType = node.returnType.accept(this);
+    // We could compute the type variables here. However, the current
+    // implementation of [visitTypeParameterType] is suffient.
+    List<KernelTypeVariableBuilder> typeVariables = null;
+    List<DartType> positionalParameters = node.positionalParameters;
+    List<NamedType> namedParameters = node.namedParameters;
+    List<KernelFormalParameterBuilder> formals =
+        new List<KernelFormalParameterBuilder>(
+            positionalParameters.length + namedParameters.length);
+    for (int i = 0; i < positionalParameters.length; i++) {
+      KernelTypeBuilder type = positionalParameters[i].accept(this);
+      FormalParameterKind kind = FormalParameterKind.mandatory;
+      if (i >= node.requiredParameterCount) {
+        kind = FormalParameterKind.optionalPositional;
+      }
+      formals[i] =
+          new KernelFormalParameterBuilder(null, 0, type, null, null, -1)
+            ..kind = kind;
+    }
+    for (int i = 0; i < namedParameters.length; i++) {
+      NamedType parameter = namedParameters[i];
+      KernelTypeBuilder type = positionalParameters[i].accept(this);
+      formals[i + positionalParameters.length] =
+          new KernelFormalParameterBuilder(
+              null, 0, type, parameter.name, null, -1)
+            ..kind = FormalParameterKind.optionalNamed;
+    }
+
+    return new KernelFunctionTypeBuilder(returnType, typeVariables, formals);
   }
 
   KernelTypeBuilder visitTypeParameterType(TypeParameterType node) {

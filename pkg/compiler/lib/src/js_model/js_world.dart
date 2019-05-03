@@ -9,7 +9,6 @@ import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart';
 import '../common_elements.dart' show JCommonElements, JElementEnvironment;
-import '../constants/constant_system.dart';
 import '../deferred_load.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/entities.dart';
@@ -20,9 +19,8 @@ import '../environment.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js_emitter/sorter.dart';
 import '../js_backend/annotations.dart';
-import '../js_backend/allocator_analysis.dart';
+import '../js_backend/field_analysis.dart';
 import '../js_backend/backend_usage.dart';
-import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
@@ -43,9 +41,13 @@ import 'locals.dart';
 class JsClosedWorld implements JClosedWorld {
   static const String tag = 'closed-world';
 
+  @override
   final NativeData nativeData;
+  @override
   final InterceptorData interceptorData;
+  @override
   final BackendUsage backendUsage;
+  @override
   final NoSuchMethodData noSuchMethodData;
 
   FunctionSet _allFunctions;
@@ -66,21 +68,29 @@ class JsClosedWorld implements JClosedWorld {
   /// Members that are written either directly or through a setter selector.
   final Set<MemberEntity> assignedInstanceMembers;
 
+  @override
   final Set<ClassEntity> liveNativeClasses;
 
+  @override
   final Set<MemberEntity> processedMembers;
 
+  @override
   final ClassHierarchy classHierarchy;
 
   final JsKernelToElementMap elementMap;
+  @override
   final RuntimeTypesNeed rtiNeed;
   AbstractValueDomain _abstractValueDomain;
-  final JAllocatorAnalysis allocatorAnalysis;
+  @override
+  final JFieldAnalysis fieldAnalysis;
+  @override
   final AnnotationsData annotationsData;
+  @override
   final GlobalLocalsMap globalLocalsMap;
+  @override
   final ClosureData closureDataLookup;
+  @override
   final OutputUnitData outputUnitData;
-  final Set<FieldEntity> elidedFields;
   Sorter _sorter;
 
   JsClosedWorld(
@@ -89,7 +99,7 @@ class JsClosedWorld implements JClosedWorld {
       this.interceptorData,
       this.backendUsage,
       this.rtiNeed,
-      this.allocatorAnalysis,
+      this.fieldAnalysis,
       this.noSuchMethodData,
       this.implementedClasses,
       this.liveNativeClasses,
@@ -103,8 +113,7 @@ class JsClosedWorld implements JClosedWorld {
       this.annotationsData,
       this.globalLocalsMap,
       this.closureDataLookup,
-      this.outputUnitData,
-      this.elidedFields) {
+      this.outputUnitData) {
     _abstractValueDomain = abstractValueStrategy.createDomain(this);
   }
 
@@ -134,8 +143,8 @@ class JsClosedWorld implements JClosedWorld {
     BackendUsage backendUsage = new BackendUsage.readFromDataSource(source);
     RuntimeTypesNeed rtiNeed = new RuntimeTypesNeed.readFromDataSource(
         source, elementMap.elementEnvironment);
-    JAllocatorAnalysis allocatorAnalysis =
-        new JAllocatorAnalysis.readFromDataSource(source, options);
+    JFieldAnalysis allocatorAnalysis =
+        new JFieldAnalysis.readFromDataSource(source, options);
     NoSuchMethodData noSuchMethodData =
         new NoSuchMethodData.readFromDataSource(source);
 
@@ -157,8 +166,6 @@ class JsClosedWorld implements JClosedWorld {
 
     OutputUnitData outputUnitData =
         new OutputUnitData.readFromDataSource(source);
-
-    Set<FieldEntity> elidedFields = source.readMembers<FieldEntity>().toSet();
 
     source.end(tag);
 
@@ -182,8 +189,7 @@ class JsClosedWorld implements JClosedWorld {
         annotationsData,
         globalLocalsMap,
         closureData,
-        outputUnitData,
-        elidedFields);
+        outputUnitData);
   }
 
   /// Serializes this [JsClosedWorld] to [sink].
@@ -197,7 +203,7 @@ class JsClosedWorld implements JClosedWorld {
     interceptorData.writeToDataSink(sink);
     backendUsage.writeToDataSink(sink);
     rtiNeed.writeToDataSink(sink);
-    allocatorAnalysis.writeToDataSink(sink);
+    fieldAnalysis.writeToDataSink(sink);
     noSuchMethodData.writeToDataSink(sink);
     sink.writeClasses(implementedClasses);
     sink.writeClasses(liveNativeClasses);
@@ -211,19 +217,19 @@ class JsClosedWorld implements JClosedWorld {
     annotationsData.writeToDataSink(sink);
     closureDataLookup.writeToDataSink(sink);
     outputUnitData.writeToDataSink(sink);
-    sink.writeMembers(elidedFields);
     sink.end(tag);
   }
 
-  ConstantSystem get constantSystem => JavaScriptConstantSystem.only;
-
+  @override
   JElementEnvironment get elementEnvironment => elementMap.elementEnvironment;
 
+  @override
   JCommonElements get commonElements => elementMap.commonElements;
 
+  @override
   DartTypes get dartTypes => elementMap.types;
 
-  /// Returns `true` if [cls] is implemented by an instantiated class.
+  @override
   bool isImplemented(ClassEntity cls) {
     return implementedClasses.contains(cls);
   }
@@ -248,20 +254,19 @@ class JsClosedWorld implements JClosedWorld {
     return classSet != null ? classSet.getLubOfInstantiatedSubtypes() : null;
   }
 
-  /// Returns `true` if [cls] is mixed into a live class.
+  @override
   bool isUsedAsMixin(ClassEntity cls) {
     return !mixinUsesOf(cls).isEmpty;
   }
 
-  /// Returns `true` if any live class that mixes in [cls] implements [type].
+  @override
   bool hasAnySubclassOfMixinUseThatImplements(
       ClassEntity cls, ClassEntity type) {
     return mixinUsesOf(cls)
         .any((use) => hasAnySubclassThatImplements(use, type));
   }
 
-  /// Returns `true` if every subtype of [x] is a subclass of [y] or a subclass
-  /// of a mixin application of [y].
+  @override
   bool everySubtypeIsSubclassOfOrMixinUseOf(ClassEntity x, ClassEntity y) {
     Map<ClassEntity, bool> secondMap =
         _subtypeCoveredByCache[x] ??= <ClassEntity, bool>{};
@@ -271,7 +276,7 @@ class JsClosedWorld implements JClosedWorld {
             isSubclassOfMixinUseOf(cls, y));
   }
 
-  /// Returns `true` if any subclass of [superclass] implements [type].
+  @override
   bool hasAnySubclassThatImplements(ClassEntity superclass, ClassEntity type) {
     Set<ClassEntity> subclasses = typesImplementedBySubclasses[superclass];
     if (subclasses == null) return false;
@@ -329,7 +334,7 @@ class JsClosedWorld implements JClosedWorld {
     }
   }
 
-  /// Returns an iterable over the common supertypes of the [classes].
+  @override
   Iterable<ClassEntity> commonSupertypesOf(Iterable<ClassEntity> classes) {
     Iterator<ClassEntity> iterator = classes.iterator;
     if (!iterator.moveNext()) return const <ClassEntity>[];
@@ -369,7 +374,7 @@ class JsClosedWorld implements JClosedWorld {
     return commonSupertypes;
   }
 
-  /// Returns an iterable over the live mixin applications that mixin [cls].
+  @override
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls) {
     if (_liveMixinUses == null) {
       _liveMixinUses = new Map<ClassEntity, List<ClassEntity>>();
@@ -397,15 +402,14 @@ class JsClosedWorld implements JClosedWorld {
     return uses != null ? uses : const <ClassEntity>[];
   }
 
-  /// Returns `true` if any live class that mixes in [mixin] is also a subclass
-  /// of [superclass].
+  @override
   bool hasAnySubclassThatMixes(ClassEntity superclass, ClassEntity mixin) {
     return mixinUsesOf(mixin).any((ClassEntity each) {
       return classHierarchy.isSubclassOf(each, superclass);
     });
   }
 
-  /// Returns `true` if [cls] or any superclass mixes in [mixin].
+  @override
   bool isSubclassOfMixinUseOf(ClassEntity cls, ClassEntity mixin) {
     if (isUsedAsMixin(mixin)) {
       ClassEntity current = cls;
@@ -426,12 +430,7 @@ class JsClosedWorld implements JClosedWorld {
     }
   }
 
-  /// Returns `true` if [selector] on [receiver] can hit a `call` method on a
-  /// subclass of `Closure`.
-  ///
-  /// Every implementation of `Closure` has a 'call' method with its own
-  /// signature so it cannot be modelled by a [FunctionEntity]. Also,
-  /// call-methods for tear-off are not part of the element model.
+  @override
   bool includesClosureCall(Selector selector, AbstractValue receiver) {
     return selector.name == Identifiers.call &&
         (receiver == null ||
@@ -441,6 +440,7 @@ class JsClosedWorld implements JClosedWorld {
                 .isPotentiallyTrue);
   }
 
+  @override
   AbstractValue computeReceiverType(Selector selector, AbstractValue receiver) {
     _ensureFunctionSet();
     if (includesClosureCall(selector, receiver)) {
@@ -449,6 +449,7 @@ class JsClosedWorld implements JClosedWorld {
     return _allFunctions.receiverType(selector, receiver, abstractValueDomain);
   }
 
+  @override
   Iterable<MemberEntity> locateMembers(
       Selector selector, AbstractValue receiver) {
     _ensureFunctionSet();
@@ -462,6 +463,7 @@ class JsClosedWorld implements JClosedWorld {
         .any((each) => each.isGetter);
   }
 
+  @override
   MemberEntity locateSingleMember(Selector selector, AbstractValue receiver) {
     if (includesClosureCall(selector, receiver)) {
       return null;
@@ -470,6 +472,7 @@ class JsClosedWorld implements JClosedWorld {
     return abstractValueDomain.locateSingleMember(receiver, selector);
   }
 
+  @override
   bool fieldNeverChanges(MemberEntity element) {
     if (!element.isField) return false;
     if (nativeData.isNativeMember(element)) {

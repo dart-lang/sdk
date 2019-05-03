@@ -889,6 +889,8 @@ class DestructuredVariable extends Expression implements Parameter {
   @override
   int get precedenceLevel => PRIMARY;
   @override
+  String get parameterName => name.name;
+  @override
   Node _clone() => DestructuredVariable(
       name: name,
       property: property,
@@ -1124,7 +1126,6 @@ class Prefix extends Expression {
 // it is for simplicity's sake.
 class Spread extends Prefix {
   Spread(Expression operand) : super('...', operand);
-  int get precedenceLevel => SPREAD;
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitSpread(this);
   Spread _clone() => Spread(argument);
@@ -1147,7 +1148,9 @@ class Postfix extends Expression {
   int get precedenceLevel => UNARY;
 }
 
-abstract class Parameter implements Expression, VariableBinding {}
+abstract class Parameter implements Expression, VariableBinding {
+  String get parameterName;
+}
 
 class Identifier extends Expression implements Parameter {
   final String name;
@@ -1165,6 +1168,7 @@ class Identifier extends Expression implements Parameter {
   Identifier _clone() => Identifier(name, allowRename: allowRename);
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitIdentifier(this);
   int get precedenceLevel => PRIMARY;
+  String get parameterName => name;
   void visitChildren(NodeVisitor visitor) {}
 }
 
@@ -1183,6 +1187,7 @@ class RestParameter extends Expression implements Parameter {
   }
 
   int get precedenceLevel => PRIMARY;
+  String get parameterName => parameter.parameterName;
 }
 
 class This extends Expression {
@@ -1190,27 +1195,6 @@ class This extends Expression {
   This _clone() => This();
   int get precedenceLevel => PRIMARY;
   void visitChildren(NodeVisitor visitor) {}
-
-  static bool foundIn(Node node) {
-    var finder = _ThisFinder._instance;
-    finder.found = false;
-    node.accept(finder);
-    return finder.found;
-  }
-}
-
-class _ThisFinder extends BaseVisitor<void> {
-  bool found = false;
-
-  static final _instance = _ThisFinder();
-
-  visitThis(This node) {
-    found = true;
-  }
-
-  visitNode(Node node) {
-    if (!found) super.visitNode(node);
-  }
 }
 
 // `super` is more restricted in the ES6 spec, but for simplicity we accept
@@ -1663,6 +1647,10 @@ class InterpolatedParameter extends Expression
     throw "InterpolatedParameter.name must not be invoked";
   }
 
+  String get parameterName {
+    throw "InterpolatedParameter.parameterName must not be invoked";
+  }
+
   bool shadows(Set<String> names) => false;
 
   bool get allowRename => false;
@@ -1740,6 +1728,8 @@ class InterpolatedIdentifier extends Expression
 
   int get precedenceLevel => PRIMARY;
   String get name => throw '$runtimeType does not support this member.';
+  String get parameterName =>
+      throw '$runtimeType does not support this member.';
   bool get allowRename => false;
 }
 

@@ -255,6 +255,9 @@ class FieldMember extends VariableMember implements FieldElement {
   @override
   bool get isEnumConstant => baseElement.isEnumConstant;
 
+  @override
+  bool get isLazy => baseElement.isLazy;
+
   @deprecated
   @override
   bool get isVirtual => baseElement.isVirtual;
@@ -423,6 +426,9 @@ abstract class Member implements Element {
 
   @override
   bool get hasLiteral => _baseElement.hasLiteral;
+
+  @override
+  bool get hasOptionalTypeArgs => _baseElement.hasOptionalTypeArgs;
 
   @override
   bool get hasOverride => _baseElement.hasOverride;

@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -236,6 +236,28 @@ class ReferenceCollector {
     }
   }
 
+  void _visitCollectionElement(CollectionElement node) {
+    if (node == null) {
+      return;
+    } else if (node is Expression) {
+      _visitExpression(node);
+    } else if (node is ForElement) {
+      _visitForLoopParts(node.forLoopParts);
+      _visitCollectionElement(node.body);
+    } else if (node is IfElement) {
+      _visitExpression(node.condition);
+      _visitCollectionElement(node.thenElement);
+      _visitCollectionElement(node.elseElement);
+    } else if (node is MapLiteralEntry) {
+      _visitExpression(node.key);
+      _visitExpression(node.value);
+    } else if (node is SpreadElement) {
+      _visitExpression(node.expression);
+    } else {
+      throw UnimplementedError('(${node.runtimeType}) $node');
+    }
+  }
+
   /// Record reference to the constructor of the [type] with the given [name].
   void _visitConstructor(TypeName type, SimpleIdentifier name) {
     _visitTypeAnnotation(type);
@@ -320,8 +342,6 @@ class ReferenceCollector {
       _visitTypeAnnotation(node.type);
     } else if (node is ListLiteral) {
       _visitListLiteral(node);
-    } else if (node is MapLiteral) {
-      _visitMapLiteral(node);
     } else if (node is MethodInvocation) {
       _visitMethodInvocation(node);
     } else if (node is NamedExpression) {
@@ -340,8 +360,8 @@ class ReferenceCollector {
       _visitPropertyAccess(node, get: get, set: set);
     } else if (node is RethrowExpression) {
       // no dependencies
-    } else if (node is SetLiteral) {
-      _visitSetLiteral(node);
+    } else if (node is SetOrMapLiteral) {
+      _visitSetOrMapLiteral(node);
     } else if (node is SimpleIdentifier) {
       _visitSimpleIdentifier(node, get: get, set: set);
     } else if (node is SimpleStringLiteral) {
@@ -365,27 +385,34 @@ class ReferenceCollector {
     }
   }
 
-  void _visitForEachStatement(ForEachStatement node) {
-    var loopVariable = node.loopVariable;
-    if (loopVariable != null) {
-      _visitTypeAnnotation(loopVariable.type);
+  void _visitExpressionList(NodeList<Expression> nodes) {
+    for (Expression node in nodes) {
+      _visitExpression(node);
     }
+  }
 
-    var loopIdentifier = node.identifier;
-    if (loopIdentifier != null) {
-      _visitExpression(loopIdentifier);
+  void _visitForLoopParts(ForLoopParts node) {
+    if (node == null) {
+      return;
+    } else if (node is ForPartsWithDeclarations) {
+      _visitVariableList(node.variables);
+      _visitExpression(node.condition);
+      _visitExpressionList(node.updaters);
+    } else if (node is ForPartsWithExpression) {
+      _visitExpression(node.initialization);
+      _visitExpression(node.condition);
+      _visitExpressionList(node.updaters);
+    } else if (node is ForEachPartsWithDeclaration) {
+      var variable = node.loopVariable;
+      _visitTypeAnnotation(variable.type);
+      _visitExpression(node.iterable);
+      _localScopes.add(variable.identifier.name);
+    } else if (node is ForEachPartsWithIdentifier) {
+      _visitExpression(node.identifier);
+      _visitExpression(node.iterable);
+    } else {
+      throw UnimplementedError('(${node.runtimeType}) $node');
     }
-
-    _visitExpression(node.iterable);
-
-    _localScopes.enter();
-    if (loopVariable != null) {
-      _localScopes.add(loopVariable.identifier.name);
-    }
-
-    _visitStatement(node.body);
-
-    _localScopes.exit();
   }
 
   void _visitFormalParameterList(FormalParameterList node) {
@@ -440,15 +467,7 @@ class ReferenceCollector {
   void _visitForStatement(ForStatement node) {
     _localScopes.enter();
 
-    _visitVariableList(node.variables);
-    _visitExpression(node.initialization);
-    _visitExpression(node.condition);
-
-    var updaters = node.updaters;
-    for (var i = 0; i < updaters.length; i++) {
-      _visitExpression(updaters[i]);
-    }
-
+    _visitForLoopParts(node.forLoopParts);
     _visitStatement(node.body);
 
     _localScopes.exit();
@@ -519,17 +538,7 @@ class ReferenceCollector {
     var elements = node.elements;
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _visitExpression(element);
-    }
-  }
-
-  void _visitMapLiteral(MapLiteral node) {
-    _visitTypeArguments(node.typeArguments);
-    var entries = node.entries;
-    for (var i = 0; i < entries.length; i++) {
-      var entry = entries[i];
-      _visitExpression(entry.key);
-      _visitExpression(entry.value);
+      _visitCollectionElement(element);
     }
   }
 
@@ -608,12 +617,12 @@ class ReferenceCollector {
     }
   }
 
-  void _visitSetLiteral(SetLiteral node) {
+  void _visitSetOrMapLiteral(SetOrMapLiteral node) {
     _visitTypeArguments(node.typeArguments);
     var elements = node.elements;
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _visitExpression(element);
+      _visitCollectionElement(element);
     }
   }
 
@@ -653,8 +662,6 @@ class ReferenceCollector {
       // nothing
     } else if (node is ExpressionStatement) {
       _visitExpression(node.expression);
-    } else if (node is ForEachStatement) {
-      _visitForEachStatement(node);
     } else if (node is ForStatement) {
       _visitForStatement(node);
     } else if (node is FunctionDeclarationStatement) {

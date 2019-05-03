@@ -5,10 +5,10 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 abstract class AnalysisResultImpl implements AnalysisResult {
@@ -137,9 +137,11 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
       return null;
     }
 
-    var locator = NodeLocator2(element.nameOffset);
-    var node = locator.searchWithin(unitResult.unit)?.parent;
-    return ElementDeclarationResultImpl(element, node, unitResult, null);
+    var locator = _DeclarationByElementLocator(element);
+    unitResult.unit.accept(locator);
+    var declaration = locator.result;
+
+    return ElementDeclarationResultImpl(element, declaration, unitResult, null);
   }
 }
 
@@ -206,9 +208,11 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       return null;
     }
 
-    var locator = NodeLocator2(element.nameOffset);
-    var node = locator.searchWithin(unitResult.unit)?.parent;
-    return ElementDeclarationResultImpl(element, node, null, unitResult);
+    var locator = _DeclarationByElementLocator(element);
+    unitResult.unit.accept(locator);
+    var declaration = locator.result;
+
+    return ElementDeclarationResultImpl(element, declaration, null, unitResult);
   }
 
   @Deprecated('This method exists temporary until AnalysisSession migration.')
@@ -293,4 +297,90 @@ class UnitElementResultImpl extends AnalysisResultImpl
 
   @override
   ResultState get state => ResultState.VALID;
+}
+
+class _DeclarationByElementLocator extends GeneralizingAstVisitor<void> {
+  final Element element;
+  AstNode result;
+
+  _DeclarationByElementLocator(this.element);
+
+  @override
+  void visitNode(AstNode node) {
+    if (result != null) return;
+
+    if (element is ClassElement) {
+      if (node is ClassOrMixinDeclaration) {
+        if (_hasOffset(node.name)) {
+          result = node;
+        }
+      } else if (node is ClassTypeAlias) {
+        if (_hasOffset(node.name)) {
+          result = node;
+        }
+      } else if (node is EnumDeclaration) {
+        if (_hasOffset(node.name)) {
+          result = node;
+        }
+      }
+    } else if (element is ConstructorElement) {
+      if (node is ConstructorDeclaration) {
+        if (node.name != null) {
+          if (_hasOffset(node.name)) {
+            result = node;
+          }
+        } else {
+          if (_hasOffset(node.returnType)) {
+            result = node;
+          }
+        }
+      }
+    } else if (element is FieldElement) {
+      if (node is EnumConstantDeclaration) {
+        if (_hasOffset(node.name)) {
+          result = node;
+        }
+      } else if (node is VariableDeclaration) {
+        if (_hasOffset(node.name)) {
+          result = node;
+        }
+      }
+    } else if (element is FunctionElement) {
+      if (node is FunctionDeclaration && _hasOffset(node.name)) {
+        result = node;
+      }
+    } else if (element is LocalVariableElement) {
+      if (node is VariableDeclaration && _hasOffset(node.name)) {
+        result = node;
+      }
+    } else if (element is MethodElement) {
+      if (node is MethodDeclaration && _hasOffset(node.name)) {
+        result = node;
+      }
+    } else if (element is ParameterElement) {
+      if (node is FormalParameter && _hasOffset(node.identifier)) {
+        result = node;
+      }
+    } else if (element is PropertyAccessorElement) {
+      if (node is FunctionDeclaration) {
+        if (_hasOffset(node.name)) {
+          result = node;
+        }
+      } else if (node is MethodDeclaration) {
+        if (_hasOffset(node.name)) {
+          result = node;
+        }
+      }
+    } else if (element is TopLevelVariableElement) {
+      if (node is VariableDeclaration && _hasOffset(node.name)) {
+        result = node;
+      }
+    }
+
+    super.visitNode(node);
+  }
+
+  bool _hasOffset(AstNode node) {
+    return node?.offset == element.nameOffset;
+  }
 }

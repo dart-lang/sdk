@@ -11,6 +11,7 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/slot.h"
 #include "vm/compiler/compiler_state.h"
+#include "vm/compiler/ffi.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -29,6 +30,7 @@ class BoxIntegerInstr;
 class BufferFormatter;
 class CallTargets;
 class CatchBlockEntryInstr;
+class CheckBoundBase;
 class ComparisonInstr;
 class Definition;
 class Environment;
@@ -116,7 +118,8 @@ class Value : public ZoneAllocated {
 
   CompileType* Type();
 
-  void SetReachingType(CompileType* type) { reaching_type_ = type; }
+  CompileType* reaching_type() const { return reaching_type_; }
+  void SetReachingType(CompileType* type);
   void RefineReachingType(CompileType* type);
 
   void PrintTo(BufferFormatter* f) const;
@@ -190,8 +193,9 @@ class HierarchyInfo : public ThreadStackResource {
  public:
   explicit HierarchyInfo(Thread* thread)
       : ThreadStackResource(thread),
-        cid_subtype_ranges_(NULL),
-        cid_subtype_ranges_abstract_(NULL),
+        cid_subtype_ranges_nullable_(NULL),
+        cid_subtype_ranges_abstract_nullable_(NULL),
+        cid_subtype_ranges_nonnullable_(NULL),
         cid_subclass_ranges_(NULL) {
     thread->set_hierarchy_info(this);
   }
@@ -199,18 +203,22 @@ class HierarchyInfo : public ThreadStackResource {
   ~HierarchyInfo() {
     thread()->set_hierarchy_info(NULL);
 
-    delete[] cid_subtype_ranges_;
-    cid_subtype_ranges_ = NULL;
+    delete[] cid_subtype_ranges_nullable_;
+    cid_subtype_ranges_nullable_ = NULL;
 
-    delete[] cid_subtype_ranges_abstract_;
-    cid_subtype_ranges_abstract_ = NULL;
+    delete[] cid_subtype_ranges_abstract_nullable_;
+    cid_subtype_ranges_abstract_nullable_ = NULL;
+
+    delete[] cid_subtype_ranges_nonnullable_;
+    cid_subtype_ranges_nonnullable_ = NULL;
 
     delete[] cid_subclass_ranges_;
     cid_subclass_ranges_ = NULL;
   }
 
   const CidRangeVector& SubtypeRangesForClass(const Class& klass,
-                                              bool include_abstract = false);
+                                              bool include_abstract,
+                                              bool exclude_null);
   const CidRangeVector& SubclassRangesForClass(const Class& klass);
 
   bool InstanceOfHasClassRange(const AbstractType& type,
@@ -237,12 +245,16 @@ class HierarchyInfo : public ThreadStackResource {
 
  private:
   // Does not use any hierarchy information available in the system but computes
-  // it via O(n) class table traversal.
+  // it via O(n) class table traversal. The boolean parameters denote:
+  //   use_subtype_test : if set, IsSubtypeOf() is used to compute inclusion
+  //   include_abstract : if set, include abstract types (don't care otherwise)
+  //   exclude_null     : if set, exclude null types (don't care otherwise)
   void BuildRangesFor(ClassTable* table,
                       CidRangeVector* ranges,
                       const Class& klass,
                       bool use_subtype_test,
-                      bool include_abstract = false);
+                      bool include_abstract,
+                      bool exclude_null);
 
   // In JIT mode we use hierarchy information stored in the [RawClass]s
   // direct_subclasses_/direct_implementors_ arrays.
@@ -250,10 +262,12 @@ class HierarchyInfo : public ThreadStackResource {
                          CidRangeVector* ranges,
                          const Class& klass,
                          bool use_subtype_test,
-                         bool include_abstract = false);
+                         bool include_abstract,
+                         bool exclude_null);
 
-  CidRangeVector* cid_subtype_ranges_;
-  CidRangeVector* cid_subtype_ranges_abstract_;
+  CidRangeVector* cid_subtype_ranges_nullable_;
+  CidRangeVector* cid_subtype_ranges_abstract_nullable_;
+  CidRangeVector* cid_subtype_ranges_nonnullable_;
   CidRangeVector* cid_subclass_ranges_;
 };
 
@@ -344,6 +358,7 @@ struct InstrAttrs {
   M(AssertBoolean, _)                                                          \
   M(SpecialParameter, kNoGC)                                                   \
   M(ClosureCall, _)                                                            \
+  M(FfiCall, _)                                                                \
   M(InstanceCall, _)                                                           \
   M(PolymorphicInstanceCall, _)                                                \
   M(StaticCall, _)                                                             \
@@ -369,6 +384,7 @@ struct InstrAttrs {
   M(AllocateObject, _)                                                         \
   M(LoadField, kNoGC)                                                          \
   M(LoadUntagged, kNoGC)                                                       \
+  M(StoreUntagged, kNoGC)                                                      \
   M(LoadClassId, kNoGC)                                                        \
   M(InstantiateType, _)                                                        \
   M(InstantiateTypeArguments, _)                                               \
@@ -436,7 +452,9 @@ struct InstrAttrs {
   M(UnboxUint32, kNoGC)                                                        \
   M(BoxInt32, _)                                                               \
   M(UnboxInt32, kNoGC)                                                         \
-  M(UnboxedIntConverter, _)                                                    \
+  M(IntConverter, _)                                                           \
+  M(BitCast, _)                                                                \
+  M(UnboxedWidthExtender, _)                                                   \
   M(Deoptimize, kNoGC)                                                         \
   M(SimdOp, kNoGC)
 
@@ -743,6 +761,7 @@ class Instruction : public ZoneAllocated {
   DECLARE_INSTRUCTION_TYPE_CHECK(Definition, Definition)
   DECLARE_INSTRUCTION_TYPE_CHECK(BlockEntryWithInitialDefs,
                                  BlockEntryWithInitialDefs)
+  DECLARE_INSTRUCTION_TYPE_CHECK(CheckBoundBase, CheckBoundBase)
   FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
@@ -1292,6 +1311,15 @@ class ForwardInstructionIterator : public ValueObject {
 
   Instruction* Current() const { return current_; }
 
+  bool operator==(const ForwardInstructionIterator& other) const {
+    return current_ == other.current_;
+  }
+
+  ForwardInstructionIterator& operator++() {
+    Advance();
+    return *this;
+  }
+
  private:
   Instruction* current_;
 };
@@ -1594,8 +1622,10 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
   OsrEntryInstr(GraphEntryInstr* graph_entry,
                 intptr_t block_id,
                 intptr_t try_index,
-                intptr_t deopt_id)
+                intptr_t deopt_id,
+                intptr_t stack_depth)
       : BlockEntryWithInitialDefs(block_id, try_index, deopt_id),
+        stack_depth_(stack_depth),
         graph_entry_(graph_entry) {}
 
   DECLARE_INSTRUCTION(OsrEntry)
@@ -1608,6 +1638,7 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
     return graph_entry_;
   }
 
+  intptr_t stack_depth() const { return stack_depth_; }
   GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
   PRINT_TO_SUPPORT
@@ -1619,6 +1650,7 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
     graph_entry_ = predecessor->AsGraphEntry();
   }
 
+  const intptr_t stack_depth_;
   GraphEntryInstr* graph_entry_;
 
   DISALLOW_COPY_AND_ASSIGN(OsrEntryInstr);
@@ -1815,7 +1847,9 @@ class Definition : public Instruction {
   // propagation during graph building.
   CompileType* Type() {
     if (type_ == NULL) {
-      type_ = new CompileType(ComputeType());
+      auto type = new CompileType(ComputeType());
+      type->set_owner(this);
+      set_type(type);
     }
     return type_;
   }
@@ -1826,7 +1860,7 @@ class Definition : public Instruction {
 
   bool IsInt32Definition() {
     return IsBinaryInt32Op() || IsBoxInt32() || IsUnboxInt32() ||
-           IsUnboxedIntConverter();
+           IsIntConverter();
   }
 
   // Compute compile type for this definition. It is safe to use this
@@ -1841,8 +1875,10 @@ class Definition : public Instruction {
   PRINT_TO_SUPPORT
 
   bool UpdateType(CompileType new_type) {
-    if (type_ == NULL) {
-      type_ = new CompileType(new_type);
+    if (type_ == nullptr) {
+      auto type = new CompileType(new_type);
+      type->set_owner(this);
+      set_type(type);
       return true;
     }
 
@@ -1924,7 +1960,21 @@ class Definition : public Instruction {
 
   virtual void SetIdentity(AliasIdentity identity) { UNREACHABLE(); }
 
+  // Find the original definition of [this] by following through any
+  // redefinition and check instructions.
   Definition* OriginalDefinition();
+
+  // If this definition is a redefinition (in a broad sense, this includes
+  // CheckArrayBound and CheckNull instructions) return [Value] corresponding
+  // to the input which is being redefined.
+  // Otherwise return [nullptr].
+  virtual Value* RedefinedValue() const;
+
+  // Find the original definition of [this].
+  //
+  // This is an extension of [OriginalDefinition] which also follows through any
+  // boxing/unboxing and constraint instructions.
+  Definition* OriginalDefinitionIgnoreBoxingAndConstraints();
 
   virtual Definition* AsDefinition() { return this; }
 
@@ -1932,16 +1982,27 @@ class Definition : public Instruction {
   friend class RangeAnalysis;
   friend class Value;
 
-  Range* range_;
-  CompileType* type_;
+  Range* range_ = nullptr;
+
+  void set_type(CompileType* type) {
+    ASSERT(type->owner() == this);
+    type_ = type;
+  }
+
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+  const char* TypeAsCString() const {
+    return HasType() ? type_->ToCString() : "";
+  }
+#endif
 
  private:
-  intptr_t temp_index_;
-  intptr_t ssa_temp_index_;
-  Value* input_use_list_;
-  Value* env_use_list_;
+  intptr_t temp_index_ = -1;
+  intptr_t ssa_temp_index_ = -1;
+  Value* input_use_list_ = nullptr;
+  Value* env_use_list_ = nullptr;
 
-  Object* constant_value_;
+  Object* constant_value_ = nullptr;
+  CompileType* type_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };
@@ -2079,6 +2140,12 @@ class PhiInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
 
+// This instruction represents an incomming parameter for a function entry,
+// or incomming value for OSR entry or incomming value for a catch entry.
+// When [base_reg] is set to FPREG [index] corresponds to environment
+// variable index (0 is the very first parameter, 1 is next and so on).
+// When [base_reg] is set to SPREG [index] corresponds to SP relative parameter
+// indices (0 is the very last parameter, 1 is next and so on).
 class ParameterInstr : public Definition {
  public:
   ParameterInstr(intptr_t index,
@@ -2188,7 +2255,9 @@ class StoreIndexedUnsafeInstr : public TemplateInstruction<2, NoThrow> {
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
 class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  LoadIndexedUnsafeInstr(Value* index, intptr_t offset) : offset_(offset) {
+  LoadIndexedUnsafeInstr(Value* index, intptr_t offset, CompileType result_type)
+      : offset_(offset) {
+    UpdateType(result_type);
     SetInputAt(0, index);
   }
 
@@ -2743,6 +2812,10 @@ class RedefinitionInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
+  virtual Value* RedefinedValue() const;
+
+  PRINT_OPERANDS_TO_SUPPORT
+
  private:
   CompileType* constrained_type_;
   DISALLOW_COPY_AND_ASSIGN(RedefinitionInstr);
@@ -2966,6 +3039,8 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
 
   virtual bool AttributesEqual(Instruction* other) const;
 
+  virtual Value* RedefinedValue() const;
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
@@ -3099,7 +3174,7 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
         argument_names_(argument_names),
         arguments_(arguments),
         token_pos_(token_pos) {
-    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
+    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMIsolateHeap());
   }
 
   RawString* Selector() {
@@ -3267,9 +3342,9 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   intptr_t checked_argument_count() const { return checked_argument_count_; }
   const Function& interface_target() const { return interface_target_; }
 
-  void set_static_receiver_type(const AbstractType* receiver_type) {
-    ASSERT(receiver_type != nullptr && receiver_type->IsInstantiated());
-    static_receiver_type_ = receiver_type;
+  void set_receivers_static_type(const AbstractType* receiver_type) {
+    ASSERT(receiver_type != nullptr);
+    receivers_static_type_ = receiver_type;
   }
 
   bool has_unique_selector() const { return has_unique_selector_; }
@@ -3330,7 +3405,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   bool has_unique_selector_;
   Code::EntryKind entry_kind_ = Code::EntryKind::kNormal;
 
-  const AbstractType* static_receiver_type_ = nullptr;
+  const AbstractType* receivers_static_type_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallInstr);
 };
@@ -4076,6 +4151,67 @@ class NativeCallInstr : public TemplateDartCall<0> {
   DISALLOW_COPY_AND_ASSIGN(NativeCallInstr);
 };
 
+// Performs a call to native C code. In contrast to NativeCall, the arguments
+// are unboxed and passed through the native calling convention. However, not
+// all dart objects can be passed as arguments. Please see the FFI documentation
+// for more details.
+// TODO(35775): Add link to the documentation when it's written.
+class FfiCallInstr : public Definition {
+ public:
+  FfiCallInstr(Zone* zone,
+               intptr_t deopt_id,
+               const Function& signature,
+               const ZoneGrowableArray<Representation>& arg_reps,
+               const ZoneGrowableArray<Location>& arg_locs)
+      : Definition(deopt_id),
+        zone_(zone),
+        signature_(signature),
+        inputs_(arg_reps.length() + 1),
+        arg_representations_(arg_reps),
+        arg_locations_(arg_locs) {
+    inputs_.FillWith(nullptr, 0, arg_reps.length() + 1);
+    ASSERT(signature.IsZoneHandle());
+  }
+
+  DECLARE_INSTRUCTION(FfiCall)
+
+  // Number of arguments to the native function.
+  intptr_t NativeArgCount() const { return InputCount() - 1; }
+
+  // Input index of the function pointer to invoke.
+  intptr_t TargetAddressIndex() const { return NativeArgCount(); }
+
+  virtual intptr_t InputCount() const { return inputs_.length(); }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+  virtual bool MayThrow() const { return false; }
+
+  // FfiCallInstr calls C code, which can call back into Dart.
+  virtual bool ComputeCanDeoptimize() const { return true; }
+
+  virtual bool HasUnknownSideEffects() const { return true; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+  virtual Representation representation() const;
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
+
+  // Mark stack slots in 'loc' as unallocated. Split a double-word stack slot
+  // into a pair location if 'is_atomic' is false.
+  static Location UnallocateStackSlots(Location loc, bool is_atomic = false);
+
+  Zone* const zone_;
+  const Function& signature_;
+
+  GrowableArray<Value*> inputs_;
+  const ZoneGrowableArray<Representation>& arg_representations_;
+  const ZoneGrowableArray<Location>& arg_locations_;
+
+  DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
+};
+
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
  public:
   DebugStepCheckInstr(TokenPosition token_pos,
@@ -4602,7 +4738,8 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
                     intptr_t class_id,
                     AlignmentType alignment,
                     intptr_t deopt_id,
-                    TokenPosition token_pos);
+                    TokenPosition token_pos,
+                    SpeculativeMode speculative_mode = kGuardInputs);
   DECLARE_INSTRUCTION(StoreIndexed)
 
   enum { kArrayPos = 0, kIndexPos = 1, kValuePos = 2 };
@@ -4625,6 +4762,8 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
     return value()->NeedsWriteBarrier() &&
            (emit_store_barrier_ == kEmitStoreBarrier);
   }
+
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -4652,6 +4791,7 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   const intptr_t class_id_;
   const AlignmentType alignment_;
   const TokenPosition token_pos_;
+  const SpeculativeMode speculative_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedInstr);
 };
@@ -4793,7 +4933,11 @@ class AllocateObjectInstr : public TemplateAllocation<0, NoThrow> {
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return Heap::IsAllocatableInNewSpace(cls().instance_size());
+    return WillAllocateNewOrRemembered(cls());
+  }
+
+  static bool WillAllocateNewOrRemembered(const Class& cls) {
+    return Heap::IsAllocatableInNewSpace(cls.instance_size());
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -4831,8 +4975,12 @@ class AllocateUninitializedContextInstr
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
+    return WillAllocateNewOrRemembered(num_context_variables_);
+  }
+
+  static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
     return Heap::IsAllocatableInNewSpace(
-        Context::InstanceSize(num_context_variables_));
+        Context::InstanceSize(num_context_variables));
   }
 
   virtual AliasIdentity Identity() const { return identity_; }
@@ -4985,9 +5133,13 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
     if (!num_elements()->BindsToConstant()) return false;
     const Object& length = num_elements()->BoundConstant();
     if (!length.IsSmi()) return false;
-    intptr_t raw_length = Smi::Cast(length).Value();
-    // Compare Array::New.
-    return (raw_length >= 0) && (raw_length < Array::kMaxNewSpaceElements);
+    const intptr_t value = Smi::Cast(length).Value();
+    if (value < 0) return false;
+    return WillAllocateNewOrRemembered(value);
+  }
+
+  static bool WillAllocateNewOrRemembered(const intptr_t length) {
+    return !Array::UseCardMarkingForAllocation(length);
   }
 
  private:
@@ -4997,9 +5149,9 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
 };
 
-// Note: this instruction must not be moved without the indexed access that
-// depends on it (e.g. out of loops). GC may cause collect
-// the array while the external data-array is still accessed.
+// Note: This instruction must not be moved without the indexed access that
+// depends on it (e.g. out of loops). GC may collect the array while the
+// external data-array is still accessed.
 // TODO(vegorov) enable LICMing this instruction by ensuring that array itself
 // is kept alive.
 class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
@@ -5024,12 +5176,63 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsLoadUntagged()->offset_ == offset_;
+  }
 
  private:
   intptr_t offset_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadUntaggedInstr);
+};
+
+// Stores an untagged value into the given object.
+//
+// If the untagged value is a derived pointer (e.g. pointer to start of internal
+// typed data array backing) then this instruction cannot be moved across
+// instructions which can trigger GC, to ensure that
+//
+//    LoadUntaggeed + Arithmetic + StoreUntagged
+//
+// are performed atomically
+//
+// See kernel_to_il.cc:BuildTypedDataViewFactoryConstructor.
+class StoreUntaggedInstr : public TemplateInstruction<2, NoThrow> {
+ public:
+  StoreUntaggedInstr(Value* object, Value* value, intptr_t offset)
+      : offset_(offset) {
+    SetInputAt(0, object);
+    SetInputAt(1, value);
+  }
+
+  DECLARE_INSTRUCTION(StoreUntagged)
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0 || idx == 1);
+    // The object may be tagged or untagged (for external objects).
+    if (idx == 0) return kNoRepresentation;
+    return kUntagged;
+  }
+
+  Value* object() const { return inputs_[0]; }
+  Value* value() const { return inputs_[1]; }
+  intptr_t offset() const { return offset_; }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsStoreUntagged()->offset_ == offset_;
+  }
+
+  intptr_t offset_from_tagged() const {
+    const bool is_tagged = object()->definition()->representation() == kTagged;
+    return offset() - (is_tagged ? kHeapObjectTag : 0);
+  }
+
+ private:
+  intptr_t offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(StoreUntaggedInstr);
 };
 
 class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
@@ -5222,8 +5425,12 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
+    return WillAllocateNewOrRemembered(context_variables().length());
+  }
+
+  static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
     return Heap::IsAllocatableInNewSpace(
-        Context::InstanceSize(context_variables().length()));
+        Context::InstanceSize(num_context_variables));
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -5339,6 +5546,7 @@ class Boxing : public AllStatic {
 
   static intptr_t ValueOffset(Representation rep) {
     switch (rep) {
+      case kUnboxedFloat:
       case kUnboxedDouble:
         return Double::value_offset();
 
@@ -5365,6 +5573,7 @@ class Boxing : public AllStatic {
       case kUnboxedInt64:
         return kMintCid;
       case kUnboxedDouble:
+      case kUnboxedFloat:
         return kDoubleCid;
       case kUnboxedFloat32x4:
         return kFloat32x4Cid;
@@ -5549,6 +5758,7 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   bool CanConvertSmi() const;
   void EmitLoadFromBox(FlowGraphCompiler* compiler);
   void EmitSmiConversion(FlowGraphCompiler* compiler);
+  void EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler);
   void EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler);
   void EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler);
 
@@ -6088,6 +6298,7 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
 
   virtual bool HasUnknownSideEffects() const { return true; }
 
@@ -6414,6 +6625,9 @@ class ShiftIntegerOpInstr : public BinaryIntegerOpInstr {
 
   Range* shift_range() const { return shift_range_; }
 
+  // Set the range directly (takes ownership).
+  void set_shift_range(Range* shift_range) { shift_range_ = shift_range; }
+
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   DEFINE_INSTRUCTION_TYPE_CHECK(ShiftIntegerOp)
@@ -6614,11 +6828,13 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
   };
 
   CheckStackOverflowInstr(TokenPosition token_pos,
+                          intptr_t stack_depth,
                           intptr_t loop_depth,
                           intptr_t deopt_id,
-                          Kind kind = kOsrAndPreemption)
+                          Kind kind)
       : TemplateInstruction(deopt_id),
         token_pos_(token_pos),
+        stack_depth_(stack_depth),
         loop_depth_(loop_depth),
         kind_(kind) {
     ASSERT(kind != kOsrOnly || loop_depth > 0);
@@ -6626,6 +6842,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   bool in_loop() const { return loop_depth_ > 0; }
+  intptr_t stack_depth() const { return stack_depth_; }
   intptr_t loop_depth() const { return loop_depth_; }
 
   DECLARE_INSTRUCTION(CheckStackOverflow)
@@ -6644,6 +6861,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
  private:
   const TokenPosition token_pos_;
+  const intptr_t stack_depth_;
   const intptr_t loop_depth_;
   const Kind kind_;
 
@@ -6835,8 +7053,10 @@ class DoubleToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
 class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  DoubleToFloatInstr(Value* value, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {
+  DoubleToFloatInstr(Value* value,
+                     intptr_t deopt_id,
+                     SpeculativeMode speculative_mode = kGuardInputs)
+      : TemplateDefinition(deopt_id), speculative_mode_(speculative_mode) {
     SetInputAt(0, value);
   }
 
@@ -6861,6 +7081,8 @@ class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return kUnboxedDouble;
   }
 
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
@@ -6868,6 +7090,8 @@ class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
+  const SpeculativeMode speculative_mode_;
+
   DISALLOW_COPY_AND_ASSIGN(DoubleToFloatInstr);
 };
 
@@ -6903,6 +7127,7 @@ class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(FloatToDoubleInstr);
 };
 
+// TODO(sjindel): Replace with FFICallInstr.
 class InvokeMathCFunctionInstr : public PureDefinition {
  public:
   InvokeMathCFunctionInstr(ZoneGrowableArray<Value*>* inputs,
@@ -7145,13 +7370,13 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
 // CheckNull instruction takes one input (`value`) and tests it for `null`.
 // If `value` is `null`, then `NoSuchMethodError` is thrown. Otherwise,
 // execution proceeds to the next instruction.
-class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
+class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
  public:
   CheckNullInstr(Value* value,
                  const String& function_name,
                  intptr_t deopt_id,
                  TokenPosition token_pos)
-      : TemplateInstruction(deopt_id),
+      : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
         function_name_(function_name) {
     ASSERT(function_name.IsNotTemporaryScopedHandle());
@@ -7168,18 +7393,21 @@ class CheckNullInstr : public TemplateInstruction<1, Throws, NoCSE> {
 
   DECLARE_INSTRUCTION(CheckNull)
 
+  virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
+
   // CheckNull can implicitly call Dart code (NoSuchMethodError constructor),
   // so it can lazily deopt.
   virtual bool ComputeCanDeoptimize() const { return true; }
 
-  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
-
-  virtual bool HasUnknownSideEffects() const { return false; }
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   static void AddMetadataForRuntimeCall(CheckNullInstr* check_null,
                                         FlowGraphCompiler* compiler);
+
+  virtual Value* RedefinedValue() const;
 
  private:
   const TokenPosition token_pos_;
@@ -7219,17 +7447,12 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(CheckClassIdInstr);
 };
 
-// Performs an array bounds check, where
-//   safe_index := CheckArrayBound(length, index)
-// returns the "safe" index when
-//   0 <= index < length
-// or otherwise deoptimizes (viz. speculative).
-class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
+// Base class for speculative [CheckArrayBoundInstr] and
+// [GenericCheckBoundInstr]
+class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
  public:
-  CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id),
-        generalized_(false),
-        licm_hoisted_(false) {
+  CheckBoundBase(Value* length, Value* index, intptr_t deopt_id)
+      : TemplateDefinition(deopt_id) {
     SetInputAt(kLengthPos, length);
     SetInputAt(kIndexPos, index);
   }
@@ -7237,7 +7460,33 @@ class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
   Value* length() const { return inputs_[kLengthPos]; }
   Value* index() const { return inputs_[kIndexPos]; }
 
+  virtual bool IsCheckBoundBase() { return true; }
+  virtual CheckBoundBase* AsCheckBoundBase() { return this; }
+  virtual Value* RedefinedValue() const;
+
+  // Give a name to the location/input indices.
+  enum { kLengthPos = 0, kIndexPos = 1 };
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CheckBoundBase);
+};
+
+// Performs an array bounds check, where
+//   safe_index := CheckArrayBound(length, index)
+// returns the "safe" index when
+//   0 <= index < length
+// or otherwise deoptimizes (viz. speculative).
+class CheckArrayBoundInstr : public CheckBoundBase {
+ public:
+  CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
+      : CheckBoundBase(length, index, deopt_id),
+        generalized_(false),
+        licm_hoisted_(false) {}
+
   DECLARE_INSTRUCTION(CheckArrayBound)
+
+  virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
 
   virtual bool ComputeCanDeoptimize() const { return true; }
 
@@ -7256,9 +7505,6 @@ class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
-  // Give a name to the location/input indices.
-  enum { kLengthPos = 0, kIndexPos = 1 };
-
  private:
   bool generalized_;
   bool licm_hoisted_;
@@ -7267,33 +7513,27 @@ class CheckArrayBoundInstr : public TemplateDefinition<2, NoThrow, Pure> {
 };
 
 // Performs an array bounds check, where
-//   safe_index := CheckArrayBound(length, index)
+//   safe_index := GenericCheckBound(length, index)
 // returns the "safe" index when
 //   0 <= index < length
 // or otherwise throws an out-of-bounds exception (viz. non-speculative).
-class GenericCheckBoundInstr : public TemplateDefinition<2, Throws, NoCSE> {
+class GenericCheckBoundInstr : public CheckBoundBase {
  public:
   GenericCheckBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id) {
-    SetInputAt(kLengthPos, length);
-    SetInputAt(kIndexPos, index);
-  }
+      : CheckBoundBase(length, index, deopt_id) {}
 
-  Value* length() const { return inputs_[kLengthPos]; }
-  Value* index() const { return inputs_[kIndexPos]; }
-
-  virtual bool HasUnknownSideEffects() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   DECLARE_INSTRUCTION(GenericCheckBound)
+
+  virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
 
   // GenericCheckBound can implicitly call Dart code (RangeError or
   // ArgumentError constructor), so it can lazily deopt.
   virtual bool ComputeCanDeoptimize() const { return true; }
 
   bool IsRedundant(const RangeBoundary& length);
-
-  // Give a name to the location/input indices.
-  enum { kLengthPos = 0, kIndexPos = 1 };
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);
@@ -7345,21 +7585,23 @@ class CheckConditionInstr : public Instruction {
   DISALLOW_COPY_AND_ASSIGN(CheckConditionInstr);
 };
 
-class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
+class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  UnboxedIntConverterInstr(Representation from,
-                           Representation to,
-                           Value* value,
-                           intptr_t deopt_id)
+  IntConverterInstr(Representation from,
+                    Representation to,
+                    Value* value,
+                    intptr_t deopt_id)
       : TemplateDefinition(deopt_id),
         from_representation_(from),
         to_representation_(to),
         is_truncating_(to == kUnboxedUint32) {
     ASSERT(from != to);
-    ASSERT((from == kUnboxedInt64) || (from == kUnboxedUint32) ||
-           (from == kUnboxedInt32));
-    ASSERT((to == kUnboxedInt64) || (to == kUnboxedUint32) ||
-           (to == kUnboxedInt32));
+    ASSERT(from == kUnboxedInt64 || from == kUnboxedUint32 ||
+           from == kUnboxedInt32 || from == kUntagged);
+    ASSERT(to == kUnboxedInt64 || to == kUnboxedUint32 || to == kUnboxedInt32 ||
+           to == kUntagged);
+    ASSERT(from != kUntagged || to == kUnboxedIntPtr);
+    ASSERT(to != kUntagged || from == kUnboxedIntPtr);
     SetInputAt(0, value);
   }
 
@@ -7382,11 +7624,9 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
     return from();
   }
 
-  virtual bool HasUnknownSideEffects() const { return false; }
-
   virtual bool AttributesEqual(Instruction* other) const {
-    ASSERT(other->IsUnboxedIntConverter());
-    UnboxedIntConverterInstr* converter = other->AsUnboxedIntConverter();
+    ASSERT(other->IsIntConverter());
+    auto converter = other->AsIntConverter();
     return (converter->from() == from()) && (converter->to() == to()) &&
            (converter->is_truncating() == is_truncating());
   }
@@ -7398,7 +7638,7 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
     return CompileType::Int();
   }
 
-  DECLARE_INSTRUCTION(UnboxedIntConverter);
+  DECLARE_INSTRUCTION(IntConverter);
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -7407,10 +7647,111 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {
   const Representation to_representation_;
   bool is_truncating_;
 
-  DISALLOW_COPY_AND_ASSIGN(UnboxedIntConverterInstr);
+  DISALLOW_COPY_AND_ASSIGN(IntConverterInstr);
 };
 
+// Moves a floating-point value between CPU and FPU registers. Used to implement
+// "softfp" calling conventions, where FPU arguments/return values are passed in
+// normal CPU registers.
+class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
+ public:
+  BitCastInstr(Representation from, Representation to, Value* value)
+      : TemplateDefinition(DeoptId::kNone),
+        from_representation_(from),
+        to_representation_(to) {
+    ASSERT(from != to);
+    ASSERT(to == kUnboxedInt32 && from == kUnboxedFloat ||
+           to == kUnboxedFloat && from == kUnboxedInt32 ||
+           to == kUnboxedInt64 && from == kUnboxedDouble ||
+           to == kUnboxedDouble && from == kUnboxedInt64);
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  Representation from() const { return from_representation_; }
+  Representation to() const { return to_representation_; }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation representation() const { return to(); }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return from();
+  }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    ASSERT(other->IsBitCast());
+    BitCastInstr* converter = other->AsBitCast();
+    return converter->from() == from() && converter->to() == to();
+  }
+
+  virtual CompileType ComputeType() const { return CompileType::Dynamic(); }
+
+  DECLARE_INSTRUCTION(BitCast);
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  const Representation from_representation_;
+  const Representation to_representation_;
+
+  DISALLOW_COPY_AND_ASSIGN(BitCastInstr);
+};
+
+// Sign- or zero-extends an integer in unboxed 32-bit representation.
 //
+// The choice between sign- and zero- extension is made based on the whether the
+// chosen representation is signed or unsigned.
+//
+// It is only supported to extend 1- or 2-byte operands; however, since we don't
+// have a representation less than 32-bits, both the input and output
+// representations are 32-bit (and equal).
+class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
+ public:
+  UnboxedWidthExtenderInstr(Value* value,
+                            Representation rep,
+                            intptr_t from_width_bytes)
+      : TemplateDefinition(DeoptId::kNone),
+        representation_(rep),
+        from_width_bytes_(from_width_bytes) {
+    ASSERT(from_width_bytes == 1 || from_width_bytes == 2);
+    ASSERT(rep == kUnboxedInt32 || rep == kUnboxedUint32);
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  Representation representation() const { return representation_; }
+
+  bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return representation_;
+  }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    ASSERT(other->IsUnboxedWidthExtender());
+    const UnboxedWidthExtenderInstr* ext = other->AsUnboxedWidthExtender();
+    return ext->representation() == representation() &&
+           ext->from_width_bytes_ == from_width_bytes_;
+  }
+
+  virtual CompileType ComputeType() const { return CompileType::Int(); }
+
+  DECLARE_INSTRUCTION(UnboxedWidthExtender);
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  const Representation representation_;
+  const intptr_t from_width_bytes_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxedWidthExtenderInstr);
+};
+
 // SimdOpInstr
 //
 // All SIMD intrinsics and recognized methods are represented via instances
@@ -7758,8 +8099,13 @@ class Environment : public ZoneAllocated {
     locations_ = locations;
   }
 
-  void set_deopt_id(intptr_t deopt_id) { deopt_id_ = deopt_id; }
-  intptr_t deopt_id() const { return deopt_id_; }
+  // Get deopt_id associated with this environment.
+  // Note that only outer environments have deopt id associated with
+  // them (set by DeepCopyToOuter).
+  intptr_t deopt_id() const {
+    ASSERT(deopt_id_ != DeoptId::kNone);
+    return deopt_id_;
+  }
 
   Environment* outer() const { return outer_; }
 
@@ -7809,7 +8155,9 @@ class Environment : public ZoneAllocated {
   Environment* DeepCopy(Zone* zone) const { return DeepCopy(zone, Length()); }
 
   void DeepCopyTo(Zone* zone, Instruction* instr) const;
-  void DeepCopyToOuter(Zone* zone, Instruction* instr) const;
+  void DeepCopyToOuter(Zone* zone,
+                       Instruction* instr,
+                       intptr_t outer_deopt_id) const;
 
   void DeepCopyAfterTo(Zone* zone,
                        Instruction* instr,
@@ -7842,20 +8190,19 @@ class Environment : public ZoneAllocated {
 
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,
-              intptr_t deopt_id,
               const ParsedFunction& parsed_function,
               Environment* outer)
       : values_(length),
-        locations_(NULL),
         fixed_parameter_count_(fixed_parameter_count),
-        deopt_id_(deopt_id),
         parsed_function_(parsed_function),
         outer_(outer) {}
 
   GrowableArray<Value*> values_;
-  Location* locations_;
+  Location* locations_ = nullptr;
   const intptr_t fixed_parameter_count_;
-  intptr_t deopt_id_;
+  // Deoptimization id associated with this environment. Only set for
+  // outer environments.
+  intptr_t deopt_id_ = DeoptId::kNone;
   const ParsedFunction& parsed_function_;
   Environment* outer_;
 

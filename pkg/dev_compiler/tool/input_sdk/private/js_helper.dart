@@ -10,7 +10,11 @@ import 'dart:_foreign_helper' show JS, JS_STRING_CONCAT, JSExportName;
 
 import 'dart:_interceptors';
 import 'dart:_internal'
-    show EfficientLengthIterable, MappedIterable, IterableElementError;
+    show
+        EfficientLengthIterable,
+        MappedIterable,
+        IterableElementError,
+        SubListIterable;
 
 import 'dart:_native_typed_data';
 import 'dart:_runtime' as dart;
@@ -197,7 +201,7 @@ class Primitives {
   }
 
   static int timerFrequency;
-  static Function timerTicks;
+  static num Function() timerTicks;
 
   static bool get isD8 {
     return JS(

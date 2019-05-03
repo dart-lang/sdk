@@ -19,12 +19,12 @@ typedef Converter<V> ConvertFactory<V>(int input);
 
 class B<W> {
   final field = new Wrap<ConvertFactory<W>>();
-  @NoInline()
+  @pragma('dart2js:noInline')
   B();
 }
 
 class Wrap<X> {
-  @NoInline()
+  @pragma('dart2js:noInline')
   Wrap();
 }
 

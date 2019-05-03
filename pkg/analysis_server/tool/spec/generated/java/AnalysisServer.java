@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+ * Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
  * for details. All rights reserved. Use of this source code is governed by a
  * BSD-style license that can be found in the LICENSE file.
  *
@@ -417,6 +417,16 @@ public interface AnalysisServer {
   public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer);
 
   /**
+   * {@code completion.listTokenDetails}
+   *
+   * Inspect analysis server's knowledge about all of a file's tokens including their lexeme, type,
+   * and what element kinds would have been appropriate for the token's program location.
+   *
+   * @param file The path to the file from which tokens should be returned.
+   */
+  public void completion_listTokenDetails(String file, ListTokenDetailsConsumer consumer);
+
+  /**
    * {@code completion.registerLibraryPaths}
    *
    * The client can make this request to express interest in certain libraries to receive completion
@@ -614,8 +624,12 @@ public interface AnalysisServer {
    *
    * @param file The file in which the specified elements are to be made accessible.
    * @param elements The elements to be made accessible in the specified file.
+   * @param offset The offset at which the specified elements need to be made accessible. If
+   *         provided, this is used to guard against adding imports for text that would be inserted
+   *         into a comment, string literal, or other location where the imports would not be
+   *         necessary.
    */
-  public void edit_importElements(String file, List<ImportedElements> elements, ImportElementsConsumer consumer);
+  public void edit_importElements(String file, List<ImportedElements> elements, int offset, ImportElementsConsumer consumer);
 
   /**
    * {@code edit.isPostfixCompletionApplicable}

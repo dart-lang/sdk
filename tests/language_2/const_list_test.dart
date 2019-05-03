@@ -16,32 +16,32 @@ class ConstListTest {
       growableList.add(i);
       growableList2.add(i);
     }
-    Expect.equals(true, growableList == growableList);
-    Expect.equals(false, growableList == growableList2);
-    Expect.equals(true, fixedList == fixedList);
-    Expect.equals(false, fixedList == fixedList2);
-    Expect.equals(false, fixedList == growableList);
+    Expect.equals(growableList, growableList);
+    Expect.notEquals(growableList, growableList2);
+    Expect.equals(fixedList, fixedList);
+    Expect.notEquals(fixedList, fixedList2);
+    Expect.notEquals(fixedList, growableList);
     growableList.add(4);
-    Expect.equals(false, fixedList == growableList);
+    Expect.notEquals(fixedList, growableList);
     Expect.equals(4, growableList.removeLast());
-    Expect.equals(false, fixedList == growableList);
+    Expect.notEquals(fixedList, growableList);
     fixedList[3] = 0;
-    Expect.equals(false, fixedList == growableList);
+    Expect.notEquals(fixedList, growableList);
   }
 
   static testLiterals() {
     dynamic a = [1, 2, 3.1];
     dynamic b = [1, 2, 3.1];
-    Expect.equals(false, a == b);
+    Expect.notEquals(a, b);
     a = const [1, 2, 3.1];
     b = const [1, 2, 3.1];
-    Expect.equals(true, a == b);
+    Expect.identical(a, b);
     a = const <num>[1, 2, 3.1];
     b = const [1, 2, 3.1];
-    Expect.equals(false, a == b);
+    Expect.identical(a, b);
     a = const <dynamic>[1, 2, 3.1];
     b = const [1, 2, 3.1];
-    Expect.equals(true, a == b);
+    Expect.notEquals(a, b);
   }
 }
 

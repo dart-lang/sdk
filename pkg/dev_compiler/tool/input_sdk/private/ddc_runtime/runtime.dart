@@ -24,7 +24,8 @@ import 'dart:_js_helper'
         PrivateSymbol,
         ReifyFunctionTypes,
         NoReifyGeneric,
-        notNull;
+        notNull,
+        undefined;
 
 export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;
 
@@ -147,6 +148,22 @@ void trackProfile(bool flag) {
 
 final JsSymbol = JS('', 'Symbol');
 
+/// The prototype used for all Dart libraries.
+///
+/// This makes it easy to identify Dart library objects, and also improves
+/// performance (JS engines such as V8 tend to assume `Object.create(null)` is
+/// used for a Map, so they don't optimize it as they normally would for
+/// class-like objects).
+///
+/// The `dart.library` field is set by the compiler during SDK bootstrapping
+/// (because it is needed for dart:_runtime itself), so we don't need to
+/// initialize it here. The name `dart.library` is used because it reads nicely,
+/// for example:
+///
+///     const my_library = Object.create(dart.library);
+///
+Object libraryPrototype = JS('', 'dart.library');
+
 // TODO(vsm): Remove once this flag we've removed the ability to
 // whitelist / fallback on the old behavior.
 bool startAsyncSynchronously = true;
@@ -165,7 +182,8 @@ final List<Object> _cacheMaps = JS('!', '[]');
 /// A list of functions to reset static fields back to their uninitialized
 /// state.
 ///
-/// This is populated by [defineLazyField].
+/// This is populated by [defineLazyField], and only contains the list of fields
+/// that have actually been initialized.
 @notNull
 final List<void Function()> _resetFields = JS('', '[]');
 
@@ -174,6 +192,7 @@ final List<void Function()> _resetFields = JS('', '[]');
 /// This should be called when the user requests a hot-restart, when the UI is
 /// handling that user action.
 void hotRestart() {
+  // TODO(jmesserly): we need to prevent all pending callbacks from firing.
   for (var f in _resetFields) f();
   _resetFields.clear();
   for (var m in _cacheMaps) JS('', '#.clear()', m);

@@ -107,27 +107,28 @@
 \newcommand{\Case}[1]{\textbf{Case }$\langle\hspace{0.1em}${#1}$\hspace{0.1em}\rangle$\textbf{.}}
 \newcommand{\EndCase}{\mbox{}\hfill$\scriptscriptstyle\Box$\xspace}
 
-\newenvironment{dartCode}[1][!ht] {
+\newenvironment{dartCode}[1][!ht] {%
   \def\@programcr{\@addfield\strut}%
   \let\\=\@programcr%
   \relax\@vobeyspaces\obeylines%
   \ttfamily\color{commentaryColor}%
-  \vspace{1em}
+  \vspace{1em}%
 }{\normalcolor\vspace{1em}}
 
-\newenvironment{normativeDartCode}[1][!ht] {
+\newenvironment{normativeDartCode}[1][!ht] {%
   \def\@programcr{\@addfield\strut}%
   \let\\=\@programcr%
   \relax\@vobeyspaces\obeylines%
   \ttfamily\color{normativeColor}%
-  \vspace{1em}
+  \vspace{1em}%
 }{\normalcolor\vspace{1em}}
 
 % Used for comments in a code context.
 \def\comment#1{\textsf{#1}}
 
-% A commonly used name for an identifier
+% A commonly used metavariable for an identifier, operator.
 \newcommand{\id}{\metavar{id}}
+\newcommand{\op}{\metavar{op}}
 
 % Used for defining occurrence of phrase, with customized index entry.
 \newcommand{\IndexCustom}[2]{%
@@ -142,7 +143,7 @@
 \newcommand{\Index}[1]{\IndexCustom{#1}{#1}}
 
 % Same appearance, but not adding an entry to the index.
-\newcommand{\NoIndex}[1]{
+\newcommand{\NoIndex}[1]{%
   \leavevmode\marginpar{\ensuremath{\diamond}}\emph{#1}}
 
 % Used to specify comma separated lists of similar symbols.

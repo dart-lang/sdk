@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/compiler/ffi.h"
 #include "include/dart_api.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
@@ -211,37 +212,6 @@ static const Double& AsDouble(const Instance& instance) {
   return Double::Cast(instance);
 }
 
-// Native data types sizes in bytes
-
-static const size_t kSizeUnknown = 0;
-
-static const intptr_t kNumElementSizes = kFfiVoidCid - kFfiPointerCid + 1;
-
-static const size_t element_size_table[kNumElementSizes] = {
-    sizeof(intptr_t),  // kFfiPointerCid
-    kSizeUnknown,      // kFfiNativeFunctionCid
-    1,                 // kFfiInt8Cid
-    2,                 // kFfiInt16Cid
-    4,                 // kFfiInt32Cid
-    8,                 // kFfiInt64Cid
-    1,                 // kFfiUint8Cid
-    2,                 // kFfiUint16Cid
-    4,                 // kFfiUint32Cid
-    8,                 // kFfiUint64Cid
-    sizeof(intptr_t),  // kFfiIntPtrCid
-    4,                 // kFfiFloatCid
-    8,                 // kFfiDoubleCid
-    kSizeUnknown,      // kFfiVoidCid
-};
-
-static size_t ElementSizeInBytes(intptr_t class_id) {
-  ASSERT(RawObject::IsFfiTypeClassId(class_id));
-  ASSERT(class_id != kFfiNativeFunctionCid);
-  ASSERT(class_id != kFfiVoidCid);
-  intptr_t index = class_id - kFfiPointerCid;
-  return element_size_table[index];
-}
-
 // The remainder of this file implements the dart:ffi native methods.
 
 DEFINE_NATIVE_ENTRY(Ffi_allocate, 1, 1) {
@@ -256,18 +226,19 @@ DEFINE_NATIVE_ENTRY(Ffi_allocate, 1, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, argCount, arguments->NativeArgAt(0));
   int64_t count = argCount.AsInt64Value();
   classid_t type_cid = type_arg.type_class_id();
-  int64_t max_count = INTPTR_MAX / ElementSizeInBytes(type_cid);
+  int64_t max_count = INTPTR_MAX / compiler::ffi::ElementSizeInBytes(type_cid);
   CheckRange(argCount, 1, max_count, "count");
 
-  size_t size = ElementSizeInBytes(type_cid) * count;
-  uint8_t* memory = reinterpret_cast<uint8_t*>(malloc(size));
-  if (memory == NULL) {
+  size_t size = compiler::ffi::ElementSizeInBytes(type_cid) * count;
+  uint64_t memory = reinterpret_cast<uint64_t>(malloc(size));
+  if (memory == 0) {
     const String& error = String::Handle(String::NewFormatted(
         "allocating (%" Pd ") bytes of memory failed", size));
     Exceptions::ThrowArgumentError(error);
   }
 
-  RawPointer* result = Pointer::New(type_arg, memory);
+  RawPointer* result = Pointer::New(
+      type_arg, Integer::Handle(zone, Integer::NewFromUint64(memory)));
   return result;
 }
 
@@ -279,12 +250,11 @@ DEFINE_NATIVE_ENTRY(Ffi_fromAddress, 1, 1) {
   CheckIsConcreteNativeType(native_type);
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, arg_ptr, arguments->NativeArgAt(0));
 
-  uint8_t* address = reinterpret_cast<uint8_t*>(arg_ptr.AsInt64Value());
-  // TODO(dacoharkes): should this return NULL if addres is 0?
+  // TODO(dacoharkes): should this return NULL if address is 0?
   // https://github.com/dart-lang/sdk/issues/35756
 
   RawPointer* result =
-      Pointer::New(native_type, address, type_arg.type_class_id());
+      Pointer::New(native_type, arg_ptr, type_arg.type_class_id());
   return result;
 }
 
@@ -292,14 +262,15 @@ DEFINE_NATIVE_ENTRY(Ffi_elementAt, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
   AbstractType& pointer_type_arg =
-      AbstractType::Handle(pointer.type_argument());
+      AbstractType::Handle(zone, pointer.type_argument());
   CheckSized(pointer_type_arg);
 
   classid_t class_id = pointer_type_arg.type_class_id();
-  uint8_t* address = pointer.GetCMemoryAddress();
-  uint8_t* address_new =
-      address + index.AsInt64Value() * ElementSizeInBytes(class_id);
-  RawPointer* result = Pointer::New(pointer_type_arg, address_new);
+  Integer& address = Integer::Handle(zone, pointer.GetCMemoryAddress());
+  address = Integer::New(address.AsInt64Value() +
+                         index.AsInt64Value() *
+                             compiler::ffi::ElementSizeInBytes(class_id));
+  RawPointer* result = Pointer::New(pointer_type_arg, address);
   return result;
 }
 
@@ -309,9 +280,11 @@ DEFINE_NATIVE_ENTRY(Ffi_offsetBy, 0, 2) {
   AbstractType& pointer_type_arg =
       AbstractType::Handle(pointer.type_argument());
 
-  uint8_t* address = pointer.GetCMemoryAddress();
-  uint8_t* address_new = address + offset.AsInt64Value();
-  RawPointer* result = Pointer::New(pointer_type_arg, address_new);
+  intptr_t address =
+      Integer::Handle(zone, pointer.GetCMemoryAddress()).AsInt64Value() +
+      offset.AsInt64Value();
+  RawPointer* result = Pointer::New(
+      pointer_type_arg, Integer::Handle(zone, Integer::New(address)));
   return result;
 }
 
@@ -323,7 +296,7 @@ DEFINE_NATIVE_ENTRY(Ffi_cast, 1, 1) {
       type_args.TypeAtNullSafe(Pointer::kNativeTypeArgPos));
   CheckIsConcreteNativeType(native_type);
 
-  uint8_t* address = pointer.GetCMemoryAddress();
+  const Integer& address = Integer::Handle(zone, pointer.GetCMemoryAddress());
   RawPointer* result =
       Pointer::New(native_type, address, type_arg.type_class_id());
   return result;
@@ -332,35 +305,37 @@ DEFINE_NATIVE_ENTRY(Ffi_cast, 1, 1) {
 DEFINE_NATIVE_ENTRY(Ffi_free, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
 
-  uint8_t* address = pointer.GetCMemoryAddress();
-  free(address);
-  pointer.SetCMemoryAddress(0);
+  const Integer& address = Integer::Handle(zone, pointer.GetCMemoryAddress());
+  free(reinterpret_cast<void*>(address.AsInt64Value()));
+  pointer.SetCMemoryAddress(Integer::Handle(zone, Integer::New(0)));
   return Object::null();
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_address, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
-
-  uint8_t* address = pointer.GetCMemoryAddress();
-  intptr_t int_ptr = reinterpret_cast<intptr_t>(address);
-  return Integer::NewFromUint64(int_ptr);
+  return pointer.GetCMemoryAddress();
 }
 
-static RawInstance* BoxLoadPointer(uint8_t* address,
+static RawInstance* BoxLoadPointer(Zone* zone,
+                                   uint8_t* address,
                                    const AbstractType& instance_type_arg,
                                    intptr_t type_cid) {
   // TODO(dacoharkes): should this return NULL if addres is 0?
   // https://github.com/dart-lang/sdk/issues/35756
-  if (address == 0) {  // 0 is the c++ null pointer
+  if (address == nullptr) {
     return Instance::null();
   }
   AbstractType& type_arg =
       AbstractType::Handle(TypeArguments::Handle(instance_type_arg.arguments())
                                .TypeAt(Pointer::kNativeTypeArgPos));
-  return Pointer::New(type_arg, address, type_cid);
+  return Pointer::New(
+      type_arg,
+      Integer::Handle(zone, Integer::New(reinterpret_cast<intptr_t>(address))),
+      type_cid);
 }
 
-static RawInstance* LoadValue(uint8_t* address,
+static RawInstance* LoadValue(Zone* zone,
+                              uint8_t* address,
                               const AbstractType& instance_type_arg) {
   classid_t type_cid = instance_type_arg.type_class_id();
   switch (type_cid) {
@@ -389,7 +364,7 @@ static RawInstance* LoadValue(uint8_t* address,
     case kFfiPointerCid:
     default:
       ASSERT(IsPointerType(instance_type_arg));
-      return BoxLoadPointer(*reinterpret_cast<uint8_t**>(address),
+      return BoxLoadPointer(zone, *reinterpret_cast<uint8_t**>(address),
                             instance_type_arg, type_cid);
   }
 }
@@ -402,14 +377,17 @@ DEFINE_NATIVE_ENTRY(Ffi_load, 1, 1) {
   CheckSized(pointer_type_arg);
   ASSERT(DartAndCTypeCorrespond(pointer_type_arg, type_arg));
 
-  uint8_t* address = pointer.GetCMemoryAddress();
-  return LoadValue(address, pointer_type_arg);
+  uint8_t* address = reinterpret_cast<uint8_t*>(
+      Integer::Handle(pointer.GetCMemoryAddress()).AsInt64Value());
+  return LoadValue(zone, address, pointer_type_arg);
 }
 
-static void StoreValue(const Pointer& pointer,
+static void StoreValue(Zone* zone,
+                       const Pointer& pointer,
                        classid_t type_cid,
                        const Instance& new_value) {
-  uint8_t* address = pointer.GetCMemoryAddress();
+  uint8_t* address = reinterpret_cast<uint8_t*>(
+      Integer::Handle(pointer.GetCMemoryAddress()).AsInt64Value());
   AbstractType& pointer_type_arg =
       AbstractType::Handle(pointer.type_argument());
   switch (type_cid) {
@@ -457,14 +435,16 @@ static void StoreValue(const Pointer& pointer,
     case kFfiPointerCid:
     default: {
       ASSERT(IsPointerType(pointer_type_arg));
-      uint8_t* new_value_unwrapped = nullptr;
+      intptr_t new_value_unwrapped = 0;
       if (!new_value.IsNull()) {
         ASSERT(new_value.IsPointer());
-        new_value_unwrapped = AsPointer(new_value).GetCMemoryAddress();
+        new_value_unwrapped =
+            Integer::Handle(AsPointer(new_value).GetCMemoryAddress())
+                .AsInt64Value();
         // TODO(dacoharkes): should this return NULL if addres is 0?
         // https://github.com/dart-lang/sdk/issues/35756
       }
-      *reinterpret_cast<uint8_t**>(address) = new_value_unwrapped;
+      *reinterpret_cast<intptr_t*>(address) = new_value_unwrapped;
     } break;
   }
 }
@@ -479,7 +459,7 @@ DEFINE_NATIVE_ENTRY(Ffi_store, 0, 2) {
   ASSERT(DartAndCTypeCorrespond(pointer_type_arg, arg_type));
 
   classid_t type_cid = pointer_type_arg.type_class_id();
-  StoreValue(pointer, type_cid, new_value);
+  StoreValue(zone, pointer, type_cid, new_value);
   return Object::null();
 }
 
@@ -489,54 +469,7 @@ DEFINE_NATIVE_ENTRY(Ffi_sizeOf, 1, 0) {
   CheckSized(type_arg);
 
   classid_t type_cid = type_arg.type_class_id();
-  return Smi::New(ElementSizeInBytes(type_cid));
-}
-
-// Generates assembly to trampoline from Dart into C++.
-//
-// Attaches assembly code to the function with the folling features:
-// - unboxes arguments
-// - puts the arguments on the c stack
-// - invokes the c function
-// - reads the the result
-// - boxes the result and returns it.
-//
-// It inspects the signature to know what to box/unbox
-// Parameter `function` has the Dart types in its signature
-// Parameter `c_signature` has the C++ types in its signature
-static RawCode* TrampolineCode(const Function& function,
-                               const Function& c_signature) {
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-  // Currently we generate the trampoline when calling asFunction(), this means
-  // the ffi cannot be used in AOT.
-  // In order make it work in AOT we need to:
-  // - collect all asFunction signatures ahead of time
-  // - generate trampolines for those
-  // - store these in the object store
-  // - and read these from the object store when calling asFunction()
-  // https://github.com/dart-lang/sdk/issues/35765
-  UNREACHABLE();
-#elif !defined(TARGET_ARCH_X64)
-  // https://github.com/dart-lang/sdk/issues/35774
-  UNREACHABLE();
-#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS)
-  // https://github.com/dart-lang/sdk/issues/35760 Arm32 && Android
-  // https://github.com/dart-lang/sdk/issues/35771 Windows
-  // https://github.com/dart-lang/sdk/issues/35772 Arm64
-  // https://github.com/dart-lang/sdk/issues/35773 DBC
-  UNREACHABLE();
-#else
-  extern void GenerateFfiTrampoline(Assembler * assembler,
-                                    const Function& signature);
-  ObjectPoolBuilder object_pool_builder;
-  Assembler assembler(&object_pool_builder);
-  GenerateFfiTrampoline(&assembler, c_signature);
-  const Code& code = Code::Handle(Code::FinalizeCode(
-      function, nullptr, &assembler, Code::PoolAttachment::kAttachPool));
-  code.set_exception_handlers(
-      ExceptionHandlers::Handle(ExceptionHandlers::New(0)));
-  return code.raw();
-#endif
+  return Smi::New(compiler::ffi::ElementSizeInBytes(type_cid));
 }
 
 // TODO(dacoharkes): Cache the trampolines.
@@ -545,25 +478,37 @@ static RawFunction* TrampolineFunction(const Function& dart_signature,
                                        const Function& c_signature) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  const String& name =
+  String& name =
       String::ZoneHandle(Symbols::New(Thread::Current(), "FfiTrampoline"));
   const Library& lib = Library::Handle(Library::FfiLibrary());
   const Class& owner_class = Class::Handle(lib.toplevel_class());
-  Function& function = Function::ZoneHandle(
-      zone, Function::New(name, RawFunction::kFfiTrampoline,
-                          true,   // is_static
-                          false,  // is_const
-                          false,  // is_abstract
-                          false,  // is_external
-                          true,   // is_native
-                          owner_class, TokenPosition::kMinSource));
-
+  Function& function =
+      Function::Handle(zone, Function::New(name, RawFunction::kFfiTrampoline,
+                                           /*is_static=*/true,
+                                           /*is_const=*/false,
+                                           /*is_abstract=*/false,
+                                           /*is_external=*/false,
+                                           /*is_native=*/false, owner_class,
+                                           TokenPosition::kMinSource));
+  function.set_is_debuggable(false);
   function.set_num_fixed_parameters(dart_signature.num_fixed_parameters());
   function.set_result_type(AbstractType::Handle(dart_signature.result_type()));
   function.set_parameter_types(Array::Handle(dart_signature.parameter_types()));
 
-  const Code& code = Code::Handle(TrampolineCode(function, c_signature));
-  function.AttachCode(code);
+  // The signature function won't have any names for the parameters. We need to
+  // assign unique names for scope building and error messages.
+  const intptr_t num_params = dart_signature.num_fixed_parameters();
+  const Array& parameter_names = Array::Handle(Array::New(num_params));
+  for (intptr_t i = 0; i < num_params; ++i) {
+    if (i == 0) {
+      name = Symbols::ClosureParameter().raw();
+    } else {
+      name = Symbols::NewFormatted(thread, ":ffiParam%" Pd, i);
+    }
+    parameter_names.SetAt(i, name);
+  }
+  function.set_parameter_names(parameter_names);
+  function.SetFfiCSignature(c_signature);
 
   return function.raw();
 }
@@ -590,9 +535,7 @@ DEFINE_NATIVE_ENTRY(Ffi_asFunction, 1, 1) {
   // the function so that we can reuse the function for each c function with
   // the same signature.
   Context& context = Context::Handle(Context::New(1));
-  context.SetAt(0,
-                Object::Handle(Integer::NewFromUint64(
-                    reinterpret_cast<intptr_t>(pointer.GetCMemoryAddress()))));
+  context.SetAt(0, Integer::Handle(zone, pointer.GetCMemoryAddress()));
 
   RawClosure* raw_closure =
       Closure::New(Object::null_type_arguments(), Object::null_type_arguments(),
@@ -609,25 +552,18 @@ static void* GenerateFfiInverseTrampoline(const Function& signature,
 #elif !defined(TARGET_ARCH_X64)
   // https://github.com/dart-lang/sdk/issues/35774
   UNREACHABLE();
-#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS)
+#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS) &&                \
+    !defined(TARGET_OS_WINDOWS)
   // https://github.com/dart-lang/sdk/issues/35760 Arm32 && Android
-  // https://github.com/dart-lang/sdk/issues/35771 Windows
   // https://github.com/dart-lang/sdk/issues/35772 Arm64
   // https://github.com/dart-lang/sdk/issues/35773 DBC
   UNREACHABLE();
 #else
-  extern void GenerateFfiInverseTrampoline(
-      Assembler * assembler, const Function& signature, void* dart_entry_point);
-  ObjectPoolBuilder object_pool_builder;
-  Assembler assembler(&object_pool_builder);
-  GenerateFfiInverseTrampoline(&assembler, signature, dart_entry_point);
-  const Code& code = Code::Handle(
-      Code::FinalizeCode("inverse trampoline", nullptr, &assembler,
-                         Code::PoolAttachment::kAttachPool, false));
 
-  uword entryPoint = code.EntryPoint();
-
-  return reinterpret_cast<void*>(entryPoint);
+  // TODO(dacoharkes): Implement this.
+  // https://github.com/dart-lang/sdk/issues/35761
+  // Look at StubCode::GenerateInvokeDartCodeStub.
+  UNREACHABLE();
 #endif
 }
 
@@ -652,7 +588,8 @@ DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 1) {
   THR_Print("Ffi_fromFunction: %p\n", entryPoint);
   THR_Print("Ffi_fromFunction: %" Pd "\n", code.Size());
 
-  void* address = GenerateFfiInverseTrampoline(c_signature, entryPoint);
+  intptr_t address = reinterpret_cast<intptr_t>(
+      GenerateFfiInverseTrampoline(c_signature, entryPoint));
 
   TypeArguments& type_args = TypeArguments::Handle(zone);
   type_args = TypeArguments::New(1);
@@ -671,8 +608,8 @@ DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 1) {
 
   address = 0;  // https://github.com/dart-lang/sdk/issues/35761
 
-  Pointer& result = Pointer::Handle(
-      Pointer::New(native_function_type, reinterpret_cast<uint8_t*>(address)));
+  Pointer& result = Pointer::Handle(Pointer::New(
+      native_function_type, Integer::Handle(zone, Integer::New(address))));
 
   return result.raw();
 }

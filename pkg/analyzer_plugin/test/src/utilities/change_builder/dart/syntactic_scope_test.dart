@@ -279,14 +279,14 @@ N1() {
   test_ConstructorDeclaration() {
     _assertScopeNames(code: r'''
 class N1<N2> extends N3 {
-  N1.N4(N5 ^1) {
+  N1.N4(N5, this.N6, ^1) {
     ^2
   }
   ^3
 }
 ''', expected: r'''
-1: N2, N5
-2: N2, N5
+1: N2, N5, N6
+2: N2, N5, N6
 3: N2
 ''');
   }

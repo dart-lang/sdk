@@ -134,6 +134,7 @@ class UnparsedNode extends DeferredString implements AstContainer {
   final bool _protectForEval;
   LiteralString _cachedLiteral;
 
+  @override
   Iterable<Node> get containedNodes => [tree];
 
   /// A [js.Literal] that represents the string result of unparsing [ast].

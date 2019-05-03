@@ -34,7 +34,7 @@ import 'package:expect/expect.dart';
   @{main}test();
 @{main}}
 
-@NoInline()
+@pragma('dart2js:noInline')
 @{test}test() {
 @{test}}
 ''',
@@ -171,9 +171,11 @@ class SourceLocation {
 
   SourceLocation(this.methodName, this.lineNo, this.columnNo);
 
+  @override
   int get hashCode =>
       methodName.hashCode * 13 + lineNo.hashCode * 17 + columnNo.hashCode * 19;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! SourceLocation) return false;
@@ -182,5 +184,6 @@ class SourceLocation {
         columnNo == other.columnNo;
   }
 
+  @override
   String toString() => '$methodName:$lineNo:$columnNo';
 }

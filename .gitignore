@@ -39,6 +39,9 @@ CMakeLists.txt
 .clang_complete
 cmake-build-debug
 
+# VS project files
+.vs
+
 # VSCode project files
 .vscode
 .history

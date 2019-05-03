@@ -180,6 +180,10 @@ class Heap {
   int64_t UsedInWords(Space space) const;
   int64_t CapacityInWords(Space space) const;
   int64_t ExternalInWords(Space space) const;
+
+  int64_t TotalUsedInWords() const;
+  int64_t TotalCapacityInWords() const;
+  int64_t TotalExternalInWords() const;
   // Return the amount of GCing in microseconds.
   int64_t GCTimeInMicros(Space space) const;
 
@@ -267,6 +271,10 @@ class Heap {
 
 #ifndef PRODUCT
   void PrintToJSONObject(Space space, JSONObject* object) const;
+
+  // Returns a JSON object with total memory usage statistics for both new and
+  // old space combined.
+  void PrintMemoryUsageJSON(JSONStream* stream) const;
 
   // The heap map contains the sizes and class ids for the objects in each page.
   void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
@@ -400,6 +408,7 @@ class Heap {
   friend class HeapIterationScope;    // VisitObjects
   friend class ProgramVisitor;        // VisitObjectsImagePages
   friend class Serializer;            // VisitObjectsImagePages
+  friend class HeapTestHelper;
 
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };

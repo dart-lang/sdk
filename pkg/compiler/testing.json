@@ -14,7 +14,9 @@
     ],
 
     "exclude": [
-      "^tests/compiler/dart2js/inference/data/super_invoke\\.dart"
+      "^tests/compiler/dart2js/.*/data/.*",
+      "^tests/compiler/dart2js/.*/model_data/.*",
+      "^tests/compiler/dart2js/deferred_loading/libs/.*"
     ]
   }
 }

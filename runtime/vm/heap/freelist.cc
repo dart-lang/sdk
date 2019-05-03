@@ -202,17 +202,6 @@ void FreeList::Reset() {
   }
 }
 
-intptr_t FreeList::IndexForSize(intptr_t size) {
-  ASSERT(size >= kObjectAlignment);
-  ASSERT(Utils::IsAligned(size, kObjectAlignment));
-
-  intptr_t index = size >> kObjectAlignmentLog2;
-  if (index >= kNumLists) {
-    index = kNumLists;
-  }
-  return index;
-}
-
 void FreeList::EnqueueElement(FreeListElement* element, intptr_t index) {
   FreeListElement* next = free_lists_[index];
   if (next == NULL && index != kNumLists) {
@@ -222,23 +211,6 @@ void FreeList::EnqueueElement(FreeListElement* element, intptr_t index) {
   }
   element->set_next(next);
   free_lists_[index] = element;
-}
-
-FreeListElement* FreeList::DequeueElement(intptr_t index) {
-  FreeListElement* result = free_lists_[index];
-  FreeListElement* next = result->next();
-  if (next == NULL && index != kNumLists) {
-    intptr_t size = index << kObjectAlignmentLog2;
-    if (size == last_free_small_size_) {
-      // Note: This is -1 * kObjectAlignment if no other small sizes remain.
-      last_free_small_size_ =
-          free_map_.ClearLastAndFindPrevious(index) * kObjectAlignment;
-    } else {
-      free_map_.Set(index, false);
-    }
-  }
-  free_lists_[index] = next;
-  return result;
 }
 
 intptr_t FreeList::LengthLocked(int index) const {
@@ -396,26 +368,6 @@ FreeListElement* FreeList::TryAllocateLargeLocked(intptr_t minimum_size) {
     current = next;
   }
   return NULL;
-}
-
-uword FreeList::TryAllocateSmallLocked(intptr_t size) {
-  DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
-  if (size > last_free_small_size_) {
-    return 0;
-  }
-  int index = IndexForSize(size);
-  if (index != kNumLists && free_map_.Test(index)) {
-    return reinterpret_cast<uword>(DequeueElement(index));
-  }
-  if ((index + 1) < kNumLists) {
-    intptr_t next_index = free_map_.Next(index + 1);
-    if (next_index != -1) {
-      FreeListElement* element = DequeueElement(next_index);
-      SplitElementAfterAndEnqueue(element, size, false);
-      return reinterpret_cast<uword>(element);
-    }
-  }
-  return 0;
 }
 
 }  // namespace dart

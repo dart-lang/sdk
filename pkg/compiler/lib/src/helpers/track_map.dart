@@ -48,23 +48,34 @@ class TrackMap<K, V> implements Map<K, V> {
     });
   }
 
+  @override
   int get length => _map.length;
+  @override
   bool get isEmpty => _map.isEmpty;
+  @override
   bool get isNotEmpty => _map.isNotEmpty;
 
+  @override
   Iterable<K> get keys => _map.keys;
+  @override
   Iterable<V> get values => _map.values;
 
+  @override
   bool containsKey(Object key) => _map.containsKey(key);
+  @override
   bool containsValue(Object value) => _map.containsValue(value);
 
+  @override
   V operator [](Object key) => _map[key];
+  @override
   String toString() => _map.toString();
 
+  @override
   void forEach(void action(K key, V value)) {
     _map.forEach(action);
   }
 
+  @override
   void operator []=(K key, V value) {
     if (!_map.containsKey(key)) {
       _notifyLengthChanged(1);
@@ -72,6 +83,7 @@ class TrackMap<K, V> implements Map<K, V> {
     }
   }
 
+  @override
   V putIfAbsent(K key, V ifAbsent()) {
     if (containsKey(key)) return this[key];
     V value = ifAbsent();
@@ -79,6 +91,7 @@ class TrackMap<K, V> implements Map<K, V> {
     return value;
   }
 
+  @override
   V remove(Object key) {
     if (_map.containsKey(key)) {
       _notifyLengthChanged(-1);
@@ -86,32 +99,41 @@ class TrackMap<K, V> implements Map<K, V> {
     return _map.remove(key);
   }
 
+  @override
   void addAll(Map<K, V> other) {
     other.forEach((key, value) => this[key] = value);
   }
 
+  @override
   void clear() {
     _notifyLengthChanged(-_map.length);
     _map.clear();
   }
 
+  @override
   Map<KR, VR> cast<KR, VR>() => _map.cast<KR, VR>();
+  @override
   Iterable<MapEntry<K, V>> get entries => _map.entries;
 
+  @override
   void addEntries(Iterable<MapEntry<K, V>> entries) {
     for (var entry in entries) this[entry.key] = entry.value;
   }
 
+  @override
   Map<KR, VR> map<KR, VR>(MapEntry<KR, VR> transform(K key, V value)) =>
       _map.map(transform);
 
+  @override
   V update(K key, V update(V value), {V ifAbsent()}) =>
       _map.update(key, update, ifAbsent: ifAbsent);
 
+  @override
   void updateAll(V update(K key, V value)) {
     _map.updateAll(update);
   }
 
+  @override
   void removeWhere(bool test(K key, V value)) {
     int before = _map.length;
     _map.removeWhere(test);

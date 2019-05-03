@@ -13,7 +13,7 @@ const kNonNullableResultType = "vm:non-nullable-result-type";
 
 abstract class ParsedPragma {}
 
-enum PragmaEntryPointType { Always, GetterOnly, SetterOnly }
+enum PragmaEntryPointType { Default, GetterOnly, SetterOnly, CallOnly }
 
 class ParsedEntryPointPragma extends ParsedPragma {
   final PragmaEntryPointType type;
@@ -50,10 +50,14 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
     if (annotation is ConstantExpression) {
       Constant constant = annotation.constant;
       if (constant is InstanceConstant) {
-        if (constant.classReference.node == coreTypes.pragmaClass) {
+        if (constant.classNode == coreTypes.pragmaClass) {
           pragmaConstant = constant;
         }
+      } else if (constant is UnevaluatedConstant) {
+        throw 'Error: unevaluated constant $constant';
       }
+    } else {
+      throw 'Error: non-constant annotation $annotation';
     }
     if (pragmaConstant == null) return null;
 
@@ -73,17 +77,20 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
       case kEntryPointPragmaName:
         PragmaEntryPointType type;
         if (options is NullConstant) {
-          type = PragmaEntryPointType.Always;
+          type = PragmaEntryPointType.Default;
         } else if (options is BoolConstant && options.value == true) {
-          type = PragmaEntryPointType.Always;
+          type = PragmaEntryPointType.Default;
         } else if (options is StringConstant) {
           if (options.value == "get") {
             type = PragmaEntryPointType.GetterOnly;
           } else if (options.value == "set") {
             type = PragmaEntryPointType.SetterOnly;
+          } else if (options.value == "call") {
+            type = PragmaEntryPointType.CallOnly;
           } else {
             throw "Error: string directive to @pragma('$kEntryPointPragmaName', ...) "
-                "must be either 'get' or 'set'.";
+                "must be either 'get' or 'set' for fields "
+                "or 'get' or 'call' for procedures.";
           }
         }
         return type != null ? new ParsedEntryPointPragma(type) : null;

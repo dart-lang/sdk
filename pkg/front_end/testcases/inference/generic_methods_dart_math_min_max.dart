@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference,error*/
+/*@testedFeatures=inference*/
 library test;
 
 import 'dart:math';
@@ -25,18 +25,16 @@ f() {
   printInt(myMax(1, 2) as int);
 
   printInt(
-      /*@typeArgs=int*/ max(1, /*@error=ArgumentTypeNotAssignable*/ 2.0));
+      /*@typeArgs=int*/ max(1, 2.0));
   printInt(
-      /*@typeArgs=int*/ min(1, /*@error=ArgumentTypeNotAssignable*/ 2.0));
+      /*@typeArgs=int*/ min(1, 2.0));
   printDouble(
       /*@typeArgs=double*/ max(1, 2.0));
   printDouble(
       /*@typeArgs=double*/ min(1, 2.0));
 
   // Types other than int and double are not accepted.
-  printInt(/*@typeArgs=int*/ min(
-      /*@error=ArgumentTypeNotAssignable*/ "hi",
-      /*@error=ArgumentTypeNotAssignable*/ "there"));
+  printInt(/*@typeArgs=int*/ min("hi", "there"));
 }
 
 main() {}

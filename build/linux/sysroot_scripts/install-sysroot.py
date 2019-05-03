@@ -131,8 +131,6 @@ def InstallSysroot(target_platform, target_arch):
   if os.path.exists(stamp):
     with open(stamp) as s:
       if s.read() == url:
-        print '%s %s sysroot image already up to date: %s' % \
-            (target_platform, target_arch, sysroot)
         return
 
   print 'Installing Debian %s %s root image: %s' % \

@@ -6,8 +6,8 @@ class C<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T>
     : super core::Object::•()
     ;
-  method f<U extends self::C::T = dynamic>(self::C::f::U x) → void {}
-  method g1<U extends self::C::T = dynamic>() → void {
+  method f<generic-covariant-impl U extends self::C::T = dynamic>(self::C::f::U x) → void {}
+  method g1<generic-covariant-impl U extends self::C::T = dynamic>() → void {
     this.{self::C::f}<self::C::g1::U>(1.5);
   }
 }

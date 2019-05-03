@@ -6,11 +6,11 @@
 library test;
 
 class A implements B {
-  var /*@topType=int*/ x;
+  var x;
 }
 
 class B {
-  var /*@topType=int*/ x = 0;
+  var x = 0;
 }
 
 main() {}

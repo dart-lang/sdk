@@ -16,7 +16,9 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/token_details/token_detail_builder.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -37,7 +39,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   /**
    * The completion services that the client is currently subscribed.
    */
-  final Set<CompletionService> _subscriptions = Set<CompletionService>();
+  final Set<CompletionService> subscriptions = Set<CompletionService>();
 
   /**
    * The next completion response id.
@@ -62,6 +64,12 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   CompletionRequestImpl _currentRequest;
 
   /**
+   * The identifiers of the latest `getSuggestionDetails` request.
+   * We use it to abort previous requests.
+   */
+  int _latestGetSuggestionDetailsId = 0;
+
+  /**
    * Initialize a new request handler for the given [server].
    */
   CompletionDomainHandler(AnalysisServer server) : super(server);
@@ -76,7 +84,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   Future<CompletionResult> computeSuggestions(
     CompletionRequestImpl request,
     CompletionGetSuggestionsParams params,
-    Set<ElementKind> includedSuggestionKinds,
+    Set<ElementKind> includedElementKinds,
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
   ) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -103,7 +111,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       performance.logStartTime(COMPUTE_SUGGESTIONS_TAG);
 
       var manager = new DartCompletionManager(
-        includedSuggestionKinds: includedSuggestionKinds,
+        includedElementKinds: includedElementKinds,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
       );
 
@@ -173,11 +181,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       return;
     }
 
-    var analysisDriver = server.getAnalysisDriver(file);
-    var session = analysisDriver.currentSession;
-    var resolvedLibrary = await session.getResolvedLibrary(file);
-    var requestedLibraryElement = await session.getLibraryByUri(library.uriStr);
-
     // The label might be `MyEnum.myValue`, but we import only `MyEnum`.
     var requestedName = params.label;
     if (requestedName.contains('.')) {
@@ -187,26 +190,63 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       );
     }
 
-    var completion = params.label;
-    var builder = DartChangeBuilder(session);
-    await builder.addFileEdit(file, (builder) {
-      var result = builder.importLibraryElement(
-        targetLibrary: resolvedLibrary,
-        targetPath: file,
-        targetOffset: params.offset,
-        requestedLibrary: requestedLibraryElement,
-        requestedName: requestedName,
-      );
-      if (result.prefix != null) {
-        completion = '${result.prefix}.$completion';
-      }
-    });
+    const timeout = Duration(milliseconds: 1000);
+    var timer = Stopwatch()..start();
+    var id = ++_latestGetSuggestionDetailsId;
+    while (id == _latestGetSuggestionDetailsId && timer.elapsed < timeout) {
+      try {
+        var analysisDriver = server.getAnalysisDriver(file);
+        var session = analysisDriver.currentSession;
 
+        var fileElement = await session.getUnitElement(file);
+        var libraryPath = fileElement.element.librarySource.fullName;
+
+        var resolvedLibrary = await session.getResolvedLibrary(libraryPath);
+        var requestedLibraryElement = await session.getLibraryByUri(
+          library.uriStr,
+        );
+
+        var requestedElement =
+            requestedLibraryElement.exportNamespace.get(requestedName);
+        if (requestedElement == null) {
+          server.sendResponse(Response.invalidParameter(
+            request,
+            'label',
+            'No such element: $requestedName',
+          ));
+          return;
+        }
+
+        var completion = params.label;
+        var builder = DartChangeBuilder(session);
+        await builder.addFileEdit(libraryPath, (builder) {
+          var result = builder.importLibraryElement(
+            targetLibrary: resolvedLibrary,
+            targetPath: libraryPath,
+            targetOffset: params.offset,
+            requestedLibrary: requestedLibraryElement,
+            requestedElement: requestedElement,
+          );
+          if (result.prefix != null) {
+            completion = '${result.prefix}.$completion';
+          }
+        });
+
+        server.sendResponse(
+          CompletionGetSuggestionDetailsResult(
+            completion,
+            change: builder.sourceChange,
+          ).toResponse(request.id),
+        );
+        return;
+      } on InconsistentAnalysisException {
+        // Loop around to try again.
+      }
+    }
+
+    // Timeout or abort, send the empty response.
     server.sendResponse(
-      CompletionGetSuggestionDetailsResult(
-        completion,
-        change: builder.sourceChange,
-      ).toResponse(request.id),
+      CompletionGetSuggestionDetailsResult('').toResponse(request.id),
     );
   }
 
@@ -220,6 +260,9 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         return Response.DELAYED_RESPONSE;
       } else if (requestName == COMPLETION_REQUEST_GET_SUGGESTIONS) {
         processRequest(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == COMPLETION_REQUEST_LIST_TOKEN_DETAILS) {
+        listTokenDetails(request);
         return Response.DELAYED_RESPONSE;
       } else if (requestName == COMPLETION_REQUEST_SET_SUBSCRIPTIONS) {
         return setSubscriptions(request);
@@ -237,6 +280,43 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     if (_currentRequest == completionRequest) {
       _currentRequest = null;
     }
+  }
+
+  /**
+   * Process a `completion.listTokenDetails` request.
+   */
+  Future<void> listTokenDetails(Request request) async {
+    CompletionListTokenDetailsParams params =
+        CompletionListTokenDetailsParams.fromRequest(request);
+
+    String file = params.file;
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
+    AnalysisDriver analysisDriver = server.getAnalysisDriver(file);
+    if (analysisDriver == null) {
+      server.sendResponse(Response.invalidParameter(
+        request,
+        'file',
+        'File is not being analyzed: $file',
+      ));
+    }
+    AnalysisSession session = analysisDriver.currentSession;
+    ResolvedUnitResult result = await session.getResolvedUnit(file);
+    if (result.state != ResultState.VALID) {
+      server.sendResponse(Response.invalidParameter(
+        request,
+        'file',
+        'File does not exist or cannot be read: $file',
+      ));
+    }
+
+    TokenDetailBuilder builder = new TokenDetailBuilder();
+    builder.visitNode(result.unit);
+    server.sendResponse(
+      CompletionListTokenDetailsResult(builder.details).toResponse(request.id),
+    );
   }
 
   /**
@@ -283,10 +363,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
     // If the client opted into using available suggestion sets,
     // create the kinds set, so signal the completion manager about opt-in.
-    Set<ElementKind> includedSuggestionKinds;
+    Set<ElementKind> includedElementKinds;
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
-    if (_subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
-      includedSuggestionKinds = Set<ElementKind>();
+    if (subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
+      includedElementKinds = Set<ElementKind>();
       includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
     }
 
@@ -294,11 +374,11 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     computeSuggestions(
       completionRequest,
       params,
-      includedSuggestionKinds,
+      includedElementKinds,
       includedSuggestionRelevanceTags,
     ).then((CompletionResult result) {
       List<IncludedSuggestionSet> includedSuggestionSets;
-      if (includedSuggestionKinds != null && resolvedUnit != null) {
+      if (includedElementKinds != null && resolvedUnit != null) {
         includedSuggestionSets = computeIncludedSetList(
           server.declarationsTracker,
           resolvedUnit,
@@ -315,7 +395,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         result.replacementLength,
         result.suggestions,
         includedSuggestionSets,
-        includedSuggestionKinds?.toList(),
+        includedElementKinds?.toList(),
         includedSuggestionRelevanceTags,
       );
       performance.logElapseTime(SEND_NOTIFICATION_TAG);
@@ -353,7 +433,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     int replacementLength,
     Iterable<CompletionSuggestion> results,
     List<IncludedSuggestionSet> includedSuggestionSets,
-    List<ElementKind> includedSuggestionKinds,
+    List<ElementKind> includedElementKinds,
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
   ) {
     server.sendNotification(
@@ -364,7 +444,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         results,
         true,
         includedSuggestionSets: includedSuggestionSets,
-        includedSuggestionKinds: includedSuggestionKinds,
+        includedElementKinds: includedElementKinds,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
       ).toNotification(),
     );
@@ -381,10 +461,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   Response setSubscriptions(Request request) {
     var params = CompletionSetSubscriptionsParams.fromRequest(request);
 
-    _subscriptions.clear();
-    _subscriptions.addAll(params.subscriptions);
+    subscriptions.clear();
+    subscriptions.addAll(params.subscriptions);
 
-    if (_subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
+    if (subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
       server.createDeclarationsTracker((change) {
         server.sendNotification(
           createCompletionAvailableSuggestionsNotification(change),

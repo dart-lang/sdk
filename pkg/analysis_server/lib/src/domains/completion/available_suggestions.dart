@@ -43,7 +43,11 @@ List<protocol.IncludedSuggestionSet> computeIncludedSetList(
     }
 
     includedSetList.add(
-      protocol.IncludedSuggestionSet(library.id, relevance),
+      protocol.IncludedSuggestionSet(
+        library.id,
+        relevance,
+        displayUri: _getRelativeFileUri(resolvedUnit, library.uri),
+      ),
     );
   }
 
@@ -68,35 +72,77 @@ protocol.Notification createCompletionAvailableSuggestionsNotification(
 ) {
   return protocol.CompletionAvailableSuggestionsParams(
     changedLibraries: change.changed.map((library) {
-      return protocol.AvailableSuggestionSet(
-        library.id,
-        library.uriStr,
-        library.declarations.map((declaration) {
-          return _protocolAvailableSuggestion(declaration);
-        }).toList(),
-      );
+      return _protocolAvailableSuggestionSet(library);
     }).toList(),
     removedLibraries: change.removed,
   ).toNotification();
 }
 
+/// Computes the best URI to import [what] into the [unit] library.
+String _getRelativeFileUri(ResolvedUnitResult unit, Uri what) {
+  if (what.scheme == 'file') {
+    var pathContext = unit.session.resourceProvider.pathContext;
+
+    var libraryPath = unit.libraryElement.source.fullName;
+    var libraryFolder = pathContext.dirname(libraryPath);
+
+    var whatPath = pathContext.fromUri(what);
+    var relativePath = pathContext.relative(whatPath, from: libraryFolder);
+    return pathContext.split(relativePath).join('/');
+  }
+  return null;
+}
+
 protocol.AvailableSuggestion _protocolAvailableSuggestion(
     Declaration declaration) {
   var label = declaration.name;
+  if (declaration.kind == DeclarationKind.CONSTRUCTOR) {
+    label = declaration.parent.name;
+    if (declaration.name.isNotEmpty) {
+      label += '.${declaration.name}';
+    }
+  }
   if (declaration.kind == DeclarationKind.ENUM_CONSTANT) {
-    label = '${declaration.name2}.${declaration.name}';
+    label = '${declaration.parent.name}.${declaration.name}';
+  }
+
+  List<String> relevanceTags;
+  if (declaration.relevanceTags == null) {
+    relevanceTags = null;
+  } else {
+    relevanceTags = List<String>.from(declaration.relevanceTags);
+    relevanceTags.add(declaration.name);
   }
 
   return protocol.AvailableSuggestion(
     label,
     _protocolElement(declaration),
+    defaultArgumentListString: declaration.defaultArgumentListString,
+    defaultArgumentListTextRanges: declaration.defaultArgumentListTextRanges,
     docComplete: declaration.docComplete,
     docSummary: declaration.docSummary,
     parameterNames: declaration.parameterNames,
     parameterTypes: declaration.parameterTypes,
     requiredParameterCount: declaration.requiredParameterCount,
-    relevanceTags: declaration.relevanceTags,
+    relevanceTags: relevanceTags,
   );
+}
+
+protocol.AvailableSuggestionSet _protocolAvailableSuggestionSet(
+    Library library) {
+  var items = <protocol.AvailableSuggestion>[];
+
+  void addItem(Declaration declaration) {
+    var suggestion = _protocolAvailableSuggestion(declaration);
+    items.add(suggestion);
+    declaration.children.forEach(addItem);
+  }
+
+  for (var declaration in library.declarations) {
+    addItem(declaration);
+  }
+
+  return protocol.AvailableSuggestionSet(library.id, library.uriStr, items);
 }
 
 protocol.Element _protocolElement(Declaration declaration) {
@@ -132,6 +178,8 @@ protocol.ElementKind _protocolElementKind(DeclarationKind kind) {
       return protocol.ElementKind.CLASS;
     case DeclarationKind.CLASS_TYPE_ALIAS:
       return protocol.ElementKind.CLASS_TYPE_ALIAS;
+    case DeclarationKind.CONSTRUCTOR:
+      return protocol.ElementKind.CONSTRUCTOR;
     case DeclarationKind.ENUM:
       return protocol.ElementKind.ENUM;
     case DeclarationKind.ENUM_CONSTANT:

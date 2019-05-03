@@ -3,6 +3,10 @@
     "chrome": "65",
     "firefox": "61"
   },
+  "branches": [
+    "analyzer-stable",
+    "master"
+  ],
   "filesets": {
     "analyzer_unit_tests": [
       ".packages",
@@ -38,6 +42,7 @@
       "tests/search/",
       "tests/standalone/",
       "tests/standalone_2/",
+      "tests/ffi/",
       "third_party/d8/",
       "third_party/observatory_pub_packages/packages/web_components/",
       "third_party/pkg/",
@@ -76,6 +81,7 @@
       "tests/search/",
       "tests/standalone/",
       "tests/standalone_2/",
+      "tests/ffi/",
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
@@ -122,18 +128,27 @@
     ],
     "vm-kernel": [
       "out/DebugIA32/",
+      "out/DebugX64/",
       "out/DebugSIMARM/",
       "out/DebugSIMARM64/",
       "out/DebugSIMDBC64/",
-      "out/DebugX64/",
-      "out/ProductX64/",
-      "out/ReleaseAndroidARM/",
+      "out/DebugAndroidARM/",
+      "out/DebugAndroidARM64/",
       "out/ReleaseIA32/",
+      "out/ReleaseX64/",
       "out/ReleaseSIMARM/",
       "out/ReleaseSIMARM64/",
-      "out/ReleaseXARM64/",
       "out/ReleaseSIMDBC64/",
-      "out/ReleaseX64/",
+      "out/ReleaseAndroidARM/",
+      "out/ReleaseAndroidARM64/",
+      "out/ReleaseXARM64/",
+      "out/ProductIA32/",
+      "out/ProductX64/",
+      "out/ProductSIMARM/",
+      "out/ProductSIMARM64/",
+      "out/ProductSIMDBC64/",
+      "out/ProductAndroidARM/",
+      "out/ProductAndroidARM64/",
       "xcodebuild/DebugIA32/",
       "xcodebuild/DebugSIMDBC64/",
       "xcodebuild/DebugX64/",
@@ -164,6 +179,7 @@
       "tests/search/",
       "tests/standalone/",
       "tests/standalone_2/",
+      "tests/ffi/",
       "pkg/async_helper/",
       "pkg/build_integration/",
       "pkg/dart_internal/",
@@ -191,7 +207,7 @@
         "timeout": 240,
         "use-sdk": true
     }},
-    "unittest-asserts-(release|debug)-(linux|mac|win)": {
+    "unittest-asserts-(debug|product|release)-(linux|mac|win)": {
       "options": {
         "compiler": "dartk",
         "enable-asserts": true,
@@ -207,7 +223,7 @@
         "runtime": "vm",
         "timeout": 240
     }},
-    "unittest-analyzer_use_fasta-linux": {
+    "unittest-analyzer_use_fasta-(linux|mac|win)": {
       "options": {
         "compiler": "none",
         "runtime": "vm",
@@ -216,7 +232,7 @@
         "vm-options": ["-DuseFastaParser=true"],
         "builder-tag": "analyzer_use_fasta"
     }},
-    "dartk-asan-linux-release-(ia32|x64)": {
+    "dartk-asan-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "builder-tag": "asan",
         "timeout": 240
@@ -237,96 +253,105 @@
       "options": {
         "use-sdk": true
     }},
-    "dart2js-minified-csp-linux-chrome": {
+    "dart2js-minified-csp-(linux|mac|win)-chrome": {
       "options": {
         "minified": true,
         "csp": true,
         "use-sdk": true
     }},
-    "dart2js-minified-linux-d8": {
+    "dart2js-minified-(linux|mac|win)-d8": {
       "options": {
         "minified": true,
         "use-sdk": true
     }},
-    "dart2js-hostasserts-linux-ia32-d8": {
+    "dart2js-production-(linux|mac|win)-d8": {
+      "options": {
+        "builder-tag": "dart2js_production",
+        "use-sdk": true,
+        "dart2js-options": ["-O3"]
+    }},
+    "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8": {
       "options": {
         "host-checked": true
     }},
-    "dartkp-android-release-arm": {
+    "dartkp-android-(debug|product|release)-arm": {
       "options": {
         "use-blobs": true
     }},
-    "dartkp-linux-release-(simarm|simarm64)": {
+    "dartk-android-(debug|product|release)-(arm|arm64)": {},
+    "dartkp-linux-(debug|product|release)-(simarm|simarm64)": {
       "options": {
         "use-blobs": true
     }},
-    "dartkp-(win|mac)-release-simarm64": {
+    "dartkp-(win|mac)-(debug|product|release)-(simarm|simarm64)": {
       "options": {
         "use-blobs": true
     }},
-    "dartkp-win-release-x64": {
+    "dartkp-win-(product|release)-x64": {
       "options": {
         "use-blobs": true
     }},
-    "dartkp-linux-(product|release)-x64": { },
-    "dartkp-obfuscate-linux-release-x64": {
+    "dartkp-win-debug-x64": {
+      "options": {
+        "use-blobs": true,
+        "vm-options": ["--no-enable-malloc-hooks"]
+    }},
+    "dartkp-(linux|mac)-(product|release)-x64": { },
+    "dartkp-obfuscate-(linux|mac|win)-(debug|product|release)-x64": {
       "options": {
         "builder-tag": "obfuscated",
         "vm-options": ["--obfuscate"]
     }},
-    "dartkp-linux-debug-x64": {
+    "dartkp-(linux|mac)-debug-x64": {
       "options": {
         "vm-options": ["--no-enable-malloc-hooks"]
     }},
-    "dartkp-no-bare-linux-(debug|release)-x64": {
+    "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-x64": {
       "options": {
         "vm-options": ["--no-enable-malloc-hooks", "--no-use-bare-instructions"]
     }},
-    "dartkp-no-bare-linux-(debug|release)-(simarm|simarm64)": {
+    "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-(simarm|simarm64)": {
       "options": {
         "vm-options": ["--no-enable-malloc-hooks", "--no-use-bare-instructions"],
         "use-blobs": true
     }},
-    "dartk-(linux|mac)-(debug|release)-(ia32|x64)": { },
-    "dartk-checked-linux-release-x64": {
+    "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": { },
+    "dartk-checked-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
-        "checked": true
+	"enable-asserts": true
     }},
-    "dartk-win-(debug|release)-(ia32|x64)": { },
-    "dartk-(linux|mac|win)-product-x64": { },
-    "dartk-(linux|mac)-(debug|release)-simdbc64": { },
-    "dartk-linux-release-(arm64|simarm|simarm64)": { },
-    "dartk-optcounter-linux-release-(ia32|x64)": {
+    "dartk-(linux|mac|win)-(debug|product|release)-(arm64|simarm|simarm64|simdbc64)": { },
+    "dartk-optcounter-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "builder-tag": "optimization_counter_threshold",
-        "vm-options": ["--optimization-counter-threshold=5"]
+        "vm-options": ["--optimization-counter-threshold=5", "--random-seed=__RANDOM__"]
     }},
-    "dartk-reload-linux-(debug|release)-x64": {
+    "dartk-reload-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "hot-reload": true
     }},
-    "dartk-reload-mac-(debug|release)-simdbc64": {
+    "dartk-reload-mac-(debug|product|release)-simdbc64": {
       "options": {
         "hot-reload": true
     }},
-    "dartk-reload-rollback-linux-(debug|release)-x64": {
+    "dartk-reload-rollback-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "hot-reload-rollback": true
     }},
-    "app_jitk-linux-(debug|product|release)-x64": { },
-    "dartkb-interpret-linux-(debug|release)-x64": {
+    "app_jitk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": { },
+    "dartkb-interpret-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
         "vm-options": ["--enable_interpreter", "--compilation-counter-threshold=-1"]
     }},
-    "dartkb-mixed-linux-(debug|release)-x64": {
+    "dartkb-mixed-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
         "vm-options": ["--enable_interpreter"]
     }},
-    "dartkb-compile-linux-(debug|release)-x64": {
+    "dartkb-compile-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
         "vm-options": ["--use_bytecode_compiler"]
     }},
-    "(dartdevc|dartdevk)-checked-(linux|mac|win)-release-chrome": {
+    "(dartdevc|dartdevk)-checked-(linux|mac|win)-(debug|product|release)-chrome": {
       "options": {
         "checked": true,
         "use-sdk": true
@@ -388,7 +413,11 @@
     {
       "builders": [
         "vm-dartkb-linux-debug-x64",
-        "vm-dartkb-linux-release-x64"
+        "vm-dartkb-linux-release-x64",
+        "vm-dartkb-linux-product-x64",
+        "vm-dartkb-linux-debug-simarm64",
+        "vm-dartkb-linux-release-simarm64",
+        "vm-dartkb-linux-product-simarm64"
       ],
       "meta": {
         "description": "This configuration is used by the vm kbc builders."
@@ -398,8 +427,8 @@
           "name": "configure dart",
           "script": "tools/gn.py",
           "arguments": [
-            "--mode=debug,release",
-            "--arch=x64",
+            "--mode=${mode}",
+            "--arch=${arch}",
             "--bytecode"
           ]
         },
@@ -413,11 +442,7 @@
         {
           "name": "vm mixed mode tests",
           "arguments": [
-            "-ndartkb-mixed-linux-${mode}-x64",
-            "language_2",
-            "corelib_2",
-            "lib_2",
-            "standalone_2"
+            "-ndartkb-mixed-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -425,11 +450,7 @@
         {
           "name": "vm bytecode compiler tests",
           "arguments": [
-            "-ndartkb-compile-linux-${mode}-x64",
-            "language_2",
-            "corelib_2",
-            "lib_2",
-            "standalone_2"
+            "-ndartkb-compile-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -437,11 +458,7 @@
         {
           "name": "vm interpreter tests",
           "arguments": [
-            "-ndartkb-interpret-linux-${mode}-x64",
-            "language_2",
-            "corelib_2",
-            "lib_2",
-            "standalone_2"
+            "-ndartkb-interpret-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -500,6 +517,38 @@
           ],
           "fileset": "vm-kernel",
           "shards": 15
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-ffi-android-debug-arm64",
+        "vm-ffi-android-debug-arm",
+        "vm-ffi-android-release-arm64",
+        "vm-ffi-android-release-arm",
+        "vm-ffi-android-product-arm64",
+        "vm-ffi-android-product-arm"
+      ],
+      "meta": {
+        "description": "This configuration is used for running FFI tests in JIT-mode on Android."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime_kernel",
+            "--os=android"
+          ]
+        },
+        {
+          "name": "ffi tests",
+          "arguments": [
+            "-ndartk-android-${mode}-${arch}",
+            "ffi"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 1
         }
       ]
     },
@@ -610,7 +659,7 @@
           "arguments": [
             "-ndartk-asan-linux-release-${arch}"],
           "environment": {
-            "ASAN_OPTIONS": "handle_segv=0:detect_stack_use_after_return=0",
+            "ASAN_OPTIONS": "handle_segv=0:detect_stack_use_after_return=0:disable_coredump=0",
             "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
           }
         }
@@ -749,7 +798,9 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-napp_jitk-linux-${mode}-x64"]
+            "-napp_jitk-linux-${mode}-x64"],
+          "shards": 6,
+          "fileset": "vm-kernel"
         }
       ]
     },
@@ -834,6 +885,14 @@
             "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart",
             "-rnone"
           ]
+        },
+        {
+          "name": "ddc worker tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/worker/worker_test.dart",
+            "-rnone"
+          ]
         }
       ]
     },
@@ -897,6 +956,14 @@
           "script": "xcodebuild/ReleaseX64/dart",
           "arguments": [
             "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart",
+            "-rnone"
+          ]
+        },
+        {
+          "name": "ddc worker tests",
+          "script": "xcodebuild/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/worker/worker_test.dart",
             "-rnone"
           ]
         }
@@ -1175,6 +1242,25 @@
             "dart2js_extra",
             "dart2js_native"
           ]
+        },
+        {
+          "name": "dart2js production tests",
+          "arguments": [
+            "-ndart2js-production-linux-d8",
+            "--dart2js-batch",
+            "--exclude_suite=observatory_ui"
+          ],
+          "shards": 6,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js production extra tests",
+          "arguments": [
+            "-ndart2js-production-linux-d8",
+            "--dart2js-batch",
+            "dart2js_extra",
+            "dart2js_native"
+          ]
         }
       ]
     },
@@ -1239,47 +1325,100 @@
       "steps": [
         {
           "name": "build dart",
-          "script": "tools/bots/dart_sdk.py",
-          "arguments": [],
-          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-linux"}
-
+          "script": "tools/build.py",
+          "arguments": ["--arch=ia32,x64,arm,arm64",
+                        "--mode=release", "create_sdk"]
+        },
+        {
+          "name": "build gen_kernel.dart.snapshot and dart2aot",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64,arm,arm64", "--mode=release",
+                        "copy_gen_kernel_snapshot", "copy_dart2aot"]
+        },
+        {
+          "name": "build gen_snapshot and dartaotruntime",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64,arm,arm64", "--mode=product",
+                        "copy_gen_snapshot", "copy_dartaotruntime"]
+        },
+        {
+          "name": "upload sdk",
+          "script": "tools/bots/dart_sdk.py"
         },
         {
           "name": "build api docs",
           "script": "tools/bots/dart_sdk.py",
-          "arguments": [ "api_docs" ],
-          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-linux"}
-
+          "arguments": [ "api_docs" ]
+        },
+        {
+          "name": "upload abi dills",
+          "script": "tools/upload_abi_dills.sh",
+          "arguments": [
+            "tools/VERSION",
+            "out/ReleaseX64"
+          ]
         }
       ]
     },
     {
-      "builders": ["dart-sdk-mac"],
+      "builders": ["dart-sdk-mac",
+                   "dart-sdk-win"],
       "meta": {
-        "description": "This configuration is used by the sdk-builder for mac."
+        "description": "This configuration is used by the sdk-builders for MacOS and Windows."
       },
       "steps": [
         {
           "name": "build dart",
-          "script": "tools/bots/dart_sdk.py",
-          "arguments": [],
-          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-mac"}
-
+          "script": "tools/build.py",
+          "arguments": ["--arch=ia32,x64",
+                        "--mode=release", "create_sdk"]
+        },
+        {
+          "name": "build gen_kernel.dart.snapshot and dart2aot",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64", "--mode=release",
+                        "copy_gen_kernel_snapshot", "copy_dart2aot"]
+        },
+        {
+          "name": "build gen_snapshot and dartaotruntime",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64", "--mode=product",
+                        "copy_gen_snapshot", "copy_dartaotruntime"]
+        },
+        {
+          "name": "upload sdk",
+          "script": "tools/bots/dart_sdk.py"
         }
       ]
     },
     {
-      "builders": ["dart-sdk-win"],
+      "builders": ["debianpackage-linux"],
       "meta": {
-        "description": "This configuration is used by the sdk-builder for windows."
+        "description": "This configuration is used by the debianpackage-builder."
       },
       "steps": [
         {
-          "name": "build dart",
-          "script": "tools/bots/dart_sdk.py",
-          "arguments": [],
-          "environment": {"BUILDBOT_BUILDERNAME": "dart-sdk-win"}
-
+          "name": "build debian package",
+          "script": "tools/run_debian_build.sh",
+          "arguments": []
+        },
+        {
+          "name": "upload debian packages",
+          "script": "tools/bots/upload_debian_packages.py",
+          "arguments": []
+        }
+      ]
+    },
+    {
+      "builders": ["versionchecker-linux"],
+      "meta": {
+        "description": "This configuration is used by the versionchecker-builder."
+      },
+      "steps": [
+        {
+          "name": "check version",
+          "script": "tools/bots/version_checker.py",
+          "arguments": []
         }
       ]
     },
@@ -1348,7 +1487,7 @@
         {
           "name": "analyze tests co19_2",
           "arguments": [
-            "-nanalyzer-${system}",
+            "-nanalyzer-asserts-${system}",
             "co19_2"
           ]
         }
@@ -1535,7 +1674,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg"
+            "pkg/pkg/(?!front_end/|kernel/)"
           ]
         },
         {
@@ -1569,7 +1708,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg"
+            "pkg/pkg/(?!front_end/|kernel/)"
           ]
         },
         {
@@ -1601,14 +1740,23 @@
           "arguments": ["noop"]
         },
         {
-          "name": "remove out directory to do a clean build",
+          "name": "remove out directory to do a clean linux-ia32 build",
           "script": "tools/bots/try_benchmarks.sh",
           "arguments": ["clean"]
         },
         {
           "name": "build linux-ia32 for benchmarking",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=ia32",
+            "create_sdk",
+            "runtime"]
+        },
+        {
+          "name": "archive linux-ia32 for benchmarking",
           "script": "tools/bots/try_benchmarks.sh",
-          "arguments": ["linux-ia32-build"]
+          "arguments": ["linux-ia32-archive"]
         },
         {
           "name": "try linux-ia32 benchmarking",
@@ -1616,14 +1764,69 @@
           "arguments": ["linux-ia32-benchmark"]
         },
         {
-          "name": "build linux-x64 for benchmarking",
+          "name": "remove out directory to do a clean linux-x64 build",
           "script": "tools/bots/try_benchmarks.sh",
-          "arguments": ["linux-x64-build"]
+          "arguments": ["clean"]
+        },
+        {
+          "name": "build linux-x64 for benchmarking",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "create_sdk",
+            "runtime",
+            "gen_snapshot",
+            "dart_precompiled_runtime"]
+        },
+        {
+          "name": "build linux-x64 simdbc for benchmarking",
+          "script": "tools/build.py",
+          "arguments": ["--mode=release", "--arch=simdbc64", "runtime"]
+        },
+        {
+          "name": "archive linux-x64 for benchmarking",
+          "script": "tools/bots/try_benchmarks.sh",
+          "arguments": ["linux-x64-archive"]
         },
         {
           "name": "try linux-x64 benchmarking",
           "script": "tools/bots/try_benchmarks.sh",
           "arguments": ["linux-x64-benchmark"]
+        },
+        {
+          "name": "remove out directory to do a clean linux-x64-bytecode build",
+          "script": "tools/bots/try_benchmarks.sh",
+          "arguments": ["clean"]
+        },
+        {
+          "name": "generate ninja for linux-x64-bytecode",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "--bytecode"]
+        },
+        {
+          "name": "build linux-x64-bytecode for benchmarking",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "create_sdk",
+            "runtime",
+            "gen_snapshot",
+            "dart_precompiled_runtime"]
+        },
+        {
+          "name": "archive linux-x64-bytecode for benchmarking",
+          "script": "tools/bots/try_benchmarks.sh",
+          "arguments": ["linux-x64-bytecode-archive"]
+        },
+        {
+          "name": "try linux-x64-bytecode benchmarking",
+          "script": "tools/bots/try_benchmarks.sh",
+          "arguments": ["linux-x64-bytecode-benchmark"]
         }
       ]
     },
@@ -1648,6 +1851,30 @@
         {
           "name": "analyze flutter",
           "script": "tools/bots/flutter/analyze_flutter.sh"
+        }
+      ]
+    },
+    {
+      "builders": [
+        "flutter-frontend"
+      ],
+      "meta": {
+        "description": "This configuration is used for running frontend tests on flutter code."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "create_sdk"
+          ]
+        },
+        {
+
+          "name": "compile flutter tests",
+          "script": "tools/bots/flutter/compile_flutter.sh"
         }
       ]
     },

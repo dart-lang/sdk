@@ -39,10 +39,6 @@ void StubCode::Init() {
   UNREACHABLE();
 }
 
-void StubCode::Cleanup() {
-  // Stubs will be loaded from the snapshot.
-  UNREACHABLE();
-}
 #else
 
 #define STUB_CODE_GENERATE(name)                                               \
@@ -69,20 +65,12 @@ void StubCode::Init() {
 #undef STUB_CODE_GENERATE
 #undef STUB_CODE_SET_OBJECT_POOL
 
-#define STUB_CODE_CLEANUP(name) entries_[k##name##Index] = nullptr;
-
-void StubCode::Cleanup() {
-  VM_STUB_CODE_LIST(STUB_CODE_CLEANUP);
-}
-
-#undef STUB_CODE_CLEANUP
-
 RawCode* StubCode::Generate(const char* name,
                             ObjectPoolBuilder* object_pool_builder,
                             void (*GenerateStub)(Assembler* assembler)) {
   Assembler assembler(object_pool_builder);
   GenerateStub(&assembler);
-  const Code& code = Code::Handle(Code::FinalizeCode(
+  const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       name, nullptr, &assembler, Code::PoolAttachment::kNotAttachPool,
       /*optimized=*/false));
 #ifndef PRODUCT
@@ -102,6 +90,14 @@ RawCode* StubCode::Generate(const char* name,
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
+#define STUB_CODE_CLEANUP(name) entries_[k##name##Index] = nullptr;
+
+void StubCode::Cleanup() {
+  VM_STUB_CODE_LIST(STUB_CODE_CLEANUP);
+}
+
+#undef STUB_CODE_CLEANUP
+
 void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {}
 
 bool StubCode::HasBeenInitialized() {
@@ -116,7 +112,7 @@ bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
   if (FLAG_enable_interpreter) {
     if (is_interpreted_frame) {
       // Recognize special marker set up by interpreter in entry frame.
-      return Interpreter::IsEntryFrameMarker(pc);
+      return Interpreter::IsEntryFrameMarker(reinterpret_cast<uint32_t*>(pc));
     }
     {
       uword entry = StubCode::InvokeDartCodeFromBytecode().EntryPoint();
@@ -185,8 +181,9 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     compiler::StubCodeCompiler::GenerateAllocationStubForClass(&assembler, cls);
 
     if (thread->IsMutatorThread()) {
-      stub ^= Code::FinalizeCode(name, nullptr, &assembler, pool_attachment,
-                                 /*optimized1*/ false);
+      stub ^= Code::FinalizeCodeAndNotify(name, nullptr, &assembler,
+                                          pool_attachment,
+                                          /*optimized1*/ false);
       // Check if background compilation thread has not already added the stub.
       if (cls.allocation_stub() == Code::null()) {
         stub.set_owner(cls);
@@ -210,11 +207,16 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
         // Do not Garbage collect during this stage and instead allow the
         // heap to grow.
         NoHeapGrowthControlScope no_growth_control;
-        stub ^= Code::FinalizeCode(name, nullptr, &assembler, pool_attachment,
-                                   false /* optimized */);
+        stub ^= Code::FinalizeCode(nullptr, &assembler, pool_attachment,
+                                   /*optimized=*/false, /*stats=*/nullptr);
         stub.set_owner(cls);
         cls.set_allocation_stub(stub);
       }
+
+      // We notify code observers after finalizing the code in order to be
+      // outside a [SafepointOperationScope].
+      Code::NotifyCodeObservers(nullptr, stub, /*optimized=*/false);
+
       Isolate* isolate = thread->isolate();
       if (isolate->heap()->NeedsGarbageCollection()) {
         isolate->heap()->CollectMostGarbage();
@@ -260,7 +262,7 @@ RawCode* StubCode::GetBuildMethodExtractorStub(ObjectPoolBuilder* pool) {
       &assembler, closure_allocation_stub, context_allocation_stub);
 
   const char* name = "BuildMethodExtractor";
-  const Code& stub = Code::Handle(Code::FinalizeCode(
+  const Code& stub = Code::Handle(Code::FinalizeCodeAndNotify(
       name, nullptr, &assembler, Code::PoolAttachment::kNotAttachPool,
       /*optimized=*/false));
 

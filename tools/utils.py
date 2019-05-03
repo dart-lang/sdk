@@ -43,13 +43,15 @@ def GetMinidumpUtils():
 
 class Version(object):
   def __init__(self, channel, major, minor, patch, prerelease,
-               prerelease_patch):
+               prerelease_patch, abi_version, oldest_supported_abi_version):
     self.channel = channel
     self.major = major
     self.minor = minor
     self.patch = patch
     self.prerelease = prerelease
     self.prerelease_patch = prerelease_patch
+    self.abi_version = abi_version
+    self.oldest_supported_abi_version = oldest_supported_abi_version
 
 
 # Try to guess the host operating system.
@@ -385,6 +387,16 @@ def GetUserName():
   return os.environ.get(key, '')
 
 
+def GetAbiVersion():
+  version = ReadVersionFile()
+  return version.abi_version
+
+
+def GetOldestSupportedAbiVersion():
+  version = ReadVersionFile()
+  return version.oldest_supported_abi_version
+
+
 def ReadVersionFile():
   def match_against(pattern, file_content):
     match = re.search(pattern, file_content, flags=re.MULTILINE)
@@ -406,10 +418,15 @@ def ReadVersionFile():
   patch = match_against('^PATCH (\d+)$', content)
   prerelease = match_against('^PRERELEASE (\d+)$', content)
   prerelease_patch = match_against('^PRERELEASE_PATCH (\d+)$', content)
+  abi_version = match_against('^ABI_VERSION (\d+)$', content)
+  oldest_supported_abi_version = match_against(
+      '^OLDEST_SUPPORTED_ABI_VERSION (\d+)$', content)
 
-  if channel and major and minor and prerelease and prerelease_patch:
+  if channel and major and minor and prerelease and prerelease_patch and \
+      abi_version and oldest_supported_abi_version:
     return Version(
-        channel, major, minor, patch, prerelease, prerelease_patch)
+        channel, major, minor, patch, prerelease, prerelease_patch, abi_version,
+        oldest_supported_abi_version)
   else:
     print "Warning: VERSION file (%s) has wrong format" % VERSION_FILE
     return None
@@ -441,12 +458,12 @@ def GetGitRevision():
       return fd.read()
   except:
     pass
-
-  p = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=format:%H'],
+  p = subprocess.Popen(['git', 'rev-parse', 'HEAD'],
                        stdout = subprocess.PIPE,
                        stderr = subprocess.STDOUT, shell=IsWindows(),
                        cwd = DART_DIR)
   output, _ = p.communicate()
+  output = output.strip()
   # We expect a full git hash
   if len(output) != 40:
     print "Warning: could not parse git commit, output was %s" % output
@@ -455,11 +472,12 @@ def GetGitRevision():
 
 
 def GetShortGitHash():
-  p = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=format:%h'],
+  p = subprocess.Popen(['git', 'rev-parse', '--short', 'HEAD'],
                        stdout = subprocess.PIPE,
                        stderr = subprocess.STDOUT, shell=IsWindows(),
                        cwd = DART_DIR)
   output, _ = p.communicate()
+  output = output.strip()
   if p.wait() != 0:
     return None
   return output
@@ -734,13 +752,13 @@ class ChangedWorkingDirectory(object):
 
 
 class UnexpectedCrash(object):
-  def __init__(self, test, pid, binary):
+  def __init__(self, test, pid, *binaries):
     self.test = test
     self.pid = pid
-    self.binary = binary
+    self.binaries = binaries
 
   def __str__(self):
-    return "Crash(%s: %s %s)" % (self.test, self.binary, self.pid)
+    return "Crash(%s: %s %s)" % (self.test, self.pid, ', '.join(self.binaries))
 
 
 class PosixCoreDumpEnabler(object):
@@ -854,7 +872,7 @@ class BaseCoreDumpArchiver(object):
     files = set()
     missing = []
     for crash in crashes:
-      files.add(crash.binary)
+      files.update(crash.binaries)
       core = self._find_coredump_file(crash)
       if core:
         files.add(core)
@@ -862,11 +880,11 @@ class BaseCoreDumpArchiver(object):
         missing.append(crash)
     if self._output_directory is not None and self._is_shard():
       print (
-          "INFO: Copying collected dumps and binaries into output directory\n"
+          "INFO: Moving collected dumps and binaries into output directory\n"
           "INFO: They will be uploaded to isolate server. Look for \"isolated"
           " out\" under the failed step on the build page.\n"
           "INFO: For more information see runtime/docs/infra/coredumps.md")
-      self._copy(files)
+      self._move(files)
     else:
       print (
           "INFO: Uploading collected dumps and binaries into Cloud Storage\n"
@@ -889,16 +907,12 @@ class BaseCoreDumpArchiver(object):
         "Existing files which *did not* match the pattern inside the search "
         "directory are are:\n  %s"
         % (missing_as_string, self._search_dir, '\n  '.join(other_files)))
-    if throw:
+    # TODO: Figure out why windows coredump generation does not work.
+    # See http://dartbug.com/36469
+    if throw and GuessOS() != 'win32':
       raise Exception('Missing crash dumps for: %s' % missing_as_string)
 
-  def _copy(self, files):
-    for file in files:
-      tarname = self._tar(file)
-      print '+++ Copying %s to output_directory (%s)' % (tarname, self._output_directory)
-      shutil.copy(tarname, self._output_directory)
-
-  def _tar(self, file):
+  def _get_file_name(self, file):
     # Sanitize the name: actual cores follow 'core.%d' pattern, crashed
     # binaries are copied next to cores and named
     # 'binary.<mode>_<arch>_<binary_name>'.
@@ -909,7 +923,21 @@ class BaseCoreDumpArchiver(object):
     if is_binary:
       (mode, arch, binary_name) = suffix.split('_', 2)
       name = binary_name
+    return (name, is_binary)
 
+  def _move(self, files):
+    for file in files:
+      print '+++ Moving %s to output_directory (%s)' % (file, self._output_directory)
+      (name, is_binary) = self._get_file_name(file)
+      destination = os.path.join(self._output_directory, name)
+      shutil.move(file, destination)
+      if is_binary and os.path.exists(file + '.pdb'):
+        # Also move a PDB file if there is one.
+        pdb = os.path.join(self._output_directory, name + '.pdb')
+        shutil.move(file + '.pdb', pdb)
+
+  def _tar(self, file):
+    (name, is_binary) = self._get_file_name(file)
     tarname = '%s.tar.gz' % name
 
     # Compress the file.
@@ -955,7 +983,7 @@ class BaseCoreDumpArchiver(object):
   def _find_unexpected_crashes(self):
     """Load coredumps file. Each line has the following format:
 
-        test-name,pid,binary-file
+        test-name,pid,binary-file1,binary-file2,...
     """
     try:
       with open(BaseCoreDumpArchiver._UNEXPECTED_CRASHES_FILE) as f:

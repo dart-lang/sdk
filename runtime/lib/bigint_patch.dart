@@ -537,7 +537,7 @@ class _BigIntImpl implements BigInt {
   /// Shifts the digits of [xDigits] into the right place in [resultDigits].
   ///
   /// `resultDigits[ds..xUsed+ds] = xDigits[0..xUsed-1] << (n % _digitBits)`
-  ///   where `ds = ceil(n / _digitBits)`
+  ///   where `ds = n ~/ _digitBits`
   ///
   /// Does *not* clear digits below ds.
   ///
@@ -582,7 +582,8 @@ class _BigIntImpl implements BigInt {
     }
     // Need one extra digit to hold bits shifted by bitShift.
     var resultUsed = _used + digitShift + 1;
-    var resultDigits = _newDigits(resultUsed);
+    // The 64-bit intrinsic requires one extra pair to work with.
+    var resultDigits = _newDigits(resultUsed + 1);
     _lsh(_digits, _used, shiftAmount, resultDigits);
     return new _BigIntImpl._(_isNegative, resultUsed, resultDigits);
   }
@@ -598,7 +599,8 @@ class _BigIntImpl implements BigInt {
     }
     // Need one extra digit to hold bits shifted by bitShift.
     var resultUsed = xUsed + digitsShift + 1;
-    assert(resultDigits.length >= resultUsed + (resultUsed & 1));
+    // The 64-bit intrinsic requires one extra pair to work with.
+    assert(resultDigits.length >= resultUsed + 2 - (resultUsed & 1));
     _lsh(xDigits, xUsed, n, resultDigits);
     var i = digitsShift;
     while (--i >= 0) {
@@ -2310,7 +2312,9 @@ class _BigIntImpl implements BigInt {
     var resultBits = new Uint8List(8);
 
     var length = _digitBits * (_used - 1) + _digits[_used - 1].bitLength;
-    if (length - 53 > maxDoubleExponent) return double.infinity;
+    if (length > maxDoubleExponent + 53) {
+      return _isNegative ? double.negativeInfinity : double.infinity;
+    }
 
     // The most significant bit is for the sign.
     if (_isNegative) resultBits[7] = 0x80;

@@ -4,6 +4,8 @@
 
 #include "vm/kernel.h"
 
+#include "vm/bit_vector.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/constant_evaluator.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/longjump.h"
@@ -312,7 +314,9 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           temp_array = klass.fields();
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
             temp_field ^= temp_array.At(i);
-            if (temp_field.kernel_offset() <= 0) {
+            // TODO(alexmarkov): collect token positions from bytecode
+            if (temp_field.is_declared_in_bytecode() ||
+                temp_field.kernel_offset() <= 0) {
               // Skip artificially injected fields.
               continue;
             }
@@ -331,6 +335,10 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
             temp_function ^= temp_array.At(i);
             entry_script = temp_function.script();
+            // TODO(alexmarkov): collect token positions from bytecode
+            if (temp_function.is_declared_in_bytecode()) {
+              continue;
+            }
             if (entry_script.raw() != interesting_script.raw()) {
               continue;
             }
@@ -361,6 +369,10 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
         }
       } else if (entry.IsFunction()) {
         temp_function ^= entry.raw();
+        // TODO(alexmarkov): collect token positions from bytecode
+        if (temp_function.is_declared_in_bytecode()) {
+          continue;
+        }
         entry_script = temp_function.script();
         if (entry_script.raw() != interesting_script.raw()) {
           continue;
@@ -373,7 +385,8 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
                                    &yield_positions);
       } else if (entry.IsField()) {
         const Field& field = Field::Cast(entry);
-        if (field.kernel_offset() <= 0) {
+        // TODO(alexmarkov): collect token positions from bytecode
+        if (field.is_declared_in_bytecode() || field.kernel_offset() <= 0) {
           // Skip artificially injected fields.
           continue;
         }
@@ -585,102 +598,113 @@ RawObject* BuildParameterDescriptor(const Function& function) {
   }
 }
 
-bool NeedsDynamicInvocationForwarder(const Function& function) {
+void ReadParameterCovariance(const Function& function,
+                             BitVector* is_covariant,
+                             BitVector* is_generic_covariant_impl) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
-  TranslationHelper helper(thread);
-  Script& script = Script::Handle(zone, function.script());
-  helper.InitFromScript(script);
+  const intptr_t num_params = function.NumParameters();
+  ASSERT(is_covariant->length() == num_params);
+  ASSERT(is_generic_covariant_impl->length() == num_params);
 
-  // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
-  // e.g. for type translation.
-
-  const Class& owner_class = Class::Handle(zone, function.Owner());
-  Function& outermost_function =
-      Function::Handle(zone, function.GetOutermostFunction());
-
-  ActiveClass active_class;
-  ActiveClassScope active_class_scope(&active_class, &owner_class);
-  ActiveMemberScope active_member(&active_class, &outermost_function);
-  ActiveTypeParametersScope active_type_params(&active_class, function, zone);
+  const auto& script = Script::Handle(zone, function.script());
+  TranslationHelper translation_helper(thread);
+  translation_helper.InitFromScript(script);
 
   KernelReaderHelper reader_helper(
-      zone, &helper, script,
+      zone, &translation_helper, script,
       ExternalTypedData::Handle(zone, function.KernelData()),
       function.KernelDataProgramOffset());
 
-  TypeTranslator type_translator(&reader_helper, &active_class,
-                                 /* finalize= */ true);
-
-  reader_helper.SetOffset(function.kernel_offset());
-
-  // Handle setters.
-  if (reader_helper.PeekTag() == kField) {
-    ASSERT(function.IsImplicitSetterFunction());
-    FieldHelper field_helper(&reader_helper);
-    field_helper.ReadUntilIncluding(FieldHelper::kFlags);
-    return !(field_helper.IsCovariant() ||
-             field_helper.IsGenericCovariantImpl());
+  if (function.is_declared_in_bytecode()) {
+    BytecodeReaderHelper bytecode_reader_helper(&reader_helper, nullptr,
+                                                nullptr);
+    bytecode_reader_helper.ReadParameterCovariance(function, is_covariant,
+                                                   is_generic_covariant_impl);
+    return;
   }
 
+  reader_helper.SetOffset(function.kernel_offset());
   reader_helper.ReadUntilFunctionNode();
 
   FunctionNodeHelper function_node_helper(&reader_helper);
-  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
-  intptr_t num_type_params = reader_helper.ReadListLength();
-
-  for (intptr_t i = 0; i < num_type_params; ++i) {
-    TypeParameterHelper helper(&reader_helper);
-    helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
-    AbstractType& bound = type_translator.BuildType();  // read bound
-    helper.Finish();
-
-    if (!bound.IsTopType() && !helper.IsGenericCovariantImpl()) {
-      return true;
-    }
-  }
-  function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
   function_node_helper.ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);
 
   // Positional.
   const intptr_t num_positional_params = reader_helper.ReadListLength();
-  for (intptr_t i = 0; i < num_positional_params; ++i) {
+  intptr_t param_index = function.NumImplicitParameters();
+  for (intptr_t i = 0; i < num_positional_params; ++i, ++param_index) {
     VariableDeclarationHelper helper(&reader_helper);
-    helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
-    AbstractType& type = type_translator.BuildType();  // read type.
-    helper.SetJustRead(VariableDeclarationHelper::kType);
     helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
 
-    if (!type.IsTopType() && !helper.IsGenericCovariantImpl() &&
-        !helper.IsCovariant()) {
-      return true;
+    if (helper.IsCovariant()) {
+      is_covariant->Add(param_index);
+    }
+    if (helper.IsGenericCovariantImpl()) {
+      is_generic_covariant_impl->Add(param_index);
     }
   }
 
   // Named.
   const intptr_t num_named_params = reader_helper.ReadListLength();
-  for (intptr_t i = 0; i < num_named_params; ++i) {
+  for (intptr_t i = 0; i < num_named_params; ++i, ++param_index) {
     VariableDeclarationHelper helper(&reader_helper);
-    helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
-    AbstractType& type = type_translator.BuildType();  // read type.
-    helper.SetJustRead(VariableDeclarationHelper::kType);
     helper.ReadUntilExcluding(VariableDeclarationHelper::kEnd);
 
-    if (!type.IsTopType() && !helper.IsGenericCovariantImpl() &&
-        !helper.IsCovariant()) {
+    if (helper.IsCovariant()) {
+      is_covariant->Add(param_index);
+    }
+    if (helper.IsGenericCovariantImpl()) {
+      is_generic_covariant_impl->Add(param_index);
+    }
+  }
+}
+
+bool NeedsDynamicInvocationForwarder(const Function& function) {
+  Zone* zone = Thread::Current()->zone();
+
+  // Covariant parameters (both explicitly covariant and generic-covariant-impl)
+  // are checked in the body of a function and therefore don't need checks in a
+  // dynamic invocation forwarder. So dynamic invocation forwarder is only
+  // needed if there are non-covariant parameters of non-top type.
+
+  ASSERT(!function.IsImplicitGetterFunction());
+  if (function.IsImplicitSetterFunction()) {
+    const auto& field = Field::Handle(zone, function.accessor_field());
+    return !(field.is_covariant() || field.is_generic_covariant_impl());
+  }
+
+  const auto& type_params =
+      TypeArguments::Handle(zone, function.type_parameters());
+  if (!type_params.IsNull()) {
+    auto& type_param = TypeParameter::Handle(zone);
+    auto& bound = AbstractType::Handle(zone);
+    for (intptr_t i = 0, n = type_params.Length(); i < n; ++i) {
+      type_param ^= type_params.TypeAt(i);
+      bound = type_param.bound();
+      if (!bound.IsTopType() && !type_param.IsGenericCovariantImpl()) {
+        return true;
+      }
+    }
+  }
+
+  const intptr_t num_params = function.NumParameters();
+  BitVector is_covariant(zone, num_params);
+  BitVector is_generic_covariant_impl(zone, num_params);
+  ReadParameterCovariance(function, &is_covariant, &is_generic_covariant_impl);
+
+  auto& type = AbstractType::Handle(zone);
+  for (intptr_t i = function.NumImplicitParameters(); i < num_params; ++i) {
+    type = function.ParameterTypeAt(i);
+    if (!type.IsTopType() && !is_generic_covariant_impl.Contains(i) &&
+        !is_covariant.Contains(i)) {
       return true;
     }
   }
 
   return false;
-}
-
-bool IsFieldInitializer(const Function& function, Zone* zone) {
-  return (function.kind() == RawFunction::kImplicitStaticFinalGetter) &&
-         String::Handle(zone, function.name())
-             .StartsWith(Symbols::InitPrefix());
 }
 
 static ProcedureAttributesMetadata ProcedureAttributesOf(

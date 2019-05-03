@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,16 +14,15 @@ main() {
 }
 
 @reflectiveTest
-class CanBeNullAfterNullAwareTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
+class CanBeNullAfterNullAwareTest extends DriverResolutionTest {
   test_afterCascade() async {
     await assertErrorsInCode(r'''
 m(x) {
   x..a?.b.c;
 }
-''', [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+''', [
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 10, 6),
+    ]);
   }
 
   test_beforeCascade() async {
@@ -31,7 +30,9 @@ m(x) {
 m(x) {
   x?.a..m();
 }
-''', [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+''', [
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 9, 4),
+    ]);
   }
 
   test_cascadeWithParenthesis() async {
@@ -39,7 +40,9 @@ m(x) {
 m(x) {
   (x?.a)..m();
 }
-''', [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+''', [
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 9, 6),
+    ]);
   }
 
   test_definedForNull() async {
@@ -76,7 +79,9 @@ m(x) {
 m(x) {
   x?.a.b();
 }
-''', [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+''', [
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 9, 4),
+    ]);
   }
 
   test_multipleInvocations() async {
@@ -86,7 +91,9 @@ m(x) {
     ..m()
     ..m();
 }
-''', [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+''', [
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 9, 4),
+    ]);
   }
 
   test_parenthesized() async {
@@ -94,7 +101,9 @@ m(x) {
 m(x) {
   (x?.a).b;
 }
-''', [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+''', [
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 9, 6),
+    ]);
   }
 
   test_propertyAccess() async {
@@ -102,6 +111,8 @@ m(x) {
 m(x) {
   x?.a.b;
 }
-''', [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+''', [
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 9, 4),
+    ]);
   }
 }

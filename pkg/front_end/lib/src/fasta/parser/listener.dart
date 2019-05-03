@@ -6,9 +6,11 @@ library fasta.parser.listener;
 
 import '../../scanner/token.dart' show Token;
 
-import '../fasta_codes.dart' show Message, templateUnexpectedToken;
+import '../fasta_codes.dart' show Message, templateExperimentNotEnabled;
 
 import '../quote.dart' show UnescapeErrorListener;
+
+import '../scanner/error_token.dart' show ErrorToken;
 
 import 'assert.dart' show Assert;
 
@@ -947,16 +949,29 @@ class Listener implements UnescapeErrorListener {
     logEvent("Type");
   }
 
+  /// Called when parser encounters a '!'
+  /// used as a non-null postfix assertion in an expression.
+  void handleNonNullAssertExpression(Token bang) {
+    logEvent("NonNullAssertExpression");
+  }
+
   // TODO(danrubel): Remove this once all listeners have been updated
   // to properly handle nullable types
   void reportErrorIfNullableType(Token questionMark) {
     if (questionMark != null) {
       assert(optional('?', questionMark));
       handleRecoverableError(
-          templateUnexpectedToken.withArguments(questionMark),
+          templateExperimentNotEnabled.withArguments('non-nullable'),
           questionMark,
           questionMark);
     }
+  }
+
+  // TODO(danrubel): Remove this once all listeners have been updated
+  // to properly handle non-null assert expressions
+  void reportNonNullAssertExpressionNotEnabled(Token bang) {
+    handleRecoverableError(
+        templateExperimentNotEnabled.withArguments('non-nullable'), bang, bang);
   }
 
   void handleNoName(Token token) {
@@ -1100,9 +1115,15 @@ class Listener implements UnescapeErrorListener {
   /// Called before parsing an `if` control flow list, set, or map entry.
   void beginIfControlFlow(Token ifToken) {}
 
+  /// Called before parsing the `then` portion of an `if` control flow list,
+  /// set, or map entry.
+  void beginThenControlFlow(Token token) {}
+
   /// Called before parsing the `else` portion of an `if` control flow list,
   /// set, or map entry.
-  void handleElseControlFlow(Token elseToken) {}
+  void handleElseControlFlow(Token elseToken) {
+    logEvent("ElseControlFlow");
+  }
 
   /// Called after parsing an `if` control flow list, set, or map entry.
   /// Substructures:
@@ -1200,18 +1221,15 @@ class Listener implements UnescapeErrorListener {
     logEvent("LiteralList");
   }
 
-  void handleLiteralMap(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
-    logEvent("LiteralMap");
-  }
-
-  void handleLiteralSet(
-      int count, Token beginToken, Token constKeyword, Token token) {
-    logEvent("LiteralSet");
-  }
-
   void handleLiteralSetOrMap(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
+    int count,
+    Token leftBrace,
+    Token constKeyword,
+    Token rightBrace,
+    // TODO(danrubel): hasSetEntry parameter exists for replicating existing
+    // behavior and will be removed once unified collection has been enabled
+    bool hasSetEntry,
+  ) {
     logEvent('LiteralSetOrMap');
   }
 
@@ -1361,6 +1379,14 @@ class Listener implements UnescapeErrorListener {
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {}
 
+  /// The parser encountered an [ErrorToken] representing an error
+  /// from the scanner but recovered from it. By default, the error is reported
+  /// by calling [handleRecoverableError] with the message associated
+  /// with the error [token].
+  void handleErrorToken(ErrorToken token) {
+    handleRecoverableError(token.assertionMessage, token, token);
+  }
+
   @override
   void handleUnescapeError(
       Message message, Token location, int stringOffset, int length) {
@@ -1377,6 +1403,15 @@ class Listener implements UnescapeErrorListener {
 
   void handleScript(Token token) {
     logEvent("Script");
+  }
+
+  /// A language version comment was parsed of the form
+  /// // @dart = <major>.<minor>
+  ///
+  /// For more information, see
+  /// https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/language-versioning.md#individual-library-language-version-override
+  void handleLanguageVersion(Token commentToken, int major, int minor) {
+    // TODO(danrubel): Update listeners to handle this
   }
 
   /// A type has been just parsed, and the parser noticed that the next token

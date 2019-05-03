@@ -43,9 +43,6 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
-import 'package:kernel/transformations/constants.dart' as constants
-    show transformLibraries;
-
 import '../../api_prototype/file_system.dart' show FileSystem;
 
 import '../compiler_context.dart' show CompilerContext;
@@ -73,7 +70,7 @@ import '../messages.dart'
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
 
-import '../problems.dart' show unhandled, unimplemented;
+import '../problems.dart' show unhandled;
 
 import '../scope.dart' show AmbiguousBuilder;
 
@@ -84,6 +81,8 @@ import '../source/source_loader.dart' show SourceLoader;
 import '../target_implementation.dart' show TargetImplementation;
 
 import '../uri_translator.dart' show UriTranslator;
+
+import 'constant_evaluator.dart' as constants show transformLibraries;
 
 import 'kernel_builder.dart'
     show
@@ -134,6 +133,14 @@ class KernelTarget extends TargetImplementation {
 
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
 
+  final Map<String, String> environmentDefines =
+      CompilerContext.current.options.environmentDefines;
+
+  final bool errorOnUnevaluatedConstant =
+      CompilerContext.current.options.errorOnUnevaluatedConstant;
+
+  final bool enableAsserts = CompilerContext.current.options.enableAsserts;
+
   final List<Object> clonedFormals = <Object>[];
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
@@ -151,8 +158,9 @@ class KernelTarget extends TargetImplementation {
       new SourceLoader(fileSystem, includeComments, this);
 
   void addSourceInformation(
-      Uri uri, List<int> lineStarts, List<int> sourceCode) {
-    uriToSource[uri] = new Source(lineStarts, sourceCode);
+      Uri importUri, Uri fileUri, List<int> lineStarts, List<int> sourceCode) {
+    uriToSource[fileUri] =
+        new Source(lineStarts, sourceCode, importUri, fileUri);
   }
 
   /// Return list of same size as input with possibly translated uris.
@@ -324,17 +332,16 @@ class KernelTarget extends TargetImplementation {
 
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
     void copySource(Uri uri, Source source) {
-      uriToSource[uri] =
-          excludeSource ? new Source(source.lineStarts, const <int>[]) : source;
+      uriToSource[uri] = excludeSource
+          ? new Source(source.lineStarts, const <int>[], source.importUri,
+              source.fileUri)
+          : source;
     }
 
     this.uriToSource.forEach(copySource);
 
-    Component component = CompilerContext.current.options.target
-        .configureComponent(new Component(
-            nameRoot: nameRoot,
-            libraries: libraries,
-            uriToSource: uriToSource));
+    Component component = backendTarget.configureComponent(new Component(
+        nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource));
     if (loader.first != null) {
       // TODO(sigmund): do only for full program
       Declaration declaration =
@@ -557,8 +564,11 @@ class KernelTarget extends TargetImplementation {
     for (String platformLibrary in const [
       "dart:_internal",
       "dart:async",
+      // TODO(askesc): When all backends support set literals, we no longer
+      // need to index dart:collection, as it is only needed for desugaring of
+      // const sets. We can remove it from this list at that time.
+      "dart:collection",
       "dart:core",
-      "dart:ffi",
       "dart:mirrors"
     ]) {
       Uri uri = Uri.parse(platformLibrary);
@@ -574,16 +584,16 @@ class KernelTarget extends TargetImplementation {
             break;
           }
         }
-        if (!found && uri.path != "mirrors" && uri.path != "ffi") {
-          // dart:mirrors and dart:ffi are optional.
+        if (!found && uri.path != "mirrors") {
+          // dart:mirrors is optional.
           throw "Can't find $uri";
         }
       } else {
         libraries.add(library.target);
       }
     }
-    Component plaformLibraries = CompilerContext.current.options.target
-        .configureComponent(new Component());
+    Component plaformLibraries =
+        backendTarget.configureComponent(new Component());
     // Add libraries directly to prevent that their parents are changed.
     plaformLibraries.libraries.addAll(libraries);
     loader.computeCoreTypes(plaformLibraries);
@@ -708,11 +718,21 @@ class KernelTarget extends TargetImplementation {
         field.initializer = new NullLiteral()..parent = field;
         if (field.isFinal &&
             (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
-          builder.library.addProblem(
-              templateFinalFieldNotInitialized.withArguments(field.name.name),
-              field.fileOffset,
-              field.name.name.length,
-              field.fileUri);
+          String uri = '${field.enclosingLibrary.importUri}';
+          String file = field.fileUri.pathSegments.last;
+          if (uri == 'dart:html' ||
+              uri == 'dart:svg' ||
+              uri == 'dart:_native_typed_data' ||
+              uri == 'dart:_interceptors' && file == 'js_string.dart') {
+            // TODO(johnniwinther): Use external getters instead of final
+            // fields. See https://github.com/dart-lang/sdk/issues/33762
+          } else {
+            builder.library.addProblem(
+                templateFinalFieldNotInitialized.withArguments(field.name.name),
+                field.fileOffset,
+                field.name.name.length,
+                field.fileUri);
+          }
         }
       }
     }
@@ -751,15 +771,17 @@ class KernelTarget extends TargetImplementation {
   /// libraries for the first time.
   void runBuildTransformations() {
     if (loader.target.enableConstantUpdate2018) {
-      TypeEnvironment environment = new TypeEnvironment(
-          loader.coreTypes, loader.hierarchy,
-          legacyMode: false);
+      TypeEnvironment environment =
+          new TypeEnvironment(loader.coreTypes, loader.hierarchy);
       constants.transformLibraries(
           loader.libraries,
-          loader.target.backendTarget.constantsBackend(loader.coreTypes),
-          CompilerContext.current.options.environmentDefines,
+          backendTarget.constantsBackend(loader.coreTypes),
+          environmentDefines,
           environment,
-          new KernelConstantErrorReporter(loader, environment));
+          new KernelConstantErrorReporter(loader),
+          enableAsserts: enableAsserts,
+          desugarSets: !backendTarget.supportsSetLiterals,
+          errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
       ticker.logMs("Evaluated constants");
     }
     backendTarget.performModularTransformationsOnLibraries(
@@ -772,10 +794,6 @@ class KernelTarget extends TargetImplementation {
   }
 
   void runProcedureTransformations(Procedure procedure) {
-    if (loader.target.enableConstantUpdate2018) {
-      unimplemented('constant evaluation during expression evaluation',
-          procedure.fileOffset, procedure.fileUri);
-    }
     backendTarget.performTransformationsOnProcedure(
         loader.coreTypes, loader.hierarchy, procedure,
         logger: (String msg) => ticker.logMs(msg));

@@ -552,7 +552,7 @@ Simulator::Simulator() : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL) {
   // handling stack overflow exceptions. To be safe in potential
   // stack underflows we also add some underflow buffer space.
   stack_ = new uintptr_t[(OSThread::GetSpecifiedStackSize() +
-                          OSThread::kStackSizeBuffer +
+                          OSThread::kStackSizeBufferMax +
                           kSimulatorStackUnderflowSize) /
                          sizeof(uintptr_t)];
   // Low address.
@@ -560,7 +560,7 @@ Simulator::Simulator() : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL) {
   // Limit for StackOverflowError.
   overflow_stack_limit_ = stack_base_ + OSThread::GetSpecifiedStackSize();
   // High address.
-  stack_limit_ = overflow_stack_limit_ + OSThread::kStackSizeBuffer;
+  stack_limit_ = overflow_stack_limit_ + OSThread::kStackSizeBufferMax;
 
   last_setjmp_buffer_ = NULL;
 
@@ -810,7 +810,12 @@ void Simulator::InlineCacheMiss(int checked_args,
                                 RawObject** SP) {
   RawObject** result = top;
   top[0] = 0;  // Clean up result slot.
-  RawObject** miss_handler_args = top + 1;
+
+  // Save arguments descriptor as it may be clobbered by running Dart code
+  // during the call to miss handler (class finalization).
+  top[1] = argdesc_;
+
+  RawObject** miss_handler_args = top + 2;
   for (intptr_t i = 0; i < checked_args; i++) {
     miss_handler_args[i] = args[i];
   }
@@ -833,6 +838,8 @@ void Simulator::InlineCacheMiss(int checked_args,
   RawObject** exit_frame = miss_handler_args + miss_handler_argc;
   CallRuntime(thread, FP, exit_frame, pc, miss_handler_argc, miss_handler_args,
               result, reinterpret_cast<uword>(handler));
+
+  argdesc_ = Array::RawCast(top[1]);
 }
 
 DART_FORCE_INLINE void Simulator::InstanceCall1(Thread* thread,
@@ -1213,9 +1220,9 @@ RawObject* Simulator::Call(const Code& code,
                            const Array& arguments,
                            Thread* thread) {
   // Interpreter state (see constants_dbc.h for high-level overview).
-  uint32_t* pc;       // Program Counter: points to the next op to execute.
-  RawObject** FP;     // Frame Pointer.
-  RawObject** SP;     // Stack Pointer.
+  uint32_t* pc;    // Program Counter: points to the next op to execute.
+  RawObject** FP;  // Frame Pointer.
+  RawObject** SP;  // Stack Pointer.
 
   uint32_t op;  // Currently executing op.
   uint16_t rA;  // A component of the currently executing op.
@@ -1464,7 +1471,9 @@ SwitchDispatch:
 
   {
     BYTECODE(DebugStep, A);
-#ifndef PRODUCT
+#ifdef PRODUCT
+    FATAL("No debugging in PRODUCT mode");
+#else
     if (thread->isolate()->single_step()) {
       Exit(thread, FP, SP + 1, pc);
       NativeArguments args(thread, 0, NULL, NULL);
@@ -1476,7 +1485,9 @@ SwitchDispatch:
 
   {
     BYTECODE(DebugBreak, A);
-#if !defined(PRODUCT)
+#ifdef PRODUCT
+    FATAL("No debugging in PRODUCT mode");
+#else
     {
       const uint32_t original_bc =
           static_cast<uint32_t>(reinterpret_cast<uintptr_t>(
@@ -1489,9 +1500,6 @@ SwitchDispatch:
       INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler, args)
       DISPATCH_OP(original_bc);
     }
-#else
-    // There should be no debug breaks in product mode.
-    UNREACHABLE();
 #endif
     DISPATCH();
   }
@@ -2346,9 +2354,8 @@ SwitchDispatch:
   {
     BYTECODE(StoreIndexedFloat32, A_B_C);
     uint8_t* data = SimulatorHelpers::GetTypedData(FP[rA], FP[rB]);
-    const uint64_t value = reinterpret_cast<uint64_t>(FP[rC]);
-    const uint32_t value32 = value;
-    *reinterpret_cast<uint32_t*>(data) = value32;
+    const float value = *reinterpret_cast<float*>(&FP[rC]);
+    *reinterpret_cast<float*>(data) = value;
     DISPATCH();
   }
 
@@ -2358,10 +2365,8 @@ SwitchDispatch:
     RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rA]);
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    const uint64_t value = reinterpret_cast<uint64_t>(FP[rC]);
-    const uint32_t value32 = value;
-    reinterpret_cast<uint32_t*>(array->ptr()->data())[Smi::Value(index)] =
-        value32;
+    const float value = *reinterpret_cast<float*>(&FP[rC]);
+    reinterpret_cast<float*>(array->ptr()->data())[Smi::Value(index)] = value;
     DISPATCH();
   }
 
@@ -2697,6 +2702,17 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(StoreUntagged, A_B_C);
+    const uint16_t offset_in_words = rB;
+    const uint16_t value_reg = rC;
+
+    RawInstance* instance = reinterpret_cast<RawInstance*>(FP[rA]);
+    word value = reinterpret_cast<word>(FP[value_reg]);
+    reinterpret_cast<word*>(instance->ptr())[offset_in_words] = value;
+    DISPATCH();
+  }
+
+  {
     BYTECODE(StoreFieldTOS, __D);
     const uint16_t offset_in_words = rD;
     RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
@@ -3007,6 +3023,14 @@ SwitchDispatch:
   InstanceOfOk:
     SP -= 4;
     DISPATCH();
+  }
+
+  {
+    BYTECODE(NullError, 0);
+    Exit(thread, FP, SP, pc);
+    NativeArguments native_args(thread, 0, SP, SP);
+    INVOKE_RUNTIME(DRT_NullError, native_args);
+    UNREACHABLE();
   }
 
   {
@@ -3640,6 +3664,22 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(IfEqNullTOS, 0);
+    if (SP[0] != null_value) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfNeNullTOS, 0);
+    if (SP[0] == null_value) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(Jump, 0);
     const int32_t target = static_cast<int32_t>(op) >> 8;
     pc += (target - 1);
@@ -3692,11 +3732,38 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(StoreIndexedExternalUint8, A_B_C);
+    BYTECODE(StoreIndexedUntaggedUint8, A_B_C);
     uint8_t* array = reinterpret_cast<uint8_t*>(FP[rA]);
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
     RawSmi* value = RAW_CAST(Smi, FP[rC]);
     array[Smi::Value(index)] = Smi::Value(value);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedUntaggedUint32, A_B_C);
+    uint8_t* array = reinterpret_cast<uint8_t*>(FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    const uint32_t value = *reinterpret_cast<uint32_t*>(&FP[rC]);
+    *reinterpret_cast<uint32_t*>(array + Smi::Value(index)) = value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedUntaggedFloat32, A_B_C);
+    uint8_t* array = reinterpret_cast<uint8_t*>(FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    const float value = *reinterpret_cast<float*>(&FP[rC]);
+    *reinterpret_cast<float*>(array + Smi::Value(index)) = value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedUntaggedFloat64, A_B_C);
+    uint8_t* array = reinterpret_cast<uint8_t*>(FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    const double value = *reinterpret_cast<double*>(&FP[rC]);
+    *reinterpret_cast<double*>(array + Smi::Value(index)) = value;
     DISPATCH();
   }
 
@@ -3830,7 +3897,7 @@ SwitchDispatch:
     BYTECODE(LoadIndexedUint32, A_B_C);
     const uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
     const uint32_t value = *reinterpret_cast<const uint32_t*>(data);
-    FP[rA] = reinterpret_cast<RawObject*>(value);
+    *reinterpret_cast<uint32_t*>(&FP[rA]) = value;
     DISPATCH();
   }
 
@@ -3838,23 +3905,60 @@ SwitchDispatch:
     BYTECODE(LoadIndexedInt32, A_B_C);
     const uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
     const int32_t value = *reinterpret_cast<const int32_t*>(data);
-    FP[rA] = reinterpret_cast<RawObject*>(value);
+    *reinterpret_cast<int32_t*>(&FP[rA]) = value;
     DISPATCH();
   }
 
   {
-    BYTECODE(LoadIndexedExternalUint8, A_B_C);
+    BYTECODE(LoadIndexedUntaggedInt8, A_B_C);
     uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    FP[rA] = Smi::New(data[Smi::Value(index)]);
+    FP[rA] = Smi::New(*reinterpret_cast<int8_t*>(data + Smi::Value(index)));
     DISPATCH();
   }
 
   {
-    BYTECODE(LoadIndexedExternalInt8, A_B_C);
-    int8_t* data = reinterpret_cast<int8_t*>(FP[rB]);
+    BYTECODE(LoadIndexedUntaggedUint8, A_B_C);
+    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    FP[rA] = Smi::New(data[Smi::Value(index)]);
+    FP[rA] = Smi::New(*reinterpret_cast<uint8_t*>(data + Smi::Value(index)));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedUntaggedInt32, A_B_C);
+    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    const int32_t value = *reinterpret_cast<int32_t*>(data + Smi::Value(index));
+    *reinterpret_cast<int32_t*>(&FP[rA]) = value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedUntaggedUint32, A_B_C);
+    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    const uint32_t value =
+        *reinterpret_cast<uint32_t*>(data + Smi::Value(index));
+    *reinterpret_cast<uint32_t*>(&FP[rA]) = value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedUntaggedFloat32, A_B_C);
+    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    const float value = *reinterpret_cast<float*>(data + Smi::Value(index));
+    *reinterpret_cast<float*>(&FP[rA]) = value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedUntaggedFloat64, A_B_C);
+    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    const double value = *reinterpret_cast<double*>(data + Smi::Value(index));
+    *reinterpret_cast<double*>(&FP[rA]) = value;
     DISPATCH();
   }
 

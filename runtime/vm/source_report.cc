@@ -93,6 +93,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     case RawFunction::kClosureFunction:
     case RawFunction::kImplicitClosureFunction:
     case RawFunction::kImplicitStaticFinalGetter:
+    case RawFunction::kStaticFieldInitializer:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
     case RawFunction::kConstructor:
@@ -491,16 +492,9 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
 }
 
 void SourceReport::VisitField(JSONArray* jsarr, const Field& field) {
-  if (ShouldSkipField(field) || !field.has_initializer()) return;
-  const Function& func =
-      Function::Handle(zone(), GetInitializerFunction(field));
+  if (ShouldSkipField(field) || !field.HasInitializerFunction()) return;
+  const Function& func = Function::Handle(field.InitializerFunction());
   VisitFunction(jsarr, func);
-}
-
-RawFunction* SourceReport::GetInitializerFunction(const Field& field) {
-  Thread* const thread = Thread::Current();
-  // Create a function to evaluate the initializer
-  return kernel::CreateFieldInitializerFunction(thread, thread->zone(), field);
 }
 
 void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {

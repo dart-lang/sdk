@@ -97,6 +97,8 @@ type SourceInfo {
   // Line starts are delta-encoded (they are encoded as line lengths).  The list
   // [0, 10, 25, 32, 42] is encoded as [0, 10, 15, 7, 10].
   List<UInt> lineStarts;
+
+  List<Byte> importUriUtf8Bytes;
 }
 
 type UriSource {
@@ -137,7 +139,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 18;
+  UInt32 formatVersion = 25;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -236,8 +238,11 @@ type Library {
   List<Field> fields;
   List<Procedure> procedures;
 
+  List<UInt> sourceReferences; // list of sources owned by library, indexes into UriSource on Component.
+
   // Library index. Offsets are used to get start (inclusive) and end (exclusive) byte positions for
   // a specific class or procedure. Note the "+1" to account for needing the end of the last entry.
+  UInt32 sourceReferencesOffset;
   UInt32[classes.length + 1] classOffsets;
   UInt32 classCount = classes.length;
   UInt32[procedures.length + 1] procedureOffsets;
@@ -696,6 +701,37 @@ type StringConcatenation extends Expression {
   List<Expression> expressions;
 }
 
+type ListConcatenation extends Expression {
+  Byte tag = 111;
+  FileOffset fileOffset;
+  DartType typeArgument;
+  List<Expression> lists;
+}
+
+type SetConcatenation extends Expression {
+  Byte tag = 112;
+  FileOffset fileOffset;
+  DartType typeArgument;
+  List<Expression> sets;
+}
+
+type MapConcatenation extends Expression {
+  Byte tag = 113;
+  FileOffset fileOffset;
+  DartType keyType;
+  DartType valueType;
+  List<Expression> maps;
+}
+
+type InstanceCreation extends Expression {
+  Byte tag = 114;
+  FileOffset fileOffset;
+  CanonicalNameReference class;
+  List<DartType> typeArguments;
+  List<[FieldReference, Expression]> fieldValues;
+  List<AssertStatement> asserts;
+}
+
 type IsExpression extends Expression {
   Byte tag = 37;
   FileOffset fileOffset;
@@ -845,6 +881,12 @@ type Let extends Expression {
   Expression body;
 }
 
+type BlockExpression extends Expression {
+  Byte tag = 82;
+  List<Statement> body;
+  Expression value;
+}
+
 type Instantiation extends Expression {
   Byte tag = 54;
   Expression expression;
@@ -862,6 +904,13 @@ type CheckLibraryIsLoaded extends Expression {
 }
 
 type ConstantExpression extends Expression {
+  Byte tag = 106;
+  FileOffset fileOffset;
+  DartType type;
+  ConstantReference constantReference;
+}
+
+type Deprecated_ConstantExpression extends Expression {
   Byte tag = 107;
   ConstantReference constantReference;
 }
@@ -907,6 +956,12 @@ type MapConstant extends Constant {
 
 type ListConstant extends Constant {
   Byte tag = 7;
+  DartType type;
+  List<ConstantReference> values;
+}
+
+type SetConstant extends Constant {
+  Byte tag = 13; // Note: tag is out of order.
   DartType type;
   List<ConstantReference> values;
 }

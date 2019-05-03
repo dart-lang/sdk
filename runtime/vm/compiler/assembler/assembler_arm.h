@@ -15,7 +15,7 @@
 #include "platform/utils.h"
 #include "vm/code_entry_kind.h"
 #include "vm/compiler/runtime_api.h"
-#include "vm/constants_arm.h"
+#include "vm/constants.h"
 #include "vm/cpu.h"
 #include "vm/hash_map.h"
 #include "vm/simulator.h"
@@ -379,10 +379,6 @@ class Assembler : public AssemblerBase {
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
-  static const char* RegisterName(Register reg);
-
-  static const char* FpuRegisterName(FpuRegister reg);
-
   // Data-processing instructions.
   void and_(Register rd, Register rn, Operand o, Condition cond = AL);
 
@@ -513,6 +509,13 @@ class Assembler : public AssemblerBase {
 
   void ldrex(Register rd, Register rn, Condition cond = AL);
   void strex(Register rd, Register rt, Register rn, Condition cond = AL);
+
+  // Requires two temporary registers 'scratch0' and 'scratch1' (in addition to
+  // TMP).
+  void TransitionGeneratedToNative(Register destination_address,
+                                   Register scratch0,
+                                   Register scratch1);
+  void TransitionNativeToGenerated(Register scratch0, Register scratch1);
 
   // Miscellaneous instructions.
   void clrex();
@@ -808,6 +811,11 @@ class Assembler : public AssemblerBase {
                                       int32_t offset,
                                       const Object& value);
 
+  // Stores a non-tagged value into a heap object.
+  void StoreInternalPointer(Register object,
+                            const Address& dest,
+                            Register value);
+
   // Store value_even, value_odd, value_even, ... into the words in the address
   // range [begin, end), assumed to be uninitialized fields in object (tagged).
   // The stores must not need a generational store barrier (e.g., smi/null),
@@ -854,6 +862,13 @@ class Assembler : public AssemblerBase {
                      Register base,
                      int32_t offset,
                      Condition cond = AL);
+  void StoreFieldToOffset(OperandSize type,
+                          Register reg,
+                          Register base,
+                          int32_t offset,
+                          Condition cond = AL) {
+    StoreToOffset(type, reg, base, offset - kHeapObjectTag, cond);
+  }
   void LoadSFromOffset(SRegister reg,
                        Register base,
                        int32_t offset,
@@ -1002,7 +1017,7 @@ class Assembler : public AssemblerBase {
   // Set up a Dart frame on entry with a frame pointer and PC information to
   // enable easy access to the RawInstruction object of code corresponding
   // to this frame.
-  void EnterDartFrame(intptr_t frame_size);
+  void EnterDartFrame(intptr_t frame_size, bool load_pool_pointer = true);
 
   void LeaveDartFrame();
 
@@ -1282,6 +1297,9 @@ class Assembler : public AssemblerBase {
                              Label* label,
                              CanBeSmi can_be_smi,
                              BarrierFilterMode barrier_filter_mode);
+
+  void EnterSafepointSlowly();
+  void ExitSafepointSlowly();
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Condition, Register)>

@@ -337,6 +337,8 @@ void OS::Init() {}
 
 void OS::Cleanup() {}
 
+void OS::PrepareToAbort() {}
+
 void OS::Abort() {
   abort();
 }

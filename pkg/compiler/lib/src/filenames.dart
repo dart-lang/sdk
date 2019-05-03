@@ -31,4 +31,7 @@ String uriPathToNative(String path) {
 
 final Uri currentDirectory = Uri.base;
 
+Uri nativeToUri(String filename) =>
+    currentDirectory.resolve(nativeToUriPath(filename));
+
 String appendSlash(String path) => path.endsWith('/') ? path : '$path/';

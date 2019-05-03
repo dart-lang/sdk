@@ -8,20 +8,18 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
-import 'package:analyzer/src/task/dart.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/engine_test.dart';
 import '../../../generated/test_support.dart';
 
 main() {
@@ -35,12 +33,10 @@ main() {
 class ConstantFinderTest {
   AstNode _node;
   TypeProvider _typeProvider;
-  AnalysisContext _context;
   Source _source;
 
   void setUp() {
     _typeProvider = new TestTypeProvider();
-    _context = new _TestAnalysisContext();
     _source = new TestSource();
   }
 
@@ -51,7 +47,7 @@ class ConstantFinderTest {
   void test_visitAnnotation_constantVariable() {
     CompilationUnitElement compilationUnitElement =
         ElementFactory.compilationUnit('/test.dart', _source)..source = _source;
-    ElementFactory.library(_context, 'L').definingCompilationUnit =
+    ElementFactory.library(null, 'L').definingCompilationUnit =
         compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =
         new ElementAnnotationImpl(compilationUnitElement);
@@ -77,7 +73,7 @@ class ConstantFinderTest {
   void test_visitAnnotation_invocation() {
     CompilationUnitElement compilationUnitElement =
         ElementFactory.compilationUnit('/test.dart', _source)..source = _source;
-    ElementFactory.library(_context, 'L').definingCompilationUnit =
+    ElementFactory.library(null, 'L').definingCompilationUnit =
         compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =
         new ElementAnnotationImpl(compilationUnitElement);
@@ -174,7 +170,6 @@ class ConstantFinderTest {
     Set<Annotation> annotations = new Set<Annotation>();
     for (ConstantEvaluationTarget target in _findConstants()) {
       if (target is ElementAnnotationImpl) {
-        expect(target.context, same(_context));
         expect(target.source, same(_source));
         annotations.add(target.annotationAst);
       }
@@ -347,9 +342,4 @@ class ReferenceFinderTest {
     });
     node.accept(referenceFinder);
   }
-}
-
-class _TestAnalysisContext extends TestAnalysisContext {
-  @override
-  InternalAnalysisContext getContextFor(Source source) => this;
 }

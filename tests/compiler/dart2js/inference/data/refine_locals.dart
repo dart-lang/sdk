@@ -9,7 +9,7 @@ main() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Refine the type of a non-captured local variable through a sequence of
+// Refine nullability of a non-captured local variable through a sequence of
 // accesses and updates.
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -31,141 +31,87 @@ class Class2 {
   method0() {}
   /*element: Class2.method2:[null]*/
   method2() {}
-  /*element: Class2.field0:[null|exact=JSUInt31]*/
+  /*element: Class2.field0:[null]*/
   var field0;
-  /*element: Class2.field2:[null|exact=JSUInt31]*/
+  /*element: Class2.field2:[null]*/
   var field2;
 }
 
-/*element: _refineToClass1Invoke:[empty]*/
-_refineToClass1Invoke(/*Union([exact=Class1], [exact=Class2])*/ o) {
+/*element: _refineUnion:Union([exact=Class1], [exact=Class2])*/
+_refineUnion(/*Union([null|exact=Class1], [null|exact=Class2])*/ o) {
+  o. /*invoke: Union([null|exact=Class1], [null|exact=Class2])*/ method0();
   o. /*invoke: Union([exact=Class1], [exact=Class2])*/ method1();
-  o. /*invoke: [exact=Class1]*/ method0();
-  o. /*invoke: [exact=Class1]*/ method2();
-  return o;
-}
-
-/*element: _refineToClass2Invoke:[empty]*/
-_refineToClass2Invoke(/*Union([exact=Class1], [exact=Class2])*/ o) {
   o. /*invoke: Union([exact=Class1], [exact=Class2])*/ method2();
-  o. /*invoke: [exact=Class2]*/ method0();
-  o. /*invoke: [exact=Class2]*/ method1();
   return o;
 }
 
-/*element: _refineToEmptyInvoke:[empty]*/
-_refineToEmptyInvoke(/*Union([exact=Class1], [exact=Class2])*/ o) {
-  o. /*invoke: Union([exact=Class1], [exact=Class2])*/ method1();
-  o. /*invoke: [exact=Class1]*/ method2();
-  o. /*invoke: [empty]*/ method0();
+/*element: _refineFromMethod:[exact=Class1]*/
+_refineFromMethod(/*[null|exact=Class1]*/ o) {
+  o. /*invoke: [null|exact=Class1]*/ method0();
+  o. /*invoke: [exact=Class1]*/ method1();
   return o;
 }
 
-/*element: _refineToClass1Get:[empty]*/
-_refineToClass1Get(/*Union([exact=Class1], [exact=Class2])*/ o) {
-  o. /*Union([exact=Class1], [exact=Class2])*/ field0;
-  o. /*Union([exact=Class1], [exact=Class2])*/ field1;
-  o. /*[exact=Class1]*/ field2;
+/*element: _refineFromGetter:[exact=Class2]*/
+_refineFromGetter(/*[null|exact=Class2]*/ o) {
+  o. /*[null|exact=Class2]*/ field0;
+  o. /*[exact=Class2]*/ field2;
   return o;
 }
 
-/*element: _refineToClass2Get:[empty]*/
-_refineToClass2Get(/*Union([exact=Class1], [exact=Class2])*/ o) {
-  o. /*Union([exact=Class1], [exact=Class2])*/ field0;
-  o. /*Union([exact=Class1], [exact=Class2])*/ field2;
-  o. /*[exact=Class2]*/ field1;
+/*element: _refineFromSetter:[exact=Class1]*/
+_refineFromSetter(/*[null|exact=Class1]*/ o) {
+  o. /*update: [null|exact=Class1]*/ field0 = 0;
+  o. /*update: [exact=Class1]*/ field1 = 0;
   return o;
 }
 
-/*element: _refineToEmptyGet:[empty]*/
-_refineToEmptyGet(/*Union([exact=Class1], [exact=Class2])*/ o) {
-  o. /*Union([exact=Class1], [exact=Class2])*/ field1;
-  o. /*[exact=Class1]*/ field2;
-  o. /*[empty]*/ field0;
-  return o;
-}
-
-/*element: _refineToClass1Set:[empty]*/
-_refineToClass1Set(/*Union([exact=Class1], [exact=Class2])*/ o) {
-  o. /*update: Union([exact=Class1], [exact=Class2])*/ field0 = 0;
-  o. /*update: Union([exact=Class1], [exact=Class2])*/ field1 = 0;
-  o. /*update: [exact=Class1]*/ field2 = 0;
-  return o;
-}
-
-/*element: _refineToClass2Set:[empty]*/
-_refineToClass2Set(/*Union([exact=Class1], [exact=Class2])*/ o) {
-  o. /*update: Union([exact=Class1], [exact=Class2])*/ field0 = 0;
-  o. /*update: Union([exact=Class1], [exact=Class2])*/ field2 = 0;
-  o. /*update: [exact=Class2]*/ field1 = 0;
-  return o;
-}
-
-/*element: _refineToEmptySet:[empty]*/
-_refineToEmptySet(/*Union([exact=Class1], [exact=Class2])*/ o) {
-  o. /*update: Union([exact=Class1], [exact=Class2])*/ field1 = 0;
-  o. /*update: [exact=Class1]*/ field2 = 0;
-  o. /*update: [empty]*/ field0 = 0;
-  return o;
-}
-
-/*element: _refineToClass1InvokeIfNotNull:[null]*/
-_refineToClass1InvokeIfNotNull(
-    /*Union([exact=Class2], [null|exact=Class1])*/ o) {
+/*element: _noRefinementNullAware:[null|exact=Class1]*/
+_noRefinementNullAware(/*[null|exact=Class1]*/ o) {
   o
       ?.
-      /*invoke: Union([exact=Class1], [exact=Class2])*/
+      /*invoke: [exact=Class1]*/
       method1();
-  o
-      ?.
-      /*invoke: [exact=Class1]*/
-      method0();
-  o
-      ?.
-      /*invoke: [exact=Class1]*/
-      method2();
   return o;
 }
 
-/*element: _noRefinementToClass1InvokeSet:Union([exact=Class2], [null|exact=Class1])*/
-_noRefinementToClass1InvokeSet(
-    /*Union([exact=Class2], [null|exact=Class1])*/ o) {
-  (o = o). /*invoke: Union([exact=Class2], [null|exact=Class1])*/ method1();
-  (o = o). /*invoke: Union([exact=Class2], [null|exact=Class1])*/ method0();
-  (o = o). /*invoke: Union([exact=Class2], [null|exact=Class1])*/ method2();
+/*element: _noRefinementNullSelectors:[exact=Class2]*/
+_noRefinementNullSelectors(/*[null|exact=Class2]*/ o) {
+  o /*invoke: [null|exact=Class2]*/ == 2;
+  o. /*[null|exact=Class2]*/ hashCode;
+  o. /*[null|exact=Class2]*/ runtimeType;
+  o. /*[null|exact=Class2]*/ toString;
+  o. /*[null|exact=Class2]*/ noSuchMethod;
+  o. /*invoke: [null|exact=Class2]*/ toString();
+  o. /*invoke: [null|exact=Class2]*/ noSuchMethod(null); // assumed to throw.
+  o. /*[exact=Class2]*/ toString;
   return o;
 }
+
+/*element: _noRefinementUpdatedVariable:[null|exact=Class1]*/
+_noRefinementUpdatedVariable(/*[null|exact=Class1]*/ o) {
+  (o = o). /*invoke: [null|exact=Class1]*/ method1();
+  (o = o). /*invoke: [null|exact=Class1]*/ method0();
+  return o;
+}
+
+/*element: _condition:Value([exact=JSBool], value: false)*/
+@pragma('dart2js:assumeDynamic')
+get _condition => false;
 
 /*element: refineToClass:[null]*/
 refineToClass() {
-  _refineToClass1Invoke(new Class1());
-  _refineToClass1Invoke(new Class2());
-  _refineToClass2Invoke(new Class1());
-  _refineToClass2Invoke(new Class2());
-  _refineToEmptyInvoke(new Class1());
-  _refineToEmptyInvoke(new Class2());
+  var nullOrClass1 = _condition ? null : new Class1();
+  var nullOrClass2 = _condition ? null : new Class2();
+  _refineUnion(nullOrClass1);
+  _refineUnion(nullOrClass2);
 
-  _refineToClass1Get(new Class1());
-  _refineToClass1Get(new Class2());
-  _refineToClass2Get(new Class1());
-  _refineToClass2Get(new Class2());
-  _refineToEmptyGet(new Class1());
-  _refineToEmptyGet(new Class2());
-
-  _refineToClass1Set(new Class1());
-  _refineToClass1Set(new Class2());
-  _refineToClass2Set(new Class1());
-  _refineToClass2Set(new Class2());
-  _refineToEmptySet(new Class1());
-  _refineToEmptySet(new Class2());
-
-  _refineToClass1InvokeIfNotNull(null);
-  _refineToClass1InvokeIfNotNull(new Class1());
-  _refineToClass1InvokeIfNotNull(new Class2());
-
-  _noRefinementToClass1InvokeSet(null);
-  _noRefinementToClass1InvokeSet(new Class1());
-  _noRefinementToClass1InvokeSet(new Class2());
+  _refineFromMethod(nullOrClass1);
+  _refineFromGetter(nullOrClass2);
+  _refineFromSetter(nullOrClass1);
+  _noRefinementNullAware(nullOrClass1);
+  _noRefinementNullSelectors(nullOrClass2);
+  _noRefinementUpdatedVariable(nullOrClass1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

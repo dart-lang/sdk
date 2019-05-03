@@ -21,8 +21,7 @@ abstract class C {
   AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf;
   AsserterBuilder<List<Asserter<DartType>>, DartType> get assertDOf;
 
-  /*@topType=dynamic*/ method(
-      AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {
+  method(AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {
     /*@target=C::assertAOf*/ assertAOf(
         /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
     assertBOf(
@@ -40,8 +39,7 @@ abstract class G<T> {
   AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf;
   AsserterBuilder<List<Asserter<DartType>>, DartType> get assertDOf;
 
-  /*@topType=dynamic*/ method(
-      AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {
+  method(AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {
     /*@target=G::assertAOf*/ assertAOf(
         /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
     this. /*@target=G::assertAOf*/ assertAOf(

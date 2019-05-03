@@ -162,9 +162,9 @@ class CompactorTask : public ThreadPool::Task {
 // Slides live objects down past free gaps, updates pointers and frees empty
 // pages. Keeps cursors pointing to the next free and next live chunks, and
 // repeatedly moves the next live chunk to the next free chunk, one block at a
-// time, keeping blocks from spanning page boundries (see ForwardingBlock). Free
-// space at the end of a page that is too small for the next block is added to
-// the freelist.
+// time, keeping blocks from spanning page boundaries (see ForwardingBlock).
+// Free space at the end of a page that is too small for the next block is
+// added to the freelist.
 void GCCompactor::Compact(HeapPage* pages,
                           FreeList* freelist,
                           Mutex* pages_lock) {
@@ -244,6 +244,34 @@ void GCCompactor::Compact(HeapPage* pages,
     // Slides pages. Forward large pages, new space, etc.
     barrier.Sync();
     barrier.Exit();
+  }
+
+  // Update inner pointers in typed data views (needs to be done after all
+  // threads are done with sliding since we need to access fields of the
+  // view's backing store)
+  //
+  // (If the sliding compactor was single-threaded we could do this during the
+  // sliding phase: The class id of the backing store can be either accessed by
+  // looking at the already-slided-object or the not-yet-slided object. Though
+  // with parallel sliding there is no safe way to access the backing store
+  // object header.)
+  {
+    TIMELINE_FUNCTION_GC_DURATION(thread(),
+                                  "ForwardTypedDataViewInternalPointers");
+    const intptr_t length = typed_data_views_.length();
+    for (intptr_t i = 0; i < length; ++i) {
+      auto raw_view = typed_data_views_[i];
+      const classid_t cid = raw_view->ptr()->typed_data_->GetClassIdMayBeSmi();
+
+      // If we have external typed data we can simply return, since the backing
+      // store lives in C-heap and will not move. Otherwise we have to update
+      // the inner pointer.
+      if (RawObject::IsTypedDataClassId(cid)) {
+        raw_view->RecomputeDataFieldForInternalTypedData();
+      } else {
+        ASSERT(RawObject::IsExternalTypedDataClassId(cid));
+      }
+    }
   }
 
   for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
@@ -394,7 +422,7 @@ void CompactorTask::PlanPage(HeapPage* page) {
   uword current = page->object_start();
   uword end = page->object_end();
 
-  ForwardingPage* forwarding_page = page->AllocateForwardingPage();
+  auto forwarding_page = page->AllocateForwardingPage();
   while (current < end) {
     current = PlanBlock(current, forwarding_page);
   }
@@ -404,7 +432,7 @@ void CompactorTask::SlidePage(HeapPage* page) {
   uword current = page->object_start();
   uword end = page->object_end();
 
-  ForwardingPage* forwarding_page = page->forwarding_page();
+  auto forwarding_page = page->forwarding_page();
   while (current < end) {
     current = SlideBlock(current, forwarding_page);
   }
@@ -483,6 +511,10 @@ uword CompactorTask::SlideBlock(uword first_object,
         // Slide the object down.
         memmove(reinterpret_cast<void*>(new_addr),
                 reinterpret_cast<void*>(old_addr), size);
+
+        if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {
+          reinterpret_cast<RawTypedData*>(new_obj)->RecomputeDataField();
+        }
       }
       new_obj->ClearMarkBit();
       new_obj->VisitPointers(compactor_);
@@ -564,6 +596,40 @@ void GCCompactor::ForwardPointer(RawObject** ptr) {
   RawObject* new_target =
       RawObject::FromAddr(forwarding_page->Lookup(old_addr));
   *ptr = new_target;
+}
+
+void GCCompactor::VisitTypedDataViewPointers(RawTypedDataView* view,
+                                             RawObject** first,
+                                             RawObject** last) {
+  // First we forward all fields of the typed data view.
+  RawObject* old_backing = view->ptr()->typed_data_;
+  VisitPointers(first, last);
+  RawObject* new_backing = view->ptr()->typed_data_;
+
+  const bool backing_moved = old_backing != new_backing;
+  if (backing_moved) {
+    // The backing store moved, so we *might* need to update the view's inner
+    // pointer. If the backing store is internal typed data we *have* to update
+    // it, otherwise (in case of external typed data) we don't have to.
+    //
+    // Unfortunately we cannot find out whether the backing store is internal
+    // or external during sliding phase: Even though we know the old and new
+    // location of the backing store another thread might be responsible for
+    // moving it and we have no way to tell when it got moved.
+    //
+    // So instead we queue all those views up and fix their inner pointer in a
+    // final phase after compaction.
+    MutexLocker ml(&typed_data_view_mutex_);
+    typed_data_views_.Add(view);
+  } else {
+    // The backing store didn't move, we therefore don't need to update the
+    // inner pointer.
+    if (view->ptr()->data_ == 0) {
+      ASSERT(ValueFromRawSmi(view->ptr()->offset_in_bytes_) == 0 &&
+             ValueFromRawSmi(view->ptr()->length_) == 0 &&
+             view->ptr()->typed_data_ == Object::null());
+    }
+  }
 }
 
 // N.B.: This pointer visitor is not idempotent. We must take care to visit

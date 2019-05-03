@@ -434,13 +434,15 @@ var #staticStateDeclaration = {};
 
 // Instantiates all constants.
 #constants;
+
+// Emits the embedded globals. Due to type checks in eager initializers this is
+// needed before static non-final fields initializers.
+#embeddedGlobals;
+
 // Initializes the static non-final fields (with their constant values).
 #staticNonFinalFields;
 // Creates lazy getters for statics that must run initializers on first access.
 #lazyStatics;
-
-// Emits the embedded globals.
-#embeddedGlobals;
 
 // Sets up the native support.
 // Native-support uses setOrUpdateInterceptorsByTag and setOrUpdateLeafTags.
@@ -1078,17 +1080,31 @@ class FragmentEmitter {
   Method generateGetter(Field field) {
     assert(field.needsGetter);
 
-    String template;
-    if (field.needsInterceptedGetterOnReceiver) {
-      template = "function(receiver) { return receiver[#]; }";
-    } else if (field.needsInterceptedGetterOnThis) {
-      template = "function(receiver) { return this[#]; }";
+    js.Expression code;
+    if (field.isElided) {
+      ConstantValue constantValue = field.constantValue;
+      if (constantValue == null) {
+        // TODO(johnniwinther): Static types are not honoured in the dynamic
+        // uses created in codegen, leading to dead code, as known by the closed
+        // world computation, being triggered by the codegen enqueuer. We
+        // cautiously generate a null constant for this case.
+        constantValue = new NullConstantValue();
+      }
+      code = js.js(
+          "function() { return #; }", generateConstantReference(constantValue));
     } else {
-      assert(!field.needsInterceptedGetter);
-      template = "function() { return this[#]; }";
+      String template;
+      if (field.needsInterceptedGetterOnReceiver) {
+        template = "function(receiver) { return receiver[#]; }";
+      } else if (field.needsInterceptedGetterOnThis) {
+        template = "function(receiver) { return this[#]; }";
+      } else {
+        assert(!field.needsInterceptedGetter);
+        template = "function() { return this[#]; }";
+      }
+      js.Expression fieldName = js.quoteName(field.name);
+      code = js.js(template, fieldName);
     }
-    js.Expression fieldName = js.quoteName(field.name);
-    js.Expression code = js.js(template, fieldName);
     js.Name getterName = namer.deriveGetterName(field.accessorName);
     return new StubMethod(getterName, code);
   }
@@ -1589,8 +1605,43 @@ class FragmentEmitter {
     //
     Iterable<js.Statement> statements = fields.map((StaticField field) {
       assert(field.holder.isStaticStateHolder);
-      js.Statement statement = js.js
-          .statement("#.# = #;", [field.holder.name, field.name, field.code]);
+      js.Statement statement;
+      if (field.isInitializedByConstant) {
+        statement = js.js
+            .statement("#.# = #;", [field.holder.name, field.name, field.code]);
+      } else {
+        // This is a bit of a hack. Field initializers are generated as a
+        // function ending with a return statement. We replace the function
+        // with the body block and replace the return statement with an
+        // assignment to the field.
+        //
+        // Since unneeded blocks are not generated in the output,
+        // the statement(s) of the initializes are inlined in the emitted code.
+        //
+        // This is a cheap way of supporting eager fields (as opposed to
+        // generating one SSA graph for all eager fields) though it does not
+        // avoid redundant declaration of local variable, for instance for
+        // type arguments.
+        js.Fun code = field.code;
+        if (code.params.isEmpty &&
+            code.body.statements.length == 1 &&
+            code.body.statements.last is js.Return) {
+          // For now we only support initializers of the form
+          //
+          //   function() { return e; }
+          //
+          // To avoid unforeseen consequences of having parameters and locals
+          // in the initializer code.
+          js.Return last = code.body.statements.last;
+          statement = js.js.statement(
+              "#.# = #;", [field.holder.name, field.name, last.value]);
+        } else {
+          // Safe fallback in the event of a field initializer with no return
+          // statement as the last statement.
+          statement = js.js
+              .statement("#.# = #();", [field.holder.name, field.name, code]);
+        }
+      }
       registerEntityAst(field.element, statement,
           library: field.element.library);
       return statement;
@@ -1941,10 +1992,12 @@ class DeferredPrimaryExpression extends js.DeferredExpression {
     _value = value;
   }
 
+  @override
   js.Expression get value {
     assert(_value != null);
     return _value;
   }
 
+  @override
   int get precedenceLevel => js_precedence.PRIMARY;
 }

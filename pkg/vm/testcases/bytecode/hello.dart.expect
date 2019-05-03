@@ -1,8 +1,21 @@
-library #lib;
-import self as self;
-import "dart:core" as core;
+main = #lib::main;
+ [@vm.bytecode=
+ComponentBytecodeMetadata {
 
-[@vm.bytecode=
+Bytecode (version: stable)
+Main library: #lib
+
+}
+] [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -17,6 +30,13 @@ ConstantPool {
   [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [2] = Reserved
 }
-]static method main() → dynamic {
-  core::print("Hello, Dart Bytecode!");
+
+}
+
+}
+]library #lib from "#lib" as #lib {
+
+  static method main() → dynamic {
+    dart.core::print("Hello, Dart Bytecode!");
+  }
 }

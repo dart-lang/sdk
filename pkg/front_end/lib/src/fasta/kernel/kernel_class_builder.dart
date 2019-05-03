@@ -6,31 +6,32 @@ library fasta.kernel_class_builder;
 
 import 'package:kernel/ast.dart'
     show
+        Arguments,
+        AsExpression,
         Class,
         Constructor,
-        ThisExpression,
         DartType,
         DynamicType,
         Expression,
         Field,
         FunctionNode,
         InterfaceType,
-        AsExpression,
+        InvalidType,
         ListLiteral,
         Member,
+        MethodInvocation,
         Name,
         Procedure,
+        ProcedureKind,
         RedirectingFactoryConstructor,
         ReturnStatement,
-        VoidType,
-        MethodInvocation,
-        ProcedureKind,
         StaticGet,
         Supertype,
+        ThisExpression,
         TypeParameter,
         TypeParameterType,
-        Arguments,
-        VariableDeclaration;
+        VariableDeclaration,
+        VoidType;
 
 import 'package:kernel/ast.dart' show FunctionType, TypeParameterType;
 
@@ -1021,22 +1022,31 @@ abstract class KernelClassBuilder
     } else if (isCovariant && typeEnvironment.isSubtypeOf(supertype, subtype)) {
       // No problem--the overriding parameter is marked "covariant" and has
       // a type which is a subtype of the parameter it overrides.
+    } else if (subtype is InvalidType || supertype is InvalidType) {
+      // Don't report a problem as something else is wrong that has already
+      // been reported.
     } else {
       // Report an error.
       String declaredMemberName =
           '${declaredMember.enclosingClass.name}.${declaredMember.name.name}';
+      String interfaceMemberName =
+          '${interfaceMember.enclosingClass.name}.${interfaceMember.name.name}';
       Message message;
       int fileOffset;
       if (declaredParameter == null) {
         message = templateOverrideTypeMismatchReturnType.withArguments(
-            declaredMemberName, declaredType, interfaceType);
+            declaredMemberName,
+            declaredType,
+            interfaceType,
+            interfaceMemberName);
         fileOffset = declaredMember.fileOffset;
       } else {
         message = templateOverrideTypeMismatchParameter.withArguments(
             declaredParameter.name,
             declaredMemberName,
             declaredType,
-            interfaceType);
+            interfaceType,
+            interfaceMemberName);
         fileOffset = declaredParameter.fileOffset;
       }
       library.addProblem(message, fileOffset, noLength, declaredMember.fileUri,

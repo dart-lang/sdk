@@ -27,7 +27,7 @@ class A {
   set setter11(int _) => null; //# 31: compile-time error
 
   @virtual int field1; //# 41: ok
-  num field2; //# 42: ok
+  num field2; //# 42: compile-time error
   int field3; //# 43: compile-time error
   int field4; //# 44: compile-time error
   int field5; //# 45: compile-time error

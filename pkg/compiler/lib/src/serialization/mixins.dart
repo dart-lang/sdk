@@ -156,6 +156,20 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
+  Map<K, V> readMemberNodeMap<K extends ir.Member, V>(V f(),
+      {bool emptyAsNull: false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    Map<K, V> map = {};
+    for (int i = 0; i < count; i++) {
+      ir.Member node = readMemberNode();
+      V value = f();
+      map[node] = value;
+    }
+    return map;
+  }
+
+  @override
   Map<K, V> readTreeNodeMap<K extends ir.TreeNode, V>(V f(),
       {bool emptyAsNull: false}) {
     int count = readInt();
@@ -251,6 +265,15 @@ abstract class DataSourceMixin implements DataSource {
     bool hasValue = readBool();
     if (hasValue) {
       return readLocal();
+    }
+    return null;
+  }
+
+  @override
+  ConstantValue readConstantOrNull() {
+    bool hasClass = readBool();
+    if (hasClass) {
+      return readConstant();
     }
     return null;
   }
@@ -533,6 +556,21 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
+  void writeMemberNodeMap<V>(Map<ir.Member, V> map, void f(V value),
+      {bool allowNull: false}) {
+    if (map == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(map.length);
+      map.forEach((ir.Member key, V value) {
+        writeMemberNode(key);
+        f(value);
+      });
+    }
+  }
+
+  @override
   void writeTreeNodeMap<V>(Map<ir.TreeNode, V> map, void f(V value),
       {bool allowNull: false}) {
     if (map == null) {
@@ -607,6 +645,14 @@ abstract class DataSinkMixin implements DataSink {
       for (ir.TypeParameter value in values) {
         writeTypeParameterNode(value);
       }
+    }
+  }
+
+  @override
+  void writeConstantOrNull(ConstantValue value) {
+    writeBool(value != null);
+    if (value != null) {
+      writeConstant(value);
     }
   }
 

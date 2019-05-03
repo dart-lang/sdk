@@ -76,17 +76,36 @@ class DirectiveOrganizer {
    * Organize all [Directive]s.
    */
   void _organizeDirectives() {
+    var lineInfo = unit.lineInfo;
     List<_DirectiveInfo> directives = [];
     for (Directive directive in unit.directives) {
       if (directive is UriBasedDirective) {
         _DirectivePriority priority = getDirectivePriority(directive);
         if (priority != null) {
           int offset = directive.offset;
-          int length = directive.length;
-          String text = code.substring(offset, offset + length);
+
+          int end = directive.end;
+          int line = lineInfo.getLocation(end).lineNumber;
+          Token comment = directive.endToken.next.precedingComments;
+          while (comment != null) {
+            if (lineInfo.getLocation(comment.offset).lineNumber == line) {
+              end = comment.end;
+            }
+            comment = comment.next;
+          }
+
+          String text = code.substring(offset, end);
           String uriContent = directive.uri.stringValue;
-          directives
-              .add(new _DirectiveInfo(directive, priority, uriContent, text));
+          directives.add(
+            new _DirectiveInfo(
+              directive,
+              priority,
+              uriContent,
+              offset,
+              end,
+              text,
+            ),
+          );
         }
       }
     }
@@ -94,8 +113,8 @@ class DirectiveOrganizer {
     if (directives.isEmpty) {
       return;
     }
-    int firstDirectiveOffset = directives.first.directive.offset;
-    int lastDirectiveEnd = directives.last.directive.end;
+    int firstDirectiveOffset = directives.first.offset;
+    int lastDirectiveEnd = directives.last.end;
     // sort
     directives.sort();
     // append directives with grouping
@@ -124,29 +143,6 @@ class DirectiveOrganizer {
       }
       directivesCode = sb.toString();
       directivesCode = directivesCode.trimRight();
-    }
-    // append comment tokens which otherwise would be removed completely
-    {
-      bool firstCommentToken = true;
-      Token token = unit.beginToken;
-      while (token != null &&
-          token.type != TokenType.EOF &&
-          token.end < lastDirectiveEnd) {
-        Token commentToken = token.precedingComments;
-        while (commentToken != null) {
-          int offset = commentToken.offset;
-          int end = commentToken.end;
-          if (offset > firstDirectiveOffset && offset < lastDirectiveEnd) {
-            if (firstCommentToken) {
-              directivesCode += endOfLine;
-              firstCommentToken = false;
-            }
-            directivesCode += code.substring(offset, end) + endOfLine;
-          }
-          commentToken = commentToken.next;
-        }
-        token = token.next;
-      }
     }
     // prepare code
     String beforeDirectives = code.substring(0, firstDirectiveOffset);
@@ -200,9 +196,24 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   final UriBasedDirective directive;
   final _DirectivePriority priority;
   final String uri;
+
+  /// The offset of the first token, usually the keyword.
+  final int offset;
+
+  /// The offset after the least token, including the end-of-line comment.
+  final int end;
+
+  /// The text between [offset] and [end].
   final String text;
 
-  _DirectiveInfo(this.directive, this.priority, this.uri, this.text);
+  _DirectiveInfo(
+    this.directive,
+    this.priority,
+    this.uri,
+    this.offset,
+    this.end,
+    this.text,
+  );
 
   @override
   int compareTo(_DirectiveInfo other) {

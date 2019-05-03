@@ -34,25 +34,6 @@ export '../fasta/compiler_context.dart' show CompilerContext;
 export '../fasta/fasta_codes.dart'
     show
         LocatedMessage,
-        Message,
-        messageConstEvalCircularity,
-        messageConstEvalContext,
-        messageConstEvalFailedAssertion,
-        noLength,
-        templateConstEvalFreeTypeParameter,
-        templateConstEvalDeferredLibrary,
-        templateConstEvalDuplicateKey,
-        templateConstEvalFailedAssertionWithMessage,
-        templateConstEvalInvalidBinaryOperandType,
-        templateConstEvalInvalidMethodInvocation,
-        templateConstEvalInvalidStaticInvocation,
-        templateConstEvalInvalidStringInterpolationOperand,
-        templateConstEvalInvalidSymbolName,
-        templateConstEvalInvalidType,
-        templateConstEvalNegativeShift,
-        templateConstEvalNonConstantLiteral,
-        templateConstEvalNonConstantVariableGet,
-        templateConstEvalZeroDivisor,
         templateFfiFieldAnnotation,
         templateFfiStructAnnotation,
         templateFfiNotStatic,
@@ -64,5 +45,7 @@ export '../fasta/fasta_codes.dart'
 export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 
 export '../fasta/kernel/utils.dart' show serializeComponent, serializeProcedure;
+
+export '../fasta/resolve_input_uri.dart' show resolveInputUri;
 
 export '../fasta/severity.dart' show Severity;

@@ -34,6 +34,7 @@ final Matcher isAddContentOverlay = new LazyMatcher(() => new MatchesJsonObject(
  *   "message": String
  *   "correction": optional String
  *   "code": String
+ *   "url": optional String
  *   "hasFix": optional bool
  * }
  */
@@ -46,6 +47,7 @@ final Matcher isAnalysisError =
           "code": isString
         }, optionalFields: {
           "correction": isString,
+          "url": isString,
           "hasFix": isBool
         }));
 
@@ -134,7 +136,6 @@ final Matcher isChangeContentOverlay = new LazyMatcher(() =>
  *   "relevance": int
  *   "completion": String
  *   "displayText": optional String
- *   "elementUri": optional String
  *   "selectionOffset": int
  *   "selectionLength": int
  *   "isDeprecated": bool
@@ -152,7 +153,6 @@ final Matcher isChangeContentOverlay = new LazyMatcher(() =>
  *   "hasNamedParameters": optional bool
  *   "parameterName": optional String
  *   "parameterType": optional String
- *   "importUri": optional String
  * }
  */
 final Matcher isCompletionSuggestion =
@@ -166,7 +166,6 @@ final Matcher isCompletionSuggestion =
           "isPotential": isBool
         }, optionalFields: {
           "displayText": isString,
-          "elementUri": isString,
           "docSummary": isString,
           "docComplete": isString,
           "declaringType": isString,
@@ -179,8 +178,7 @@ final Matcher isCompletionSuggestion =
           "requiredParameterCount": isInt,
           "hasNamedParameters": isBool,
           "parameterName": isString,
-          "parameterType": isString,
-          "importUri": isString
+          "parameterType": isString
         }));
 
 /**

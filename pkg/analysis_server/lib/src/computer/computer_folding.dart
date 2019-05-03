@@ -107,6 +107,7 @@ class DartUnitFoldingComputer {
  */
 class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   final DartUnitFoldingComputer _computer;
+
   _DartUnitFoldingComputerVisitor(this._computer);
 
   @override
@@ -191,13 +192,6 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitMapLiteral(MapLiteral node) {
-    _computer._addRegion(
-        node.leftBracket.end, node.rightBracket.offset, FoldingKind.LITERAL);
-    super.visitMapLiteral(node);
-  }
-
-  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
     super.visitMethodDeclaration(node);
@@ -229,5 +223,12 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   void visitPartOfDirective(PartOfDirective node) {
     _computer._recordDirective(node);
     super.visitPartOfDirective(node);
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    _computer._addRegion(
+        node.leftBracket.end, node.rightBracket.offset, FoldingKind.LITERAL);
+    super.visitSetOrMapLiteral(node);
   }
 }

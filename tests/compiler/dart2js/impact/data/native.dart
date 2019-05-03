@@ -22,7 +22,7 @@ main() {
   testNativeMethodReturns();
 }
 
-/*strong.element: testJSCall:
+/*element: testJSCall:
  static=[JS<dynamic>(3)],
  type=[inst:JSNull,inst:JSString,native:bool,native:int]
 */
@@ -56,7 +56,7 @@ testNativeMethodReturns() native;
 
 @Native("NativeClass")
 class NativeClass {
-  /*strong.element: NativeClass.field:
+  /*element: NativeClass.field:
    type=[
     inst:JSBool,
     inst:JSNull,
@@ -76,7 +76,7 @@ class NativeClass {
   }
 }
 
-/*strong.element: testNativeField:
+/*element: testNativeField:
  dynamic=[NativeClass.field],
  static=[defineProperty(3)],
  type=[inst:JSBool,param:NativeClass]

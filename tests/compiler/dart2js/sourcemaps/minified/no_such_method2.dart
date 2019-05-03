@@ -6,19 +6,18 @@
 // Kind of minified name: global
 // Expected deobfuscated name: B
 
-import 'package:expect/expect.dart';
-
 main() {
   confuse(new A());
   dynamic x = confuse(new B());
   x.m1();
 }
 
-@AssumeDynamic()
-@NoInline()
+@pragma('dart2js:assumeDynamic')
+@pragma('dart2js:noInline')
 confuse(x) => x;
 
 class A {
+  @override
   noSuchMethod(i) => null;
 }
 

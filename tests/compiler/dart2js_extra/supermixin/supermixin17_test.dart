@@ -5,23 +5,21 @@
 import 'package:expect/expect.dart';
 
 class S {}
+
 class M {}
 
 class SuperC = S with M;
 
-class SuperA {
-}
+class SuperA {}
 
-class SuperB extends SuperA implements SuperC {
-}
+class SuperB extends SuperA implements SuperC {}
 
-mixin Mixin on SuperC, SuperA {
-}
+mixin Mixin on SuperC, SuperA {}
 
 class Class extends SuperB with Mixin {}
 
-@AssumeDynamic()
-@NoInline()
+@pragma('dart2js:assumeDynamic')
+@pragma('dart2js:noInline')
 test(c) {
   Expect.isTrue(c is Mixin, "Unexpected result for $c is Mixin");
   Expect.isTrue(c is SuperC, "Unexpected result for $c is SuperC");

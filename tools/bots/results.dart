@@ -30,10 +30,16 @@ Future<String> runGsutil(List<String> arguments) async {
         processResult.stderr.contains("One or more URLs matched no objects")) {
       return null;
     }
-    throw new Exception("Failed to run: python $gsutilPy $arguments\n"
+    String error = "Failed to run: python $gsutilPy $arguments\n"
         "exitCode: ${processResult.exitCode}\n"
         "stdout:\n${processResult.stdout}\n"
-        "stderr:\n${processResult.stderr}");
+        "stderr:\n${processResult.stderr}";
+    if (processResult.exitCode == 1 &&
+        processResult.stderr.contains("401 Anonymous caller")) {
+      error =
+          "\n\nYou need to authenticate by running:\npython $gsutilPy config\n";
+    }
+    throw new Exception(error);
   }
   return processResult.stdout;
 }

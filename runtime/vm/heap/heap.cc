@@ -83,8 +83,6 @@ void Heap::AbandonRemainingTLAB(Thread* thread) {
 
 uword Heap::AllocateNew(intptr_t size) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
-  // Currently, only the Dart thread may allocate in new space.
-  isolate()->AssertCurrentThreadIsMutator();
   Thread* thread = Thread::Current();
   uword addr = new_space_.TryAllocateInTLAB(thread, size);
   if (addr != 0) {
@@ -210,7 +208,7 @@ void Heap::FreeExternal(intptr_t size, Space space) {
 
 void Heap::PromoteExternal(intptr_t cid, intptr_t size) {
   new_space_.FreeExternal(size);
-  old_space_.AllocateExternal(cid, size);
+  old_space_.PromoteExternal(cid, size);
 }
 
 bool Heap::Contains(uword addr) const {
@@ -729,6 +727,18 @@ int64_t Heap::ExternalInWords(Space space) const {
                        : old_space_.ExternalInWords();
 }
 
+int64_t Heap::TotalUsedInWords() const {
+  return UsedInWords(kNew) + UsedInWords(kOld);
+}
+
+int64_t Heap::TotalCapacityInWords() const {
+  return CapacityInWords(kNew) + CapacityInWords(kOld);
+}
+
+int64_t Heap::TotalExternalInWords() const {
+  return ExternalInWords(kNew) + ExternalInWords(kOld);
+}
+
 int64_t Heap::GCTimeInMicros(Space space) const {
   if (space == kNew) {
     return new_space_.gc_time_micros();
@@ -852,6 +862,14 @@ void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
   } else {
     old_space_.PrintToJSONObject(object);
   }
+}
+
+void Heap::PrintMemoryUsageJSON(JSONStream* stream) const {
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", "MemoryUsage");
+  jsobj.AddProperty64("heapUsage", TotalUsedInWords() * kWordSize);
+  jsobj.AddProperty64("heapCapacity", TotalCapacityInWords() * kWordSize);
+  jsobj.AddProperty64("externalUsage", TotalExternalInWords() * kWordSize);
 }
 #endif  // PRODUCT
 
@@ -1016,14 +1034,14 @@ NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
 
 WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)
     : ThreadStackResource(thread) {
-  if (FLAG_write_protect_vm_isolate) {
+  if (FLAG_write_protect_code && FLAG_write_protect_vm_isolate) {
     Dart::vm_isolate()->heap()->WriteProtect(false);
   }
 }
 
 WritableVMIsolateScope::~WritableVMIsolateScope() {
   ASSERT(Dart::vm_isolate()->heap()->UsedInWords(Heap::kNew) == 0);
-  if (FLAG_write_protect_vm_isolate) {
+  if (FLAG_write_protect_code && FLAG_write_protect_vm_isolate) {
     Dart::vm_isolate()->heap()->WriteProtect(true);
   }
 }

@@ -7,12 +7,16 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
@@ -28,6 +32,9 @@ import 'package:yaml/yaml.dart';
 
 /// A top-level public declaration.
 class Declaration {
+  final List<Declaration> children;
+  final String defaultArgumentListString;
+  final List<int> defaultArgumentListTextRanges;
   final String docComplete;
   final String docSummary;
   final bool isAbstract;
@@ -40,10 +47,10 @@ class Declaration {
   final int locationStartColumn;
   final int locationStartLine;
   final String name;
-  final String name2;
   final String parameters;
   final List<String> parameterNames;
   final List<String> parameterTypes;
+  final Declaration parent;
   final int requiredParameterCount;
   final String returnType;
   final String typeParameters;
@@ -51,6 +58,9 @@ class Declaration {
   List<String> _relevanceTags;
 
   Declaration({
+    @required this.children,
+    @required this.defaultArgumentListString,
+    @required this.defaultArgumentListTextRanges,
     @required this.docComplete,
     @required this.docSummary,
     @required this.isAbstract,
@@ -63,10 +73,10 @@ class Declaration {
     @required this.locationStartColumn,
     @required this.locationStartLine,
     @required this.name,
-    @required this.name2,
     @required this.parameters,
     @required this.parameterNames,
     @required this.parameterTypes,
+    @required this.parent,
     @required List<String> relevanceTags,
     @required this.requiredParameterCount,
     @required this.returnType,
@@ -77,11 +87,7 @@ class Declaration {
 
   @override
   String toString() {
-    if (name2 == null) {
-      return '($kind, $name)';
-    } else {
-      return '($kind, $name, $name2)';
-    }
+    return '($kind, $name)';
   }
 }
 
@@ -89,6 +95,7 @@ class Declaration {
 enum DeclarationKind {
   CLASS,
   CLASS_TYPE_ALIAS,
+  CONSTRUCTOR,
   ENUM,
   ENUM_CONSTANT,
   FUNCTION,
@@ -118,6 +125,10 @@ class DeclarationsContext {
   /// The list of paths of all SDK libraries.
   final List<String> _sdkLibraryPathList = [];
 
+  /// The combined information about all of the dartdoc directives in this
+  /// context.
+  final DartdocDirectiveInfo _dartdocDirectiveInfo = new DartdocDirectiveInfo();
+
   /// Map of path prefixes to lists of paths of files from dependencies
   /// (both libraries and parts, we don't know at the time when we fill this
   /// map) that libraries with paths starting with these prefixes can access.
@@ -126,6 +137,10 @@ class DeclarationsContext {
   final Map<String, List<String>> _pathPrefixToDependencyPathList = {};
 
   DeclarationsContext(this._tracker, this._analysisContext);
+
+  /// Return the combined information about all of the dartdoc directives in
+  /// this context.
+  DartdocDirectiveInfo get dartdocDirectiveInfo => _dartdocDirectiveInfo;
 
   /// Return libraries that are available to the file with the given [path].
   ///
@@ -613,6 +628,7 @@ class DeclarationsTracker {
 
     var isLibrary = file.isLibrary;
     var library = isLibrary ? file : file.library;
+    if (library == null) return;
 
     if (isLibrary) {
       file.refresh(containingContext);
@@ -710,27 +726,30 @@ class RelevanceTags {
         var name = declaration.name;
         return <String>['$uriStr::$name'];
       case DeclarationKind.ENUM_CONSTANT:
-        var name2 = declaration.name2;
-        return <String>['$uriStr::$name2'];
+        var enumName = declaration.parent.name;
+        return <String>['$uriStr::$enumName'];
       default:
         return null;
     }
   }
 
   static List<String> _forExpression(Expression expression) {
-    if (expression is BooleanLiteral) return const ['dart:core::bool'];
-    if (expression is DoubleLiteral) return const ['dart:core::double'];
-    if (expression is IntegerLiteral) return const ['dart:core::int'];
-    if (expression is StringLiteral) return const ['dart:core::String'];
-
-    if (expression is ListLiteral || expression is ListLiteral2) {
+    if (expression is BooleanLiteral) {
+      return const ['dart:core::bool'];
+    } else if (expression is DoubleLiteral) {
+      return const ['dart:core::double'];
+    } else if (expression is IntegerLiteral) {
+      return const ['dart:core::int'];
+    } else if (expression is StringLiteral) {
+      return const ['dart:core::String'];
+    } else if (expression is ListLiteral) {
       return const ['dart:core::List'];
-    }
-    if (expression is MapLiteral || expression is MapLiteral2) {
-      return const ['dart:core::Map'];
-    }
-    if (expression is SetLiteral || expression is SetLiteral2) {
-      return const ['dart:core::Set'];
+    } else if (expression is SetOrMapLiteral) {
+      if (expression.isMap) {
+        return const ['dart:core::Map'];
+      } else if (expression.isSet) {
+        return const ['dart:core::Set'];
+      }
     }
 
     return null;
@@ -739,15 +758,14 @@ class RelevanceTags {
 
 class _DeclarationStorage {
   static const fieldDocMask = 1 << 0;
-  static const fieldName2Mask = 1 << 1;
-  static const fieldParametersMask = 1 << 2;
-  static const fieldReturnTypeMask = 1 << 3;
-  static const fieldTypeParametersMask = 1 << 4;
+  static const fieldParametersMask = 1 << 1;
+  static const fieldReturnTypeMask = 1 << 2;
+  static const fieldTypeParametersMask = 1 << 3;
 
-  static Declaration fromIdl(String path, idl.AvailableDeclaration d) {
+  static Declaration fromIdl(
+      String path, Declaration parent, idl.AvailableDeclaration d) {
     var fieldMask = d.fieldMask;
     var hasDoc = fieldMask & fieldDocMask != 0;
-    var hasName2 = fieldMask & fieldName2Mask != 0;
     var hasParameters = fieldMask & fieldParametersMask != 0;
     var hasReturnType = fieldMask & fieldReturnTypeMask != 0;
     var hasTypeParameters = fieldMask & fieldTypeParametersMask != 0;
@@ -759,7 +777,15 @@ class _DeclarationStorage {
       relevanceTags = null;
     }
 
-    return Declaration(
+    var children = <Declaration>[];
+    var declaration = Declaration(
+      children: children,
+      defaultArgumentListString: d.defaultArgumentListString.isNotEmpty
+          ? d.defaultArgumentListString
+          : null,
+      defaultArgumentListTextRanges: d.defaultArgumentListTextRanges.isNotEmpty
+          ? d.defaultArgumentListTextRanges
+          : null,
       docComplete: hasDoc ? d.docComplete : null,
       docSummary: hasDoc ? d.docSummary : null,
       isAbstract: d.isAbstract,
@@ -772,15 +798,22 @@ class _DeclarationStorage {
       locationStartColumn: d.locationStartColumn,
       locationStartLine: d.locationStartLine,
       name: d.name,
-      name2: hasName2 ? d.name2 : null,
       parameters: hasParameters ? d.parameters : null,
       parameterNames: hasParameters ? d.parameterNames : null,
       parameterTypes: hasParameters ? d.parameterTypes.toList() : null,
+      parent: parent,
       relevanceTags: relevanceTags,
       requiredParameterCount: hasParameters ? d.requiredParameterCount : null,
       returnType: hasReturnType ? d.returnType : null,
       typeParameters: hasTypeParameters ? d.typeParameters : null,
     );
+
+    for (var childIdl in d.children) {
+      var child = fromIdl(path, declaration, childIdl);
+      children.add(child);
+    }
+
+    return declaration;
   }
 
   static DeclarationKind kindFromIdl(idl.AvailableDeclarationKind kind) {
@@ -789,6 +822,8 @@ class _DeclarationStorage {
         return DeclarationKind.CLASS;
       case idl.AvailableDeclarationKind.CLASS_TYPE_ALIAS:
         return DeclarationKind.CLASS_TYPE_ALIAS;
+      case idl.AvailableDeclarationKind.CONSTRUCTOR:
+        return DeclarationKind.CONSTRUCTOR;
       case idl.AvailableDeclarationKind.ENUM:
         return DeclarationKind.ENUM;
       case idl.AvailableDeclarationKind.ENUM_CONSTANT:
@@ -816,6 +851,8 @@ class _DeclarationStorage {
         return idl.AvailableDeclarationKind.CLASS;
       case DeclarationKind.CLASS_TYPE_ALIAS:
         return idl.AvailableDeclarationKind.CLASS_TYPE_ALIAS;
+      case DeclarationKind.CONSTRUCTOR:
+        return idl.AvailableDeclarationKind.CONSTRUCTOR;
       case DeclarationKind.ENUM:
         return idl.AvailableDeclarationKind.ENUM;
       case DeclarationKind.ENUM_CONSTANT:
@@ -842,9 +879,6 @@ class _DeclarationStorage {
     if (d.docComplete != null) {
       fieldMask |= fieldDocMask;
     }
-    if (d.name2 != null) {
-      fieldMask |= fieldName2Mask;
-    }
     if (d.parameters != null) {
       fieldMask |= fieldParametersMask;
     }
@@ -857,6 +891,9 @@ class _DeclarationStorage {
 
     var idlKind = kindToIdl(d.kind);
     return idl.AvailableDeclarationBuilder(
+      children: d.children.map(toIdl).toList(),
+      defaultArgumentListString: d.defaultArgumentListString,
+      defaultArgumentListTextRanges: d.defaultArgumentListTextRanges,
       docComplete: d.docComplete,
       docSummary: d.docSummary,
       fieldMask: fieldMask,
@@ -869,7 +906,6 @@ class _DeclarationStorage {
       locationStartColumn: d.locationStartColumn,
       locationStartLine: d.locationStartLine,
       name: d.name,
-      name2: d.name2,
       parameters: d.parameters,
       parameterNames: d.parameterNames,
       parameterTypes: d.parameterTypes,
@@ -879,6 +915,13 @@ class _DeclarationStorage {
       typeParameters: d.typeParameters,
     );
   }
+}
+
+class _DefaultArguments {
+  final String text;
+  final List<int> ranges;
+
+  _DefaultArguments(this.text, this.ranges);
 }
 
 class _Export {
@@ -891,7 +934,7 @@ class _Export {
 
   Iterable<Declaration> filter(List<Declaration> declarations) {
     return declarations.where((d) {
-      var name = d.name2 ?? d.name;
+      var name = d.name;
       for (var combinator in combinators) {
         if (combinator.shows.isNotEmpty) {
           if (!combinator.shows.contains(name)) return false;
@@ -914,7 +957,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 5;
+  static const int DATA_VERSION = 11;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -940,6 +983,9 @@ class _File {
   List<Declaration> fileDeclarations = [];
   List<Declaration> libraryDeclarations = [];
   List<Declaration> exportedDeclarations;
+
+  List<String> templateNames = [];
+  List<String> templateValues = [];
 
   /// If `true`, then this library has already been sent to the client.
   bool isSent = false;
@@ -997,9 +1043,14 @@ class _File {
 
       CompilationUnit unit = _parse(content);
       _buildFileDeclarations(unit);
+      _extractDartdocInfoFromUnit(unit);
       _putFileDeclarationsToByteStore(contentKey);
+      context.dartdocDirectiveInfo
+          .addTemplateNamesAndValues(templateNames, templateValues);
     } else {
       _readFileDeclarationsFromBytes(bytes);
+      context.dartdocDirectiveInfo
+          .addTemplateNamesAndValues(templateNames, templateValues);
     }
 
     // Resolve exports and parts.
@@ -1028,7 +1079,7 @@ class _File {
       for (var part in parts) {
         libraryDeclarations.addAll(part.file.fileDeclarations);
       }
-      _computeRelevanceTagsForLibraryDeclarations();
+      _computeRelevanceTags(libraryDeclarations);
     }
   }
 
@@ -1038,6 +1089,8 @@ class _File {
     fileDeclarations = [];
     libraryDeclarations = null;
     exportedDeclarations = null;
+    templateNames = [];
+    templateValues = [];
 
     for (var astDirective in unit.directives) {
       if (astDirective is ExportDirective) {
@@ -1088,48 +1141,62 @@ class _File {
       }
     }
 
-    void addDeclaration({
+    Declaration addDeclaration({
+      String defaultArgumentListString,
+      List<int> defaultArgumentListTextRanges,
       bool isAbstract = false,
       bool isConst = false,
       bool isDeprecated = false,
       bool isFinal = false,
       @required DeclarationKind kind,
       @required Identifier name,
-      Identifier name2,
       String parameters,
       List<String> parameterNames,
       List<String> parameterTypes,
+      Declaration parent,
       List<String> relevanceTags,
       int requiredParameterCount,
       String returnType,
       String typeParameters,
     }) {
-      if (!Identifier.isPrivateName(name.name)) {
-        var locationOffset = name.offset;
-        var lineLocation = lineInfo.getLocation(locationOffset);
-        fileDeclarations.add(Declaration(
-          docComplete: docComplete,
-          docSummary: docSummary,
-          isAbstract: isAbstract,
-          isConst: isConst,
-          isDeprecated: isDeprecated,
-          isFinal: isFinal,
-          kind: kind,
-          locationOffset: locationOffset,
-          locationPath: path,
-          name: name.name,
-          name2: name2?.name,
-          locationStartColumn: lineLocation.columnNumber,
-          locationStartLine: lineLocation.lineNumber,
-          parameters: parameters,
-          parameterNames: parameterNames,
-          parameterTypes: parameterTypes,
-          relevanceTags: relevanceTags,
-          requiredParameterCount: requiredParameterCount,
-          returnType: returnType,
-          typeParameters: typeParameters,
-        ));
+      if (Identifier.isPrivateName(name.name)) {
+        return null;
       }
+
+      var locationOffset = name.offset;
+      var lineLocation = lineInfo.getLocation(locationOffset);
+      var declaration = Declaration(
+        children: <Declaration>[],
+        defaultArgumentListString: defaultArgumentListString,
+        defaultArgumentListTextRanges: defaultArgumentListTextRanges,
+        docComplete: docComplete,
+        docSummary: docSummary,
+        isAbstract: isAbstract,
+        isConst: isConst,
+        isDeprecated: isDeprecated,
+        isFinal: isFinal,
+        kind: kind,
+        locationOffset: locationOffset,
+        locationPath: path,
+        name: name.name,
+        locationStartColumn: lineLocation.columnNumber,
+        locationStartLine: lineLocation.lineNumber,
+        parameters: parameters,
+        parameterNames: parameterNames,
+        parameterTypes: parameterTypes,
+        parent: parent,
+        relevanceTags: relevanceTags,
+        requiredParameterCount: requiredParameterCount,
+        returnType: returnType,
+        typeParameters: typeParameters,
+      );
+
+      if (parent != null) {
+        parent.children.add(declaration);
+      } else {
+        fileDeclarations.add(declaration);
+      }
+      return declaration;
     }
 
     for (var node in unit.declarations) {
@@ -1137,12 +1204,77 @@ class _File {
       var isDeprecated = _hasDeprecatedAnnotation(node);
 
       if (node is ClassDeclaration) {
-        addDeclaration(
+        var classDeclaration = addDeclaration(
           isAbstract: node.isAbstract,
           isDeprecated: isDeprecated,
           kind: DeclarationKind.CLASS,
           name: node.name,
         );
+        if (classDeclaration == null) continue;
+
+        var hasConstructor = false;
+        for (var classMember in node.members) {
+          if (classMember is ConstructorDeclaration) {
+            setDartDoc(classMember);
+            isDeprecated = _hasDeprecatedAnnotation(classMember);
+
+            var parameters = classMember.parameters;
+            var defaultArguments = _computeDefaultArguments(parameters);
+
+            var constructorName = classMember.name;
+            constructorName ??= SimpleIdentifierImpl(
+              StringToken(
+                TokenType.IDENTIFIER,
+                '',
+                classMember.returnType.offset,
+              ),
+            );
+
+            addDeclaration(
+              defaultArgumentListString: defaultArguments?.text,
+              defaultArgumentListTextRanges: defaultArguments?.ranges,
+              isDeprecated: isDeprecated,
+              kind: DeclarationKind.CONSTRUCTOR,
+              name: constructorName,
+              parameters: parameters.toSource(),
+              parameterNames: _getFormalParameterNames(parameters),
+              parameterTypes: _getFormalParameterTypes(parameters),
+              parent: classDeclaration,
+              requiredParameterCount:
+                  _getFormalParameterRequiredCount(parameters),
+              returnType: node.name.name,
+            );
+            hasConstructor = true;
+          }
+        }
+
+        if (!hasConstructor) {
+          classDeclaration.children.add(Declaration(
+            children: [],
+            defaultArgumentListString: null,
+            defaultArgumentListTextRanges: null,
+            docComplete: null,
+            docSummary: null,
+            isAbstract: false,
+            isConst: false,
+            isDeprecated: false,
+            isFinal: false,
+            kind: DeclarationKind.CONSTRUCTOR,
+            locationOffset: -1,
+            locationPath: path,
+            name: '',
+            locationStartColumn: 0,
+            locationStartLine: 0,
+            parameters: '()',
+            parameterNames: [],
+            parameterTypes: [],
+            parent: classDeclaration,
+            relevanceTags: null,
+            requiredParameterCount: 0,
+            returnType: node.name.name,
+            typeParameters: null,
+          ));
+        }
       } else if (node is ClassTypeAlias) {
         addDeclaration(
           isDeprecated: isDeprecated,
@@ -1150,11 +1282,13 @@ class _File {
           name: node.name,
         );
       } else if (node is EnumDeclaration) {
-        addDeclaration(
+        var enumDeclaration = addDeclaration(
           isDeprecated: isDeprecated,
           kind: DeclarationKind.ENUM,
           name: node.name,
         );
+        if (enumDeclaration == null) continue;
+
         for (var constant in node.constants) {
           setDartDoc(constant);
           var isDeprecated = _hasDeprecatedAnnotation(constant);
@@ -1162,7 +1296,7 @@ class _File {
             isDeprecated: isDeprecated,
             kind: DeclarationKind.ENUM_CONSTANT,
             name: constant.name,
-            name2: node.name,
+            parent: enumDeclaration,
           );
         }
       } else if (node is FunctionDeclaration) {
@@ -1187,7 +1321,10 @@ class _File {
                 _getFormalParameterRequiredCount(parameters),
           );
         } else {
+          var defaultArguments = _computeDefaultArguments(parameters);
           addDeclaration(
+            defaultArgumentListString: defaultArguments?.text,
+            defaultArgumentListTextRanges: defaultArguments?.ranges,
             isDeprecated: isDeprecated,
             kind: DeclarationKind.FUNCTION,
             name: node.name,
@@ -1202,6 +1339,8 @@ class _File {
         }
       } else if (node is GenericTypeAlias) {
         var functionType = node.functionType;
+        if (functionType == null) continue;
+
         var parameters = functionType.parameters;
         addDeclaration(
           isDeprecated: isDeprecated,
@@ -1238,10 +1377,47 @@ class _File {
     }
   }
 
-  void _computeRelevanceTagsForLibraryDeclarations() {
-    for (var declaration in libraryDeclarations) {
+  void _computeRelevanceTags(List<Declaration> declarations) {
+    for (var declaration in declarations) {
       declaration._relevanceTags ??=
           RelevanceTags._forDeclaration(uriStr, declaration);
+      _computeRelevanceTags(declaration.children);
+    }
+  }
+
+  void _extractDartdocInfoFromUnit(CompilationUnit unit) {
+    DartdocDirectiveInfo info = new DartdocDirectiveInfo();
+    for (Directive directive in unit.directives) {
+      Comment comment = directive.documentationComment;
+      if (comment != null) {
+        info.extractTemplate(getCommentNodeRawText(comment));
+      }
+    }
+    for (CompilationUnitMember declaration in unit.declarations) {
+      Comment comment = declaration.documentationComment;
+      if (comment != null) {
+        info.extractTemplate(getCommentNodeRawText(comment));
+      }
+      if (declaration is ClassOrMixinDeclaration) {
+        for (ClassMember member in declaration.members) {
+          Comment comment = member.documentationComment;
+          if (comment != null) {
+            info.extractTemplate(getCommentNodeRawText(comment));
+          }
+        }
+      } else if (declaration is EnumDeclaration) {
+        for (EnumConstantDeclaration constant in declaration.constants) {
+          Comment comment = constant.documentationComment;
+          if (comment != null) {
+            info.extractTemplate(getCommentNodeRawText(comment));
+          }
+        }
+      }
+    }
+    Map<String, String> templateMap = info.templateMap;
+    for (String name in templateMap.keys) {
+      templateNames.add(name);
+      templateValues.add(templateMap[name]);
     }
   }
 
@@ -1268,6 +1444,8 @@ class _File {
       declarations: fileDeclarations.map((d) {
         return _DeclarationStorage.toIdl(d);
       }).toList(),
+      directiveInfo: idl.DirectiveInfoBuilder(
+          templateNames: templateNames, templateValues: templateValues),
     );
     var bytes = builder.toBuffer();
     tracker._byteStore.put(contentKey, bytes);
@@ -1294,8 +1472,44 @@ class _File {
     }).toList();
 
     fileDeclarations = idlFile.declarations.map((e) {
-      return _DeclarationStorage.fromIdl(path, e);
+      return _DeclarationStorage.fromIdl(path, null, e);
     }).toList();
+
+    templateNames = idlFile.directiveInfo.templateNames.toList();
+    templateValues = idlFile.directiveInfo.templateValues.toList();
+  }
+
+  static _DefaultArguments _computeDefaultArguments(
+      FormalParameterList parameters) {
+    var buffer = StringBuffer();
+    var ranges = <int>[];
+    for (var parameter in parameters.parameters) {
+      if (parameter.isRequired) {
+        if (buffer.isNotEmpty) {
+          buffer.write(', ');
+        }
+        var valueOffset = buffer.length;
+        buffer.write(parameter.identifier.name);
+        var valueLength = buffer.length - valueOffset;
+        ranges.add(valueOffset);
+        ranges.add(valueLength);
+      } else if (parameter.isNamed && _hasRequiredAnnotation(parameter)) {
+        if (buffer.isNotEmpty) {
+          buffer.write(', ');
+        }
+        buffer.write(parameter.identifier.name);
+        buffer.write(': ');
+
+        var valueOffset = buffer.length;
+        buffer.write('null');
+        var valueLength = buffer.length - valueOffset;
+
+        ranges.add(valueOffset);
+        ranges.add(valueLength);
+      }
+    }
+    if (buffer.isEmpty) return null;
+    return _DefaultArguments(buffer.toString(), ranges);
   }
 
   static List<String> _getFormalParameterNames(FormalParameterList parameters) {
@@ -1349,6 +1563,19 @@ class _File {
       var name = annotation.name;
       if (name is SimpleIdentifier) {
         if (name.name == 'deprecated' || name.name == 'Deprecated') {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Return `true` if the [node] probably has `@required` annotation.
+  static bool _hasRequiredAnnotation(FormalParameter node) {
+    for (var annotation in node.metadata) {
+      var name = annotation.name;
+      if (name is SimpleIdentifier) {
+        if (name.name == 'required') {
           return true;
         }
       }
@@ -1465,7 +1692,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   static Set<Declaration> _newDeclarationSet() {
     return HashSet<Declaration>(
       hashCode: (e) => e.name.hashCode,
-      equals: (a, b) => a.name == b.name && a.name2 == b.name2,
+      equals: (a, b) => a.name == b.name,
     );
   }
 }

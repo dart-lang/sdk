@@ -4,9 +4,10 @@
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,12 +16,10 @@ main() {
 }
 
 @reflectiveTest
-class UncheckedUseOfNullableValueTest extends ResolverTestCase {
+class UncheckedUseOfNullableValueTest extends DriverResolutionTest {
   @override
-  List<String> get enabledExperiments => [EnableString.non_nullable];
-
-  @override
-  bool get enableNewAnalysisDriver => true;
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
   test_and_nonNullable() async {
     await assertNoErrorsInCode(r'''
@@ -32,7 +31,7 @@ m() {
   }
 
   test_and_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   bool? x;
   if(x && true) {}
@@ -77,7 +76,7 @@ m() {
   }
 
   test_cascade_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   int? x;
   x..isEven;
@@ -104,7 +103,7 @@ m() {
   }
 
   test_forLoop_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   List? x;
   for (var y in x) {}
@@ -122,7 +121,7 @@ m() {
   }
 
   test_if_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   bool? x;
   if (x) {}
@@ -140,7 +139,7 @@ m() {
   }
 
   test_index_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   List? x;
   x[0];
@@ -161,7 +160,7 @@ m() {
   test_invoke_dynamicFunctionType_nullable() async {
     // test is failing because nullable function invocations aren't being
     // resolved correctly
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   Function? x;
   x();
@@ -182,7 +181,7 @@ m() {
   test_invoke_nullable() async {
     // test is failing because nullable function invocations aren't being
     // resolved correctly
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   Function()? x;
   x();
@@ -227,7 +226,7 @@ m() {
   }
 
   test_member_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   int? x;
   x.isEven;
@@ -245,7 +244,7 @@ m() {
   }
 
   test_member_parenthesized_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   int? x;
   (x).isEven;
@@ -299,7 +298,7 @@ m() {
   }
 
   test_method_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   int? x;
   x.round();
@@ -335,7 +334,7 @@ m() {
   }
 
   test_minusEq_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   int? x;
   x -= 1;
@@ -353,7 +352,7 @@ m() {
   }
 
   test_not_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   bool? x;
   if(!x) {}
@@ -380,7 +379,7 @@ m() {
   }
 
   test_operatorMinus_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   int? x;
   x - 3;
@@ -398,7 +397,7 @@ m() {
   }
 
   test_operatorPlus_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   int? x;
   x + 3;
@@ -416,7 +415,7 @@ m() {
   }
 
   test_operatorPostfixDec_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   int? x;
   x--;
@@ -434,7 +433,7 @@ m() {
   }
 
   test_operatorPostfixInc_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   int? x;
   x++;
@@ -452,7 +451,7 @@ m() {
   }
 
   test_operatorPrefixDec_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   int? x;
   --x;
@@ -470,7 +469,7 @@ m() {
   }
 
   test_operatorPrefixInc_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   int? x;
   ++x;
@@ -488,7 +487,7 @@ m() {
   }
 
   test_operatorUnaryMinus_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   int? x;
   -x;
@@ -506,7 +505,7 @@ m() {
   }
 
   test_or_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   bool? x;
   if(x || false) {}
@@ -524,7 +523,7 @@ m() {
   }
 
   test_plusEq_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   int? x;
   x += 1;
@@ -533,7 +532,7 @@ m() {
   }
 
   test_ternary_condition_nullable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 m() {
   bool? x;
   x ? 0 : 1;

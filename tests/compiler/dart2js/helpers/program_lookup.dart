@@ -5,6 +5,7 @@
 import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/namer.dart';
 import 'package:compiler/src/js_emitter/model.dart';
@@ -44,6 +45,15 @@ class ProgramLookup {
   ProgramLookup(Compiler compiler)
       : this.program = compiler.backend.emitter.emitter.programForTesting,
         this.namer = compiler.backend.namer;
+
+  Fragment getFragment(OutputUnit outputUnit) {
+    for (Fragment fragment in program.fragments) {
+      if (fragment.outputUnit == outputUnit) {
+        return fragment;
+      }
+    }
+    return null;
+  }
 
   Map<LibraryEntity, LibraryData> libraryMap;
 
@@ -176,6 +186,7 @@ class LibraryData {
     return _staticFieldMap[field];
   }
 
+  @override
   String toString() => 'LibraryData(library=$library,_classMap=$_classMap,'
       '_methodMap=$_methodMap,_fieldMap=$_fieldMap)';
 }
@@ -220,6 +231,7 @@ class ClassData {
     return _checkedSetterMap[field];
   }
 
+  @override
   String toString() => 'ClassData(cls=$cls,'
       '_methodMap=$_methodMap,_fieldMap=$_fieldMap)';
 }
@@ -227,11 +239,13 @@ class ClassData {
 void forEachNode(js.Node root,
     {void Function(js.Call) onCall,
     void Function(js.PropertyAccess) onPropertyAccess,
-    void Function(js.Assignment) onAssignment}) {
+    void Function(js.Assignment) onAssignment,
+    void Function(js.Switch) onSwitch}) {
   CallbackVisitor visitor = new CallbackVisitor(
       onCall: onCall,
       onPropertyAccess: onPropertyAccess,
-      onAssignment: onAssignment);
+      onAssignment: onAssignment,
+      onSwitch: onSwitch);
   root.accept(visitor);
 }
 
@@ -239,8 +253,10 @@ class CallbackVisitor extends js.BaseVisitor {
   final void Function(js.Call) onCall;
   final void Function(js.PropertyAccess) onPropertyAccess;
   final void Function(js.Assignment) onAssignment;
+  final void Function(js.Switch) onSwitch;
 
-  CallbackVisitor({this.onCall, this.onPropertyAccess, this.onAssignment});
+  CallbackVisitor(
+      {this.onCall, this.onPropertyAccess, this.onAssignment, this.onSwitch});
 
   @override
   visitCall(js.Call node) {
@@ -258,5 +274,11 @@ class CallbackVisitor extends js.BaseVisitor {
   visitAssignment(js.Assignment node) {
     if (onAssignment != null) onAssignment(node);
     return super.visitAssignment(node);
+  }
+
+  @override
+  visitSwitch(js.Switch node) {
+    if (onSwitch != null) onSwitch(node);
+    return super.visitSwitch(node);
   }
 }

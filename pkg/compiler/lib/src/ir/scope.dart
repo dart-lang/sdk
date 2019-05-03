@@ -5,46 +5,25 @@
 import 'package:kernel/ast.dart' as ir;
 import 'closure.dart';
 import 'scope_visitor.dart';
+import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 
 class ScopeModel {
   final ClosureScopeModel closureScopeModel;
   final VariableScopeModel variableScopeModel;
+  final InitializerComplexity initializerComplexity;
 
-  ScopeModel(this.closureScopeModel, this.variableScopeModel);
+  const ScopeModel(
+      {this.closureScopeModel,
+      this.variableScopeModel,
+      this.initializerComplexity})
+      : assert(initializerComplexity != null);
 
   /// Inspect members and mark if those members capture any state that needs to
   /// be marked as free variables.
-  static ScopeModel computeScopeModel(ir.Member node) {
-    if (node.isAbstract && !node.isExternal) return null;
-    if (node is ir.Field && !node.isInstanceMember) {
-      ir.Field field = node;
-      // Skip top-level/static fields without an initializer.
-      if (field.initializer == null) return null;
-    }
-
-    bool hasThisLocal = false;
-    if (node is ir.Constructor) {
-      hasThisLocal = true;
-    } else if (node is ir.Procedure && node.kind == ir.ProcedureKind.Factory) {
-      hasThisLocal = false;
-    } else if (node.isInstanceMember) {
-      hasThisLocal = true;
-    }
-    ClosureScopeModel closureScopeModel = new ClosureScopeModel();
-    ScopeModelBuilder translator =
-        new ScopeModelBuilder(closureScopeModel, hasThisLocal: hasThisLocal);
-    if (node is ir.Field) {
-      if (node is ir.Field && node.initializer != null) {
-        node.accept(translator);
-      } else {
-        assert(node.isInstanceMember);
-        closureScopeModel.scopeInfo = new KernelScopeInfo(true);
-      }
-    } else {
-      assert(node is ir.Procedure || node is ir.Constructor);
-      node.accept(translator);
-    }
-    return new ScopeModel(closureScopeModel, translator.variableScopeModel);
+  factory ScopeModel.from(
+      ir.Member node, ir.ConstantEvaluator constantEvaluator) {
+    ScopeModelBuilder builder = new ScopeModelBuilder(constantEvaluator);
+    return builder.computeModel(node);
   }
 }
 
@@ -95,6 +74,7 @@ abstract class VariableScope {
 class VariableScopeImpl implements VariableScope {
   List<VariableScope> _subScopes;
   Set<ir.VariableDeclaration> _assignedVariables;
+  @override
   bool hasContinueSwitch = false;
 
   void addSubScope(VariableScope scope) {
@@ -107,6 +87,7 @@ class VariableScopeImpl implements VariableScope {
     _assignedVariables.add(variable);
   }
 
+  @override
   Iterable<ir.VariableDeclaration> get assignedVariables sync* {
     if (_assignedVariables != null) {
       yield* _assignedVariables;

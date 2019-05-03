@@ -94,6 +94,19 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kStringConcatenation:
         EvaluateStringConcatenation();
         break;
+      case kListConcatenation:
+      case kSetConcatenation:
+      case kMapConcatenation:
+      case kInstanceCreation:
+        // These only occur inside unevaluated constants, so if we decide to
+        // remove support for late evaluation of environment constants from
+        // dill files in the VM, an implementation here will not be necessary.
+        H.ReportError(
+            script_, TokenPosition::kNoSource,
+            "Unexpected unevaluated constant, All constant expressions"
+            " are expected to be evaluated at this point %s (%d)",
+            Reader::TagName(tag), tag);
+        break;
       case kSymbolLiteral:
         EvaluateSymbolLiteral();
         break;
@@ -109,7 +122,10 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kConstSetLiteral:
         // Set literals are currently desugared in the frontend and will not
         // reach the VM. See http://dartbug.com/35124 for discussion.
-        UNREACHABLE();
+        H.ReportError(script_, TokenPosition::kNoSource,
+                      "Unexpected set literal constant, this constant"
+                      " is expected to be evaluated at this point %s (%d)",
+                      Reader::TagName(tag), tag);
         break;
       case kConstMapLiteral:
         EvaluateMapLiteralInternal();
@@ -117,6 +133,10 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kLet:
         EvaluateLet();
         break;
+      case kBlockExpression: {
+        UNIMPLEMENTED();
+        break;
+      }
       case kInstantiation:
         EvaluatePartialTearoffInstantiation();
         break;
@@ -148,7 +168,10 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
         EvaluateNullLiteral();
         break;
       case kConstantExpression:
-        EvaluateConstantExpression();
+        EvaluateConstantExpression(tag);
+        break;
+      case kDeprecated_ConstantExpression:
+        EvaluateConstantExpression(tag);
         break;
       default:
         H.ReportError(
@@ -371,13 +394,11 @@ void ConstantEvaluator::EvaluateStaticGet() {
       H.ReportError(script_, position, "Not a constant expression.");
     } else if (field.StaticValue() == Object::sentinel().raw()) {
       field.SetStaticValue(Object::transition_sentinel());
-      const Object& value =
-          Object::Handle(Compiler::EvaluateStaticInitializer(field));
+      const Object& value = Object::Handle(Z, field.EvaluateInitializer());
       if (value.IsError()) {
         field.SetStaticValue(Object::null_instance());
         H.ReportError(Error::Cast(value), script_, position,
                       "Not a constant expression.");
-        UNREACHABLE();
       }
       Thread* thread = H.thread();
       const Error& error =
@@ -385,7 +406,6 @@ void ConstantEvaluator::EvaluateStaticGet() {
       if (!error.IsNull()) {
         field.SetStaticValue(Object::null_instance());
         H.ReportError(error, script_, position, "Not a constant expression.");
-        UNREACHABLE();
       }
       ASSERT(value.IsNull() || value.IsInstance());
       field.SetStaticValue(value.IsNull() ? Instance::null_instance()
@@ -462,11 +482,11 @@ void ConstantEvaluator::EvaluateSuperMethodInvocation() {
   ASSERT(IsBuildingFlowGraph());
   TokenPosition position = helper_->ReadPosition();  // read position.
 
-  const LocalVariable* this_variable =
-      flow_graph_builder_->scopes_->this_variable;
-  ASSERT(this_variable->IsConst());
+  const LocalVariable* receiver_variable =
+      flow_graph_builder_->parsed_function_->receiver_var();
+  ASSERT(receiver_variable->IsConst());
   const Instance& receiver =
-      Instance::Handle(Z, this_variable->ConstValue()->raw());
+      Instance::Handle(Z, receiver_variable->ConstValue()->raw());
   ASSERT(!receiver.IsNull());
 
   Class& klass = Class::Handle(Z, active_class_->klass->SuperClass());
@@ -848,12 +868,16 @@ void ConstantEvaluator::EvaluateNullLiteral() {
   result_ = Instance::null();
 }
 
-void ConstantEvaluator::EvaluateConstantExpression() {
+void ConstantEvaluator::EvaluateConstantExpression(Tag tag) {
   // Please note that this constants array is constructed exactly once, see
   // ReadConstantTable() and is immutable from that point on, so there is no
   // need to guard against concurrent access between mutator and background
   // compiler.
   KernelConstantsMap constant_map(H.constants().raw());
+  if (tag == kConstantExpression) {
+    helper_->ReadPosition();
+    helper_->SkipDartType();
+  }
   result_ ^= constant_map.GetOrDie(helper_->ReadUInt());
   ASSERT(constant_map.Release().raw() == H.constants().raw());
 }
@@ -1026,14 +1050,16 @@ bool ConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
   if (!IsBuildingFlowGraph()) return false;
 
   const Function& function = flow_graph_builder_->parsed_function_->function();
-  if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
+  if ((function.kind() == RawFunction::kImplicitStaticFinalGetter ||
+       function.kind() == RawFunction::kStaticFieldInitializer) &&
+      !I->CanOptimizeImmediately()) {
     // Don't cache constants in initializer expressions. They get
     // evaluated only once.
     return false;
   }
 
   bool is_present = false;
-  ASSERT(!script_.InVMHeap());
+  ASSERT(!script_.InVMIsolateHeap());
   if (script_.compile_time_constants() == Array::null()) {
     return false;
   }
@@ -1057,13 +1083,15 @@ void ConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
   if (!IsBuildingFlowGraph()) return;
 
   const Function& function = flow_graph_builder_->parsed_function_->function();
-  if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
+  if ((function.kind() == RawFunction::kImplicitStaticFinalGetter ||
+       function.kind() == RawFunction::kStaticFieldInitializer) &&
+      !I->CanOptimizeImmediately()) {
     // Don't cache constants in initializer expressions. They get
     // evaluated only once.
     return;
   }
   const intptr_t kInitialConstMapSize = 16;
-  ASSERT(!script_.InVMHeap());
+  ASSERT(!script_.InVMIsolateHeap());
   if (script_.compile_time_constants() == Array::null()) {
     const Array& array = Array::Handle(
         HashTables::New<KernelConstantsMap>(kInitialConstMapSize, Heap::kNew));
@@ -1193,7 +1221,7 @@ const Array& ConstantHelper::ReadConstantTable() {
         temp_array_.SetTypeArguments(temp_type_arguments_);
         for (intptr_t j = 0; j < length; ++j) {
           const intptr_t entry_offset = helper_.ReadUInt();
-          ASSERT(entry_offset < offset);  // We have a DAG!
+          ASSERT(entry_offset < (offset - start_offset));  // We have a DAG!
           temp_object_ = constants.GetOrDie(entry_offset);
           temp_array_.SetAt(j, temp_object_);
         }
@@ -1201,6 +1229,14 @@ const Array& ConstantHelper::ReadConstantTable() {
         temp_instance_ = H.Canonicalize(temp_array_);
         break;
       }
+      case kSetConstant:
+        // Set literals are currently desugared in the frontend and will not
+        // reach the VM. See http://dartbug.com/35124 for discussion.
+        H.ReportError(script(), TokenPosition::kNoSource,
+                      "Unexpected set constant, this constant"
+                      " is expected to be evaluated at this point (%" Pd ")",
+                      constant_tag);
+        break;
       case kInstanceConstant: {
         const NameIndex index = helper_.ReadCanonicalNameReference();
         if (ShouldSkipConstant(index)) {
@@ -1232,7 +1268,7 @@ const Array& ConstantHelper::ReadConstantTable() {
           temp_field_ =
               H.LookupFieldByKernelField(helper_.ReadCanonicalNameReference());
           const intptr_t entry_offset = helper_.ReadUInt();
-          ASSERT(entry_offset < offset);  // We have a DAG!
+          ASSERT(entry_offset < (offset - start_offset));  // We have a DAG!
           temp_object_ = constants.GetOrDie(entry_offset);
           temp_instance_.SetField(temp_field_, temp_object_);
         }
@@ -1242,6 +1278,7 @@ const Array& ConstantHelper::ReadConstantTable() {
       }
       case kPartialInstantiationConstant: {
         const intptr_t entry_offset = helper_.ReadUInt();
+        ASSERT(entry_offset < (offset - start_offset));  // We have a DAG!
         temp_object_ = constants.GetOrDie(entry_offset);
 
         // Happens if the tearoff was in the vmservice library and we have
@@ -1258,6 +1295,7 @@ const Array& ConstantHelper::ReadConstantTable() {
         for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
           temp_type_arguments_.SetTypeAt(j, type_translator_.BuildType());
         }
+        temp_type_arguments_ = temp_type_arguments_.Canonicalize();
 
         // Make a copy of the old closure, with the delayed type arguments
         // set to [temp_type_arguments_].
@@ -1291,12 +1329,19 @@ const Array& ConstantHelper::ReadConstantTable() {
       }
       case kMapConstant:
         // Note: This is already lowered to InstanceConstant/ListConstant.
-        UNREACHABLE();
+        H.ReportError(script(), TokenPosition::kNoSource,
+                      "Unexpected map constant, this constant"
+                      " is expected to be evaluated at this point (%" Pd ")",
+                      constant_tag);
         break;
       case kUnevaluatedConstant:
         // We should not see unevaluated constants in the constant table, they
         // should have been fully evaluated before we get them.
-        UNREACHABLE();
+        H.ReportError(
+            script(), TokenPosition::kNoSource,
+            "Unexpected unevaluated constant, All constant expressions"
+            " are expected to be evaluated at this point (%" Pd ")",
+            constant_tag);
         break;
       default:
         UNREACHABLE();

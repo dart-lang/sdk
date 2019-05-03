@@ -42,6 +42,9 @@ abstract class RuntimeConfiguration {
         return new NoneRuntimeConfiguration();
 
       case Runtime.vm:
+        if (configuration.system == System.android) {
+          return new DartkAdbRuntimeConfiguration();
+        }
         return new StandaloneDartRuntimeConfiguration();
 
       case Runtime.dartPrecompiled:
@@ -79,6 +82,7 @@ abstract class RuntimeConfiguration {
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
+      List<String> extraLibs,
       bool isCrashExpected) {
     // TODO(ahe): Make this method abstract.
     throw "Unimplemented runtime '$runtimeType'";
@@ -98,6 +102,7 @@ class NoneRuntimeConfiguration extends RuntimeConfiguration {
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
+      List<String> extraLibs,
       bool isCrashExpected) {
     return <Command>[];
   }
@@ -125,6 +130,7 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
+      List<String> extraLibs,
       bool isCrashExpected) {
     // TODO(ahe): Avoid duplication of this method between d8 and jsshell.
     checkArtifact(artifact);
@@ -148,6 +154,7 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
+      List<String> extraLibs,
       bool isCrashExpected) {
     checkArtifact(artifact);
     return [
@@ -207,6 +214,7 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
+      List<String> extraLibs,
       bool isCrashExpected) {
     String script = artifact.filename;
     String type = artifact.mimeType;
@@ -237,6 +245,7 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
+      List<String> extraLibs,
       bool isCrashExpected) {
     String script = artifact.filename;
     String type = artifact.mimeType;
@@ -247,6 +256,31 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
     return [
       Command.vm(
           suite.dartPrecompiledBinaryFileName, arguments, environmentOverrides)
+    ];
+  }
+}
+
+class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
+  static const String DeviceDir = '/data/local/tmp/testing';
+  static const String DeviceTestDir = '/data/local/tmp/testing/test';
+
+  List<Command> computeRuntimeCommands(
+      TestSuite suite,
+      CommandArtifact artifact,
+      List<String> arguments,
+      Map<String, String> environmentOverrides,
+      List<String> extraLibs,
+      bool isCrashExpected) {
+    final String script = artifact.filename;
+    final String type = artifact.mimeType;
+    if (script != null && type != 'application/kernel-ir-fully-linked') {
+      throw "dart cannot run files of type '$type'.";
+    }
+
+    final String buildPath = suite.buildDir;
+    final String processTest = suite.processTestBinaryFileName;
+    return [
+      Command.adbDartk(buildPath, processTest, script, arguments, extraLibs)
     ];
   }
 }
@@ -265,6 +299,7 @@ class DartPrecompiledAdbRuntimeConfiguration
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
+      List<String> extraLibs,
       bool isCrashExpected) {
     String script = artifact.filename;
     String type = artifact.mimeType;
@@ -302,6 +337,7 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
+      List<String> extraLibs,
       bool isCrashExpected) {
     String executable = suite.dartVmBinaryFileName;
     return selfCheckers
@@ -324,6 +360,7 @@ class DummyRuntimeConfiguration extends DartVmRuntimeConfiguration {
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
+      List<String> extraLibs,
       bool isCrashExpected) {
     throw "Unimplemented runtime '$runtimeType'";
   }

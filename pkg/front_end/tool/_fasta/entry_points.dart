@@ -4,9 +4,9 @@
 
 library fasta.tool.entry_points;
 
-import 'dart:async' show Future, Stream;
+import 'dart:async' show Stream;
 
-import 'dart:convert' show jsonDecode, jsonEncode, LineSplitter, utf8;
+import 'dart:convert' show LineSplitter, jsonDecode, jsonEncode, utf8;
 
 import 'dart:io' show File, Platform, exitCode, stderr, stdin, stdout;
 
@@ -14,6 +14,8 @@ import 'package:kernel/kernel.dart'
     show CanonicalName, Library, Component, Source, loadComponentFromBytes;
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
+
+import 'package:kernel/type_environment.dart' show SubtypeTester;
 
 import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
 
@@ -49,6 +51,8 @@ import 'package:front_end/src/kernel_generator_impl.dart'
 
 import 'additional_targets.dart' show installAdditionalTargets;
 
+import 'bench_maker.dart' show BenchMaker;
+
 import 'command_line.dart' show runProtectedFromAbort, withGlobalOptions;
 
 const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
@@ -70,6 +74,10 @@ compileEntryPoint(List<String> arguments) async {
     stopwatch.stop();
 
     elapsedTimes.add(stopwatch.elapsedMilliseconds.toDouble());
+    List<Object> typeChecks = SubtypeTester.typeChecks;
+    if (typeChecks?.isNotEmpty ?? false) {
+      BenchMaker.writeTypeChecks("type_checks.json", typeChecks);
+    }
   }
 
   if (summary) {

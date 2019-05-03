@@ -8,8 +8,8 @@ import "package:expect/expect.dart";
 
 // Test that optimized '-' and slow path '-' produce the same error.
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
 void check2(String name, name1, f1, name2, f2) {

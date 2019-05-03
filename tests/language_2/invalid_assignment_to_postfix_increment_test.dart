@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 void f(int x, int y) {
-  x++ = y; //# 01: compile-time error
-  x++ += y; //# 02: compile-time error
-  x++ ??= y; //# 03: compile-time error
+  x++ = y; //# 01: syntax error
+  x++ += y; //# 02: syntax error
+  x++ ??= y; //# 03: syntax error
 }
 
 main() {

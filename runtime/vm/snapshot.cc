@@ -37,15 +37,15 @@ static bool IsSingletonClassId(intptr_t class_id) {
           (class_id >= kNullCid && class_id <= kVoidCid));
 }
 
-static bool IsObjectStoreClassId(intptr_t class_id) {
-  // Check if this is a class which is stored in the object store.
+static bool IsBootstrapedClassId(intptr_t class_id) {
+  // Check if this is a class which is created during bootstrapping.
   return (class_id == kObjectCid ||
           (class_id >= kInstanceCid && class_id <= kUserTagCid) ||
           class_id == kArrayCid || class_id == kImmutableArrayCid ||
           RawObject::IsStringClassId(class_id) ||
           RawObject::IsTypedDataClassId(class_id) ||
           RawObject::IsExternalTypedDataClassId(class_id) ||
-          class_id == kNullCid);
+          RawObject::IsTypedDataViewClassId(class_id) || class_id == kNullCid);
 }
 
 static bool IsObjectStoreTypeId(intptr_t index) {
@@ -70,7 +70,6 @@ static intptr_t ClassIdFromObjectId(intptr_t object_id) {
 
 static intptr_t ObjectIdFromClassId(intptr_t class_id) {
   ASSERT((class_id > kIllegalCid) && (class_id < kNumPredefinedCids));
-  ASSERT(!(RawObject::IsImplicitFieldClassId(class_id)));
   return (class_id + kClassIdsOffset);
 }
 
@@ -209,6 +208,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       old_space_(thread_->isolate()->heap()->old_space()),
       cls_(Class::Handle(zone_)),
       code_(Code::Handle(zone_)),
+      instance_(Instance::Handle(zone_)),
       instructions_(Instructions::Handle(zone_)),
       obj_(Object::Handle(zone_)),
       pobj_(PassiveObject::Handle(zone_)),
@@ -220,9 +220,14 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       type_arguments_(TypeArguments::Handle(zone_)),
       tokens_(GrowableObjectArray::Handle(zone_)),
       data_(ExternalTypedData::Handle(zone_)),
+      typed_data_base_(TypedDataBase::Handle(zone_)),
       typed_data_(TypedData::Handle(zone_)),
+      typed_data_view_(TypedDataView::Handle(zone_)),
       function_(Function::Handle(zone_)),
       error_(UnhandledException::Handle(zone_)),
+      set_class_(Class::ZoneHandle(
+          zone_,
+          thread_->isolate()->object_store()->linked_hash_set_class())),
       max_vm_isolate_object_id_(
           (Snapshot::IsFull(kind))
               ? Object::vm_isolate_snapshot_object_table().Length()
@@ -248,7 +253,6 @@ RawObject* SnapshotReader::ReadObject() {
     }
     Object& result = Object::Handle(zone_);
     if (backward_references_->length() > 0) {
-      ProcessDeferredCanonicalizations();
       result = (*backward_references_)[0].reference()->raw();
     } else {
       result = obj.raw();
@@ -313,11 +317,11 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   ASSERT(!IsVMIsolateObject(class_header) ||
          !IsSingletonClassId(GetVMIsolateObjectId(class_header)));
   ASSERT((SerializedHeaderTag::decode(class_header) != kObjectId) ||
-         !IsObjectStoreClassId(SerializedHeaderData::decode(class_header)));
+         !IsBootstrapedClassId(SerializedHeaderData::decode(class_header)));
   Class& cls = Class::ZoneHandle(zone(), Class::null());
   AddBackRef(object_id, &cls, kIsDeserialized);
   // Read the library/class information and lookup the class.
-  str_ ^= ReadObjectImpl(class_header, kAsInlinedObject, kInvalidPatchIndex, 0);
+  str_ ^= ReadObjectImpl(class_header, kAsInlinedObject);
   library_ = Library::LookupLibrary(thread(), str_);
   if (library_.IsNull() || !library_.Loaded()) {
     SetReadException(
@@ -413,28 +417,22 @@ bool SnapshotReader::is_vm_isolate() const {
   return isolate() == Dart::vm_isolate();
 }
 
-RawObject* SnapshotReader::ReadObjectImpl(bool as_reference,
-                                          intptr_t patch_object_id,
-                                          intptr_t patch_offset) {
+RawObject* SnapshotReader::ReadObjectImpl(bool as_reference) {
   int64_t header_value = Read<int64_t>();
   if ((header_value & kSmiTagMask) == kSmiTag) {
     return NewInteger(header_value);
   }
   ASSERT((header_value <= kIntptrMax) && (header_value >= kIntptrMin));
-  return ReadObjectImpl(static_cast<intptr_t>(header_value), as_reference,
-                        patch_object_id, patch_offset);
+  return ReadObjectImpl(static_cast<intptr_t>(header_value), as_reference);
 }
 
 RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value,
-                                          bool as_reference,
-                                          intptr_t patch_object_id,
-                                          intptr_t patch_offset) {
+                                          bool as_reference) {
   if (IsVMIsolateObject(header_value)) {
     return ReadVMIsolateObject(header_value);
   }
   if (SerializedHeaderTag::decode(header_value) == kObjectId) {
-    return ReadIndexedObject(SerializedHeaderData::decode(header_value),
-                             patch_object_id, patch_offset);
+    return ReadIndexedObject(SerializedHeaderData::decode(header_value));
   }
   ASSERT(SerializedHeaderTag::decode(header_value) == kInlined);
   intptr_t object_id = SerializedHeaderData::decode(header_value);
@@ -483,6 +481,15 @@ RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value,
       break;
     }
 #undef SNAPSHOT_READ
+#define SNAPSHOT_READ(clazz) case kTypedData##clazz##ViewCid:
+
+    case kByteDataViewCid:
+      CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
+        tags = RawObject::ClassIdTag::update(class_id, tags);
+        pobj_ = TypedDataView::ReadFrom(this, object_id, tags, kind_, true);
+        break;
+      }
+#undef SNAPSHOT_READ
 #define SNAPSHOT_READ(clazz) case kFfi##clazz##Cid:
 
     CLASS_LIST_FFI(SNAPSHOT_READ) { UNREACHABLE(); }
@@ -491,10 +498,11 @@ RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value,
       UNREACHABLE();
       break;
   }
-  if (!read_as_reference) {
-    AddPatchRecord(object_id, patch_object_id, patch_offset);
-  }
   return pobj_.raw();
+}
+
+void SnapshotReader::EnqueueRehashingOfSet(const Object& set) {
+  objects_to_rehash_.Add(set);
 }
 
 RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
@@ -526,6 +534,9 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
     ASSERT(!cls_.IsNull());
     instance_size = cls_.instance_size();
   }
+  if (cls_.id() == set_class_.id()) {
+    EnqueueRehashingOfSet(*result);
+  }
   if (!as_reference) {
     // Read all the individual fields for inlined objects.
     intptr_t next_field_offset = cls_.next_field_offset();
@@ -538,8 +549,7 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
     intptr_t offset = Instance::NextFieldOffset();
     intptr_t result_cid = result->GetClassId();
     while (offset < next_field_offset) {
-      pobj_ =
-          ReadObjectImpl(read_as_reference, object_id, (offset / kWordSize));
+      pobj_ = ReadObjectImpl(read_as_reference);
       result->SetFieldAtOffset(offset, pobj_);
       if ((offset != type_argument_field_offset) &&
           (kind_ == Snapshot::kMessage) && isolate()->use_field_guards()) {
@@ -572,13 +582,12 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
 
 void SnapshotReader::AddBackRef(intptr_t id,
                                 Object* obj,
-                                DeserializeState state,
-                                bool defer_canonicalization) {
+                                DeserializeState state) {
   intptr_t index = (id - kMaxPredefinedObjectIds);
   ASSERT(index >= max_vm_isolate_object_id_);
   index -= max_vm_isolate_object_id_;
   ASSERT(index == backward_references_->length());
-  BackRefNode node(obj, state, defer_canonicalization);
+  BackRefNode node(obj, state);
   backward_references_->Add(node);
 }
 
@@ -690,7 +699,7 @@ intptr_t SnapshotReader::LookupInternalClass(intptr_t class_header) {
   }
   ASSERT(SerializedHeaderTag::decode(class_header) == kObjectId);
   intptr_t class_id = SerializedHeaderData::decode(class_header);
-  ASSERT(IsObjectStoreClassId(class_id) || IsSingletonClassId(class_id));
+  ASSERT(IsBootstrapedClassId(class_id) || IsSingletonClassId(class_id));
   return class_id;
 }
 
@@ -758,11 +767,9 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   return Symbols::GetPredefinedSymbol(object_id);  // return VM symbol.
 }
 
-RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id,
-                                             intptr_t patch_object_id,
-                                             intptr_t patch_offset) {
+RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id) {
   intptr_t class_id = ClassIdFromObjectId(object_id);
-  if (IsObjectStoreClassId(class_id)) {
+  if (IsBootstrapedClassId(class_id)) {
     return isolate()->class_table()->At(class_id);  // get singleton class.
   }
   if (IsObjectStoreTypeId(object_id)) {
@@ -773,66 +780,7 @@ RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id,
   if (index < max_vm_isolate_object_id_) {
     return VmIsolateSnapshotObject(index);
   }
-  AddPatchRecord(object_id, patch_object_id, patch_offset);
   return GetBackRef(object_id)->raw();
-}
-
-void SnapshotReader::AddPatchRecord(intptr_t object_id,
-                                    intptr_t patch_object_id,
-                                    intptr_t patch_offset) {
-  if (patch_object_id != kInvalidPatchIndex) {
-    ASSERT(object_id >= kMaxPredefinedObjectIds);
-    intptr_t index = (object_id - kMaxPredefinedObjectIds);
-    ASSERT(index >= max_vm_isolate_object_id_);
-    index -= max_vm_isolate_object_id_;
-    ASSERT(index < backward_references_->length());
-    BackRefNode& ref = (*backward_references_)[index];
-    ref.AddPatchRecord(patch_object_id, patch_offset);
-  }
-}
-
-void SnapshotReader::ProcessDeferredCanonicalizations() {
-  Type& typeobj = Type::Handle();
-  TypeArguments& typeargs = TypeArguments::Handle();
-  Object& newobj = Object::Handle();
-  for (intptr_t i = 0; i < backward_references_->length(); i++) {
-    BackRefNode& backref = (*backward_references_)[i];
-    if (backref.defer_canonicalization()) {
-      Object* objref = backref.reference();
-      // Object should either be a type or a type argument.
-      if (objref->IsType()) {
-        typeobj ^= objref->raw();
-        newobj = typeobj.Canonicalize();
-      } else {
-        ASSERT(objref->IsTypeArguments());
-        typeargs ^= objref->raw();
-        newobj = typeargs.Canonicalize();
-      }
-      if (newobj.raw() != objref->raw()) {
-        ZoneGrowableArray<intptr_t>* patches = backref.patch_records();
-        ASSERT(newobj.IsNull() || newobj.IsCanonical());
-        // First we replace the back ref table with the canonical object.
-        *objref = newobj.raw();
-        if (patches != NULL) {
-          // Now go over all the patch records and patch the canonical object.
-          for (intptr_t j = 0; j < patches->length(); j += 2) {
-            NoSafepointScope no_safepoint;
-            intptr_t patch_object_id = (*patches)[j];
-            intptr_t patch_offset = (*patches)[j + 1];
-            Object* target = GetBackRef(patch_object_id);
-            // We should not backpatch an object that is canonical.
-            if (!target->IsCanonical()) {
-              RawObject** rawptr =
-                  reinterpret_cast<RawObject**>(target->raw()->ptr());
-              target->StorePointer((rawptr + patch_offset), newobj.raw());
-            }
-          }
-        }
-      } else {
-        ASSERT(objref->IsCanonical());
-      }
-    }
-  }
 }
 
 void SnapshotReader::ArrayReadFrom(intptr_t object_id,
@@ -840,18 +788,12 @@ void SnapshotReader::ArrayReadFrom(intptr_t object_id,
                                    intptr_t len,
                                    intptr_t tags) {
   // Setup the object fields.
-  const intptr_t typeargs_offset =
-      GrowableObjectArray::type_arguments_offset() / kWordSize;
-  *TypeArgumentsHandle() ^=
-      ReadObjectImpl(kAsInlinedObject, object_id, typeargs_offset);
+  *TypeArgumentsHandle() ^= ReadObjectImpl(kAsInlinedObject);
   result.SetTypeArguments(*TypeArgumentsHandle());
 
   bool as_reference = RawObject::IsCanonical(tags) ? false : true;
-  intptr_t offset = result.raw_ptr()->data() -
-                    reinterpret_cast<RawObject**>(result.raw()->ptr());
   for (intptr_t i = 0; i < len; i++) {
-    *PassiveObjectHandle() =
-        ReadObjectImpl(as_reference, object_id, (i + offset));
+    *PassiveObjectHandle() = ReadObjectImpl(as_reference);
     result.SetAt(i, *PassiveObjectHandle());
   }
 }
@@ -1084,7 +1026,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
 
   // Now check if it is an object from the VM isolate. These objects are shared
   // by all isolates.
-  if (rawobj->IsVMHeapObject() && HandleVMIsolateObject(rawobj)) {
+  if (rawobj->InVMIsolateHeap() && HandleVMIsolateObject(rawobj)) {
     return true;
   }
 
@@ -1094,7 +1036,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
   if (cid == kClassCid) {
     RawClass* raw_class = reinterpret_cast<RawClass*>(rawobj);
     intptr_t class_id = raw_class->ptr()->id_;
-    if (IsObjectStoreClassId(class_id)) {
+    if (IsBootstrapedClassId(class_id)) {
       intptr_t object_id = ObjectIdFromClassId(class_id);
       WriteIndexedObject(object_id);
       return true;
@@ -1179,6 +1121,16 @@ void SnapshotWriter::WriteMarkedObjectImpl(RawObject* raw,
       return;
     }
 #undef SNAPSHOT_WRITE
+#define SNAPSHOT_WRITE(clazz) case kTypedData##clazz##ViewCid:
+
+    case kByteDataViewCid:
+      CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE) {
+        auto* raw_obj = reinterpret_cast<RawTypedDataView*>(raw);
+        raw_obj->WriteTo(this, object_id, kind_, as_reference);
+        return;
+      }
+#undef SNAPSHOT_WRITE
+
 #define SNAPSHOT_WRITE(clazz) case kFfi##clazz##Cid:
 
     CLASS_LIST_FFI(SNAPSHOT_WRITE) { UNREACHABLE(); }
@@ -1240,7 +1192,7 @@ void ForwardList::SerializeAll(ObjectVisitor* writer) {
 void SnapshotWriter::WriteClassId(RawClass* cls) {
   ASSERT(!Snapshot::IsFull(kind_));
   int class_id = cls->ptr()->id_;
-  ASSERT(!IsSingletonClassId(class_id) && !IsObjectStoreClassId(class_id));
+  ASSERT(!IsSingletonClassId(class_id) && !IsBootstrapedClassId(class_id));
 
   // Write out the library url and class name.
   RawLibrary* library = cls->ptr()->library_;

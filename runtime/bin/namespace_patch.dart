@@ -35,7 +35,7 @@ class _NamespaceImpl extends NativeFieldWrapperClass1 implements _Namespace {
 @pragma("vm:entry-point")
 class _Namespace {
   @patch
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   static void _setupNamespace(var namespace) {
     _NamespaceImpl._setupNamespace(namespace);
   }

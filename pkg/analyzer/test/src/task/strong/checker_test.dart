@@ -2,17 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'strong_test_helper.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CheckerTest_Driver);
+    defineReflectiveTests(CheckerTest);
+    defineReflectiveTests(CheckerWithUiAsCodeTest);
   });
 }
 
-abstract class CheckerTest extends AbstractStrongTest {
+@reflectiveTest
+class CheckerTest extends AbstractStrongTest with PackageMixin {
   test_awaitForInCastsStreamElementToVariable() async {
     await checkFile('''
 import 'dart:async';
@@ -369,7 +373,6 @@ main() {
     ''');
   }
 
-  @failingTest // See dartbug.com/32918
   test_constantGenericTypeArg_infer() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26141
     await checkFile('''
@@ -2305,11 +2308,11 @@ var l7 = /*info:INFERRED_TYPE_LITERAL*/[42];
 
   test_implicitDynamic_mapLiteral() async {
     addFile(r'''
-var m0 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
-Map m1 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
-Map<dynamic, dynamic> m2 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+var m0 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+Map m1 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
+Map<dynamic, dynamic> m2 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{};
 dynamic d = 42;
-var m3 = /*error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: d};
+var m3 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: d};
 var m4 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{'x': d, 'y': d};
 var m5 = /*info:INFERRED_TYPE_LITERAL,error:IMPLICIT_DYNAMIC_MAP_LITERAL*/{d: 'x'};
 
@@ -2535,7 +2538,6 @@ class C extends Object with M1, M2 implements I1, I2 {}
     ''');
   }
 
-  @failingTest // Does not work with old task model
   test_interfacesFromMixinsUsedTwiceAreChecked() {
     // Regression test for https://github.com/dart-lang/sdk/issues/29782
     return checkFile(r'''
@@ -3647,6 +3649,265 @@ class Child extends Base {
 ''');
   }
 
+  test_strictInference_collectionLiterals() async {
+    addFile(r'''
+main() {
+  var emptyList = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
+  var emptyMap = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{};
+
+  var upwardsInfersDynamicList = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[42 as dynamic];
+  var upwardsInfersDynamicSet = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{42 as dynamic};
+
+
+  dynamic d;
+  var upwardsInfersDynamicMap1 = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{d: 2};
+  var upwardsInfersDynamicMap2 = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{4: d};
+  var upwardsInfersDynamicMap3 = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{d: d};
+}
+    ''');
+    await check(strictInference: true);
+  }
+
+  test_strictInference_instanceCreation() async {
+    addFile(r'''
+class C<T> {
+  C([T t]);
+  C.of(T t);
+  factory C.from(Object e) => C();
+}
+
+main() {
+  // These should be allowed:
+  C<int> downwardsInferenceIsOK = C();
+  C<dynamic> downwardsInferenceDynamicIsOK = C();
+  var inferredFromConstructorParameterIsOK = C(42);
+  var explicitDynamicIsOK = C<dynamic>(42);
+
+  var rawConstructorCall = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C();
+  var upwardsInfersDynamic = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C(42 as dynamic);
+  var namedConstructor = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C.of(42 as dynamic);
+  var factoryConstructor = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C.from(42);
+}
+    ''');
+    await check(strictInference: true);
+  }
+
+  test_strictInference_instanceCreation_optionalTypeArgs() async {
+    addMetaPackage();
+    addFile(r'''
+import 'package:meta/meta.dart';
+@optionalTypeArgs
+class C<T> {
+  C([T t]);
+  C.of(T t);
+  factory C.from(Object e) => C();
+}
+
+main() {
+  var rawConstructorCall = C();
+  var upwardsInfersDynamic = C(42 as dynamic);
+  var namedConstructor = C.of(42 as dynamic);
+  var factoryConstructor = C.from(42);
+}
+    ''');
+    await check(strictInference: true);
+  }
+
+  test_strictRawTypes_classes() async {
+    addFile(r'''
+class C<T> {
+  C([T t]);
+}
+
+class M<T> {}
+
+class ExtendRawType extends /*info:STRICT_RAW_TYPE*/C {}
+class MixinRawType extends Object with /*info:STRICT_RAW_TYPE*/M {}
+class ImplementRawType implements /*info:STRICT_RAW_TYPE*/C {}
+class MixinApplicationRawType = Object with /*info:STRICT_RAW_TYPE*/M;
+
+class ClassWithNumBound<T extends num> {}
+class ClassWithObjectBound<T extends Object> {}
+class ClassWithDynamicBound<T extends dynamic> {}
+
+class ClassWithRawTypeBound<T extends /*info:STRICT_RAW_TYPE*/List> {}
+
+/*info:STRICT_RAW_TYPE*/C topLevelField;
+/*info:STRICT_RAW_TYPE*/C get topLevelGetter => null;
+set topLevelSetter(/*info:STRICT_RAW_TYPE*/C c) {}
+
+/*info:STRICT_RAW_TYPE*/C returnType() => null;
+parameterType(/*info:STRICT_RAW_TYPE*/C c) {}
+
+C<int> explicitTypeArgsAreOK;
+
+main() {
+  {
+    ClassWithNumBound classWithNumBoundOK;
+    ClassWithObjectBound classWithObjectBoundOK;
+    /*info:STRICT_RAW_TYPE*/ClassWithDynamicBound classWithDynamicBound;
+    /*info:STRICT_RAW_TYPE*/C rawConstructorCallFromType = C();
+  }
+
+  {
+    // These should be allowed:
+    List<int> downwardsInferenceIsOK = [];
+    List<dynamic> downwardsInferenceDynamicIsOK = [];
+    var upwardsInferNonDynamicIsOK = [42];
+    var explicitDynamicIsOK = <dynamic>[42];
+
+    var rawListOfLists = </*info:STRICT_RAW_TYPE*/List>[];
+    /*info:STRICT_RAW_TYPE*/List rawListFromType = [];
+  }
+
+  {
+    // These should be allowed:
+    List<int> downwardsInferenceIsOK = [];
+    List<dynamic> downwardsInferenceDynamicIsOK = [];
+    var upwardsInferNonDynamicIsOK = [42];
+    var explicitDynamicIsOK = <dynamic>[42];
+
+    var rawListOfLists = </*info:STRICT_RAW_TYPE*/List>[];
+    /*info:STRICT_RAW_TYPE*/List rawListFromType = [];
+  }
+
+  {
+    // These should be allowed:
+    Set<int> downwardsInferenceIsOK = {};
+    Set<dynamic> downwardsInferenceDynamicIsOK = {};
+    var upwardsInferNonDynamicIsOK = {42};
+    var explicitDynamicIsOK = <dynamic>{42};
+
+    var rawSetOfSets = </*info:STRICT_RAW_TYPE*/Set>{};
+    /*info:STRICT_RAW_TYPE*/Set rawSetFromType = {};
+  }
+
+  {
+    // These should be allowed:
+    Map<int, int> downwardsInferenceIsOK = {};
+    Map<dynamic, int> downwardsInferenceDynamicIsOK1 = {};
+    Map<int, dynamic> downwardsInferenceDynamicIsOK2 = {};
+    Map<dynamic, dynamic> downwardsInferenceDynamicIsOK3 = {};
+
+    var upwardsInferNonDynamicIsOK = {4: 2};
+    var explicitDynamicIsOK = <dynamic, dynamic>{4: 2};
+
+    var rawMapOfMaps = </*info:STRICT_RAW_TYPE*/Map>{};
+    /*info:STRICT_RAW_TYPE*/Map rawMapFromType = {};
+  }
+
+  {
+    Object isCheck;
+    if (isCheck is /*info:STRICT_RAW_TYPE*/List) {}
+    if (isCheck is /*info:STRICT_RAW_TYPE*/C) {}
+
+    if (isCheck is List<dynamic>) {}
+    if (isCheck is List<int>) {}
+    if (isCheck is C<dynamic>) {}
+    if (isCheck is C<int>) {}
+  }
+}
+    ''');
+    await check(strictRawTypes: true);
+  }
+
+  test_strictRawTypes_classes_optionalTypeArgs() async {
+    addMetaPackage();
+    addFile(r'''
+import 'package:meta/meta.dart';
+@optionalTypeArgs
+class C<T> {
+  C([T t]);
+}
+
+@optionalTypeArgs
+class M<T> {}
+
+class ExtendRawType extends C {}
+class MixinRawType extends Object with M {}
+class ImplementRawType implements C {}
+class MixinApplicationRawType = Object with M;
+
+C topLevelField;
+C get topLevelGetter => null;
+set topLevelSetter(C c) {}
+
+C returnType() => null;
+parameterType(C c) {}
+
+C<int> explicitTypeArgsAreOK;
+
+main() {
+  // These should be allowed:
+  C<int> downwardsInferenceIsOK = C();
+  C<dynamic> downwardsInferenceDynamicIsOK = C();
+  var inferredFromConstructorParameterIsOK = C(42);
+  var explicitDynamicIsOK = C<dynamic>(42);
+
+  var rawConstructorCall = C();
+  C rawConstructorCallFromType = C();
+  var upwardsInfersDynamic = C(42 as dynamic);
+
+  Object isChecksAreAllowed;
+  if (isChecksAreAllowed is C) {}
+}
+    ''');
+
+    await check(strictRawTypes: true);
+  }
+
+  test_strictRawTypes_typedefs() async {
+    addFile(r'''
+typedef T F1<T>(T _);
+typedef F2<T> = T Function(T);
+typedef G1<T> = S Function<S>(T);
+typedef G2<T> = S Function<S>(S); // right side does not use `T`
+
+typedef G3 = T Function<T>(T); // typedef has no type params.
+
+testTypedefs() {
+  /*info:STRICT_RAW_TYPE*/F1 rawTypedefDart1Syntax;
+  /*info:STRICT_RAW_TYPE*/F2 rawTypedefDart2Syntax;
+  /*info:STRICT_RAW_TYPE*/G1 rawTypedefGenericFunction;
+  /*info:STRICT_RAW_TYPE*/G2 rawTypedefGenericFunction2;
+  {
+    F1<dynamic> explicitTypedefDart1SyntaxIsOK;
+    F2<dynamic> explicitTypedefDart2SyntaxIsOK;
+    G1<dynamic> explicitTypedefGenericFunctionIsOK;
+    G2<dynamic> explicitTypedefGenericFunction2IsOK;
+    G3 typedefWithoutTypeParamsIsOK;
+  }
+  {
+    F1<int> explicitTypedefDart1SyntaxIsOK;
+    F2<int> explicitTypedefDart2SyntaxIsOK;
+    G1<int> explicitTypedefGenericFunctionIsOK;
+    G2<int> explicitTypedefGenericFunction2IsOK;
+  }
+}
+    ''');
+    await check(strictRawTypes: true);
+  }
+
+  test_strictRawTypes_typedefs_optionalTypeArgs() async {
+    addMetaPackage();
+    addFile(r'''
+import 'package:meta/meta.dart';
+
+@optionalTypeArgs typedef T F1<T>(T _);
+@optionalTypeArgs typedef F2<T> = T Function(T);
+@optionalTypeArgs typedef G1<T> = S Function<S>(T);
+@optionalTypeArgs typedef G2<T> = S Function<S>(S);
+
+testTypedefs() {
+  F1 rawTypedefDart1Syntax;
+  F2 rawTypedefDart2Syntax;
+  G1 rawTypedefGenericFunction;
+  G2 rawTypedefGenericFunction2;
+}
+    ''');
+    await check(strictRawTypes: true);
+  }
+
   test_superCallPlacement() async {
     await checkFile('''
 class Base {
@@ -3926,13 +4187,13 @@ test() {
  // TODO(leafp): We can't currently test for key errors since the
  // error marker binds to the entire entry.
   {
-     Map m = {s: i};
-     m = {s: s};
-     m = {s: n};
-     m = {s: i,
+     Map m = /*info:INFERRED_TYPE_LITERAL*/{s: i};
+     m = /*info:INFERRED_TYPE_LITERAL*/{s: s};
+     m = /*info:INFERRED_TYPE_LITERAL*/{s: n};
+     m = /*info:INFERRED_TYPE_LITERAL*/{s: i,
           s: n,
           s: s};
-     m = {i: s,
+     m = /*info:INFERRED_TYPE_LITERAL*/{i: s,
           n: s,
           s: s};
   }
@@ -4275,11 +4536,626 @@ const Object virtual = const _Virtual();
 }
 
 @reflectiveTest
-class CheckerTest_Driver extends CheckerTest {
+class CheckerWithUiAsCodeTest extends AbstractStrongTest {
   @override
-  bool get enableNewAnalysisDriver => true;
+  List<String> get enabledExperiments =>
+      [EnableString.spread_collections, EnableString.control_flow_collections];
 
-  @override // Passes with driver
-  test_interfacesFromMixinsUsedTwiceAreChecked() =>
-      super.test_interfacesFromMixinsUsedTwiceAreChecked();
+  test_list_ifElement_dynamicCondition_disableImplicitCasts() async {
+    addFile(r'''
+dynamic c;
+void main() {
+  <int>[if (/*error:NON_BOOL_CONDITION*/c) 0];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_dynamicCondition_implicitCasts() async {
+    addFile(r'''
+dynamic c;
+void main() {
+  <int>[if (/*info:DYNAMIC_CAST*/c) 0];
+}
+''');
+    await check();
+  }
+
+  test_list_ifElement_falseBranch_dynamic_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>[if (c) 0 else /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/dyn];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_falseBranch_dynamic_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>[if (c) 0 else /*info:DYNAMIC_CAST*/dyn];
+}
+''');
+    await check();
+  }
+
+  test_list_ifElement_falseBranch_supertype_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>[if (c) 0 else /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/someNum];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_falseBranch_supertype_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>[if (c) 0 else /*info:DOWN_CAST_IMPLICIT*/someNum];
+}
+''');
+    await check();
+  }
+
+  test_list_ifElement_objectCondition_disableImplicitCasts() async {
+    addFile(r'''
+Object c;
+void main() {
+  <int>[if (/*error:NON_BOOL_CONDITION*/c) 0];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_objectCondition_implicitCasts() async {
+    addFile(r'''
+Object c;
+void main() {
+  <int>[if (/*info:DOWN_CAST_IMPLICIT*/c) 0];
+}
+''');
+    await check();
+  }
+
+  test_list_ifElement_trueBranch_dynamic_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>[if (c) /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/dyn];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_trueBranch_dynamic_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>[if (c) /*info:DYNAMIC_CAST*/dyn];
+}
+''');
+    await check();
+  }
+
+  test_list_ifElement_trueBranch_supertype_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>[if (c) /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/someNum];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_list_ifElement_trueBranch_supertype_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>[if (c) /*info:DOWN_CAST_IMPLICIT*/someNum];
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_dynamicCondition_disableImplicitCasts() async {
+    addFile(r'''
+dynamic c;
+void main() {
+  <int, int>{if (/*error:NON_BOOL_CONDITION*/c) 0: 0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_dynamicCondition_implicitCasts() async {
+    addFile(r'''
+dynamic c;
+void main() {
+  <int, int>{if (/*info:DYNAMIC_CAST*/c) 0: 0};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_falseBranch_dynamicKey_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) 0:0 else /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/dyn:0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_falseBranch_dynamicKey_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) 0:0 else /*info:DYNAMIC_CAST*/dyn:0};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_falseBranch_dynamicValue_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) 0:0 else 0:/*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/dyn};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_falseBranch_dynamicValue_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) 0:0 else 0:/*info:DYNAMIC_CAST*/dyn};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_falseBranch_supertypeKey_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) 0:0 else /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/someNum:0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_falseBranch_supertypeKey_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) 0:0 else /*info:DOWN_CAST_IMPLICIT*/someNum:0};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_falseBranch_supertypeValue_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) 0:0 else 0:/*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/someNum};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_falseBranch_supertypeValue_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) 0:0 else 0:/*info:DOWN_CAST_IMPLICIT*/someNum};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_objectCondition_disableImplicitCasts() async {
+    addFile(r'''
+Object c;
+void main() {
+  <int, int>{if (/*error:NON_BOOL_CONDITION*/c) 0: 0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_objectCondition_implicitCasts() async {
+    addFile(r'''
+Object c;
+void main() {
+  <int, int>{if (/*info:DOWN_CAST_IMPLICIT*/c) 0: 0};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_trueBranch_dynamicKey_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/dyn:0 else 0:0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_trueBranch_dynamicKey_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) /*info:DYNAMIC_CAST*/dyn:0 else 0:0};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_trueBranch_dynamicValue_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) 0:/*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/dyn else 0:0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_trueBranch_dynamicValue_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int, int>{if (c) 0:/*info:DYNAMIC_CAST*/dyn else 0:0};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_trueBranch_supertypeKey_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/someNum:0 else 0:0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_trueBranch_supertypeKey_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) /*info:DOWN_CAST_IMPLICIT*/someNum:0 else 0:0};
+}
+''');
+    await check();
+  }
+
+  test_map_ifElement_trueBranch_supertypeValue_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) 0:/*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/someNum else 0:0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_map_ifElement_trueBranch_supertypeValue_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int, int>{if (c) 0:/*info:DOWN_CAST_IMPLICIT*/someNum else 0:0};
+}
+''');
+    await check();
+  }
+
+  test_set_ifElement_dynamicCondition_disableImplicitCasts() async {
+    addFile(r'''
+dynamic c;
+void main() {
+  <int>{if (/*error:NON_BOOL_CONDITION*/c) 0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_dynamicCondition_implicitCasts() async {
+    addFile(r'''
+dynamic c;
+void main() {
+  <int>{if (/*info:DYNAMIC_CAST*/c) 0};
+}
+''');
+    await check();
+  }
+
+  test_set_ifElement_falseBranch_dynamic_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>{if (c) 0 else /*error:SET_ELEMENT_TYPE_NOT_ASSIGNABLE*/dyn};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_falseBranch_dynamic_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>{if (c) 0 else /*info:DYNAMIC_CAST*/dyn};
+}
+''');
+    await check();
+  }
+
+  test_set_ifElement_falseBranch_supertype_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>{if (c) 0 else /*error:SET_ELEMENT_TYPE_NOT_ASSIGNABLE*/someNum};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_falseBranch_supertype_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>{if (c) 0 else /*info:DOWN_CAST_IMPLICIT*/someNum};
+}
+''');
+    await check();
+  }
+
+  test_set_ifElement_objectCondition_disableImplicitCasts() async {
+    addFile(r'''
+Object c;
+void main() {
+  <int>{if (/*error:NON_BOOL_CONDITION*/c) 0};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_objectCondition_implicitCasts() async {
+    addFile(r'''
+Object c;
+void main() {
+  <int>{if (/*info:DOWN_CAST_IMPLICIT*/c) 0};
+}
+''');
+    await check();
+  }
+
+  test_set_ifElement_trueBranch_dynamic_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>{if (c) /*error:SET_ELEMENT_TYPE_NOT_ASSIGNABLE*/dyn};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_trueBranch_dynamic_implicitCasts() async {
+    addFile(r'''
+bool c;
+dynamic dyn;
+void main() {
+  <int>[if (c) /*info:DYNAMIC_CAST*/dyn];
+}
+''');
+    await check();
+  }
+
+  test_set_ifElement_trueBranch_supertype_disableImplicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>{if (c) /*error:SET_ELEMENT_TYPE_NOT_ASSIGNABLE*/someNum};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_set_ifElement_trueBranch_supertype_implicitCasts() async {
+    addFile(r'''
+bool c;
+num someNum;
+void main() {
+  <int>{if (c) /*info:DOWN_CAST_IMPLICIT*/someNum};
+}
+''');
+    await check();
+  }
+
+  @failingTest
+  test_spread_dynamicInList_disableImplicitCasts() async {
+    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/36267
+    addFile(r'''
+dynamic dyn;
+void main() {
+  [.../*error:INVALID_ASSIGNMENT*/dyn];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_dynamicInList_implicitCasts() async {
+    addFile(r'''
+dynamic dyn;
+void main() {
+  [.../*info:DYNAMIC_CAST*/dyn];
+}
+''');
+    await check();
+  }
+
+  @failingTest
+  test_spread_dynamicInMap_disableImplicitCasts() async {
+    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/36267
+    addFile(r'''
+dynamic dyn;
+void main() {
+  <dynamic, dynamic>{.../*error:INVALID_ASSIGNMENT*/dyn};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_dynamicInMap_implicitCasts() async {
+    addFile(r'''
+dynamic dyn;
+void main() {
+  <dynamic, dynamic>{.../*info:DYNAMIC_CAST*/dyn};
+}
+''');
+    await check();
+  }
+
+  @failingTest
+  test_spread_dynamicInSet_disableImplicitCasts() async {
+    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/36267
+    addFile(r'''
+dynamic dyn;
+void main() {
+  <dynamic>{.../*error:INVALID_ASSIGNMENT*/dyn};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_dynamicInSet_implicitCasts() async {
+    addFile(r'''
+dynamic dyn;
+void main() {
+  <dynamic>{.../*info:DYNAMIC_CAST*/dyn};
+}
+''');
+    await check();
+  }
+
+  test_spread_listElement_disableImplicitCasts() async {
+    addFile(r'''
+Iterable<num> i;
+void main() {
+  <int>[.../*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/i];
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_listElement_implicitCasts() async {
+    addFile(r'''
+Iterable<num> i;
+void main() {
+  <int>[.../*info:DOWN_CAST_IMPLICIT*/i];
+}
+''');
+    await check();
+  }
+
+  test_spread_mapKey_disableImplicitCasts() async {
+    addFile(r'''
+Map<num, dynamic> map;
+void main() {
+  <int, dynamic>{1: 2, .../*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/map};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_mapKey_implicitCasts() async {
+    addFile(r'''
+Map<num, dynamic> map;
+void main() {
+  <int, dynamic>{1: 2, .../*info:DOWN_CAST_IMPLICIT*/map};
+}
+''');
+    await check();
+  }
+
+  test_spread_mapValue_disableImplicitCasts() async {
+    addFile(r'''
+Map<dynamic, num> map;
+void main() {
+  <dynamic, int>{1: 2, .../*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/map};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_mapValue_implicitCasts() async {
+    addFile(r'''
+Map<dynamic, num> map;
+void main() {
+  <dynamic, int>{1: 2, .../*info:DOWN_CAST_IMPLICIT*/map};
+}
+''');
+    await check();
+  }
+
+  test_spread_setElement_disableImplicitCasts() async {
+    addFile(r'''
+Iterable<num> i;
+void main() {
+  <int>{.../*error:SET_ELEMENT_TYPE_NOT_ASSIGNABLE*/i};
+}
+''');
+    await check(implicitCasts: false);
+  }
+
+  test_spread_setElement_implicitCasts() async {
+    addFile(r'''
+Iterable<num> i;
+void main() {
+  <int>{.../*info:DOWN_CAST_IMPLICIT*/i};
+}
+''');
+    await check();
+  }
 }

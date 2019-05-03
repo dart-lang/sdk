@@ -45,7 +45,9 @@ void Function::ZeroEdgeCounters() const {
   ASSERT(saved_ic_datalength > 0);
   const Array& edge_counters_array =
       Array::Handle(Array::RawCast(saved_ic_data.At(0)));
-  ASSERT(!edge_counters_array.IsNull());
+  if (edge_counters_array.IsNull()) {
+    return;
+  }
   // Fill edge counters array with zeros.
   const Smi& zero = Smi::Handle(Smi::New(0));
   for (intptr_t i = 0; i < edge_counters_array.Length(); i++) {
@@ -703,7 +705,7 @@ void ICData::Reset(Zone* zone) const {
   RebindRule rule = rebind_rule();
   if (rule == kInstance) {
     const intptr_t num_args = NumArgsTested();
-    const bool tracking_exactness = IsTrackingExactness();
+    const bool tracking_exactness = is_tracking_exactness();
     const intptr_t len = Length();
     // We need at least one non-sentinel entry to require a check
     // for the smi fast path case.

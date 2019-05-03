@@ -6,7 +6,7 @@
 library test;
 
 class C {
-  final /*@topType=int*/ x = _x;
+  final x = _x;
   static int get _x => null;
 }
 

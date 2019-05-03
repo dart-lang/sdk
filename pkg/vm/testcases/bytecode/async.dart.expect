@@ -1,28 +1,34 @@
-library #lib;
-import self as self;
-import "dart:async" as asy;
-import "dart:core" as core;
+main = #lib::main;
+ [@vm.bytecode=
+ComponentBytecodeMetadata {
 
-import "dart:async";
+Bytecode (version: stable)
+Main library: #lib
 
-[@vm.bytecode=
+}
+] [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+Field 'asyncInFieldInitializer', type = FunctionType (dart:async::Future < dart:core::int >) -> dart:async::Future < dart:core::Null >, getter = 'get:asyncInFieldInitializer', reflectable, static
+    initializer 
 Bytecode {
   Entry                3
   CheckStack           0
-  Allocate             CP#20
+  AllocateClosure      CP#0
   StoreLocal           r2
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#21
+  StoreFieldTOS        CP#20
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#23
+  StoreFieldTOS        CP#22
   Push                 r2
-  PushConstant         CP#25
-  StoreFieldTOS        CP#26
+  PushConstant         CP#24
+  StoreFieldTOS        CP#25
   Push                 r2
   PushConstant         CP#0
-  StoreFieldTOS        CP#28
+  StoreFieldTOS        CP#27
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#1
@@ -49,30 +55,29 @@ ConstantPool {
   [17] = InterfaceCall 'dart:async::Completer::completeError', ArgDesc num-args 3, num-type-args 0, names []
   [18] = Reserved
   [19] = EndClosureFunctionScope
-  [20] = Class dart:core::_Closure
-  [21] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
-  [22] = Reserved
-  [23] = InstanceField dart:core::_Closure::_function_type_arguments (field)
-  [24] = Reserved
-  [25] = EmptyTypeArguments
-  [26] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [27] = Reserved
-  [28] = InstanceField dart:core::_Closure::_function (field)
-  [29] = Reserved
-  [30] = DirectCall 'dart:async::_asyncStackTraceHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [31] = Reserved
-  [32] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [33] = Reserved
-  [34] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [35] = Reserved
-  [36] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [37] = ICData dynamic target-name 'start', arg-desc CP#36
-  [38] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
-  [39] = Reserved
-  [40] = EndClosureFunctionScope
+  [20] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
+  [21] = Reserved
+  [22] = InstanceField dart:core::_Closure::_function_type_arguments (field)
+  [23] = Reserved
+  [24] = EmptyTypeArguments
+  [25] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
+  [26] = Reserved
+  [27] = InstanceField dart:core::_Closure::_function (field)
+  [28] = Reserved
+  [29] = DirectCall 'dart:async::_asyncStackTraceHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [30] = Reserved
+  [31] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [32] = Reserved
+  [33] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [34] = Reserved
+  [35] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
+  [36] = ICData dynamic target-name 'start', arg-desc CP#35
+  [37] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
+  [38] = Reserved
+  [39] = EndClosureFunctionScope
 }
 Closure #lib::asyncInFieldInitializer (field)::'<anonymous closure>' (dart:async::Future < dart:core::int > x) -> dart:async::Future < dart:core::Null >
-ClosureBytecode {
+ClosureCode {
   EntryFixed           2, 4
   CheckStack           0
   Push                 FP[-6]
@@ -120,53 +125,53 @@ ClosureBytecode {
   PushNull
   StoreContextVar      0, 7
   Push                 r0
-  Allocate             CP#20
+  AllocateClosure      CP#10
   StoreLocal           r2
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#21
+  StoreFieldTOS        CP#20
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#23
+  StoreFieldTOS        CP#22
   Push                 r2
-  PushConstant         CP#25
-  StoreFieldTOS        CP#26
+  PushConstant         CP#24
+  StoreFieldTOS        CP#25
   Push                 r2
   PushConstant         CP#10
-  StoreFieldTOS        CP#28
+  StoreFieldTOS        CP#27
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#1
   StoreContextVar      0, 8
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           1, CP#30
+  DirectCall           1, CP#29
   PopLocal             r3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           1, CP#32
+  DirectCall           1, CP#31
   StoreContextVar      0, 3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           1, CP#34
+  DirectCall           1, CP#33
   StoreContextVar      0, 4
   Push                 r0
   LoadContextVar       0, 1
   Push                 r0
   LoadContextVar       0, 8
-  DynamicCall          2, CP#37
+  DynamicCall          2, CP#36
   Drop1
   Push                 r0
   LoadContextVar       0, 1
-  InterfaceCall        1, CP#38
+  InterfaceCall        1, CP#37
   ReturnTOS
 
 }
 
 Closure #lib::asyncInFieldInitializer (field)::Closure/0::':async_op' ([ dynamic :result, dynamic :exception, dynamic :stack_trace ]) -> dynamic
-ClosureBytecode {
+ClosureCode {
   EntryOptional        1, 3, 0
   LoadConstant         r1, CP#11
   LoadConstant         r2, CP#11
@@ -252,35 +257,13 @@ L1:
   Jump                 L4
 
 }
-]static field (asy::Future<core::int>) → asy::Future<core::Null> asyncInFieldInitializer = (asy::Future<core::int> x) → asy::Future<core::Null> /* originally async */ {
-  final asy::_AsyncAwaitCompleter<core::Null> :async_completer = new asy::_AsyncAwaitCompleter::•<core::Null>();
-  asy::FutureOr<core::Null> :return_value;
-  dynamic :async_stack_trace;
-  dynamic :async_op_then;
-  dynamic :async_op_error;
-  dynamic :await_jump_var = 0;
-  dynamic :await_ctx_var;
-  dynamic :saved_try_context_var0;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
-    try {
-      #L1:
-      {
-        [yield] let dynamic #t1 = asy::_awaitHelper(x, :async_op_then, :async_op_error, :async_op) in null;
-        :result;
-      }
-      asy::_completeOnAsyncReturn(:async_completer, :return_value);
-      return;
-    }
-    on dynamic catch(dynamic :exception, dynamic :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
-    }
-  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
-  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
-  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_completer.start(:async_op);
-  return :async_completer.{asy::Completer::future};
-};
-[@vm.bytecode=
+
+
+Function 'foo', static, reflectable, async
+    parameters [] (required: 0)
+    return-type dart:async::Future < dart:core::int >
+
+
 Bytecode {
   Entry                7
   CheckStack           0
@@ -310,41 +293,41 @@ Bytecode {
   Push                 r0
   PushNull
   StoreContextVar      0, 3
-  Allocate             CP#14
+  AllocateClosure      CP#4
   StoreLocal           r2
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#15
+  StoreFieldTOS        CP#14
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#17
+  StoreFieldTOS        CP#16
   Push                 r2
-  PushConstant         CP#19
-  StoreFieldTOS        CP#20
+  PushConstant         CP#18
+  StoreFieldTOS        CP#19
   Push                 r2
   PushConstant         CP#4
-  StoreFieldTOS        CP#22
+  StoreFieldTOS        CP#21
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#6
   PopLocal             r6
   Push                 r6
-  DirectCall           1, CP#24
+  DirectCall           1, CP#23
   PopLocal             r3
   Push                 r6
-  DirectCall           1, CP#26
+  DirectCall           1, CP#25
   PopLocal             r4
   Push                 r6
-  DirectCall           1, CP#28
+  DirectCall           1, CP#27
   PopLocal             r5
   Push                 r0
   LoadContextVar       0, 0
   Push                 r6
-  DynamicCall          2, CP#31
+  DynamicCall          2, CP#30
   Drop1
   Push                 r0
   LoadContextVar       0, 0
-  InterfaceCall        1, CP#32
+  InterfaceCall        1, CP#31
   ReturnTOS
 }
 ConstantPool {
@@ -362,29 +345,28 @@ ConstantPool {
   [11] = InterfaceCall 'dart:async::Completer::completeError', ArgDesc num-args 3, num-type-args 0, names []
   [12] = Reserved
   [13] = EndClosureFunctionScope
-  [14] = Class dart:core::_Closure
-  [15] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
-  [16] = Reserved
-  [17] = InstanceField dart:core::_Closure::_function_type_arguments (field)
-  [18] = Reserved
-  [19] = EmptyTypeArguments
-  [20] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [21] = Reserved
-  [22] = InstanceField dart:core::_Closure::_function (field)
-  [23] = Reserved
-  [24] = DirectCall 'dart:async::_asyncStackTraceHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [25] = Reserved
-  [26] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [27] = Reserved
-  [28] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [29] = Reserved
-  [30] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [31] = ICData dynamic target-name 'start', arg-desc CP#30
-  [32] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
-  [33] = Reserved
+  [14] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
+  [15] = Reserved
+  [16] = InstanceField dart:core::_Closure::_function_type_arguments (field)
+  [17] = Reserved
+  [18] = EmptyTypeArguments
+  [19] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
+  [20] = Reserved
+  [21] = InstanceField dart:core::_Closure::_function (field)
+  [22] = Reserved
+  [23] = DirectCall 'dart:async::_asyncStackTraceHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [24] = Reserved
+  [25] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [26] = Reserved
+  [27] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [28] = Reserved
+  [29] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
+  [30] = ICData dynamic target-name 'start', arg-desc CP#29
+  [31] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
+  [32] = Reserved
 }
 Closure #lib::foo::':async_op' ([ dynamic :result, dynamic :exception, dynamic :stack_trace ]) -> dynamic
-ClosureBytecode {
+ClosureCode {
   EntryOptional        1, 3, 0
   LoadConstant         r1, CP#5
   LoadConstant         r2, CP#5
@@ -440,34 +422,13 @@ L1:
   Trap
 
 }
-]static method foo() → asy::Future<core::int> /* originally async */ {
-  final asy::_AsyncAwaitCompleter<core::int> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int>();
-  asy::FutureOr<core::int> :return_value;
-  dynamic :async_stack_trace;
-  dynamic :async_op_then;
-  dynamic :async_op_error;
-  dynamic :await_jump_var = 0;
-  dynamic :await_ctx_var;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
-    try {
-      #L2:
-      {
-        :return_value = 42;
-        break #L2;
-      }
-      asy::_completeOnAsyncReturn(:async_completer, :return_value);
-      return;
-    }
-    on dynamic catch(dynamic :exception, dynamic :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
-    }
-  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
-  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
-  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_completer.start(:async_op);
-  return :async_completer.{asy::Completer::future};
-}
-[@vm.bytecode=
+
+
+Function 'simpleAsyncAwait', static, reflectable, async
+    parameters [dart:async::Future < dart:core::int > 'a', dart:async::Future < dart:core::int > 'b'] (required: 2)
+    return-type dart:async::Future < dart:core::int >
+
+
 Bytecode {
   Entry                4
   CheckStack           0
@@ -512,47 +473,47 @@ Bytecode {
   PushNull
   StoreContextVar      0, 9
   Push                 r0
-  Allocate             CP#18
+  AllocateClosure      CP#4
   StoreLocal           r2
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#19
+  StoreFieldTOS        CP#18
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#21
+  StoreFieldTOS        CP#20
   Push                 r2
-  PushConstant         CP#23
-  StoreFieldTOS        CP#24
+  PushConstant         CP#22
+  StoreFieldTOS        CP#23
   Push                 r2
   PushConstant         CP#4
-  StoreFieldTOS        CP#26
+  StoreFieldTOS        CP#25
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#6
   StoreContextVar      0, 10
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           1, CP#28
+  DirectCall           1, CP#27
   PopLocal             r3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           1, CP#30
+  DirectCall           1, CP#29
   StoreContextVar      0, 4
   Push                 r0
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           1, CP#32
+  DirectCall           1, CP#31
   StoreContextVar      0, 5
   Push                 r0
   LoadContextVar       0, 2
   Push                 r0
   LoadContextVar       0, 10
-  DynamicCall          2, CP#35
+  DynamicCall          2, CP#34
   Drop1
   Push                 r0
   LoadContextVar       0, 2
-  InterfaceCall        1, CP#36
+  InterfaceCall        1, CP#35
   ReturnTOS
 }
 ConstantPool {
@@ -574,29 +535,28 @@ ConstantPool {
   [15] = InterfaceCall 'dart:async::Completer::completeError', ArgDesc num-args 3, num-type-args 0, names []
   [16] = Reserved
   [17] = EndClosureFunctionScope
-  [18] = Class dart:core::_Closure
-  [19] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
-  [20] = Reserved
-  [21] = InstanceField dart:core::_Closure::_function_type_arguments (field)
-  [22] = Reserved
-  [23] = EmptyTypeArguments
-  [24] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [25] = Reserved
-  [26] = InstanceField dart:core::_Closure::_function (field)
-  [27] = Reserved
-  [28] = DirectCall 'dart:async::_asyncStackTraceHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [29] = Reserved
-  [30] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [31] = Reserved
-  [32] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [33] = Reserved
-  [34] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [35] = ICData dynamic target-name 'start', arg-desc CP#34
-  [36] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
-  [37] = Reserved
+  [18] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
+  [19] = Reserved
+  [20] = InstanceField dart:core::_Closure::_function_type_arguments (field)
+  [21] = Reserved
+  [22] = EmptyTypeArguments
+  [23] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
+  [24] = Reserved
+  [25] = InstanceField dart:core::_Closure::_function (field)
+  [26] = Reserved
+  [27] = DirectCall 'dart:async::_asyncStackTraceHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [28] = Reserved
+  [29] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [30] = Reserved
+  [31] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [32] = Reserved
+  [33] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
+  [34] = ICData dynamic target-name 'start', arg-desc CP#33
+  [35] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
+  [36] = Reserved
 }
 Closure #lib::simpleAsyncAwait::':async_op' ([ dynamic :result, dynamic :exception, dynamic :stack_trace ]) -> dynamic
-ClosureBytecode {
+ClosureCode {
   EntryOptional        1, 3, 0
   LoadConstant         r1, CP#5
   LoadConstant         r2, CP#5
@@ -719,39 +679,13 @@ L1:
   Jump                 L7
 
 }
-]static method simpleAsyncAwait(asy::Future<core::int> a, asy::Future<core::int> b) → asy::Future<core::int> /* originally async */ {
-  final asy::_AsyncAwaitCompleter<core::int> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int>();
-  asy::FutureOr<core::int> :return_value;
-  dynamic :async_stack_trace;
-  dynamic :async_op_then;
-  dynamic :async_op_error;
-  dynamic :await_jump_var = 0;
-  dynamic :await_ctx_var;
-  dynamic :saved_try_context_var0;
-  dynamic :async_temporary_0;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
-    try {
-      #L3:
-      {
-        [yield] let dynamic #t2 = asy::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
-        :async_temporary_0 = :result;
-        [yield] let dynamic #t3 = asy::_awaitHelper(b, :async_op_then, :async_op_error, :async_op) in null;
-        :return_value = :async_temporary_0.{core::num::+}(:result);
-        break #L3;
-      }
-      asy::_completeOnAsyncReturn(:async_completer, :return_value);
-      return;
-    }
-    on dynamic catch(dynamic :exception, dynamic :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
-    }
-  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
-  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
-  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_completer.start(:async_op);
-  return :async_completer.{asy::Completer::future};
-}
-[@vm.bytecode=
+
+
+Function 'loops', static, reflectable, async
+    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
+    return-type dart:async::Future < dart:core::int >
+
+
 Bytecode {
   Entry                4
   CheckStack           0
@@ -796,47 +730,47 @@ Bytecode {
   PushNull
   StoreContextVar      0, 9
   Push                 r0
-  Allocate             CP#26
+  AllocateClosure      CP#4
   StoreLocal           r2
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#27
+  StoreFieldTOS        CP#26
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#29
+  StoreFieldTOS        CP#28
   Push                 r2
-  PushConstant         CP#31
-  StoreFieldTOS        CP#32
+  PushConstant         CP#30
+  StoreFieldTOS        CP#31
   Push                 r2
   PushConstant         CP#4
-  StoreFieldTOS        CP#34
+  StoreFieldTOS        CP#33
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#6
   StoreContextVar      0, 10
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           1, CP#36
+  DirectCall           1, CP#35
   PopLocal             r3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           1, CP#38
+  DirectCall           1, CP#37
   StoreContextVar      0, 3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           1, CP#40
+  DirectCall           1, CP#39
   StoreContextVar      0, 4
   Push                 r0
   LoadContextVar       0, 1
   Push                 r0
   LoadContextVar       0, 10
-  DynamicCall          2, CP#43
+  DynamicCall          2, CP#42
   Drop1
   Push                 r0
   LoadContextVar       0, 1
-  InterfaceCall        1, CP#44
+  InterfaceCall        1, CP#43
   ReturnTOS
 }
 ConstantPool {
@@ -866,29 +800,28 @@ ConstantPool {
   [23] = InterfaceCall 'dart:async::Completer::completeError', ArgDesc num-args 3, num-type-args 0, names []
   [24] = Reserved
   [25] = EndClosureFunctionScope
-  [26] = Class dart:core::_Closure
-  [27] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
-  [28] = Reserved
-  [29] = InstanceField dart:core::_Closure::_function_type_arguments (field)
-  [30] = Reserved
-  [31] = EmptyTypeArguments
-  [32] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [33] = Reserved
-  [34] = InstanceField dart:core::_Closure::_function (field)
-  [35] = Reserved
-  [36] = DirectCall 'dart:async::_asyncStackTraceHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [37] = Reserved
-  [38] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [39] = Reserved
-  [40] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [41] = Reserved
-  [42] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [43] = ICData dynamic target-name 'start', arg-desc CP#42
-  [44] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
-  [45] = Reserved
+  [26] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
+  [27] = Reserved
+  [28] = InstanceField dart:core::_Closure::_function_type_arguments (field)
+  [29] = Reserved
+  [30] = EmptyTypeArguments
+  [31] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
+  [32] = Reserved
+  [33] = InstanceField dart:core::_Closure::_function (field)
+  [34] = Reserved
+  [35] = DirectCall 'dart:async::_asyncStackTraceHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [36] = Reserved
+  [37] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [38] = Reserved
+  [39] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [40] = Reserved
+  [41] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
+  [42] = ICData dynamic target-name 'start', arg-desc CP#41
+  [43] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
+  [44] = Reserved
 }
 Closure #lib::loops::':async_op' ([ dynamic :result, dynamic :exception, dynamic :stack_trace ]) -> dynamic
-ClosureBytecode {
+ClosureCode {
   EntryOptional        1, 3, 0
   LoadConstant         r1, CP#5
   LoadConstant         r2, CP#5
@@ -1127,53 +1060,17 @@ L1:
   Jump                 L11
 
 }
-]static method loops(core::List<core::int> list) → asy::Future<core::int> /* originally async */ {
-  final asy::_AsyncAwaitCompleter<core::int> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int>();
-  asy::FutureOr<core::int> :return_value;
-  dynamic :async_stack_trace;
-  dynamic :async_op_then;
-  dynamic :async_op_error;
-  dynamic :await_jump_var = 0;
-  dynamic :await_ctx_var;
-  dynamic :saved_try_context_var0;
-  dynamic :async_temporary_0;
-  dynamic :async_temporary_1;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
-    try {
-      #L4:
-      {
-        core::int sum = 0;
-        for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
-          for (core::int j in list) {
-            :async_temporary_1 = sum;
-            :async_temporary_0 = i.{core::num::+}(j);
-            [yield] let dynamic #t4 = asy::_awaitHelper(self::foo(), :async_op_then, :async_op_error, :async_op) in null;
-            sum = :async_temporary_1.{core::num::+}(:async_temporary_0.{core::num::+}(:result));
-          }
-        }
-        for (core::int k = 0; k.{core::num::<}(10); k = k.{core::num::+}(1)) {
-          sum = sum.{core::num::+}(k);
-        }
-        :return_value = sum;
-        break #L4;
-      }
-      asy::_completeOnAsyncReturn(:async_completer, :return_value);
-      return;
-    }
-    on dynamic catch(dynamic :exception, dynamic :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
-    }
-  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
-  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
-  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_completer.start(:async_op);
-  return :async_completer.{asy::Completer::future};
-}
-[@vm.bytecode=
+
+
+Function 'tryCatchRethrow', static, reflectable, async
+    parameters [dart:async::Future < dart:core::int > 'a', dart:async::Future < dart:core::int > 'b', dart:async::Future < dart:core::int > 'c'] (required: 3)
+    return-type dart:async::Future < dart:core::int >
+
+
 Bytecode {
   Entry                4
   CheckStack           0
-  AllocateContext      0, 16
+  AllocateContext      0, 18
   PopLocal             r0
   Push                 r0
   Push                 FP[-7]
@@ -1229,47 +1126,53 @@ Bytecode {
   PushNull
   StoreContextVar      0, 14
   Push                 r0
-  Allocate             CP#24
+  PushNull
+  StoreContextVar      0, 15
+  Push                 r0
+  PushNull
+  StoreContextVar      0, 16
+  Push                 r0
+  AllocateClosure      CP#4
   StoreLocal           r2
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#25
+  StoreFieldTOS        CP#24
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#27
+  StoreFieldTOS        CP#26
   Push                 r2
-  PushConstant         CP#29
-  StoreFieldTOS        CP#30
+  PushConstant         CP#28
+  StoreFieldTOS        CP#29
   Push                 r2
   PushConstant         CP#4
-  StoreFieldTOS        CP#32
+  StoreFieldTOS        CP#31
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#6
-  StoreContextVar      0, 15
+  StoreContextVar      0, 17
   Push                 r0
-  LoadContextVar       0, 15
-  DirectCall           1, CP#34
+  LoadContextVar       0, 17
+  DirectCall           1, CP#33
   PopLocal             r3
   Push                 r0
   Push                 r0
-  LoadContextVar       0, 15
-  DirectCall           1, CP#36
+  LoadContextVar       0, 17
+  DirectCall           1, CP#35
   StoreContextVar      0, 5
   Push                 r0
   Push                 r0
-  LoadContextVar       0, 15
-  DirectCall           1, CP#38
+  LoadContextVar       0, 17
+  DirectCall           1, CP#37
   StoreContextVar      0, 6
   Push                 r0
   LoadContextVar       0, 3
   Push                 r0
-  LoadContextVar       0, 15
-  DynamicCall          2, CP#41
+  LoadContextVar       0, 17
+  DynamicCall          2, CP#40
   Drop1
   Push                 r0
   LoadContextVar       0, 3
-  InterfaceCall        1, CP#42
+  InterfaceCall        1, CP#41
   ReturnTOS
 }
 ConstantPool {
@@ -1297,29 +1200,28 @@ ConstantPool {
   [21] = InterfaceCall 'dart:async::Completer::completeError', ArgDesc num-args 3, num-type-args 0, names []
   [22] = Reserved
   [23] = EndClosureFunctionScope
-  [24] = Class dart:core::_Closure
-  [25] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
-  [26] = Reserved
-  [27] = InstanceField dart:core::_Closure::_function_type_arguments (field)
-  [28] = Reserved
-  [29] = EmptyTypeArguments
-  [30] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [31] = Reserved
-  [32] = InstanceField dart:core::_Closure::_function (field)
-  [33] = Reserved
-  [34] = DirectCall 'dart:async::_asyncStackTraceHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [35] = Reserved
-  [36] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [37] = Reserved
-  [38] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [39] = Reserved
-  [40] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [41] = ICData dynamic target-name 'start', arg-desc CP#40
-  [42] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
-  [43] = Reserved
+  [24] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
+  [25] = Reserved
+  [26] = InstanceField dart:core::_Closure::_function_type_arguments (field)
+  [27] = Reserved
+  [28] = EmptyTypeArguments
+  [29] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
+  [30] = Reserved
+  [31] = InstanceField dart:core::_Closure::_function (field)
+  [32] = Reserved
+  [33] = DirectCall 'dart:async::_asyncStackTraceHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [34] = Reserved
+  [35] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [36] = Reserved
+  [37] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [38] = Reserved
+  [39] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
+  [40] = ICData dynamic target-name 'start', arg-desc CP#39
+  [41] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
+  [42] = Reserved
 }
 Closure #lib::tryCatchRethrow::':async_op' ([ dynamic :result, dynamic :exception, dynamic :stack_trace ]) -> dynamic
-ClosureBytecode {
+ClosureCode {
   EntryOptional        1, 3, 0
   LoadConstant         r1, CP#5
   LoadConstant         r2, CP#5
@@ -1381,7 +1283,7 @@ Try #2 start:
   LoadContextVar       0, 6
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 15
+  LoadContextVar       0, 17
   DirectCall           4, CP#8
   PopLocal             r13
   PushNull
@@ -1438,7 +1340,7 @@ L4:
   LoadContextParent
   Push                 r4
   LoadContextVar       1, 0
-  StoreContextVar      0, 14
+  StoreContextVar      0, 15
   Push                 r4
   LoadContextParent
   PushInt              2
@@ -1458,7 +1360,7 @@ L4:
   LoadContextVar       0, 6
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 15
+  LoadContextVar       0, 17
   DirectCall           4, CP#8
   PopLocal             r13
   PushNull
@@ -1473,7 +1375,7 @@ L6:
   Push                 r4
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 14
+  LoadContextVar       0, 15
   Push                 r1
   InterfaceCall        2, CP#10
   StoreContextVar      1, 0
@@ -1512,7 +1414,7 @@ Try #1 handler:
   LoadContextParent
   Push                 r4
   LoadContextVar       1, 0
-  StoreContextVar      0, 14
+  StoreContextVar      0, 16
   Push                 r4
   LoadContextParent
   PushInt              3
@@ -1532,7 +1434,7 @@ Try #1 handler:
   LoadContextVar       0, 6
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 15
+  LoadContextVar       0, 17
   DirectCall           4, CP#8
   PopLocal             r12
   PushNull
@@ -1547,7 +1449,7 @@ L8:
   Push                 r4
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 14
+  LoadContextVar       0, 16
   Push                 r1
   InterfaceCall        2, CP#10
   StoreContextVar      1, 0
@@ -1574,7 +1476,7 @@ L5:
   LoadContextParent
   Push                 r4
   LoadContextVar       1, 0
-  StoreContextVar      0, 14
+  StoreContextVar      0, 16
   Push                 r4
   LoadContextParent
   PushInt              4
@@ -1594,7 +1496,7 @@ L5:
   LoadContextVar       0, 6
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 15
+  LoadContextVar       0, 17
   DirectCall           4, CP#8
   PopLocal             r12
   PushNull
@@ -1609,7 +1511,7 @@ L10:
   Push                 r4
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 14
+  LoadContextVar       0, 16
   Push                 r1
   InterfaceCall        2, CP#10
   StoreContextVar      1, 0
@@ -1636,7 +1538,7 @@ L7:
   LoadContextParent
   Push                 r4
   LoadContextVar       1, 0
-  StoreContextVar      0, 14
+  StoreContextVar      0, 16
   Push                 r4
   LoadContextParent
   PushInt              5
@@ -1656,7 +1558,7 @@ L7:
   LoadContextVar       0, 6
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 15
+  LoadContextVar       0, 17
   DirectCall           4, CP#8
   PopLocal             r12
   PushNull
@@ -1671,7 +1573,7 @@ L11:
   Push                 r4
   Push                 r4
   LoadContextParent
-  LoadContextVar       0, 14
+  LoadContextVar       0, 16
   Push                 r1
   InterfaceCall        2, CP#10
   StoreContextVar      1, 0
@@ -1737,63 +1639,13 @@ L1:
   Jump                 L17
 
 }
-]static method tryCatchRethrow(asy::Future<core::int> a, asy::Future<core::int> b, asy::Future<core::int> c) → asy::Future<core::int> /* originally async */ {
-  final asy::_AsyncAwaitCompleter<core::int> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int>();
-  asy::FutureOr<core::int> :return_value;
-  dynamic :async_stack_trace;
-  dynamic :async_op_then;
-  dynamic :async_op_error;
-  dynamic :await_jump_var = 0;
-  dynamic :await_ctx_var;
-  dynamic :saved_try_context_var0;
-  dynamic :saved_try_context_var1;
-  dynamic :saved_try_context_var2;
-  dynamic :exception0;
-  dynamic :stack_trace0;
-  dynamic :async_temporary_0;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
-    try {
-      #L5:
-      {
-        core::int x = 1;
-        try
-          try {
-            :async_temporary_0 = x;
-            [yield] let dynamic #t5 = asy::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
-            x = :async_temporary_0.{core::num::+}(:result);
-          }
-          on dynamic catch(final dynamic e) {
-            if(e is core::Error) {
-              :return_value = 42;
-              break #L5;
-            }
-            :async_temporary_0 = x;
-            [yield] let dynamic #t6 = asy::_awaitHelper(b, :async_op_then, :async_op_error, :async_op) in null;
-            x = :async_temporary_0.{core::num::+}(:result);
-            rethrow;
-          }
-        finally {
-          core::print("fin");
-          :async_temporary_0 = x;
-          [yield] let dynamic #t7 = asy::_awaitHelper(c, :async_op_then, :async_op_error, :async_op) in null;
-          x = :async_temporary_0.{core::num::+}(:result);
-          :return_value = x;
-          break #L5;
-        }
-      }
-      asy::_completeOnAsyncReturn(:async_completer, :return_value);
-      return;
-    }
-    on dynamic catch(dynamic :exception, dynamic :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
-    }
-  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
-  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
-  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_completer.start(:async_op);
-  return :async_completer.{asy::Completer::future};
-}
-[@vm.bytecode=
+
+
+Function 'closure', static, reflectable, debuggable
+    parameters [dart:async::Future < dart:core::int > 'a'] (required: 1)
+    return-type dynamic
+
+
 Bytecode {
   Entry                4
   CheckStack           0
@@ -1805,20 +1657,20 @@ Bytecode {
   Push                 r0
   PushInt              3
   StoreContextVar      0, 1
-  Allocate             CP#20
+  AllocateClosure      CP#0
   StoreLocal           r3
   Push                 r3
   PushNull
-  StoreFieldTOS        CP#21
+  StoreFieldTOS        CP#20
   Push                 r3
   PushNull
-  StoreFieldTOS        CP#23
+  StoreFieldTOS        CP#22
   Push                 r3
-  PushConstant         CP#25
-  StoreFieldTOS        CP#26
+  PushConstant         CP#24
+  StoreFieldTOS        CP#25
   Push                 r3
   PushConstant         CP#0
-  StoreFieldTOS        CP#28
+  StoreFieldTOS        CP#27
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#1
@@ -1847,30 +1699,29 @@ ConstantPool {
   [17] = InterfaceCall 'dart:async::Completer::completeError', ArgDesc num-args 3, num-type-args 0, names []
   [18] = Reserved
   [19] = EndClosureFunctionScope
-  [20] = Class dart:core::_Closure
-  [21] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
-  [22] = Reserved
-  [23] = InstanceField dart:core::_Closure::_function_type_arguments (field)
-  [24] = Reserved
-  [25] = EmptyTypeArguments
-  [26] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [27] = Reserved
-  [28] = InstanceField dart:core::_Closure::_function (field)
-  [29] = Reserved
-  [30] = DirectCall 'dart:async::_asyncStackTraceHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [31] = Reserved
-  [32] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [33] = Reserved
-  [34] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [35] = Reserved
-  [36] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [37] = ICData dynamic target-name 'start', arg-desc CP#36
-  [38] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
-  [39] = Reserved
-  [40] = EndClosureFunctionScope
+  [20] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
+  [21] = Reserved
+  [22] = InstanceField dart:core::_Closure::_function_type_arguments (field)
+  [23] = Reserved
+  [24] = EmptyTypeArguments
+  [25] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
+  [26] = Reserved
+  [27] = InstanceField dart:core::_Closure::_function (field)
+  [28] = Reserved
+  [29] = DirectCall 'dart:async::_asyncStackTraceHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [30] = Reserved
+  [31] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [32] = Reserved
+  [33] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [34] = Reserved
+  [35] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
+  [36] = ICData dynamic target-name 'start', arg-desc CP#35
+  [37] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
+  [38] = Reserved
+  [39] = EndClosureFunctionScope
 }
 Closure #lib::closure::'nested' () -> dart:async::Future < dart:core::int >
-ClosureBytecode {
+ClosureCode {
   EntryFixed           1, 4
   CheckStack           0
   Push                 FP[-5]
@@ -1915,53 +1766,53 @@ ClosureBytecode {
   PushNull
   StoreContextVar      1, 7
   Push                 r0
-  Allocate             CP#20
+  AllocateClosure      CP#7
   StoreLocal           r2
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#21
+  StoreFieldTOS        CP#20
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#23
+  StoreFieldTOS        CP#22
   Push                 r2
-  PushConstant         CP#25
-  StoreFieldTOS        CP#26
+  PushConstant         CP#24
+  StoreFieldTOS        CP#25
   Push                 r2
   PushConstant         CP#7
-  StoreFieldTOS        CP#28
+  StoreFieldTOS        CP#27
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#1
   StoreContextVar      1, 8
   Push                 r0
   LoadContextVar       1, 8
-  DirectCall           1, CP#30
+  DirectCall           1, CP#29
   PopLocal             r3
   Push                 r0
   Push                 r0
   LoadContextVar       1, 8
-  DirectCall           1, CP#32
+  DirectCall           1, CP#31
   StoreContextVar      1, 2
   Push                 r0
   Push                 r0
   LoadContextVar       1, 8
-  DirectCall           1, CP#34
+  DirectCall           1, CP#33
   StoreContextVar      1, 3
   Push                 r0
   LoadContextVar       1, 0
   Push                 r0
   LoadContextVar       1, 8
-  DynamicCall          2, CP#37
+  DynamicCall          2, CP#36
   Drop1
   Push                 r0
   LoadContextVar       1, 0
-  InterfaceCall        1, CP#38
+  InterfaceCall        1, CP#37
   ReturnTOS
 
 }
 
 Closure #lib::closure::Closure/0::':async_op' ([ dynamic :result, dynamic :exception, dynamic :stack_trace ]) -> dynamic
-ClosureBytecode {
+ClosureCode {
   EntryOptional        1, 3, 0
   LoadConstant         r1, CP#8
   LoadConstant         r2, CP#8
@@ -2117,49 +1968,13 @@ L1:
   Jump                 L6
 
 }
-]static method closure(asy::Future<core::int> a) → dynamic {
-  core::int x = 3;
-  function nested() → asy::Future<core::int> /* originally async */ {
-    final asy::_AsyncAwaitCompleter<core::int> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int>();
-    asy::FutureOr<core::int> :return_value;
-    dynamic :async_stack_trace;
-    dynamic :async_op_then;
-    dynamic :async_op_error;
-    dynamic :await_jump_var = 0;
-    dynamic :await_ctx_var;
-    dynamic :saved_try_context_var0;
-    dynamic :saved_try_context_var1;
-    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
-      try {
-        #L6:
-        {
-          core::int y = 4;
-          try {
-            x = 5;
-            [yield] let dynamic #t8 = asy::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
-            y = :result;
-            :return_value = x.{core::num::+}(y);
-            break #L6;
-          }
-          finally {
-            core::print("fin");
-          }
-        }
-        asy::_completeOnAsyncReturn(:async_completer, :return_value);
-        return;
-      }
-      on dynamic catch(dynamic :exception, dynamic :stack_trace) {
-        :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
-      }
-    :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
-    :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
-    :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-    :async_completer.start(:async_op);
-    return :async_completer.{asy::Completer::future};
-  }
-  return nested;
-}
-[@vm.bytecode=
+
+
+Function 'testAssert', static, reflectable, async
+    parameters [dart:async::Future < dart:core::int > 'a'] (required: 1)
+    return-type dart:async::Future < dart:core::int >
+
+
 Bytecode {
   Entry                4
   CheckStack           0
@@ -2198,47 +2013,47 @@ Bytecode {
   PushNull
   StoreContextVar      0, 7
   Push                 r0
-  Allocate             CP#20
+  AllocateClosure      CP#4
   StoreLocal           r2
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#21
+  StoreFieldTOS        CP#20
   Push                 r2
   PushNull
-  StoreFieldTOS        CP#23
+  StoreFieldTOS        CP#22
   Push                 r2
-  PushConstant         CP#25
-  StoreFieldTOS        CP#26
+  PushConstant         CP#24
+  StoreFieldTOS        CP#25
   Push                 r2
   PushConstant         CP#4
-  StoreFieldTOS        CP#28
+  StoreFieldTOS        CP#27
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#6
   StoreContextVar      0, 8
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           1, CP#30
+  DirectCall           1, CP#29
   PopLocal             r3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           1, CP#32
+  DirectCall           1, CP#31
   StoreContextVar      0, 3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           1, CP#34
+  DirectCall           1, CP#33
   StoreContextVar      0, 4
   Push                 r0
   LoadContextVar       0, 1
   Push                 r0
   LoadContextVar       0, 8
-  DynamicCall          2, CP#37
+  DynamicCall          2, CP#36
   Drop1
   Push                 r0
   LoadContextVar       0, 1
-  InterfaceCall        1, CP#38
+  InterfaceCall        1, CP#37
   ReturnTOS
 }
 ConstantPool {
@@ -2262,29 +2077,28 @@ ConstantPool {
   [17] = InterfaceCall 'dart:async::Completer::completeError', ArgDesc num-args 3, num-type-args 0, names []
   [18] = Reserved
   [19] = EndClosureFunctionScope
-  [20] = Class dart:core::_Closure
-  [21] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
-  [22] = Reserved
-  [23] = InstanceField dart:core::_Closure::_function_type_arguments (field)
-  [24] = Reserved
-  [25] = EmptyTypeArguments
-  [26] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [27] = Reserved
-  [28] = InstanceField dart:core::_Closure::_function (field)
-  [29] = Reserved
-  [30] = DirectCall 'dart:async::_asyncStackTraceHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [31] = Reserved
-  [32] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [33] = Reserved
-  [34] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [35] = Reserved
-  [36] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [37] = ICData dynamic target-name 'start', arg-desc CP#36
-  [38] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
-  [39] = Reserved
+  [20] = InstanceField dart:core::_Closure::_instantiator_type_arguments (field)
+  [21] = Reserved
+  [22] = InstanceField dart:core::_Closure::_function_type_arguments (field)
+  [23] = Reserved
+  [24] = EmptyTypeArguments
+  [25] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
+  [26] = Reserved
+  [27] = InstanceField dart:core::_Closure::_function (field)
+  [28] = Reserved
+  [29] = DirectCall 'dart:async::_asyncStackTraceHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [30] = Reserved
+  [31] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [32] = Reserved
+  [33] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [34] = Reserved
+  [35] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
+  [36] = ICData dynamic target-name 'start', arg-desc CP#35
+  [37] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
+  [38] = Reserved
 }
 Closure #lib::testAssert::':async_op' ([ dynamic :result, dynamic :exception, dynamic :stack_trace ]) -> dynamic
-ClosureBytecode {
+ClosureCode {
   EntryOptional        1, 3, 0
   LoadConstant         r1, CP#5
   LoadConstant         r2, CP#5
@@ -2386,39 +2200,13 @@ L1:
   Jump                 L6
 
 }
-]static method testAssert(asy::Future<core::int> a) → asy::Future<core::int> /* originally async */ {
-  final asy::_AsyncAwaitCompleter<core::int> :async_completer = new asy::_AsyncAwaitCompleter::•<core::int>();
-  asy::FutureOr<core::int> :return_value;
-  dynamic :async_stack_trace;
-  dynamic :async_op_then;
-  dynamic :async_op_error;
-  dynamic :await_jump_var = 0;
-  dynamic :await_ctx_var;
-  dynamic :saved_try_context_var0;
-  function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
-    try {
-      #L7:
-      {
-        assert {
-          [yield] let dynamic #t9 = asy::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
-          assert(:result.{core::num::==}(42));
-        }
-        :return_value = 7;
-        break #L7;
-      }
-      asy::_completeOnAsyncReturn(:async_completer, :return_value);
-      return;
-    }
-    on dynamic catch(dynamic :exception, dynamic :stack_trace) {
-      :async_completer.{asy::Completer::completeError}(:exception, :stack_trace);
-    }
-  :async_stack_trace = asy::_asyncStackTraceHelper(:async_op);
-  :async_op_then = asy::_asyncThenWrapperHelper(:async_op);
-  :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
-  :async_completer.start(:async_op);
-  return :async_completer.{asy::Completer::future};
-}
-[@vm.bytecode=
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -2427,4 +2215,274 @@ Bytecode {
 }
 ConstantPool {
 }
-]static method main() → dynamic {}
+
+}
+
+}
+]library #lib from "#lib" as #lib {
+
+  import "dart:async";
+
+  static field (dart.async::Future<dart.core::int>) → dart.async::Future<dart.core::Null> asyncInFieldInitializer = (dart.async::Future<dart.core::int> x) → dart.async::Future<dart.core::Null> /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dart.core::Null> :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::Null>();
+    dart.async::FutureOr<dart.core::Null> :return_value;
+    dynamic :async_stack_trace;
+    dynamic :async_op_then;
+    dynamic :async_op_error;
+    dynamic :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L1:
+        {
+          [yield] let dynamic #t1 = dart.async::_awaitHelper(x, :async_op_then, :async_op_error, :async_op) in null;
+          :result;
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic :exception, dynamic :stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(:exception, :stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.start(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  };
+  static method foo() → dart.async::Future<dart.core::int> /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dart.core::int> :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int>();
+    dart.async::FutureOr<dart.core::int> :return_value;
+    dynamic :async_stack_trace;
+    dynamic :async_op_then;
+    dynamic :async_op_error;
+    dynamic :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L2:
+        {
+          :return_value = 42;
+          break #L2;
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic :exception, dynamic :stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(:exception, :stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.start(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+  static method simpleAsyncAwait(dart.async::Future<dart.core::int> a, dart.async::Future<dart.core::int> b) → dart.async::Future<dart.core::int> /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dart.core::int> :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int>();
+    dart.async::FutureOr<dart.core::int> :return_value;
+    dynamic :async_stack_trace;
+    dynamic :async_op_then;
+    dynamic :async_op_error;
+    dynamic :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    dynamic :async_temporary_0;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L3:
+        {
+          [yield] let dynamic #t2 = dart.async::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
+          :async_temporary_0 = :result;
+          [yield] let dynamic #t3 = dart.async::_awaitHelper(b, :async_op_then, :async_op_error, :async_op) in null;
+          :return_value = :async_temporary_0.{dart.core::num::+}(:result);
+          break #L3;
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic :exception, dynamic :stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(:exception, :stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.start(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+  static method loops(dart.core::List<dart.core::int> list) → dart.async::Future<dart.core::int> /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dart.core::int> :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int>();
+    dart.async::FutureOr<dart.core::int> :return_value;
+    dynamic :async_stack_trace;
+    dynamic :async_op_then;
+    dynamic :async_op_error;
+    dynamic :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    dynamic :async_temporary_0;
+    dynamic :async_temporary_1;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L4:
+        {
+          dart.core::int sum = 0;
+          for (dart.core::int i = 0; i.{dart.core::num::<}(10); i = i.{dart.core::num::+}(1)) {
+            for (dart.core::int j in list) {
+              :async_temporary_1 = sum;
+              :async_temporary_0 = i.{dart.core::num::+}(j);
+              [yield] let dynamic #t4 = dart.async::_awaitHelper(#lib::foo(), :async_op_then, :async_op_error, :async_op) in null;
+              sum = :async_temporary_1.{dart.core::num::+}(:async_temporary_0.{dart.core::num::+}(:result));
+            }
+          }
+          for (dart.core::int k = 0; k.{dart.core::num::<}(10); k = k.{dart.core::num::+}(1)) {
+            sum = sum.{dart.core::num::+}(k);
+          }
+          :return_value = sum;
+          break #L4;
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic :exception, dynamic :stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(:exception, :stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.start(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+  static method tryCatchRethrow(dart.async::Future<dart.core::int> a, dart.async::Future<dart.core::int> b, dart.async::Future<dart.core::int> c) → dart.async::Future<dart.core::int> /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dart.core::int> :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int>();
+    dart.async::FutureOr<dart.core::int> :return_value;
+    dynamic :async_stack_trace;
+    dynamic :async_op_then;
+    dynamic :async_op_error;
+    dynamic :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    dynamic :saved_try_context_var1;
+    dynamic :saved_try_context_var2;
+    dynamic :exception0;
+    dynamic :stack_trace0;
+    dynamic :async_temporary_0;
+    dynamic :async_temporary_1;
+    dynamic :async_temporary_2;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L5:
+        {
+          dart.core::int x = 1;
+          try
+            try {
+              :async_temporary_0 = x;
+              [yield] let dynamic #t5 = dart.async::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
+              x = :async_temporary_0.{dart.core::num::+}(:result);
+            }
+            on dynamic catch(final dynamic e) {
+              if(e is dart.core::Error) {
+                :return_value = 42;
+                break #L5;
+              }
+              :async_temporary_1 = x;
+              [yield] let dynamic #t6 = dart.async::_awaitHelper(b, :async_op_then, :async_op_error, :async_op) in null;
+              x = :async_temporary_1.{dart.core::num::+}(:result);
+              rethrow;
+            }
+          finally {
+            dart.core::print("fin");
+            :async_temporary_2 = x;
+            [yield] let dynamic #t7 = dart.async::_awaitHelper(c, :async_op_then, :async_op_error, :async_op) in null;
+            x = :async_temporary_2.{dart.core::num::+}(:result);
+            :return_value = x;
+            break #L5;
+          }
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic :exception, dynamic :stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(:exception, :stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.start(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+  static method closure(dart.async::Future<dart.core::int> a) → dynamic {
+    dart.core::int x = 3;
+    function nested() → dart.async::Future<dart.core::int> /* originally async */ {
+      final dart.async::_AsyncAwaitCompleter<dart.core::int> :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int>();
+      dart.async::FutureOr<dart.core::int> :return_value;
+      dynamic :async_stack_trace;
+      dynamic :async_op_then;
+      dynamic :async_op_error;
+      dynamic :await_jump_var = 0;
+      dynamic :await_ctx_var;
+      dynamic :saved_try_context_var0;
+      dynamic :saved_try_context_var1;
+      function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+        try {
+          #L6:
+          {
+            dart.core::int y = 4;
+            try {
+              x = 5;
+              [yield] let dynamic #t8 = dart.async::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
+              y = :result;
+              :return_value = x.{dart.core::num::+}(y);
+              break #L6;
+            }
+            finally {
+              dart.core::print("fin");
+            }
+          }
+          dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+          return;
+        }
+        on dynamic catch(dynamic :exception, dynamic :stack_trace) {
+          :async_completer.{dart.async::Completer::completeError}(:exception, :stack_trace);
+        }
+      :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+      :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+      :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+      :async_completer.start(:async_op);
+      return :async_completer.{dart.async::Completer::future};
+    }
+    return nested;
+  }
+  static method testAssert(dart.async::Future<dart.core::int> a) → dart.async::Future<dart.core::int> /* originally async */ {
+    final dart.async::_AsyncAwaitCompleter<dart.core::int> :async_completer = new dart.async::_AsyncAwaitCompleter::•<dart.core::int>();
+    dart.async::FutureOr<dart.core::int> :return_value;
+    dynamic :async_stack_trace;
+    dynamic :async_op_then;
+    dynamic :async_op_error;
+    dynamic :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    dynamic :saved_try_context_var0;
+    function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
+      try {
+        #L7:
+        {
+          assert {
+            [yield] let dynamic #t9 = dart.async::_awaitHelper(a, :async_op_then, :async_op_error, :async_op) in null;
+            assert(:result.{dart.core::num::==}(42));
+          }
+          :return_value = 7;
+          break #L7;
+        }
+        dart.async::_completeOnAsyncReturn(:async_completer, :return_value);
+        return;
+      }
+      on dynamic catch(dynamic :exception, dynamic :stack_trace) {
+        :async_completer.{dart.async::Completer::completeError}(:exception, :stack_trace);
+      }
+    :async_stack_trace = dart.async::_asyncStackTraceHelper(:async_op);
+    :async_op_then = dart.async::_asyncThenWrapperHelper(:async_op);
+    :async_op_error = dart.async::_asyncErrorWrapperHelper(:async_op);
+    :async_completer.start(:async_op);
+    return :async_completer.{dart.async::Completer::future};
+  }
+  static method main() → dynamic {}
+}

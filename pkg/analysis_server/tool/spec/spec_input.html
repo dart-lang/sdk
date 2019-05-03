@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.23.0</version>
+  <version>1.26.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -1412,7 +1412,7 @@
       </field>
     </result>
   </request>
-  <request method="setSubscriptions" experimental="true">
+  <request method="setSubscriptions">
     <p>
       Subscribe for completion services. All previous subscriptions are
       replaced by the given set of services.
@@ -1431,7 +1431,7 @@
       </field>
     </params>
   </request>
-  <request method="registerLibraryPaths" experimental="true">
+  <request method="registerLibraryPaths">
     <p>
       The client can make this request to express interest in certain
       libraries to receive completion suggestions from based on the client path.
@@ -1454,7 +1454,7 @@
       </field>
     </params>
   </request>
-  <request method="getSuggestionDetails" experimental="true">
+  <request method="getSuggestionDetails">
     <p>
       Clients must make this request when the user has selected a completion
       suggestion from an <tt>AvailableSuggestionSet</tt>. Analysis server will respond with
@@ -1504,6 +1504,32 @@
           A change for the client to apply in case the library containing
           the accepted completion suggestion needs to be imported. The field
           will be omitted if there are no additional changes that need to be made.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="listTokenDetails" experimental="true">
+    <p>
+      Inspect analysis server's knowledge about all of a file's tokens including
+      their lexeme, type, and what element kinds would have been appropriate for
+      the token's program location.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The path to the file from which tokens should be returned.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="tokens">
+        <list>
+          <ref>TokenDetails</ref>
+        </list>
+        <p>
+          A list of the file's scanned tokens including analysis information
+          about them.
         </p>
       </field>
     </result>
@@ -1567,21 +1593,15 @@
           <ref>IncludedSuggestionSet</ref>
         </list>
         <p>
-          This field is experimental.
-        </p>
-        <p>
           References to <tt>AvailableSuggestionSet</tt> objects previously sent
           to the client. The client can include applicable names from the
           referenced library in code completion suggestions.
         </p>
       </field>
-      <field name="includedSuggestionKinds" optional="true">
+      <field name="includedElementKinds" optional="true">
         <list>
           <ref>ElementKind</ref>
         </list>
-        <p>
-          This field is experimental.
-        </p>
         <p>
           The client is expected to check this list against the
           <tt>ElementKind</tt> sent in <tt>IncludedSuggestionSet</tt> to decide
@@ -1592,9 +1612,6 @@
         <list>
           <ref>IncludedSuggestionRelevanceTag</ref>
         </list>
-        <p>
-          This field is experimental.
-        </p>
         <p>
           The client is expected to check this list against the values of the
           field <tt>relevanceTags</tt> of <tt>AvailableSuggestion</tt> to
@@ -1611,7 +1628,7 @@
       </field>
     </params>
   </notification>
-  <notification event="availableSuggestions" experimental="true">
+  <notification event="availableSuggestions">
     <p>
       Reports the pre-computed, candidate completions from symbols defined
       in a corresponding library. This notification may be sent multiple times.
@@ -2517,15 +2534,26 @@
           The elements to be made accessible in the specified file.
         </p>
       </field>
+      <field name="offset" optional="true">
+        <ref>int</ref>
+        <p>
+          The offset at which the specified elements need to be made accessible.
+          If provided, this is used to guard against adding imports for text
+          that would be inserted into a comment, string literal, or other
+          location where the imports would not be necessary.
+        </p>
+      </field>
     </params>
     <result>
       <field name="edit" optional="true">
         <ref>SourceFileEdit</ref>
         <p>
-          The edits to be applied in order to make the specified elements accessible. The file to be edited will be the
-          defining compilation unit of the library containing the file specified in the request, which can be different
-          than the file specified in the request if the specified file is a part file. This field will be omitted if
-          there are no edits that need to be applied.
+          The edits to be applied in order to make the specified elements
+          accessible. The file to be edited will be the defining compilation
+          unit of the library containing the file specified in the request,
+          which can be different than the file specified in the request if the
+          specified file is a part file. This field will be omitted if there are
+          no edits that need to be applied.
         </p>
       </field>
     </result>
@@ -3525,7 +3553,7 @@
       The identifier for a execution context.
     </p>
   </type>
-  <type name="AvailableSuggestion" experimental="true">
+  <type name="AvailableSuggestion">
     <p>
       A partial completion suggestion that can be used in combination with
       info from <tt>completion.results</tt> to build completion suggestions
@@ -3542,6 +3570,27 @@
         <ref>Element</ref>
         <p>
           Information about the element reference being suggested.
+        </p>
+      </field>
+      <field name="defaultArgumentListString" optional="true">
+        <ref>String</ref>
+        <p>
+          A default String for use in generating argument list source contents
+          on the client side.
+        </p>
+      </field>
+      <field name="defaultArgumentListTextRanges" optional="true">
+        <list>
+          <ref>int</ref>
+        </list>
+        <p>
+          Pairs of offsets and lengths describing 'defaultArgumentListString'
+          text ranges suitable for use by clients to set up linked edits of
+          default argument source contents. For example, given an argument list
+          string 'x, y', the corresponding text range [0, 1, 3, 1], indicates
+          two text ranges of length 1, starting at offsets 0 and 3. Clients can
+          use these ranges to treat the 'x' and 'y' values specially for linked
+          edits.
         </p>
       </field>
       <field name="docComplete" optional="true">
@@ -3599,7 +3648,7 @@
       The opaque tag value.
     </p>
   </type>
-  <type name="AvailableSuggestionSet" experimental="true">
+  <type name="AvailableSuggestionSet">
     <object>
       <field name="id">
         <ref>int</ref>
@@ -3620,7 +3669,7 @@
       </field>
     </object>
   </type>
-  <type name="IncludedSuggestionSet" experimental="true">
+  <type name="IncludedSuggestionSet">
     <p>
       A reference to an <tt>AvailableSuggestionSet</tt> noting
       that the library's members which match the kind of this ref
@@ -3641,9 +3690,22 @@
           library where a higher number indicates a higher relevance.
         </p>
       </field>
+      <field name="displayUri" optional="true">
+        <ref>String</ref>
+        <p>
+          The optional string that should be displayed instead of the
+          <tt>uri</tt> of the referenced <tt>AvailableSuggestionSet</tt>.
+        </p>
+        <p>
+          For example libraries in the "test" directory of a package have only
+          "file://" URIs, so are usually long, and don't look nice, but actual
+          import directives will use relative URIs, which are short, so we
+          probably want to display such relative URIs to the user.
+        </p>
+      </field>
     </object>
   </type>
-  <type name="IncludedSuggestionRelevanceTag" experimental="true">
+  <type name="IncludedSuggestionRelevanceTag">
     <p>
       Each <tt>AvailableSuggestion</tt> can specify zero or more tags in the
       field <tt>relevanceTags</tt>, so that when the included tag is equal to
@@ -3667,7 +3729,7 @@
       </field>
     </object>
   </type>
-  <type name="CompletionService" experimental="true">
+  <type name="CompletionService">
     <p>
       An enumeration of the completion services to which a client can subscribe.
     </p>
@@ -3683,7 +3745,7 @@
       </value>
     </enum>
   </type>
-  <type name="LibraryPathSet" experimental="true">
+  <type name="LibraryPathSet">
     <p>
       A list of associations between paths and the libraries that should be
       included for code completion when editing a file beneath that path.
@@ -3832,6 +3894,37 @@
       <value><code>FUNCTION</code></value>
       <value><code>INTERFACE</code></value>
     </enum>
+  </type>
+  <type name="TokenDetails" experimental="true">
+    <p>
+      A scanned token along with its inferred type information.
+    </p>
+    <object>
+      <field name="lexeme">
+        <ref>String</ref>
+        <p>
+          The token's lexeme.
+        </p>
+      </field>
+      <field name="type" optional="true">
+        <ref>String</ref>
+        <p>
+          A unique id for the type of the identifier.
+          Omitted if the token is not an identifier in a reference position.
+        </p>
+      </field>
+      <field name="validElementKinds" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          An indication of whether this token is in a declaration or reference
+          position. (If no other purpose is found for this field then it should
+          be renamed and converted to a boolean value.)
+          Omitted if the token is not an identifier.
+        </p>
+      </field>
+    </object>
   </type>
   <type name="ExecutionService">
     <p>

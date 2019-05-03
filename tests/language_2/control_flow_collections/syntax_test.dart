@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=set-literals,control-flow-collections
+// SharedOptions=--enable-experiment=control-flow-collections
 
 // Tests syntax edge cases.
 import 'package:expect/expect.dart';
@@ -24,9 +24,9 @@ void main() {
   Expect.setEquals({1}, {1, for (; false;) 2,});
 
   // Dangling else.
-  Expect.listEquals([1], [if (true) if (false) else 1]);
-  Expect.listEquals([1], [if (true) if (false) else 1 else 2]);
-  Expect.listEquals([2], [if (false) if (false) else 1 else 2]);
+  Expect.listEquals([1], [if (true) if (false) 0 else 1]);
+  Expect.listEquals([1], [if (true) if (false) 0 else 1 else 2]);
+  Expect.listEquals([2], [if (false) if (false) 0 else 1 else 2]);
 
   // Precedence of then.
   Expect.listEquals([1, 2, 3], [1, if (true) true ? 2 : 0, 3]);
@@ -35,12 +35,12 @@ void main() {
 
   // Precedence of else.
   Expect.listEquals([1, 2, 3], [1, if (false) 0 else true ? 2 : 0, 3]);
-  var a = 0;
+  a = 0;
   Expect.listEquals([1, 2, 3], [1, if (false) 0 else a = 2, 3]);
 
   // Precedence of for.
   Expect.listEquals([1, 2, 3],
       [1, for (var i = 0; i < 1; i++) true ? 2 : 0, 3]);
-  var a = 0;
+  a = 0;
   Expect.listEquals([1, 2, 3], [1, for (var i = 0; i < 1; i++) a = 2, 3]);
 }

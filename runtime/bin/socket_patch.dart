@@ -1971,7 +1971,7 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
   void setRawOption(RawSocketOption option) => _socket.setRawOption(option);
 }
 
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 Datagram _makeDatagram(
     List<int> data, String address, List<int> in_addr, int port) {
   return new Datagram(data, new _InternetAddress(address, null, in_addr), port);

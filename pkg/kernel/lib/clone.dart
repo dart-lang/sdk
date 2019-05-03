@@ -190,6 +190,33 @@ class CloneVisitor implements TreeVisitor {
     return new StringConcatenation(node.expressions.map(clone).toList());
   }
 
+  visitListConcatenation(ListConcatenation node) {
+    return new ListConcatenation(node.lists.map(clone).toList(),
+        typeArgument: visitType(node.typeArgument));
+  }
+
+  visitSetConcatenation(SetConcatenation node) {
+    return new SetConcatenation(node.sets.map(clone).toList(),
+        typeArgument: visitType(node.typeArgument));
+  }
+
+  visitMapConcatenation(MapConcatenation node) {
+    return new MapConcatenation(node.maps.map(clone).toList(),
+        keyType: visitType(node.keyType), valueType: visitType(node.valueType));
+  }
+
+  visitInstanceCreation(InstanceCreation node) {
+    final Map<Reference, Expression> fieldValues = <Reference, Expression>{};
+    node.fieldValues.forEach((Reference fieldRef, Expression value) {
+      fieldValues[fieldRef] = clone(value);
+    });
+    return new InstanceCreation(
+        node.classReference,
+        node.typeArguments.map(visitType).toList(),
+        fieldValues,
+        node.asserts.map(clone).toList());
+  }
+
   visitIsExpression(IsExpression node) {
     return new IsExpression(clone(node.operand), visitType(node.type));
   }
@@ -249,7 +276,8 @@ class CloneVisitor implements TreeVisitor {
   }
 
   visitConstantExpression(ConstantExpression node) {
-    return new ConstantExpression(visitConstant(node.constant));
+    return new ConstantExpression(
+        visitConstant(node.constant), visitType(node.type));
   }
 
   visitStringLiteral(StringLiteral node) {
@@ -275,6 +303,10 @@ class CloneVisitor implements TreeVisitor {
   visitLet(Let node) {
     var newVariable = clone(node.variable);
     return new Let(newVariable, clone(node.body));
+  }
+
+  visitBlockExpression(BlockExpression node) {
+    return new BlockExpression(clone(node.body), clone(node.value));
   }
 
   visitExpressionStatement(ExpressionStatement node) {

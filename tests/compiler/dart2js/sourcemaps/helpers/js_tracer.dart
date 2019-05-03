@@ -33,6 +33,7 @@ class StepTraceListener extends TraceListener
 
   StepTraceListener(this.graph);
 
+  @override
   SourceInformationReader get reader => const SourceInformationReader();
 
   @override
@@ -114,6 +115,7 @@ class StepTraceListener extends TraceListener
     steppableMap[node] = step;
   }
 
+  @override
   void pushBranch(BranchKind kind, [value]) {
     var branch;
     switch (kind) {
@@ -136,6 +138,7 @@ class StepTraceListener extends TraceListener
     graph.pushBranch(branch);
   }
 
+  @override
   void popBranch() {
     graph.popBranch();
   }

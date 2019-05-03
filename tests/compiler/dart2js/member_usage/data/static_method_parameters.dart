@@ -83,6 +83,14 @@ method8c(a, {b, c}) {}
 /*element: method8d:invoke,read*/
 method8d(a, {b, c}) {}
 
+/*element: method9a:invoke=(0)*/
+@pragma('dart2js:noElision')
+method9a([a, b]) {}
+
+/*element: method9b:invoke=(0)*/
+@pragma('dart2js:noElision')
+method9b({a, b}) {}
+
 /*element: main:invoke*/
 main() {
   method1();
@@ -123,4 +131,7 @@ main() {
   method8b(null, b: null);
   method8c(null, c: null);
   method8d;
+
+  method9a();
+  method9b();
 }

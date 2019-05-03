@@ -65,7 +65,8 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode COLON_IN_PLACE_OF_IN = _COLON_IN_PLACE_OF_IN;
 
-  static const ParserErrorCode CONST_AFTER_FACTORY = _CONST_AFTER_FACTORY;
+  // TODO(danrubel): Remove this unused error code
+  static const ParserErrorCode CONST_AFTER_FACTORY = _MODIFIER_OUT_OF_ORDER;
 
   static const ParserErrorCode CONST_AND_COVARIANT = _CONST_AND_COVARIANT;
 
@@ -163,6 +164,8 @@ class ParserErrorCode extends ErrorCode {
       'EXPECTED_CLASS_MEMBER', "Expected a class member.",
       correction: "Try placing this code inside a class member.");
 
+  static const ParserErrorCode EXPECTED_ELSE_OR_COMMA = _EXPECTED_ELSE_OR_COMMA;
+
   static const ParserErrorCode EXPECTED_EXECUTABLE = const ParserErrorCode(
       'EXPECTED_EXECUTABLE',
       "Expected a method, getter, setter or operator declaration.",
@@ -188,6 +191,8 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode EXPECTED_TYPE_NAME =
       const ParserErrorCode('EXPECTED_TYPE_NAME', "Expected a type name.");
+
+  static const ParserErrorCode EXPERIMENT_NOT_ENABLED = _EXPERIMENT_NOT_ENABLED;
 
   static const ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
       _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE;
@@ -375,10 +380,16 @@ class ParserErrorCode extends ErrorCode {
       "The modifier 'async*' isn't allowed for an expression function body.",
       correction: "Try converting the body to a block.");
 
+  static const ParserErrorCode INVALID_SUPER_IN_INITIALIZER =
+      _INVALID_SUPER_IN_INITIALIZER;
+
   static const ParserErrorCode INVALID_SYNC = const ParserErrorCode(
       'INVALID_SYNC',
       "The modifier 'sync' isn't allowed for an expression function body.",
       correction: "Try converting the body to a block.");
+
+  static const ParserErrorCode INVALID_THIS_IN_INITIALIZER =
+      _INVALID_THIS_IN_INITIALIZER;
 
   static const ParserErrorCode INVALID_UNICODE_ESCAPE = _INVALID_UNICODE_ESCAPE;
 
@@ -510,6 +521,8 @@ class ParserErrorCode extends ErrorCode {
       'MIXED_PARAMETER_GROUPS',
       "Can't have both positional and named parameters in a single parameter list.",
       correction: "Try choosing a single style of optional parameters.");
+
+  static const ParserErrorCode MODIFIER_OUT_OF_ORDER = _MODIFIER_OUT_OF_ORDER;
 
   static const ParserErrorCode MULTIPLE_EXTENDS_CLAUSES =
       _MULTIPLE_EXTENDS_CLAUSES;
@@ -683,6 +696,8 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode TYPE_ARGUMENTS_ON_TYPE_VARIABLE =
       _TYPE_ARGUMENTS_ON_TYPE_VARIABLE;
 
+  static const ParserErrorCode TYPE_BEFORE_FACTORY = _TYPE_BEFORE_FACTORY;
+
   static const ParserErrorCode TYPEDEF_IN_CLASS = _TYPEDEF_IN_CLASS;
 
   /**
@@ -706,7 +721,7 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER =
       const ParserErrorCode('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER',
-          "The default value of a positional parameter should be preceeded by '='.",
+          "The default value of a positional parameter should be preceded by '='.",
           correction: "Try replacing the ':' with '='.");
 
   /**

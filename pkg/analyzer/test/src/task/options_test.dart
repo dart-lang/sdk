@@ -11,20 +11,22 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../generated/test_support.dart';
 import '../../resource_utils.dart';
-import '../context/abstract_context.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -36,14 +38,11 @@ main() {
   });
 }
 
-final isGenerateOptionsErrorsTask =
-    new TypeMatcher<GenerateOptionsErrorsTask>();
-
 @reflectiveTest
-class ContextConfigurationTest extends AbstractContextTest {
-  final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
+class ContextConfigurationTest {
+  final AnalysisOptions analysisOptions = AnalysisOptionsImpl();
 
-  AnalysisOptions get analysisOptions => context.analysisOptions;
+  final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
   void configureContext(String optionsSource) =>
       applyToAnalysisOptions(analysisOptions, parseOptions(optionsSource));
@@ -128,6 +127,24 @@ analyzer:
     List<String> names = analysisOptions.enabledPluginNames;
     expect(names, ['angular2']);
   }
+
+  test_configure_chromeos_checks() {
+    configureContext('''
+analyzer:
+  optional-checks:
+    chrome-os-manifest-checks
+''');
+    expect(true, analysisOptions.chromeOsManifestChecks);
+  }
+
+  test_configure_chromeos_checks_map() {
+    configureContext('''
+analyzer:
+  optional-checks:
+    chrome-os-manifest-checks : true
+''');
+    expect(true, analysisOptions.chromeOsManifestChecks);
+  }
 }
 
 @reflectiveTest
@@ -201,7 +218,6 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.INVALID_SUPER_INVOCATION);
         removeCode(StrongModeCode.NON_GROUND_TYPE_CHECK_INFO);
         removeCode(StrongModeCode.DYNAMIC_INVOKE);
-        removeCode(StrongModeCode.INVALID_FIELD_OVERRIDE);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_RETURN);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE);
@@ -212,16 +228,19 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_METHOD);
         removeCode(StrongModeCode.IMPLICIT_DYNAMIC_INVOKE);
-        removeCode(StrongModeCode.NO_DEFAULT_BOUNDS);
         removeCode(StrongModeCode.NOT_INSTANTIATED_BOUND);
         removeCode(StrongModeCode.TOP_LEVEL_CYCLE);
         removeCode(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK);
         removeCode(StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE);
         removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER);
         removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD);
-        removeCode(StrongModeCode.TOP_LEVEL_UNSUPPORTED);
       } else if (errorType == TodoCode) {
         declaredNames.remove('TODO_REGEX');
+      } else if (errorType == ParserErrorCode) {
+        declaredNames.remove('CONST_AFTER_FACTORY');
+      } else if (errorType == ManifestWarningCode) {
+        declaredNames.remove('NON_RESIZABLE_ACTIVITY');
+        declaredNames.remove('SETTING_ORIENTATION_ON_ACTIVITY');
       }
 
       // Assert that all remaining declared names are in errorCodeValues
@@ -262,7 +281,7 @@ class ErrorProcessorMatcher extends Matcher {
 }
 
 @reflectiveTest
-class GenerateOldOptionsErrorsTaskTest extends AbstractContextTest {
+class GenerateOldOptionsErrorsTaskTest with ResourceProviderMixin {
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 
   String get optionsFilePath => '/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
@@ -288,7 +307,7 @@ analyzer:
   }
 
   void validate(String content, List<ErrorCode> expected) {
-    final Source source = newSource(optionsFilePath, content);
+    final source = newFile(optionsFilePath, content: content).createSource();
     var options = optionsProvider.getOptionsFromSource(source);
     final OptionsFileValidator validator = new OptionsFileValidator(source);
     var errors = validator.validate(options);
@@ -373,15 +392,7 @@ analyzer:
 analyzer:
   language:
     unsupported: true
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES]);
-  }
-
-  test_analyzer_language_unsupported_value() {
-    validate('''
-analyzer:
-  strong-mode:
-    implicit-dynamic: foo
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
   test_analyzer_lint_codes_recognized() {
@@ -431,6 +442,14 @@ analyzer:
 ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
+  test_analyzer_strong_mode_unsupported_value() {
+    validate('''
+analyzer:
+  strong-mode:
+    implicit-dynamic: foo
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
+  }
+
   test_analyzer_supported_exclude() {
     validate('''
 analyzer:
@@ -467,6 +486,22 @@ linter:
 linter:
   unsupported: true
     ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
+  }
+
+  test_chromeos_manifest_checks() {
+    validate('''
+analyzer:
+  optional-checks:
+    chrome-os-manifest-checks
+''', []);
+  }
+
+  test_chromeos_manifest_checks_invalid() {
+    validate('''
+analyzer:
+  optional-checks:
+    chromeos-manifest
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
   }
 
   void validate(String source, List<ErrorCode> expected) {

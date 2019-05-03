@@ -113,6 +113,7 @@ void VmService::SetNativeResolver() {
 bool VmService::Setup(const char* server_ip,
                       intptr_t server_port,
                       bool dev_mode_server,
+                      bool auth_codes_disabled,
                       bool trace_loading,
                       bool deterministic) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
@@ -169,6 +170,11 @@ bool VmService::Setup(const char* server_ip,
   SHUTDOWN_ON_ERROR(result);
   result = Dart_SetField(library, DartUtils::NewString("_originCheckDisabled"),
                          Dart_NewBoolean(dev_mode_server));
+  SHUTDOWN_ON_ERROR(result);
+
+  result = Dart_SetField(library, DartUtils::NewString("_authCodesDisabled"),
+                         Dart_NewBoolean(auth_codes_disabled));
+  SHUTDOWN_ON_ERROR(result);
 
 // Are we running on Windows?
 #if defined(HOST_OS_WINDOWS)

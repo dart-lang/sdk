@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,7 +15,7 @@ import 'strong_test_helper.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InferredTypeTest_Driver);
+    defineReflectiveTests(InferredTypeTest);
     defineReflectiveTests(InferredTypeTest_SetLiterals);
   });
 }
@@ -1309,7 +1308,7 @@ void main() {
   test_downwardsInferenceOnListLiterals_inferDownwards() async {
     await checkFileElement('''
 void foo([List<String> list1 = /*info:INFERRED_TYPE_LITERAL*/const [],
-          List<String> list2 = /*info:INFERRED_TYPE_LITERAL*/const [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/42]]) {
+          List<String> list2 = /*info:INFERRED_TYPE_LITERAL*/const [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/42]]) {
 }
 
 void main() {
@@ -1340,8 +1339,8 @@ void main() {
   {
     const List<int> c0 = /*info:INFERRED_TYPE_LITERAL*/const [];
     const List<int> c1 = /*info:INFERRED_TYPE_LITERAL*/const [3];
-    const List<int> c2 = /*info:INFERRED_TYPE_LITERAL*/const [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"];
-    const List<int> c3 = /*info:INFERRED_TYPE_LITERAL*/const [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3];
+    const List<int> c2 = /*info:INFERRED_TYPE_LITERAL*/const [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"];
+    const List<int> c3 = /*info:INFERRED_TYPE_LITERAL*/const [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3];
   }
 }
 ''');
@@ -1411,7 +1410,7 @@ main() {
 void foo([Map<int, String> m1 = /*info:INFERRED_TYPE_LITERAL*/const {1: "hello"},
     Map<int, String> m2 = /*info:INFERRED_TYPE_LITERAL*/const {
       // One error is from type checking and the other is from const evaluation.
-      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
           "world"
     }]) {
 }
@@ -1432,11 +1431,11 @@ void main() {
     };
   }
   {
-    Map<dynamic, dynamic> l0 = {};
-    Map<dynamic, dynamic> l1 = {3: "hello"};
-    Map<dynamic, dynamic> l2 = {"hello": "hello"};
-    Map<dynamic, dynamic> l3 = {3: 3};
-    Map<dynamic, dynamic> l4 = {3:"hello", "hello": 3};
+    Map<dynamic, dynamic> l0 = /*info:INFERRED_TYPE_LITERAL*/{};
+    Map<dynamic, dynamic> l1 = /*info:INFERRED_TYPE_LITERAL*/{3: "hello"};
+    Map<dynamic, dynamic> l2 = /*info:INFERRED_TYPE_LITERAL*/{"hello": "hello"};
+    Map<dynamic, dynamic> l3 = /*info:INFERRED_TYPE_LITERAL*/{3: 3};
+    Map<dynamic, dynamic> l4 = /*info:INFERRED_TYPE_LITERAL*/{3:"hello", "hello": 3};
   }
   {
     Map<dynamic, String> l0 = /*info:INFERRED_TYPE_LITERAL*/{};
@@ -1471,16 +1470,16 @@ void main() {
     const Map<int, String> l0 = /*info:INFERRED_TYPE_LITERAL*/const {};
     const Map<int, String> l1 = /*info:INFERRED_TYPE_LITERAL*/const {3: "hello"};
     const Map<int, String> l2 = /*info:INFERRED_TYPE_LITERAL*/const {
-      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
           "hello"
     };
     const Map<int, String> l3 = /*info:INFERRED_TYPE_LITERAL*/const {
-      3: /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE,error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
+      3: /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
     };
     const Map<int, String> l4 = /*info:INFERRED_TYPE_LITERAL*/const {
       3:"hello",
-      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
-          /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE,error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
+          /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
     };
   }
 }
@@ -1505,7 +1504,7 @@ Stream<List<int>> foo() async* {
 Iterable<Map<int, int>> bar() sync* {
   yield /*info:INFERRED_TYPE_LITERAL*/{};
   yield /*error:YIELD_OF_INVALID_TYPE*/new List();
-  yield* {};
+  yield* /*info:INFERRED_TYPE_LITERAL*/{};
   yield* /*info:INFERRED_TYPE_ALLOCATION*/new List();
 }
 ''');
@@ -2547,13 +2546,13 @@ test1() {
   b = /*error:INVALID_ASSIGNMENT*/"hi";
   b = new B(3);
   c1 = [];
-  c1 = /*error:INVALID_ASSIGNMENT*/{};
+  c1 = /*error:INVALID_ASSIGNMENT,info:INFERRED_TYPE_LITERAL*/{};
   c2 = [];
-  c2 = /*error:INVALID_ASSIGNMENT*/{};
-  d = {};
+  c2 = /*error:INVALID_ASSIGNMENT,info:INFERRED_TYPE_LITERAL*/{};
+  d = /*info:INFERRED_TYPE_LITERAL*/{};
   d = /*error:INVALID_ASSIGNMENT*/3;
   e = new A();
-  e = /*error:INVALID_ASSIGNMENT*/{};
+  e = /*error:INVALID_ASSIGNMENT,info:INFERRED_TYPE_LITERAL*/{};
   f = 3;
   f = /*error:INVALID_ASSIGNMENT*/false;
   g = 1;
@@ -4394,75 +4393,6 @@ main() {
 @reflectiveTest
 class InferredTypeTest extends AbstractStrongTest with InferredTypeMixin {
   @override
-  bool get mayCheckTypesOfLocals => true;
-
-  @override
-  Future<CompilationUnitElement> checkFileElement(String content) async {
-    CompilationUnit unit = await checkFile(content);
-    return unit.declaredElement;
-  }
-
-  @override
-  @failingTest
-  test_circularReference_viaClosures() {
-    return super.test_circularReference_viaClosures();
-  }
-
-  @override
-  @failingTest
-  test_circularReference_viaClosures_initializerTypes() {
-    return super.test_circularReference_viaClosures_initializerTypes();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_typeName_error1() {
-    // Test doesn't work with the old task model
-    return super.test_instantiateToBounds_typeName_error1();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_typeName_error2() {
-    // Test doesn't work with the old task model
-    return super.test_instantiateToBounds_typeName_error2();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_typeName_error3() {
-    // Test doesn't work with the old task model
-    return super.test_instantiateToBounds_typeName_error3();
-  }
-
-  @override
-  @failingTest
-  test_instantiateToBounds_typeName_OK_hasBound_definedAfter() {
-    return super.test_instantiateToBounds_typeName_OK_hasBound_definedAfter();
-  }
-
-  @override
-  @failingTest
-  test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() {
-    return super
-        .test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1();
-  }
-
-  @failingTest
-  @override
-  test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() {
-    return super
-        .test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1();
-  }
-}
-
-@reflectiveTest
-class InferredTypeTest_Driver extends AbstractStrongTest
-    with InferredTypeMixin {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
-  @override
   bool get hasExtraTaskModelPass => false;
 
   @override
@@ -4492,12 +4422,6 @@ class InferredTypeTest_Driver extends AbstractStrongTest
 @reflectiveTest
 class InferredTypeTest_SetLiterals extends AbstractStrongTest
     with InferredTypeMixin {
-  @override
-  List<String> get enabledExperiments => [EnableString.set_literals];
-
-  @override
-  bool get enableNewAnalysisDriver => true;
-
   @override
   bool get hasExtraTaskModelPass => false;
 
@@ -4531,7 +4455,7 @@ Stream<List<int>> foo() async* {
 Iterable<Map<int, int>> bar() sync* {
   yield /*info:INFERRED_TYPE_LITERAL*/{};
   yield /*error:YIELD_OF_INVALID_TYPE*/new List();
-  yield* {};
+  yield* /*info:INFERRED_TYPE_LITERAL*/{};
   yield* /*info:INFERRED_TYPE_ALLOCATION*/new List();
 }
 ''');

@@ -13,9 +13,9 @@ main() {
 /// Untyped catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: catchUntyped:[null|subclass=Object]*/
+/*element: catchUntyped:[subclass=Object]*/
 catchUntyped() {
-  var local;
+  dynamic local = 0;
   try {} catch (e) {
     local = e;
   }

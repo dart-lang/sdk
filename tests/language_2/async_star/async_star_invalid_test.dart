@@ -14,8 +14,8 @@ main() async {
   asyncStart();
   Stream<String> f() async* {
     // Invalid syntax.
-    yield ("a", "b"); //# 01: compile-time error
-    yield yield "twice"; //# 02: compile-time error
+    yield ("a", "b"); //# 01: syntax error
+    yield yield "twice"; //# 02: syntax error
 
     // Valid but curious syntax.
     yield throw "throw"; //# 03: runtime error

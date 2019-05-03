@@ -23,6 +23,22 @@ bool IsSameObject(const Object& a, const Object& b) {
   return a.raw() == b.raw();
 }
 
+bool IsEqualType(const AbstractType& a, const AbstractType& b) {
+  return a.Equals(b);
+}
+
+bool IsDoubleType(const AbstractType& type) {
+  return type.IsDoubleType();
+}
+
+bool IsIntType(const AbstractType& type) {
+  return type.IsIntType();
+}
+
+bool IsSmiType(const AbstractType& type) {
+  return type.IsSmiType();
+}
+
 bool IsNotTemporaryScopedHandle(const Object& obj) {
   return obj.IsNotTemporaryScopedHandle();
 }
@@ -198,6 +214,10 @@ void BailoutWithBranchOffsetError() {
   Thread::Current()->long_jump_base()->Jump(1, Object::branch_offset_error());
 }
 
+word RuntimeEntry::OffsetFromThread() const {
+  return dart::Thread::OffsetFromThread(runtime_entry_);
+}
+
 namespace target {
 
 const word kPageSize = dart::kPageSize;
@@ -237,6 +257,10 @@ const word RawAbstractType::kTypeStateFinalizedInstantiated =
 
 const word RawObject::kBarrierOverlapShift =
     dart::RawObject::kBarrierOverlapShift;
+
+bool RawObject::IsTypedDataClassId(intptr_t cid) {
+  return dart::RawObject::IsTypedDataClassId(cid);
+}
 
 intptr_t ObjectPool::element_offset(intptr_t index) {
   return dart::ObjectPool::element_offset(index);
@@ -328,8 +352,8 @@ word ICData::entries_offset() {
   return dart::ICData::entries_offset();
 }
 
-word ICData::static_receiver_type_offset() {
-  return dart::ICData::static_receiver_type_offset();
+word ICData::receivers_static_type_offset() {
+  return dart::ICData::receivers_static_type_offset();
 }
 
 word ICData::state_bits_offset() {
@@ -475,11 +499,13 @@ word Array::header_size() {
   V(Thread, top_offset)                                                        \
   V(Thread, top_resource_offset)                                               \
   V(Thread, vm_tag_offset)                                                     \
+  V(Thread, safepoint_state_offset)                                            \
   V(TimelineStream, enabled_offset)                                            \
   V(TwoByteString, data_offset)                                                \
   V(Type, arguments_offset)                                                    \
+  V(TypedDataBase, data_field_offset)                                          \
+  V(TypedDataBase, length_offset)                                              \
   V(TypedData, data_offset)                                                    \
-  V(TypedData, length_offset)                                                  \
   V(Type, hash_offset)                                                         \
   V(TypeRef, type_offset)                                                      \
   V(Type, signature_offset)                                                    \
@@ -491,6 +517,14 @@ word Array::header_size() {
 
 CLASS_NAME_LIST(DEFINE_FORWARDER)
 #undef DEFINE_FORWARDER
+
+uword Thread::safepoint_state_unacquired() {
+  return dart::Thread::safepoint_state_unacquired();
+}
+
+uword Thread::safepoint_state_acquired() {
+  return dart::Thread::safepoint_state_acquired();
+}
 
 const word HeapPage::kBytesPerCardLog2 = dart::HeapPage::kBytesPerCardLog2;
 
@@ -618,6 +652,30 @@ word Thread::lazy_deopt_from_throw_stub_offset() {
 
 word Thread::deoptimize_stub_offset() {
   return dart::Thread::deoptimize_stub_offset();
+}
+
+word Thread::enter_safepoint_stub_offset() {
+  return dart::Thread::enter_safepoint_stub_offset();
+}
+
+word Thread::exit_safepoint_stub_offset() {
+  return dart::Thread::exit_safepoint_stub_offset();
+}
+
+word Thread::execution_state_offset() {
+  return dart::Thread::execution_state_offset();
+}
+
+uword Thread::native_execution_state() {
+  return dart::Thread::ExecutionState::kThreadInNative;
+}
+
+uword Thread::generated_execution_state() {
+  return dart::Thread::ExecutionState::kThreadInGenerated;
+}
+
+uword Thread::vm_tag_compiled_id() {
+  return dart::VMTag::kDartCompiledTagId;
 }
 
 #endif  // !defined(TARGET_ARCH_DBC)
@@ -753,7 +811,7 @@ uword Code::EntryPointOf(const dart::Code& code) {
 }
 
 bool CanEmbedAsRawPointerInGeneratedCode(const dart::Object& obj) {
-  return obj.IsSmi() || obj.InVMHeap();
+  return obj.IsSmi() || obj.InVMIsolateHeap();
 }
 
 word ToRawPointer(const dart::Object& a) {

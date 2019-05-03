@@ -80,7 +80,7 @@ class GC<T> implements GA<T>, GB<List<T>> {}
 /*class: GD:checkedInstance,checks=[$asGI,$asGJ,$isGI,$isGJ,$isGM],typeArgument*/
 class GD<T> = GC<T> with GM<T>;
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) {}
 
 main() {

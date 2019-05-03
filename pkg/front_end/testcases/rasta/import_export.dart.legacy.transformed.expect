@@ -1,6 +1,6 @@
 library;
 import self as self;
-import "./foo.dart" as foo;
+import "foo.dart" as foo;
 
 import "org-dartlang-testcase:///export.dart";
 
@@ -10,7 +10,7 @@ static method main() → dynamic {
 
 library export;
 import self as self2;
-import "./foo.dart" as foo;
+import "foo.dart" as foo;
 additionalExports = (foo::foo)
 
 

@@ -58,10 +58,12 @@ class MapTracerVisitor extends TracerVisitor {
     return false;
   }
 
+  @override
   visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info) {
     bailout('Passed to a closure');
   }
 
+  @override
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
     MemberEntity called = info.calledElement;
@@ -71,6 +73,7 @@ class MapTracerVisitor extends TracerVisitor {
     }
   }
 
+  @override
   visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
     super.visitDynamicCallSiteTypeInformation(info);
     Selector selector = info.selector;

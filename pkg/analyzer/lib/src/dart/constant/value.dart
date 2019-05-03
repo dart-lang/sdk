@@ -109,6 +109,11 @@ class BoolState extends InstanceState {
   }
 
   @override
+  BoolState lazyEqualEqual(InstanceState rightOperand) {
+    return isIdentical(rightOperand);
+  }
+
+  @override
   BoolState lazyOr(InstanceState rightOperandComputer()) {
     if (value == true) {
       return TRUE_STATE;
@@ -171,6 +176,12 @@ class ConstructorInvocation {
  * A representation of an instance of a Dart class.
  */
 class DartObjectImpl implements DartObject {
+  /// When `true`, `operator==` only compares constant values, ignoring types.
+  ///
+  /// This is a temporary hack to work around dartbug.com/35908.
+  /// TODO(paulberry): when #35908 is fixed, remove this hack.
+  static bool _ignoreTypesInEqualityComparison = false;
+
   @override
   final ParameterizedType type;
 
@@ -244,7 +255,8 @@ class DartObjectImpl implements DartObject {
   @override
   bool operator ==(Object object) {
     if (object is DartObjectImpl) {
-      return type == object.type && _state == object._state;
+      return (_ignoreTypesInEqualityComparison || type == object.type) &&
+          _state == object._state;
     }
     return false;
   }
@@ -516,6 +528,21 @@ class DartObjectImpl implements DartObject {
       new DartObjectImpl(
           typeProvider.intType, _state.integerDivide(rightOperand._state));
 
+  /// Indicates whether `this` is equal to [other], ignoring types both in this
+  /// object and sub-objects.
+  ///
+  /// This is a temporary hack to work around dartbug.com/35908.
+  /// TODO(paulberry): when #35908 is fixed, remove this hack.
+  bool isEqualIgnoringTypesRecursively(Object other) {
+    bool oldIgnoreTypesInEqualityComparison = _ignoreTypesInEqualityComparison;
+    _ignoreTypesInEqualityComparison = true;
+    try {
+      return this == other;
+    } finally {
+      _ignoreTypesInEqualityComparison = oldIgnoreTypesInEqualityComparison;
+    }
+  }
+
   /**
    * Return the result of invoking the identical function on this object with
    * the [rightOperand]. The [typeProvider] is the type provider used to find
@@ -539,6 +566,31 @@ class DartObjectImpl implements DartObject {
           TypeProvider typeProvider, DartObjectImpl rightOperandComputer()) =>
       new DartObjectImpl(typeProvider.boolType,
           _state.lazyAnd(() => rightOperandComputer()?._state));
+
+  /**
+   * Return the result of invoking the '==' operator on this object with the
+   * [rightOperand]. The [typeProvider] is the type provider used to find known
+   * types.
+   *
+   * Throws an [EvaluationException] if the operator is not appropriate for an
+   * object of this kind.
+   */
+  DartObjectImpl lazyEqualEqual(
+      TypeProvider typeProvider, DartObjectImpl rightOperand) {
+    if (isNull || rightOperand.isNull) {
+      return new DartObjectImpl(
+          typeProvider.boolType,
+          isNull && rightOperand.isNull
+              ? BoolState.TRUE_STATE
+              : BoolState.FALSE_STATE);
+    }
+    if (isBoolNumStringOrNull) {
+      return new DartObjectImpl(
+          typeProvider.boolType, _state.lazyEqualEqual(rightOperand._state));
+    }
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
+  }
 
   /**
    * Return the result of invoking the '||' operator on this object with the
@@ -1055,6 +1107,11 @@ class DoubleState extends NumState {
   }
 
   @override
+  BoolState lazyEqualEqual(InstanceState rightOperand) {
+    return isIdentical(rightOperand);
+  }
+
+  @override
   BoolState lessThan(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
     if (value == null) {
@@ -1291,6 +1348,11 @@ class DynamicState extends InstanceState {
   }
 
   @override
+  BoolState lazyEqualEqual(InstanceState rightOperand) {
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  @override
   BoolState lazyOr(InstanceState rightOperandComputer()) {
     InstanceState rightOperand = rightOperandComputer();
     assertBool(rightOperand);
@@ -1430,6 +1492,11 @@ class FunctionState extends InstanceState {
   }
 
   @override
+  BoolState lazyEqualEqual(InstanceState rightOperand) {
+    return isIdentical(rightOperand);
+  }
+
+  @override
   String toString() => _element == null ? "-unknown-" : _element.name;
 }
 
@@ -1519,6 +1586,11 @@ class GenericState extends InstanceState {
       return BoolState.UNKNOWN_VALUE;
     }
     return BoolState.from(this == rightOperand);
+  }
+
+  @override
+  BoolState lazyEqualEqual(InstanceState rightOperand) {
+    return isIdentical(rightOperand);
   }
 
   @override
@@ -1831,6 +1903,15 @@ abstract class InstanceState {
     assertBool(rightOperand);
     return rightOperand.convertToBool();
   }
+
+  /**
+   * Return the result of invoking the '==' operator on this object with the
+   * [rightOperand].
+   *
+   * Throws an [EvaluationException] if the operator is not appropriate for an
+   * object of this kind.
+   */
+  BoolState lazyEqualEqual(InstanceState rightOperand);
 
   /**
    * Return the result of invoking the '||' operator on this object with the
@@ -2326,6 +2407,11 @@ class IntState extends NumState {
   }
 
   @override
+  BoolState lazyEqualEqual(InstanceState rightOperand) {
+    return isIdentical(rightOperand);
+  }
+
+  @override
   BoolState lessThan(InstanceState rightOperand) {
     assertNumOrNull(rightOperand);
     if (value == null) {
@@ -2391,9 +2477,15 @@ class IntState extends NumState {
       if (rightValue >= 0) {
         // TODO(brianwilkerson) After the analyzer package has a minimum SDK
         // constraint that includes support for the real operator, consider
-        // changing this to the following line:
+        // changing the line below to
         //   return new IntState(value >>> rightValue);
-        return new IntState(value ~/ (1 << rightValue));
+        int divisor = 1 << rightValue;
+        if (divisor == 0) {
+          // The `rightValue` is large enough to cause all of the non-zero bits
+          // in the left operand to be shifted out of the value.
+          return new IntState(0);
+        }
+        return new IntState(value ~/ divisor);
       }
     } else if (rightOperand is DynamicState || rightOperand is NumState) {
       return UNKNOWN_VALUE;
@@ -2612,6 +2704,11 @@ class ListState extends InstanceState {
   }
 
   @override
+  BoolState lazyEqualEqual(InstanceState rightOperand) {
+    return isIdentical(rightOperand);
+  }
+
+  @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
     buffer.write('[');
@@ -2696,6 +2793,11 @@ class MapState extends InstanceState {
   }
 
   @override
+  BoolState lazyEqualEqual(InstanceState rightOperand) {
+    return isIdentical(rightOperand);
+  }
+
+  @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
     buffer.write('{');
@@ -2760,6 +2862,11 @@ class NullState extends InstanceState {
       return BoolState.UNKNOWN_VALUE;
     }
     return BoolState.from(rightOperand is NullState);
+  }
+
+  @override
+  BoolState lazyEqualEqual(InstanceState rightOperand) {
+    return isIdentical(rightOperand);
   }
 
   @override
@@ -2848,6 +2955,11 @@ class NumState extends InstanceState {
 
   @override
   BoolState isIdentical(InstanceState rightOperand) {
+    return BoolState.UNKNOWN_VALUE;
+  }
+
+  @override
+  BoolState lazyEqualEqual(InstanceState rightOperand) {
     return BoolState.UNKNOWN_VALUE;
   }
 
@@ -2954,6 +3066,11 @@ class SetState extends InstanceState {
   }
 
   @override
+  BoolState lazyEqualEqual(InstanceState rightOperand) {
+    return isIdentical(rightOperand);
+  }
+
+  @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
     buffer.write('{');
@@ -3050,6 +3167,11 @@ class StringState extends InstanceState {
   }
 
   @override
+  BoolState lazyEqualEqual(InstanceState rightOperand) {
+    return isIdentical(rightOperand);
+  }
+
+  @override
   IntState stringLength() {
     if (value == null) {
       return IntState.UNKNOWN_VALUE;
@@ -3117,6 +3239,11 @@ class SymbolState extends InstanceState {
   }
 
   @override
+  BoolState lazyEqualEqual(InstanceState rightOperand) {
+    return isIdentical(rightOperand);
+  }
+
+  @override
   String toString() => value == null ? "-unknown-" : "#$value";
 }
 
@@ -3173,6 +3300,11 @@ class TypeState extends InstanceState {
       return BoolState.UNKNOWN_VALUE;
     }
     return BoolState.FALSE_STATE;
+  }
+
+  @override
+  BoolState lazyEqualEqual(InstanceState rightOperand) {
+    return isIdentical(rightOperand);
   }
 
   @override

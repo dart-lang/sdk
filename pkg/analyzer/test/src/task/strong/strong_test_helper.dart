@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,9 +12,7 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -25,6 +23,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:source_span/source_span.dart';
@@ -78,7 +77,7 @@ ErrorSeverity _errorSeverity(
 }
 
 void _expectErrors(AnalysisOptions analysisOptions, CompilationUnit unit,
-    List<AnalysisError> actualErrors) {
+    Iterable<AnalysisError> actualErrors) {
   var expectedErrors = _findExpectedErrors(unit.beginToken);
 
   var actualMap = new SplayTreeMap<int, List<AnalysisError>>();
@@ -238,14 +237,14 @@ void _reportFailure(
 }
 
 class AbstractStrongTest with ResourceProviderMixin {
-  bool _checkCalled = false;
+  bool _checkCalled = true;
 
   AnalysisContext _context = null;
   AnalysisDriver _driver = null;
 
-  bool get enableNewAnalysisDriver => false;
-
   List<String> get enabledExperiments => [];
+
+  Map<String, List<Folder>> packageMap;
 
   /// Adds a file to check. The file should contain:
   ///
@@ -266,8 +265,9 @@ class AbstractStrongTest with ResourceProviderMixin {
   ///
   /// For a single file, you may also use [checkFile].
   void addFile(String content, {String name: '/main.dart'}) {
-    name = name.replaceFirst('^package:', '/packages/');
+    name = name.replaceFirst(RegExp('^package:'), '/packages/');
     newFile(name, content: content);
+    _checkCalled = false;
   }
 
   /// Run the checker on a program, staring from '/main.dart', and verifies that
@@ -278,7 +278,10 @@ class AbstractStrongTest with ResourceProviderMixin {
   ///
   /// Returns the main resolved library. This can be used for further checks.
   Future<CompilationUnit> check(
-      {bool implicitCasts: true, bool implicitDynamic: true}) async {
+      {bool implicitCasts: true,
+      bool implicitDynamic: true,
+      bool strictInference: false,
+      bool strictRawTypes: false}) async {
     _checkCalled = true;
 
     File mainFile = getFile('/main.dart');
@@ -288,58 +291,66 @@ class AbstractStrongTest with ResourceProviderMixin {
     analysisOptions.strongModeHints = true;
     analysisOptions.implicitCasts = implicitCasts;
     analysisOptions.implicitDynamic = implicitDynamic;
+    analysisOptions.strictInference = strictInference;
+    analysisOptions.strictRawTypes = strictRawTypes;
     analysisOptions.enabledExperiments = enabledExperiments;
 
     var mockSdk = new MockSdk(resourceProvider: resourceProvider);
     mockSdk.context.analysisOptions = analysisOptions;
 
-    SourceFactory sourceFactory;
-    {
-      var uriResolver = new _TestUriResolver(resourceProvider);
-      sourceFactory =
-          new SourceFactory([new DartUriResolver(mockSdk), uriResolver]);
-    }
+    SourceFactory sourceFactory = new SourceFactory([
+      new DartUriResolver(mockSdk),
+      new PackageMapUriResolver(resourceProvider, packageMap),
+      new ResourceUriResolver(resourceProvider),
+    ]);
 
     CompilationUnit mainUnit;
-    if (enableNewAnalysisDriver) {
-      StringBuffer logBuffer = new StringBuffer();
-      FileContentOverlay fileContentOverlay = new FileContentOverlay();
-      PerformanceLog log = new PerformanceLog(logBuffer);
-      AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
-      _driver = new AnalysisDriver(
-          scheduler,
-          log,
-          resourceProvider,
-          new MemoryByteStore(),
-          fileContentOverlay,
-          null,
-          sourceFactory,
-          analysisOptions);
-      scheduler.start();
+    StringBuffer logBuffer = new StringBuffer();
+    FileContentOverlay fileContentOverlay = new FileContentOverlay();
+    PerformanceLog log = new PerformanceLog(logBuffer);
+    AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+    _driver = new AnalysisDriver(
+        scheduler,
+        log,
+        resourceProvider,
+        new MemoryByteStore(),
+        fileContentOverlay,
+        null,
+        sourceFactory,
+        analysisOptions);
+    scheduler.start();
 
-      mainUnit = (await _driver.getResult(mainFile.path)).unit;
-    } else {
-      _context = AnalysisEngine.instance.createAnalysisContext();
-      _context.analysisOptions = analysisOptions;
-      _context.sourceFactory = sourceFactory;
+    mainUnit = (await _driver.getResult(mainFile.path)).unit;
 
-      // Run the checker on /main.dart.
-      Source mainSource = sourceFactory.forUri2(mainFile.toUri());
-      mainUnit = _context.resolveCompilationUnit2(mainSource, mainSource);
+    bool isRelevantError(AnalysisError error) {
+      var code = error.errorCode;
+      // We don't care about these.
+      if (code == HintCode.UNUSED_ELEMENT ||
+          code == HintCode.UNUSED_FIELD ||
+          code == HintCode.UNUSED_IMPORT ||
+          code == HintCode.UNUSED_LOCAL_VARIABLE ||
+          code == TodoCode.TODO) {
+        return false;
+      }
+      if (strictInference || strictRawTypes) {
+        // When testing strict-inference or strict-raw-types, ignore anything
+        // else.
+        return code.errorSeverity.ordinal > ErrorSeverity.INFO.ordinal ||
+            code == HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL ||
+            code == HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION ||
+            code == HintCode.STRICT_RAW_TYPE;
+      }
+      return true;
     }
-
-    var collector = new _ErrorCollector(analysisOptions);
 
     // Extract expectations from the comments in the test files, and
     // check that all errors we emit are included in the expected map.
     LibraryElement mainLibrary =
         resolutionMap.elementDeclaredByCompilationUnit(mainUnit).library;
     Set<LibraryElement> allLibraries = _reachableLibraries(mainLibrary);
+
     for (LibraryElement library in allLibraries) {
       for (CompilationUnitElement unit in library.units) {
-        var errors = <AnalysisError>[];
-        collector.errors = errors;
-
         var source = unit.source;
         if (source.uri.scheme == 'dart') {
           continue;
@@ -347,13 +358,8 @@ class AbstractStrongTest with ResourceProviderMixin {
 
         var analysisResult = await _resolve(source);
 
-        errors.addAll(analysisResult.errors.where((e) =>
-            // We don't care about any of these:
-            e.errorCode != HintCode.UNUSED_ELEMENT &&
-            e.errorCode != HintCode.UNUSED_FIELD &&
-            e.errorCode != HintCode.UNUSED_IMPORT &&
-            e.errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
-            e.errorCode != TodoCode.TODO));
+        Iterable<AnalysisError> errors =
+            analysisResult.errors.where(isRelevantError);
         _expectErrors(analysisOptions, analysisResult.unit, errors);
       }
     }
@@ -374,7 +380,9 @@ class AbstractStrongTest with ResourceProviderMixin {
   }
 
   void setUp() {
-    AnalysisEngine.instance.processRequiredPlugins();
+    packageMap = {
+      'meta': [getFolder('/.pub-cache/meta/lib')],
+    };
   }
 
   void tearDown() {
@@ -386,31 +394,8 @@ class AbstractStrongTest with ResourceProviderMixin {
   }
 
   Future<_TestAnalysisResult> _resolve(Source source) async {
-    if (enableNewAnalysisDriver) {
-      var result = await _driver.getResult(source.fullName);
-      return new _TestAnalysisResult(source, result.unit, result.errors);
-    } else {
-      List<Source> libraries = _context.getLibrariesContaining(source);
-      var unit = _context.resolveCompilationUnit2(source, libraries.single);
-      var errors = _context.computeErrors(source);
-      return new _TestAnalysisResult(source, unit, errors);
-    }
-  }
-}
-
-class _ErrorCollector implements AnalysisErrorListener {
-  final AnalysisOptions analysisOptions;
-  List<AnalysisError> errors;
-  final bool hints;
-
-  _ErrorCollector(this.analysisOptions, {this.hints: true});
-
-  void onError(AnalysisError error) {
-    // Unless DDC hints are requested, filter them out.
-    var HINT = ErrorSeverity.INFO.ordinal;
-    if (hints || _errorSeverity(analysisOptions, error).ordinal > HINT) {
-      errors.add(error);
-    }
+    var result = await _driver.getResult(source.fullName);
+    return new _TestAnalysisResult(source, result.unit, result.errors);
   }
 }
 
@@ -463,21 +448,4 @@ class _TestAnalysisResult {
   final CompilationUnit unit;
   final List<AnalysisError> errors;
   _TestAnalysisResult(this.source, this.unit, this.errors);
-}
-
-class _TestUriResolver extends ResourceUriResolver {
-  final MemoryResourceProvider provider;
-  _TestUriResolver(provider)
-      : provider = provider,
-        super(provider);
-
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    if (uri.scheme == 'package') {
-      return (provider.getResource(
-              provider.convertPath('/packages/' + uri.path)) as File)
-          .createSource(uri);
-    }
-    return super.resolveAbsolute(uri, actualUri);
-  }
 }

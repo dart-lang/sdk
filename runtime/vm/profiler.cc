@@ -23,6 +23,7 @@
 #include "vm/signal_handler.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
+#include "vm/version.h"
 
 namespace dart {
 
@@ -416,6 +417,7 @@ void ClearProfileVisitor::VisitSample(Sample* sample) {
 
 static void DumpStackFrame(intptr_t frame_index,
                            uword pc,
+                           uword fp,
                            bool try_symbolize_dart_frames) {
   Thread* thread = Thread::Current();
   if ((thread != NULL) && !thread->IsAtSafepoint() &&
@@ -429,7 +431,8 @@ static void DumpStackFrame(intptr_t frame_index,
         code = Code::LookupCode(pc);  // In current isolate.
       }
       if (!code.IsNull()) {
-        OS::PrintErr("  [0x%" Pp "] %s\n", pc, code.QualifiedName());
+        OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " %s\n", pc, fp,
+                     code.QualifiedName());
         return;
       }
     }
@@ -437,12 +440,24 @@ static void DumpStackFrame(intptr_t frame_index,
 
   uintptr_t start = 0;
   char* native_symbol_name = NativeSymbolResolver::LookupSymbolName(pc, &start);
-  if (native_symbol_name == NULL) {
-    OS::PrintErr("  [0x%" Pp "] Unknown symbol\n", pc);
-  } else {
-    OS::PrintErr("  [0x%" Pp "] %s\n", pc, native_symbol_name);
+  if (native_symbol_name != NULL) {
+    OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " %s\n", pc, fp,
+                 native_symbol_name);
     NativeSymbolResolver::FreeSymbolName(native_symbol_name);
+    return;
   }
+
+  char* dso_name;
+  uword dso_base;
+  if (NativeSymbolResolver::LookupSharedObject(pc, &dso_base, &dso_name)) {
+    uword dso_offset = pc - dso_base;
+    OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " %s+0x%" Px "\n", pc, fp, dso_name,
+                 dso_offset);
+    NativeSymbolResolver::FreeSymbolName(dso_name);
+    return;
+  }
+
+  OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " Unknown symbol\n", pc, fp);
 }
 
 class ProfilerStackWalker : public ValueObject {
@@ -468,14 +483,14 @@ class ProfilerStackWalker : public ValueObject {
     }
   }
 
-  bool Append(uword pc) {
+  bool Append(uword pc, uword fp) {
     if (frames_skipped_ < skip_count_) {
       frames_skipped_++;
       return true;
     }
 
     if (sample_ == NULL) {
-      DumpStackFrame(frame_index_, pc, try_symbolize_dart_frames_);
+      DumpStackFrame(frame_index_, pc, fp, try_symbolize_dart_frames_);
       frame_index_++;
       total_frames_++;
       return true;
@@ -631,7 +646,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
                                                    in_interpreted_frame));
       }
 
-      if (!Append(reinterpret_cast<uword>(pc_))) {
+      if (!Append(reinterpret_cast<uword>(pc_), reinterpret_cast<uword>(fp_))) {
         break;  // Sample is full.
       }
 
@@ -724,7 +739,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
   void walk() {
     const uword kMaxStep = VirtualMemory::PageSize();
 
-    Append(original_pc_);
+    Append(original_pc_, original_fp_);
 
     uword* pc = reinterpret_cast<uword*>(original_pc_);
     uword* fp = reinterpret_cast<uword*>(original_fp_);
@@ -746,10 +761,6 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
     }
 
     while (true) {
-      if (!Append(reinterpret_cast<uword>(pc))) {
-        return;
-      }
-
       pc = CallerPC(fp);
       previous_fp = fp;
       fp = CallerFP(fp);
@@ -793,6 +804,10 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
 
       // Move the lower bound up.
       lower_bound_ = reinterpret_cast<uword>(fp);
+
+      if (!Append(reinterpret_cast<uword>(pc), reinterpret_cast<uword>(fp))) {
+        return;
+      }
     }
   }
 
@@ -1117,9 +1132,9 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   ASSERT(os_thread != NULL);
   Isolate* isolate = Isolate::Current();
   const char* name = isolate == NULL ? NULL : isolate->name();
-  OS::PrintErr("thread=%" Pd ", isolate=%s(%p)\n",
-               OSThread::ThreadIdToIntPtr(os_thread->trace_id()), name,
-               isolate);
+  OS::PrintErr(
+      "version=%s\nthread=%" Pd ", isolate=%s(%p)\n", Version::String(),
+      OSThread::ThreadIdToIntPtr(os_thread->trace_id()), name, isolate);
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
     OS::PrintErr("Stack dump aborted because InitialRegisterCheck failed.\n");
@@ -1634,7 +1649,8 @@ ProcessedSample::ProcessedSample()
       user_tag_(0),
       allocation_cid_(-1),
       truncated_(false),
-      timeline_trie_(NULL) {}
+      timeline_code_trie_(nullptr),
+      timeline_function_trie_(nullptr) {}
 
 void ProcessedSample::FixupCaller(const CodeLookupTable& clt,
                                   uword pc_marker,

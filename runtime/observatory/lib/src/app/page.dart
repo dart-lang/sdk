@@ -890,9 +890,7 @@ class VMConnectPage extends Page {
 
   void onInstall() {
     if (element == null) {
-      element = new VMConnectElement(
-          ObservatoryApplication.app.targets,
-          ObservatoryApplication.app.loadCrashDump,
+      element = new VMConnectElement(ObservatoryApplication.app.targets,
           ObservatoryApplication.app.notifications,
           queue: ObservatoryApplication.app.queue);
     }

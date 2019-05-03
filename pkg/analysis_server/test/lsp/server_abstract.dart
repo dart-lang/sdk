@@ -279,6 +279,20 @@ mixin LspAnalysisServerTestMixin
     return notificationFromServer.params as T;
   }
 
+  Future<T> expectNotification<T>(
+    bool Function(NotificationMessage) test,
+    FutureOr<void> f(), {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    final firstError = notificationsFromServer.firstWhere(test);
+    await f();
+
+    final notificationFromServer = await firstError.timeout(timeout);
+
+    expect(notificationFromServer, isNotNull);
+    return notificationFromServer.params as T;
+  }
+
   /// Expects a [method] request from the server after executing [f].
   Future<RequestMessage> expectRequest(
     Method method,
@@ -295,16 +309,7 @@ mixin LspAnalysisServerTestMixin
     return requestFromServer;
   }
 
-  /// Sends a request to the server and unwraps the result. Throws if the
-  /// response was not successful or returned an error.
-  Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
-    final resp = await sendRequestToServer(request);
-    if (resp.error != null) {
-      throw resp.error;
-    } else {
-      return resp.result as T;
-    }
-  }
+  Future<T> expectSuccessfulResponseTo<T>(RequestMessage request);
 
   Future<List<TextEdit>> formatDocument(String fileUri) {
     final request = makeRequest(
@@ -509,6 +514,8 @@ mixin LspAnalysisServerTestMixin
     List<Uri> workspaceFolders,
     TextDocumentClientCapabilities textDocumentCapabilities,
     WorkspaceClientCapabilities workspaceCapabilities,
+    Map<String, Object> initializationOptions,
+    bool throwOnFailure = true,
   }) async {
     // Assume if none of the project options were set, that we want to default to
     // opening the test project folder.
@@ -521,7 +528,7 @@ mixin LspAnalysisServerTestMixin
             null,
             rootPath,
             rootUri?.toString(),
-            null,
+            initializationOptions,
             new ClientCapabilities(
               workspaceCapabilities,
               textDocumentCapabilities,
@@ -533,9 +540,13 @@ mixin LspAnalysisServerTestMixin
     expect(response.id, equals(request.id));
 
     if (response.error == null) {
-      final notification = makeNotification(Method.initialized, null);
+      final notification =
+          makeNotification(Method.initialized, new InitializedParams());
       sendNotificationToServer(notification);
       await pumpEventQueue();
+    } else if (throwOnFailure) {
+      throw 'Error during initialize request: '
+          '${response.error.code}: ${response.error.message}';
     }
 
     return response;
@@ -730,6 +741,17 @@ abstract class AbstractLspAnalysisServerTest
   LspAnalysisServer server;
 
   Stream<Message> get serverToClient => channel.serverToClient;
+
+  /// Sends a request to the server and unwraps the result. Throws if the
+  /// response was not successful or returned an error.
+  Future<T> expectSuccessfulResponseTo<T>(RequestMessage request) async {
+    final resp = await sendRequestToServer(request);
+    if (resp.error != null) {
+      throw resp.error;
+    } else {
+      return resp.result as T;
+    }
+  }
 
   Future sendNotificationToServer(NotificationMessage notification) async {
     channel.sendNotificationToServer(notification);

@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,10 +7,7 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -43,8 +40,6 @@ main() {
   // linter package.
   AnalysisError annotate_overrides = new AnalysisError(
       new TestSource(), 0, 1, new LintCode('annotate_overrides', ''));
-
-  oneTimeSetup();
 
   setUp(() {
     context = new TestContext();
@@ -161,12 +156,5 @@ void configureOptions(String options) {
 
 ErrorProcessor getProcessor(AnalysisError error) =>
     ErrorProcessor.getProcessor(context.analysisOptions, error);
-
-void oneTimeSetup() {
-  List<Plugin> plugins = <Plugin>[];
-  plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-  ExtensionManager manager = new ExtensionManager();
-  manager.processPlugins(plugins);
-}
 
 class TestContext extends AnalysisContextImpl {}

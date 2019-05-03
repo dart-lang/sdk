@@ -36,7 +36,7 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "31f7dc1e222910ce64ab57ffee286382b03446a4",
+  "co19_2_rev": "a0a24a4bd5e4d913264fccfd600139af5b20c8e9",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -54,7 +54,7 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.4.4",
   "async_tag": "2.0.8",
-  "bazel_worker_tag": "0.1.14",
+  "bazel_worker_tag": "bazel_worker-v0.1.20",
   "boolean_selector_tag" : "1.0.4",
   "boringssl_gen_rev": "bbf52f18f425e29b1185f2f6753bec02ed8c5880",
   "boringssl_rev" : "702e2b6d3831486535e958f262a05c75a5cb312e",
@@ -64,41 +64,41 @@ vars = {
   "collection_tag": "1.14.11",
   "convert_tag": "2.0.2",
   "crypto_tag" : "2.0.6",
-  "csslib_tag" : "0.14.4+1",
-  "dart2js_info_tag" : "0.5.15",
+  "csslib_tag" : "0.15.0",
+  "dart2js_info_tag" : "0.6.0",
 
-  # Note: updates to dart_style have to be coordinated carefully with
-  # the infrastructure-team so that the internal formatter in
-  # `sdk/tools/sdks/dart-sdk/bin/dartfmt` matches the version here.
+  # Note: Updates to dart_style have to be coordinated with the infrastructure
+  # team so that the internal formatter in `tools/sdks/dart-sdk/bin/dartfmt`
+  # matches the version here.
   #
   # Please follow this process to make updates:
-  #   * file an issue with area-infrastructure requesting a roll for this
-  #     package (please also indicate what version to roll).
-  #   * let the infrastructure team submit the change on your behalf,
-  #     so they can build a new dev release and roll the submitted sdks a few
-  #     minutes later.
+  #
+  # *   Create a commit that updates the version here to the desired version and
+  #     adds any appropriate CHANGELOG text.
+  # *   Send that to eng-prod to review. They will update the checked-in SDK
+  #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.2.2",  # Please see the note above before updating.
+  "dart_style_tag": "1.2.7",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.28.1+2",
+  "dartdoc_tag" : "v0.28.2",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
-  "html_tag" : "0.13.3+2",
+  "html_tag" : "0.14.0+1",
   "http_io_rev": "57da05a66f5bf7df3dd7aebe7b7efe0dfc477baa",
   "http_multi_server_tag" : "2.0.5",
-  "http_parser_tag" : "3.1.1",
+  "http_parser_tag" : "3.1.3",
   "http_retry_tag": "0.1.1",
-  "http_tag" : "0.12.0",
+  "http_tag" : "0.12.0+2",
   "http_throttle_tag" : "1.0.2",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.82",
+  "linter_tag": "0.1.86",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "markdown_tag": "2.0.2",
+  "markdown_tag": "2.0.3",
   "matcher_tag": "0.12.3",
   "mime_tag": "0.9.6+2",
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
@@ -106,13 +106,13 @@ vars = {
   "oauth2_tag": "1.2.1",
   "observatory_pub_packages_rev": "0894122173b0f98eb08863a7712e78407d4477bc",
   "package_config_tag": "1.0.5",
-  "package_resolver_tag": "1.0.4",
+  "package_resolver_tag": "1.0.10",
   "path_tag": "1.6.2",
-  "plugin_tag": "f5b4b0e32d1406d62daccea030ba6457d14b1c47",
+  "pedantic_tag": "v1.5.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
-  "protobuf_tag": "0.9.0",
-  "pub_rev": "9f00679ef47bc79cadc18e143720ade6c06c0100",
+  "protobuf_rev": "0c77167b16d00b561a6055bfe26690af7f26ae88",
+  "pub_rev": "8c363fe26f059c3063f1129adbb3c4e22a8ce954",
   "pub_semver_tag": "1.4.2",
   "quiver_tag": "2.0.0+1",
   "resource_rev": "2.1.5",
@@ -124,19 +124,18 @@ vars = {
   "source_map_stack_trace_tag": "1.1.5",
   "source_maps-0.9.4_rev": "38524",
   "source_maps_tag": "8af7cc1a1c3a193c1fba5993ce22a546a319c40e",
-  "source_span_tag": "1.4.1",
+  "source_span_tag": "1.5.5",
   "stack_trace_tag": "1.9.3",
-  "stream_channel_tag": "1.6.8",
+  "stream_channel_tag": "2.0.0",
   "string_scanner_tag": "1.0.3",
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.8",
-  "test_tag": "1.3.4",
+  "test_tag": "test-v1.6.1",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
-  "utf_tag": "0.9.0+5",
   "watcher_rev": "0.9.7+12",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_tag": "1.0.9",
@@ -157,14 +156,14 @@ deps = {
   Var("dart_root") + "/tools/sdks": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
-          "version": "version:2.1.1-dev.1.0",
+          "version": "version:2.2.1-dev.3.1",
       }],
       "dep_type": "cipd",
   },
   Var("dart_root") + "/third_party/d8": {
       "packages": [{
           "package": "dart/d8",
-          "version": "version:6.9.427.23+1",
+          "version": "version:7.5.149",
       }],
       "dep_type": "cipd",
   },
@@ -303,12 +302,12 @@ deps = {
       + "@" + Var("package_resolver_tag"),
   Var("dart_root") + "/third_party/pkg/path":
       Var("dart_git") + "path.git" + "@" + Var("path_tag"),
-  Var("dart_root") + "/third_party/pkg/plugin":
-      Var("dart_git") + "plugin.git" + "@" + Var("plugin_tag"),
+  Var("dart_root") + "/third_party/pkg/pedantic":
+      Var("dart_git") + "pedantic.git" + "@" + Var("pedantic_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
       Var("dart_git") + "pool.git" + "@" + Var("pool_tag"),
   Var("dart_root") + "/third_party/pkg/protobuf":
-      Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_tag"),
+      Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
       Var("dart_git") + "pub_semver.git" + "@" + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/pub":
@@ -365,8 +364,6 @@ deps = {
       "@" + Var("unittest_rev"),
   Var("dart_root") + "/third_party/pkg/usage":
       Var("dart_git") + "usage.git" + "@" + Var("usage_tag"),
-  Var("dart_root") + "/third_party/pkg/utf":
-      Var("dart_git") + "utf.git" + "@" + Var("utf_tag"),
   Var("dart_root") + "/third_party/pkg/watcher":
       Var("dart_git") + "watcher.git" + "@" + Var("watcher_rev"),
   Var("dart_root") + "/third_party/pkg/web_components":
@@ -437,7 +434,7 @@ hooks = [
     ],
   },
   {
-    "name": "7zip",
+    "name": "front_end_benchmark_data",
     "pattern": ".",
     "action": [
       "download_from_google_storage",
@@ -445,10 +442,10 @@ hooks = [
       "--no_resume",
       "--bucket",
       "dart-dependencies",
-      "--platform=win32",
+      "--recursive",
       "--extract",
-      "-s",
-      Var('dart_root') + "/third_party/7zip.tar.gz.sha1",
+      "--directory",
+      Var('dart_root') + "/pkg/front_end/test/fasta/types",
     ],
   },
   {
@@ -495,4 +492,30 @@ hooks = [
     'pattern': '.',
     'action': ['python', 'sdk/build/vs_toolchain.py', 'update'],
   },
+  {
+    # Download dill files for all supported ABI versions, if necessary.
+    'name': 'abiversions',
+    'pattern': '.',
+    'action': ['python', 'sdk/tools/download_abi_dills.py'],
+  },
 ]
+
+hooks_os = {
+  "win": [
+    {
+      "name": "7zip",
+      "pattern": ".",
+      "action": [
+        "download_from_google_storage",
+        "--no_auth",
+        "--no_resume",
+        "--bucket",
+        "dart-dependencies",
+        "--platform=win32",
+        "--extract",
+        "-s",
+        Var('dart_root') + "/third_party/7zip.tar.gz.sha1",
+      ],
+    },
+  ]
+}

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -27,7 +27,6 @@ abstract class ParserAdapter implements Parser {
       {bool allowNativeClause: false})
       : fastaParser = new fasta.Parser(null),
         astBuilder = new AstBuilder(errorReporter, fileUri, true) {
-    fastaParser.enableSetLiterals = IsEnabledByDefault.set_literals;
     fastaParser.listener = astBuilder;
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;
@@ -36,6 +35,16 @@ abstract class ParserAdapter implements Parser {
   @override
   set allowNativeClause(bool value) {
     astBuilder.allowNativeClause = value;
+  }
+
+  @override
+  void set enableControlFlowCollections(bool value) {
+    if (IsExpired.control_flow_collections &&
+        value != IsEnabledByDefault.control_flow_collections) {
+      throw new StateError('control_flow_collections may only be set'
+          ' to ${IsEnabledByDefault.control_flow_collections}');
+    }
+    astBuilder.enableControlFlowCollections = value;
   }
 
   /// Enables or disables non-nullable by default.
@@ -55,11 +64,8 @@ abstract class ParserAdapter implements Parser {
 
   @override
   void set enableSetLiterals(bool value) {
-    if (IsExpired.set_literals && value != IsEnabledByDefault.set_literals) {
-      throw new StateError(
-          'set_literals may only be set to ${IsEnabledByDefault.set_literals}');
-    }
-    fastaParser.enableSetLiterals = value;
+    // TODO(danrubel): Remove this method once the reference to this flag
+    // has been removed from dartfmt.
   }
 
   @override
@@ -73,13 +79,12 @@ abstract class ParserAdapter implements Parser {
   }
 
   @override
-  void set enableControlFlowCollections(bool value) {
-    if (IsExpired.control_flow_collections &&
-        value != IsEnabledByDefault.control_flow_collections) {
-      throw new StateError('control_flow_collections may only be set'
-          ' to ${IsEnabledByDefault.control_flow_collections}');
+  void set enableTripleShift(bool value) {
+    if (IsExpired.triple_shift && value != IsEnabledByDefault.triple_shift) {
+      throw new StateError('triple_shift may only be set'
+          ' to ${IsEnabledByDefault.triple_shift}');
     }
-    astBuilder.enableControlFlowCollections = value;
+    astBuilder.enableTripleShift = value;
   }
 
   @override
@@ -189,8 +194,6 @@ abstract class ParserAdapter implements Parser {
     currentToken = fastaParser.parseUnit(currentToken);
     CompilationUnitImpl compilationUnit = astBuilder.pop();
     compilationUnit.localDeclarations = astBuilder.localDeclarations;
-    compilationUnit.hasPragmaAnalyzerNonNullable =
-        astBuilder.hasPragmaAnalyzerNonNullable;
     return compilationUnit;
   }
 

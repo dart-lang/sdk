@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/expect.dart';
-import 'package:meta/dart2js.dart';
 
 /*class: A:checkedTypeArgument,checks=[],typeArgument*/
 class A {}
@@ -19,17 +18,17 @@ class D {}
 
 /*class: E:checks=[],instance*/
 class E {
-  @noInline
+  @pragma('dart2js:noInline')
   m<T>() => new C<T>();
 }
 
 /*class: F:checks=[],instance*/
 class F {
-  @noInline
+  @pragma('dart2js:noInline')
   m<T>() => false;
 }
 
-@noInline
+@pragma('dart2js:noInline')
 test(o) => o is C<A>;
 
 main() {

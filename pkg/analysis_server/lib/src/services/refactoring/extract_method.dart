@@ -964,13 +964,23 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   }
 
   @override
+  Object visitForParts(ForParts node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   Object visitForStatement(ForStatement node) {
     super.visitForStatement(node);
-    if (identical(node.variables, firstSelectedNode)) {
-      invalidSelection(
-          "Cannot extract initialization part of a 'for' statement.");
-    } else if (node.updaters.contains(lastSelectedNode)) {
-      invalidSelection("Cannot extract increment part of a 'for' statement.");
+    var forLoopParts = node.forLoopParts;
+    if (forLoopParts is ForParts) {
+      if (forLoopParts is ForPartsWithDeclarations &&
+          identical(forLoopParts.variables, firstSelectedNode)) {
+        invalidSelection(
+            "Cannot extract initialization part of a 'for' statement.");
+      } else if (forLoopParts.updaters.contains(lastSelectedNode)) {
+        invalidSelection("Cannot extract increment part of a 'for' statement.");
+      }
     }
     return null;
   }
@@ -1094,11 +1104,11 @@ class _HasAwaitVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitForEachStatement(ForEachStatement node) {
+  visitForStatement(ForStatement node) {
     if (node.awaitKeyword != null) {
       result = true;
     }
-    super.visitForEachStatement(node);
+    super.visitForStatement(node);
   }
 }
 

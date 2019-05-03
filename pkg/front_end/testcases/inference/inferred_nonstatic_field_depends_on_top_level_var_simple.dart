@@ -5,10 +5,10 @@
 /*@testedFeatures=inference*/
 library test;
 
-var /*@topType=String*/ x = 'x';
+var x = 'x';
 
 class C {
-  var /*@topType=String*/ y = x;
+  var y = x;
 }
 
 main() {

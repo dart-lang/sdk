@@ -17,7 +17,7 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
-import 'allocator_analysis.dart';
+import 'field_analysis.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
@@ -43,7 +43,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final CustomElementsResolutionAnalysis _customElementsAnalysis;
 
   final NativeResolutionEnqueuer _nativeEnqueuer;
-  final KAllocatorAnalysis _allocatorAnalysis;
+  final KFieldAnalysis _fieldAnalysis;
 
   /// True when we enqueue the loadLibrary code.
   bool _isLoadLibraryFunctionResolved = false;
@@ -59,7 +59,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._noSuchMethodRegistry,
       this._customElementsAnalysis,
       this._nativeEnqueuer,
-      this._allocatorAnalysis,
+      this._fieldAnalysis,
       this._deferredLoadTask);
 
   void _registerBackendImpact(
@@ -328,12 +328,16 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _registerBackendImpact(impactBuilder, _impacts.functionClass);
     } else if (cls == _commonElements.mapClass) {
       _registerBackendImpact(impactBuilder, _impacts.mapClass);
+    } else if (cls == _commonElements.setClass) {
+      _registerBackendImpact(impactBuilder, _impacts.setClass);
     } else if (cls == _commonElements.boundClosureClass) {
       _registerBackendImpact(impactBuilder, _impacts.boundClosureClass);
     } else if (_nativeData.isNativeOrExtendsNative(cls)) {
       _registerBackendImpact(impactBuilder, _impacts.nativeOrExtendsClass);
     } else if (cls == _commonElements.mapLiteralClass) {
       _registerBackendImpact(impactBuilder, _impacts.mapLiteralClass);
+    } else if (cls == _commonElements.setLiteralClass) {
+      _registerBackendImpact(impactBuilder, _impacts.setLiteralClass);
     }
     if (cls == _commonElements.closureClass) {
       _registerBackendImpact(impactBuilder, _impacts.closureClass);
@@ -405,7 +409,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   @override
   WorldImpact registerInstantiatedClass(ClassEntity cls) {
-    _allocatorAnalysis.registerInstantiatedClass(cls);
+    _fieldAnalysis.registerInstantiatedClass(cls);
     return _processClass(cls);
   }
 

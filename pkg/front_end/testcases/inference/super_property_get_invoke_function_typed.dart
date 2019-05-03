@@ -6,7 +6,7 @@
 library test;
 
 class C {
-  var /*@topType=() -> int*/ f = /*@returnType=int*/ () => 0;
+  var f = /*@returnType=int*/ () => 0;
 }
 
 class D extends C {

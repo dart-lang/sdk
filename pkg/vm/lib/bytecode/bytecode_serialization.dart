@@ -29,15 +29,17 @@ class BufferedWriter {
   final int formatVersion;
   final StringWriter stringWriter;
   final ObjectWriter objectWriter;
+  final LinkWriter linkWriter;
   final BytesBuilder bytes = new BytesBuilder();
   final int baseOffset;
 
-  BufferedWriter(this.formatVersion, this.stringWriter, this.objectWriter,
+  BufferedWriter(
+      this.formatVersion, this.stringWriter, this.objectWriter, this.linkWriter,
       {this.baseOffset: 0});
 
   factory BufferedWriter.fromWriter(BufferedWriter writer) =>
-      new BufferedWriter(
-          writer.formatVersion, writer.stringWriter, writer.objectWriter);
+      new BufferedWriter(writer.formatVersion, writer.stringWriter,
+          writer.objectWriter, writer.linkWriter);
 
   List<int> takeBytes() => bytes.takeBytes();
 
@@ -110,6 +112,11 @@ class BufferedWriter {
     }
   }
 
+  void writeLinkOffset(Object target) {
+    final offset = linkWriter.getOffset(target);
+    writePackedUInt30(offset);
+  }
+
   void align(int alignment) {
     assert(alignment & (alignment - 1) == 0);
     int offs = baseOffset + offset;
@@ -124,14 +131,15 @@ class BufferedReader {
   int formatVersion;
   StringReader stringReader;
   ObjectReader objectReader;
+  LinkReader linkReader;
   final List<int> bytes;
   final int baseOffset;
 
   /// Position within [bytes], already includes [baseOffset].
   int _pos;
 
-  BufferedReader(
-      this.formatVersion, this.stringReader, this.objectReader, this.bytes,
+  BufferedReader(this.formatVersion, this.stringReader, this.objectReader,
+      this.linkReader, this.bytes,
       {this.baseOffset: 0})
       : _pos = baseOffset {
     assert((0 <= _pos) && (_pos <= bytes.length));
@@ -219,6 +227,11 @@ class BufferedReader {
     }
     _pos += count << 1;
     return result;
+  }
+
+  T readLinkOffset<T>() {
+    final offset = readPackedUInt30();
+    return linkReader.get<T>(offset);
   }
 
   void align(int alignment) {
@@ -382,6 +395,37 @@ class NamedEntryStatistics {
 
   String toString() => "${name.padRight(40)}:    ${size.toString().padLeft(10)}"
       "  (count: ${count.toString().padLeft(8)})";
+}
+
+class LinkWriter {
+  final _map = <Object, int>{};
+
+  void put(Object target, int offset) {
+    _map[target] = offset;
+  }
+
+  int getOffset(Object target) {
+    return _map[target] ??
+        (throw 'Offset of ${target.runtimeType} $target is not set');
+  }
+}
+
+class LinkReader {
+  final _map = <Type, Map<int, Object>>{};
+
+  void setOffset<T>(T target, int offset) {
+    final offsetToObject = (_map[T] ??= <int, Object>{});
+    final previous = offsetToObject[offset];
+    if (previous != null) {
+      throw 'Unable to associate offset $T/$offset with ${target.runtimeType} $target.'
+          ' It is already associated with ${previous.runtimeType} $previous';
+    }
+    offsetToObject[offset] = target;
+  }
+
+  T get<T>(int offset) {
+    return _map[T][offset] ?? (throw 'No object at offset $T/$offset');
+  }
 }
 
 class BytecodeSizeStatistics {

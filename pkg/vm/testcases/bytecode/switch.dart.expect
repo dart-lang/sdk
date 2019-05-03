@@ -1,8 +1,21 @@
-library #lib;
-import self as self;
-import "dart:core" as core;
+main = #lib::main;
+ [@vm.bytecode=
+ComponentBytecodeMetadata {
 
-[@vm.bytecode=
+Bytecode (version: stable)
+Main library: #lib
+
+}
+] [@vm.bytecode=
+MembersBytecodeMetadata {
+
+Members {
+
+Function 'foo1', static, reflectable, debuggable
+    parameters [dart:core::int 'x'] (required: 1)
+    return-type dart:core::int
+
+
 Bytecode {
   Entry                2
   CheckStack           0
@@ -43,32 +56,13 @@ ConstantPool {
   [0] = InterfaceCall 'dart:core::Object::==', ArgDesc num-args 2, num-type-args 0, names []
   [1] = Reserved
 }
-]static method foo1(core::int x) → core::int {
-  core::int y;
-  #L1:
-  switch(x) {
-    #L2:
-    case 1:
-      {
-        y = 11;
-        break #L1;
-      }
-    #L3:
-    case 2:
-      {
-        y = 22;
-        break #L1;
-      }
-    #L4:
-    case 3:
-      {
-        y = 33;
-        break #L1;
-      }
-  }
-  return y;
-}
-[@vm.bytecode=
+
+
+Function 'foo2', static, reflectable, debuggable
+    parameters [dart:core::int 'x'] (required: 1)
+    return-type dart:core::int
+
+
 Bytecode {
   Entry                2
   CheckStack           0
@@ -120,35 +114,13 @@ ConstantPool {
   [0] = InterfaceCall 'dart:core::Object::==', ArgDesc num-args 2, num-type-args 0, names []
   [1] = Reserved
 }
-]static method foo2(core::int x) → core::int {
-  core::int y;
-  #L5:
-  switch(x) {
-    #L6:
-    case 1:
-    case 2:
-    case 3:
-      {
-        y = 11;
-        break #L5;
-      }
-    #L7:
-    case 4:
-    case 5:
-    case 6:
-      {
-        y = 22;
-        break #L5;
-      }
-    #L8:
-    default:
-      {
-        y = 33;
-      }
-  }
-  return y;
-}
-[@vm.bytecode=
+
+
+Function 'foo3', static, reflectable, debuggable
+    parameters [dart:core::int 'x'] (required: 1)
+    return-type dart:core::int
+
+
 Bytecode {
   Entry                2
   CheckStack           0
@@ -200,34 +172,13 @@ ConstantPool {
   [0] = InterfaceCall 'dart:core::Object::==', ArgDesc num-args 2, num-type-args 0, names []
   [1] = Reserved
 }
-]static method foo3(core::int x) → core::int {
-  core::int y;
-  switch(x) {
-    #L9:
-    case 1:
-    case 2:
-    case 3:
-      {
-        y = 11;
-        continue #L10;
-      }
-    #L10:
-    case 4:
-    case 5:
-    case 6:
-      {
-        y = 22;
-        return 42;
-      }
-    #L11:
-    default:
-      {
-        y = 33;
-      }
-  }
-  return y;
-}
-[@vm.bytecode=
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+
 Bytecode {
   Entry                0
   CheckStack           0
@@ -236,4 +187,99 @@ Bytecode {
 }
 ConstantPool {
 }
-]static method main() → dynamic {}
+
+}
+
+}
+]library #lib from "#lib" as #lib {
+
+  static method foo1(dart.core::int x) → dart.core::int {
+    dart.core::int y;
+    #L1:
+    switch(x) {
+      #L2:
+      case #C1:
+        {
+          y = 11;
+          break #L1;
+        }
+      #L3:
+      case #C2:
+        {
+          y = 22;
+          break #L1;
+        }
+      #L4:
+      case #C3:
+        {
+          y = 33;
+          break #L1;
+        }
+    }
+    return y;
+  }
+  static method foo2(dart.core::int x) → dart.core::int {
+    dart.core::int y;
+    #L5:
+    switch(x) {
+      #L6:
+      case #C1:
+      case #C2:
+      case #C3:
+        {
+          y = 11;
+          break #L5;
+        }
+      #L7:
+      case #C4:
+      case #C5:
+      case #C6:
+        {
+          y = 22;
+          break #L5;
+        }
+      #L8:
+      default:
+        {
+          y = 33;
+        }
+    }
+    return y;
+  }
+  static method foo3(dart.core::int x) → dart.core::int {
+    dart.core::int y;
+    switch(x) {
+      #L9:
+      case #C1:
+      case #C2:
+      case #C3:
+        {
+          y = 11;
+          continue #L10;
+        }
+      #L10:
+      case #C4:
+      case #C5:
+      case #C6:
+        {
+          y = 22;
+          return 42;
+        }
+      #L11:
+      default:
+        {
+          y = 33;
+        }
+    }
+    return y;
+  }
+  static method main() → dynamic {}
+}
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = 3
+  #C4 = 4
+  #C5 = 5
+  #C6 = 6
+}

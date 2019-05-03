@@ -129,15 +129,12 @@ void reportError(
       .reportErrorMessage(spannable, MessageKind.GENERIC, {'text': message});
 }
 
-/// Display name used for compilation using the new common frontend.
-const String kernelName = 'kernel';
-
 /// Display name used for strong mode compilation using the new common frontend.
 const String strongName = 'strong mode';
 
 /// Display name used for strong mode compilation without implicit checks using
 /// the new common frontend.
-const String trustName = 'strong mode without implicit checks';
+const String omitName = 'strong mode without implicit checks';
 
 /// Compute actual data for all members defined in the program with the
 /// [entryPoint] and [memorySourceFiles].
@@ -190,7 +187,7 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
     return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
   }
 
-  void processMember(MemberEntity member, Map<Id, ActualData> actualMap) {
+  void processMember(MemberEntity member, Map<Id, ActualData<T>> actualMap) {
     if (member.isAbstract) {
       return;
     }
@@ -319,7 +316,7 @@ class CompiledData<T> {
   Map<int, List<String>> computeAnnotations(Uri uri) {
     Map<Id, ActualData<T>> thisMap = actualMaps[uri];
     Map<int, List<String>> annotations = <int, List<String>>{};
-    thisMap.forEach((Id id, ActualData data1) {
+    thisMap.forEach((Id id, ActualData<T> data1) {
       String value1 = '${data1.value}';
       annotations
           .putIfAbsent(data1.offset, () => [])
@@ -332,8 +329,8 @@ class CompiledData<T> {
       Map<Id, ActualData<T>> thisMap, Map<Id, ActualData<T>> otherMap, Uri uri,
       {bool includeMatches: false}) {
     Map<int, List<String>> annotations = <int, List<String>>{};
-    thisMap.forEach((Id id, ActualData data1) {
-      ActualData data2 = otherMap[id];
+    thisMap.forEach((Id id, ActualData<T> data1) {
+      ActualData<T> data2 = otherMap[id];
       String value1 = '${data1.value}';
       if (data1.value != data2?.value) {
         String value2 = '${data2?.value ?? '---'}';
@@ -346,7 +343,7 @@ class CompiledData<T> {
             .add(colorizeMatch(value1));
       }
     });
-    otherMap.forEach((Id id, ActualData data2) {
+    otherMap.forEach((Id id, ActualData<T> data2) {
       if (!thisMap.containsKey(id)) {
         String value1 = '---';
         String value2 = '${data2.value}';
@@ -398,11 +395,11 @@ class IdData<T> {
   Compiler get compiler => _compiledData.compiler;
   ElementEnvironment get elementEnvironment => _compiledData.elementEnvironment;
   Uri get mainUri => _compiledData.mainUri;
-  MemberAnnotations<ActualData> get actualMaps => _actualMaps;
+  MemberAnnotations<ActualData<T>> get actualMaps => _actualMaps;
 
   String actualCode(Uri uri) {
     Map<int, List<String>> annotations = <int, List<String>>{};
-    actualMaps[uri].forEach((Id id, ActualData data) {
+    actualMaps[uri].forEach((Id id, ActualData<T> data) {
       annotations
           .putIfAbsent(data.sourceSpan.begin, () => [])
           .add('${data.value}');
@@ -412,7 +409,7 @@ class IdData<T> {
 
   String diffCode(Uri uri, DataInterpreter<T> dataValidator) {
     Map<int, List<String>> annotations = <int, List<String>>{};
-    actualMaps[uri].forEach((Id id, ActualData data) {
+    actualMaps[uri].forEach((Id id, ActualData<T> data) {
       IdValue expectedValue = expectedMaps[uri][id];
       T actualValue = data.value;
       String unexpectedMessage =
@@ -421,21 +418,25 @@ class IdData<T> {
         String expected = expectedValue?.toString() ?? '';
         String actual = dataValidator.getText(actualValue);
         int offset = getOffsetFromId(id, uri);
-        String value1 = '${expected}';
-        String value2 = IdValue.idToString(id, '${actual}');
-        annotations
-            .putIfAbsent(offset, () => [])
-            .add(colorizeDiff(value1, ' | ', value2));
+        if (offset != null) {
+          String value1 = '${expected}';
+          String value2 = IdValue.idToString(id, '${actual}');
+          annotations
+              .putIfAbsent(offset, () => [])
+              .add(colorizeDiff(value1, ' | ', value2));
+        }
       }
     });
     expectedMaps[uri].forEach((Id id, IdValue expected) {
       if (!actualMaps[uri].containsKey(id)) {
         int offset = getOffsetFromId(id, uri);
-        String value1 = '${expected}';
-        String value2 = '---';
-        annotations
-            .putIfAbsent(offset, () => [])
-            .add(colorizeDiff(value1, ' | ', value2));
+        if (offset != null) {
+          String value1 = '${expected}';
+          String value2 = '---';
+          annotations
+              .putIfAbsent(offset, () => [])
+              .add(colorizeDiff(value1, ' | ', value2));
+        }
       }
     });
     return withAnnotations(code[uri].sourceCode, annotations);
@@ -444,7 +445,7 @@ class IdData<T> {
   int getOffsetFromId(Id id, Uri uri) {
     return compiler.reporter
         .spanFromSpannable(computeSpannable(elementEnvironment, uri, id))
-        .begin;
+        ?.begin;
   }
 }
 
@@ -476,6 +477,7 @@ class MemberAnnotations<DataType> {
     return _computedDataForEachFile[file];
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('MemberAnnotations(');
@@ -529,6 +531,7 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     int shards: 1,
     int shardIndex: 0,
     bool testOmit: true,
+    bool testCFEConstants: false,
     void onTest(Uri uri)}) async {
   dataComputer.setup();
 
@@ -578,6 +581,8 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     Map<String, MemberAnnotations<IdValue>> expectedMaps = {
       strongMarker: new MemberAnnotations<IdValue>(),
       omitMarker: new MemberAnnotations<IdValue>(),
+      strongConstMarker: new MemberAnnotations<IdValue>(),
+      omitConstMarker: new MemberAnnotations<IdValue>(),
     };
     computeExpectedMap(entryPoint, code[entryPoint], expectedMaps);
     Map<String, String> memorySourceFiles = {
@@ -606,51 +611,79 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
 
     if (setUpFunction != null) setUpFunction();
 
-    if (skipForStrong.contains(name)) {
-      print('--skipped for kernel (strong mode)----------------------------');
-    } else {
-      print('--from kernel (strong mode)-----------------------------------');
-      List<String> options = new List<String>.from(testOptions);
-      MemberAnnotations<IdValue> annotations = expectedMaps[strongMarker];
-      CompiledData<T> compiledData2 = await computeData(
-          entryPoint, memorySourceFiles, dataComputer,
-          options: options,
-          verbose: verbose,
-          printCode: printCode,
-          testFrontend: testFrontend,
-          forUserLibrariesOnly: forUserLibrariesOnly,
-          globalIds: annotations.globalData.keys);
-      if (await checkCode(strongName, entity.uri, code, annotations,
-          compiledData2, dataComputer.dataValidator,
-          filterActualData: filterActualData,
-          fatalErrors: !testAfterFailures)) {
-        hasFailures = true;
-      }
-    }
-    if (testOmit) {
+    Future runTests({bool useCFEConstants: false}) async {
       if (skipForStrong.contains(name)) {
-        print('--skipped for kernel (strong mode, omit-implicit-checks)------');
+        print('--skipped for kernel (strong mode)----------------------------');
       } else {
-        print('--from kernel (strong mode, omit-implicit-checks)-------------');
-        List<String> options = [
-          Flags.omitImplicitChecks,
-          Flags.laxRuntimeTypeToString
-        ]..addAll(testOptions);
-        MemberAnnotations<IdValue> annotations = expectedMaps[omitMarker];
+        print('--from kernel (strong mode)-----------------------------------');
+        List<String> options = new List<String>.from(testOptions);
+        String marker = strongMarker;
+        if (useCFEConstants) {
+          marker = strongConstMarker;
+          options
+              .add('${Flags.enableLanguageExperiments}=constant-update-2018');
+        } else {
+          options.add(
+              '${Flags.enableLanguageExperiments}=no-constant-update-2018');
+        }
+        MemberAnnotations<IdValue> annotations = expectedMaps[marker];
         CompiledData<T> compiledData2 = await computeData(
             entryPoint, memorySourceFiles, dataComputer,
             options: options,
             verbose: verbose,
+            printCode: printCode,
             testFrontend: testFrontend,
             forUserLibrariesOnly: forUserLibrariesOnly,
             globalIds: annotations.globalData.keys);
-        if (await checkCode(trustName, entity.uri, code, annotations,
+        if (await checkCode(strongName, entity.uri, code, annotations,
             compiledData2, dataComputer.dataValidator,
             filterActualData: filterActualData,
             fatalErrors: !testAfterFailures)) {
           hasFailures = true;
         }
       }
+      if (testOmit) {
+        if (skipForStrong.contains(name)) {
+          print(
+              '--skipped for kernel (strong mode, omit-implicit-checks)------');
+        } else {
+          print(
+              '--from kernel (strong mode, omit-implicit-checks)-------------');
+          List<String> options = [
+            Flags.omitImplicitChecks,
+            Flags.laxRuntimeTypeToString
+          ]..addAll(testOptions);
+          String marker = omitMarker;
+          if (useCFEConstants) {
+            marker = omitConstMarker;
+            options
+                .add('${Flags.enableLanguageExperiments}=constant-update-2018');
+          } else {
+            options.add(
+                '${Flags.enableLanguageExperiments}=no-constant-update-2018');
+          }
+          MemberAnnotations<IdValue> annotations = expectedMaps[marker];
+          CompiledData<T> compiledData2 = await computeData(
+              entryPoint, memorySourceFiles, dataComputer,
+              options: options,
+              verbose: verbose,
+              testFrontend: testFrontend,
+              forUserLibrariesOnly: forUserLibrariesOnly,
+              globalIds: annotations.globalData.keys);
+          if (await checkCode(omitName, entity.uri, code, annotations,
+              compiledData2, dataComputer.dataValidator,
+              filterActualData: filterActualData,
+              fatalErrors: !testAfterFailures)) {
+            hasFailures = true;
+          }
+        }
+      }
+    }
+
+    await runTests();
+    if (testCFEConstants) {
+      print('--use cfe constants---------------------------------------------');
+      await runTests(useCFEConstants: true);
     }
   }
   Expect.isFalse(hasFailures, 'Errors found.');
@@ -712,9 +745,18 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
       Features expectedFeatures = Features.fromText(expectedData);
       Set<String> validatedFeatures = new Set<String>();
       expectedFeatures.forEach((String key, Object expectedValue) {
+        bool expectMatch = true;
+        if (key.startsWith('!')) {
+          key = key.substring(1);
+          expectMatch = false;
+        }
         validatedFeatures.add(key);
         Object actualValue = actualFeatures[key];
-        if (!actualFeatures.containsKey(key)) {
+        if (!expectMatch) {
+          if (actualFeatures.containsKey(key)) {
+            errorsFound.add('Unexpected data found for $key=$actualValue');
+          }
+        } else if (!actualFeatures.containsKey(key)) {
           errorsFound.add('No data found for $key');
         } else if (expectedValue == '') {
           if (actualValue != '') {
@@ -856,13 +898,14 @@ Future<bool> checkCode<T>(
     }
   }
 
-  data.actualMaps.forEach((Uri uri, Map<Id, ActualData> actualMap) {
+  data.actualMaps.forEach((Uri uri, Map<Id, ActualData<T>> actualMap) {
     checkActualMap(actualMap, data.expectedMaps[uri], uri);
   });
   checkActualMap(data.actualMaps.globalData, data.expectedMaps.globalData);
 
   Set<Id> missingIds = new Set<Id>();
-  void checkMissing(Map<Id, IdValue> expectedMap, Map<Id, ActualData> actualMap,
+  void checkMissing(
+      Map<Id, IdValue> expectedMap, Map<Id, ActualData<T>> actualMap,
       [Uri uri]) {
     expectedMap.forEach((Id id, IdValue expected) {
       if (!actualMap.containsKey(id)) {
@@ -915,10 +958,11 @@ Spannable computeSpannable(
     }
     LibraryEntity library = elementEnvironment.lookupLibrary(mainUri);
     if (id.className != null) {
-      ClassEntity cls =
-          elementEnvironment.lookupClass(library, id.className, required: true);
+      ClassEntity cls = elementEnvironment.lookupClass(library, id.className);
       if (cls == null) {
-        throw new ArgumentError("No class '${id.className}' in $mainUri.");
+        // Constant expression in CFE might remove inlined parts of sources.
+        print("No class '${id.className}' in $mainUri.");
+        return NO_LOCATION_SPANNABLE;
       }
       MemberEntity member = elementEnvironment
           .lookupClassMember(cls, memberName, setter: isSetter);
@@ -926,7 +970,9 @@ Spannable computeSpannable(
         ConstructorEntity constructor =
             elementEnvironment.lookupConstructor(cls, memberName);
         if (constructor == null) {
-          throw new ArgumentError("No class member '${memberName}' in $cls.");
+          // Constant expression in CFE might remove inlined parts of sources.
+          print("No class member '${memberName}' in $cls.");
+          return NO_LOCATION_SPANNABLE;
         }
         return constructor;
       }
@@ -935,16 +981,19 @@ Spannable computeSpannable(
       MemberEntity member = elementEnvironment
           .lookupLibraryMember(library, memberName, setter: isSetter);
       if (member == null) {
-        throw new ArgumentError("No member '${memberName}' in $mainUri.");
+        // Constant expression in CFE might remove inlined parts of sources.
+        print("No member '${memberName}' in $mainUri.");
+        return NO_LOCATION_SPANNABLE;
       }
       return member;
     }
   } else if (id is ClassId) {
     LibraryEntity library = elementEnvironment.lookupLibrary(mainUri);
-    ClassEntity cls =
-        elementEnvironment.lookupClass(library, id.className, required: true);
+    ClassEntity cls = elementEnvironment.lookupClass(library, id.className);
     if (cls == null) {
-      throw new ArgumentError("No class '${id.className}' in $mainUri.");
+      // Constant expression in CFE might remove inlined parts of sources.
+      print("No class '${id.className}' in $mainUri.");
+      return NO_LOCATION_SPANNABLE;
     }
     return cls;
   }
@@ -953,6 +1002,8 @@ Spannable computeSpannable(
 
 const String strongMarker = 'strong.';
 const String omitMarker = 'omit.';
+const String strongConstMarker = 'strongConst.';
+const String omitConstMarker = 'omitConst.';
 
 /// Compute three [MemberAnnotations] objects from [code] specifying the
 /// expected annotations we anticipate encountering; one corresponding to the
@@ -969,7 +1020,7 @@ const String omitMarker = 'omit.';
 /// annotations without prefixes.
 void computeExpectedMap(Uri sourceUri, AnnotatedCode code,
     Map<String, MemberAnnotations<IdValue>> maps) {
-  List<String> mapKeys = [strongMarker, omitMarker];
+  List<String> mapKeys = maps.keys.toList();
   Map<String, AnnotatedCode> split = splitByPrefixes(code, mapKeys);
 
   split.forEach((String marker, AnnotatedCode code) {

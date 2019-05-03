@@ -1914,7 +1914,7 @@ class _ByteBuffer implements ByteBuffer {
     length ??= (this.lengthInBytes - offsetInBytes) ~/ Int8List.bytesPerElement;
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Int8List.bytesPerElement);
-    return new _Int8ArrayView(this, offsetInBytes, length);
+    return new _Int8ArrayView(this._data, offsetInBytes, length);
   }
 
   Uint8List asUint8List([int offsetInBytes = 0, int length]) {
@@ -1922,7 +1922,7 @@ class _ByteBuffer implements ByteBuffer {
         (this.lengthInBytes - offsetInBytes) ~/ Uint8List.bytesPerElement;
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Uint8List.bytesPerElement);
-    return new _Uint8ArrayView(this, offsetInBytes, length);
+    return new _Uint8ArrayView(this._data, offsetInBytes, length);
   }
 
   Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int length]) {
@@ -1930,7 +1930,7 @@ class _ByteBuffer implements ByteBuffer {
         Uint8ClampedList.bytesPerElement;
     _rangeCheck(this.lengthInBytes, offsetInBytes,
         length * Uint8ClampedList.bytesPerElement);
-    return new _Uint8ClampedArrayView(this, offsetInBytes, length);
+    return new _Uint8ClampedArrayView(this._data, offsetInBytes, length);
   }
 
   Int16List asInt16List([int offsetInBytes = 0, int length]) {
@@ -1938,7 +1938,8 @@ class _ByteBuffer implements ByteBuffer {
         (this.lengthInBytes - offsetInBytes) ~/ Int16List.bytesPerElement;
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Int16List.bytesPerElement);
-    return new _Int16ArrayView(this, offsetInBytes, length);
+    _offsetAlignmentCheck(offsetInBytes, Int16List.bytesPerElement);
+    return new _Int16ArrayView(this._data, offsetInBytes, length);
   }
 
   Uint16List asUint16List([int offsetInBytes = 0, int length]) {
@@ -1946,7 +1947,8 @@ class _ByteBuffer implements ByteBuffer {
         (this.lengthInBytes - offsetInBytes) ~/ Uint16List.bytesPerElement;
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Uint16List.bytesPerElement);
-    return new _Uint16ArrayView(this, offsetInBytes, length);
+    _offsetAlignmentCheck(offsetInBytes, Uint16List.bytesPerElement);
+    return new _Uint16ArrayView(this._data, offsetInBytes, length);
   }
 
   Int32List asInt32List([int offsetInBytes = 0, int length]) {
@@ -1954,7 +1956,8 @@ class _ByteBuffer implements ByteBuffer {
         (this.lengthInBytes - offsetInBytes) ~/ Int32List.bytesPerElement;
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Int32List.bytesPerElement);
-    return new _Int32ArrayView(this, offsetInBytes, length);
+    _offsetAlignmentCheck(offsetInBytes, Int32List.bytesPerElement);
+    return new _Int32ArrayView(this._data, offsetInBytes, length);
   }
 
   Uint32List asUint32List([int offsetInBytes = 0, int length]) {
@@ -1962,7 +1965,8 @@ class _ByteBuffer implements ByteBuffer {
         (this.lengthInBytes - offsetInBytes) ~/ Uint32List.bytesPerElement;
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Uint32List.bytesPerElement);
-    return new _Uint32ArrayView(this, offsetInBytes, length);
+    _offsetAlignmentCheck(offsetInBytes, Uint32List.bytesPerElement);
+    return new _Uint32ArrayView(this._data, offsetInBytes, length);
   }
 
   Int64List asInt64List([int offsetInBytes = 0, int length]) {
@@ -1970,7 +1974,8 @@ class _ByteBuffer implements ByteBuffer {
         (this.lengthInBytes - offsetInBytes) ~/ Int64List.bytesPerElement;
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Int64List.bytesPerElement);
-    return new _Int64ArrayView(this, offsetInBytes, length);
+    _offsetAlignmentCheck(offsetInBytes, Int64List.bytesPerElement);
+    return new _Int64ArrayView(this._data, offsetInBytes, length);
   }
 
   Uint64List asUint64List([int offsetInBytes = 0, int length]) {
@@ -1978,7 +1983,8 @@ class _ByteBuffer implements ByteBuffer {
         (this.lengthInBytes - offsetInBytes) ~/ Uint64List.bytesPerElement;
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Uint64List.bytesPerElement);
-    return new _Uint64ArrayView(this, offsetInBytes, length);
+    _offsetAlignmentCheck(offsetInBytes, Uint64List.bytesPerElement);
+    return new _Uint64ArrayView(this._data, offsetInBytes, length);
   }
 
   Float32List asFloat32List([int offsetInBytes = 0, int length]) {
@@ -1986,7 +1992,8 @@ class _ByteBuffer implements ByteBuffer {
         (this.lengthInBytes - offsetInBytes) ~/ Float32List.bytesPerElement;
     _rangeCheck(this.lengthInBytes, offsetInBytes,
         length * Float32List.bytesPerElement);
-    return new _Float32ArrayView(this, offsetInBytes, length);
+    _offsetAlignmentCheck(offsetInBytes, Float32List.bytesPerElement);
+    return new _Float32ArrayView(this._data, offsetInBytes, length);
   }
 
   Float64List asFloat64List([int offsetInBytes = 0, int length]) {
@@ -1994,7 +2001,8 @@ class _ByteBuffer implements ByteBuffer {
         (this.lengthInBytes - offsetInBytes) ~/ Float64List.bytesPerElement;
     _rangeCheck(this.lengthInBytes, offsetInBytes,
         length * Float64List.bytesPerElement);
-    return new _Float64ArrayView(this, offsetInBytes, length);
+    _offsetAlignmentCheck(offsetInBytes, Float64List.bytesPerElement);
+    return new _Float64ArrayView(this._data, offsetInBytes, length);
   }
 
   Float32x4List asFloat32x4List([int offsetInBytes = 0, int length]) {
@@ -2002,7 +2010,8 @@ class _ByteBuffer implements ByteBuffer {
         (this.lengthInBytes - offsetInBytes) ~/ Float32x4List.bytesPerElement;
     _rangeCheck(this.lengthInBytes, offsetInBytes,
         length * Float32x4List.bytesPerElement);
-    return new _Float32x4ArrayView(this, offsetInBytes, length);
+    _offsetAlignmentCheck(offsetInBytes, Float32x4List.bytesPerElement);
+    return new _Float32x4ArrayView(this._data, offsetInBytes, length);
   }
 
   Int32x4List asInt32x4List([int offsetInBytes = 0, int length]) {
@@ -2010,7 +2019,8 @@ class _ByteBuffer implements ByteBuffer {
         (this.lengthInBytes - offsetInBytes) ~/ Int32x4List.bytesPerElement;
     _rangeCheck(this.lengthInBytes, offsetInBytes,
         length * Int32x4List.bytesPerElement);
-    return new _Int32x4ArrayView(this, offsetInBytes, length);
+    _offsetAlignmentCheck(offsetInBytes, Int32x4List.bytesPerElement);
+    return new _Int32x4ArrayView(this._data, offsetInBytes, length);
   }
 
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int length]) {
@@ -2018,7 +2028,8 @@ class _ByteBuffer implements ByteBuffer {
         (this.lengthInBytes - offsetInBytes) ~/ Float64x2List.bytesPerElement;
     _rangeCheck(this.lengthInBytes, offsetInBytes,
         length * Float64x2List.bytesPerElement);
-    return new _Float64x2ArrayView(this, offsetInBytes, length);
+    _offsetAlignmentCheck(offsetInBytes, Float64x2List.bytesPerElement);
+    return new _Float64x2ArrayView(this._data, offsetInBytes, length);
   }
 }
 
@@ -3562,11 +3573,6 @@ class _TypedListIterator<E> implements Iterator<E> {
 }
 
 abstract class _TypedListView extends _TypedListBase implements TypedData {
-  _TypedListView(_ByteBuffer _buffer, int _offset, int _length)
-      : _typedData = _buffer._data,
-        offsetInBytes = _offset,
-        length = _length;
-
   // Method(s) implementing the TypedData interface.
 
   int get lengthInBytes {
@@ -3578,13 +3584,13 @@ abstract class _TypedListView extends _TypedListBase implements TypedData {
   }
 
   @pragma("vm:non-nullable-result-type")
-  final _TypedList _typedData;
+  _TypedList get _typedData native "TypedDataView_typedData";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  final int offsetInBytes;
+  int get offsetInBytes native "TypedDataView_offsetInBytes";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  final int length;
+  int get length native "TypedDataView_length";
 }
 
 @pragma("vm:entry-point")
@@ -3592,8 +3598,9 @@ class _Int8ArrayView extends _TypedListView
     with _IntListMixin
     implements Int8List {
   // Constructor.
-  _Int8ArrayView(_ByteBuffer buffer, int offsetInBytes, int length)
-      : super(buffer, offsetInBytes, length);
+  @pragma("vm:exact-result-type", _Int8ArrayView)
+  factory _Int8ArrayView(_TypedList buffer, int offsetInBytes, int length)
+      native "TypedDataView_Int8ArrayView_new";
 
   // Method(s) implementing List interface.
   int operator [](int index) {
@@ -3628,8 +3635,9 @@ class _Uint8ArrayView extends _TypedListView
     with _IntListMixin
     implements Uint8List {
   // Constructor.
-  _Uint8ArrayView(_ByteBuffer buffer, int offsetInBytes, int length)
-      : super(buffer, offsetInBytes, length);
+  @pragma("vm:exact-result-type", _Uint8ArrayView)
+  factory _Uint8ArrayView(_TypedList buffer, int offsetInBytes, int length)
+      native "TypedDataView_Uint8ArrayView_new";
 
   // Method(s) implementing List interface.
   int operator [](int index) {
@@ -3664,8 +3672,9 @@ class _Uint8ClampedArrayView extends _TypedListView
     with _IntListMixin
     implements Uint8ClampedList {
   // Constructor.
-  _Uint8ClampedArrayView(_ByteBuffer buffer, int _offsetInBytes, int _length)
-      : super(buffer, _offsetInBytes, _length);
+  @pragma("vm:exact-result-type", _Uint8ClampedArrayView)
+  factory _Uint8ClampedArrayView(_TypedList buffer, int offsetInBytes,
+      int length) native "TypedDataView_Uint8ClampedArrayView_new";
 
   // Method(s) implementing List interface.
   int operator [](int index) {
@@ -3700,10 +3709,9 @@ class _Int16ArrayView extends _TypedListView
     with _IntListMixin
     implements Int16List {
   // Constructor.
-  _Int16ArrayView(_ByteBuffer buffer, int _offsetInBytes, int _length)
-      : super(buffer, _offsetInBytes, _length) {
-    _offsetAlignmentCheck(_offsetInBytes, Int16List.bytesPerElement);
-  }
+  @pragma("vm:exact-result-type", _Int16ArrayView)
+  factory _Int16ArrayView(_TypedList buffer, int offsetInBytes, int length)
+      native "TypedDataView_Int16ArrayView_new";
 
   // Method(s) implementing List interface.
   int operator [](int index) {
@@ -3750,10 +3758,9 @@ class _Uint16ArrayView extends _TypedListView
     with _IntListMixin
     implements Uint16List {
   // Constructor.
-  _Uint16ArrayView(_ByteBuffer buffer, int _offsetInBytes, int _length)
-      : super(buffer, _offsetInBytes, _length) {
-    _offsetAlignmentCheck(_offsetInBytes, Uint16List.bytesPerElement);
-  }
+  @pragma("vm:exact-result-type", _Uint16ArrayView)
+  factory _Uint16ArrayView(_TypedList buffer, int offsetInBytes, int length)
+      native "TypedDataView_Uint16ArrayView_new";
 
   // Method(s) implementing List interface.
   int operator [](int index) {
@@ -3801,10 +3808,9 @@ class _Int32ArrayView extends _TypedListView
     with _IntListMixin
     implements Int32List {
   // Constructor.
-  _Int32ArrayView(_ByteBuffer buffer, int _offsetInBytes, int _length)
-      : super(buffer, _offsetInBytes, _length) {
-    _offsetAlignmentCheck(_offsetInBytes, Int32List.bytesPerElement);
-  }
+  @pragma("vm:exact-result-type", _Int32ArrayView)
+  factory _Int32ArrayView(_TypedList buffer, int offsetInBytes, int length)
+      native "TypedDataView_Int32ArrayView_new";
 
   // Method(s) implementing List interface.
   int operator [](int index) {
@@ -3839,10 +3845,9 @@ class _Uint32ArrayView extends _TypedListView
     with _IntListMixin
     implements Uint32List {
   // Constructor.
-  _Uint32ArrayView(_ByteBuffer buffer, int _offsetInBytes, int _length)
-      : super(buffer, _offsetInBytes, _length) {
-    _offsetAlignmentCheck(_offsetInBytes, Uint32List.bytesPerElement);
-  }
+  @pragma("vm:exact-result-type", _Uint32ArrayView)
+  factory _Uint32ArrayView(_TypedList buffer, int offsetInBytes, int length)
+      native "TypedDataView_Uint32ArrayView_new";
 
   // Method(s) implementing List interface.
   int operator [](int index) {
@@ -3877,10 +3882,9 @@ class _Int64ArrayView extends _TypedListView
     with _IntListMixin
     implements Int64List {
   // Constructor.
-  _Int64ArrayView(_ByteBuffer buffer, int _offsetInBytes, int _length)
-      : super(buffer, _offsetInBytes, _length) {
-    _offsetAlignmentCheck(_offsetInBytes, Int64List.bytesPerElement);
-  }
+  @pragma("vm:exact-result-type", _Int64ArrayView)
+  factory _Int64ArrayView(_TypedList buffer, int offsetInBytes, int length)
+      native "TypedDataView_Int64ArrayView_new";
 
   // Method(s) implementing List interface.
   int operator [](int index) {
@@ -3915,10 +3919,9 @@ class _Uint64ArrayView extends _TypedListView
     with _IntListMixin
     implements Uint64List {
   // Constructor.
-  _Uint64ArrayView(_ByteBuffer buffer, int _offsetInBytes, int _length)
-      : super(buffer, _offsetInBytes, _length) {
-    _offsetAlignmentCheck(_offsetInBytes, Uint64List.bytesPerElement);
-  }
+  @pragma("vm:exact-result-type", _Uint64ArrayView)
+  factory _Uint64ArrayView(_TypedList buffer, int offsetInBytes, int length)
+      native "TypedDataView_Uint64ArrayView_new";
 
   // Method(s) implementing List interface.
   int operator [](int index) {
@@ -3953,10 +3956,9 @@ class _Float32ArrayView extends _TypedListView
     with _DoubleListMixin
     implements Float32List {
   // Constructor.
-  _Float32ArrayView(_ByteBuffer buffer, int _offsetInBytes, int _length)
-      : super(buffer, _offsetInBytes, _length) {
-    _offsetAlignmentCheck(_offsetInBytes, Float32List.bytesPerElement);
-  }
+  @pragma("vm:exact-result-type", _Float32ArrayView)
+  factory _Float32ArrayView(_TypedList buffer, int offsetInBytes, int length)
+      native "TypedDataView_Float32ArrayView_new";
 
   // Method(s) implementing List interface.
   double operator [](int index) {
@@ -3991,10 +3993,9 @@ class _Float64ArrayView extends _TypedListView
     with _DoubleListMixin
     implements Float64List {
   // Constructor.
-  _Float64ArrayView(_ByteBuffer buffer, int _offsetInBytes, int _length)
-      : super(buffer, _offsetInBytes, _length) {
-    _offsetAlignmentCheck(_offsetInBytes, Float64List.bytesPerElement);
-  }
+  @pragma("vm:exact-result-type", _Float64ArrayView)
+  factory _Float64ArrayView(_TypedList buffer, int offsetInBytes, int length)
+      native "TypedDataView_Float64ArrayView_new";
 
   // Method(s) implementing List interface.
   double operator [](int index) {
@@ -4029,10 +4030,9 @@ class _Float32x4ArrayView extends _TypedListView
     with _Float32x4ListMixin
     implements Float32x4List {
   // Constructor.
-  _Float32x4ArrayView(_ByteBuffer buffer, int _offsetInBytes, int _length)
-      : super(buffer, _offsetInBytes, _length) {
-    _offsetAlignmentCheck(_offsetInBytes, Float32x4List.bytesPerElement);
-  }
+  @pragma("vm:exact-result-type", _Float32x4ArrayView)
+  factory _Float32x4ArrayView(_TypedList buffer, int offsetInBytes, int length)
+      native "TypedDataView_Float32x4ArrayView_new";
 
   // Method(s) implementing List interface.
   Float32x4 operator [](int index) {
@@ -4067,10 +4067,9 @@ class _Int32x4ArrayView extends _TypedListView
     with _Int32x4ListMixin
     implements Int32x4List {
   // Constructor.
-  _Int32x4ArrayView(_ByteBuffer buffer, int _offsetInBytes, int _length)
-      : super(buffer, _offsetInBytes, _length) {
-    _offsetAlignmentCheck(_offsetInBytes, Int32x4List.bytesPerElement);
-  }
+  @pragma("vm:exact-result-type", _Int32x4ArrayView)
+  factory _Int32x4ArrayView(_TypedList buffer, int offsetInBytes, int length)
+      native "TypedDataView_Int32x4ArrayView_new";
 
   // Method(s) implementing List interface.
   Int32x4 operator [](int index) {
@@ -4105,10 +4104,9 @@ class _Float64x2ArrayView extends _TypedListView
     with _Float64x2ListMixin
     implements Float64x2List {
   // Constructor.
-  _Float64x2ArrayView(_ByteBuffer buffer, int _offsetInBytes, int _length)
-      : super(buffer, _offsetInBytes, _length) {
-    _offsetAlignmentCheck(_offsetInBytes, Float64x2List.bytesPerElement);
-  }
+  @pragma("vm:exact-result-type", _Float64x2ArrayView)
+  factory _Float64x2ArrayView(_TypedList buffer, int offsetInBytes, int length)
+      native "TypedDataView_Float64x2ArrayView_new";
 
   // Method(s) implementing List interface.
   Float64x2 operator [](int index) {
@@ -4140,7 +4138,9 @@ class _Float64x2ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 class _ByteDataView implements ByteData {
-  _ByteDataView(this._typedData, this._offset, this.length);
+  @pragma("vm:exact-result-type", _ByteDataView)
+  factory _ByteDataView(_TypedList buffer, int offsetInBytes, int length)
+      native "TypedDataView_ByteDataView_new";
 
   // Method(s) implementing TypedData interface.
   _ByteBuffer get buffer {
@@ -4149,10 +4149,6 @@ class _ByteDataView implements ByteData {
 
   int get lengthInBytes {
     return length;
-  }
-
-  int get offsetInBytes {
-    return _offset;
   }
 
   int get elementSizeInBytes {
@@ -4165,35 +4161,35 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset >= length) {
       throw new RangeError.index(byteOffset, this, "byteOffset");
     }
-    return _typedData._getInt8(_offset + byteOffset);
+    return _typedData._getInt8(offsetInBytes + byteOffset);
   }
 
   void setInt8(int byteOffset, int value) {
     if (byteOffset < 0 || byteOffset >= length) {
       throw new RangeError.index(byteOffset, this, "byteOffset");
     }
-    _typedData._setInt8(_offset + byteOffset, value);
+    _typedData._setInt8(offsetInBytes + byteOffset, value);
   }
 
   int getUint8(int byteOffset) {
     if (byteOffset < 0 || byteOffset >= length) {
       throw new RangeError.index(byteOffset, this, "byteOffset");
     }
-    return _typedData._getUint8(_offset + byteOffset);
+    return _typedData._getUint8(offsetInBytes + byteOffset);
   }
 
   void setUint8(int byteOffset, int value) {
     if (byteOffset < 0 || byteOffset >= length) {
       throw new RangeError.index(byteOffset, this, "byteOffset");
     }
-    _typedData._setUint8(_offset + byteOffset, value);
+    _typedData._setUint8(offsetInBytes + byteOffset, value);
   }
 
   int getInt16(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
     }
-    var result = _typedData._getInt16(_offset + byteOffset);
+    var result = _typedData._getInt16(offsetInBytes + byteOffset);
     if (identical(endian, Endian.host)) {
       return result;
     }
@@ -4204,7 +4200,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
     }
-    _typedData._setInt16(_offset + byteOffset,
+    _typedData._setInt16(offsetInBytes + byteOffset,
         identical(endian, Endian.host) ? value : _byteSwap16(value));
   }
 
@@ -4212,7 +4208,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
     }
-    var result = _typedData._getUint16(_offset + byteOffset);
+    var result = _typedData._getUint16(offsetInBytes + byteOffset);
     if (identical(endian, Endian.host)) {
       return result;
     }
@@ -4223,7 +4219,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
     }
-    _typedData._setUint16(_offset + byteOffset,
+    _typedData._setUint16(offsetInBytes + byteOffset,
         identical(endian, Endian.host) ? value : _byteSwap16(value));
   }
 
@@ -4231,7 +4227,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }
-    var result = _typedData._getInt32(_offset + byteOffset);
+    var result = _typedData._getInt32(offsetInBytes + byteOffset);
     if (identical(endian, Endian.host)) {
       return result;
     }
@@ -4242,7 +4238,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }
-    _typedData._setInt32(_offset + byteOffset,
+    _typedData._setInt32(offsetInBytes + byteOffset,
         identical(endian, Endian.host) ? value : _byteSwap32(value));
   }
 
@@ -4250,7 +4246,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }
-    var result = _typedData._getUint32(_offset + byteOffset);
+    var result = _typedData._getUint32(offsetInBytes + byteOffset);
     if (identical(endian, Endian.host)) {
       return result;
     }
@@ -4261,7 +4257,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }
-    _typedData._setUint32(_offset + byteOffset,
+    _typedData._setUint32(offsetInBytes + byteOffset,
         identical(endian, Endian.host) ? value : _byteSwap32(value));
   }
 
@@ -4269,7 +4265,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
     }
-    var result = _typedData._getInt64(_offset + byteOffset);
+    var result = _typedData._getInt64(offsetInBytes + byteOffset);
     if (identical(endian, Endian.host)) {
       return result;
     }
@@ -4280,7 +4276,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
     }
-    _typedData._setInt64(_offset + byteOffset,
+    _typedData._setInt64(offsetInBytes + byteOffset,
         identical(endian, Endian.host) ? value : _byteSwap64(value));
   }
 
@@ -4288,7 +4284,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
     }
-    var result = _typedData._getUint64(_offset + byteOffset);
+    var result = _typedData._getUint64(offsetInBytes + byteOffset);
     if (identical(endian, Endian.host)) {
       return result;
     }
@@ -4299,7 +4295,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
     }
-    _typedData._setUint64(_offset + byteOffset,
+    _typedData._setUint64(offsetInBytes + byteOffset,
         identical(endian, Endian.host) ? value : _byteSwap64(value));
   }
 
@@ -4308,9 +4304,10 @@ class _ByteDataView implements ByteData {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }
     if (identical(endian, Endian.host)) {
-      return _typedData._getFloat32(_offset + byteOffset);
+      return _typedData._getFloat32(offsetInBytes + byteOffset);
     }
-    _convU32[0] = _byteSwap32(_typedData._getUint32(_offset + byteOffset));
+    _convU32[0] =
+        _byteSwap32(_typedData._getUint32(offsetInBytes + byteOffset));
     return _convF32[0];
   }
 
@@ -4319,11 +4316,11 @@ class _ByteDataView implements ByteData {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }
     if (identical(endian, Endian.host)) {
-      _typedData._setFloat32(_offset + byteOffset, value);
+      _typedData._setFloat32(offsetInBytes + byteOffset, value);
       return;
     }
     _convF32[0] = value;
-    _typedData._setUint32(_offset + byteOffset, _byteSwap32(_convU32[0]));
+    _typedData._setUint32(offsetInBytes + byteOffset, _byteSwap32(_convU32[0]));
   }
 
   double getFloat64(int byteOffset, [Endian endian = Endian.big]) {
@@ -4331,9 +4328,10 @@ class _ByteDataView implements ByteData {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
     }
     if (identical(endian, Endian.host)) {
-      return _typedData._getFloat64(_offset + byteOffset);
+      return _typedData._getFloat64(offsetInBytes + byteOffset);
     }
-    _convU64[0] = _byteSwap64(_typedData._getUint64(_offset + byteOffset));
+    _convU64[0] =
+        _byteSwap64(_typedData._getUint64(offsetInBytes + byteOffset));
     return _convF64[0];
   }
 
@@ -4342,11 +4340,11 @@ class _ByteDataView implements ByteData {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
     }
     if (identical(endian, Endian.host)) {
-      _typedData._setFloat64(_offset + byteOffset, value);
+      _typedData._setFloat64(offsetInBytes + byteOffset, value);
       return;
     }
     _convF64[0] = value;
-    _typedData._setUint64(_offset + byteOffset, _byteSwap64(_convU64[0]));
+    _typedData._setUint64(offsetInBytes + byteOffset, _byteSwap64(_convU64[0]));
   }
 
   Float32x4 getFloat32x4(int byteOffset, [Endian endian = Endian.big]) {
@@ -4354,7 +4352,7 @@ class _ByteDataView implements ByteData {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }
     // TODO(johnmccutchan) : Need to resolve this for endianity.
-    return _typedData._getFloat32x4(_offset + byteOffset);
+    return _typedData._getFloat32x4(offsetInBytes + byteOffset);
   }
 
   void setFloat32x4(int byteOffset, Float32x4 value,
@@ -4363,17 +4361,17 @@ class _ByteDataView implements ByteData {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
     }
     // TODO(johnmccutchan) : Need to resolve this for endianity.
-    _typedData._setFloat32x4(_offset + byteOffset, value);
+    _typedData._setFloat32x4(offsetInBytes + byteOffset, value);
   }
 
   @pragma("vm:non-nullable-result-type")
-  final _TypedList _typedData;
+  _TypedList get _typedData native "TypedDataView_typedData";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  final int _offset;
+  int get offsetInBytes native "TypedDataView_offsetInBytes";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  final int length;
+  int get length native "TypedDataView_length";
 }
 
 int _byteSwap16(int value) {

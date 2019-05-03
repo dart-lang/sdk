@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=warning,inference*/
+/*@testedFeatures=inference*/
 library test;
 
 main() {
@@ -32,7 +32,7 @@ main() {
   };
   var /*@type=(bool) -> int*/ g = /*@returnType=int*/ (bool b) {
     if (b) {
-      /*@warning=ReturnWithoutExpression*/ return;
+      return;
     } else {
       return 0;
     }
@@ -62,7 +62,7 @@ main() {
     if (b) {
       return 0;
     } else {
-      /*@warning=ReturnWithoutExpression*/ return;
+      return;
     }
   };
   var /*@type=(bool) -> int*/ l = /*@returnType=int*/ (bool b) {

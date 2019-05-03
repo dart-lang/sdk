@@ -10,13 +10,16 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
 /**
  * A computer for the signature at the specified offset of a Dart [CompilationUnit].
  */
 class DartUnitSignatureComputer {
+  final DartdocDirectiveInfo _dartdocInfo;
   final AstNode _node;
-  DartUnitSignatureComputer(CompilationUnit _unit, int _offset)
+  DartUnitSignatureComputer(
+      this._dartdocInfo, CompilationUnit _unit, int _offset)
       : _node = new NodeLocator(_offset).searchWithin(_unit);
 
   bool get offsetIsValid => _node != null;
@@ -68,7 +71,8 @@ class DartUnitSignatureComputer {
         execElement.parameters.map((p) => _convertParam(p)).toList();
 
     return new AnalysisGetSignatureResult(name, parameters,
-        dartdoc: DartUnitHoverComputer.computeDocumentation(execElement));
+        dartdoc: DartUnitHoverComputer.computeDocumentation(
+            _dartdocInfo, execElement));
   }
 
   ParameterInfo _convertParam(ParameterElement param) {

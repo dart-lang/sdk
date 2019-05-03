@@ -24,6 +24,26 @@ main() {
 class OrganizeDirectivesTest extends AbstractSingleUnitTest {
   List<AnalysisError> testErrors;
 
+  test_docComment_beforeDirective_hasUnresolvedIdentifier() async {
+    await _computeUnitAndErrors(r'''
+/// Library documentation comment A
+/// Library documentation comment B
+import 'a.dart';
+import 'b.dart';
+
+B b;
+''');
+    // validate change
+    _assertOrganize(r'''
+/// Library documentation comment A
+/// Library documentation comment B
+import 'a.dart';
+import 'b.dart';
+
+B b;
+''');
+  }
+
   test_keep_duplicateImports_withDifferentPrefix() async {
     await _computeUnitAndErrors(r'''
 import 'dart:async' as async1;
@@ -286,12 +306,9 @@ main() {
 // header
 library lib;
 
-import 'a.dart';
-import 'b.dart';
-import 'c.dart';
-// c
-// aa
-// bbb
+import 'a.dart';// aa
+import 'b.dart';// bbb
+import 'c.dart';// c
 
 /** doc */
 main() {

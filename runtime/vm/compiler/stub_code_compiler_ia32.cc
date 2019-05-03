@@ -4,6 +4,9 @@
 
 #include "vm/globals.h"
 
+// For `AllocateObjectInstr::WillAllocateNewOrRemembered`
+#include "vm/compiler/backend/il.h"
+
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
 #include "vm/compiler/stub_code_compiler.h"
@@ -14,7 +17,7 @@
 #include "vm/code_entry_kind.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/locations.h"
-#include "vm/constants_ia32.h"
+#include "vm/constants.h"
 #include "vm/instructions.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/tags.h"
@@ -30,6 +33,34 @@ DEFINE_FLAG(bool,
             "Set to true for debugging & verifying the slow paths.");
 
 namespace compiler {
+
+// Ensures that [EAX] is a new object, if not it will be added to the remembered
+// set via a leaf runtime call.
+//
+// WARNING: This might clobber all registers except for [EAX], [THR] and [FP].
+// The caller should simply call LeaveFrame() and return.
+static void EnsureIsNewOrRemembered(Assembler* assembler,
+                                    bool preserve_registers = true) {
+  // If the object is not remembered we call a leaf-runtime to add it to the
+  // remembered set.
+  Label done;
+  __ testl(EAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
+  __ BranchIf(NOT_ZERO, &done);
+
+  if (preserve_registers) {
+    __ EnterCallRuntimeFrame(2 * target::kWordSize);
+  } else {
+    __ ReserveAlignedFrameSpace(2 * target::kWordSize);
+  }
+  __ movl(Address(ESP, 1 * target::kWordSize), THR);
+  __ movl(Address(ESP, 0 * target::kWordSize), EAX);
+  __ CallRuntime(kAddAllocatedObjectToRememberedSetRuntimeEntry, 2);
+  if (preserve_registers) {
+    __ LeaveCallRuntimeFrame();
+  }
+
+  __ Bind(&done);
+}
 
 // Input parameters:
 //   ESP : points to return address.
@@ -104,6 +135,22 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   // function we called (which has return type "void").
   // (See GenerateDeoptimizationSequence::saved_result_slot_from_fp.)
   __ xorl(EAX, EAX);
+  __ ret();
+}
+
+void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
+  __ pushal();
+  __ movl(EAX, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ call(EAX);
+  __ popal();
+  __ ret();
+}
+
+void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+  __ pushal();
+  __ movl(EAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ call(EAX);
+  __ popal();
   __ ret();
 }
 
@@ -757,6 +804,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   __ popl(EAX);  // Pop element type argument.
   __ popl(EDX);  // Pop array length argument (preserved).
   __ popl(EAX);  // Pop return value from return slot.
+
+  // Write-barrier elimination might be enabled for this array (depending on the
+  // array length). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler);
+
   __ LeaveFrame();
   __ ret();
 }
@@ -878,9 +931,117 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ ret();
 }
 
+// Called when invoking compiled Dart code from interpreted Dart code.
+// Input parameters:
+//   ESP : points to return address.
+//   ESP + 4 : target raw code
+//   ESP + 8 : arguments raw descriptor array.
+//   ESP + 12: address of first argument.
+//   ESP + 16 : current thread.
 void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
     Assembler* assembler) {
-  __ Unimplemented("Interpreter not yet supported");
+  const intptr_t kTargetCodeOffset = 3 * target::kWordSize;
+  const intptr_t kArgumentsDescOffset = 4 * target::kWordSize;
+  const intptr_t kArgumentsOffset = 5 * target::kWordSize;
+  const intptr_t kThreadOffset = 6 * target::kWordSize;
+
+  __ pushl(Address(ESP, 0));  // Marker for the profiler.
+  __ EnterFrame(0);
+
+  // Push code object to PC marker slot.
+  __ movl(EAX, Address(EBP, kThreadOffset));
+  __ pushl(Address(EAX, target::Thread::invoke_dart_code_stub_offset()));
+
+  // Save C++ ABI callee-saved registers.
+  __ pushl(EBX);
+  __ pushl(ESI);
+  __ pushl(EDI);
+
+  // Set up THR, which caches the current thread in Dart code.
+  __ movl(THR, EAX);
+
+  // Save the current VMTag on the stack.
+  __ movl(ECX, Assembler::VMTagAddress());
+  __ pushl(ECX);
+
+  // Save top resource and top exit frame info. Use EDX as a temporary register.
+  // StackFrameIterator reads the top exit frame info saved in this frame.
+  __ movl(EDX, Address(THR, target::Thread::top_resource_offset()));
+  __ pushl(EDX);
+  __ movl(Address(THR, target::Thread::top_resource_offset()), Immediate(0));
+  // The constant target::frame_layout.exit_link_slot_from_entry_fp must be
+  // kept in sync with the code below.
+  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -7);
+  __ movl(EDX, Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ pushl(EDX);
+  __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
+          Immediate(0));
+
+  // Mark that the thread is executing Dart code. Do this after initializing the
+  // exit link for the profiler.
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+
+  // Load arguments descriptor array into EDX.
+  __ movl(EDX, Address(EBP, kArgumentsDescOffset));
+
+  // Load number of arguments into EBX and adjust count for type arguments.
+  __ movl(EBX, FieldAddress(EDX, target::ArgumentsDescriptor::count_offset()));
+  __ cmpl(
+      FieldAddress(EDX, target::ArgumentsDescriptor::type_args_len_offset()),
+      Immediate(0));
+  Label args_count_ok;
+  __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
+  __ addl(EBX, Immediate(target::ToRawSmi(1)));  // Include the type arguments.
+  __ Bind(&args_count_ok);
+  // Save number of arguments as Smi on stack, replacing ArgumentsDesc.
+  __ movl(Address(EBP, kArgumentsDescOffset), EBX);
+  __ SmiUntag(EBX);
+
+  // Set up arguments for the dart call.
+  Label push_arguments;
+  Label done_push_arguments;
+  __ testl(EBX, EBX);  // check if there are arguments.
+  __ j(ZERO, &done_push_arguments, Assembler::kNearJump);
+  __ movl(EAX, Immediate(0));
+
+  // Compute address of 'arguments array' data area into EDI.
+  __ movl(EDI, Address(EBP, kArgumentsOffset));
+
+  __ Bind(&push_arguments);
+  __ movl(ECX, Address(EDI, EAX, TIMES_4, 0));
+  __ pushl(ECX);
+  __ incl(EAX);
+  __ cmpl(EAX, EBX);
+  __ j(LESS, &push_arguments, Assembler::kNearJump);
+  __ Bind(&done_push_arguments);
+
+  // Call the dart code entrypoint.
+  __ movl(EAX, Address(EBP, kTargetCodeOffset));
+  __ call(FieldAddress(EAX, target::Code::entry_point_offset()));
+
+  // Read the saved number of passed arguments as Smi.
+  __ movl(EDX, Address(EBP, kArgumentsDescOffset));
+  // Get rid of arguments pushed on the stack.
+  __ leal(ESP, Address(ESP, EDX, TIMES_2, 0));  // EDX is a Smi.
+
+  // Restore the saved top exit frame info and top resource back into the
+  // Isolate structure.
+  __ popl(Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ popl(Address(THR, target::Thread::top_resource_offset()));
+
+  // Restore the current VMTag from the stack.
+  __ popl(Assembler::VMTagAddress());
+
+  // Restore C++ ABI callee-saved registers.
+  __ popl(EDI);
+  __ popl(ESI);
+  __ popl(EBX);
+
+  // Restore the frame pointer.
+  __ LeaveFrame();
+  __ popl(ECX);
+
+  __ ret();
 }
 
 // Called for inline allocation of contexts.
@@ -1007,6 +1168,12 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
   __ popl(EAX);  // Pop number of context variables argument.
   __ popl(EAX);  // Pop the new context object.
+
+  // Write-barrier elimination might be enabled for this context (depending on
+  // the size). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+
   // EAX: new object
   // Restore the frame pointer.
   __ LeaveFrame();
@@ -1273,6 +1440,13 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   __ popl(EAX);  // Pop argument (type arguments of object).
   __ popl(EAX);  // Pop argument (class of object).
   __ popl(EAX);  // Pop result (newly allocated object).
+
+  if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
+    // Write-barrier elimination is enabled for [cls] and we therefore need to
+    // ensure that the object is in new-space or has remembered bit set.
+    EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+  }
+
   // EAX: new object
   // Restore the frame pointer.
   __ LeaveFrame();
@@ -1794,12 +1968,77 @@ void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
   __ jmp(EBX);
 }
 
+// Stub for interpreting a function call.
+// EDX: Arguments descriptor.
+// EAX: Function.
 void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
-  __ Unimplemented("Interpreter not yet supported");
+  __ EnterStubFrame();
+
+#if defined(DEBUG)
+  {
+    Label ok;
+    // Check that we are always entering from Dart code.
+    __ cmpl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Not coming from Dart code.");
+    __ Bind(&ok);
+  }
+#endif
+
+  // Adjust arguments count for type arguments vector.
+  __ movl(ECX, FieldAddress(EDX, target::ArgumentsDescriptor::count_offset()));
+  __ SmiUntag(ECX);
+  __ cmpl(
+      FieldAddress(EDX, target::ArgumentsDescriptor::type_args_len_offset()),
+      Immediate(0));
+  Label args_count_ok;
+  __ j(EQUAL, &args_count_ok, Assembler::kNearJump);
+  __ incl(ECX);
+  __ Bind(&args_count_ok);
+
+  // Compute argv.
+  __ leal(EBX,
+          Address(EBP, ECX, TIMES_4,
+                  target::frame_layout.param_end_from_fp * target::kWordSize));
+
+  // Indicate decreasing memory addresses of arguments with negative argc.
+  __ negl(ECX);
+
+  __ pushl(THR);  // Arg 4: Thread.
+  __ pushl(EBX);  // Arg 3: Argv.
+  __ pushl(ECX);  // Arg 2: Negative argc.
+  __ pushl(EDX);  // Arg 1: Arguments descriptor
+  __ pushl(EAX);  // Arg 0: Function
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to Dart VM C++ code.
+  __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()), EBP);
+
+  // Mark that the thread is executing VM code.
+  __ movl(EAX,
+          Address(THR, target::Thread::interpret_call_entry_point_offset()));
+  __ movl(Assembler::VMTagAddress(), EAX);
+
+  __ call(EAX);
+
+  __ Drop(5);
+
+  // Mark that the thread is executing Dart code.
+  __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
+
+  // Reset exit frame information in Isolate structure.
+  __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
+          Immediate(0));
+
+  __ LeaveFrame();
+  __ ret();
 }
 
 // ECX: Contains an ICData.
 void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   // Save IC data.
   __ pushl(ECX);
@@ -1813,9 +2052,13 @@ void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
   // Jump to original stub.
   __ movl(EAX, FieldAddress(EAX, target::Code::entry_point_offset()));
   __ jmp(EAX);
+#endif  // defined(PRODUCT)
 }
 
 void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   // Room for result. Debugger stub returns address of the
   // unpatched runtime stub.
@@ -1826,12 +2069,13 @@ void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   // Jump to original stub.
   __ movl(EAX, FieldAddress(EAX, target::Code::entry_point_offset()));
   __ jmp(EAX);
+#endif  // defined(PRODUCT)
 }
 
 // Called only from unoptimized code.
 void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 #if defined(PRODUCT)
-  __ ret();
+  __ Stop("No debugging in PRODUCT mode");
 #else
   // Check single stepping.
   Label stepping, done_stepping;

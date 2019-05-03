@@ -34,6 +34,7 @@ final Matcher isAddContentOverlay = new LazyMatcher(() => new MatchesJsonObject(
  *   "message": String
  *   "correction": optional String
  *   "code": String
+ *   "url": optional String
  *   "hasFix": optional bool
  * }
  */
@@ -46,6 +47,7 @@ final Matcher isAnalysisError =
           "code": isString
         }, optionalFields: {
           "correction": isString,
+          "url": isString,
           "hasFix": isBool
         }));
 
@@ -169,6 +171,8 @@ final Matcher isAnalysisStatus = new LazyMatcher(() => new MatchesJsonObject(
  * {
  *   "label": String
  *   "element": Element
+ *   "defaultArgumentListString": optional String
+ *   "defaultArgumentListTextRanges": optional List<int>
  *   "docComplete": optional String
  *   "docSummary": optional String
  *   "parameterNames": optional List<String>
@@ -182,6 +186,8 @@ final Matcher isAvailableSuggestion =
           "label": isString,
           "element": isElement
         }, optionalFields: {
+          "defaultArgumentListString": isString,
+          "defaultArgumentListTextRanges": isListOf(isInt),
           "docComplete": isString,
           "docSummary": isString,
           "parameterNames": isListOf(isString),
@@ -262,7 +268,6 @@ final Matcher isCompletionService =
  *   "relevance": int
  *   "completion": String
  *   "displayText": optional String
- *   "elementUri": optional String
  *   "selectionOffset": int
  *   "selectionLength": int
  *   "isDeprecated": bool
@@ -280,7 +285,6 @@ final Matcher isCompletionService =
  *   "hasNamedParameters": optional bool
  *   "parameterName": optional String
  *   "parameterType": optional String
- *   "importUri": optional String
  * }
  */
 final Matcher isCompletionSuggestion =
@@ -294,7 +298,6 @@ final Matcher isCompletionSuggestion =
           "isPotential": isBool
         }, optionalFields: {
           "displayText": isString,
-          "elementUri": isString,
           "docSummary": isString,
           "docComplete": isString,
           "declaringType": isString,
@@ -307,8 +310,7 @@ final Matcher isCompletionSuggestion =
           "requiredParameterCount": isInt,
           "hasNamedParameters": isBool,
           "parameterName": isString,
-          "parameterType": isString,
-          "importUri": isString
+          "parameterType": isString
         }));
 
 /**
@@ -963,11 +965,13 @@ final Matcher isIncludedSuggestionRelevanceTag = new LazyMatcher(() =>
  * {
  *   "id": int
  *   "relevance": int
+ *   "displayUri": optional String
  * }
  */
 final Matcher isIncludedSuggestionSet = new LazyMatcher(() =>
     new MatchesJsonObject(
-        "IncludedSuggestionSet", {"id": isInt, "relevance": isInt}));
+        "IncludedSuggestionSet", {"id": isInt, "relevance": isInt},
+        optionalFields: {"displayUri": isString}));
 
 /**
  * KytheEntry
@@ -1610,6 +1614,23 @@ final Matcher isSourceFileEdit = new LazyMatcher(() => new MatchesJsonObject(
     {"file": isFilePath, "fileStamp": isInt, "edits": isListOf(isSourceEdit)}));
 
 /**
+ * TokenDetails
+ *
+ * {
+ *   "lexeme": String
+ *   "type": optional String
+ *   "validElementKinds": optional List<String>
+ * }
+ */
+final Matcher isTokenDetails = new LazyMatcher(() => new MatchesJsonObject(
+        "TokenDetails", {
+      "lexeme": isString
+    }, optionalFields: {
+      "type": isString,
+      "validElementKinds": isListOf(isString)
+    }));
+
+/**
  * TypeHierarchyItem
  *
  * {
@@ -2208,6 +2229,28 @@ final Matcher isCompletionGetSuggestionsResult = new LazyMatcher(() =>
         "completion.getSuggestions result", {"id": isCompletionId}));
 
 /**
+ * completion.listTokenDetails params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ */
+final Matcher isCompletionListTokenDetailsParams = new LazyMatcher(() =>
+    new MatchesJsonObject(
+        "completion.listTokenDetails params", {"file": isFilePath}));
+
+/**
+ * completion.listTokenDetails result
+ *
+ * {
+ *   "tokens": List<TokenDetails>
+ * }
+ */
+final Matcher isCompletionListTokenDetailsResult = new LazyMatcher(() =>
+    new MatchesJsonObject("completion.listTokenDetails result",
+        {"tokens": isListOf(isTokenDetails)}));
+
+/**
  * completion.registerLibraryPaths params
  *
  * {
@@ -2233,7 +2276,7 @@ final Matcher isCompletionRegisterLibraryPathsResult = isNull;
  *   "results": List<CompletionSuggestion>
  *   "isLast": bool
  *   "includedSuggestionSets": optional List<IncludedSuggestionSet>
- *   "includedSuggestionKinds": optional List<ElementKind>
+ *   "includedElementKinds": optional List<ElementKind>
  *   "includedSuggestionRelevanceTags": optional List<IncludedSuggestionRelevanceTag>
  * }
  */
@@ -2246,7 +2289,7 @@ final Matcher isCompletionResultsParams =
           "isLast": isBool
         }, optionalFields: {
           "includedSuggestionSets": isListOf(isIncludedSuggestionSet),
-          "includedSuggestionKinds": isListOf(isElementKind),
+          "includedElementKinds": isListOf(isElementKind),
           "includedSuggestionRelevanceTags":
               isListOf(isIncludedSuggestionRelevanceTag)
         }));
@@ -2577,11 +2620,13 @@ final Matcher isEditGetStatementCompletionResult = new LazyMatcher(() =>
  * {
  *   "file": FilePath
  *   "elements": List<ImportedElements>
+ *   "offset": optional int
  * }
  */
 final Matcher isEditImportElementsParams = new LazyMatcher(() =>
     new MatchesJsonObject("edit.importElements params",
-        {"file": isFilePath, "elements": isListOf(isImportedElements)}));
+        {"file": isFilePath, "elements": isListOf(isImportedElements)},
+        optionalFields: {"offset": isInt}));
 
 /**
  * edit.importElements result

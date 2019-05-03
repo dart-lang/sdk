@@ -1,9 +1,11 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
 // This file has been automatically generated.  Please do not edit it manually.
-// To regenerate the file, use the script "pkg/analyzer/tool/generate_files".
+// To regenerate the file, use the SDK script
+// "pkg/analyzer/tool/summary/generate.dart $IDL_FILE_PATH",
+// or "pkg/analyzer/tool/generate_files" for the analyzer package IDL/sources.
 
 
 /// Enum of declaration kinds in available files.
@@ -11,6 +13,8 @@ enum AvailableDeclarationKind : byte {
   CLASS,
 
   CLASS_TYPE_ALIAS,
+
+  CONSTRUCTOR,
 
   ENUM,
 
@@ -135,6 +139,278 @@ enum IndexSyntheticElementKind : byte {
 
   /// The containing unit itself.
   unit
+}
+
+/// Types of comments.
+enum LinkedNodeCommentType : byte {
+  block,
+
+  documentation,
+
+  endOfLine
+}
+
+/// Kinds of formal parameters.
+enum LinkedNodeFormalParameterKind : byte {
+  required,
+
+  optionalPositional,
+
+  optionalNamed
+}
+
+/// Kinds of [LinkedNode].
+enum LinkedNodeKind : byte {
+  adjacentStrings,
+
+  annotation,
+
+  argumentList,
+
+  asExpression,
+
+  assertInitializer,
+
+  assertStatement,
+
+  assignmentExpression,
+
+  awaitExpression,
+
+  binaryExpression,
+
+  block,
+
+  blockFunctionBody,
+
+  booleanLiteral,
+
+  breakStatement,
+
+  cascadeExpression,
+
+  catchClause,
+
+  classDeclaration,
+
+  classTypeAlias,
+
+  comment,
+
+  compilationUnit,
+
+  conditionalExpression,
+
+  configuration,
+
+  constructorDeclaration,
+
+  constructorFieldInitializer,
+
+  constructorName,
+
+  continueStatement,
+
+  declaredIdentifier,
+
+  defaultFormalParameter,
+
+  doubleLiteral,
+
+  doStatement,
+
+  dottedName,
+
+  emptyFunctionBody,
+
+  emptyStatement,
+
+  enumConstantDeclaration,
+
+  enumDeclaration,
+
+  exportDirective,
+
+  expressionFunctionBody,
+
+  expressionStatement,
+
+  extendsClause,
+
+  fieldDeclaration,
+
+  fieldFormalParameter,
+
+  formalParameterList,
+
+  forEachPartsWithDeclaration,
+
+  forEachPartsWithIdentifier,
+
+  forElement,
+
+  forPartsWithDeclarations,
+
+  forPartsWithExpression,
+
+  forStatement,
+
+  functionDeclaration,
+
+  functionDeclarationStatement,
+
+  functionExpression,
+
+  functionExpressionInvocation,
+
+  functionTypeAlias,
+
+  functionTypedFormalParameter,
+
+  genericFunctionType,
+
+  genericTypeAlias,
+
+  hideCombinator,
+
+  ifElement,
+
+  ifStatement,
+
+  implementsClause,
+
+  importDirective,
+
+  instanceCreationExpression,
+
+  indexExpression,
+
+  integerLiteral,
+
+  interpolationExpression,
+
+  interpolationString,
+
+  isExpression,
+
+  label,
+
+  labeledStatement,
+
+  libraryDirective,
+
+  libraryIdentifier,
+
+  listLiteral,
+
+  mapLiteralEntry,
+
+  methodDeclaration,
+
+  methodInvocation,
+
+  mixinDeclaration,
+
+  namedExpression,
+
+  nativeClause,
+
+  nativeFunctionBody,
+
+  nullLiteral,
+
+  onClause,
+
+  parenthesizedExpression,
+
+  partDirective,
+
+  partOfDirective,
+
+  postfixExpression,
+
+  prefixExpression,
+
+  prefixedIdentifier,
+
+  propertyAccess,
+
+  redirectingConstructorInvocation,
+
+  rethrowExpression,
+
+  returnStatement,
+
+  scriptTag,
+
+  setOrMapLiteral,
+
+  showCombinator,
+
+  simpleFormalParameter,
+
+  simpleIdentifier,
+
+  simpleStringLiteral,
+
+  spreadElement,
+
+  stringInterpolation,
+
+  superConstructorInvocation,
+
+  superExpression,
+
+  switchCase,
+
+  switchDefault,
+
+  switchStatement,
+
+  symbolLiteral,
+
+  thisExpression,
+
+  throwExpression,
+
+  topLevelVariableDeclaration,
+
+  tryStatement,
+
+  typeArgumentList,
+
+  typeName,
+
+  typeParameter,
+
+  typeParameterList,
+
+  variableDeclaration,
+
+  variableDeclarationList,
+
+  variableDeclarationStatement,
+
+  whileStatement,
+
+  withClause,
+
+  yieldStatement
+}
+
+/// Kinds of [LinkedNodeType]s.
+enum LinkedNodeTypeKind : byte {
+  bottom,
+
+  dynamic_,
+
+  function,
+
+  interface,
+
+  typeParameter,
+
+  void_
 }
 
 /// Enum used to indicate the kind of entity referred to by a
@@ -406,6 +682,8 @@ enum UnlinkedExprOperation : byte {
   /// [UnlinkedExpr.ints]), interpret them as key/value pairs, place them in a
   /// [Map], and push the result back onto the stack.  The two type parameters
   /// for the [Map] are implicitly `dynamic`.
+  ///
+  /// To be replaced with [makeUntypedSetOrMap] for unified collections.
   makeUntypedMap,
 
   /// Pop the top n values from the stack (where n is obtained from
@@ -418,6 +696,10 @@ enum UnlinkedExprOperation : byte {
   /// [UnlinkedExpr.ints]), interpret them as key/value pairs, place them in a
   /// [Map], and push the result back onto the stack.  The two type parameters
   /// for the [Map] are obtained from [UnlinkedExpr.references].
+  ///
+  /// To be replaced with [makeTypedMap2] for unified collections. This is not
+  /// forwards compatible with [makeTypedMap2] because it expects
+  /// [CollectionElement]s instead of pairs of [Expression]s.
   makeTypedMap,
 
   /// Pop the top 2 values from the stack, evaluate `v1 == v2`, and push the
@@ -677,7 +959,114 @@ enum UnlinkedExprOperation : byte {
   /// [UnlinkedExpr.ints]), place them in a [Set], and push the result back
   /// onto the stack.  The type parameter for the [Set] is obtained from
   /// [UnlinkedExpr.references].
-  makeTypedSet
+  makeTypedSet,
+
+  /// Pop the top n values from the stack (where n is obtained from
+  /// [UnlinkedExpr.ints]), which should be [CollectionElement]s, place them in
+  /// a [SetOrMap], and push the result back onto the stack.
+  makeUntypedSetOrMap,
+
+  /// Pop the top n values from the stack (where n is obtained from
+  /// [UnlinkedExpr.ints]), which should be [CollectionElement]s, place them in
+  /// a [Map], and push the result back onto the stack. The two type parameters
+  /// for the [Map] are obtained from [UnlinkedExpr.references].
+  ///
+  /// To replace [makeTypedMap] for unified collections. This is not backwards
+  /// compatible with [makeTypedMap] because it expects [CollectionElement]s
+  /// instead of pairs of [Expression]s.
+  makeTypedMap2,
+
+  /// Pop the top 2 values from the stack, place them in a [MapLiteralEntry],
+  /// and push the result back onto the stack.
+  makeMapLiteralEntry,
+
+  /// Pop the top value from the stack, convert it to a spread element of type
+  /// `...`, and push the result back onto the stack.
+  spreadElement,
+
+  /// Pop the top value from the stack, convert it to a spread element of type
+  /// `...?`, and push the result back onto the stack.
+  nullAwareSpreadElement,
+
+  /// Pop the top two values from the stack.  The first is a condition
+  /// and the second is a collection element.  Push an "if" element having the
+  /// given condition, with the collection element as its "then" clause.
+  ifElement,
+
+  /// Pop the top three values from the stack.  The first is a condition and the
+  /// other two are collection elements.  Push an "if" element having the given
+  /// condition, with the two collection elements as its "then" and "else"
+  /// clauses, respectively.
+  ifElseElement,
+
+  /// Pop the top n+2 values from the stack, where n is obtained from
+  /// [UnlinkedExpr.ints].  The first two are the initialization and condition
+  /// of the for-loop; the remainder are the updaters.
+  forParts,
+
+  /// Pop the top 2 values from the stack.  The first is the for loop parts.
+  /// The second is the body.
+  forElement,
+
+  /// Push the empty expression (used for missing initializers and conditions in
+  /// `for` loops)
+  pushEmptyExpression,
+
+  /// Add a variable to the current scope whose name is obtained from
+  /// [UnlinkedExpr.strings].  This is separate from [variableDeclaration]
+  /// because the scope of the variable includes its own initializer.
+  variableDeclarationStart,
+
+  /// Pop the top value from the stack, and use it as the initializer for a
+  /// variable declaration; the variable being declared is obtained by looking
+  /// at the nth variable most recently added to the scope (where n counts from
+  /// zero and is obtained from [UnlinkedExpr.ints]).
+  variableDeclaration,
+
+  /// Pop the top n values from the stack, which should all be variable
+  /// declarations, and use them to create an untyped for-initializer
+  /// declaration.  The value of n is obtained from [UnlinkedExpr.ints].
+  forInitializerDeclarationsUntyped,
+
+  /// Pop the top n values from the stack, which should all be variable
+  /// declarations, and use them to create a typed for-initializer
+  /// declaration.  The value of n is obtained from [UnlinkedExpr.ints].  The
+  /// type is obtained from [UnlinkedExpr.references].
+  forInitializerDeclarationsTyped,
+
+  /// Pop from the stack `value` and get a string from [UnlinkedExpr.strings].
+  /// Use this string to look up a parameter.  Perform `parameter op= value`,
+  /// where `op` is the next assignment operator from
+  /// [UnlinkedExpr.assignmentOperators].  Push `value` back onto the stack.
+  ///
+  /// If the assignment operator is a prefix/postfix increment/decrement, then
+  /// `value` is not present in the stack, so it should not be popped and the
+  /// corresponding value of the parameter after/before update is pushed onto
+  /// the stack instead.
+  assignToParameter,
+
+  /// Pop from the stack an identifier and an expression, and create for-each
+  /// parts of the form `identifier in expression`.
+  forEachPartsWithIdentifier,
+
+  /// Pop the top 2 values from the stack.  The first is the for loop parts.
+  /// The second is the body.
+  forElementWithAwait,
+
+  /// Pop an expression from the stack, and create for-each parts of the form
+  /// `var name in expression`, where `name` is obtained from
+  /// [UnlinkedExpr.strings].
+  forEachPartsWithUntypedDeclaration,
+
+  /// Pop an expression from the stack, and create for-each parts of the form
+  /// `Type name in expression`, where `name` is obtained from
+  /// [UnlinkedExpr.strings], and `Type` is obtained from
+  /// [UnlinkedExpr.references].
+  forEachPartsWithTypedDeclaration,
+
+  /// Pop the top 2 values from the stack, compute `v1 >>> v2`, and push the
+  /// result back onto the stack.
+  bitShiftRightLogical
 }
 
 /// Enum used to indicate the kind of a parameter.
@@ -690,6 +1079,292 @@ enum UnlinkedParamKind : byte {
 
   /// Parameter is named optional (enclosed in `{}`)
   named
+}
+
+/// TODO(scheglov) document
+enum UnlinkedTokenKind : byte {
+  nothing,
+
+  comment,
+
+  keyword,
+
+  simple,
+
+  string
+}
+
+/// TODO(scheglov) document
+enum UnlinkedTokenType : byte {
+  NOTHING,
+
+  ABSTRACT,
+
+  AMPERSAND,
+
+  AMPERSAND_AMPERSAND,
+
+  AMPERSAND_EQ,
+
+  AS,
+
+  ASSERT,
+
+  ASYNC,
+
+  AT,
+
+  AWAIT,
+
+  BACKPING,
+
+  BACKSLASH,
+
+  BANG,
+
+  BANG_EQ,
+
+  BAR,
+
+  BAR_BAR,
+
+  BAR_EQ,
+
+  BREAK,
+
+  CARET,
+
+  CARET_EQ,
+
+  CASE,
+
+  CATCH,
+
+  CLASS,
+
+  CLOSE_CURLY_BRACKET,
+
+  CLOSE_PAREN,
+
+  CLOSE_SQUARE_BRACKET,
+
+  COLON,
+
+  COMMA,
+
+  CONST,
+
+  CONTINUE,
+
+  COVARIANT,
+
+  DEFAULT,
+
+  DEFERRED,
+
+  DO,
+
+  DOUBLE,
+
+  DYNAMIC,
+
+  ELSE,
+
+  ENUM,
+
+  EOF,
+
+  EQ,
+
+  EQ_EQ,
+
+  EXPORT,
+
+  EXTENDS,
+
+  EXTERNAL,
+
+  FACTORY,
+
+  FALSE,
+
+  FINAL,
+
+  FINALLY,
+
+  FOR,
+
+  FUNCTION,
+
+  FUNCTION_KEYWORD,
+
+  GET,
+
+  GT,
+
+  GT_EQ,
+
+  GT_GT,
+
+  GT_GT_EQ,
+
+  HASH,
+
+  HEXADECIMAL,
+
+  HIDE,
+
+  IDENTIFIER,
+
+  IF,
+
+  IMPLEMENTS,
+
+  IMPORT,
+
+  IN,
+
+  INDEX,
+
+  INDEX_EQ,
+
+  INT,
+
+  INTERFACE,
+
+  IS,
+
+  LIBRARY,
+
+  LT,
+
+  LT_EQ,
+
+  LT_LT,
+
+  LT_LT_EQ,
+
+  MINUS,
+
+  MINUS_EQ,
+
+  MINUS_MINUS,
+
+  MIXIN,
+
+  MULTI_LINE_COMMENT,
+
+  NATIVE,
+
+  NEW,
+
+  NULL,
+
+  OF,
+
+  ON,
+
+  OPEN_CURLY_BRACKET,
+
+  OPEN_PAREN,
+
+  OPEN_SQUARE_BRACKET,
+
+  OPERATOR,
+
+  PART,
+
+  PATCH,
+
+  PERCENT,
+
+  PERCENT_EQ,
+
+  PERIOD,
+
+  PERIOD_PERIOD,
+
+  PERIOD_PERIOD_PERIOD,
+
+  PERIOD_PERIOD_PERIOD_QUESTION,
+
+  PLUS,
+
+  PLUS_EQ,
+
+  PLUS_PLUS,
+
+  QUESTION,
+
+  QUESTION_PERIOD,
+
+  QUESTION_QUESTION,
+
+  QUESTION_QUESTION_EQ,
+
+  RETHROW,
+
+  RETURN,
+
+  SCRIPT_TAG,
+
+  SEMICOLON,
+
+  SET,
+
+  SHOW,
+
+  SINGLE_LINE_COMMENT,
+
+  SLASH,
+
+  SLASH_EQ,
+
+  SOURCE,
+
+  STAR,
+
+  STAR_EQ,
+
+  STATIC,
+
+  STRING,
+
+  STRING_INTERPOLATION_EXPRESSION,
+
+  STRING_INTERPOLATION_IDENTIFIER,
+
+  SUPER,
+
+  SWITCH,
+
+  SYNC,
+
+  THIS,
+
+  THROW,
+
+  TILDE,
+
+  TILDE_SLASH,
+
+  TILDE_SLASH_EQ,
+
+  TRUE,
+
+  TRY,
+
+  TYPEDEF,
+
+  VAR,
+
+  VOID,
+
+  WHILE,
+
+  WITH,
+
+  YIELD
 }
 
 /// Information about the context of an exception in analysis driver.
@@ -870,60 +1545,65 @@ table AnalysisDriverUnlinkedUnit {
 
 /// Information about a single declaration.
 table AvailableDeclaration {
-  docComplete:string (id: 0);
+  children:[AvailableDeclaration] (id: 0);
 
-  docSummary:string (id: 1);
+  defaultArgumentListString:string (id: 1);
 
-  fieldMask:uint (id: 2);
+  defaultArgumentListTextRanges:[uint] (id: 2);
+
+  docComplete:string (id: 3);
+
+  docSummary:string (id: 4);
+
+  fieldMask:uint (id: 5);
+
+  isAbstract:bool (id: 6);
+
+  isConst:bool (id: 7);
+
+  isDeprecated:bool (id: 8);
+
+  isFinal:bool (id: 9);
 
   /// The kind of the declaration.
-  kind:AvailableDeclarationKind (id: 3);
+  kind:AvailableDeclarationKind (id: 10);
 
-  isAbstract:bool (id: 4);
+  locationOffset:uint (id: 11);
 
-  isConst:bool (id: 5);
+  locationStartColumn:uint (id: 12);
 
-  isDeprecated:bool (id: 6);
-
-  isFinal:bool (id: 7);
+  locationStartLine:uint (id: 13);
 
   /// The first part of the declaration name, usually the only one, for example
   /// the name of a class like `MyClass`, or a function like `myFunction`.
-  name:string (id: 8);
+  name:string (id: 14);
 
-  /// The second, optional, part of the declaration name.  For example enum
-  /// constants all have the same [name], but their own [name2].
-  name2:string (id: 9);
+  parameterNames:[string] (id: 15);
 
-  locationOffset:uint (id: 10);
+  parameters:string (id: 16);
 
-  locationStartColumn:uint (id: 11);
-
-  locationStartLine:uint (id: 12);
-
-  parameterNames:[string] (id: 13);
-
-  parameters:string (id: 14);
-
-  parameterTypes:[string] (id: 15);
-
-  requiredParameterCount:uint (id: 16);
+  parameterTypes:[string] (id: 17);
 
   /// The partial list of relevance tags.  Not every declaration has one (for
   /// example, function do not currently), and not every declaration has to
   /// store one (for classes it can be computed when we know the library that
   /// includes this file).
-  relevanceTags:[string] (id: 17);
+  relevanceTags:[string] (id: 18);
 
-  returnType:string (id: 18);
+  requiredParameterCount:uint (id: 19);
 
-  typeParameters:string (id: 19);
+  returnType:string (id: 20);
+
+  typeParameters:string (id: 21);
 }
 
 /// Information about an available, even if not yet imported file.
 table AvailableFile {
   /// Declarations of the file.
   declarations:[AvailableDeclaration] (id: 0);
+
+  /// The Dartdoc directives in the file.
+  directiveInfo:DirectiveInfo (id: 5);
 
   /// Exports directives of the file.
   exports:[AvailableFileExport] (id: 1);
@@ -963,6 +1643,15 @@ table CodeRange {
 
   /// Offset of the element code relative to the beginning of the file.
   offset:uint (id: 0);
+}
+
+/// Information about the Dartdoc directives in an [AvailableFile].
+table DirectiveInfo {
+  /// The names of the defined templates.
+  templateNames:[string] (id: 0);
+
+  /// The values of the defined templates.
+  templateValues:[string] (id: 1);
 }
 
 /// Summary information about a reference to an entity such as a type, top level
@@ -1141,6 +1830,172 @@ table LinkedLibrary {
   /// followed by the summary of each part, in the order of the `part`
   /// declarations in the defining compilation unit.
   units:[LinkedUnit] (id: 3);
+}
+
+/// Information about a linked AST node.
+table LinkedNode {
+  /// The explicit or inferred return type of a function typed node.
+  variantField_24:LinkedNodeType (id: 24);
+
+  variantField_2:[LinkedNode] (id: 2);
+
+  variantField_11:LinkedNode (id: 11);
+
+  variantField_4:[LinkedNode] (id: 4);
+
+  variantField_6:LinkedNode (id: 6);
+
+  variantField_15:uint (id: 15);
+
+  variantField_7:LinkedNode (id: 7);
+
+  variantField_8:LinkedNode (id: 8);
+
+  variantField_16:uint (id: 16);
+
+  variantField_17:uint (id: 17);
+
+  variantField_18:uint (id: 18);
+
+  variantField_19:uint (id: 19);
+
+  variantField_23:LinkedNodeType (id: 23);
+
+  variantField_27:bool (id: 27);
+
+  variantField_9:LinkedNode (id: 9);
+
+  variantField_12:LinkedNode (id: 12);
+
+  variantField_5:[LinkedNode] (id: 5);
+
+  variantField_13:LinkedNode (id: 13);
+
+  variantField_34:uint (id: 34);
+
+  variantField_33:uint (id: 33);
+
+  variantField_28:[uint] (id: 28);
+
+  variantField_29:LinkedNodeCommentType (id: 29);
+
+  variantField_3:[LinkedNode] (id: 3);
+
+  variantField_10:LinkedNode (id: 10);
+
+  variantField_21:double (id: 21);
+
+  variantField_25:LinkedNodeType (id: 25);
+
+  variantField_26:LinkedNodeFormalParameterKind (id: 26);
+
+  variantField_30:string (id: 30);
+
+  variantField_14:LinkedNode (id: 14);
+
+  isSynthetic:bool (id: 1);
+
+  kind:LinkedNodeKind (id: 0);
+
+  variantField_20:string (id: 20);
+
+  variantField_31:bool (id: 31);
+
+  variantField_22:string (id: 22);
+
+  variantField_32:LinkedNodeVariablesDeclaration (id: 32);
+}
+
+/// Information about a group of libraries linked together, for example because
+/// they form a single cycle, or because they represent a single build artifact.
+table LinkedNodeBundle {
+  libraries:[LinkedNodeLibrary] (id: 1);
+
+  /// The shared list of references used in the [libraries].
+  references:LinkedNodeReferences (id: 0);
+}
+
+/// Information about a single library in a [LinkedNodeBundle].
+table LinkedNodeLibrary {
+  exports:[uint] (id: 2);
+
+  name:string (id: 3);
+
+  nameLength:uint (id: 5);
+
+  nameOffset:uint (id: 4);
+
+  units:[LinkedNodeUnit] (id: 1);
+
+  uriStr:string (id: 0);
+}
+
+/// Flattened tree of declarations referenced from [LinkedNode]s.
+table LinkedNodeReferences {
+  name:[string] (id: 1);
+
+  parent:[uint] (id: 0);
+}
+
+/// Information about a Dart type.
+table LinkedNodeType {
+  functionFormalParameters:[LinkedNodeTypeFormalParameter] (id: 0);
+
+  functionReturnType:LinkedNodeType (id: 1);
+
+  functionTypeParameters:[LinkedNodeTypeTypeParameter] (id: 2);
+
+  genericTypeAliasReference:uint (id: 7);
+
+  genericTypeAliasTypeArguments:[LinkedNodeType] (id: 8);
+
+  /// Reference to a [LinkedNodeReferences].
+  interfaceClass:uint (id: 3);
+
+  interfaceTypeArguments:[LinkedNodeType] (id: 4);
+
+  kind:LinkedNodeTypeKind (id: 5);
+
+  typeParameterId:uint (id: 6);
+}
+
+/// Information about a formal parameter in a function type.
+table LinkedNodeTypeFormalParameter {
+  kind:LinkedNodeFormalParameterKind (id: 0);
+
+  name:string (id: 1);
+
+  type:LinkedNodeType (id: 2);
+}
+
+/// Information about a type parameter in a function type.
+table LinkedNodeTypeTypeParameter {
+  bound:LinkedNodeType (id: 1);
+
+  name:string (id: 0);
+}
+
+/// Information about a single library in a [LinkedNodeLibrary].
+table LinkedNodeUnit {
+  node:LinkedNode (id: 2);
+
+  tokens:UnlinkedTokens (id: 1);
+
+  uriStr:string (id: 0);
+}
+
+/// Information about a top-level declaration, or a field declaration that
+/// contributes information to [LinkedNodeKind.variableDeclaration].
+table LinkedNodeVariablesDeclaration {
+  comment:LinkedNode (id: 0);
+
+  isConst:bool (id: 1);
+
+  isCovariant:bool (id: 2);
+
+  isFinal:bool (id: 3);
+
+  isStatic:bool (id: 4);
 }
 
 /// Information about the resolution of an [UnlinkedReference].
@@ -1986,6 +2841,38 @@ table UnlinkedReference {
   /// UnlinkedUnit.references[i].prefixReference != 0, then
   /// UnlinkedUnit.references[i].prefixReference < i.
   prefixReference:uint (id: 1);
+}
+
+/// TODO(scheglov) document
+table UnlinkedTokens {
+  /// The token that corresponds to this token, or `0` if this token is not
+  /// the first of a pair of matching tokens (such as parentheses).
+  endGroup:[uint] (id: 0);
+
+  /// Return `true` if this token is a synthetic token. A synthetic token is a
+  /// token that was introduced by the parser in order to recover from an error
+  /// in the code.
+  isSynthetic:[ubyte] (id: 1);
+
+  kind:[UnlinkedTokenKind] (id: 2);
+
+  length:[uint] (id: 3);
+
+  lexeme:[string] (id: 4);
+
+  /// The next token in the token stream, `0` for [UnlinkedTokenType.EOF] or
+  /// the last comment token.
+  next:[uint] (id: 5);
+
+  offset:[uint] (id: 6);
+
+  /// The first comment token in the list of comments that precede this token,
+  /// or `0` if there are no comments preceding this token. Additional comments
+  /// can be reached by following the token stream using [next] until `0` is
+  /// reached.
+  precedingComment:[uint] (id: 7);
+
+  type:[UnlinkedTokenType] (id: 8);
 }
 
 /// Unlinked summary information about a typedef declaration.

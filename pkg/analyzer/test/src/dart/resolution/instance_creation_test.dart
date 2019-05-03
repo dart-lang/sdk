@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19,6 +19,24 @@ class InstanceCreationDriverResolutionTest extends DriverResolutionTest
     with InstanceCreationResolutionMixin {}
 
 mixin InstanceCreationResolutionMixin implements ResolutionTest {
+  test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
+    addTestFile(r'''
+final foo = Map<int>();
+''');
+    await resolveTestFile();
+    assertTestErrorsWithCodes([
+      StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS,
+    ]);
+
+    var creation = findNode.instanceCreation('Map<int>');
+    assertInstanceCreation(
+      creation,
+      mapElement,
+      'Map<dynamic, dynamic>',
+      expectedConstructorMember: true,
+    );
+  }
+
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew() async {
     addTestFile(r'''
 class Foo<X> {
@@ -30,7 +48,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
     ]);
 
@@ -43,24 +61,6 @@ main() {
 //      'Foo',
 //      constructorName: 'bar',
 //    );
-  }
-
-  test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
-    addTestFile(r'''
-final foo = Map<int>();
-''');
-    await resolveTestFile();
-    assertTestErrors([
-      StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS,
-    ]);
-
-    var creation = findNode.instanceCreation('Map<int>');
-    assertInstanceCreation(
-      creation,
-      mapElement,
-      'Map<dynamic, dynamic>',
-      expectedConstructorMember: true,
-    );
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_prefix() async {
@@ -77,7 +77,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
     ]);
 
@@ -105,7 +105,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
     ]);
 
@@ -133,7 +133,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
     ]);
 

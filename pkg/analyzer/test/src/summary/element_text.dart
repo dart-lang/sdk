@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -55,15 +55,19 @@ void applyCheckElementTextReplacements() {
 void checkElementText(LibraryElement library, String expected,
     {bool withCodeRanges: false,
     bool withConstElements: true,
+    bool withExportScope: false,
     bool withOffsets: false,
     bool withSyntheticAccessors: false,
-    bool withSyntheticFields: false}) {
+    bool withSyntheticFields: false,
+    bool withTypes: false}) {
   var writer = new _ElementWriter(
       withCodeRanges: withCodeRanges,
       withConstElements: withConstElements,
+      withExportScope: withExportScope,
       withOffsets: withOffsets,
       withSyntheticAccessors: withSyntheticAccessors,
-      withSyntheticFields: withSyntheticFields);
+      withSyntheticFields: withSyntheticFields,
+      withTypes: withTypes);
   writer.writeLibraryElement(library);
 
   String actualText = writer.buffer.toString();
@@ -125,18 +129,22 @@ void checkElementText(LibraryElement library, String expected,
  */
 class _ElementWriter {
   final bool withCodeRanges;
+  final bool withExportScope;
   final bool withOffsets;
   final bool withConstElements;
   final bool withSyntheticAccessors;
   final bool withSyntheticFields;
+  final bool withTypes;
   final StringBuffer buffer = new StringBuffer();
 
   _ElementWriter(
       {this.withCodeRanges,
       this.withConstElements: true,
+      this.withExportScope: false,
       this.withOffsets: false,
       this.withSyntheticAccessors: false,
-      this.withSyntheticFields: false});
+      this.withSyntheticFields: false,
+      this.withTypes: false});
 
   bool isDynamicType(DartType type) => type is DynamicTypeImpl;
 
@@ -272,7 +280,7 @@ class _ElementWriter {
 
     if (e is ConstructorElementImpl) {
       if (e.constantInitializers != null) {
-        writeList(' : ', '', e.constantInitializers, ', ', writeExpression);
+        writeList(' : ', '', e.constantInitializers, ', ', writeNode);
       }
     }
 
@@ -301,189 +309,6 @@ class _ElementWriter {
     e.combinators.forEach(writeNamespaceCombinator);
 
     buffer.writeln(';');
-  }
-
-  void writeExpression(AstNode e, [Expression enclosing]) {
-    bool needsParenthesis = e is Expression &&
-        enclosing != null &&
-        e.precedence < enclosing.precedence;
-
-    if (needsParenthesis) {
-      buffer.write('(');
-    }
-
-    if (e == null) {
-      buffer.write('<null>');
-    } else if (e is SimpleIdentifier && e.name == '#invalidConst') {
-      buffer.write('#invalidConst');
-    } else if (e is Annotation) {
-      buffer.write('@');
-      writeExpression(e.name);
-      if (e.constructorName != null) {
-        buffer.write('.');
-        writeExpression(e.constructorName);
-      }
-      if (e.arguments != null) {
-        writeList('(', ')', e.arguments.arguments, ', ', writeExpression,
-            includeEmpty: true);
-      }
-    } else if (e is AssertInitializer) {
-      buffer.write('assert(');
-      writeExpression(e.condition);
-      if (e.message != null) {
-        buffer.write(', ');
-        writeExpression(e.message);
-      }
-      buffer.write(')');
-    } else if (e is BinaryExpression) {
-      writeExpression(e.leftOperand, e);
-      buffer.write(' ');
-      buffer.write(e.operator.lexeme);
-      buffer.write(' ');
-      writeExpression(e.rightOperand, e);
-    } else if (e is BooleanLiteral) {
-      buffer.write(e.value);
-    } else if (e is ConditionalExpression) {
-      writeExpression(e.condition);
-      buffer.write(' ? ');
-      writeExpression(e.thenExpression);
-      buffer.write(' : ');
-      writeExpression(e.elseExpression);
-    } else if (e is ConstructorFieldInitializer) {
-      writeExpression(e.fieldName);
-      buffer.write(' = ');
-      writeExpression(e.expression);
-    } else if (e is ConstructorName) {
-      writeExpression(e.type);
-      if (e.name != null) {
-        buffer.write('.');
-        writeExpression(e.name);
-      }
-    } else if (e is DoubleLiteral) {
-      buffer.write(e.value);
-    } else if (e is InstanceCreationExpression) {
-      if (e.keyword != null) {
-        buffer.write(e.keyword.lexeme);
-        buffer.write(' ');
-      }
-      writeExpression(e.constructorName);
-      writeList('(', ')', e.argumentList.arguments, ', ', writeExpression,
-          includeEmpty: true);
-    } else if (e is IntegerLiteral) {
-      buffer.write(e.value);
-    } else if (e is InterpolationExpression) {
-      buffer.write(r'${');
-      writeExpression(e.expression);
-      buffer.write(r'}');
-    } else if (e is InterpolationString) {
-      buffer.write(e.value.replaceAll("'", r"\'"));
-    } else if (e is ListLiteral) {
-      if (e.constKeyword != null) {
-        buffer.write('const ');
-      }
-      if (e.typeArguments != null) {
-        writeList('<', '>', e.typeArguments.arguments, ', ', writeExpression);
-      }
-      writeList('[', ']', e.elements, ', ', writeExpression,
-          includeEmpty: true);
-    } else if (e is Label) {
-      writeExpression(e.label);
-      buffer.write(': ');
-    } else if (e is MapLiteral) {
-      if (e.constKeyword != null) {
-        buffer.write('const ');
-      }
-      if (e.typeArguments != null) {
-        writeList('<', '>', e.typeArguments.arguments, ', ', writeExpression);
-      }
-      writeList('{', '}', e.entries, ', ', writeExpression, includeEmpty: true);
-    } else if (e is MapLiteralEntry) {
-      writeExpression(e.key);
-      buffer.write(': ');
-      writeExpression(e.value);
-    } else if (e is MethodInvocation) {
-      if (e.target != null) {
-        writeExpression(e.target);
-        buffer.write(e.operator);
-      }
-      writeExpression(e.methodName);
-      if (e.typeArguments != null) {
-        writeList('<', '>', e.typeArguments.arguments, ', ', writeExpression);
-      }
-      writeList('(', ')', e.argumentList.arguments, ', ', writeExpression,
-          includeEmpty: true);
-    } else if (e is NamedExpression) {
-      writeExpression(e.name);
-      buffer.write(e.expression);
-    } else if (e is NullLiteral) {
-      buffer.write('null');
-    } else if (e is PrefixExpression) {
-      buffer.write(e.operator.lexeme);
-      writeExpression(e.operand, e);
-    } else if (e is PrefixedIdentifier) {
-      writeExpression(e.prefix);
-      buffer.write('.');
-      writeExpression(e.identifier);
-    } else if (e is PropertyAccess) {
-      writeExpression(e.target, e);
-      buffer.write('.');
-      writeExpression(e.propertyName);
-    } else if (e is RedirectingConstructorInvocation) {
-      buffer.write('this');
-      if (e.constructorName != null) {
-        buffer.write('.');
-        writeExpression(e.constructorName);
-      }
-      writeList('(', ')', e.argumentList.arguments, ', ', writeExpression,
-          includeEmpty: true);
-    } else if (e is SimpleIdentifier) {
-      if (withConstElements) {
-        buffer.writeln();
-        buffer.write('  ' * 4);
-        buffer.write(e.name);
-        buffer.write('/*');
-        buffer.write('location: ');
-        buffer.write(_getElementLocationString(e.staticElement));
-        buffer.write('*/');
-      } else {
-        buffer.write(e.name);
-      }
-    } else if (e is SimpleStringLiteral) {
-      buffer.write("'");
-      buffer.write(e.value.replaceAll("'", r"\'"));
-      buffer.write("'");
-    } else if (e is StringInterpolation) {
-      buffer.write("'");
-      e.elements.forEach(writeExpression);
-      buffer.write("'");
-    } else if (e is SuperConstructorInvocation) {
-      buffer.write('super');
-      if (e.constructorName != null) {
-        buffer.write('.');
-        writeExpression(e.constructorName);
-      }
-      writeList('(', ')', e.argumentList.arguments, ', ', writeExpression,
-          includeEmpty: true);
-    } else if (e is SuperExpression) {
-      buffer.write('super');
-    } else if (e is SymbolLiteral) {
-      buffer.write('#');
-      writeList('', '', e.components, '.',
-          (Token token) => buffer.write(token.lexeme));
-    } else if (e is ThisExpression) {
-      buffer.write('this');
-    } else if (e is TypeName) {
-      writeExpression(e.name);
-      if (e.typeArguments != null) {
-        writeList('<', '>', e.typeArguments.arguments, ', ', writeExpression);
-      }
-    } else {
-      fail('Unsupported expression type: ${e.runtimeType}');
-    }
-
-    if (needsParenthesis) {
-      buffer.write(')');
-    }
   }
 
   void writeFunctionElement(FunctionElement e) {
@@ -562,6 +387,11 @@ class _ElementWriter {
     }
   }
 
+  void writeInterfaceTypeArgsComment(Expression e) {
+    var typeArguments = (e.staticType as InterfaceType).typeArguments;
+    writeList('/*typeArgs=', '*/', typeArguments, ',', writeType);
+  }
+
   void writeLibraryElement(LibraryElement e) {
     if (e.documentationComment != null) {
       buffer.writeln(e.documentationComment);
@@ -579,6 +409,8 @@ class _ElementWriter {
     e.parts.forEach(writePartElement);
 
     e.units.forEach(writeUnitElement);
+
+    writeExportScope(e);
   }
 
   void writeList<T>(String open, String close, List<T> items, String separator,
@@ -602,7 +434,7 @@ class _ElementWriter {
   void writeMetadata(Element e, String prefix, String separator) {
     if (e.metadata.isNotEmpty) {
       writeList(prefix, '', e.metadata, '$separator$prefix', (a) {
-        writeExpression((a as ElementAnnotationImpl).annotationAst);
+        writeNode((a as ElementAnnotationImpl).annotationAst);
       });
       buffer.write(separator);
     }
@@ -649,6 +481,223 @@ class _ElementWriter {
     } else if (e is HideElementCombinator) {
       buffer.write(' hide ');
       buffer.write(e.hiddenNames.join(', '));
+    }
+  }
+
+  void writeNode(AstNode e, [Expression enclosing]) {
+    bool needsParenthesis = e is Expression &&
+        enclosing != null &&
+        e.precedence < enclosing.precedence;
+
+    if (needsParenthesis) {
+      buffer.write('(');
+    }
+
+    if (e == null) {
+      buffer.write('<null>');
+    } else if (e is SimpleIdentifier && e.name == '#invalidConst') {
+      buffer.write('#invalidConst');
+    } else if (e is AdjacentStrings) {
+      writeList("'", "'", e.strings, '',
+          (StringLiteral s) => buffer.write(s.stringValue),
+          includeEmpty: true);
+    } else if (e is Annotation) {
+      buffer.write('@');
+      writeNode(e.name);
+      if (e.constructorName != null) {
+        buffer.write('.');
+        writeNode(e.constructorName);
+      }
+      if (e.arguments != null) {
+        writeList('(', ')', e.arguments.arguments, ', ', writeNode,
+            includeEmpty: true);
+      }
+    } else if (e is AssertInitializer) {
+      buffer.write('assert(');
+      writeNode(e.condition);
+      if (e.message != null) {
+        buffer.write(', ');
+        writeNode(e.message);
+      }
+      buffer.write(')');
+    } else if (e is BinaryExpression) {
+      writeNode(e.leftOperand, e);
+      buffer.write(' ');
+      buffer.write(e.operator.lexeme);
+      buffer.write(' ');
+      writeNode(e.rightOperand, e);
+    } else if (e is BooleanLiteral) {
+      buffer.write(e.value);
+    } else if (e is ConditionalExpression) {
+      writeNode(e.condition);
+      buffer.write(' ? ');
+      writeNode(e.thenExpression);
+      buffer.write(' : ');
+      writeNode(e.elseExpression);
+    } else if (e is ConstructorFieldInitializer) {
+      writeNode(e.fieldName);
+      buffer.write(' = ');
+      writeNode(e.expression);
+    } else if (e is ConstructorName) {
+      writeNode(e.type);
+      if (e.name != null) {
+        buffer.write('.');
+        writeNode(e.name);
+      }
+    } else if (e is DoubleLiteral) {
+      buffer.write(e.value);
+    } else if (e is InstanceCreationExpression) {
+      if (e.keyword != null) {
+        buffer.write(e.keyword.lexeme);
+        buffer.write(' ');
+      }
+      if (withTypes && e.constructorName.type.typeArguments == null) {
+        writeInterfaceTypeArgsComment(e);
+      }
+      writeNode(e.constructorName);
+      writeList('(', ')', e.argumentList.arguments, ', ', writeNode,
+          includeEmpty: true);
+    } else if (e is IntegerLiteral) {
+      buffer.write(e.value);
+    } else if (e is InterpolationExpression) {
+      buffer.write(r'${');
+      writeNode(e.expression);
+      buffer.write(r'}');
+    } else if (e is InterpolationString) {
+      buffer.write(e.value.replaceAll("'", r"\'"));
+    } else if (e is ListLiteral) {
+      if (e.constKeyword != null) {
+        buffer.write('const ');
+      }
+      if (e.typeArguments != null) {
+        writeList('<', '>', e.typeArguments.arguments, ', ', writeNode);
+      } else if (withTypes) {
+        writeInterfaceTypeArgsComment(e);
+      }
+      writeList('[', ']', e.elements, ', ', writeNode, includeEmpty: true);
+    } else if (e is Label) {
+      writeNode(e.label);
+      buffer.write(': ');
+    } else if (e is SetOrMapLiteral) {
+      if (e.constKeyword != null) {
+        buffer.write('const ');
+      }
+      if (e.typeArguments != null) {
+        writeList('<', '>', e.typeArguments.arguments, ', ', writeNode);
+      } else if (withTypes) {
+        writeInterfaceTypeArgsComment(e);
+      }
+      writeList('{', '}', e.elements, ', ', writeNode, includeEmpty: true);
+      if (e.isMap) {
+        buffer.write('/*isMap*/');
+      }
+      if (e.isSet) {
+        buffer.write('/*isSet*/');
+      }
+    } else if (e is MapLiteralEntry) {
+      writeNode(e.key);
+      buffer.write(': ');
+      writeNode(e.value);
+    } else if (e is MethodInvocation) {
+      if (e.target != null) {
+        writeNode(e.target);
+        buffer.write(e.operator);
+      }
+      writeNode(e.methodName);
+      if (e.typeArguments != null) {
+        writeList('<', '>', e.typeArguments.arguments, ', ', writeNode);
+      }
+      writeList('(', ')', e.argumentList.arguments, ', ', writeNode,
+          includeEmpty: true);
+    } else if (e is NamedExpression) {
+      writeNode(e.name);
+      buffer.write(e.expression);
+    } else if (e is NullLiteral) {
+      buffer.write('null');
+    } else if (e is ParenthesizedExpression) {
+      writeNode(e.expression, e);
+    } else if (e is PrefixExpression) {
+      buffer.write(e.operator.lexeme);
+      writeNode(e.operand, e);
+    } else if (e is PrefixedIdentifier) {
+      writeNode(e.prefix);
+      buffer.write('.');
+      writeNode(e.identifier);
+    } else if (e is PropertyAccess) {
+      writeNode(e.target, e);
+      buffer.write('.');
+      writeNode(e.propertyName);
+    } else if (e is RedirectingConstructorInvocation) {
+      buffer.write('this');
+      if (e.constructorName != null) {
+        buffer.write('.');
+        writeNode(e.constructorName);
+      }
+      writeList('(', ')', e.argumentList.arguments, ', ', writeNode,
+          includeEmpty: true);
+    } else if (e is SimpleIdentifier) {
+      if (withConstElements) {
+        buffer.writeln();
+        buffer.write('  ' * 4);
+        buffer.write(e.name);
+        buffer.write('/*');
+        buffer.write('location: ');
+        buffer.write(_getElementLocationString(e.staticElement));
+        buffer.write('*/');
+      } else {
+        buffer.write(e.name);
+      }
+    } else if (e is SimpleStringLiteral) {
+      buffer.write("'");
+      buffer.write(e.value.replaceAll("'", r"\'"));
+      buffer.write("'");
+    } else if (e is StringInterpolation) {
+      buffer.write("'");
+      e.elements.forEach(writeNode);
+      buffer.write("'");
+    } else if (e is SuperConstructorInvocation) {
+      buffer.write('super');
+      if (e.constructorName != null) {
+        buffer.write('.');
+        writeNode(e.constructorName);
+      }
+      writeList('(', ')', e.argumentList.arguments, ', ', writeNode,
+          includeEmpty: true);
+    } else if (e is SuperExpression) {
+      buffer.write('super');
+    } else if (e is SymbolLiteral) {
+      buffer.write('#');
+      writeList('', '', e.components, '.',
+          (Token token) => buffer.write(token.lexeme));
+    } else if (e is ThisExpression) {
+      buffer.write('this');
+    } else if (e is ThrowExpression) {
+      buffer.write('throw ');
+      writeNode(e.expression);
+    } else if (e is TypeName) {
+      writeNode(e.name);
+      if (e.typeArguments != null) {
+        writeList('<', '>', e.typeArguments.arguments, ', ', writeNode);
+      }
+    } else if (e is SpreadElement) {
+      buffer.write(e.spreadOperator.lexeme);
+      writeNode(e.expression);
+    } else if (e is IfElement) {
+      buffer.write('if (');
+      writeNode(e.condition);
+      buffer.write(') ');
+      writeNode(e.thenElement);
+      var elseElement = e.elseElement;
+      if (elseElement != null) {
+        buffer.write(' else ');
+        writeNode(elseElement);
+      }
+    } else {
+      fail('Unsupported expression type: ${e.runtimeType}');
+    }
+
+    if (needsParenthesis) {
+      buffer.write(')');
     }
   }
 
@@ -700,7 +749,7 @@ class _ElementWriter {
 
     if (defaultValue != null) {
       buffer.write(defaultValueSeparator);
-      writeExpression(defaultValue);
+      writeNode(defaultValue);
     }
 
     buffer.write(closeString);
@@ -801,16 +850,13 @@ class _ElementWriter {
 
     if (!e.isSynthetic) {
       expect(e.getter, isNotNull);
-      expect(e.getter.isSynthetic, isTrue);
-      expect(e.getter.variable, same(e));
-      expect(e.getter.enclosingElement, same(e.enclosingElement));
+      _assertSyntheticAccessorEnclosing(e, e.getter);
+
       if (e.isFinal || e.isConst) {
         expect(e.setter, isNull);
       } else {
         expect(e.setter, isNotNull);
-        expect(e.setter.isSynthetic, isTrue);
-        expect(e.setter.variable, same(e.getter.variable));
-        expect(e.setter.enclosingElement, same(e.enclosingElement));
+        _assertSyntheticAccessorEnclosing(e, e.getter);
       }
     }
 
@@ -841,7 +887,7 @@ class _ElementWriter {
       Expression initializer = (e as ConstVariableElement).constantInitializer;
       if (initializer != null) {
         buffer.write(' = ');
-        writeExpression(initializer);
+        writeNode(initializer);
       }
     }
 
@@ -870,6 +916,7 @@ class _ElementWriter {
 
   void writeTypeParameterElement(TypeParameterElement e) {
     writeName(e);
+    writeCodeRange(e);
     if (e.bound != null && !e.bound.isObject) {
       buffer.write(' extends ');
       writeType(e.bound);
@@ -895,6 +942,22 @@ class _ElementWriter {
     e.functions.forEach(writeFunctionElement);
   }
 
+  void writeExportScope(LibraryElement e) {
+    if (!withExportScope) return;
+
+    buffer.writeln();
+    buffer.writeln('-' * 20);
+    buffer.writeln('Exports:');
+
+    var map = e.exportNamespace.definedNames;
+    var names = map.keys.toList()..sort();
+    for (var name in names) {
+      var element = map[name];
+      var elementLocationStr = _getElementLocationString(element);
+      buffer.writeln('  $name: $elementLocationStr');
+    }
+  }
+
   void writeUri(Source source) {
     if (source != null) {
       Uri uri = source.uri;
@@ -918,6 +981,23 @@ class _ElementWriter {
         }
         buffer.write('/*error: $kindName*/');
       }
+    }
+  }
+
+  /// Assert that the [accessor] of the [property] is correctly linked to
+  /// the same enclosing element as the [property].
+  void _assertSyntheticAccessorEnclosing(
+      PropertyInducingElement property, PropertyAccessorElement accessor) {
+    expect(accessor.isSynthetic, isTrue);
+    expect(accessor.variable, same(property));
+
+    var propertyEnclosing = property.enclosingElement;
+    expect(accessor.enclosingElement, same(propertyEnclosing));
+
+    if (propertyEnclosing is CompilationUnitElement) {
+      expect(propertyEnclosing.accessors, contains(accessor));
+    } else if (propertyEnclosing is ClassElement) {
+      expect(propertyEnclosing.accessors, contains(accessor));
     }
   }
 
@@ -952,5 +1032,6 @@ class _Replacement {
   final int offset;
   final int end;
   final String text;
+
   _Replacement(this.offset, this.end, this.text);
 }

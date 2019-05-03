@@ -2,10 +2,10 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference_new/infer_field_getter_setter_mismatch.dart:16:24: Error: The return type of the method 'B.x' is 'int', which does not match the return type of the overridden method, 'double'.
+// pkg/front_end/testcases/inference_new/infer_field_getter_setter_mismatch.dart:16:7: Error: The return type of the method 'B.x' is 'int', which does not match the return type, 'double', of the overridden method, 'A.x'.
 // Change to a subtype of 'double'.
-//   var /*@topType=int*/ x;
-//                        ^
+//   var x;
+//       ^
 // pkg/front_end/testcases/inference_new/infer_field_getter_setter_mismatch.dart:10:12: Context: This is the overridden method ('x').
 //   void set x(double value);
 //            ^

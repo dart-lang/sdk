@@ -1,6 +1,6 @@
 library;
 import self as self;
-import "./hello.dart" as hel;
+import "hello.dart" as hel;
 additionalExports = (hel::main)
 
 

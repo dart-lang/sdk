@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -66,6 +66,8 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   String testFile;
   String testCode;
 
+  List<String> enabledExperiments = [];
+
   bool get disableChangesAndCacheAllResults => false;
 
   void addTestFile(String content, {bool priority: false}) {
@@ -104,8 +106,9 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
         externalSummaries: externalSummaries);
   }
 
-  AnalysisOptionsImpl createAnalysisOptions() =>
-      new AnalysisOptionsImpl()..useFastaParser = analyzer.Parser.useFasta;
+  AnalysisOptionsImpl createAnalysisOptions() => new AnalysisOptionsImpl()
+    ..useFastaParser = analyzer.Parser.useFasta
+    ..enabledExperiments = enabledExperiments;
 
   int findOffset(String search) {
     int offset = testCode.indexOf(search);

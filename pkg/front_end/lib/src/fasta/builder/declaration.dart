@@ -64,6 +64,10 @@ abstract class Declaration {
 
   bool get isNamedMixinApplication => false;
 
+  bool get isAnonymousMixinApplication {
+    return isMixinApplication && !isNamedMixinApplication;
+  }
+
   /// Applies [patch] to this declaration.
   void applyPatch(Declaration patch) {
     unsupported("${runtimeType}.applyPatch", charOffset, fileUri);
@@ -79,6 +83,4 @@ abstract class Declaration {
   /// Resolve constructors (lookup names in scope) recorded in this builder and
   /// return the number of constructors resolved.
   int resolveConstructors(covariant Declaration parent) => 0;
-
-  void instrumentTopLevelInference(covariant instrumentation) {}
 }

@@ -5,12 +5,15 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_COMPILE_TYPE_H_
 #define RUNTIME_VM_COMPILER_BACKEND_COMPILE_TYPE_H_
 
-#include "vm/object.h"
-#include "vm/thread.h"
+#include "vm/allocation.h"
+#include "vm/class_id.h"
+#include "vm/compiler/runtime_api.h"
 
 namespace dart {
 
+class AbstractType;
 class BufferFormatter;
+class Definition;
 
 // CompileType describes type of a value produced by a definition.
 //
@@ -39,6 +42,7 @@ class CompileType : public ZoneAllocated {
         type_(other.type_) {}
 
   CompileType& operator=(const CompileType& other) {
+    // This intentionally does not change the owner of this type.
     is_nullable_ = other.is_nullable_;
     cid_ = other.cid_;
     type_ = other.type_;
@@ -87,11 +91,12 @@ class CompileType : public ZoneAllocated {
       // unreachable values) as None.
       return None();
     }
-    return CompileType(kNonNullable, kIllegalCid, type_);
+
+    return CompileType(kNonNullable, cid_, type_);
   }
 
   static CompileType CreateNullable(bool is_nullable, intptr_t cid) {
-    return CompileType(is_nullable, cid, NULL);
+    return CompileType(is_nullable, cid, nullptr);
   }
 
   // Create a new CompileType representing given abstract type. By default
@@ -106,7 +111,7 @@ class CompileType : public ZoneAllocated {
   // Create None CompileType. It is the bottom of the lattice and is used to
   // represent type of the phi that was not yet inferred.
   static CompileType None() {
-    return CompileType(kNullable, kIllegalCid, NULL);
+    return CompileType(kNullable, kIllegalCid, nullptr);
   }
 
   // Create Dynamic CompileType. It is the top of the lattice and is used to
@@ -159,10 +164,10 @@ class CompileType : public ZoneAllocated {
   bool IsEqualTo(CompileType* other) {
     return (is_nullable_ == other->is_nullable_) &&
            (ToNullableCid() == other->ToNullableCid()) &&
-           (ToAbstractType()->Equals(*other->ToAbstractType()));
+           (compiler::IsEqualType(*ToAbstractType(), *other->ToAbstractType()));
   }
 
-  bool IsNone() const { return (cid_ == kIllegalCid) && (type_ == NULL); }
+  bool IsNone() const { return (cid_ == kIllegalCid) && (type_ == nullptr); }
 
   // Return true if value of this type is a non-nullable int.
   bool IsInt() { return !is_nullable() && IsNullableInt(); }
@@ -172,11 +177,12 @@ class CompileType : public ZoneAllocated {
 
   // Return true if value of this type is either int or null.
   bool IsNullableInt() {
-    if ((cid_ == kSmiCid) || (cid_ == kMintCid)) {
+    if (cid_ == kSmiCid || cid_ == kMintCid) {
       return true;
     }
-    if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
-      return (type_ != NULL) && ((type_->IsIntType() || type_->IsSmiType()));
+    if (cid_ == kIllegalCid || cid_ == kDynamicCid) {
+      return type_ != nullptr &&
+             (compiler::IsIntType(*type_) || compiler::IsSmiType(*type_));
     }
     return false;
   }
@@ -186,8 +192,8 @@ class CompileType : public ZoneAllocated {
     if (cid_ == kSmiCid) {
       return true;
     }
-    if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
-      return type_ != nullptr && type_->IsSmiType();
+    if (cid_ == kIllegalCid || cid_ == kDynamicCid) {
+      return type_ != nullptr && compiler::IsSmiType(*type_);
     }
     return false;
   }
@@ -198,7 +204,7 @@ class CompileType : public ZoneAllocated {
       return true;
     }
     if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
-      return (type_ != NULL) && type_->IsDoubleType();
+      return type_ != nullptr && compiler::IsDoubleType(*type_);
     }
     return false;
   }
@@ -206,14 +212,25 @@ class CompileType : public ZoneAllocated {
   void PrintTo(BufferFormatter* f) const;
   const char* ToCString() const;
 
+  // CompileType object might be unowned or owned by a definition.
+  // Owned CompileType objects can change during type propagation when
+  // [RecomputeType] is called on the owner. We keep track of which
+  // definition owns [CompileType] to prevent situations where
+  // owned [CompileType] is cached as a reaching type in a [Value] which
+  // is no longer connected to the original owning definition.
+  // See [Value::SetReachingType].
+  void set_owner(Definition* owner) { owner_ = owner; }
+  Definition* owner() const { return owner_; }
+
  private:
   bool CanComputeIsInstanceOf(const AbstractType& type,
                               bool is_nullable,
                               bool* is_instance);
 
   bool is_nullable_;
-  intptr_t cid_;
+  classid_t cid_;
   const AbstractType* type_;
+  Definition* owner_ = nullptr;
 };
 
 }  // namespace dart

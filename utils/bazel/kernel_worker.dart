@@ -15,10 +15,12 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:build_integration/file_system/multi_root.dart';
+import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
 import 'package:vm/target/vm.dart';
+import 'package:compiler/src/kernel/dart2js_target.dart';
 
 main(List<String> args) async {
   args = preprocessArgs(args);
@@ -30,8 +32,8 @@ main(List<String> args) async {
     }
     await new KernelWorker().run();
   } else {
-    var succeeded = await computeKernel(args);
-    if (!succeeded) {
+    var result = await computeKernel(args);
+    if (!result.succeeded) {
       exitCode = 15;
     }
   }
@@ -39,13 +41,38 @@ main(List<String> args) async {
 
 /// A bazel worker loop that can compute full or summary kernel files.
 class KernelWorker extends AsyncWorkerLoop {
+  fe.InitializedCompilerState previousState;
+
   Future<WorkResponse> performRequest(WorkRequest request) async {
     var outputBuffer = new StringBuffer();
     var response = new WorkResponse()..exitCode = 0;
     try {
-      var succeeded = await computeKernel(request.arguments,
-          isWorker: true, outputBuffer: outputBuffer);
-      if (!succeeded) {
+      fe.InitializedCompilerState previousStateToPass;
+      if (request.arguments.contains("--reuse-compiler-result")) {
+        previousStateToPass = previousState;
+      } else {
+        previousState = null;
+      }
+      ComputeKernelResult result;
+      // TODO(vsm): See https://github.com/dart-lang/sdk/issues/36644.
+      // If the CFE is crashing with previous state, then clear compilation
+      // state and try again.
+      try {
+        result = await computeKernel(request.arguments,
+            isWorker: true,
+            outputBuffer: outputBuffer,
+            inputs: request.inputs,
+            previousState: previousStateToPass);
+      } catch (_) {
+        outputBuffer.clear();
+        result = await computeKernel(request.arguments,
+            isWorker: true,
+            outputBuffer: outputBuffer,
+            inputs: request.inputs,
+            previousState: null);
+      }
+      previousState = result.previousState;
+      if (!result.succeeded) {
         response.exitCode = 15;
       }
     } catch (e, s) {
@@ -83,7 +110,7 @@ List<String> preprocessArgs(List<String> args) {
 
 /// An [ArgParser] for generating kernel summaries.
 final summaryArgsParser = new ArgParser()
-  ..addFlag('help', negatable: false)
+  ..addFlag('help', negatable: false, abbr: 'h')
   ..addFlag('exclude-non-sources',
       negatable: false,
       help: 'Whether source files loaded implicitly should be included as '
@@ -92,14 +119,27 @@ final summaryArgsParser = new ArgParser()
       defaultsTo: true,
       negatable: true,
       help: 'Whether to only build summary files.')
+  ..addOption('target',
+      allowed: const ['vm', 'dart2js', 'ddc'],
+      help: 'Build kernel for the vm, dart2js, or ddc')
   ..addOption('dart-sdk-summary')
   ..addMultiOption('input-summary')
   ..addMultiOption('input-linked')
   ..addMultiOption('multi-root')
   ..addOption('multi-root-scheme', defaultsTo: 'org-dartlang-multi-root')
+  ..addOption('libraries-file')
   ..addOption('packages-file')
   ..addMultiOption('source')
-  ..addOption('output');
+  ..addOption('output')
+  ..addFlag('reuse-compiler-result', defaultsTo: false)
+  ..addFlag('use-incremental-compiler', defaultsTo: false);
+
+class ComputeKernelResult {
+  final bool succeeded;
+  final fe.InitializedCompilerState previousState;
+
+  ComputeKernelResult(this.succeeded, this.previousState);
+}
 
 /// Computes a kernel file based on [args].
 ///
@@ -109,8 +149,11 @@ final summaryArgsParser = new ArgParser()
 /// instead of printed to the console.
 ///
 /// Returns whether or not the summary was successfully output.
-Future<bool> computeKernel(List<String> args,
-    {bool isWorker: false, StringBuffer outputBuffer}) async {
+Future<ComputeKernelResult> computeKernel(List<String> args,
+    {bool isWorker: false,
+    StringBuffer outputBuffer,
+    Iterable<Input> inputs,
+    fe.InitializedCompilerState previousState}) async {
   dynamic out = outputBuffer ?? stderr;
   bool succeeded = true;
   var parsedArgs = summaryArgsParser.parse(args);
@@ -118,7 +161,7 @@ Future<bool> computeKernel(List<String> args,
   if (parsedArgs['help']) {
     out.writeln(summaryArgsParser.usage);
     if (!isWorker) exit(0);
-    return false;
+    return new ComputeKernelResult(false, previousState);
   }
 
   // Bazel creates an overlay file system where some files may be located in the
@@ -128,37 +171,121 @@ Future<bool> computeKernel(List<String> args,
   if (multiRoots.isEmpty) multiRoots.add(Uri.base);
   var fileSystem = new MultiRootFileSystem(parsedArgs['multi-root-scheme'],
       multiRoots, fe.StandardFileSystem.instance);
-  var sources = (parsedArgs['source'] as List<String>).map(Uri.parse).toList();
-  Target target;
-  var summaryOnly = parsedArgs['summary-only'] as bool;
+  var sources =
+      (parsedArgs['source'] as List<String>).map(Uri.base.resolve).toList();
   var excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
+
+  var summaryOnly = parsedArgs['summary-only'] as bool;
+  // TODO(sigmund,jakemac): make target mandatory. We allow null to be backwards
+  // compatible while we migrate existing clients of this tool.
+  var targetName =
+      (parsedArgs['target'] as String) ?? (summaryOnly ? 'ddc' : 'vm');
   var targetFlags = new TargetFlags();
-  if (summaryOnly) {
-    target = new SummaryTarget(sources, excludeNonSources, targetFlags);
-  } else {
-    target = new VmTarget(targetFlags);
+  Target target;
+  switch (targetName) {
+    case 'vm':
+      target = new VmTarget(targetFlags);
+      if (summaryOnly) {
+        out.writeln('error: --summary-only not supported for the vm target');
+      }
+      break;
+    case 'dart2js':
+      target = new Dart2jsTarget('dart2js', targetFlags);
+      if (summaryOnly) {
+        out.writeln(
+            'error: --summary-only not supported for the dart2js target');
+      }
+      break;
+    case 'ddc':
+      // TODO(jakemac):If `generateKernel` changes to return a summary
+      // component, process the component instead.
+      target = new DevCompilerSummaryTarget(sources, excludeNonSources);
+      if (!summaryOnly) {
+        out.writeln('error: --no-summary-only not supported for the '
+            'ddc target');
+      }
+      break;
+    default:
+      out.writeln('error: unsupported target: $targetName');
   }
-  var state = await fe.initializeCompiler(
-      // TODO(sigmund): pass an old state once we can make use of it.
-      null,
-      Uri.base.resolve(parsedArgs['dart-sdk-summary']),
-      Uri.base.resolve(parsedArgs['packages-file']),
-      (parsedArgs['input-summary'] as List<String>)
-          .map(Uri.base.resolve)
-          .toList(),
-      (parsedArgs['input-linked'] as List<String>)
-          .map(Uri.base.resolve)
-          .toList(),
-      target,
-      fileSystem);
+
+  // TODO(sigmund,jakemac): make it mandatory. We allow null while we migrate
+  // existing clients of this tool.
+  var librariesSpec = parsedArgs['libraries-file'] == null
+      ? null
+      : Uri.base.resolve(parsedArgs['libraries-file']);
+
+  List<Uri> linkedInputs = (parsedArgs['input-linked'] as List<String>)
+      .map(Uri.base.resolve)
+      .toList();
+
+  List<Uri> summaryInputs = (parsedArgs['input-summary'] as List<String>)
+      .map(Uri.base.resolve)
+      .toList();
+
+  fe.InitializedCompilerState state;
+  bool usingIncrementalCompiler = false;
+  if (parsedArgs['use-incremental-compiler'] && linkedInputs.isEmpty) {
+    usingIncrementalCompiler = true;
+
+    /// Build a map of uris to digests.
+    final inputDigests = <Uri, List<int>>{};
+    for (var input in inputs) {
+      var uri = Uri.parse(input.path);
+      if (uri.scheme.isEmpty) {
+        uri = Uri.parse('file://${input.path}');
+      }
+      inputDigests[uri] = input.digest;
+    }
+
+    state = await fe.initializeIncrementalCompiler(
+        previousState,
+        Uri.base.resolve(parsedArgs['dart-sdk-summary']),
+        Uri.base.resolve(parsedArgs['packages-file']),
+        librariesSpec,
+        summaryInputs,
+        inputDigests,
+        target,
+        fileSystem,
+        summaryOnly);
+  } else {
+    state = await fe.initializeCompiler(
+        // TODO(sigmund): pass an old state once we can make use of it.
+        null,
+        Uri.base.resolve(parsedArgs['dart-sdk-summary']),
+        librariesSpec,
+        Uri.base.resolve(parsedArgs['packages-file']),
+        summaryInputs,
+        linkedInputs,
+        target,
+        fileSystem);
+  }
 
   void onDiagnostic(fe.DiagnosticMessage message) {
     fe.printDiagnosticMessage(message, out.writeln);
     succeeded = false;
   }
 
-  var kernel =
-      await fe.compile(state, sources, onDiagnostic, summaryOnly: summaryOnly);
+  List<int> kernel;
+  if (usingIncrementalCompiler) {
+    state.options.onDiagnostic = onDiagnostic;
+    Component incrementalComponent = await state.incrementalCompiler
+        .computeDelta(entryPoints: sources, fullComponent: true);
+
+    kernel = await state.incrementalCompiler.context.runInContext((_) {
+      if (summaryOnly) {
+        incrementalComponent.uriToSource.clear();
+        incrementalComponent.problemsAsJson = null;
+        incrementalComponent.mainMethod = null;
+        target.performOutlineTransformations(incrementalComponent);
+      }
+
+      return Future.value(fe.serializeComponent(incrementalComponent));
+    });
+  } else {
+    kernel = await fe.compile(state, sources, onDiagnostic,
+        summaryOnly: summaryOnly);
+  }
 
   if (kernel != null) {
     var outputFile = new File(parsedArgs['output']);
@@ -168,11 +295,11 @@ Future<bool> computeKernel(List<String> args,
     assert(!succeeded);
   }
 
-  return succeeded;
+  return new ComputeKernelResult(succeeded, state);
 }
 
-/// A target that transforms outlines to meet the requirements of summaries in
-/// bazel and package-build.
+/// Extends the DevCompilerTarget to transform outlines to meet the requirements
+/// of summaries in bazel and package-build.
 ///
 /// Build systems like package-build may provide the same input file twice to
 /// the summary worker, but only intends to have it in one output summary.  The
@@ -183,15 +310,15 @@ Future<bool> computeKernel(List<String> args,
 ///
 /// Note: this transformation is destructive and is only intended to be used
 /// when generating summaries.
-class SummaryTarget extends NoneTarget {
+class DevCompilerSummaryTarget extends DevCompilerTarget {
   final List<Uri> sources;
   final bool excludeNonSources;
 
-  SummaryTarget(this.sources, this.excludeNonSources, TargetFlags flags)
-      : super(flags);
+  DevCompilerSummaryTarget(this.sources, this.excludeNonSources);
 
   @override
   void performOutlineTransformations(Component component) {
+    super.performOutlineTransformations(component);
     if (!excludeNonSources) return;
 
     List<Library> libraries = new List.from(component.libraries);

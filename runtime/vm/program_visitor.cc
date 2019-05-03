@@ -34,7 +34,7 @@ void ProgramVisitor::VisitClasses(ClassVisitor* visitor) {
       }
       visitor->Visit(cls);
     }
-    patches = lib.patch_classes();
+    patches = lib.owned_scripts();
     for (intptr_t j = 0; j < patches.Length(); j++) {
       entry = patches.At(j);
       if (entry.IsClass()) {
@@ -81,8 +81,8 @@ class ClassFunctionVisitor : public ClassVisitor {
     fields_ = cls.fields();
     for (intptr_t j = 0; j < fields_.Length(); j++) {
       field_ ^= fields_.At(j);
-      if (field_.is_static() && field_.HasInitializer()) {
-        function_ ^= field_.Initializer();
+      if (field_.is_static() && field_.HasInitializerFunction()) {
+        function_ ^= field_.InitializerFunction();
         visitor_->Visit(function_);
       }
     }
@@ -320,7 +320,7 @@ void ProgramVisitor::DedupPcDescriptors() {
 
     void Visit(const Function& function) {
       bytecode_ = function.bytecode();
-      if (!bytecode_.IsNull()) {
+      if (!bytecode_.IsNull() && !bytecode_.InVMIsolateHeap()) {
         pc_descriptor_ = bytecode_.pc_descriptors();
         if (!pc_descriptor_.IsNull()) {
           pc_descriptor_ = DedupPcDescriptor(pc_descriptor_);
@@ -653,7 +653,8 @@ void ProgramVisitor::DedupLists() {
         if (FLAG_precompiled_mode) {
           if (!function.IsSignatureFunction() &&
               !function.IsClosureFunction() &&
-              (function.name() != Symbols::Call().raw()) && !list_.InVMHeap()) {
+              (function.name() != Symbols::Call().raw()) &&
+              !list_.InVMIsolateHeap()) {
             // Parameter types not needed for function type tests.
             for (intptr_t i = 0; i < list_.Length(); i++) {
               list_.SetAt(i, Object::dynamic_type());
@@ -668,7 +669,8 @@ void ProgramVisitor::DedupLists() {
       if (!list_.IsNull()) {
         // Preserve parameter names in case of recompilation for the JIT.
         if (FLAG_precompiled_mode) {
-          if (!function.HasOptionalNamedParameters() && !list_.InVMHeap()) {
+          if (!function.HasOptionalNamedParameters() &&
+              !list_.InVMIsolateHeap()) {
             // Parameter names not needed for resolution.
             for (intptr_t i = 0; i < list_.Length(); i++) {
               list_.SetAt(i, Symbols::OptimizedOut());
@@ -681,7 +683,7 @@ void ProgramVisitor::DedupLists() {
     }
 
     RawArray* DedupList(const Array& list) {
-      if (list.InVMHeap()) {
+      if (list.InVMIsolateHeap()) {
         // Avoid using read-only VM objects for de-duplication.
         return list.raw();
       }

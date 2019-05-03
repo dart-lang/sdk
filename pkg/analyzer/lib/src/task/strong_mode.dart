@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -156,6 +156,7 @@ class InstanceMemberInferrer {
       DartType type = matchingParameter?.type ?? typeProvider.dynamicType;
       if (parameterType == null) {
         if (type is FunctionType &&
+            type.element != null &&
             type.element is! TypeDefiningElement &&
             type.element.enclosingElement is! TypeDefiningElement) {
           // The resulting parameter's type element has an `enclosingElement` of

@@ -16,6 +16,7 @@ String platformPath() => computePlatformBinariesLocation()
     .toFilePath();
 
 const String mainScript = 'pkg/vm/bin/gen_kernel.dart';
+const String mainScriptPackageUri = 'package:vm/kernel_front_end.dart';
 const String packagesFile = '.packages';
 
 void testCompile(List<String> args) async {
@@ -62,6 +63,22 @@ main() {
       '--output',
       outputDill(),
       'test-filesystem-scheme:///$mainScript',
+    ]);
+  });
+
+  test('compile-multi-root-with-package-uri-main', () async {
+    await testCompile([
+      '--platform',
+      platformPath(),
+      '--filesystem-scheme',
+      'test-filesystem-scheme',
+      '--filesystem-root',
+      sdkDir,
+      '--packages',
+      'test-filesystem-scheme:///$packagesFile',
+      '--output',
+      outputDill(),
+      '$mainScriptPackageUri',
     ]);
   });
 

@@ -27,16 +27,6 @@ def BuildArchitectures():
  else:
    return ['ia32', 'x64']
 
-def BuildSDK():
-  with bot.BuildStep('Build SDK'):
-    if BUILD_OS == 'linux':
-      sysroot_env = dict(os.environ)
-      sysroot_env['DART_USE_WHEEZY'] = '1'
-      Run([sys.executable, './tools/generate_buildfiles.py'], env=sysroot_env)
-    for arch in BuildArchitectures():
-      Run([sys.executable, './tools/build.py', '--mode=release',
-           '--arch=' + arch, 'create_sdk'])
-
 def BuildDartdocAPIDocs(dirname):
   dart_sdk = os.path.join(bot_utils.DART_DIR,
                           utils.GetBuildRoot(BUILD_OS, 'release',
@@ -76,10 +66,19 @@ def CreateUploadSDKZips():
       sdk_path = os.path.join(bot_utils.DART_DIR,
                               utils.GetBuildRoot(BUILD_OS, 'release', arch),
                               'dart-sdk')
+      product_sdk_path = os.path.join(bot_utils.DART_DIR,
+                              utils.GetBuildRoot(BUILD_OS, 'product', arch),
+                              'dart-sdk')
       sdk_zip = os.path.join(bot_utils.DART_DIR,
                              utils.GetBuildRoot(BUILD_OS, 'release', arch),
                              'dartsdk-%s-%s.zip' % (BUILD_OS, arch))
       FileDelete(sdk_zip)
+      # We don't support precompilation on ia32.
+      if arch != 'ia32':
+        # Patch in all the PRODUCT built AOT binaries.
+        CopyBetween(product_sdk_path, sdk_path, 'bin', 'utils', GuessExtension('gen_snapshot'))
+        CopyBetween(product_sdk_path, sdk_path, 'bin', GuessExtension('dartaotruntime'))
+      # Zip it up.
       CreateZip(sdk_path, sdk_zip)
       DartArchiveUploadSDKs(BUILD_OS, arch, sdk_zip)
 
@@ -102,11 +101,6 @@ def DartArchiveUnstrippedBinaries():
     gs_path = namer.unstripped_filepath(revision, BUILD_OS, arch)
     DartArchiveFile(binary, gs_path)
 
-def CreateUploadSDK():
-  BuildSDK()
-  CreateUploadSDKZips()
-  DartArchiveUnstrippedBinaries()
-
 def CreateUploadAPIDocs():
   dartdoc_dir = os.path.join(bot_utils.DART_DIR,
                              utils.GetBuildRoot(BUILD_OS, 'release',
@@ -116,7 +110,7 @@ def CreateUploadAPIDocs():
                              utils.GetBuildRoot(BUILD_OS, 'release',
                                                 BUILD_ARCHITECTURE),
                              'dartdocs-api.zip')
-  if CHANNEL == 'try':
+  if CHANNEL == bot_utils.Channel.TRY:
     BuildDartdocAPIDocs(dartdoc_dir)
   else:
     UploadApiLatestFile()
@@ -201,6 +195,21 @@ def FileDelete(f):
   if os.path.exists(f):
     os.remove(f)
 
+def CopyBetween(src_path, dst_path, *relatives):
+  try:
+    os.makedirs(os.path.join(dst_path, *relatives[:-1]))
+  except OSError:
+    # This is fine.
+    pass
+  shutil.copy2(
+      os.path.join(src_path, *relatives),
+      os.path.join(dst_path, *relatives[:-1]))
+
+def GuessExtension(binary):
+  if 'win' in BUILD_OS:
+    return binary + '.exe'
+  return binary
+
 def DartArchiveFile(local_path, remote_path, checksum_files=False):
   gsutil = bot_utils.GSUtil()
   gsutil.upload(local_path, remote_path, public=True)
@@ -226,11 +235,8 @@ if __name__ == '__main__':
   if len(sys.argv) > 1 and sys.argv[1] == 'api_docs':
     if BUILD_OS == 'linux':
       CreateUploadAPIDocs()
-  else:
-    # We always clobber the bot, to make sure releases are build from scratch
-    force = CHANNEL != bot_utils.Channel.BLEEDING_EDGE
-    bot.Clobber(force=force)
-
-    CreateUploadSDK()
+  elif CHANNEL != bot_utils.Channel.TRY:
+    CreateUploadSDKZips()
+    DartArchiveUnstrippedBinaries()
     if BUILD_OS == 'linux':
       CreateUploadVersionFile()

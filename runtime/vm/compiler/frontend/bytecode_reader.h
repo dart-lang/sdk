@@ -28,6 +28,20 @@ class BytecodeMetadataHelper : public MetadataHelper {
 
   void ReadMetadata(const Function& function);
 
+  void ParseBytecodeFunction(ParsedFunction* parsed_function);
+  void ParseBytecodeImplicitClosureFunction(ParsedFunction* parsed_function);
+
+  // Reads members associated with given [node_offset] and fills in [cls].
+  // Discards fields if [discard_fields] is true.
+  // Returns true if class members are loaded.
+  bool ReadMembers(intptr_t node_offset, const Class& cls, bool discard_fields);
+
+  // Read annotation at given offset.
+  RawObject* ReadAnnotation(intptr_t annotation_offset);
+
+  RawLibrary* GetMainLibrary();
+
+  RawArray* GetBytecodeComponent();
   RawArray* ReadBytecodeComponent();
 
  private:
@@ -43,9 +57,35 @@ class BytecodeReaderHelper : public ValueObject {
                                 ActiveClass* active_class,
                                 BytecodeComponentData* bytecode_component);
 
-  void ReadMemberBytecode(const Function& function, intptr_t md_offset);
+  void ReadCode(const Function& function, intptr_t code_offset);
+
+  void ReadMembers(const Class& cls,
+                   intptr_t members_offset,
+                   bool discard_fields);
+
+  void ReadFieldDeclarations(const Class& cls, bool discard_fields);
+  void ReadFunctionDeclarations(const Class& cls);
+
+  void ParseBytecodeFunction(ParsedFunction* parsed_function,
+                             const Function& function);
+
+  RawLibrary* ReadMain();
 
   RawArray* ReadBytecodeComponent(intptr_t md_offset);
+  RawArray* ReadBytecodeComponentV2(intptr_t md_offset);
+
+  // Fills in [is_covariant] and [is_generic_covariant_impl] vectors
+  // according to covariance attributes of [function] parameters.
+  //
+  // [function] should be declared in bytecode.
+  // [is_covariant] and [is_generic_covariant_impl] should contain bitvectors
+  // of function.NumParameters() length.
+  void ReadParameterCovariance(const Function& function,
+                               BitVector* is_covariant,
+                               BitVector* is_generic_covariant_impl);
+
+  // Read bytecode PackedObject.
+  RawObject* ReadObject();
 
  private:
   // These constants should match corresponding constants in class ObjectHandle
@@ -59,6 +99,25 @@ class BytecodeReaderHelper : public ValueObject {
   static const int kFlagBit2 = 1 << 7;
   static const int kFlagBit3 = 1 << 8;
   static const int kFlagsMask = (kFlagBit0 | kFlagBit1 | kFlagBit2 | kFlagBit3);
+
+  // Code flags, must be in sync with Code constants in
+  // pkg/vm/lib/bytecode/declarations.dart.
+  struct Code {
+    static const int kHasExceptionsTableFlag = 1 << 0;
+    static const int kHasSourcePositionsFlag = 1 << 1;
+    static const int kHasNullableFieldsFlag = 1 << 2;
+    static const int kHasClosuresFlag = 1 << 3;
+    static const int kHasParameterFlagsFlag = 1 << 4;
+    static const int kHasForwardingStubTargetFlag = 1 << 5;
+    static const int kHasDefaultFunctionTypeArgsFlag = 1 << 6;
+  };
+
+  // Parameter flags, must be in sync with ParameterDeclaration constants in
+  // pkg/vm/lib/bytecode/declarations.dart.
+  struct Parameter {
+    static const int kIsCovariantFlag = 1 << 0;
+    static const int kIsGenericCovariantImplFlag = 1 << 1;
+  };
 
   class FunctionTypeScope : public ValueObject {
    public:
@@ -76,6 +135,32 @@ class BytecodeReaderHelper : public ValueObject {
     TypeArguments* const saved_type_parameters_;
   };
 
+  class FunctionScope : public ValueObject {
+   public:
+    FunctionScope(BytecodeReaderHelper* bytecode_reader,
+                  const Function& function,
+                  const String& name,
+                  const Class& cls)
+        : bytecode_reader_(bytecode_reader) {
+      ASSERT(bytecode_reader_->scoped_function_.IsNull());
+      ASSERT(bytecode_reader_->scoped_function_name_.IsNull());
+      ASSERT(bytecode_reader_->scoped_function_class_.IsNull());
+      ASSERT(name.IsSymbol());
+      bytecode_reader_->scoped_function_ = function.raw();
+      bytecode_reader_->scoped_function_name_ = name.raw();
+      bytecode_reader_->scoped_function_class_ = cls.raw();
+    }
+
+    ~FunctionScope() {
+      bytecode_reader_->scoped_function_ = Function::null();
+      bytecode_reader_->scoped_function_name_ = String::null();
+      bytecode_reader_->scoped_function_class_ = Class::null();
+    }
+
+   private:
+    BytecodeReaderHelper* bytecode_reader_;
+  };
+
   void ReadClosureDeclaration(const Function& function, intptr_t closureIndex);
   RawType* ReadFunctionSignature(const Function& func,
                                  bool has_optional_positional_params,
@@ -83,8 +168,7 @@ class BytecodeReaderHelper : public ValueObject {
                                  bool has_type_params,
                                  bool has_positional_param_names);
   void ReadTypeParametersDeclaration(const Class& parameterized_class,
-                                     const Function& parameterized_function,
-                                     intptr_t num_type_params);
+                                     const Function& parameterized_function);
 
   void ReadConstantPool(const Function& function, const ObjectPool& pool);
   RawBytecode* ReadBytecode(const ObjectPool& pool);
@@ -92,20 +176,30 @@ class BytecodeReaderHelper : public ValueObject {
   void ReadSourcePositions(const Bytecode& bytecode, bool has_source_positions);
   RawTypedData* NativeEntry(const Function& function,
                             const String& external_name);
+  RawString* ConstructorName(const Class& cls, const String& name);
 
-  RawObject* ReadObject();
   RawObject* ReadObjectContents(uint32_t header);
   RawObject* ReadConstObject(intptr_t tag);
   RawString* ReadString(bool is_canonical = true);
   RawTypeArguments* ReadTypeArguments(const Class& instantiator);
+  RawPatchClass* GetPatchClass(const Class& cls, const Script& script);
+  void ParseForwarderFunction(ParsedFunction* parsed_function,
+                              const Function& function,
+                              const Function& target);
 
   KernelReaderHelper* const helper_;
   TranslationHelper& translation_helper_;
   ActiveClass* const active_class_;
   Zone* const zone_;
   BytecodeComponentData* const bytecode_component_;
-  Array* closures_;
-  TypeArguments* function_type_type_parameters_;
+  Array* closures_ = nullptr;
+  TypeArguments* function_type_type_parameters_ = nullptr;
+  PatchClass* patch_class_ = nullptr;
+  Array* functions_ = nullptr;
+  intptr_t function_index_ = 0;
+  Function& scoped_function_;
+  String& scoped_function_name_;
+  Class& scoped_function_class_;
 
   DISALLOW_COPY_AND_ASSIGN(BytecodeReaderHelper);
 };
@@ -117,6 +211,11 @@ class BytecodeComponentData : ValueObject {
     kStringsHeaderOffset,
     kStringsContentsOffset,
     kObjectsContentsOffset,
+    kMainOffset,
+    kMembersOffset,
+    kCodesOffset,
+    kSourcePositionsOffset,
+    kAnnotationsOffset,
     kNumFields
   };
 
@@ -126,6 +225,11 @@ class BytecodeComponentData : ValueObject {
   intptr_t GetStringsHeaderOffset() const;
   intptr_t GetStringsContentsOffset() const;
   intptr_t GetObjectsContentsOffset() const;
+  intptr_t GetMainOffset() const;
+  intptr_t GetMembersOffset() const;
+  intptr_t GetCodesOffset() const;
+  intptr_t GetSourcePositionsOffset() const;
+  intptr_t GetAnnotationsOffset() const;
   void SetObject(intptr_t index, const Object& obj) const;
   RawObject* GetObject(intptr_t index) const;
 
@@ -137,6 +241,11 @@ class BytecodeComponentData : ValueObject {
                        intptr_t strings_header_offset,
                        intptr_t strings_contents_offset,
                        intptr_t objects_contents_offset,
+                       intptr_t main_offset,
+                       intptr_t members_offset,
+                       intptr_t codes_offset,
+                       intptr_t source_positions_offset,
+                       intptr_t annotations_offset,
                        Heap::Space space);
 
  private:
@@ -149,6 +258,9 @@ class BytecodeReader : public AllStatic {
   // Returns error (if any), or null.
   static RawError* ReadFunctionBytecode(Thread* thread,
                                         const Function& function);
+
+  // Read annotation for the given annotation field.
+  static RawObject* ReadAnnotation(const Field& annotation_field);
 };
 
 class BytecodeSourcePositionsIterator : ValueObject {
@@ -190,6 +302,9 @@ class BytecodeSourcePositionsIterator : ValueObject {
   intptr_t cur_bci_;
   intptr_t cur_token_pos_;
 };
+
+bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
+                                               Zone* zone);
 
 }  // namespace kernel
 }  // namespace dart

@@ -19,9 +19,10 @@ void TimelineEventFuchsiaRecorder::OnEvent(TimelineEvent* event) {
   if (event == NULL) {
     return;
   }
+  TimelineStream* stream = event->stream_;
   trace_string_ref_t category;
-  trace_context_t* context =
-      trace_acquire_context_for_category("dart", &category);
+  trace_context_t* context = trace_acquire_context_for_category_cached(
+      stream->fuchsia_name(), stream->trace_site(), &category);
   if (context == NULL) {
     return;
   }

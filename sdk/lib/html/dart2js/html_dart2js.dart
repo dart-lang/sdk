@@ -9805,7 +9805,7 @@ class Document extends Node {
         tag, {'prototype': customElementClass, 'extends': extendsTag});
   }
 
-  @ForceInline() // Almost all call sites have one argument.
+  @pragma('dart2js:tryInline') // Almost all call sites have one argument.
   Element createElement(String tagName, [String typeExtension]) {
     return (typeExtension == null)
         ? _createElement_2(tagName)
@@ -10086,6 +10086,15 @@ class DomException extends Interceptor {
   static const String TIMEOUT = 'TimeoutError';
   static const String INVALID_NODE_TYPE = 'InvalidNodeTypeError';
   static const String DATA_CLONE = 'DataCloneError';
+  static const String ENCODING = 'EncodingError';
+  static const String NOT_READABLE = 'NotReadableError';
+  static const String UNKNOWN = 'UnknownError';
+  static const String CONSTRAINT = 'ConstraintError';
+  static const String TRANSACTION_INACTIVE = 'TransactionInactiveError';
+  static const String READ_ONLY = 'ReadOnlyError';
+  static const String VERSION = 'VersionError';
+  static const String OPERATION = 'OperationError';
+  static const String NOT_ALLOWED = 'NotAllowedError';
   // Is TypeError class derived from DomException but name is 'TypeError'
   static const String TYPE_ERROR = 'TypeError';
 
@@ -14869,7 +14878,7 @@ class Event extends Interceptor {
       _convertNativeToDart_EventTarget(this._get_currentTarget);
   @JSName('currentTarget')
   @Creates('Null')
-  @Returns('EventTarget|=Object')
+  @Returns('EventTarget|=Object|Null')
   final dynamic _get_currentTarget;
 
   final bool defaultPrevented;
@@ -21153,7 +21162,7 @@ class MouseEvent extends UIEvent {
       _convertNativeToDart_EventTarget(this._get_relatedTarget);
   @JSName('relatedTarget')
   @Creates('Node')
-  @Returns('EventTarget|=Object')
+  @Returns('EventTarget|=Object|Null')
   final dynamic _get_relatedTarget;
 
   @JSName('screenX')
@@ -22977,7 +22986,8 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
   CanvasPattern createPattern(
-      /*CanvasImageSource*/ image, String repetitionType) native;
+      /*CanvasImageSource*/ image,
+      String repetitionType) native;
 
   CanvasGradient createRadialGradient(
       num x0, num y0, num r0, num x1, num y1, num r1) native;
@@ -23353,7 +23363,8 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
   CanvasPattern createPattern(
-      /*CanvasImageSource*/ image, String repetitionType) native;
+      /*CanvasImageSource*/ image,
+      String repetitionType) native;
 
   CanvasGradient createRadialGradient(
       num x0, num y0, num r0, num x1, num y1, num r1) native;
@@ -35215,7 +35226,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return value is String && _classListContains(_classListOf(_element), value);
   }
 
-  @ForceInline()
+  @pragma('dart2js:tryInline')
   static bool _add(Element _element, String value) {
     DomTokenList list = _classListOf(_element);
     // Compute returned result independently of action upon the set.
@@ -35224,7 +35235,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return added;
   }
 
-  @ForceInline()
+  @pragma('dart2js:tryInline')
   static bool _remove(Element _element, String value) {
     DomTokenList list = _classListOf(_element);
     bool removed = _classListContainsBeforeAddOrRemove(list, value);
@@ -35560,7 +35571,7 @@ class _EventStream<T extends Event> extends Stream<T> {
 
   // TODO(9757): Inlining should be smart and inline only when inlining would
   // enable scalar replacement of an immediately allocated receiver.
-  @ForceInline()
+  @pragma('dart2js:tryInline')
   StreamSubscription<T> listen(void onData(T event),
       {Function onError, void onDone(), bool cancelOnError}) {
     return new _EventStreamSubscription<T>(

@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,10 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ArgumentTypeNotAssignableTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
+class ArgumentTypeNotAssignableTest extends DriverResolutionTest {
   test_functionType() async {
     await assertErrorsInCode(r'''
 m() {
@@ -27,7 +24,9 @@ m() {
 class A {
   n(void f(int i)) {}
 }
-''', [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 7),
+    ]);
   }
 
   test_interfaceType() async {
@@ -37,6 +36,8 @@ m() {
   n(i);
 }
 n(int i) {}
-''', [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 24, 1),
+    ]);
   }
 }

@@ -104,6 +104,11 @@ def _PromoteDartArchiveBuild(channel, revision):
         raise Exception(
             "InternalError: Sanity check failed on GS URI: %s" % gs_path)
 
+    def exists(gs_path):
+      (_, _, exit_code) = Gsutil(['ls', gs_path], throw_on_error=False)
+      # gsutil will exit 0 if the "directory" exists
+      return exit_code == 0
+
     # Google cloud storage has read-after-write, read-after-update,
     # and read-after-delete consistency, but not list after delete consistency.
     # Because gsutil uses list to figure out if it should do the unix styly
@@ -111,19 +116,17 @@ def _PromoteDartArchiveBuild(channel, revision):
     # still being there (after it has been deleted) gsutil will copy
     # into the directory instead of to the directory.
     def wait_for_delete_to_be_consistent_with_list(gs_path):
-      while True:
-        if DRY_RUN:
-          break
-        (_, _, exit_code) = Gsutil(['ls', gs_path], throw_on_error=False)
-        # gsutil will exit 1 if the "directory" does not exist
-        if exit_code != 0:
-          break
+      if DRY_RUN:
+        return
+      while exists(gs_path):
         time.sleep(1)
 
     def remove_gs_directory(gs_path):
       safety_check_on_gs_path(gs_path, to_revision, channel)
-      Gsutil(['-m', 'rm', '-R', '-f', gs_path])
-      wait_for_delete_to_be_consistent_with_list(gs_path)
+      # Only delete existing directories
+      if exists(gs_path):
+        Gsutil(['-m', 'rm', '-R', '-f', gs_path])
+        wait_for_delete_to_be_consistent_with_list(gs_path)
 
     # Copy sdk directory.
     from_loc = raw_namer.sdk_directory(revision)

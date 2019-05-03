@@ -8,7 +8,6 @@ export 'package:analyzer/src/analysis_options/error/option_codes.dart';
 export 'package:analyzer/src/dart/error/hint_codes.dart';
 export 'package:analyzer/src/dart/error/lint_codes.dart';
 export 'package:analyzer/src/dart/error/todo_codes.dart';
-export 'package:analyzer/src/html/error/html_codes.dart';
 
 /**
  * The error codes used for compile time errors caused by constant evaluation
@@ -35,7 +34,7 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
       const CheckedModeCompileTimeErrorCode(
           'CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
           "A value of type '{0}' can't be assigned to the field '{1}', which "
-          "has type '{2}'.");
+              "has type '{2}'.");
 
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -46,7 +45,7 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
       const CheckedModeCompileTimeErrorCode(
           'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
           "A value of type '{0}' can't be assigned to a parameter of type "
-          "'{1}'.");
+              "'{1}'.");
 
   /**
    * 7.6.1 Generative Constructors: In checked mode, it is a dynamic type error
@@ -65,78 +64,7 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
       const CheckedModeCompileTimeErrorCode(
           'CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
           "The initializer type '{0}' can't be assigned to the field type "
-          "'{1}'.");
-
-  /**
-   * 12.6 Lists: A run-time list literal &lt;<i>E</i>&gt; [<i>e<sub>1</sub></i>
-   * ... <i>e<sub>n</sub></i>] is evaluated as follows:
-   * * The operator []= is invoked on <i>a</i> with first argument <i>i</i> and
-   *   second argument <i>o<sub>i+1</sub></i><i>, 1 &lt;= i &lt;= n</i>
-   *
-   * 12.14.2 Binding Actuals to Formals: Let <i>T<sub>i</sub></i> be the static
-   * type of <i>a<sub>i</sub></i>, let <i>S<sub>i</sub></i> be the type of
-   * <i>p<sub>i</sub>, 1 &lt;= i &lt;= n+k</i> and let <i>S<sub>q</sub></i> be
-   * the type of the named parameter <i>q</i> of <i>f</i>. It is a static
-   * warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>,
-   * 1 &lt;= j &lt;= m</i>.
-   *
-   * Parameters:
-   * 0: the actual type of the list element
-   * 1: the expected type of the list element
-   */
-  static const CheckedModeCompileTimeErrorCode
-      LIST_ELEMENT_TYPE_NOT_ASSIGNABLE = const CheckedModeCompileTimeErrorCode(
-          'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
-          "The element type '{0}' can't be assigned to the list type '{1}'.");
-
-  /**
-   * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt;
-   * [<i>k<sub>1</sub></i> : <i>e<sub>1</sub></i> ... <i>k<sub>n</sub></i> :
-   * <i>e<sub>n</sub></i>] is evaluated as follows:
-   * * The operator []= is invoked on <i>m</i> with first argument
-   *   <i>k<sub>i</sub></i> and second argument <i>e<sub>i</sub></i><i>, 1 &lt;=
-   *   i &lt;= n</i>
-   *
-   * 12.14.2 Binding Actuals to Formals: Let <i>T<sub>i</sub></i> be the static
-   * type of <i>a<sub>i</sub></i>, let <i>S<sub>i</sub></i> be the type of
-   * <i>p<sub>i</sub>, 1 &lt;= i &lt;= n+k</i> and let <i>S<sub>q</sub></i> be
-   * the type of the named parameter <i>q</i> of <i>f</i>. It is a static
-   * warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1
-   * &lt;= j &lt;= m</i>.
-   */
-  static const CheckedModeCompileTimeErrorCode MAP_KEY_TYPE_NOT_ASSIGNABLE =
-      const CheckedModeCompileTimeErrorCode('MAP_KEY_TYPE_NOT_ASSIGNABLE',
-          "The element type '{0}' can't be assigned to the map key type '{1}'.");
-
-  /**
-   * 12.7 Map: A run-time map literal &lt;<i>K</i>, <i>V</i>&gt;
-   * [<i>k<sub>1</sub></i> : <i>e<sub>1</sub></i> ... <i>k<sub>n</sub></i> :
-   * <i>e<sub>n</sub></i>] is evaluated as follows:
-   * * The operator []= is invoked on <i>m</i> with first argument
-   *   <i>k<sub>i</sub></i> and second argument <i>e<sub>i</sub></i><i>, 1 &lt;=
-   *   i &lt;= n</i>
-   *
-   * 12.14.2 Binding Actuals to Formals: Let <i>T<sub>i</sub></i> be the static
-   * type of <i>a<sub>i</sub></i>, let <i>S<sub>i</sub></i> be the type of
-   * <i>p<sub>i</sub>, 1 &lt;= i &lt;= n+k</i> and let <i>S<sub>q</sub></i> be
-   * the type of the named parameter <i>q</i> of <i>f</i>. It is a static
-   * warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1
-   * &lt;= j &lt;= m</i>.
-   */
-  static const CheckedModeCompileTimeErrorCode MAP_VALUE_TYPE_NOT_ASSIGNABLE =
-      const CheckedModeCompileTimeErrorCode(
-          'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
-          "The element type '{0}' can't be assigned to the map value type "
-          "'{1}'.");
-
-  /**
-   * Parameters:
-   * 0: the actual type of the set element
-   * 1: the expected type of the set element
-   */
-  static const CheckedModeCompileTimeErrorCode SET_ELEMENT_TYPE_NOT_ASSIGNABLE =
-      const CheckedModeCompileTimeErrorCode('SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
-          "The element type '{0}' can't be assigned to the set type '{1}'.");
+              "'{1}'.");
 
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -146,7 +74,7 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
       const CheckedModeCompileTimeErrorCode(
           'VARIABLE_TYPE_MISMATCH',
           "A value of type '{0}' can't be assigned to a variable of type "
-          "'{1}'.");
+              "'{1}'.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
@@ -194,7 +122,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'ACCESS_PRIVATE_ENUM_FIELD',
           "The private fields of an enum can't be accessed, even within the "
-          "same library.");
+              "same library.");
 
   /**
    * 14.2 Exports: It is a compile-time error if a name <i>N</i> is re-exported
@@ -212,6 +140,26 @@ class CompileTimeErrorCode extends ErrorCode {
           "The name '{0}' is defined in the libraries '{1}' and '{2}'.",
           correction: "Try removing the export of one of the libraries, or "
               "explicitly hiding the name in one of the export directives.");
+
+  static const CompileTimeErrorCode AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH =
+      const CompileTimeErrorCode(
+          'AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH',
+          "This literal must be both a map and a set, because some elements "
+              "spread a 'Map' and others spread an 'Iterable', but that isn't "
+              "allowed.",
+          correction:
+              "Try removing or changing some of the elements so that all of "
+              "the elements are consistent.");
+
+  static const CompileTimeErrorCode AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER =
+      const CompileTimeErrorCode(
+          'AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER',
+          "This literal must be either a map or a set, but none of the "
+              "elements have enough type information to know which, and that isn't "
+              "allowed.",
+          correction:
+              "Try adding type arguments to the literal (one for sets, two "
+              "for maps).");
 
   /**
    * 15 Metadata: The constant expression given in an annotation is type checked
@@ -239,18 +187,6 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
       const CompileTimeErrorCode('ANNOTATION_WITH_TYPE_ARGUMENTS',
           "An annotation (metadata) can't use type arguments.");
-
-  /**
-   * 12.33 Argument Definition Test: It is a compile time error if <i>v</i> does
-   * not denote a formal parameter.
-   *
-   * Parameters:
-   * 0: the name of the identifier in the argument definition test that is not a
-   *    parameter
-   */
-  static const CompileTimeErrorCode ARGUMENT_DEFINITION_TEST_NON_PARAMETER =
-      const CompileTimeErrorCode(
-          'ARGUMENT_DEFINITION_TEST_NON_PARAMETER', "'{0}' isn't a parameter.");
 
   /**
    * 17.6.3 Asynchronous For-in: It is a compile-time error if an asynchronous
@@ -339,22 +275,6 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try choosing a different name for the type parameter.");
 
   /**
-   * 16.33 Identifier Reference: It is a compile-time error if a built-in
-   * identifier is used as the declared name of a prefix, class, type parameter
-   * or type alias.
-   *
-   * Parameters:
-   * 0: the built-in identifier that is being used
-   *
-   * TODO(scheglov) It would be nice to get more specific errors.
-   * https://github.com/dart-lang/sdk/issues/31811
-   */
-  static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_IN_DECLARATION =
-      const CompileTimeErrorCode('BUILT_IN_IDENTIFIER_IN_DECLARATION',
-          "The built-in identifier '{0}' can't be used as a name.",
-          correction: "Try choosing a different name.");
-
-  /**
    * 13.9 Switch: It is a compile-time error if the class <i>C</i> implements
    * the operator <i>==</i>.
    *
@@ -377,7 +297,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD',
           "'{0}' can't be used to name both a constructor and a static field "
-          "in this class.",
+              "in this class.",
           correction: "Try renaming either the constructor or the field.");
 
   /**
@@ -392,7 +312,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD',
           "'{0}' can't be used to name both a constructor and a static method "
-          "in this class.",
+              "in this class.",
           correction: "Try renaming either the constructor or the method.");
 
   /**
@@ -409,9 +329,9 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONFLICTING_FIELD_AND_METHOD',
           "Class '{0}' can't define field '{1}' and have method '{2}.{1}' "
-          "with the same name.",
+              "with the same name.",
           correction: "Try converting the getter to a method, or "
-              "renaming the field to a name that doesn't conflit.");
+              "renaming the field to a name that doesn't conflict.");
 
   /**
    * 10.10 Superinterfaces: It is a compile-time error if a class `C` has two
@@ -428,7 +348,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONFLICTING_GENERIC_INTERFACES',
           "The class '{0}' cannot implement both '{1}' and '{2}' because the "
-          "type arguments are different.");
+              "type arguments are different.");
 
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
@@ -444,9 +364,9 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONFLICTING_METHOD_AND_FIELD',
           "Class '{0}' can't define method '{1}' and have field '{2}.{1}' "
-          "with the same name.",
+              "with the same name.",
           correction: "Try converting the method to a getter, or "
-              "renaming the method to a name that doesn't conflit.");
+              "renaming the method to a name that doesn't conflict.");
 
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
@@ -462,9 +382,9 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONFLICTING_STATIC_AND_INSTANCE',
           "Class '{0}' can't define static member '{1}' and have instance "
-          "member '{2}.{1}' with the same name.",
+              "member '{2}.{1}' with the same name.",
           correction:
-              "Try renaming the member to a name that doesn't conflit.");
+              "Try renaming the member to a name that doesn't conflict.");
 
   /**
    * 7. Classes: It is a compile time error if a generic class declares a type
@@ -478,7 +398,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONFLICTING_TYPE_VARIABLE_AND_CLASS',
           "'{0}' can't be used to name both a type variable and the class in "
-          "which the type variable is defined.",
+              "which the type variable is defined.",
           correction: "Try renaming either the type variable or the class.");
 
   /**
@@ -493,14 +413,8 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
           "'{0}' can't be used to name both a type variable and a member in "
-          "this class.",
+              "this class.",
           correction: "Try renaming either the type variable or the member.");
-
-  static const CompileTimeErrorCode
-      CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION =
-      const CompileTimeErrorCode(
-          'CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION',
-          "Can't extend a mixin application and be 'const'.");
 
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -525,7 +439,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST',
           "Can't define the const constructor because the field '{0}' "
-          "is initialized with a non-constant value.",
+              "is initialized with a non-constant value.",
           correction: "Try initializing the field to a constant value, or "
               "removing the keyword 'const' from the constructor.");
 
@@ -544,7 +458,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
           "Const constructor can't be declared for a class with a mixin "
-          "that declares an instance field.",
+              "that declares an instance field.",
           correction: "Try removing the 'const' keyword or "
               "removing the 'with' clause from the class declaration, "
               "or removing fields from the mixin class.");
@@ -562,7 +476,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER',
           "Constant constructor can't call non-constant super constructor of "
-          "'{0}'.",
+              "'{0}'.",
           correction: "Try calling a const constructor in the superclass, or "
               "removing the keyword 'const' from the constructor.");
 
@@ -618,7 +532,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library can't be used to "
-          "initialized a const variable.",
+              "initialized a const variable.",
           correction:
               "Try initializing the variable without referencing members of the "
               "deferred library, or "
@@ -634,6 +548,14 @@ class CompileTimeErrorCode extends ErrorCode {
           correction:
               "Try declaring the field as final, or adding the keyword 'static'.");
 
+  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_LIST_OR_SET =
+      const CompileTimeErrorCode('CONST_SPREAD_EXPECTED_LIST_OR_SET',
+          "A list or a set is expected in this spread.");
+
+  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_MAP =
+      const CompileTimeErrorCode(
+          'CONST_SPREAD_EXPECTED_MAP', "A map is expected in this spread.");
+
   /**
    * 12.8 Maps: It is a compile-time error if the key of an entry in a constant
    * map literal is an instance of a class that implements the operator
@@ -647,7 +569,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
           "The constant map entry key expression type '{0}' can't override "
-          "the == operator.",
+              "the == operator.",
           correction: "Try using a different value for the key, or "
               "removing the keyword 'const' from the map.");
 
@@ -671,7 +593,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS',
           "The constant set element type '{0}' can't override "
-          "the == operator.",
+              "the == operator.",
           correction: "Try using a different value for the element, or "
               "removing the keyword 'const' from the set.");
 
@@ -684,7 +606,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONST_EVAL_TYPE_BOOL',
           "In constant expressions, operands of this operator must be of type "
-          "'bool'.");
+              "'bool'.");
 
   /**
    * 16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
@@ -695,7 +617,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONST_EVAL_TYPE_BOOL_INT',
           "In constant expressions, operands of this operator must be of type "
-          "'bool' or 'int'.");
+              "'bool' or 'int'.");
 
   /**
    * 16.12.2 Const: An expression of one of the forms e1 == e2 or e1 != e2 where
@@ -706,7 +628,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONST_EVAL_TYPE_BOOL_NUM_STRING',
           "In constant expressions, operands of this operator must be of type "
-          "'bool', 'num', 'String' or 'null'.");
+              "'bool', 'num', 'String' or 'null'.");
 
   /**
    * 16.12.2 Const: An expression of one of the forms ~e, e1 ^ e2, e1 & e2,
@@ -717,7 +639,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONST_EVAL_TYPE_INT',
           "In constant expressions, operands of this operator must be of type "
-          "'int'.");
+              "'int'.");
 
   /**
    * 16.12.2 Const: An expression of one of the forms e, e1 + e2, e1 - e2, e1 *
@@ -729,13 +651,13 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONST_EVAL_TYPE_NUM',
           "In constant expressions, operands of this operator must be of type "
-          "'num'.");
+              "'num'.");
 
   static const CompileTimeErrorCode CONST_EVAL_TYPE_TYPE =
       const CompileTimeErrorCode(
           'CONST_EVAL_TYPE_TYPE',
           "In constant expressions, operands of this operator must be of type "
-          "'Type'.");
+              "'Type'.");
 
   /**
    * 16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -753,7 +675,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONST_EVAL_THROWS_IDBZE',
           "Evaluation of this constant expression throws an "
-          "IntegerDivisionByZeroException.");
+              "IntegerDivisionByZeroException.");
 
   /**
    * 16.12.2 Const: If <i>T</i> is a parameterized type <i>S&lt;U<sub>1</sub>,
@@ -772,7 +694,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'CONST_WITH_INVALID_TYPE_PARAMETERS',
           "The type '{0}' is declared with {1} type parameters, but {2} type "
-          "arguments were given.",
+              "arguments were given.",
           correction:
               "Try adjusting the number of type arguments to match the number of "
               "type parameters.");
@@ -839,7 +761,7 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode CONST_WITH_UNDEFINED_CONSTRUCTOR =
       const CompileTimeErrorCode('CONST_WITH_UNDEFINED_CONSTRUCTOR',
           "The class '{0}' doesn't have a constant constructor '{1}'.",
-          correction: "Try calling a different contructor.");
+          correction: "Try calling a different constructor.");
 
   /**
    * 16.12.2 Const: It is a compile-time error if <i>T.id</i> is not the name of
@@ -851,7 +773,7 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT =
       const CompileTimeErrorCode('CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
           "The class '{0}' doesn't have a default constant constructor.",
-          correction: "Try calling a different contructor.");
+          correction: "Try calling a different constructor.");
 
   /**
    * 15.3.1 Typedef: It is a compile-time error if any default values are
@@ -882,7 +804,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR',
           "Default values aren't allowed in factory constructors that redirect "
-          "to another constructor.",
+              "to another constructor.",
           correction: "Try removing the default value.");
 
   /**
@@ -952,6 +874,22 @@ class CompileTimeErrorCode extends ErrorCode {
               "correcting one of the names to reference a different named parameter.");
 
   /**
+   * 16.10 Maps: It is a compile-time error if two keys of a constant map
+   * literal are equal according to their `==` operator (16.27).
+   */
+  static const CompileTimeErrorCode EQUAL_KEYS_IN_CONST_MAP =
+      const CompileTimeErrorCode('EQUAL_KEYS_IN_CONST_MAP',
+          "Two keys in a constant map literal can't be equal.");
+
+  /**
+   * 16.11 Sets: It is a compile-time error if two elements of a constant set
+   * literal are equal according to their `==` operator (16.27).
+   */
+  static const CompileTimeErrorCode EQUAL_ELEMENTS_IN_CONST_SET =
+      const CompileTimeErrorCode('EQUAL_ELEMENTS_IN_CONST_SET',
+          "Two values in a constant set can't be equal.");
+
+  /**
    * SDK implementation libraries can be exported only by other SDK libraries.
    *
    * Parameters:
@@ -972,6 +910,12 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode('EXPORT_OF_NON_LIBRARY',
           "The exported library '{0}' can't have a part-of directive.",
           correction: "Try exporting the library that the part is a part of.");
+
+  static const CompileTimeErrorCode EXPRESSION_IN_MAP =
+      const CompileTimeErrorCode(
+          'EXPRESSION_IN_MAP', "Expressions cannot be used in a map literal.",
+          correction:
+              "Try removing the expression or converting it to be a map entry.");
 
   /**
    * 7.9 Superclasses: It is a compile-time error if the extends clause of a
@@ -1094,7 +1038,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER',
           "Fields can't be initialized in both the parameter list and the "
-          "initializers.",
+              "initializers.",
           correction: "Try removing one of the initializations.");
 
   /**
@@ -1229,7 +1173,7 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode IMPLEMENTS_REPEATED =
       const CompileTimeErrorCode(
           'IMPLEMENTS_REPEATED', "'{0}' can only be implemented once.",
-          correction: "Try removing all but one occurance of the class name.");
+          correction: "Try removing all but one occurrence of the class name.");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the superclass of a
@@ -1242,7 +1186,7 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode IMPLEMENTS_SUPER_CLASS =
       const CompileTimeErrorCode('IMPLEMENTS_SUPER_CLASS',
           "'{0}' can't be used in both 'extends' and 'implements' clauses.",
-          correction: "Try removing one of the occurances.");
+          correction: "Try removing one of the occurrences.");
 
   /**
    * 7.6.1 Generative Constructors: Note that <b>this</b> is not in scope on the
@@ -1329,7 +1273,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'INCONSISTENT_INHERITANCE_GETTER_AND_METHOD',
           "'{0}' is inherited as a getter (from '{1}') and also a "
-          "method (from '{2}').",
+              "method (from '{2}').",
           correction:
               "Try adjusting the supertypes of this class to remove the "
               "inconsistency.");
@@ -1368,7 +1312,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'INITIALIZER_FOR_STATIC_FIELD',
           "'{0}' is a static field in the enclosing class. Fields initialized "
-          "in a constructor can't be static.",
+              "in a constructor can't be static.",
           correction: "Try removing the initialization.");
 
   /**
@@ -1404,7 +1348,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'INITIALIZING_FORMAL_FOR_STATIC_FIELD',
           "'{0}' is a static field in the enclosing class. Fields initialized "
-          "in a constructor can't be static.",
+              "in a constructor can't be static.",
           correction: "Try removing the initialization.");
 
   /**
@@ -1452,8 +1396,8 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
           "The integer literal is being used as a double, but can't be "
-          'represented as a 64 bit double without overflow and/or loss of '
-          'precision: {0}',
+              'represented as a 64 bit double without overflow and/or loss of '
+              'precision: {0}',
           correction:
               'Try using the BigInt class, or switch to the closest valid '
               'double: {1}');
@@ -1468,7 +1412,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'INVALID_ANNOTATION',
           "Annotation must be either a const variable reference or const "
-          "constructor invocation.");
+              "constructor invocation.");
 
   /**
    * 15 Metadata: Metadata consists of a series of annotations, each of which
@@ -1495,19 +1439,6 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'INVALID_ANNOTATION_GETTER', "Getters cannot be used as annotations.",
           correction: "Try using a top-level variable or a field.");
-
-  /**
-   * 15.31 Identifier Reference: It is a compile-time error if any of the
-   * identifiers async, await or yield is used as an identifier in a function
-   * body marked with either async, async* or sync*.
-   */
-  static const CompileTimeErrorCode INVALID_IDENTIFIER_IN_ASYNC =
-      const CompileTimeErrorCode(
-          'INVALID_IDENTIFIER_IN_ASYNC',
-          "The identifier '{0}' can't be used in a function marked with "
-          "'async', 'async*' or 'sync*'.",
-          correction: "Try using a different name, or "
-              "remove the modifier on the function body.");
 
   /**
    * 9. Functions: It is a compile-time error if an async, async* or sync*
@@ -1553,7 +1484,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'INVALID_FACTORY_NAME_NOT_A_CLASS',
           "The name of a factory constructor must be the same as the name of "
-          "the immediately enclosing class.");
+              "the immediately enclosing class.");
 
   static const CompileTimeErrorCode INVALID_INLINE_FUNCTION_TYPE =
       const CompileTimeErrorCode('INVALID_INLINE_FUNCTION_TYPE',
@@ -1602,7 +1533,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'INVALID_TYPE_ARGUMENT_IN_CONST_LIST',
           "Constant list literals can't include a type parameter as a type "
-          "argument, such as '{0}'.",
+              "argument, such as '{0}'.",
           correction:
               "Try replacing the type parameter with a different type.");
 
@@ -1617,7 +1548,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'INVALID_TYPE_ARGUMENT_IN_CONST_MAP',
           "Constant map literals can't include a type parameter as a type "
-          "argument, such as '{0}'.",
+              "argument, such as '{0}'.",
           correction:
               "Try replacing the type parameter with a different type.");
 
@@ -1625,7 +1556,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'INVALID_TYPE_ARGUMENT_IN_CONST_SET',
           "Constant set literals can't include a type parameter as a type "
-          "argument, such as '{0}'.",
+              "argument, such as '{0}'.",
           correction:
               "Try replacing the type parameter with a different type.");
 
@@ -1636,7 +1567,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'INVALID_USE_OF_COVARIANT',
           "The 'covariant' keyword can only be used for parameters in instance "
-          "methods or before non-final instance fields.",
+              "methods or before non-final instance fields.",
           correction: "Try removing the 'covariant' keyword.");
 
   /**
@@ -1691,6 +1622,12 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try defining the label, or "
               "correcting the name to match an existing label.");
 
+  static const CompileTimeErrorCode MAP_ENTRY_NOT_IN_MAP =
+      const CompileTimeErrorCode('MAP_ENTRY_NOT_IN_MAP',
+          "Map entries can only be used in a map literal.",
+          correction:
+              "Try converting the collection to a map or removing the map entry.");
+
   /**
    * 7 Classes: It is a compile time error if a class <i>C</i> declares a member
    * with the same name as <i>C</i>.
@@ -1706,7 +1643,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'MISSING_CONST_IN_LIST_LITERAL',
           "List literals must be prefixed with 'const' when used as a constant "
-          "expression.",
+              "expression.",
           correction: "Try adding the keyword 'const' before the literal.");
 
   /**
@@ -1716,7 +1653,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'MISSING_CONST_IN_MAP_LITERAL',
           "Map literals must be prefixed with 'const' when used as a constant "
-          "expression.",
+              "expression.",
           correction: "Try adding the keyword 'const' before the literal.");
 
   /**
@@ -1726,7 +1663,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'MISSING_CONST_IN_SET_LITERAL',
           "Set literals must be prefixed with 'const' when used as a constant "
-          "expression.",
+              "expression.",
           correction: "Try adding the keyword 'const' before the literal.");
 
   static const CompileTimeErrorCode MISSING_DART_LIBRARY =
@@ -1754,7 +1691,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
           "The super-invoked member '{0}' has the type '{1}', but the "
-          "concrete member in the class has type '{2}'.");
+              "concrete member in the class has type '{2}'.");
 
   /**
    * It's a compile-time error to apply a mixin to a class that doesn't
@@ -1782,7 +1719,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
           "The class doesn't have a concrete implementation of the "
-          "super-invoked member '{0}'.");
+              "super-invoked member '{0}'.");
 
   /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin
@@ -1795,7 +1732,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'MIXIN_CLASS_DECLARES_CONSTRUCTOR',
           "The class '{0}' can't be used as a mixin because it declares a "
-          "constructor.");
+              "constructor.");
 
   /**
    * The <i>mixinMember</i> production allows the same instance or static
@@ -1824,22 +1761,22 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES',
           "Type parameters could not be inferred for the mixin '{0}' because "
-          "the base class implements the mixin's supertype constraint "
-          "'{1}' in multiple conflicting ways");
+              "the base class implements the mixin's supertype constraint "
+              "'{1}' in multiple conflicting ways");
 
   static const CompileTimeErrorCode MIXIN_INFERENCE_NO_MATCHING_CLASS =
       const CompileTimeErrorCode(
           'MIXIN_INFERENCE_NO_MATCHING_CLASS',
           "Type parameters could not be inferred for the mixin '{0}' because "
-          "the base class does not implement the mixin's supertype "
-          "constraint '{1}'");
+              "the base class does not implement the mixin's supertype "
+              "constraint '{1}'");
 
   static const CompileTimeErrorCode MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION =
       const CompileTimeErrorCode(
           'MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION',
           "Type parameters could not be inferred for the mixin '{0}' because "
-          "no type parameter substitution could be found matching the mixin's "
-          "supertype constraints");
+              "no type parameter substitution could be found matching the mixin's "
+              "supertype constraints");
 
   /**
    * 9 Mixins: It is a compile-time error if a mixin is derived from a class
@@ -1852,7 +1789,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'MIXIN_INHERITS_FROM_NOT_OBJECT',
           "The class '{0}' can't be used as a mixin because it extends a class "
-          "other than Object.");
+              "other than Object.");
 
   /**
    * A mixin declaration introduces a mixin and an interface, but not a class.
@@ -1905,7 +1842,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'MIXIN_REFERENCES_SUPER',
           "The class '{0}' can't be used as a mixin because it references "
-          "'super'.");
+              "'super'.");
 
   static const CompileTimeErrorCode
       MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS = const CompileTimeErrorCode(
@@ -2021,7 +1958,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'NON_CONST_MAP_AS_EXPRESSION_STATEMENT',
           "A non-constant map or set literal without type arguments can't be "
-          "used as an expression statement.");
+              "used as an expression statement.");
 
   /**
    * 13.9 Switch: Given a switch statement of the form <i>switch (e) {
@@ -2057,7 +1994,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library can't be used as a case "
-          "expression.",
+              "expression.",
           correction:
               "Try re-writing the switch as a series of if statements, or "
               "changing the import to not be deferred.");
@@ -2082,7 +2019,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library can't be used as a default "
-          "parameter value.",
+              "parameter value.",
           correction:
               "Try leaving the default as null and initializing the parameter "
               "inside the function body.");
@@ -2109,7 +2046,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library can't be used as values in "
-          "a 'const' list.",
+              "a 'const' list.",
           correction:
               "Try removing the keyword 'const' from the list literal.");
 
@@ -2133,7 +2070,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library can't be used as keys in a "
-          "const map literal.",
+              "const map literal.",
           correction: "Try removing the keyword 'const' from the map literal.");
 
   /**
@@ -2143,6 +2080,15 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode NON_CONSTANT_MAP_VALUE =
       const CompileTimeErrorCode('NON_CONSTANT_MAP_VALUE',
           "The values in a const map literal must be constant.",
+          correction: "Try removing the keyword 'const' from the map literal.");
+
+  /**
+   * 12.7 Maps: It is a compile time error if an element of a constant map
+   * literal is not a compile-time constant.
+   */
+  static const CompileTimeErrorCode NON_CONSTANT_MAP_ELEMENT =
+      const CompileTimeErrorCode('NON_CONSTANT_MAP_ELEMENT',
+          "The elements in a const map literal must be constant.",
           correction: "Try removing the keyword 'const' from the map literal.");
 
   /**
@@ -2156,7 +2102,7 @@ class CompileTimeErrorCode extends ErrorCode {
       NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY = const CompileTimeErrorCode(
           'NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library can't be used as values in "
-          "a const map literal.",
+              "a const map literal.",
           correction: "Try removing the keyword 'const' from the map literal.");
 
   /**
@@ -2178,37 +2124,37 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the keyword 'const' from the set literal.");
 
   static const CompileTimeErrorCode
+      NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY =
+      const CompileTimeErrorCode(
+          'NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY',
+          "Constant values from a deferred library can't be spread into a "
+              "const literal.",
+          correction: "Try making the deferred import non-deferred.");
+
+  static const CompileTimeErrorCode
+      NON_CONSTANT_IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY =
+      const CompileTimeErrorCode(
+          'NON_CONSTANT_IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
+          "Constant values from a deferred library can't be used as values in "
+              "an if condition inside a const collection literal.",
+          correction: "Try making the deferred import non-deferred.");
+
+  static const CompileTimeErrorCode
       NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY =
       const CompileTimeErrorCode(
           'NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library can't be used as values in "
-          "a 'const' set.",
+              "a 'const' set.",
           correction: "Try removing the keyword 'const' from the set literal.");
 
   /**
-   * 7.6.3 Constant Constructors: Any expression that appears within the
-   * initializer list of a constant constructor must be a potentially constant
-   * expression, or a compile-time error occurs.
+   * This error code is no longer being generated. It should be removed when the
+   * reference to it in the linter has been removed and rolled into the SDK.
    */
+  @deprecated
   static const CompileTimeErrorCode NON_CONSTANT_VALUE_IN_INITIALIZER =
       const CompileTimeErrorCode('NON_CONSTANT_VALUE_IN_INITIALIZER',
           "Initializer expressions in constant constructors must be constants.");
-
-  /**
-   * 7.6.3 Constant Constructors: Any expression that appears within the
-   * initializer list of a constant constructor must be a potentially constant
-   * expression, or a compile-time error occurs.
-   *
-   * 12.1 Constants: A qualified reference to a static constant variable that is
-   * not qualified by a deferred prefix.
-   */
-  static const CompileTimeErrorCode
-      NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY =
-      const CompileTimeErrorCode(
-          'NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY',
-          "Constant values from a deferred library can't be used as constant "
-          "initializers.",
-          correction: "Try changing the import to not be deferred.");
 
   static const CompileTimeErrorCode NON_SYNC_FACTORY =
       const CompileTimeErrorCode('NON_SYNC_FACTORY',
@@ -2230,6 +2176,18 @@ class CompileTimeErrorCode extends ErrorCode {
           "{0} required argument(s) expected, but {1} found.",
           correction: "Try adding the missing arguments.");
 
+  static const CompileTimeErrorCode NOT_ITERABLE_SPREAD =
+      const CompileTimeErrorCode('NOT_ITERABLE_SPREAD',
+          "Spread elements in list or set literals must implement 'Iterable'.");
+
+  static const CompileTimeErrorCode NOT_MAP_SPREAD = const CompileTimeErrorCode(
+      'NOT_MAP_SPREAD',
+      "Spread elements in map literals must implement 'Map'.");
+
+  static const CompileTimeErrorCode NOT_NULL_AWARE_NULL_SPREAD =
+      const CompileTimeErrorCode('NOT_NULL_AWARE_NULL_SPREAD',
+          "The Null typed expression can't be used with a non-null-aware spread.");
+
   /**
    * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the
    * superinitializer appears and let <i>S</i> be the superclass of <i>C</i>.
@@ -2243,6 +2201,53 @@ class CompileTimeErrorCode extends ErrorCode {
           correction:
               "Try calling a different constructor in the superclass, or "
               "making the called constructor not be a factory constructor.");
+
+  /**
+   * It is an error if the type `T` in the on-catch clause `on T catch` is
+   * potentially nullable.
+   */
+  static const CompileTimeErrorCode NULLABLE_TYPE_IN_CATCH_CLAUSE =
+      const CompileTimeErrorCode(
+          'NULLABLE_TYPE_IN_CATCH_CLAUSE',
+          "A nullable type cannot be used in an 'on' clause because it isn't valid "
+              "to throw 'null'.",
+          correction: "Try removing the question mark.");
+
+  /**
+   * It is a compile-time error for a class to extend, implement, or mixin a
+   * type of the form T? for any T.
+   */
+  static const CompileTimeErrorCode NULLABLE_TYPE_IN_EXTENDS_CLAUSE =
+      const CompileTimeErrorCode('NULLABLE_TYPE_IN_EXTENDS_CLAUSE',
+          "A class cannot extend a nullable type.",
+          correction: "Try removing the question mark.");
+
+  /**
+   * It is a compile-time error for a class to extend, implement, or mixin a
+   * type of the form T? for any T.
+   */
+  static const CompileTimeErrorCode NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE =
+      const CompileTimeErrorCode('NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE',
+          "A class or mixin cannot implement a nullable type.",
+          correction: "Try removing the question mark.");
+
+  /**
+   * It is a compile-time error for a class to extend, implement, or mixin a
+   * type of the form T? for any T.
+   */
+  static const CompileTimeErrorCode NULLABLE_TYPE_IN_ON_CLAUSE =
+      const CompileTimeErrorCode('NULLABLE_TYPE_IN_ON_CLAUSE',
+          "A mixin cannot have a nullable type as a superclass constraint.",
+          correction: "Try removing the question mark.");
+
+  /**
+   * It is a compile-time error for a class to extend, implement, or mixin a
+   * type of the form T? for any T.
+   */
+  static const CompileTimeErrorCode NULLABLE_TYPE_IN_WITH_CLAUSE =
+      const CompileTimeErrorCode('NULLABLE_TYPE_IN_WITH_CLAUSE',
+          "A class or mixin cannot mix in a nullable type.",
+          correction: "Try removing the question mark.");
 
   /**
    * 7.9 Superclasses: It is a compile-time error to specify an extends clause
@@ -2263,7 +2268,7 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode ON_REPEATED = const CompileTimeErrorCode(
       'ON_REPEATED',
       "'{0}' can only be used in super-class constraints only once.",
-      correction: "Try removing all but one occurance of the class name.");
+      correction: "Try removing all but one occurrence of the class name.");
 
   /**
    * 7.1.1 Operators: It is a compile-time error to declare an optional
@@ -2294,7 +2299,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER',
           "The name '{0}' is already used as an import prefix and can't be "
-          "used to name a top-level element.",
+              "used to name a top-level element.",
           correction:
               "Try renaming either the top-level element or the prefix.");
 
@@ -2306,7 +2311,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT',
           "The name '{0}' refers to an import prefix, so it must be followed "
-          "by '.'.",
+              "by '.'.",
           correction:
               "Try correcting the name to refer to something other than a prefix, or "
               "renaming the prefix.");
@@ -2319,7 +2324,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
           "The private name '{0}', defined by '{1}', "
-          "conflicts with the same name defined by '{2}'.",
+              "conflicts with the same name defined by '{2}'.",
           correction: "Try removing '{1}' from the 'with' clause.");
 
   /**
@@ -2456,7 +2461,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'REDIRECT_TO_NON_CLASS',
           "The name '{0}' isn't a type and can't be used in a redirected "
-          "constructor.",
+              "constructor.",
           correction: "Try redirecting to a different constructor.");
 
   /**
@@ -2467,7 +2472,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'REDIRECT_TO_NON_CONST_CONSTRUCTOR',
           "Constant factory constructor can't delegate to a non-constant "
-          "constructor.",
+              "constructor.",
           correction: "Try redirecting to a different constructor.");
 
   /**
@@ -2545,7 +2550,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'SHARED_DEFERRED_PREFIX',
           "The prefix of a deferred import can't be used in other import "
-          "directives.",
+              "directives.",
           correction: "Try renaming one of the prefixes.");
 
   /**
@@ -2638,7 +2643,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
           "Typedefs can't reference themselves directly or recursively via "
-          "another typedef.");
+              "another typedef.");
 
   static const CompileTimeErrorCode TYPE_PARAMETER_ON_CONSTRUCTOR =
       const CompileTimeErrorCode('TYPE_PARAMETER_ON_CONSTRUCTOR',
@@ -2818,7 +2823,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'YIELD_EACH_IN_NON_GENERATOR',
           "Yield-each statements must be in a generator function "
-          "(one marked with either 'async*' or 'sync*').",
+              "(one marked with either 'async*' or 'sync*').",
           correction:
               "Try adding 'async*' or 'sync*' to the enclosing function.");
 
@@ -2830,7 +2835,7 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'YIELD_IN_NON_GENERATOR',
           "Yield statements must be in a generator function "
-          "(one marked with either 'async*' or 'sync*').",
+              "(one marked with either 'async*' or 'sync*').",
           correction:
               "Try adding 'async*' or 'sync*' to the enclosing function.");
 
@@ -2871,7 +2876,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
           "List literals require exactly one type argument or none, "
-          "but {0} found.",
+              "but {0} found.",
           correction: "Try adjusting the number of type arguments.");
 
   /**
@@ -2882,7 +2887,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'EXPECTED_ONE_SET_TYPE_ARGUMENTS',
           "Set literals require exactly one type argument or none, "
-          "but {0} found.",
+              "but {0} found.",
           correction: "Try adjusting the number of type arguments.");
 
   /**
@@ -2896,7 +2901,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
           "Map literals require exactly two type arguments or none, "
-          "but {0} found.",
+              "but {0} found.",
           correction: "Try adjusting the number of type arguments.");
 
   /**
@@ -2907,7 +2912,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
           "Functions marked 'async*' must have a return type assignable to "
-          "'Stream'.",
+              "'Stream'.",
           correction: "Try fixing the return type of the function, or "
               "removing the modifier 'async*' from the function body.");
 
@@ -2919,7 +2924,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'ILLEGAL_ASYNC_RETURN_TYPE',
           "Functions marked 'async' must have a return type assignable to "
-          "'Future'.",
+              "'Future'.",
           correction: "Try fixing the return type of the function, or "
               "removing the modifier 'async' from the function body.");
 
@@ -3199,6 +3204,8 @@ class StaticTypeWarningCode extends ErrorCode {
    * 0: the name of the getter
    * 1: the name of the enclosing type where the getter is being looked for
    */
+  // TODO(brianwilkerson) When the "target" is an enum, report
+  //  UNDEFINED_ENUM_CONSTANT instead.
   static const StaticTypeWarningCode UNDEFINED_GETTER =
       const StaticTypeWarningCode('UNDEFINED_GETTER',
           "The getter '{0}' isn't defined for the class '{1}'.",
@@ -3246,6 +3253,14 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode('UNDEFINED_OPERATOR',
           "The operator '{0}' isn't defined for the class '{1}'.",
           correction: "Try defining the operator '{0}'.");
+
+  static const StaticTypeWarningCode UNDEFINED_PREFIXED_NAME =
+      const StaticTypeWarningCode(
+          'UNDEFINED_PREFIXED_NAME',
+          "The name '{0}' is being referenced through the prefix '{1}', but it "
+              "isn't defined in any of the libraries imported using that prefix.",
+          correction: "Try correcting the prefix or "
+              "importing the library that defines '{0}'.");
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
@@ -3371,7 +3386,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'WRONG_NUMBER_OF_TYPE_ARGUMENTS',
           "The type '{0}' is declared with {1} type parameters, "
-          "but {2} type arguments were given.",
+              "but {2} type arguments were given.",
           correction: "Try adjusting the number of type arguments.");
 
   /**
@@ -3401,7 +3416,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
           "The method '{0}' is declared with {1} type parameters, "
-          "but {2} type arguments were given.",
+              "but {2} type arguments were given.",
           correction: "Try adjusting the number of type arguments.");
 
   /**
@@ -3426,7 +3441,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'YIELD_OF_INVALID_TYPE',
           "The type '{0}' implied by the 'yield' expression must be assignable "
-          "to '{1}'.");
+              "to '{1}'.");
 
   /**
    * 17.6.2 For-in. If the iterable expression does not implement Iterable,
@@ -3454,7 +3469,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'FOR_IN_OF_INVALID_ELEMENT_TYPE',
           "The type '{0}' used in the 'for' loop must implement {1} with a "
-          "type argument that can be assigned to '{2}'.");
+              "type argument that can be assigned to '{2}'.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
@@ -3616,7 +3631,7 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode(
           'CASE_BLOCK_NOT_TERMINATED',
           "The last statement of the 'case' should be 'break', 'continue', "
-          "'rethrow', 'return' or 'throw'.",
+              "'rethrow', 'return' or 'throw'.",
           correction: "Try adding one of the required statements.");
 
   /**
@@ -3652,21 +3667,6 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode('CONST_WITH_ABSTRACT_CLASS',
           "Abstract classes can't be created with a 'const' expression.",
           correction: "Try creating an instance of a subtype.");
-
-  /**
-   * 12.7 Maps: It is a static warning if the values of any two keys in a map
-   * literal are equal.
-   */
-  static const StaticWarningCode EQUAL_KEYS_IN_MAP = const StaticWarningCode(
-      'EQUAL_KEYS_IN_MAP', "Two keys in a map literal can't be equal.");
-
-  /**
-   * It is a compile-time error if any two of the values in a constant set are
-   * equal according to `==`.
-   */
-  static const StaticWarningCode EQUAL_VALUES_IN_CONST_SET =
-      const StaticWarningCode('EQUAL_VALUES_IN_CONST_SET',
-          "Two values in a constant set can't be equal.");
 
   /**
    * 14.2 Exports: It is a static warning to export two different libraries with
@@ -3724,7 +3724,7 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode(
           'FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION',
           "Fields can't be initialized in the constructor if they are final "
-          "and have already been initialized at their declaration.",
+              "and have already been initialized at their declaration.",
           correction: "Try removing one of the initializations.");
 
   /**
@@ -3740,7 +3740,7 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode(
           'FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR',
           "'{0}' is final and was given a value when it was declared, "
-          "so it can't be set to a new value.",
+              "so it can't be set to a new value.",
           correction: "Try removing one of the initializations.");
 
   /**
@@ -3850,16 +3850,6 @@ class StaticWarningCode extends ErrorCode {
           correction: "Try adding initializers for the fields.");
 
   /**
-   * 15.5 Function Types: It is a static warning if a concrete class implements
-   * Function and does not have a concrete method named call().
-   */
-  static const StaticWarningCode FUNCTION_WITHOUT_CALL = const StaticWarningCode(
-      'FUNCTION_WITHOUT_CALL',
-      "Concrete classes that implement 'Function' must implement the method 'call'.",
-      correction:
-          "Try implementing a 'call' method, or don't implement 'Function'.");
-
-  /**
    * 14.1 Imports: It is a static warning to import two different libraries with
    * the same name.
    *
@@ -3898,7 +3888,7 @@ class StaticWarningCode extends ErrorCode {
       INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED = const StaticWarningCode(
           'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED',
           "Parameters can't override default values, "
-          "this method overrides '{0}.{1}' where '{2}' has a different value.",
+              "this method overrides '{0}.{1}' where '{2}' has a different value.",
           correction: "Try using the same default value in both methods.",
           errorSeverity: ErrorSeverity.WARNING);
 
@@ -3914,82 +3904,9 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode(
           'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL',
           "Parameters can't override default values, this method overrides "
-          "'{0}.{1}' where this positional parameter has a different value.",
+              "'{0}.{1}' where this positional parameter has a different value.",
           correction: "Try using the same default value in both methods.",
           errorSeverity: ErrorSeverity.WARNING);
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if an instance method
-   * <i>m1</i> overrides an instance member <i>m2</i> and <i>m1</i> does not
-   * declare all the named parameters declared by <i>m2</i>.
-   *
-   * Parameters:
-   * 0: the number of named parameters in the overridden member
-   * 1: the signature of the overridden member
-   * 2: the name of the class from the overridden method
-   */
-  static const StaticWarningCode INVALID_OVERRIDE_NAMED =
-      const StaticWarningCode(
-          'INVALID_OVERRIDE_NAMED',
-          "Missing the named parameter '{0}' "
-          "to match the overridden method from '{1}' from '{2}'.",
-          correction: "Try adding the named parameter to this method, or "
-              "removing it from the overridden method.");
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if an instance method
-   * <i>m1</i> overrides an instance member <i>m2</i> and <i>m1</i> has fewer
-   * positional parameters than <i>m2</i>.
-   *
-   * Parameters:
-   * 0: the number of positional parameters in the overridden member
-   * 1: the signature of the overridden member
-   * 2: the name of the class from the overridden method
-   */
-  static const StaticWarningCode INVALID_OVERRIDE_POSITIONAL =
-      const StaticWarningCode(
-          'INVALID_OVERRIDE_POSITIONAL',
-          "Must have at least {0} parameters "
-          "to match the overridden method '{1}' from '{2}'.",
-          correction: "Try adding the necessary parameters.");
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if an instance method
-   * <i>m1</i> overrides an instance member <i>m2</i> and <i>m1</i> has a
-   * greater number of required parameters than <i>m2</i>.
-   *
-   * Parameters:
-   * 0: the number of required parameters in the overridden member
-   * 1: the signature of the overridden member
-   * 2: the name of the class from the overridden method
-   */
-  static const StaticWarningCode INVALID_OVERRIDE_REQUIRED =
-      const StaticWarningCode(
-          'INVALID_OVERRIDE_REQUIRED',
-          "Must have {0} required parameters or less "
-          "to match the overridden method '{1}' from '{2}'.",
-          correction: "Try removing the extra parameters.");
-
-  /**
-   * 7.3 Setters: It is a static warning if a setter <i>m1</i> overrides a
-   * setter <i>m2</i> and the type of <i>m1</i> is not a subtype of the type of
-   * <i>m2</i>.
-   *
-   * Parameters:
-   * 0: the name of the actual parameter type
-   * 1: the name of the expected parameter type, not assignable to the actual
-   * parameter type
-   * 2: the name of the class where the overridden setter is declared
-   *
-   * See [INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE].
-   */
-  static const StaticWarningCode INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE =
-      const StaticWarningCode(
-          'INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE',
-          "The parameter type '{0}' isn't assignable to '{1}' as required by "
-          "the setter it is overriding from '{2}'.",
-          correction:
-              "Try changing the parameter types so that they are compatible.");
 
   /**
    * 12.6 Lists: A run-time list literal &lt;<i>E</i>&gt; [<i>e<sub>1</sub></i>
@@ -4065,7 +3982,7 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode(
           'MISMATCHED_GETTER_AND_SETTER_TYPES',
           "The return type of getter '{0}' is '{1}' which isn't assignable "
-          "to the type '{2}' of its setter '{3}'.",
+              "to the type '{2}' of its setter '{3}'.",
           correction: "Try changing the types so that they are compatible.");
 
   /**
@@ -4125,7 +4042,7 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode(
           'NEW_WITH_INVALID_TYPE_PARAMETERS',
           "The type '{0}' is declared with {1} type parameters, "
-          "but {2} type arguments were given.",
+              "but {2} type arguments were given.",
           correction: "Try adjusting the number of type arguments.");
 
   /**
@@ -4483,7 +4400,7 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode(
           'SWITCH_EXPRESSION_NOT_ASSIGNABLE',
           "Type '{0}' of the switch expression isn't assignable to "
-          "the type '{1}' of case expressions.");
+              "the type '{1}' of case expressions.");
 
   /**
    * 15.1 Static Types: It is a static warning to use a deferred type in a type
@@ -4607,7 +4524,7 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode(
           'UNCHECKED_USE_OF_NULLABLE_VALUE',
           'The expression is nullable and must be null-checked before it can be'
-          ' used.',
+              ' used.',
           correction:
               'Try casting or check the value is not null before using it.');
 
@@ -4649,6 +4566,10 @@ class StaticWarningCode extends ErrorCode {
 
 /**
  * This class has Strong Mode specific error codes.
+ * 
+ * "Strong Mode" was the prototype for Dart 2's sound type system. Many of these
+ * errors became part of Dart 2. Some of them are optional flags, used for
+ * stricter checking.
  *
  * These error codes tend to use the same message across different severity
  * levels, so they are grouped for clarity.
@@ -4729,29 +4650,29 @@ class StrongModeCode extends ErrorCode {
       ErrorType.COMPILE_TIME_ERROR,
       'INVALID_CAST_LITERAL_LIST',
       "The list literal type '{0}' isn't of expected type '{1}'. The list's "
-      "type can be changed with an explicit generic type argument or by "
-      "changing the element types.");
+          "type can be changed with an explicit generic type argument or by "
+          "changing the element types.");
 
   static const StrongModeCode INVALID_CAST_LITERAL_MAP = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
       'INVALID_CAST_LITERAL_MAP',
       "The map literal type '{0}' isn't of expected type '{1}'. The maps's "
-      "type can be changed with an explicit generic type arguments or by "
-      "changing the key and value types.");
+          "type can be changed with an explicit generic type arguments or by "
+          "changing the key and value types.");
 
   static const StrongModeCode INVALID_CAST_LITERAL_SET = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
       'INVALID_CAST_LITERAL_SET',
       "The set literal type '{0}' isn't of expected type '{1}'. The set's "
-      "type can be changed with an explicit generic type argument or by "
-      "changing the element types.");
+          "type can be changed with an explicit generic type argument or by "
+          "changing the element types.");
 
   static const StrongModeCode INVALID_CAST_FUNCTION_EXPR = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
       'INVALID_CAST_FUNCTION_EXPR',
       "The function expression type '{0}' isn't of type '{1}'. "
-      "This means its parameter or return type does not match what is "
-      "expected. Consider changing parameter type(s) or the returned type(s).");
+          "This means its parameter or return type does not match what is "
+          "expected. Consider changing parameter type(s) or the returned type(s).");
 
   static const StrongModeCode INVALID_CAST_NEW_EXPR = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
@@ -4762,21 +4683,21 @@ class StrongModeCode extends ErrorCode {
       ErrorType.COMPILE_TIME_ERROR,
       'INVALID_CAST_METHOD',
       "The method tear-off '{0}' has type '{1}' that isn't of expected type "
-      "'{2}'. This means its parameter or return type does not match what is "
-      "expected.");
+          "'{2}'. This means its parameter or return type does not match what is "
+          "expected.");
 
   static const StrongModeCode INVALID_CAST_FUNCTION = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
       'INVALID_CAST_FUNCTION',
       "The function '{0}' has type '{1}' that isn't of expected type "
-      "'{2}'. This means its parameter or return type does not match what is "
-      "expected.");
+          "'{2}'. This means its parameter or return type does not match what is "
+          "expected.");
 
   static const StrongModeCode INVALID_SUPER_INVOCATION = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
       'INVALID_SUPER_INVOCATION',
       "super call must be last in an initializer "
-      "list (see https://goo.gl/EY6hDP): '{0}'.");
+          "list (see https://goo.gl/EY6hDP): '{0}'.");
 
   static const StrongModeCode NON_GROUND_TYPE_CHECK_INFO = const StrongModeCode(
       ErrorType.HINT,
@@ -4785,11 +4706,6 @@ class StrongModeCode extends ErrorCode {
 
   static const StrongModeCode DYNAMIC_INVOKE = const StrongModeCode(
       ErrorType.HINT, 'DYNAMIC_INVOKE', "'{0}' requires a dynamic invoke.");
-
-  static const StrongModeCode INVALID_FIELD_OVERRIDE = const StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'INVALID_FIELD_OVERRIDE',
-      "Field declaration '{3}.{1}' can't be overridden in '{0}'.");
 
   static const StrongModeCode IMPLICIT_DYNAMIC_PARAMETER = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
@@ -4853,12 +4769,6 @@ class StrongModeCode extends ErrorCode {
       "Missing type arguments for calling generic function type '{0}'.",
       correction: _implicitDynamicCorrection);
 
-  static const StrongModeCode NO_DEFAULT_BOUNDS = const StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'NO_DEFAULT_BOUNDS',
-      "Type has no default bounds",
-      correction: "Try adding explicit type arguments to type");
-
   static const StrongModeCode NOT_INSTANTIATED_BOUND = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
       'NOT_INSTANTIATED_BOUND',
@@ -4895,21 +4805,15 @@ class StrongModeCode extends ErrorCode {
       ErrorType.STATIC_WARNING,
       'TOP_LEVEL_INSTANCE_GETTER',
       "The type of '{0}' can't be inferred because it refers to an instance "
-      "getter, '{1}', which has an implicit type.",
+          "getter, '{1}', which has an implicit type.",
       correction: "Add an explicit type for either '{0}' or '{1}'.");
 
   static const StrongModeCode TOP_LEVEL_INSTANCE_METHOD = const StrongModeCode(
       ErrorType.STATIC_WARNING,
       'TOP_LEVEL_INSTANCE_METHOD',
       "The type of '{0}' can't be inferred because it refers to an instance "
-      "method, '{1}', which has an implicit type.",
+          "method, '{1}', which has an implicit type.",
       correction: "Add an explicit type for either '{0}' or '{1}'.");
-
-  static const StrongModeCode TOP_LEVEL_UNSUPPORTED = const StrongModeCode(
-      ErrorType.HINT,
-      'TOP_LEVEL_UNSUPPORTED',
-      "The type of '{0}' can't be inferred because {1} expressions aren't supported.",
-      correction: "Try adding an explicit type for '{0}'.");
 
   @override
   final ErrorType type;

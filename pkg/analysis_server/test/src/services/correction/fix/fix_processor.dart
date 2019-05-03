@@ -64,9 +64,13 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   Future<void> assertHasFix(String expected,
       {bool Function(AnalysisError) errorFilter,
       int length,
-      String target}) async {
+      String target,
+      int expectedNumberOfFixesForKind,
+      String matchFixMessage}) async {
     AnalysisError error = await _findErrorToFix(errorFilter, length: length);
-    Fix fix = await _assertHasFix(error);
+    Fix fix = await _assertHasFix(error,
+        expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
+        matchFixMessage: matchFixMessage);
     change = fix.change;
 
     // apply to "file"
@@ -148,11 +152,37 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     verifyNoTestUnitErrors = false;
   }
 
-  /// Computes fixes and verifies that there is a fix for the given [error] of
-  /// the appropriate kind.
-  Future<Fix> _assertHasFix(AnalysisError error) async {
+  /// Computes fixes and verifies that there is a fix for the given [error] of the appropriate kind.
+  /// Optionally, if a [matchFixMessage] is passed, then the kind as well as the fix message must
+  /// match to be returned.
+  Future<Fix> _assertHasFix(AnalysisError error,
+      {int expectedNumberOfFixesForKind, String matchFixMessage}) async {
     // Compute the fixes for this AnalysisError
     final List<Fix> fixes = await _computeFixes(error);
+
+    if (expectedNumberOfFixesForKind != null) {
+      int actualNumberOfFixesForKind = 0;
+      for (Fix fix in fixes) {
+        if (fix.kind == kind) {
+          actualNumberOfFixesForKind++;
+        }
+      }
+      if (actualNumberOfFixesForKind != expectedNumberOfFixesForKind) {
+        fail(
+            "Expected $expectedNumberOfFixesForKind fixes of kind $kind, but found $actualNumberOfFixesForKind:\n${fixes.join('\n')}");
+      }
+    }
+
+    // If a matchFixMessage was provided,
+    if (matchFixMessage != null) {
+      for (Fix fix in fixes) {
+        if (matchFixMessage == fix?.change?.message) {
+          return fix;
+        }
+      }
+      fail(
+          'Expected to find fix $kind with name $matchFixMessage in\n${fixes.join('\n')}');
+    }
 
     // Assert that none of the fixes are a fix-all fix.
     Fix foundFix = null;

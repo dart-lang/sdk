@@ -230,6 +230,12 @@ main() {
   Constant listBoolConst = new ListConstant(boolType, [falseConst, trueConst]);
   check({listBoolConst: "<bool>[false, true]"}, 0);
 
+  Constant setConst = new SetConstant(dynamicType, [intConst, doubleConst]);
+  check({setConst: "<dynamic>{2, 2.5}"}, 0);
+
+  Constant setBoolConst = new SetConstant(boolType, [falseConst, trueConst]);
+  check({setBoolConst: "<bool>{false, true}"}, 0);
+
   Constant mapConst = new MapConstant(boolType, numType, [
     new ConstantMapEntry(trueConst, intConst),
     new ConstantMapEntry(falseConst, doubleConst)

@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -58,4 +58,39 @@ class TopLevel {
   final String fileIdentifier;
 
   const TopLevel([this.fileIdentifier]);
+}
+
+/**
+ * Annotation used in the summary IDL to indicate the field name that is used
+ * to distinguish variants, or logical views on the same physical layout of
+ * fields.
+ */
+class Variant {
+  final String fieldName;
+
+  const Variant(this.fieldName);
+}
+
+/**
+ * Annotation used in the summary IDL to indicate the id of a field that
+ * represents a logical field.  The set of ids used by a class must cover the
+ * contiguous range from 0 to N-1, where N is the number of fields.  All logical
+ * fields must have the same type, which will become the type of the actual
+ * field.
+ *
+ * In order to preserve forwards and backwards compatibility, id numbers must
+ * be stable between releases.  So when new fields are added they should take
+ * the next available id without renumbering other fields.
+ */
+class VariantId {
+  /// The ID of the actual field.
+  final int value;
+
+  /// The value of the variant field in [Variant].
+  final Object variant;
+
+  /// The list of variant values for which this field exists.
+  final List<Object> variantList;
+
+  const VariantId(this.value, {this.variant, this.variantList});
 }

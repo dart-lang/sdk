@@ -24,3 +24,10 @@ ExperimentalFlag parseExperimentalFlag(String flag) {
   }
   return null;
 }
+
+const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
+  ExperimentalFlag.constantUpdate2018: false,
+  ExperimentalFlag.controlFlowCollections: true,
+  ExperimentalFlag.setLiterals: true,
+  ExperimentalFlag.spreadCollections: true,
+};

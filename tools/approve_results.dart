@@ -8,6 +8,7 @@
 /// green.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -16,6 +17,37 @@ import 'package:args/args.dart';
 import 'package:glob/glob.dart';
 
 import 'bots/results.dart';
+
+/// Returns whether two decoded JSON objects are identical.
+bool isIdenticalJson(dynamic a, dynamic b) {
+  if (a is Map<String, dynamic> && b is Map<String, dynamic>) {
+    if (a.length != b.length) return false;
+    for (final key in a.keys) {
+      if (!b.containsKey(key)) return false;
+      if (!isIdenticalJson(a[key], b[key])) return false;
+    }
+    return true;
+  } else if (a is List<dynamic> && b is List<dynamic>) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (!isIdenticalJson(a[i], b[i])) return false;
+    }
+    return true;
+  } else {
+    return a == b;
+  }
+}
+
+/// Returns whether two sets of approvals are identical.
+bool isIdenticalApprovals(
+    Map<String, Map<String, dynamic>> a, Map<String, Map<String, dynamic>> b) {
+  if (a.length != b.length) return false;
+  for (final key in a.keys) {
+    if (!b.containsKey(key)) return false;
+    if (!isIdenticalJson(a[key], b[key])) return false;
+  }
+  return true;
+}
 
 /// The bot names and named configurations are highly redundant if both are
 /// listed. This function returns a simplified named configuration that doesn't
@@ -29,16 +61,16 @@ String simplifyNamedConfiguration(String bot, String namedConfiguration) {
       .join("-");
 }
 
-/// Represents a test on a bot with the current result, the current approved
-/// result, and flakiness data.
+/// Represents a test on a bot with the baseline results (if tryrun), the
+/// current result, the current approved result, and flakiness data.
 class Test implements Comparable {
   final String bot;
-  final String name;
+  final Map<String, dynamic> baselineData;
   final Map<String, dynamic> resultData;
   final Map<String, dynamic> approvedResultData;
   final Map<String, dynamic> flakinessData;
 
-  Test(this.bot, this.name, this.resultData, this.approvedResultData,
+  Test(this.bot, this.baselineData, this.resultData, this.approvedResultData,
       this.flakinessData);
 
   int compareTo(Object other) {
@@ -53,13 +85,18 @@ class Test implements Comparable {
     return 0;
   }
 
-  String get configuration => resultData["configuration"];
-  String get result => resultData["result"];
-  String get expected => resultData["expected"];
-  bool get matches => resultData["matches"];
-  String get approvedResult =>
-      approvedResultData != null ? approvedResultData["result"] : null;
-  bool get isApproved => result == approvedResult;
+  Map<String, dynamic> get _sharedData =>
+      resultData ?? baselineData ?? approvedResultData;
+  String get name => _sharedData["name"];
+  String get configuration => _sharedData["configuration"];
+  String get key => "$configuration:$name";
+  String get expected => _sharedData["expected"];
+  String get result => (resultData ?? const {})["result"];
+  bool get matches => _sharedData["matches"];
+  String get baselineResult => (baselineData ?? const {})["result"];
+  String get approvedResult => (approvedResultData ?? const {})["result"];
+  bool get isDifferent => result != null && result != baselineResult;
+  bool get isApproved => result == null || result == approvedResult;
   List<String> get flakyModes =>
       flakinessData != null ? flakinessData["outcomes"].cast<String>() : null;
   bool get isFlake => flakinessData != null && flakyModes.contains(result);
@@ -73,30 +110,66 @@ Future<Map<String, Map<String, dynamic>>> loadResultsMapIfExists(
         ? loadResultsMap(path)
         : <String, Map<String, dynamic>>{};
 
+/// Exception for when the results for a builder can't be found.
+class NoResultsException implements Exception {
+  final String message;
+  final String buildUrl;
+
+  NoResultsException(this.message, this.buildUrl);
+
+  String toString() => message;
+}
+
 /// Loads a log from logdog.
 Future<String> loadLog(String id, String step) async {
+  final buildUrl = "https://ci.chromium.org/b/$id";
   final logUrl = Uri.parse("https://logs.chromium.org/"
       "logs/dart/buildbucket/cr-buildbucket.appspot.com/"
       "$id/+/steps/$step?format=raw");
   final client = new HttpClient();
-  final request =
-      await client.getUrl(logUrl).timeout(const Duration(seconds: 60));
-  final response = await request.close().timeout(const Duration(seconds: 60));
-  if (response.statusCode != HttpStatus.ok) {
-    throw new Exception("The log at $logUrl doesn't exist");
+  try {
+    final request =
+        await client.getUrl(logUrl).timeout(const Duration(seconds: 60));
+    final response = await request.close().timeout(const Duration(seconds: 60));
+    if (response.statusCode == HttpStatus.notFound) {
+      await response.drain();
+      throw new NoResultsException(
+          "The log at $logUrl doesn't exist: ${response.statusCode}", buildUrl);
+    }
+    if (response.statusCode != HttpStatus.ok) {
+      await response.drain();
+      throw new Exception("Failed to download $logUrl: ${response.statusCode}");
+    }
+    final contents = (await response
+            .transform(new Utf8Decoder())
+            .timeout(const Duration(seconds: 60))
+            .toList())
+        .join("");
+    return contents;
+  } finally {
+    client.close();
   }
-  final contents = (await response
-          .transform(new Utf8Decoder())
-          .timeout(const Duration(seconds: 60))
-          .toList())
-      .join("");
-  client.close();
-  return contents;
+}
+
+/// TODO(https://github.com/dart-lang/sdk/issues/36015): The step name changed
+/// incompatibly, allow both temporarily to reduce the user breakage. Remove
+/// this 2019-03-25.
+Future<String> todoFallbackLoadLog(
+    String id, String primary, String secondary) async {
+  try {
+    return await loadLog(id, primary);
+  } catch (e) {
+    if (e.toString().startsWith("Exception: The log at ") &&
+        e.toString().endsWith(" doesn't exist")) {
+      return await loadLog(id, secondary);
+    }
+    rethrow;
+  }
 }
 
 /// Loads the results from the bot.
 Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
-    Map<String, dynamic> changelistBuild) async {
+    String changeId, Map<String, dynamic> changelistBuild) async {
   if (options["verbose"]) {
     print("Loading $bot...");
   }
@@ -106,8 +179,14 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
     // The 'latest' file contains the name of the latest build that we
     // should download. When preapproving a changelist, we instead find out
     // which build the commit queue was rebased on.
-    final build = (changelistBuild != null
-            ? await loadLog(changelistBuild["id"],
+    /// TODO(https://github.com/dart-lang/sdk/issues/36015): The step name
+    /// changed incompatibly, allow both temporarily to reduce the user
+    /// breakage. Remove this 2019-03-25.
+    final build = (changeId != null
+            ? await todoFallbackLoadLog(
+                changelistBuild["id"],
+                "download_previous_results/0/steps/gsutil_find_latest_build/0/logs/"
+                "raw_io.output_text_latest_/0",
                 "gsutil_find_latest_build/0/logs/raw_io.output_text_latest_/0")
             : await readFile(bot, "latest"))
         .trim();
@@ -121,7 +200,7 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
           "$approvedResultsStoragePath/$bot/approved_results.json",
           "${tmpdir.path}/approved_results.json"),
       new Future(() async {
-        if (changelistBuild != null) {
+        if (changeId != null) {
           tryResults.addAll(parseResultsMap(await loadLog(
               changelistBuild["id"], "test_results/0/logs/results.json/0")));
         }
@@ -150,71 +229,32 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
     final approvedResults =
         await loadResultsMapIfExists("${tmpdir.path}/approved_results.json");
 
+    // TODO: Remove 2019-04-08: Discard any invalid pre-approvals made with a
+    // version of approve_results between 065910f0 and a13ac1b4. Pre-approving
+    // a new test could add pre-approvals with null configuration and null name.
+    approvedResults.remove("null:null");
+
     // Construct an object for every test containing its current result,
     // what the last approved result was, and whether it's flaky.
     final tests = <Test>[];
-    for (final key in results.keys) {
-      final result = results[key];
+    final testResults = changeId != null ? tryResults : results;
+    for (final key in testResults.keys) {
+      final baselineResult = changeId != null ? results[key] : null;
+      final testResult = testResults[key];
       final approvedResult = approvedResults[key];
       final flakiness = flaky[key];
-      // If preapproving results, allow new non-matching results that are
-      // different from the baseline. The approved results will be the current
-      // approved results, plus the difference between the tryrun's baseline and
-      // the tryrun's results.
-      if (tryResults.containsKey(key)) {
-        final tryResult = tryResults[key];
-        final wasFlake = flakiness != null &&
-            (flakiness["outcomes"] as List<dynamic>)
-                .contains(tryResult["result"]);
-        // Pick the try run result if the try result was not a flake and it's a
-        // non-matching result that's different than the approved result. If
-        // there is no approved result yet, use the latest result from the
-        // builder instead.
-        final baseResult = approvedResult ?? result;
-        if (!wasFlake &&
-            !tryResult["matches"] &&
-            tryResult["result"] != result["result"]) {
-          // The approved_results.json format currently does not natively
-          // support preapproval, so preapproving turning one failure into
-          // another will turn the builder in question red until the CL lands.
-          if (!baseResult["matches"] &&
-              tryResult["result"] != baseResult["result"]) {
-            print("Warning: Preapproving changed failure modes will turn the "
-                "CI red until the CL is submitted: $bot: $key: "
-                "${baseResult["result"]} -> ${tryResult["result"]}");
-          }
-          result.clear();
-          result.addAll(tryResult);
-        } else {
-          if (approvedResult != null) {
-            result.clear();
-            result.addAll(approvedResult);
-          }
-        }
-      } else if (tryResults.isNotEmpty && approvedResult != null) {
-        result.clear();
-        result.addAll(approvedResult);
-      }
-      final name = result["name"];
-      final test = new Test(bot, name, result, approvedResult, flakiness);
-      final dropApproval =
-          test.matches ? options["failures-only"] : options["successes-only"];
-      if (dropApproval && !test.isApproved) {
-        if (approvedResult == null) continue;
-        result.clear();
-        result.addAll(approvedResult);
-      }
+      final test =
+          new Test(bot, baselineResult, testResult, approvedResult, flakiness);
       tests.add(test);
     }
-    // If preapproving and the CL has introduced new tests, add the new tests
-    // as well to the approved data.
-    final newTestKeys = new Set<String>.from(tryResults.keys)
-        .difference(new Set<String>.from(results.keys));
-    for (final key in newTestKeys) {
-      final result = tryResults[key];
+    // Add in approvals whose test was no longer in the results.
+    for (final key in approvedResults.keys) {
+      if (testResults.containsKey(key)) continue;
+      final baselineResult = changeId != null ? results[key] : null;
+      final approvedResult = approvedResults[key];
       final flakiness = flaky[key];
-      final name = result["name"];
-      final test = new Test(bot, name, result, null, flakiness);
+      final test =
+          new Test(bot, baselineResult, null, approvedResult, flakiness);
       tests.add(test);
     }
     if (options["verbose"]) {
@@ -225,6 +265,33 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
     // Always clean up the temporary directory when we don't need it.
     await tmpdir.delete(recursive: true);
   }
+}
+
+Future<Map<String, dynamic>> loadJsonPrefixedAPI(String url) async {
+  final client = new HttpClient();
+  try {
+    final request = await client
+        .getUrl(Uri.parse(url))
+        .timeout(const Duration(seconds: 30));
+    final response = await request.close().timeout(const Duration(seconds: 30));
+    if (response.statusCode != HttpStatus.ok) {
+      throw new Exception("Failed to request $url: ${response.statusCode}");
+    }
+    final text = await response
+        .transform(utf8.decoder)
+        .join()
+        .timeout(const Duration(seconds: 30));
+    return jsonDecode(text.substring(5 /* ")]}'\n" */));
+  } finally {
+    client.close();
+  }
+}
+
+Future<Map<String, dynamic>> loadChangelistDetails(
+    String gerritHost, String changeId) async {
+  // ?O=516714 requests the revisions field.
+  final url = "https://$gerritHost/changes/$changeId/detail?O=516714";
+  return await loadJsonPrefixedAPI(url);
 }
 
 main(List<String> args) async {
@@ -269,6 +336,8 @@ Usage: approve_results.dart [OPTION]...
 List tests whose results are different from the previously approved results, and
 ask whether to update the currently approved results, turning the bots green.
 
+See the documentation at https://goto.google.com/dart-status-file-free-workflow
+
 The options are as follows:
 
 ${parser.usage}""");
@@ -277,6 +346,12 @@ ${parser.usage}""");
 
   if (options["no"] && options["yes"]) {
     stderr.writeln("The --no and --yes options are mutually incompatible");
+    exitCode = 1;
+    return;
+  }
+
+  if (options.rest.isNotEmpty) {
+    stderr.writeln("Unexpected extra argument: ${options.rest.first}");
     exitCode = 1;
     return;
   }
@@ -331,9 +406,11 @@ ${parser.usage}""");
 
   // Determine which builders have run for the changelist.
   final changelistBuilds = <String, Map<String, dynamic>>{};
-  if (options["preapprove"] != null) {
+  final isPreapproval = options["preapprove"] != null;
+  String changeId;
+  if (isPreapproval) {
     if (options["verbose"]) {
-      print("Loading list of try runs...");
+      print("Loading changelist details...");
     }
     final gerritHost = "dart-review.googlesource.com";
     final gerritProject = "sdk";
@@ -345,16 +422,30 @@ ${parser.usage}""");
       return;
     }
     final components = gerrit.substring(prefix.length).split("/");
-    if (components.length != 2 ||
-        int.tryParse(components[0]) == null ||
-        int.tryParse(components[1]) == null) {
+    if (!((components.length == 1 && int.tryParse(components[0]) != null) ||
+        (components.length == 2 &&
+            int.tryParse(components[0]) != null &&
+            int.tryParse(components[1]) != null))) {
       stderr.writeln("error: $gerrit must be in the form of "
-          "$prefix<changelist>/<patchset>");
+          "$prefix<changelist> or $prefix<changelist>/<patchset>");
       exitCode = 1;
       return;
     }
     final changelist = int.parse(components[0]);
-    final patchset = int.parse(components[1]);
+    final details =
+        await loadChangelistDetails(gerritHost, changelist.toString());
+    changeId = details["change_id"];
+    final patchset = 2 <= components.length
+        ? int.parse(components[1])
+        : details["revisions"][details["current_revision"]]["_number"];
+    if (2 <= components.length) {
+      print("Using Change-Id $changeId patchset $patchset");
+    } else {
+      print("Using Change-Id $changeId with the latest patchset $patchset");
+    }
+    if (options["verbose"]) {
+      print("Loading list of try runs...");
+    }
     final buildset = "buildset:patch/gerrit/$gerritHost/$changelist/$patchset";
     final url = Uri.parse(
         "https://cr-buildbucket.appspot.com/_ah/api/buildbucket/v1/search"
@@ -463,10 +554,20 @@ ${parser.usage}""");
   // Load all the latest results for the selected bots, as well as flakiness
   // data, and the set of currently approved results. Each bot's latest build
   // is downloaded in parallel to make this phase faster.
-  final testListFutures = <Future>[];
+  final testListFutures = <Future<List<Test>>>[];
+  final noResultsBuilds = new SplayTreeMap<String, String>();
   for (final String bot in bots) {
-    testListFutures
-        .add(loadResultsFromBot(bot, options, changelistBuilds[bot]));
+    testListFutures.add(new Future(() async {
+      try {
+        return await loadResultsFromBot(
+            bot, options, changeId, changelistBuilds[bot]);
+      } on NoResultsException catch (e) {
+        print(
+            "Error: Failed to find results for $bot build <${e.buildUrl}>: $e");
+        noResultsBuilds[bot] = e.buildUrl;
+        return <Test>[];
+      }
+    }));
   }
 
   // Collect all the tests from the synchronous downloads.
@@ -478,19 +579,28 @@ ${parser.usage}""");
   print("");
 
   // Compute statistics and the set of interesting tests.
-  final flakyTestsCount = tests.where((test) => test.isFlake).length;
-  final failingTestsCount =
-      tests.where((test) => !test.isFlake && !test.matches).length;
-  final unapprovedTests =
-      tests.where((test) => !test.isFlake && !test.isApproved).toList();
-  final fixedTests = unapprovedTests.where((test) => test.matches).toList();
-  final brokenTests = unapprovedTests.where((test) => !test.matches).toList();
+  final flakyTestsCount =
+      tests.where((test) => test.resultData != null && test.isFlake).length;
+  final failingTestsCount = tests
+      .where(
+          (test) => test.resultData != null && !test.isFlake && !test.matches)
+      .length;
+  final differentTests = tests
+      .where((test) =>
+          (isPreapproval ? test.isDifferent : !test.isApproved) &&
+          !test.isFlake)
+      .toList();
+  final selectedTests = differentTests
+      .where((test) => !(test.matches
+          ? options["failures-only"]
+          : options["successes-only"]))
+      .toList();
+  final fixedTests = selectedTests.where((test) => test.matches).toList();
+  final brokenTests = selectedTests.where((test) => !test.matches).toList();
 
   // Find out which bots have multiple configurations.
-  final outcomes = new Set<String>();
   final configurationsForBots = <String, Set<String>>{};
   for (final test in tests) {
-    outcomes.add(test.result);
     var configurationSet = configurationsForBots[test.bot];
     if (configurationSet == null) {
       configurationsForBots[test.bot] = configurationSet = new Set<String>();
@@ -517,7 +627,7 @@ ${parser.usage}""");
   int longestTest = "TEST".length;
   int longestResult = "RESULT".length;
   int longestExpected = "EXPECTED".length;
-  for (final test in unapprovedTests) {
+  for (final test in selectedTests) {
     unapprovedBots.add(test.bot);
     final botDisplayName = getBotDisplayName(test.bot, test.configuration);
     longestBot = max(longestBot, botDisplayName.length);
@@ -601,6 +711,17 @@ ${parser.usage}""");
   statistic(brokenTests.length, tests.length,
       "tests were broken since last approval");
 
+  // Warn about any builders where results weren't available.
+  if (noResultsBuilds.isNotEmpty) {
+    print("");
+    noResultsBuilds.forEach((String builder, String buildUrl) {
+      print("Warning: No results were found for $builder: <$buildUrl>");
+    });
+    print("Warning: Builders without results are usually due to infrastructure "
+        "issues, please have a closer look at the affected builders and try "
+        "the build again.");
+  }
+
   // Stop if there's nothing to do.
   if (unapprovedBots.isEmpty) {
     print("\nEvery test result has already been approved.");
@@ -609,10 +730,10 @@ ${parser.usage}""");
 
   // Stop if this is a dry run.
   if (options["no"]) {
-    if (unapprovedTests.length == 1) {
+    if (selectedTests.length == 1) {
       print("1 test has a changed result and needs approval");
     } else {
-      print("${unapprovedTests.length} "
+      print("${selectedTests.length} "
           "tests have changed results and need approval");
     }
     return;
@@ -624,16 +745,15 @@ ${parser.usage}""");
     print("Note: It is assumed bugs have been filed about the above failures "
         "before they are approved here.");
     if (brokenTests.isNotEmpty) {
-      final botPlural = bots.length == 1 ? "bot" : "bots";
+      final builderPlural = bots.length == 1 ? "builder" : "builders";
+      final tryBuilders = isPreapproval ? "try$builderPlural" : builderPlural;
+      final tryCommit = isPreapproval ? "tryrun" : "commit";
       print("Note: Approving the failures will turn the "
-          "$botPlural green on the next commit.");
-    }
-    if (options["preapprove"] != null) {
-      print("Warning: Preapproval is currently not sticky and somebody else "
-          "approving before your CL has landed will undo your preapproval.");
+          "$tryBuilders green on the next $tryCommit.");
     }
     while (true) {
-      stdout.write("Do you want to approve? (yes/no) [yes] ");
+      final approve = isPreapproval ? "pre-approve" : "approve";
+      stdout.write("Do you want to $approve? (yes/no) [yes] ");
       final line = stdin.readLineSync();
       // End of file condition is considered no.
       if (line == null) {
@@ -666,47 +786,199 @@ ${parser.usage}""");
     exitCode = 1;
     return;
   }
-  final now = new DateTime.now().toUtc().toIso8601String();
+  final nowDate = new DateTime.now().toUtc();
+  final now = nowDate.toIso8601String();
 
-  // Update approved_results.json for each bot with unapproved changes.
+  // Deep clones a decoded json object.
+  dynamic deepClone(dynamic object) {
+    if (object is Map<String, dynamic>) {
+      final result = <String, dynamic>{};
+      for (final key in object.keys) {
+        result[key] = deepClone(object[key]);
+      }
+      return result;
+    } else if (object is List<dynamic>) {
+      final result = <dynamic>[];
+      for (final value in object) {
+        result.add(deepClone(value));
+      }
+      return result;
+    } else {
+      return object;
+    }
+  }
+
+  // Build the new approval data with the changes in test results applied.
+  final newApprovalsForBuilders = <String, Map<String, Map<String, dynamic>>>{};
+
+  if (isPreapproval) {
+    // Import all the existing approval data, keeping tests that don't exist
+    // anymore.
+    for (final test in tests) {
+      if (test.approvedResultData == null) continue;
+      final approvalData = deepClone(test.approvedResultData);
+      // TODO(https://github.com/dart-lang/sdk/issues/36279): Remove needless
+      // fields that shouldn't be in the approvals data. Remove this 2019-04-03.
+      approvalData.remove("bot_name");
+      approvalData.remove("builder_name");
+      approvalData.remove("build_number");
+      approvalData.remove("changed");
+      approvalData.remove("commit_hash");
+      approvalData.remove("commit_time");
+      approvalData.remove("commit_hash");
+      approvalData.remove("flaky");
+      approvalData.remove("previous_build_number");
+      approvalData.remove("previous_commit_hash");
+      approvalData.remove("previous_commit_time");
+      approvalData.remove("previous_flaky");
+      approvalData.remove("previous_result");
+      approvalData.remove("time_ms");
+      // Discard all the existing pre-approvals for this changelist.
+      final preapprovals =
+          approvalData.putIfAbsent("preapprovals", () => <String, dynamic>{});
+      preapprovals.remove(changeId);
+      final newApprovals = newApprovalsForBuilders.putIfAbsent(
+          test.bot, () => new SplayTreeMap<String, Map<String, dynamic>>());
+      newApprovals[test.key] = approvalData;
+    }
+
+    // Pre-approve all the regressions (no need to pre-approve fixed tests).
+    for (final test in brokenTests) {
+      final newApprovals = newApprovalsForBuilders.putIfAbsent(
+          test.bot, () => new SplayTreeMap<String, Map<String, dynamic>>());
+      final approvalData =
+          newApprovals.putIfAbsent(test.key, () => <String, dynamic>{});
+      approvalData["name"] = test.name;
+      approvalData["configuration"] = test.configuration;
+      approvalData["suite"] = test.resultData["suite"];
+      approvalData["test_name"] = test.resultData["test_name"];
+      final preapprovals =
+          approvalData.putIfAbsent("preapprovals", () => <String, dynamic>{});
+      final preapproval =
+          preapprovals.putIfAbsent(changeId, () => <String, dynamic>{});
+      preapproval["from"] = test.approvedResult;
+      preapproval["result"] = test.result;
+      preapproval["matches"] = test.matches;
+      preapproval["expected"] = test.expected;
+      preapproval["preapprover"] = username;
+      preapproval["preapproved_at"] = now;
+      preapproval["expires"] =
+          nowDate.add(const Duration(days: 30)).toIso8601String();
+    }
+  } else {
+    // Import all the existing approval data for tests, removing tests that
+    // don't exist anymore unless they have pre-approvals.
+    for (final test in tests) {
+      if (test.approvedResultData == null) continue;
+      if (test.result == null &&
+          (test.approvedResultData["preapprovals"] ?? <dynamic>[]).isEmpty) {
+        continue;
+      }
+      final approvalData = deepClone(test.approvedResultData);
+      // TODO(https://github.com/dart-lang/sdk/issues/36279): Remove needless
+      // fields that shouldn't be in the approvals data. Remove this 2019-04-03.
+      approvalData.remove("bot_name");
+      approvalData.remove("builder_name");
+      approvalData.remove("build_number");
+      approvalData.remove("changed");
+      approvalData.remove("commit_hash");
+      approvalData.remove("commit_time");
+      approvalData.remove("commit_hash");
+      approvalData.remove("flaky");
+      approvalData.remove("previous_build_number");
+      approvalData.remove("previous_commit_hash");
+      approvalData.remove("previous_commit_time");
+      approvalData.remove("previous_flaky");
+      approvalData.remove("previous_result");
+      approvalData.remove("time_ms");
+      approvalData.putIfAbsent("preapprovals", () => <String, dynamic>{});
+      final newApprovals = newApprovalsForBuilders.putIfAbsent(
+          test.bot, () => new SplayTreeMap<String, Map<String, dynamic>>());
+      newApprovals[test.key] = approvalData;
+    }
+
+    // Approve the changes in test results.
+    for (final test in selectedTests) {
+      final newApprovals = newApprovalsForBuilders.putIfAbsent(
+          test.bot, () => new SplayTreeMap<String, Map<String, dynamic>>());
+      final approvalData =
+          newApprovals.putIfAbsent(test.key, () => <String, dynamic>{});
+      approvalData["name"] = test.name;
+      approvalData["configuration"] = test.configuration;
+      approvalData["suite"] = test.resultData["suite"];
+      approvalData["test_name"] = test.resultData["test_name"];
+      approvalData["result"] = test.result;
+      approvalData["expected"] = test.expected;
+      approvalData["matches"] = test.matches;
+      approvalData["approver"] = username;
+      approvalData["approved_at"] = now;
+      approvalData.putIfAbsent("preapprovals", () => <String, dynamic>{});
+    }
+  }
+
+  // Reconstruct the old approvals so we can double check there was no race
+  // condition when uploading.
+  final oldApprovalsForBuilders = <String, Map<String, Map<String, dynamic>>>{};
+  for (final test in tests) {
+    if (test.approvedResultData == null) continue;
+    final oldApprovals = oldApprovalsForBuilders.putIfAbsent(
+        test.bot, () => new SplayTreeMap<String, Map<String, dynamic>>());
+    oldApprovals[test.key] = test.approvedResultData;
+  }
+  for (final builder in newApprovalsForBuilders.keys) {
+    oldApprovalsForBuilders.putIfAbsent(
+        builder, () => <String, Map<String, dynamic>>{});
+  }
+
+  // Update approved_results.json for each builder with unapproved changes.
   final outDirectory =
       await Directory.systemTemp.createTemp("approved_results.");
+  bool raceCondition = false;
   try {
-    final testsForBots = <String, List<Test>>{};
-    for (final test in tests) {
-      if (!testsForBots.containsKey(test.bot)) {
-        testsForBots[test.bot] = <Test>[test];
-      } else {
-        testsForBots[test.bot].add(test);
-      }
-    }
     print("Uploading approved results...");
     final futures = <Future>[];
-    for (final String bot in unapprovedBots) {
-      Map<String, dynamic> approveData(Test test) {
-        if (test.isApproved) {
-          return test.approvedResultData;
-        } else {
-          final data = new Map<String, dynamic>.from(test.resultData);
-          data["approver"] = username;
-          data["approved_at"] = now;
-          return data;
-        }
-      }
-
-      final dataList = testsForBots[bot].map(approveData).toList();
-      final localPath = "${outDirectory.path}/$bot.json";
+    for (final String builder in newApprovalsForBuilders.keys) {
+      final approvals = newApprovalsForBuilders[builder].values;
+      final localPath = "${outDirectory.path}/$builder.json";
       await new File(localPath).writeAsString(
-          dataList.map((data) => jsonEncode(data) + "\n").join(""));
+          approvals.map((approval) => jsonEncode(approval) + "\n").join(""));
       final remotePath =
-          "$approvedResultsStoragePath/$bot/approved_results.json";
-      futures.add(cpGsutil(localPath, remotePath)
-          .then((_) => print("Uploaded approved results for $bot")));
+          "$approvedResultsStoragePath/$builder/approved_results.json";
+      futures.add(new Future(() async {
+        if (!options["yes"]) {
+          if (options["verbose"]) {
+            print("Checking for race condition on $builder...");
+          }
+          final oldApprovedResults = oldApprovalsForBuilders[builder];
+          final oldApprovalPath = "${outDirectory.path}/$builder.json.old";
+          await cpGsutil(remotePath, oldApprovalPath);
+          final checkApprovedResults =
+              await loadResultsMapIfExists(oldApprovalPath);
+          if (!isIdenticalApprovals(oldApprovedResults, checkApprovedResults)) {
+            print("error: Race condition: "
+                "$builder approvals have changed, please try again.");
+            raceCondition = true;
+            return;
+          }
+        }
+        if (options["verbose"]) {
+          print("Uploading approved results for $builder...");
+        }
+        await cpGsutil(localPath, remotePath);
+        print("Uploaded approved results for $builder");
+      }));
     }
     await Future.wait(futures);
+    if (raceCondition) {
+      exitCode = 1;
+      print("error: Somebody else has approved, please try again");
+      return;
+    }
     if (brokenTests.isNotEmpty) {
-      print(
-          "Successfully approved results, the next commit will turn bots green");
+      final approved = isPreapproval ? "pre-approved" : "approved";
+      final commit = isPreapproval ? "tryrun" : "commit";
+      print("Successfully $approved results, the next $commit "
+          "will turn builders green");
     } else {
       print("Successfully approved results");
     }

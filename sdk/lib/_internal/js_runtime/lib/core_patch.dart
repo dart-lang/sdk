@@ -391,6 +391,22 @@ class Stopwatch {
 
   @patch
   static int _now() => Primitives.timerTicks();
+
+  @patch
+  int get elapsedMicroseconds {
+    int ticks = elapsedTicks;
+    if (_frequency == 1000000) return ticks;
+    assert(_frequency == 1000);
+    return ticks * 1000;
+  }
+
+  @patch
+  int get elapsedMilliseconds {
+    int ticks = elapsedTicks;
+    if (_frequency == 1000) return ticks;
+    assert(_frequency == 1000000);
+    return ticks ~/ 1000;
+  }
 }
 
 // Patch for List implementation.
@@ -509,7 +525,7 @@ class bool {
 
 @patch
 class RegExp {
-  @NoInline()
+  @pragma('dart2js:noInline')
   @patch
   factory RegExp(String source,
           {bool multiLine: false, bool caseSensitive: true}) =>
@@ -521,7 +537,8 @@ class RegExp {
 }
 
 // Patch for 'identical' function.
-@NoInline() // No inlining since we recognize the call in optimizer.
+@pragma(
+    'dart2js:noInline') // No inlining since we recognize the call in optimizer.
 @patch
 bool identical(Object a, Object b) {
   return JS('bool', '(# == null ? # == null : # === #)', a, b, a, b);
@@ -731,7 +748,7 @@ bool _hasErrorStackProperty = JS('bool', 'new Error().stack != void 0');
 @patch
 class StackTrace {
   @patch
-  @NoInline()
+  @pragma('dart2js:noInline')
   static StackTrace get current {
     if (_hasErrorStackProperty) {
       return getTraceFromException(JS('', 'new Error()'));
@@ -1309,7 +1326,7 @@ class _BigIntImpl implements BigInt {
   /// Shifts the digits of [xDigits] into the right place in [resultDigits].
   ///
   /// `resultDigits[ds..xUsed+ds] = xDigits[0..xUsed-1] << (n % _DIGIT_BITS)`
-  ///   where `ds = ceil(n / _DIGIT_BITS)`
+  ///   where `ds = n ~/ _DIGIT_BITS`
   ///
   /// Does *not* clear digits below ds.
   static void _lsh(
@@ -2645,7 +2662,9 @@ class _BigIntImpl implements BigInt {
     var resultBits = new Uint8List(8);
 
     var length = _digitBits * (_used - 1) + _digits[_used - 1].bitLength;
-    if (length - 53 > maxDoubleExponent) return double.infinity;
+    if (length > maxDoubleExponent + 53) {
+      return _isNegative ? double.negativeInfinity : double.infinity;
+    }
 
     // The most significant bit is for the sign.
     if (_isNegative) resultBits[7] = 0x80;

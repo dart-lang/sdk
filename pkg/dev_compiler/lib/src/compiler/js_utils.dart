@@ -25,18 +25,20 @@ Fun simplifyPassThroughArrowFunCallBody(Fun fn) {
   return fn;
 }
 
-Set<Identifier> findMutatedVariables(Node scope) {
+Set<String> findMutatedVariables(Node scope) {
   var v = MutationVisitor();
   scope.accept(v);
   return v.mutated;
 }
 
 class MutationVisitor extends BaseVisitor {
-  final mutated = Set<Identifier>();
+  /// Using Identifier names instead of a more precise key may result in
+  /// mutations being imprecisely reported when variables shadow each other.
+  final mutated = Set<String>();
   @override
   visitAssignment(node) {
     var id = node.leftHandSide;
-    if (id is Identifier) mutated.add(id);
+    if (id is Identifier) mutated.add(id.name);
     super.visitAssignment(node);
   }
 }

@@ -56,6 +56,7 @@ error_stack_trace_test/static: MissingCompileTimeError
 bool_from_environment2_test/03: MissingCompileTimeError
 int_modulo_arith_test/modPow: RuntimeError
 int_modulo_arith_test/none: RuntimeError
+regexp/lookbehind_test/01: Skip # Flaky in uncatchable way.  Issue 36280
 string_from_environment3_test/03: MissingCompileTimeError
 
 [ $compiler == fasta ]

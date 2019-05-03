@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
 
 /// Representation of a type in the code to be migrated.  In addition to
@@ -16,18 +16,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
 class DecoratedType {
   final DartType type;
 
-  /// [ConstraintVariable] whose value will be set to `true` if this type needs
-  /// to be nullable.
-  ///
-  /// If `null`, that means that an external constraint (outside the code being
-  /// migrated) forces this type to be non-nullable.
-  final ConstraintVariable nullable;
-
-  /// [ConstraintVariable] whose value will be set to `true` if the usage of
-  /// this type suggests that it is intended to be non-null (because of the
-  /// presence of a statement or expression that would unconditionally lead to
-  /// an exception being thrown in the case of a `null` value at runtime).
-  ConstraintVariable nonNullIntent;
+  final NullabilityNode node;
 
   /// If `this` is a function type, the [DecoratedType] of its return type.
   final DecoratedType returnType;
@@ -41,41 +30,31 @@ class DecoratedType {
   /// parameters.
   final Map<String, DecoratedType> namedParameters;
 
-  /// If `this` is a function type, [ConstraintVariable] for each of its named
-  /// parameters indicating whether the given named parameter needs to be
-  /// optional (no `required` annotation).
-  ///
-  /// If there is no entry in this map corresponding to a given named parameter,
-  /// that means that it has already been decided (prior to migration) that the
-  /// given named parameter is required.  TODO(paulberry): test that this works
-  /// for already-migrated code.
-  final Map<String, ConstraintVariable> namedParameterOptionalVariables;
-
   /// If `this` is a parameterized type, the [DecoratedType] of each of its
   /// type parameters.
   ///
   /// TODO(paulberry): how should we handle generic typedefs?
   final List<DecoratedType> typeArguments;
 
-  DecoratedType(this.type, this.nullable,
+  DecoratedType(this.type, this.node,
       {this.returnType,
       this.positionalParameters = const [],
       this.namedParameters = const {},
-      this.namedParameterOptionalVariables = const {},
       this.typeArguments = const []}) {
+    assert(node != null);
     // The type system doesn't have a non-nullable version of `dynamic`.  So if
     // the type is `dynamic`, verify that `nullable` is `always`.
-    assert(!type.isDynamic || identical(nullable, ConstraintVariable.always));
+    assert(!type.isDynamic || node.isAlwaysNullable);
   }
 
   /// Creates a [DecoratedType] corresponding to the given [element], which is
   /// presumed to have come from code that is already migrated.
   factory DecoratedType.forElement(Element element) {
     DecoratedType decorate(DartType type) {
-      assert((type as TypeImpl).nullability ==
-          Nullability.indeterminate); // TODO(paulberry)
+      assert((type as TypeImpl).nullabilitySuffix ==
+          NullabilitySuffix.star); // TODO(paulberry)
       if (type is FunctionType) {
-        var decoratedType = DecoratedType(type, null,
+        var decoratedType = DecoratedType(type, NullabilityNode.never,
             returnType: decorate(type.returnType), positionalParameters: []);
         for (var parameter in type.parameters) {
           assert(parameter.isPositional); // TODO(paulberry)
@@ -84,7 +63,7 @@ class DecoratedType {
         return decoratedType;
       } else if (type is InterfaceType) {
         assert(type.typeParameters.isEmpty); // TODO(paulberry)
-        return DecoratedType(type, null);
+        return DecoratedType(type, NullabilityNode.never);
       } else {
         throw type.runtimeType; // TODO(paulberry)
       }
@@ -113,7 +92,7 @@ class DecoratedType {
 
   @override
   String toString() {
-    var trailing = nullable == null ? '' : '?($nullable)';
+    var trailing = node.debugSuffix;
     var type = this.type;
     if (type is TypeParameterType || type is VoidType) {
       return '$type$trailing';
@@ -156,14 +135,14 @@ class DecoratedType {
         newPositionalParameters.add(positionalParameters[i]
             ._substitute(constraints, substitution, undecoratedParameterType));
       }
-      return DecoratedType(undecoratedResult, nullable,
+      return DecoratedType(undecoratedResult, node,
           returnType: returnType._substitute(
               constraints, substitution, undecoratedResult.returnType),
           positionalParameters: newPositionalParameters);
     } else if (type is TypeParameterType) {
       var inner = substitution[type.element];
       return DecoratedType(undecoratedResult,
-          ConstraintVariable.or(constraints, inner?.nullable, nullable));
+          NullabilityNode.forSubstitution(constraints, inner?.node, node));
     } else if (type is VoidType) {
       return this;
     }
@@ -178,19 +157,15 @@ class DecoratedType {
 /// the source code to reflect its nullability.
 class DecoratedTypeAnnotation extends DecoratedType
     implements PotentialModification {
-  @override
-  final Source source;
-
   final int _offset;
 
   DecoratedTypeAnnotation(
-      DartType type, ConstraintVariable nullable, this.source, this._offset,
+      DartType type, NullabilityNode nullabilityNode, this._offset,
       {List<DecoratedType> typeArguments = const []})
-      : super(type, nullable, typeArguments: typeArguments);
+      : super(type, nullabilityNode, typeArguments: typeArguments);
 
   @override
-  bool get isEmpty =>
-      identical(nullable, ConstraintVariable.always) || !nullable.value;
+  bool get isEmpty => node.isAlwaysNullable || !node.isNullable;
 
   @override
   Iterable<SourceEdit> get modifications =>

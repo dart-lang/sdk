@@ -8,8 +8,6 @@ import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
-import '../../base/instrumentation.dart' show Instrumentation;
-
 import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart'
@@ -380,7 +378,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int modifiers,
       T mixinApplication,
       List<T> interfaces,
-      int charOffset);
+      int startCharOffset,
+      int charOffset,
+      int charEndOffset);
 
   void addField(
       String documentationComment,
@@ -455,6 +455,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<MetadataBuilder> metadata,
       String name,
       List<EnumConstantInfo> enumConstantInfos,
+      int startCharOffset,
       int charOffset,
       int charEndOffset);
 
@@ -881,14 +882,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   @override
-  void instrumentTopLevelInference(Instrumentation instrumentation) {
-    Iterator<Declaration> iterator = this.iterator;
-    while (iterator.moveNext()) {
-      iterator.current.instrumentTopLevelInference(instrumentation);
-    }
-  }
-
-  @override
   void recordAccess(int charOffset, int length, Uri fileUri) {
     accessors.add(fileUri);
     accessors.add(charOffset);
@@ -940,6 +933,8 @@ class DeclarationBuilder<T extends TypeBuilder> {
   int charOffset;
 
   List<TypeVariableBuilder> typeVariables;
+
+  bool hasConstConstructor = false;
 
   DeclarationBuilder(this.members, this.setters, this.constructors, this.name,
       this.charOffset, this.parent) {

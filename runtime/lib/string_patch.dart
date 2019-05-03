@@ -224,8 +224,7 @@ abstract class _StringBase implements String {
     var s = _OneByteString._allocate(len);
 
     // Special case for _Uint8ArrayView.
-    final cid = ClassID.getID(charCodes);
-    if (identical(cid, ClassID.cidUint8ArrayView)) {
+    if (charCodes is Uint8List) {
       if (start >= 0 && len >= 0) {
         for (int i = 0; i < len; i++) {
           s._setAt(i, charCodes[start + i]);
@@ -628,10 +627,13 @@ abstract class _StringBase implements String {
   String replaceAll(Pattern pattern, String replacement) {
     if (pattern == null) throw new ArgumentError.notNull("pattern");
     if (replacement == null) throw new ArgumentError.notNull("replacement");
-    List matches = [];
-    int length = 0;
-    int replacementLength = replacement.length;
+
     int startIndex = 0;
+    // String fragments that replace the the prefix [this] up to [startIndex].
+    List matches = [];
+    int length = 0; // Length of all fragments.
+    int replacementLength = replacement.length;
+
     if (replacementLength == 0) {
       for (Match match in pattern.allMatches(this)) {
         length += _addReplaceSlice(matches, startIndex, match.start);
@@ -645,6 +647,8 @@ abstract class _StringBase implements String {
         startIndex = match.end;
       }
     }
+    // No match, or a zero-length match at start with zero-length replacement.
+    if (startIndex == 0 && length == 0) return this;
     length += _addReplaceSlice(matches, startIndex, this.length);
     bool replacementIsOneByte = replacement._isOneByte;
     if (replacementIsOneByte &&
@@ -811,7 +815,7 @@ abstract class _StringBase implements String {
   }
 
   // Convert single object to string.
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   static String _interpolateSingle(Object o) {
     if (o is String) return o;
     final s = o.toString();
@@ -826,7 +830,7 @@ abstract class _StringBase implements String {
    * into a result string.
    * Modifies the input list if it contains non-`String` values.
    */
-  @pragma("vm:entry-point")
+  @pragma("vm:entry-point", "call")
   static String _interpolate(final List values) {
     final numValues = values.length;
     int totalLength = 0;

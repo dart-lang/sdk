@@ -241,6 +241,9 @@ void CompilerPass::RunPipeline(PipelineMode mode,
     // unreachable code.
     INVOKE_PASS(ApplyICData);
   }
+  if (mode == kAOT) {
+    INVOKE_PASS(OptimizeTypedDataAccesses);
+  }
 #endif
   INVOKE_PASS(WidenSmiToInt32);
   INVOKE_PASS(SelectRepresentations);
@@ -268,6 +271,14 @@ void CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(FinalizeGraph);
   INVOKE_PASS(AllocateRegisters);
   INVOKE_PASS(ReorderBlocks);
+}
+
+void CompilerPass::RunPipelineWithPasses(
+    CompilerPassState* state,
+    std::initializer_list<CompilerPass::Id> passes) {
+  for (auto pass_id : passes) {
+    passes_[pass_id]->Run(state);
+  }
 }
 
 COMPILER_PASS(ComputeSSA, {
@@ -363,8 +374,12 @@ COMPILER_PASS(OptimizeBranches, {
   ConstantPropagator::OptimizeBranches(flow_graph);
 });
 
-COMPILER_PASS(TryCatchOptimization,
-              { TryCatchAnalyzer::Optimize(flow_graph); });
+COMPILER_PASS(OptimizeTypedDataAccesses,
+              { TypedDataSpecializer::Optimize(flow_graph); });
+
+COMPILER_PASS(TryCatchOptimization, {
+  OptimizeCatchEntryStates(flow_graph, /*is_aot=*/FLAG_precompiled_mode);
+});
 
 COMPILER_PASS(EliminateEnvironments, { flow_graph->EliminateEnvironments(); });
 

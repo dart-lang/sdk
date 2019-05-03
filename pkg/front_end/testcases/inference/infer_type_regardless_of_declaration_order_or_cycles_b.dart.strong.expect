@@ -1,6 +1,6 @@
 library;
 import self as self;
-import "./infer_type_regardless_of_declaration_order_or_cycles.dart" as test;
+import "infer_type_regardless_of_declaration_order_or_cycles.dart" as test;
 
 import "org-dartlang-testcase:///infer_type_regardless_of_declaration_order_or_cycles.dart";
 
@@ -21,7 +21,7 @@ library test;
 //                                                                     ^
 //
 import self as test;
-import "./infer_type_regardless_of_declaration_order_or_cycles_b.dart" as self;
+import "infer_type_regardless_of_declaration_order_or_cycles_b.dart" as self;
 import "dart:core" as core;
 
 import "org-dartlang-testcase:///infer_type_regardless_of_declaration_order_or_cycles_b.dart";

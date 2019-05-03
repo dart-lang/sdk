@@ -10,3 +10,7 @@ analyzer:
     deprecated_member_use: ignore
     # Allow deprecated calls from within the same package
     deprecated_member_use_from_same_package: ignore
+
+linter:
+  rules:
+    - annotate_overrides

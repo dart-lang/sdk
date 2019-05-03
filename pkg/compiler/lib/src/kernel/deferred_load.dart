@@ -95,22 +95,6 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
     node.function?.accept(visitor);
   }
 
-  /// Adds extra dependencies coming from mirror usage.
-  @override
-  void addDeferredMirrorElements(WorkQueue queue) {
-    throw new UnsupportedError(
-        "KernelDeferredLoadTask.addDeferredMirrorElements");
-  }
-
-  /// Add extra dependencies coming from mirror usage in [root] marking it with
-  /// [newSet].
-  @override
-  void addMirrorElementsForLibrary(
-      WorkQueue queue, LibraryEntity root, ImportSet newSet) {
-    throw new UnsupportedError(
-        "KernelDeferredLoadTask.addMirrorElementsForLibrary");
-  }
-
   Set<ir.NamedNode> additionalExports(ir.Library library) {
     return _additionalExportsSets[library] ??= new Set<ir.NamedNode>.from(
         library.additionalExports.map((ir.Reference ref) => ref.node));
@@ -177,6 +161,15 @@ class ConstantCollector extends ir.RecursiveVisitor {
   }
 
   @override
+  void visitSetLiteral(ir.SetLiteral literal) {
+    if (literal.isConst) {
+      add(literal);
+    } else {
+      super.visitSetLiteral(literal);
+    }
+  }
+
+  @override
   void visitMapLiteral(ir.MapLiteral literal) {
     if (literal.isConst) {
       add(literal);
@@ -218,5 +211,11 @@ class ConstantCollector extends ir.RecursiveVisitor {
     // TODO(johnniwinther): The CFE should mark constant instantiations as
     // constant.
     add(node, required: false);
+    super.visitInstantiation(node);
+  }
+
+  @override
+  void visitConstantExpression(ir.ConstantExpression node) {
+    add(node);
   }
 }

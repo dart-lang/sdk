@@ -12,7 +12,6 @@ import '../common/tasks.dart' show CompilerTask;
 import '../common_elements.dart'
     show CommonElements, ElementEnvironment, JElementEnvironment;
 import '../compiler.dart' show Compiler;
-import '../constants/constant_system.dart';
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/entities.dart';
@@ -43,7 +42,7 @@ import '../universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
-import 'allocator_analysis.dart';
+import 'field_analysis.dart';
 import 'annotations.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
@@ -351,7 +350,7 @@ class JavaScriptBackend {
   /// constructors for custom elements.
   CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
 
-  KAllocatorAnalysis _allocatorResolutionAnalysis;
+  KFieldAnalysis _fieldAnalysis;
 
   /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
@@ -400,16 +399,11 @@ class JavaScriptBackend {
         this, compiler.measurer, sourceInformationStrategy);
   }
 
-  /// The [ConstantSystem] used to interpret compile-time constants for this
-  /// backend.
-  ConstantSystem get constantSystem => constants.constantSystem;
-
   DiagnosticReporter get reporter => compiler.reporter;
 
   ImpactCacheDeleter get impactCacheDeleter => compiler.impactCacheDeleter;
 
-  KAllocatorAnalysis get allocatorResolutionAnalysisForTesting =>
-      _allocatorResolutionAnalysis;
+  KFieldAnalysis get fieldAnalysisForTesting => _fieldAnalysis;
 
   /// Resolution support for generating table of interceptors and
   /// constructors for custom elements.
@@ -525,7 +519,7 @@ class JavaScriptBackend {
 
   /// Called when the resolution queue has been closed.
   void onResolutionEnd() {
-    frontendStrategy.annotationProcesser.processJsInteropAnnotations(
+    frontendStrategy.annotationProcessor.processJsInteropAnnotations(
         frontendStrategy.nativeBasicData, nativeDataBuilder);
   }
 
@@ -546,13 +540,11 @@ class JavaScriptBackend {
         compiler.frontendStrategy.createNativeClassFinder(nativeBasicData));
     _nativeDataBuilder = new NativeDataBuilderImpl(nativeBasicData);
     _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
-        constantSystem,
         elementEnvironment,
         commonElements,
         nativeBasicData,
         _backendUsageBuilder);
-    _allocatorResolutionAnalysis =
-        new KAllocatorAnalysis(compiler.frontendStrategy);
+    _fieldAnalysis = new KFieldAnalysis(compiler.frontendStrategy);
     ClassQueries classQueries = compiler.frontendStrategy.createClassQueries();
     ClassHierarchyBuilder classHierarchyBuilder =
         new ClassHierarchyBuilder(commonElements, classQueries);
@@ -587,7 +579,7 @@ class JavaScriptBackend {
             noSuchMethodRegistry,
             customElementsResolutionAnalysis,
             _nativeResolutionEnqueuer,
-            _allocatorResolutionAnalysis,
+            _fieldAnalysis,
             compiler.deferredLoadTask),
         compiler.frontendStrategy.createResolutionWorldBuilder(
             nativeBasicData,
@@ -595,7 +587,7 @@ class JavaScriptBackend {
             interceptorDataBuilder,
             _backendUsageBuilder,
             rtiNeedBuilder,
-            _allocatorResolutionAnalysis,
+            _fieldAnalysis,
             _nativeResolutionEnqueuer,
             noSuchMethodRegistry,
             annotationsDataBuilder,
@@ -607,7 +599,8 @@ class JavaScriptBackend {
             _nativeDataBuilder,
             annotationsDataBuilder,
             impactTransformer,
-            compiler.impactCache));
+            compiler.impactCache,
+            _fieldAnalysis));
   }
 
   /// Creates an [Enqueuer] for code generation specific to this backend.
@@ -620,10 +613,7 @@ class JavaScriptBackend {
     CommonElements commonElements = closedWorld.commonElements;
     BackendImpacts impacts = new BackendImpacts(commonElements);
     _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
-        constantSystem,
-        commonElements,
-        elementEnvironment,
-        closedWorld.nativeData);
+        commonElements, elementEnvironment, closedWorld.nativeData);
     _nativeCodegenEnqueuer = new NativeCodegenEnqueuer(
         compiler.options,
         elementEnvironment,
@@ -736,7 +726,7 @@ class JavaScriptBackend {
   /// been loaded.
   void setAnnotations(LibraryEntity library) {
     AnnotationProcessor processor =
-        compiler.frontendStrategy.annotationProcesser;
+        compiler.frontendStrategy.annotationProcessor;
     if (maybeEnableNative(library.canonicalUri)) {
       processor.extractNativeAnnotations(library);
     }

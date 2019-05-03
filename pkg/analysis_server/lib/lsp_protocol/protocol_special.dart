@@ -189,6 +189,19 @@ abstract class IncomingMessage {
   dynamic get params;
 }
 
+/// A helper to allow handlers to declare both a JSON validation function and
+/// parse function.
+class LspJsonHandler<T> {
+  final bool Function(Map<String, Object>) validateParams;
+  final T Function(Map<String, Object>) convertParams;
+
+  const LspJsonHandler(this.validateParams, this.convertParams);
+}
+
+bool _alwaysTrue(_) => true;
+Null _alwaysNull(_) => null;
+const NullJsonHandler = const LspJsonHandler<Null>(_alwaysTrue, _alwaysNull);
+
 abstract class ToJsonable {
   Object toJson();
 }

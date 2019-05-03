@@ -15,6 +15,9 @@ const String _covariantPrivateMembers = '_covariantPrivateMembers';
 const String _hasImplicitCasts = '_hasImplicitCasts';
 const String _implicitCast = '_implicitCast';
 const String _implicitOperationCast = '_implicitAssignmentCast';
+const String _implicitSpreadCast = '_implicitSpreadCast';
+const String _implicitSpreadKeyCast = '_implicitSpreadKeyCast';
+const String _implicitSpreadValueCast = '_implicitSpreadValueCast';
 const String _isDynamicInvoke = '_isDynamicInvoke';
 const String _superclassCovariantParameters = '_superclassCovariantParameters';
 
@@ -46,6 +49,24 @@ DartType getImplicitCast(Expression node) {
 /// accessor and not a real method) can need a cast on the function.
 DartType getImplicitOperationCast(Expression node) {
   return node.getProperty<DartType>(_implicitOperationCast);
+}
+
+/// If this expression is passed into a spread and the items in the spread need
+/// an implicit cast, return the type the items are coerced to.
+DartType getImplicitSpreadCast(Expression node) {
+  return node.getProperty<DartType>(_implicitSpreadCast);
+}
+
+/// If this expression is a map passed into a spread and the keys in the spread
+/// need an implicit cast, return the type the keys are coerced to.
+DartType getImplicitSpreadKeyCast(Expression node) {
+  return node.getProperty<DartType>(_implicitSpreadKeyCast);
+}
+
+/// If this expression is a map passed into a spread and the values in the
+/// spread need an implicit cast, return the type the values are coerced to.
+DartType getImplicitSpreadValueCast(Expression node) {
+  return node.getProperty<DartType>(_implicitSpreadValueCast);
 }
 
 /// Returns a list of parameters and method type parameters from mixins and
@@ -92,6 +113,21 @@ void setImplicitCast(Expression node, DartType type) {
 /// Sets the result of [getImplicitOperationCast] for this node.
 void setImplicitOperationCast(Expression node, DartType type) {
   node.setProperty(_implicitOperationCast, type);
+}
+
+/// Sets the result of [getImplicitSpreadCast] for this node.
+void setImplicitSpreadCast(Expression node, DartType type) {
+  node.setProperty(_implicitSpreadCast, type);
+}
+
+/// Sets the result of [getImplicitSpreadKeyCast] for this node.
+void setImplicitSpreadKeyCast(Expression node, DartType type) {
+  node.setProperty(_implicitSpreadKeyCast, type);
+}
+
+/// Sets the result of [getImplicitSpreadValueCast] for this node.
+void setImplicitSpreadValueCast(Expression node, DartType type) {
+  node.setProperty(_implicitSpreadValueCast, type);
 }
 
 /// Sets [isDynamicInvoke] property for this expression.

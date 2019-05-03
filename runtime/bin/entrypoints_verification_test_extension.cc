@@ -8,7 +8,15 @@
 #include "./include/dart_api.h"
 #include "./include/dart_native_api.h"
 
-#define CHECK(H) DART_CHECK_VALID(H)
+#define CHECK(H)                                                               \
+  do {                                                                         \
+    Dart_Handle __handle__ = H;                                                \
+    if (Dart_IsError(__handle__)) {                                            \
+      const char* message = Dart_GetError(__handle__);                         \
+      fprintf(stderr, "Check \"" #H "\" failed: %s", message);                 \
+      abort();                                                                 \
+    }                                                                          \
+  } while (false)
 
 #define ASSERT(E)                                                              \
   if (!(E)) {                                                                  \
@@ -16,25 +24,14 @@
     abort();                                                                   \
   }
 
-Dart_Handle GetCurrentLibrary() {
-  Dart_Handle libraries = Dart_GetLoadedLibraries();
-  CHECK(libraries);
-  intptr_t length = 0;
-  CHECK(Dart_ListLength(libraries, &length));
-  for (intptr_t i = 0; i < length; ++i) {
-    Dart_Handle library = Dart_ListGetAt(libraries, i);
-    CHECK(library);
-    Dart_Handle url = Dart_LibraryUrl(library);
-    CHECK(url);
-    const char* url_str;
-    CHECK(Dart_StringToCString(url, &url_str));
-    if (strstr(url_str, "entrypoints_verification_test")) {
-      return library;
-    }
+bool isDartPrecompiledRuntime = true;
+
+// Some invalid accesses are allowed in AOT since we don't retain @pragma
+// annotations. Therefore we skip the negative tests in AOT.
+#define FAIL(name, result)                                                     \
+  if (!isDartPrecompiledRuntime) {                                             \
+    Fail(name, result);                                                        \
   }
-  fprintf(stderr, "Could not find current library!");
-  abort();
-}
 
 void Fail(const char* name, Dart_Handle result) {
   ASSERT(Dart_IsApiError(result));
@@ -43,52 +40,67 @@ void Fail(const char* name, Dart_Handle result) {
   ASSERT(strstr(error, "It is illegal to access"));
 }
 
-void FailClosurize(const char* name, Dart_Handle result) {
+#define FAIL_INVOKE_FIELD(name, result)                                        \
+  if (!isDartPrecompiledRuntime) {                                             \
+    FailInvokeField(name, result);                                             \
+  }
+
+void FailInvokeField(const char* name, Dart_Handle result) {
   ASSERT(Dart_IsApiError(result));
   const char* error = Dart_GetError(result);
   ASSERT(strstr(error, name));
-  ASSERT(strstr(error, "Entry-points do not allow closurizing methods"));
+  ASSERT(strstr(error, "Entry-points do not allow invoking fields"));
+}
+
+void FailClosurizeConstructor(const char* name, Dart_Handle result) {
+  ASSERT(Dart_IsUnhandledExceptionError(result));
+  const char* error = Dart_GetError(result);
+  ASSERT(strstr(error, name));
+  ASSERT(strstr(error, "No static getter"));
 }
 
 void TestFields(Dart_Handle target) {
-  Fail("fld0", Dart_GetField(target, Dart_NewStringFromCString("fld0")));
-  Fail("fld0",
+  FAIL("fld0", Dart_GetField(target, Dart_NewStringFromCString("fld0")));
+  FAIL("fld0",
        Dart_SetField(target, Dart_NewStringFromCString("fld0"), Dart_Null()));
 
-  Dart_Handle result =
-      Dart_Invoke(target, Dart_NewStringFromCString("fld0"), 0, nullptr);
-  FailClosurize("fld0", result);
+  FAIL_INVOKE_FIELD(
+      "fld0",
+      Dart_Invoke(target, Dart_NewStringFromCString("fld0"), 0, nullptr));
 
   CHECK(Dart_GetField(target, Dart_NewStringFromCString("fld1")));
   CHECK(Dart_SetField(target, Dart_NewStringFromCString("fld1"), Dart_Null()));
-  FailClosurize("fld1", Dart_Invoke(target, Dart_NewStringFromCString("fld1"),
-                                    0, nullptr));
+  FAIL_INVOKE_FIELD(
+      "fld1",
+      Dart_Invoke(target, Dart_NewStringFromCString("fld1"), 0, nullptr));
 
   CHECK(Dart_GetField(target, Dart_NewStringFromCString("fld2")));
-  Fail("fld2",
+  FAIL("fld2",
        Dart_SetField(target, Dart_NewStringFromCString("fld2"), Dart_Null()));
-  FailClosurize("fld2", Dart_Invoke(target, Dart_NewStringFromCString("fld2"),
-                                    0, nullptr));
+  FAIL_INVOKE_FIELD(
+      "fld2",
+      Dart_Invoke(target, Dart_NewStringFromCString("fld2"), 0, nullptr));
 
-  Fail("fld3", Dart_GetField(target, Dart_NewStringFromCString("fld3")));
+  FAIL("fld3", Dart_GetField(target, Dart_NewStringFromCString("fld3")));
   CHECK(Dart_SetField(target, Dart_NewStringFromCString("fld3"), Dart_Null()));
-  FailClosurize("fld3", Dart_Invoke(target, Dart_NewStringFromCString("fld3"),
-                                    0, nullptr));
+  FAIL_INVOKE_FIELD(
+      "fld3",
+      Dart_Invoke(target, Dart_NewStringFromCString("fld3"), 0, nullptr));
 }
 
 void RunTests(Dart_NativeArguments arguments) {
-  Dart_Handle lib = GetCurrentLibrary();
+  Dart_Handle lib = Dart_RootLibrary();
 
   //////// Test allocation and constructor invocation.
 
-  Fail("C", Dart_GetClass(lib, Dart_NewStringFromCString("C")));
+  FAIL("C", Dart_GetClass(lib, Dart_NewStringFromCString("C")));
 
   Dart_Handle D_class = Dart_GetClass(lib, Dart_NewStringFromCString("D"));
   CHECK(D_class);
 
   CHECK(Dart_Allocate(D_class));
 
-  Fail("D.", Dart_New(D_class, Dart_Null(), 0, nullptr));
+  FAIL("D.", Dart_New(D_class, Dart_Null(), 0, nullptr));
 
   CHECK(Dart_New(D_class, Dart_NewStringFromCString("defined"), 0, nullptr));
   Dart_Handle D =
@@ -97,32 +109,51 @@ void RunTests(Dart_NativeArguments arguments) {
 
   //////// Test actions against methods
 
-  Fail("fn0", Dart_Invoke(D, Dart_NewStringFromCString("fn0"), 0, nullptr));
+  FailClosurizeConstructor(
+      "defined", Dart_GetField(D_class, Dart_NewStringFromCString("defined")));
+  FailClosurizeConstructor(
+      "fact", Dart_GetField(D_class, Dart_NewStringFromCString("fact")));
+
+  FAIL("fn0", Dart_Invoke(D, Dart_NewStringFromCString("fn0"), 0, nullptr));
 
   CHECK(Dart_Invoke(D, Dart_NewStringFromCString("fn1"), 0, nullptr));
+  FAIL("fn1", Dart_Invoke(D, Dart_NewStringFromCString("fn1_get"), 0, nullptr));
+  CHECK(Dart_Invoke(D, Dart_NewStringFromCString("fn1_call"), 0, nullptr));
 
-  Fail("get_fn0", Dart_GetField(D, Dart_NewStringFromCString("fn0")));
+  FAIL("fn0", Dart_GetField(D, Dart_NewStringFromCString("fn0")));
 
-  Fail("get_fn1", Dart_GetField(D, Dart_NewStringFromCString("fn1")));
+  CHECK(Dart_GetField(D, Dart_NewStringFromCString("fn1")));
+  CHECK(Dart_GetField(D, Dart_NewStringFromCString("fn1_get")));
+  FAIL("fn1", Dart_GetField(D, Dart_NewStringFromCString("fn1_call")));
 
-  Fail("fn2",
+  FAIL("fn2",
        Dart_Invoke(D_class, Dart_NewStringFromCString("fn2"), 0, nullptr));
 
   CHECK(Dart_Invoke(D_class, Dart_NewStringFromCString("fn3"), 0, nullptr));
+  CHECK(
+      Dart_Invoke(D_class, Dart_NewStringFromCString("fn3_call"), 0, nullptr));
+  FAIL("fn3",
+       Dart_Invoke(D_class, Dart_NewStringFromCString("fn3_get"), 0, nullptr));
 
-  FailClosurize("fn2",
-                Dart_GetField(D_class, Dart_NewStringFromCString("fn2")));
+  FAIL("fn2", Dart_GetField(D_class, Dart_NewStringFromCString("fn2")));
 
-  FailClosurize("fn3",
-                Dart_GetField(D_class, Dart_NewStringFromCString("fn3")));
+  CHECK(Dart_GetField(D_class, Dart_NewStringFromCString("fn3")));
+  FAIL("fn3_call",
+       Dart_GetField(D_class, Dart_NewStringFromCString("fn3_call")));
+  CHECK(Dart_GetField(D_class, Dart_NewStringFromCString("fn3_get")));
 
-  Fail("fn0", Dart_Invoke(lib, Dart_NewStringFromCString("fn0"), 0, nullptr));
+  FAIL("fn0", Dart_Invoke(lib, Dart_NewStringFromCString("fn0"), 0, nullptr));
 
   CHECK(Dart_Invoke(lib, Dart_NewStringFromCString("fn1"), 0, nullptr));
+  FAIL("fn1",
+       Dart_Invoke(lib, Dart_NewStringFromCString("fn1_get"), 0, nullptr));
+  CHECK(Dart_Invoke(lib, Dart_NewStringFromCString("fn1_call"), 0, nullptr));
 
-  FailClosurize("fn0", Dart_GetField(lib, Dart_NewStringFromCString("fn0")));
+  FAIL("fn0", Dart_GetField(lib, Dart_NewStringFromCString("fn0")));
 
-  FailClosurize("fn1", Dart_GetField(lib, Dart_NewStringFromCString("fn1")));
+  CHECK(Dart_GetField(lib, Dart_NewStringFromCString("fn1")));
+  CHECK(Dart_GetField(lib, Dart_NewStringFromCString("fn1_get")));
+  FAIL("fn1", Dart_GetField(lib, Dart_NewStringFromCString("fn1_call")));
 
   //////// Test actions against fields
 
@@ -146,6 +177,8 @@ Dart_NativeFunction ResolveName(Dart_Handle name,
 
 DART_EXPORT Dart_Handle
 entrypoints_verification_test_extension_Init(Dart_Handle parent_library) {
+  isDartPrecompiledRuntime = Dart_IsPrecompiledRuntime();
+
   if (Dart_IsError(parent_library)) {
     return parent_library;
   }

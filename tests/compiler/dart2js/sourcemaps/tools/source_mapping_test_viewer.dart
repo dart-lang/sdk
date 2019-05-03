@@ -92,7 +92,9 @@ main(List<String> arguments) async {
 }
 
 class OutputConfigurations implements Configurations {
+  @override
   final Iterable<String> configs;
+  @override
   final Iterable<String> files;
   final Map<Pair, String> pathMap = {};
   final Map<Pair, Uri> uriMap = {};
@@ -156,6 +158,7 @@ class Measurement {
 
   Measurement(this.config, this.filename, this.missing, this.count);
 
+  @override
   String toString() {
     double percentage = 100 * missing / count;
     return "Config '${config}', file: '${filename}': "

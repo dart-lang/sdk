@@ -11,9 +11,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-/**
- * Return true if this [errorCode] is likely to have a fix associated with it.
- */
+/// Return true if this [errorCode] is likely to have a fix associated with it.
 bool hasFix(ErrorCode errorCode) =>
     errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN ||
     errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER ||
@@ -38,7 +36,6 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
     errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
     errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS ||
-    errorCode == StaticWarningCode.FUNCTION_WITHOUT_CALL ||
     errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER ||
     errorCode ==
         CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE ||
@@ -73,18 +70,45 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == StaticTypeWarningCode.UNDEFINED_SETTER ||
     errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER ||
     (errorCode is LintCode &&
-        (errorCode.name == LintNames.annotate_overrides ||
+        (errorCode.name == LintNames.always_require_non_null_named_parameters ||
+            errorCode.name == LintNames.annotate_overrides ||
+            errorCode.name == LintNames.avoid_annotating_with_dynamic ||
+            errorCode.name == LintNames.avoid_empty_else ||
             errorCode.name == LintNames.avoid_init_to_null ||
+            errorCode.name == LintNames.avoid_return_types_on_setters ||
+            errorCode.name == LintNames.avoid_types_on_closure_parameters ||
+            errorCode.name == LintNames.await_only_futures ||
+            errorCode.name == LintNames.empty_catches ||
+            errorCode.name == LintNames.empty_constructor_bodies ||
+            errorCode.name == LintNames.empty_statements ||
+            errorCode.name == LintNames.no_duplicate_case_values ||
+            errorCode.name == LintNames.non_constant_identifier_names ||
+            errorCode.name == LintNames.null_closures ||
             errorCode.name == LintNames.prefer_collection_literals ||
             errorCode.name == LintNames.prefer_conditional_assignment ||
             errorCode.name == LintNames.prefer_const_declarations ||
-            errorCode.name == LintNames.unnecessary_brace_in_string_interp ||
+            errorCode.name == LintNames.prefer_equal_for_default_values ||
+            errorCode.name == LintNames.prefer_final_fields ||
+            errorCode.name == LintNames.prefer_final_locals ||
+            errorCode.name == LintNames.prefer_is_not_empty ||
+            errorCode.name == LintNames.type_init_formals ||
+            errorCode.name == LintNames.unawaited_futures ||
+            errorCode.name == LintNames.unnecessary_brace_in_string_interps ||
+            errorCode.name == LintNames.unnecessary_const ||
             errorCode.name == LintNames.unnecessary_lambdas ||
-            errorCode.name == LintNames.unnecessary_this));
+            errorCode.name == LintNames.unnecessary_new ||
+            errorCode.name == LintNames.unnecessary_overrides ||
+            errorCode.name == LintNames.unnecessary_this ||
+            errorCode.name == LintNames.use_rethrow_when_possible));
 
-/**
- * The implementation of [DartFixContext].
- */
+/// An enumeration of quick fix kinds for the errors found in an analysis
+/// options file.
+class AnalysisOptionsFixKind {
+  static const REMOVE_SETTING =
+      const FixKind('REMOVE_SETTING', 50, "Remove '{0}'");
+}
+
+/// The implementation of [DartFixContext].
 class DartFixContextImpl implements DartFixContext {
   @override
   final ChangeWorkspace workspace;
@@ -98,17 +122,19 @@ class DartFixContextImpl implements DartFixContext {
   DartFixContextImpl(this.workspace, this.resolveResult, this.error);
 }
 
-/**
- * An enumeration of possible quick fix kinds.
- */
+/// An enumeration of quick fix kinds found in a Dart file.
 class DartFixKind {
   static const ADD_ASYNC =
       const FixKind('ADD_ASYNC', 50, "Add 'async' modifier");
+  static const ADD_AWAIT =
+      const FixKind('ADD_AWAIT', 50, "Add 'await' keyword");
   static const ADD_EXPLICIT_CAST = const FixKind(
       'ADD_EXPLICIT_CAST', 50, "Add cast",
       appliedTogetherMessage: "Add all casts in file");
   static const ADD_FIELD_FORMAL_PARAMETERS = const FixKind(
       'ADD_FIELD_FORMAL_PARAMETERS', 70, "Add final field formal parameters");
+  static const ADD_MISSING_ENUM_CASE_CLAUSES = const FixKind(
+      'ADD_MISSING_ENUM_CASE_CLAUSES', 50, 'Add missing case clauses');
   static const ADD_MISSING_PARAMETER_NAMED = const FixKind(
       'ADD_MISSING_PARAMETER_NAMED', 70, "Add named parameter '{0}'");
   static const ADD_MISSING_PARAMETER_POSITIONAL = const FixKind(
@@ -131,6 +157,8 @@ class DartFixKind {
       'ADD_SUPER_CONSTRUCTOR_INVOCATION',
       50,
       "Add super constructor {0} invocation");
+  static const CHANGE_ARGUMENT_NAME =
+      const FixKind('CHANGE_ARGUMENT_NAME', 60, "Change to '{0}'");
   static const CHANGE_TO = const FixKind('CHANGE_TO', 51, "Change to '{0}'");
   static const CHANGE_TO_NEAREST_PRECISE_VALUE = const FixKind(
       'CHANGE_TO_NEAREST_PRECISE_VALUE',
@@ -206,6 +234,8 @@ class DartFixKind {
   static const REMOVE_AWAIT = const FixKind('REMOVE_AWAIT', 50, "Remove await");
   static const REMOVE_DEAD_CODE =
       const FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
+  static const REMOVE_DUPLICATE_CASE = const FixKind(
+      'REMOVE_DUPLICATE_CASE', 50, "Remove duplicate case statement");
   static const REMOVE_EMPTY_CATCH =
       const FixKind('REMOVE_EMPTY_CATCH', 50, "Remove empty catch clause");
   static const REMOVE_EMPTY_CONSTRUCTOR_BODY = const FixKind(
@@ -241,6 +271,8 @@ class DartFixKind {
   static const REMOVE_UNNECESSARY_CAST = const FixKind(
       'REMOVE_UNNECESSARY_CAST', 50, "Remove unnecessary cast",
       appliedTogetherMessage: "Remove all unnecessary casts in file");
+  static const REMOVE_UNNECESSARY_CONST = const FixKind(
+      'REMOVE_UNNECESSARY_CONST', 50, "Remove unnecessary const keyword");
   static const REMOVE_UNUSED_CATCH_CLAUSE = const FixKind(
       'REMOVE_UNUSED_CATCH_CLAUSE', 50, "Remove unused 'catch' clause");
   static const REMOVE_UNUSED_CATCH_STACK = const FixKind(
@@ -248,13 +280,19 @@ class DartFixKind {
   static const REMOVE_UNUSED_IMPORT = const FixKind(
       'REMOVE_UNUSED_IMPORT', 50, "Remove unused import",
       appliedTogetherMessage: "Remove all unused imports in this file");
+  static const REMOVE_UNNECESSARY_NEW = const FixKind(
+      'REMOVE_UNNECESSARY_NEW', 50, "Remove unnecessary new keyword");
   static const RENAME_TO_CAMEL_CASE =
       const FixKind('RENAME_TO_CAMEL_CASE', 50, "Rename to '{0}'");
   static const REPLACE_BOOLEAN_WITH_BOOL = const FixKind(
       'REPLACE_BOOLEAN_WITH_BOOL', 50, "Replace 'boolean' with 'bool'",
       appliedTogetherMessage: "Replace all 'boolean' with 'bool' in file");
+  static const REPLACE_COLON_WITH_EQUALS =
+      const FixKind('REPLACE_COLON_WITH_EQUALS', 50, "Replace ':' with '='");
   static const REPLACE_FINAL_WITH_CONST = const FixKind(
       'REPLACE_FINAL_WITH_CONST', 50, "Replace 'final' with 'const'");
+  static const REPLACE_NULL_WITH_CLOSURE = const FixKind(
+      'REPLACE_NULL_WITH_CLOSURE', 50, "Replace 'null' with a closure");
   static const REPLACE_RETURN_TYPE_FUTURE = const FixKind(
       'REPLACE_RETURN_TYPE_FUTURE',
       50,
@@ -267,6 +305,10 @@ class DartFixKind {
       'REPLACE_WITH_CONDITIONAL_ASSIGNMENT', 50, "Replace with ??=");
   static const REPLACE_WITH_IDENTIFIER =
       const FixKind('REPLACE_WITH_IDENTIFIER', 50, "Replace with identifier");
+  static const REPLACE_WITH_IS_EMPTY =
+      const FixKind('REPLACE_WITH_IS_EMPTY', 50, "Replace with 'isEmpty'");
+  static const REPLACE_WITH_IS_NOT_EMPTY = const FixKind(
+      'REPLACE_WITH_IS_NOT_EMPTY', 50, "Replace with 'isNotEmpty'");
   static const REPLACE_WITH_NULL_AWARE = const FixKind(
       'REPLACE_WITH_NULL_AWARE',
       50,
@@ -290,4 +332,13 @@ class DartFixKind {
       'USE_NOT_EQ_NULL', 50, "Use != null instead of 'is! Null'",
       appliedTogetherMessage:
           "Use != null instead of 'is! Null' everywhere in file");
+  static const USE_RETHROW =
+      const FixKind('USE_RETHROW', 50, "Replace throw with rethrow");
 }
+
+/// An enumeration of quick fix kinds for the errors found in an Android
+/// manifest file.
+class ManifestFixKind {}
+
+/// An enumeration of quick fix kinds for the errors found in a pubspec file.
+class PubspecFixKind {}

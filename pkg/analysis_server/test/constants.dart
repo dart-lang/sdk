@@ -20,4 +20,5 @@ const String START_COLUMN = 'startColumn';
 const String START_LINE = 'startLine';
 const String SUBSCRIPTIONS = 'subscriptions';
 const String TYPE = 'type';
+const String URL = 'url';
 const String VERSION = 'version';

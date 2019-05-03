@@ -38,13 +38,18 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
         data_(kInitialCapacity) {}
 
   // Marks and pushes. Used to initialize this stack with roots.
+  // We can use ObjectIdTable normally used by serializers because it
+  // won't be in use while handling a service request (ObjectGraph's only use).
   virtual void VisitPointers(RawObject** first, RawObject** last) {
+    Heap* heap = isolate()->heap();
     for (RawObject** current = first; current <= last; ++current) {
-      if ((*current)->IsHeapObject() && !(*current)->IsGraphMarked()) {
+      if ((*current)->IsHeapObject() &&
+          !(*current)->InVMIsolateHeap() &&
+          heap->GetObjectId(*current) == 0) {  // not visited yet
         if (!include_vm_objects_ && !IsUserClass((*current)->GetClassId())) {
           continue;
         }
-        (*current)->SetGraphMarked();
+        heap->SetObjectId(*current, 1);
         Node node;
         node.ptr = current;
         node.obj = *current;
@@ -69,16 +74,15 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
       sentinel.ptr = kSentinel;
       data_.Add(sentinel);
       StackIterator it(this, data_.length() - 2);
-      switch (visitor->VisitObject(&it)) {
-        case ObjectGraph::Visitor::kProceed:
-          obj->VisitPointers(this);
-          break;
-        case ObjectGraph::Visitor::kBacktrack:
-          break;
-        case ObjectGraph::Visitor::kAbort:
-          return;
+      Visitor::Direction direction = visitor->VisitObject(&it);
+      if (direction == ObjectGraph::Visitor::kAbort) {
+        break;
+      }
+      if (direction == ObjectGraph::Visitor::kProceed) {
+        obj->VisitPointers(this);
       }
     }
+    isolate()->heap()->ResetObjectIdTable();
   }
 
   bool include_vm_objects_;
@@ -146,25 +150,6 @@ intptr_t ObjectGraph::StackIterator::OffsetFromParentInWords() const {
   }
 }
 
-class Unmarker : public ObjectVisitor {
- public:
-  Unmarker() {}
-
-  void VisitObject(RawObject* obj) {
-    if (obj->IsGraphMarked()) {
-      obj->ClearGraphMarked();
-    }
-  }
-
-  static void UnmarkAll(Isolate* isolate) {
-    Unmarker unmarker;
-    isolate->heap()->VisitObjectsNoImagePages(&unmarker);
-  }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(Unmarker);
-};
-
 static void IterateUserFields(ObjectPointerVisitor* visitor) {
   Thread* thread = Thread::Current();
   // Scope to prevent handles create here from appearing as stack references.
@@ -211,7 +196,6 @@ void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
   Stack stack(isolate());
   isolate()->VisitObjectPointers(&stack, ValidationPolicy::kDontValidateFrames);
   stack.TraverseGraph(visitor);
-  Unmarker::UnmarkAll(isolate());
 }
 
 void ObjectGraph::IterateUserObjects(ObjectGraph::Visitor* visitor) {
@@ -219,7 +203,6 @@ void ObjectGraph::IterateUserObjects(ObjectGraph::Visitor* visitor) {
   IterateUserFields(&stack);
   stack.include_vm_objects_ = false;
   stack.TraverseGraph(visitor);
-  Unmarker::UnmarkAll(isolate());
 }
 
 void ObjectGraph::IterateObjectsFrom(const Object& root,
@@ -228,7 +211,6 @@ void ObjectGraph::IterateObjectsFrom(const Object& root,
   RawObject* root_raw = root.raw();
   stack.VisitPointer(&root_raw);
   stack.TraverseGraph(visitor);
-  Unmarker::UnmarkAll(isolate());
 }
 
 class InstanceAccumulator : public ObjectVisitor {
@@ -259,7 +241,6 @@ void ObjectGraph::IterateObjectsFrom(intptr_t class_id,
   iteration.IterateObjectsNoImagePages(&accumulator);
 
   stack.TraverseGraph(visitor);
-  Unmarker::UnmarkAll(isolate());
 }
 
 class SizeVisitor : public ObjectGraph::Visitor {
@@ -532,7 +513,7 @@ class WritePointerVisitor : public ObjectPointerVisitor {
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; ++current) {
       RawObject* object = *current;
-      if (!object->IsHeapObject() || object->IsVMHeapObject()) {
+      if (!object->IsHeapObject() || object->InVMIsolateHeap()) {
         // Ignore smis and objects in the VM isolate for now.
         // TODO(koda): To track which field each pointer corresponds to,
         // we'll need to encode which fields were omitted here.

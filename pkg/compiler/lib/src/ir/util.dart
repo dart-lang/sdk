@@ -91,6 +91,7 @@ class NullAwareExpression {
 
   ir.Let get let => syntheticVariable.parent;
 
+  @override
   String toString() => let.toString();
 }
 
@@ -133,7 +134,7 @@ ir.LibraryDependency getDeferredImport(ir.TreeNode node) {
   // instead of:
   //
   //   (let _ = check(prefix) in prefix::field).property
-  if (node is ir.StaticGet) {
+  if (node is ir.StaticGet || node is ir.ConstantExpression) {
     while (parent is ir.PropertyGet || parent is ir.MethodInvocation) {
       parent = parent.parent;
     }

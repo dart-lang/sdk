@@ -108,8 +108,6 @@ abstract class KernelToElementMap {
   js.Name getNameForJsGetName(ConstantValue constant, Namer namer);
 
   /// Computes the [ConstantValue] for the constant [expression].
-  // TODO(johnniwinther): Move to [KernelToElementMapForBuilding]. This is only
-  // used in impact builder for symbol constants.
   ConstantValue getConstantValue(ir.Expression expression,
       {bool requireConstant: true, bool implicitNull: false});
 
@@ -144,11 +142,9 @@ abstract class KernelToElementMap {
   ConstructorEntity getSuperConstructor(
       ir.Constructor constructor, ir.Member target);
 
-  /// Returns `true` is [node] has a `@Native(...)` annotation.
-  bool isNativeClass(ir.Class node);
-
   /// Computes the native behavior for reading the native [field].
   NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field,
+      Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
       {bool isJsInterop});
 
   /// Computes the native behavior for writing to the native [field].
@@ -157,6 +153,7 @@ abstract class KernelToElementMap {
   /// Computes the native behavior for calling the function or constructor
   /// [member].
   NativeBehavior getNativeBehaviorForMethod(ir.Member member,
+      Iterable<String> createsAnnotations, Iterable<String> returnsAnnotations,
       {bool isJsInterop});
 
   /// Compute the kind of foreign helper function called by [node], if any.

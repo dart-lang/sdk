@@ -195,7 +195,7 @@ RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   const auto pool_attachment = FLAG_use_bare_instructions
                                    ? Code::PoolAttachment::kNotAttachPool
                                    : Code::PoolAttachment::kAttachPool;
-  const Code& code = Code::Handle(Code::FinalizeCode(
+  const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       name, nullptr, &assembler, pool_attachment, false /* optimized */));
   code.set_owner(type);
 #ifndef PRODUCT
@@ -246,7 +246,10 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
 
   // Check the cid ranges which are a subtype of [type].
   if (hi->CanUseSubtypeRangeCheckFor(type)) {
-    const CidRangeVector& ranges = hi->SubtypeRangesForClass(type_class);
+    const CidRangeVector& ranges =
+        hi->SubtypeRangesForClass(type_class,
+                                  /*include_abstract=*/false,
+                                  /*exclude_null=*/false);
 
     const Type& int_type = Type::Handle(Type::IntType());
     const bool smi_is_ok = int_type.IsSubtypeOf(type, Heap::kNew);
@@ -410,7 +413,9 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     } else {
       const Class& type_class = Class::Handle(type_arg.type_class());
       const CidRangeVector& ranges =
-          hi->SubtypeRangesForClass(type_class, /*include_abstract=*/true);
+          hi->SubtypeRangesForClass(type_class,
+                                    /*include_abstract=*/true,
+                                    /*exclude_null=*/false);
 
       Label is_subtype;
       __ SmiUntag(class_id_reg);

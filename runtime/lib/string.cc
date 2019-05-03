@@ -328,15 +328,15 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 0, 3) {
       Exceptions::ThrowByType(Exceptions::kArgument, args);
     }
     return OneByteString::New(array, start, length, space);
-  } else if (RawObject::IsTypedDataViewClassId(list.GetClassId())) {
-    const Instance& view = Instance::Cast(list);
-    if (end > Smi::Value(TypedDataView::Length(view))) {
+  } else if (list.IsTypedDataView()) {
+    const auto& view = TypedDataView::Cast(list);
+    if (end > Smi::Value(view.length())) {
       const Array& args = Array::Handle(Array::New(1));
       args.SetAt(0, end_obj);
       Exceptions::ThrowByType(Exceptions::kArgument, args);
     }
-    const Instance& data_obj = Instance::Handle(TypedDataView::Data(view));
-    intptr_t data_offset = Smi::Value(TypedDataView::OffsetInBytes(view));
+    const Instance& data_obj = Instance::Handle(view.typed_data());
+    intptr_t data_offset = Smi::Value(view.offset_in_bytes());
     if (data_obj.IsTypedData()) {
       const TypedData& array = TypedData::Cast(data_obj);
       return OneByteString::New(array, data_offset + start, length, space);
@@ -422,16 +422,16 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 0, 3) {
     }
     return TwoByteString::New(array, start * sizeof(uint16_t), length, space);
   } else if (RawObject::IsTypedDataViewClassId(list.GetClassId())) {
+    const auto& view = TypedDataView::Cast(list);
     const intptr_t cid = list.GetClassId();
     if (cid != kTypedDataUint16ArrayViewCid) {
       Exceptions::ThrowArgumentError(list);
     }
-    if (end > Smi::Value(TypedDataView::Length(list))) {
+    if (end > Smi::Value(view.length())) {
       Exceptions::ThrowArgumentError(end_obj);
     }
-    const Instance& data_obj =
-        Instance::Handle(zone, TypedDataView::Data(list));
-    intptr_t data_offset = Smi::Value(TypedDataView::OffsetInBytes(list));
+    const auto& data_obj = Instance::Handle(zone, view.typed_data());
+    const intptr_t data_offset = Smi::Value(view.offset_in_bytes());
     if (data_obj.IsTypedData()) {
       const TypedData& array = TypedData::Cast(data_obj);
       return TwoByteString::New(array, data_offset + start * sizeof(uint16_t),

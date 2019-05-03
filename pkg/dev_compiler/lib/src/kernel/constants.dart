@@ -2,9 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(askesc): We should not need to call the constant evaluator
+// explicitly once constant-update-2018 is shipped.
+import 'package:front_end/src/api_prototype/constant_evaluator.dart'
+    show ConstantEvaluator, SimpleErrorReporter;
+
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/transformations/constants.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'kernel_helpers.dart';
 
@@ -19,7 +24,7 @@ class DevCompilerConstants {
   DevCompilerConstants(
       TypeEnvironment types, Map<String, String> declaredVariables)
       : _visitor = _ConstantVisitor(types.coreTypes),
-        _evaluator = ConstantEvaluator(DevCompilerConstantsBackend(),
+        _evaluator = ConstantEvaluator(const DevCompilerConstantsBackend(),
             declaredVariables, types, false, const _ErrorReporter());
 
   /// Determines if an expression is constant.
@@ -29,33 +34,17 @@ class DevCompilerConstants {
   /// failed, or if the constant was unavailable.
   ///
   /// Returns [NullConstant] to represent the `null` value.
-  ///
-  /// To avoid performance costs associated with try+catch on invalid constant
-  /// evaluation, call this after [isConstant] is known to be true.
-  Constant evaluate(Expression e, {bool cache = false}) {
+  Constant evaluate(Expression e) {
     if (e == null) return null;
 
-    try {
-      var result = cache ? _evaluator.evaluate(e) : e.accept(_evaluator);
-      return result is UnevaluatedConstant ? null : result;
-    } on _AbortCurrentEvaluation {
-      // TODO(jmesserly): the try+catch is necessary because the front end is
-      // not issuing sufficient errors, so the constant evaluation can fail.
-      //
-      // It can also be caused by methods in the evaluator that don't understand
-      // unavailable constants.
-      return null;
-    } on NoSuchMethodError {
-      // TODO(jmesserly): this is probably the same issue as above, but verify
-      // that it's fixed once Kernel does constant evaluation.
-      return null;
-    }
+    Constant result = _evaluator.evaluate(e);
+    return result is UnevaluatedConstant ? null : result;
   }
 
-  /// If [node] is an annotation with a field named `name`, returns that field's
+  /// If [node] is an annotation with a field named [name], returns that field's
   /// value.
   ///
-  /// This assumes the `name` field is populated from a named argument `name:`
+  /// This assumes the field is populated from a named argument with that name,
   /// or from the first positional argument.
   ///
   /// For example:
@@ -70,36 +59,56 @@ class DevCompilerConstants {
   ///     main() { ... }
   ///
   /// Given the node for `@MyAnnotation('FooBar')` this will return `'FooBar'`.
-  String getNameFromAnnotation(ConstructorInvocation node) {
-    if (node == null) return null;
+  Object getFieldValueFromAnnotation(Expression node, String name) {
+    node = unwrapUnevaluatedConstant(node);
+    if (node is ConstantExpression) {
+      var constant = node.constant;
+      if (constant is InstanceConstant) {
+        var value = constant.fieldValues.entries
+            .firstWhere((e) => e.key.asField.name.name == name,
+                orElse: () => null)
+            ?.value;
+        if (value is PrimitiveConstant) return value.value;
+        if (value is UnevaluatedConstant) {
+          return _evaluateAnnotationArgument(value.expression);
+        }
+        return null;
+      }
+    }
 
     // TODO(jmesserly): this does not use the normal evaluation engine, because
     // it won't work if we don't have the const constructor body available.
     //
     // We may need to address this in the kernel outline files.
-    Expression first;
-    var named = node.arguments.named;
-    if (named.isNotEmpty) {
-      first =
-          named.firstWhere((n) => n.name == 'name', orElse: () => null)?.value;
-    }
-    var positional = node.arguments.positional;
-    if (positional.isNotEmpty) first ??= positional[0];
-    if (first != null) {
-      first = _followConstFields(first);
-      if (first is StringLiteral) return first.value;
+    if (node is ConstructorInvocation) {
+      Expression first;
+      var named = node.arguments.named;
+      if (named.isNotEmpty) {
+        first =
+            named.firstWhere((n) => n.name == name, orElse: () => null)?.value;
+      }
+      var positional = node.arguments.positional;
+      if (positional.isNotEmpty) first ??= positional[0];
+      if (first != null) {
+        return _evaluateAnnotationArgument(first);
+      }
     }
     return null;
   }
 
-  Expression _followConstFields(Expression expr) {
-    if (expr is StaticGet) {
-      var target = expr.target;
+  Object _evaluateAnnotationArgument(Expression node) {
+    node = unwrapUnevaluatedConstant(node);
+    if (node is ConstantExpression) {
+      var constant = node.constant;
+      if (constant is PrimitiveConstant) return constant.value;
+    }
+    if (node is StaticGet) {
+      var target = node.target;
       if (target is Field) {
-        return _followConstFields(target.initializer);
+        return _evaluateAnnotationArgument(target.initializer);
       }
     }
-    return expr;
+    return node is BasicLiteral ? node.value : null;
   }
 }
 
@@ -170,35 +179,16 @@ class _ConstantVisitor extends ExpressionVisitor<bool> {
 
 /// Implement the class for compiler specific behavior.
 class DevCompilerConstantsBackend extends ConstantsBackend {
-  DevCompilerConstantsBackend();
+  const DevCompilerConstantsBackend();
 
   @override
-  Constant lowerConstant(Constant constant) {
-    if (constant is DoubleConstant) {
-      // Convert to an integer when possible (matching the runtime behavior
-      // of `is int`).
-      var d = constant.value;
-      if (d.isFinite) {
-        var i = d.toInt();
-        if (d == i.toDouble()) return IntConstant(i);
-      }
-    }
-    return constant;
-  }
-
-  // Use doubles to match JS number semantics.
-  num prepareNumericOperand(num operand) => operand.toDouble();
+  NumberSemantics get numberSemantics => NumberSemantics.js;
 }
 
 class _ErrorReporter extends SimpleErrorReporter {
   const _ErrorReporter();
 
+  // Ignore reported errors.
   @override
-  report(context, message, node) => throw const _AbortCurrentEvaluation();
-}
-
-// TODO(jmesserly): this class is private in Kernel constants library, so
-// we have our own version.
-class _AbortCurrentEvaluation {
-  const _AbortCurrentEvaluation();
+  reportMessage(Uri uri, int offset, String message) {}
 }

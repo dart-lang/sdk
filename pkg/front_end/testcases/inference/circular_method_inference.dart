@@ -10,11 +10,11 @@ library test;
 // that causes type inference for the method `f` to go into an infinite loop.
 
 abstract class A extends B {
-  /*@topType=dynamic*/ f(/*@topType=dynamic*/ x);
+  f(x);
 }
 
 abstract class B extends A {
-  /*@topType=dynamic*/ f(/*@topType=dynamic*/ x);
+  f(x);
 }
 
 main() {}

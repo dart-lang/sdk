@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=error*/
-
 class C {
   C();
   factory C.fact() => null;
@@ -19,19 +17,17 @@ void topLevelFunction(int i) {}
 
 bad() {
   void localFunction(int i) {}
-  List<int> a = <Object> /*@error=InvalidCastLiteralList*/ [];
-  Map<int, String> b = <Object, String> /*@error=InvalidCastLiteralMap*/ {};
-  Map<int, String> c = <int, Object> /*@error=InvalidCastLiteralMap*/ {};
-  int Function(Object) d = /*@error=InvalidCastFunctionExpr*/ (int i) => i;
+  List<int> a = <Object>[];
+  Map<int, String> b = <Object, String>{};
+  Map<int, String> c = <int, Object>{};
+  int Function(Object) d = (int i) => i;
   D e = new C.fact();
   D f = new C.fact2();
-  D g = new /*@error=InvalidCastNewExpr*/ C.nonFact();
-  D h = new /*@error=InvalidCastNewExpr*/ C.nonFact2();
-  void Function(Object) i =
-      C. /*@error=InvalidCastStaticMethod*/ staticFunction;
-  void Function(Object)
-      j = /*@error=InvalidCastTopLevelFunction*/ topLevelFunction;
-  void Function(Object) k = /*@error=InvalidCastLocalFunction*/ localFunction;
+  D g = new C.nonFact();
+  D h = new C.nonFact2();
+  void Function(Object) i = C.staticFunction;
+  void Function(Object) j = topLevelFunction;
+  void Function(Object) k = localFunction;
 }
 
 ok() {

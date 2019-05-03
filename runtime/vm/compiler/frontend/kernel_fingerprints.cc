@@ -447,6 +447,14 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       ReadPosition();                           // read position.
       CalculateListOfExpressionsFingerprint();  // read list of expressions.
       return;
+    case kListConcatenation:
+    case kSetConcatenation:
+    case kMapConcatenation:
+    case kInstanceCreation:
+      // Collection concatenation and instance creation operations are removed
+      // by the constant evaluator.
+      UNREACHABLE();
+      break;
     case kIsExpression:
       ReadPosition();                    // read position.
       CalculateExpressionFingerprint();  // read operand.
@@ -505,6 +513,10 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateVariableDeclarationFingerprint();  // read variable declaration.
       CalculateExpressionFingerprint();           // read expression.
       return;
+    case kBlockExpression:
+      CalculateStatementListFingerprint();
+      CalculateExpressionFingerprint();  // read expression.
+      return;
     case kInstantiation:
       CalculateExpressionFingerprint();       // read expression.
       CalculateListOfDartTypesFingerprint();  // read type arguments.
@@ -537,6 +549,11 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kNullLiteral:
       return;
     case kConstantExpression:
+      ReadPosition();
+      SkipDartType();
+      SkipConstantReference();
+      return;
+    case kDeprecated_ConstantExpression:
       SkipConstantReference();
       return;
     case kLoadLibrary:

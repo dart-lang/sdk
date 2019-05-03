@@ -332,7 +332,8 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
                     static_cast<intptr_t>(deoptimization_counter()));
   if ((kind() == RawFunction::kImplicitGetter) ||
       (kind() == RawFunction::kImplicitSetter) ||
-      (kind() == RawFunction::kImplicitStaticFinalGetter)) {
+      (kind() == RawFunction::kImplicitStaticFinalGetter) ||
+      (kind() == RawFunction::kStaticFieldInitializer)) {
     const Field& field = Field::Handle(accessor_field());
     if (!field.IsNull()) {
       jsobj.AddProperty("_field", field);
@@ -1358,6 +1359,10 @@ void Float64x2::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("valueAsString", ToCString());
 }
 
+void TypedDataBase::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  UNREACHABLE();
+}
+
 void TypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
@@ -1387,6 +1392,10 @@ void TypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
                                 DataAddr(offset * ElementSizeInBytes())),
                             count * ElementSizeInBytes());
   }
+}
+
+void TypedDataView::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 void ExternalTypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {

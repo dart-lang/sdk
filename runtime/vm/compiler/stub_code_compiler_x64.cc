@@ -2,10 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/compiler/runtime_api.h"
 #include "vm/globals.h"
+
+// For `AllocateObjectInstr::WillAllocateNewOrRemembered`
+#include "vm/compiler/backend/il.h"
 
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
+#include "vm/compiler/backend/locations.h"
 #include "vm/compiler/stub_code_compiler.h"
 
 #if defined(TARGET_ARCH_X64) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -13,7 +18,7 @@
 #include "vm/class_id.h"
 #include "vm/code_entry_kind.h"
 #include "vm/compiler/assembler/assembler.h"
-#include "vm/constants_x64.h"
+#include "vm/constants.h"
 #include "vm/instructions.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/tags.h"
@@ -27,10 +32,37 @@ DEFINE_FLAG(bool,
             use_slow_path,
             false,
             "Set to true for debugging & verifying the slow paths.");
-DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(bool, precompiled_mode);
 
 namespace compiler {
+
+// Ensures that [RAX] is a new object, if not it will be added to the remembered
+// set via a leaf runtime call.
+//
+// WARNING: This might clobber all registers except for [RAX], [THR] and [FP].
+// The caller should simply call LeaveStubFrame() and return.
+static void EnsureIsNewOrRemembered(Assembler* assembler,
+                                    bool preserve_registers = true) {
+  // If the object is not remembered we call a leaf-runtime to add it to the
+  // remembered set.
+  Label done;
+  __ testq(RAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
+  __ BranchIf(NOT_ZERO, &done);
+
+  if (preserve_registers) {
+    __ EnterCallRuntimeFrame(0);
+  } else {
+    __ ReserveAlignedFrameSpace(0);
+  }
+  __ movq(CallingConventions::kArg1Reg, RAX);
+  __ movq(CallingConventions::kArg2Reg, THR);
+  __ CallRuntime(kAddAllocatedObjectToRememberedSetRuntimeEntry, 2);
+  if (preserve_registers) {
+    __ LeaveCallRuntimeFrame();
+  }
+
+  __ Bind(&done);
+}
 
 // Input parameters:
 //   RSP : points to return address.
@@ -164,6 +196,28 @@ void StubCodeCompiler::GenerateSharedStub(
   __ PopRegisters(kDartAvailableCpuRegs,
                   save_fpu_registers ? kAllFpuRegistersList : 0);
 
+  __ ret();
+}
+
+void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
+  RegisterSet all_registers;
+  all_registers.AddAllGeneralRegisters();
+  __ PushRegisters(all_registers.cpu_registers(),
+                   all_registers.fpu_registers());
+  __ movq(RAX, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ CallCFunction(RAX);
+  __ PopRegisters(all_registers.cpu_registers(), all_registers.fpu_registers());
+  __ ret();
+}
+
+void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+  RegisterSet all_registers;
+  all_registers.AddAllGeneralRegisters();
+  __ PushRegisters(all_registers.cpu_registers(),
+                   all_registers.fpu_registers());
+  __ movq(RAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ CallCFunction(RAX);
+  __ PopRegisters(all_registers.cpu_registers(), all_registers.fpu_registers());
   __ ret();
 }
 
@@ -370,6 +424,12 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
 
+  // Restore the global object pool after returning from runtime (old space is
+  // moving, so the GOP could have been relocated).
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ movq(PP, Address(THR, target::Thread::global_object_pool_offset()));
+  }
+
   __ LeaveStubFrame();
   __ ret();
 }
@@ -455,6 +515,12 @@ void StubCodeCompiler::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   // Reset exit frame information in Isolate structure.
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
+
+  // Restore the global object pool after returning from runtime (old space is
+  // moving, so the GOP could have been relocated).
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ movq(PP, Address(THR, target::Thread::global_object_pool_offset()));
+  }
 
   __ LeaveStubFrame();
   __ ret();
@@ -956,6 +1022,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
   __ popq(RAX);  // Pop element type argument.
   __ popq(R10);  // Pop array length argument.
   __ popq(RAX);  // Pop return value from return slot.
+
+  // Write-barrier elimination might be enabled for this array (depending on the
+  // array length). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler);
+
   __ LeaveStubFrame();
   __ ret();
 }
@@ -1380,6 +1452,12 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
   __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
   __ popq(RAX);  // Pop number of context variables argument.
   __ popq(RAX);  // Pop the new context object.
+
+  // Write-barrier elimination might be enabled for this context (depending on
+  // the size). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+
   // RAX: new object
   // Restore the frame pointer.
   __ LeaveStubFrame();
@@ -1683,6 +1761,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   // RDX: new object type arguments.
   // Create a stub frame.
   __ EnterStubFrame();  // Uses PP to access class object.
+
   __ pushq(R9);         // Setup space on stack for return value.
   __ PushObject(
       CastHandle<Object>(cls));  // Push class of object to be allocated.
@@ -1695,6 +1774,13 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   __ popq(RAX);  // Pop argument (type arguments of object).
   __ popq(RAX);  // Pop argument (class of object).
   __ popq(RAX);  // Pop result (newly allocated object).
+
+  if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
+    // Write-barrier elimination is enabled for [cls] and we therefore need to
+    // ensure that the object is in new-space or has remembered bit set.
+    EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
+  }
+
   // RAX: new object
   // Restore the frame pointer.
   __ LeaveStubFrame();
@@ -2006,10 +2092,10 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     __ j(EQUAL, &call_target_function_through_unchecked_entry);
 
     // Check trivial exactness.
-    // Note: RawICData::static_receiver_type_ is guaranteed to be not null
+    // Note: RawICData::receivers_static_type_ is guaranteed to be not null
     // because we only emit calls to this stub when it is not null.
     __ movq(RCX,
-            FieldAddress(RBX, target::ICData::static_receiver_type_offset()));
+            FieldAddress(RBX, target::ICData::receivers_static_type_offset()));
     __ movq(RCX, FieldAddress(RCX, target::Type::arguments_offset()));
     // RAX contains an offset to type arguments in words as a smi,
     // hence TIMES_4. RDX is guaranteed to be non-smi because it is expected to
@@ -2343,6 +2429,9 @@ void StubCodeCompiler::GenerateInterpretCallStub(Assembler* assembler) {
 // RBX: Contains an ICData.
 // TOS(0): return address (Dart code).
 void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   __ pushq(RBX);           // Preserve IC data.
   __ pushq(Immediate(0));  // Result slot.
@@ -2353,10 +2442,14 @@ void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
 
   __ movq(RAX, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   __ jmp(RAX);  // Jump to original stub.
+#endif  // defined(PRODUCT)
 }
 
 //  TOS(0): return address (Dart code).
 void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
   __ EnterStubFrame();
   __ pushq(Immediate(0));  // Result slot.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
@@ -2365,12 +2458,13 @@ void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 
   __ movq(RAX, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   __ jmp(RAX);  // Jump to original stub.
+#endif  // defined(PRODUCT)
 }
 
 // Called only from unoptimized code.
 void StubCodeCompiler::GenerateDebugStepCheckStub(Assembler* assembler) {
 #if defined(PRODUCT)
-  __ Ret();
+  __ Stop("No debugging in PRODUCT mode");
 #else
   // Check single stepping.
   Label stepping, done_stepping;

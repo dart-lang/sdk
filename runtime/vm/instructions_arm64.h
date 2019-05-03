@@ -12,7 +12,7 @@
 
 #include "vm/allocation.h"
 #include "vm/compiler/assembler/assembler.h"
-#include "vm/constants_arm64.h"
+#include "vm/constants.h"
 #include "vm/native_function.h"
 
 namespace dart {

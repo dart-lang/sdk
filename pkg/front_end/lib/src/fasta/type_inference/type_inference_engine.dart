@@ -11,6 +11,8 @@ import 'package:kernel/ast.dart'
         Field,
         FunctionType,
         InterfaceType,
+        InvalidType,
+        Member,
         TypeParameter,
         TypeParameterType,
         TypedefType,
@@ -25,7 +27,7 @@ import '../../base/instrumentation.dart' show Instrumentation;
 import '../kernel/kernel_builder.dart'
     show LibraryBuilder, KernelLibraryBuilder;
 
-import '../kernel/kernel_shadow_ast.dart' show ShadowField;
+import '../kernel/kernel_shadow_ast.dart' show ShadowField, ShadowMember;
 
 import '../messages.dart' show noLength, templateCantInferTypeDueToCircularity;
 
@@ -63,7 +65,7 @@ class FieldInitializerInferenceNode extends InferenceNode {
             field.fileOffset,
             noLength,
             field.fileUri);
-        inferredType = const DynamicType();
+        inferredType = const InvalidType();
       }
       field.setInferredType(
           _typeInferenceEngine, typeInferrer.uri, inferredType);
@@ -272,9 +274,7 @@ abstract class TypeInferenceEngine {
     if (formal.type == null) {
       for (Field field in parent.enclosingClass.fields) {
         if (field.name.name == formal.name) {
-          if (field is ShadowField && field.inferenceNode != null) {
-            field.inferenceNode.resolve();
-          }
+          TypeInferenceEngine.resolveInferenceNode(field);
           formal.type = field.type;
           return;
         }
@@ -301,5 +301,14 @@ abstract class TypeInferenceEngine {
     var node = new FieldInitializerInferenceNode(this, field, library);
     ShadowField.setInferenceNode(field, node);
     staticInferenceNodes.add(node);
+  }
+
+  static void resolveInferenceNode(Member member) {
+    if (member is ShadowMember) {
+      if (member.inferenceNode != null) {
+        member.inferenceNode.resolve();
+        member.inferenceNode = null;
+      }
+    }
   }
 }

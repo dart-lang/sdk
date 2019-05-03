@@ -22,7 +22,6 @@ ClassTable::ClassTable()
       table_(NULL),
       old_tables_(new MallocGrowableArray<ClassAndSize*>()) {
   NOT_IN_PRODUCT(class_heap_stats_table_ = NULL);
-  NOT_IN_PRODUCT(predefined_class_heap_stats_table_ = NULL);
   if (Dart::vm_isolate() == NULL) {
     capacity_ = initial_capacity_;
     table_ = reinterpret_cast<ClassAndSize*>(
@@ -41,20 +40,12 @@ ClassTable::ClassTable()
     table_[kForwardingCorpse] = vm_class_table->PairAt(kForwardingCorpse);
     table_[kDynamicCid] = vm_class_table->PairAt(kDynamicCid);
     table_[kVoidCid] = vm_class_table->PairAt(kVoidCid);
-
-#ifndef PRODUCT
-    class_heap_stats_table_ = reinterpret_cast<ClassHeapStats*>(
-        calloc(capacity_, sizeof(ClassHeapStats)));  // NOLINT
-    for (intptr_t i = 0; i < capacity_; i++) {
-      class_heap_stats_table_[i].Initialize();
-    }
-#endif  // !PRODUCT
   }
 #ifndef PRODUCT
-  predefined_class_heap_stats_table_ = reinterpret_cast<ClassHeapStats*>(
-      calloc(kNumPredefinedCids, sizeof(ClassHeapStats)));  // NOLINT
-  for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
-    predefined_class_heap_stats_table_[i].Initialize();
+  class_heap_stats_table_ = reinterpret_cast<ClassHeapStats*>(
+      calloc(capacity_, sizeof(ClassHeapStats)));  // NOLINT
+  for (intptr_t i = 0; i < capacity_; i++) {
+    class_heap_stats_table_[i].Initialize();
   }
 #endif  // !PRODUCT
 }
@@ -65,7 +56,6 @@ ClassTable::ClassTable(ClassTable* original)
       table_(original->table_),
       old_tables_(NULL) {
   NOT_IN_PRODUCT(class_heap_stats_table_ = NULL);
-  NOT_IN_PRODUCT(predefined_class_heap_stats_table_ = NULL);
 }
 
 ClassTable::~ClassTable() {
@@ -73,11 +63,9 @@ ClassTable::~ClassTable() {
     FreeOldTables();
     delete old_tables_;
     free(table_);
-    NOT_IN_PRODUCT(free(predefined_class_heap_stats_table_));
     NOT_IN_PRODUCT(free(class_heap_stats_table_));
   } else {
     // This instance was a shallow copy. It doesn't own any memory.
-    NOT_IN_PRODUCT(ASSERT(predefined_class_heap_stats_table_ == NULL));
     NOT_IN_PRODUCT(ASSERT(class_heap_stats_table_ == NULL));
   }
 }
@@ -92,18 +80,6 @@ void ClassTable::FreeOldTables() {
     free(old_tables_->RemoveLast());
   }
 }
-
-#ifndef PRODUCT
-void ClassTable::SetTraceAllocationFor(intptr_t cid, bool trace) {
-  ClassHeapStats* stats = PreliminaryStatsAt(cid);
-  stats->set_trace_allocation(trace);
-}
-
-bool ClassTable::TraceAllocationFor(intptr_t cid) {
-  ClassHeapStats* stats = PreliminaryStatsAt(cid);
-  return stats->trace_allocation();
-}
-#endif  // !PRODUCT
 
 void ClassTable::Register(const Class& cls) {
   ASSERT(Thread::Current()->IsMutatorThread());
@@ -319,11 +295,15 @@ void ClassHeapStats::ResetAtNewGC() {
   pre_gc.new_size = post_gc.new_size + recent.new_size;
   pre_gc.new_external_size =
       post_gc.new_external_size + recent.new_external_size;
+  pre_gc.old_external_size =
+      post_gc.old_external_size + recent.old_external_size;
   // Accumulate allocations.
   accumulated.new_count += recent.new_count - last_reset.new_count;
   accumulated.new_size += recent.new_size - last_reset.new_size;
   accumulated.new_external_size +=
       recent.new_external_size - last_reset.new_external_size;
+  accumulated.old_external_size +=
+      recent.old_external_size - last_reset.old_external_size;
   last_reset.ResetNew();
   post_gc.ResetNew();
   recent.ResetNew();
@@ -337,11 +317,15 @@ void ClassHeapStats::ResetAtOldGC() {
   pre_gc.old_size = post_gc.old_size + recent.old_size;
   pre_gc.old_external_size =
       post_gc.old_external_size + recent.old_external_size;
+  pre_gc.new_external_size =
+      post_gc.new_external_size + recent.new_external_size;
   // Accumulate allocations.
   accumulated.old_count += recent.old_count - last_reset.old_count;
   accumulated.old_size += recent.old_size - last_reset.old_size;
   accumulated.old_external_size +=
       recent.old_external_size - last_reset.old_external_size;
+  accumulated.new_external_size +=
+      recent.new_external_size - last_reset.new_external_size;
   last_reset.ResetOld();
   post_gc.ResetOld();
   recent.ResetOld();
@@ -421,18 +405,11 @@ void ClassHeapStats::PrintToJSONObject(const Class& cls,
   obj->AddProperty("promotedBytes", promoted_size);
 }
 
-void ClassTable::UpdateAllocatedNew(intptr_t cid, intptr_t size) {
+void ClassTable::UpdateAllocatedOldGC(intptr_t cid, intptr_t size) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   ASSERT(stats != NULL);
   ASSERT(size != 0);
-  stats->recent.AddNew(size);
-}
-
-void ClassTable::UpdateAllocatedOld(intptr_t cid, intptr_t size) {
-  ClassHeapStats* stats = PreliminaryStatsAt(cid);
-  ASSERT(stats != NULL);
-  ASSERT(size != 0);
-  stats->recent.AddOld(size);
+  stats->recent.AddOldGC(size);
 }
 
 void ClassTable::UpdateAllocatedExternalNew(intptr_t cid, intptr_t size) {
@@ -449,15 +426,6 @@ void ClassTable::UpdateAllocatedExternalOld(intptr_t cid, intptr_t size) {
 
 bool ClassTable::ShouldUpdateSizeForClassId(intptr_t cid) {
   return !RawObject::IsVariableSizeClassId(cid);
-}
-
-ClassHeapStats* ClassTable::PreliminaryStatsAt(intptr_t cid) {
-  ASSERT(cid > 0);
-  if (cid < kNumPredefinedCids) {
-    return &predefined_class_heap_stats_table_[cid];
-  }
-  ASSERT(cid < top_);
-  return &class_heap_stats_table_[cid];
 }
 
 ClassHeapStats* ClassTable::StatsWithUpdatedSize(intptr_t cid) {
@@ -479,41 +447,25 @@ ClassHeapStats* ClassTable::StatsWithUpdatedSize(intptr_t cid) {
 }
 
 void ClassTable::ResetCountersOld() {
-  for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
-    predefined_class_heap_stats_table_[i].ResetAtOldGC();
-  }
-  for (intptr_t i = kNumPredefinedCids; i < top_; i++) {
+  for (intptr_t i = 0; i < top_; i++) {
     class_heap_stats_table_[i].ResetAtOldGC();
   }
 }
 
 void ClassTable::ResetCountersNew() {
-  for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
-    predefined_class_heap_stats_table_[i].ResetAtNewGC();
-  }
-  for (intptr_t i = kNumPredefinedCids; i < top_; i++) {
+  for (intptr_t i = 0; i < top_; i++) {
     class_heap_stats_table_[i].ResetAtNewGC();
   }
 }
 
 void ClassTable::UpdatePromoted() {
-  for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
-    predefined_class_heap_stats_table_[i].UpdatePromotedAfterNewGC();
-  }
-  for (intptr_t i = kNumPredefinedCids; i < top_; i++) {
+  for (intptr_t i = 0; i < top_; i++) {
     class_heap_stats_table_[i].UpdatePromotedAfterNewGC();
   }
 }
 
-ClassHeapStats** ClassTable::TableAddressFor(intptr_t cid) {
-  return (cid < kNumPredefinedCids) ? &predefined_class_heap_stats_table_
-                                    : &class_heap_stats_table_;
-}
-
 intptr_t ClassTable::TableOffsetFor(intptr_t cid) {
-  return (cid < kNumPredefinedCids)
-             ? OFFSET_OF(ClassTable, predefined_class_heap_stats_table_)
-             : OFFSET_OF(ClassTable, class_heap_stats_table_);
+  return OFFSET_OF(ClassTable, class_heap_stats_table_);
 }
 
 intptr_t ClassTable::ClassOffsetFor(intptr_t cid) {
@@ -601,6 +553,13 @@ void ClassTable::UpdateLiveNew(intptr_t cid, intptr_t size) {
   ASSERT(stats != NULL);
   ASSERT(size >= 0);
   stats->post_gc.AddNew(size);
+}
+
+void ClassTable::UpdateLiveNewGC(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  ASSERT(stats != NULL);
+  ASSERT(size >= 0);
+  stats->post_gc.AddNewGC(size);
 }
 
 void ClassTable::UpdateLiveOldExternal(intptr_t cid, intptr_t size) {

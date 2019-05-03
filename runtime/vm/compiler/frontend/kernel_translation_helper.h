@@ -59,6 +59,8 @@ class TranslationHelper {
   const Array& constants() { return constants_; }
   void SetConstants(const Array& constants);
 
+  RawGrowableObjectArray* EnsurePotentialPragmaFunctions();
+
   void SetKernelProgramInfo(const KernelProgramInfo& info);
 
   intptr_t StringOffset(StringIndex index) const;
@@ -155,6 +157,10 @@ class TranslationHelper {
   RawFunction* LookupDynamicFunction(const Class& klass, const String& name);
 
   Type& GetDeclarationType(const Class& klass);
+
+  void SetupFieldAccessorFunction(const Class& klass,
+                                  const Function& function,
+                                  const AbstractType& field_type);
 
   void ReportError(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void ReportError(const Script& script,
@@ -702,14 +708,17 @@ class LibraryHelper {
     kProblemsAsJson,
     kAnnotations,
     kDependencies,
-    kAdditionalExports,
-    kParts,
-    kTypedefs,
-    kClasses,
-    kToplevelField,
-    kToplevelProcedures,
-    kLibraryIndex,
-    kEnd,
+    // There are other fields in a library:
+    // * kAdditionalExports
+    // * kParts
+    // * kTypedefs
+    // * kClasses
+    // * kToplevelField
+    // * kToplevelProcedures
+    // * kSourceReferences
+    // * kLibraryIndex
+    // but we never read them via this helper and it makes extending the format
+    // harder to keep the code around.
   };
 
   enum Flag {
@@ -736,8 +745,6 @@ class LibraryHelper {
   NameIndex canonical_name_;
   StringIndex name_index_;
   intptr_t source_uri_index_;
-  intptr_t class_count_;
-  intptr_t procedure_count_;
 
  private:
   KernelReaderHelper* helper_;
@@ -1061,6 +1068,7 @@ class KernelReaderHelper {
   String& SourceTableUriFor(intptr_t index);
   const String& GetSourceFor(intptr_t index);
   RawTypedData* GetLineStartsFor(intptr_t index);
+  String& SourceTableImportUriFor(intptr_t index, uint32_t binaryVersion);
 
   Zone* zone_;
   TranslationHelper& translation_helper_;

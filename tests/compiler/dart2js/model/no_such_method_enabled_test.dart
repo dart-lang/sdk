@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -234,12 +235,15 @@ main() {
 ];
 
 main() {
-  runTests() async {
+  runTests({bool useCFEConstants: false}) async {
     for (NoSuchMethodTest test in TESTS) {
       print('---- testing -------------------------------------------------');
       print(test.code);
-      CompilationResult result =
-          await runCompiler(memorySourceFiles: {'main.dart': test.code});
+      CompilationResult result = await runCompiler(
+          memorySourceFiles: {'main.dart': test.code},
+          options: useCFEConstants
+              ? ['${Flags.enableLanguageExperiments}=constant-update-2018']
+              : []);
       Expect.isTrue(result.isSuccess);
       Compiler compiler = result.compiler;
       checkTest(compiler, test);
@@ -249,6 +253,8 @@ main() {
   asyncTest(() async {
     print('--test from kernel------------------------------------------------');
     await runTests();
+    print('--test from kernel with CFE constants-----------------------------');
+    await runTests(useCFEConstants: true);
   });
 }
 

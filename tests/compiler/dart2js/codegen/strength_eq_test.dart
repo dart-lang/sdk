@@ -8,31 +8,27 @@ import '../helpers/compiler_helper.dart';
 
 const String CODE = """
 class A {
-  var link;
+  var _link;
+  get link => _link;
 }
 foo(x) {
   if (new DateTime.now().millisecondsSinceEpoch == 42) return null;
   var a = new A();
   if (new DateTime.now().millisecondsSinceEpoch == 42) return a;
-  a.link = a;
+  a._link = a;
   return a;
 }
 main() {
-  var x = foo(0);
+  A x = foo(0);
   return x == x.link;
 }
 """;
 
 main() {
-  runTest() async {
+  asyncTest(() async {
     // The `==` is strengthened to a HIdentity instruction. The HIdentity
     // follows `x.link`, so x cannot be `null`.
     var compare = new RegExp(r'x === x\.get\$link\(\)');
     await compileAndMatch(CODE, 'main', compare);
-  }
-
-  asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
-    await runTest();
   });
 }

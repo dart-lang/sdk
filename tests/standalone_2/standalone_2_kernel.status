@@ -39,7 +39,11 @@ io/platform_resolved_executable_test/03: RuntimeError
 io/platform_resolved_executable_test/04: RuntimeError
 
 [ $compiler == dartkp ]
+io/arguments_test: Fail # Test harness passes runtime arguments to the compiler
 io/test_runner_test: SkipByDesign # Is not relevant for AOT.
+
+[ $system == android ]
+entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".
 
 [ $fasta ]
 deferred_transitive_import_error_test: CompileTimeError
@@ -222,10 +226,9 @@ io/non_utf8_link_test: Pass, Timeout
 io/pipe_server_test: Skip # Timeout
 io/socket_close_test: Skip # Timeout
 io/socket_many_connections_test: Skip # Timeout
-io/test_extension_fail_test: RuntimeError
-io/test_extension_test: RuntimeError
 io/web_socket_compression_test: Skip # Timeout
 io/web_socket_test: Skip # Timeout
 
-[ $hot_reload || $hot_reload_rollback || $compiler != dartk && $compiler != dartkb ]
-io/entrypoints_verification_test: Skip # Test runs in JIT mode only
+
+[ $compiler != dartk && $compiler != dartkb && $compiler != dartkp || $compiler == dartkp && $system == windows ]
+entrypoints_verification_test: SkipByDesign # Requires VM to run. Cannot run in precompiled Windows because the DLL is linked against dart.exe instead of dart_precompiled_runtime.exe.

@@ -120,9 +120,9 @@ static void DeleteDescriptorInfo(void* info) {
 
 EventHandlerImplementation::~EventHandlerImplementation() {
   socket_map_.Clear(DeleteDescriptorInfo);
-  VOID_TEMP_FAILURE_RETRY(close(epoll_fd_));
-  VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
-  VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
+  close(epoll_fd_);
+  close(interrupt_fds_[0]);
+  close(interrupt_fds_[1]);
 }
 
 void EventHandlerImplementation::UpdateEpollInstance(intptr_t old_mask,
@@ -401,8 +401,9 @@ void EventHandlerImplementation::Poll(uword args) {
 }
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
-  int result = Thread::Start(&EventHandlerImplementation::Poll,
-                             reinterpret_cast<uword>(handler));
+  int result =
+      Thread::Start("dart:io EventHandler", &EventHandlerImplementation::Poll,
+                    reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }

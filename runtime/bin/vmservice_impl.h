@@ -17,6 +17,7 @@ class VmService {
   static bool Setup(const char* server_ip,
                     intptr_t server_port,
                     bool dev_mode_server,
+                    bool auth_codes_disabled,
                     bool trace_loading,
                     bool deterministic);
 

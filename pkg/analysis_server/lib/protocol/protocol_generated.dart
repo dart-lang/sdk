@@ -5076,6 +5076,8 @@ class AnalyticsSendTimingResult implements ResponseResult {
  * {
  *   "label": String
  *   "element": Element
+ *   "defaultArgumentListString": optional String
+ *   "defaultArgumentListTextRanges": optional List<int>
  *   "docComplete": optional String
  *   "docSummary": optional String
  *   "parameterNames": optional List<String>
@@ -5090,6 +5092,10 @@ class AvailableSuggestion implements HasToJson {
   String _label;
 
   Element _element;
+
+  String _defaultArgumentListString;
+
+  List<int> _defaultArgumentListTextRanges;
 
   String _docComplete;
 
@@ -5127,6 +5133,42 @@ class AvailableSuggestion implements HasToJson {
   void set element(Element value) {
     assert(value != null);
     this._element = value;
+  }
+
+  /**
+   * A default String for use in generating argument list source contents on
+   * the client side.
+   */
+  String get defaultArgumentListString => _defaultArgumentListString;
+
+  /**
+   * A default String for use in generating argument list source contents on
+   * the client side.
+   */
+  void set defaultArgumentListString(String value) {
+    this._defaultArgumentListString = value;
+  }
+
+  /**
+   * Pairs of offsets and lengths describing 'defaultArgumentListString' text
+   * ranges suitable for use by clients to set up linked edits of default
+   * argument source contents. For example, given an argument list string 'x,
+   * y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
+   * of length 1, starting at offsets 0 and 3. Clients can use these ranges to
+   * treat the 'x' and 'y' values specially for linked edits.
+   */
+  List<int> get defaultArgumentListTextRanges => _defaultArgumentListTextRanges;
+
+  /**
+   * Pairs of offsets and lengths describing 'defaultArgumentListString' text
+   * ranges suitable for use by clients to set up linked edits of default
+   * argument source contents. For example, given an argument list string 'x,
+   * y', the corresponding text range [0, 1, 3, 1], indicates two text ranges
+   * of length 1, starting at offsets 0 and 3. Clients can use these ranges to
+   * treat the 'x' and 'y' values specially for linked edits.
+   */
+  void set defaultArgumentListTextRanges(List<int> value) {
+    this._defaultArgumentListTextRanges = value;
   }
 
   /**
@@ -5214,7 +5256,9 @@ class AvailableSuggestion implements HasToJson {
   }
 
   AvailableSuggestion(String label, Element element,
-      {String docComplete,
+      {String defaultArgumentListString,
+      List<int> defaultArgumentListTextRanges,
+      String docComplete,
       String docSummary,
       List<String> parameterNames,
       List<String> parameterTypes,
@@ -5222,6 +5266,8 @@ class AvailableSuggestion implements HasToJson {
       int requiredParameterCount}) {
     this.label = label;
     this.element = element;
+    this.defaultArgumentListString = defaultArgumentListString;
+    this.defaultArgumentListTextRanges = defaultArgumentListTextRanges;
     this.docComplete = docComplete;
     this.docSummary = docSummary;
     this.parameterNames = parameterNames;
@@ -5248,6 +5294,19 @@ class AvailableSuggestion implements HasToJson {
             jsonDecoder, jsonPath + ".element", json["element"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "element");
+      }
+      String defaultArgumentListString;
+      if (json.containsKey("defaultArgumentListString")) {
+        defaultArgumentListString = jsonDecoder.decodeString(
+            jsonPath + ".defaultArgumentListString",
+            json["defaultArgumentListString"]);
+      }
+      List<int> defaultArgumentListTextRanges;
+      if (json.containsKey("defaultArgumentListTextRanges")) {
+        defaultArgumentListTextRanges = jsonDecoder.decodeList(
+            jsonPath + ".defaultArgumentListTextRanges",
+            json["defaultArgumentListTextRanges"],
+            jsonDecoder.decodeInt);
       }
       String docComplete;
       if (json.containsKey("docComplete")) {
@@ -5281,6 +5340,8 @@ class AvailableSuggestion implements HasToJson {
             json["requiredParameterCount"]);
       }
       return new AvailableSuggestion(label, element,
+          defaultArgumentListString: defaultArgumentListString,
+          defaultArgumentListTextRanges: defaultArgumentListTextRanges,
           docComplete: docComplete,
           docSummary: docSummary,
           parameterNames: parameterNames,
@@ -5297,6 +5358,12 @@ class AvailableSuggestion implements HasToJson {
     Map<String, dynamic> result = {};
     result["label"] = label;
     result["element"] = element.toJson();
+    if (defaultArgumentListString != null) {
+      result["defaultArgumentListString"] = defaultArgumentListString;
+    }
+    if (defaultArgumentListTextRanges != null) {
+      result["defaultArgumentListTextRanges"] = defaultArgumentListTextRanges;
+    }
     if (docComplete != null) {
       result["docComplete"] = docComplete;
     }
@@ -5326,6 +5393,9 @@ class AvailableSuggestion implements HasToJson {
     if (other is AvailableSuggestion) {
       return label == other.label &&
           element == other.element &&
+          defaultArgumentListString == other.defaultArgumentListString &&
+          listEqual(defaultArgumentListTextRanges,
+              other.defaultArgumentListTextRanges, (int a, int b) => a == b) &&
           docComplete == other.docComplete &&
           docSummary == other.docSummary &&
           listEqual(parameterNames, other.parameterNames,
@@ -5344,6 +5414,8 @@ class AvailableSuggestion implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
     hash = JenkinsSmiHash.combine(hash, element.hashCode);
+    hash = JenkinsSmiHash.combine(hash, defaultArgumentListString.hashCode);
+    hash = JenkinsSmiHash.combine(hash, defaultArgumentListTextRanges.hashCode);
     hash = JenkinsSmiHash.combine(hash, docComplete.hashCode);
     hash = JenkinsSmiHash.combine(hash, docSummary.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameterNames.hashCode);
@@ -6211,6 +6283,184 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 }
 
 /**
+ * completion.listTokenDetails params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class CompletionListTokenDetailsParams implements RequestParams {
+  String _file;
+
+  /**
+   * The path to the file from which tokens should be returned.
+   */
+  String get file => _file;
+
+  /**
+   * The path to the file from which tokens should be returned.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  CompletionListTokenDetailsParams(String file) {
+    this.file = file;
+  }
+
+  factory CompletionListTokenDetailsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      return new CompletionListTokenDetailsParams(file);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "completion.listTokenDetails params", json);
+    }
+  }
+
+  factory CompletionListTokenDetailsParams.fromRequest(Request request) {
+    return new CompletionListTokenDetailsParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "completion.listTokenDetails", toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionListTokenDetailsParams) {
+      return file == other.file;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * completion.listTokenDetails result
+ *
+ * {
+ *   "tokens": List<TokenDetails>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class CompletionListTokenDetailsResult implements ResponseResult {
+  List<TokenDetails> _tokens;
+
+  /**
+   * A list of the file's scanned tokens including analysis information about
+   * them.
+   */
+  List<TokenDetails> get tokens => _tokens;
+
+  /**
+   * A list of the file's scanned tokens including analysis information about
+   * them.
+   */
+  void set tokens(List<TokenDetails> value) {
+    assert(value != null);
+    this._tokens = value;
+  }
+
+  CompletionListTokenDetailsResult(List<TokenDetails> tokens) {
+    this.tokens = tokens;
+  }
+
+  factory CompletionListTokenDetailsResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<TokenDetails> tokens;
+      if (json.containsKey("tokens")) {
+        tokens = jsonDecoder.decodeList(
+            jsonPath + ".tokens",
+            json["tokens"],
+            (String jsonPath, Object json) =>
+                new TokenDetails.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "tokens");
+      }
+      return new CompletionListTokenDetailsResult(tokens);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "completion.listTokenDetails result", json);
+    }
+  }
+
+  factory CompletionListTokenDetailsResult.fromResponse(Response response) {
+    return new CompletionListTokenDetailsResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["tokens"] =
+        tokens.map((TokenDetails value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionListTokenDetailsResult) {
+      return listEqual(
+          tokens, other.tokens, (TokenDetails a, TokenDetails b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, tokens.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * completion.registerLibraryPaths params
  *
  * {
@@ -6344,7 +6594,7 @@ class CompletionRegisterLibraryPathsResult implements ResponseResult {
  *   "results": List<CompletionSuggestion>
  *   "isLast": bool
  *   "includedSuggestionSets": optional List<IncludedSuggestionSet>
- *   "includedSuggestionKinds": optional List<ElementKind>
+ *   "includedElementKinds": optional List<ElementKind>
  *   "includedSuggestionRelevanceTags": optional List<IncludedSuggestionRelevanceTag>
  * }
  *
@@ -6363,7 +6613,7 @@ class CompletionResultsParams implements HasToJson {
 
   List<IncludedSuggestionSet> _includedSuggestionSets;
 
-  List<ElementKind> _includedSuggestionKinds;
+  List<ElementKind> _includedElementKinds;
 
   List<IncludedSuggestionRelevanceTag> _includedSuggestionRelevanceTags;
 
@@ -6453,8 +6703,6 @@ class CompletionResultsParams implements HasToJson {
   }
 
   /**
-   * This field is experimental.
-   *
    * References to AvailableSuggestionSet objects previously sent to the
    * client. The client can include applicable names from the referenced
    * library in code completion suggestions.
@@ -6463,8 +6711,6 @@ class CompletionResultsParams implements HasToJson {
       _includedSuggestionSets;
 
   /**
-   * This field is experimental.
-   *
    * References to AvailableSuggestionSet objects previously sent to the
    * client. The client can include applicable names from the referenced
    * library in code completion suggestions.
@@ -6474,28 +6720,22 @@ class CompletionResultsParams implements HasToJson {
   }
 
   /**
-   * This field is experimental.
-   *
    * The client is expected to check this list against the ElementKind sent in
    * IncludedSuggestionSet to decide whether or not these symbols should should
    * be presented to the user.
    */
-  List<ElementKind> get includedSuggestionKinds => _includedSuggestionKinds;
+  List<ElementKind> get includedElementKinds => _includedElementKinds;
 
   /**
-   * This field is experimental.
-   *
    * The client is expected to check this list against the ElementKind sent in
    * IncludedSuggestionSet to decide whether or not these symbols should should
    * be presented to the user.
    */
-  void set includedSuggestionKinds(List<ElementKind> value) {
-    this._includedSuggestionKinds = value;
+  void set includedElementKinds(List<ElementKind> value) {
+    this._includedElementKinds = value;
   }
 
   /**
-   * This field is experimental.
-   *
    * The client is expected to check this list against the values of the field
    * relevanceTags of AvailableSuggestion to decide if the suggestion should be
    * given a different relevance than the IncludedSuggestionSet that contains
@@ -6509,8 +6749,6 @@ class CompletionResultsParams implements HasToJson {
       _includedSuggestionRelevanceTags;
 
   /**
-   * This field is experimental.
-   *
    * The client is expected to check this list against the values of the field
    * relevanceTags of AvailableSuggestion to decide if the suggestion should be
    * given a different relevance than the IncludedSuggestionSet that contains
@@ -6528,7 +6766,7 @@ class CompletionResultsParams implements HasToJson {
   CompletionResultsParams(String id, int replacementOffset,
       int replacementLength, List<CompletionSuggestion> results, bool isLast,
       {List<IncludedSuggestionSet> includedSuggestionSets,
-      List<ElementKind> includedSuggestionKinds,
+      List<ElementKind> includedElementKinds,
       List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags}) {
     this.id = id;
     this.replacementOffset = replacementOffset;
@@ -6536,7 +6774,7 @@ class CompletionResultsParams implements HasToJson {
     this.results = results;
     this.isLast = isLast;
     this.includedSuggestionSets = includedSuggestionSets;
-    this.includedSuggestionKinds = includedSuggestionKinds;
+    this.includedElementKinds = includedElementKinds;
     this.includedSuggestionRelevanceTags = includedSuggestionRelevanceTags;
   }
 
@@ -6591,11 +6829,11 @@ class CompletionResultsParams implements HasToJson {
                 new IncludedSuggestionSet.fromJson(
                     jsonDecoder, jsonPath, json));
       }
-      List<ElementKind> includedSuggestionKinds;
-      if (json.containsKey("includedSuggestionKinds")) {
-        includedSuggestionKinds = jsonDecoder.decodeList(
-            jsonPath + ".includedSuggestionKinds",
-            json["includedSuggestionKinds"],
+      List<ElementKind> includedElementKinds;
+      if (json.containsKey("includedElementKinds")) {
+        includedElementKinds = jsonDecoder.decodeList(
+            jsonPath + ".includedElementKinds",
+            json["includedElementKinds"],
             (String jsonPath, Object json) =>
                 new ElementKind.fromJson(jsonDecoder, jsonPath, json));
       }
@@ -6611,7 +6849,7 @@ class CompletionResultsParams implements HasToJson {
       return new CompletionResultsParams(
           id, replacementOffset, replacementLength, results, isLast,
           includedSuggestionSets: includedSuggestionSets,
-          includedSuggestionKinds: includedSuggestionKinds,
+          includedElementKinds: includedElementKinds,
           includedSuggestionRelevanceTags: includedSuggestionRelevanceTags);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "completion.results params", json);
@@ -6637,8 +6875,8 @@ class CompletionResultsParams implements HasToJson {
           .map((IncludedSuggestionSet value) => value.toJson())
           .toList();
     }
-    if (includedSuggestionKinds != null) {
-      result["includedSuggestionKinds"] = includedSuggestionKinds
+    if (includedElementKinds != null) {
+      result["includedElementKinds"] = includedElementKinds
           .map((ElementKind value) => value.toJson())
           .toList();
     }
@@ -6669,7 +6907,7 @@ class CompletionResultsParams implements HasToJson {
           isLast == other.isLast &&
           listEqual(includedSuggestionSets, other.includedSuggestionSets,
               (IncludedSuggestionSet a, IncludedSuggestionSet b) => a == b) &&
-          listEqual(includedSuggestionKinds, other.includedSuggestionKinds,
+          listEqual(includedElementKinds, other.includedElementKinds,
               (ElementKind a, ElementKind b) => a == b) &&
           listEqual(
               includedSuggestionRelevanceTags,
@@ -6690,7 +6928,7 @@ class CompletionResultsParams implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, results.hashCode);
     hash = JenkinsSmiHash.combine(hash, isLast.hashCode);
     hash = JenkinsSmiHash.combine(hash, includedSuggestionSets.hashCode);
-    hash = JenkinsSmiHash.combine(hash, includedSuggestionKinds.hashCode);
+    hash = JenkinsSmiHash.combine(hash, includedElementKinds.hashCode);
     hash =
         JenkinsSmiHash.combine(hash, includedSuggestionRelevanceTags.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -10065,6 +10303,7 @@ class EditGetStatementCompletionResult implements ResponseResult {
  * {
  *   "file": FilePath
  *   "elements": List<ImportedElements>
+ *   "offset": optional int
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -10073,6 +10312,8 @@ class EditImportElementsParams implements RequestParams {
   String _file;
 
   List<ImportedElements> _elements;
+
+  int _offset;
 
   /**
    * The file in which the specified elements are to be made accessible.
@@ -10100,9 +10341,29 @@ class EditImportElementsParams implements RequestParams {
     this._elements = value;
   }
 
-  EditImportElementsParams(String file, List<ImportedElements> elements) {
+  /**
+   * The offset at which the specified elements need to be made accessible. If
+   * provided, this is used to guard against adding imports for text that would
+   * be inserted into a comment, string literal, or other location where the
+   * imports would not be necessary.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset at which the specified elements need to be made accessible. If
+   * provided, this is used to guard against adding imports for text that would
+   * be inserted into a comment, string literal, or other location where the
+   * imports would not be necessary.
+   */
+  void set offset(int value) {
+    this._offset = value;
+  }
+
+  EditImportElementsParams(String file, List<ImportedElements> elements,
+      {int offset}) {
     this.file = file;
     this.elements = elements;
+    this.offset = offset;
   }
 
   factory EditImportElementsParams.fromJson(
@@ -10127,7 +10388,11 @@ class EditImportElementsParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "elements");
       }
-      return new EditImportElementsParams(file, elements);
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      }
+      return new EditImportElementsParams(file, elements, offset: offset);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.importElements params", json);
     }
@@ -10144,6 +10409,9 @@ class EditImportElementsParams implements RequestParams {
     result["file"] = file;
     result["elements"] =
         elements.map((ImportedElements value) => value.toJson()).toList();
+    if (offset != null) {
+      result["offset"] = offset;
+    }
     return result;
   }
 
@@ -10160,7 +10428,8 @@ class EditImportElementsParams implements RequestParams {
     if (other is EditImportElementsParams) {
       return file == other.file &&
           listEqual(elements, other.elements,
-              (ImportedElements a, ImportedElements b) => a == b);
+              (ImportedElements a, ImportedElements b) => a == b) &&
+          offset == other.offset;
     }
     return false;
   }
@@ -10170,6 +10439,7 @@ class EditImportElementsParams implements RequestParams {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, elements.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -16076,6 +16346,7 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
  * {
  *   "id": int
  *   "relevance": int
+ *   "displayUri": optional String
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -16084,6 +16355,8 @@ class IncludedSuggestionSet implements HasToJson {
   int _id;
 
   int _relevance;
+
+  String _displayUri;
 
   /**
    * Clients should use it to access the set of precomputed completions to be
@@ -16115,9 +16388,34 @@ class IncludedSuggestionSet implements HasToJson {
     this._relevance = value;
   }
 
-  IncludedSuggestionSet(int id, int relevance) {
+  /**
+   * The optional string that should be displayed instead of the uri of the
+   * referenced AvailableSuggestionSet.
+   *
+   * For example libraries in the "test" directory of a package have only
+   * "file://" URIs, so are usually long, and don't look nice, but actual
+   * import directives will use relative URIs, which are short, so we probably
+   * want to display such relative URIs to the user.
+   */
+  String get displayUri => _displayUri;
+
+  /**
+   * The optional string that should be displayed instead of the uri of the
+   * referenced AvailableSuggestionSet.
+   *
+   * For example libraries in the "test" directory of a package have only
+   * "file://" URIs, so are usually long, and don't look nice, but actual
+   * import directives will use relative URIs, which are short, so we probably
+   * want to display such relative URIs to the user.
+   */
+  void set displayUri(String value) {
+    this._displayUri = value;
+  }
+
+  IncludedSuggestionSet(int id, int relevance, {String displayUri}) {
     this.id = id;
     this.relevance = relevance;
+    this.displayUri = displayUri;
   }
 
   factory IncludedSuggestionSet.fromJson(
@@ -16139,7 +16437,12 @@ class IncludedSuggestionSet implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "relevance");
       }
-      return new IncludedSuggestionSet(id, relevance);
+      String displayUri;
+      if (json.containsKey("displayUri")) {
+        displayUri = jsonDecoder.decodeString(
+            jsonPath + ".displayUri", json["displayUri"]);
+      }
+      return new IncludedSuggestionSet(id, relevance, displayUri: displayUri);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "IncludedSuggestionSet", json);
     }
@@ -16150,6 +16453,9 @@ class IncludedSuggestionSet implements HasToJson {
     Map<String, dynamic> result = {};
     result["id"] = id;
     result["relevance"] = relevance;
+    if (displayUri != null) {
+      result["displayUri"] = displayUri;
+    }
     return result;
   }
 
@@ -16159,7 +16465,9 @@ class IncludedSuggestionSet implements HasToJson {
   @override
   bool operator ==(other) {
     if (other is IncludedSuggestionSet) {
-      return id == other.id && relevance == other.relevance;
+      return id == other.id &&
+          relevance == other.relevance &&
+          displayUri == other.displayUri;
     }
     return false;
   }
@@ -16169,6 +16477,7 @@ class IncludedSuggestionSet implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, id.hashCode);
     hash = JenkinsSmiHash.combine(hash, relevance.hashCode);
+    hash = JenkinsSmiHash.combine(hash, displayUri.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -21255,6 +21564,142 @@ class ServerStatusParams implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, analysis.hashCode);
     hash = JenkinsSmiHash.combine(hash, pub.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * TokenDetails
+ *
+ * {
+ *   "lexeme": String
+ *   "type": optional String
+ *   "validElementKinds": optional List<String>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class TokenDetails implements HasToJson {
+  String _lexeme;
+
+  String _type;
+
+  List<String> _validElementKinds;
+
+  /**
+   * The token's lexeme.
+   */
+  String get lexeme => _lexeme;
+
+  /**
+   * The token's lexeme.
+   */
+  void set lexeme(String value) {
+    assert(value != null);
+    this._lexeme = value;
+  }
+
+  /**
+   * A unique id for the type of the identifier. Omitted if the token is not an
+   * identifier in a reference position.
+   */
+  String get type => _type;
+
+  /**
+   * A unique id for the type of the identifier. Omitted if the token is not an
+   * identifier in a reference position.
+   */
+  void set type(String value) {
+    this._type = value;
+  }
+
+  /**
+   * An indication of whether this token is in a declaration or reference
+   * position. (If no other purpose is found for this field then it should be
+   * renamed and converted to a boolean value.) Omitted if the token is not an
+   * identifier.
+   */
+  List<String> get validElementKinds => _validElementKinds;
+
+  /**
+   * An indication of whether this token is in a declaration or reference
+   * position. (If no other purpose is found for this field then it should be
+   * renamed and converted to a boolean value.) Omitted if the token is not an
+   * identifier.
+   */
+  void set validElementKinds(List<String> value) {
+    this._validElementKinds = value;
+  }
+
+  TokenDetails(String lexeme, {String type, List<String> validElementKinds}) {
+    this.lexeme = lexeme;
+    this.type = type;
+    this.validElementKinds = validElementKinds;
+  }
+
+  factory TokenDetails.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String lexeme;
+      if (json.containsKey("lexeme")) {
+        lexeme = jsonDecoder.decodeString(jsonPath + ".lexeme", json["lexeme"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "lexeme");
+      }
+      String type;
+      if (json.containsKey("type")) {
+        type = jsonDecoder.decodeString(jsonPath + ".type", json["type"]);
+      }
+      List<String> validElementKinds;
+      if (json.containsKey("validElementKinds")) {
+        validElementKinds = jsonDecoder.decodeList(
+            jsonPath + ".validElementKinds",
+            json["validElementKinds"],
+            jsonDecoder.decodeString);
+      }
+      return new TokenDetails(lexeme,
+          type: type, validElementKinds: validElementKinds);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "TokenDetails", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["lexeme"] = lexeme;
+    if (type != null) {
+      result["type"] = type;
+    }
+    if (validElementKinds != null) {
+      result["validElementKinds"] = validElementKinds;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is TokenDetails) {
+      return lexeme == other.lexeme &&
+          type == other.type &&
+          listEqual(validElementKinds, other.validElementKinds,
+              (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, lexeme.hashCode);
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    hash = JenkinsSmiHash.combine(hash, validElementKinds.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

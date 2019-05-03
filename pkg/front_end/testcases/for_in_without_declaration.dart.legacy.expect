@@ -142,10 +142,8 @@ class C extends self::Super {
          ^^^";
         dynamic x;
         dynamic y;
-        {
-          core::print(x);
-          core::print(y);
-        }
+        core::print(x);
+        core::print(y);
       }
     }
     const core::int constant = 0;

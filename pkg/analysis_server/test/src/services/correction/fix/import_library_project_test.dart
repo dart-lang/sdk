@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -64,7 +65,7 @@ main() {
   Test test = null;
   print(test);
 }
-''');
+''', expectedNumberOfFixesForKind: 1);
   }
 
   test_preferDirectOverExport_src() async {
@@ -82,7 +83,65 @@ main() {
   Test test = null;
   print(test);
 }
+''', expectedNumberOfFixesForKind: 1);
+  }
+
+  test_relativeDirective() async {
+    addSource('/home/test/lib/a.dart', '''
+import "b.dart";
 ''');
+    addSource('/home/test/lib/b.dart', '''
+class Foo {}
+''');
+    await resolveTestUnit('''
+main() { new Foo(); }
+''');
+    await assertHasFix('''
+import 'b.dart';
+
+main() { new Foo(); }
+''',
+        expectedNumberOfFixesForKind: 2,
+        matchFixMessage: "Import library 'b.dart'");
+  }
+
+  test_relativeDirective_upOneDirectory() async {
+    addSource('/home/test/lib/a.dart', '''
+import "b.dart";
+''');
+    addSource('/home/test/lib/b.dart', '''
+class Foo {}
+''');
+    testFile = convertPath('/home/test/lib/dir/test.dart');
+    await resolveTestUnit('''
+main() { new Foo(); }
+''');
+    await assertHasFix('''
+import '../b.dart';
+
+main() { new Foo(); }
+''',
+        expectedNumberOfFixesForKind: 2,
+        matchFixMessage: "Import library '../b.dart'");
+  }
+
+  test_relativeDirective_downOneDirectory() async {
+    addSource('/home/test/lib/dir/a.dart', '''
+import "b.dart";
+''');
+    addSource('/home/test/lib/dir/b.dart', '''
+class Foo {}
+''');
+    await resolveTestUnit('''
+main() { new Foo(); }
+''');
+    await assertHasFix('''
+import 'dir/b.dart';
+
+main() { new Foo(); }
+''',
+        expectedNumberOfFixesForKind: 2,
+        matchFixMessage: "Import library 'dir/b.dart'");
   }
 
   test_withClass_annotation() async {
@@ -318,6 +377,53 @@ main() {
 ''');
   }
 
+  test_withFunction_functionTopLevelVariable() async {
+    addSource('/home/test/lib/lib.dart', 'var myFunction = () {};');
+    await resolveTestUnit('''
+main() {
+  myFunction();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+main() {
+  myFunction();
+}
+''');
+  }
+
+  @failingTest
+  test_withFunction_nonFunctionType() async {
+    // TODO Remove preferFunctionOverTopLevelVariable test once this is passing
+    addSource('/home/test/lib/lib.dart', 'int zero = 0;');
+    await resolveTestUnit('''
+main() {
+  zero();
+}
+''');
+    await assertNoFix();
+  }
+
+  test_withFunction_preferFunctionOverTopLevelVariable() async {
+    _configureMyPkg({
+      'b.dart': 'var myFunction = () {};',
+      'a.dart': 'myFunction() {}',
+    });
+    await resolveTestUnit('''
+main() {
+  myFunction();
+}
+''');
+    await assertHasFix('''
+import 'package:my_pkg/a.dart';
+
+main() {
+  myFunction();
+}
+''');
+  }
+
   test_withFunction_unresolvedMethod() async {
     addSource('/home/test/lib/lib.dart', '''
 library lib;
@@ -362,51 +468,20 @@ main() {
 ''');
   }
 
-  test_withFunction_functionTopLevelVariable() async {
-    addSource('/home/test/lib/lib.dart', 'var myFunction = () {};');
+  test_withMixin() async {
+    addSource('/home/test/lib/lib.dart', '''
+mixin Test {}
+''');
     await resolveTestUnit('''
-main() {
-  myFunction();
-}
+class X = Object with Test;
 ''');
     await assertHasFix('''
 import 'package:test/lib.dart';
 
-main() {
-  myFunction();
-}
-''');
-  }
-
-  test_withFunction_preferFunctionOverTopLevelVariable() async {
-    _configureMyPkg({
-      'b.dart': 'var myFunction = () {};',
-      'a.dart': 'myFunction() {}',
+class X = Object with Test;
+''', errorFilter: (error) {
+      return error.errorCode == StaticWarningCode.UNDEFINED_CLASS;
     });
-    await resolveTestUnit('''
-main() {
-  myFunction();
-}
-''');
-    await assertHasFix('''
-import 'package:my_pkg/a.dart';
-
-main() {
-  myFunction();
-}
-''');
-  }
-
-  @failingTest
-  test_withFunction_nonFunctionType() async {
-    // TODO Remove preferFunctionOverTopLevelVariable test once this is passing
-    addSource('/home/test/lib/lib.dart', 'int zero = 0;');
-    await resolveTestUnit('''
-main() {
-  zero();
-}
-''');
-    await assertNoFix();
   }
 
   test_withTopLevelVariable() async {

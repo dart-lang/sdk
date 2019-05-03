@@ -88,6 +88,7 @@ enum MessageKind {
   LIBRARY_NOT_FOUND,
   MIRRORS_LIBRARY_NOT_SUPPORT_WITH_CFE,
   MISSING_EXPRESSION_IN_THROW,
+  NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS,
   NO_SUCH_SUPER_MEMBER,
   NON_NATIVE_EXTERNAL,
   NOT_A_COMPILE_TIME_CONSTANT,
@@ -607,7 +608,7 @@ Please include the following information:
 
       MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE: const MessageTemplate(
           MessageKind.INVALID_LOGICAL_OR_OPERAND_TYPE,
-          "`#{constant}` of type '#{type}' is not a valid logical and operand. "
+          "`#{constant}` of type '#{type}' is not a valid logical or operand. "
           "Must be a value of type 'bool'."),
 
       MessageKind.INVALID_CONSTANT_CONSTRUCTOR: const MessageTemplate(
@@ -677,6 +678,10 @@ become a compile-time error in the future."""),
               "Try removing 'external' keyword or annotating the function "
               "as a js-interop function."),
 
+      MessageKind.NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS: const MessageTemplate(
+          MessageKind.NATIVE_NON_INSTANCE_IN_NON_NATIVE_CLASS,
+          "Native non-instance members are only allowed in native classes."),
+
       // TODO(32557): Remove these when issue 32557 is fixed.
       MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS: const MessageTemplate(
           MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
@@ -692,6 +697,7 @@ become a compile-time error in the future."""),
           "'case' expression of type '#{type}'."),
     }); // End of TEMPLATES.
 
+  @override
   String toString() => template;
 
   Message message([Map arguments = const {}, bool terse = false]) {
@@ -738,15 +744,18 @@ class Message {
     return message;
   }
 
+  @override
   String toString() {
     return computeMessage();
   }
 
+  @override
   bool operator ==(other) {
     if (other is! Message) return false;
     return (template == other.template) && (toString() == other.toString());
   }
 
+  @override
   int get hashCode => throw new UnsupportedError('Message.hashCode');
 
   static String convertToString(value) {

@@ -697,6 +697,49 @@ ISOLATE_UNIT_TEST_CASE(ExternalPromotion) {
   EXPECT_EQ(size_before, size_after);
 }
 
+#if !defined(PRODUCT)
+class HeapTestHelper {
+ public:
+  static void Scavenge(Thread* thread) {
+    thread->heap()->CollectNewSpaceGarbage(thread, Heap::kDebugging);
+  }
+  static void MarkSweep(Thread* thread) {
+    thread->heap()->CollectOldSpaceGarbage(thread, Heap::kMarkSweep,
+                                           Heap::kDebugging);
+    thread->heap()->WaitForMarkerTasks(thread);
+    thread->heap()->WaitForSweeperTasks(thread);
+  }
+};
+
+ISOLATE_UNIT_TEST_CASE(ExternalAllocationStats) {
+  Isolate* isolate = thread->isolate();
+  Heap* heap = thread->heap();
+
+  Array& old = Array::Handle(Array::New(100, Heap::kOld));
+  Array& neu = Array::Handle();
+  for (intptr_t i = 0; i < 100; i++) {
+    neu = Array::New(1, Heap::kNew);
+    FinalizablePersistentHandle::New(isolate, neu, NULL, NoopFinalizer, 1 * MB);
+    old.SetAt(i, neu);
+
+    if ((i % 4) == 0) {
+      HeapTestHelper::MarkSweep(thread);
+    } else {
+      HeapTestHelper::Scavenge(thread);
+    }
+
+    ClassHeapStats* stats = ClassHeapStatsTestHelper::GetHeapStatsForCid(
+        isolate->class_table(), kArrayCid);
+    EXPECT_LE(
+        stats->post_gc.old_external_size + stats->recent.old_external_size,
+        heap->old_space()->ExternalInWords() * kWordSize);
+    EXPECT_LE(
+        stats->post_gc.new_external_size + stats->recent.new_external_size,
+        heap->new_space()->ExternalInWords() * kWordSize);
+  }
+}
+#endif  // !defined(PRODUCT)
+
 ISOLATE_UNIT_TEST_CASE(ArrayTruncationRaces) {
   // Alternate between allocating new lists and truncating.
   // For each list, the life cycle is

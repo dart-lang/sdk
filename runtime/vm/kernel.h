@@ -32,6 +32,7 @@ class NameIndex {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {
 
+class BitVector;
 class Field;
 class ParsedFunction;
 class Zone;
@@ -72,6 +73,7 @@ class Program {
                                     const char** error = nullptr);
 
   bool is_single_program() { return single_program_; }
+  uint32_t binary_version() { return binary_version_; }
   NameIndex main_method() { return main_method_reference_; }
   intptr_t source_table_offset() const { return source_table_offset_; }
   intptr_t string_table_offset() const { return string_table_offset_; }
@@ -91,6 +93,7 @@ class Program {
   Program() : kernel_data_(NULL), kernel_data_size_(-1) {}
 
   bool single_program_;
+  uint32_t binary_version_;
   NameIndex main_method_reference_;  // Procedure.
   intptr_t library_count_;
 
@@ -194,13 +197,20 @@ RawObject* EvaluateMetadata(const Field& metadata_field,
                             bool is_annotations_offset);
 RawObject* BuildParameterDescriptor(const Function& function);
 
+// Fills in [is_covariant] and [is_generic_covariant_impl] vectors
+// according to covariance attributes of [function] parameters.
+//
+// [is_covariant] and [is_generic_covariant_impl] should contain bitvectors
+// of function.NumParameters() length.
+void ReadParameterCovariance(const Function& function,
+                             BitVector* is_covariant,
+                             BitVector* is_generic_covariant_impl);
+
 // Returns true if the given function needs dynamic invocation forwarder:
 // that is if any of the arguments require checking on the dynamic
 // call-site: if function has no parameters or has only covariant parameters
 // as such function already checks all of its parameters.
 bool NeedsDynamicInvocationForwarder(const Function& function);
-
-bool IsFieldInitializer(const Function& function, Zone* zone);
 
 ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
                                                   Zone* zone);

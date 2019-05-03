@@ -388,37 +388,27 @@ MapLiteral wrapConstMapLiteral(
       keyType: tuple.first, valueType: tuple.second, isConst: true);
 }
 
-class LetSerializer extends TextSerializer<Let> {
-  const LetSerializer();
+TextSerializer<Let> letSerializer = new Wrapped(
+    unwrapLet,
+    wrapLet,
+    new Bind(
+        new Binder(variableDeclarationSerializer, getVariableDeclarationName,
+            setVariableDeclarationName),
+        expressionSerializer));
 
-  Let readFrom(Iterator<Object> stream, DeserializationState state) {
-    VariableDeclaration variable =
-        variableDeclarationSerializer.readFrom(stream, state);
-    Expression body = expressionSerializer.readFrom(
-        stream,
-        new DeserializationState(
-            new DeserializationEnvironment(state.environment)
-              ..add(variable.name, variable),
-            state.nameRoot));
-    return new Let(variable, body);
-  }
-
-  void writeTo(StringBuffer buffer, Let object, SerializationState state) {
-    SerializationState bodyState =
-        new SerializationState(new SerializationEnvironment(state.environment));
-    VariableDeclaration variable = object.variable;
-    String oldVariableName = variable.name;
-    String newVariableName =
-        bodyState.environment.add(variable, oldVariableName);
-    variableDeclarationSerializer.writeTo(
-        buffer, variable..name = newVariableName, state);
-    variable.name = oldVariableName;
-    buffer.write(' ');
-    expressionSerializer.writeTo(buffer, object.body, bodyState);
-  }
+Tuple2<VariableDeclaration, Expression> unwrapLet(Let expression) {
+  return new Tuple2(expression.variable, expression.body);
 }
 
-TextSerializer<Let> letSerializer = const LetSerializer();
+Let wrapLet(Tuple2<VariableDeclaration, Expression> tuple) {
+  return new Let(tuple.first, tuple.second);
+}
+
+String getVariableDeclarationName(VariableDeclaration node) => node.name;
+
+void setVariableDeclarationName(VariableDeclaration node, String name) {
+  node.name = name;
+}
 
 TextSerializer<PropertyGet> propertyGetSerializer = new Wrapped(
     unwrapPropertyGet,
@@ -828,6 +818,50 @@ TextSerializer<VariableDeclaration> variableDeclarationSerializer =
   constDeclarationSerializer,
 ]);
 
+TextSerializer<TypeParameter> typeParameterSerializer =
+    new Wrapped(unwrapTypeParameter, wrapTypeParameter, const DartString());
+
+String unwrapTypeParameter(TypeParameter node) => node.name;
+
+TypeParameter wrapTypeParameter(String name) => new TypeParameter(name);
+
+TextSerializer<List<TypeParameter>> typeParametersSerializer = new Zip(
+    new Rebind(
+        new Zip(
+            new Rebind(
+                new ListSerializer(new Binder(typeParameterSerializer,
+                    getTypeParameterName, setTypeParameterName)),
+                new ListSerializer(dartTypeSerializer)),
+            zipTypeParameterBound,
+            unzipTypeParameterBound),
+        new ListSerializer(dartTypeSerializer)),
+    zipTypeParameterDefaultType,
+    unzipTypeParameterDefaultType);
+
+String getTypeParameterName(TypeParameter node) => node.name;
+
+void setTypeParameterName(TypeParameter node, String name) {
+  node.name = name;
+}
+
+TypeParameter zipTypeParameterBound(TypeParameter node, DartType bound) {
+  return node..bound = bound;
+}
+
+Tuple2<TypeParameter, DartType> unzipTypeParameterBound(TypeParameter node) {
+  return new Tuple2(node, node.bound);
+}
+
+TypeParameter zipTypeParameterDefaultType(
+    TypeParameter node, DartType defaultType) {
+  return node..defaultType = defaultType;
+}
+
+Tuple2<TypeParameter, DartType> unzipTypeParameterDefaultType(
+    TypeParameter node) {
+  return new Tuple2(node, node.defaultType);
+}
+
 class DartTypeTagger extends DartTypeVisitor<String>
     implements Tagger<DartType> {
   const DartTypeTagger();
@@ -839,6 +873,7 @@ class DartTypeTagger extends DartTypeVisitor<String>
   String visitVoidType(VoidType _) => "void";
   String visitBottomType(BottomType _) => "bottom";
   String visitFunctionType(FunctionType _) => "->";
+  String visitTypeParameterType(TypeParameterType _) => "par";
 }
 
 TextSerializer<InvalidType> invalidTypeSerializer =
@@ -869,25 +904,92 @@ void unwrapBottomType(BottomType type) {}
 
 BottomType wrapBottomType(void ignored) => const BottomType();
 
-// TODO(dmitryas):  Also handle typeParameters, nameParameters, and typedefType.
+// TODO(dmitryas):  Also handle nameParameters, and typedefType.
 TextSerializer<FunctionType> functionTypeSerializer = new Wrapped(
     unwrapFunctionType,
     wrapFunctionType,
-    Tuple3Serializer(new ListSerializer(dartTypeSerializer), const DartInt(),
-        dartTypeSerializer));
+    new Bind(
+        typeParametersSerializer,
+        new Tuple4Serializer(
+            new ListSerializer(dartTypeSerializer),
+            new ListSerializer(dartTypeSerializer),
+            new ListSerializer(namedTypeSerializer),
+            dartTypeSerializer)));
 
-Tuple3<List<DartType>, int, DartType> unwrapFunctionType(FunctionType type) {
-  return new Tuple3(
-      type.positionalParameters, type.requiredParameterCount, type.returnType);
+Tuple2<List<TypeParameter>,
+        Tuple4<List<DartType>, List<DartType>, List<NamedType>, DartType>>
+    unwrapFunctionType(FunctionType type) {
+  return new Tuple2(
+      type.typeParameters,
+      new Tuple4(
+          type.positionalParameters.sublist(0, type.requiredParameterCount),
+          type.positionalParameters.sublist(type.requiredParameterCount),
+          type.namedParameters,
+          type.returnType));
 }
 
-FunctionType wrapFunctionType(Tuple3<List<DartType>, int, DartType> tuple) {
-  return new FunctionType(tuple.first, tuple.third,
-      requiredParameterCount: tuple.second);
+FunctionType wrapFunctionType(
+    Tuple2<List<TypeParameter>,
+            Tuple4<List<DartType>, List<DartType>, List<NamedType>, DartType>>
+        tuple) {
+  return new FunctionType(
+      tuple.second.first + tuple.second.second, tuple.second.fourth,
+      requiredParameterCount: tuple.second.first.length,
+      typeParameters: tuple.first,
+      namedParameters: tuple.second.third);
+}
+
+TextSerializer<NamedType> namedTypeSerializer = new Wrapped(unwrapNamedType,
+    wrapNamedType, Tuple2Serializer(const DartString(), dartTypeSerializer));
+
+Tuple2<String, DartType> unwrapNamedType(NamedType namedType) {
+  return new Tuple2(namedType.name, namedType.type);
+}
+
+NamedType wrapNamedType(Tuple2<String, DartType> tuple) {
+  return new NamedType(tuple.first, tuple.second);
+}
+
+TextSerializer<TypeParameterType> typeParameterTypeSerializer = new Wrapped(
+    unwrapTypeParameterType,
+    wrapTypeParameterType,
+    Tuple2Serializer(
+        new ScopedUse<TypeParameter>(), new Optional(dartTypeSerializer)));
+
+Tuple2<TypeParameter, DartType> unwrapTypeParameterType(
+    TypeParameterType node) {
+  return new Tuple2(node.parameter, node.promotedBound);
+}
+
+TypeParameterType wrapTypeParameterType(Tuple2<TypeParameter, DartType> tuple) {
+  return new TypeParameterType(tuple.first, tuple.second);
 }
 
 Case<DartType> dartTypeSerializer =
     new Case.uninitialized(const DartTypeTagger());
+
+class StatementTagger extends StatementVisitor<String>
+    implements Tagger<Statement> {
+  const StatementTagger();
+
+  String tag(Statement statement) => statement.accept(this);
+
+  String visitExpressionStatement(ExpressionStatement _) => "expr";
+}
+
+TextSerializer<ExpressionStatement> expressionStatementSerializer = new Wrapped(
+    unwrapExpressionStatement, wrapExpressionStatement, expressionSerializer);
+
+Expression unwrapExpressionStatement(ExpressionStatement statement) {
+  return statement.expression;
+}
+
+ExpressionStatement wrapExpressionStatement(Expression expression) {
+  return new ExpressionStatement(expression);
+}
+
+Case<Statement> statementSerializer =
+    new Case.uninitialized(const StatementTagger());
 
 void initializeSerializers() {
   expressionSerializer.tags.addAll([
@@ -986,6 +1088,7 @@ void initializeSerializers() {
     "void",
     "bottom",
     "->",
+    "par",
   ]);
   dartTypeSerializer.serializers.addAll([
     invalidTypeSerializer,
@@ -993,5 +1096,12 @@ void initializeSerializers() {
     voidTypeSerializer,
     bottomTypeSerializer,
     functionTypeSerializer,
+    typeParameterTypeSerializer,
+  ]);
+  statementSerializer.tags.addAll([
+    "expr",
+  ]);
+  statementSerializer.serializers.addAll([
+    expressionStatementSerializer,
   ]);
 }

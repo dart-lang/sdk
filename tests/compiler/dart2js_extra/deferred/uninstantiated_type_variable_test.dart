@@ -16,5 +16,5 @@ main() {
   });
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 dontInline(x) => x;

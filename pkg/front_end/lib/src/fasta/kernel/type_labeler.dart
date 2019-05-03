@@ -25,6 +25,7 @@ import 'package:kernel/ast.dart'
         NullConstant,
         PartialInstantiationConstant,
         Procedure,
+        SetConstant,
         StringConstant,
         SymbolConstant,
         TearOffConstant,
@@ -264,6 +265,19 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       first = false;
     }
     result.add("]");
+  }
+
+  void visitSetConstant(SetConstant node) {
+    result.add("<");
+    node.typeArgument.accept(this);
+    result.add(">{");
+    bool first = true;
+    for (Constant constant in node.entries) {
+      if (!first) result.add(", ");
+      constant.accept(this);
+      first = false;
+    }
+    result.add("}");
   }
 
   void visitMapConstant(MapConstant node) {

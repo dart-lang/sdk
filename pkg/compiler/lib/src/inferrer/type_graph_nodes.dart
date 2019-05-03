@@ -79,6 +79,7 @@ abstract class TypeInformation {
 
   // TypeInformations are unique. Store an arbitrary identity hash code.
   static int _staticHashCode = 0;
+  @override
   final int hashCode = _staticHashCode = (_staticHashCode + 1).toUnsigned(30);
 
   bool get isConcrete => false;
@@ -248,14 +249,17 @@ class PlaceholderTypeInformation extends TypeInformation {
       AbstractValueDomain abstractValueDomain, MemberTypeInformation context)
       : super(abstractValueDomain.emptyType, context);
 
+  @override
   void accept(TypeInformationVisitor visitor) {
     throw new UnsupportedError("Cannot visit placeholder");
   }
 
+  @override
   AbstractValue computeType(InferrerEngine inferrer) {
     throw new UnsupportedError("Cannot refine placeholder");
   }
 
+  @override
   toString() => "Placeholder [$hashCode]";
 }
 
@@ -296,11 +300,15 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
     }
   }
 
+  @override
   Iterator<TypeInformation> get iterator => assignments.keys.iterator;
+  @override
   Iterable<TypeInformation> where(Function f) => assignments.keys.where(f);
 
+  @override
   bool contains(Object info) => assignments.containsKey(info);
 
+  @override
   String toString() => assignments.keys.toList().toString();
 }
 
@@ -386,6 +394,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
 
   MemberEntity get member => _member;
 
+  @override
   String get debugName => '$member';
 
   void addCall(MemberEntity caller, Object node) {
@@ -438,6 +447,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   // [users] is accurate. The inference stops tracking users for stable types.
   // Note that we only override the getter, the setter will still modify the
   // state of the [isStable] field inherited from [TypeInformation].
+  @override
   bool get isStable => super.isStable && !isClosurized;
 
   AbstractValue handleSpecialCases(InferrerEngine inferrer);
@@ -469,6 +479,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer);
 
+  @override
   AbstractValue computeType(InferrerEngine inferrer) {
     AbstractValue special = handleSpecialCases(inferrer);
     if (special != null) return potentiallyNarrowType(special, inferrer);
@@ -476,16 +487,20 @@ abstract class MemberTypeInformation extends ElementTypeInformation
         inferrer.types.computeTypeMask(assignments), inferrer);
   }
 
+  @override
   AbstractValue safeType(InferrerEngine inferrer) {
     return potentiallyNarrowType(super.safeType(inferrer), inferrer);
   }
 
+  @override
   String toString() => 'Member $_member $type';
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitMemberTypeInformation(this);
   }
 
+  @override
   void cleanup() {
     _callers = null;
     super.cleanup();
@@ -505,6 +520,7 @@ class FieldTypeInformation extends MemberTypeInformation {
       AbstractValueDomain abstractValueDomain, FieldEntity element, this._type)
       : super._internal(abstractValueDomain, element);
 
+  @override
   AbstractValue handleSpecialCases(InferrerEngine inferrer) {
     if (!inferrer.canFieldBeUsedForGlobalOptimizations(_field) ||
         inferrer.assumeDynamic(_field)) {
@@ -527,11 +543,13 @@ class FieldTypeInformation extends MemberTypeInformation {
     return null;
   }
 
+  @override
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
     return _narrowType(inferrer.closedWorld, mask, _type);
   }
 
+  @override
   bool hasStableType(InferrerEngine inferrer) {
     // The number of assignments of non-final fields is
     // not stable. Therefore such a field cannot be stable.
@@ -550,10 +568,12 @@ class GetterTypeInformation extends MemberTypeInformation {
       FunctionEntity element, this._type)
       : super._internal(abstractValueDomain, element);
 
+  @override
   AbstractValue handleSpecialCases(InferrerEngine inferrer) {
     return _handleFunctionCase(_getter, inferrer);
   }
 
+  @override
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
     return _narrowType(inferrer.closedWorld, mask, _type.returnType);
@@ -567,10 +587,12 @@ class SetterTypeInformation extends MemberTypeInformation {
       AbstractValueDomain abstractValueDomain, FunctionEntity element)
       : super._internal(abstractValueDomain, element);
 
+  @override
   AbstractValue handleSpecialCases(InferrerEngine inferrer) {
     return _handleFunctionCase(_setter, inferrer);
   }
 
+  @override
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
     return mask;
@@ -585,15 +607,18 @@ class MethodTypeInformation extends MemberTypeInformation {
       FunctionEntity element, this._type)
       : super._internal(abstractValueDomain, element);
 
+  @override
   AbstractValue handleSpecialCases(InferrerEngine inferrer) {
     return _handleFunctionCase(_method, inferrer);
   }
 
+  @override
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
     return _narrowType(inferrer.closedWorld, mask, _type.returnType);
   }
 
+  @override
   bool hasStableType(InferrerEngine inferrer) => false;
 }
 
@@ -605,6 +630,7 @@ class FactoryConstructorTypeInformation extends MemberTypeInformation {
       ConstructorEntity element, this._type)
       : super._internal(abstractValueDomain, element);
 
+  @override
   AbstractValue handleSpecialCases(InferrerEngine inferrer) {
     AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
     if (_constructor.isFromEnvironmentConstructor) {
@@ -624,11 +650,13 @@ class FactoryConstructorTypeInformation extends MemberTypeInformation {
     return _handleFunctionCase(_constructor, inferrer);
   }
 
+  @override
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
     return _narrowType(inferrer.closedWorld, mask, _type.returnType);
   }
 
+  @override
   bool hasStableType(InferrerEngine inferrer) {
     return super.hasStableType(inferrer);
   }
@@ -641,15 +669,18 @@ class GenerativeConstructorTypeInformation extends MemberTypeInformation {
       AbstractValueDomain abstractValueDomain, ConstructorEntity element)
       : super._internal(abstractValueDomain, element);
 
+  @override
   AbstractValue handleSpecialCases(InferrerEngine inferrer) {
     return _handleFunctionCase(_constructor, inferrer);
   }
 
+  @override
   AbstractValue _potentiallyNarrowType(
       AbstractValue mask, InferrerEngine inferrer) {
     return mask;
   }
 
+  @override
   bool hasStableType(InferrerEngine inferrer) {
     return super.hasStableType(inferrer);
   }
@@ -708,6 +739,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   bool get isRegularParameter => !_isInitializingFormal;
 
+  @override
   String get debugName => '$parameter';
 
   void tagAsTearOffClosureParameter(InferrerEngine inferrer) {
@@ -805,6 +837,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     return mask;
   }
 
+  @override
   AbstractValue computeType(InferrerEngine inferrer) {
     AbstractValue special = handleSpecialCases(inferrer);
     if (special != null) return special;
@@ -812,10 +845,12 @@ class ParameterTypeInformation extends ElementTypeInformation {
         inferrer.types.computeTypeMask(assignments), inferrer);
   }
 
+  @override
   AbstractValue safeType(InferrerEngine inferrer) {
     return potentiallyNarrowType(super.safeType(inferrer), inferrer);
   }
 
+  @override
   bool hasStableType(InferrerEngine inferrer) {
     // The number of assignments of parameters of instance methods is
     // not stable. Therefore such a parameter cannot be stable.
@@ -825,10 +860,12 @@ class ParameterTypeInformation extends ElementTypeInformation {
     return super.hasStableType(inferrer);
   }
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitParameterTypeInformation(this);
   }
 
+  @override
   String toString() => 'Parameter $_parameter $type';
 
   @override
@@ -882,6 +919,7 @@ abstract class CallSiteTypeInformation extends TypeInformation
     assert(_call is ir.Node);
   }
 
+  @override
   String toString() => 'Call site $debugName $type';
 
   /// Add [this] to the graph being computed by [engine].
@@ -913,6 +951,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
     return inferrer.types.getInferredTypeOfMember(calledElement);
   }
 
+  @override
   void addToGraph(InferrerEngine inferrer) {
     MemberTypeInformation callee = _getCalledTypeInfo(inferrer);
     callee.addCall(caller, _call);
@@ -937,6 +976,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
     return inferrer.typeOfMemberWithSelector(calledElement, selector);
   }
 
+  @override
   AbstractValue computeType(InferrerEngine inferrer) {
     if (isSynthesized) {
       assert(arguments != null);
@@ -946,12 +986,15 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
     }
   }
 
+  @override
   Iterable<MemberEntity> get callees => [calledElement];
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitStaticCallSiteTypeInformation(this);
   }
 
+  @override
   bool hasStableType(InferrerEngine inferrer) {
     bool isStable = _getCalledTypeInfo(inferrer).isStable;
     return isStable &&
@@ -959,6 +1002,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
         super.hasStableType(inferrer);
   }
 
+  @override
   void removeAndClearReferences(InferrerEngine inferrer) {
     ElementTypeInformation callee = _getCalledTypeInfo(inferrer);
     callee.removeUser(this);
@@ -995,6 +1039,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
     assert(validCallType(_callType, _call));
   }
 
+  @override
   void addToGraph(InferrerEngine inferrer) {
     assert(receiver != null);
     AbstractValue typeMask = computeTypedSelector(inferrer);
@@ -1024,6 +1069,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
   /// methods on closures.
   Iterable<MemberEntity> get concreteTargets => _concreteTargets;
 
+  @override
   Iterable<MemberEntity> get callees => _concreteTargets;
 
   AbstractValue computeTypedSelector(InferrerEngine inferrer) {
@@ -1151,6 +1197,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
     }
   }
 
+  @override
   AbstractValue computeType(InferrerEngine inferrer) {
     JClosedWorld closedWorld = inferrer.closedWorld;
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
@@ -1248,6 +1295,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
     return result;
   }
 
+  @override
   void giveUp(InferrerEngine inferrer, {bool clearAssignments: true}) {
     if (!abandonInferencing) {
       inferrer.updateSelectorInMember(caller, _callType, _call, selector, mask);
@@ -1269,6 +1317,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
     super.giveUp(inferrer, clearAssignments: clearAssignments);
   }
 
+  @override
   void removeAndClearReferences(InferrerEngine inferrer) {
     for (MemberEntity element in _concreteTargets) {
       MemberTypeInformation callee =
@@ -1281,12 +1330,15 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
     super.removeAndClearReferences(inferrer);
   }
 
+  @override
   String toString() => 'Call site $debugName on ${receiver.type} $type';
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitDynamicCallSiteTypeInformation(this);
   }
 
+  @override
   bool hasStableType(InferrerEngine inferrer) {
     return receiver.isStable &&
         _concreteTargets.every((MemberEntity element) =>
@@ -1312,23 +1364,29 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
       : super(abstractValueDomain, context, call, enclosing, selector, mask,
             arguments, inLoop);
 
+  @override
   void addToGraph(InferrerEngine inferrer) {
     arguments.forEach((info) => info.addUser(this));
     closure.addUser(this);
   }
 
+  @override
   AbstractValue computeType(InferrerEngine inferrer) => safeType(inferrer);
 
+  @override
   Iterable<MemberEntity> get callees {
     throw new UnsupportedError("Cannot compute callees of a closure call.");
   }
 
+  @override
   String toString() => 'Closure call $debugName on $closure';
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitClosureCallSiteTypeInformation(this);
   }
 
+  @override
   void removeAndClearReferences(InferrerEngine inferrer) {
     // This method is a placeholder for the following comment:
     // We should maintain the information that the closure is a user
@@ -1353,40 +1411,51 @@ class ConcreteTypeInformation extends TypeInformation {
     this.isStable = true;
   }
 
+  @override
   bool get isConcrete => true;
 
+  @override
   void addUser(TypeInformation user) {
     // Nothing to do, a concrete type does not get updated so never
     // needs to notify its users.
   }
 
+  @override
   void addUsersOf(TypeInformation other) {
     // Nothing to do, a concrete type does not get updated so never
     // needs to notify its users.
   }
 
+  @override
   void removeUser(TypeInformation user) {}
 
+  @override
   void addAssignment(TypeInformation assignment) {
     throw "Not supported";
   }
 
+  @override
   void removeAssignment(TypeInformation assignment) {
     throw "Not supported";
   }
 
+  @override
   AbstractValue computeType(InferrerEngine inferrer) => type;
 
+  @override
   bool reset(InferrerEngine inferrer) {
     throw "Not supported";
   }
 
+  @override
   String toString() => 'Type $type';
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitConcreteTypeInformation(this);
   }
 
+  @override
   bool hasStableType(InferrerEngine inferrer) => true;
 }
 
@@ -1399,8 +1468,10 @@ class StringLiteralTypeInformation extends ConcreteTypeInformation {
             mask, new StringConstantValue(value)));
 
   String asString() => value;
+  @override
   String toString() => 'Type $type value ${value}';
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitStringLiteralTypeInformation(this);
   }
@@ -1414,8 +1485,10 @@ class BoolLiteralTypeInformation extends ConcreteTypeInformation {
       : super(abstractValueDomain.createPrimitiveValue(
             mask, value ? new TrueConstantValue() : new FalseConstantValue()));
 
+  @override
   String toString() => 'Type $type value ${value}';
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitBoolLiteralTypeInformation(this);
   }
@@ -1447,11 +1520,13 @@ class NarrowTypeInformation extends TypeInformation {
     addAssignment(narrowedType);
   }
 
+  @override
   addAssignment(TypeInformation info) {
     super.addAssignment(info);
     assert(assignments.length == 1);
   }
 
+  @override
   AbstractValue computeType(InferrerEngine inferrer) {
     AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
     AbstractValue input = assignments.first.type;
@@ -1469,10 +1544,12 @@ class NarrowTypeInformation extends TypeInformation {
     return intersection;
   }
 
+  @override
   String toString() {
     return 'Narrow to $typeAnnotation $type';
   }
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitNarrowTypeInformation(this);
   }
@@ -1492,11 +1569,13 @@ abstract class InferredTypeInformation extends TypeInformation {
     if (parentType != null) addAssignment(parentType);
   }
 
+  @override
   AbstractValue computeType(InferrerEngine inferrer) {
     if (!inferred) return safeType(inferrer);
     return inferrer.types.computeTypeMask(assignments);
   }
 
+  @override
   bool hasStableType(InferrerEngine inferrer) {
     return inferred && super.hasStableType(inferrer);
   }
@@ -1531,16 +1610,20 @@ class ListTypeInformation extends TypeInformation with TracedTypeInformation {
     elementType.addUser(this);
   }
 
+  @override
   String toString() => 'List type $type';
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitListTypeInformation(this);
   }
 
+  @override
   bool hasStableType(InferrerEngine inferrer) {
     return elementType.isStable && super.hasStableType(inferrer);
   }
 
+  @override
   AbstractValue computeType(InferrerEngine inferrer) {
     AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
     AbstractValue mask = type;
@@ -1557,8 +1640,10 @@ class ListTypeInformation extends TypeInformation with TracedTypeInformation {
     return mask;
   }
 
+  @override
   AbstractValue safeType(InferrerEngine inferrer) => originalType;
 
+  @override
   void cleanup() {
     super.cleanup();
     elementType.cleanup();
@@ -1573,10 +1658,79 @@ class ElementInContainerTypeInformation extends InferredTypeInformation {
       MemberTypeInformation context, elementType)
       : super(abstractValueDomain, context, elementType);
 
+  @override
   String toString() => 'Element in container $type';
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitElementInContainerTypeInformation(this);
+  }
+}
+
+/// A [SetTypeInformation] is a [TypeInformation] created for sets.
+class SetTypeInformation extends TypeInformation with TracedTypeInformation {
+  final ElementInSetTypeInformation elementType;
+
+  final AbstractValue originalType;
+
+  SetTypeInformation(
+      MemberTypeInformation context, this.originalType, this.elementType)
+      : super(originalType, context) {
+    elementType.addUser(this);
+  }
+
+  @override
+  String toString() => 'Set type $type';
+
+  @override
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitSetTypeInformation(this);
+  }
+
+  @override
+  AbstractValue computeType(InferrerEngine inferrer) {
+    AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
+    AbstractValue mask = type;
+    if (!abstractValueDomain.isSet(type) ||
+        abstractValueDomain.getSetElementType(type) != elementType.type) {
+      return abstractValueDomain.createSetValue(
+          abstractValueDomain.getGeneralization(originalType),
+          abstractValueDomain.getAllocationNode(originalType),
+          abstractValueDomain.getAllocationElement(originalType),
+          elementType.type);
+    }
+    return mask;
+  }
+
+  @override
+  AbstractValue safeType(InferrerEngine inferrer) => originalType;
+
+  @override
+  bool hasStableType(InferrerEngine inferrer) {
+    return elementType.isStable && super.hasStableType(inferrer);
+  }
+
+  @override
+  void cleanup() {
+    super.cleanup();
+    elementType.cleanup();
+    _flowsInto = null;
+  }
+}
+
+/// An [ElementInSetTypeInformation] holds the common type of the elements in a
+/// [SetTypeInformation].
+class ElementInSetTypeInformation extends InferredTypeInformation {
+  ElementInSetTypeInformation(AbstractValueDomain abstractValueDomain,
+      MemberTypeInformation context, elementType)
+      : super(abstractValueDomain, context, elementType);
+
+  @override
+  String toString() => 'Element in set $type';
+
+  @override
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitElementInSetTypeInformation(this);
   }
 }
 
@@ -1654,10 +1808,12 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
     typeInfoMap.values.forEach((v) => v.inferred = true);
   }
 
+  @override
   addAssignment(TypeInformation other) {
     throw "not supported";
   }
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitMapTypeInformation(this);
   }
@@ -1686,6 +1842,7 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
     }
   }
 
+  @override
   AbstractValue computeType(InferrerEngine inferrer) {
     AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
     if (abstractValueDomain.isDictionary(type) != inDictionaryMode) {
@@ -1716,14 +1873,17 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
     return type;
   }
 
+  @override
   AbstractValue safeType(InferrerEngine inferrer) => originalType;
 
+  @override
   bool hasStableType(InferrerEngine inferrer) {
     return keyType.isStable &&
         valueType.isStable &&
         super.hasStableType(inferrer);
   }
 
+  @override
   void cleanup() {
     super.cleanup();
     keyType.cleanup();
@@ -1734,6 +1894,7 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
     _flowsInto = null;
   }
 
+  @override
   String toString() {
     return 'Map $type (K:$keyType, V:$valueType) contents $typeInfoMap';
   }
@@ -1746,10 +1907,12 @@ class KeyInMapTypeInformation extends InferredTypeInformation {
       MemberTypeInformation context, TypeInformation keyType)
       : super(abstractValueDomain, context, keyType);
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitKeyInMapTypeInformation(this);
   }
 
+  @override
   String toString() => 'Key in Map $type';
 }
 
@@ -1766,16 +1929,19 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
       [this.nonNull = false])
       : super(abstractValueDomain, context, valueType);
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitValueInMapTypeInformation(this);
   }
 
+  @override
   AbstractValue computeType(InferrerEngine inferrer) {
     return nonNull
         ? super.computeType(inferrer)
         : inferrer.abstractValueDomain.includeNull(super.computeType(inferrer));
   }
 
+  @override
   String toString() => 'Value in Map $type';
 }
 
@@ -1791,12 +1957,15 @@ class PhiElementTypeInformation extends TypeInformation {
       {this.isTry})
       : super(abstractValueDomain.emptyType, context);
 
+  @override
   AbstractValue computeType(InferrerEngine inferrer) {
     return inferrer.types.computeTypeMask(assignments);
   }
 
+  @override
   String toString() => 'Phi($hashCode) $variable $type';
 
+  @override
   void _toStructuredText(
       StringBuffer sb, String indent, Set<TypeInformation> seen) {
     if (seen.add(this)) {
@@ -1811,6 +1980,7 @@ class PhiElementTypeInformation extends TypeInformation {
     }
   }
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitPhiElementTypeInformation(this);
   }
@@ -1826,20 +1996,25 @@ class ClosureTypeInformation extends TypeInformation
 
   FunctionEntity get closure => _element;
 
+  @override
   AbstractValue computeType(InferrerEngine inferrer) => safeType(inferrer);
 
+  @override
   AbstractValue safeType(InferrerEngine inferrer) {
     return inferrer.types.functionType.type;
   }
 
   String get debugName => '$closure';
 
+  @override
   String toString() => 'Closure $_element';
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitClosureTypeInformation(this);
   }
 
+  @override
   bool hasStableType(InferrerEngine inferrer) {
     return false;
   }
@@ -1886,12 +2061,15 @@ class AwaitTypeInformation extends TypeInformation {
       : super(abstractValueDomain.emptyType, context);
 
   // TODO(22894): Compute a better type here.
+  @override
   AbstractValue computeType(InferrerEngine inferrer) => safeType(inferrer);
 
   String get debugName => '$_node';
 
+  @override
   String toString() => 'Await';
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitAwaitTypeInformation(this);
   }
@@ -1904,12 +2082,15 @@ class YieldTypeInformation extends TypeInformation {
       MemberTypeInformation context, this._node)
       : super(abstractValueDomain.emptyType, context);
 
+  @override
   AbstractValue computeType(InferrerEngine inferrer) => safeType(inferrer);
 
   String get debugName => '$_node';
 
+  @override
   String toString() => 'Yield';
 
+  @override
   accept(TypeInformationVisitor visitor) {
     return visitor.visitYieldTypeInformation(this);
   }
@@ -1920,9 +2101,11 @@ abstract class TypeInformationVisitor<T> {
   T visitPhiElementTypeInformation(PhiElementTypeInformation info);
   T visitElementInContainerTypeInformation(
       ElementInContainerTypeInformation info);
+  T visitElementInSetTypeInformation(ElementInSetTypeInformation info);
   T visitKeyInMapTypeInformation(KeyInMapTypeInformation info);
   T visitValueInMapTypeInformation(ValueInMapTypeInformation info);
   T visitListTypeInformation(ListTypeInformation info);
+  T visitSetTypeInformation(SetTypeInformation info);
   T visitMapTypeInformation(MapTypeInformation info);
   T visitConcreteTypeInformation(ConcreteTypeInformation info);
   T visitStringLiteralTypeInformation(StringLiteralTypeInformation info);

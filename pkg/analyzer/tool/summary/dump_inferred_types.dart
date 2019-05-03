@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -40,7 +41,8 @@ class InferredTypeCollector {
 
   InferredTypeCollector(
       GetDependencyCallback getDependency, GetUnitCallback getUnit)
-      : _linker = new Linker({}, getDependency, getUnit, null);
+      : _linker =
+            new Linker({}, getDependency, getUnit, null, AnalysisOptionsImpl());
 
   /**
    * If an inferred type exists matching the given [slot], record that it is the

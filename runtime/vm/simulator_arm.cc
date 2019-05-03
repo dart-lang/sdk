@@ -15,7 +15,7 @@
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
-#include "vm/constants_arm.h"
+#include "vm/constants.h"
 #include "vm/cpu.h"
 #include "vm/native_arguments.h"
 #include "vm/os_thread.h"
@@ -670,12 +670,12 @@ Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
   // handling stack overflow exceptions. To be safe in potential
   // stack underflows we also add some underflow buffer space.
   stack_ =
-      new char[(OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer +
-                kSimulatorStackUnderflowSize)];
+      new char[(OSThread::GetSpecifiedStackSize() +
+                OSThread::kStackSizeBufferMax + kSimulatorStackUnderflowSize)];
   // Low address.
   stack_limit_ = reinterpret_cast<uword>(stack_);
   // Limit for StackOverflowError.
-  overflow_stack_limit_ = stack_limit_ + OSThread::kStackSizeBuffer;
+  overflow_stack_limit_ = stack_limit_ + OSThread::kStackSizeBufferMax;
   // High address.
   stack_base_ = overflow_stack_limit_ + OSThread::GetSpecifiedStackSize();
 
@@ -1365,7 +1365,8 @@ typedef void (*SimulatorRuntimeCall)(NativeArguments arguments);
 typedef int32_t (*SimulatorLeafRuntimeCall)(int32_t r0,
                                             int32_t r1,
                                             int32_t r2,
-                                            int32_t r3);
+                                            int32_t r3,
+                                            int32_t r4);
 
 // Calls to leaf float Dart runtime functions are based on this interface.
 typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
@@ -1401,14 +1402,15 @@ void Simulator::SupervisorCall(Instr* instr) {
           set_register(R1, icount_);
         } else if (redirection->call_kind() == kLeafRuntimeCall) {
           ASSERT((0 <= redirection->argument_count()) &&
-                 (redirection->argument_count() <= 4));
+                 (redirection->argument_count() <= 5));
           int32_t r0 = get_register(R0);
           int32_t r1 = get_register(R1);
           int32_t r2 = get_register(R2);
           int32_t r3 = get_register(R3);
+          int32_t r4 = *reinterpret_cast<int32_t*>(get_register(SP));
           SimulatorLeafRuntimeCall target =
               reinterpret_cast<SimulatorLeafRuntimeCall>(external);
-          r0 = target(r0, r1, r2, r3);
+          r0 = target(r0, r1, r2, r3, r4);
           set_register(R0, r0);       // Set returned result from function.
           set_register(R1, icount_);  // Zap unused result register.
         } else if (redirection->call_kind() == kLeafFloatRuntimeCall) {
@@ -1584,8 +1586,8 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
             // Registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
             // Format(instr, "mls'cond's 'rn, 'rm, 'rs, 'rd");
             rd_val = get_register(rd);
+            FALL_THROUGH;
           }
-          /* Falls through */
           case 0: {
             // Registers rd, rn, rm are encoded as rn, rm, rs.
             // Format(instr, "mul'cond's 'rn, 'rm, 'rs");
@@ -1642,7 +1644,7 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
               // umaal is only in ARMv6 and above.
               UnimplementedInstruction(instr);
             }
-            /* Falls through */
+            FALL_THROUGH;
           case 5:
           // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
           // Format(instr, "umlal'cond's 'rd, 'rn, 'rm, 'rs");

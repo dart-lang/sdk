@@ -22,14 +22,86 @@ class GetSuggestionAvailableTest extends AvailableSuggestionsBase {
     var asyncSet = await waitForSetWithUri('dart:async');
 
     var results = await _getSuggestions(testFile, 0);
-    expect(results.includedSuggestionKinds, isNotEmpty);
+    expect(results.includedElementKinds, isNotEmpty);
 
     var includedIdSet = results.includedSuggestionSets.map((set) => set.id);
     expect(includedIdSet, contains(mathSet.id));
     expect(includedIdSet, contains(asyncSet.id));
   }
 
-  test_includedSuggestionKinds_type() async {
+  test_dart_instanceCreationExpression() async {
+    addTestFile(r'''
+main() {
+  new ; // ref
+}
+''');
+
+    var mathSet = await waitForSetWithUri('dart:math');
+    var asyncSet = await waitForSetWithUri('dart:async');
+
+    var results = await _getSuggestions(testFile, findOffset('; // ref'));
+    expect(
+      results.includedElementKinds,
+      unorderedEquals([ElementKind.CONSTRUCTOR]),
+    );
+
+    var includedIdSet = results.includedSuggestionSets.map((set) => set.id);
+    expect(includedIdSet, contains(mathSet.id));
+    expect(includedIdSet, contains(asyncSet.id));
+  }
+
+  test_defaultArgumentListString() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+void fff(int aaa, int bbb) {}
+
+void ggg({int aaa, @required int bbb, @required int ccc}) {}
+''');
+
+    var aSet = await waitForSetWithUri('package:test/a.dart');
+
+    var fff = aSet.items.singleWhere((e) => e.label == 'fff');
+    expect(fff.defaultArgumentListString, 'aaa, bbb');
+    expect(fff.defaultArgumentListTextRanges, [0, 3, 5, 3]);
+
+    var ggg = aSet.items.singleWhere((e) => e.label == 'ggg');
+    expect(ggg.defaultArgumentListString, 'bbb: null, ccc: null');
+    expect(ggg.defaultArgumentListTextRanges, [5, 4, 16, 4]);
+  }
+
+  test_displayUri_file() async {
+    var aPath = '/home/test/test/a.dart';
+    newFile(aPath, content: 'class A {}');
+
+    var aSet = await waitForSetWithUri(toUriStr(aPath));
+
+    var testPath = newFile('/home/test/test/sub/test.dart').path;
+    var results = await _getSuggestions(testPath, 0);
+
+    expect(
+      results.includedSuggestionSets.singleWhere((set) {
+        return set.id == aSet.id;
+      }).displayUri,
+      '../a.dart',
+    );
+  }
+
+  test_displayUri_package() async {
+    var aPath = '/home/test/lib/a.dart';
+    newFile(aPath, content: 'class A {}');
+
+    var aSet = await waitForSetWithUri('package:test/a.dart');
+    var testPath = newFile('/home/test/lib/test.dart').path;
+
+    var results = await _getSuggestions(testPath, 0);
+    expect(
+      results.includedSuggestionSets.singleWhere((set) {
+        return set.id == aSet.id;
+      }).displayUri,
+      isNull,
+    );
+  }
+
+  test_includedElementKinds_type() async {
     addTestFile(r'''
 class X extends {} // ref
 ''');
@@ -40,7 +112,7 @@ class X extends {} // ref
     );
 
     expect(
-      results.includedSuggestionKinds,
+      results.includedElementKinds,
       unorderedEquals([
         ElementKind.CLASS,
         ElementKind.CLASS_TYPE_ALIAS,
@@ -51,7 +123,7 @@ class X extends {} // ref
     );
   }
 
-  test_includedSuggestionKinds_value() async {
+  test_includedElementKinds_value() async {
     addTestFile(r'''
 main() {
   print(); // ref
@@ -64,10 +136,11 @@ main() {
     );
 
     expect(
-      results.includedSuggestionKinds,
+      results.includedElementKinds,
       unorderedEquals([
         ElementKind.CLASS,
         ElementKind.CLASS_TYPE_ALIAS,
+        ElementKind.CONSTRUCTOR,
         ElementKind.ENUM,
         ElementKind.ENUM_CONSTANT,
         ElementKind.FUNCTION,

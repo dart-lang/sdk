@@ -185,7 +185,7 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
-  if (::Dart_IsError(result)) {
+  if (Api::IsError(result)) {
     return result;
   }
   CHECK_CALLBACK_STATE(T);
@@ -205,7 +205,7 @@ DART_EXPORT Dart_Handle Dart_ReadAllBytecode() {
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
-  if (::Dart_IsError(result)) {
+  if (Api::IsError(result)) {
     return result;
   }
   CHECK_CALLBACK_STATE(T);

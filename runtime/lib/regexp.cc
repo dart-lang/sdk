@@ -60,6 +60,22 @@ DEFINE_NATIVE_ENTRY(RegExp_getGroupCount, 0, 1) {
     return regexp.num_bracket_expressions();
   }
   const String& pattern = String::Handle(regexp.pattern());
+  const String& errmsg =
+      String::Handle(String::New("Regular expression is not initialized yet."));
+  const String& message = String::Handle(String::Concat(errmsg, pattern));
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, message);
+  Exceptions::ThrowByType(Exceptions::kFormat, args);
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(RegExp_getGroupNameMap, 0, 1) {
+  const RegExp& regexp = RegExp::CheckedHandle(zone, arguments->NativeArgAt(0));
+  ASSERT(!regexp.IsNull());
+  if (regexp.is_initialized()) {
+    return regexp.capture_name_map();
+  }
+  const String& pattern = String::Handle(regexp.pattern());
   const String& errmsg = String::Handle(
       String::New("Regular expression is not initialized yet. "));
   const String& message = String::Handle(String::Concat(errmsg, pattern));

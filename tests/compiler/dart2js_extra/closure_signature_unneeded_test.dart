@@ -5,13 +5,13 @@
 import 'package:expect/expect.dart';
 
 class A<T> {
-  @NoInline()
+  @pragma('dart2js:noInline')
   m() {
     return (T t, String s) {};
   }
 }
 
-@NoInline()
+@pragma('dart2js:noInline')
 test(o) => o is void Function(int);
 
 main() {

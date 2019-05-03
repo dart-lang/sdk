@@ -11,7 +11,6 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
-import 'package:kernel/transformations/constants.dart' show ConstantsBackend;
 import 'package:kernel/transformations/continuation.dart' as transformAsync
     show transformLibraries, transformProcedure;
 import 'package:kernel/vm/constants_native_effects.dart'
@@ -90,9 +89,9 @@ class VmTarget extends Target {
 
     transformFfi.ReplacedMembers replacedFields =
         transformFfiDefinitions.transformLibraries(
-            coreTypes, hierarchy, libraries, diagnosticReporter);
-    transformFfiUseSites.transformLibraries(
-        coreTypes, hierarchy, libraries, diagnosticReporter, replacedFields);
+            component, coreTypes, hierarchy, libraries, diagnosticReporter);
+    transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
+        libraries, diagnosticReporter, replacedFields);
     logger?.call("Transformed ffi annotations");
 
     // TODO(kmillikin): Make this run on a per-method basis.

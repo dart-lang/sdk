@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,12 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class InvalidAssignmentTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
+class InvalidAssignmentTest extends DriverResolutionTest {
   test_instanceVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int x;
 }
@@ -33,7 +30,7 @@ f(var y) {
   }
 
   test_localVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(var y) {
   if (y is String) {
     int x = y;
@@ -61,7 +58,7 @@ void f<X extends A, Y extends B>(X x) {
   }
 
   test_staticVariable() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   static int x;
 }
@@ -74,7 +71,7 @@ f(var y) {
   }
 
   test_typeParameterRecursion_regress35306() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {}
 class B extends A {}
 class C extends D {}
@@ -90,7 +87,7 @@ void f<X extends A, Y extends B>(X x) {
 
   test_variableDeclaration() async {
     // 17971
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class Point {
   final num x, y;
   Point(this.x, this.y);

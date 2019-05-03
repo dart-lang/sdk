@@ -8,16 +8,12 @@
 #include "vm/os.h"
 
 #include <errno.h>
-#include <lib/fdio/util.h>
+#include <fuchsia/timezone/cpp/fidl.h>
+#include <lib/sys/cpp/service_directory.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
 #include <zircon/types.h>
-
-#include <fuchsia/timezone/cpp/fidl.h>
-
-#include "lib/component/cpp/startup_context.h"
-#include "lib/svc/cpp/services.h"
 
 #include "platform/assert.h"
 #include "vm/zone.h"
@@ -65,15 +61,9 @@ static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   // TODO(abarth): Handle time zone changes.
   static const auto* tz_name = new std::string([] {
-#ifdef USE_STD_FOR_NON_NULLABLE_FIDL_FIELDS
     std::string result;
     tz->GetTimezoneId(&result);
     return result;
-#else
-    fidl::StringPtr result;
-    tz->GetTimezoneId(&result);
-    return *result;
-#endif
   }());
   return tz_name->c_str();
 }
@@ -262,13 +252,13 @@ void OS::PrintErr(const char* format, ...) {
 }
 
 void OS::Init() {
-  auto environment_services = std::make_shared<component::Services>();
-  auto env_service_root = component::subtle::CreateStaticServiceRootHandle();
-  environment_services->Bind(std::move(env_service_root));
-  environment_services->ConnectToService(tz.NewRequest());
+  auto services = sys::ServiceDirectory::CreateFromNamespace();
+  services->Connect(tz.NewRequest());
 }
 
 void OS::Cleanup() {}
+
+void OS::PrepareToAbort() {}
 
 void OS::Abort() {
   abort();

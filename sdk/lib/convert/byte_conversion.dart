@@ -70,7 +70,7 @@ class _ByteAdapterSink extends ByteConversionSinkBase {
 class _ByteCallbackSink extends ByteConversionSinkBase {
   static const _INITIAL_BUFFER_SIZE = 1024;
 
-  final _ChunkedConversionCallback<List<int>> _callback;
+  final void Function(List<int>) _callback;
   List<int> _buffer = Uint8List(_INITIAL_BUFFER_SIZE);
   int _bufferIndex = 0;
 

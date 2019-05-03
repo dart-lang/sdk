@@ -13,14 +13,17 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../ir/constants.dart';
+import '../ir/impact.dart';
+import '../ir/impact_data.dart';
 import '../ir/runtime_type_analysis.dart';
 import '../ir/scope.dart';
 import '../ir/static_type.dart';
-import '../ir/impact.dart';
-import '../ir/impact_data.dart';
 import '../ir/util.dart';
+import '../ir/visitors.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/native_data.dart';
+import '../native/behavior.dart';
 import '../options.dart';
 import '../resolution/registry.dart' show ResolutionWorldImpactBuilder;
 import '../universe/call_structure.dart';
@@ -33,26 +36,43 @@ import 'element_map.dart';
 /// Visitor that computes the world impact of a member.
 class KernelImpactBuilder extends ImpactBuilderBase
     with KernelImpactRegistryMixin {
+  @override
   final ResolutionWorldImpactBuilder impactBuilder;
+  @override
   final KernelToElementMap elementMap;
+  @override
   final DiagnosticReporter reporter;
+  @override
   final CompilerOptions _options;
+  @override
   final MemberEntity currentMember;
   final Set<PragmaAnnotation> _annotations;
+  @override
+  final ConstantValuefier _constantValuefier;
 
-  KernelImpactBuilder(this.elementMap, this.currentMember, this.reporter,
-      this._options, VariableScopeModel variableScopeModel, this._annotations)
+  KernelImpactBuilder(
+      this.elementMap,
+      this.currentMember,
+      this.reporter,
+      this._options,
+      VariableScopeModel variableScopeModel,
+      this._annotations,
+      this._constantValuefier)
       : this.impactBuilder =
             new ResolutionWorldImpactBuilder('${currentMember}'),
         super(elementMap.typeEnvironment, elementMap.classHierarchy,
             variableScopeModel);
 
+  @override
   CommonElements get commonElements => elementMap.commonElements;
 
+  @override
   NativeBasicData get _nativeBasicData => elementMap.nativeBasicData;
 
+  @override
   bool get useAsserts => _options.enableUserAssertions;
 
+  @override
   bool get inferEffectivelyFinalVariableTypes =>
       !_annotations.contains(PragmaAnnotation.disableFinal);
 }
@@ -60,21 +80,31 @@ class KernelImpactBuilder extends ImpactBuilderBase
 /// Converts a [ImpactData] object based on kernel to the corresponding
 /// [ResolutionImpact] based on the K model.
 class KernelImpactConverter extends KernelImpactRegistryMixin {
+  @override
   final ResolutionWorldImpactBuilder impactBuilder;
+  @override
   final KernelToElementMap elementMap;
+  @override
   final DiagnosticReporter reporter;
+  @override
   final CompilerOptions _options;
+  @override
   final MemberEntity currentMember;
+  @override
+  final ConstantValuefier _constantValuefier;
 
-  KernelImpactConverter(
-      this.elementMap, this.currentMember, this.reporter, this._options)
+  KernelImpactConverter(this.elementMap, this.currentMember, this.reporter,
+      this._options, this._constantValuefier)
       : this.impactBuilder =
             new ResolutionWorldImpactBuilder('${currentMember}');
 
+  @override
   ir.TypeEnvironment get typeEnvironment => elementMap.typeEnvironment;
 
+  @override
   CommonElements get commonElements => elementMap.commonElements;
 
+  @override
   NativeBasicData get _nativeBasicData => elementMap.nativeBasicData;
 
   /// Converts a [ImpactData] object based on kernel to the corresponding
@@ -96,6 +126,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   ir.TypeEnvironment get typeEnvironment;
   CommonElements get commonElements;
   NativeBasicData get _nativeBasicData;
+  ConstantValuefier get _constantValuefier;
 
   Object _computeReceiverConstraint(
       ir.DartType receiverType, ClassRelation relation) {
@@ -131,11 +162,21 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerFieldNode(ir.Field field) {
     if (field.isInstanceMember &&
-        elementMap.isNativeClass(field.enclosingClass)) {
+        _nativeBasicData
+            .isNativeClass(elementMap.getClass(field.enclosingClass))) {
       MemberEntity member = elementMap.getMember(field);
+      // TODO(johnniwinther): NativeDataBuilder already has the native behavior
+      // at this point. Use that instead.
       bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
-      impactBuilder.registerNativeData(elementMap
-          .getNativeBehaviorForFieldLoad(field, isJsInterop: isJsInterop));
+      List<ConstantValue> metadata =
+          elementMap.elementEnvironment.getMemberMetadata(member);
+      Iterable<String> createsAnnotations =
+          getCreatesAnnotations(reporter, commonElements, metadata);
+      Iterable<String> returnsAnnotations =
+          getReturnsAnnotations(reporter, commonElements, metadata);
+      impactBuilder.registerNativeData(elementMap.getNativeBehaviorForFieldLoad(
+          field, createsAnnotations, returnsAnnotations,
+          isJsInterop: isJsInterop));
       impactBuilder
           .registerNativeData(elementMap.getNativeBehaviorForFieldStore(field));
     }
@@ -145,9 +186,18 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   void registerConstructorNode(ir.Constructor constructor) {
     MemberEntity member = elementMap.getMember(constructor);
     if (constructor.isExternal && !commonElements.isForeignHelper(member)) {
+      // TODO(johnniwinther): NativeDataBuilder already has the native behavior
+      // at this point. Use that instead.
       bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
-      impactBuilder.registerNativeData(elementMap
-          .getNativeBehaviorForMethod(constructor, isJsInterop: isJsInterop));
+      List<ConstantValue> metadata =
+          elementMap.elementEnvironment.getMemberMetadata(member);
+      Iterable<String> createsAnnotations =
+          getCreatesAnnotations(reporter, commonElements, metadata);
+      Iterable<String> returnsAnnotations =
+          getReturnsAnnotations(reporter, commonElements, metadata);
+      impactBuilder.registerNativeData(elementMap.getNativeBehaviorForMethod(
+          constructor, createsAnnotations, returnsAnnotations,
+          isJsInterop: isJsInterop));
     }
   }
 
@@ -182,9 +232,18 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   void registerProcedureNode(ir.Procedure procedure) {
     MemberEntity member = elementMap.getMember(procedure);
     if (procedure.isExternal && !commonElements.isForeignHelper(member)) {
+      // TODO(johnniwinther): NativeDataBuilder already has the native behavior
+      // at this point. Use that instead.
       bool isJsInterop = _nativeBasicData.isJsInteropMember(member);
-      impactBuilder.registerNativeData(elementMap
-          .getNativeBehaviorForMethod(procedure, isJsInterop: isJsInterop));
+      List<ConstantValue> metadata =
+          elementMap.elementEnvironment.getMemberMetadata(member);
+      Iterable<String> createsAnnotations =
+          getCreatesAnnotations(reporter, commonElements, metadata);
+      Iterable<String> returnsAnnotations =
+          getReturnsAnnotations(reporter, commonElements, metadata);
+      impactBuilder.registerNativeData(elementMap.getNativeBehaviorForMethod(
+          procedure, createsAnnotations, returnsAnnotations,
+          isJsInterop: isJsInterop));
     }
   }
 
@@ -231,7 +290,10 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerSetLiteral(ir.DartType elementType,
       {bool isConst, bool isEmpty}) {
-    // TODO(johnniwinther,fishythefish): Register set literals.
+    impactBuilder.registerSetLiteral(new SetLiteralUse(
+        commonElements.setType(elementMap.getDartType(elementType)),
+        isConstant: isConst,
+        isEmpty: isEmpty));
   }
 
   @override
@@ -281,6 +343,16 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     }
   }
 
+  @override
+  void registerConstInstantiation(ir.Class cls, List<ir.DartType> typeArguments,
+      ir.LibraryDependency import) {
+    ImportEntity deferredImport = elementMap.getImport(import);
+    InterfaceType type = elementMap.createInterfaceType(cls, typeArguments);
+    impactBuilder
+        .registerTypeUse(new TypeUse.constInstantiation(type, deferredImport));
+  }
+
+  @override
   void registerConstConstructorInvocationNode(ir.ConstructorInvocation node) {
     assert(node.isConst);
     ConstructorEntity constructor = elementMap.getConstructor(node.target);
@@ -666,6 +738,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     impactBuilder.registerFeature(Feature.THROW_EXPRESSION);
   }
 
+  @override
   void registerSyncForIn(ir.DartType iterableType) {
     // TODO(johnniwinther): Use receiver constraints for the dynamic uses in
     // strong mode.
@@ -675,6 +748,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     impactBuilder.registerDynamicUse(new DynamicUse(Selectors.moveNext));
   }
 
+  @override
   void registerAsyncForIn(ir.DartType iterableType) {
     // TODO(johnniwinther): Use receiver constraints for the dynamic uses in
     // strong mode.
@@ -684,14 +758,17 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     impactBuilder.registerDynamicUse(new DynamicUse(Selectors.moveNext));
   }
 
+  @override
   void registerCatch() {
     impactBuilder.registerFeature(Feature.CATCH_STATEMENT);
   }
 
+  @override
   void registerStackTrace() {
     impactBuilder.registerFeature(Feature.STACK_TRACE_IN_CATCH);
   }
 
+  @override
   void registerCatchType(ir.DartType type) {
     impactBuilder
         .registerTypeUse(new TypeUse.catchType(elementMap.getDartType(type)));
@@ -711,9 +788,17 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   }
 
   @override
-  void registerFieldInitializer(ir.Field node) {
+  void registerFieldInitialization(ir.Field node) {
     impactBuilder
         .registerStaticUse(new StaticUse.fieldInit(elementMap.getField(node)));
+  }
+
+  @override
+  void registerFieldConstantInitialization(
+      ir.Field node, ConstantReference constant) {
+    impactBuilder.registerStaticUse(new StaticUse.fieldConstantInit(
+        elementMap.getField(node),
+        constant.constant.accept(_constantValuefier)));
   }
 
   @override

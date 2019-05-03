@@ -16,9 +16,11 @@ class BinarySink extends AbstractDataSink {
       : _bufferedSink = new BufferedSink(sink),
         super(useDataKinds: useDataKinds);
 
+  @override
   void _begin(String tag) {
     // TODO(johnniwinther): Support tags in binary serialization?
   }
+  @override
   void _end(String tag) {
     // TODO(johnniwinther): Support tags in binary serialization?
   }
@@ -57,6 +59,7 @@ class BinarySink extends AbstractDataSink {
     _writeIntInternal(value.index);
   }
 
+  @override
   void close() {
     _bufferedSink.flushAndDestroy();
     _bufferedSink = null;
@@ -64,5 +67,6 @@ class BinarySink extends AbstractDataSink {
   }
 
   /// Returns the number of bytes written to this data sink.
+  @override
   int get length => _length;
 }

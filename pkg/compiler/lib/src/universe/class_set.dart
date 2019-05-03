@@ -448,6 +448,7 @@ class ClassHierarchyNode {
     return sb.toString();
   }
 
+  @override
   String toString() => cls.toString();
 }
 
@@ -841,6 +842,7 @@ class ClassSet {
     return null;
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('[\n');
@@ -1040,6 +1042,7 @@ typedef IterationStep ForEachFunction(ClassEntity cls);
 
 /// Singleton map implemented as a field on the key.
 class ClassHierarchyNodesMap extends MapBase<ClassEntity, ClassHierarchyNode> {
+  @override
   ClassHierarchyNode operator [](Object cls) {
     // TODO(sra): Change the key type to `covariant ClassHierarchyNodesMapKey`.
     if (cls is ClassHierarchyNodesMapKey) {
@@ -1048,6 +1051,7 @@ class ClassHierarchyNodesMap extends MapBase<ClassEntity, ClassHierarchyNode> {
     throw new UnimplementedError('ClassHierarchyNodesMap for $cls');
   }
 
+  @override
   operator []=(Object cls, ClassHierarchyNode node) {
     // TODO(sra): Change the key type to `covariant ClassHierarchyNodesMapKey`.
     if (cls is ClassHierarchyNodesMapKey) {
@@ -1057,19 +1061,23 @@ class ClassHierarchyNodesMap extends MapBase<ClassEntity, ClassHierarchyNode> {
     throw new UnimplementedError('ClassHierarchyNodesMap for $cls');
   }
 
+  @override
   ClassHierarchyNode putIfAbsent(
       ClassEntity cls, ClassHierarchyNode ifAbsent()) {
     return this[cls] ??= ifAbsent();
   }
 
+  @override
   Iterable<ClassEntity> get keys {
     throw new UnimplementedError('ClassHierarchyNodesMap.keys');
   }
 
+  @override
   ClassHierarchyNode remove(Object key) {
     throw new UnimplementedError('ClassHierarchyNodesMap.remove');
   }
 
+  @override
   void clear() {
     throw new UnimplementedError('ClassHierarchyNodesMap.clear');
   }

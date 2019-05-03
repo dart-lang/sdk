@@ -27,7 +27,6 @@ class TestResult {
 
 /// Command runner.
 TestResult runCommand(List<String> cmd, Map<String, String> env) {
-  // TODO: use Dart API for some of the modes?
   ProcessResult res = Process.runSync(
       'timeout', ['-s', '$sigkill', '$timeout'] + cmd,
       environment: env);
@@ -70,7 +69,7 @@ abstract class TestRunner {
     }
     // Every once in a while, stress test JIT.
     if (mode.startsWith('jit') && rand.nextInt(4) == 0) {
-      final r = rand.nextInt(6);
+      final r = rand.nextInt(7);
       if (r == 0) {
         prefix += '-NOFIELDGUARDS';
         extraFlags += ['--use_field_guards=false'];
@@ -90,7 +89,6 @@ abstract class TestRunner {
         prefix += '-STACKTRACEEVERY';
         extraFlags += ['--stacktrace_every=100'];
       } else if (r == 6) {
-        // Crashes (https://github.com/dart-lang/sdk/issues/35196):
         prefix += '-OPTCOUNTER';
         extraFlags += ['--optimization_counter_threshold=1'];
       }

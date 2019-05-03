@@ -4,9 +4,7 @@
 
 // Test constant folding on numbers.
 
-import 'package:expect/expect.dart';
-
-@AssumeDynamic()
+@pragma('dart2js:assumeDynamic')
 @pragma('dart2js:noInline')
 int confuse(int x) => x;
 

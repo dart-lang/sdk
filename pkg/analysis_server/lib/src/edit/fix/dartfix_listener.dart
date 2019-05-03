@@ -19,6 +19,20 @@ class DartFixListener {
 
   DartFixListener(this.server);
 
+  /// Record an edit to be sent to the client.
+  ///
+  /// The associated suggestion should be separately added by calling
+  /// [addSuggestion].
+  void addEditWithoutSuggestion(Source source, SourceEdit edit) {
+    sourceChange.addEdit(source.fullName, -1, edit);
+  }
+
+  /// Record a recommendation to be sent to the client.
+  void addRecommendation(String description, [Location location]) {
+    otherSuggestions
+        .add(new DartFixSuggestion(description, location: location));
+  }
+
   /// Record a source change to be sent to the client.
   void addSourceChange(
       String description, Location location, SourceChange change) {
@@ -48,10 +62,12 @@ class DartFixListener {
     }
   }
 
-  /// Record a recommendation to be sent to the client.
-  void addRecommendation(String description, [Location location]) {
-    otherSuggestions
-        .add(new DartFixSuggestion(description, location: location));
+  /// Record a suggestion to be sent to the client.
+  ///
+  /// The associated edits should be separately added by calling
+  /// [addEditWithoutRecommendation].
+  void addSuggestion(String description, Location location) {
+    suggestions.add(new DartFixSuggestion(description, location: location));
   }
 
   /// Return the [Location] representing the specified offset and length

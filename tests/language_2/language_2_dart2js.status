@@ -67,6 +67,9 @@ vm/*: SkipByDesign # Tests for the VM.
 [ $compiler != dart2js ]
 minify_closure_variable_collision_test: SkipByDesign # Regression test for dart2js
 
+[ $builder_tag == dart2js_production && $compiler == dart2js ]
+control_flow_collections/for_non_bool_condition_test: Crash # Issue 36442
+
 [ $compiler == dart2js && $runtime == chrome ]
 field_override_optimization_test: RuntimeError
 
@@ -477,7 +480,6 @@ deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
 deferred_redirecting_factory_test: RuntimeError
 double_int_to_string_test: RuntimeError, OK # non JS number semantics
 dynamic_prefix_core_test/none: CompileTimeError
-emit_const_fields_test: CompileTimeError
 enum_mirror_test: RuntimeError
 example_constructor_test: RuntimeError
 expect_test: RuntimeError, OK # Issue 13080
@@ -589,15 +591,6 @@ tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
 type_error_test: RuntimeError
 type_literal_test: RuntimeError
-type_promotion_functions_test/02: CompileTimeError
-type_promotion_functions_test/03: CompileTimeError
-type_promotion_functions_test/04: CompileTimeError
-type_promotion_functions_test/09: CompileTimeError
-type_promotion_functions_test/11: CompileTimeError
-type_promotion_functions_test/12: CompileTimeError
-type_promotion_functions_test/13: CompileTimeError
-type_promotion_functions_test/14: CompileTimeError
-type_promotion_functions_test/none: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError
 
 [ $compiler == dart2js && !$strong ]

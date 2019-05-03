@@ -24,7 +24,7 @@ class A<N extends core::Object = dynamic, S extends core::Object = dynamic, U ex
   get getter() → core::List<self::A::U> {
     return this.{self::A::field};
   }
-  set setter(self::A::S s) → void {}
+  set setter(generic-covariant-impl self::A::S s) → void {}
 }
 abstract class J<Aa extends core::Object = dynamic, B extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::J<self::J::Aa, self::J::B>

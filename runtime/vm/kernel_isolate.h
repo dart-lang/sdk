@@ -70,21 +70,27 @@ class KernelIsolate : public AllStatic {
   static void AddExperimentalFlag(const char* value);
 
  protected:
-  static Monitor* monitor_;
-  static Dart_IsolateCreateCallback create_callback_;
-
   static void InitCallback(Isolate* I);
   static void SetKernelIsolate(Isolate* isolate);
   static void SetLoadPort(Dart_Port port);
+  static void FinishedExiting();
   static void FinishedInitializing();
-
-  static Dart_Port kernel_port_;
-  static Isolate* isolate_;
-  static bool initializing_;
-
+  static void InitializingFailed();
   static Dart_IsolateCreateCallback create_callback() {
     return create_callback_;
   }
+
+  static Dart_IsolateCreateCallback create_callback_;
+  static Monitor* monitor_;
+  enum State {
+    kStopped,
+    kStarting,
+    kStarted,
+    kStopping,
+  };
+  static State state_;
+  static Isolate* isolate_;
+  static Dart_Port kernel_port_;
 
   static MallocGrowableArray<char*>* experimental_flags_;
 

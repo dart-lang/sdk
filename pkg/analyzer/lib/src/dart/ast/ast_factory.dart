@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -69,6 +69,7 @@ class AstFactoryImpl extends AstFactory {
   BinaryExpression binaryExpression(
           Expression leftOperand, Token operator, Expression rightOperand) =>
       new BinaryExpressionImpl(leftOperand, operator, rightOperand);
+
   @override
   Block block(
           Token leftBracket, List<Statement> statements, Token rightBracket) =>
@@ -386,7 +387,7 @@ class AstFactoryImpl extends AstFactory {
           SimpleIdentifier identifier,
           TypeParameterList typeParameters,
           FormalParameterList parameters) =>
-      new FieldFormalParameterImpl(comment, metadata, null, keyword, type,
+      new FieldFormalParameterImpl(comment, metadata, null, null, keyword, type,
           thisKeyword, period, identifier, typeParameters, parameters);
 
   @override
@@ -394,6 +395,7 @@ class AstFactoryImpl extends AstFactory {
           {Comment comment,
           List<Annotation> metadata,
           Token covariantKeyword,
+          Token requiredKeyword,
           Token keyword,
           TypeAnnotation type,
           @required Token thisKeyword,
@@ -401,8 +403,18 @@ class AstFactoryImpl extends AstFactory {
           @required SimpleIdentifier identifier,
           TypeParameterList typeParameters,
           FormalParameterList parameters}) =>
-      new FieldFormalParameterImpl(comment, metadata, covariantKeyword, keyword,
-          type, thisKeyword, period, identifier, typeParameters, parameters);
+      new FieldFormalParameterImpl(
+          comment,
+          metadata,
+          covariantKeyword,
+          requiredKeyword,
+          keyword,
+          type,
+          thisKeyword,
+          period,
+          identifier,
+          typeParameters,
+          parameters);
 
   @override
   ForEachPartsWithDeclaration forEachPartsWithDeclaration(
@@ -417,46 +429,6 @@ class AstFactoryImpl extends AstFactory {
           Token inKeyword,
           Expression iterable}) =>
       new ForEachPartsWithIdentifierImpl(identifier, inKeyword, iterable);
-
-  @override
-  ForEachStatement forEachStatementWithDeclaration(
-          Token awaitKeyword,
-          Token forKeyword,
-          Token leftParenthesis,
-          DeclaredIdentifier loopVariable,
-          Token inKeyword,
-          Expression iterator,
-          Token rightParenthesis,
-          Statement body) =>
-      new ForEachStatementImpl.withDeclaration(
-          awaitKeyword,
-          forKeyword,
-          leftParenthesis,
-          loopVariable,
-          inKeyword,
-          iterator,
-          rightParenthesis,
-          body);
-
-  @override
-  ForEachStatement forEachStatementWithReference(
-          Token awaitKeyword,
-          Token forKeyword,
-          Token leftParenthesis,
-          SimpleIdentifier identifier,
-          Token inKeyword,
-          Expression iterator,
-          Token rightParenthesis,
-          Statement body) =>
-      new ForEachStatementImpl.withReference(
-          awaitKeyword,
-          forKeyword,
-          leftParenthesis,
-          identifier,
-          inKeyword,
-          iterator,
-          rightParenthesis,
-          body);
 
   @override
   ForElement forElement(
@@ -501,38 +473,32 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   ForStatement forStatement(
-          Token forKeyword,
-          Token leftParenthesis,
-          VariableDeclarationList variableList,
-          Expression initialization,
-          Token leftSeparator,
-          Expression condition,
-          Token rightSeparator,
-          List<Expression> updaters,
-          Token rightParenthesis,
-          Statement body) =>
-      new ForStatementImpl(
-          forKeyword,
-          leftParenthesis,
-          variableList,
-          initialization,
-          leftSeparator,
-          condition,
-          rightSeparator,
-          updaters,
-          rightParenthesis,
-          body);
+      {Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopParts forLoopParts,
+      Token rightParenthesis,
+      Statement body}) {
+    return ForStatementImpl(awaitKeyword, forKeyword, leftParenthesis,
+        forLoopParts, rightParenthesis, body);
+  }
 
   @override
-  ForStatement2 forStatement2(
+  @Deprecated('Replaced by forStatement')
+  ForStatement forStatement2(
           {Token awaitKeyword,
           Token forKeyword,
           Token leftParenthesis,
           ForLoopParts forLoopParts,
           Token rightParenthesis,
           Statement body}) =>
-      new ForStatement2Impl(awaitKeyword, forKeyword, leftParenthesis,
-          forLoopParts, rightParenthesis, body);
+      forStatement(
+          awaitKeyword: awaitKeyword,
+          forKeyword: forKeyword,
+          leftParenthesis: leftParenthesis,
+          forLoopParts: forLoopParts,
+          rightParenthesis: rightParenthesis,
+          body: body);
 
   @override
   FunctionDeclaration functionDeclaration(
@@ -583,20 +549,21 @@ class AstFactoryImpl extends AstFactory {
           SimpleIdentifier identifier,
           TypeParameterList typeParameters,
           FormalParameterList parameters) =>
-      new FunctionTypedFormalParameterImpl(comment, metadata, null, returnType,
-          identifier, typeParameters, parameters);
+      new FunctionTypedFormalParameterImpl(comment, metadata, null, null,
+          returnType, identifier, typeParameters, parameters);
 
   @override
   FunctionTypedFormalParameter functionTypedFormalParameter2(
           {Comment comment,
           List<Annotation> metadata,
           Token covariantKeyword,
+          Token requiredKeyword,
           TypeAnnotation returnType,
           @required SimpleIdentifier identifier,
           TypeParameterList typeParameters,
           @required FormalParameterList parameters}) =>
       new FunctionTypedFormalParameterImpl(comment, metadata, covariantKeyword,
-          returnType, identifier, typeParameters, parameters);
+          requiredKeyword, returnType, identifier, typeParameters, parameters);
 
   @override
   GenericFunctionType genericFunctionType(
@@ -737,39 +704,14 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   ListLiteral listLiteral(Token constKeyword, TypeArgumentList typeArguments,
-          Token leftBracket, List<Expression> elements, Token rightBracket) =>
-      new ListLiteralImpl(
+      Token leftBracket, List<CollectionElement> elements, Token rightBracket) {
+    if (elements == null || elements is List<Expression>) {
+      return new ListLiteralImpl(
           constKeyword, typeArguments, leftBracket, elements, rightBracket);
-
-  @override
-  ListLiteral2 listLiteral2(
-          {Token constKeyword,
-          TypeArgumentList typeArguments,
-          Token leftBracket,
-          List<CollectionElement> elements,
-          Token rightBracket}) =>
-      new ListLiteral2Impl(
-          constKeyword, typeArguments, leftBracket, elements, rightBracket);
-
-  @override
-  MapLiteral mapLiteral(
-          Token constKeyword,
-          TypeArgumentList typeArguments,
-          Token leftBracket,
-          List<MapLiteralEntry> entries,
-          Token rightBracket) =>
-      new MapLiteralImpl(
-          constKeyword, typeArguments, leftBracket, entries, rightBracket);
-
-  @override
-  MapLiteral2 mapLiteral2(
-          {Token constKeyword,
-          TypeArgumentList typeArguments,
-          Token leftBracket,
-          List<CollectionElement> entries,
-          Token rightBracket}) =>
-      new MapLiteral2Impl(
-          constKeyword, typeArguments, leftBracket, entries, rightBracket);
+    }
+    return new ListLiteralImpl.experimental(
+        constKeyword, typeArguments, leftBracket, elements, rightBracket);
+  }
 
   @override
   MapLiteralEntry mapLiteralEntry(
@@ -923,19 +865,13 @@ class AstFactoryImpl extends AstFactory {
   ScriptTag scriptTag(Token scriptTag) => new ScriptTagImpl(scriptTag);
 
   @override
-  SetLiteral setLiteral(Token constKeyword, TypeArgumentList typeArguments,
-          Token leftBracket, List<Expression> elements, Token rightBracket) =>
-      new SetLiteralImpl(
-          constKeyword, typeArguments, leftBracket, elements, rightBracket);
-
-  @override
-  SetLiteral2 setLiteral2(
+  SetOrMapLiteral setOrMapLiteral(
           {Token constKeyword,
           TypeArgumentList typeArguments,
           Token leftBracket,
           List<CollectionElement> elements,
           Token rightBracket}) =>
-      new SetLiteral2Impl(
+      new SetOrMapLiteralImpl(
           constKeyword, typeArguments, leftBracket, elements, rightBracket);
 
   @override
@@ -951,18 +887,19 @@ class AstFactoryImpl extends AstFactory {
           TypeAnnotation type,
           SimpleIdentifier identifier) =>
       new SimpleFormalParameterImpl(
-          comment, metadata, null, keyword, type, identifier);
+          comment, metadata, null, null, keyword, type, identifier);
 
   @override
   SimpleFormalParameter simpleFormalParameter2(
           {Comment comment,
           List<Annotation> metadata,
           Token covariantKeyword,
+          Token requiredKeyword,
           Token keyword,
           TypeAnnotation type,
           @required SimpleIdentifier identifier}) =>
-      new SimpleFormalParameterImpl(
-          comment, metadata, covariantKeyword, keyword, type, identifier);
+      new SimpleFormalParameterImpl(comment, metadata, covariantKeyword,
+          requiredKeyword, keyword, type, identifier);
 
   @override
   SimpleIdentifier simpleIdentifier(Token token, {bool isDeclaration: false}) {

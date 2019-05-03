@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS)
-// TODO(dacoharkes): implement dynamic libraries for other targets.
-// see
-// - runtime/vm/native_symbol.h
-// - runtime/vm/native_symbol_linux.cc
-// - runtime/bin/extensions.h (but we cannot import from bin)
+#if !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS) &&                  \
+    !defined(TARGET_OS_ANDROID)
+// TODO(dacoharkes): Implement dynamic libraries for other targets & merge the
+// implementation with:
+// - runtime/bin/extensions.h
 // - runtime/bin/extensions_linux.cc
+// TODO(dacoharkes): Make the code from bin available in a manner similar to
+// runtime/vm/dart.h Dart_FileReadCallback.
 #else
 #include <dlfcn.h>
 #endif
@@ -19,66 +20,87 @@
 
 namespace dart {
 
-// Concatenates a NULL terminated array of strings.
-// The returned string is scope allocated.
-// TODO(dacoharkes): Can we share this with runtime/bin/extensions.cc?
-const char* Concatenate(const char** strings) {
-  int size = 1;  // null termination.
-  for (int i = 0; strings[i] != NULL; i++) {
-    size += strlen(strings[i]);
-  }
-  char* result = reinterpret_cast<char*>(Dart_ScopeAllocate(size));
-  int index = 0;
-  for (int i = 0; strings[i] != NULL; i++) {
-    index += snprintf(result + index, size - index, "%s", strings[i]);
-  }
-  ASSERT(index == size - 1);
-  ASSERT(result[size - 1] == '\0');
-  return result;
-}
-
-// TODO(dacoharkes): Can we share this with runtime/bin/extensions.cc?
-const char* LibraryPath(const char* library_name) {
-  const char* library_prefix = "lib";
-#if defined(TARGET_OS_LINUX)
-  const char* library_extension = "so";
-#elif defined(TARGET_OS_MACOS)
-  const char* library_extension = "dylib";
-#else
-  const char* library_extension = "";
-  UNREACHABLE();
-#endif
-
-  const char* path_components[] = {
-      library_prefix, library_name, ".", library_extension, NULL,
-  };
-
-  return Concatenate(path_components);
-}
-
-DEFINE_NATIVE_ENTRY(Ffi_dl_open, 0, 1) {
-#if !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS)
-  UNREACHABLE();
-#else
-  GET_NON_NULL_NATIVE_ARGUMENT(String, argName, arguments->NativeArgAt(0));
-
-  dlerror();  // Clear any errors.
-  void* handle = dlopen(LibraryPath(argName.ToCString()), RTLD_LAZY);
+static void* LoadExtensionLibrary(const char* library_file) {
+#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS) ||                    \
+    defined(TARGET_OS_ANDROID)
+  void* handle = dlopen(library_file, RTLD_LAZY);
   if (handle == nullptr) {
     char* error = dlerror();
     const String& msg = String::Handle(
-        String::NewFormatted("Failed to load dynamic library(%s)", error));
+        String::NewFormatted("Failed to load dynamic library (%s)", error));
     Exceptions::ThrowArgumentError(msg);
   }
 
+  return handle;
+#elif defined(TARGET_OS_WINDOWS)
+  SetLastError(0);  // Clear any errors.
+
+  // Convert to wchar_t string.
+  const int name_len =
+      MultiByteToWideChar(CP_UTF8, 0, library_file, -1, NULL, 0);
+  wchar_t* name = new wchar_t[name_len];
+  MultiByteToWideChar(CP_UTF8, 0, library_file, -1, name, name_len);
+
+  void* ext = LoadLibraryW(name);
+  delete[] name;
+
+  if (ext == nullptr) {
+    const int error = GetLastError();
+    const String& msg = String::Handle(
+        String::NewFormatted("Failed to load dynamic library (%i)", error));
+    Exceptions::ThrowArgumentError(msg);
+  }
+
+  return ext;
+#else
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0,
+             String::Handle(String::New(
+                 "The dart:ffi library is not available on this platform.")));
+  Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+#endif
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_dl_open, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, lib_path, arguments->NativeArgAt(0));
+
+  void* handle = LoadExtensionLibrary(lib_path.ToCString());
+
   return DynamicLibrary::New(handle);
+}
+
+static void* ResolveSymbol(void* handle, const char* symbol) {
+#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS) ||                    \
+    defined(TARGET_OS_ANDROID)
+  dlerror();  // Clear any errors.
+  void* pointer = dlsym(handle, symbol);
+  if (pointer == nullptr) {
+    char* error = dlerror();
+    const String& msg = String::Handle(
+        String::NewFormatted("Failed to lookup symbol (%s)", error));
+    Exceptions::ThrowArgumentError(msg);
+  }
+  return pointer;
+#elif defined(TARGET_OS_WINDOWS)
+  SetLastError(0);
+  void* pointer = GetProcAddress(reinterpret_cast<HMODULE>(handle), symbol);
+  if (pointer == nullptr) {
+    const int error = GetLastError();
+    const String& msg = String::Handle(
+        String::NewFormatted("Failed to lookup symbol (%i)", error));
+    Exceptions::ThrowArgumentError(msg);
+  }
+  return pointer;
+#else
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0,
+             String::Handle(String::New(
+                 "The dart:ffi library is not available on this platform.")));
+  Exceptions::ThrowByType(Exceptions::kUnsupported, args);
 #endif
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_dl_lookup, 1, 2) {
-#if !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS)
-  UNREACHABLE();
-#else
   GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
 
   GET_NON_NULL_NATIVE_ARGUMENT(DynamicLibrary, dlib, arguments->NativeArgAt(0));
@@ -87,21 +109,14 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_lookup, 1, 2) {
 
   void* handle = dlib.GetHandle();
 
-  dlerror();  // Clear any errors.
-  uint8_t* pointer =
-      reinterpret_cast<uint8_t*>(dlsym(handle, argSymbolName.ToCString()));
-  char* error;
-  if ((error = dlerror()) != NULL) {
-    const String& msg = String::Handle(
-        String::NewFormatted("Failed to lookup symbol (%s)", error));
-    Exceptions::ThrowArgumentError(msg);
-  }
+  const intptr_t pointer = reinterpret_cast<intptr_t>(
+      ResolveSymbol(handle, argSymbolName.ToCString()));
 
-  // TODO(dacoharkes): should this return NULL if addres is 0?
+  // TODO(dacoharkes): should this return Object::null() if address is 0?
   // https://github.com/dart-lang/sdk/issues/35756
-  RawPointer* result = Pointer::New(type_arg, pointer);
+  RawPointer* result =
+      Pointer::New(type_arg, Integer::Handle(zone, Integer::New(pointer)));
   return result;
-#endif
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_dl_getHandle, 0, 1) {

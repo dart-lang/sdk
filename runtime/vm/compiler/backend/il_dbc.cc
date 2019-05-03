@@ -46,7 +46,8 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(SpeculativeShiftUint32Op)                                                  \
   M(TruncDivMod)                                                               \
   M(UnaryUint32Op)                                                             \
-  M(UnboxedIntConverter)
+  M(IntConverter)                                                              \
+  M(UnboxedWidthExtender)
 
 // List of instructions that are not used by DBC.
 // Things we aren't planning to implement for DBC:
@@ -57,7 +58,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 #define FOR_EACH_UNREACHABLE_INSTRUCTION(M)                                    \
   M(CaseInsensitiveCompareUC16)                                                \
   M(GenericCheckBound)                                                         \
-  M(CheckNull)                                                                 \
   M(IndirectGoto)                                                              \
   M(Int64ToDouble)                                                             \
   M(BinaryInt64Op)                                                             \
@@ -748,7 +748,7 @@ EMIT_NATIVE_CODE(StoreIndexed,
     case kExternalTypedDataUint8ArrayCid:
       ASSERT(index_scale() == 1);
       if (IsExternal()) {
-        __ StoreIndexedExternalUint8(array, index, value);
+        __ StoreIndexedUntaggedUint8(array, index, value);
       } else {
         __ StoreIndexedUint8(array, index, value);
       }
@@ -760,43 +760,58 @@ EMIT_NATIVE_CODE(StoreIndexed,
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid: {
       if (IsExternal()) {
-        Unsupported(compiler);
-        UNREACHABLE();
-      }
-      if (index_scale() == 1) {
-        __ StoreIndexedUint32(array, index, value);
+        if (index_scale() == 1) {
+          __ StoreIndexedUntaggedUint32(array, index, value);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ StoreIndexedUntaggedUint32(array, temp, value);
+        }
       } else {
-        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-        __ StoreIndexedUint32(array, temp, value);
+        if (index_scale() == 1) {
+          __ StoreIndexedUint32(array, index, value);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ StoreIndexedUint32(array, temp, value);
+        }
       }
       break;
     }
     case kTypedDataFloat32ArrayCid:
       if (IsExternal()) {
-        Unsupported(compiler);
-        UNREACHABLE();
-      }
-      if (index_scale() == 1) {
-        __ StoreIndexedFloat32(array, index, value);
-      } else if (index_scale() == 4) {
-        __ StoreIndexed4Float32(array, index, value);
+        if (index_scale() == 1) {
+          __ StoreIndexedUntaggedFloat32(array, index, value);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ StoreIndexedUntaggedFloat32(array, temp, value);
+        }
       } else {
-        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-        __ StoreIndexedFloat32(array, temp, value);
+        if (index_scale() == 1) {
+          __ StoreIndexedFloat32(array, index, value);
+        } else if (index_scale() == 4) {
+          __ StoreIndexed4Float32(array, index, value);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ StoreIndexedFloat32(array, temp, value);
+        }
       }
       break;
     case kTypedDataFloat64ArrayCid:
       if (IsExternal()) {
-        Unsupported(compiler);
-        UNREACHABLE();
-      }
-      if (index_scale() == 1) {
-        __ StoreIndexedFloat64(array, index, value);
-      } else if (index_scale() == 8) {
-        __ StoreIndexed8Float64(array, index, value);
+        if (index_scale() == 1) {
+          __ StoreIndexedUntaggedFloat64(array, index, value);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ StoreIndexedUntaggedFloat64(array, temp, value);
+        }
       } else {
-        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-        __ StoreIndexedFloat64(array, temp, value);
+        if (index_scale() == 1) {
+          __ StoreIndexedFloat64(array, index, value);
+        } else if (index_scale() == 8) {
+          __ StoreIndexed8Float64(array, index, value);
+        } else {
+          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+          __ StoreIndexedFloat64(array, temp, value);
+        }
       }
       break;
     default:
@@ -829,7 +844,7 @@ EMIT_NATIVE_CODE(LoadIndexed,
       case kExternalTypedDataUint8ClampedArrayCid:
         ASSERT(index_scale() == 1);
         if (IsExternal()) {
-          __ LoadIndexedExternalUint8(result, array, index);
+          __ LoadIndexedUntaggedUint8(result, array, index);
         } else {
           __ LoadIndexedUint8(result, array, index);
         }
@@ -837,7 +852,7 @@ EMIT_NATIVE_CODE(LoadIndexed,
       case kTypedDataInt8ArrayCid:
         ASSERT(index_scale() == 1);
         if (IsExternal()) {
-          __ LoadIndexedExternalInt8(result, array, index);
+          __ LoadIndexedUntaggedInt8(result, array, index);
         } else {
           __ LoadIndexedInt8(result, array, index);
         }
@@ -861,55 +876,75 @@ EMIT_NATIVE_CODE(LoadIndexed,
       case kTypedDataInt32ArrayCid:
         ASSERT(representation() == kUnboxedInt32);
         if (IsExternal()) {
-          Unsupported(compiler);
-          UNREACHABLE();
-        }
-        if (index_scale() == 1) {
-          __ LoadIndexedInt32(result, array, index);
+          if (index_scale() == 1) {
+            __ LoadIndexedUntaggedInt32(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedUntaggedInt32(result, array, temp);
+          }
         } else {
-          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-          __ LoadIndexedInt32(result, array, temp);
+          if (index_scale() == 1) {
+            __ LoadIndexedInt32(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedInt32(result, array, temp);
+          }
         }
         break;
       case kTypedDataUint32ArrayCid:
         ASSERT(representation() == kUnboxedUint32);
         if (IsExternal()) {
-          Unsupported(compiler);
-          UNREACHABLE();
-        }
-        if (index_scale() == 1) {
-          __ LoadIndexedUint32(result, array, index);
+          if (index_scale() == 1) {
+            __ LoadIndexedUntaggedUint32(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedUntaggedUint32(result, array, temp);
+          }
         } else {
-          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-          __ LoadIndexedUint32(result, array, temp);
+          if (index_scale() == 1) {
+            __ LoadIndexedUint32(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedUint32(result, array, temp);
+          }
         }
         break;
       case kTypedDataFloat32ArrayCid:
         if (IsExternal()) {
-          Unsupported(compiler);
-          UNREACHABLE();
-        }
-        if (index_scale() == 1) {
-          __ LoadIndexedFloat32(result, array, index);
-        } else if (index_scale() == 4) {
-          __ LoadIndexed4Float32(result, array, index);
+          if (index_scale() == 1) {
+            __ LoadIndexedUntaggedFloat32(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedUntaggedFloat32(result, array, temp);
+          }
         } else {
-          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-          __ LoadIndexedFloat32(result, array, temp);
+          if (index_scale() == 1) {
+            __ LoadIndexedFloat32(result, array, index);
+          } else if (index_scale() == 4) {
+            __ LoadIndexed4Float32(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedFloat32(result, array, temp);
+          }
         }
         break;
       case kTypedDataFloat64ArrayCid:
         if (IsExternal()) {
-          Unsupported(compiler);
-          UNREACHABLE();
-        }
-        if (index_scale() == 1) {
-          __ LoadIndexedFloat64(result, array, index);
-        } else if (index_scale() == 8) {
-          __ LoadIndexed8Float64(result, array, index);
+          if (index_scale() == 1) {
+            __ LoadIndexedUntaggedFloat64(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedUntaggedFloat64(result, array, temp);
+          }
         } else {
-          __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
-          __ LoadIndexedFloat64(result, array, temp);
+          if (index_scale() == 1) {
+            __ LoadIndexedFloat64(result, array, index);
+          } else if (index_scale() == 8) {
+            __ LoadIndexed8Float64(result, array, index);
+          } else {
+            __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+            __ LoadIndexedFloat64(result, array, temp);
+          }
         }
         break;
       default:
@@ -956,6 +991,10 @@ EMIT_NATIVE_CODE(StringInterpolate,
   if (compiler->is_optimizing()) {
     __ PopLocal(locs()->out(0).reg());
   }
+}
+
+void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
 }
 
 EMIT_NATIVE_CODE(NativeCall,
@@ -1127,6 +1166,18 @@ EMIT_NATIVE_CODE(LoadUntagged, 1, Location::RequiresRegister()) {
   }
 }
 
+EMIT_NATIVE_CODE(StoreUntagged, 1, Location::RequiresRegister()) {
+  const Register obj = locs()->in(0).reg();
+  const Register value = locs()->out(0).reg();
+  const auto offset_in_words = offset() / kWordSize;
+  if (object()->definition()->representation() == kUntagged) {
+    __ StoreUntagged(obj, offset_in_words, value);
+  } else {
+    ASSERT(object()->definition()->representation() == kTagged);
+    __ StoreField(obj, offset_in_words, value);
+  }
+}
+
 EMIT_NATIVE_CODE(BooleanNegate, 1, Location::RequiresRegister()) {
   if (compiler->is_optimizing()) {
     __ BooleanNegate(locs()->out(0).reg(), locs()->in(0).reg());
@@ -1266,8 +1317,12 @@ EMIT_NATIVE_CODE(InstantiateTypeArguments,
 }
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#ifdef PRODUCT
+  UNREACHABLE();
+#else
   __ DebugStep();
   compiler->AddCurrentDescriptor(stub_kind_, deopt_id_, token_pos());
+#endif
 }
 
 void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -1521,6 +1576,17 @@ EMIT_NATIVE_CODE(CheckClass, 1) {
   }
   compiler->EmitDeopt(deopt_id(), ICData::kDeoptCheckClass,
                       licm_hoisted_ ? ICData::kHoisted : 0);
+}
+
+EMIT_NATIVE_CODE(CheckNull, 1) {
+  if (compiler->is_optimizing()) {
+    const Register value = locs()->in(0).reg();
+    __ IfEqNull(value);
+  } else {
+    __ IfEqNullTOS();
+  }
+  __ NullError();
+  CheckNullInstr::AddMetadataForRuntimeCall(this, compiler);
 }
 
 EMIT_NATIVE_CODE(BinarySmiOp, 2, Location::RequiresRegister()) {

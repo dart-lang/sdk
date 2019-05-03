@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -24,6 +24,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:test/test.dart';
 
 /**
@@ -104,7 +105,6 @@ class AnalysisContextFactory {
     TestTypeProvider provider = new TestTypeProvider();
     CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl();
     Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
-    coreContext.setContents(coreSource, "");
     coreUnit.librarySource = coreUnit.source = coreSource;
     ClassElementImpl overrideClassElement =
         ElementFactory.classElement2("_Override");
@@ -185,7 +185,6 @@ class AnalysisContextFactory {
         AstTestFactory.libraryIdentifier2(["dart", "async"]));
     CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
-    coreContext.setContents(asyncSource, "");
     asyncUnit.librarySource = asyncUnit.source = asyncSource;
     asyncLibrary.definingCompilationUnit = asyncUnit;
     // Future<T>
@@ -278,7 +277,6 @@ class AnalysisContextFactory {
     //
     CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl();
     Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
-    coreContext.setContents(htmlSource, "");
     htmlUnit.librarySource = htmlUnit.source = htmlSource;
     ClassElementImpl elementElement = ElementFactory.classElement2("Element");
     InterfaceType elementType = elementElement.type;
@@ -339,7 +337,6 @@ class AnalysisContextFactory {
     //
     CompilationUnitElementImpl mathUnit = new CompilationUnitElementImpl();
     Source mathSource = sourceFactory.forUri(_DART_MATH);
-    coreContext.setContents(mathSource, "");
     mathUnit.librarySource = mathUnit.source = mathSource;
     FunctionElement cosElement = ElementFactory.functionElement3(
         "cos",
@@ -396,13 +393,6 @@ class AnalysisContextFactory {
         coreContext, null, AstTestFactory.libraryIdentifier2(["dart", "math"]));
     mathLibrary.definingCompilationUnit = mathUnit;
     //
-    // Set empty sources for the rest of the libraries.
-    //
-    Source source = sourceFactory.forUri(_DART_INTERCEPTORS);
-    coreContext.setContents(source, "");
-    source = sourceFactory.forUri(_DART_JS_HELPER);
-    coreContext.setContents(source, "");
-    //
     // Record the elements.
     //
     Map<Source, LibraryElement> elementMap =
@@ -423,7 +413,11 @@ class AnalysisContextFactory {
       library.exportNamespace = namespace;
       library.publicNamespace = namespace;
     }
-    context.recordLibraryElements(elementMap);
+
+    context.typeProvider = SummaryTypeProvider()
+      ..initializeCore(coreLibrary)
+      ..initializeAsync(asyncLibrary);
+
     // Create the synthetic element for `loadLibrary`.
     for (LibraryElementImpl library in elementMap.values) {
       library.createLoadLibraryFunction(context.typeProvider);
@@ -483,53 +477,6 @@ class AnalysisContextForTests extends AnalysisContextImpl {
    */
   void _internalSetAnalysisOptions(AnalysisOptions options) {
     super.analysisOptions = options;
-  }
-}
-
-/**
- * Helper for creating and managing single [AnalysisContext].
- */
-class AnalysisContextHelper {
-  MemoryResourceProvider resourceProvider;
-  AnalysisContext context;
-
-  /**
-   * Creates new [AnalysisContext] using [AnalysisContextFactory].
-   */
-  AnalysisContextHelper(
-      [AnalysisOptionsImpl options, MemoryResourceProvider provider]) {
-    resourceProvider = provider ?? new MemoryResourceProvider();
-    context = AnalysisContextFactory.contextWithCoreAndOptions(
-        options ?? new AnalysisOptionsImpl(),
-        resourceProvider: resourceProvider);
-  }
-
-  Source addSource(String path, String code) {
-    Source source = resourceProvider
-        .getFile(resourceProvider.convertPath(path))
-        .createSource();
-    if (path.endsWith(".dart") || path.endsWith(".html")) {
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.addedSource(source);
-      context.applyChanges(changeSet);
-    }
-    context.setContents(source, code);
-    return source;
-  }
-
-  CompilationUnitElement getDefiningUnitElement(Source source) =>
-      context.getCompilationUnitElement(source, source);
-
-  CompilationUnit resolveDefiningUnit(Source source) {
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    return context.resolveCompilationUnit(source, libraryElement);
-  }
-
-  void runTasks() {
-    AnalysisResult result = context.performAnalysisTask();
-    while (result.changeNotices != null) {
-      result = context.performAnalysisTask();
-    }
   }
 }
 

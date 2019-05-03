@@ -130,8 +130,8 @@ void extractTestsFromMultitest(Path filePath, Map<String, String> tests,
             outcomes[annotation.key].add(nextOutcome);
           } else {
             DebugLogger.warning(
-                "Warning: Invalid expectation '$nextOutcome' on line "
-                "$lineCount:\n${annotation.rest} ");
+                "${filePath.toNativePath()}: Invalid expectation "
+                "'$nextOutcome' on line $lineCount: $line");
           }
         }
       }
@@ -152,7 +152,8 @@ void extractTestsFromMultitest(Path filePath, Map<String, String> tests,
       .where((test) => test != 'none' && outcomes[test].isEmpty)
       .toList();
   for (var test in invalidTests) {
-    DebugLogger.warning("Warning: Test $test has no valid expectation.\n"
+    DebugLogger.warning(
+        "${filePath.toNativePath()}: Test $test has no valid expectation. "
         "Expected one of: ${_multitestOutcomes.toString()}");
 
     outcomes.remove(test);
@@ -200,9 +201,11 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
       TestUtils.mkdirRecursive(targetDir, importDir);
     }
 
-    // Copy file.
-    futureCopies.add(TestUtils.copyFile(
-        sourceDir.join(importPath), targetDir.join(importPath)));
+    // Copy file. Because some test suites may be read-only, we don't
+    // want to copy the permissions, so we create the copy by writing.
+    final source = File(sourceDir.join(importPath).toNativePath()).openRead();
+    final target = File(targetDir.join(importPath).toNativePath()).openWrite();
+    futureCopies.add(source.pipe(target));
   }
 
   // Wait until all imports are copied before scheduling test cases.
@@ -301,7 +304,9 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
         // This is just for safety reasons, we don't want to unintentionally
         // clobber files relative to the destination dir when copying them
         // over.
-        print("Relative import in multitest containing '..' is not allowed.");
+        DebugLogger.error("${filePath.toNativePath()}: "
+            "Relative import in multitest containing '..' is not allowed.");
+        DebugLogger.close();
         exit(1);
       }
 

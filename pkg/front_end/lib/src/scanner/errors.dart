@@ -63,7 +63,7 @@ class ScannerErrorCode extends ErrorCode {
       const ScannerErrorCode(
           'UNTERMINATED_MULTI_LINE_COMMENT', "Unterminated multi-line comment.",
           correction: "Try terminating the comment with '*/', or "
-              "removing any unbalanced occurances of '/*'"
+              "removing any unbalanced occurrences of '/*'"
               " (because comments nest in Dart).");
 
   static const ScannerErrorCode UNTERMINATED_STRING_LITERAL =
@@ -169,22 +169,6 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       } else if (errorCode == codeUnexpectedDollarInString) {
         return _makeError(ScannerErrorCode.MISSING_IDENTIFIER, null);
       }
-      throw new UnimplementedError(
-          '$errorCode "${errorCode.analyzerCodes?.first}"');
-  }
-}
-
-void translateScanError(
-    Code errorCode, int charOffset, int length, ReportError reportError) {
-  switch (errorCode.analyzerCodes?.first) {
-    case "UNTERMINATED_STRING_LITERAL":
-      // TODO(paulberry,ahe): Fasta reports the error location as the entire
-      // string; analyzer expects the end of the string.
-      reportError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-          charOffset + length - 1, null);
-      break;
-
-    default:
       throw new UnimplementedError(
           '$errorCode "${errorCode.analyzerCodes?.first}"');
   }

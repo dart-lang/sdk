@@ -34,27 +34,37 @@ class Equality {
 }
 
 T expectDynamic<T>(dynamic value) {
-  Expect.identical(dynamic, T);
+  Expect.equals(dynamic, T);
   return value;
 }
 
 T expectInt<T>(dynamic value) {
-  Expect.identical(int, T);
+  Expect.equals(int, T);
   return value;
 }
 
 T expectString<T>(dynamic value) {
-  Expect.identical(String, T);
+  Expect.equals(String, T);
+  return value;
+}
+
+Iterable<T> expectIntIterable<T>(dynamic value) {
+  Expect.equals(int, T);
   return value;
 }
 
 Set<T> expectIntSet<T>() {
-  Expect.identical(int, T);
+  Expect.equals(int, T);
   return Set();
 }
 
+Stream<T> expectIntStream<T>(dynamic elements) {
+  Expect.equals(int, T);
+  return Stream<T>.fromIterable(elements);
+}
+
 Set<T> expectDynamicSet<T>() {
-  Expect.identical(dynamic, T);
+  Expect.equals(dynamic, T);
   return Set();
 }
 

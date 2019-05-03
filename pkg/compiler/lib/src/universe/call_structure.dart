@@ -109,6 +109,7 @@ class CallStructure {
     return sb.toString();
   }
 
+  @override
   String toString() => 'CallStructure(${structureToString()})';
 
   Selector get callSelector => new Selector.call(Names.call, this);
@@ -122,6 +123,7 @@ class CallStructure {
   }
 
   // TODO(johnniwinther): Cache hash code?
+  @override
   int get hashCode {
     return Hashing.listHash(
         namedArguments,
@@ -129,6 +131,7 @@ class CallStructure {
             Hashing.objectHash(typeArgumentCount, namedArguments.length)));
   }
 
+  @override
   bool operator ==(other) {
     if (other is! CallStructure) return false;
     return match(other);
@@ -184,6 +187,7 @@ class CallStructure {
 
 ///
 class NamedCallStructure extends CallStructure {
+  @override
   final List<String> namedArguments;
   final List<String> _orderedNamedArguments = <String>[];
 

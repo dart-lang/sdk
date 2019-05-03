@@ -17,6 +17,7 @@ class ClosureScopeModel {
   Map<ir.TreeNode, KernelScopeInfo> closuresToGenerate =
       <ir.TreeNode, KernelScopeInfo>{};
 
+  @override
   String toString() {
     return '$scopeInfo\n$capturedScopesMap\n$closuresToGenerate';
   }
@@ -76,6 +77,7 @@ class KernelScopeInfo {
       this.thisUsedAsFreeVariableIfNeedsRti,
       this.hasThisLocal);
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('KernelScopeInfo(this=$hasThisLocal,');
@@ -184,6 +186,9 @@ enum VariableUseKind {
 
   /// A type variable passed as the type argument of a list literal.
   listLiteral,
+
+  /// A type variable passed as the type argument of a set literal.
+  setLiteral,
 
   /// A type variable passed as the type argument of a map literal.
   mapLiteral,
@@ -307,12 +312,16 @@ class VariableUse {
   static const VariableUse listLiteral =
       const VariableUse._simple(VariableUseKind.listLiteral);
 
+  static const VariableUse setLiteral =
+      const VariableUse._simple(VariableUseKind.setLiteral);
+
   static const VariableUse mapLiteral =
       const VariableUse._simple(VariableUseKind.mapLiteral);
 
   static const VariableUse fieldType =
       const VariableUse._simple(VariableUseKind.fieldType);
 
+  @override
   int get hashCode =>
       kind.hashCode * 11 +
       member.hashCode * 13 +
@@ -320,6 +329,7 @@ class VariableUse {
       invocation.hashCode * 19 +
       instantiation.hashCode * 23;
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! VariableUse) return false;
@@ -330,6 +340,7 @@ class VariableUse {
         instantiation == other.instantiation;
   }
 
+  @override
   String toString() => 'VariableUse(kind=$kind,member=$member,'
       'localFunction=$localFunction,invocation=$invocation,'
       'instantiation=$instantiation)';
@@ -392,21 +403,26 @@ class TypeVariableTypeWithContext implements ir.Node {
   TypeVariableTypeWithContext.internal(
       this.type, this.context, this.kind, this.typeDeclaration);
 
+  @override
   accept(ir.Visitor v) {
     throw new UnsupportedError('TypeVariableTypeWithContext.accept');
   }
 
+  @override
   visitChildren(ir.Visitor v) {
     throw new UnsupportedError('TypeVariableTypeWithContext.visitChildren');
   }
 
+  @override
   int get hashCode => type.hashCode;
 
+  @override
   bool operator ==(other) {
     if (other is! TypeVariableTypeWithContext) return false;
     return type == other.type && context == other.context;
   }
 
+  @override
   String toString() =>
       'TypeVariableTypeWithContext(type=$type,context=$context,'
       'kind=$kind,typeDeclaration=$typeDeclaration)';

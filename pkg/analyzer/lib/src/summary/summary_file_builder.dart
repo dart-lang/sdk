@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
@@ -25,11 +26,9 @@ import 'package:analyzer/src/summary/summarize_elements.dart';
 class SummaryBuilder {
   final Iterable<Source> librarySources;
   final AnalysisContext context;
+
   /**
    * Create a summary builder for these [librarySources] and [context].
-   *
-   * TODO(paulberry): remove optional "strong" parameter once all callers have
-   * stopped passing it in.
    */
   SummaryBuilder(this.librarySources, this.context);
 
@@ -92,9 +91,7 @@ class _Builder {
         throw new StateError('Unable to find unresolved unit $uri.');
       }
       return unlinked;
-    }, (String name) {
-      throw new StateError('Unexpected call to GetDeclaredVariable($name).');
-    });
+    }, DeclaredVariables(), context.analysisOptions);
     map.forEach(bundleAssembler.addLinkedLibrary);
 
     return bundleAssembler.assemble().toBuffer();

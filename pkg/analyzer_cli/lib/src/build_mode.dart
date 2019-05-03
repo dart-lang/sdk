@@ -312,18 +312,21 @@ class BuildMode with HasContextMixin {
         }
       }
 
+      ErrorSeverity severity;
+      if (options.buildSummaryOnly) {
+        severity = ErrorSeverity.NONE;
+      } else {
+        // Process errors.
+        await _printErrors(outputPath: options.buildAnalysisOutput);
+        severity = await _computeMaxSeverity();
+      }
+
       if (dependencyTracker != null) {
         io.File file = new io.File(dependencyTracker.outputPath);
         file.writeAsStringSync(dependencyTracker.dependencies.join('\n'));
       }
 
-      if (options.buildSummaryOnly) {
-        return ErrorSeverity.NONE;
-      } else {
-        // Process errors.
-        await _printErrors(outputPath: options.buildAnalysisOutput);
-        return await _computeMaxSeverity();
-      }
+      return severity;
     });
   }
 
@@ -354,8 +357,12 @@ class BuildMode with HasContextMixin {
             uriToUnit[absoluteUri];
       }
 
-      Map<String, LinkedLibraryBuilder> linkResult = link(libraryUris,
-          getDependency, getUnit, analysisDriver.declaredVariables.get);
+      Map<String, LinkedLibraryBuilder> linkResult = link(
+          libraryUris,
+          getDependency,
+          getUnit,
+          analysisDriver.declaredVariables,
+          analysisOptions);
       linkResult.forEach(assembler.addLinkedLibrary);
     });
   }
@@ -442,7 +449,9 @@ class BuildMode with HasContextMixin {
 
     var sourceFactory = new SourceFactory(<UriResolver>[
       new DartUriResolver(sdk),
-      new InSummaryUriResolver(resourceProvider, summaryDataStore),
+      new TrackingInSummaryUriResolver(
+          new InSummaryUriResolver(resourceProvider, summaryDataStore),
+          dependencyTracker),
       new ExplicitSourceResolver(uriToFileMap)
     ]);
 
@@ -554,6 +563,22 @@ class BuildMode with HasContextMixin {
       }
     });
   }
+}
+
+/**
+ * Tracks paths to dependencies, really just a thin api around a Set<String>.
+ */
+class DependencyTracker {
+  final _dependencies = Set<String>();
+
+  /// The path to the file to create once tracking is done.
+  final String outputPath;
+
+  DependencyTracker(this.outputPath);
+
+  Iterable<String> get dependencies => _dependencies;
+
+  void record(String path) => _dependencies.add(path);
 }
 
 /**
@@ -721,17 +746,24 @@ class WorkerPackageBundleProvider implements PackageBundleProvider {
 }
 
 /**
- * Tracks paths to dependencies, really just a thin api around a Set<String>.
+ * Wrapper for [InSummaryUriResolver] that tracks accesses to summaries.
  */
-class DependencyTracker {
-  final _dependencies = Set<String>();
+class TrackingInSummaryUriResolver extends UriResolver {
+  // May be null.
+  final DependencyTracker dependencyTracker;
+  final InSummaryUriResolver inSummaryUriResolver;
 
-  Iterable<String> get dependencies => _dependencies;
+  TrackingInSummaryUriResolver(
+      this.inSummaryUriResolver, this.dependencyTracker);
 
-  /// The path to the file to create once tracking is done.
-  final String outputPath;
-
-  DependencyTracker(this.outputPath);
-
-  void record(String path) => _dependencies.add(path);
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    var source = inSummaryUriResolver.resolveAbsolute(uri, actualUri);
+    if (dependencyTracker != null &&
+        source != null &&
+        source is InSummarySource) {
+      dependencyTracker.record(source.summaryPath);
+    }
+    return source;
+  }
 }

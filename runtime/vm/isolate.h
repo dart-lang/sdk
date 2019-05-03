@@ -238,11 +238,6 @@ class Isolate : public BaseIsolate {
 
   Thread* mutator_thread() const;
 
-  // Mutator thread is not scheduled if NULL or no heap is attached
-  // to it. The latter only occurs when the mutator thread object
-  // is unscheduled by the isolate (or never scheduled).
-  bool IsMutatorThreadScheduled() { return scheduled_mutator_thread_ != NULL; }
-
   const char* name() const { return name_; }
   void set_name(const char* name);
 
@@ -484,6 +479,10 @@ class Isolate : public BaseIsolate {
     return background_compiler_;
   }
 
+  BackgroundCompiler* optimizing_background_compiler() const {
+    return optimizing_background_compiler_;
+  }
+
 #if !defined(PRODUCT)
   void UpdateLastAllocationProfileAccumulatorResetTimestamp() {
     last_allocationprofile_accumulator_reset_timestamp_ =
@@ -520,6 +519,10 @@ class Isolate : public BaseIsolate {
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream, bool ref = true);
+
+  // Creates an object with the total heap memory usage statistics for this
+  // isolate.
+  void PrintMemoryUsageJSON(JSONStream* stream);
 #endif
 
 #if !defined(PRODUCT)
@@ -698,6 +701,13 @@ class Isolate : public BaseIsolate {
     return FLAG_use_strong_mode_types && !unsafe_trust_strong_mode_types();
   }
 
+  // Whether it's possible for unoptimized code to optimize immediately on entry
+  // (can happen with random or very low optimization counter thresholds)
+  bool CanOptimizeImmediately() const {
+    return FLAG_optimization_counter_threshold < 2 ||
+           FLAG_randomize_optimization_counter;
+  }
+
   bool should_load_vmservice() const {
     return ShouldLoadVmServiceBit::decode(isolate_flags_);
   }
@@ -772,6 +782,10 @@ class Isolate : public BaseIsolate {
 
   static void KillAllIsolates(LibMsgId msg_id);
   static void KillIfExists(Isolate* isolate, LibMsgId msg_id);
+
+  // Lookup an isolate by its main port. Returns NULL if no matching isolate is
+  // found.
+  static Isolate* LookupIsolateByPort(Dart_Port port);
 
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
@@ -906,8 +920,11 @@ class Isolate : public BaseIsolate {
 
   uint32_t isolate_flags_;
 
-  // Background compilation.
+  // Unoptimized background compilation.
   BackgroundCompiler* background_compiler_;
+
+  // Optimized background compilation.
+  BackgroundCompiler* optimizing_background_compiler_;
 
 // Fields that aren't needed in a product build go here with boolean flags at
 // the top.
@@ -1121,7 +1138,8 @@ class IsolateSpawnState {
                     bool paused,
                     bool errorsAreFatal,
                     Dart_Port onExit,
-                    Dart_Port onError);
+                    Dart_Port onError,
+                    const char* debug_name);
   IsolateSpawnState(Dart_Port parent_port,
                     void* init_data,
                     const char* script_url,
@@ -1134,7 +1152,8 @@ class IsolateSpawnState {
                     bool paused,
                     bool errorsAreFatal,
                     Dart_Port onExit,
-                    Dart_Port onError);
+                    Dart_Port onError,
+                    const char* debug_name);
   ~IsolateSpawnState();
 
   Isolate* isolate() const { return isolate_; }
@@ -1151,6 +1170,7 @@ class IsolateSpawnState {
   const char* library_url() const { return library_url_; }
   const char* class_name() const { return class_name_; }
   const char* function_name() const { return function_name_; }
+  const char* debug_name() const { return debug_name_; }
   bool is_spawn_uri() const { return library_url_ == NULL; }
   bool paused() const { return paused_; }
   bool errors_are_fatal() const { return errors_are_fatal_; }
@@ -1175,6 +1195,7 @@ class IsolateSpawnState {
   const char* library_url_;
   const char* class_name_;
   const char* function_name_;
+  const char* debug_name_;
   Message* serialized_args_;
   Message* serialized_message_;
 

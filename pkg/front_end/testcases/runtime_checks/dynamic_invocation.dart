@@ -6,12 +6,12 @@
 library test;
 
 class C<T> {
-  void f1(T /*@covariance=genericImpl*/ x) {}
+  void f1(T x) {}
   void f2(int x) {}
 }
 
 class D extends C<num> {
-  void f1(covariant int /*@covariance=explicit*/ x) {}
+  void f1(covariant int x) {}
 }
 
 void g1(dynamic d) {

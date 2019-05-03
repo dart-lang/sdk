@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/api/model.dart';
-import 'package:analyzer/src/task/dart.dart';
 
 /**
  * The analysis errors associated with a [Source] representing a compilation
@@ -89,8 +88,7 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT =
  * The result is only available for [Source]s representing a compilation unit.
  */
 final ResultDescriptor<CompilationUnit> PARSED_UNIT =
-    new ResultDescriptor<CompilationUnit>('PARSED_UNIT', null,
-        cachingPolicy: AST_CACHING_POLICY);
+    new ResultDescriptor<CompilationUnit>('PARSED_UNIT', null);
 
 /**
  * The resolved [CompilationUnit] associated with a compilation unit, with
@@ -99,8 +97,7 @@ final ResultDescriptor<CompilationUnit> PARSED_UNIT =
  * The result is only available for [LibrarySpecificUnit]s.
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT =
-    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT', null,
-        cachingPolicy: AST_CACHING_POLICY);
+    new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT', null);
 
 /**
  * The kind of a [Source].
@@ -116,9 +113,8 @@ final ResultDescriptor<SourceKind> SOURCE_KIND =
  *
  * The result is only available for [Source]s representing a compilation unit.
  */
-final ResultDescriptor<Token> TOKEN_STREAM = new ResultDescriptor<Token>(
-    'TOKEN_STREAM', null,
-    cachingPolicy: TOKEN_STREAM_CACHING_POLICY);
+final ResultDescriptor<Token> TOKEN_STREAM =
+    new ResultDescriptor<Token>('TOKEN_STREAM', null);
 
 /**
  * The sources of the Dart files that a library consists of.

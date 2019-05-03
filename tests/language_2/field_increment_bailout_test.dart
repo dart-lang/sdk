@@ -45,8 +45,8 @@ main() {
 }
 
 // Use confuse to defeat type inferencing.
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) {
   return x;
 }

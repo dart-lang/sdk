@@ -12,7 +12,7 @@ class Foo {
 void f(@Foo(/*@typeArgs=String*/ const []) x) {}
 
 class C {
-  void m(@Foo(/*@typeArgs=String*/ const []) /*@topType=dynamic*/ x) {}
+  void m(@Foo(/*@typeArgs=String*/ const []) x) {}
 }
 
 main() {}

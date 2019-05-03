@@ -53,4 +53,23 @@ class ErrorsReportedOnceTest {
     expect(output, contains(unusedWarning));
     expect(unusedWarning.allMatches(output).toList(), hasLength(1));
   }
+
+  test_once_machine() async {
+    String testDir = path.join(testDirectory, 'data', 'errors_reported_once');
+    Driver driver = new Driver(isTesting: true);
+    await driver.start([
+      '--format',
+      'machine',
+      path.join(testDir, 'foo.dart'),
+      path.join(testDir, 'bar.dart')
+    ]);
+
+    expect(exitCode, 0);
+
+    // Ensure that we only have one copy of the error.
+    final String unusedWarning = 'Unused import';
+    String output = errorSink.toString();
+    expect(output, contains(unusedWarning));
+    expect(unusedWarning.allMatches(output).toList(), hasLength(1));
+  }
 }

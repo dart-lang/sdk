@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=set-literals
-
 import "dart:collection" show HashSet, LinkedHashSet;
 
 import "package:expect/expect.dart";
@@ -22,9 +20,9 @@ void main() {
       = const {Duration(seconds: 0)} // Overrides ==. //# 08: compile-time error
       = const {4.2} // Overrides ==. //# 09: compile-time error
       = const {d} // Overrides ==. //# 10: compile-time error
-      = {,} //# 11: compile-time error
-      = {1,,} //# 12: compile-time error
-      = {1,,1} //# 13: compile-time error
+      = {,} //# 11: syntax error
+      = {1,,} //# 12: syntax error
+      = {1,,1} //# 13: syntax error
       ;
   Expect.isNull(o); // Should be unreachable with a value.
 

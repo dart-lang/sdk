@@ -37,8 +37,10 @@ class CheckedModeHelper {
 class PropertyCheckedModeHelper extends CheckedModeHelper {
   const PropertyCheckedModeHelper(String name) : super(name);
 
+  @override
   CallStructure get callStructure => CallStructure.TWO_ARGS;
 
+  @override
   void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     DartType type = node.typeExpression;
@@ -50,8 +52,10 @@ class PropertyCheckedModeHelper extends CheckedModeHelper {
 class TypeVariableCheckedModeHelper extends CheckedModeHelper {
   const TypeVariableCheckedModeHelper(String name) : super(name);
 
+  @override
   CallStructure get callStructure => CallStructure.TWO_ARGS;
 
+  @override
   void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     assert(node.typeExpression.isTypeVariable);
@@ -63,8 +67,10 @@ class TypeVariableCheckedModeHelper extends CheckedModeHelper {
 class FunctionTypeRepresentationCheckedModeHelper extends CheckedModeHelper {
   const FunctionTypeRepresentationCheckedModeHelper(String name) : super(name);
 
+  @override
   CallStructure get callStructure => CallStructure.TWO_ARGS;
 
+  @override
   void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     assert(node.typeExpression.isFunctionType);
@@ -76,8 +82,10 @@ class FunctionTypeRepresentationCheckedModeHelper extends CheckedModeHelper {
 class FutureOrRepresentationCheckedModeHelper extends CheckedModeHelper {
   const FutureOrRepresentationCheckedModeHelper(String name) : super(name);
 
+  @override
   CallStructure get callStructure => CallStructure.TWO_ARGS;
 
+  @override
   void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     assert(node.typeExpression.isFutureOr);
@@ -89,8 +97,10 @@ class FutureOrRepresentationCheckedModeHelper extends CheckedModeHelper {
 class SubtypeCheckedModeHelper extends CheckedModeHelper {
   const SubtypeCheckedModeHelper(String name) : super(name);
 
+  @override
   CallStructure get callStructure => const CallStructure.unnamed(4);
 
+  @override
   void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     // TODO(sra): Move these calls into the SSA graph so that the arguments can
@@ -117,6 +127,7 @@ class CheckedModeHelpers {
     const CheckedModeHelper('doubleTypeCheck'),
     const CheckedModeHelper('numTypeCast'),
     const CheckedModeHelper('numTypeCheck'),
+    const CheckedModeHelper('boolConversionCheck'),
     const CheckedModeHelper('boolTypeCast'),
     const CheckedModeHelper('boolTypeCheck'),
     const CheckedModeHelper('intTypeCast'),

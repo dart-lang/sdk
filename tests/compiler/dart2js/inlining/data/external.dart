@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// ignore: IMPORT_INTERNAL_LIBRARY
-import 'dart:_js_helper';
+@JS()
+library lib;
+
+import 'package:js/js.dart';
 
 /*element: main:[]*/
 main() {
@@ -11,10 +13,11 @@ main() {
 }
 
 /*element: externalFunction:[]*/
-@NoInline()
+@pragma('dart2js:noInline')
 externalFunction() {
   _externalFunction();
 }
 
 /*element: _externalFunction:[]*/
+@JS('externalFunction')
 external _externalFunction();

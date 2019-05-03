@@ -27,19 +27,12 @@ class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
   PerformanceLog logger;
 
   DartSdk sdk;
+  Map<String, List<Folder>> packageMap;
   AnalysisDriverScheduler scheduler;
   AnalysisDriver driver;
 
   /// Override this to change the analysis options for a given set of tests.
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl();
-
-  void addMetaPackage() {
-    newFile('/.pub-cache/meta/lib/meta.dart', content: r'''
-library meta;
-
-const alwaysThrows = const Object();
-''');
-  }
 
   @override
   Future<ResolvedUnitResult> resolveFile(String path) async {
@@ -51,7 +44,9 @@ const alwaysThrows = const Object();
     logger = new PerformanceLog(logBuffer);
     scheduler = new AnalysisDriverScheduler(logger);
 
-    Map<String, List<Folder>> packageMap = <String, List<Folder>>{
+    // TODO(brianwilkerson) Create an empty package map by default and only add
+    //  packages in the tests that need them.
+    packageMap = <String, List<Folder>>{
       'test': [getFolder('/test/lib')],
       'aaa': [getFolder('/aaa/lib')],
       'bbb': [getFolder('/bbb/lib')],

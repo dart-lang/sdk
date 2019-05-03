@@ -134,15 +134,24 @@ String getWrapperContent(
     let global = new Function('return this;')();
     $d8Preambles
 
+    // d8 does not seem to print the `.stack` property like
+    // node.js and browsers do, so include that.
+    Error.prototype.toString = function() {
+      // Note: on d8, the stack property includes the error message too.
+      return this.stack;
+    };
+
+    global.scheduleImmediate = function(callback) {
+      // Ensure unhandled promise rejections get printed.
+      Promise.resolve(null).then(callback).catch(e => console.error(e));
+    };
+
     let main = $inputFileNameNoExt.main;
     dart.ignoreWhitelistedErrors(false);
     try {
       dartMainRunner(main, []);
     } catch(e) {
       console.error(e);
-      // d8 does not seem to print the `.stack` property like
-      // node.js and browsers do.
-      console.error(e.stack);
     }
     """;
 }

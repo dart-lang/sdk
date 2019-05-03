@@ -94,6 +94,12 @@ abstract class ScopeListener<J> extends StackListener {
   }
 
   @override
+  void beginForControlFlow(Token awaitToken, Token forToken) {
+    debugEvent("beginForControlFlow");
+    enterLocalScope("for in a collection");
+  }
+
+  @override
   void beginBlock(Token token) {
     debugEvent("beginBlock");
     enterLocalScope("block");
@@ -102,7 +108,7 @@ abstract class ScopeListener<J> extends StackListener {
   @override
   void beginSwitchBlock(Token token) {
     debugEvent("beginSwitchBlock");
-    enterLocalScope("swithc block");
+    enterLocalScope("switch block");
     enterBreakTarget(token.charOffset);
   }
 

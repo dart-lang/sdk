@@ -24,6 +24,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
 import 'package:analyzer/src/plugin/resolver_provider.dart';
+import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/path_filter.dart';
@@ -52,8 +53,6 @@ import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as path;
-import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:yaml/yaml.dart';
@@ -99,9 +98,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
   static final ByteStore analysisDriverMemoryByteStore = new MemoryByteStore();
 
   ContextCache contextCache;
-
-  /// The plugins that are defined outside the `analyzer_cli` package.
-  List<Plugin> _userDefinedPlugins = <Plugin>[];
 
   /// The driver that was most recently created by a call to [_analyzeAll], or
   /// `null` if [_analyzeAll] hasn't been called yet.
@@ -149,11 +145,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
   CrashReportSender get crashReportSender => (_crashReportSender ??=
       new CrashReportSender('Dart_analyzer_cli', analytics));
 
-  @override
-  void set userDefinedPlugins(List<Plugin> plugins) {
-    _userDefinedPlugins = plugins ?? <Plugin>[];
-  }
-
   /**
    * Converts the given [filePath] into absolute and normalized.
    */
@@ -173,7 +164,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
     StringUtilities.INTERNER = new MappedInterner();
 
-    _processPlugins();
+    linter.registerLintRules();
 
     // Parse commandline options.
     CommandLineOptions options = CommandLineOptions.parse(args);
@@ -357,9 +348,8 @@ class Driver with HasContextMixin implements CommandLineStarter {
           File file = resourceProvider.getFile(path);
           String content = file.readAsStringSync();
           LineInfo lineInfo = new LineInfo.fromContent(content);
-          List<AnalysisError> errors =
-              GenerateOptionsErrorsTask.analyzeAnalysisOptions(
-                  file.createSource(), content, analysisDriver.sourceFactory);
+          List<AnalysisError> errors = analyzeAnalysisOptions(
+              file.createSource(), content, analysisDriver.sourceFactory);
           formatter.formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
           for (AnalysisError error in errors) {
             ErrorSeverity severity = determineProcessedSeverity(
@@ -385,6 +375,25 @@ class Driver with HasContextMixin implements CommandLineStarter {
                     error, options, analysisDriver.analysisOptions);
                 allResult = allResult.max(severity);
               }
+            }
+          } catch (exception) {
+            // If the file cannot be analyzed, ignore it.
+          }
+        } else if (shortName == AnalysisEngine.ANDROID_MANIFEST_FILE) {
+          try {
+            File file = resourceProvider.getFile(path);
+            String content = file.readAsStringSync();
+            ManifestValidator validator =
+                new ManifestValidator(file.createSource());
+            LineInfo lineInfo = new LineInfo.fromContent(content);
+            List<AnalysisError> errors = validator.validate(
+                content, analysisDriver.analysisOptions.chromeOsManifestChecks);
+            formatter
+                .formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
+            for (AnalysisError error in errors) {
+              ErrorSeverity severity = determineProcessedSeverity(
+                  error, options, analysisDriver.analysisOptions);
+              allResult = allResult.max(severity);
             }
           } catch (exception) {
             // If the file cannot be analyzed, ignore it.
@@ -555,7 +564,8 @@ class Driver with HasContextMixin implements CommandLineStarter {
         for (io.FileSystemEntity entry
             in directory.listSync(recursive: true, followLinks: false)) {
           String relative = path.relative(entry.path, from: directory.path);
-          if (AnalysisEngine.isDartFileName(entry.path) &&
+          if ((AnalysisEngine.isDartFileName(entry.path) ||
+                  AnalysisEngine.isManifestFileName(entry.path)) &&
               entry is io.File &&
               !pathFilter.ignored(entry.path) &&
               !_isInHiddenDir(relative)) {
@@ -734,17 +744,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
   /// Returns `true` if this relative path is a hidden directory.
   bool _isInHiddenDir(String relative) =>
       path.split(relative).any((part) => part.startsWith("."));
-
-  void _processPlugins() {
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.addAll(_userDefinedPlugins);
-
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
-
-    linter.registerLintRules();
-  }
 
   /// Analyze a single source.
   Future<ErrorSeverity> _runAnalyzer(

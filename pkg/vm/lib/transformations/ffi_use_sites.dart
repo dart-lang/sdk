@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library kernel.transformations.ffi_use_sites;
+library vm.transformations.ffi_use_sites;
 
 import 'package:front_end/src/api_unstable/vm.dart'
     show
@@ -11,10 +11,10 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiTypeUnsized,
         templateFfiNotStatic;
 
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
+import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 
 import 'ffi.dart'
@@ -27,14 +27,21 @@ import 'ffi.dart'
 
 /// Checks and replaces calls to dart:ffi struct fields and methods.
 void transformLibraries(
+    Component component,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
     List<Library> libraries,
     DiagnosticReporter diagnosticReporter,
     ReplacedMembers replacedFields) {
+  final index = new LibraryIndex(component, ["dart:ffi"]);
+  if (!index.containsLibrary("dart:ffi")) {
+    // if dart:ffi is not loaded, do not do the transformation
+    return;
+  }
   final transformer = new _FfiUseSiteTransformer(
-      hierarchy,
+      index,
       coreTypes,
+      hierarchy,
       diagnosticReporter,
       replacedFields.replacedGetters,
       replacedFields.replacedSetters);
@@ -46,13 +53,22 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   final Map<Field, Procedure> replacedGetters;
   final Map<Field, Procedure> replacedSetters;
 
+  bool isFfiLibrary;
+
   _FfiUseSiteTransformer(
-      ClassHierarchy hierarchy,
+      LibraryIndex index,
       CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
       DiagnosticReporter diagnosticReporter,
       this.replacedGetters,
       this.replacedSetters)
-      : super(hierarchy, coreTypes, diagnosticReporter) {}
+      : super(index, coreTypes, hierarchy, diagnosticReporter) {}
+
+  @override
+  TreeNode visitLibrary(Library node) {
+    isFfiLibrary = node == ffiLibrary;
+    return super.visitLibrary(node);
+  }
 
   @override
   visitClass(Class node) {
@@ -124,7 +140,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
       } else if (target == asFunctionMethod) {
-        if (node.enclosingLibrary == ffiLibrary) {
+        if (isFfiLibrary) {
           // Library code of dart:ffi uses asFunction to implement
           // lookupFunction. Since we treat lookupFunction as well, this call
           // can be generic and still support AOT.

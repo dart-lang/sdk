@@ -8,6 +8,10 @@ import 'literal_entry_info_impl.dart';
 import 'parser.dart';
 import 'util.dart';
 
+/// [simpleEntry] is the first step for parsing a literal entry
+/// without any control flow or spread collection operator.
+const LiteralEntryInfo simpleEntry = const LiteralEntryInfo(true, 0);
+
 /// [LiteralEntryInfo] represents steps for processing an entry
 /// in a literal list, map, or set. These steps will handle parsing
 /// both control flow and spreadable operators, and indicate
@@ -31,7 +35,11 @@ class LiteralEntryInfo {
   /// or `false` if this object's [parse] method should be called.
   final bool hasEntry;
 
-  const LiteralEntryInfo(this.hasEntry);
+  /// Used for recovery, this indicates
+  /// +1 for an `if` condition and -1 for `else`.
+  final int ifConditionDelta;
+
+  const LiteralEntryInfo(this.hasEntry, this.ifConditionDelta);
 
   /// Parse the control flow and spread collection aspects of this entry.
   Token parse(Token token, Parser parser) {

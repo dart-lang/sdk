@@ -7,16 +7,18 @@ import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart';
-import '../constants/constant_system.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
+import '../ir/constants.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
 import '../js_backend/backend.dart';
+import '../js_backend/field_analysis.dart';
 import '../js_model/element_map.dart';
 import '../js_model/locals.dart' show JumpVisitor;
 import '../js_model/js_world.dart';
@@ -24,6 +26,7 @@ import '../native/behavior.dart';
 import '../options.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart';
+import '../util/util.dart';
 import 'inferrer_engine.dart';
 import 'locals_handler.dart';
 import 'type_graph_nodes.dart';
@@ -433,11 +436,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitInstantiation(ir.Instantiation node) {
+    return createInstantiationTypeInformation(visit(node.expression));
+  }
+
+  TypeInformation createInstantiationTypeInformation(
+      TypeInformation expressionType) {
     // TODO(sra): Add a TypeInformation for Instantiations.  Instantiated
     // generic methods will need to be traced separately, and have the
     // information gathered in tracing reflected back to the generic method. For
     // now, pass along the uninstantiated method.
-    return visit(node.expression);
+    return expressionType;
   }
 
   @override
@@ -454,6 +462,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitNullLiteral(ir.NullLiteral literal) {
+    return createNullTypeInformation();
+  }
+
+  TypeInformation createNullTypeInformation() {
     return _types.nullType;
   }
 
@@ -605,14 +617,21 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
-  TypeInformation visitListLiteral(ir.ListLiteral listLiteral) {
+  TypeInformation visitListLiteral(ir.ListLiteral node) {
+    return createListTypeInformation(
+        node, node.expressions.map((e) => visit(e)),
+        isConst: node.isConst);
+  }
+
+  TypeInformation createListTypeInformation(
+      ir.TreeNode node, Iterable<TypeInformation> elementTypes,
+      {bool isConst}) {
     // We only set the type once. We don't need to re-visit the children
     // when re-analyzing the node.
-    return _inferrer.concreteTypes.putIfAbsent(listLiteral, () {
+    return _inferrer.concreteTypes.putIfAbsent(node, () {
       TypeInformation elementType;
       int length = 0;
-      for (ir.Expression element in listLiteral.expressions) {
-        TypeInformation type = visit(element);
+      for (TypeInformation type in elementTypes) {
         elementType = elementType == null
             ? _types.allocatePhi(null, null, type, isTry: false)
             : _types.addPhiInput(null, elementType, type);
@@ -622,25 +641,58 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           ? _types.nonNullEmpty()
           : _types.simplifyPhi(null, null, elementType);
       TypeInformation containerType =
-          listLiteral.isConst ? _types.constListType : _types.growableListType;
+          isConst ? _types.constListType : _types.growableListType;
       return _types.allocateList(
-          containerType, listLiteral, _analyzedMember, elementType, length);
+          containerType, node, _analyzedMember, elementType, length);
+    });
+  }
+
+  @override
+  TypeInformation visitSetLiteral(ir.SetLiteral node) {
+    return createSetTypeInformation(node, node.expressions.map((e) => visit(e)),
+        isConst: node.isConst);
+  }
+
+  TypeInformation createSetTypeInformation(
+      ir.TreeNode node, Iterable<TypeInformation> elementTypes,
+      {bool isConst}) {
+    return _inferrer.concreteTypes.putIfAbsent(node, () {
+      TypeInformation elementType;
+      for (TypeInformation type in elementTypes) {
+        elementType = elementType == null
+            ? _types.allocatePhi(null, null, type, isTry: false)
+            : _types.addPhiInput(null, elementType, type);
+      }
+      elementType = elementType == null
+          ? _types.nonNullEmpty()
+          : _types.simplifyPhi(null, null, elementType);
+      TypeInformation containerType =
+          isConst ? _types.constSetType : _types.setType;
+      return _types.allocateSet(
+          containerType, node, _analyzedMember, elementType);
     });
   }
 
   @override
   TypeInformation visitMapLiteral(ir.MapLiteral node) {
+    return createMapTypeInformation(
+        node, node.entries.map((e) => new Pair(visit(e.key), visit(e.value))),
+        isConst: node.isConst);
+  }
+
+  TypeInformation createMapTypeInformation(ir.TreeNode node,
+      Iterable<Pair<TypeInformation, TypeInformation>> entryTypes,
+      {bool isConst}) {
     return _inferrer.concreteTypes.putIfAbsent(node, () {
       List keyTypes = <TypeInformation>[];
       List valueTypes = <TypeInformation>[];
 
-      for (ir.MapEntry entry in node.entries) {
-        keyTypes.add(visit(entry.key));
-        valueTypes.add(visit(entry.value));
+      for (Pair<TypeInformation, TypeInformation> entryType in entryTypes) {
+        keyTypes.add(entryType.a);
+        valueTypes.add(entryType.b);
       }
 
-      TypeInformation type =
-          node.isConst ? _types.constMapType : _types.mapType;
+      TypeInformation type = isConst ? _types.constMapType : _types.mapType;
       return _types.allocateMap(
           type, node, _analyzedMember, keyTypes, valueTypes);
     });
@@ -657,32 +709,45 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitBoolLiteral(ir.BoolLiteral node) {
-    return _types.boolLiteralType(node.value);
+    return createBoolTypeInformation(node.value);
+  }
+
+  TypeInformation createBoolTypeInformation(bool value) {
+    return _types.boolLiteralType(value);
   }
 
   @override
   TypeInformation visitIntLiteral(ir.IntLiteral node) {
-    ConstantSystem constantSystem = _closedWorld.constantSystem;
+    return createIntTypeInformation(node.value);
+  }
+
+  TypeInformation createIntTypeInformation(int value) {
     // The JavaScript backend may turn this literal into a double at
     // runtime.
     return _types.getConcreteTypeFor(_closedWorld.abstractValueDomain
         .computeAbstractValueForConstant(
-            constantSystem.createIntFromInt(node.value)));
+            constant_system.createIntFromInt(value)));
   }
 
   @override
   TypeInformation visitDoubleLiteral(ir.DoubleLiteral node) {
-    ConstantSystem constantSystem = _closedWorld.constantSystem;
-    // The JavaScript backend may turn this literal into an integer at
+    return createDoubleTypeInformation(node.value);
+  }
+
+  TypeInformation createDoubleTypeInformation(double value) {
+    // The JavaScript backend may turn this literal into a double at
     // runtime.
     return _types.getConcreteTypeFor(_closedWorld.abstractValueDomain
-        .computeAbstractValueForConstant(
-            constantSystem.createDouble(node.value)));
+        .computeAbstractValueForConstant(constant_system.createDouble(value)));
   }
 
   @override
   TypeInformation visitStringLiteral(ir.StringLiteral node) {
-    return _types.stringLiteralType(node.value);
+    return createStringTypeInformation(node.value);
+  }
+
+  TypeInformation createStringTypeInformation(String value) {
+    return _types.stringLiteralType(value);
   }
 
   @override
@@ -703,12 +768,20 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitSymbolLiteral(ir.SymbolLiteral node) {
+    return createSymbolLiteralTypeInformation();
+  }
+
+  TypeInformation createSymbolLiteralTypeInformation() {
     return _types
         .nonNullSubtype(_closedWorld.commonElements.symbolImplementationClass);
   }
 
   @override
   TypeInformation visitTypeLiteral(ir.TypeLiteral node) {
+    return createTypeLiteralInformation();
+  }
+
+  TypeInformation createTypeLiteralInformation() {
     return _types.typeType;
   }
 
@@ -883,15 +956,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (variable != null) {
       Local local = _localsMap.getLocalVariable(variable);
       if (!_capturedVariables.contains(local)) {
-        TypeInformation refinedType = _types
-            .refineReceiver(selector, mask, receiverType, isConditional: false);
         DartType type = _localsMap.getLocalType(_elementMap, local);
         _state.updateLocal(
-            _inferrer, _capturedAndBoxed, local, refinedType, node, type);
-        List<Refinement> refinements = _localRefinementMap[variable];
-        if (refinements != null) {
-          refinements.add(new Refinement(selector, mask));
-        }
+            _inferrer, _capturedAndBoxed, local, receiverType, node, type,
+            isNullable: selector.appliesToNullWithoutThrow());
       }
     }
 
@@ -928,60 +996,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         callType, node, selector, mask, receiverType, arguments);
   }
 
-  /// Map from synthesized variables created for non-null operations to observed
-  /// refinements. This is used to refine locals in cases like:
-  ///
-  ///     local?.method()
-  ///
-  /// which in kernel is encoded as
-  ///
-  ///     let #t1 = local in #t1 == null ? null : #1.method()
-  ///
-  Map<ir.VariableDeclaration, List<Refinement>> _localRefinementMap =
-      <ir.VariableDeclaration, List<Refinement>>{};
-
   @override
   TypeInformation visitLet(ir.Let node) {
-    ir.VariableDeclaration alias;
-    ir.Expression body = node.body;
-    if (node.variable.name == null &&
-        node.variable.isFinal &&
-        node.variable.initializer is ir.VariableGet &&
-        body is ir.ConditionalExpression &&
-        body.condition is ir.MethodInvocation &&
-        body.then is ir.NullLiteral) {
-      ir.VariableGet get = node.variable.initializer;
-      ir.MethodInvocation invocation = body.condition;
-      ir.Expression receiver = invocation.receiver;
-      if (invocation.name.name == '==' &&
-          receiver is ir.VariableGet &&
-          receiver.variable == node.variable &&
-          invocation.arguments.positional.single is ir.NullLiteral) {
-        // We have
-        //   let #t1 = local in #t1 == null ? null : e
-        alias = get.variable;
-        _localRefinementMap[node.variable] = <Refinement>[];
-      }
-    }
     visit(node.variable);
-    TypeInformation type = visit(body);
-    if (alias != null) {
-      List<Refinement> refinements = _localRefinementMap.remove(node.variable);
-      if (refinements.isNotEmpty) {
-        Local local = _localsMap.getLocalVariable(alias);
-        DartType type = _localsMap.getLocalType(_elementMap, local);
-        TypeInformation localType =
-            _state.readLocal(_inferrer, _capturedAndBoxed, local);
-        for (Refinement refinement in refinements) {
-          localType = _types.refineReceiver(
-              refinement.selector, refinement.mask, localType,
-              isConditional: true);
-          _state.updateLocal(
-              _inferrer, _capturedAndBoxed, local, localType, node, type);
-        }
-      }
-    }
-    return type;
+    return visit(node.body);
+  }
+
+  @override
+  TypeInformation visitBlockExpression(ir.BlockExpression node) {
+    visit(node.body);
+    return visit(node.value);
   }
 
   @override
@@ -1103,16 +1127,23 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   /// Try to find the length given to a fixed array constructor call.
   int _findLength(ir.Arguments arguments) {
     ir.Expression firstArgument = arguments.positional.first;
-    if (firstArgument is ir.IntLiteral) {
+    if (firstArgument is ir.ConstantExpression &&
+        firstArgument.constant is ir.DoubleConstant) {
+      ir.DoubleConstant constant = firstArgument.constant;
+      double doubleValue = constant.value;
+      int truncatedValue = doubleValue.truncate();
+      if (doubleValue == truncatedValue) {
+        return truncatedValue;
+      }
+    } else if (firstArgument is ir.IntLiteral) {
       return firstArgument.value;
     } else if (firstArgument is ir.StaticGet) {
       MemberEntity member = _elementMap.getMember(firstArgument.target);
-      if (member.isField &&
-          (member.isStatic || member.isTopLevel) &&
-          _closedWorld.fieldNeverChanges(member)) {
-        ConstantValue value = _elementMap.getFieldConstantValue(member);
-        if (value != null && value.isInt) {
-          IntConstantValue intValue = value;
+      if (member.isField) {
+        FieldAnalysisData fieldData =
+            _closedWorld.fieldAnalysis.getFieldData(member);
+        if (fieldData.isEffectivelyConstant && fieldData.constantValue.isInt) {
+          IntConstantValue intValue = fieldData.constantValue;
           return intValue.intValue.toInt();
         }
       }
@@ -1270,8 +1301,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitStaticGet(ir.StaticGet node) {
-    MemberEntity member = _elementMap.getMember(node.target);
     AbstractValue mask = _memberData.typeOfSend(node);
+    assert(mask == null);
+    return createStaticGetTypeInformation(node, node.target, mask: mask);
+  }
+
+  TypeInformation createStaticGetTypeInformation(ir.Node node, ir.Member target,
+      {AbstractValue mask}) {
+    MemberEntity member = _elementMap.getMember(target);
     return handleStaticInvoke(
         node, new Selector.getter(member.memberName), mask, member, null);
   }
@@ -1537,7 +1574,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       Local local = _localsMap.getLocalVariable(variable);
       DartType type = _localsMap.getLocalType(_elementMap, local);
       _state.updateLocal(
-          _inferrer, _capturedAndBoxed, local, localFunctionType, node, type);
+          _inferrer, _capturedAndBoxed, local, localFunctionType, node, type,
+          isNullable: false);
     }
 
     // We don't put the closure in the work queue of the
@@ -1653,12 +1691,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       }
       Local local = _localsMap.getLocalVariable(exception);
       _state.updateLocal(
-          _inferrer, _capturedAndBoxed, local, mask, node, const DynamicType());
+          _inferrer, _capturedAndBoxed, local, mask, node, const DynamicType(),
+          isNullable: false /* `throw null` produces a NullThrownError */);
     }
     ir.VariableDeclaration stackTrace = node.stackTrace;
     if (stackTrace != null) {
       Local local = _localsMap.getLocalVariable(stackTrace);
       // TODO(johnniwinther): Use a mask based on [StackTrace].
+      // Note: stack trace may be null if users omit a stack in
+      // `completer.completeError`.
       _state.updateLocal(_inferrer, _capturedAndBoxed, local,
           _types.dynamicType, node, const DynamicType());
     }
@@ -1798,6 +1839,114 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // TODO(johnniwinther): Maybe this should be [empty] instead?
     return _types.dynamicType;
   }
+
+  @override
+  TypeInformation visitConstantExpression(ir.ConstantExpression node) {
+    return node.constant.accept(new TypeInformationConstantVisitor(this, node));
+  }
+}
+
+class TypeInformationConstantVisitor
+    implements ir.ConstantVisitor<TypeInformation> {
+  final KernelTypeGraphBuilder builder;
+  final ir.ConstantExpression expression;
+
+  TypeInformationConstantVisitor(this.builder, this.expression);
+
+  @override
+  TypeInformation defaultConstant(ir.Constant node) {
+    throw new UnsupportedError("Unexpected constant: "
+        "${node} (${node.runtimeType})");
+  }
+
+  @override
+  TypeInformation visitNullConstant(ir.NullConstant node) {
+    return builder.createNullTypeInformation();
+  }
+
+  @override
+  TypeInformation visitBoolConstant(ir.BoolConstant node) {
+    return builder.createBoolTypeInformation(node.value);
+  }
+
+  @override
+  TypeInformation visitIntConstant(ir.IntConstant node) {
+    return builder.createIntTypeInformation(node.value);
+  }
+
+  @override
+  TypeInformation visitDoubleConstant(ir.DoubleConstant node) {
+    return builder.createDoubleTypeInformation(node.value);
+  }
+
+  @override
+  TypeInformation visitStringConstant(ir.StringConstant node) {
+    return builder.createStringTypeInformation(node.value);
+  }
+
+  @override
+  TypeInformation visitSymbolConstant(ir.SymbolConstant node) {
+    return builder.createSymbolLiteralTypeInformation();
+  }
+
+  @override
+  TypeInformation visitMapConstant(ir.MapConstant node) {
+    return builder.createMapTypeInformation(
+        new ConstantReference(expression, node),
+        node.entries
+            .map((e) => new Pair(e.key.accept(this), e.value.accept(this))),
+        isConst: true);
+  }
+
+  @override
+  TypeInformation visitListConstant(ir.ListConstant node) {
+    return builder.createListTypeInformation(
+        new ConstantReference(expression, node),
+        node.entries.map((e) => e.accept(this)),
+        isConst: true);
+  }
+
+  @override
+  TypeInformation visitSetConstant(ir.SetConstant node) {
+    return builder.createSetTypeInformation(
+        new ConstantReference(expression, node),
+        node.entries.map((e) => e.accept(this)),
+        isConst: true);
+  }
+
+  @override
+  TypeInformation visitInstanceConstant(ir.InstanceConstant node) {
+    node.fieldValues.forEach((ir.Reference reference, ir.Constant value) {
+      builder._inferrer.recordTypeOfField(
+          builder._elementMap.getField(reference.asField), value.accept(this));
+    });
+    return builder._types.getConcreteTypeFor(builder
+        ._closedWorld.abstractValueDomain
+        .createNonNullExact(builder._elementMap.getClass(node.classNode)));
+  }
+
+  @override
+  TypeInformation visitPartialInstantiationConstant(
+      ir.PartialInstantiationConstant node) {
+    return builder
+        .createInstantiationTypeInformation(node.tearOffConstant.accept(this));
+  }
+
+  @override
+  TypeInformation visitTearOffConstant(ir.TearOffConstant node) {
+    return builder.createStaticGetTypeInformation(node, node.procedure);
+  }
+
+  @override
+  TypeInformation visitTypeLiteralConstant(ir.TypeLiteralConstant node) {
+    return builder.createTypeLiteralInformation();
+  }
+
+  @override
+  TypeInformation visitUnevaluatedConstant(ir.UnevaluatedConstant node) {
+    assert(false, "Unexpected unevaluated constant: $node");
+    return builder._types.dynamicType;
+  }
 }
 
 class Refinement {
@@ -1889,9 +2038,10 @@ class LocalState {
       Local local,
       TypeInformation type,
       ir.Node node,
-      DartType staticType) {
+      DartType staticType,
+      {isNullable: true}) {
     assert(type != null);
-    type = inferrer.types.narrowType(type, staticType);
+    type = inferrer.types.narrowType(type, staticType, isNullable: isNullable);
 
     FieldEntity field = capturedAndBoxed[local];
     if (field != null) {
@@ -1907,10 +2057,9 @@ class LocalState {
       Local local,
       DartType type,
       ir.Node node) {
-    TypeInformation existing = readLocal(inferrer, capturedAndBoxed, local);
-    TypeInformation newType =
-        inferrer.types.narrowType(existing, type, isNullable: false);
-    updateLocal(inferrer, capturedAndBoxed, local, newType, node, type);
+    TypeInformation currentType = readLocal(inferrer, capturedAndBoxed, local);
+    updateLocal(inferrer, capturedAndBoxed, local, currentType, node, type,
+        isNullable: false);
   }
 
   LocalState mergeFlow(InferrerEngine inferrer, LocalState other) {
@@ -2003,6 +2152,7 @@ class LocalState {
     sb.write('\n]');
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('LocalState(');

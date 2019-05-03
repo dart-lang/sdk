@@ -20,7 +20,6 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:yaml/yaml.dart';
 
@@ -86,16 +85,6 @@ abstract class AbstractDartSdk implements DartSdk {
       _analysisContext = new SdkAnalysisContext(_analysisOptions);
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
-      if (_useSummary) {
-        PackageBundle sdkBundle = getLinkedBundle();
-        if (sdkBundle != null) {
-          SummaryDataStore dataStore =
-              new SummaryDataStore([], resourceProvider: resourceProvider);
-          dataStore.addBundle(null, sdkBundle);
-          _analysisContext.resultProvider =
-              new InputPackagesResultProvider(_analysisContext, dataStore);
-        }
-      }
     }
     return _analysisContext;
   }
@@ -228,6 +217,16 @@ abstract class AbstractDartSdk implements DartSdk {
       _uriToSourceMap[dartUri] = source;
     }
     return source;
+  }
+
+  /**
+   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
+   */
+  Map<String, Object> debugInfo() {
+    return <String, Object>{
+      'runtimeType': '$runtimeType',
+      'libraryMap': libraryMap.debugInfo(),
+    };
   }
 
   String _getPath(File file) {
@@ -549,6 +548,16 @@ class FolderBasedDartSdk extends AbstractDartSdk {
       }
     }
     return _sdkVersion;
+  }
+
+  /**
+   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
+   */
+  @override
+  Map<String, Object> debugInfo() {
+    var result = super.debugInfo();
+    result['directory'] = _sdkDirectory.path;
+    return result;
   }
 
   /**

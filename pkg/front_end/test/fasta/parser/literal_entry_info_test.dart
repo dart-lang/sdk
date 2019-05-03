@@ -21,47 +21,49 @@ main() {
 class CollectionElementTest {
   test_closingBrace() {
     parseEntry(
-      'before }',
+      '[ }',
       [
         'handleIdentifier  expression',
         'handleNoTypeArguments }',
         'handleNoArguments }',
         'handleSend  }',
+        'handleLiteralList 1, [, null, ]',
       ],
-      errors: [error(codeExpectedIdentifier, 7, 1)],
+      errors: [error(codeExpectedIdentifier, 2, 1)],
       expectAfter: '}',
     );
   }
 
   test_comma() {
     parseEntry(
-      'before ,',
+      '[ ,',
       [
         'handleIdentifier  expression',
         'handleNoTypeArguments ,',
         'handleNoArguments ,',
         'handleSend  ,',
+        'handleLiteralList 1, [, null, ]',
       ],
-      errors: [error(codeExpectedIdentifier, 7, 1)],
-      expectAfter: ',',
+      errors: [error(codeExpectedIdentifier, 2, 1)],
     );
   }
 
   test_expression() {
     parseEntry(
-      'before x',
+      '[ x',
       [
         'handleIdentifier x expression',
-        'handleNoTypeArguments ',
-        'handleNoArguments ',
-        'handleSend x ',
+        'handleNoTypeArguments ]',
+        'handleNoArguments ]',
+        'handleSend x ]',
+        'handleLiteralList 1, [, null, ]',
       ],
     );
   }
 
   test_for() {
     parseEntry(
-      'before for (var i = 0; i < 10; ++i) 2',
+      '[ for (var i = 0; i < 10; ++i) 2',
       [
         'beginForControlFlow null for',
         'beginMetadataStar var',
@@ -92,13 +94,14 @@ class CollectionElementTest {
         'handleForInitializerExpressionStatement for ( ; 1',
         'handleLiteralInt 2',
         'endForControlFlow 2',
+        'handleLiteralList 1, [, null, ]',
       ],
     );
   }
 
   test_forForFor() {
     parseEntry(
-      'before for (var i = 0; i < 10; ++i) for (x in y) for (var a in [6]) 2',
+      '[ for (var i = 0; i < 10; ++i) for (x in y) for (var a in [6]) 2',
       [
         // for (var i = 0; i < 10; ++i)
         'beginForControlFlow null for',
@@ -168,13 +171,14 @@ class CollectionElementTest {
         'endForInControlFlow 2',
         // end for
         'endForControlFlow 2',
+        'handleLiteralList 1, [, null, ]',
       ],
     );
   }
 
   test_forIfForElse() {
     parseEntry(
-      'before await for (var x in y) if (a) for (b in c) 2 else 7',
+      '[ await for (var x in y) if (a) for (b in c) 2 else 7',
       [
         // await for (var x in y)
         'beginForControlFlow await for',
@@ -202,6 +206,7 @@ class CollectionElementTest {
         'handleNoArguments )',
         'handleSend a )',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         // nested for (b in c)
         'beginForControlFlow null for',
         'handleIdentifier b expression',
@@ -228,6 +233,7 @@ class CollectionElementTest {
         'endIfElseControlFlow 7',
         // end for
         'endForInControlFlow 7',
+        'handleLiteralList 1, [, null, ]',
       ],
       inAsync: true,
     );
@@ -235,7 +241,7 @@ class CollectionElementTest {
 
   test_forIn() {
     parseEntry(
-      'before await for (var x in y) 2',
+      '[ await for (var x in y) 2',
       [
         'beginForControlFlow await for',
         'beginMetadataStar var',
@@ -257,6 +263,7 @@ class CollectionElementTest {
         'handleForInLoopParts await for ( in',
         'handleLiteralInt 2',
         'endForInControlFlow 2',
+        'handleLiteralList 1, [, null, ]',
       ],
       inAsync: true,
     );
@@ -264,7 +271,7 @@ class CollectionElementTest {
 
   test_forInSpread() {
     parseEntry(
-      'before for (var x in y) ...[2]',
+      '[ for (var x in y) ...[2]',
       [
         'beginForControlFlow null for',
         'beginMetadataStar var',
@@ -289,13 +296,14 @@ class CollectionElementTest {
         'handleLiteralList 1, [, null, ]',
         'handleSpreadExpression ...',
         'endForInControlFlow ]',
+        'handleLiteralList 1, [, null, ]',
       ],
     );
   }
 
   test_forSpreadQ() {
     parseEntry(
-      'before for (i = 0; i < 10; ++i) ...[2]',
+      '[ for (i = 0; i < 10; ++i) ...[2]',
       [
         'beginForControlFlow null for',
         'handleIdentifier i expression',
@@ -324,46 +332,52 @@ class CollectionElementTest {
         'handleLiteralList 1, [, null, ]',
         'handleSpreadExpression ...',
         'endForControlFlow ]',
+        'handleLiteralList 1, [, null, ]',
       ],
     );
   }
 
   test_if() {
     parseEntry(
-      'before if (true) 2',
+      '[ if (true) 2',
       [
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         'handleLiteralInt 2',
         'endIfControlFlow 2',
+        'handleLiteralList 1, [, null, ]',
       ],
     );
   }
 
   test_ifElse() {
     parseEntry(
-      'before if (true) 2 else 5',
+      '[ if (true) 2 else 5',
       [
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         'handleLiteralInt 2',
         'handleElseControlFlow else',
         'handleLiteralInt 5',
         'endIfElseControlFlow 5',
+        'handleLiteralList 1, [, null, ]',
       ],
     );
   }
 
   test_ifFor() {
     parseEntry(
-      'before if (true) for (x in y) 2',
+      '[ if (true) for (x in y) 2',
       [
         // if (true)
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         // nested for (x in y)
         'beginForControlFlow null for',
         'handleIdentifier x expression',
@@ -384,18 +398,20 @@ class CollectionElementTest {
         'endForInControlFlow 2',
         // end if
         'endIfControlFlow 2',
+        'handleLiteralList 1, [, null, ]',
       ],
     );
   }
 
   test_ifForElseIfFor() {
     parseEntry(
-      'before if (true) for (a in b) 2 else if (c) for (d in e) 5',
+      '[ if (true) for (a in b) 2 else if (c) for (d in e) 5',
       [
         // if (true)
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         // nested for (a in b)
         'beginForControlFlow null for',
         'handleIdentifier a expression',
@@ -423,6 +439,7 @@ class CollectionElementTest {
         'handleNoArguments )',
         'handleSend c )',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         // nested for (d in e)
         'beginForControlFlow null for',
         'handleIdentifier d expression',
@@ -445,33 +462,37 @@ class CollectionElementTest {
         'endIfControlFlow 5',
         // end else
         'endIfElseControlFlow 5',
+        'handleLiteralList 1, [, null, ]',
       ],
     );
   }
 
   test_ifSpreadQ() {
     parseEntry(
-      'before if (true) ...?[2]',
+      '[ if (true) ...?[2]',
       [
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         'handleNoTypeArguments [',
         'handleLiteralInt 2',
         'handleLiteralList 1, [, null, ]',
         'handleSpreadExpression ...?',
         'endIfControlFlow ]',
+        'handleLiteralList 1, [, null, ]',
       ],
     );
   }
 
   test_ifElseSpreadQ() {
     parseEntry(
-      'before if (true) ...?[2] else ... const {5}',
+      '[ if (true) ...?[2] else ... const {5}',
       [
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         'handleNoTypeArguments [',
         'handleLiteralInt 2',
         'handleLiteralList 1, [, null, ]',
@@ -480,35 +501,39 @@ class CollectionElementTest {
         'beginConstLiteral {',
         'handleNoTypeArguments {',
         'handleLiteralInt 5',
-        'handleLiteralSet 1, {, const, }',
-        'endConstLiteral ',
+        'handleLiteralSetOrMap 1, {, const, }',
+        'endConstLiteral ]',
         'handleSpreadExpression ...',
         'endIfElseControlFlow }',
+        'handleLiteralList 1, [, null, ]',
       ],
     );
   }
 
   test_intLiteral() {
-    parseEntry('before 1', [
+    parseEntry('[ 1', [
       'handleLiteralInt 1',
+      'handleLiteralList 1, [, null, ]',
     ]);
   }
 
   test_spread() {
-    parseEntry('before ...[1]', [
+    parseEntry('[ ...[1]', [
       'handleNoTypeArguments [',
       'handleLiteralInt 1',
       'handleLiteralList 1, [, null, ]',
       'handleSpreadExpression ...',
+      'handleLiteralList 1, [, null, ]',
     ]);
   }
 
   test_spreadQ() {
-    parseEntry('before ...?[1]', [
+    parseEntry('[ ...?[1]', [
       'handleNoTypeArguments [',
       'handleLiteralInt 1',
       'handleLiteralList 1, [, null, ]',
       'handleSpreadExpression ...?',
+      'handleLiteralList 1, [, null, ]',
     ]);
   }
 
@@ -518,7 +543,7 @@ class CollectionElementTest {
     final listener = new TestInfoListener();
     final parser = new Parser(listener);
     if (inAsync != null) parser.asyncState = AsyncModifier.Async;
-    final lastConsumed = parser.parseListOrSetLiteralEntry(start);
+    final lastConsumed = parser.parseLiteralListSuffix(start, null);
 
     expect(listener.errors, errors);
     try {
@@ -696,7 +721,7 @@ class MapElementTest {
         'handleLiteralInt 2',
         'handleLiteralInt 3',
         'handleLiteralMapEntry :, }',
-        'handleLiteralMap 1, {, null, }',
+        'handleLiteralSetOrMap 1, {, null, }',
         'handleSpreadExpression ...',
         'endForInControlFlow }',
       ],
@@ -733,7 +758,7 @@ class MapElementTest {
         'handleLiteralInt 2',
         'handleLiteralInt 7',
         'handleLiteralMapEntry :, }',
-        'handleLiteralMap 1, {, null, }',
+        'handleLiteralSetOrMap 1, {, null, }',
         'handleSpreadExpression ...?',
         'endForControlFlow }',
       ],
@@ -747,6 +772,7 @@ class MapElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         'handleLiteralInt 2',
         'handleLiteralInt 3',
         'handleLiteralMapEntry :, ',
@@ -762,11 +788,12 @@ class MapElementTest {
         'beginIfControlFlow if',
         'handleLiteralBool true',
         'handleParenthesizedCondition (',
+        'beginThenControlFlow )',
         'handleNoTypeArguments {',
         'handleLiteralInt 2',
         'handleLiteralInt 3',
         'handleLiteralMapEntry :, }',
-        'handleLiteralMap 1, {, null, }',
+        'handleLiteralSetOrMap 1, {, null, }',
         'handleSpreadExpression ...',
         'endIfControlFlow }',
       ],
@@ -788,7 +815,7 @@ class MapElementTest {
       'handleLiteralInt 1',
       'handleLiteralInt 2',
       'handleLiteralMapEntry :, }',
-      'handleLiteralMap 1, {, const, }',
+      'handleLiteralSetOrMap 1, {, const, }',
       'endConstLiteral ',
       'handleSpreadExpression ...',
     ]);
@@ -801,7 +828,7 @@ class MapElementTest {
       'handleLiteralInt 1',
       'handleLiteralInt 3',
       'handleLiteralMapEntry :, }',
-      'handleLiteralMap 1, {, const, }',
+      'handleLiteralSetOrMap 1, {, const, }',
       'endConstLiteral ',
       'handleSpreadExpression ...?',
     ]);
@@ -857,6 +884,11 @@ class TestInfoListener implements Listener {
   @override
   void beginIfControlFlow(Token ifToken) {
     calls.add('beginIfControlFlow $ifToken');
+  }
+
+  @override
+  void beginThenControlFlow(Token token) {
+    calls.add('beginThenControlFlow $token');
   }
 
   @override
@@ -996,21 +1028,22 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void handleLiteralMap(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
-    calls
-        .add('handleLiteralMap $count, $leftBrace, $constKeyword, $rightBrace');
+  void handleLiteralSetOrMap(
+    int count,
+    Token leftBrace,
+    Token constKeyword,
+    Token rightBrace,
+    // TODO(danrubel): hasSetEntry parameter exists for replicating existing
+    // behavior and will be removed once unified collection has been enabled
+    bool hasSetEntry,
+  ) {
+    calls.add(
+        'handleLiteralSetOrMap $count, $leftBrace, $constKeyword, $rightBrace');
   }
 
   @override
   void handleLiteralMapEntry(Token colon, Token endToken) {
     calls.add('handleLiteralMapEntry $colon, $endToken');
-  }
-
-  @override
-  void handleLiteralSet(
-      int count, Token beginToken, Token constKeyword, Token token) {
-    calls.add('handleLiteralSet $count, $beginToken, $constKeyword, $token');
   }
 
   @override

@@ -7,6 +7,7 @@ import 'package:analysis_server/src/nullability/constraint_gatherer.dart';
 import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -41,11 +42,7 @@ class ConditionalModification extends PotentialModification {
 
   final _KeepNode elseStatement;
 
-  @override
-  final Source source;
-
-  factory ConditionalModification(
-      Source source, AstNode node, ConditionalDiscard discard) {
+  factory ConditionalModification(AstNode node, ConditionalDiscard discard) {
     if (node is IfStatement) {
       return ConditionalModification._(
           node.offset,
@@ -54,25 +51,17 @@ class ConditionalModification extends PotentialModification {
           discard,
           _KeepNode(node.condition),
           _KeepNode(node.thenStatement),
-          _KeepNode(node.elseStatement),
-          source);
+          _KeepNode(node.elseStatement));
     } else {
       throw new UnimplementedError('TODO(paulberry)');
     }
   }
 
-  ConditionalModification._(
-      this.offset,
-      this.end,
-      this.isStatement,
-      this.discard,
-      this.condition,
-      this.thenStatement,
-      this.elseStatement,
-      this.source);
+  ConditionalModification._(this.offset, this.end, this.isStatement,
+      this.discard, this.condition, this.thenStatement, this.elseStatement);
 
   @override
-  bool get isEmpty => discard.keepTrue.value && discard.keepFalse.value;
+  bool get isEmpty => discard.keepTrue && discard.keepFalse;
 
   @override
   Iterable<SourceEdit> get modifications {
@@ -84,10 +73,10 @@ class ConditionalModification extends PotentialModification {
     if (!discard.pureCondition) {
       keepNodes.add(condition); // TODO(paulberry): test
     }
-    if (discard.keepTrue.value) {
+    if (discard.keepTrue) {
       keepNodes.add(thenStatement); // TODO(paulberry): test
     }
-    if (discard.keepFalse.value) {
+    if (discard.keepFalse) {
       keepNodes.add(elseStatement); // TODO(paulberry): test
     }
     // TODO(paulberry): test thoroughly
@@ -171,7 +160,7 @@ class NullabilityMigration {
       this.assumptions: const NullabilityMigrationAssumptions()})
       : _permissive = permissive;
 
-  List<PotentialModification> finish() {
+  Map<Source, List<PotentialModification>> finish() {
     _constraints.applyHeuristics();
     return _variables.getPotentialModifications();
   }
@@ -205,25 +194,57 @@ class NullabilityMigrationAssumptions {
       {this.defaultParameterHandling:
           DefaultParameterHandling.option2_addRequiredNamedParameters,
       this.namedNoDefaultParameterHeuristic:
-          NamedNoDefaultParameterHeuristic.assumeRequired});
+          NamedNoDefaultParameterHeuristic.assumeNullable});
+}
+
+/// Records information about the possible addition of an import
+/// to the source code.
+class PotentiallyAddImport extends PotentialModification {
+  final _usages = <PotentialModification>[];
+
+  final int _offset;
+  final String _importPath;
+
+  PotentiallyAddImport(
+      AstNode beforeNode, this._importPath, PotentialModification usage)
+      : _offset = beforeNode.offset {
+    _usages.add(usage);
+  }
+
+  get importPath => _importPath;
+
+  @override
+  bool get isEmpty {
+    for (PotentialModification usage in _usages) {
+      if (!usage.isEmpty) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // TODO(danrubel): change all of dartfix NNBD to use DartChangeBuilder
+  @override
+  Iterable<SourceEdit> get modifications =>
+      isEmpty ? const [] : [SourceEdit(_offset, 0, "import '$_importPath';\n")];
+
+  void addUsage(PotentialModification usage) {
+    _usages.add(usage);
+  }
 }
 
 /// Records information about the possible addition of a `@required` annotation
 /// to the source code.
 class PotentiallyAddRequired extends PotentialModification {
-  @override
-  final Source source;
-
-  final ConstraintVariable _optionalVariable;
+  final NullabilityNode _node;
 
   final int _offset;
 
-  PotentiallyAddRequired(
-      this.source, DefaultFormalParameter parameter, this._optionalVariable)
+  PotentiallyAddRequired(DefaultFormalParameter parameter, this._node)
       : _offset = parameter.offset;
 
   @override
-  bool get isEmpty => _optionalVariable.value;
+  bool get isEmpty => _node.isNullable;
 
   @override
   Iterable<SourceEdit> get modifications =>
@@ -238,14 +259,12 @@ abstract class PotentialModification {
   /// Gets the individual migrations that need to be done, considering the
   /// solution to the constraint equations.
   Iterable<SourceEdit> get modifications;
-
-  Source get source;
 }
 
 class Variables implements VariableRecorder, VariableRepository {
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
-  final _potentialModifications = <PotentialModification>[];
+  final _potentialModifications = <Source, List<PotentialModification>>{};
 
   @override
   DecoratedType decoratedElementType(Element element, {bool create: false}) =>
@@ -253,14 +272,14 @@ class Variables implements VariableRecorder, VariableRepository {
           ? DecoratedType.forElement(element)
           : throw StateError('No element found');
 
-  List<PotentialModification> getPotentialModifications() =>
-      _potentialModifications.where((m) => !m.isEmpty).toList();
+  Map<Source, List<PotentialModification>> getPotentialModifications() =>
+      _potentialModifications;
 
   @override
   void recordConditionalDiscard(
       Source source, AstNode node, ConditionalDiscard conditionalDiscard) {
-    _potentialModifications
-        .add(ConditionalModification(source, node, conditionalDiscard));
+    _addPotentialModification(
+        source, ConditionalModification(node, conditionalDiscard));
   }
 
   void recordDecoratedElementType(Element element, DecoratedType type) {
@@ -270,20 +289,73 @@ class Variables implements VariableRecorder, VariableRepository {
   void recordDecoratedExpressionType(Expression node, DecoratedType type) {}
 
   void recordDecoratedTypeAnnotation(
-      TypeAnnotation node, DecoratedTypeAnnotation type) {
-    _potentialModifications.add(type);
+      Source source, TypeAnnotation node, DecoratedTypeAnnotation type) {
+    _addPotentialModification(source, type);
   }
 
   @override
-  void recordExpressionChecks(Expression expression, ExpressionChecks checks) {
-    _potentialModifications.add(checks);
+  void recordExpressionChecks(
+      Source source, Expression expression, ExpressionChecks checks) {
+    _addPotentialModification(source, checks);
   }
 
   @override
-  void recordPossiblyOptional(Source source, DefaultFormalParameter parameter,
-      ConstraintVariable variable) {
-    _potentialModifications
-        .add(PotentiallyAddRequired(source, parameter, variable));
+  void recordPossiblyOptional(
+      Source source, DefaultFormalParameter parameter, NullabilityNode node) {
+    var modification = PotentiallyAddRequired(parameter, node);
+    _addPotentialModification(source, modification);
+    _addPotentialImport(
+        source, parameter, modification, 'package:meta/meta.dart');
+  }
+
+  void _addPotentialImport(Source source, AstNode node,
+      PotentialModification usage, String importPath) {
+    // Get the compilation unit - assume not null
+    while (node is! CompilationUnit) {
+      node = node.parent;
+    }
+    var unit = node as CompilationUnit;
+
+    // Find an existing import
+    for (var directive in unit.directives) {
+      if (directive is ImportDirective) {
+        if (directive.uri.stringValue == importPath) {
+          return;
+        }
+      }
+    }
+
+    // Add the usage to an existing modification if possible
+    for (var modification in (_potentialModifications[source] ??= [])) {
+      if (modification is PotentiallyAddImport) {
+        if (modification.importPath == importPath) {
+          modification.addUsage(usage);
+          return;
+        }
+      }
+    }
+
+    // Create a new import modification
+    AstNode beforeNode;
+    for (var directive in unit.directives) {
+      if (directive is ImportDirective || directive is ExportDirective) {
+        beforeNode = directive;
+        break;
+      }
+    }
+    if (beforeNode == null) {
+      for (var declaration in unit.declarations) {
+        beforeNode = declaration;
+        break;
+      }
+    }
+    _addPotentialModification(
+        source, PotentiallyAddImport(beforeNode, importPath, usage));
+  }
+
+  void _addPotentialModification(
+      Source source, PotentialModification potentialModification) {
+    (_potentialModifications[source] ??= []).add(potentialModification);
   }
 }
 

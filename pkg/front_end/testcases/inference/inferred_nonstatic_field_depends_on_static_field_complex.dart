@@ -6,8 +6,8 @@
 library test;
 
 class C {
-  static var /*@topType=String*/ x = 'x';
-  var /*@topType=Map<String, Map<String, String>>*/ y = /*@typeArgs=String, Map<String, String>*/ {
+  static var x = 'x';
+  var y = /*@typeArgs=String, Map<String, String>*/ {
     'a': /*@typeArgs=String, String*/ {'b': 'c'},
     'd': /*@typeArgs=String, String*/ {'e': x}
   };

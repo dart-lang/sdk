@@ -5,7 +5,19 @@
 // This file contains test functions for the dart:ffi test cases.
 
 #include <stddef.h>
+#include <stdlib.h>
+#include <sys/types.h>
+
+#include "platform/assert.h"
+#include "platform/globals.h"
+#if defined(HOST_OS_WINDOWS)
+#include <psapi.h>
+#else
+#include <unistd.h>
+#endif
+
 #include <iostream>
+#include <limits>
 
 #include "include/dart_api.h"
 
@@ -20,6 +32,62 @@ DART_EXPORT int32_t SumPlus42(int32_t a, int32_t b) {
   int32_t retval = 42 + a + b;
   std::cout << "returning " << retval << "\n";
   return retval;
+}
+
+//// Tests for sign and zero extension of arguments and results.
+
+DART_EXPORT uint8_t ReturnMaxUint8() {
+  return 0xff;
+}
+
+DART_EXPORT uint16_t ReturnMaxUint16() {
+  return 0xffff;
+}
+
+DART_EXPORT uint32_t ReturnMaxUint32() {
+  return 0xffffffff;
+}
+
+DART_EXPORT int8_t ReturnMinInt8() {
+  return 0x80;
+}
+
+DART_EXPORT int16_t ReturnMinInt16() {
+  return 0x8000;
+}
+
+DART_EXPORT int32_t ReturnMinInt32() {
+  return 0x80000000;
+}
+
+DART_EXPORT intptr_t TakeMaxUint8(uint8_t x) {
+  return x == 0xff ? 1 : 0;
+}
+
+DART_EXPORT intptr_t TakeMaxUint16(uint16_t x) {
+  return x == 0xffff ? 1 : 0;
+}
+
+DART_EXPORT intptr_t TakeMaxUint32(uint32_t x) {
+  return x == 0xffffffff ? 1 : 0;
+}
+
+DART_EXPORT intptr_t TakeMinInt8(int8_t x) {
+  const int64_t expected = -0x80;
+  const int64_t received = x;
+  return expected == received ? 1 : 0;
+}
+
+DART_EXPORT intptr_t TakeMinInt16(int16_t x) {
+  const int64_t expected = -0x8000;
+  const int64_t received = x;
+  return expected == received ? 1 : 0;
+}
+
+DART_EXPORT intptr_t TakeMinInt32(int32_t x) {
+  const int64_t expected = -(int32_t)0x80000000;
+  const int64_t received = x;
+  return expected == received ? 1 : 0;
 }
 
 // Performs some computation on various sized signed ints.
@@ -364,5 +432,82 @@ DART_EXPORT uint8_t IsRoughly1337(float* a) {
   std::cout << "returning " << static_cast<int>(retval) << "\n";
   return retval;
 }
+
+// Does nothing with input.
+// Used for testing functions that return void
+DART_EXPORT void DevNullFloat(float a) {
+  std::cout << "DevNullFloat(" << a << ")\n";
+  std::cout << "returning nothing\n";
+}
+
+// Invents an elite floating point number.
+// Used for testing functions that do not take any arguments.
+DART_EXPORT float InventFloatValue() {
+  std::cout << "InventFloatValue()\n";
+  float retval = 1337.0f;
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
+// Functions for stress-testing GC by returning values that require boxing.
+
+DART_EXPORT int64_t MinInt64() {
+  return 0x8000000000000000;
+}
+
+DART_EXPORT int64_t MinInt32() {
+  return 0x80000000;
+}
+
+DART_EXPORT double SmallDouble() {
+  return 0x80000000 * -1.0;
+}
+
+// Requires boxing on 32-bit and 64-bit systems, even if the top 32-bits are
+// truncated.
+DART_EXPORT void* LargePointer() {
+  uint64_t origin = 0x8100000082000000;
+  return *reinterpret_cast<void**>(&origin);
+}
+
+// Allocates 'count'-many Mint boxes, to stress-test GC during an FFI call.
+DART_EXPORT void AllocateMints(uint64_t count) {
+  Dart_EnterScope();
+  for (uint64_t i = 0; i < count; ++i) {
+    Dart_NewInteger(0x8000000000000001);
+  }
+  Dart_ExitScope();
+}
+
+// Calls a Dart function to allocate 'count' objects.
+// Used for stress-testing GC when re-entering the API.
+DART_EXPORT void AllocateThroughDart(uint64_t count) {
+  Dart_EnterScope();
+  Dart_Handle root = Dart_RootLibrary();
+  Dart_Handle arguments[1] = {Dart_NewIntegerFromUint64(count)};
+  Dart_Handle result = Dart_Invoke(
+      root, Dart_NewStringFromCString("testAllocationsInDartHelper"), 1,
+      arguments);
+  const char* error;
+  if (Dart_IsError(result)) {
+    Dart_StringToCString(Dart_ToString(result), &error);
+    fprintf(stderr, "Could not call 'testAllocationsInDartHelper': %s\n",
+            error);
+    Dart_DumpNativeStackTrace(nullptr);
+    Dart_PrepareToAbort();
+    abort();
+  }
+  Dart_ExitScope();
+}
+
+#if !defined(_WIN32)
+DART_EXPORT int RedirectStderr() {
+  char filename[256];
+  snprintf(filename, sizeof(filename), "/tmp/captured_stderr_%d", getpid());
+  freopen(filename, "w", stderr);
+  printf("Got file %s\n", filename);
+  return getpid();
+}
+#endif
 
 }  // namespace dart

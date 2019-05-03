@@ -675,10 +675,10 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
       Location loc;
       switch (param->kind()) {
         case SpecialParameterInstr::kException:
-          loc = Location::ExceptionLocation();
+          loc = LocationExceptionLocation();
           break;
         case SpecialParameterInstr::kStackTrace:
-          loc = Location::StackTraceLocation();
+          loc = LocationStackTraceLocation();
           break;
         default:
           UNREACHABLE();
@@ -752,6 +752,9 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     if (param->base_reg() == FPREG) {
       slot_index =
           compiler::target::frame_layout.FrameSlotForVariableIndex(-slot_index);
+    } else {
+      ASSERT(param->base_reg() == SPREG);
+      slot_index += compiler::target::frame_layout.last_param_from_entry_sp;
     }
     range->set_assigned_location(
         Location::StackSlot(slot_index, param->base_reg()));
@@ -761,7 +764,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     ASSERT(param->kind() == SpecialParameterInstr::kArgDescriptor);
     Location loc;
 #if defined(TARGET_ARCH_DBC)
-    loc = Location::ArgumentsDescriptorLocation();
+    loc = LocationArgumentsDescriptorLocation();
 #else
     loc = Location::RegisterLocation(ARGS_DESC_REG);
 #endif  // defined(TARGET_ARCH_DBC)
@@ -824,8 +827,9 @@ static Location::Kind RegisterKindFromPolicy(Location loc) {
 static Location::Kind RegisterKindForResult(Instruction* instr) {
   const Representation rep = instr->representation();
 #if !defined(TARGET_ARCH_DBC)
-  if ((rep == kUnboxedDouble) || (rep == kUnboxedFloat32x4) ||
-      (rep == kUnboxedInt32x4) || (rep == kUnboxedFloat64x2)) {
+  if ((rep == kUnboxedFloat) || (rep == kUnboxedDouble) ||
+      (rep == kUnboxedFloat32x4) || (rep == kUnboxedInt32x4) ||
+      (rep == kUnboxedFloat64x2)) {
     return Location::kFpuRegister;
   } else {
     return Location::kRegister;
@@ -1454,7 +1458,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 #if defined(DEBUG)
     // Verify that temps, inputs and output were specified as fixed
     // locations.  Every register is blocked now so attempt to
-    // allocate will not succeed.
+    // allocate will go on the stack.
     for (intptr_t j = 0; j < locs->temp_count(); j++) {
       ASSERT(!locs->temp(j).IsPairLocation());
       ASSERT(!locs->temp(j).IsUnallocated());
@@ -1463,10 +1467,13 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     for (intptr_t j = 0; j < locs->input_count(); j++) {
       if (locs->in(j).IsPairLocation()) {
         PairLocation* pair = locs->in_slot(j)->AsPairLocation();
-        ASSERT(!pair->At(0).IsUnallocated());
-        ASSERT(!pair->At(1).IsUnallocated());
+        ASSERT(!pair->At(0).IsUnallocated() ||
+               pair->At(0).policy() == Location::kAny);
+        ASSERT(!pair->At(1).IsUnallocated() ||
+               pair->At(1).policy() == Location::kAny);
       } else {
-        ASSERT(!locs->in(j).IsUnallocated());
+        ASSERT(!locs->in(j).IsUnallocated() ||
+               locs->in(j).policy() == Location::kAny);
       }
     }
 
@@ -2042,7 +2049,7 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
   if (register_kind_ == Location::kRegister) {
     const intptr_t slot_index =
         compiler::target::frame_layout.FrameSlotForVariableIndex(-idx);
-    range->set_spill_slot(Location::StackSlot(slot_index));
+    range->set_spill_slot(Location::StackSlot(slot_index, FPREG));
   } else {
     // We use the index of the slot with the lowest address as an index for the
     // FPU register spill slot. In terms of indexes this relation is inverted:
@@ -2057,10 +2064,11 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
         (range->representation() == kUnboxedInt32x4) ||
         (range->representation() == kUnboxedFloat64x2)) {
       ASSERT(need_quad);
-      location = Location::QuadStackSlot(slot_idx);
+      location = Location::QuadStackSlot(slot_idx, FPREG);
     } else {
-      ASSERT((range->representation() == kUnboxedDouble));
-      location = Location::DoubleStackSlot(slot_idx);
+      ASSERT(range->representation() == kUnboxedFloat ||
+             range->representation() == kUnboxedDouble);
+      location = Location::DoubleStackSlot(slot_idx, FPREG);
     }
     range->set_spill_slot(location);
   }

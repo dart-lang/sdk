@@ -225,11 +225,10 @@ abstract class IncompleteSendGenerator extends KernelGenerator {
 
 class IncompleteErrorGenerator extends IncompleteSendGenerator
     with ErroneousExpressionGenerator {
-  final Member member;
   final Message message;
 
   IncompleteErrorGenerator(
-      ExpressionGeneratorHelper helper, Token token, this.member, this.message)
+      ExpressionGeneratorHelper helper, Token token, this.message)
       : super(helper, token, null);
 
   String get plainNameForRead => token.lexeme;

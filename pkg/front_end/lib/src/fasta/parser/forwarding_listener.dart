@@ -224,6 +224,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginThenControlFlow(Token token) {
+    listener?.beginThenControlFlow(token);
+  }
+
+  @override
   void beginIfStatement(Token token) {
     listener?.beginIfStatement(token);
   }
@@ -703,6 +708,20 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleLiteralSetOrMap(
+    int count,
+    Token leftBrace,
+    Token constKeyword,
+    Token rightBrace,
+    // TODO(danrubel): hasSetEntry parameter exists for replicating existing
+    // behavior and will be removed once unified collection has been enabled
+    bool hasSetEntry,
+  ) {
+    listener?.handleLiteralSetOrMap(
+        count, leftBrace, constKeyword, rightBrace, hasSetEntry);
+  }
+
+  @override
   void endLiteralString(int interpolationCount, Token endToken) {
     listener?.endLiteralString(interpolationCount, endToken);
   }
@@ -1013,9 +1032,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleLiteralSetOrMap(
-      int count, Token leftBrace, Token constKeyword, Token rightBrace) {
-    listener?.handleLiteralSetOrMap(count, leftBrace, constKeyword, rightBrace);
+  void handleErrorToken(ErrorToken token) {
+    listener?.handleErrorToken(token);
   }
 
   @override
@@ -1124,6 +1142,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleLanguageVersion(Token commentToken, int major, int minor) {
+    listener?.handleLanguageVersion(commentToken, major, minor);
+  }
+
+  @override
   void handleLiteralBool(Token token) {
     listener?.handleLiteralBool(token);
   }
@@ -1145,20 +1168,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleLiteralMap(
-      int count, Token beginToken, Token constKeyword, Token endToken) {
-    listener?.handleLiteralMap(count, beginToken, constKeyword, endToken);
-  }
-
-  @override
   void handleLiteralNull(Token token) {
     listener?.handleLiteralNull(token);
-  }
-
-  @override
-  void handleLiteralSet(
-      int count, Token beginToken, Token constKeyword, Token token) {
-    listener?.handleLiteralSet(count, beginToken, constKeyword, token);
   }
 
   @override
@@ -1263,6 +1274,11 @@ class ForwardingListener implements Listener {
   @override
   void handleNoInitializers() {
     listener?.handleNoInitializers();
+  }
+
+  @override
+  void handleNonNullAssertExpression(Token bang) {
+    listener?.handleNonNullAssertExpression(bang);
   }
 
   @override
@@ -1447,6 +1463,11 @@ class ForwardingListener implements Listener {
   @override
   void reportErrorIfNullableType(Token questionMark) {
     listener?.reportErrorIfNullableType(questionMark);
+  }
+
+  @override
+  void reportNonNullAssertExpressionNotEnabled(Token bang) {
+    listener?.reportNonNullAssertExpressionNotEnabled(bang);
   }
 
   @override

@@ -136,6 +136,7 @@ class Impact {
       this.implicitCasts: const <String>[],
       this.parameterChecks: const <String>[]});
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('Impact(');

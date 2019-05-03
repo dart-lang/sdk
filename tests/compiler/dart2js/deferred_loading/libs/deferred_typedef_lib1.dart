@@ -12,7 +12,7 @@ class C {
   /*element: C.b:OutputUnit(1, {lib1})*/
   final b;
 
-  /*element: C.:OutputUnit(1, {lib1})*/
+  /*strong.element: C.:OutputUnit(1, {lib1})*/
   const C(this.a, this.b);
 }
 
@@ -23,8 +23,8 @@ typedef void MyF2();
 /*element: topLevelMethod:OutputUnit(1, {lib1})*/
 topLevelMethod() {}
 
-/*element: cA:OutputUnit(1, {lib1})*/
-const cA = /*OutputUnit(1, {lib1})*/ const C(MyF1, topLevelMethod);
+/*strong.element: cA:OutputUnit(1, {lib1})*/
+const cA = /*strong.OutputUnit(1, {lib1})*/ const C(MyF1, topLevelMethod);
 
-/*element: cB:OutputUnit(1, {lib1})*/
-const cB = /*OutputUnit(1, {lib1})*/ MyF2;
+/*strong.element: cB:OutputUnit(1, {lib1})*/
+const cB = /*strong.OutputUnit(1, {lib1})*/ MyF2;

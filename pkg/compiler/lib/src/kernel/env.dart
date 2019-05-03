@@ -253,13 +253,13 @@ abstract class KClassEnv {
   MemberEntity lookupMember(IrToElementMap elementMap, String name,
       {bool setter: false});
 
-  /// Calls [f] for each member of the class.
+  /// Calls [f] for each member of [cls].
   void forEachMember(IrToElementMap elementMap, void f(MemberEntity member));
 
-  /// Return the [ConstructorEntity] for the constructor [name] in the class.
+  /// Return the [ConstructorEntity] for the constructor [name] in [cls].
   ConstructorEntity lookupConstructor(IrToElementMap elementMap, String name);
 
-  /// Calls [f] for each constructor of the class.
+  /// Calls [f] for each constructor of [cls].
   void forEachConstructor(
       IrToElementMap elementMap, void f(ConstructorEntity constructor));
 
@@ -285,6 +285,7 @@ int orderByFileOffset(ir.TreeNode a, ir.TreeNode b) {
 
 /// Environment for fast lookup of class members.
 class KClassEnvImpl implements KClassEnv {
+  @override
   final ir.Class cls;
 
   Map<String, ir.Member> _constructorMap;
@@ -301,8 +302,10 @@ class KClassEnvImpl implements KClassEnv {
   KClassEnvImpl.internal(this.cls, this._constructorMap, this._memberMap,
       this._setterMap, this._members, this._isSuperMixinApplication);
 
+  @override
   bool get isUnnamedMixinApplication => cls.isAnonymousMixin;
 
+  @override
   bool get isSuperMixinApplication {
     assert(_isSuperMixinApplication != null);
     return _isSuperMixinApplication;
@@ -354,6 +357,7 @@ class KClassEnvImpl implements KClassEnv {
         initializers: <ir.Initializer>[superInitializer]);
   }
 
+  @override
   void ensureMembers(KernelToElementMapImpl elementMap) {
     _ensureMaps(elementMap);
   }
@@ -502,9 +506,7 @@ class KClassEnvImpl implements KClassEnv {
     _members = members;
   }
 
-  /// Return the [MemberEntity] for the member [name] in [cls]. If [setter] is
-  /// `true`, the setter or assignable field corresponding to [name] is
-  /// returned.
+  @override
   MemberEntity lookupMember(IrToElementMap elementMap, String name,
       {bool setter: false}) {
     _ensureMaps(elementMap);
@@ -512,7 +514,7 @@ class KClassEnvImpl implements KClassEnv {
     return member != null ? elementMap.getMember(member) : null;
   }
 
-  /// Calls [f] for each member of [cls].
+  @override
   void forEachMember(IrToElementMap elementMap, void f(MemberEntity member)) {
     _ensureMaps(elementMap);
     _members.forEach((ir.Member member) {
@@ -520,14 +522,14 @@ class KClassEnvImpl implements KClassEnv {
     });
   }
 
-  /// Return the [ConstructorEntity] for the constructor [name] in [cls].
+  @override
   ConstructorEntity lookupConstructor(IrToElementMap elementMap, String name) {
     _ensureMaps(elementMap);
     ir.Member constructor = _constructorMap[name];
     return constructor != null ? elementMap.getConstructor(constructor) : null;
   }
 
-  /// Calls [f] for each constructor of [cls].
+  @override
   void forEachConstructor(
       IrToElementMap elementMap, void f(ConstructorEntity constructor)) {
     _ensureMaps(elementMap);
@@ -541,10 +543,12 @@ class KClassEnvImpl implements KClassEnv {
     _constructorBodyList.add(constructorBody);
   }
 
+  @override
   void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
     _constructorBodyList?.forEach(f);
   }
 
+  @override
   JClassEnv convert(IrToElementMap elementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage) {
     Map<String, ir.Member> constructorMap;
@@ -621,30 +625,42 @@ abstract class KClassData {
 }
 
 class KClassDataImpl implements KClassData {
+  @override
   final ir.Class node;
+  @override
   bool isMixinApplication;
   bool isCallTypeComputed = false;
 
+  @override
   InterfaceType thisType;
+  @override
   InterfaceType rawType;
+  @override
   InterfaceType supertype;
+  @override
   InterfaceType mixedInType;
+  @override
   List<InterfaceType> interfaces;
+  @override
   OrderedTypeSet orderedTypeSet;
 
   Iterable<ConstantValue> _metadata;
 
   KClassDataImpl(this.node);
 
+  @override
   bool get isEnumClass => node.isEnum;
 
+  @override
   DartType get callType => null;
 
+  @override
   Iterable<ConstantValue> getMetadata(
       covariant KernelToElementMapImpl elementMap) {
     return _metadata ??= elementMap.getMetadata(node.annotations);
   }
 
+  @override
   JClassData convert() {
     return new JClassDataImpl(node, new RegularClassDefinition(node));
   }
@@ -666,19 +682,23 @@ abstract class KMemberData {
 }
 
 abstract class KMemberDataImpl implements KMemberData {
+  @override
   final ir.Member node;
 
   Iterable<ConstantValue> _metadata;
 
+  @override
   Map<ir.Expression, ir.DartType> staticTypes;
 
   KMemberDataImpl(this.node);
 
+  @override
   Iterable<ConstantValue> getMetadata(
       covariant KernelToElementMapImpl elementMap) {
     return _metadata ??= elementMap.getMetadata(node.annotations);
   }
 
+  @override
   InterfaceType getMemberThisType(JsToElementMap elementMap) {
     MemberEntity member = elementMap.getMember(node);
     ClassEntity cls = member.enclosingClass;
@@ -702,6 +722,7 @@ abstract class KFunctionDataMixin implements KFunctionData {
   ir.FunctionNode get functionNode;
   List<TypeVariableType> _typeVariables;
 
+  @override
   List<TypeVariableType> getFunctionTypeVariables(
       covariant KernelToElementMapImpl elementMap) {
     if (_typeVariables == null) {
@@ -729,15 +750,18 @@ abstract class KFunctionDataMixin implements KFunctionData {
 class KFunctionDataImpl extends KMemberDataImpl
     with KFunctionDataMixin
     implements KFunctionData {
+  @override
   final ir.FunctionNode functionNode;
   FunctionType _type;
 
   KFunctionDataImpl(ir.Member node, this.functionNode) : super(node);
 
+  @override
   FunctionType getFunctionType(covariant KernelToElementMapImpl elementMap) {
     return _type ??= elementMap.getFunctionType(functionNode);
   }
 
+  @override
   void forEachParameter(JsToElementMap elementMap,
       void f(DartType type, String name, ConstantValue defaultValue)) {
     void handleParameter(ir.VariableDeclaration node, {bool isOptional: true}) {
@@ -789,6 +813,7 @@ class KConstructorDataImpl extends KFunctionDataImpl
   KConstructorDataImpl(ir.Member node, ir.FunctionNode functionNode)
       : super(node, functionNode);
 
+  @override
   ConstantConstructor getConstructorConstant(
       KernelToElementMapImpl elementMap, ConstructorEntity constructor) {
     if (_constantConstructor == null) {
@@ -827,30 +852,23 @@ abstract class KFieldData extends KMemberData {
 
   ConstantExpression getFieldConstantExpression(
       KernelToElementMapImpl elementMap);
-
-  /// Return the [ConstantValue] the initial value of [field] or `null` if
-  /// the initializer is not a constant expression.
-  ConstantValue getFieldConstantValue(KernelToElementMapImpl elementMap);
-
-  bool hasConstantFieldInitializer(KernelToElementMapImpl elementMap);
-
-  ConstantValue getConstantFieldInitializer(KernelToElementMapImpl elementMap);
 }
 
 class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   DartType _type;
-  bool _isConstantComputed = false;
-  ConstantValue _constantValue;
   ConstantExpression _constantExpression;
 
   KFieldDataImpl(ir.Field node) : super(node);
 
+  @override
   ir.Field get node => super.node;
 
+  @override
   DartType getFieldType(covariant KernelToElementMapImpl elementMap) {
     return _type ??= elementMap.getDartType(node.type);
   }
 
+  @override
   ConstantExpression getFieldConstantExpression(
       KernelToElementMapImpl elementMap) {
     if (_constantExpression == null) {
@@ -865,33 +883,6 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
       }
     }
     return _constantExpression;
-  }
-
-  @override
-  ConstantValue getFieldConstantValue(KernelToElementMapImpl elementMap) {
-    if (!_isConstantComputed) {
-      _constantValue = elementMap.getConstantValue(node.initializer,
-          requireConstant: node.isConst, implicitNull: !node.isConst);
-      _isConstantComputed = true;
-    }
-    return _constantValue;
-  }
-
-  @override
-  bool hasConstantFieldInitializer(KernelToElementMapImpl elementMap) {
-    return getFieldConstantValue(elementMap) != null;
-  }
-
-  @override
-  ConstantValue getConstantFieldInitializer(KernelToElementMapImpl elementMap) {
-    ConstantValue value = getFieldConstantValue(elementMap);
-    assert(
-        value != null,
-        failedAt(
-            computeSourceSpanFromTreeNode(node),
-            "Field ${node} doesn't have a "
-            "constant initial value."));
-    return value;
   }
 
   @override

@@ -192,17 +192,21 @@ void FlowGraphTypePropagator::SetCid(Definition* def, intptr_t cid) {
   }
 }
 
+void FlowGraphTypePropagator::GrowTypes(intptr_t up_to) {
+  // Grow types array if a new redefinition was inserted.
+  for (intptr_t i = types_.length(); i <= up_to; ++i) {
+    types_.Add(nullptr);
+  }
+}
+
 void FlowGraphTypePropagator::EnsureMoreAccurateRedefinition(
     Instruction* prev,
     Definition* original,
     CompileType new_type) {
   RedefinitionInstr* redef =
       flow_graph_->EnsureRedefinition(prev, original, new_type);
-  // Grow types array if a new redefinition was inserted.
-  if (redef != NULL) {
-    for (intptr_t i = types_.length(); i <= redef->ssa_temp_index() + 1; ++i) {
-      types_.Add(NULL);
-    }
+  if (redef != nullptr) {
+    GrowTypes(redef->ssa_temp_index() + 1);
   }
 }
 
@@ -280,9 +284,21 @@ void FlowGraphTypePropagator::VisitCheckNull(CheckNullInstr* check) {
   Definition* receiver = check->value()->definition();
   CompileType* type = TypeOf(receiver);
   if (type->is_nullable()) {
-    // Insert redefinition for the receiver to guard against invalid
-    // code motion.
-    EnsureMoreAccurateRedefinition(check, receiver, type->CopyNonNullable());
+    // If the type is nullable, translate an implicit control
+    // dependence to an explicit data dependence at this point
+    // to guard against invalid code motion later. Valid code
+    // motion of the check may still enable valid code motion
+    // of the checked code.
+    if (check->ssa_temp_index() == -1) {
+      flow_graph_->AllocateSSAIndexes(check);
+      GrowTypes(check->ssa_temp_index() + 1);
+    }
+    FlowGraph::RenameDominatedUses(receiver, check, check);
+    // Set non-nullable type on check itself (but avoid None()).
+    CompileType result = type->CopyNonNullable();
+    if (!result.IsNone()) {
+      SetTypeOf(check, new (zone()) CompileType(result));
+    }
   }
 }
 
@@ -489,21 +505,19 @@ void FlowGraphTypePropagator::StrengthenAssertWith(Instruction* check) {
 
   Instruction* check_clone = NULL;
   if (check->IsCheckSmi()) {
-    check_clone =
-        new CheckSmiInstr(assert->value()->Copy(zone()),
-                          assert->env()->deopt_id(), check->token_pos());
+    check_clone = new CheckSmiInstr(assert->value()->Copy(zone()),
+                                    assert->deopt_id(), check->token_pos());
     check_clone->AsCheckSmi()->set_licm_hoisted(
         check->AsCheckSmi()->licm_hoisted());
   } else {
     ASSERT(check->IsCheckClass());
-    check_clone = new CheckClassInstr(
-        assert->value()->Copy(zone()), assert->env()->deopt_id(),
-        check->AsCheckClass()->cids(), check->token_pos());
+    check_clone =
+        new CheckClassInstr(assert->value()->Copy(zone()), assert->deopt_id(),
+                            check->AsCheckClass()->cids(), check->token_pos());
     check_clone->AsCheckClass()->set_licm_hoisted(
         check->AsCheckClass()->licm_hoisted());
   }
   ASSERT(check_clone != NULL);
-  ASSERT(assert->deopt_id() == assert->env()->deopt_id());
   check_clone->InsertBefore(assert);
   assert->env()->DeepCopyTo(zone(), check_clone);
 
@@ -566,12 +580,14 @@ void CompileType::Union(CompileType* other) {
 
 CompileType* CompileType::ComputeRefinedType(CompileType* old_type,
                                              CompileType* new_type) {
+  ASSERT(new_type != nullptr);
+
   // In general, prefer the newly inferred type over old type.
   // It is possible that new and old types are unrelated or do not intersect
   // at all (for example, in case of unreachable code).
 
   // Discard None type as it is used to denote an unknown type.
-  if (old_type->IsNone()) {
+  if (old_type == nullptr || old_type->IsNone()) {
     return new_type;
   }
   if (new_type->IsNone()) {
@@ -812,13 +828,22 @@ CompileType* Value::Type() {
   return reaching_type_;
 }
 
-void Value::RefineReachingType(CompileType* type) {
-  ASSERT(type != NULL);
-  if (reaching_type_ == NULL) {
-    reaching_type_ = type;
-  } else {
-    reaching_type_ = CompileType::ComputeRefinedType(reaching_type_, type);
+void Value::SetReachingType(CompileType* type) {
+  // If [type] is owned but not by the definition which flows into this use
+  // then we need to disconect the type from original owner by cloning it.
+  // This is done to prevent situations when [type] is updated by its owner
+  // but [owner] is no longer connected to this use through def-use chain
+  // and as a result type propagator does not recompute type of the current
+  // instruction.
+  if (type != nullptr && type->owner() != nullptr &&
+      type->owner() != definition()) {
+    type = new CompileType(*type);
   }
+  reaching_type_ = type;
+}
+
+void Value::RefineReachingType(CompileType* type) {
+  SetReachingType(CompileType::ComputeRefinedType(reaching_type_, type));
 }
 
 CompileType PhiInstr::ComputeType() const {
@@ -877,6 +902,37 @@ CompileType RedefinitionInstr::ComputeType() const {
 }
 
 bool RedefinitionInstr::RecomputeType() {
+  return UpdateType(ComputeType());
+}
+
+CompileType CheckNullInstr::ComputeType() const {
+  CompileType* type = value()->Type();
+  if (type->is_nullable()) {
+    CompileType result = type->CopyNonNullable();
+    if (!result.IsNone()) {
+      return result;
+    }
+  }
+  return *type;
+}
+
+bool CheckNullInstr::RecomputeType() {
+  return UpdateType(ComputeType());
+}
+
+CompileType CheckArrayBoundInstr::ComputeType() const {
+  return *index()->Type();
+}
+
+bool CheckArrayBoundInstr::RecomputeType() {
+  return UpdateType(ComputeType());
+}
+
+CompileType GenericCheckBoundInstr::ComputeType() const {
+  return *index()->Type();
+}
+
+bool GenericCheckBoundInstr::RecomputeType() {
   return UpdateType(ComputeType());
 }
 
@@ -940,8 +996,8 @@ CompileType ParameterInstr::ComputeType() const {
   // Parameter is the receiver.
   if ((index() == 0) &&
       (function.IsDynamicFunction() || function.IsGenerativeConstructor())) {
-    LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
-    const AbstractType& type = scope->VariableAt(index())->type();
+    const AbstractType& type =
+        graph_entry->parsed_function().ParameterVariable(index())->type();
     if (type.IsObjectType() || type.IsNullType()) {
       // Receiver can be null.
       return CompileType::FromAbstractType(type, CompileType::kNullable);
@@ -1402,6 +1458,10 @@ CompileType CheckedSmiOpInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 
+bool CheckedSmiOpInstr::RecomputeType() {
+  return UpdateType(ComputeType());
+}
+
 CompileType CheckedSmiComparisonInstr::ComputeType() const {
   if (Isolate::Current()->can_use_strong_mode_types()) {
     CompileType* type = call()->Type();
@@ -1461,6 +1521,7 @@ CompileType CaseInsensitiveCompareUC16Instr::ComputeType() const {
 
 CompileType UnboxInstr::ComputeType() const {
   switch (representation()) {
+    case kUnboxedFloat:
     case kUnboxedDouble:
       return CompileType::FromCid(kDoubleCid);
 
@@ -1484,6 +1545,7 @@ CompileType UnboxInstr::ComputeType() const {
 
 CompileType BoxInstr::ComputeType() const {
   switch (from_representation()) {
+    case kUnboxedFloat:
     case kUnboxedDouble:
       return CompileType::FromCid(kDoubleCid);
 

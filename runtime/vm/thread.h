@@ -19,6 +19,7 @@
 #include "vm/handles.h"
 #include "vm/heap/pointer_block.h"
 #include "vm/os_thread.h"
+#include "vm/random.h"
 #include "vm/runtime_entry_list.h"
 #include "vm/thread_stack_resource.h"
 #include "vm/thread_state.h"
@@ -120,15 +121,16 @@ class Zone;
     StubCode::DeoptimizeLazyFromThrow().raw(), NULL)                           \
   V(RawCode*, slow_type_test_stub_, StubCode::SlowTypeTest().raw(), NULL)      \
   V(RawCode*, lazy_specialize_type_test_stub_,                                 \
-    StubCode::LazySpecializeTypeTest().raw(), NULL)
+    StubCode::LazySpecializeTypeTest().raw(), NULL)                            \
+  V(RawCode*, enter_safepoint_stub_, StubCode::EnterSafepoint().raw(), NULL)   \
+  V(RawCode*, exit_safepoint_stub_, StubCode::ExitSafepoint().raw(), NULL)
 
 #endif
 
 #define CACHED_NON_VM_STUB_LIST(V)                                             \
   V(RawObject*, object_null_, Object::null(), NULL)                            \
   V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
-  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
-  V(RawObjectPool*, global_object_pool_, ObjectPool::null(), NULL)
+  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)
 
 // List of VM-global objects/addresses cached in each Thread object.
 // Important: constant false must immediately follow constant true.
@@ -306,6 +308,10 @@ class Thread : public ThreadState {
                : stack_overflow_shared_without_fpu_regs_entry_point_offset();
   }
 #endif
+
+  static intptr_t safepoint_state_offset() {
+    return OFFSET_OF(Thread, safepoint_state_);
+  }
 
   TaskKind task_kind() const { return task_kind_; }
 
@@ -567,6 +573,10 @@ class Thread : public ThreadState {
   RawGrowableObjectArray* pending_functions();
   void clear_pending_functions();
 
+  static intptr_t global_object_pool_offset() {
+    return OFFSET_OF(Thread, global_object_pool_);
+  }
+
   RawObject* active_exception() const { return active_exception_; }
   void set_active_exception(const Object& value);
   static intptr_t active_exception_offset() {
@@ -669,8 +679,8 @@ class Thread : public ThreadState {
     do {
       old_state = safepoint_state_;
       new_state = SafepointRequestedField::update(value, old_state);
-    } while (AtomicOperations::CompareAndSwapUint32(
-                 &safepoint_state_, old_state, new_state) != old_state);
+    } while (AtomicOperations::CompareAndSwapWord(&safepoint_state_, old_state,
+                                                  new_state) != old_state);
     return old_state;
   }
   static bool IsBlockedForSafepoint(uint32_t state) {
@@ -702,7 +712,10 @@ class Thread : public ThreadState {
     return static_cast<ExecutionState>(execution_state_);
   }
   void set_execution_state(ExecutionState state) {
-    execution_state_ = static_cast<uint32_t>(state);
+    execution_state_ = static_cast<uword>(state);
+  }
+  static intptr_t execution_state_offset() {
+    return OFFSET_OF(Thread, execution_state_);
   }
 
   virtual bool MayAllocateHandles() {
@@ -710,10 +723,13 @@ class Thread : public ThreadState {
            (execution_state() == kThreadInGenerated);
   }
 
+  static uword safepoint_state_unacquired() { return SetAtSafepoint(false, 0); }
+  static uword safepoint_state_acquired() { return SetAtSafepoint(true, 0); }
+
   bool TryEnterSafepoint() {
     uint32_t new_state = SetAtSafepoint(true, 0);
-    if (AtomicOperations::CompareAndSwapUint32(&safepoint_state_, 0,
-                                               new_state) != 0) {
+    if (AtomicOperations::CompareAndSwapWord(&safepoint_state_, 0, new_state) !=
+        0) {
       return false;
     }
     return true;
@@ -731,8 +747,8 @@ class Thread : public ThreadState {
 
   bool TryExitSafepoint() {
     uint32_t old_state = SetAtSafepoint(true, 0);
-    if (AtomicOperations::CompareAndSwapUint32(&safepoint_state_, old_state,
-                                               0) != old_state) {
+    if (AtomicOperations::CompareAndSwapWord(&safepoint_state_, old_state, 0) !=
+        old_state) {
       return false;
     }
     return true;
@@ -768,6 +784,8 @@ class Thread : public ThreadState {
 
   void InitVMConstants();
 
+  uint64_t GetRandomUInt64() { return thread_random_.NextUInt64(); }
+
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
 #endif
@@ -796,11 +814,11 @@ class Thread : public ThreadState {
   Heap* heap_;
   uword top_;
   uword end_;
-  uword top_exit_frame_info_;
+  uword volatile top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
   MarkingStackBlock* marking_stack_block_;
   MarkingStackBlock* deferred_marking_stack_block_;
-  uword vm_tag_;
+  uword volatile vm_tag_;
   RawStackTrace* async_stack_trace_;
   // Memory location dedicated for passing unboxed int64 values from
   // generated code to runtime.
@@ -830,7 +848,10 @@ class Thread : public ThreadState {
   // JumpToExceptionHandler state:
   RawObject* active_exception_;
   RawObject* active_stacktrace_;
+  RawObjectPool* global_object_pool_;
   uword resume_pc_;
+  uword execution_state_;
+  uword safepoint_state_;
 
   // ---- End accessed from generated code. ----
 
@@ -864,6 +885,8 @@ class Thread : public ThreadState {
 
   RawError* sticky_error_;
 
+  Random thread_random_;
+
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_FIELDS)
@@ -880,8 +903,6 @@ class Thread : public ThreadState {
   class SafepointRequestedField : public BitField<uint32_t, bool, 1, 1> {};
   class BlockedForSafepointField : public BitField<uint32_t, bool, 2, 1> {};
   class BypassSafepointsField : public BitField<uint32_t, bool, 3, 1> {};
-  uint32_t safepoint_state_;
-  uint32_t execution_state_;
 
 #if defined(USING_SAFE_STACK)
   uword saved_safestack_limit_;

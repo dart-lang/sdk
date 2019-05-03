@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -14,6 +13,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -37,20 +37,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// The set of variables declared using '-D' on the command line.
   final DeclaredVariables declaredVariables;
 
-  /// The type representing the type 'bool'.
-  InterfaceType _boolType;
-
   /// The type representing the type 'int'.
   InterfaceType _intType;
 
-  /// The type representing the type 'num'.
-  InterfaceType _numType;
-
-  /// The type representing the type 'string'.
-  InterfaceType _stringType;
-
   /// The current library that is being analyzed.
   final LibraryElement _currentLibrary;
+
+  final bool _constantUpdate2018Enabled;
 
   ConstantEvaluationEngine _evaluationEngine;
 
@@ -61,11 +54,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       this._typeProvider, this.declaredVariables,
       {bool forAnalysisDriver: false})
       : _currentLibrary = currentLibrary,
-        _typeSystem = currentLibrary.context.typeSystem {
-    this._boolType = _typeProvider.boolType;
+        _typeSystem = currentLibrary.context.typeSystem,
+        _constantUpdate2018Enabled =
+            (currentLibrary.context.analysisOptions as AnalysisOptionsImpl)
+                .experimentStatus
+                .constant_update_2018 {
     this._intType = _typeProvider.intType;
-    this._numType = _typeProvider.numType;
-    this._stringType = _typeProvider.stringType;
     this._evaluationEngine = new ConstantEvaluationEngine(
         _typeProvider, declaredVariables,
         forAnalysisDriver: forAnalysisDriver,
@@ -143,77 +137,16 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
     if (node.isConst) {
-      DartObjectImpl result;
-      for (Expression element in node.elements) {
-        result =
-            _validate(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
-        if (result != null) {
-          _reportErrorIfFromDeferredLibrary(
-              element,
-              CompileTimeErrorCode
-                  .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY);
-        }
-      }
-    }
-  }
-
-  @override
-  void visitMapLiteral(MapLiteral node) {
-    super.visitMapLiteral(node);
-    bool isConst = node.isConst;
-    bool reportEqualKeys = true;
-    HashSet<DartObject> keys = new HashSet<DartObject>();
-    List<Expression> invalidKeys = new List<Expression>();
-    for (MapLiteralEntry entry in node.entries) {
-      Expression key = entry.key;
-      if (isConst) {
-        DartObjectImpl keyResult =
-            _validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
-        Expression valueExpression = entry.value;
-        DartObjectImpl valueResult = _validate(
-            valueExpression, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
-        if (valueResult != null) {
-          _reportErrorIfFromDeferredLibrary(
-              valueExpression,
-              CompileTimeErrorCode
-                  .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY);
-        }
-        if (keyResult != null) {
-          _reportErrorIfFromDeferredLibrary(key,
-              CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY);
-          if (!keys.add(keyResult)) {
-            invalidKeys.add(key);
-          }
-          DartType type = keyResult.type;
-          if (_implementsEqualsWhenNotAllowed(type)) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode
-                    .CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-                key,
-                [type.displayName]);
-          }
-        }
-      } else {
-        // Note: we throw the errors away because this isn't actually a const.
-        AnalysisErrorListener errorListener =
-            AnalysisErrorListener.NULL_LISTENER;
-        ErrorReporter subErrorReporter =
-            new ErrorReporter(errorListener, _errorReporter.source);
-        DartObjectImpl result = key
-            .accept(new ConstantVisitor(_evaluationEngine, subErrorReporter));
-        if (result != null) {
-          if (!keys.add(result)) {
-            invalidKeys.add(key);
-          }
-        } else {
-          reportEqualKeys = false;
-        }
-      }
-    }
-    if (reportEqualKeys) {
-      for (int i = 0; i < invalidKeys.length; i++) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.EQUAL_KEYS_IN_MAP, invalidKeys[i]);
+      InterfaceType nodeType = node.staticType;
+      DartType elementType = nodeType.typeArguments[0];
+      var verifier = _ConstLiteralVerifier(
+        this,
+        errorCode: CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
+        forList: true,
+        listElementType: elementType,
+      );
+      for (CollectionElement element in node.elements) {
+        verifier.verify(element);
       }
     }
   }
@@ -225,34 +158,58 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSetLiteral(SetLiteral node) {
-    super.visitSetLiteral(node);
-    HashSet<DartObject> elements = new HashSet<DartObject>();
-    List<Expression> invalidElements = new List<Expression>();
-    if (node.isConst) {
-      for (Expression element in node.elements) {
-        DartObjectImpl result =
-            _validate(element, CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT);
-        if (result != null) {
-          _reportErrorIfFromDeferredLibrary(
-              element,
-              CompileTimeErrorCode
-                  .NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY);
-          if (!elements.add(result)) {
-            invalidElements.add(element);
-          }
-          DartType type = result.type;
-          if (_implementsEqualsWhenNotAllowed(type)) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
-                element,
-                [type.displayName]);
-          }
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    super.visitSetOrMapLiteral(node);
+    if (node.isSet) {
+      if (node.isConst) {
+        InterfaceType nodeType = node.staticType;
+        var elementType = nodeType.typeArguments[0];
+        var duplicateElements = <Expression>[];
+        var verifier = _ConstLiteralVerifier(
+          this,
+          errorCode: CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT,
+          forSet: true,
+          setElementType: elementType,
+          setUniqueValues: Set<DartObject>(),
+          setDuplicateExpressions: duplicateElements,
+        );
+        for (CollectionElement element in node.elements) {
+          verifier.verify(element);
+        }
+        for (var duplicateElement in duplicateElements) {
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+            duplicateElement,
+          );
         }
       }
-      for (var invalidElement in invalidElements) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.EQUAL_VALUES_IN_CONST_SET, invalidElement);
+    } else if (node.isMap) {
+      if (node.isConst) {
+        InterfaceType nodeType = node.staticType;
+        var keyType = nodeType.typeArguments[0];
+        var valueType = nodeType.typeArguments[1];
+        bool reportEqualKeys = true;
+        var duplicateKeyElements = <Expression>[];
+        var verifier = _ConstLiteralVerifier(
+          this,
+          errorCode: CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT,
+          forMap: true,
+          mapKeyType: keyType,
+          mapValueType: valueType,
+          mapUniqueKeys: Set<DartObject>(),
+          mapDuplicateKeyExpressions: duplicateKeyElements,
+        );
+        for (CollectionElement entry in node.elements) {
+          verifier.verify(entry);
+        }
+        if (reportEqualKeys) {
+          for (var duplicateKeyElement in duplicateKeyElements) {
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+              duplicateKeyElement,
+            );
+          }
+        }
       }
     }
   }
@@ -452,6 +409,29 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _reportNotPotentialConstants(AstNode node) {
+    var notPotentiallyConstants = getNotPotentiallyConstants(node);
+    if (notPotentiallyConstants.isEmpty) return;
+
+    for (var notConst in notPotentiallyConstants) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVALID_CONSTANT,
+        notConst,
+      );
+    }
+  }
+
+  /// Validates that all arguments in the [argumentList] are potentially
+  /// constant expressions.
+  void _reportNotPotentialConstantsArguments(ArgumentList argumentList) {
+    if (argumentList == null) {
+      return;
+    }
+    for (Expression argument in argumentList.arguments) {
+      _reportNotPotentialConstants(argument);
+    }
+  }
+
   /// Validate that the given expression is a compile time constant. Return the
   /// value of the compile time constant, or `null` if the expression is not a
   /// compile time constant.
@@ -485,26 +465,20 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// Validates that the expressions of the initializers of the given constant
   /// [constructor] are all compile time constants.
   void _validateConstructorInitializers(ConstructorDeclaration constructor) {
-    List<ParameterElement> parameterElements =
-        constructor.parameters.parameterElements;
     NodeList<ConstructorInitializer> initializers = constructor.initializers;
     for (ConstructorInitializer initializer in initializers) {
       if (initializer is AssertInitializer) {
-        _validateInitializerExpression(
-            parameterElements, initializer.condition);
+        _reportNotPotentialConstants(initializer.condition);
         Expression message = initializer.message;
         if (message != null) {
-          _validateInitializerExpression(parameterElements, message);
+          _reportNotPotentialConstants(message);
         }
       } else if (initializer is ConstructorFieldInitializer) {
-        _validateInitializerExpression(
-            parameterElements, initializer.expression);
+        _reportNotPotentialConstants(initializer.expression);
       } else if (initializer is RedirectingConstructorInvocation) {
-        _validateInitializerInvocationArguments(
-            parameterElements, initializer.argumentList);
+        _reportNotPotentialConstantsArguments(initializer.argumentList);
       } else if (initializer is SuperConstructorInvocation) {
-        _validateInitializerInvocationArguments(
-            parameterElements, initializer.argumentList);
+        _reportNotPotentialConstantsArguments(initializer.argumentList);
       }
     }
   }
@@ -577,105 +551,344 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       }
     }
   }
-
-  /// Validates that the given expression is a compile time constant.
-  ///
-  /// @param parameterElements the elements of parameters of constant
-  ///        constructor, they are considered as a valid potentially constant
-  ///        expressions
-  /// @param expression the expression to validate
-  void _validateInitializerExpression(
-      List<ParameterElement> parameterElements, Expression expression) {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    ErrorReporter subErrorReporter =
-        new ErrorReporter(errorListener, _errorReporter.source);
-    DartObjectImpl result = expression.accept(
-        new _ConstantVerifier_validateInitializerExpression(_typeSystem,
-            _evaluationEngine, subErrorReporter, this, parameterElements));
-    _reportErrors(errorListener.errors,
-        CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
-    if (result != null) {
-      _reportErrorIfFromDeferredLibrary(
-          expression,
-          CompileTimeErrorCode
-              .NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY);
-    }
-  }
-
-  /// Validates that all of the arguments of a constructor initializer are
-  /// compile time constants.
-  ///
-  /// @param parameterElements the elements of parameters of constant
-  ///        constructor, they are considered as a valid potentially constant
-  ///        expressions
-  /// @param argumentList the argument list to validate
-  void _validateInitializerInvocationArguments(
-      List<ParameterElement> parameterElements, ArgumentList argumentList) {
-    if (argumentList == null) {
-      return;
-    }
-    for (Expression argument in argumentList.arguments) {
-      _validateInitializerExpression(parameterElements, argument);
-    }
-  }
 }
 
-class _ConstantVerifier_validateInitializerExpression extends ConstantVisitor {
-  final TypeSystem typeSystem;
+class _ConstLiteralVerifier {
   final ConstantVerifier verifier;
+  final Set<DartObject> mapUniqueKeys;
+  final List<Expression> mapDuplicateKeyExpressions;
+  final ErrorCode errorCode;
+  final DartType listElementType;
+  final DartType mapKeyType;
+  final DartType mapValueType;
+  final DartType setElementType;
+  final Set<DartObject> setUniqueValues;
+  final List<CollectionElement> setDuplicateExpressions;
+  final bool forList;
+  final bool forMap;
+  final bool forSet;
 
-  List<ParameterElement> parameterElements;
+  _ConstLiteralVerifier(
+    this.verifier, {
+    this.mapUniqueKeys,
+    this.mapDuplicateKeyExpressions,
+    this.errorCode,
+    this.listElementType,
+    this.mapKeyType,
+    this.mapValueType,
+    this.setElementType,
+    this.setUniqueValues,
+    this.setDuplicateExpressions,
+    this.forList = false,
+    this.forMap = false,
+    this.forSet = false,
+  });
 
-  _ConstantVerifier_validateInitializerExpression(
-      this.typeSystem,
-      ConstantEvaluationEngine evaluationEngine,
-      ErrorReporter errorReporter,
-      this.verifier,
-      this.parameterElements)
-      : super(evaluationEngine, errorReporter);
+  ErrorCode get _fromDeferredErrorCode {
+    if (forList) {
+      return CompileTimeErrorCode
+          .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY;
+    } else if (forSet) {
+      return CompileTimeErrorCode
+          .NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY;
+    }
 
-  @override
-  DartObjectImpl visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    int length = parameterElements.length;
-    for (int i = 0; i < length; i++) {
-      ParameterElement parameterElement = parameterElements[i];
-      if (identical(parameterElement, element) && parameterElement != null) {
-        DartType type = parameterElement.type;
-        if (type != null) {
-          if (type.isDynamic) {
-            return new DartObjectImpl(
-                verifier._typeProvider.objectType, DynamicState.DYNAMIC_STATE);
-          } else if (typeSystem.isSubtypeOf(type, verifier._boolType)) {
-            return new DartObjectImpl(
-                verifier._typeProvider.boolType, BoolState.UNKNOWN_VALUE);
-          } else if (typeSystem.isSubtypeOf(
-              type, verifier._typeProvider.doubleType)) {
-            return new DartObjectImpl(
-                verifier._typeProvider.doubleType, DoubleState.UNKNOWN_VALUE);
-          } else if (typeSystem.isSubtypeOf(type, verifier._intType)) {
-            return new DartObjectImpl(
-                verifier._typeProvider.intType, IntState.UNKNOWN_VALUE);
-          } else if (typeSystem.isSubtypeOf(type, verifier._numType)) {
-            return new DartObjectImpl(
-                verifier._typeProvider.numType, NumState.UNKNOWN_VALUE);
-          } else if (typeSystem.isSubtypeOf(type, verifier._stringType)) {
-            return new DartObjectImpl(
-                verifier._typeProvider.stringType, StringState.UNKNOWN_VALUE);
-          }
-          //
-          // We don't test for other types of objects (such as List, Map,
-          // Function or Type) because there are no operations allowed on such
-          // types other than '==' and '!=', which means that we don't need to
-          // know the type when there is no specific data about the state of
-          // such objects.
-          //
+    return null;
+  }
+
+  bool verify(CollectionElement element) {
+    if (element is Expression) {
+      var value = verifier._validate(element, errorCode);
+      if (value == null) return false;
+
+      if (_fromDeferredErrorCode != null) {
+        verifier._reportErrorIfFromDeferredLibrary(
+            element, _fromDeferredErrorCode);
+      }
+
+      if (forList) {
+        return _validateListExpression(element, value);
+      }
+
+      if (forSet) {
+        return _validateSetExpression(element, value);
+      }
+
+      return true;
+    } else if (element is ForElement) {
+      verifier._errorReporter.reportErrorForNode(errorCode, element);
+      return false;
+    } else if (element is IfElement) {
+      if (!verifier._constantUpdate2018Enabled) {
+        verifier._errorReporter.reportErrorForNode(errorCode, element);
+        return false;
+      }
+      var conditionValue = verifier._validate(element.condition, errorCode);
+      var conditionBool = conditionValue?.toBoolValue();
+
+      // The errors have already been reported.
+      if (conditionBool == null) return false;
+
+      verifier._reportErrorIfFromDeferredLibrary(
+          element.condition,
+          CompileTimeErrorCode
+              .NON_CONSTANT_IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY);
+
+      var thenValid = true;
+      var elseValid = true;
+      if (conditionBool) {
+        thenValid = verify(element.thenElement);
+        if (element.elseElement != null) {
+          elseValid = _reportNotPotentialConstants(element.elseElement);
         }
-        return new DartObjectImpl(
-            type is InterfaceType ? type : verifier._typeProvider.objectType,
-            GenericState.UNKNOWN_VALUE);
+      } else {
+        thenValid = _reportNotPotentialConstants(element.thenElement);
+        if (element.elseElement != null) {
+          elseValid = verify(element.elseElement);
+        }
+      }
+
+      return thenValid && elseValid;
+    } else if (element is MapLiteralEntry) {
+      return _validateMapLiteralEntry(element);
+    } else if (element is SpreadElement) {
+      if (!verifier._constantUpdate2018Enabled) {
+        verifier._errorReporter.reportErrorForNode(errorCode, element);
+        return false;
+      }
+      var value = verifier._validate(element.expression, errorCode);
+      if (value == null) return false;
+
+      verifier._reportErrorIfFromDeferredLibrary(
+          element.expression,
+          CompileTimeErrorCode
+              .NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY);
+
+      if (forList || forSet) {
+        return _validateListOrSetSpread(element, value);
+      }
+
+      if (forMap) {
+        return _validateMapSpread(element, value);
+      }
+
+      return true;
+    }
+    throw new UnsupportedError(
+      'Unhandled type of collection element: ${element.runtimeType}',
+    );
+  }
+
+  /// Return `true` if the [node] is a potential constant.
+  bool _reportNotPotentialConstants(AstNode node) {
+    var notPotentiallyConstants = getNotPotentiallyConstants(node);
+    if (notPotentiallyConstants.isEmpty) return true;
+
+    for (var notConst in notPotentiallyConstants) {
+      CompileTimeErrorCode errorCode;
+      if (forList) {
+        errorCode = CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT;
+      } else if (forMap) {
+        errorCode = CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT;
+        for (var parent = notConst; parent != null; parent = parent.parent) {
+          if (parent is MapLiteralEntry) {
+            if (parent.key == notConst) {
+              errorCode = CompileTimeErrorCode.NON_CONSTANT_MAP_KEY;
+            } else {
+              errorCode = CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE;
+            }
+            break;
+          }
+        }
+      } else if (forSet) {
+        errorCode = CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT;
+      }
+      verifier._errorReporter.reportErrorForNode(errorCode, notConst);
+    }
+
+    return false;
+  }
+
+  bool _validateListExpression(Expression expression, DartObjectImpl value) {
+    if (!verifier._evaluationEngine.runtimeTypeMatch(value, listElementType)) {
+      verifier._errorReporter.reportErrorForNode(
+        StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+        expression,
+        [value.type, listElementType],
+      );
+      return false;
+    }
+
+    verifier._reportErrorIfFromDeferredLibrary(
+      expression,
+      CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY,
+    );
+
+    return true;
+  }
+
+  bool _validateListOrSetSpread(SpreadElement element, DartObjectImpl value) {
+    var listValue = value.toListValue();
+    var setValue = value.toSetValue();
+
+    if (listValue == null && setValue == null) {
+      if (value.isNull && _isNullableSpread(element)) {
+        return true;
+      }
+      verifier._errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
+        element.expression,
+      );
+      return false;
+    }
+
+    if (listValue != null) {
+      var elementType = value.type.typeArguments[0];
+      if (verifier._implementsEqualsWhenNotAllowed(elementType)) {
+        verifier._errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
+          element,
+          [elementType],
+        );
+        return false;
       }
     }
-    return super.visitSimpleIdentifier(node);
+
+    if (forSet) {
+      var iterableValue = listValue ?? setValue;
+      for (var item in iterableValue) {
+        if (!setUniqueValues.add(item)) {
+          setDuplicateExpressions.add(element.expression);
+        }
+      }
+    }
+
+    return true;
+  }
+
+  bool _validateMapLiteralEntry(MapLiteralEntry entry) {
+    if (!forMap) return false;
+
+    var keyExpression = entry.key;
+    var valueExpression = entry.value;
+
+    var keyValue = verifier._validate(
+      keyExpression,
+      CompileTimeErrorCode.NON_CONSTANT_MAP_KEY,
+    );
+    var valueValue = verifier._validate(
+      valueExpression,
+      CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
+    );
+
+    if (keyValue != null) {
+      var keyType = keyValue.type;
+
+      if (!verifier._evaluationEngine.runtimeTypeMatch(keyValue, mapKeyType)) {
+        verifier._errorReporter.reportErrorForNode(
+          StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+          keyExpression,
+          [keyType, mapKeyType],
+        );
+      }
+
+      if (verifier._implementsEqualsWhenNotAllowed(keyType)) {
+        verifier._errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          keyExpression,
+          [keyType],
+        );
+      }
+
+      verifier._reportErrorIfFromDeferredLibrary(
+        keyExpression,
+        CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
+      );
+
+      if (!mapUniqueKeys.add(keyValue)) {
+        mapDuplicateKeyExpressions.add(keyExpression);
+      }
+    }
+
+    if (valueValue != null) {
+      if (!verifier._evaluationEngine
+          .runtimeTypeMatch(valueValue, mapValueType)) {
+        verifier._errorReporter.reportErrorForNode(
+          StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+          valueExpression,
+          [valueValue.type, mapValueType],
+        );
+      }
+
+      verifier._reportErrorIfFromDeferredLibrary(
+        valueExpression,
+        CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
+      );
+    }
+
+    return true;
+  }
+
+  bool _validateMapSpread(SpreadElement element, DartObjectImpl value) {
+    if (value.isNull && _isNullableSpread(element)) {
+      return true;
+    }
+    Map<DartObject, DartObject> map = value.toMapValue();
+    if (map != null) {
+      // TODO(brianwilkerson) Figure out how to improve the error messages. They
+      //  currently point to the whole spread expression, but the key and/or
+      //  value being referenced might not be located there (if it's referenced
+      //  through a const variable).
+      for (var entry in map.entries) {
+        DartObjectImpl keyValue = entry.key;
+        if (keyValue != null) {
+          if (!mapUniqueKeys.add(keyValue)) {
+            mapDuplicateKeyExpressions.add(element.expression);
+          }
+        }
+      }
+      return true;
+    }
+    verifier._errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP,
+      element.expression,
+    );
+    return false;
+  }
+
+  bool _validateSetExpression(Expression expression, DartObjectImpl value) {
+    if (!verifier._evaluationEngine.runtimeTypeMatch(value, setElementType)) {
+      verifier._errorReporter.reportErrorForNode(
+        StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
+        expression,
+        [value.type, setElementType],
+      );
+      return false;
+    }
+
+    if (verifier._implementsEqualsWhenNotAllowed(value.type)) {
+      verifier._errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS,
+        expression,
+        [value.type],
+      );
+      return false;
+    }
+
+    verifier._reportErrorIfFromDeferredLibrary(
+      expression,
+      CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY,
+    );
+
+    if (!setUniqueValues.add(value)) {
+      setDuplicateExpressions.add(expression);
+    }
+
+    return true;
+  }
+
+  static bool _isNullableSpread(SpreadElement element) {
+    return element.spreadOperator.type ==
+        TokenType.PERIOD_PERIOD_PERIOD_QUESTION;
   }
 }

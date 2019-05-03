@@ -128,6 +128,9 @@ class UnexpectedCrashLogger extends EventListener {
         test.result == Expectation.crash &&
         test.lastCommandExecuted is ProcessCommand &&
         test.lastCommandOutput.hasCoreDump) {
+      final mode = test.configuration.mode.name;
+      final arch = test.configuration.architecture.name;
+
       var pid = "${test.lastCommandOutput.pid}";
       var lastCommand = test.lastCommandExecuted as ProcessCommand;
 
@@ -139,13 +142,11 @@ class UnexpectedCrashLogger extends EventListener {
       // To simplify the archiving code we simply copy binaries into current
       // folder next to core dumps and name them
       // `binary.${mode}_${arch}_${binary_name}`.
-      var binName = lastCommand.executable;
-      var binFile = new File(binName);
-      var binBaseName = new Path(binName).filename;
+      final binName = lastCommand.executable;
+      final binFile = new File(binName);
+      final binBaseName = new Path(binName).filename;
       if (!archivedBinaries.containsKey(binName) && binFile.existsSync()) {
-        var mode = test.configuration.mode.name;
-        var arch = test.configuration.architecture.name;
-        var archived = "binary.${mode}_${arch}_${binBaseName}";
+        final archived = "binary.${mode}_${arch}_${binBaseName}";
         TestUtils.copyFile(new Path(binName), new Path(archived));
         // On Windows also copy PDB file for the binary.
         if (Platform.isWindows) {
@@ -157,14 +158,31 @@ class UnexpectedCrashLogger extends EventListener {
         archivedBinaries[binName] = archived;
       }
 
-      if (archivedBinaries.containsKey(binName)) {
+      final kernelServiceBaseName = 'kernel-service.dart.snapshot';
+      final kernelService =
+          new File('${binFile.parent.path}/$kernelServiceBaseName');
+      if (!archivedBinaries.containsKey(kernelService) &&
+          kernelService.existsSync()) {
+        final archived = "binary.${mode}_${arch}_${kernelServiceBaseName}";
+        TestUtils.copyFile(new Path(kernelService.path), new Path(archived));
+        archivedBinaries[kernelServiceBaseName] = archived;
+      }
+
+      final binaryPath = archivedBinaries[binName];
+      if (binaryPath != null) {
+        final binaries = <String>[binaryPath];
+        final kernelServiceBinaryPath = archivedBinaries[kernelServiceBaseName];
+        if (kernelServiceBinaryPath != null) {
+          binaries.add(kernelServiceBinaryPath);
+        }
+
         // We have found and copied the binary.
         RandomAccessFile unexpectedCrashesFile;
         try {
           unexpectedCrashesFile =
               new File('unexpected-crashes').openSync(mode: FileMode.append);
           unexpectedCrashesFile.writeStringSync(
-              "${test.displayName},${pid},${archivedBinaries[binName]}\n");
+              "${test.displayName},${pid},${binaries.join(',')}\n");
         } catch (e) {
           print('Failed to add crash to unexpected-crashes list: ${e}');
         } finally {

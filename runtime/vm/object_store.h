@@ -76,6 +76,7 @@ class ObjectPointerVisitor;
   RW(Class, immutable_array_class)                                             \
   RW(Class, growable_object_array_class)                                       \
   RW(Class, linked_hash_map_class)                                             \
+  RW(Class, linked_hash_set_class)                                             \
   RW(Class, float32x4_class)                                                   \
   RW(Class, int32x4_class)                                                     \
   RW(Class, float64x2_class)                                                   \
@@ -104,6 +105,7 @@ class ObjectPointerVisitor;
   RW(Array, libraries_map)                                                     \
   RW(GrowableObjectArray, closure_functions)                                   \
   RW(GrowableObjectArray, pending_classes)                                     \
+  RW(GrowableObjectArray, pending_unevaluated_const_fields)                    \
   R_(GrowableObjectArray, pending_deferred_loads)                              \
   R_(GrowableObjectArray, resume_capabilities)                                 \
   R_(GrowableObjectArray, exit_listeners)                                      \

@@ -17,7 +17,7 @@ import 'native_testing.dart';
 // `"5"`, then converts it to a number for negation, giving a number result
 // instead of a string result.
 
-@NoInline()
+@pragma('dart2js:noInline')
 checkString(r) {
   Expect.isTrue(
       r is String, 'Expected string, found ${r} of type ${r.runtimeType}');

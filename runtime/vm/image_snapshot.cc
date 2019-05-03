@@ -157,8 +157,9 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
     ObjectOffsetPair* pair = reuse_instructions_.Lookup(instructions);
     if (pair == NULL) {
       // Code should have been removed by DropCodeWithoutReusableInstructions.
-      FATAL("Expected instructions to reuse\n");
+      return 0;
     }
+    ASSERT(pair->offset != 0);
     return pair->offset;
   }
 
@@ -167,6 +168,7 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
     // Negative offsets tell the reader the offset is w/r/t the shared
     // instructions image instead of the app-specific instructions image.
     // Compare ImageReader::GetInstructionsAt.
+    ASSERT(pair->offset != 0);
     return -pair->offset;
   }
 
@@ -175,6 +177,7 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
   next_text_offset_ += instructions->HeapSize();
   instructions_.Add(InstructionsData(instructions, code, offset));
 
+  ASSERT(offset != 0);
   return offset;
 }
 
@@ -331,9 +334,8 @@ void ImageWriter::WriteROData(WriteStream* stream) {
     uword start = reinterpret_cast<uword>(obj.raw()) - kHeapObjectTag;
     uword end = start + obj.raw()->HeapSize();
 
-    // Write object header with the mark and VM heap bits set.
+    // Write object header with the mark and read-only bits set.
     uword marked_tags = obj.raw()->ptr()->tags_;
-    marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
     marked_tags = RawObject::OldBit::update(true, marked_tags);
     marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
     marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
@@ -482,9 +484,8 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
       uword entry = beginning + Instructions::HeaderSize();
 
-      // Write Instructions with the mark and VM heap bits set.
+      // Write Instructions with the mark and read-only bits set.
       uword marked_tags = insns.raw_ptr()->tags_;
-      marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
       marked_tags = RawObject::OldBit::update(true, marked_tags);
       marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
       marked_tags =
@@ -732,9 +733,8 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     ASSERT(Utils::IsAligned(beginning, sizeof(uword)));
     ASSERT(Utils::IsAligned(entry, sizeof(uword)));
 
-    // Write Instructions with the mark and VM heap bits set.
+    // Write Instructions with the mark and read-only bits set.
     uword marked_tags = insns.raw_ptr()->tags_;
-    marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
     marked_tags = RawObject::OldBit::update(true, marked_tags);
     marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
     marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
@@ -820,7 +820,11 @@ void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
   class DropCodeVisitor : public FunctionVisitor, public ClassVisitor {
    public:
     explicit DropCodeVisitor(const void* reused_instructions)
-        : code_(Code::Handle()), instructions_(Instructions::Handle()) {
+        : code_(Code::Handle()),
+          instructions_(Instructions::Handle()),
+          pool_(ObjectPool::Handle()),
+          table_(Array::Handle()),
+          entry_(Object::Handle()) {
       ImageWriter::SetupShared(&reused_instructions_, reused_instructions);
       if (FLAG_trace_reused_instructions) {
         OS::PrintErr("%" Pd " reusable instructions\n",
@@ -830,18 +834,20 @@ void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
 
     void Visit(const Class& cls) {
       code_ = cls.allocation_stub();
-      if (!code_.IsNull() && !IsAvailable(code_)) {
-        if (FLAG_trace_reused_instructions) {
-          OS::PrintErr("No reusable instructions for %s\n", cls.ToCString());
+      if (!code_.IsNull()) {
+        if (!CanKeep(code_)) {
+          if (FLAG_trace_reused_instructions) {
+            OS::PrintErr("No reusable instructions for %s\n", cls.ToCString());
+          }
+          cls.DisableAllocationStub();
         }
-        cls.DisableAllocationStub();
       }
     }
 
     void Visit(const Function& func) {
       if (func.HasCode()) {
         code_ = func.CurrentCode();
-        if (!IsAvailable(code_)) {
+        if (!CanKeep(code_)) {
           if (FLAG_trace_reused_instructions) {
             OS::PrintErr("No reusable instructions for %s\n", func.ToCString());
           }
@@ -851,14 +857,42 @@ void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
         }
       }
       code_ = func.unoptimized_code();
-      if (!code_.IsNull() && !IsAvailable(code_)) {
+      if (!code_.IsNull() && !CanKeep(code_)) {
         if (FLAG_trace_reused_instructions) {
           OS::PrintErr("No reusable instructions for %s\n", func.ToCString());
         }
         func.ClearCode();
         func.ClearICDataArray();
-        return;
       }
+    }
+
+    bool CanKeep(const Code& code) {
+      if (!IsAvailable(code)) {
+        return false;
+      }
+
+      pool_ = code.object_pool();
+      for (intptr_t i = 0; i < pool_.Length(); i++) {
+        if (pool_.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
+          entry_ = pool_.ObjectAt(i);
+          if (entry_.IsCode() && !IsAvailable(Code::Cast(entry_))) {
+            return false;
+          }
+        }
+      }
+
+      table_ = code.static_calls_target_table();
+      if (!table_.IsNull()) {
+        StaticCallsTable static_calls(table_);
+        for (auto& view : static_calls) {
+          entry_ = view.Get<Code::kSCallTableCodeTarget>();
+          if (entry_.IsCode() && !IsAvailable(Code::Cast(entry_))) {
+            return false;
+          }
+        }
+      }
+
+      return true;
     }
 
    private:
@@ -870,6 +904,9 @@ void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
     ObjectOffsetMap reused_instructions_;
     Code& code_;
     Instructions& instructions_;
+    ObjectPool& pool_;
+    Array& table_;
+    Object& entry_;
 
     DISALLOW_COPY_AND_ASSIGN(DropCodeVisitor);
   };

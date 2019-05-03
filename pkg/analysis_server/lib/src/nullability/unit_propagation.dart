@@ -66,7 +66,7 @@ class ConstraintVariable {
 
   /// The value assigned to this constraint variable by the solution currently
   /// being computed.
-  get value => _value;
+  bool get value => _value;
 
   @override
   String toString() =>

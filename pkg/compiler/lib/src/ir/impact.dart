@@ -10,6 +10,7 @@ import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
+import 'constants.dart';
 import 'impact_data.dart';
 import 'runtime_type_analysis.dart';
 import 'scope.dart';
@@ -88,7 +89,10 @@ abstract class ImpactRegistry {
 
   void registerTypeLiteral(ir.DartType type, ir.LibraryDependency import);
 
-  void registerFieldInitializer(ir.Field node);
+  void registerFieldInitialization(ir.Field node);
+
+  void registerFieldConstantInitialization(
+      ir.Field node, ConstantReference constant);
 
   void registerLoadLibrary();
 
@@ -110,6 +114,9 @@ abstract class ImpactRegistry {
       List<ir.DartType> typeArguments,
       ir.LibraryDependency import,
       {bool isConst});
+
+  void registerConstInstantiation(ir.Class cls, List<ir.DartType> typeArguments,
+      ir.LibraryDependency import);
 
   void registerStaticInvocation(
       ir.Procedure target,
@@ -186,6 +193,7 @@ abstract class ImpactRegistry {
 
 abstract class ImpactBuilderBase extends StaticTypeVisitor
     implements ImpactRegistry {
+  @override
   final VariableScopeModel variableScopeModel;
 
   ImpactBuilderBase(ir.TypeEnvironment typeEnvironment,
@@ -396,7 +404,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
 
   @override
   void handleFieldInitializer(ir.FieldInitializer node) {
-    registerFieldInitializer(node.field);
+    registerFieldInitialization(node.field);
   }
 
   @override
@@ -404,6 +412,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
     registerLoadLibrary();
   }
 
+  @override
   void handleRedirectingInitializer(
       ir.RedirectingInitializer node, ArgumentTypes argumentTypes) {
     registerRedirectingInitializer(
@@ -641,24 +650,159 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
     return super.visitSwitchStatement(node);
   }
 
+  @override
   void handleRuntimeTypeUse(ir.PropertyGet node, RuntimeTypeUseKind kind,
       ir.DartType receiverType, ir.DartType argumentType) {
     registerRuntimeTypeUse(node, kind, receiverType, argumentType);
+  }
+
+  @override
+  void handleConstantExpression(ir.ConstantExpression node) {
+    ir.LibraryDependency import = getDeferredImport(node);
+    node.constant.accept(new ConstantImpactVisitor(this, import, node));
   }
 }
 
 /// Visitor that builds an [ImpactData] object for the world impact.
 class ImpactBuilder extends ImpactBuilderBase with ImpactRegistryMixin {
+  @override
   final bool useAsserts;
 
+  @override
   final inferEffectivelyFinalVariableTypes;
 
   ImpactBuilder(ir.TypeEnvironment typeEnvironment,
       ir.ClassHierarchy classHierarchy, VariableScopeModel variableScopeModel,
       {this.useAsserts: false, this.inferEffectivelyFinalVariableTypes: true})
       : super(typeEnvironment, classHierarchy, variableScopeModel);
+
+  ImpactBuilderData computeImpact(ir.Member node) {
+    if (retainDataForTesting) {
+      typeMapsForTesting = {};
+    }
+    node.accept(this);
+    return new ImpactBuilderData(
+        impactData, typeMapsForTesting, cachedStaticTypes);
+  }
 }
 
 /// Return the named arguments names as a list of strings.
 List<String> _getNamedArguments(ir.Arguments arguments) =>
     arguments.named.map((n) => n.name).toList();
+
+class ImpactBuilderData {
+  final ImpactData impactData;
+  final Map<ir.Expression, TypeMap> typeMapsForTesting;
+  final Map<ir.Expression, ir.DartType> cachedStaticTypes;
+
+  ImpactBuilderData(
+      this.impactData, this.typeMapsForTesting, this.cachedStaticTypes);
+}
+
+class ConstantImpactVisitor implements ir.ConstantVisitor<void> {
+  final ImpactRegistry registry;
+  final ir.LibraryDependency import;
+  final ir.ConstantExpression expression;
+
+  ConstantImpactVisitor(this.registry, this.import, this.expression);
+
+  @override
+  void defaultConstant(ir.Constant node) {
+    throw new UnsupportedError(
+        "Unexpected constant ${node} (${node.runtimeType}).");
+  }
+
+  @override
+  void visitUnevaluatedConstant(ir.UnevaluatedConstant node) {
+    // Do nothing. This occurs when the constant couldn't be evaluated because
+    // of a compile-time error.
+  }
+
+  @override
+  void visitTypeLiteralConstant(ir.TypeLiteralConstant node) {
+    registry.registerTypeLiteral(node.type, import);
+  }
+
+  @override
+  void visitTearOffConstant(ir.TearOffConstant node) {
+    registry.registerStaticTearOff(node.procedure, import);
+  }
+
+  @override
+  void visitPartialInstantiationConstant(ir.PartialInstantiationConstant node) {
+    registry.registerGenericInstantiation(
+        node.tearOffConstant.procedure.function.functionType, node.types);
+    node.tearOffConstant.accept(this);
+  }
+
+  @override
+  void visitInstanceConstant(ir.InstanceConstant node) {
+    registry.registerConstInstantiation(
+        node.classNode, node.typeArguments, import);
+    node.fieldValues.forEach((ir.Reference reference, ir.Constant value) {
+      ir.Field field = reference.asField;
+      registry.registerFieldConstantInitialization(
+          field, new ConstantReference(expression, value));
+      value.accept(this);
+    });
+  }
+
+  @override
+  void visitSetConstant(ir.SetConstant node) {
+    registry.registerSetLiteral(node.typeArgument,
+        isConst: true, isEmpty: node.entries.isEmpty);
+    for (ir.Constant element in node.entries) {
+      element.accept(this);
+    }
+  }
+
+  @override
+  void visitListConstant(ir.ListConstant node) {
+    registry.registerListLiteral(node.typeArgument,
+        isConst: true, isEmpty: node.entries.isEmpty);
+    for (ir.Constant element in node.entries) {
+      element.accept(this);
+    }
+  }
+
+  @override
+  void visitMapConstant(ir.MapConstant node) {
+    registry.registerMapLiteral(node.keyType, node.valueType,
+        isConst: true, isEmpty: node.entries.isEmpty);
+    for (ir.ConstantMapEntry entry in node.entries) {
+      entry.key.accept(this);
+      entry.value.accept(this);
+    }
+  }
+
+  @override
+  void visitSymbolConstant(ir.SymbolConstant node) {
+    // TODO(johnniwinther): Handle the library reference.
+    registry.registerSymbolLiteral(node.name);
+  }
+
+  @override
+  void visitStringConstant(ir.StringConstant node) {
+    registry.registerStringLiteral(node.value);
+  }
+
+  @override
+  void visitDoubleConstant(ir.DoubleConstant node) {
+    registry.registerDoubleLiteral(node.value);
+  }
+
+  @override
+  void visitIntConstant(ir.IntConstant node) {
+    registry.registerIntLiteral(node.value);
+  }
+
+  @override
+  void visitBoolConstant(ir.BoolConstant node) {
+    registry.registerBoolLiteral(node.value);
+  }
+
+  @override
+  void visitNullConstant(ir.NullConstant node) {
+    registry.registerNullLiteral();
+  }
+}

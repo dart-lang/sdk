@@ -43,6 +43,6 @@ void nativeTesting() {
 ''');
 }
 
-@NoInline()
-@AssumeDynamic()
+@pragma('dart2js:noInline')
+@pragma('dart2js:assumeDynamic')
 confuse(x) => x;

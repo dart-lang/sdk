@@ -13,13 +13,13 @@ ImportLibraryRequest importLibraryElementImpl({
   @required String targetPath,
   @required int targetOffset,
   @required LibraryElement requestedLibrary,
-  @required String requestedName,
+  @required Element requestedElement,
 }) {
   var targetLibrary = targetResolvedLibrary.element;
 
   var requestedLibraryUri = requestedLibrary.source.uri;
-  var requestedElement = requestedLibrary.exportNamespace.get(requestedName);
   var requestedElementUri = requestedElement.librarySource.uri;
+  var requestedName = requestedElement.displayName;
 
   // If the element is defined in this library, then no prefix needed.
   if (targetLibrary == requestedElement.library) {

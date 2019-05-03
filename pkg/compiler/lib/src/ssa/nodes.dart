@@ -6,8 +6,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../closure.dart';
 import '../common.dart';
-import '../compiler.dart' show Compiler;
-import '../constants/constant_system.dart';
+import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
@@ -188,6 +187,7 @@ abstract class HInstructionVisitor extends HGraphVisitor {
 
   visitInstruction(HInstruction node);
 
+  @override
   visitBasicBlock(HBasicBlock node) {
     void visitInstructionList(HInstructionList list) {
       HInstruction instruction = list.first;
@@ -285,12 +285,8 @@ class HGraph {
     return result;
   }
 
-  HConstant addDeferredConstant(
-      ConstantValue constant,
-      OutputUnit unit,
-      SourceInformation sourceInformation,
-      Compiler compiler,
-      JClosedWorld closedWorld) {
+  HConstant addDeferredConstant(ConstantValue constant, OutputUnit unit,
+      SourceInformation sourceInformation, JClosedWorld closedWorld) {
     ConstantValue wrapper = new DeferredGlobalConstantValue(constant, unit);
     closedWorld.outputUnitData.registerConstantDeferredUse(wrapper, unit);
     return addConstant(wrapper, closedWorld,
@@ -298,23 +294,21 @@ class HGraph {
   }
 
   HConstant addConstantInt(int i, JClosedWorld closedWorld) {
-    return addConstant(
-        closedWorld.constantSystem.createIntFromInt(i), closedWorld);
+    return addConstant(constant_system.createIntFromInt(i), closedWorld);
   }
 
   HConstant addConstantIntAsUnsigned(int i, JClosedWorld closedWorld) {
     return addConstant(
-        closedWorld.constantSystem.createInt(new BigInt.from(i).toUnsigned(64)),
+        constant_system.createInt(new BigInt.from(i).toUnsigned(64)),
         closedWorld);
   }
 
   HConstant addConstantDouble(double d, JClosedWorld closedWorld) {
-    return addConstant(closedWorld.constantSystem.createDouble(d), closedWorld);
+    return addConstant(constant_system.createDouble(d), closedWorld);
   }
 
   HConstant addConstantString(String str, JClosedWorld closedWorld) {
-    return addConstant(
-        closedWorld.constantSystem.createString(str), closedWorld);
+    return addConstant(constant_system.createString(str), closedWorld);
   }
 
   HConstant addConstantStringFromName(js.Name name, JClosedWorld closedWorld) {
@@ -325,12 +319,11 @@ class HGraph {
   }
 
   HConstant addConstantBool(bool value, JClosedWorld closedWorld) {
-    return addConstant(
-        closedWorld.constantSystem.createBool(value), closedWorld);
+    return addConstant(constant_system.createBool(value), closedWorld);
   }
 
   HConstant addConstantNull(JClosedWorld closedWorld) {
-    return addConstant(closedWorld.constantSystem.createNull(), closedWorld);
+    return addConstant(constant_system.createNull(), closedWorld);
   }
 
   HConstant addConstantUnreachable(JClosedWorld closedWorld) {
@@ -364,6 +357,35 @@ class HGraph {
         }
       }
     }
+    assignDominatorRanges();
+  }
+
+  void assignDominatorRanges() {
+    // DFS walk of dominator tree to assign dfs-in and dfs-out numbers to basic
+    // blocks. A dominator has a dfs-in..dfs-out range that includes the range
+    // of the dominated block. See [HGraphVisitor.visitDominatorTree] for
+    // recursion-free schema.
+    _Frame frame = new _Frame(null);
+    frame.block = entry;
+    frame.index = 0;
+
+    int dfsNumber = 0;
+    frame.block.dominatorDfsIn = dfsNumber;
+
+    while (frame != null) {
+      HBasicBlock block = frame.block;
+      int index = frame.index;
+      if (index < block.dominatedBlocks.length) {
+        frame.index = index + 1;
+        frame = frame.next ??= new _Frame(frame);
+        frame.block = block.dominatedBlocks[index];
+        frame.index = 0;
+        frame.block.dominatorDfsIn = ++dfsNumber;
+        continue;
+      }
+      block.dominatorDfsOut = dfsNumber;
+      frame = frame.previous;
+    }
   }
 
   bool isValid() {
@@ -372,12 +394,14 @@ class HGraph {
     return validator.isValid;
   }
 
+  @override
   toString() => 'HGraph($element)';
 }
 
 class HBaseVisitor extends HGraphVisitor implements HVisitor {
   HBasicBlock currentBlock;
 
+  @override
   visitBasicBlock(HBasicBlock node) {
     currentBlock = node;
 
@@ -402,93 +426,171 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitFieldAccess(HFieldAccess node) => visitInstruction(node);
   visitRelational(HRelational node) => visitInvokeBinary(node);
 
+  @override
   visitAbs(HAbs node) => visitInvokeUnary(node);
+  @override
   visitAdd(HAdd node) => visitBinaryArithmetic(node);
+  @override
   visitBitAnd(HBitAnd node) => visitBinaryBitOp(node);
+  @override
   visitBitNot(HBitNot node) => visitInvokeUnary(node);
+  @override
   visitBitOr(HBitOr node) => visitBinaryBitOp(node);
+  @override
   visitBitXor(HBitXor node) => visitBinaryBitOp(node);
+  @override
   visitBoolify(HBoolify node) => visitInstruction(node);
+  @override
   visitBoundsCheck(HBoundsCheck node) => visitCheck(node);
+  @override
   visitBreak(HBreak node) => visitJump(node);
+  @override
   visitContinue(HContinue node) => visitJump(node);
   visitCheck(HCheck node) => visitInstruction(node);
+  @override
   visitConstant(HConstant node) => visitInstruction(node);
+  @override
   visitCreate(HCreate node) => visitInstruction(node);
+  @override
   visitCreateBox(HCreateBox node) => visitInstruction(node);
+  @override
   visitDivide(HDivide node) => visitBinaryArithmetic(node);
+  @override
   visitExit(HExit node) => visitControlFlow(node);
+  @override
   visitExitTry(HExitTry node) => visitControlFlow(node);
+  @override
   visitFieldGet(HFieldGet node) => visitFieldAccess(node);
+  @override
   visitFieldSet(HFieldSet node) => visitFieldAccess(node);
+  @override
   visitForeignCode(HForeignCode node) => visitInstruction(node);
+  @override
   visitGetLength(HGetLength node) => visitInstruction(node);
+  @override
   visitGoto(HGoto node) => visitControlFlow(node);
+  @override
   visitGreater(HGreater node) => visitRelational(node);
+  @override
   visitGreaterEqual(HGreaterEqual node) => visitRelational(node);
+  @override
   visitIdentity(HIdentity node) => visitRelational(node);
+  @override
   visitIf(HIf node) => visitConditionalBranch(node);
+  @override
   visitIndex(HIndex node) => visitInstruction(node);
+  @override
   visitIndexAssign(HIndexAssign node) => visitInstruction(node);
+  @override
   visitInterceptor(HInterceptor node) => visitInstruction(node);
+  @override
   visitInvokeClosure(HInvokeClosure node) => visitInvokeDynamic(node);
+  @override
   visitInvokeConstructorBody(HInvokeConstructorBody node) =>
       visitInvokeStatic(node);
+  @override
   visitInvokeGeneratorBody(HInvokeGeneratorBody node) =>
       visitInvokeStatic(node);
+  @override
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) =>
       visitInvokeDynamic(node);
+  @override
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) =>
       visitInvokeDynamicField(node);
+  @override
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) =>
       visitInvokeDynamicField(node);
+  @override
   visitInvokeStatic(HInvokeStatic node) => visitInvoke(node);
+  @override
   visitInvokeSuper(HInvokeSuper node) => visitInvokeStatic(node);
   visitJump(HJump node) => visitControlFlow(node);
+  @override
   visitLazyStatic(HLazyStatic node) => visitInstruction(node);
+  @override
   visitLess(HLess node) => visitRelational(node);
+  @override
   visitLessEqual(HLessEqual node) => visitRelational(node);
+  @override
   visitLiteralList(HLiteralList node) => visitInstruction(node);
   visitLocalAccess(HLocalAccess node) => visitInstruction(node);
+  @override
   visitLocalGet(HLocalGet node) => visitLocalAccess(node);
+  @override
   visitLocalSet(HLocalSet node) => visitLocalAccess(node);
+  @override
   visitLocalValue(HLocalValue node) => visitInstruction(node);
+  @override
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
+  @override
   visitNegate(HNegate node) => visitInvokeUnary(node);
+  @override
   visitNot(HNot node) => visitInstruction(node);
+  @override
   visitOneShotInterceptor(HOneShotInterceptor node) => visitInvokeDynamic(node);
+  @override
   visitPhi(HPhi node) => visitInstruction(node);
+  @override
   visitMultiply(HMultiply node) => visitBinaryArithmetic(node);
+  @override
   visitParameterValue(HParameterValue node) => visitLocalValue(node);
+  @override
   visitRangeConversion(HRangeConversion node) => visitCheck(node);
+  @override
   visitReadModifyWrite(HReadModifyWrite node) => visitInstruction(node);
+  @override
   visitRef(HRef node) => node.value.accept(this);
+  @override
   visitRemainder(HRemainder node) => visitBinaryArithmetic(node);
+  @override
   visitReturn(HReturn node) => visitControlFlow(node);
+  @override
   visitShiftLeft(HShiftLeft node) => visitBinaryBitOp(node);
+  @override
   visitShiftRight(HShiftRight node) => visitBinaryBitOp(node);
+  @override
   visitSubtract(HSubtract node) => visitBinaryArithmetic(node);
+  @override
   visitSwitch(HSwitch node) => visitControlFlow(node);
+  @override
   visitStatic(HStatic node) => visitInstruction(node);
+  @override
   visitStaticStore(HStaticStore node) => visitInstruction(node);
+  @override
   visitStringConcat(HStringConcat node) => visitInstruction(node);
+  @override
   visitStringify(HStringify node) => visitInstruction(node);
+  @override
   visitThis(HThis node) => visitParameterValue(node);
+  @override
   visitThrow(HThrow node) => visitControlFlow(node);
+  @override
   visitThrowExpression(HThrowExpression node) => visitInstruction(node);
+  @override
   visitTruncatingDivide(HTruncatingDivide node) => visitBinaryArithmetic(node);
+  @override
   visitTry(HTry node) => visitControlFlow(node);
+  @override
   visitIs(HIs node) => visitInstruction(node);
+  @override
   visitLateValue(HLateValue node) => visitInstruction(node);
+  @override
   visitIsViaInterceptor(HIsViaInterceptor node) => visitInstruction(node);
+  @override
   visitTypeConversion(HTypeConversion node) => visitCheck(node);
+  @override
   visitTypeKnown(HTypeKnown node) => visitCheck(node);
+  @override
   visitAwait(HAwait node) => visitInstruction(node);
+  @override
   visitYield(HYield node) => visitInstruction(node);
 
+  @override
   visitTypeInfoReadRaw(HTypeInfoReadRaw node) => visitInstruction(node);
+  @override
   visitTypeInfoReadVariable(HTypeInfoReadVariable node) =>
       visitInstruction(node);
+  @override
   visitTypeInfoExpression(HTypeInfoExpression node) => visitInstruction(node);
 }
 
@@ -633,6 +735,8 @@ class HBasicBlock extends HInstructionList {
 
   HBasicBlock dominator = null;
   final List<HBasicBlock> dominatedBlocks;
+  int dominatorDfsIn;
+  int dominatorDfsOut;
 
   HBasicBlock() : this.withId(null);
   HBasicBlock.withId(this.id)
@@ -641,6 +745,7 @@ class HBasicBlock extends HInstructionList {
         successors = const <HBasicBlock>[],
         dominatedBlocks = <HBasicBlock>[];
 
+  @override
   int get hashCode => id;
 
   bool isNew() => status == STATUS_NEW;
@@ -734,6 +839,7 @@ class HBasicBlock extends HInstructionList {
     instruction.notifyAddedToBlock(this);
   }
 
+  @override
   void remove(HInstruction instruction) {
     assert(isOpen() || isClosed());
     assert(instruction is! HPhi);
@@ -891,22 +997,12 @@ class HBasicBlock extends HInstructionList {
     return validator.isValid;
   }
 
-  Map<HBasicBlock, bool> dominatesCache;
-
   bool dominates(HBasicBlock other) {
-    if (dominatesCache == null) {
-      dominatesCache = new Map<HBasicBlock, bool>();
-    } else {
-      bool res = dominatesCache[other];
-      if (res != null) return res;
-    }
-    do {
-      if (identical(this, other)) return dominatesCache[other] = true;
-      other = other.dominator;
-    } while (other != null && other.id >= id);
-    return dominatesCache[other] = false;
+    return this.dominatorDfsIn <= other.dominatorDfsIn &&
+        other.dominatorDfsOut <= this.dominatorDfsOut;
   }
 
+  @override
   toString() => 'HBasicBlock($id)';
 }
 
@@ -979,6 +1075,7 @@ abstract class HInstruction implements Spannable {
     assert(inputs.every((e) => e != null), "inputs: $inputs");
   }
 
+  @override
   int get hashCode => id;
 
   bool useGvn() => _useGvn;
@@ -1327,6 +1424,7 @@ class DominatedUses {
 
   bool get isEmpty => _instructions.isEmpty;
   bool get isNotEmpty => !isEmpty;
+  int get length => _instructions.length;
 
   /// Changes all the uses in the set to [newInstruction].
   void replaceWith(HInstruction newInstruction) {
@@ -1349,6 +1447,8 @@ class DominatedUses {
   bool get isSingleton => _instructions.length == 1;
 
   HInstruction get single => _instructions.single;
+
+  Iterable<HInstruction> get instructions => _instructions;
 
   void _addUse(HInstruction user, int inputIndex) {
     _instructions.add(user);
@@ -1453,6 +1553,7 @@ class HRef extends HInstruction {
   @override
   accept(HVisitor visitor) => visitor.visitRef(this);
 
+  @override
   String toString() => 'HRef(${value})';
 }
 
@@ -1470,9 +1571,13 @@ class HBoolify extends HInstruction {
     sourceInformation = value.sourceInformation;
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitBoolify(this);
+  @override
   int typeCode() => HInstruction.BOOLIFY_TYPECODE;
+  @override
   bool typeEquals(other) => other is HBoolify;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -1486,9 +1591,12 @@ abstract class HCheck extends HInstruction {
     setUseGvn();
   }
   HInstruction get checkedInput => inputs[0];
+  @override
   bool isJsStatement() => true;
+  @override
   bool canThrow(AbstractValueDomain domain) => true;
 
+  @override
   HInstruction nonCheck() => checkedInput.nonCheck();
 }
 
@@ -1512,11 +1620,16 @@ class HBoundsCheck extends HCheck {
   // There can be an additional fourth input which is the index to report to
   // [ioore]. This is used by the expansion of [JSArray.removeLast].
   HInstruction get reportedIndex => inputs.length > 3 ? inputs[3] : index;
+  @override
   bool isControlFlow() => true;
 
+  @override
   accept(HVisitor visitor) => visitor.visitBoundsCheck(this);
+  @override
   int typeCode() => HInstruction.BOUNDS_CHECK_TYPECODE;
+  @override
   bool typeEquals(other) => other is HBoundsCheck;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -1534,7 +1647,9 @@ abstract class HControlFlow extends HInstruction {
       // have an `instructionType`, or statement-like [HInstruction]s should
       // have a throwing getter.
       : super(inputs, domain.emptyType);
+  @override
   bool isControlFlow() => true;
+  @override
   bool isJsStatement() => true;
 }
 
@@ -1562,6 +1677,7 @@ class HCreate extends HInstruction {
     this.sourceInformation = sourceInformation;
   }
 
+  @override
   bool isAllocation(AbstractValueDomain domain) => true;
 
   HInstruction get rtiInput {
@@ -1569,8 +1685,10 @@ class HCreate extends HInstruction {
     return inputs.last;
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitCreate(this);
 
+  @override
   String toString() => 'HCreate($element, ${instantiatedTypes})';
 }
 
@@ -1578,10 +1696,13 @@ class HCreate extends HInstruction {
 class HCreateBox extends HInstruction {
   HCreateBox(AbstractValue type) : super(<HInstruction>[], type);
 
+  @override
   bool isAllocation(AbstractValueDomain domain) => true;
 
+  @override
   accept(HVisitor visitor) => visitor.visitCreateBox(this);
 
+  @override
   String toString() => 'HCreateBox()';
 }
 
@@ -1597,7 +1718,9 @@ abstract class HInvoke extends HInstruction {
     sideEffects.setDependsOnSomething();
   }
   static const int ARGUMENTS_OFFSET = 1;
+  @override
   bool canThrow(AbstractValueDomain domain) => true;
+  @override
   bool isAllocation(AbstractValueDomain domain) => _isAllocation;
   void setAllocation(bool value) {
     _isAllocation = value;
@@ -1606,6 +1729,7 @@ abstract class HInvoke extends HInstruction {
 
 abstract class HInvokeDynamic extends HInvoke {
   final InvokeDynamicSpecializer specializer;
+  @override
   Selector selector;
   AbstractValue mask;
   MemberEntity element;
@@ -1620,8 +1744,10 @@ abstract class HInvokeDynamic extends HInvoke {
     assert(isIntercepted != null);
     isInterceptedCall = isIntercepted;
   }
+  @override
   toString() => 'invoke dynamic: selector=$selector, mask=$mask';
   HInstruction get receiver => inputs[0];
+  @override
   HInstruction getDartReceiver(JClosedWorld closedWorld) {
     return isCallOnInterceptor(closedWorld) ? inputs[1] : inputs[0];
   }
@@ -1634,8 +1760,11 @@ abstract class HInvokeDynamic extends HInvoke {
     return isInterceptedCall && receiver.isInterceptor(closedWorld);
   }
 
+  @override
   int typeCode() => HInstruction.INVOKE_DYNAMIC_TYPECODE;
+  @override
   bool typeEquals(other) => other is HInvokeDynamic;
+  @override
   bool dataEquals(HInvokeDynamic other) {
     // Use the name and the kind instead of [Selector.operator==]
     // because we don't need to check the arity (already checked in
@@ -1646,6 +1775,7 @@ abstract class HInvokeDynamic extends HInvoke {
 }
 
 class HInvokeClosure extends HInvokeDynamic {
+  @override
   final List<DartType> typeArguments;
 
   HInvokeClosure(Selector selector, List<HInstruction> inputs,
@@ -1655,10 +1785,12 @@ class HInvokeClosure extends HInvokeDynamic {
     assert(selector.callStructure.typeArgumentCount == typeArguments.length);
     assert(!isInterceptedCall);
   }
+  @override
   accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
 }
 
 class HInvokeDynamicMethod extends HInvokeDynamic {
+  @override
   final List<DartType> typeArguments;
 
   HInvokeDynamicMethod(
@@ -1674,7 +1806,9 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
     assert(selector.callStructure.typeArgumentCount == typeArguments.length);
   }
 
+  @override
   String toString() => 'invoke dynamic method: selector=$selector, mask=$mask';
+  @override
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 }
 
@@ -1688,6 +1822,7 @@ abstract class HInvokeDynamicField extends HInvokeDynamic {
       AbstractValue type)
       : super(selector, mask, element, inputs, isIntercepted, type);
 
+  @override
   String toString() => 'invoke dynamic field: selector=$selector, mask=$mask';
 }
 
@@ -1704,17 +1839,21 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
     this.sourceInformation = sourceInformation;
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
 
   bool get isTearOff => element != null && element.isFunction;
 
+  @override
   List<DartType> get typeArguments => const <DartType>[];
 
   // There might be an interceptor input, so `inputs.last` is the dart receiver.
+  @override
   bool canThrow(AbstractValueDomain domain) => isTearOff
       ? inputs.last.isNull(domain).isPotentiallyTrue
       : super.canThrow(domain);
 
+  @override
   String toString() => 'invoke dynamic getter: selector=$selector, mask=$mask';
 }
 
@@ -1735,10 +1874,13 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
     this.sourceInformation = sourceInformation;
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
 
+  @override
   List<DartType> get typeArguments => const <DartType>[];
 
+  @override
   String toString() =>
       'invoke dynamic setter: selector=$selector, mask=$mask, element=$element';
 }
@@ -1751,6 +1893,7 @@ class HInvokeStatic extends HInvoke {
 
   final bool targetCanThrow;
 
+  @override
   bool canThrow(AbstractValueDomain domain) => targetCanThrow;
 
   /// If this instruction is a call to a constructor, [instantiatedTypes]
@@ -1766,10 +1909,13 @@ class HInvokeStatic extends HInvoke {
     isInterceptedCall = isIntercepted;
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
 
+  @override
   int typeCode() => HInstruction.INVOKE_STATIC_TYPECODE;
 
+  @override
   String toString() => 'invoke static: $element';
 }
 
@@ -1777,6 +1923,7 @@ class HInvokeSuper extends HInvokeStatic {
   /// The class where the call to super is being done.
   final ClassEntity caller;
   final bool isSetter;
+  @override
   final Selector selector;
 
   HInvokeSuper(
@@ -1795,6 +1942,7 @@ class HInvokeSuper extends HInvokeStatic {
   }
 
   HInstruction get receiver => inputs[0];
+  @override
   HInstruction getDartReceiver(JClosedWorld closedWorld) {
     return isCallOnInterceptor(closedWorld) ? inputs[1] : inputs[0];
   }
@@ -1804,7 +1952,9 @@ class HInvokeSuper extends HInvokeStatic {
     return isInterceptedCall && receiver.isInterceptor(closedWorld);
   }
 
+  @override
   toString() => 'invoke super: $element';
+  @override
   accept(HVisitor visitor) => visitor.visitInvokeSuper(this);
 
   HInstruction get value {
@@ -1827,7 +1977,9 @@ class HInvokeConstructorBody extends HInvokeStatic {
     this.sourceInformation = sourceInformation;
   }
 
+  @override
   String toString() => 'invoke constructor body: ${element.name}';
+  @override
   accept(HVisitor visitor) => visitor.visitInvokeConstructorBody(this);
 }
 
@@ -1846,7 +1998,9 @@ class HInvokeGeneratorBody extends HInvokeStatic {
     this.sourceInformation = sourceInformation;
   }
 
+  @override
   String toString() => 'HInvokeGeneratorBody(${element.name})';
+  @override
   accept(HVisitor visitor) => visitor.visitInvokeGeneratorBody(this);
 }
 
@@ -1863,10 +2017,12 @@ class HFieldGet extends HFieldAccess {
   final bool isAssignable;
 
   HFieldGet(FieldEntity element, HInstruction receiver, AbstractValue type,
+      SourceInformation sourceInformation,
       {bool isAssignable})
       : this.isAssignable =
             (isAssignable != null) ? isAssignable : element.isAssignable,
         super(element, <HInstruction>[receiver], type) {
+    this.sourceInformation = sourceInformation;
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     setUseGvn();
@@ -1875,6 +2031,7 @@ class HFieldGet extends HFieldAccess {
     }
   }
 
+  @override
   bool isInterceptor(JClosedWorld closedWorld) {
     if (sourceElement == null) return false;
     // In case of a closure inside an interceptor class, [:this:] is
@@ -1888,18 +2045,26 @@ class HFieldGet extends HFieldAccess {
     return false;
   }
 
+  @override
   bool canThrow(AbstractValueDomain domain) =>
       receiver.isNull(domain).isPotentiallyTrue;
 
+  @override
   HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  @override
   bool onlyThrowsNSM() => true;
   bool get isNullCheck => element == null;
 
+  @override
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
+  @override
   int typeCode() => HInstruction.FIELD_GET_TYPECODE;
+  @override
   bool typeEquals(other) => other is HFieldGet;
+  @override
   bool dataEquals(HFieldGet other) => element == other.element;
+  @override
   String toString() => "FieldGet(element=$element,type=$instructionType)";
 }
 
@@ -1912,16 +2077,24 @@ class HFieldSet extends HFieldAccess {
     sideEffects.setChangesInstanceProperty();
   }
 
+  @override
   bool canThrow(AbstractValueDomain domain) =>
       receiver.isNull(domain).isPotentiallyTrue;
 
+  @override
   HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  @override
   bool onlyThrowsNSM() => true;
 
   HInstruction get value => inputs[1];
+  @override
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
 
-  bool isJsStatement() => true;
+  // HFieldSet is an expression if it has a user.
+  @override
+  bool isJsStatement() => usedBy.isEmpty;
+
+  @override
   String toString() => "FieldSet(element=$element,type=$instructionType)";
 }
 
@@ -1941,17 +2114,25 @@ class HGetLength extends HInstruction {
 
   HInstruction get receiver => inputs.single;
 
+  @override
   bool canThrow(AbstractValueDomain domain) =>
       receiver.isNull(domain).isPotentiallyTrue;
 
+  @override
   HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  @override
   bool onlyThrowsNSM() => true;
 
+  @override
   accept(HVisitor visitor) => visitor.visitGetLength(this);
 
+  @override
   int typeCode() => HInstruction.GET_LENGTH_TYPECODE;
+  @override
   bool typeEquals(other) => other is HGetLength;
+  @override
   bool dataEquals(HGetLength other) => true;
+  @override
   String toString() => "GetLength()";
 }
 
@@ -1993,16 +2174,22 @@ class HReadModifyWrite extends HLateInstruction {
   bool get isPostOp => opKind == POST_OP;
   bool get isAssignOp => opKind == ASSIGN_OP;
 
+  @override
   bool canThrow(AbstractValueDomain domain) =>
       receiver.isNull(domain).isPotentiallyTrue;
 
+  @override
   HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  @override
   bool onlyThrowsNSM() => true;
 
   HInstruction get value => inputs[1];
+  @override
   accept(HVisitor visitor) => visitor.visitReadModifyWrite(this);
 
+  @override
   bool isJsStatement() => isAssignOp;
+  @override
   String toString() => "ReadModifyWrite $jsOp $opKind $element";
 }
 
@@ -2024,6 +2211,7 @@ class HLocalGet extends HLocalAccess {
     this.sourceInformation = sourceInformation;
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitLocalGet(this);
 
   HLocalValue get local => inputs[0];
@@ -2034,10 +2222,12 @@ class HLocalSet extends HLocalAccess {
       HInstruction value)
       : super(variable, <HInstruction>[local, value], domain.emptyType);
 
+  @override
   accept(HVisitor visitor) => visitor.visitLocalSet(this);
 
   HLocalValue get local => inputs[0];
   HInstruction get value => inputs[1];
+  @override
   bool isJsStatement() => true;
 }
 
@@ -2047,6 +2237,7 @@ abstract class HForeign extends HInstruction {
   bool get isStatement => false;
   NativeBehavior get nativeBehavior => null;
 
+  @override
   bool canThrow(AbstractValueDomain domain) {
     return sideEffects.hasSideEffects() || sideEffects.dependsOnSomething();
   }
@@ -2054,7 +2245,9 @@ abstract class HForeign extends HInstruction {
 
 class HForeignCode extends HForeign {
   final js.Template codeTemplate;
+  @override
   final bool isStatement;
+  @override
   final NativeBehavior nativeBehavior;
   NativeThrowBehavior throwBehavior;
   final FunctionEntity foreignFunction;
@@ -2092,9 +2285,12 @@ class HForeignCode extends HForeign {
             effects: effects,
             nativeBehavior: nativeBehavior);
 
+  @override
   accept(HVisitor visitor) => visitor.visitForeignCode(this);
 
+  @override
   bool isJsStatement() => isStatement;
+  @override
   bool canThrow(AbstractValueDomain domain) {
     if (inputs.length > 0) {
       return inputs.first.isNull(domain).isPotentiallyTrue
@@ -2104,24 +2300,31 @@ class HForeignCode extends HForeign {
     return throwBehavior.canThrow;
   }
 
+  @override
   bool onlyThrowsNSM() => throwBehavior.isOnlyNullNSMGuard;
 
+  @override
   bool isAllocation(AbstractValueDomain domain) =>
       nativeBehavior != null &&
       nativeBehavior.isAllocation &&
       isNull(domain).isDefinitelyFalse;
 
+  @override
   int typeCode() => HInstruction.FOREIGN_CODE_TYPECODE;
+  @override
   bool typeEquals(other) => other is HForeignCode;
+  @override
   bool dataEquals(HForeignCode other) {
     return codeTemplate.source != null &&
         codeTemplate.source == other.codeTemplate.source;
   }
 
+  @override
   String toString() => 'HForeignCode("${codeTemplate.source}")';
 }
 
 abstract class HInvokeBinary extends HInstruction {
+  @override
   final Selector selector;
   HInvokeBinary(
       HInstruction left, HInstruction right, this.selector, AbstractValue type)
@@ -2134,26 +2337,31 @@ abstract class HInvokeBinary extends HInstruction {
   HInstruction get left => inputs[0];
   HInstruction get right => inputs[1];
 
-  BinaryOperation operation(ConstantSystem constantSystem);
+  constant_system.BinaryOperation operation();
 }
 
 abstract class HBinaryArithmetic extends HInvokeBinary {
   HBinaryArithmetic(HInstruction left, HInstruction right, Selector selector,
       AbstractValue type)
       : super(left, right, selector, type);
-  BinaryOperation operation(ConstantSystem constantSystem);
+  @override
+  constant_system.BinaryOperation operation();
 }
 
 class HAdd extends HBinaryArithmetic {
   HAdd(HInstruction left, HInstruction right, Selector selector,
       AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.add;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.add;
+  @override
   int typeCode() => HInstruction.ADD_TYPECODE;
+  @override
   bool typeEquals(other) => other is HAdd;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -2161,12 +2369,16 @@ class HDivide extends HBinaryArithmetic {
   HDivide(HInstruction left, HInstruction right, Selector selector,
       AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitDivide(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.divide;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.divide;
+  @override
   int typeCode() => HInstruction.DIVIDE_TYPECODE;
+  @override
   bool typeEquals(other) => other is HDivide;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -2174,11 +2386,16 @@ class HMultiply extends HBinaryArithmetic {
   HMultiply(HInstruction left, HInstruction right, Selector selector,
       AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitMultiply(this);
 
-  BinaryOperation operation(ConstantSystem operations) => operations.multiply;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.multiply;
+  @override
   int typeCode() => HInstruction.MULTIPLY_TYPECODE;
+  @override
   bool typeEquals(other) => other is HMultiply;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -2186,12 +2403,16 @@ class HSubtract extends HBinaryArithmetic {
   HSubtract(HInstruction left, HInstruction right, Selector selector,
       AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitSubtract(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.subtract;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.subtract;
+  @override
   int typeCode() => HInstruction.SUBTRACT_TYPECODE;
+  @override
   bool typeEquals(other) => other is HSubtract;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -2199,12 +2420,17 @@ class HTruncatingDivide extends HBinaryArithmetic {
   HTruncatingDivide(HInstruction left, HInstruction right, Selector selector,
       AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.truncatingDivide;
+  @override
+  constant_system.BinaryOperation operation() =>
+      constant_system.truncatingDivide;
+  @override
   int typeCode() => HInstruction.TRUNCATING_DIVIDE_TYPECODE;
+  @override
   bool typeEquals(other) => other is HTruncatingDivide;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -2212,12 +2438,16 @@ class HRemainder extends HBinaryArithmetic {
   HRemainder(HInstruction left, HInstruction right, Selector selector,
       AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitRemainder(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.remainder;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.remainder;
+  @override
   int typeCode() => HInstruction.REMAINDER_TYPECODE;
+  @override
   bool typeEquals(other) => other is HRemainder;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -2236,8 +2466,10 @@ class HSwitch extends HControlFlow {
   /// following join-block.
   HBasicBlock get defaultTarget => block.successors.last;
 
+  @override
   accept(HVisitor visitor) => visitor.visitSwitch(this);
 
+  @override
   String toString() => "HSwitch cases = $inputs";
 }
 
@@ -2251,12 +2483,16 @@ class HShiftLeft extends HBinaryBitOp {
   HShiftLeft(HInstruction left, HInstruction right, Selector selector,
       AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.shiftLeft;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.shiftLeft;
+  @override
   int typeCode() => HInstruction.SHIFT_LEFT_TYPECODE;
+  @override
   bool typeEquals(other) => other is HShiftLeft;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -2264,12 +2500,16 @@ class HShiftRight extends HBinaryBitOp {
   HShiftRight(HInstruction left, HInstruction right, Selector selector,
       AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.shiftRight;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.shiftRight;
+  @override
   int typeCode() => HInstruction.SHIFT_RIGHT_TYPECODE;
+  @override
   bool typeEquals(other) => other is HShiftRight;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -2277,12 +2517,16 @@ class HBitOr extends HBinaryBitOp {
   HBitOr(HInstruction left, HInstruction right, Selector selector,
       AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.bitOr;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.bitOr;
+  @override
   int typeCode() => HInstruction.BIT_OR_TYPECODE;
+  @override
   bool typeEquals(other) => other is HBitOr;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -2290,12 +2534,16 @@ class HBitAnd extends HBinaryBitOp {
   HBitAnd(HInstruction left, HInstruction right, Selector selector,
       AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.bitAnd;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.bitAnd;
+  @override
   int typeCode() => HInstruction.BIT_AND_TYPECODE;
+  @override
   bool typeEquals(other) => other is HBitAnd;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -2303,16 +2551,21 @@ class HBitXor extends HBinaryBitOp {
   HBitXor(HInstruction left, HInstruction right, Selector selector,
       AbstractValue type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.bitXor;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.bitXor;
+  @override
   int typeCode() => HInstruction.BIT_XOR_TYPECODE;
+  @override
   bool typeEquals(other) => other is HBitXor;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 abstract class HInvokeUnary extends HInstruction {
+  @override
   final Selector selector;
   HInvokeUnary(HInstruction input, this.selector, type)
       : super(<HInstruction>[input], type) {
@@ -2323,53 +2576,70 @@ abstract class HInvokeUnary extends HInstruction {
 
   HInstruction get operand => inputs[0];
 
-  UnaryOperation operation(ConstantSystem constantSystem);
+  constant_system.UnaryOperation operation();
 }
 
 class HNegate extends HInvokeUnary {
   HNegate(HInstruction input, Selector selector, AbstractValue type)
       : super(input, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitNegate(this);
 
-  UnaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.negate;
+  @override
+  constant_system.UnaryOperation operation() => constant_system.negate;
+  @override
   int typeCode() => HInstruction.NEGATE_TYPECODE;
+  @override
   bool typeEquals(other) => other is HNegate;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HAbs extends HInvokeUnary {
   HAbs(HInstruction input, Selector selector, AbstractValue type)
       : super(input, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitAbs(this);
 
-  UnaryOperation operation(ConstantSystem constantSystem) => constantSystem.abs;
+  @override
+  constant_system.UnaryOperation operation() => constant_system.abs;
+  @override
   int typeCode() => HInstruction.ABS_TYPECODE;
+  @override
   bool typeEquals(other) => other is HAbs;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HBitNot extends HInvokeUnary {
   HBitNot(HInstruction input, Selector selector, AbstractValue type)
       : super(input, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitBitNot(this);
 
-  UnaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.bitNot;
+  @override
+  constant_system.UnaryOperation operation() => constant_system.bitNot;
+  @override
   int typeCode() => HInstruction.BIT_NOT_TYPECODE;
+  @override
   bool typeEquals(other) => other is HBitNot;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HExit extends HControlFlow {
   HExit(AbstractValueDomain domain) : super(domain, const <HInstruction>[]);
+  @override
   toString() => 'exit';
+  @override
   accept(HVisitor visitor) => visitor.visitExit(this);
 }
 
 class HGoto extends HControlFlow {
   HGoto(AbstractValueDomain domain) : super(domain, const <HInstruction>[]);
+  @override
   toString() => 'goto';
+  @override
   accept(HVisitor visitor) => visitor.visitGoto(this);
 }
 
@@ -2407,8 +2677,10 @@ class HBreak extends HJump {
       : breakSwitchContinueLoop = false,
         super.toLabel(domain, label, sourceInformation);
 
+  @override
   String toString() => (label != null) ? 'break ${label.labelName}' : 'break';
 
+  @override
   accept(HVisitor visitor) => visitor.visitBreak(this);
 }
 
@@ -2421,9 +2693,11 @@ class HContinue extends HJump {
       SourceInformation sourceInformation)
       : super.toLabel(domain, label, sourceInformation);
 
+  @override
   String toString() =>
       (label != null) ? 'continue ${label.labelName}' : 'continue';
 
+  @override
   accept(HVisitor visitor) => visitor.visitContinue(this);
 }
 
@@ -2432,7 +2706,9 @@ class HTry extends HControlFlow {
   HBasicBlock catchBlock;
   HBasicBlock finallyBlock;
   HTry(AbstractValueDomain domain) : super(domain, const <HInstruction>[]);
+  @override
   toString() => 'try';
+  @override
   accept(HVisitor visitor) => visitor.visitTry(this);
   HBasicBlock get joinBlock => this.block.successors.last;
 }
@@ -2444,7 +2720,9 @@ class HTry extends HControlFlow {
 // finally.
 class HExitTry extends HControlFlow {
   HExitTry(AbstractValueDomain domain) : super(domain, const <HInstruction>[]);
+  @override
   toString() => 'exit try';
+  @override
   accept(HVisitor visitor) => visitor.visitExitTry(this);
   HBasicBlock get bodyTrySuccessor => block.successors[0];
 }
@@ -2453,7 +2731,9 @@ class HIf extends HConditionalBranch {
   HBlockFlow blockInformation = null;
   HIf(AbstractValueDomain domain, HInstruction condition)
       : super(domain, <HInstruction>[condition]);
+  @override
   toString() => 'if';
+  @override
   accept(HVisitor visitor) => visitor.visitIf(this);
 
   HBasicBlock get thenBlock {
@@ -2477,7 +2757,9 @@ class HLoopBranch extends HConditionalBranch {
   HLoopBranch(AbstractValueDomain domain, HInstruction condition,
       [this.kind = CONDITION_FIRST_LOOP])
       : super(domain, <HInstruction>[condition]);
+  @override
   toString() => 'loop-branch';
+  @override
   accept(HVisitor visitor) => visitor.visitLoopBranch(this);
 }
 
@@ -2486,25 +2768,40 @@ class HConstant extends HInstruction {
   HConstant.internal(this.constant, AbstractValue constantType)
       : super(<HInstruction>[], constantType);
 
+  @override
   toString() => 'literal: ${constant.toStructuredText()}';
+  @override
   accept(HVisitor visitor) => visitor.visitConstant(this);
 
+  @override
   bool isConstant() => true;
+  @override
   bool isConstantBoolean() => constant.isBool;
+  @override
   bool isConstantNull() => constant.isNull;
+  @override
   bool isConstantNumber() => constant.isNum;
+  @override
   bool isConstantInteger() => constant.isInt;
+  @override
   bool isConstantString() => constant.isString;
+  @override
   bool isConstantList() => constant.isList;
+  @override
   bool isConstantMap() => constant.isMap;
+  @override
   bool isConstantFalse() => constant.isFalse;
+  @override
   bool isConstantTrue() => constant.isTrue;
 
+  @override
   bool isInterceptor(JClosedWorld closedWorld) => constant.isInterceptor;
 
   // Maybe avoid this if the literal is big?
+  @override
   bool isCodeMotionInvariant() => true;
 
+  @override
   set instructionType(type) {
     // Only lists can be specialized. The SSA builder uses the
     // inferrer for finding the type of a constant list. We should
@@ -2520,9 +2817,13 @@ class HNot extends HInstruction {
     setUseGvn();
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitNot(this);
+  @override
   int typeCode() => HInstruction.NOT_TYPECODE;
+  @override
   bool typeEquals(other) => other is HNot;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -2535,7 +2836,9 @@ class HLocalValue extends HInstruction {
     sourceElement = variable;
   }
 
+  @override
   toString() => 'local ${sourceElement.name}';
+  @override
   accept(HVisitor visitor) => visitor.visitLocalValue(this);
 }
 
@@ -2553,27 +2856,35 @@ class HParameterValue extends HLocalValue {
     return false;
   }
 
+  @override
   toString() => 'parameter ${sourceElement.name}';
+  @override
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
 }
 
 class HThis extends HParameterValue {
   HThis(ThisLocal element, AbstractValue type) : super(element, type);
 
+  @override
   ThisLocal get sourceElement => super.sourceElement;
+  @override
   void set sourceElement(covariant ThisLocal local) {
     super.sourceElement = local;
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitThis(this);
 
+  @override
   bool isCodeMotionInvariant() => true;
 
+  @override
   bool isInterceptor(JClosedWorld closedWorld) {
     return closedWorld.interceptorData
         .isInterceptedClass(sourceElement.enclosingClass);
   }
 
+  @override
   String toString() => 'this';
 }
 
@@ -2605,7 +2916,9 @@ class HPhi extends HInstruction {
     input.usedBy.add(this);
   }
 
+  @override
   toString() => 'phi $id';
+  @override
   accept(HVisitor visitor) => visitor.visitPhi(this);
 }
 
@@ -2619,57 +2932,77 @@ class HIdentity extends HRelational {
   String singleComparisonOp; // null, '===', '=='
 
   HIdentity(left, right, selector, type) : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitIdentity(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.identity;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.identity;
+  @override
   int typeCode() => HInstruction.IDENTITY_TYPECODE;
+  @override
   bool typeEquals(other) => other is HIdentity;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HGreater extends HRelational {
   HGreater(left, right, selector, type) : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitGreater(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.greater;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.greater;
+  @override
   int typeCode() => HInstruction.GREATER_TYPECODE;
+  @override
   bool typeEquals(other) => other is HGreater;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HGreaterEqual extends HRelational {
   HGreaterEqual(left, right, selector, type)
       : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitGreaterEqual(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.greaterEqual;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.greaterEqual;
+  @override
   int typeCode() => HInstruction.GREATER_EQUAL_TYPECODE;
+  @override
   bool typeEquals(other) => other is HGreaterEqual;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HLess extends HRelational {
   HLess(left, right, selector, type) : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitLess(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.less;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.less;
+  @override
   int typeCode() => HInstruction.LESS_TYPECODE;
+  @override
   bool typeEquals(other) => other is HLess;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
 class HLessEqual extends HRelational {
   HLessEqual(left, right, selector, type) : super(left, right, selector, type);
+  @override
   accept(HVisitor visitor) => visitor.visitLessEqual(this);
 
-  BinaryOperation operation(ConstantSystem constantSystem) =>
-      constantSystem.lessEqual;
+  @override
+  constant_system.BinaryOperation operation() => constant_system.lessEqual;
+  @override
   int typeCode() => HInstruction.LESS_EQUAL_TYPECODE;
+  @override
   bool typeEquals(other) => other is HLessEqual;
+  @override
   bool dataEquals(HInstruction other) => true;
 }
 
@@ -2679,7 +3012,9 @@ class HReturn extends HControlFlow {
       : super(domain, <HInstruction>[value]) {
     this.sourceInformation = sourceInformation;
   }
+  @override
   toString() => 'return';
+  @override
   accept(HVisitor visitor) => visitor.visitReturn(this);
 }
 
@@ -2689,18 +3024,25 @@ class HThrowExpression extends HInstruction {
       : super(<HInstruction>[value], domain.emptyType) {
     this.sourceInformation = sourceInformation;
   }
+  @override
   toString() => 'throw expression';
+  @override
   accept(HVisitor visitor) => visitor.visitThrowExpression(this);
+  @override
   bool canThrow(AbstractValueDomain domain) => true;
 }
 
 class HAwait extends HInstruction {
   HAwait(HInstruction value, AbstractValue type)
       : super(<HInstruction>[value], type);
+  @override
   toString() => 'await';
+  @override
   accept(HVisitor visitor) => visitor.visitAwait(this);
   // An await will throw if its argument is not a real future.
+  @override
   bool canThrow(AbstractValueDomain domain) => true;
+  @override
   SideEffects sideEffects = new SideEffects();
 }
 
@@ -2711,9 +3053,13 @@ class HYield extends HInstruction {
     this.sourceInformation = sourceInformation;
   }
   bool hasStar;
+  @override
   toString() => 'yield';
+  @override
   accept(HVisitor visitor) => visitor.visitYield(this);
+  @override
   bool canThrow(AbstractValueDomain domain) => false;
+  @override
   SideEffects sideEffects = new SideEffects();
 }
 
@@ -2725,12 +3071,18 @@ class HThrow extends HControlFlow {
       : super(domain, <HInstruction>[value]) {
     this.sourceInformation = sourceInformation;
   }
+  @override
   toString() => 'throw';
+  @override
   accept(HVisitor visitor) => visitor.visitThrow(this);
 }
 
+// TODO(johnniwinther): Change this to a "HStaticLoad" of a field when we use
+// CFE constants. It has been used for static tear-offs even though these should
+// have been constants.
 class HStatic extends HInstruction {
   final MemberEntity element;
+
   HStatic(this.element, AbstractValue type, SourceInformation sourceInformation)
       : super(<HInstruction>[], type) {
     assert(element != null);
@@ -2742,13 +3094,20 @@ class HStatic extends HInstruction {
     setUseGvn();
     this.sourceInformation = sourceInformation;
   }
+  @override
   toString() => 'static ${element.name}';
+  @override
   accept(HVisitor visitor) => visitor.visitStatic(this);
 
+  @override
   int gvnHashCode() => super.gvnHashCode() ^ element.hashCode;
+  @override
   int typeCode() => HInstruction.STATIC_TYPECODE;
+  @override
   bool typeEquals(other) => other is HStatic;
+  @override
   bool dataEquals(HStatic other) => element == other.element;
+  @override
   bool isCodeMotionInvariant() => !element.isAssignable;
 }
 
@@ -2774,7 +3133,9 @@ class HInterceptor extends HInstruction {
     setUseGvn();
   }
 
+  @override
   String toString() => 'interceptor on $interceptedClasses';
+  @override
   accept(HVisitor visitor) => visitor.visitInterceptor(this);
   HInstruction get receiver => inputs[0];
 
@@ -2785,10 +3146,14 @@ class HInterceptor extends HInstruction {
     inputs.add(constant);
   }
 
+  @override
   bool isInterceptor(JClosedWorld closedWorld) => true;
 
+  @override
   int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;
+  @override
   bool typeEquals(other) => other is HInterceptor;
+  @override
   bool dataEquals(HInterceptor other) {
     return interceptedClasses == other.interceptedClasses ||
         (interceptedClasses.length == other.interceptedClasses.length &&
@@ -2804,6 +3169,7 @@ class HInterceptor extends HInstruction {
 /// calls, this class extends [HInvokeDynamic] and also has the null
 /// constant as the first input.
 class HOneShotInterceptor extends HInvokeDynamic {
+  @override
   List<DartType> typeArguments;
   Set<ClassEntity> interceptedClasses;
 
@@ -2820,9 +3186,12 @@ class HOneShotInterceptor extends HInvokeDynamic {
     assert(inputs[0].instructionType == domain.nullType);
     assert(selector.callStructure.typeArgumentCount == typeArguments.length);
   }
+  @override
   bool isCallOnInterceptor(JClosedWorld closedWorld) => true;
 
+  @override
   String toString() => 'one shot interceptor: selector=$selector, mask=$mask';
+  @override
   accept(HVisitor visitor) => visitor.visitOneShotInterceptor(this);
 }
 
@@ -2840,12 +3209,17 @@ class HLazyStatic extends HInstruction {
     this.sourceInformation = sourceInformation;
   }
 
+  @override
   toString() => 'lazy static ${element.name}';
+  @override
   accept(HVisitor visitor) => visitor.visitLazyStatic(this);
 
+  @override
   int typeCode() => 30;
   // TODO(4931): can we do better here?
+  @override
   bool isCodeMotionInvariant() => false;
+  @override
   bool canThrow(AbstractValueDomain domain) => true;
 }
 
@@ -2857,27 +3231,39 @@ class HStaticStore extends HInstruction {
     sideEffects.clearAllDependencies();
     sideEffects.setChangesStaticProperty();
   }
+  @override
   toString() => 'static store ${element.name}';
+  @override
   accept(HVisitor visitor) => visitor.visitStaticStore(this);
 
+  HInstruction get value => inputs.single;
+
+  @override
   int typeCode() => HInstruction.STATIC_STORE_TYPECODE;
+  @override
   bool typeEquals(other) => other is HStaticStore;
+  @override
   bool dataEquals(HStaticStore other) => element == other.element;
-  bool isJsStatement() => true;
+  @override
+  bool isJsStatement() => usedBy.isEmpty;
 }
 
 class HLiteralList extends HInstruction {
   HLiteralList(List<HInstruction> inputs, AbstractValue type)
       : super(inputs, type);
+  @override
   toString() => 'literal list';
+  @override
   accept(HVisitor visitor) => visitor.visitLiteralList(this);
 
+  @override
   bool isAllocation(AbstractValueDomain domain) => true;
 }
 
 /// The primitive array indexing operation. Note that this instruction
 /// does not throw because we generate the checks explicitly.
 class HIndex extends HInstruction {
+  @override
   final Selector selector;
   HIndex(HInstruction receiver, HInstruction index, this.selector,
       AbstractValue type)
@@ -2888,7 +3274,9 @@ class HIndex extends HInstruction {
     setUseGvn();
   }
 
+  @override
   String toString() => 'index operator';
+  @override
   accept(HVisitor visitor) => visitor.visitIndex(this);
 
   HInstruction get receiver => inputs[0];
@@ -2896,21 +3284,29 @@ class HIndex extends HInstruction {
 
   // Implicit dependency on HBoundsCheck or constraints on index.
   // TODO(27272): Make HIndex dependent on bounds checking.
+  @override
   bool get isMovable => false;
 
+  @override
   HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  @override
   bool onlyThrowsNSM() => true;
+  @override
   bool canThrow(AbstractValueDomain domain) =>
       receiver.isNull(domain).isPotentiallyTrue;
 
+  @override
   int typeCode() => HInstruction.INDEX_TYPECODE;
+  @override
   bool typeEquals(HInstruction other) => other is HIndex;
+  @override
   bool dataEquals(HIndex other) => true;
 }
 
 /// The primitive array assignment operation. Note that this instruction
 /// does not throw because we generate the checks explicitly.
 class HIndexAssign extends HInstruction {
+  @override
   final Selector selector;
   HIndexAssign(AbstractValueDomain domain, HInstruction receiver,
       HInstruction index, HInstruction value, this.selector)
@@ -2919,7 +3315,9 @@ class HIndexAssign extends HInstruction {
     sideEffects.clearAllDependencies();
     sideEffects.setChangesIndex();
   }
+  @override
   String toString() => 'index assign operator';
+  @override
   accept(HVisitor visitor) => visitor.visitIndexAssign(this);
 
   HInstruction get receiver => inputs[0];
@@ -2928,10 +3326,14 @@ class HIndexAssign extends HInstruction {
 
   // Implicit dependency on HBoundsCheck or constraints on index.
   // TODO(27272): Make HIndex dependent on bounds checking.
+  @override
   bool get isMovable => false;
 
+  @override
   HInstruction getDartReceiver(JClosedWorld closedWorld) => receiver;
+  @override
   bool onlyThrowsNSM() => true;
+  @override
   bool canThrow(AbstractValueDomain domain) =>
       receiver.isNull(domain).isPotentiallyTrue;
 }
@@ -2968,9 +3370,10 @@ class HIs extends HInstruction {
       HInterceptor interceptor,
       AbstractValue type,
       SourceInformation sourceInformation) {
-    assert(
-        (typeExpression.isFunctionType || typeExpression.isInterfaceType) &&
-            typeExpression.treatAsRaw,
+    // TODO(sigmund): re-add `&& typeExpression.treatAsRaw` or something
+    // equivalent (which started failing once we allowed typeExpressions that
+    // contain type parameters matching the original bounds of the type).
+    assert((typeExpression.isFunctionType || typeExpression.isInterfaceType),
         "Unexpected raw is-test type: $typeExpression");
     return new HIs.internal(typeExpression, [expression, interceptor],
         RAW_CHECK, type, sourceInformation);
@@ -3019,14 +3422,19 @@ class HIs extends HInstruction {
   bool get isVariableCheck => kind == VARIABLE_CHECK;
   bool get isCompoundCheck => kind == COMPOUND_CHECK;
 
+  @override
   accept(HVisitor visitor) => visitor.visitIs(this);
 
+  @override
   toString() => "$expression is $typeExpression";
 
+  @override
   int typeCode() => HInstruction.IS_TYPECODE;
 
+  @override
   bool typeEquals(HInstruction other) => other is HIs;
 
+  @override
   bool dataEquals(HIs other) {
     return typeExpression == other.typeExpression && kind == other.kind;
   }
@@ -3045,10 +3453,15 @@ class HIsViaInterceptor extends HLateInstruction {
 
   HInstruction get interceptor => inputs[0];
 
+  @override
   accept(HVisitor visitor) => visitor.visitIsViaInterceptor(this);
+  @override
   toString() => "$interceptor is $typeExpression";
+  @override
   int typeCode() => HInstruction.IS_VIA_INTERCEPTOR_TYPECODE;
+  @override
   bool typeEquals(HInstruction other) => other is HIsViaInterceptor;
+  @override
   bool dataEquals(HIs other) {
     return typeExpression == other.typeExpression;
   }
@@ -3066,7 +3479,9 @@ class HLateValue extends HLateInstruction {
 
   HInstruction get target => inputs.single;
 
+  @override
   accept(HVisitor visitor) => visitor.visitLateValue(this);
+  @override
   toString() => 'HLateValue($target)';
 }
 
@@ -3132,8 +3547,10 @@ class HTypeConversion extends HCheck {
 
   HInstruction get typeRepresentation => inputs[1];
 
+  @override
   HInstruction get checkedInput => super.checkedInput;
 
+  @override
   HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
     if (typeExpression == type) {
       // Don't omit a boolean conversion (which doesn't allow `null`) unless
@@ -3154,15 +3571,22 @@ class HTypeConversion extends HCheck {
   bool get isCastTypeCheck => kind == CAST_TYPE_CHECK;
   bool get isBooleanConversionCheck => kind == BOOLEAN_CONVERSION_CHECK;
 
+  @override
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 
+  @override
   bool isJsStatement() => isControlFlow();
+  @override
   bool isControlFlow() => isArgumentTypeCheck || isReceiverTypeCheck;
 
+  @override
   int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
+  @override
   bool typeEquals(HInstruction other) => other is HTypeConversion;
+  @override
   bool isCodeMotionInvariant() => false;
 
+  @override
   bool dataEquals(HTypeConversion other) {
     return kind == other.kind &&
         typeExpression == other.typeExpression &&
@@ -3209,6 +3633,7 @@ class HTypeConversion extends HCheck {
     return abstractValueDomain.isIn(inputType, checkedType).isDefinitelyTrue;
   }
 
+  @override
   String toString() => 'HTypeConversion(type=$typeExpression, kind=$kind, '
       '${hasTypeRepresentation ? 'representation=$typeRepresentation, ' : ''}'
       'checkedInput=$checkedInput)';
@@ -3230,22 +3655,32 @@ class HTypeKnown extends HCheck {
         this._isMovable = true,
         super(<HInstruction>[input, witness], knownType);
 
+  @override
   toString() => 'TypeKnown $knownType';
+  @override
   accept(HVisitor visitor) => visitor.visitTypeKnown(this);
 
+  @override
   bool isJsStatement() => false;
+  @override
   bool isControlFlow() => false;
+  @override
   bool canThrow(AbstractValueDomain domain) => false;
 
   bool get isPinned => inputs.length == 1;
 
   HInstruction get witness => inputs.length == 2 ? inputs[1] : null;
 
+  @override
   int typeCode() => HInstruction.TYPE_KNOWN_TYPECODE;
+  @override
   bool typeEquals(HInstruction other) => other is HTypeKnown;
+  @override
   bool isCodeMotionInvariant() => true;
+  @override
   bool get isMovable => _isMovable && useGvn();
 
+  @override
   bool dataEquals(HTypeKnown other) {
     return knownType == other.knownType &&
         instructionType == other.instructionType;
@@ -3267,8 +3702,10 @@ class HRangeConversion extends HCheck {
     sourceElement = input.sourceElement;
   }
 
+  @override
   bool get isMovable => false;
 
+  @override
   accept(HVisitor visitor) => visitor.visitRangeConversion(this);
 }
 
@@ -3284,7 +3721,9 @@ class HStringConcat extends HInstruction {
   HInstruction get left => inputs[0];
   HInstruction get right => inputs[1];
 
+  @override
   accept(HVisitor visitor) => visitor.visitStringConcat(this);
+  @override
   toString() => "string concat";
 }
 
@@ -3297,7 +3736,9 @@ class HStringify extends HInstruction {
     sideEffects.setDependsOnSomething();
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitStringify(this);
+  @override
   toString() => "stringify";
 }
 
@@ -3361,11 +3802,13 @@ abstract class HBlockInformation {
 
 /// Information about a statement-like structure.
 abstract class HStatementInformation extends HBlockInformation {
+  @override
   bool accept(HStatementInformationVisitor visitor);
 }
 
 /// Information about an expression-like structure.
 abstract class HExpressionInformation extends HBlockInformation {
+  @override
   bool accept(HExpressionInformationVisitor visitor);
   HInstruction get conditionExpression;
 }
@@ -3396,9 +3839,12 @@ class HSubGraphBlockInformation implements HStatementInformation {
   final SubGraph subGraph;
   HSubGraphBlockInformation(this.subGraph);
 
+  @override
   HBasicBlock get start => subGraph.start;
+  @override
   HBasicBlock get end => subGraph.end;
 
+  @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitSubGraphInfo(this);
 }
@@ -3409,11 +3855,15 @@ class HSubExpressionBlockInformation implements HExpressionInformation {
   final SubExpression subExpression;
   HSubExpressionBlockInformation(this.subExpression);
 
+  @override
   HBasicBlock get start => subExpression.start;
+  @override
   HBasicBlock get end => subExpression.end;
 
+  @override
   HInstruction get conditionExpression => subExpression.conditionExpression;
 
+  @override
   bool accept(HExpressionInformationVisitor visitor) =>
       visitor.visitSubExpressionInfo(this);
 }
@@ -3423,9 +3873,12 @@ class HStatementSequenceInformation implements HStatementInformation {
   final List<HStatementInformation> statements;
   HStatementSequenceInformation(this.statements);
 
+  @override
   HBasicBlock get start => statements[0].start;
+  @override
   HBasicBlock get end => statements.last.end;
 
+  @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitSequenceInfo(this);
 }
@@ -3445,9 +3898,12 @@ class HLabeledBlockInformation implements HStatementInformation {
       {this.isContinue: false})
       : this.labels = const <LabelDefinition>[];
 
+  @override
   HBasicBlock get start => body.start;
+  @override
   HBasicBlock get end => body.end;
 
+  @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitLabeledBlockInfo(this);
 }
@@ -3475,6 +3931,7 @@ class HLoopBlockInformation implements HStatementInformation {
         (kind == DO_WHILE_LOOP ? body.start : condition.start).isLoopHeader());
   }
 
+  @override
   HBasicBlock get start {
     if (initializer != null) return initializer.start;
     if (kind == DO_WHILE_LOOP) {
@@ -3487,6 +3944,7 @@ class HLoopBlockInformation implements HStatementInformation {
     return kind == DO_WHILE_LOOP ? body.start : condition.start;
   }
 
+  @override
   HBasicBlock get end {
     if (updates != null) return updates.end;
     if (kind == DO_WHILE_LOOP && condition != null) {
@@ -3495,6 +3953,7 @@ class HLoopBlockInformation implements HStatementInformation {
     return body.end;
   }
 
+  @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitLoopInfo(this);
 }
@@ -3505,9 +3964,12 @@ class HIfBlockInformation implements HStatementInformation {
   final HStatementInformation elseGraph;
   HIfBlockInformation(this.condition, this.thenGraph, this.elseGraph);
 
+  @override
   HBasicBlock get start => condition.start;
+  @override
   HBasicBlock get end => elseGraph == null ? thenGraph.end : elseGraph.end;
 
+  @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitIfInfo(this);
 }
@@ -3518,14 +3980,18 @@ class HAndOrBlockInformation implements HExpressionInformation {
   final HExpressionInformation right;
   HAndOrBlockInformation(this.isAnd, this.left, this.right);
 
+  @override
   HBasicBlock get start => left.start;
+  @override
   HBasicBlock get end => right.end;
 
   // We don't currently use HAndOrBlockInformation.
+  @override
   HInstruction get conditionExpression {
     return null;
   }
 
+  @override
   bool accept(HExpressionInformationVisitor visitor) =>
       visitor.visitAndOrInfo(this);
 }
@@ -3538,10 +4004,13 @@ class HTryBlockInformation implements HStatementInformation {
   HTryBlockInformation(
       this.body, this.catchVariable, this.catchBlock, this.finallyBlock);
 
+  @override
   HBasicBlock get start => body.start;
+  @override
   HBasicBlock get end =>
       finallyBlock == null ? catchBlock.end : finallyBlock.end;
 
+  @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitTryInfo(this);
 }
@@ -3556,13 +4025,16 @@ class HSwitchBlockInformation implements HStatementInformation {
   HSwitchBlockInformation(this.expression, this.statements, this.target,
       this.labels, this.sourceInformation);
 
+  @override
   HBasicBlock get start => expression.start;
+  @override
   HBasicBlock get end {
     // We don't create a switch block if there are no cases.
     assert(!statements.isEmpty);
     return statements.last.end;
   }
 
+  @override
   bool accept(HStatementInformationVisitor visitor) =>
       visitor.visitSwitchInfo(this);
 }
@@ -3574,13 +4046,18 @@ class HTypeInfoReadRaw extends HInstruction {
     setUseGvn();
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitTypeInfoReadRaw(this);
 
+  @override
   bool canThrow(AbstractValueDomain domain) => false;
 
+  @override
   int typeCode() => HInstruction.TYPE_INFO_READ_RAW_TYPECODE;
+  @override
   bool typeEquals(HInstruction other) => other is HTypeInfoReadRaw;
 
+  @override
   bool dataEquals(HTypeInfoReadRaw other) {
     return true;
   }
@@ -3615,17 +4092,23 @@ class HTypeInfoReadVariable extends HInstruction {
 
   HInstruction get object => inputs.last;
 
+  @override
   accept(HVisitor visitor) => visitor.visitTypeInfoReadVariable(this);
 
+  @override
   bool canThrow(AbstractValueDomain domain) => false;
 
+  @override
   int typeCode() => HInstruction.TYPE_INFO_READ_VARIABLE_TYPECODE;
+  @override
   bool typeEquals(HInstruction other) => other is HTypeInfoReadVariable;
 
+  @override
   bool dataEquals(HTypeInfoReadVariable other) {
     return variable == other.variable;
   }
 
+  @override
   String toString() => 'HTypeInfoReadVariable($variable)';
 }
 
@@ -3695,17 +4178,23 @@ class HTypeInfoExpression extends HInstruction {
     setUseGvn();
   }
 
+  @override
   accept(HVisitor visitor) => visitor.visitTypeInfoExpression(this);
 
+  @override
   bool canThrow(AbstractValueDomain domain) => false;
 
+  @override
   int typeCode() => HInstruction.TYPE_INFO_EXPRESSION_TYPECODE;
+  @override
   bool typeEquals(HInstruction other) => other is HTypeInfoExpression;
 
+  @override
   bool dataEquals(HTypeInfoExpression other) {
     return kind == other.kind && dartType == other.dartType;
   }
 
+  @override
   String toString() => 'HTypeInfoExpression($kindAsString, $dartType)';
 
   // ignore: MISSING_RETURN

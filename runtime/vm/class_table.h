@@ -61,11 +61,17 @@ class AllocStats {
     new_count = 0;
     new_size = 0;
     new_external_size = 0;
+    old_external_size = 0;
   }
 
   void AddNew(T size) {
     AtomicOperations::IncrementBy(&new_count, 1);
     AtomicOperations::IncrementBy(&new_size, size);
+  }
+
+  void AddNewGC(T size) {
+    new_count += 1;
+    new_size += size;
   }
 
   void AddNewExternal(T size) {
@@ -76,11 +82,17 @@ class AllocStats {
     old_count = 0;
     old_size = 0;
     old_external_size = 0;
+    new_external_size = 0;
   }
 
   void AddOld(T size, T count = 1) {
     AtomicOperations::IncrementBy(&old_count, count);
     AtomicOperations::IncrementBy(&old_size, size);
+  }
+
+  void AddOldGC(T size, T count = 1) {
+    old_count += count;
+    old_size += size;
   }
 
   void AddOldExternal(T size) {
@@ -249,9 +261,19 @@ class ClassTable {
 
 #ifndef PRODUCT
   // Called whenever a class is allocated in the runtime.
-  void UpdateAllocatedNew(intptr_t cid, intptr_t size);
-  void UpdateAllocatedOld(intptr_t cid, intptr_t size);
-
+  void UpdateAllocatedNew(intptr_t cid, intptr_t size) {
+    ClassHeapStats* stats = PreliminaryStatsAt(cid);
+    ASSERT(stats != NULL);
+    ASSERT(size != 0);
+    stats->recent.AddNew(size);
+  }
+  void UpdateAllocatedOld(intptr_t cid, intptr_t size) {
+    ClassHeapStats* stats = PreliminaryStatsAt(cid);
+    ASSERT(stats != NULL);
+    ASSERT(size != 0);
+    stats->recent.AddOld(size);
+  }
+  void UpdateAllocatedOldGC(intptr_t cid, intptr_t size);
   void UpdateAllocatedExternalNew(intptr_t cid, intptr_t size);
   void UpdateAllocatedExternalOld(intptr_t cid, intptr_t size);
 
@@ -263,7 +285,6 @@ class ClassTable {
   void UpdatePromoted();
 
   // Used by the generated code.
-  ClassHeapStats** TableAddressFor(intptr_t cid);
   static intptr_t TableOffsetFor(intptr_t cid);
 
   // Used by the generated code.
@@ -281,21 +302,29 @@ class ClassTable {
   void ResetAllocationAccumulators();
 
   void PrintToJSONObject(JSONObject* object);
+
+  void SetTraceAllocationFor(intptr_t cid, bool trace) {
+    ClassHeapStats* stats = PreliminaryStatsAt(cid);
+    stats->set_trace_allocation(trace);
+  }
+  bool TraceAllocationFor(intptr_t cid) {
+    ClassHeapStats* stats = PreliminaryStatsAt(cid);
+    return stats->trace_allocation();
+  }
 #endif  // !PRODUCT
 
   void AddOldTable(ClassAndSize* old_table);
   // Deallocates table copies. Do not call during concurrent access to table.
   void FreeOldTables();
 
-  void SetTraceAllocationFor(intptr_t cid, bool trace);
-  bool TraceAllocationFor(intptr_t cid);
 
  private:
   friend class GCMarker;
   friend class MarkingWeakVisitor;
-  friend class ScavengerVisitor;
+  friend class Scavenger;
   friend class ScavengerWeakVisitor;
   friend class ClassHeapStatsTestHelper;
+  friend class HeapTestsHelper;
   static const int initial_capacity_ = 512;
   static const int capacity_increment_ = 256;
 
@@ -310,12 +339,16 @@ class ClassTable {
 
 #ifndef PRODUCT
   ClassHeapStats* class_heap_stats_table_;
-  ClassHeapStats* predefined_class_heap_stats_table_;
 
   // May not have updated size for variable size classes.
-  ClassHeapStats* PreliminaryStatsAt(intptr_t cid);
+  ClassHeapStats* PreliminaryStatsAt(intptr_t cid) {
+    ASSERT(cid > 0);
+    ASSERT(cid < top_);
+    return &class_heap_stats_table_[cid];
+  }
   void UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count = 1);
   void UpdateLiveNew(intptr_t cid, intptr_t size);
+  void UpdateLiveNewGC(intptr_t cid, intptr_t size);
   void UpdateLiveOldExternal(intptr_t cid, intptr_t size);
   void UpdateLiveNewExternal(intptr_t cid, intptr_t size);
 #endif  // !PRODUCT

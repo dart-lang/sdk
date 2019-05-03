@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,10 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class DivisionOptimizationTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
+class DivisionOptimizationTest extends DriverResolutionTest {
   test_divisionOptimization() async {
     await assertNoErrorsInCode(r'''
 f(int x, int y) {
@@ -27,7 +24,7 @@ f(int x, int y) {
   }
 
   test_double() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(double x, double y) {
   var v = (x / y).toInt();
 }
@@ -43,7 +40,7 @@ f(x, y) {
   }
 
   test_int() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(int x, int y) {
   var v = (x / y).toInt();
 }
@@ -62,7 +59,7 @@ f(A x, A y) {
   }
 
   test_wrappedInParentheses() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 f(int x, int y) {
   var v = (((x / y))).toInt();
 }

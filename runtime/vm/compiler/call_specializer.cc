@@ -17,6 +17,13 @@ namespace dart {
 #define I (isolate())
 #define Z (zone())
 
+static void RefineUseTypes(Definition* instr) {
+  CompileType* new_type = instr->Type();
+  for (Value::Iterator it(instr->input_use_list()); !it.Done(); it.Advance()) {
+    it.Current()->RefineReachingType(new_type);
+  }
+}
+
 static bool ShouldInlineSimd() {
   return FlowGraphCompiler::SupportsUnboxedSimd128();
 }
@@ -921,7 +928,7 @@ void CallSpecializer::InlineImplicitInstanceGetter(Definition* call,
   if (load->slot().nullable_cid() != kDynamicCid) {
     // Reset value types if we know concrete cid.
     for (Value::Iterator it(load->input_use_list()); !it.Done(); it.Advance()) {
-      it.Current()->SetReachingType(NULL);
+      it.Current()->SetReachingType(nullptr);
     }
   }
 }
@@ -949,7 +956,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   }
   // Inline implicit instance setter.
   String& field_name = String::Handle(Z, instr->function_name().raw());
-  if (Function::IsDynamicInvocationForwaderName(field_name)) {
+  if (Function::IsDynamicInvocationForwarderName(field_name)) {
     field_name = Function::DemangleDynamicInvocationForwarderName(field_name);
   }
   field_name = Field::NameFromSetter(field_name);
@@ -1016,15 +1023,11 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
     // Compute if we need to type check the value. Always type check if
     // not in strong mode or if at a dynamic invocation.
     bool needs_check = true;
-    if (!instr->interface_target().IsNull() && (field.kernel_offset() >= 0)) {
-      bool is_covariant = false;
-      bool is_generic_covariant = false;
-      field.GetCovarianceAttributes(&is_covariant, &is_generic_covariant);
-
-      if (is_covariant) {
+    if (!instr->interface_target().IsNull()) {
+      if (field.is_covariant()) {
         // Always type check covariant fields.
         needs_check = true;
-      } else if (is_generic_covariant) {
+      } else if (field.is_generic_covariant_impl()) {
         // If field is generic covariant then we don't need to check it
         // if the invocation was marked as unchecked (e.g. receiver of
         // the invocation is also the receiver of the surrounding method).
@@ -1628,6 +1631,262 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
     return false;
   }
   return true;  // May deoptimize since we have not identified all 'true' tests.
+}
+
+void TypedDataSpecializer::Optimize(FlowGraph* flow_graph) {
+  TypedDataSpecializer optimizer(flow_graph);
+  optimizer.VisitBlocks();
+}
+
+void TypedDataSpecializer::EnsureIsInitialized() {
+  if (initialized_) return;
+
+  initialized_ = true;
+
+  int_type_ = Type::IntType();
+  double_type_ = Type::Double();
+
+  const auto& typed_data = Library::Handle(
+      Z, Library::LookupLibrary(thread_, Symbols::DartTypedData()));
+
+  auto& td_class = Class::Handle(Z);
+  auto& direct_implementors = GrowableObjectArray::Handle(Z);
+
+#define INIT_HANDLE(iface, member_name, type, cid)                             \
+  td_class = typed_data.LookupClass(Symbols::iface());                         \
+  ASSERT(!td_class.IsNull());                                                  \
+  direct_implementors = td_class.direct_implementors();                        \
+  if (!HasThirdPartyImplementor(direct_implementors)) {                        \
+    member_name = td_class.RareType();                                         \
+  }
+
+  PUBLIC_TYPED_DATA_CLASS_LIST(INIT_HANDLE)
+#undef INIT_HANDLE
+}
+
+bool TypedDataSpecializer::HasThirdPartyImplementor(
+    const GrowableObjectArray& direct_implementors) {
+  // Check if there are non internal/external/view implementors.
+  for (intptr_t i = 0; i < direct_implementors.Length(); ++i) {
+    implementor_ ^= direct_implementors.At(i);
+
+    // We only consider [implementor_] a 3rd party implementor if it was
+    // finalized by the class finalizer, since only then can we have concrete
+    // instances of the [implementor_].
+    if (implementor_.is_finalized()) {
+      const classid_t cid = implementor_.id();
+      if (!RawObject::IsTypedDataClassId(cid) &&
+          !RawObject::IsTypedDataViewClassId(cid) &&
+          !RawObject::IsExternalTypedDataClassId(cid)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+void TypedDataSpecializer::VisitInstanceCall(InstanceCallInstr* call) {
+  TryInlineCall(call);
+}
+
+void TypedDataSpecializer::VisitStaticCall(StaticCallInstr* call) {
+  TryInlineCall(call);
+}
+
+void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
+  const bool is_length_getter = call->Selector() == Symbols::GetLength().raw();
+  const bool is_index_get = call->Selector() == Symbols::IndexToken().raw();
+  const bool is_index_set =
+      call->Selector() == Symbols::AssignIndexToken().raw();
+
+  if (is_length_getter || is_index_get || is_index_set) {
+    EnsureIsInitialized();
+
+    const intptr_t receiver_index = call->FirstArgIndex();
+
+    CompileType* receiver_type = call->ArgumentAt(receiver_index + 0)->Type();
+
+    CompileType* index_type = nullptr;
+    if (is_index_get || is_index_set) {
+      index_type = call->ArgumentAt(receiver_index + 1)->Type();
+    }
+
+    CompileType* value_type = nullptr;
+    if (is_index_set) {
+      value_type = call->ArgumentAt(receiver_index + 2)->Type();
+    }
+
+    auto& type_class = Class::Handle(zone_);
+#define TRY_INLINE(iface, member_name, type, cid)                              \
+  if (!member_name.IsNull()) {                                                 \
+    if (receiver_type->IsAssignableTo(member_name)) {                          \
+      if (is_length_getter) {                                                  \
+        type_class = member_name.type_class();                                 \
+        ReplaceWithLengthGetter(call);                                         \
+      } else if (is_index_get) {                                               \
+        if (!index_type->IsNullableInt()) return;                              \
+        type_class = member_name.type_class();                                 \
+        ReplaceWithIndexGet(call, cid);                                        \
+      } else {                                                                 \
+        if (!index_type->IsNullableInt()) return;                              \
+        if (!value_type->IsAssignableTo(type)) return;                         \
+        type_class = member_name.type_class();                                 \
+        ReplaceWithIndexSet(call, cid);                                        \
+      }                                                                        \
+      return;                                                                  \
+    }                                                                          \
+  }
+    PUBLIC_TYPED_DATA_CLASS_LIST(TRY_INLINE)
+#undef INIT_HANDLE
+  }
+}
+
+void TypedDataSpecializer::ReplaceWithLengthGetter(TemplateDartCall<0>* call) {
+  const intptr_t receiver_idx = call->FirstArgIndex();
+  auto array = call->PushArgumentAt(receiver_idx + 0)->value()->definition();
+
+  if (array->Type()->is_nullable()) {
+    AppendNullCheck(call, &array);
+  }
+  Definition* length = AppendLoadLength(call, array);
+  flow_graph_->ReplaceCurrentInstruction(current_iterator(), call, length);
+  RefineUseTypes(length);
+}
+
+void TypedDataSpecializer::ReplaceWithIndexGet(TemplateDartCall<0>* call,
+                                               classid_t cid) {
+  const intptr_t receiver_idx = call->FirstArgIndex();
+  auto array = call->PushArgumentAt(receiver_idx + 0)->value()->definition();
+  auto index = call->PushArgumentAt(receiver_idx + 1)->value()->definition();
+
+  if (array->Type()->is_nullable()) {
+    AppendNullCheck(call, &array);
+  }
+  if (index->Type()->is_nullable()) {
+    AppendNullCheck(call, &index);
+  }
+  AppendBoundsCheck(call, array, &index);
+  Definition* value = AppendLoadIndexed(call, array, index, cid);
+  flow_graph_->ReplaceCurrentInstruction(current_iterator(), call, value);
+  RefineUseTypes(value);
+}
+
+void TypedDataSpecializer::ReplaceWithIndexSet(TemplateDartCall<0>* call,
+                                               classid_t cid) {
+  const intptr_t receiver_idx = call->FirstArgIndex();
+  auto array = call->PushArgumentAt(receiver_idx + 0)->value()->definition();
+  auto index = call->PushArgumentAt(receiver_idx + 1)->value()->definition();
+  auto value = call->PushArgumentAt(receiver_idx + 2)->value()->definition();
+
+  if (array->Type()->is_nullable()) {
+    AppendNullCheck(call, &array);
+  }
+  if (index->Type()->is_nullable()) {
+    AppendNullCheck(call, &index);
+  }
+  if (value->Type()->is_nullable()) {
+    AppendNullCheck(call, &value);
+  }
+  AppendBoundsCheck(call, array, &index);
+  AppendStoreIndexed(call, array, index, value, cid);
+
+  RELEASE_ASSERT(!call->HasUses());
+  flow_graph_->ReplaceCurrentInstruction(current_iterator(), call, nullptr);
+}
+
+void TypedDataSpecializer::AppendNullCheck(TemplateDartCall<0>* call,
+                                           Definition** value) {
+  auto check =
+      new (Z) CheckNullInstr(new (Z) Value(*value), Symbols::OptimizedOut(),
+                             call->deopt_id(), call->token_pos());
+  flow_graph_->InsertBefore(call, check, call->env(), FlowGraph::kValue);
+
+  // Use data dependency as control dependency.
+  *value = check;
+}
+
+void TypedDataSpecializer::AppendBoundsCheck(TemplateDartCall<0>* call,
+                                             Definition* array,
+                                             Definition** index) {
+  auto length = new (Z) LoadFieldInstr(
+      new (Z) Value(array), Slot::TypedDataBase_length(), call->token_pos());
+  flow_graph_->InsertBefore(call, length, call->env(), FlowGraph::kValue);
+
+  auto check = new (Z) GenericCheckBoundInstr(
+      new (Z) Value(length), new (Z) Value(*index), DeoptId::kNone);
+  flow_graph_->InsertBefore(call, check, call->env(), FlowGraph::kValue);
+
+  // Use data dependency as control dependency.
+  *index = check;
+}
+
+Definition* TypedDataSpecializer::AppendLoadLength(TemplateDartCall<0>* call,
+                                                   Definition* array) {
+  auto length = new (Z) LoadFieldInstr(
+      new (Z) Value(array), Slot::TypedDataBase_length(), call->token_pos());
+  flow_graph_->InsertBefore(call, length, call->env(), FlowGraph::kValue);
+  return length;
+}
+
+Definition* TypedDataSpecializer::AppendLoadIndexed(TemplateDartCall<0>* call,
+                                                    Definition* array,
+                                                    Definition* index,
+                                                    classid_t cid) {
+  const intptr_t element_size = TypedDataBase::ElementSizeFor(cid);
+  const intptr_t index_scale = element_size;
+
+  auto data = new (Z) LoadUntaggedInstr(new (Z) Value(array),
+                                        TypedDataBase::data_field_offset());
+  flow_graph_->InsertBefore(call, data, call->env(), FlowGraph::kValue);
+
+  Definition* load = new (Z)
+      LoadIndexedInstr(new (Z) Value(data), new (Z) Value(index), index_scale,
+                       cid, kAlignedAccess, DeoptId::kNone, call->token_pos());
+  flow_graph_->InsertBefore(call, load, call->env(), FlowGraph::kValue);
+
+  if (cid == kTypedDataFloat32ArrayCid) {
+    load = new (Z) FloatToDoubleInstr(new (Z) Value(load), call->deopt_id());
+    flow_graph_->InsertBefore(call, load, call->env(), FlowGraph::kValue);
+  }
+
+  return load;
+}
+
+void TypedDataSpecializer::AppendStoreIndexed(TemplateDartCall<0>* call,
+                                              Definition* array,
+                                              Definition* index,
+                                              Definition* value,
+                                              classid_t cid) {
+  const intptr_t element_size = TypedDataBase::ElementSizeFor(cid);
+  const intptr_t index_scale = element_size;
+
+  const auto deopt_id = call->deopt_id();
+
+  if (cid == kTypedDataFloat32ArrayCid) {
+    value = new (Z) DoubleToFloatInstr(new (Z) Value(value), deopt_id,
+                                       Instruction::kNotSpeculative);
+    flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
+  } else if (cid == kTypedDataInt32ArrayCid) {
+    value = new (Z)
+        UnboxInt32Instr(UnboxInt32Instr::kTruncate, new (Z) Value(value),
+                        deopt_id, Instruction::kNotSpeculative);
+    flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
+  } else if (cid == kTypedDataUint32ArrayCid) {
+    value = new (Z) UnboxUint32Instr(new (Z) Value(value), deopt_id,
+                                     Instruction::kNotSpeculative);
+    ASSERT(value->AsUnboxInteger()->is_truncating());
+    flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
+  }
+
+  auto data = new (Z) LoadUntaggedInstr(new (Z) Value(array),
+                                        TypedDataBase::data_field_offset());
+  flow_graph_->InsertBefore(call, data, call->env(), FlowGraph::kValue);
+
+  auto store = new (Z) StoreIndexedInstr(
+      new (Z) Value(data), new (Z) Value(index), new (Z) Value(value),
+      kNoStoreBarrier, index_scale, cid, kAlignedAccess, DeoptId::kNone,
+      call->token_pos(), Instruction::kNotSpeculative);
+  flow_graph_->InsertBefore(call, store, call->env(), FlowGraph::kEffect);
 }
 
 }  // namespace dart

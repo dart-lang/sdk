@@ -127,10 +127,10 @@ String unescapeFirstStringPart(String first, Quote quote, Object location,
       location, listener);
 }
 
-String unescapeLastStringPart(
-    String last, Quote quote, Object location, UnescapeErrorListener listener) {
-  return unescape(last.substring(0, last.length - lastQuoteLength(quote)),
-      quote, location, listener);
+String unescapeLastStringPart(String last, Quote quote, Object location,
+    bool isLastQuoteSynthetic, UnescapeErrorListener listener) {
+  int end = last.length - (isLastQuoteSynthetic ? 0 : lastQuoteLength(quote));
+  return unescape(last.substring(0, end), quote, location, listener);
 }
 
 String unescapeString(

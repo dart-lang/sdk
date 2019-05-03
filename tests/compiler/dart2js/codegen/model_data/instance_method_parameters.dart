@@ -83,6 +83,16 @@ class Class {
   @pragma('dart2js:noInline')
   method8c(a, {b, c}) {}
 
+  /*element: Class.method9a:params=2,stubs=[method9a$0:method9a$2(2)]*/
+  @pragma('dart2js:noInline')
+  @pragma('dart2js:noElision')
+  method9a([a, b]) {}
+
+  /*element: Class.method9b:params=2,stubs=[method9b$0:method9b$2$a$b(2)]*/
+  @pragma('dart2js:noInline')
+  @pragma('dart2js:noElision')
+  method9b({a, b}) {}
+
   /*element: Class.test:calls=*,params=0*/
   @pragma('dart2js:noInline')
   test() {
@@ -117,6 +127,9 @@ class Class {
     method8a(null);
     method8b(null, b: null);
     method8c(null, c: null);
+
+    method9a();
+    method9b();
   }
 }
 

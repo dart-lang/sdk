@@ -25,7 +25,8 @@ const _defaultTestSelectors = const [
   'analyze_library',
   'service',
   'kernel',
-  'observatory_ui'
+  'observatory_ui',
+  'ffi'
 ];
 
 /// Specifies a single command line option.
@@ -150,7 +151,6 @@ simdbc, simdbc64''',
 test options, specifying how tests should be run.''',
         abbr: 'n',
         hide: true),
-    new _Option.bool('checked', 'Run tests in checked mode.'),
     new _Option.bool('strong', 'Deprecated, no-op.', hide: true),
     // TODO(sigmund): rename flag once we migrate all dart2js bots to the test
     // matrix.
@@ -174,13 +174,6 @@ test options, specifying how tests should be run.''',
         'Pass the --use-fasta-parser flag to analyzer',
         hide: true),
 
-    // TODO(sigmund): replace dart2js_with_kernel with preview-dart-2.
-    new _Option.bool(
-        'dart2js_with_kernel', 'Pass the --use-kernel flag to dart2js.',
-        hide: true),
-    new _Option.bool(
-        'dart2js_old_frontend', 'Pass the --use-old-frontend flag to dart2js.',
-        hide: true),
     new _Option.bool('hot_reload', 'Run hot reload stress tests.', hide: true),
     new _Option.bool(
         'hot_reload_rollback', 'Run hot reload rollback stress tests.',
@@ -219,6 +212,7 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
     new _Option.bool('no-tree-shake', 'Disable kernel IR tree shaking.',
         hide: true),
     new _Option.bool('list', 'List tests only, do not run them.'),
+    new _Option.bool('list-configurations', 'Output list of configurations.'),
     new _Option.bool('list_status_files',
         'List status files for test-suites. Do not run any test suites.',
         hide: true),
@@ -303,6 +297,7 @@ options. Used to be able to make sane updates to the status files.''',
     new _Option(
         'dart2js_options', 'Extra options for dart2js compilation step.',
         hide: true),
+    new _Option('shared_options', 'Extra shared options.', hide: true),
     new _Option(
         'suite_dir', 'Additional directory to add to the testing matrix.',
         hide: true),
@@ -344,6 +339,7 @@ compiler.''',
     'local_ip',
     'output_directory',
     'progress',
+    'repeat',
     'report',
     'safari',
     'shard',
@@ -351,6 +347,7 @@ compiler.''',
     'silent_failures',
     'step_name',
     'tasks',
+    'tests',
     'time',
     'verbose',
     'write_debug_log',
@@ -378,6 +375,17 @@ compiler.''',
     if (arguments.contains("--help") || arguments.contains("-h")) {
       _printHelp(
           verbose: arguments.contains("--verbose") || arguments.contains("-v"));
+      return null;
+    }
+    if (arguments.contains("--list-configurations")) {
+      final testMatrixFile = "tools/bots/test_matrix.json";
+      TestMatrix testMatrix = TestMatrix.fromPath(testMatrixFile);
+      for (final configuration in testMatrix.configurations
+          .map((configuration) => configuration.name)
+          .toList()
+            ..sort()) {
+        print(configuration);
+      }
       return null;
     }
     // Dart1 mode has been deprecated.
@@ -606,6 +614,7 @@ compiler.''',
 
     var dart2jsOptions = listOption("dart2js_options");
     var vmOptions = listOption("vm_options");
+    var sharedOptions = listOption("shared_options");
 
     // JSON reporting implies listing and reporting.
     if (data['report_in_json'] as bool) {
@@ -679,15 +688,13 @@ compiler.''',
                         data["analyzer_use_fasta_parser"] as bool,
                     useBlobs: data["use_blobs"] as bool,
                     useSdk: data["use_sdk"] as bool,
-                    useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
-                    useDart2JSOldFrontEnd: data["dart2js_old_frontend"] as bool,
                     useHotReload: data["hot_reload"] as bool,
                     useHotReloadRollback: data["hot_reload_rollback"] as bool,
-                    isChecked: data["checked"] as bool,
                     isHostChecked: data["host_checked"] as bool,
                     isCsp: data["csp"] as bool,
                     isMinified: data["minified"] as bool,
                     vmOptions: vmOptions,
+                    dart2jsOptions: dart2jsOptions,
                     builderTag: data["builder_tag"] as String,
                     previewDart2: true);
             var configuration = new TestConfiguration(
@@ -730,7 +737,7 @@ compiler.''',
                     data['test_server_cross_origin_port'] as int,
                 testDriverErrorPort: data["test_driver_error_port"] as int,
                 localIP: data["local_ip"] as String,
-                dart2jsOptions: dart2jsOptions,
+                sharedOptions: sharedOptions,
                 packages: data["packages"] as String,
                 packageRoot: data["package_root"] as String,
                 suiteDirectory: data["suite_dir"] as String,
@@ -746,11 +753,6 @@ compiler.''',
           }
         }
       }
-    }
-
-    if (result.length > 1 && data["named_configuration"] != null) {
-      _fail("Named configuration cannot be used with multiple values for "
-          "arch, compiler, mode, or runtime");
     }
     return result;
   }

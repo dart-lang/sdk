@@ -338,10 +338,7 @@ class ActivationFrame : public ZoneAllocated {
                                         const Array& type_definitions,
                                         const TypeArguments& type_arguments);
 
-  // Print the activation frame into |jsobj|. if |full| is false, script
-  // and local variable objects are only references. if |full| is true,
-  // the complete script, function, and, local variable objects are included.
-  void PrintToJSONObject(JSONObject* jsobj, bool full = false);
+  void PrintToJSONObject(JSONObject* jsobj);
 
   RawObject* GetAsyncAwaiter();
   RawObject* GetCausalStack();
@@ -349,10 +346,10 @@ class ActivationFrame : public ZoneAllocated {
   bool HandlesException(const Instance& exc_obj);
 
  private:
-  void PrintToJSONObjectRegular(JSONObject* jsobj, bool full);
-  void PrintToJSONObjectAsyncCausal(JSONObject* jsobj, bool full);
-  void PrintToJSONObjectAsyncSuspensionMarker(JSONObject* jsobj, bool full);
-  void PrintToJSONObjectAsyncActivation(JSONObject* jsobj, bool full);
+  void PrintToJSONObjectRegular(JSONObject* jsobj);
+  void PrintToJSONObjectAsyncCausal(JSONObject* jsobj);
+  void PrintToJSONObjectAsyncSuspensionMarker(JSONObject* jsobj);
+  void PrintToJSONObjectAsyncActivation(JSONObject* jsobj);
   void PrintContextMismatchError(intptr_t ctx_slot,
                                  intptr_t frame_ctx_level,
                                  intptr_t var_ctx_level);
@@ -521,6 +518,11 @@ class Debugger {
   bool IsSingleStepping() const { return resume_action_ == kStepInto; }
 
   bool IsPaused() const { return pause_event_ != NULL; }
+
+  bool ignore_breakpoints() const { return ignore_breakpoints_; }
+  void set_ignore_breakpoints(bool ignore_breakpoints) {
+    ignore_breakpoints_ = ignore_breakpoints;
+  }
 
   // Put the isolate into single stepping mode when Dart code next runs.
   //
@@ -778,6 +780,26 @@ class Debugger {
   friend class Isolate;
   friend class BreakpointLocation;
   DISALLOW_COPY_AND_ASSIGN(Debugger);
+};
+
+class DisableBreakpointsScope : public ValueObject {
+ public:
+  DisableBreakpointsScope(Debugger* debugger, bool disable)
+      : debugger_(debugger) {
+    ASSERT(debugger_ != NULL);
+    initial_state_ = debugger_->ignore_breakpoints();
+    debugger_->set_ignore_breakpoints(disable);
+  }
+
+  ~DisableBreakpointsScope() {
+    debugger_->set_ignore_breakpoints(initial_state_);
+  }
+
+ private:
+  Debugger* debugger_;
+  bool initial_state_;
+
+  DISALLOW_COPY_AND_ASSIGN(DisableBreakpointsScope);
 };
 
 }  // namespace dart

@@ -18,7 +18,7 @@ main(List<String> args) async {
   argParser.addFlag('callers', defaultsTo: false);
   ArgResults results = argParser.parse(args);
 
-  DataComputer dataComputer;
+  DataComputer<String> dataComputer;
   if (results['side-effects']) {
     dataComputer = const SideEffectsDataComputer();
   }
@@ -27,5 +27,6 @@ main(List<String> args) async {
   } else {
     dataComputer = const TypeMaskDataComputer();
   }
-  await show(results, dataComputer, options: [/*stopAfterTypeInference*/]);
+  await show<String>(results, dataComputer,
+      options: [/*stopAfterTypeInference*/]);
 }

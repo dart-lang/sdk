@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Testing Bigints with and without intrinsics.
-// VMOptions=
-// VMOptions=--no_intrinsify
-// VMOptions=--optimization_counter_threshold=5 --no-background_compilation
+// VMOptions=--intrinsify --no-enable-asserts
+// VMOptions=--intrinsify --enable-asserts
+// VMOptions=--no-intrinsify --enable-asserts
+// VMOptions=--optimization-counter-threshold=5 --no-background-compilation
 
 import "package:expect/expect.dart";
 
@@ -1064,5 +1065,9 @@ main() {
     var b = BigInt.parse("10000000000000000001"); /// 27: ok
     Expect.equals(false, a.hashCode == b.hashCode); /// 27: ok
     Expect.equals(true, a.hashCode == (b - BigInt.one).hashCode); /// 27: ok
+
+    // Regression test for http://dartbug.com/36105
+    var overbig = -BigInt.from(10).pow(309);
+    Expect.equals(overbig.toDouble(), double.negativeInfinity);
   }
 }

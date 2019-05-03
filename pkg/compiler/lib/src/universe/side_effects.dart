@@ -57,8 +57,10 @@ class SideEffects {
     sink.end(tag);
   }
 
+  @override
   bool operator ==(other) => _flags == other._flags;
 
+  @override
   int get hashCode => throw new UnsupportedError('SideEffects.hashCode');
 
   bool _getFlag(int position) {
@@ -200,6 +202,7 @@ class SideEffects {
 
   int get flags => _flags;
 
+  @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
     buffer.write('SideEffects(reads');
@@ -307,6 +310,7 @@ class SideEffectsBuilder {
 
   MemberEntity get member => _member;
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('SideEffectsBuilder(member=$member,');

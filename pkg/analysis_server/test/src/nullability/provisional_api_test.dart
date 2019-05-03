@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/nullability/provisional_api.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -11,23 +12,23 @@ import '../../abstract_context.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ProvisionalApiTest);
-    defineReflectiveTests(ProvisionalApiTestPermissive);
-    defineReflectiveTests(ProvisionalApiTestWithReset);
+    defineReflectiveTests(_ProvisionalApiTest);
+    defineReflectiveTests(_ProvisionalApiTestPermissive);
+    defineReflectiveTests(_ProvisionalApiTestWithReset);
   });
 }
 
 /// Tests of the provisional API.
 @reflectiveTest
-class ProvisionalApiTest extends ProvisionalApiTestBase
-    with ProvisionalApiTestCases {
+class _ProvisionalApiTest extends _ProvisionalApiTestBase
+    with _ProvisionalApiTestCases {
   @override
-  bool get usePermissiveMode => false;
+  bool get _usePermissiveMode => false;
 }
 
 /// Base class for provisional API tests.
-abstract class ProvisionalApiTestBase extends AbstractContextTest {
-  bool get usePermissiveMode;
+abstract class _ProvisionalApiTestBase extends AbstractContextTest {
+  bool get _usePermissiveMode;
 
   /// Hook invoked after calling `prepareInput` on each input.
   void _afterPrepare() {}
@@ -41,9 +42,9 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in input.keys) {
       newFile(path, content: input[path]);
     }
-    var listener = new TestMigrationListener();
+    var listener = new _TestMigrationListener();
     var migration = NullabilityMigration(listener,
-        permissive: usePermissiveMode, assumptions: assumptions);
+        permissive: _usePermissiveMode, assumptions: assumptions);
     for (var path in input.keys) {
       migration.prepareInput(await session.getResolvedUnit(path));
     }
@@ -53,10 +54,10 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
     }
     migration.finish();
     var sourceEdits = <String, List<SourceEdit>>{};
-    for (var fix in listener.fixes) {
-      var path = fix.source.fullName;
+    for (var entry in listener._edits.entries) {
+      var path = entry.key.fullName;
       expect(expectedOutput.keys, contains(path));
-      (sourceEdits[path] ??= []).addAll(fix.sourceEdits);
+      sourceEdits[path] = entry.value;
     }
     for (var path in expectedOutput.keys) {
       var sourceEditsForPath = sourceEdits[path] ?? [];
@@ -79,7 +80,119 @@ abstract class ProvisionalApiTestBase extends AbstractContextTest {
 }
 
 /// Mixin containing test cases for the provisional API.
-mixin ProvisionalApiTestCases on ProvisionalApiTestBase {
+mixin _ProvisionalApiTestCases on _ProvisionalApiTestBase {
+  test_conditional_assert_statement_does_not_imply_non_null_intent() async {
+    var content = '''
+void f(bool b, int i) {
+  if (b) return;
+  assert(i != null);
+}
+void g(bool b, int i) {
+  if (b) f(b, i);
+}
+main() {
+  g(true, null);
+}
+''';
+    var expected = '''
+void f(bool b, int? i) {
+  if (b) return;
+  assert(i != null);
+}
+void g(bool b, int? i) {
+  if (b) f(b, i);
+}
+main() {
+  g(true, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_conditional_dereference_does_not_imply_non_null_intent() async {
+    var content = '''
+void f(bool b, int i) {
+  if (b) i.abs();
+}
+void g(bool b, int i) {
+  if (b) f(b, i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(bool b, int? i) {
+  if (b) i!.abs();
+}
+void g(bool b, int? i) {
+  if (b) f(b, i);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_conditional_non_null_usage_does_not_imply_non_null_intent() async {
+    var content = '''
+void f(bool b, int i, int j) {
+  if (b) i.gcd(j);
+}
+void g(bool b, int i, int j) {
+  if (b) f(b, i, j);
+}
+main() {
+  g(false, 0, null);
+}
+''';
+    var expected = '''
+void f(bool b, int i, int? j) {
+  if (b) i.gcd(j!);
+}
+void g(bool b, int i, int? j) {
+  if (b) f(b, i, j);
+}
+main() {
+  g(false, 0, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_conditional_usage_does_not_propagate_non_null_intent() async {
+    var content = '''
+void f(int i) {
+  assert(i != null);
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+void h(bool b1, bool b2, int i) {
+  if (b1) g(b2, i);
+}
+main() {
+  h(true, false, null);
+}
+''';
+    var expected = '''
+void f(int i) {
+  assert(i != null);
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+void h(bool b1, bool b2, int? i) {
+  if (b1) g(b2, i);
+}
+main() {
+  h(true, false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_data_flow_generic_inward() async {
     var content = '''
 class C<T> {
@@ -255,6 +368,31 @@ main() {
                 NamedNoDefaultParameterHeuristic.assumeNullable));
   }
 
+  test_named_parameter_no_default_unused_option2_assume_nullable_propagate() async {
+    var content = '''
+void f(String s) {}
+void g({String s}) {
+  f(s);
+}
+main() {
+  g();
+}
+''';
+    var expected = '''
+void f(String? s) {}
+void g({String? s}) {
+  f(s);
+}
+main() {
+  g();
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeNullable));
+  }
+
   test_named_parameter_no_default_unused_option2_assume_required() async {
     var content = '''
 void f({String s}) {}
@@ -266,6 +404,31 @@ main() {
 void f({String? s}) {}
 main() {
   f();
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeRequired));
+  }
+
+  test_named_parameter_no_default_unused_option2_assume_required_propagate() async {
+    var content = '''
+void f(String s) {}
+void g({String s}) {
+  f(s);
+}
+main() {
+  g();
+}
+''';
+    var expected = '''
+void f(String? s) {}
+void g({String? s}) {
+  f(s);
+}
+main() {
+  g();
 }
 ''';
     await _checkSingleFileChanges(content, expected,
@@ -342,6 +505,31 @@ main() {
                 NamedNoDefaultParameterHeuristic.assumeNullable));
   }
 
+  test_named_parameter_no_default_used_non_null_option2_assume_nullable_propagate() async {
+    var content = '''
+void f(String s) {}
+void g({String s}) {
+  f(s);
+}
+main() {
+  g(s: 'x');
+}
+''';
+    var expected = '''
+void f(String? s) {}
+void g({String? s}) {
+  f(s);
+}
+main() {
+  g(s: 'x');
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeNullable));
+  }
+
   test_named_parameter_no_default_used_non_null_option2_assume_required() async {
     var content = '''
 void f({String s}) {}
@@ -350,9 +538,36 @@ main() {
 }
 ''';
     var expected = '''
+import 'package:meta/meta.dart';
 void f({@required String s}) {}
 main() {
   f(s: 'x');
+}
+''';
+    await _checkSingleFileChanges(content, expected,
+        assumptions: NullabilityMigrationAssumptions(
+            namedNoDefaultParameterHeuristic:
+                NamedNoDefaultParameterHeuristic.assumeRequired));
+  }
+
+  test_named_parameter_no_default_used_non_null_option2_assume_required_propagate() async {
+    var content = '''
+void f(String s) {}
+void g({String s}) {
+  f(s);
+}
+main() {
+  g(s: 'x');
+}
+''';
+    var expected = '''
+import 'package:meta/meta.dart';
+void f(String s) {}
+void g({@required String s}) {
+  f(s);
+}
+main() {
+  g(s: 'x');
 }
 ''';
     await _checkSingleFileChanges(content, expected,
@@ -577,23 +792,133 @@ int? g() => f();
     await _checkMultipleFileChanges(
         {path1: file1, path2: file2}, {path1: expected1, path2: expected2});
   }
+
+  test_unconditional_assert_statement_implies_non_null_intent() async {
+    var content = '''
+void f(int i) {
+  assert(i != null);
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(int i) {
+  assert(i != null);
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_unconditional_dereference_implies_non_null_intent() async {
+    var content = '''
+void f(int i) {
+  i.abs();
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(int i) {
+  i.abs();
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_unconditional_non_null_usage_implies_non_null_intent() async {
+    var content = '''
+void f(int i, int j) {
+  i.gcd(j);
+}
+void g(bool b, int i, int j) {
+  if (b) f(i, j);
+}
+main() {
+  g(false, 0, null);
+}
+''';
+    var expected = '''
+void f(int i, int j) {
+  i.gcd(j);
+}
+void g(bool b, int i, int? j) {
+  if (b) f(i, j!);
+}
+main() {
+  g(false, 0, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_unconditional_usage_propagates_non_null_intent() async {
+    var content = '''
+void f(int i) {
+  assert(i != null);
+}
+void g(int i) {
+  f(i);
+}
+void h(bool b, int i) {
+  if (b) g(i);
+}
+main() {
+  h(false, null);
+}
+''';
+    var expected = '''
+void f(int i) {
+  assert(i != null);
+}
+void g(int i) {
+  f(i);
+}
+void h(bool b, int? i) {
+  if (b) g(i!);
+}
+main() {
+  h(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
 }
 
 @reflectiveTest
-class ProvisionalApiTestPermissive extends ProvisionalApiTestBase
-    with ProvisionalApiTestCases {
+class _ProvisionalApiTestPermissive extends _ProvisionalApiTestBase
+    with _ProvisionalApiTestCases {
   @override
-  bool get usePermissiveMode => true;
+  bool get _usePermissiveMode => true;
 }
 
 /// Tests of the provisional API, where the driver is reset between calls to
 /// `prepareInput` and `processInput`, ensuring that the migration algorithm
 /// sees different AST and element objects during different phases.
 @reflectiveTest
-class ProvisionalApiTestWithReset extends ProvisionalApiTestBase
-    with ProvisionalApiTestCases {
+class _ProvisionalApiTestWithReset extends _ProvisionalApiTestBase
+    with _ProvisionalApiTestCases {
   @override
-  bool get usePermissiveMode => false;
+  bool get _usePermissiveMode => false;
 
   @override
   void _afterPrepare() {
@@ -601,11 +926,14 @@ class ProvisionalApiTestWithReset extends ProvisionalApiTestBase
   }
 }
 
-class TestMigrationListener implements NullabilityMigrationListener {
-  final fixes = <SingleNullabilityFix>[];
+class _TestMigrationListener implements NullabilityMigrationListener {
+  final _edits = <Source, List<SourceEdit>>{};
 
   @override
-  void addFix(SingleNullabilityFix fix) {
-    fixes.add(fix);
+  void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
+    (_edits[fix.source] ??= []).add(edit);
   }
+
+  @override
+  void addFix(SingleNullabilityFix fix) {}
 }

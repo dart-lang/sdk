@@ -1604,25 +1604,6 @@ class C extends B {}
 @reflectiveTest
 class ImportLibraryTest extends AbstractContextTest
     with DartChangeBuilderMixin {
-  test_afterLibraryDirective_dart() async {
-    await _assertImportLibrary(
-      initialCode: '''
-library test;
-
-class A {}
-''',
-      uriList: ['dart:async'],
-      expectedCode: '''
-library test;
-
-import 'dart:async';
-
-
-class A {}
-''',
-    );
-  }
-
   test_dart_beforeDart() async {
     await _assertImportLibrary(
       initialCode: '''
@@ -1761,6 +1742,58 @@ void main() {}
 import 'dart:async';
 
 void main() {}
+''',
+    );
+  }
+
+  test_noImports_afterLibrary_hasDeclaration() async {
+    await _assertImportLibrary(
+      initialCode: '''
+library test;
+
+class A {}
+''',
+      uriList: ['dart:async'],
+      expectedCode: '''
+library test;
+
+import 'dart:async';
+
+class A {}
+''',
+    );
+  }
+
+  test_noImports_afterLibrary_hasPart() async {
+    await _assertImportLibrary(
+      initialCode: '''
+library test;
+
+part 'a.dart';
+''',
+      uriList: ['dart:aaa', 'dart:bbb'],
+      expectedCode: '''
+library test;
+
+import 'dart:aaa';
+import 'dart:bbb';
+
+part 'a.dart';
+''',
+    );
+  }
+
+  test_noImports_beforePart() async {
+    await _assertImportLibrary(
+      initialCode: '''
+part 'a.dart';
+''',
+      uriList: ['dart:aaa', 'dart:bbb'],
+      expectedCode: '''
+import 'dart:aaa';
+import 'dart:bbb';
+
+part 'a.dart';
 ''',
     );
   }

@@ -13,16 +13,23 @@
 owner=sortie
 
 if [ $# -lt 1 ]; then
-  echo "Usage: $0 COMMAND ..."
-  echo
-  echo "Where COMMAND is one of:"
-  echo
-  echo "    noop - Just print description."
-  echo "    clean - Remove out/ directory."
-  echo "    linux-ia32-build - Build linux-ia32 for benchmarking."
-  echo "    linux-ia32-benchmark - Try linux-ia32 benchmarking."
-  echo "    linux-x64-build - Build linux-x64 for benchmarking."
-  echo "    linux-x64-benchmark - Try linux-x64 benchmarking."
+cat << EOF
+Usage: $0 COMMAND ..."
+
+Where COMMAND is one of:"
+
+    noop - Just print description.
+    clean - Remove out/ directory.
+    linux-ia32-build - Build linux-ia32 for benchmarking.
+    linux-ia32-archive - Archive linux-ia32.
+    linux-ia32-benchmark - Try linux-ia32 benchmarking.
+    linux-x64-build - Build linux-x64 for benchmarking.
+    linux-x64-archive - Archive linux-x64.
+    linux-x64-benchmark - Try linux-x64 benchmarking.
+    linux-x64-bytecode-build - Build linux-x64 with bytecode for benchmarking.
+    linux-x64-bytecode-archive - Archive linux-x64 with bytecode.
+    linux-x64-bytecode-benchmark - Try linux-x64 with bytecode benchmarking.
+EOF
   exit 1
 fi
 
@@ -64,13 +71,16 @@ for command; do
     :
   elif [ "$command" = clean ]; then
     rm -rf out
+    rm -rf tmp
     rm -f linux-ia32.tar.gz
     rm -f linux-ia32_profile.tar.gz
     rm -f linux-x64.tar.gz
     rm -f linux-x64_profile.tar.gz
   elif [ "$command" = linux-ia32-build ]; then
+    # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
     ./tools/build.py --mode=release --arch=ia32 create_sdk
     ./tools/build.py --mode=release --arch=ia32 runtime
+  elif [ "$command" = linux-ia32-archive ]; then
     tar -czf linux-ia32_profile.tar.gz \
       --exclude .git \
       --exclude .gitignore \
@@ -208,12 +218,24 @@ EOF
     out/ReleaseIA32/run_vm_tests GenKernelKernelLoadKernel
     cd ..
     rm -rf tmp
-  elif [ "$command" = linux-x64-build ]; then
+  elif [ "$command" = linux-x64-build ] ||
+       [ "$command" = linux-x64-bytecode-build ]; then
+    # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
+    if [ "$command" = linux-x64-bytecode-build ]; then
+      # Beware: Don't mix --bytecode with a non-bytecode out/.
+      ./tools/gn.py --mode=release --arch=x64 --bytecode
+    fi
     ./tools/build.py --mode=release --arch=x64 create_sdk
     ./tools/build.py --mode=release --arch=x64 runtime
     ./tools/build.py --mode=release --arch=x64 gen_snapshot
     ./tools/build.py --mode=release --arch=x64 dart_precompiled_runtime
     ./tools/build.py --mode=release --arch=simdbc64 runtime
+  elif [ "$command" = linux-x64-archive ] ||
+       [ "$command" = linux-x64-bytecode-archive ]; then
+    simdbc_dart=out/ReleaseSIMDBC64/dart
+    if [ "$command" = linux-x64-bytecode-archive ]; then
+      simdbc_dart=
+    fi
     tar -czf linux-x64_profile.tar.gz \
       --exclude .git \
       --exclude .gitignore \
@@ -223,7 +245,7 @@ EOF
       out/ReleaseX64/vm_outline_strong.dill \
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/dart-sdk \
-      out/ReleaseSIMDBC64/dart \
+      $simdbc_dart \
       out/ReleaseX64/dart \
       out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/gen_kernel_bytecode.dill \
@@ -324,7 +346,7 @@ EOF
       out/ReleaseX64/vm_outline_strong.dill \
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/dart-sdk \
-      out/ReleaseSIMDBC64/dart \
+      $simdbc_dart \
       out/ReleaseX64/dart \
       out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/gen_kernel_bytecode.dill \
@@ -340,7 +362,8 @@ EOF
       runtime/bin \
       runtime/lib \
       || (rm -f linux-x64.tar.gz; exit 1)
-  elif [ "$command" = linux-x64-benchmark ]; then
+  elif [ "$command" = linux-x64-benchmark ] ||
+       [ "$command" = linux-x64-bytecode-benchmark ]; then
     rm -rf tmp
     mkdir tmp
     cd tmp
@@ -353,7 +376,14 @@ EOF
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages hello.dart
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/precompiler2 --packages=.packages hello.dart blob.bin
     DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --profile-period=10000 blob.bin
-    out/ReleaseSIMDBC64/dart --profile-period=10000 --packages=.packages hello.dart
+    out/ReleaseX64/dart --profile-period=10000 --packages=.packages --optimization-counter-threshold=-1 hello.dart
+    out/ReleaseX64/dart --profile-period=10000 --packages=.packages --enable-interpreter hello.dart
+    out/ReleaseX64/dart --profile-period=10000 --packages=.packages --enable-interpreter --compilation-counter-threshold=-1 hello.dart
+    out/ReleaseX64/dart --profile-period=10000 --packages=.packages --use-bytecode-compiler hello.dart
+    out/ReleaseX64/dart --profile-period=10000 --packages=.packages --use-bytecode-compiler --optimization-counter-threshold=-1 hello.dart
+    if [ "$command" = linux-x64-benchmark ]; then
+      out/ReleaseSIMDBC64/dart --profile-period=10000 --packages=.packages hello.dart
+    fi
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart parse hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart scan hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/fasta_perf.dart --legacy kernel_gen_e2e hello.dart

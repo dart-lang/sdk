@@ -1,8 +1,10 @@
 # Language Server Protocol
 
-## LSP Support Status
+[Language Server Protocol](https://microsoft.github.io/language-server-protocol/) (LSP) support is available in the Dart analysis server from version 2.2.0 of the SDK (which was included in version 1.2.1 of Flutter). The supported messages are detailed below (for the version of the SDK that matches this README).
 
-Support for [the Language Server Protocol](https://microsoft.github.io/language-server-protocol/) (LSP) is **not production ready** but available as a preview to allow testing/integration work.
+## Using the Dart LSP server in editors
+
+- [Using Dart LSP in Vim](README_vim.md)
 
 ## Running the Server
 
@@ -63,9 +65,9 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/documentSymbol | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeAction (sortMembers) | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeAction (organiseImports) | ✅ | ✅ | ✅ | ✅ |
-| textDocument/codeAction (refactors) | | | | |
-| textDocument/codeAction (assists) | ✅ | ✅ | ✅ | ✅ |
-| textDocument/codeAction (fixes) | ✅ | ✅ | ✅ | ✅ |
+| textDocument/codeAction (refactors) | | | | | <!-- Only if the client advertises `codeActionLiteralSupport` with Refactors -->
+| textDocument/codeAction (assists) | ✅ | ✅ | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `Refactor`
+| textDocument/codeAction (fixes) | ✅ | ✅ | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `QuickFix`
 | textDocument/codeLens | | | | |
 | codeLens/resolve | | | | |
 | textDocument/documentLink | | | | |

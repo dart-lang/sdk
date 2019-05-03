@@ -62,7 +62,7 @@ Future<List<DiagnosticMessage>> outline(String objectHeader) async {
         ..fileSystem = fs
         ..compileSdk = true
         ..librariesSpecificationUri = librariesSpecificationUri,
-      inputs: [Uri.parse("dart:core")]));
+      inputs: [Uri.parse("dart:core"), Uri.parse("dart:collection")]));
 
   await context.runInContext<void>((_) async {
     CompileTask task = new CompileTask(context, ticker);

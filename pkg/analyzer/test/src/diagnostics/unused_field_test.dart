@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,10 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class UnusedFieldTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
+class UnusedFieldTest extends DriverResolutionTest {
   @override
   bool get enableUnusedElement => true;
 
@@ -108,7 +105,7 @@ print(x) {}
   }
 
   test_unusedField_notUsed_compoundAssign() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int _f;
   main() {
@@ -119,7 +116,7 @@ class A {
   }
 
   test_unusedField_notUsed_constructorFieldInitializers() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int _f;
   A() : _f = 0;
@@ -128,7 +125,7 @@ class A {
   }
 
   test_unusedField_notUsed_fieldFormalParameter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int _f;
   A(this._f);
@@ -137,7 +134,7 @@ class A {
   }
 
   test_unusedField_notUsed_noReference() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int _f;
 }
@@ -157,7 +154,7 @@ doSomething() => 0;
   }
 
   test_unusedField_notUsed_postfixExpr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int _f = 0;
   main() {
@@ -168,7 +165,7 @@ class A {
   }
 
   test_unusedField_notUsed_prefixExpr() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int _f = 0;
   main() {
@@ -179,7 +176,7 @@ class A {
   }
 
   test_unusedField_notUsed_simpleAssignment() async {
-    await assertErrorsInCode(r'''
+    await assertErrorCodesInCode(r'''
 class A {
   int _f;
   m() {

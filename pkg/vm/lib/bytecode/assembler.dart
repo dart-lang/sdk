@@ -281,6 +281,11 @@ class BytecodeAssembler {
     emitWord(_encodeAD(Opcode.kInterfaceCall, ra, rd));
   }
 
+  void emitUncheckedInterfaceCall(int ra, int rd) {
+    emitSourcePosition();
+    emitWord(_encodeAD(Opcode.kUncheckedInterfaceCall, ra, rd));
+  }
+
   void emitDynamicCall(int ra, int rd) {
     emitSourcePosition();
     emitWord(_encodeAD(Opcode.kDynamicCall, ra, rd));
@@ -422,5 +427,10 @@ class BytecodeAssembler {
 
   void emitEntryOptional(int ra, int rb, int rc) {
     emitWord(_encodeABC(Opcode.kEntryOptional, ra, rb, rc));
+  }
+
+  void emitAllocateClosure(int rd) {
+    emitSourcePosition();
+    emitWord(_encodeD(Opcode.kAllocateClosure, rd));
   }
 }

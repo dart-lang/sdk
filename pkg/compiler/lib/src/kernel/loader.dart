@@ -51,29 +51,62 @@ class KernelLoaderTask extends CompilerTask {
       : initializedCompilerState = _options.kernelInitializedCompilerState,
         super(measurer);
 
+  @override
   String get name => 'kernel loader';
 
   /// Loads an entire Kernel [Component] from a file on disk.
   Future<KernelResult> load(Uri resolvedUri) {
     return measure(() async {
+      String targetName =
+          _options.compileForServer ? "dart2js_server" : "dart2js";
+      String platform = '${targetName}_platform.dill';
       var isDill = resolvedUri.path.endsWith('.dill');
       ir.Component component;
       if (isDill) {
-        api.Input input = await _compilerInput.readFromUri(resolvedUri,
-            inputKind: api.InputKind.binary);
         component = new ir.Component();
-        new BinaryBuilder(input.data).readComponent(component);
+        Future<void> read(Uri uri) async {
+          api.Input input = await _compilerInput.readFromUri(uri,
+              inputKind: api.InputKind.binary);
+          new BinaryBuilder(input.data).readComponent(component);
+        }
+
+        await read(resolvedUri);
+        if (_options.dillDependencies != null) {
+          // Modular compiles do not include the platform on the input dill
+          // either.
+          if (_options.platformBinaries != null) {
+            await read(_options.platformBinaries.resolve(platform));
+          }
+          for (Uri dependency in _options.dillDependencies) {
+            await read(dependency);
+          }
+        }
+
+        // This is not expected to be null when creating a whole-program .dill
+        // file, but needs to be checked for modular inputs.
+        if (component.mainMethod == null) {
+          // TODO(sigmund): move this so that we use the same error template
+          // from the CFE.
+          _reporter.reportError(_reporter.createMessage(NO_LOCATION_SPANNABLE,
+              MessageKind.GENERIC, {'text': "No 'main' method found."}));
+          return null;
+        }
       } else {
-        String targetName =
-            _options.compileForServer ? "dart2js_server" : "dart2js";
-        String platform = '${targetName}_platform.dill';
+        List<Uri> dependencies = [];
+        if (_options.platformBinaries != null) {
+          dependencies.add(_options.platformBinaries.resolve(platform));
+        }
+        if (_options.dillDependencies != null) {
+          dependencies.addAll(_options.dillDependencies);
+        }
         initializedCompilerState = fe.initializeCompiler(
             initializedCompilerState,
             new Dart2jsTarget(targetName, new TargetFlags()),
             _options.librariesSpecificationUri,
-            _options.platformBinaries.resolve(platform),
+            dependencies,
             _options.packageConfig,
-            experimentalFlags: _options.languageExperiments);
+            experimentalFlags: _options.languageExperiments,
+            enableAsserts: _options.enableUserAssertions);
         component = await fe.compile(
             initializedCompilerState,
             false,
@@ -157,5 +190,6 @@ class KernelResult {
     assert(rootLibraryUri != null);
   }
 
+  @override
   String toString() => 'root=$rootLibraryUri,libraries=${libraries}';
 }

@@ -63,6 +63,7 @@ class SourceMapperProviderImpl implements SourceMapperProvider {
 
   SourceMapperProviderImpl(this.provider);
 
+  @override
   SourceMapper createSourceMapper(String name) {
     return new SourceLocationsMapper(provider.createSourceLocations(name));
   }

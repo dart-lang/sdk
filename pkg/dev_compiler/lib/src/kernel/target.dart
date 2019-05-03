@@ -8,7 +8,6 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/transformations/constants.dart' show ConstantsBackend;
 import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
 
@@ -67,6 +66,9 @@ class DevCompilerTarget extends Target {
 
   @override
   bool get errorOnUnexactWebIntLiterals => true;
+
+  @override
+  bool get supportsSetLiterals => true;
 
   @override
   bool get enableNoSuchMethodForwarders => true;
@@ -151,7 +153,7 @@ class DevCompilerTarget extends Target {
 
   @override
   ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      new DevCompilerConstantsBackend();
+      const DevCompilerConstantsBackend();
 }
 
 /// Analyzes a component to determine if any covariance checks in private

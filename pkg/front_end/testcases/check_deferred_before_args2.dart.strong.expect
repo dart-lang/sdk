@@ -1,6 +1,6 @@
 library;
 import self as self;
-import "./deferred_lib.dart" as def;
+import "deferred_lib.dart" as def;
 
 import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
 

@@ -189,7 +189,10 @@ invokeStaticFieldUninitialized() => _field1();
 /*element: _method1:[exact=JSUInt31]*/
 _method1() => 42;
 
-/*element: _field2:[null|subclass=Closure]*/
+/*strong.element: _field2:[null|subclass=Closure]*/
+/*omit.element: _field2:[null|subclass=Closure]*/
+/*strongConst.element: _field2:[subclass=Closure]*/
+/*omitConst.element: _field2:[subclass=Closure]*/
 dynamic _field2 = _method1;
 
 /*element: invokeStaticFieldTearOff:[null|subclass=Object]*/
@@ -202,7 +205,10 @@ invokeStaticFieldTearOff() => _field2();
 /*element: _method5:Value([exact=JSString], value: "")*/
 String _method5() => '';
 
-/*element: _field5:[null|subclass=Closure]*/
+/*strong.element: _field5:[null|subclass=Closure]*/
+/*omit.element: _field5:[null|subclass=Closure]*/
+/*strongConst.element: _field5:[subclass=Closure]*/
+/*omitConst.element: _field5:[subclass=Closure]*/
 String Function() _field5 = _method5;
 
 /*element: invokeStaticTypedFieldTearOff:[null|exact=JSString]*/
@@ -216,7 +222,10 @@ invokeStaticTypedFieldTearOff() => _field5();
 /*element: _method2:[exact=JSUInt31]*/
 _method2(/*[exact=JSUInt31]*/ o) => 42;
 
-/*element: _field3:[null|subclass=Closure]*/
+/*strong.element: _field3:[null|subclass=Closure]*/
+/*omit.element: _field3:[null|subclass=Closure]*/
+/*strongConst.element: _field3:[subclass=Closure]*/
+/*omitConst.element: _field3:[subclass=Closure]*/
 dynamic _field3 = _method2;
 
 /*element: invokeStaticFieldTearOffParameters:[null|subclass=Object]*/
@@ -242,10 +251,16 @@ invokeStaticGetterTearOff() => _getter1();
 /*element: _method6:[exact=JSUInt31]*/
 int _method6() => 0;
 
-/*element: _field7:[null|subclass=Closure]*/
+/*strong.element: _field7:[null|subclass=Closure]*/
+/*omit.element: _field7:[null|subclass=Closure]*/
+/*strongConst.element: _field7:[subclass=Closure]*/
+/*omitConst.element: _field7:[subclass=Closure]*/
 int Function() _field7 = _method6;
 
-/*element: _getter3:[null|subclass=Closure]*/
+/*strong.element: _getter3:[null|subclass=Closure]*/
+/*omit.element: _getter3:[null|subclass=Closure]*/
+/*strongConst.element: _getter3:[subclass=Closure]*/
+/*omitConst.element: _getter3:[subclass=Closure]*/
 int Function() get _getter3 => _field7;
 
 /*element: invokeStaticTypedGetterTearOff:[null|subclass=JSInt]*/
@@ -284,7 +299,10 @@ invokeStaticGenericGetter2() => _getter2('');
 /// arguments.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _field4:[null|subclass=Closure]*/
+/*strong.element: _field4:[null|subclass=Closure]*/
+/*omit.element: _field4:[null|subclass=Closure]*/
+/*strongConst.element: _field4:[subclass=Closure]*/
+/*omitConst.element: _field4:[subclass=Closure]*/
 T Function<T>(T) _field4 = _method4;
 
 /*element: invokeStaticGenericField1:[null|subclass=JSInt]*/

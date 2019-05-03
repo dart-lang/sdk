@@ -56,9 +56,9 @@ void File::Close() {
     int null_fd = TEMP_FAILURE_RETRY(open("/dev/null", O_WRONLY));
     ASSERT(null_fd >= 0);
     VOID_TEMP_FAILURE_RETRY(dup2(null_fd, handle_->fd()));
-    VOID_TEMP_FAILURE_RETRY(close(null_fd));
+    close(null_fd);
   } else {
-    int err = TEMP_FAILURE_RETRY(close(handle_->fd()));
+    int err = close(handle_->fd());
     if (err != 0) {
       const int kBufferSize = 1024;
       char error_buf[kBufferSize];
@@ -402,7 +402,7 @@ bool File::Copy(Namespace* namespc,
       openat(newns.fd(), newns.path(), O_WRONLY | O_TRUNC | O_CREAT | O_CLOEXEC,
              st.st_mode));
   if (new_fd < 0) {
-    VOID_TEMP_FAILURE_RETRY(close(old_fd));
+    close(old_fd);
     return false;
   }
   off_t offset = 0;
@@ -427,8 +427,8 @@ bool File::Copy(Namespace* namespc,
     }
   }
   int e = errno;
-  VOID_TEMP_FAILURE_RETRY(close(old_fd));
-  VOID_TEMP_FAILURE_RETRY(close(new_fd));
+  close(old_fd);
+  close(new_fd);
   if (result < 0) {
     VOID_NO_RETRY_EXPECTED(unlinkat(newns.fd(), newns.path(), 0));
     errno = e;

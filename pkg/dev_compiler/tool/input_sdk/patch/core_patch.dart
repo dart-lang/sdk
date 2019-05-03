@@ -17,7 +17,8 @@ import 'dart:_js_helper'
         nullCheck,
         Primitives,
         PrivateSymbol,
-        quoteStringForRegExp;
+        quoteStringForRegExp,
+        undefined;
 import 'dart:_runtime' as dart;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_native_typed_data' show NativeUint8List;
@@ -374,13 +375,29 @@ class Stopwatch {
 
   @patch
   static int _now() => Primitives.timerTicks();
+
+  @patch
+  int get elapsedMicroseconds {
+    int ticks = elapsedTicks;
+    if (_frequency == 1000000) return ticks;
+    assert(_frequency == 1000);
+    return ticks * 1000;
+  }
+
+  @patch
+  int get elapsedMilliseconds {
+    int ticks = elapsedTicks;
+    if (_frequency == 1000) return ticks;
+    assert(_frequency == 1000000);
+    return ticks ~/ 1000;
+  }
 }
 
 // Patch for List implementation.
 @patch
 class List<E> {
   @patch
-  factory List([int _length = dart.undefined]) {
+  factory List([@undefined int _length]) {
     dynamic list;
     if (JS('bool', '# === void 0', _length)) {
       list = JS('', '[]');
@@ -1246,7 +1263,7 @@ class _BigIntImpl implements BigInt {
   /// Shifts the digits of [xDigits] into the right place in [resultDigits].
   ///
   /// `resultDigits[ds..xUsed+ds] = xDigits[0..xUsed-1] << (n % _DIGIT_BITS)`
-  ///   where `ds = ceil(n / _DIGIT_BITS)`
+  ///   where `ds = n ~/ _DIGIT_BITS`
   ///
   /// Does *not* clear digits below ds.
   static void _lsh(
@@ -2618,7 +2635,9 @@ class _BigIntImpl implements BigInt {
     var resultBits = Uint8List(8);
 
     var length = _digitBits * (_used - 1) + _digits[_used - 1].bitLength;
-    if (length - 53 > maxDoubleExponent) return double.infinity;
+    if (length > maxDoubleExponent + 53) {
+      return _isNegative ? double.negativeInfinity : double.infinity;
+    }
 
     // The most significant bit is for the sign.
     if (_isNegative) resultBits[7] = 0x80;

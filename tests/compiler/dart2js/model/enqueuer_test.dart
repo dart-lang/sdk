@@ -71,6 +71,7 @@ class Impact {
   const Impact.invoke(this.clsName, this.memberName)
       : this.kind = ImpactKind.invoke;
 
+  @override
   String toString() =>
       'Impact(kind=$kind,clsName=$clsName,memberName=$memberName)';
 }

@@ -10,16 +10,17 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/util/comment.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
 /**
  * A computer for the hover at the specified offset of a Dart [CompilationUnit].
  */
 class DartUnitHoverComputer {
+  final DartdocDirectiveInfo _dartdocInfo;
   final CompilationUnit _unit;
   final int _offset;
 
-  DartUnitHoverComputer(this._unit, this._offset);
+  DartUnitHoverComputer(this._dartdocInfo, this._unit, this._offset);
 
   /**
    * Returns the computed hover, maybe `null`.
@@ -76,7 +77,7 @@ class DartUnitHoverComputer {
           }
         }
         // documentation
-        hover.dartdoc = computeDocumentation(element);
+        hover.dartdoc = computeDocumentation(_dartdocInfo, element);
       }
       // parameter
       hover.parameter = _safeToString(expression.staticParameterElement);
@@ -104,7 +105,8 @@ class DartUnitHoverComputer {
     return null;
   }
 
-  static String computeDocumentation(Element element) {
+  static String computeDocumentation(
+      DartdocDirectiveInfo dartdocInfo, Element element) {
     // TODO(dantup) We're reusing this in parameter information - move it somewhere shared?
     if (element is FieldFormalParameterElement) {
       element = (element as FieldFormalParameterElement).field;
@@ -119,7 +121,7 @@ class DartUnitHoverComputer {
     }
     // The documentation of the element itself.
     if (element.documentationComment != null) {
-      return getDartDocPlainText(element.documentationComment);
+      return dartdocInfo.processDartdoc(element.documentationComment);
     }
     // Look for documentation comments of overridden members.
     OverriddenElements overridden = findOverriddenElements(element);
@@ -129,7 +131,7 @@ class DartUnitHoverComputer {
       String rawDoc = superElement.documentationComment;
       if (rawDoc != null) {
         Element interfaceClass = superElement.enclosingElement;
-        return getDartDocPlainText(rawDoc) +
+        return dartdocInfo.processDartdoc(rawDoc) +
             '\n\nCopied from `${interfaceClass.displayName}`.';
       }
     }

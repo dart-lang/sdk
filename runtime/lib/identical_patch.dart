@@ -9,5 +9,5 @@
 bool identical(Object a, Object b) native "Identical_comparison";
 
 @patch
-@pragma("vm:entry-point")
+@pragma("vm:entry-point", "call")
 int identityHashCode(Object object) => object._identityHashCode;

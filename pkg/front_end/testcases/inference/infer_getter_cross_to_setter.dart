@@ -10,7 +10,7 @@ abstract class A {
 }
 
 abstract class B extends A {
-  get /*@topType=double*/ x;
+  get x;
 }
 
 main() {}

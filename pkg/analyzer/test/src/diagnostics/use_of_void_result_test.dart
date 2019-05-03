@@ -4,7 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -13,10 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class UseOfVoidResultTest extends ResolverTestCase {
-  @override
-  bool get enableNewAnalysisDriver => true;
-
+class UseOfVoidResultTest extends DriverResolutionTest {
   test_implicitReturnValue() async {
     await assertNoErrorsInCode(r'''
 f() {}

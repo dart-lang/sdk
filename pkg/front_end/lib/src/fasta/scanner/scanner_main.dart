@@ -8,22 +8,18 @@ import 'io.dart' show readBytesFromFileSync;
 
 import '../scanner.dart' show ErrorToken, Token, scan;
 
-scanAll(Map<Uri, List<int>> files) {
+scanAll(Map<Uri, List<int>> files, {bool verbose: false, bool verify: false}) {
   Stopwatch sw = new Stopwatch()..start();
   int byteCount = 0;
   files.forEach((Uri uri, List<int> bytes) {
     var token = scan(bytes).tokens;
-    if (const bool.fromEnvironment("printTokens")) {
-      printTokens(token);
-    }
-    if (const bool.fromEnvironment('verifyErrorTokens')) {
-      verifyErrorTokens(token, uri);
-    }
+    if (verbose) printTokens(token);
+    if (verify) verifyErrorTokens(token, uri);
     byteCount += bytes.length - 1;
   });
   sw.stop();
   print("Scanning files took: ${sw.elapsed}");
-  print("Bytes/ms: ${byteCount/sw.elapsedMilliseconds}");
+  print("Bytes/ms: ${byteCount / sw.elapsedMilliseconds}");
 }
 
 void printTokens(Token token) {
@@ -78,12 +74,25 @@ void verifyErrorTokens(Token firstToken, Uri uri) {
 mainEntryPoint(List<String> arguments) {
   Map<Uri, List<int>> files = <Uri, List<int>>{};
   Stopwatch sw = new Stopwatch()..start();
-  for (String name in arguments) {
-    Uri uri = Uri.base.resolve(name);
+  bool verbose = const bool.fromEnvironment("printTokens");
+  bool verify = const bool.fromEnvironment('verifyErrorTokens');
+  for (String arg in arguments) {
+    if (arg.startsWith('--')) {
+      if (arg == '--print-tokens') {
+        verbose = true;
+      } else if (arg == '--verify-error-tokens') {
+        verify = true;
+      } else {
+        print('Unrecognized option: $arg');
+      }
+      continue;
+    }
+
+    Uri uri = Uri.base.resolve(arg);
     List<int> bytes = readBytesFromFileSync(uri);
     files[uri] = bytes;
   }
   sw.stop();
   print("Reading files took: ${sw.elapsed}");
-  scanAll(files);
+  scanAll(files, verbose: verbose, verify: verify);
 }

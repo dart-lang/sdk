@@ -7,8 +7,8 @@ library test;
 
 import 'infer_consts_transitively_2_a.dart';
 
-const /*@topType=int*/ m1 = a1;
-const /*@topType=int*/ m2 = a2;
+const m1 = a1;
+const m2 = a2;
 
 foo() {
   int i;

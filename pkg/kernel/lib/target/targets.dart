@@ -6,23 +6,13 @@ library kernel.target.targets;
 import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
-import '../transformations/constants.dart' show ConstantsBackend;
-import '../transformations/treeshaker.dart' show ProgramRoot;
 
 final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
   final bool legacyMode;
-  final bool treeShake;
 
-  final List<ProgramRoot> programRoots;
-  final Uri kernelRuntime;
-
-  TargetFlags(
-      {this.legacyMode: false,
-      this.treeShake: false,
-      this.programRoots: const <ProgramRoot>[],
-      this.kernelRuntime});
+  TargetFlags({this.legacyMode: false});
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);
@@ -40,6 +30,32 @@ Target getTarget(String name, TargetFlags flags) {
 abstract class DiagnosticReporter<M, C> {
   void report(M message, int charOffset, int length, Uri fileUri,
       {List<C> context});
+}
+
+/// The different kinds of number semantics supported by the constant evaluator.
+enum NumberSemantics {
+  /// Dart VM number semantics.
+  vm,
+
+  /// JavaScript (Dart2js and DDC) number semantics.
+  js,
+}
+
+// Backend specific constant evaluation behavior
+class ConstantsBackend {
+  const ConstantsBackend();
+
+  /// Lowering of a list constant to a backend-specific representation.
+  Constant lowerListConstant(ListConstant constant) => constant;
+
+  /// Lowering of a set constant to a backend-specific representation.
+  Constant lowerSetConstant(SetConstant constant) => constant;
+
+  /// Lowering of a map constant to a backend-specific representation.
+  Constant lowerMapConstant(MapConstant constant) => constant;
+
+  /// Number semantics to use for this backend.
+  NumberSemantics get numberSemantics => NumberSemantics.vm;
 }
 
 /// A target provides backend-specific options for generating kernel IR.
@@ -240,5 +256,5 @@ class NoneTarget extends Target {
 
   @override
   ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      new ConstantsBackend();
+      const ConstantsBackend();
 }

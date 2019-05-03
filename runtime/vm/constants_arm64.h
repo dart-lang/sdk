@@ -5,9 +5,13 @@
 #ifndef RUNTIME_VM_CONSTANTS_ARM64_H_
 #define RUNTIME_VM_CONSTANTS_ARM64_H_
 
+#ifndef RUNTIME_VM_CONSTANTS_H_
+#error Do not include constants_arm64.h directly; use constants.h instead.
+#endif
+
 #include "platform/assert.h"
 
-namespace dart {
+namespace arch_arm64 {
 
 enum Register {
   R0 = 0,
@@ -104,10 +108,22 @@ const FpuRegister FpuTMP = VTMP;
 const int kNumberOfFpuRegisters = kNumberOfVRegisters;
 const FpuRegister kNoFpuRegister = kNoVRegister;
 
+static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
+    "r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",  "r8",  "r9",  "r10",
+    "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19", "r20", "r21",
+    "r22", "r23", "r24", "ip0", "ip1", "pp",  "ctx", "fp",  "lr",  "r31",
+};
+
+static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
+    "v0",  "v1",  "v2",  "v3",  "v4",  "v5",  "v6",  "v7",  "v8",  "v9",  "v10",
+    "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20", "v21",
+    "v22", "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
+};
+
 // Register aliases.
 const Register TMP = R16;  // Used as scratch register by assembler.
 const Register TMP2 = R17;
-const Register PP = R27;   // Caches object pool pointer in generated code.
+const Register PP = R27;  // Caches object pool pointer in generated code.
 const Register CODE_REG = R24;
 const Register FPREG = FP;          // Frame pointer register.
 const Register SPREG = R15;         // Stack pointer register.
@@ -136,6 +152,9 @@ const int64_t kWRegMask = 0x00000000ffffffffL;
 // List of registers used in load/store multiple.
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFFFFFF;
+
+// See "Procedure Call Standard for the ARM 64-bit Architecture", document
+// number "ARM IHI 0055B", May 22 2013.
 
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs = (1 << R0) | (1 << R1) | (1 << R2) |
@@ -172,6 +191,40 @@ const int kDartVolatileCpuRegCount = 15;
 const int kDartVolatileFpuRegCount = 24;
 
 constexpr int kStoreBufferWrapperSize = 32;
+
+#define R(REG) (1 << REG)
+
+class CallingConventions {
+ public:
+  static const intptr_t kArgumentRegisters = kAbiArgumentCpuRegs;
+  static const Register ArgumentRegisters[];
+  static const intptr_t kNumArgRegs = 8;
+
+  static const FpuRegister FpuArgumentRegisters[];
+  static const intptr_t kFpuArgumentRegisters =
+      R(V0) | R(V1) | R(V2) | R(V3) | R(V4) | R(V5) | R(V6) | R(V7);
+  static const intptr_t kNumFpuArgRegs = 8;
+
+  static const bool kArgumentIntRegXorFpuReg = false;
+
+  // Whether floating-point values should be passed as integers ("softfp" vs
+  // "hardfp").
+  static constexpr bool kAbiSoftFP = false;
+
+  // Whether 64-bit arguments must be aligned to an even register or 8-byte
+  // stack address. Not relevant on X64 since the word size is 64-bits already.
+  static constexpr bool kAlignArguments = false;
+
+  static constexpr Register kReturnReg = R0;
+  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr FpuRegister kReturnFpuReg = V0;
+
+  static constexpr Register kFirstCalleeSavedCpuReg = kAbiFirstPreservedCpuReg;
+  static constexpr Register kFirstNonArgumentRegister = R8;
+  static constexpr Register kSecondNonArgumentRegister = R9;
+};
+
+#undef R
 
 static inline Register ConcreteRegister(Register r) {
   return ((r == ZR) || (r == CSP)) ? R31 : r;
@@ -368,10 +421,7 @@ enum SystemOp {
   SystemFixed = CompareBranchFixed | B31 | B30 | B24,
   HINT = SystemFixed | B17 | B16 | B13 | B4 | B3 | B2 | B1 | B0,
   CLREX = SystemFixed | B17 | B16 | B13 | B12 | B11 | B10 | B9 | B8 | B6 | B4 |
-          B3 |
-          B2 |
-          B1 |
-          B0,
+          B3 | B2 | B1 | B0,
 };
 
 // C3.2.5
@@ -1157,13 +1207,13 @@ class Instr {
   // reference to an instruction is to convert a pointer. There is no way
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
-  static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
+  static Instr* At(::dart::uword pc) { return reinterpret_cast<Instr*>(pc); }
 
  private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
 
-}  // namespace dart
+}  // namespace arch_arm64
 
 #endif  // RUNTIME_VM_CONSTANTS_ARM64_H_

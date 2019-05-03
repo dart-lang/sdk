@@ -72,7 +72,24 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
       throw new AnalysisException('Cannot analyze "$path"');
     }
     int timeStamp = state == ResultState.VALID ? 0 : -1;
-    return DartFileEditBuilderImpl(this, path, timeStamp, session, result.unit);
+
+    CompilationUnit unit = result.unit;
+    CompilationUnitElement declaredUnit = unit.declaredElement;
+    CompilationUnitElement libraryUnit =
+        declaredUnit.library.definingCompilationUnit;
+
+    DartFileEditBuilderImpl libraryEditBuilder;
+    if (libraryUnit != declaredUnit) {
+      // If the receiver is a part file builder, then proactively cache the
+      // library file builder so that imports can be finalized synchronously.
+      await addFileEdit(libraryUnit.source.fullName,
+          (DartFileEditBuilder builder) {
+        libraryEditBuilder = builder as DartFileEditBuilderImpl;
+      });
+    }
+
+    return DartFileEditBuilderImpl(
+        this, path, timeStamp, session, unit, libraryEditBuilder);
   }
 }
 
@@ -1123,6 +1140,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   final LibraryElement libraryElement;
 
   /**
+   * The change builder for the library
+   * or `null` if the receiver is the builder for the library.
+   */
+  final DartFileEditBuilderImpl libraryChangeBuilder;
+
+  /**
    * The optional generator of prefixes for new imports.
    */
   ImportPrefixGenerator importPrefixGenerator;
@@ -1134,17 +1157,27 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   Map<Uri, _LibraryToImport> librariesToImport = {};
 
   /**
+   * A mapping from libraries that need to be imported relatively in order to
+   * make visible the names used in generated code, to information about these
+   * imports.
+   */
+  Map<String, _LibraryToImport> librariesToRelativelyImport = {};
+
+  /**
    * Initialize a newly created builder to build a source file edit within the
    * change being built by the given [changeBuilder]. The file being edited has
    * the given [path] and [timeStamp], and the given fully resolved [unit].
    */
   DartFileEditBuilderImpl(DartChangeBuilderImpl changeBuilder, String path,
-      int timeStamp, this.session, this.unit)
+      int timeStamp, this.session, this.unit, this.libraryChangeBuilder)
       : libraryElement = unit.declaredElement.library,
         super(changeBuilder, path, timeStamp);
 
   @override
-  bool get hasEdits => super.hasEdits || librariesToImport.isNotEmpty;
+  bool get hasEdits =>
+      super.hasEdits ||
+      librariesToImport.isNotEmpty ||
+      librariesToRelativelyImport.isNotEmpty;
 
   @override
   void addInsertion(int offset, void buildEdit(DartEditBuilder builder)) =>
@@ -1181,21 +1214,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
-  Future<void> finalize() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
+  void finalize() {
     if (librariesToImport.isNotEmpty) {
-      CompilationUnitElement definingUnitElement =
-          libraryElement.definingCompilationUnit;
-      if (definingUnitElement == unit.declaredElement) {
-        _addLibraryImports(librariesToImport.values);
-      } else {
-        await (changeBuilder as DartChangeBuilder).addFileEdit(
-            definingUnitElement.source.fullName, (DartFileEditBuilder builder) {
-          (builder as DartFileEditBuilderImpl)
-              ._addLibraryImports(librariesToImport.values);
-        });
-      }
+      _addLibraryImports(librariesToImport.values);
+    }
+    if (librariesToRelativelyImport.isNotEmpty) {
+      _addLibraryImports(librariesToRelativelyImport.values);
     }
   }
 
@@ -1204,15 +1228,20 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return _importLibrary(uri).uriText;
   }
 
+  String importLibraryWithRelativeUri(String uriText, [String prefix = null]) {
+    return _importLibraryWithRelativeUri(uriText, prefix).uriText;
+  }
+
   @override
   ImportLibraryElementResult importLibraryElement({
     @required ResolvedLibraryResult targetLibrary,
     @required String targetPath,
     @required int targetOffset,
     @required LibraryElement requestedLibrary,
-    @required String requestedName,
+    @required Element requestedElement,
   }) {
-    if (librariesToImport.isNotEmpty) {
+    if (librariesToImport.isNotEmpty ||
+        librariesToRelativelyImport.isNotEmpty) {
       throw StateError('Only one library can be safely imported.');
     }
 
@@ -1221,13 +1250,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       targetPath: targetPath,
       targetOffset: targetOffset,
       requestedLibrary: requestedLibrary,
-      requestedName: requestedName,
+      requestedElement: requestedElement,
     );
 
     var prefix = request.prefix;
     if (request.uri != null) {
       var uriText = _getLibraryUriText(request.uri);
-      librariesToImport[request.uri] = _LibraryToImport(uriText, prefix);
+      (libraryChangeBuilder ?? this).librariesToImport[request.uri] =
+          _LibraryToImport(uriText, prefix);
     }
 
     return ImportLibraryElementResultImpl(prefix);
@@ -1266,11 +1296,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // Prepare information about existing imports.
     LibraryDirective libraryDirective;
     List<ImportDirective> importDirectives = <ImportDirective>[];
+    PartDirective partDirective;
     for (Directive directive in unit.directives) {
       if (directive is LibraryDirective) {
         libraryDirective = directive;
       } else if (directive is ImportDirective) {
         importDirectives.add(directive);
+      } else if (directive is PartDirective) {
+        partDirective = directive;
       }
     }
 
@@ -1396,15 +1429,28 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // Insert imports: after the library directive.
     if (libraryDirective != null) {
       addInsertion(libraryDirective.end, (EditBuilder builder) {
+        builder.writeln();
+        builder.writeln();
         for (int i = 0; i < importList.length; i++) {
           var import = importList[i];
-          if (i == 0) {
+          writeImport(builder, import);
+          if (i != importList.length - 1) {
             builder.writeln();
           }
-          builder.writeln();
+        }
+      });
+      return;
+    }
+
+    // Insert imports: before a part directive.
+    if (partDirective != null) {
+      addInsertion(partDirective.offset, (EditBuilder builder) {
+        for (int i = 0; i < importList.length; i++) {
+          var import = importList[i];
           writeImport(builder, import);
           builder.writeln();
         }
+        builder.writeln();
       });
       return;
     }
@@ -1446,31 +1492,45 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   /**
-   * Computes the best URI to import [what] into the target library.
+   * Computes the best URI to import [uri] into the target library.
    */
-  String _getLibraryUriText(Uri what) {
-    if (what.scheme == 'file') {
+  String _getLibraryUriText(Uri uri) {
+    if (uri.scheme == 'file') {
       var pathContext = session.resourceProvider.pathContext;
-      String whatPath = pathContext.fromUri(what);
+      String whatPath = pathContext.fromUri(uri);
       String libraryPath = libraryElement.source.fullName;
       String libraryFolder = pathContext.dirname(libraryPath);
       String relativeFile = pathContext.relative(whatPath, from: libraryFolder);
       return pathContext.split(relativeFile).join('/');
     }
-    return what.toString();
+    return uri.toString();
   }
 
   /**
    * Arrange to have an import added for the library with the given [uri].
    */
   _LibraryToImport _importLibrary(Uri uri) {
-    var import = librariesToImport[uri];
+    var import = (libraryChangeBuilder ?? this).librariesToImport[uri];
     if (import == null) {
       String uriText = _getLibraryUriText(uri);
       String prefix =
           importPrefixGenerator != null ? importPrefixGenerator(uri) : null;
       import = new _LibraryToImport(uriText, prefix);
-      librariesToImport[uri] = import;
+      (libraryChangeBuilder ?? this).librariesToImport[uri] = import;
+    }
+    return import;
+  }
+
+  /**
+   * Arrange to have an import added for the library with the given relative
+   * [uriText].
+   */
+  _LibraryToImport _importLibraryWithRelativeUri(String uriText,
+      [String prefix = null]) {
+    var import = librariesToRelativelyImport[uriText];
+    if (import == null) {
+      import = new _LibraryToImport(uriText, prefix);
+      librariesToRelativelyImport[uriText] = import;
     }
     return import;
   }

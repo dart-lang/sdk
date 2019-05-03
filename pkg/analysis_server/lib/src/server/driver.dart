@@ -30,7 +30,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/rules.dart' as linter;
-import 'package:plugin/manager.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 
@@ -276,19 +275,6 @@ class Driver implements ServerStarter {
   static const String TRAIN_USING = "train-using";
 
   /**
-   * User Experience, Experiment #1. This experiment changes the notion of
-   * what analysis roots are and priority files: the analysis root is set to be
-   * the priority files' containing directory.
-   */
-  static const String UX_EXPERIMENT_1 = "ux-experiment-1";
-
-  /**
-   * User Experience, Experiment #2. This experiment introduces the notion of an
-   * intermittent file system.
-   */
-  static const String UX_EXPERIMENT_2 = "ux-experiment-2";
-
-  /**
    * The instrumentation server that is to be used by the analysis server.
    */
   InstrumentationServer instrumentationServer;
@@ -333,8 +319,6 @@ class Driver implements ServerStarter {
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
     analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
-    analysisServerOptions.enableUXExperiment1 = results[UX_EXPERIMENT_1];
-    analysisServerOptions.enableUXExperiment2 = results[UX_EXPERIMENT_2];
 
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
     if (results.wasParsed(TRAIN_USING)) {
@@ -455,10 +439,8 @@ class Driver implements ServerStarter {
     final serve_http = diagnosticServerPort != null;
 
     //
-    // Process all of the plugins so that extensions are registered.
+    // Register lint rules.
     //
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
     linter.registerLintRules();
 
     _DiagnosticServerImpl diagnosticServer = new _DiagnosticServerImpl();
@@ -570,8 +552,12 @@ class Driver implements ServerStarter {
       LspStdioAnalysisServer stdioServer =
           new LspStdioAnalysisServer(socketServer);
       stdioServer.serveStdio().then((_) async {
-        socketServer.analysisServer.shutdown();
-        exit(0);
+        // Only shutdown the server and exit if the server is not already
+        // handling the shutdown.
+        if (!socketServer.analysisServer.willExit) {
+          socketServer.analysisServer.shutdown();
+          exit(0);
+        }
       });
     });
   }
@@ -699,16 +685,6 @@ class Driver implements ServerStarter {
     parser.addOption(TRAIN_USING,
         help: "Pass in a directory to analyze for purposes of training an "
             "analysis server snapshot.");
-    parser.addFlag(UX_EXPERIMENT_1,
-        help: "User Experience, Experiment #1, "
-            "this experiment changes the notion of analysis roots and priority "
-            "files.",
-        hide: true);
-    parser.addFlag(UX_EXPERIMENT_2,
-        help: "User Experience, Experiment #2, "
-            "this experiment introduces the notion of an intermittent file "
-            "system.",
-        hide: true);
 
     return parser;
   }
@@ -720,6 +696,15 @@ class Driver implements ServerStarter {
         resourceProvider, resourceProvider.getFolder(defaultSdkPath));
     sdk.useSummary = useSummaries;
     return sdk;
+  }
+
+  /**
+   * Constructs a uuid combining the current date and a random integer.
+   */
+  String _generateUuidString() {
+    int millisecondsSinceEpoch = new DateTime.now().millisecondsSinceEpoch;
+    int random = new Random().nextInt(0x3fffffff);
+    return '$millisecondsSinceEpoch$random';
   }
 
   String _getSdkPath(ArgResults args) {
@@ -786,15 +771,6 @@ class Driver implements ServerStarter {
       uuid = 'temp-$uuid';
     }
     return uuid;
-  }
-
-  /**
-   * Constructs a uuid combining the current date and a random integer.
-   */
-  String _generateUuidString() {
-    int millisecondsSinceEpoch = new DateTime.now().millisecondsSinceEpoch;
-    int random = new Random().nextInt(0x3fffffff);
-    return '$millisecondsSinceEpoch$random';
   }
 
   /**

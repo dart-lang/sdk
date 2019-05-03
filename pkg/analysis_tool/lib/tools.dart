@@ -159,7 +159,7 @@ class CodeGenerator {
     if (codeGeneratorSettings.languageName == 'java') {
       header = '''
 /*
- * Copyright (c) ${year ?? '2018'}, the Dart project authors. Please see the AUTHORS file
+ * Copyright (c) ${year ?? '2019'}, the Dart project authors. Please see the AUTHORS file
  * for details. All rights reserved. Use of this source code is governed by a
  * BSD-style license that can be found in the LICENSE file.
  *
@@ -313,14 +313,15 @@ abstract class GeneratedContent {
    * out a message instructing the user to regenerate them, and exit with a
    * nonzero error code.
    *
-   * [pkgPath] is the path to the current package.  [generatorRelPath] is the
-   * path to a .dart script the user may use to regenerate the targets.
+   * [pkgPath] is the path to the current package.  [generatorPath] is the path
+   * to a .dart script the user may use to regenerate the targets.
    *
-   * To avoid mistakes when run on Windows, [generatorRelPath] always uses
+   * To avoid mistakes when run on Windows, [generatorPath] always uses
    * POSIX directory separators.
    */
-  static Future<void> checkAll(String pkgPath, String generatorRelPath,
-      Iterable<GeneratedContent> targets) async {
+  static Future<void> checkAll(
+      String pkgPath, String generatorPath, Iterable<GeneratedContent> targets,
+      {List<String> args = const []}) async {
     bool generateNeeded = false;
     for (GeneratedContent target in targets) {
       bool ok = await target.check(pkgPath);
@@ -339,9 +340,8 @@ abstract class GeneratedContent {
         // ignore: deprecated_member_use
         packageRoot = ' --package-root=${Platform.packageRoot}';
       }
-      String generateScript =
-          join(pkgPath, joinAll(posix.split(generatorRelPath)));
-      print('  $executable$packageRoot $generateScript');
+      String generateScript = normalize(joinAll(posix.split(generatorPath)));
+      print('  $executable$packageRoot $generateScript ${args.join(" ")}');
       exit(1);
     } else {
       print('All generated files up to date.');

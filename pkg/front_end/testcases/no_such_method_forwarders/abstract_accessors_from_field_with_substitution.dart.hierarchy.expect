@@ -38,6 +38,7 @@ A:
     A.foo
 
 B:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: A<int>

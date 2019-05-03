@@ -168,6 +168,7 @@ final Object DartError = JS(
     '''class DartError extends Error {
       constructor(error) {
         super();
+        if (error == null) error = #;
         this[#] = error;
         if (error != null && typeof error == "object" && error[#] == null) {
           error[#] = this;
@@ -177,6 +178,7 @@ final Object DartError = JS(
         return #(this[#]);
       }
     }''',
+    NullThrownError(),
     _thrownValue,
     _jsError,
     _jsError,

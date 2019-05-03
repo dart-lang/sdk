@@ -99,12 +99,6 @@ class MalformedResponseRpcException extends RpcException {
   String toString() => 'MalformedResponseRpcException(${message})';
 }
 
-class FakeVMRpcException extends RpcException {
-  FakeVMRpcException(String message) : super(message);
-
-  String toString() => 'FakeVMRpcException(${message})';
-}
-
 /// A [ServiceObject] represents a persistent object within the vm.
 abstract class ServiceObject implements M.ObjectRef {
   static int LexicalSortName(ServiceObject o1, ServiceObject o2) {
@@ -886,8 +880,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
         await listenEventStream(kDebugStream, _dispatchEventToIsolate);
         await listenEventStream(_kGraphStream, _dispatchEventToIsolate);
         await listenEventStream(kServiceStream, _updateService);
-      } on FakeVMRpcException catch (_) {
-        // ignore FakeVMRpcExceptions here.
       } on NetworkRpcException catch (_) {
         // ignore network errors here.
       }
@@ -1009,78 +1001,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     }
     return Future.wait(reloads);
   }
-}
-
-class FakeVM extends VM {
-  String get displayName => name;
-
-  final Map _responses = {};
-  FakeVM(Map responses) {
-    if (responses == null) {
-      return;
-    }
-    responses.forEach((uri, response) {
-      // Encode as string.
-      _responses[_canonicalizeUri(Uri.parse(uri))] = response;
-    });
-  }
-
-  String _canonicalizeUri(Uri uri) {
-    // We use the uri as the key to the response map. Uri parameters can be
-    // serialized in any order, this function canonicalizes the uri parameters
-    // so they are serialized in sorted-by-parameter-name order.
-    var method = uri.path;
-    // Create a map sorted on insertion order.
-    var parameters = new Map();
-    // Sort keys.
-    var sortedKeys = uri.queryParameters.keys.toList();
-    sortedKeys.sort();
-    // Filter keys to remove any private options.
-    sortedKeys.removeWhere((k) => k.startsWith('_'));
-    // Insert parameters in sorted order.
-    for (var key in sortedKeys) {
-      parameters[key] = uri.queryParameters[key];
-    }
-    // Return canonical uri.
-    return new Uri(path: method, queryParameters: parameters).toString();
-  }
-
-  /// Force the VM to disconnect.
-  void disconnect() {
-    _onDisconnect.complete('Disconnected');
-  }
-
-  // Always connected.
-  Future _onConnect;
-  Future get onConnect {
-    if (_onConnect != null) {
-      return _onConnect;
-    }
-    _onConnect = new Future.value(this);
-    return _onConnect;
-  }
-
-  bool get isConnected => !isDisconnected;
-  // Only complete when requested.
-  Completer<String> _onDisconnect = new Completer<String>();
-  Future<String> get onDisconnect => _onDisconnect.future;
-  bool get isDisconnected => _onDisconnect.isCompleted;
-
-  Future<Map> invokeRpcRaw(String method, Map params) {
-    if (params.isEmpty) {
-      params = null;
-    }
-    var key = _canonicalizeUri(new Uri(path: method, queryParameters: params));
-    var response = _responses[key];
-    if (response == null) {
-      return new Future.error(new FakeVMRpcException(
-          "Unable to find key '${key}' in cached response set"));
-    }
-    return new Future.value(response);
-  }
-
-  @override
-  WebSocketVMTarget get target => throw new UnimplementedError();
 }
 
 /// Snapshot in time of tag counters.
@@ -1893,10 +1813,11 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   }
 
   Future<ServiceObject> eval(ServiceObject target, String expression,
-      {Map<String, ServiceObject> scope}) {
+      {Map<String, ServiceObject> scope, bool disableBreakpoints: false}) {
     Map params = {
       'targetId': target.id,
       'expression': expression,
+      'disableBreakpoints': disableBreakpoints,
     };
     if (scope != null) {
       Map<String, String> scopeWithIds = new Map();
@@ -1909,10 +1830,12 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   }
 
   Future<ServiceObject> evalFrame(int frameIndex, String expression,
-      {Map<String, ServiceObject> scope}) async {
+      {Map<String, ServiceObject> scope,
+      bool disableBreakpoints: false}) async {
     Map params = {
       'frameIndex': frameIndex,
       'expression': expression,
+      'disableBreakpoints': disableBreakpoints,
     };
     if (scope != null) {
       Map<String, String> scopeWithIds = new Map();
@@ -2482,8 +2405,9 @@ class Library extends HeapObject implements M.Library {
   }
 
   Future<ServiceObject> evaluate(String expression,
-      {Map<String, ServiceObject> scope}) {
-    return isolate.eval(this, expression, scope: scope);
+      {Map<String, ServiceObject> scope, bool disableBreakpoints: false}) {
+    return isolate.eval(this, expression,
+        scope: scope, disableBreakpoints: disableBreakpoints);
   }
 
   Script get rootScript {
@@ -2661,8 +2585,9 @@ class Class extends HeapObject implements M.Class {
   }
 
   Future<ServiceObject> evaluate(String expression,
-      {Map<String, ServiceObject> scope}) {
-    return isolate.eval(this, expression, scope: scope);
+      {Map<String, ServiceObject> scope, disableBreakpoints: false}) {
+    return isolate.eval(this, expression,
+        scope: scope, disableBreakpoints: disableBreakpoints);
   }
 
   Future<ServiceObject> setTraceAllocations(bool enable) {
@@ -3027,8 +2952,9 @@ class Instance extends HeapObject implements M.Instance {
   }
 
   Future<ServiceObject> evaluate(String expression,
-      {Map<String, ServiceObject> scope}) {
-    return isolate.eval(this, expression, scope: scope);
+      {Map<String, ServiceObject> scope, bool disableBreakpoints: false}) {
+    return isolate.eval(this, expression,
+        scope: scope, disableBreakpoints: disableBreakpoints);
   }
 
   String toString() => 'Instance($shortName)';
@@ -3096,10 +3022,10 @@ M.FunctionKind stringToFunctionKind(String value) {
       return M.FunctionKind.implicitSetter;
     case 'ImplicitStaticFinalGetter':
       return M.FunctionKind.implicitStaticFinalGetter;
+    case 'StaticFieldInitializer':
+      return M.FunctionKind.staticFieldInitializer;
     case 'IrregexpFunction':
       return M.FunctionKind.irregexpFunction;
-    case 'StaticInitializer':
-      return M.FunctionKind.staticInitializer;
     case 'MethodExtractor':
       return M.FunctionKind.methodExtractor;
     case 'NoSuchMethodDispatcher':

@@ -54,6 +54,7 @@ Bar:
   classSetters:
 
 Hest:
+  Longest path to Object: 2
   superclasses:
     Object
   interfaces: Bar

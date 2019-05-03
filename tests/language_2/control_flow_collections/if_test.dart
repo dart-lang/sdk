@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=set-literals,control-flow-collections,spread-collections
+// SharedOptions=--enable-experiment=control-flow-collections,spread-collections
 
 import 'package:expect/expect.dart';
 
@@ -19,7 +19,6 @@ void main() {
   testShortCircuit();
   testDuplicateKeys();
   testKeyOrder();
-  testRuntimeFailures();
 }
 
 void testList() {
@@ -53,9 +52,9 @@ void testList() {
   Expect.listEquals(<int>[1], <int>[if (true as Object) 1]);
 
   // Does not flatten nested collection literal.
-  Expect.listEquals([1], [if (true) [1]].first;
-  Expect.mapEquals({1: 1}, [if (true) {1: 1}].first;
-  Expect.setEquals({1}, [if (true) {1}].first;
+  Expect.listEquals([1], [if (true) [1]].first);
+  Expect.mapEquals({1: 1}, [if (true) {1: 1}].first);
+  Expect.setEquals({1}, [if (true) {1}].first);
 
   // Nested spread.
   Expect.listEquals(list,
@@ -71,7 +70,7 @@ void testList() {
   Expect.listEquals(list, <int>[if (true) for (var i in list) i]);
 
   // Nested for in else.
-  Expect.listEquals(list, <int>[if (false) 9 for (var i in list) i]);
+  Expect.listEquals(list, <int>[if (false) 9 else for (var i in list) i]);
 }
 
 void testMap() {
@@ -122,7 +121,7 @@ void testMap() {
   Expect.mapEquals(map, <int, int>{if (true) for (var i in list) i: i});
 
   // Nested for in else.
-  Expect.mapEquals(map, <int, int>{if (false) 9: 9 for (var i in list) i: i});
+  Expect.mapEquals(map, <int, int>{if (false) 9: 9 else for (var i in list) i: i});
 }
 
 void testSet() {
@@ -156,9 +155,9 @@ void testSet() {
   Expect.setEquals({1}, <int>{if (true as Object) 1});
 
   // Does not flatten nested collection literal.
-  Expect.listEquals([1], {if (true) [1]}.first;
-  Expect.mapEquals({1: 1}, {if (true) {1: 1}}.first;
-  Expect.setEquals({1}, {if (true) {1}}.first;
+  Expect.listEquals([1], {if (true) [1]}.first);
+  Expect.mapEquals({1: 1}, {if (true) {1: 1}}.first);
+  Expect.setEquals({1}, {if (true) {1}}.first);
 
   // Nested spread.
   Expect.setEquals(set,
@@ -174,7 +173,7 @@ void testSet() {
   Expect.setEquals(set, <int>{if (true) for (var i in list) i});
 
   // Nested for in else.
-  Expect.setEquals(set, <int>{if (false) 9 for (var i in list) i});
+  Expect.setEquals(set, <int>{if (false) 9 else for (var i in list) i});
 }
 
 void testShortCircuit() {
@@ -228,16 +227,4 @@ void testKeyOrder() {
     if (true) e2b
   };
   Expect.equals("1:a,2:a", set.join(","));
-}
-
-void testRuntimeFailures() {
-  dynamic nonBool = 3;
-  Expect.throwsCastError(() => <int>[if (nonBool) 1]);
-  Expect.throwsCastError(() => <int, int>{if (nonBool) 1: 1});
-  Expect.throwsCastError(() => <int>{if (nonBool) 1});
-
-  bool nullBool = null;
-  Expect.throwsAssertionError(() => <int>[if (nullBool) 1]);
-  Expect.throwsAssertionError(() => <int, int>{if (nullBool) 1: 1});
-  Expect.throwsAssertionError(() => <int>{if (nullBool) 1});
 }

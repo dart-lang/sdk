@@ -74,7 +74,10 @@ Thread::Thread(Isolate* isolate)
       unboxed_int64_runtime_arg_(0),
       active_exception_(Object::null()),
       active_stacktrace_(Object::null()),
+      global_object_pool_(ObjectPool::null()),
       resume_pc_(0),
+      execution_state_(kThreadInNative),
+      safepoint_state_(0),
       task_kind_(kUnknownTask),
       dart_stream_(NULL),
       thread_lock_(new Monitor()),
@@ -96,10 +99,9 @@ Thread::Thread(Isolate* isolate)
       pending_functions_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
-          REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT) safepoint_state_(0),
-      execution_state_(kThreadInNative),
+          REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
 #if defined(USING_SAFE_STACK)
-      saved_safestack_limit_(0),
+              saved_safestack_limit_(0),
 #endif
 #if !defined(DART_PRECOMPILED_RUNTIME)
       interpreter_(nullptr),
@@ -383,6 +385,7 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
     thread->DeferredMarkingStackRelease();
   }
   thread->StoreBufferRelease();
+  thread->heap()->AbandonRemainingTLAB(thread);
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   const bool kIsNotMutatorThread = false;
@@ -404,7 +407,7 @@ void Thread::SetStackLimit(uword limit) {
   // The thread setting the stack limit is not necessarily the thread which
   // the stack limit is being set on.
   MonitorLocker ml(thread_lock_);
-  if (stack_limit_ == saved_stack_limit_) {
+  if (!HasScheduledInterrupts()) {
     // No interrupt pending, set stack_limit_ too.
     stack_limit_ = limit;
   }
@@ -662,6 +665,7 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   reusable_handles_.VisitObjectPointers(visitor);
 
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&pending_functions_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&global_object_pool_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_exception_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_stacktrace_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
@@ -739,7 +743,7 @@ intptr_t Thread::OffsetFromThread(const Object& object) {
   // [object] is in fact a [Code] object.
   if (object.IsCode()) {
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
-  ASSERT((expr)->IsVMHeapObject());                                            \
+  ASSERT((expr)->InVMIsolateHeap());                                           \
   if (object.raw() == expr) {                                                  \
     return Thread::member_name##offset();                                      \
   }
@@ -750,7 +754,6 @@ intptr_t Thread::OffsetFromThread(const Object& object) {
   // For non [Code] objects we check if the object equals to any of the cached
   // non-stub entries.
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
-  ASSERT((expr)->IsVMHeapObject());                                            \
   if (object.raw() == expr) {                                                  \
     return Thread::member_name##offset();                                      \
   }

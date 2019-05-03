@@ -5,8 +5,11 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'add_async_test.dart' as add_async;
+import 'add_await_test.dart' as add_await;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
+import 'add_missing_enum_case_clauses_test.dart'
+    as add_missing_enum_case_clauses;
 import 'add_missing_parameter_named_test.dart' as add_missing_parameter_named;
 import 'add_missing_parameter_positional_test.dart'
     as add_missing_parameter_positional;
@@ -20,6 +23,8 @@ import 'add_required_test.dart' as add_required;
 import 'add_static_test.dart' as add_static;
 import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
+import 'analysis_options/test_all.dart' as analysis_options;
+import 'change_argument_name_test.dart' as change_argument_name;
 import 'change_to_nearest_precise_value_test.dart'
     as change_to_nearest_precise_value;
 import 'change_to_static_access_test.dart' as change_to_static_access;
@@ -57,6 +62,7 @@ import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_await_test.dart' as remove_await;
 import 'remove_dead_code_test.dart' as remove_dead_code;
+import 'remove_duplicate_case_test.dart' as remove_duplicate_case;
 import 'remove_empty_catch_test.dart' as remove_empty_catch;
 import 'remove_empty_constructor_body_test.dart'
     as remove_empty_constructor_body;
@@ -74,18 +80,24 @@ import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
 import 'remove_unnecessary_cast_test.dart' as remove_unnecessary_cast;
+import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
+import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
 import 'remove_unused_catch_clause_test.dart' as remove_unused_catch_clause;
 import 'remove_unused_catch_stack_test.dart' as remove_unused_catch_stack;
 import 'remove_unused_import_test.dart' as remove_unused_import;
 import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
 import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
+import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
+import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
 import 'replace_return_type_future_test.dart' as replace_return_type_future;
 import 'replace_var_with_dynamic_test.dart' as replace_var_with_dynamic;
 import 'replace_with_brackets_test.dart' as replace_with_brackets;
 import 'replace_with_conditional_assignment_test.dart'
     as replace_with_conditional_assignment;
 import 'replace_with_identifier_test.dart' as replace_with_identifier;
+import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
+import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'update_sdk_constraints_test.dart' as update_sdk_constraints;
@@ -95,12 +107,15 @@ import 'use_effective_integer_division_test.dart'
 import 'use_eq_eq_null_test.dart' as use_eq_eq_null;
 import 'use_is_not_empty_test.dart' as use_is_not_empty;
 import 'use_not_eq_null_test.dart' as use_not_eq_null;
+import 'use_rethrow_test.dart' as use_rethrow;
 
 main() {
   defineReflectiveSuite(() {
     add_async.main();
+    add_await.main();
     add_explicit_cast.main();
     add_field_formal_parameters.main();
+    add_missing_enum_case_clauses.main();
     add_missing_parameter_named.main();
     add_missing_parameter_positional.main();
     add_missing_parameter_required.main();
@@ -110,6 +125,8 @@ main() {
     add_required.main();
     add_static.main();
     add_super_constructor_invocation.main();
+    analysis_options.main();
+    change_argument_name.main();
     change_to.main();
     change_to_nearest_precise_value.main();
     change_to_static_access.main();
@@ -145,6 +162,7 @@ main() {
     remove_annotation.main();
     remove_await.main();
     remove_dead_code.main();
+    remove_duplicate_case.main();
     remove_empty_catch.main();
     remove_empty_constructor_body.main();
     remove_empty_else.main();
@@ -159,17 +177,23 @@ main() {
     remove_type_annotation.main();
     remove_type_arguments.main();
     remove_unnecessary_cast.main();
+    remove_unnecessary_const.main();
+    remove_unnecessary_new.main();
     remove_unused_catch_clause.main();
     remove_unused_catch_stack.main();
     remove_unused_import.main();
     rename_to_camel_case.main();
     replace_boolean_with_bool.main();
+    replace_colon_with_equals.main();
     replace_final_with_const.main();
+    replace_null_with_closure.main();
     replace_return_type_future.main();
     replace_var_with_dynamic.main();
     replace_with_brackets.main();
     replace_with_conditional_assignment.main();
     replace_with_identifier.main();
+    replace_with_is_empty.main();
+    replace_with_is_not_empty.main();
     replace_with_null_aware.main();
     replace_with_tear_off.main();
     update_sdk_constraints.main();
@@ -178,5 +202,6 @@ main() {
     use_eq_eq_null.main();
     use_is_not_empty.main();
     use_not_eq_null.main();
+    use_rethrow.main();
   }, name: 'fix');
 }

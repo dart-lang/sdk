@@ -104,22 +104,26 @@ testRedirectingFactoryInvokeGenericDynamic() {
   new GenericClass<dynamic, dynamic>.redirect();
 }
 
-/*element: testConstRedirectingFactoryInvoke:static=[Class.generative(0)]*/
+/*strong.element: testConstRedirectingFactoryInvoke:static=[Class.generative(0)]*/
+/*strongConst.element: testConstRedirectingFactoryInvoke:type=[const:Class]*/
 testConstRedirectingFactoryInvoke() {
   const Class.redirect();
 }
 
-/*element: testConstRedirectingFactoryInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype(5),throwTypeError(1)]*/
+/*strong.element: testConstRedirectingFactoryInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype(5),throwTypeError(1)]*/
+/*strongConst.element: testConstRedirectingFactoryInvokeGeneric:type=[const:GenericClass<int,String>]*/
 testConstRedirectingFactoryInvokeGeneric() {
   const GenericClass<int, String>.redirect();
 }
 
-/*element: testConstRedirectingFactoryInvokeGenericRaw:static=[GenericClass.generative(0)]*/
+/*strong.element: testConstRedirectingFactoryInvokeGenericRaw:static=[GenericClass.generative(0)]*/
+/*strongConst.element: testConstRedirectingFactoryInvokeGenericRaw:type=[const:GenericClass<dynamic,dynamic>]*/
 testConstRedirectingFactoryInvokeGenericRaw() {
   const GenericClass.redirect();
 }
 
-/*element: testConstRedirectingFactoryInvokeGenericDynamic:static=[GenericClass.generative(0)]*/
+/*strong.element: testConstRedirectingFactoryInvokeGenericDynamic:static=[GenericClass.generative(0)]*/
+/*strongConst.element: testConstRedirectingFactoryInvokeGenericDynamic:type=[const:GenericClass<dynamic,dynamic>]*/
 testConstRedirectingFactoryInvokeGenericDynamic() {
   const GenericClass<dynamic, dynamic>.redirect();
 }
@@ -131,7 +135,7 @@ class ClassImplicitConstructor {}
 testImplicitConstructor() => new ClassImplicitConstructor();
 
 class ClassFactoryConstructor {
-  /*strong.element: ClassFactoryConstructor.:type=[inst:JSNull]*/
+  /*element: ClassFactoryConstructor.:type=[inst:JSNull]*/
   factory ClassFactoryConstructor() => null;
 }
 
@@ -142,7 +146,7 @@ class Class {
   /*element: Class.generative:static=[Object.(0)]*/
   const Class.generative();
 
-  /*strong.element: Class.fact:type=[inst:JSNull]*/
+  /*element: Class.fact:type=[inst:JSNull]*/
   factory Class.fact() => null;
 
   const factory Class.redirect() = Class.generative;
@@ -152,7 +156,7 @@ class GenericClass<X, Y> {
   /*element: GenericClass.generative:static=[Object.(0)]*/
   const GenericClass.generative();
 
-  /*strong.element: GenericClass.fact:type=[inst:JSBool,inst:JSNull,param:Object]*/
+  /*element: GenericClass.fact:type=[inst:JSBool,inst:JSNull,param:Object]*/
   factory GenericClass.fact() => null;
 
   const factory GenericClass.redirect() = GenericClass<X, Y>.generative;

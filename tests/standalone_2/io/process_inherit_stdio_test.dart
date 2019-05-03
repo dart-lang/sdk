@@ -22,7 +22,8 @@ main() {
   // of the process spawned here, we should see it.
   var script =
       Platform.script.resolve('process_inherit_stdio_script.dart').toFilePath();
-  var future = Process.start(Platform.executable, [script, "foo"]);
+  var future = Process.start(Platform.executable,
+      []..addAll(Platform.executableArguments)..addAll([script, "foo"]));
   Completer<String> s = new Completer();
   future.then((process) {
     StringBuffer buf = new StringBuffer();

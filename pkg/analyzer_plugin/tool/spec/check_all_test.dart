@@ -19,5 +19,5 @@ main() async {
   int index = components.indexOf('analyzer_plugin');
   String pkgPath = joinAll(components.sublist(0, index + 1));
   await GeneratedContent.checkAll(
-      pkgPath, join('tool', 'spec', 'generate_all.dart'), allTargets);
+      pkgPath, join(pkgPath, 'tool', 'spec', 'generate_all.dart'), allTargets);
 }

@@ -352,21 +352,27 @@ class _NullableLocalInference extends RecursiveAstVisitor {
   }
 
   @override
-  visitForEachStatement(ForEachStatement node) {
-    if (node.identifier == null) {
-      var declaration = node.loopVariable;
-      var element = declaration.declaredElement;
-      _locals.add(element);
-      if (!_assertedNotNull(element)) {
-        _nullableLocals.add(element);
-      }
-    } else {
-      var element = node.identifier.staticElement;
-      if (element is LocalVariableElement && !_assertedNotNull(element)) {
-        _nullableLocals.add(element);
+  visitForStatement(ForStatement node) {
+    var forLoopParts = node.forLoopParts;
+    if (forLoopParts is ForEachParts) {
+      if (forLoopParts is ForEachPartsWithIdentifier &&
+          forLoopParts.identifier != null) {
+        var element = forLoopParts.identifier.staticElement;
+        if (element is LocalVariableElement && !_assertedNotNull(element)) {
+          _nullableLocals.add(element);
+        }
+      } else if (forLoopParts is ForEachPartsWithDeclaration) {
+        var declaration = forLoopParts.loopVariable;
+        var element = declaration.declaredElement;
+        _locals.add(element);
+        if (!_assertedNotNull(element)) {
+          _nullableLocals.add(element);
+        }
+      } else {
+        throw new StateError('Unrecognized for loop parts');
       }
     }
-    super.visitForEachStatement(node);
+    super.visitForStatement(node);
   }
 
   @override

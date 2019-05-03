@@ -53,7 +53,7 @@ class Utf8Decoder {
 }
 
 class _JsonUtf8Decoder extends Converter<List<int>, Object> {
-  final _Reviver _reviver;
+  final Function(Object key, Object value) _reviver;
   final bool _allowMalformed;
 
   _JsonUtf8Decoder(this._reviver, this._allowMalformed);
@@ -193,7 +193,7 @@ class _BuildJsonListener extends _JsonListener {
 }
 
 class _ReviverJsonListener extends _BuildJsonListener {
-  final _Reviver reviver;
+  final Function(Object key, Object value) reviver;
   _ReviverJsonListener(this.reviver);
 
   void arrayElement() {
@@ -1456,7 +1456,7 @@ class JsonDecoder {
  */
 class _JsonStringDecoderSink extends StringConversionSinkBase {
   _JsonStringParser _parser;
-  final Function _reviver;
+  final Function(Object key, Object value) _reviver;
   final Sink<Object> _sink;
 
   _JsonStringDecoderSink(this._reviver, this._sink)
@@ -1857,8 +1857,7 @@ int _scanOneByteCharacters(List<int> units, int from, int endIndex) {
   final to = endIndex;
 
   // Special case for _Uint8ArrayView.
-  final cid = ClassID.getID(units);
-  if (identical(cid, ClassID.cidUint8ArrayView)) {
+  if (units is Uint8List) {
     if (from >= 0 && to >= 0 && to <= units.length) {
       for (int i = from; i < to; i++) {
         final unit = units[i];

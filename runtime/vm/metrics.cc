@@ -303,9 +303,14 @@ int64_t MetricPeakRSS::Value() const {
   return Service::MaxRSS();
 }
 
+#define VM_METRIC_VARIABLE(type, variable, name, unit)                         \
+  type vm_metric_##variable;
+VM_METRIC_LIST(VM_METRIC_VARIABLE);
+#undef VM_METRIC_VARIABLE
+
 void Metric::Init() {
 #define VM_METRIC_INIT(type, variable, name, unit)                             \
-  vm_metric_##variable##_.InitInstance(name, NULL, Metric::unit);
+  vm_metric_##variable.InitInstance(name, NULL, Metric::unit);
   VM_METRIC_LIST(VM_METRIC_INIT);
 #undef VM_METRIC_INIT
 }
@@ -323,7 +328,7 @@ void Metric::Cleanup() {
     OS::PrintErr("\n");
   }
 #define VM_METRIC_CLEANUP(type, variable, name, unit)                          \
-  vm_metric_##variable##_.CleanupInstance();
+  vm_metric_##variable.CleanupInstance();
   VM_METRIC_LIST(VM_METRIC_CLEANUP);
 #undef VM_METRIC_CLEANUP
 }

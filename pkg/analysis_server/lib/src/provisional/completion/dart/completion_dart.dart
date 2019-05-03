@@ -43,6 +43,12 @@ abstract class DartCompletionRequest extends CompletionRequest {
   Expression get dotTarget;
 
   /**
+   * Return a list containing the names of the experiments that have been
+   * enabled.
+   */
+  List<String> get enabledExperiments;
+
+  /**
    * Return `true` if free standing identifiers should be suggested
    */
   bool get includeIdentifiers;

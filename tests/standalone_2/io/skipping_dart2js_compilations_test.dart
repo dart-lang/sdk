@@ -148,7 +148,10 @@ Command makeCompilationCommand(String testName, FileUtils fileUtils) {
       .resolve('skipping_dart2js_compilations_helper.dart')
       .toFilePath();
   var executable = Platform.executable;
-  var arguments = [createFileScript, fileUtils.scriptOutputPath.toNativePath()];
+  var arguments = <String>[]
+    ..addAll(Platform.executableArguments)
+    ..add(createFileScript)
+    ..add(fileUtils.scriptOutputPath.toNativePath());
   var bootstrapDeps = [Uri.parse("file://${fileUtils.testSnapshotFilePath}")];
   return Command.compilation('dart2js', fileUtils.testJsFilePath.toNativePath(),
       bootstrapDeps, executable, arguments, {},

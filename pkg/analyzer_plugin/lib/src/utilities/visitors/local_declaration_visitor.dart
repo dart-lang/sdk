@@ -43,6 +43,8 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   void declaredMethod(MethodDeclaration declaration);
 
+  void declaredMixin(MixinDeclaration declaration) {}
+
   void declaredParam(SimpleIdentifier name, TypeAnnotation type);
 
   void declaredTopLevelVar(
@@ -131,6 +133,9 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
           declaration.functionType,
           declaration.functionType.typeParameters,
         );
+      } else if (declaration is MixinDeclaration) {
+        declaredMixin(declaration);
+        _visitTypeParameters(declaration, declaration.typeParameters);
       }
     });
   }
@@ -142,31 +147,30 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitForEachStatement(ForEachStatement node) {
-    SimpleIdentifier id;
-    TypeAnnotation type;
-    DeclaredIdentifier loopVar = node.loopVariable;
-    if (loopVar != null) {
-      id = loopVar.identifier;
-      type = loopVar.type;
-    } else {
-      id = node.identifier;
-      type = null;
-    }
-    if (id != null) {
-      // If there is no loop variable, don't declare it.
-      declaredLocalVar(id, type);
-    }
-    visitNode(node);
-  }
-
-  @override
-  void visitForStatement(ForStatement node) {
-    VariableDeclarationList varList = node.variables;
-    if (varList != null) {
-      varList.variables.forEach((VariableDeclaration varDecl) {
-        declaredLocalVar(varDecl.name, varList.type);
-      });
+  visitForStatement(ForStatement node) {
+    var forLoopParts = node.forLoopParts;
+    if (forLoopParts is ForEachPartsWithDeclaration) {
+      DeclaredIdentifier loopVar = forLoopParts.loopVariable;
+      if (loopVar != null) {
+        SimpleIdentifier id = loopVar.identifier;
+        if (id != null) {
+          // If there is no loop variable, don't declare it.
+          declaredLocalVar(id, loopVar.type);
+        }
+      }
+    } else if (forLoopParts is ForEachPartsWithIdentifier) {
+      SimpleIdentifier id = forLoopParts.identifier;
+      if (id != null) {
+        // If there is no loop variable, don't declare it.
+        declaredLocalVar(id, null);
+      }
+    } else if (forLoopParts is ForPartsWithDeclarations) {
+      VariableDeclarationList varList = forLoopParts.variables;
+      if (varList != null) {
+        varList.variables.forEach((VariableDeclaration varDecl) {
+          declaredLocalVar(varDecl.name, varList.type);
+        });
+      }
     }
     visitNode(node);
   }

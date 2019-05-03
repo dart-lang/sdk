@@ -23,6 +23,8 @@ abstract class SubtypeTest<T, E> {
         "$subtypeString shouldn't be a subtype of $supertypeString.");
   }
 
+  bool get skipFutureOrPromotion => false;
+
   T toType(String text, E environment);
 
   bool isSubtypeImpl(T subtype, T supertype);
@@ -117,6 +119,42 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype('FutureOr<int>', 'num');
     isSubtype('Null', 'FutureOr<int>');
     isSubtype('Null', 'Future<int>');
+    isSubtype('dynamic', 'FutureOr<dynamic>');
+    isNotSubtype('dynamic', 'FutureOr<String>');
+    isSubtype('void', 'FutureOr<void>');
+    isNotSubtype('void', 'FutureOr<String>');
+    isSubtype('E', 'FutureOr<E>', typeParameters: 'E');
+    isNotSubtype('E', 'FutureOr<String>', typeParameters: 'E');
+    isSubtype('() -> String', 'FutureOr<() -> void>');
+    isNotSubtype('() -> void', 'FutureOr<() -> String>');
+    isSubtype('FutureOr<int>', 'FutureOr<num>');
+    isNotSubtype('FutureOr<num>', 'FutureOr<int>');
+    isSubtype('T & int', 'FutureOr<num>', typeParameters: 'T');
+    isSubtype('T & Future<num>', 'FutureOr<num>', typeParameters: 'T');
+    isSubtype('T & Future<int>', 'FutureOr<num>', typeParameters: 'T');
+    if (!skipFutureOrPromotion) {
+      isSubtype('T & FutureOr<int>', 'FutureOr<num>', typeParameters: 'T');
+      isSubtype('T & FutureOr<num>', 'FutureOr<num>', typeParameters: 'T');
+      isSubtype('T & String', 'FutureOr<num>', typeParameters: 'T extends int');
+      isSubtype('T & Future<String>', 'FutureOr<num>',
+          typeParameters: 'T extends Future<num>');
+      isSubtype('T & FutureOr<String>', 'FutureOr<num>',
+          typeParameters: 'T extends FutureOr<int>');
+      isSubtype('T & FutureOr<String>', 'FutureOr<num>',
+          typeParameters: 'T extends FutureOr<num>');
+    }
+    isNotSubtype('T & num', 'FutureOr<int>', typeParameters: 'T');
+    isNotSubtype('T & Future<num>', 'FutureOr<int>', typeParameters: 'T');
+    isNotSubtype('T & FutureOr<num>', 'FutureOr<int>', typeParameters: 'T');
+    isNotSubtype('T & String', 'FutureOr<int>',
+        typeParameters: 'T extends num');
+    isNotSubtype('T & Future<String>', 'FutureOr<int>',
+        typeParameters: 'T extends Future<num>');
+    isNotSubtype('T & FutureOr<String>', 'FutureOr<int>',
+        typeParameters: 'T extends FutureOr<num>');
+    isSubtype('Id<int>', 'FutureOr<num>');
+    isNotSubtype('Id<num>', 'FutureOr<int>');
+    isSubtype('FutureOr<Object>', 'FutureOr<FutureOr<Object>>');
 
     // T & B <: T & A if B <: A
     isSubtype('T & int', 'T & int', typeParameters: 'T');
@@ -140,6 +178,21 @@ abstract class SubtypeTest<T, E> {
 
     // T extends A <: T extends A
     isSubtype('T', 'T', typeParameters: 'T extends num');
+
+    isSubtype('T', 'T', typeParameters: 'T');
+    isNotSubtype('S', 'T', typeParameters: 'S, T');
+
+    isSubtype('T', 'T', typeParameters: 'T extends Object');
+    isNotSubtype('S', 'T',
+        typeParameters: 'S extends Object, T extends Object');
+
+    isSubtype('T', 'T', typeParameters: 'T extends dynamic');
+    isNotSubtype('S', 'T',
+        typeParameters: 'S extends dynamic, T extends dynamic');
+
+    // S <: T extends S
+    isNotSubtype('S', 'T', typeParameters: 'S, T extends S');
+    isSubtype('T', 'S', typeParameters: 'S, T extends S');
 
     // S & B <: A if B <: A, A is not S (or a promotion thereof)
     isSubtype('S & int', 'int', typeParameters: 'S');
@@ -266,6 +319,18 @@ abstract class SubtypeTest<T, E> {
     isSubtype('T & (void) -> void', 'Id<(int) -> Object>', typeParameters: 'T');
 
     isNotSubtype('T & (void) -> void', 'Id<(int) -> int>', typeParameters: 'T');
+    isNotSubtype('dynamic', 'T & dynamic', typeParameters: 'T extends dynamic');
+    isNotSubtype('() -> T', 'T & () -> T', typeParameters: 'T');
+
+    isNotSubtype('FutureOr<T & String>', 'T & String', typeParameters: 'T');
+
+    isSubtype('Id<T & String>', 'T & String', typeParameters: 'T');
+    isSubtype('Id<T & String>', 'T', typeParameters: 'T');
+    isSubtype('Id<T & String>', 'String', typeParameters: 'T');
+    isNotSubtype('Id<T & String>', 'S & String', typeParameters: 'T, S');
+
+    isNotSubtype('void', 'T & void', typeParameters: 'T');
+    isNotSubtype('void', 'T & void', typeParameters: 'T extends void');
 
     isSubtype('T', 'Id<T>', typeParameters: 'T');
     isSubtype('T', 'Id<Object>', typeParameters: 'T');

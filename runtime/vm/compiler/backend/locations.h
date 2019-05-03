@@ -9,20 +9,24 @@
 #include "vm/bitfield.h"
 #include "vm/bitmap.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/constants.h"
 
 namespace dart {
 
 class BufferFormatter;
 class ConstantInstr;
 class Definition;
-class PairLocation;
 class Value;
+
+template <class Location>
+class TemplatePairLocation;
 
 enum Representation {
   kNoRepresentation,
   kTagged,
   kUntagged,
   kUnboxedDouble,
+  kUnboxedFloat,
   kUnboxedInt32,
   kUnboxedUint32,
   kUnboxedInt64,
@@ -32,6 +36,20 @@ enum Representation {
   kPairOfTagged,
   kNumRepresentations
 };
+
+// 'UnboxedFfiIntPtr' should be able to hold a pointer of the target word-size.
+// On a 32-bit platform, it's an unsigned 32-bit int because it should be
+// zero-extended to 64-bits, not sign-extended (pointers are inherently
+// unsigned).
+//
+// Issue(36370): Use [kUnboxedIntPtr] instead.
+static constexpr Representation kUnboxedFfiIntPtr =
+    compiler::target::kWordSize == 4 ? kUnboxedUint32 : kUnboxedInt64;
+
+// The representation which can be used for native pointers. We use signed 32/64
+// bit representation to be able to do arithmetic on pointers.
+static constexpr Representation kUnboxedIntPtr =
+    compiler::target::kWordSize == 4 ? kUnboxedInt32 : kUnboxedInt64;
 
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding
@@ -47,7 +65,8 @@ enum Representation {
 // are bitwise unequal then these two locations are guaranteed to be disjoint.
 // Properties like representation belong to the value that is stored in
 // the location not to the location itself.
-class Location : public ValueObject {
+template <class Register, class FpuRegister>
+class TemplateLocation : public ValueObject {
  private:
   enum {
     // Number of bits required to encode Kind value.
@@ -113,7 +132,7 @@ class Location : public ValueObject {
 #endif
   };
 
-  Location() : value_(kInvalidLocation) {
+  TemplateLocation() : value_(kInvalidLocation) {
     // Verify that non-tagged location kinds do not interfere with location tags
     // (kConstantTag and kPairLocationTag).
     COMPILE_ASSERT((kInvalid & kLocationTagMask) != kConstantTag);
@@ -151,9 +170,10 @@ class Location : public ValueObject {
     ASSERT(IsInvalid());
   }
 
-  Location(const Location& other) : ValueObject(), value_(other.value_) {}
+  TemplateLocation(const TemplateLocation& other)
+      : ValueObject(), value_(other.value_) {}
 
-  Location& operator=(const Location& other) {
+  TemplateLocation& operator=(const TemplateLocation& other) {
     value_ = other.value_;
     return *this;
   }
@@ -165,8 +185,8 @@ class Location : public ValueObject {
     return (value_ & kLocationTagMask) == kConstantTag;
   }
 
-  static Location Constant(const ConstantInstr* obj) {
-    Location loc(reinterpret_cast<uword>(obj) | kConstantTag);
+  static TemplateLocation Constant(const ConstantInstr* obj) {
+    TemplateLocation loc(reinterpret_cast<uword>(obj) | kConstantTag);
     ASSERT(obj == loc.constant_instruction());
     return loc;
   }
@@ -182,9 +202,10 @@ class Location : public ValueObject {
     return (value_ & kLocationTagMask) == kPairLocationTag;
   }
 
-  static Location Pair(Location first, Location second);
+  static TemplateLocation Pair(TemplateLocation first, TemplateLocation second);
 
-  PairLocation* AsPairLocation() const;
+  TemplatePairLocation<TemplateLocation<Register, FpuRegister>>*
+  AsPairLocation() const;
 
   // Unallocated locations.
   enum Policy {
@@ -200,37 +221,37 @@ class Location : public ValueObject {
 
   bool IsRegisterBeneficial() { return !Equals(Any()); }
 
-  static Location UnallocatedLocation(Policy policy) {
-    return Location(kUnallocated, PolicyField::encode(policy));
+  static TemplateLocation UnallocatedLocation(Policy policy) {
+    return TemplateLocation(kUnallocated, PolicyField::encode(policy));
   }
 
   // Any free register is suitable to replace this unallocated location.
-  static Location Any() { return UnallocatedLocation(kAny); }
+  static TemplateLocation Any() { return UnallocatedLocation(kAny); }
 
-  static Location PrefersRegister() {
+  static TemplateLocation PrefersRegister() {
     return UnallocatedLocation(kPrefersRegister);
   }
 
-  static Location RequiresRegister() {
+  static TemplateLocation RequiresRegister() {
     return UnallocatedLocation(kRequiresRegister);
   }
 
-  static Location RequiresFpuRegister() {
+  static TemplateLocation RequiresFpuRegister() {
     return UnallocatedLocation(kRequiresFpuRegister);
   }
 
-  static Location WritableRegister() {
+  static TemplateLocation WritableRegister() {
     return UnallocatedLocation(kWritableRegister);
   }
 
   // The location of the first input to the instruction will be
   // used to replace this unallocated location.
-  static Location SameAsFirstInput() {
+  static TemplateLocation SameAsFirstInput() {
     return UnallocatedLocation(kSameAsFirstInput);
   }
 
   // Empty location. Used if there the location should be ignored.
-  static Location NoLocation() { return Location(); }
+  static TemplateLocation NoLocation() { return TemplateLocation(); }
 
   Policy policy() const {
     ASSERT(IsUnallocated());
@@ -238,8 +259,8 @@ class Location : public ValueObject {
   }
 
   // Register locations.
-  static Location RegisterLocation(Register reg) {
-    return Location(kRegister, reg);
+  static TemplateLocation RegisterLocation(Register reg) {
+    return TemplateLocation(kRegister, reg);
   }
 
   bool IsRegister() const { return kind() == kRegister; }
@@ -250,35 +271,11 @@ class Location : public ValueObject {
   }
 
   // FpuRegister locations.
-  static Location FpuRegisterLocation(FpuRegister reg) {
-    return Location(kFpuRegister, reg);
+  static TemplateLocation FpuRegisterLocation(FpuRegister reg) {
+    return TemplateLocation(kFpuRegister, reg);
   }
 
   bool IsFpuRegister() const { return kind() == kFpuRegister; }
-
-  static Location ArgumentsDescriptorLocation() {
-#ifdef TARGET_ARCH_DBC
-    return Location(kSpecialDbcRegister, kArgsDescriptorReg);
-#else
-    return Location::RegisterLocation(ARGS_DESC_REG);
-#endif
-  }
-
-  static Location ExceptionLocation() {
-#ifdef TARGET_ARCH_DBC
-    return Location(kSpecialDbcRegister, kExceptionReg);
-#else
-    return Location::RegisterLocation(kExceptionObjectReg);
-#endif
-  }
-
-  static Location StackTraceLocation() {
-#ifdef TARGET_ARCH_DBC
-    return Location(kSpecialDbcRegister, kStackTraceReg);
-#else
-    return Location::RegisterLocation(kStackTraceObjectReg);
-#endif
-  }
 
 #ifdef TARGET_ARCH_DBC
   bool IsArgsDescRegister() const {
@@ -305,7 +302,7 @@ class Location : public ValueObject {
     return (kind == kRegister) || (kind == kFpuRegister);
   }
 
-  static Location MachineRegisterLocation(Kind kind, intptr_t reg) {
+  static TemplateLocation MachineRegisterLocation(Kind kind, intptr_t reg) {
     if (kind == kRegister) {
       return RegisterLocation(static_cast<Register>(reg));
     } else {
@@ -327,10 +324,10 @@ class Location : public ValueObject {
     return static_cast<uword>(kStackIndexBias + stack_index);
   }
 
-  static Location StackSlot(intptr_t stack_index, Register base = FPREG) {
+  static TemplateLocation StackSlot(intptr_t stack_index, Register base) {
     uword payload = StackSlotBaseField::encode(base) |
                     StackIndexField::encode(EncodeStackIndex(stack_index));
-    Location loc(kStackSlot, payload);
+    TemplateLocation loc(kStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
     return loc;
@@ -338,10 +335,10 @@ class Location : public ValueObject {
 
   bool IsStackSlot() const { return kind() == kStackSlot; }
 
-  static Location DoubleStackSlot(intptr_t stack_index) {
-    uword payload = StackSlotBaseField::encode(FPREG) |
+  static TemplateLocation DoubleStackSlot(intptr_t stack_index, Register base) {
+    uword payload = StackSlotBaseField::encode(base) |
                     StackIndexField::encode(EncodeStackIndex(stack_index));
-    Location loc(kDoubleStackSlot, payload);
+    TemplateLocation loc(kDoubleStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
     return loc;
@@ -349,10 +346,10 @@ class Location : public ValueObject {
 
   bool IsDoubleStackSlot() const { return kind() == kDoubleStackSlot; }
 
-  static Location QuadStackSlot(intptr_t stack_index) {
-    uword payload = StackSlotBaseField::encode(FPREG) |
+  static TemplateLocation QuadStackSlot(intptr_t stack_index, Register base) {
+    uword payload = StackSlotBaseField::encode(base) |
                     StackIndexField::encode(EncodeStackIndex(stack_index));
-    Location loc(kQuadStackSlot, payload);
+    TemplateLocation loc(kQuadStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
     return loc;
@@ -375,22 +372,8 @@ class Location : public ValueObject {
     return IsStackSlot() || IsDoubleStackSlot() || IsQuadStackSlot();
   }
 
-// DBC does not have an notion of 'address' in its instruction set.
-#if !defined(TARGET_ARCH_DBC)
-  // Return a memory operand for stack slot locations.
-  Address ToStackSlotAddress() const;
-#endif
-
   // Returns the offset from the frame pointer for stack slot locations.
   intptr_t ToStackSlotOffset() const;
-
-  // Constants.
-  static Location RegisterOrConstant(Value* value);
-  static Location RegisterOrSmiConstant(Value* value);
-  static Location WritableRegisterOrSmiConstant(Value* value);
-  static Location FixedRegisterOrConstant(Value* value, Register reg);
-  static Location FixedRegisterOrSmiConstant(Value* value, Register reg);
-  static Location AnyOrConstant(Value* value);
 
   const char* Name() const;
   void PrintTo(BufferFormatter* f) const;
@@ -398,22 +381,18 @@ class Location : public ValueObject {
   const char* ToCString() const;
 
   // Compare two locations.
-  bool Equals(Location other) const { return value_ == other.value_; }
+  bool Equals(TemplateLocation other) const { return value_ == other.value_; }
 
   // If current location is constant might return something that
   // is not equal to any Kind.
   Kind kind() const { return KindField::decode(value_); }
 
-  Location Copy() const;
-
-  Location RemapForSlowPath(Definition* def,
-                            intptr_t* cpu_reg_slots,
-                            intptr_t* fpu_reg_slots) const;
+  TemplateLocation Copy() const;
 
  private:
-  explicit Location(uword value) : value_(value) {}
+  explicit TemplateLocation(uword value) : value_(value) {}
 
-  Location(Kind kind, uword payload)
+  TemplateLocation(Kind kind, uword payload)
       : value_(KindField::encode(kind) | PayloadField::encode(payload)) {}
 
   uword payload() const { return PayloadField::decode(value_); }
@@ -447,11 +426,48 @@ class Location : public ValueObject {
   // a constant locations. Values of enumeration Kind are selected in such a
   // way that none of them can be interpreted as a kConstant tag.
   uword value_;
+
+  // The following functions are only defined for Location, not for
+  // HostLocation, but they do need access to private fields or constructors.
+  friend TemplateLocation<dart::Register, dart::FpuRegister>
+  LocationArgumentsDescriptorLocation();
+  friend TemplateLocation<dart::Register, dart::FpuRegister>
+  LocationExceptionLocation();
+  friend TemplateLocation<dart::Register, dart::FpuRegister>
+  LocationStackTraceLocation();
 };
 
-class PairLocation : public ZoneAllocated {
+using Location = TemplateLocation<dart::Register, dart::FpuRegister>;
+using HostLocation =
+    TemplateLocation<dart::host::Register, dart::host::FpuRegister>;
+
+// The following functions are only defined for Location, not for HostLocation.
+Location LocationArgumentsDescriptorLocation();
+Location LocationExceptionLocation();
+Location LocationStackTraceLocation();
+// Constants.
+Location LocationRegisterOrConstant(Value* value);
+Location LocationRegisterOrSmiConstant(Value* value);
+Location LocationWritableRegisterOrSmiConstant(Value* value);
+Location LocationFixedRegisterOrConstant(Value* value, Register reg);
+Location LocationFixedRegisterOrSmiConstant(Value* value, Register reg);
+Location LocationAnyOrConstant(Value* value);
+
+Location LocationRemapForSlowPath(Location loc,
+                                  Definition* def,
+                                  intptr_t* cpu_reg_slots,
+                                  intptr_t* fpu_reg_slots);
+
+// DBC does not have an notion of 'address' in its instruction set.
+#if !defined(TARGET_ARCH_DBC)
+// Return a memory operand for stack slot locations.
+Address LocationToStackSlotAddress(Location loc);
+#endif
+
+template <class Location>
+class TemplatePairLocation : public ZoneAllocated {
  public:
-  PairLocation() {
+  TemplatePairLocation() {
     for (intptr_t i = 0; i < kPairLength; i++) {
       ASSERT(locations_[i].IsInvalid());
     }
@@ -481,6 +497,9 @@ class PairLocation : public ZoneAllocated {
   static const intptr_t kPairLength = 2;
   Location locations_[kPairLength];
 };
+
+using PairLocation = TemplatePairLocation<Location>;
+using HostPairLocation = TemplatePairLocation<HostLocation>;
 
 template <typename T>
 class SmallSet {
@@ -526,6 +545,25 @@ class RegisterSet : public ValueObject {
       for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
         Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
       }
+    }
+  }
+
+  // Adds all registers which don't have a special purpose (e.g. FP, SP, PC,
+  // CSP, etc.).
+  void AddAllGeneralRegisters() {
+    for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+      Register reg = static_cast<Register>(i);
+      if (reg == FPREG || reg == SPREG) continue;
+#if defined(TARGET_ARCH_ARM)
+      if (reg == PC) continue;
+#elif defined(TARGET_ARCH_ARM64)
+      if (reg == R31) continue;
+#endif
+      Add(Location::RegisterLocation(reg));
+    }
+
+    for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
+      Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
     }
   }
 
@@ -636,7 +674,18 @@ class LocationSummary : public ZoneAllocated {
   void set_in(intptr_t index, Location loc) {
     ASSERT(index >= 0);
     ASSERT(index < num_inputs_);
-    ASSERT(!always_calls() || loc.IsMachineRegister());
+    // See FlowGraphAllocator::ProcessOneInstruction for explanation of this
+    // restriction.
+    if (always_calls()) {
+      if (loc.IsUnallocated()) {
+        ASSERT(loc.policy() == Location::kAny);
+      } else if (loc.IsPairLocation()) {
+        ASSERT(!loc.AsPairLocation()->At(0).IsUnallocated() ||
+               loc.AsPairLocation()->At(0).policy() == Location::kAny);
+        ASSERT(!loc.AsPairLocation()->At(0).IsUnallocated() ||
+               loc.AsPairLocation()->At(0).policy() == Location::kAny);
+      }
+    }
     input_locations_[index] = loc;
   }
 

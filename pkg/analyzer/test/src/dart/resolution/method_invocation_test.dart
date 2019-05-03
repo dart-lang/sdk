@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -31,7 +31,8 @@ abstract class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
 
     var invocation = findNode.methodInvocation('foo(0)');
     assertMethodInvocation(
@@ -55,7 +56,8 @@ mixin M implements A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
 
     var invocation = findNode.methodInvocation('foo(0)');
     assertMethodInvocation(
@@ -79,7 +81,8 @@ class B extends Object with A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    assertTestErrorsWithCodes(
+        [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
 
     var invocation = findNode.methodInvocation('foo(); // ref');
     assertMethodInvocation(
@@ -187,7 +190,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticWarningCode.AMBIGUOUS_IMPORT,
     ]);
 
@@ -213,7 +216,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticWarningCode.AMBIGUOUS_IMPORT,
     ]);
 
@@ -233,7 +236,7 @@ main(A a) {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
     ]);
     _assertInvalidInvocation(
@@ -254,7 +257,7 @@ main(C c) {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
     ]);
     _assertInvalidInvocation(
@@ -271,7 +274,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
     ]);
     _assertInvalidInvocation(
@@ -396,7 +399,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
     ]);
     _assertInvalidInvocation(
@@ -417,7 +420,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
     ]);
     _assertInvalidInvocation(
@@ -440,7 +443,7 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
     ]);
     _assertInvalidInvocation(
@@ -463,7 +466,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
     ]);
 
@@ -487,7 +490,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
     ]);
 
@@ -511,7 +514,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
     ]);
     _assertInvalidInvocation(
@@ -528,7 +531,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_FUNCTION,
     ]);
     _assertUnresolvedMethodInvocation('foo(0)');
@@ -543,7 +546,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_FUNCTION,
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
@@ -556,7 +559,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticWarningCode.UNDEFINED_IDENTIFIER,
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
@@ -570,7 +573,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_METHOD,
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
@@ -586,7 +589,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_METHOD,
     ]);
 
@@ -607,7 +610,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_METHOD,
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
@@ -622,7 +625,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_METHOD,
     ]);
 
@@ -637,7 +640,7 @@ class C<T> {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_METHOD,
     ]);
     _assertUnresolvedMethodInvocation('C.T();');
@@ -650,7 +653,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_METHOD,
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
@@ -664,7 +667,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_METHOD,
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
@@ -679,7 +682,7 @@ class C {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_METHOD,
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
@@ -692,7 +695,7 @@ main(Object o) {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_METHOD,
     ]);
   }
@@ -724,7 +727,7 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_METHOD,
     ]);
     _assertUnresolvedMethodInvocation('_foo(0);');
@@ -741,7 +744,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_METHOD,
     ]);
   }
@@ -756,7 +759,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_METHOD,
     ]);
   }
@@ -772,7 +775,7 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
@@ -792,7 +795,7 @@ class B extends A {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
     ]);
 
@@ -816,7 +819,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.URI_DOES_NOT_EXIST,
     ]);
     _assertUnresolvedMethodInvocation('foo(1);');
@@ -836,7 +839,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.URI_DOES_NOT_EXIST,
     ]);
     _assertUnresolvedMethodInvocation('foo(1);');
@@ -854,7 +857,7 @@ main(C<void> c) {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticWarningCode.USE_OF_VOID_RESULT,
     ]);
     _assertInvalidInvocation(
@@ -873,7 +876,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticWarningCode.USE_OF_VOID_RESULT,
     ]);
     _assertInvalidInvocation(
@@ -892,7 +895,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticWarningCode.USE_OF_VOID_RESULT,
     ]);
     assertMethodInvocation(
@@ -911,7 +914,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticWarningCode.USE_OF_VOID_RESULT,
     ]);
     _assertInvalidInvocation(
@@ -930,7 +933,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticWarningCode.USE_OF_VOID_RESULT,
     ]);
     // TODO(scheglov) Resolve fully, or don't resolve at all.
@@ -949,7 +952,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticWarningCode.USE_OF_VOID_RESULT,
     ]);
     // TODO(scheglov) Resolve fully, or don't resolve at all.
@@ -968,7 +971,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticWarningCode.USE_OF_VOID_RESULT,
     ]);
     // TODO(scheglov) Resolve fully, or don't resolve at all.
@@ -988,7 +991,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
     ]);
     assertMethodInvocation(
@@ -1008,7 +1011,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
     ]);
     assertMethodInvocation(
@@ -1498,7 +1501,7 @@ main() {
 }
 ''');
     await resolveTestFile();
-    assertTestErrors([
+    assertTestErrorsWithCodes([
       CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
     ]);
     assertElement(findNode.simple('math()'), findElement.prefix('math'));

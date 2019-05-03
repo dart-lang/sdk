@@ -25,23 +25,14 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/api/model.dart';
-import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/src/task/general.dart';
-import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/manager.dart';
-import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/task/yaml.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
-import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
-import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
@@ -552,15 +543,6 @@ abstract class AnalysisContext {
   CompilationUnit parseCompilationUnit(Source source);
 
   /**
-   * Parse a single HTML [source] to produce a document model.
-   *
-   * Throws an [AnalysisException] if the analysis could not be performed
-   *
-   * <b>Note:</b> This method cannot be used in an async environment.
-   */
-  Document parseHtmlDocument(Source source);
-
-  /**
    * Perform the next unit of work required to keep the analysis results
    * up-to-date and return information about the consequent changes to the
    * analysis results. This method can be long running.
@@ -751,6 +733,11 @@ class AnalysisEngine {
   static const String PUBSPEC_YAML_FILE = 'pubspec.yaml';
 
   /**
+   * The file name used for Android manifest files.
+   */
+  static const String ANDROID_MANIFEST_FILE = 'AndroidManifest.xml';
+
+  /**
    * The unique instance of this class.
    */
   static final AnalysisEngine instance = new AnalysisEngine._();
@@ -760,12 +747,6 @@ class AnalysisEngine {
    * engine.
    */
   Logger _logger = Logger.NULL;
-
-  /**
-   * The plugin that defines the extension points and extensions that are
-   * inherently defined by the analysis engine.
-   */
-  final EnginePlugin enginePlugin = new EnginePlugin();
 
   /**
    * The instrumentation service that is to be used by this analysis engine.
@@ -818,20 +799,11 @@ class AnalysisEngine {
   }
 
   /**
-   * Return the list of plugins that clients are required to process, either by
-   * creating an [ExtensionManager] or by using the method
-   * [processRequiredPlugins].
-   */
-  List<Plugin> get requiredPlugins => <Plugin>[enginePlugin];
-
-  /**
    * Return the task manager used to manage the tasks used to analyze code.
    */
   TaskManager get taskManager {
     if (_taskManager == null) {
       _taskManager = new TaskManager();
-      _initializeTaskMap();
-      _initializeResults();
     }
     return _taskManager;
   }
@@ -858,93 +830,8 @@ class AnalysisEngine {
    * plugins. This method can only be used by clients that do not need to
    * process any other plugins.
    */
-  void processRequiredPlugins() {
-    if (enginePlugin.workManagerFactoryExtensionPoint == null) {
-      ExtensionManager manager = new ExtensionManager();
-      manager.processPlugins(requiredPlugins);
-    }
-  }
-
-  void _initializeResults() {
-    _taskManager.addGeneralResult(DART_ERRORS);
-  }
-
-  void _initializeTaskMap() {
-    //
-    // Register general tasks.
-    //
-    _taskManager.addTaskDescriptor(GetContentTask.DESCRIPTOR);
-    //
-    // Register Dart tasks.
-    //
-    _taskManager.addTaskDescriptor(BuildCompilationUnitElementTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(BuildDirectiveElementsTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(BuildEnumMemberElementsTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(BuildExportNamespaceTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(BuildLibraryElementTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(BuildPublicNamespaceTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(BuildSourceExportClosureTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(BuildTypeProviderTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ComputeConstantDependenciesTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ComputeConstantValueTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(
-        ComputeInferableStaticVariableDependenciesTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ComputeLibraryCycleTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ComputeRequiredConstantsTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ContainingLibrariesTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(DartErrorsTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(EvaluateUnitConstantsTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(GatherUsedImportedElementsTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(GatherUsedLocalElementsTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(GenerateHintsTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(GenerateLintsTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(InferInstanceMembersInUnitTask.DESCRIPTOR);
-    _taskManager
-        .addTaskDescriptor(InferStaticVariableTypesInUnitTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(InferStaticVariableTypeTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(LibraryErrorsReadyTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(LibraryUnitErrorsTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ParseDartTask.DESCRIPTOR);
-    _taskManager
-        .addTaskDescriptor(PartiallyResolveUnitReferencesTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ReadyLibraryElement2Task.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ReadyLibraryElement5Task.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ReadyLibraryElement7Task.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ReadyResolvedUnitTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ResolveConstantExpressionTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ResolveDirectiveElementsTask.DESCRIPTOR);
-    _taskManager
-        .addTaskDescriptor(ResolvedUnit7InLibraryClosureTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ResolvedUnit7InLibraryTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ResolveInstanceFieldsInUnitTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ResolveLibraryReferencesTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ResolveLibraryTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ResolveLibraryTypeNamesTask.DESCRIPTOR);
-    _taskManager
-        .addTaskDescriptor(ResolveTopLevelLibraryTypeBoundsTask.DESCRIPTOR);
-    _taskManager
-        .addTaskDescriptor(ResolveTopLevelUnitTypeBoundsTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ResolveUnitTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ResolveUnitTypeNamesTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ResolveVariableReferencesTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ScanDartTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(StrongModeVerifyUnitTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(VerifyUnitTask.DESCRIPTOR);
-    //
-    // Register HTML tasks.
-    //
-    _taskManager.addTaskDescriptor(DartScriptsTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(HtmlErrorsTask.DESCRIPTOR);
-    _taskManager.addTaskDescriptor(ParseHtmlTask.DESCRIPTOR);
-    //
-    // Register YAML tasks.
-    //
-    _taskManager.addTaskDescriptor(ParseYamlTask.DESCRIPTOR);
-    //
-    // Register analysis option file tasks.
-    //
-    _taskManager.addTaskDescriptor(GenerateOptionsErrorsTask.DESCRIPTOR);
-  }
+  @deprecated
+  void processRequiredPlugins() {}
 
   /**
    * Return `true` if the given [fileName] is an analysis options file.
@@ -972,14 +859,13 @@ class AnalysisEngine {
   }
 
   /**
-   * Return `true` if the given [fileName] is assumed to contain HTML.
+   * Return `true` if the given [fileName] is AndroidManifest.xml
    */
-  static bool isHtmlFileName(String fileName) {
+  static bool isManifestFileName(String fileName) {
     if (fileName == null) {
       return false;
     }
-    String extension = FileNameUtilities.getExtension(fileName).toLowerCase();
-    return extension == SUFFIX_HTML || extension == SUFFIX_HTM;
+    return fileName.endsWith(AnalysisEngine.ANDROID_MANIFEST_FILE);
   }
 }
 
@@ -1151,6 +1037,12 @@ abstract class AnalysisOptions {
    */
   @deprecated
   int get cacheSize;
+
+  /*
+   * A flag indicating whether to run checks on AndroidManifest.xml file to
+   * see if it is complaint with Chrome OS.
+   */
+  bool get chromeOsManifestChecks;
 
   /**
    * Return `true` if analysis is to generate dart2js related hint results.
@@ -1505,6 +1397,25 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool implicitDynamic = true;
 
   /**
+   * A flag indicating whether inference failures are allowed, off by default.
+   *
+   * This option is experimental and subject to change.
+   */
+  bool strictInference = false;
+
+  /**
+   * Whether raw types (types without explicit type arguments, such as `List`)
+   * should be reported as potential problems.
+   * 
+   * Raw types are a common source of `dynamic` being introduced implicitly.
+   * This often leads to cast failures later on in the program.
+   */
+  bool strictRawTypes = false;
+
+  @override
+  bool chromeOsManifestChecks = false;
+
+  /**
    * Initialize a newly created set of analysis options to have their default
    * values.
    */
@@ -1534,6 +1445,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
       implicitDynamic = options.implicitDynamic;
+      strictInference = options.strictInference;
+      strictRawTypes = options.strictRawTypes;
     }
     trackCacheDependencies = options.trackCacheDependencies;
     disableCacheFlushing = options.disableCacheFlushing;
@@ -1708,6 +1621,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
+      buffer.addBool(strictInference);
+      buffer.addBool(strictRawTypes);
       buffer.addBool(strongModeHints);
       buffer.addBool(useFastaParser);
 
@@ -1724,6 +1639,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       }
 
       // Append lints.
+      buffer.addString(linterVersion ?? '');
       buffer.addInt(lintRules.length);
       for (Linter lintRule in lintRules) {
         buffer.addString(lintRule.lintCode.uniqueName);
@@ -1790,6 +1706,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     hint = true;
     implicitCasts = true;
     implicitDynamic = true;
+    strictInference = false;
+    strictRawTypes = false;
     lint = false;
     _lintRules = null;
     patchPaths = {};
@@ -2408,11 +2326,6 @@ class ImplicitAnalysisEvent {
  * users of the context.
  */
 abstract class InternalAnalysisContext implements AnalysisContext {
-  /**
-   * The result provider for [aboutToComputeResult].
-   */
-  ResultProvider resultProvider;
-
   /**
    * A table mapping the sources known to the context to the information known
    * about the source.

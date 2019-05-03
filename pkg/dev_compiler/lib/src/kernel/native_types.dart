@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'constants.dart';
+import 'kernel_helpers.dart';
 
 /// Contains information about native JS types (those types provided by the
 /// implementation) that are also provided by the Dart SDK.
@@ -125,25 +126,33 @@ class NativeTypeSet {
   /// referring to the JavaScript built-in `Array` type.
   List<String> getNativePeers(Class c) {
     if (c == coreTypes.objectClass) return ['Object'];
-    var names = constants.getNameFromAnnotation(_getNativeAnnotation(c));
-    if (names == null) return const [];
 
-    // Omit the special name "!nonleaf" and any future hacks starting with "!"
-    return names.split(',').where((peer) => !peer.startsWith("!")).toList();
+    for (var annotation in c.annotations) {
+      var names = _getNativeAnnotationName(annotation);
+      if (names != null) {
+        // Omit the special name "!nonleaf" and any future dart2js hacks
+        // starting with "!"
+        return names.split(',').where((peer) => !peer.startsWith("!")).toList();
+      }
+    }
+    return const [];
+  }
+
+  /// If this [annotation] is `@Native` or `@JsPeerInterface`, returns the "name"
+  /// field (which is also the constructor parameter).
+  String _getNativeAnnotationName(Expression annotation) {
+    if (!_isNativeAnnotation(annotation)) return null;
+    return constants.getFieldValueFromAnnotation(annotation, 'name');
   }
 }
 
-bool _isNative(Class c) => _getNativeAnnotation(c) != null;
+/// Whether class [c] has any `@Native` or `@JsPeerInterface` annotations.
+bool _isNative(Class c) => c.annotations.any(_isNativeAnnotation);
 
-ConstructorInvocation _getNativeAnnotation(Class c) {
-  for (var annotation in c.annotations) {
-    if (annotation is ConstructorInvocation) {
-      var c = annotation.target.enclosingClass;
-      if ((c.name == 'Native' || c.name == 'JsPeerInterface') &&
-          c.enclosingLibrary.importUri.scheme == 'dart') {
-        return annotation;
-      }
-    }
-  }
-  return null;
+/// Whether this [annotation] is `@Native` or `@JsPeerInterface`.
+bool _isNativeAnnotation(Expression annotation) {
+  var c = getAnnotationClass(annotation);
+  return c != null &&
+      (c.name == 'Native' || c.name == 'JsPeerInterface') &&
+      c.enclosingLibrary.importUri.scheme == 'dart';
 }

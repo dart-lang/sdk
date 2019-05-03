@@ -44,6 +44,7 @@ class double {}
 class int {}
 class num {}
 class Object {}
+class Iterable<E> {}
 class Map<K, V> {}
 class Null {}
 class String {}

@@ -35,6 +35,9 @@ import '../../base/instrumentation.dart'
 
 import '../fasta_codes.dart'
     show
+        messageCantDisambiguateAmbiguousInformation,
+        messageCantDisambiguateNotEnoughInformation,
+        messageNonNullAwareSpreadIsNull,
         messageSwitchExpressionNotAssignableCause,
         messageVoidExpression,
         noLength,
@@ -42,6 +45,11 @@ import '../fasta_codes.dart'
         templateForInLoopElementTypeNotAssignable,
         templateForInLoopTypeNotIterable,
         templateIntegerLiteralIsOutOfRange,
+        templateSpreadElementTypeMismatch,
+        templateSpreadMapEntryElementKeyTypeMismatch,
+        templateSpreadMapEntryElementValueTypeMismatch,
+        templateSpreadMapEntryTypeMismatch,
+        templateSpreadTypeMismatch,
         templateSwitchExpressionNotAssignable,
         templateWebLiteralCannotBeRepresentedExactly;
 
@@ -70,6 +78,19 @@ import '../type_inference/type_schema_environment.dart'
     show TypeSchemaEnvironment, getPositionalParameterType;
 
 import 'body_builder.dart' show combineStatements;
+
+import 'collections.dart'
+    show
+        ControlFlowMapEntry,
+        ForElement,
+        ForInElement,
+        ForInMapEntry,
+        ForMapEntry,
+        IfElement,
+        IfMapEntry,
+        SpreadElement,
+        SpreadMapEntry,
+        convertToElement;
 
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 
@@ -287,7 +308,6 @@ class ShadowClass extends Class {
         this, _inferenceInfo.gettersAndMethods, _inferenceInfo.builder.library);
     interfaceResolver.finalizeCovariance(
         this, _inferenceInfo.setters, _inferenceInfo.builder.library);
-    interfaceResolver.recordInstrumentation(this);
   }
 
   /// Creates API members for this class.
@@ -990,15 +1010,6 @@ abstract class ShadowMember implements Member {
 
   void setInferredType(
       TypeInferenceEngine engine, Uri uri, DartType inferredType);
-
-  static void resolveInferenceNode(Member member) {
-    if (member is ShadowMember) {
-      if (member.inferenceNode != null) {
-        member.inferenceNode.resolve();
-        member.inferenceNode = null;
-      }
-    }
-  }
 }
 
 /// Shadow object for [MethodInvocation].

@@ -35,7 +35,6 @@ covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddc
 dynamic_prefix_core_test/01: MissingCompileTimeError
-emit_const_fields_test: CompileTimeError
 enum_syntax_test/05: MissingCompileTimeError
 enum_syntax_test/06: MissingCompileTimeError
 execute_finally6_test: RuntimeError # Issue 29920
@@ -107,6 +106,7 @@ mixin_super_2_test: CompileTimeError # Issue 34806
 mixin_super_use_test: CompileTimeError # Issue 34806
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 nested_generic_closure_test: CompileTimeError
+nnbd/*: Skip
 override_inheritance_field_test/42: CompileTimeError
 part_of_multiple_libs_test/01: MissingCompileTimeError
 part_refers_to_core_library_test/01: Crash
@@ -137,15 +137,6 @@ truncdiv_test: RuntimeError # Issue 29920
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
-type_promotion_functions_test/02: CompileTimeError # Issue 30895
-type_promotion_functions_test/03: CompileTimeError # Issue 30895
-type_promotion_functions_test/04: CompileTimeError # Issue 30895
-type_promotion_functions_test/09: CompileTimeError # Issue 30895
-type_promotion_functions_test/11: CompileTimeError # Issue 30895
-type_promotion_functions_test/12: CompileTimeError # Issue 30895
-type_promotion_functions_test/13: CompileTimeError # Issue 30895
-type_promotion_functions_test/14: CompileTimeError # Issue 30895
-type_promotion_functions_test/none: CompileTimeError # Issue 30895
 void/return_future_future_or_void_async_error1_test/none: CompileTimeError # issue #34319
 void/return_future_or_future_or_void_sync_error2_test/none: CompileTimeError # issue #34319
 void/return_future_or_void_sync_error4_test/none: CompileTimeError # issue #34319
@@ -177,7 +168,6 @@ compile_time_constant_static5_test/23: CompileTimeError # Issue 31537
 config_import_test: RuntimeError
 const_cast1_test/02: MissingCompileTimeError
 const_constructor3_test/04: MissingCompileTimeError
-const_constructor_nonconst_field_test/01: MissingCompileTimeError
 const_constructor_nonconst_param_test/01: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
@@ -189,12 +179,9 @@ covariant_subtyping_test: RuntimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddk
 dynamic_prefix_core_test/none: CompileTimeError
-emit_const_fields_test: CompileTimeError # Issue 31533
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
 function_propagation_test: RuntimeError
-function_type_parameter2_negative_test: Fail
-function_type_parameter_negative_test: Fail
 generic_function_bounds_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Warning: Superclass has no method named 'foo'.
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
@@ -285,15 +272,6 @@ switch_case_test/02: MissingCompileTimeError
 syncstar_yield_test/capturing: RuntimeError
 syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
 try_catch_test/01: MissingCompileTimeError
-type_promotion_functions_test/02: CompileTimeError # Issue 31537
-type_promotion_functions_test/03: CompileTimeError # Issue 31537
-type_promotion_functions_test/04: CompileTimeError # Issue 31537
-type_promotion_functions_test/09: CompileTimeError # Issue 31537
-type_promotion_functions_test/11: CompileTimeError # Issue 31537
-type_promotion_functions_test/12: CompileTimeError # Issue 31537
-type_promotion_functions_test/13: CompileTimeError # Issue 31537
-type_promotion_functions_test/14: CompileTimeError # Issue 31537
-type_promotion_functions_test/none: CompileTimeError # Issue 31537
 type_promotion_logical_and_test/01: MissingCompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 
@@ -404,6 +382,7 @@ stacktrace_demangle_ctors_test: RuntimeError # Issue 31089; Expect.isTrue(false)
 stacktrace_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
 string_literals_test: RuntimeError # Expect.equals(expected: <\x00\x0A\x0D\x7F\xFF\u{FFFF}\u{D800}\u{DC00}\u{DBFF}\u{DFFF}>, actual: <\x00\x0A\x0D\x7F\xFF\u{FFFF}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}>) fails.
 super_test: RuntimeError # Expect.equals(expected: <0>, actual: <2>) fails.
+superinterface_variance/*: Skip # Issue dart-lang/language#113
 switch_label2_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
 switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
 switch_try_catch_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;

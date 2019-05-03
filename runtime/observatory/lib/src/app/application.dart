@@ -277,11 +277,6 @@ class ObservatoryApplication {
     events.onConnectionClosed.listen(_addNotification);
   }
 
-  loadCrashDump(Map crashDump) {
-    _switchVM(new FakeVM(crashDump['result']));
-    app.locationManager.go(Uris.vm());
-  }
-
   void handleException(e, st) {
     if (e is ServerRpcException) {
       if (e.code == ServerRpcException.kFeatureDisabled) return;

@@ -2,9 +2,9 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:19:61: Warning: Getter not found: 'x'.
-// var /*@topType=B*/ b = new B(/*error:UNDEFINED_IDENTIFIER*/ x); // allocations
-//                                                             ^
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:19:46: Warning: Getter not found: 'x'.
+// var b = new B(/*error:UNDEFINED_IDENTIFIER*/ x); // allocations
+//                                              ^
 //
 // pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:21:34: Warning: Getter not found: 'x'.
 //   /*error:UNDEFINED_IDENTIFIER*/ x

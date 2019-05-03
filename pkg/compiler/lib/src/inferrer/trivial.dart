@@ -16,6 +16,7 @@ import 'abstract_value_domain.dart';
 class TrivialAbstractValue implements AbstractValue {
   const TrivialAbstractValue();
 
+  @override
   String toString() => '?';
 }
 
@@ -144,6 +145,22 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   bool isMap(AbstractValue value) => false;
+
+  @override
+  AbstractValue getSetElementType(AbstractValue value) {
+    throw new UnsupportedError("TrivialAbstractValueDomain.getSetElementType");
+  }
+
+  @override
+  AbstractValue createSetValue(
+          AbstractValue originalValue,
+          Object allocationNode,
+          MemberEntity allocationElement,
+          AbstractValue elementType) =>
+      const TrivialAbstractValue();
+
+  @override
+  bool isSet(AbstractValue value) => false;
 
   @override
   int getContainerLength(AbstractValue value) => null;
@@ -356,6 +373,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractValue get constMapType => const TrivialAbstractValue();
 
   @override
+  AbstractValue get constSetType => const TrivialAbstractValue();
+
+  @override
   AbstractValue get constListType => const TrivialAbstractValue();
 
   @override
@@ -381,6 +401,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue get mapType => const TrivialAbstractValue();
+
+  @override
+  AbstractValue get setType => const TrivialAbstractValue();
 
   @override
   AbstractValue get listType => const TrivialAbstractValue();
@@ -450,5 +473,6 @@ class TrivialUniverseSelectorConstraints
   @override
   bool canHit(MemberEntity element, Name name, World world) => true;
 
+  @override
   String toString() => 'TrivialUniverseSelectorConstraints:$hashCode';
 }

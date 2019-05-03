@@ -32,6 +32,7 @@ void enableDebugMode() {
 }
 
 class _DebugIndentation extends Indentation {
+  @override
   final String indentationUnit = " ";
 }
 

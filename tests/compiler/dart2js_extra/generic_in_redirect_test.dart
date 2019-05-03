@@ -22,7 +22,7 @@ class SuperClass<T> {
 
 class Class extends SuperClass<int> {}
 
-@NoInline()
+@pragma('dart2js:noInline')
 createClass() => new Class();
 
 main() {

@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -225,6 +225,14 @@ class Parser {
   @deprecated
   void set enableAssertInitializer(bool enable) {}
 
+  /// Enables or disables parsing of control flow collections.
+  void set enableControlFlowCollections(bool value) {
+    if (value) {
+      throw new UnimplementedError('control_flow_collections experiment'
+          ' not supported by analyzer parser');
+    }
+  }
+
   /// Enables or disables non-nullable by default.
   void set enableNonNullable(bool value) {
     if (value) {
@@ -245,10 +253,8 @@ class Parser {
 
   /// Enables or disables parsing of set literals.
   void set enableSetLiterals(bool value) {
-    if (value) {
-      throw new UnimplementedError(
-          'set-literal experiment not supported by analyzer parser');
-    }
+    // TODO(danrubel): Remove this method once the reference to this flag
+    // has been removed from dartfmt.
   }
 
   /// Enables or disables parsing of spread collections.
@@ -259,10 +265,10 @@ class Parser {
     }
   }
 
-  /// Enables or disables parsing of control flow collections.
-  void set enableControlFlowCollections(bool value) {
+  /// Enables or disables parsing of the triple shift operators.
+  void set enableTripleShift(bool value) {
     if (value) {
-      throw new UnimplementedError('control_flow_collections experiment'
+      throw new UnimplementedError('triple_shift experiment'
           ' not supported by analyzer parser');
     }
   }
@@ -2952,26 +2958,24 @@ class Parser {
           Expression iterator = parseExpression2();
           Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
           Statement body = parseStatement2();
+          ForLoopParts forLoopParts;
           if (loopVariable == null) {
-            return astFactory.forEachStatementWithReference(
-                awaitKeyword,
-                forKeyword,
-                leftParenthesis,
-                identifier,
-                inKeyword,
-                iterator,
-                rightParenthesis,
-                body);
+            forLoopParts = astFactory.forEachPartsWithIdentifier(
+                identifier: identifier,
+                inKeyword: inKeyword,
+                iterable: iterator);
+          } else {
+            forLoopParts = astFactory.forEachPartsWithDeclaration(
+                loopVariable: loopVariable,
+                inKeyword: inKeyword,
+                iterable: iterator);
           }
-          return astFactory.forEachStatementWithDeclaration(
-              awaitKeyword,
-              forKeyword,
-              leftParenthesis,
-              loopVariable,
-              inKeyword,
-              iterator,
-              rightParenthesis,
-              body);
+          return astFactory.forStatement(
+              forKeyword: forKeyword,
+              leftParenthesis: leftParenthesis,
+              forLoopParts: forLoopParts,
+              rightParenthesis: rightParenthesis,
+              body: body);
         }
       }
       if (awaitKeyword != null) {
@@ -2988,19 +2992,30 @@ class Parser {
       if (!_matches(TokenType.CLOSE_PAREN)) {
         updaters = parseExpressionList();
       }
+      ForLoopParts forLoopParts;
+      if (variableList != null) {
+        forLoopParts = astFactory.forPartsWithDeclarations(
+            variables: variableList,
+            leftSeparator: leftSeparator,
+            condition: condition,
+            rightSeparator: rightSeparator,
+            updaters: updaters);
+      } else {
+        forLoopParts = astFactory.forPartsWithExpression(
+            initialization: initialization,
+            leftSeparator: leftSeparator,
+            condition: condition,
+            rightSeparator: rightSeparator,
+            updaters: updaters);
+      }
       Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
       Statement body = parseStatement2();
       return astFactory.forStatement(
-          forKeyword,
-          leftParenthesis,
-          variableList,
-          initialization,
-          leftSeparator,
-          condition,
-          rightSeparator,
-          updaters,
-          rightParenthesis,
-          body);
+          forKeyword: forKeyword,
+          leftParenthesis: leftParenthesis,
+          forLoopParts: forLoopParts,
+          rightParenthesis: rightParenthesis,
+          body: body);
     } finally {
       _inLoop = wasInLoop;
     }
@@ -3668,11 +3683,15 @@ class Parser {
   ///
   ///     mapLiteral ::=
   ///         'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
-  MapLiteral parseMapLiteral(Token modifier, TypeArgumentList typeArguments) {
+  SetOrMapLiteral parseMapLiteral(
+      Token modifier, TypeArgumentList typeArguments) {
     Token leftBracket = getAndAdvance();
     if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
-      return astFactory.mapLiteral(
-          modifier, typeArguments, leftBracket, null, getAndAdvance());
+      return astFactory.setOrMapLiteral(
+          constKeyword: modifier,
+          typeArguments: typeArguments,
+          leftBracket: leftBracket,
+          rightBracket: getAndAdvance());
     }
     bool wasInInitializer = _inInitializer;
     _inInitializer = false;
@@ -3680,14 +3699,22 @@ class Parser {
       List<MapLiteralEntry> entries = <MapLiteralEntry>[parseMapLiteralEntry()];
       while (_optional(TokenType.COMMA)) {
         if (_matches(TokenType.CLOSE_CURLY_BRACKET)) {
-          return astFactory.mapLiteral(
-              modifier, typeArguments, leftBracket, entries, getAndAdvance());
+          return astFactory.setOrMapLiteral(
+              constKeyword: modifier,
+              typeArguments: typeArguments,
+              leftBracket: leftBracket,
+              elements: entries,
+              rightBracket: getAndAdvance());
         }
         entries.add(parseMapLiteralEntry());
       }
       Token rightBracket = _expect(TokenType.CLOSE_CURLY_BRACKET);
-      return astFactory.mapLiteral(
-          modifier, typeArguments, leftBracket, entries, rightBracket);
+      return astFactory.setOrMapLiteral(
+          constKeyword: modifier,
+          typeArguments: typeArguments,
+          leftBracket: leftBracket,
+          elements: entries,
+          rightBracket: rightBracket);
     } finally {
       _inInitializer = wasInInitializer;
     }
@@ -4021,7 +4048,7 @@ class Parser {
         _tokenMatchesKeyword(_peek(), Keyword.FOR)) {
       Token awaitToken = _currentToken;
       Statement statement = parseForStatement();
-      if (statement is! ForStatement) {
+      if (!(statement is ForStatement && statement.forLoopParts is ForParts)) {
         _reportErrorForToken(
             CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, awaitToken);
       }

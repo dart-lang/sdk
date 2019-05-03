@@ -65,7 +65,7 @@ testIfThenElse() {
     return 1;
 }
 
-/*strong.element: testForIn:
+/*element: testForIn:
  dynamic=[
   current,
   iterator,
@@ -82,7 +82,7 @@ testForIn(o) {
   for (var e in o) {}
 }
 
-/*strong.element: testForInTyped:
+/*element: testForInTyped:
  dynamic=[
   current,
   iterator,

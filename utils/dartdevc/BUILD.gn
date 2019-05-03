@@ -19,8 +19,7 @@ application_snapshot("dartdevc") {
     rebase_path("../../sdk"),
     "--dart-sdk-summary",
     rebase_path(sdk_summary),
-    "--library-root",
-    rebase_path("../../pkg/dev_compiler"),
+    "-k",
     "-o",
     "dartdevc.js",
     rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
@@ -347,6 +346,6 @@ prebuilt_dart_action("dartdevc_kernel_sdk") {
     "--output",
     rebase_path(sdk_dill),
     "--libraries",
-    rebase_path("//sdk/lib/libraries.json"),
+    rebase_path("../../sdk/lib/libraries.json"),
   ]
 }

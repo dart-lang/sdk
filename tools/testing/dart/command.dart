@@ -41,9 +41,10 @@ class Command {
       List<Uri> bootstrapDependencies,
       String executable,
       List<String> arguments,
-      Map<String, String> environment) {
+      Map<String, String> environment,
+      List<String> batchArgs) {
     return new VMKernelCompilationCommand._(outputFile, neverSkipCompilation,
-        bootstrapDependencies, executable, arguments, environment);
+        bootstrapDependencies, executable, arguments, environment, batchArgs);
   }
 
   static Command analysis(String executable, List<String> arguments,
@@ -79,6 +80,12 @@ class Command {
       String testDirectory, List<String> arguments, bool useBlobs) {
     return new AdbPrecompilationCommand._(
         precompiledRunner, processTest, testDirectory, arguments, useBlobs);
+  }
+
+  static Command adbDartk(String precompiledRunner, String processTest,
+      String script, List<String> arguments, List<String> extraLibraries) {
+    return new AdbDartkCommand._(
+        precompiledRunner, processTest, script, arguments, extraLibraries);
   }
 
   static Command jsCommandLine(
@@ -413,6 +420,8 @@ class FastaCompilationCommand extends CompilationCommand {
 }
 
 class VMKernelCompilationCommand extends CompilationCommand {
+  final List<String> batchArgs;
+
   VMKernelCompilationCommand._(
       String outputFile,
       bool alwaysCompile,
@@ -420,17 +429,29 @@ class VMKernelCompilationCommand extends CompilationCommand {
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
+      this.batchArgs,
       {int index = 0})
-      : super._('vm_compile_to_kernel', outputFile, alwaysCompile,
+      : super._('vm_compile_to_kernel $batchArgs', outputFile, alwaysCompile,
             bootstrapDependencies, executable, arguments, environmentOverrides,
             index: index);
 
   VMKernelCompilationCommand indexedCopy(int index) =>
-      VMKernelCompilationCommand._(_outputFile, _alwaysCompile,
-          _bootstrapDependencies, executable, arguments, environmentOverrides,
+      VMKernelCompilationCommand._(
+          _outputFile,
+          _alwaysCompile,
+          _bootstrapDependencies,
+          executable,
+          arguments,
+          environmentOverrides,
+          batchArgs,
           index: index);
 
   int get maxNumRetries => 1;
+
+  @override
+  List<String> get batchArguments {
+    return batchArgs;
+  }
 }
 
 /// This is just a Pair(String, Map) class with hashCode and operator ==
@@ -601,6 +622,40 @@ class AdbPrecompilationCommand extends Command {
       precompiledTestDirectory == other.precompiledTestDirectory;
 
   String toString() => 'Steps to push precompiled runner and precompiled code '
+      'to an attached device. Uses (and requires) adb.';
+}
+
+class AdbDartkCommand extends Command {
+  final String buildPath;
+  final String processTestFilename;
+  final String kernelFile;
+  final List<String> arguments;
+  final List<String> extraLibraries;
+
+  AdbDartkCommand._(this.buildPath, this.processTestFilename, this.kernelFile,
+      this.arguments, this.extraLibraries,
+      {int index = 0})
+      : super._("adb_precompilation", index: index);
+
+  AdbDartkCommand indexedCopy(int index) => AdbDartkCommand._(
+      buildPath, processTestFilename, kernelFile, arguments, extraLibraries,
+      index: index);
+  _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.add(buildPath);
+    builder.add(kernelFile);
+    builder.add(arguments);
+    builder.add(extraLibraries);
+  }
+
+  bool _equal(AdbDartkCommand other) =>
+      super._equal(other) &&
+      buildPath == other.buildPath &&
+      arguments == other.arguments &&
+      extraLibraries == other.extraLibraries &&
+      kernelFile == other.kernelFile;
+
+  String toString() => 'Steps to push Dart VM and Dill file '
       'to an attached device. Uses (and requires) adb.';
 }
 

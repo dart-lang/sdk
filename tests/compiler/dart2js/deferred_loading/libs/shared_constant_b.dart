@@ -4,7 +4,11 @@
 
 import 'shared_constant_shared.dart' deferred as s2;
 
-/*element: doB:OutputUnit(main, {})*/
+/*strong.element: doB:OutputUnit(main, {})*/
+/*strongConst.element: doB:
+ OutputUnit(main, {}),
+ constants=[ConstructedConstant(C())=OutputUnit(1, {s1, s2})]
+*/
 doB() async {
   await s2.loadLibrary();
   return s2.constant;

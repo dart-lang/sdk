@@ -132,6 +132,9 @@ class _ServiceTesteeLauncher {
     if (pause_on_exit) {
       fullArgs.add('--pause-isolates-on-exit');
     }
+    if (!useAuthToken) {
+      fullArgs.add('--disable-service-auth-codes');
+    }
     if (pause_on_unhandled_exceptions) {
       fullArgs.add('--pause-isolates-on-unhandled-exceptions');
     }
@@ -147,7 +150,7 @@ class _ServiceTesteeLauncher {
     fullArgs.addAll(args);
 
     return _spawnCommon(dartExecutable, fullArgs,
-        <String, String>{'DART_SERVICE_USE_AUTH': '$useAuthToken'});
+        <String, String>{});
   }
 
   Future<Process> _spawnSkyProcess(

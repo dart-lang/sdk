@@ -5,10 +5,14 @@
 #ifndef RUNTIME_VM_CONSTANTS_X64_H_
 #define RUNTIME_VM_CONSTANTS_X64_H_
 
+#ifndef RUNTIME_VM_CONSTANTS_H_
+#error Do not include constants_x64.h directly; use constants.h instead.
+#endif
+
 #include "platform/assert.h"
 #include "platform/globals.h"
 
-namespace dart {
+namespace arch_x64 {
 
 enum Register {
   RAX = 0,
@@ -90,6 +94,14 @@ const FpuRegister FpuTMP = XMM0;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
+static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
+    "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
+    "r8",  "r9",  "r10", "r11", "r12", "r13", "thr", "pp"};
+
+static const char* fpu_reg_names[kNumberOfXmmRegisters] = {
+    "xmm0", "xmm1", "xmm2",  "xmm3",  "xmm4",  "xmm5",  "xmm6",  "xmm7",
+    "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"};
+
 enum RexBits {
   REX_NONE = 0,
   REX_B = 1 << 0,
@@ -140,14 +152,14 @@ enum ScaleFactor {
   TIMES_4 = 2,
   TIMES_8 = 3,
   TIMES_16 = 4,
-  TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
+  TIMES_HALF_WORD_SIZE = ::dart::kWordSizeLog2 - 1
 };
 
 #define R(reg) (1 << (reg))
 
-#if defined(_WIN64)
 class CallingConventions {
  public:
+#if defined(_WIN64)
   static const Register kArg1Reg = RCX;
   static const Register kArg2Reg = RDX;
   static const Register kArg3Reg = R8;
@@ -157,16 +169,16 @@ class CallingConventions {
       R(kArg1Reg) | R(kArg2Reg) | R(kArg3Reg) | R(kArg4Reg);
   static const intptr_t kNumArgRegs = 4;
 
-  static const XmmRegister XmmArgumentRegisters[];
-  static const intptr_t kXmmArgumentRegisters =
+  static const XmmRegister FpuArgumentRegisters[];
+  static const intptr_t kFpuArgumentRegisters =
       R(XMM0) | R(XMM1) | R(XMM2) | R(XMM3);
-  static const intptr_t kNumXmmArgRegs = 4;
+  static const intptr_t kNumFpuArgRegs = 4;
 
   // can ArgumentRegisters[i] and XmmArgumentRegisters[i] both be used at the
   // same time? (Windows no, rest yes)
-  static const bool kArgumentIntRegXorXmmReg = true;
+  static const bool kArgumentIntRegXorFpuReg = true;
 
-  static const intptr_t kShadowSpaceBytes = 4 * kWordSize;
+  static const intptr_t kShadowSpaceBytes = 4 * ::dart::kWordSize;
 
   static const intptr_t kVolatileCpuRegisters =
       R(RAX) | R(RCX) | R(RDX) | R(R8) | R(R9) | R(R10) | R(R11);
@@ -186,10 +198,19 @@ class CallingConventions {
   // Windows x64 ABI specifies that small objects are passed in registers.
   // Otherwise they are passed by reference.
   static const size_t kRegisterTransferLimit = 16;
-};
+
+  static constexpr Register kReturnReg = RAX;
+  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr FpuRegister kReturnFpuReg = XMM0;
+
+  // Whether floating-point values should be passed as integers ("softfp" vs
+  // "hardfp").
+  static constexpr bool kAbiSoftFP = false;
+
+  // Whether 64-bit arguments must be aligned to an even register or 8-byte
+  // stack address. Not relevant on X64 since the word size is 64-bits already.
+  static constexpr bool kAlignArguments = false;
 #else
-class CallingConventions {
- public:
   static const Register kArg1Reg = RDI;
   static const Register kArg2Reg = RSI;
   static const Register kArg3Reg = RDX;
@@ -202,15 +223,15 @@ class CallingConventions {
                                              R(kArg5Reg) | R(kArg6Reg);
   static const intptr_t kNumArgRegs = 6;
 
-  static const XmmRegister XmmArgumentRegisters[];
-  static const intptr_t kXmmArgumentRegisters = R(XMM0) | R(XMM1) | R(XMM2) |
+  static const XmmRegister FpuArgumentRegisters[];
+  static const intptr_t kFpuArgumentRegisters = R(XMM0) | R(XMM1) | R(XMM2) |
                                                 R(XMM3) | R(XMM4) | R(XMM5) |
                                                 R(XMM6) | R(XMM7);
-  static const intptr_t kNumXmmArgRegs = 8;
+  static const intptr_t kNumFpuArgRegs = 8;
 
   // can ArgumentRegisters[i] and XmmArgumentRegisters[i] both be used at the
   // same time? (Windows no, rest yes)
-  static const bool kArgumentIntRegXorXmmReg = false;
+  static const bool kArgumentIntRegXorFpuReg = false;
 
   static const intptr_t kShadowSpaceBytes = 0;
 
@@ -229,8 +250,32 @@ class CallingConventions {
   static const intptr_t kCalleeSaveXmmRegisters = 0;
 
   static const XmmRegister xmmFirstNonParameterReg = XMM8;
-};
+
+  static constexpr Register kReturnReg = RAX;
+  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr FpuRegister kReturnFpuReg = XMM0;
+
+  // Whether floating-point values should be passed as integers ("softfp" vs
+  // "hardfp").
+  static constexpr bool kAbiSoftFP = false;
+
+  // Whether 64-bit arguments must be aligned to an even register or 8-byte
+  // stack address. Not relevant on X64 since the word size is 64-bits already.
+  static constexpr bool kAlignArguments = false;
 #endif
+
+  COMPILE_ASSERT((kArgumentRegisters & kReservedCpuRegisters) == 0);
+
+  static constexpr Register kFirstCalleeSavedCpuReg = RBX;
+  static constexpr Register kFirstNonArgumentRegister = RAX;
+  static constexpr Register kSecondNonArgumentRegister = RBX;
+
+  COMPILE_ASSERT(((R(kFirstCalleeSavedCpuReg)) & kCalleeSaveCpuRegisters) != 0);
+
+  COMPILE_ASSERT(((R(kFirstNonArgumentRegister) |
+                   R(kSecondNonArgumentRegister)) &
+                  kArgumentRegisters) == 0);
+};
 
 #undef R
 
@@ -251,7 +296,7 @@ class Instr {
   // reference to an instruction is to convert a pointer. There is no way
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
-  static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
+  static Instr* At(::dart::uword pc) { return reinterpret_cast<Instr*>(pc); }
 
  private:
   DISALLOW_ALLOCATION();
@@ -263,6 +308,6 @@ class Instr {
 // becomes important to us.
 const int MAX_NOP_SIZE = 8;
 
-}  // namespace dart
+}  // namespace arch_x64
 
 #endif  // RUNTIME_VM_CONSTANTS_X64_H_

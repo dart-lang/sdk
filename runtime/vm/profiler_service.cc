@@ -4,6 +4,7 @@
 
 #include "vm/profiler_service.h"
 
+#include "platform/text_buffer.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 #include "vm/log.h"
@@ -14,6 +15,7 @@
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
 #include "vm/scope_timer.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -857,6 +859,7 @@ ProfileTrieNode::ProfileTrieNode(intptr_t table_index)
       exclusive_allocations_(0),
       inclusive_allocations_(0),
       children_(0),
+      parent_(NULL),
       frame_id_(-1) {
   ASSERT(table_index_ >= 0);
 }
@@ -907,6 +910,10 @@ class ProfileCodeTrieNode : public ProfileTrieNode {
     for (intptr_t i = 0; i < child_count; i++) {
       children_[i]->PrintToJSONArray(array);
     }
+  }
+
+  const char* ToCString(Profile* profile) const {
+    return profile->GetCode(table_index())->name();
   }
 
   ProfileCodeTrieNode* GetChild(intptr_t child_table_index) {
@@ -981,6 +988,11 @@ class ProfileFunctionTrieNode : public ProfileTrieNode {
     for (intptr_t i = 0; i < child_count; i++) {
       children_[i]->PrintToJSONArray(array);
     }
+  }
+
+  const char* ToCString(Profile* profile) const {
+    ProfileFunction* f = profile->GetFunction(table_index());
+    return f->Name();
   }
 
   ProfileFunctionTrieNode* GetChild(intptr_t child_table_index) {
@@ -1443,6 +1455,8 @@ class ProfileBuilder : public ValueObject {
       if (!sample->first_frame_executing()) {
         current = AppendExitFrame(sample->vm_tag(), current, sample);
       }
+
+      sample->set_timeline_code_trie(current);
     }
   }
 
@@ -1537,7 +1551,7 @@ class ProfileBuilder : public ValueObject {
         current = AppendExitFrame(sample->vm_tag(), current, sample);
       }
 
-      sample->set_timeline_trie(current);
+      sample->set_timeline_function_trie(current);
     }
   }
 
@@ -2394,7 +2408,8 @@ static const intptr_t kRootFrameId = 0;
 void Profile::PrintTimelineFrameJSON(JSONObject* frames,
                                      ProfileTrieNode* current,
                                      ProfileTrieNode* parent,
-                                     intptr_t* next_id) {
+                                     intptr_t* next_id,
+                                     bool code_trie) {
   ASSERT(current->frame_id() == -1);
   const intptr_t id = *next_id;
   *next_id = id + 1;
@@ -2409,8 +2424,13 @@ void Profile::PrintTimelineFrameJSON(JSONObject* frames,
         zone_->PrintToString("%" Pd "-%" Pd, isolate_id, current->frame_id());
     JSONObject frame(frames, key);
     frame.AddProperty("category", "Dart");
-    ProfileFunction* func = GetFunction(current->table_index());
-    frame.AddProperty("name", func->Name());
+    if (code_trie) {
+      ProfileCode* code = GetCode(current->table_index());
+      frame.AddProperty("name", code->name());
+    } else {
+      ProfileFunction* func = GetFunction(current->table_index());
+      frame.AddProperty("name", func->Name());
+    }
     if ((parent != NULL) && (parent->frame_id() != kRootFrameId)) {
       ASSERT(parent->frame_id() != -1);
       frame.AddPropertyF("parent", "%" Pd "-%" Pd, isolate_id,
@@ -2420,20 +2440,25 @@ void Profile::PrintTimelineFrameJSON(JSONObject* frames,
 
   for (intptr_t i = 0; i < current->NumChildren(); i++) {
     ProfileTrieNode* child = current->At(i);
-    PrintTimelineFrameJSON(frames, child, current, next_id);
+    PrintTimelineFrameJSON(frames, child, current, next_id, code_trie);
   }
 }
 
-void Profile::PrintTimelineJSON(JSONStream* stream) {
+void Profile::PrintTimelineJSON(JSONStream* stream, bool code_trie) {
   ScopeTimer sw("Profile::PrintTimelineJSON", FLAG_trace_profiler);
   JSONObject obj(stream);
   obj.AddProperty("type", "_CpuProfileTimeline");
   PrintHeaderJSON(&obj);
   {
     JSONObject frames(&obj, "stackFrames");
-    ProfileTrieNode* root = GetTrieRoot(kInclusiveFunction);
+    ProfileTrieNode* root;
+    if (code_trie) {
+      root = GetTrieRoot(kInclusiveCode);
+    } else {
+      root = GetTrieRoot(kInclusiveFunction);
+    }
     intptr_t next_id = kRootFrameId;
-    PrintTimelineFrameJSON(&frames, root, NULL, &next_id);
+    PrintTimelineFrameJSON(&frames, root, NULL, &next_id, code_trie);
   }
   {
     JSONArray events(&obj, "traceEvents");
@@ -2455,10 +2480,69 @@ void Profile::PrintTimelineJSON(JSONStream* stream) {
         args.AddProperty("mode", "basic");
       }
 
-      ProfileTrieNode* trie = sample->timeline_trie();
+      ProfileTrieNode* trie;
+      if (code_trie) {
+        trie = sample->timeline_code_trie();
+      } else {
+        trie = sample->timeline_function_trie();
+      }
       ASSERT(trie->frame_id() != -1);
       event.AddPropertyF("sf", "%" Pd "-%" Pd, isolate_id, trie->frame_id());
     }
+  }
+}
+
+void Profile::AddParentTriePointers(ProfileTrieNode* current,
+                                    ProfileTrieNode* parent,
+                                    bool code_trie) {
+  if (current == NULL) {
+    ProfileTrieNode* root;
+    if (code_trie) {
+      root = GetTrieRoot(kInclusiveCode);
+    } else {
+      root = GetTrieRoot(kInclusiveFunction);
+    }
+    AddParentTriePointers(root, NULL, code_trie);
+    return;
+  }
+
+  current->set_parent(parent);
+  for (int i = 0; i < current->NumChildren(); i++) {
+    AddParentTriePointers(current->At(i), current, code_trie);
+  }
+}
+
+void Profile::PrintBacktrace(ProfileTrieNode* node, TextBuffer* buf) {
+  ProfileTrieNode* current = node;
+  while (current != NULL) {
+    buf->AddString(current->ToCString(this));
+    buf->AddString("\n");
+    current = current->parent();
+  }
+}
+
+void Profile::AddToTimeline(bool code_trie) {
+  TimelineStream* stream = Timeline::GetProfilerStream();
+  if (stream == NULL) {
+    return;
+  }
+  AddParentTriePointers(NULL, NULL, code_trie);
+  for (intptr_t sample_index = 0; sample_index < samples_->length();
+       sample_index++) {
+    TextBuffer buf(256);
+    ProcessedSample* sample = samples_->At(sample_index);
+    if (code_trie) {
+      PrintBacktrace(sample->timeline_code_trie(), &buf);
+    } else {
+      PrintBacktrace(sample->timeline_function_trie(), &buf);
+    }
+    TimelineEvent* event = stream->StartEvent();
+    event->Instant("Dart CPU sample", sample->timestamp());
+    event->set_owns_label(false);
+    event->SetNumArguments(1);
+    event->SetArgument(0, "backtrace", buf.Steal());
+    event->Complete();
+    event = NULL;  // Complete() deletes the event.
   }
 }
 
@@ -2685,7 +2769,8 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
                                     intptr_t extra_tags,
                                     SampleFilter* filter,
                                     SampleBuffer* sample_buffer,
-                                    bool as_timeline) {
+                                    PrintKind kind,
+                                    bool code_trie) {
   Isolate* isolate = thread->isolate();
   // Disable thread interrupts while processing the buffer.
   DisableThreadInterruptsScope dtis(thread);
@@ -2700,10 +2785,12 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
     HANDLESCOPE(thread);
     Profile profile(isolate);
     profile.Build(thread, filter, sample_buffer, tag_order, extra_tags);
-    if (as_timeline) {
-      profile.PrintTimelineJSON(stream);
-    } else {
+    if (kind == kAsTimeline) {
+      profile.PrintTimelineJSON(stream, code_trie);
+    } else if (kind == kAsProfile) {
       profile.PrintProfileJSON(stream);
+    } else if (kind == kAsPlatformTimeline) {
+      profile.AddToTimeline(code_trie);
     }
   }
 }
@@ -2731,9 +2818,9 @@ void ProfilerService::PrintJSON(JSONStream* stream,
   Isolate* isolate = thread->isolate();
   NoAllocationSampleFilter filter(isolate->main_port(), Thread::kMutatorTask,
                                   time_origin_micros, time_extent_micros);
-  const bool as_timeline = false;
+  bool code_trie = false;  // Doesn't matter for kAsProfile.
   PrintJSONImpl(thread, stream, tag_order, extra_tags, &filter,
-                Profiler::sample_buffer(), as_timeline);
+                Profiler::sample_buffer(), kAsProfile, code_trie);
 }
 
 class ClassAllocationSampleFilter : public SampleFilter {
@@ -2770,9 +2857,9 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
   ClassAllocationSampleFilter filter(isolate->main_port(), cls,
                                      Thread::kMutatorTask, time_origin_micros,
                                      time_extent_micros);
-  const bool as_timeline = false;
+  bool code_trie = false;  // Doesn't matter for kAsProfile.
   PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter,
-                Profiler::sample_buffer(), as_timeline);
+                Profiler::sample_buffer(), kAsProfile, code_trie);
 }
 
 void ProfilerService::PrintNativeAllocationJSON(JSONStream* stream,
@@ -2781,15 +2868,16 @@ void ProfilerService::PrintNativeAllocationJSON(JSONStream* stream,
                                                 int64_t time_extent_micros) {
   Thread* thread = Thread::Current();
   NativeAllocationSampleFilter filter(time_origin_micros, time_extent_micros);
-  const bool as_timeline = false;
+  bool code_trie = false;  // Doesn't matter for kAsProfile.
   PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter,
-                Profiler::allocation_sample_buffer(), as_timeline);
+                Profiler::allocation_sample_buffer(), kAsProfile, code_trie);
 }
 
 void ProfilerService::PrintTimelineJSON(JSONStream* stream,
                                         Profile::TagOrder tag_order,
                                         int64_t time_origin_micros,
-                                        int64_t time_extent_micros) {
+                                        int64_t time_extent_micros,
+                                        bool code_trie) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   const intptr_t thread_task_mask = Thread::kMutatorTask |
@@ -2797,9 +2885,24 @@ void ProfilerService::PrintTimelineJSON(JSONStream* stream,
                                     Thread::kSweeperTask | Thread::kMarkerTask;
   NoAllocationSampleFilter filter(isolate->main_port(), thread_task_mask,
                                   time_origin_micros, time_extent_micros);
-  const bool as_timeline = true;
   PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter,
-                Profiler::sample_buffer(), as_timeline);
+                Profiler::sample_buffer(), kAsTimeline, code_trie);
+}
+
+void ProfilerService::AddToTimeline(Profile::TagOrder tag_order,
+                                    int64_t time_origin_micros,
+                                    int64_t time_extent_micros,
+                                    bool code_trie) {
+  JSONStream stream;
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  const intptr_t thread_task_mask = Thread::kMutatorTask |
+                                    Thread::kCompilerTask |
+                                    Thread::kSweeperTask | Thread::kMarkerTask;
+  NoAllocationSampleFilter filter(isolate->main_port(), thread_task_mask,
+                                  time_origin_micros, time_extent_micros);
+  PrintJSONImpl(thread, &stream, Profile::kNoTags, kNoExtraTags, &filter,
+                Profiler::sample_buffer(), kAsPlatformTimeline, code_trie);
 }
 
 void ProfilerService::ClearSamples() {

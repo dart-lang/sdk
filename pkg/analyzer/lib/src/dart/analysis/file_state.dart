@@ -1,4 +1,4 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -329,6 +329,9 @@ class FileState {
         addDeclaration(TopLevelDeclarationKind.type, type.name);
       }
       for (UnlinkedEnum type in unlinked.enums) {
+        addDeclaration(TopLevelDeclarationKind.type, type.name);
+      }
+      for (UnlinkedClass type in unlinked.mixins) {
         addDeclaration(TopLevelDeclarationKind.type, type.name);
       }
       for (UnlinkedTypedef type in unlinked.typedefs) {
@@ -693,7 +696,7 @@ class FileState {
     ExperimentStatus experimentStatus = analysisOptions.experimentStatus;
     CharSequenceReader reader = new CharSequenceReader(content);
     Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.enableGtGtGt = experimentStatus.constant_update_2018;
+    scanner.enableGtGtGt = experimentStatus.triple_shift;
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
       return scanner.tokenize();
     });
@@ -702,11 +705,11 @@ class FileState {
     bool useFasta = analysisOptions.useFastaParser;
     Parser parser = new Parser(source, errorListener, useFasta: useFasta);
     parser.enableOptionalNewAndConst = true;
-    parser.enableSetLiterals = experimentStatus.set_literals;
     parser.enableNonNullable = experimentStatus.non_nullable;
     parser.enableSpreadCollections = experimentStatus.spread_collections;
     parser.enableControlFlowCollections =
         experimentStatus.control_flow_collections;
+    parser.enableTripleShift = experimentStatus.triple_shift;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
 

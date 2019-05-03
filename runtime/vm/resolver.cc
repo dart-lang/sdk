@@ -78,7 +78,7 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
     demangled ^= Field::NameFromGetter(function_name);
   }
 
-  if (Function::IsDynamicInvocationForwaderName(function_name)) {
+  if (Function::IsDynamicInvocationForwarderName(function_name)) {
     demangled ^=
         Function::DemangleDynamicInvocationForwarderName(function_name);
 #ifdef DART_PRECOMPILED_RUNTIME

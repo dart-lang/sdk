@@ -1,4 +1,4 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -39,6 +39,70 @@ class A {
 class B extends A {
   m({x = 1}) {}
 }''');
+  }
+
+  test_equal_values_generic_different_files() async {
+    newFile('/test/lib/other.dart', content: '''
+class C {
+  f({x: const ['x']}) {}
+}
+''');
+    await assertNoErrorsInCode('''
+import 'other.dart';
+class D extends C {
+  f({x: const ['x']}) {}
+}
+''');
+  }
+
+  test_equal_values_generic_undefined_value_base() async {
+    // Note: we expect some errors due to the constant referring to undefined
+    // values, but there should not be any INVALID_OVERRIDE... error.
+    await assertErrorCodesInCode('''
+class A {
+  m({x = Undefined.value}) {}
+}
+class B extends A {
+  m({x = 1}) {}
+}
+''', [
+      CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
+      StaticWarningCode.UNDEFINED_IDENTIFIER
+    ]);
+  }
+
+  test_equal_values_generic_undefined_value_both() async {
+    // Note: we expect some errors due to the constant referring to undefined
+    // values, but there should not be any INVALID_OVERRIDE... error.
+    await assertErrorCodesInCode('''
+class A {
+  m({x = Undefined.value}) {}
+}
+class B extends A {
+  m({x = Undefined2.value2}) {}
+}
+''', [
+      CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
+      CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
+      StaticWarningCode.UNDEFINED_IDENTIFIER,
+      StaticWarningCode.UNDEFINED_IDENTIFIER
+    ]);
+  }
+
+  test_equal_values_generic_undefined_value_derived() async {
+    // Note: we expect some errors due to the constant referring to undefined
+    // values, but there should not be any INVALID_OVERRIDE... error.
+    await assertErrorCodesInCode('''
+class A {
+  m({x = 1}) {}
+}
+class B extends A {
+  m({x = Undefined.value}) {}
+}
+''', [
+      CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
+      StaticWarningCode.UNDEFINED_IDENTIFIER
+    ]);
   }
 
   test_equalValues() async {
@@ -111,7 +175,7 @@ class B extends A {
   }
 
   Future<void> _assertError(String code) async {
-    await assertErrorsInCode(code, [
+    await assertErrorCodesInCode(code, [
       StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
     ]);
   }

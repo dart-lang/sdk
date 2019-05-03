@@ -53,7 +53,6 @@ Future<Null> writeComponentToFile(Component component, Uri uri,
         ? new BinaryPrinter(sink)
         : new LimitedBinaryPrinter(sink, filter ?? (_) => true, false);
     printer.writeComponentFile(component);
-    component.unbindCanonicalNames();
   } finally {
     await sink.close();
   }
@@ -61,12 +60,12 @@ Future<Null> writeComponentToFile(Component component, Uri uri,
 
 /// Serialize the libraries in [component] that match [filter].
 List<int> serializeComponent(Component component,
-    {bool filter(Library library), bool excludeUriToSource: false}) {
+    {bool filter(Library library), bool includeSources: true}) {
   ByteSink byteSink = new ByteSink();
-  BinaryPrinter printer = filter == null && !excludeUriToSource
-      ? new BinaryPrinter(byteSink)
+  BinaryPrinter printer = filter == null
+      ? new BinaryPrinter(byteSink, includeSources: includeSources)
       : new LimitedBinaryPrinter(
-          byteSink, filter ?? (_) => true, excludeUriToSource);
+          byteSink, filter ?? (_) => true, !includeSources);
   printer.writeComponentFile(component);
   return byteSink.builder.takeBytes();
 }

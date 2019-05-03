@@ -25,6 +25,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   final UriIndexer _sourceUriIndexer = new UriIndexer();
   bool _currentlyInNonimplementation = false;
   final List<bool> _sourcesFromRealImplementation = new List<bool>();
+  final List<bool> _sourcesFromRealImplementationInLibrary = new List<bool>();
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
 
@@ -219,6 +220,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeDartType(constant.typeArgument);
       writeUInt30(constant.entries.length);
       constant.entries.forEach(writeConstantReference);
+    } else if (constant is SetConstant) {
+      writeByte(ConstantTag.SetConstant);
+      writeDartType(constant.typeArgument);
+      writeUInt30(constant.entries.length);
+      constant.entries.forEach(writeConstantReference);
     } else if (constant is InstanceConstant) {
       writeByte(ConstantTag.InstanceConstant);
       writeClassReference(constant.classNode);
@@ -258,16 +264,19 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   // Returns the new active file uri.
-  Uri writeUriReference(Uri uri) {
+  void writeUriReference(Uri uri) {
     final int index = _sourceUriIndexer.put(uri);
     writeUInt30(index);
     if (!_currentlyInNonimplementation) {
+      if (_sourcesFromRealImplementationInLibrary.length <= index) {
+        _sourcesFromRealImplementationInLibrary.length = index + 1;
+      }
+      _sourcesFromRealImplementationInLibrary[index] = true;
       if (_sourcesFromRealImplementation.length <= index) {
         _sourcesFromRealImplementation.length = index + 1;
       }
       _sourcesFromRealImplementation[index] = true;
     }
-    return uri;
   }
 
   void writeList<T>(List<T> items, void writeItem(T x)) {
@@ -735,31 +744,20 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     Uint8List buffer = new Uint8List(1 << 16);
     for (Uri uri in _sourceUriIndexer.index.keys) {
       index[i] = getBufferOffset();
-      Source source = ((includeSources &&
-                  _sourcesFromRealImplementation.length > i &&
-                  _sourcesFromRealImplementation[i] == true)
-              ? uriToSource[uri]
-              : null) ??
-          new Source(<int>[], const <int>[]);
-
-      String uriAsString = uri == null ? "" : "$uri";
-      if (uriAsString.length * 3 < buffer.length) {
-        int length = NotQuiteString.writeUtf8(buffer, 0, uriAsString);
-        if (length < 0) {
-          // Utf8 encoding failed.
-          writeByteList(utf8.encoder.convert(uriAsString));
-        } else {
-          writeUInt30(length);
-          for (int j = 0; j < length; j++) {
-            writeByte(buffer[j]);
-          }
-        }
-      } else {
-        // Uncommon case with very long url.
-        writeByteList(utf8.encoder.convert(uriAsString));
+      Source source = uriToSource[uri];
+      if (source == null ||
+          !(includeSources &&
+              _sourcesFromRealImplementation.length > i &&
+              _sourcesFromRealImplementation[i] == true)) {
+        source = new Source(
+            <int>[], const <int>[], source?.importUri, source?.fileUri);
       }
 
+      String uriAsString = uri == null ? "" : "$uri";
+      outputStringViaBuffer(uriAsString, buffer);
+
       writeByteList(source.source);
+
       List<int> lineStarts = source.lineStarts;
       writeUInt30(lineStarts.length);
       int previousLineStart = 0;
@@ -768,12 +766,35 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         writeUInt30(lineStart - previousLineStart);
         previousLineStart = lineStart;
       }
+
+      String importUriAsString =
+          source.importUri == null ? "" : "${source.importUri}";
+      outputStringViaBuffer(importUriAsString, buffer);
+
       i++;
     }
 
     // Write index for random access.
     for (int i = 0; i < index.length; ++i) {
       writeUInt32(index[i]);
+    }
+  }
+
+  void outputStringViaBuffer(String uriAsString, Uint8List buffer) {
+    if (uriAsString.length * 3 < buffer.length) {
+      int length = NotQuiteString.writeUtf8(buffer, 0, uriAsString);
+      if (length < 0) {
+        // Utf8 encoding failed.
+        writeByteList(utf8.encoder.convert(uriAsString));
+      } else {
+        writeUInt30(length);
+        for (int j = 0; j < length; j++) {
+          writeByte(buffer[j]);
+        }
+      }
+    } else {
+      // Uncommon case with very long url.
+      writeByteList(utf8.encoder.convert(uriAsString));
     }
   }
 
@@ -904,7 +925,26 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeProcedureNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
 
+    // Dump all source-references used in this library; used by the VM.
+    int sourceReferencesOffset = getBufferOffset();
+    int sourceReferencesCount = 0;
+    // Note: We start at 1 because 0 is the null-entry and we don't want to
+    // include that.
+    for (int i = 1; i < _sourcesFromRealImplementationInLibrary.length; i++) {
+      if (_sourcesFromRealImplementationInLibrary[i] == true) {
+        sourceReferencesCount++;
+      }
+    }
+    writeUInt30(sourceReferencesCount);
+    for (int i = 1; i < _sourcesFromRealImplementationInLibrary.length; i++) {
+      if (_sourcesFromRealImplementationInLibrary[i] == true) {
+        writeUInt30(i);
+        _sourcesFromRealImplementationInLibrary[i] = false;
+      }
+    }
+
     // Fixed-size ints at the end used as an index.
+    writeUInt32(sourceReferencesOffset);
     assert(classOffsets.length > 0);
     for (int i = 0; i < classOffsets.length; ++i) {
       int offset = classOffsets[i];
@@ -1461,6 +1501,45 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitListConcatenation(ListConcatenation node) {
+    writeByte(Tag.ListConcatenation);
+    writeOffset(node.fileOffset);
+    writeNode(node.typeArgument);
+    writeNodeList(node.lists);
+  }
+
+  @override
+  void visitSetConcatenation(SetConcatenation node) {
+    writeByte(Tag.SetConcatenation);
+    writeOffset(node.fileOffset);
+    writeNode(node.typeArgument);
+    writeNodeList(node.sets);
+  }
+
+  @override
+  void visitMapConcatenation(MapConcatenation node) {
+    writeByte(Tag.MapConcatenation);
+    writeOffset(node.fileOffset);
+    writeNode(node.keyType);
+    writeNode(node.valueType);
+    writeNodeList(node.maps);
+  }
+
+  @override
+  void visitInstanceCreation(InstanceCreation node) {
+    writeByte(Tag.InstanceCreation);
+    writeOffset(node.fileOffset);
+    writeNonNullReference(node.classReference);
+    writeNodeList(node.typeArguments);
+    writeUInt30(node.fieldValues.length);
+    node.fieldValues.forEach((Reference fieldRef, Expression value) {
+      writeNonNullReference(fieldRef);
+      writeNode(value);
+    });
+    writeNodeList(node.asserts);
+  }
+
+  @override
   void visitIsExpression(IsExpression node) {
     writeByte(Tag.IsExpression);
     writeOffset(node.fileOffset);
@@ -1614,6 +1693,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitBlockExpression(BlockExpression node) {
+    writeByte(Tag.BlockExpression);
+    _variableIndexer ??= new VariableIndexer();
+    _variableIndexer.pushScope();
+    writeNodeList(node.body.statements);
+    writeNode(node.value);
+    _variableIndexer.popScope();
+  }
+
+  @override
   void visitInstantiation(Instantiation node) {
     writeByte(Tag.Instantiation);
     writeNode(node.expression);
@@ -1692,6 +1781,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitConstantExpression(ConstantExpression node) {
     writeByte(Tag.ConstantExpression);
+    writeOffset(node.fileOffset);
+    writeDartType(node.type);
     writeConstantReference(node.constant);
   }
 
@@ -2107,6 +2198,16 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitListConstantReference(ListConstant node) {
     throw new UnsupportedError('serialization of ListConstant references');
+  }
+
+  @override
+  void visitSetConstant(SetConstant node) {
+    throw new UnsupportedError('serialization of SetConstants');
+  }
+
+  @override
+  void visitSetConstantReference(SetConstant node) {
+    throw new UnsupportedError('serialization of SetConstant references');
   }
 
   @override

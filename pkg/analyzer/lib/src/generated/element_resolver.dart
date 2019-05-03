@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -414,6 +415,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    resolveMetadata(node);
+    return null;
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     SimpleIdentifier prefixNode = node.prefix;
     if (prefixNode != null) {
@@ -529,6 +536,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitPostfixExpression(PostfixExpression node) {
     Expression operand = node.operand;
+    if (node.operator.type == TokenType.BANG) {
+      // Null-assertion operator (`!`).  There's nothing to do, since this is a
+      // built-in operation (there's no associated operator declaration).
+      return;
+    }
     String methodName = _getPostfixOperator(node);
     DartType staticType = _getStaticType(operand);
     MethodElement staticMethod = _lookUpMethod(operand, staticType, methodName);
@@ -580,13 +592,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
         return;
       }
       if (element == null) {
-        if (identifier.inSetterContext()) {
-          _resolver.errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.UNDEFINED_SETTER,
-              identifier,
-              [identifier.name, prefixElement.name]);
-          return;
-        }
         AstNode parent = node.parent;
         if (parent is Annotation) {
           _resolver.errorReporter.reportErrorForNode(
@@ -595,7 +600,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
               [identifier.name]);
         } else {
           _resolver.errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.UNDEFINED_GETTER,
+              StaticTypeWarningCode.UNDEFINED_PREFIXED_NAME,
               identifier,
               [identifier.name, prefixElement.name]);
         }
@@ -847,7 +852,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     // in-lining _resolveArgumentsToFunction below).
     ClassDeclaration declaration =
         node.thisOrAncestorOfType<ClassDeclaration>();
-    Identifier superclassName = declaration.extendsClause?.superclass?.name;
+    Identifier superclassName = declaration?.extendsClause?.superclass?.name;
     if (superclassName != null &&
         _resolver.nameScope.shouldIgnoreUndefined(superclassName)) {
       return;
@@ -953,10 +958,16 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /**
    * Return the name of the method invoked by the given postfix [expression].
    */
-  String _getPostfixOperator(PostfixExpression expression) =>
-      (expression.operator.type == TokenType.PLUS_PLUS)
-          ? TokenType.PLUS.lexeme
-          : TokenType.MINUS.lexeme;
+  String _getPostfixOperator(PostfixExpression expression) {
+    if (expression.operator.type == TokenType.PLUS_PLUS) {
+      return TokenType.PLUS.lexeme;
+    } else if (expression.operator.type == TokenType.MINUS_MINUS) {
+      return TokenType.MINUS.lexeme;
+    } else {
+      throw new UnsupportedError(
+          'Unsupported postfix operator ${expression.operator.lexeme}');
+    }
+  }
 
   /**
    * Return the name of the method invoked by the given postfix [expression].
@@ -1878,7 +1889,7 @@ class SyntheticIdentifier extends IdentifierImpl {
   int get offset => targetIdentifier.offset;
 
   @override
-  int get precedence => 16;
+  Precedence get precedence => Precedence.primary;
 
   @deprecated
   @override

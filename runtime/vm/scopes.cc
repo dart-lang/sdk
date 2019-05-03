@@ -28,7 +28,7 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       sibling_(NULL),
       function_level_(function_level),
       loop_level_(loop_level),
-      context_level_(LocalScope::kUnitializedContextLevel),
+      context_level_(LocalScope::kUninitializedContextLevel),
       begin_token_pos_(TokenPosition::kNoSourcePos),
       end_token_pos_(TokenPosition::kNoSourcePos),
       variables_(),

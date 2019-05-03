@@ -31,6 +31,7 @@ import 'util.dart'
         splitGtEq,
         splitGtFromGtGtEq,
         splitGtFromGtGtGt,
+        splitGtFromGtGtGtEq,
         splitGtGt,
         syntheticGt;
 
@@ -1163,17 +1164,18 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   }
 }
 
-/// Return `true` if [token] is one of `>`, `>>`, `>=`, `>>>`, or `>>=`.
+/// Return `true` if [token] is one of `>`, `>>`, `>>>`, `>=`, `>>=`, or `>>>=`.
 bool isCloser(Token token) {
   final value = token.stringValue;
   return identical(value, '>') ||
       identical(value, '>>') ||
       identical(value, '>=') ||
       identical(value, '>>>') ||
-      identical(value, '>>=');
+      identical(value, '>>=') ||
+      identical(value, '>>>=');
 }
 
-/// If [beforeCloser].next is one of `>`, `>>`, `>=`, `>>>`, or `>>=`,
+/// If [beforeCloser].next is one of `>`, `>>`, `>>>`, `>=`, `>>=`, or `>>>=`
 /// then update the token stream and return `true`.
 bool parseCloser(Token beforeCloser) {
   Token unsplit = beforeCloser.next;
@@ -1189,8 +1191,8 @@ bool parseCloser(Token beforeCloser) {
 }
 
 /// If [closer] is `>` then return it.
-/// If [closer] is one of `>>`, `>=`, `>>>`, or `>>=` then split then token
-/// and return the leading `>` without updating the token stream.
+/// If [closer] is one of `>>`, `>>>`, `>=`, `>>=`,  or `>>>=` then split
+/// the token and return the leading `>` without updating the token stream.
 /// If [closer] is none of the above, then return null;
 Token splitCloser(Token closer) {
   String value = closer.stringValue;
@@ -1204,6 +1206,8 @@ Token splitCloser(Token closer) {
     return splitGtFromGtGtGt(closer);
   } else if (identical(value, '>>=')) {
     return splitGtFromGtGtEq(closer);
+  } else if (identical(value, '>>>=')) {
+    return splitGtFromGtGtGtEq(closer);
   }
   return null;
 }

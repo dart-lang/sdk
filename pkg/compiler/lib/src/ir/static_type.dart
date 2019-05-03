@@ -58,6 +58,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   VariableScopeModel get variableScopeModel;
 
+  @override
   ThisInterfaceType get thisType {
     assert(_thisType != null);
     return _thisType;
@@ -163,6 +164,9 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     while (type is ir.TypeParameterType) {
       type = (type as ir.TypeParameterType).parameter.bound;
     }
+    if (type == typeEnvironment.nullType) {
+      return superclass.bottomType;
+    }
     if (type is ir.InterfaceType) {
       ir.InterfaceType upcastType =
           typeEnvironment.getTypeAsInstanceOf(type, superclass);
@@ -170,6 +174,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     } else if (type is ir.BottomType) {
       return superclass.bottomType;
     }
+    // TODO(johnniwinther): Should we assert that this doesn't happen?
     return superclass.rawType;
   }
 
@@ -249,11 +254,35 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   ir.DartType visitPropertySet(ir.PropertySet node) {
     ir.DartType receiverType = visitNode(node.receiver);
     ir.DartType valueType = super.visitPropertySet(node);
-    if (node.interfaceTarget == null && receiverType is ir.InterfaceType) {
-      node.interfaceTarget = hierarchy
+    ir.Member interfaceTarget = node.interfaceTarget;
+    if (interfaceTarget == null && receiverType is ir.InterfaceType) {
+      interfaceTarget = hierarchy
           .getInterfaceMember(receiverType.classNode, node.name, setter: true);
+      if (interfaceTarget != null) {
+        ir.Class superclass = interfaceTarget.enclosingClass;
+        ir.Substitution receiverSubstitution =
+            ir.Substitution.fromInterfaceType(
+                getTypeAsInstanceOf(receiverType, superclass));
+        ir.DartType setterType =
+            receiverSubstitution.substituteType(interfaceTarget.setterType);
+        if (!typeEnvironment.isSubtypeOf(valueType, setterType)) {
+          // We need to insert an implicit cast to preserve the invariant that
+          // a property set with a known interface target is also statically
+          // checked.
+          ir.AsExpression implicitCast =
+              new ir.AsExpression(node.value, setterType)
+                ..isTypeError = true
+                ..parent = node;
+          node.value = implicitCast;
+          // Visit the newly created as expression; the original value has
+          // already been visited.
+          handleAsExpression(implicitCast, valueType);
+          valueType = setterType;
+        }
+        node.interfaceTarget = interfaceTarget;
+      }
     }
-    receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
+    receiverType = _narrowInstanceReceiver(interfaceTarget, receiverType);
     handlePropertySet(node, receiverType, valueType);
     return valueType;
   }
@@ -415,6 +444,106 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return false;
   }
 
+  /// Update the interface target on [node].
+  ///
+  /// This inserts any implicit cast of the arguments necessary to uphold the
+  /// invariant that a method invocation with an interface target handles
+  /// the static types at the call site.
+  void _updateMethodInvocationTarget(
+      ir.MethodInvocation node,
+      ArgumentTypes argumentTypes,
+      ir.DartType functionType,
+      ir.Member interfaceTarget) {
+    // TODO(johnniwinther): Handle incremental target improvement.
+    if (node.interfaceTarget != null) return;
+    node.interfaceTarget = interfaceTarget;
+    if (functionType is! ir.FunctionType) return;
+    ir.FunctionType parameterTypes = functionType;
+    Map<int, ir.DartType> neededPositionalChecks = {};
+    for (int i = 0; i < node.arguments.positional.length; i++) {
+      ir.DartType argumentType = argumentTypes.positional[i];
+      ir.DartType parameterType = parameterTypes.positionalParameters[i];
+      if (!typeEnvironment.isSubtypeOf(argumentType, parameterType)) {
+        neededPositionalChecks[i] = parameterType;
+      }
+    }
+    Map<int, ir.DartType> neededNamedChecks = {};
+    for (int argumentIndex = 0;
+        argumentIndex < node.arguments.named.length;
+        argumentIndex++) {
+      ir.NamedExpression namedArgument = node.arguments.named[argumentIndex];
+      ir.DartType argumentType = argumentTypes.named[argumentIndex];
+      ir.DartType parameterType = parameterTypes.namedParameters
+          .singleWhere((namedType) => namedType.name == namedArgument.name)
+          .type;
+      if (!typeEnvironment.isSubtypeOf(argumentType, parameterType)) {
+        neededNamedChecks[argumentIndex] = parameterType;
+      }
+    }
+    if (neededPositionalChecks.isEmpty && neededNamedChecks.isEmpty) {
+      // No implicit casts needed
+      return;
+    }
+
+    List<ir.VariableDeclaration> letVariables = [];
+
+    // Arguments need to be hoisted to an enclosing let expression in order
+    // to ensure that the arguments are evaluated before any implicit cast.
+
+    ir.Expression updateArgument(ir.Expression expression, ir.TreeNode parent,
+        ir.DartType argumentType, ir.DartType checkedParameterType) {
+      ir.VariableDeclaration variable =
+          new ir.VariableDeclaration.forValue(expression, type: argumentType);
+      // Visit the newly created variable declaration.
+      handleVariableDeclaration(variable);
+      letVariables.add(variable);
+      ir.VariableGet get = new ir.VariableGet(variable)..parent = parent;
+      // Visit the newly created variable get.
+      handleVariableGet(get, argumentType);
+      cachedStaticTypes[get] = argumentType;
+
+      if (checkedParameterType == null) {
+        return get;
+      }
+      // We need to insert an implicit cast to preserve the invariant that
+      // a method invocation with a known interface target is also
+      // statically checked.
+      ir.AsExpression implicitCast =
+          new ir.AsExpression(get, checkedParameterType)
+            ..isTypeError = true
+            ..parent = parent;
+      // Visit the newly created as expression; the original value has
+      // already been visited.
+      handleAsExpression(implicitCast, argumentType);
+      return implicitCast;
+    }
+
+    for (int index = 0; index < node.arguments.positional.length; index++) {
+      ir.DartType argumentType = argumentTypes.positional[index];
+      node.arguments.positional[index] = updateArgument(
+          node.arguments.positional[index],
+          node.arguments,
+          argumentType,
+          neededPositionalChecks[index]);
+    }
+    for (int argumentIndex = 0;
+        argumentIndex < node.arguments.named.length;
+        argumentIndex++) {
+      ir.NamedExpression namedArgument = node.arguments.named[argumentIndex];
+      ir.DartType argumentType = argumentTypes.named[argumentIndex];
+      namedArgument.value = updateArgument(namedArgument.value, namedArgument,
+          argumentType, neededNamedChecks[argumentIndex]);
+    }
+
+    ir.Expression dummy = new ir.NullLiteral();
+    node.replaceWith(dummy);
+    ir.Expression body = node;
+    for (ir.VariableDeclaration variable in letVariables.reversed) {
+      body = new ir.Let(variable, body);
+    }
+    dummy.replaceWith(body);
+  }
+
   /// Computes the result type of the method invocation [node] on a receiver of
   /// type [receiverType].
   ///
@@ -436,20 +565,17 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       ir.Member member =
           hierarchy.getInterfaceMember(receiverType.classNode, node.name);
       if (_isApplicable(node.arguments, member)) {
-        interfaceTarget = node.interfaceTarget = member;
+        interfaceTarget = member;
       }
     }
     if (interfaceTarget != null) {
-      if (isSpecialCasedBinaryOperator(interfaceTarget)) {
-        ir.DartType argumentType = argumentTypes.positional[0];
-        return typeEnvironment.getTypeOfOverloadedArithmetic(
-            receiverType, argumentType);
-      }
       ir.Class superclass = interfaceTarget.enclosingClass;
-      receiverType = getTypeAsInstanceOf(receiverType, superclass);
-      ir.DartType getterType = ir.Substitution.fromInterfaceType(receiverType)
-          .substituteType(interfaceTarget.getterType);
+      ir.Substitution receiverSubstitution = ir.Substitution.fromInterfaceType(
+          getTypeAsInstanceOf(receiverType, superclass));
+      ir.DartType getterType =
+          receiverSubstitution.substituteType(interfaceTarget.getterType);
       if (getterType is ir.FunctionType) {
+        ir.FunctionType functionType = getterType;
         List<ir.DartType> typeArguments = node.arguments.types;
         if (interfaceTarget is ir.Procedure &&
             interfaceTarget.function.typeParameters.isNotEmpty &&
@@ -457,15 +583,22 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
           // If this was a dynamic call the invocation does not have the
           // inferred default type arguments so we need to create them here
           // to perform a valid substitution.
-          ir.Substitution substitution =
-              ir.Substitution.fromInterfaceType(receiverType);
           typeArguments = interfaceTarget.function.typeParameters
-              .map((t) => substitution.substituteType(t.defaultType))
+              .map((t) => receiverSubstitution.substituteType(t.defaultType))
               .toList();
         }
-        return ir.Substitution.fromPairs(
-                getterType.typeParameters, typeArguments)
-            .substituteType(getterType.returnType);
+        getterType = ir.Substitution.fromPairs(
+                functionType.typeParameters, typeArguments)
+            .substituteType(functionType.withoutTypeParameters);
+      }
+      _updateMethodInvocationTarget(
+          node, argumentTypes, getterType, interfaceTarget);
+      if (isSpecialCasedBinaryOperator(interfaceTarget)) {
+        ir.DartType argumentType = argumentTypes.positional[0];
+        return typeEnvironment.getTypeOfOverloadedArithmetic(
+            receiverType, argumentType);
+      } else if (getterType is ir.FunctionType) {
+        return getterType.returnType;
       } else {
         return const ir.DynamicType();
       }
@@ -790,6 +923,12 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return super.visitLet(node);
   }
 
+  @override
+  ir.DartType visitBlockExpression(ir.BlockExpression node) {
+    visitNode(node.body);
+    return super.visitBlockExpression(node);
+  }
+
   ir.DartType _computeInstantiationType(
       ir.Instantiation node, ir.FunctionType expressionType) {
     return ir.Substitution.fromPairs(
@@ -823,6 +962,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return type;
   }
 
+  @override
   ir.DartType visitExpressionStatement(ir.ExpressionStatement node) {
     visitNode(node.expression);
     return null;
@@ -1227,6 +1367,14 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     }
     handleVariableDeclaration(node);
   }
+
+  void handleConstantExpression(ir.ConstantExpression node) {}
+
+  @override
+  ir.DartType visitConstantExpression(ir.ConstantExpression node) {
+    handleConstantExpression(node);
+    return super.visitConstantExpression(node);
+  }
 }
 
 class ArgumentTypes {
@@ -1291,6 +1439,7 @@ class TypeHolder {
     return candidate;
   }
 
+  @override
   int get hashCode {
     if (_hashCode == null) {
       _hashCode = Hashing.setHash(falseTypes,
@@ -1299,6 +1448,7 @@ class TypeHolder {
     return _hashCode;
   }
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     return other is TypeHolder &&
@@ -1324,6 +1474,7 @@ class TypeHolder {
     sb.write('}');
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('TypeHolder(');
@@ -1561,6 +1712,7 @@ class TargetInfo {
     sb.write(']');
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('TargetInfo(');
@@ -1705,6 +1857,7 @@ class TypeMap {
     return sb.toString();
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('TypeMap(');

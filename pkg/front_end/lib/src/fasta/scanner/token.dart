@@ -299,6 +299,7 @@ bool isBinaryOperator(String value) {
       identical(value, "+") ||
       identical(value, "<<") ||
       identical(value, ">>") ||
+      identical(value, ">>>") ||
       identical(value, ">=") ||
       identical(value, ">") ||
       identical(value, "<=") ||

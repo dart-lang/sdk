@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
@@ -62,6 +63,13 @@ Future testAnnotatedCode(String code,
       writeJs: writeJs,
       verbose: verbose,
       inlineData: inlineData);
+  print('---from kernel with CFE constants-----------------------------------');
+  await runTest(test, kernelMarker,
+      printJs: printJs,
+      writeJs: writeJs,
+      verbose: verbose,
+      inlineData: inlineData,
+      options: ['${Flags.enableLanguageExperiments}=constant-update-2018']);
 }
 
 Future runTest(Test test, String config,
@@ -83,6 +91,7 @@ Future runTest(Test test, String config,
       '-o$output',
       '--libraries-spec=sdk/lib/libraries.json',
       '--packages=${Platform.packageConfig}',
+      Flags.testMode,
       input,
     ]..addAll(options);
     print("Compiling dart2js ${arguments.join(' ')}");

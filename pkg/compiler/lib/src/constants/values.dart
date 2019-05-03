@@ -19,6 +19,7 @@ enum ConstantValueKind {
   BOOL,
   STRING,
   LIST,
+  SET,
   MAP,
   CONSTRUCTED,
   TYPE,
@@ -39,6 +40,7 @@ abstract class ConstantValueVisitor<R, A> {
   R visitBool(covariant BoolConstantValue constant, covariant A arg);
   R visitString(covariant StringConstantValue constant, covariant A arg);
   R visitList(covariant ListConstantValue constant, covariant A arg);
+  R visitSet(covariant SetConstantValue constant, covariant A arg);
   R visitMap(covariant MapConstantValue constant, covariant A arg);
   R visitConstructed(
       covariant ConstructedConstantValue constant, covariant A arg);
@@ -68,6 +70,7 @@ abstract class ConstantValue {
   bool get isNum => false;
   bool get isString => false;
   bool get isList => false;
+  bool get isSet => false;
   bool get isMap => false;
   bool get isConstructedObject => false;
   bool get isFunction => false;
@@ -110,6 +113,7 @@ abstract class ConstantValue {
 
   ConstantValueKind get kind;
 
+  @override
   String toString() {
     assertDebugMode("Use ConstantValue.toDartText() or "
         "ConstantValue.toStructuredText() "
@@ -125,23 +129,31 @@ class FunctionConstantValue extends ConstantValue {
 
   FunctionConstantValue(this.element, this.type);
 
+  @override
   bool get isFunction => true;
 
+  @override
   bool operator ==(var other) {
     if (other is! FunctionConstantValue) return false;
     return identical(other.element, element);
   }
 
+  @override
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
+  @override
   FunctionType getType(CommonElements types) => type;
 
+  @override
   int get hashCode => (17 * element.hashCode) & 0x7fffffff;
 
+  @override
   accept(ConstantValueVisitor visitor, arg) => visitor.visitFunction(this, arg);
 
+  @override
   ConstantValueKind get kind => ConstantValueKind.FUNCTION;
 
+  @override
   String toDartText() {
     if (element.enclosingClass != null) {
       return '${element.enclosingClass.name}.${element.name}';
@@ -150,6 +162,7 @@ class FunctionConstantValue extends ConstantValue {
     }
   }
 
+  @override
   String toStructuredText() {
     return 'FunctionConstant(${toDartText()})';
   }
@@ -158,16 +171,20 @@ class FunctionConstantValue extends ConstantValue {
 abstract class PrimitiveConstantValue extends ConstantValue {
   const PrimitiveConstantValue();
 
+  @override
   bool get isPrimitive => true;
 
+  @override
   bool operator ==(var other) {
     // Making this method abstract does not give us an error.
     throw new UnsupportedError('PrimitiveConstant.==');
   }
 
+  @override
   int get hashCode => throw new UnsupportedError('PrimitiveConstant.hashCode');
 
   // Primitive constants don't have dependencies.
+  @override
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 }
 
@@ -179,27 +196,36 @@ class NullConstantValue extends PrimitiveConstantValue {
 
   const NullConstantValue._internal();
 
+  @override
   bool get isNull => true;
 
+  @override
   DartType getType(CommonElements types) => types.nullType;
 
+  @override
   bool operator ==(other) => other is NullConstantValue;
 
   // The magic constant has no meaning. It is just a random value.
+  @override
   int get hashCode => 785965825;
 
+  @override
   accept(ConstantValueVisitor visitor, arg) => visitor.visitNull(this, arg);
 
+  @override
   ConstantValueKind get kind => ConstantValueKind.NULL;
 
+  @override
   String toStructuredText() => 'NullConstant';
 
+  @override
   String toDartText() => 'null';
 }
 
 abstract class NumConstantValue extends PrimitiveConstantValue {
   double get doubleValue;
 
+  @override
   bool get isNum => true;
 
   const NumConstantValue();
@@ -212,6 +238,7 @@ class IntConstantValue extends NumConstantValue {
   // to create new ones every time those values are used.
   static Map<BigInt, IntConstantValue> _cachedValues = {};
 
+  @override
   double get doubleValue => intValue.toDouble();
 
   factory IntConstantValue(BigInt value) {
@@ -227,6 +254,7 @@ class IntConstantValue extends NumConstantValue {
 
   const IntConstantValue._internal(this.intValue);
 
+  @override
   bool get isInt => true;
 
   bool isUInt31() => intValue.toUnsigned(31) == intValue;
@@ -235,12 +263,16 @@ class IntConstantValue extends NumConstantValue {
 
   bool isPositive() => intValue >= BigInt.zero;
 
+  @override
   bool get isZero => intValue == BigInt.zero;
 
+  @override
   bool get isOne => intValue == BigInt.one;
 
+  @override
   DartType getType(CommonElements types) => types.intType;
 
+  @override
   bool operator ==(var other) {
     // Ints and doubles are treated as separate constants.
     if (other is! IntConstantValue) return false;
@@ -248,18 +280,24 @@ class IntConstantValue extends NumConstantValue {
     return intValue == otherInt.intValue;
   }
 
+  @override
   int get hashCode => intValue.hashCode & Hashing.SMI_MASK;
 
+  @override
   accept(ConstantValueVisitor visitor, arg) => visitor.visitInt(this, arg);
 
+  @override
   ConstantValueKind get kind => ConstantValueKind.INT;
 
+  @override
   String toStructuredText() => 'IntConstant(${toDartText()})';
 
+  @override
   String toDartText() => intValue.toString();
 }
 
 class DoubleConstantValue extends NumConstantValue {
+  @override
   final double doubleValue;
 
   factory DoubleConstantValue(double value) {
@@ -280,23 +318,32 @@ class DoubleConstantValue extends NumConstantValue {
 
   const DoubleConstantValue._internal(this.doubleValue);
 
+  @override
   bool get isDouble => true;
 
+  @override
   bool get isNaN => doubleValue.isNaN;
 
   // We need to check for the negative sign since -0.0 == 0.0.
+  @override
   bool get isMinusZero => doubleValue == 0.0 && doubleValue.isNegative;
 
+  @override
   bool get isZero => doubleValue == 0.0;
 
+  @override
   bool get isOne => doubleValue == 1.0;
 
+  @override
   bool get isPositiveInfinity => doubleValue == double.infinity;
 
+  @override
   bool get isNegativeInfinity => doubleValue == -double.infinity;
 
+  @override
   DartType getType(CommonElements types) => types.doubleType;
 
+  @override
   bool operator ==(var other) {
     if (other is! DoubleConstantValue) return false;
     DoubleConstantValue otherDouble = other;
@@ -310,14 +357,19 @@ class DoubleConstantValue extends NumConstantValue {
     }
   }
 
+  @override
   int get hashCode => doubleValue.hashCode;
 
+  @override
   accept(ConstantValueVisitor visitor, arg) => visitor.visitDouble(this, arg);
 
+  @override
   ConstantValueKind get kind => ConstantValueKind.DOUBLE;
 
+  @override
   String toStructuredText() => 'DoubleConstant(${toDartText()})';
 
+  @override
   String toDartText() => doubleValue.toString();
 }
 
@@ -328,18 +380,23 @@ abstract class BoolConstantValue extends PrimitiveConstantValue {
 
   const BoolConstantValue._internal();
 
+  @override
   bool get isBool => true;
 
   bool get boolValue;
 
+  @override
   DartType getType(CommonElements types) => types.boolType;
 
   BoolConstantValue negate();
 
+  @override
   accept(ConstantValueVisitor visitor, arg) => visitor.visitBool(this, arg);
 
+  @override
   ConstantValueKind get kind => ConstantValueKind.BOOL;
 
+  @override
   String toStructuredText() => 'BoolConstant(${toDartText()})';
 }
 
@@ -348,18 +405,24 @@ class TrueConstantValue extends BoolConstantValue {
 
   const TrueConstantValue._internal() : super._internal();
 
+  @override
   bool get isTrue => true;
 
+  @override
   bool get boolValue => true;
 
+  @override
   FalseConstantValue negate() => new FalseConstantValue();
 
+  @override
   bool operator ==(var other) => identical(this, other);
 
   // The magic constant is just a random value. It does not have any
   // significance.
+  @override
   int get hashCode => 499;
 
+  @override
   String toDartText() => boolValue.toString();
 }
 
@@ -368,24 +431,31 @@ class FalseConstantValue extends BoolConstantValue {
 
   const FalseConstantValue._internal() : super._internal();
 
+  @override
   bool get isFalse => true;
 
+  @override
   bool get boolValue => false;
 
+  @override
   TrueConstantValue negate() => new TrueConstantValue();
 
+  @override
   bool operator ==(var other) => identical(this, other);
 
   // The magic constant is just a random value. It does not have any
   // significance.
+  @override
   int get hashCode => 536555975;
 
+  @override
   String toDartText() => boolValue.toString();
 }
 
 class StringConstantValue extends PrimitiveConstantValue {
   final String stringValue;
 
+  @override
   final int hashCode;
 
   // TODO(floitsch): cache StringConstants.
@@ -393,10 +463,13 @@ class StringConstantValue extends PrimitiveConstantValue {
       : this.stringValue = value,
         this.hashCode = value.hashCode;
 
+  @override
   bool get isString => true;
 
+  @override
   DartType getType(CommonElements types) => types.stringType;
 
+  @override
   bool operator ==(var other) {
     if (identical(this, other)) return true;
     if (other is! StringConstantValue) return false;
@@ -409,13 +482,17 @@ class StringConstantValue extends PrimitiveConstantValue {
 
   int get length => stringValue.length;
 
+  @override
   accept(ConstantValueVisitor visitor, arg) => visitor.visitString(this, arg);
 
+  @override
   ConstantValueKind get kind => ConstantValueKind.STRING;
 
   // TODO(johnniwinther): Ensure correct escaping.
+  @override
   String toDartText() => '"${stringValue}"';
 
+  @override
   String toStructuredText() => 'StringConstant(${toDartText()})';
 }
 
@@ -424,8 +501,10 @@ abstract class ObjectConstantValue extends ConstantValue {
 
   ObjectConstantValue(this.type);
 
+  @override
   bool get isObject => true;
 
+  @override
   DartType getType(CommonElements types) => type;
 
   void _unparseTypeArguments(StringBuffer sb) {
@@ -443,28 +522,37 @@ class TypeConstantValue extends ObjectConstantValue {
 
   TypeConstantValue(this.representedType, InterfaceType type) : super(type);
 
+  @override
   bool get isType => true;
 
+  @override
   bool operator ==(other) {
     return other is TypeConstantValue &&
-        representedType == other.representedType;
+        representedType.unaliased == other.representedType.unaliased;
   }
 
-  int get hashCode => representedType.hashCode * 13;
+  @override
+  int get hashCode => representedType.unaliased.hashCode * 13;
 
+  @override
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
+  @override
   accept(ConstantValueVisitor visitor, arg) => visitor.visitType(this, arg);
 
+  @override
   ConstantValueKind get kind => ConstantValueKind.TYPE;
 
+  @override
   String toDartText() => '$representedType';
 
+  @override
   String toStructuredText() => 'TypeConstant(${representedType})';
 }
 
 class ListConstantValue extends ObjectConstantValue {
   final List<ConstantValue> entries;
+  @override
   final int hashCode;
 
   ListConstantValue(InterfaceType type, List<ConstantValue> entries)
@@ -472,8 +560,10 @@ class ListConstantValue extends ObjectConstantValue {
         hashCode = Hashing.listHash(entries, Hashing.objectHash(type)),
         super(type);
 
+  @override
   bool get isList => true;
 
+  @override
   bool operator ==(var other) {
     if (identical(this, other)) return true;
     if (other is! ListConstantValue) return false;
@@ -487,14 +577,18 @@ class ListConstantValue extends ObjectConstantValue {
     return true;
   }
 
+  @override
   List<ConstantValue> getDependencies() => entries;
 
   int get length => entries.length;
 
+  @override
   accept(ConstantValueVisitor visitor, arg) => visitor.visitList(this, arg);
 
+  @override
   ConstantValueKind get kind => ConstantValueKind.LIST;
 
+  @override
   String toDartText() {
     StringBuffer sb = new StringBuffer();
     _unparseTypeArguments(sb);
@@ -507,6 +601,7 @@ class ListConstantValue extends ObjectConstantValue {
     return sb.toString();
   }
 
+  @override
   String toStructuredText() {
     StringBuffer sb = new StringBuffer();
     sb.write('ListConstant(');
@@ -521,9 +616,70 @@ class ListConstantValue extends ObjectConstantValue {
   }
 }
 
-class MapConstantValue extends ObjectConstantValue {
+abstract class SetConstantValue extends ObjectConstantValue {
+  final List<ConstantValue> values;
+  @override
+  final int hashCode;
+
+  SetConstantValue(InterfaceType type, List<ConstantValue> values)
+      : values = values,
+        hashCode = Hashing.listHash(values, Hashing.objectHash(type)),
+        super(type);
+
+  @override
+  bool get isSet => true;
+
+  @override
+  bool operator ==(var other) {
+    if (identical(this, other)) return true;
+    if (other is! SetConstantValue) return false;
+    SetConstantValue otherSet = other;
+    if (hashCode != otherSet.hashCode) return false;
+    if (type != otherSet.type) return false;
+    if (length != otherSet.length) return false;
+    for (int i = 0; i < values.length; i++) {
+      if (values[i] != otherSet.values[i]) return false;
+    }
+    return true;
+  }
+
+  @override
+  List<ConstantValue> getDependencies() => values;
+
+  int get length => values.length;
+
+  @override
+  accept(ConstantValueVisitor visitor, arg) => visitor.visitSet(this, arg);
+
+  @override
+  String toDartText() {
+    StringBuffer sb = new StringBuffer();
+    _unparseTypeArguments(sb);
+    sb.write('{');
+    sb.writeAll(values.map((v) => v.toDartText()), ',');
+    sb.write('}');
+    return sb.toString();
+  }
+
+  @override
+  String toStructuredText() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('SetConstant(');
+    _unparseTypeArguments(sb);
+    sb.write('{');
+    sb.writeAll(values.map((v) => v.toStructuredText()), ', ');
+    sb.write('})');
+    return sb.toString();
+  }
+
+  @override
+  ConstantValueKind get kind => ConstantValueKind.SET;
+}
+
+abstract class MapConstantValue extends ObjectConstantValue {
   final List<ConstantValue> keys;
   final List<ConstantValue> values;
+  @override
   final int hashCode;
   Map<ConstantValue, ConstantValue> _lookupMap;
 
@@ -537,8 +693,10 @@ class MapConstantValue extends ObjectConstantValue {
     assert(keys.length == values.length);
   }
 
+  @override
   bool get isMap => true;
 
+  @override
   bool operator ==(var other) {
     if (identical(this, other)) return true;
     if (other is! MapConstantValue) return false;
@@ -553,6 +711,7 @@ class MapConstantValue extends ObjectConstantValue {
     return true;
   }
 
+  @override
   List<ConstantValue> getDependencies() {
     List<ConstantValue> result = <ConstantValue>[];
     result.addAll(keys);
@@ -568,10 +727,13 @@ class MapConstantValue extends ObjectConstantValue {
     return lookupMap[key];
   }
 
+  @override
   accept(ConstantValueVisitor visitor, arg) => visitor.visitMap(this, arg);
 
+  @override
   ConstantValueKind get kind => ConstantValueKind.MAP;
 
+  @override
   String toDartText() {
     StringBuffer sb = new StringBuffer();
     _unparseTypeArguments(sb);
@@ -586,6 +748,7 @@ class MapConstantValue extends ObjectConstantValue {
     return sb.toString();
   }
 
+  @override
   String toStructuredText() {
     StringBuffer sb = new StringBuffer();
     sb.write('MapConstant(');
@@ -609,28 +772,37 @@ class InterceptorConstantValue extends ConstantValue {
 
   InterceptorConstantValue(this.cls);
 
+  @override
   bool get isInterceptor => true;
 
+  @override
   bool operator ==(other) {
     return other is InterceptorConstantValue && cls == other.cls;
   }
 
+  @override
   int get hashCode => cls.hashCode * 43;
 
+  @override
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
+  @override
   accept(ConstantValueVisitor visitor, arg) {
     return visitor.visitInterceptor(this, arg);
   }
 
+  @override
   DartType getType(CommonElements types) => types.dynamicType;
 
+  @override
   ConstantValueKind get kind => ConstantValueKind.INTERCEPTOR;
 
+  @override
   String toDartText() {
     return 'interceptor($cls)';
   }
 
+  @override
   String toStructuredText() {
     return 'InterceptorConstant(${cls.name})';
   }
@@ -642,26 +814,35 @@ class SyntheticConstantValue extends ConstantValue {
 
   SyntheticConstantValue(this.valueKind, this.payload);
 
+  @override
   bool get isDummy => true;
 
+  @override
   bool operator ==(other) {
     return other is SyntheticConstantValue && payload == other.payload;
   }
 
+  @override
   get hashCode => payload.hashCode * 17 + valueKind.hashCode;
 
+  @override
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
+  @override
   accept(ConstantValueVisitor visitor, arg) {
     return visitor.visitSynthetic(this, arg);
   }
 
+  @override
   DartType getType(CommonElements types) => types.dynamicType;
 
+  @override
   ConstantValueKind get kind => ConstantValueKind.SYNTHETIC;
 
+  @override
   String toDartText() => 'synthetic($valueKind, $payload)';
 
+  @override
   String toStructuredText() => 'SyntheticConstant($valueKind, $payload)';
 }
 
@@ -669,6 +850,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
   // TODO(johnniwinther): Make [fields] private to avoid misuse of the map
   // ordering and mutability.
   final Map<FieldEntity, ConstantValue> fields;
+  @override
   final int hashCode;
 
   ConstructedConstantValue(
@@ -681,8 +863,10 @@ class ConstructedConstantValue extends ObjectConstantValue {
     assert(!fields.containsValue(null));
   }
 
+  @override
   bool get isConstructedObject => true;
 
+  @override
   bool operator ==(var otherVar) {
     if (identical(this, otherVar)) return true;
     if (otherVar is! ConstructedConstantValue) return false;
@@ -696,18 +880,22 @@ class ConstructedConstantValue extends ObjectConstantValue {
     return true;
   }
 
+  @override
   List<ConstantValue> getDependencies() => fields.values.toList();
 
+  @override
   accept(ConstantValueVisitor visitor, arg) {
     return visitor.visitConstructed(this, arg);
   }
 
+  @override
   ConstantValueKind get kind => ConstantValueKind.CONSTRUCTED;
 
   Iterable<FieldEntity> get _fieldsSortedByName {
     return fields.keys.toList()..sort((a, b) => a.name.compareTo(b.name));
   }
 
+  @override
   String toDartText() {
     StringBuffer sb = new StringBuffer();
     sb.write(type.element.name);
@@ -726,6 +914,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
     return sb.toString();
   }
 
+  @override
   String toStructuredText() {
     StringBuffer sb = new StringBuffer();
     sb.write('ConstructedConstant(');
@@ -751,6 +940,7 @@ class InstantiationConstantValue extends ConstantValue {
 
   InstantiationConstantValue(this.typeArguments, this.function);
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     return other is InstantiationConstantValue &&
@@ -763,21 +953,27 @@ class InstantiationConstantValue extends ConstantValue {
     return Hashing.objectHash(function, Hashing.listHash(typeArguments));
   }
 
+  @override
   List<ConstantValue> getDependencies() => <ConstantValue>[function];
 
+  @override
   accept(ConstantValueVisitor visitor, arg) =>
       visitor.visitInstantiation(this, arg);
 
+  @override
   DartType getType(CommonElements types) {
     FunctionType type = function.getType(types);
     return type.instantiate(typeArguments);
   }
 
+  @override
   ConstantValueKind get kind => ConstantValueKind.INSTANTIATION;
 
+  @override
   String toDartText() =>
       '<${typeArguments.join(', ')}>(${function.toDartText()})';
 
+  @override
   String toStructuredText() {
     return 'InstantiationConstant($typeArguments,'
         '${function.toStructuredText()})';
@@ -804,25 +1000,33 @@ class DeferredGlobalConstantValue extends ConstantValue {
 
   bool get isReference => true;
 
+  @override
   bool operator ==(other) {
     return other is DeferredGlobalConstantValue &&
         referenced == other.referenced &&
         unit == other.unit;
   }
 
+  @override
   get hashCode => (referenced.hashCode * 17 + unit.hashCode) & 0x3fffffff;
 
+  @override
   List<ConstantValue> getDependencies() => <ConstantValue>[referenced];
 
+  @override
   accept(ConstantValueVisitor visitor, arg) =>
       visitor.visitDeferredGlobal(this, arg);
 
+  @override
   DartType getType(CommonElements types) => referenced.getType(types);
 
+  @override
   ConstantValueKind get kind => ConstantValueKind.DEFERRED_GLOBAL;
 
+  @override
   String toDartText() => 'deferred_global(${referenced.toDartText()})';
 
+  @override
   String toStructuredText() {
     return 'DeferredGlobalConstant(${referenced.toStructuredText()})';
   }
@@ -832,6 +1036,7 @@ class DeferredGlobalConstantValue extends ConstantValue {
 /// expression.
 // TODO(johnniwinther): Expand this to contain the error kind.
 class NonConstantValue extends ConstantValue {
+  @override
   bool get isConstant => false;
 
   @override
@@ -845,6 +1050,7 @@ class NonConstantValue extends ConstantValue {
   @override
   DartType getType(CommonElements types) => types.dynamicType;
 
+  @override
   ConstantValueKind get kind => ConstantValueKind.NON_CONSTANT;
 
   @override

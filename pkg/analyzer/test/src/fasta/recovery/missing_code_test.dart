@@ -13,6 +13,7 @@ main() {
     defineReflectiveTests(MapLiteralTest);
     defineReflectiveTests(MissingCodeTest);
     defineReflectiveTests(ParameterListTest);
+    defineReflectiveTests(TypedefTest);
   });
 }
 
@@ -35,6 +36,22 @@ f() => [a, b c];
 ''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f() => [a, b, c];
 ''');
+  }
+
+  void test_missingComma_afterIf() {
+    testRecovery('''
+f() => [a, if (x) b c];
+''', [ParserErrorCode.EXPECTED_ELSE_OR_COMMA], '''
+f() => [a, if (x) b, c];
+''', enableControlFlowCollections: true);
+  }
+
+  void test_missingComma_afterIfElse() {
+    testRecovery('''
+f() => [a, if (x) b else y c];
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+f() => [a, if (x) b else y, c];
+''', enableControlFlowCollections: true);
   }
 }
 
@@ -69,6 +86,22 @@ f() => {a: b, c: d e: f};
 ''', [ParserErrorCode.EXPECTED_TOKEN], '''
 f() => {a: b, c: d, e: f};
 ''');
+  }
+
+  void test_missingComma_afterIf() {
+    testRecovery('''
+f() => {a: b, if (x) c: d e: f};
+''', [ParserErrorCode.EXPECTED_ELSE_OR_COMMA], '''
+f() => {a: b, if (x) c: d, e: f};
+''', enableControlFlowCollections: true);
+  }
+
+  void test_missingComma_afterIfElse() {
+    testRecovery('''
+f() => {a: b, if (x) c: d else y: z e: f};
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+f() => {a: b, if (x) c: d else y: z, e: f};
+''', enableControlFlowCollections: true);
   }
 
   void test_missingKey() {
@@ -210,6 +243,22 @@ f() => x ? _s_ : z;
     testUserDefinableOperatorWithSuper('==');
   }
 
+  void test_expressionBody_missingGt() {
+    testRecovery('''
+f(x) = x;
+''', [ParserErrorCode.MISSING_FUNCTION_BODY], '''
+f(x) => x;
+''');
+  }
+
+  void test_expressionBody_return() {
+    testRecovery('''
+f(x) return x;
+''', [ParserErrorCode.MISSING_FUNCTION_BODY], '''
+f(x) => x;
+''');
+  }
+
   void test_greaterThan() {
     testBinaryExpression('>');
   }
@@ -242,8 +291,7 @@ f() => x ? _s_ : z;
     testUserDefinableOperatorWithSuper('^');
   }
 
-  @failingTest
-  void test_initializerList_missingComma() {
+  void test_initializerList_missingComma_assert() {
     // https://github.com/dart-lang/sdk/issues/33241
     testRecovery('''
 class Test {
@@ -256,6 +304,40 @@ class Test {
   Test()
     : assert(true),
       assert(true);
+}
+''');
+  }
+
+  void test_initializerList_missingComma_field() {
+    // https://github.com/dart-lang/sdk/issues/33241
+    testRecovery('''
+class Test {
+  Test()
+    : assert(true)
+      x = 2;
+}
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+class Test {
+  Test()
+    : assert(true),
+      x = 2;
+}
+''');
+  }
+
+  void test_initializerList_missingComma_thisField() {
+    // https://github.com/dart-lang/sdk/issues/33241
+    testRecovery('''
+class Test {
+  Test()
+    : assert(true)
+      this.x = 2;
+}
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+class Test {
+  Test()
+    : assert(true),
+      this.x = 2;
 }
 ''');
   }
@@ -397,10 +479,16 @@ f() {
     testUserDefinableOperatorWithSuper('*');
   }
 
+  @failingTest
   void test_stringInterpolation_unclosed() {
     // https://github.com/dart-lang/sdk/issues/946
     // TODO(brianwilkerson) Try to recover better. Ideally there would be a
     // single error about an unterminated interpolation block.
+
+    // https://github.com/dart-lang/sdk/issues/36101
+    // TODO(danrubel): improve recovery so that the scanner/parser associates
+    // `${` with a synthetic `}` inside the " " rather than the `}` at the end.
+
     testRecovery(r'''
 f() {
   print("${42");
@@ -709,6 +797,21 @@ f({a: 0}) {}
 f(a = 0) {}
 ''', [ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP], '''
 f([a = 0]) {}
+''');
+  }
+}
+
+/**
+ * Test how well the parser recovers when tokens are missing in a typedef.
+ */
+@reflectiveTest
+class TypedefTest extends AbstractRecoveryTest {
+  @failingTest
+  void test_missingFunction() {
+    testRecovery('''
+typedef Predicate = bool <E>(E element);
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+typedef Predicate = bool Function<E>(E element);
 ''');
   }
 }

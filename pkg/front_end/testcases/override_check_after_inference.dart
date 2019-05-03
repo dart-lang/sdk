@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=error*/
-
 class A {}
 
 class B extends A {}
@@ -21,7 +19,7 @@ class E extends D {
 }
 
 class F extends D {
-  void f(B /*@error=OverrideTypeMismatchParameter*/ x) {}
+  void f(B x) {}
 }
 
 main() {}

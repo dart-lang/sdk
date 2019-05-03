@@ -15,6 +15,7 @@ namespace dart {
 class Isolate;
 class RawObject;
 class RawFunction;
+class RawTypedDataView;
 
 // An object pointer visitor interface.
 class ObjectPointerVisitor {
@@ -23,6 +24,15 @@ class ObjectPointerVisitor {
   virtual ~ObjectPointerVisitor() {}
 
   Isolate* isolate() const { return isolate_; }
+
+  // Visit pointers inside the given typed data [view].
+  //
+  // Range of pointers to visit 'first' <= pointer <= 'last'.
+  virtual void VisitTypedDataViewPointers(RawTypedDataView* view,
+                                          RawObject** first,
+                                          RawObject** last) {
+    VisitPointers(first, last);
+  }
 
   // Range of pointers to visit 'first' <= pointer <= 'last'.
   virtual void VisitPointers(RawObject** first, RawObject** last) = 0;
@@ -54,27 +64,6 @@ class ObjectVisitor {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ObjectVisitor);
-};
-
-class ExtensibleObjectVisitor : public ObjectVisitor {
- public:
-  explicit ExtensibleObjectVisitor(GrowableArray<ObjectVisitor*>* visitors)
-      : visitors_(visitors) {}
-
-  virtual ~ExtensibleObjectVisitor() {}
-
-  virtual void VisitObject(RawObject* obj) {
-    for (intptr_t i = 0; i < visitors_->length(); i++) {
-      visitors_->At(i)->VisitObject(obj);
-    }
-  }
-
-  void Add(ObjectVisitor* visitor) { visitors_->Add(visitor); }
-
- private:
-  GrowableArray<ObjectVisitor*>* visitors_;
-
-  DISALLOW_COPY_AND_ASSIGN(ExtensibleObjectVisitor);
 };
 
 // An object finder visitor interface.
