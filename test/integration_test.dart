@@ -105,8 +105,9 @@ defineTests() {
       group('.packages', () {
         test('basic', () async {
           // Requires .packages to analyze cleanly.
-          await cli
-              .run(['test/_data/p5', '--packages', 'test/_data/p5/_packages']);
+          await cli.runLinter(
+              ['test/_data/p5', '--packages', 'test/_data/p5/_packages'],
+              LinterOptions([]));
           // Should have 0 issues.
           expect(exitCode, 0);
         });
