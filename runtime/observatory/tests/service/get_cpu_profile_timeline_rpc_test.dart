@@ -28,12 +28,14 @@ Future checkTimeline(Isolate isolate, Map params) async {
 
   var isString = new isInstanceOf<String>();
   var isInt = new isInstanceOf<int>();
-
   Map frames = result['stackFrames'];
   expect(frames.length, greaterThan(10), reason: "Should have many samples");
   for (Map frame in frames.values) {
     expect(frame['category'], isString);
     expect(frame['name'], isString);
+    if (frame['resolvedUrl'] != null) {
+      expect(frame['resolvedUrl'], isString);
+    }
     if (frame['parent'] != null) {
       expect(frames.containsKey(frame['parent']), isTrue);
     }

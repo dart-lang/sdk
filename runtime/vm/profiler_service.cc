@@ -133,6 +133,18 @@ const char* ProfileFunction::Name() const {
   return func_name.ToCString();
 }
 
+const char* ProfileFunction::ResolvedScriptUrl() const {
+  if (function_.IsNull()) {
+    return NULL;
+  }
+  const Script& script = Script::Handle(function_.script());
+  const String& uri = String::Handle(script.resolved_url());
+  if (uri.IsNull()) {
+    return NULL;
+  }
+  return uri.ToCString();
+}
+
 bool ProfileFunction::is_visible() const {
   if (function_.IsNull()) {
     // Some synthetic function.
@@ -2428,9 +2440,15 @@ void Profile::PrintTimelineFrameJSON(JSONObject* frames,
     if (code_trie) {
       ProfileCode* code = GetCode(current->table_index());
       frame.AddProperty("name", code->name());
+      const char* resolved_script_url = NULL;
+      if (code->function() != NULL) {
+        resolved_script_url = code->function()->ResolvedScriptUrl();
+      }
+      frame.AddProperty("resolvedUrl", resolved_script_url);
     } else {
       ProfileFunction* func = GetFunction(current->table_index());
       frame.AddProperty("name", func->Name());
+      frame.AddProperty("resolvedUrl", func->ResolvedScriptUrl());
     }
     if ((parent != NULL) && (parent->frame_id() != kRootFrameId)) {
       ASSERT(parent->frame_id() != -1);
