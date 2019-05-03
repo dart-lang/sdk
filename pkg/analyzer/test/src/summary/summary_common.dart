@@ -83,6 +83,8 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
   /// Get access to the linked defining compilation unit.
   LinkedUnit get definingUnit => linked.units[0];
 
+  FeatureSet get disableNnbd => FeatureSet.forTesting(sdkVersion: '2.2.2');
+
   FeatureSet get enableNnbd =>
       FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
 
@@ -723,25 +725,20 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
   /// declaration needs to refer to types that are not available in core, those
   /// types may be declared in [otherDeclarations].
   EntityRef serializeTypeText(String text,
-      {String otherDeclarations: '',
-      bool allowErrors: false,
-      bool nnbd: false}) {
+      {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
-            allowErrors: allowErrors, nnbd: nnbd)
+            allowErrors: allowErrors)
         .type;
   }
 
   /// Serialize the given library [text] and return the summary of the variable
   /// with the given [variableName].
   UnlinkedVariable serializeVariableText(String text,
-      {String variableName: 'v',
-      bool allowErrors: false,
-      bool nnbd: false,
-      imports: ''}) {
+      {String variableName: 'v', bool allowErrors: false, imports: ''}) {
     if (imports.isNotEmpty && !imports.endsWith('\n')) {
       imports += '\n';
     }
-    serializeLibraryText('$imports$text', allowErrors: allowErrors, nnbd: nnbd);
+    serializeLibraryText('$imports$text', allowErrors: allowErrors);
     return findVariable(variableName, failIfAbsent: true);
   }
 
@@ -1933,8 +1930,9 @@ class C<T> {
   }
 
   test_constExpr_function_type_arg_nullability_suffix_none() {
-    var variable = serializeVariableText('const v = const <void Function()>[];',
-        nnbd: true);
+    featureSet = enableNnbd;
+    var variable =
+        serializeVariableText('const v = const <void Function()>[];');
     assertUnlinkedConst(
         variable.initializer.bodyExpr, 'const <void Function()>[]', operators: [
       UnlinkedExprOperation.makeTypedList
@@ -1947,9 +1945,9 @@ class C<T> {
   }
 
   test_constExpr_function_type_arg_nullability_suffix_question() {
-    var variable = serializeVariableText(
-        'const v = const <void Function()?>[];',
-        nnbd: true);
+    featureSet = enableNnbd;
+    var variable =
+        serializeVariableText('const v = const <void Function()?>[];');
     assertUnlinkedConst(
         variable.initializer.bodyExpr, 'const <void Function()?>[]',
         operators: [
@@ -1965,8 +1963,9 @@ class C<T> {
   }
 
   test_constExpr_function_type_arg_nullability_suffix_star() {
-    var variable = serializeVariableText('const v = const <void Function()>[];',
-        nnbd: false);
+    featureSet = disableNnbd;
+    var variable =
+        serializeVariableText('const v = const <void Function()>[];');
     assertUnlinkedConst(
         variable.initializer.bodyExpr, 'const <void Function()>[]',
         operators: [
@@ -4096,8 +4095,8 @@ const v = p.C.foo;
   }
 
   test_constExpr_type_arg_nullability_suffix_none() {
-    var variable =
-        serializeVariableText('const v = const <int>[];', nnbd: true);
+    featureSet = enableNnbd;
+    var variable = serializeVariableText('const v = const <int>[];');
     assertUnlinkedConst(variable.initializer.bodyExpr, 'const <int>[]',
         operators: [
           UnlinkedExprOperation.makeTypedList
@@ -4113,8 +4112,8 @@ const v = p.C.foo;
   }
 
   test_constExpr_type_arg_nullability_suffix_question() {
-    var variable =
-        serializeVariableText('const v = const <int?>[];', nnbd: true);
+    featureSet = enableNnbd;
+    var variable = serializeVariableText('const v = const <int?>[];');
     assertUnlinkedConst(variable.initializer.bodyExpr, 'const <int?>[]',
         operators: [
           UnlinkedExprOperation.makeTypedList
@@ -4130,8 +4129,8 @@ const v = p.C.foo;
   }
 
   test_constExpr_type_arg_nullability_suffix_star() {
-    var variable =
-        serializeVariableText('const v = const <int>[];', nnbd: false);
+    featureSet = disableNnbd;
+    var variable = serializeVariableText('const v = const <int>[];');
     assertUnlinkedConst(variable.initializer.bodyExpr, 'const <int>[]',
         operators: [
           UnlinkedExprOperation.makeTypedList
@@ -4147,7 +4146,8 @@ const v = p.C.foo;
   }
 
   test_constExpr_type_nullability_suffix_none() {
-    var variable = serializeVariableText('const v = int;', nnbd: true);
+    featureSet = enableNnbd;
+    var variable = serializeVariableText('const v = int;');
     assertUnlinkedConst(variable.initializer.bodyExpr, 'int', operators: [
       UnlinkedExprOperation.pushReference
     ], referenceValidators: [
@@ -4168,7 +4168,8 @@ const v = p.C.foo;
   }
 
   test_constExpr_type_nullability_suffix_star() {
-    var variable = serializeVariableText('const v = int;', nnbd: false);
+    featureSet = disableNnbd;
+    var variable = serializeVariableText('const v = int;');
     assertUnlinkedConst(variable.initializer.bodyExpr, 'int', operators: [
       UnlinkedExprOperation.pushReference
     ], referenceValidators: [
@@ -4179,8 +4180,9 @@ const v = p.C.foo;
   }
 
   test_constExpr_type_prefixed_nullability_suffix_none() {
+    featureSet = enableNnbd;
     var variable = serializeVariableText('const v = core.int;',
-        imports: 'import "dart:core" as core;', nnbd: true);
+        imports: 'import "dart:core" as core;');
     assertUnlinkedConst(variable.initializer.bodyExpr, 'core.int', operators: [
       UnlinkedExprOperation.pushReference
     ], referenceValidators: [
@@ -4204,8 +4206,9 @@ const v = p.C.foo;
   }
 
   test_constExpr_type_prefixed_nullability_suffix_star() {
+    featureSet = disableNnbd;
     var variable = serializeVariableText('const v = core.int;',
-        imports: 'import "dart:core" as core;', nnbd: false);
+        imports: 'import "dart:core" as core;');
     assertUnlinkedConst(variable.initializer.bodyExpr, 'core.int', operators: [
       UnlinkedExprOperation.pushReference
     ], referenceValidators: [
@@ -8864,19 +8867,22 @@ f() {}''';
   }
 
   test_function_type_nullability_suffix_none() {
-    EntityRef typeRef = serializeTypeText('void Function()', nnbd: true);
+    featureSet = enableNnbd;
+    EntityRef typeRef = serializeTypeText('void Function()');
     expect(typeRef.entityKind, EntityRefKind.genericFunctionType);
     expect(typeRef.nullabilitySuffix, EntityRefNullabilitySuffix.none);
   }
 
   test_function_type_nullability_suffix_question() {
-    EntityRef typeRef = serializeTypeText('void Function()?', nnbd: true);
+    featureSet = enableNnbd;
+    EntityRef typeRef = serializeTypeText('void Function()?');
     expect(typeRef.entityKind, EntityRefKind.genericFunctionType);
     expect(typeRef.nullabilitySuffix, EntityRefNullabilitySuffix.question);
   }
 
   test_function_type_nullability_suffix_star() {
-    EntityRef typeRef = serializeTypeText('void Function()', nnbd: false);
+    featureSet = disableNnbd;
+    EntityRef typeRef = serializeTypeText('void Function()');
     expect(typeRef.entityKind, EntityRefKind.genericFunctionType);
     expect(
         typeRef.nullabilitySuffix, EntityRefNullabilitySuffix.starOrIrrelevant);
@@ -10960,19 +10966,22 @@ class C<T> {
   }
 
   test_type_nullability_suffix_none() {
-    EntityRef typeRef = serializeTypeText('int', nnbd: true);
+    featureSet = enableNnbd;
+    EntityRef typeRef = serializeTypeText('int');
     checkTypeRef(typeRef, 'dart:core', 'int',
         nullabilitySuffix: EntityRefNullabilitySuffix.none);
   }
 
   test_type_nullability_suffix_question() {
-    EntityRef typeRef = serializeTypeText('int?', nnbd: true);
+    featureSet = enableNnbd;
+    EntityRef typeRef = serializeTypeText('int?');
     checkTypeRef(typeRef, 'dart:core', 'int',
         nullabilitySuffix: EntityRefNullabilitySuffix.question);
   }
 
   test_type_nullability_suffix_star() {
-    EntityRef typeRef = serializeTypeText('int', nnbd: false);
+    featureSet = disableNnbd;
+    EntityRef typeRef = serializeTypeText('int');
     checkTypeRef(typeRef, 'dart:core', 'int',
         nullabilitySuffix: EntityRefNullabilitySuffix.starOrIrrelevant);
   }

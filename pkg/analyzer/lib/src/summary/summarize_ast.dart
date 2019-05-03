@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -17,8 +18,9 @@ import 'package:analyzer/src/summary/summarize_const_expr.dart';
 /// [serializeInferrableFields] indicates whether field initializers and closure
 /// bodies should be serialized to facilitate type inference.
 UnlinkedUnitBuilder serializeAstUnlinked(CompilationUnit compilationUnit,
-    {bool serializeInferrableFields: true, bool nnbd: false}) {
-  return new _SummarizeAstVisitor(serializeInferrableFields, nnbd)
+    {bool serializeInferrableFields: true}) {
+  return new _SummarizeAstVisitor(serializeInferrableFields,
+          compilationUnit.featureSet.isEnabled(Feature.non_nullable))
       .serializeCompilationUnit(compilationUnit);
 }
 

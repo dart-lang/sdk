@@ -356,8 +356,7 @@ abstract class SummaryBlackBoxTestStrategy extends SummaryBaseTestStrategy {
 
   /// Serialize the given library [text], then deserialize it and store its
   /// summary in [lib].
-  void serializeLibraryText(String text,
-      {bool allowErrors: false, bool nnbd: false});
+  void serializeLibraryText(String text, {bool allowErrors: false});
 }
 
 /// Implementation of [SummaryBlackBoxTestStrategy] that drives summary
@@ -369,9 +368,8 @@ class SummaryBlackBoxTestStrategyPrelink
   bool get skipFullyLinkedData => true;
 
   @override
-  void serializeLibraryText(String text,
-      {bool allowErrors: false, bool nnbd: false}) {
-    super.serializeLibraryText(text, allowErrors: allowErrors, nnbd: nnbd);
+  void serializeLibraryText(String text, {bool allowErrors: false}) {
+    super.serializeLibraryText(text, allowErrors: allowErrors);
 
     UnlinkedUnit getPart(String absoluteUri) {
       return _linkerInputs.getUnit(absoluteUri);
@@ -568,16 +566,15 @@ abstract class _SummaryBaseTestStrategyTwoPhase
     return assembler.assemble();
   }
 
-  UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text,
-          {bool nnbd: false}) =>
-      serializeAstUnlinked(parseText(text, featureSet), nnbd: nnbd);
+  UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text) =>
+      serializeAstUnlinked(parseText(text, featureSet));
 
   _LinkerInputs _createLinkerInputs(String text,
-      {String path: '/test.dart', String uri, bool nnbd: false}) {
+      {String path: '/test.dart', String uri}) {
     uri ??= absUri(path);
     Uri testDartUri = Uri.parse(uri);
     UnlinkedUnitBuilder unlinkedDefiningUnit =
-        createUnlinkedSummary(testDartUri, text, nnbd: nnbd);
+        createUnlinkedSummary(testDartUri, text);
     _filesToLink.uriToUnit[testDartUri.toString()] = unlinkedDefiningUnit;
     _LinkerInputs linkerInputs = new _LinkerInputs(
         _allowMissingFiles,
@@ -618,10 +615,9 @@ abstract class _SummaryBlackBoxTestStrategyTwoPhase
   bool get containsNonConstExprs => true;
 
   @override
-  void serializeLibraryText(String text,
-      {bool allowErrors: false, bool nnbd: false}) {
+  void serializeLibraryText(String text, {bool allowErrors: false}) {
     Map<String, UnlinkedUnitBuilder> uriToUnit = this._filesToLink.uriToUnit;
-    _linkerInputs = _createLinkerInputs(text, nnbd: nnbd);
+    _linkerInputs = _createLinkerInputs(text);
     linked = link(
         _linkerInputs.linkedLibraries,
         _linkerInputs.getDependency,
