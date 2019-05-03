@@ -67,7 +67,7 @@ VM_UNIT_TEST_CASE(Metric_OnDemand) {
         "{\"type\":\"Counter\",\"name\":\"a.b.c\",\"description\":"
         "\"foobar\",\"unit\":\"byte\","
         "\"fixedId\":true,\"id\":\"metrics\\/native\\/a.b.c\""
-        ",\"value\":99.000000}",
+        ",\"value\":99.0}",
         json);
   }
   Dart_ShutdownIsolate();

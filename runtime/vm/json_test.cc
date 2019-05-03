@@ -61,7 +61,7 @@ TEST_CASE(JSON_JSONStream_Primitives) {
       JSONArray jsarr(&js);
       jsarr.AddValue(1.0);
     }
-    EXPECT_STREQ("[1.000000]", js.ToCString());
+    EXPECT_STREQ("[1.0]", js.ToCString());
   }
   {
     JSONStream js;

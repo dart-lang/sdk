@@ -5,6 +5,7 @@
 #include "platform/assert.h"
 
 #include "platform/unicode.h"
+#include "vm/double_conversion.h"
 #include "vm/json_writer.h"
 #include "vm/object.h"
 
@@ -117,8 +118,13 @@ void JSONWriter::PrintValue64(int64_t i) {
 }
 
 void JSONWriter::PrintValue(double d) {
+  // Max length of a double in characters (including \0).
+  // See double_conversion.cc.
+  const size_t kBufferLen = 25;
+  char buffer[kBufferLen];
+  DoubleToCString(d, buffer, kBufferLen);
   PrintCommaIfNeeded();
-  buffer_.Printf("%f", d);
+  buffer_.Printf("%s", buffer);
 }
 
 static const char base64_digits[65] =
