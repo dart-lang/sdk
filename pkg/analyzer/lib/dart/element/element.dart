@@ -1403,9 +1403,10 @@ abstract class ParameterElement
   /// Return `true` if this parameter is an initializing formal parameter.
   bool get isInitializingFormal;
 
-  /// Return `true` if this parameter is a named parameter. Named parameters are
-  /// always optional, even when they are annotated with the `@required`
-  /// annotation.
+  /// Return `true` if this parameter is a named parameter. Named parameters
+  /// that are annotated with the `@required` annotation are considered
+  /// optional.  Named parameters that are annotated with the `required` syntax
+  /// are considered required.
   bool get isNamed;
 
   /// Return `true` if this parameter is a required parameter. Required
@@ -1419,10 +1420,16 @@ abstract class ParameterElement
   bool get isNotOptional;
 
   /// Return `true` if this parameter is an optional parameter. Optional
-  /// parameters can either be positional or named.
+  /// parameters can either be positional or named.  Named parameters that are
+  /// annotated with the `@required` annotation are considered optional.  Named
+  /// parameters that are annotated with the `required` syntax are considered
+  /// required.
   bool get isOptional;
 
   /// Return `true` if this parameter is both an optional and named parameter.
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional.  Named parameters that are annotated with the
+  /// `required` syntax are considered required.
   bool get isOptionalNamed;
 
   /// Return `true` if this parameter is both an optional and positional
@@ -1434,6 +1441,9 @@ abstract class ParameterElement
   bool get isPositional;
 
   /// Return `true` if this parameter is both a required and named parameter.
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional.  Named parameters that are annotated with the
+  /// `required` syntax are considered required.
   bool get isRequiredNamed;
 
   /// Return `true` if this parameter is both a required and positional
