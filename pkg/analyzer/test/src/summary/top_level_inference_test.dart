@@ -497,8 +497,8 @@ var uFuture = () async => await fFuture();
 ''');
     checkElementText(library, r'''
 import 'dart:async';
-() → Future<int> uValue;
-() → Future<int> uFuture;
+Future<int> Function() uValue;
+Future<int> Function() uFuture;
 int fValue() {}
 Future<int> fFuture() async {}
 ''');
@@ -786,11 +786,11 @@ var v_async_returnFuture = () async => vFuture;
     checkElementText(library, r'''
 import 'dart:async';
 Future<int> vFuture;
-() → int v_noParameters_inferredReturnType;
-(String) → int v_hasParameter_withType_inferredReturnType;
-(String) → String v_hasParameter_withType_returnParameter;
-() → Future<int> v_async_returnValue;
-() → Future<int> v_async_returnFuture;
+int Function() v_noParameters_inferredReturnType;
+int Function(String) v_hasParameter_withType_inferredReturnType;
+String Function(String) v_hasParameter_withType_returnParameter;
+Future<int> Function() v_async_returnValue;
+Future<int> Function() v_async_returnFuture;
 ''');
   }
 
@@ -858,14 +858,14 @@ class A {
   String instanceClassMethod(int p) {}
 }
 int topLevelVariable;
-(int) → String r_topLevelFunction;
+String Function(int) r_topLevelFunction;
 int r_topLevelVariable;
 int r_topLevelGetter;
 int r_staticClassVariable;
 int r_staticGetter;
-(int) → String r_staticClassMethod;
+String Function(int) r_staticClassMethod;
 A instanceOfA;
-(int) → String r_instanceClassMethod;
+String Function(int) r_instanceClassMethod;
 int get topLevelGetter {}
 String topLevelFunction(int p) {}
 ''');
@@ -1979,12 +1979,12 @@ class B extends A<int> {
     checkElementText(library, r'''
 typedef F<T> = dynamic Function();
 class A<T> {
-  () → dynamic get x {}
-  List<() → dynamic> get y {}
+  dynamic Function() get x {}
+  List<dynamic Function()> get y {}
 }
 class B extends A<int> {
-  () → dynamic get x {}
-  List<() → dynamic> get y {}
+  dynamic Function() get x {}
+  List<dynamic Function()> get y {}
 }
 ''');
   }

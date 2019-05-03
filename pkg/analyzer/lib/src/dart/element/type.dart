@@ -680,6 +680,9 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes,
       {bool withNullability = false}) {
+    // TODO(paulberry): update to use the new "Function" syntax to avoid
+    // ambiguity with NNBD, and eliminate code duplication with
+    // _ElementWriter.writeType.  See issue #35818.
     if (visitedTypes.add(this)) {
       if (typeFormals.isNotEmpty) {
         // To print a type with type variables, first make sure we have unique

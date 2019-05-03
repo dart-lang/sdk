@@ -922,6 +922,27 @@ class _ElementWriter {
       if (type.element.typeParameters.isNotEmpty) {
         writeList('<', '>', type.typeArguments, ', ', writeType);
       }
+    } else if (type is CircularFunctionTypeImpl) {
+      buffer.write('...');
+    } else if (type is FunctionType) {
+      writeType2(type.returnType);
+      buffer.write('Function');
+      writeTypeParameterElements(type.typeFormals);
+      buffer.write('(');
+      bool commaNeeded = false;
+      commaNeeded = _writeParameters(
+          type.parameters.where((p) => p.isRequiredPositional),
+          commaNeeded,
+          '',
+          '');
+      commaNeeded = _writeParameters(
+          type.parameters.where((p) => p.isOptionalPositional),
+          commaNeeded,
+          '[',
+          ']');
+      commaNeeded = _writeParameters(
+          type.parameters.where((p) => p.isNamed), commaNeeded, '{', '}');
+      buffer.write(')');
     } else {
       buffer.write(type.displayName);
     }
@@ -1033,6 +1054,32 @@ class _ElementWriter {
       }
     }
     return components.join(';');
+  }
+
+  bool _writeParameters(Iterable<ParameterElement> parameters, bool commaNeeded,
+      String prefix, String suffix) {
+    if (parameters.isEmpty) return commaNeeded;
+    if (commaNeeded) {
+      buffer.write(', ');
+      commaNeeded = false;
+    }
+    buffer.write(prefix);
+    for (var parameter in parameters) {
+      if (commaNeeded) {
+        buffer.write(', ');
+      }
+      if (parameter.isRequiredNamed) {
+        buffer.write('required ');
+      }
+      writeType(parameter.type);
+      if (parameter.isNamed) {
+        buffer.write(' ');
+        buffer.write(parameter.name);
+      }
+      commaNeeded = true;
+    }
+    buffer.write(suffix);
+    return commaNeeded;
   }
 }
 

@@ -605,7 +605,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C((double) → dynamic this.x/*(double b)*/);
+  C(dynamic Function(double) this.x/*(double b)*/);
 }
 ''');
   }
@@ -620,7 +620,7 @@ class C {
     checkElementText(library, r'''
 class C {
   dynamic x;
-  C((double) → int this.x/*(double b)*/);
+  C(int Function(double) this.x/*(double b)*/);
 }
 ''');
   }
@@ -1293,7 +1293,7 @@ typedef F(C value);
 ''');
     checkElementText(library, r'''
 notSimplyBounded typedef F = dynamic Function(C<dynamic> value);
-notSimplyBounded class C<T extends (C<dynamic>) → dynamic> {
+notSimplyBounded class C<T extends dynamic Function(C<dynamic>)> {
 }
 ''');
   }
@@ -1378,7 +1378,7 @@ notSimplyBounded class D<T extends D<T>> {
 class C<T extends void Function(T)> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends (T) → void> {
+notSimplyBounded class C<T extends void Function(T)> {
 }
 ''');
   }
@@ -1388,7 +1388,7 @@ notSimplyBounded class C<T extends (T) → void> {
 class C<T extends T Function()> {}
 ''');
     checkElementText(library, r'''
-notSimplyBounded class C<T extends () → T> {
+notSimplyBounded class C<T extends T Function()> {
 }
 ''');
   }
@@ -1398,7 +1398,7 @@ notSimplyBounded class C<T extends () → T> {
 class C<T extends void Function()> {}
 ''');
     checkElementText(library, r'''
-class C<T extends () → void> {
+class C<T extends void Function()> {
 }
 ''');
   }
@@ -1414,16 +1414,16 @@ typedef G(F value);
 ''');
     if (isAstBasedSummary) {
       checkElementText(library, r'''
-notSimplyBounded typedef F = dynamic Function(((dynamic) → dynamic) → dynamic value);
-notSimplyBounded typedef G = dynamic Function((dynamic) → dynamic value);
-notSimplyBounded class C<T extends (((dynamic) → dynamic) → dynamic) → dynamic> {
+notSimplyBounded typedef F = dynamic Function(dynamic Function(dynamic Function(dynamic)) value);
+notSimplyBounded typedef G = dynamic Function(dynamic Function(dynamic) value);
+notSimplyBounded class C<T extends dynamic Function(dynamic Function(dynamic Function(dynamic)))> {
 }
 ''');
     } else {
       checkElementText(library, r'''
-notSimplyBounded typedef F = dynamic Function(((...) → dynamic) → dynamic value);
-notSimplyBounded typedef G = dynamic Function(((...) → dynamic) → dynamic value);
-notSimplyBounded class C<T extends ((...) → dynamic) → dynamic> {
+notSimplyBounded typedef F = dynamic Function(dynamic Function(dynamic Function(...)) value);
+notSimplyBounded typedef G = dynamic Function(dynamic Function(dynamic Function(...)) value);
+notSimplyBounded class C<T extends dynamic Function(dynamic Function(...))> {
 }
 ''');
     }
@@ -1686,7 +1686,7 @@ dynamic f() {}
 final f = <U, V>(U x, V y) => y;
 ''');
     checkElementText(library, r'''
-final <U,V>(U, V) → V f;
+final V Function<U, V>(U, V) f;
 ''');
   }
 
@@ -1702,7 +1702,7 @@ part 'a.dart';
 --------------------
 unit: a.dart
 
-final (int) → double f;
+final double Function(int) f;
 ''');
   }
 
@@ -2975,7 +2975,7 @@ const v = C.length;
 class C {
   static int length() {}
 }
-const () → int v =
+const int Function() v =
         C/*location: test.dart;C*/.
         length/*location: test.dart;C;length*/;
 ''');
@@ -3312,7 +3312,7 @@ const V = C.m;
 class C {
   static int m(int a, String b) {}
 }
-const (int, String) → int V =
+const int Function(int, String) V =
         C/*location: test.dart;C*/.
         m/*location: test.dart;C;m*/;
 ''');
@@ -3330,7 +3330,7 @@ const V = C.m;
 ''');
     checkElementText(library, r'''
 import 'a.dart';
-const (int, String) → int V =
+const int Function(int, String) V =
         C/*location: a.dart;C*/.
         m/*location: a.dart;C;m*/;
 ''');
@@ -3348,7 +3348,7 @@ const V = p.C.m;
 ''');
     checkElementText(library, r'''
 import 'a.dart' as p;
-const (int, String) → int V =
+const int Function(int, String) V =
         p/*location: test.dart;p*/.
         C/*location: a.dart;C*/.
         m/*location: a.dart;C;m*/;
@@ -3361,7 +3361,7 @@ foo() {}
 const V = foo;
 ''');
     checkElementText(library, r'''
-const () → dynamic V =
+const dynamic Function() V =
         foo/*location: test.dart;foo*/;
 dynamic foo() {}
 ''');
@@ -3373,7 +3373,7 @@ R foo<P, R>(P p) {}
 const V = foo;
 ''');
     checkElementText(library, r'''
-const <P,R>(P) → R V =
+const R Function<P, R>(P) V =
         foo/*location: test.dart;foo*/;
 R foo<P, R>(P p) {}
 ''');
@@ -3389,7 +3389,7 @@ const V = foo;
 ''');
     checkElementText(library, r'''
 import 'a.dart';
-const () → dynamic V =
+const dynamic Function() V =
         foo/*location: a.dart;foo*/;
 ''');
   }
@@ -3404,7 +3404,7 @@ const V = p.foo;
 ''');
     checkElementText(library, r'''
 import 'a.dart' as p;
-const () → dynamic V =
+const dynamic Function() V =
         p/*location: test.dart;p*/.
         foo/*location: a.dart;foo*/;
 ''');
@@ -3508,7 +3508,7 @@ class C {
     checkElementText(library, r'''
 typedef F = dynamic Function();
 class C {
-  final List<() → dynamic> f;
+  final List<dynamic Function()> f;
 }
 ''');
   }
@@ -3954,7 +3954,7 @@ const v = const <F>[];
     if (isAstBasedSummary) {
       checkElementText(library, r'''
 typedef F = int Function(String id);
-const List<(String) → int> v = const <
+const List<int Function(String)> v = const <
         F/*location: test.dart;F*/>[];
 ''');
     } else {
@@ -3962,7 +3962,7 @@ const List<(String) → int> v = const <
       // `F` must be the reference to `typedef F` element, not the type.
       checkElementText(library, r'''
 typedef F = int Function(String id);
-const List<(String) → int> v = const <
+const List<int Function(String)> v = const <
         null/*location: test.dart;F;-*/>[];
 ''');
     }
@@ -4111,7 +4111,7 @@ class C {
     if (isAstBasedSummary) {
       checkElementText(library, r'''
 class C {
-  static const () → dynamic a =
+  static const dynamic Function() a =
         m/*location: test.dart;C;m*/;
   static dynamic m() {}
 }
@@ -4119,7 +4119,7 @@ class C {
     } else {
       checkElementText(library, r'''
 class C {
-  static const () → dynamic a =
+  static const dynamic Function() a =
         C/*location: test.dart;C*/.
         m/*location: test.dart;C;m*/;
   static dynamic m() {}
@@ -4863,8 +4863,8 @@ class X {
     checkElementText(library, r'''
 typedef F<T> = void Function(T v);
 class X {
-  final (dynamic) → void f;
-  const X({(dynamic) → void this.f:
+  final void Function(dynamic) f;
+  const X({void Function(dynamic) this.f:
         defaultF/*location: test.dart;defaultF*/});
 }
 void defaultF<T>(T v) {}
@@ -5233,7 +5233,7 @@ main(F f) {}
 ''');
     checkElementText(library, r'''
 typedef F = dynamic Function(int p);
-dynamic main((int) → dynamic f) {}
+dynamic main(dynamic Function(int) f) {}
 ''');
   }
 
@@ -5868,21 +5868,21 @@ dynamic f(dynamic x) {}
   test_function_parameter_parameters() async {
     var library = await checkLibrary('f(g(x, y)) {}');
     checkElementText(library, r'''
-dynamic f((dynamic, dynamic) → dynamic g/*(dynamic x, dynamic y)*/) {}
+dynamic f(dynamic Function(dynamic, dynamic) g/*(dynamic x, dynamic y)*/) {}
 ''');
   }
 
   test_function_parameter_return_type() async {
     var library = await checkLibrary('f(int g()) {}');
     checkElementText(library, r'''
-dynamic f(() → int g) {}
+dynamic f(int Function() g) {}
 ''');
   }
 
   test_function_parameter_return_type_void() async {
     var library = await checkLibrary('f(void g()) {}');
     checkElementText(library, r'''
-dynamic f(() → void g) {}
+dynamic f(void Function() g) {}
 ''');
   }
 
@@ -5931,7 +5931,7 @@ T f<T, U>(U u) {}
   test_function_type_parameter_with_function_typed_parameter() async {
     var library = await checkLibrary('void f<T, U>(T x(U u)) {}');
     checkElementText(library, r'''
-void f<T, U>((U) → T x/*(U u)*/) {}
+void f<T, U>(T Function(U) x/*(U u)*/) {}
 ''');
   }
 
@@ -6021,7 +6021,7 @@ class C<T, U> {
 int Function(int a, String b) f() => null;
 ''');
     checkElementText(library, r'''
-(int, String) → int f() {}
+int Function(int, String) f() {}
 ''');
   }
 
@@ -6030,7 +6030,7 @@ int Function(int a, String b) f() => null;
 void f(int Function(int a, String b) p(num c)) => null;
 ''');
     checkElementText(library, r'''
-void f((num) → (int, String) → int p/*(num c)*/) {}
+void f(int Function(int, String) Function(num) p/*(num c)*/) {}
 ''');
   }
 
@@ -6039,7 +6039,7 @@ void f((num) → (int, String) → int p/*(num c)*/) {}
 typedef F = void Function(String a) Function(int b);
 ''');
     checkElementText(library, r'''
-typedef F = (String) → void Function(int b);
+typedef F = void Function(String) Function(int b);
 ''');
   }
 
@@ -6051,7 +6051,7 @@ class C {
 ''');
     checkElementText(library, r'''
 class C {
-  (int, String) → int m() {}
+  int Function(int, String) m() {}
 }
 ''');
   }
@@ -6061,7 +6061,7 @@ class C {
 void f(int Function(int a, String b) p) => null;
 ''');
     checkElementText(library, r'''
-void f((int, String) → int p) {}
+void f(int Function(int, String) p) {}
 ''');
   }
 
@@ -6070,7 +6070,7 @@ void f((int, String) → int p) {}
 int Function(int a, String b) v;
 ''');
     checkElementText(library, r'''
-(int, String) → int v;
+int Function(int, String) v;
 ''');
   }
 
@@ -6367,7 +6367,7 @@ const x = const C(f);
     checkElementText(library, '''
 typedef F<T> = D<T, U> Function<U>();
 class C<V> {
-  const C(<U>() → D<V, U> f);
+  const C(D<V, U> Function<U>() f);
 }
 class D<T, U> {
 }
@@ -6391,7 +6391,7 @@ const x = const C(f);
     checkElementText(library, '''
 typedef F = D<T> Function<T>();
 class C {
-  const C(<T>() → D<T> f);
+  const C(D<T> Function<T>() f);
 }
 class D<T> {
 }
@@ -6616,10 +6616,10 @@ int d;
     checkElementText(library, r'''
 typedef F = int Function(String s);
 class C extends D {
-  (String) → int v;
+  int Function(String) v;
 }
 abstract class D {
-  (String) → int get v;
+  int Function(String) get v;
 }
 ''');
   }
@@ -6650,9 +6650,9 @@ h(F f) => null;
 var v = h(/*info:INFERRED_TYPE_CLOSURE*/(y) {});
 ''');
     checkElementText(library, r'''
-typedef F = void Function((String) → int g/*(String s)*/);
+typedef F = void Function(int Function(String) g/*(String s)*/);
 dynamic v;
-dynamic h(((String) → int) → void f) {}
+dynamic h(void Function(int Function(String)) f) {}
 ''');
   }
 
@@ -6666,10 +6666,10 @@ abstract class D<V, W> {
 }''');
     checkElementText(library, r'''
 class C<T, U> extends D<U, int> {
-  void f(int x, (U) → int g) {}
+  void f(int x, int Function(U) g) {}
 }
 abstract class D<V, W> {
-  void f(int x, (V) → W g/*(V s)*/);
+  void f(int x, W Function(V) g/*(V s)*/);
 }
 ''');
   }
@@ -6693,7 +6693,7 @@ class C extends D {
     checkElementText(library, r'''
 import 'a.dart';
 class C extends D {
-  void f(int x, (String) → int g) {}
+  void f(int x, int Function(String) g) {}
 }
 ''');
   }
@@ -6703,10 +6703,10 @@ class C extends D {
         ' abstract class D { void f(int x, int g(String s)); }');
     checkElementText(library, r'''
 class C extends D {
-  void f(int x, (String) → int g) {}
+  void f(int x, int Function(String) g) {}
 }
 abstract class D {
-  void f(int x, (String) → int g/*(String s)*/);
+  void f(int x, int Function(String) g/*(String s)*/);
 }
 ''');
   }
@@ -6718,7 +6718,7 @@ var v = f((x, y) {});
 ''');
     checkElementText(library, r'''
 dynamic v;
-dynamic f((int, () → void) → void g/*(int x, () → void h)*/) {}
+dynamic f(void Function(int, void Function()) g/*(int x, void Function() h)*/) {}
 ''');
   }
 
@@ -6729,7 +6729,7 @@ var v = f(g: (x, y) {});
 ''');
     checkElementText(library, r'''
 dynamic v;
-dynamic f({(int, () → void) → void g/*(int x, () → void h)*/}) {}
+dynamic f({void Function(int, void Function()) g/*(int x, void Function() h)*/}) {}
 ''');
   }
 
@@ -6738,10 +6738,10 @@ dynamic f({(int, () → void) → void g/*(int x, () → void h)*/}) {}
         ' abstract class D { void set f(int g(String s)); }');
     checkElementText(library, r'''
 class C extends D {
-  void set f((String) → int g) {}
+  void set f(int Function(String) g) {}
 }
 abstract class D {
-  void set f((String) → int g/*(String s)*/);
+  void set f(int Function(String) g/*(String s)*/);
 }
 ''');
   }
@@ -6823,9 +6823,9 @@ String g(int x(String y)) => null;
 var v = [f, g];
 ''');
     checkElementText(library, r'''
-List<((String) → int) → Object> v;
-int f((String) → int x/*(String y)*/) {}
-String g((String) → int x/*(String y)*/) {}
+List<Object Function(int Function(String))> v;
+int f(int Function(String) x/*(String y)*/) {}
+String g(int Function(String) x/*(String y)*/) {}
 ''');
   }
 
@@ -6863,14 +6863,14 @@ abstract class D extends C {
   test_initializer_executable_with_return_type_from_closure() async {
     var library = await checkLibrary('var v = () => 0;');
     checkElementText(library, r'''
-() → int v;
+int Function() v;
 ''');
   }
 
   test_initializer_executable_with_return_type_from_closure_await_dynamic() async {
     var library = await checkLibrary('var v = (f) async => await f;');
     checkElementText(library, r'''
-(dynamic) → Future<dynamic> v;
+Future<dynamic> Function(dynamic) v;
 ''');
   }
 
@@ -6882,7 +6882,7 @@ var v = (Future<Future<Future<int>>> f) async => await f;
     // The analyzer type system over-flattens - see dartbug.com/31887
     checkElementText(library, r'''
 import 'dart:async';
-(Future<Future<Future<int>>>) → Future<int> v;
+Future<int> Function(Future<Future<Future<int>>>) v;
 ''');
   }
 
@@ -6893,7 +6893,7 @@ var v = (Future<int> f) async => await f;
 ''');
     checkElementText(library, r'''
 import 'dart:async';
-(Future<int>) → Future<int> v;
+Future<int> Function(Future<int>) v;
 ''');
   }
 
@@ -6904,7 +6904,7 @@ var v = (Future f) async => await f;
 ''');
     checkElementText(library, r'''
 import 'dart:async';
-(Future<dynamic>) → Future<dynamic> v;
+Future<dynamic> Function(Future<dynamic>) v;
 ''');
   }
 
@@ -6916,7 +6916,7 @@ class C {
 ''');
     checkElementText(library, r'''
 class C {
-  () → int v;
+  int Function() v;
 }
 ''');
   }
@@ -6994,7 +6994,7 @@ class C {
     checkElementText(library, r'''
 import 'b.dart';
 class C {
-  (O) → O f() {}
+  O Function(O) f() {}
 }
 ''');
   }
@@ -7006,7 +7006,7 @@ F f;
 ''');
     checkElementText(library, r'''
 typedef F<T extends num> = dynamic Function(T p);
-(num) → dynamic f;
+dynamic Function(num) f;
 ''');
   }
 
@@ -7017,7 +7017,7 @@ F f;
 ''');
     checkElementText(library, r'''
 typedef F<T extends num> = S Function<S>(T p);
-<S>(num) → S f;
+S Function<S>(num) f;
 ''');
   }
 
@@ -7824,7 +7824,7 @@ const dynamic a = null;
     checkElementText(library, r'''
 const dynamic a = null;
 dynamic f(@
-        a/*location: test.dart;a?*/ () → dynamic g) {}
+        a/*location: test.dart;a?*/ dynamic Function() g) {}
 ''');
   }
 
@@ -7833,7 +7833,7 @@ dynamic f(@
     checkElementText(library, r'''
 const dynamic a = null;
 dynamic f([@
-        a/*location: test.dart;a?*/ () → dynamic g = null]) {}
+        a/*location: test.dart;a?*/ dynamic Function() g = null]) {}
 ''');
   }
 
@@ -8198,7 +8198,7 @@ class C<T, U> {
     var library = await checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
     checkElementText(library, r'''
 class C {
-  void f<T, U>((U) → T x/*(U u)*/) {}
+  void f<T, U>(T Function(U) x/*(U u)*/) {}
 }
 ''');
   }
@@ -8428,7 +8428,7 @@ void f<T, U>() {}
 typedef F<T extends F> = void Function();
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends () → void> = void Function();
+notSimplyBounded typedef F<T extends void Function()> = void Function();
 ''');
   }
 
@@ -8455,7 +8455,7 @@ typedef F = void Function();
 typedef void F<T extends F>();
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends () → void> = void Function();
+notSimplyBounded typedef F<T extends void Function()> = void Function();
 ''');
   }
 
@@ -8599,7 +8599,7 @@ class B<T> extends A<T> {
     var library = await checkLibrary('class C { f(g(x, y)) {} }');
     checkElementText(library, r'''
 class C {
-  dynamic f((dynamic, dynamic) → dynamic g/*(dynamic x, dynamic y)*/) {}
+  dynamic f(dynamic Function(dynamic, dynamic) g/*(dynamic x, dynamic y)*/) {}
 }
 ''');
   }
@@ -8608,7 +8608,7 @@ class C {
     var library = await checkLibrary('class C<A, B> { f(A g(B x)) {} }');
     checkElementText(library, r'''
 class C<A, B> {
-  dynamic f((B) → A g/*(B x)*/) {}
+  dynamic f(A Function(B) g/*(B x)*/) {}
 }
 ''');
   }
@@ -8617,7 +8617,7 @@ class C<A, B> {
     var library = await checkLibrary('class C { f(int g()) {} }');
     checkElementText(library, r'''
 class C {
-  dynamic f(() → int g) {}
+  dynamic f(int Function() g) {}
 }
 ''');
   }
@@ -8626,7 +8626,7 @@ class C {
     var library = await checkLibrary('class C { f(void g()) {} }');
     checkElementText(library, r'''
 class C {
-  dynamic f(() → void g) {}
+  dynamic f(void Function() g) {}
 }
 ''');
   }
@@ -8867,7 +8867,7 @@ final v = f() ? <T>(T t) => 0 : <T>(T t) => 1;
 bool f() => true;
 ''');
     checkElementText(library, r'''
-final (Never) → int v;
+final int Function(Never) v;
 bool f() {}
 ''');
   }
@@ -8892,7 +8892,7 @@ bool f() => false;
 ''');
     checkElementText(library, r'''
 class C<T, U> {
-  (T, U) → int v;
+  int Function(T, U) v;
 }
 bool f() {}
 ''');
@@ -8915,7 +8915,7 @@ final v = f() ? () => 0 : () => 1;
 bool f() => true;
 ''');
     checkElementText(library, r'''
-final () → int v;
+final int Function() v;
 bool f() {}
 ''');
   }
@@ -8926,7 +8926,7 @@ final v = f() ? (int x, String y) => 0 : (int x, String y) => 1;
 bool f() => true;
 ''');
     checkElementText(library, r'''
-final (int, String) → int v;
+final int Function(int, String) v;
 bool f() {}
 ''');
   }
@@ -8981,7 +8981,7 @@ var x = a.loadLibrary;
 ''');
     checkElementText(library, '''
 import 'a.dart' deferred as a;
-() → Future<dynamic> x;
+Future<dynamic> Function() x;
 ''');
   }
 
@@ -8990,7 +8990,7 @@ import 'a.dart' deferred as a;
 var x = (int f(String x)) => 0;
 ''');
     checkElementText(library, '''
-((String) → int) → int x;
+int Function(int Function(String)) x;
 ''');
   }
 
@@ -8999,7 +8999,7 @@ var x = (int f(String x)) => 0;
 var x = (int Function(String) f) => 0;
 ''');
     checkElementText(library, '''
-((String) → int) → int x;
+int Function(int Function(String)) x;
 ''');
   }
 
@@ -9036,7 +9036,7 @@ dynamic v;
 var x = (t) => (u) => t + u;
 ''');
     checkElementText(library, '''
-(dynamic) → (dynamic) → dynamic x;
+dynamic Function(dynamic) Function(dynamic) x;
 ''');
   }
 
@@ -9045,7 +9045,7 @@ var x = (t) => (u) => t + u;
 var x = (int t) => (int u) => t + u;
 ''');
     checkElementText(library, '''
-(int) → (int) → int x;
+int Function(int) Function(int) x;
 ''');
   }
 
@@ -9054,7 +9054,7 @@ var x = (int t) => (int u) => t + u;
 var x = ([y: 0]) => y;
 ''');
     checkElementText(library, '''
-([dynamic]) → dynamic x;
+dynamic Function([dynamic]) x;
 ''');
   }
 
@@ -9129,7 +9129,7 @@ class C {
 }
 C c;
 E e;
-() → dynamic f;
+dynamic Function() f;
 ''');
   }
 
@@ -9142,7 +9142,7 @@ library l;
 part 'a.dart';
 C c;
 E e;
-() → dynamic f;
+dynamic Function() f;
 --------------------
 unit: a.dart
 
@@ -9179,7 +9179,7 @@ unit: a.dart
 
 C c;
 E e;
-() → dynamic f;
+dynamic Function() f;
 ''');
   }
 
@@ -9209,7 +9209,7 @@ unit: b.dart
 
 C c;
 E e;
-() → dynamic f;
+dynamic Function() f;
 ''');
   }
 
@@ -9234,7 +9234,7 @@ class C {
 }
 C c;
 E e;
-() → dynamic f;
+dynamic Function() f;
 ''');
   }
 
@@ -9285,7 +9285,7 @@ E e;
 import 'a.dart';
 C c;
 E e;
-() → dynamic f;
+dynamic Function() f;
 ''');
   }
 
@@ -9297,7 +9297,7 @@ E e;
 import 'a.dart';
 C c;
 E e;
-() → dynamic f;
+dynamic Function() f;
 ''');
   }
 
@@ -9310,7 +9310,7 @@ E e;
 import 'a.dart';
 C c;
 E e;
-() → dynamic f;
+dynamic Function() f;
 ''');
   }
 
@@ -9323,7 +9323,7 @@ E e;
 import 'a.dart';
 C c;
 E e;
-() → dynamic f;
+dynamic Function() f;
 ''');
   }
 
@@ -9335,7 +9335,7 @@ E e;
 import 'a.dart';
 C c;
 E e;
-() → dynamic f;
+dynamic Function() f;
 ''');
   }
 
@@ -9347,7 +9347,7 @@ E e;
 import 'a.dart';
 C c;
 E e;
-() → dynamic f;
+dynamic Function() f;
 ''');
   }
 
@@ -9371,7 +9371,7 @@ C2 c2;
 import 'b.dart';
 C c;
 E e;
-() → dynamic f;
+dynamic Function() f;
 ''');
   }
 
@@ -9382,7 +9382,7 @@ E e;
 import 'a.dart';
 C c;
 E e;
-() → dynamic f;
+dynamic Function() f;
 ''');
   }
 
@@ -9390,7 +9390,7 @@ E e;
     var library = await checkLibrary('typedef F(); F f;');
     checkElementText(library, r'''
 typedef F = dynamic Function();
-() → dynamic f;
+dynamic Function() f;
 ''');
   }
 
@@ -9399,7 +9399,7 @@ typedef F = dynamic Function();
         await checkLibrary('typedef U F<T, U>(T t); F<int, String> f;');
     checkElementText(library, r'''
 typedef F<T, U> = U Function(T t);
-(int) → String f;
+String Function(int) f;
 ''');
   }
 
@@ -9407,7 +9407,7 @@ typedef F<T, U> = U Function(T t);
     var library = await checkLibrary('typedef U F<T, U>(T t); F f;');
     checkElementText(library, r'''
 typedef F<T, U> = U Function(T t);
-(dynamic) → dynamic f;
+dynamic Function(dynamic) f;
 ''');
   }
 
@@ -9446,7 +9446,7 @@ typedef F = dynamic Function();
     var library = await checkLibrary(
         'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);');
     checkElementText(library, r'''
-typedef F<T> = int Function<S>(List<S> list, <A>(A) → num , T );
+typedef F<T> = int Function<S>(List<S> list, num Function<A>(A) , T );
 ''');
   }
 
@@ -9460,7 +9460,7 @@ class A {
     checkElementText(library, r'''
 typedef Foo<S> = S Function<T>(T x);
 class A {
-  <T>(T) → int f;
+  int Function<T>(T) f;
 }
 ''');
   }
@@ -9549,21 +9549,21 @@ notSimplyBounded class C<T extends C<T>> {
   test_typedef_parameter_parameters() async {
     var library = await checkLibrary('typedef F(g(x, y));');
     checkElementText(library, r'''
-typedef F = dynamic Function((dynamic, dynamic) → dynamic g/*(dynamic x, dynamic y)*/);
+typedef F = dynamic Function(dynamic Function(dynamic, dynamic) g/*(dynamic x, dynamic y)*/);
 ''');
   }
 
   test_typedef_parameter_parameters_in_generic_class() async {
     var library = await checkLibrary('typedef F<A, B>(A g(B x));');
     checkElementText(library, r'''
-typedef F<A, B> = dynamic Function((B) → A g/*(B x)*/);
+typedef F<A, B> = dynamic Function(A Function(B) g/*(B x)*/);
 ''');
   }
 
   test_typedef_parameter_return_type() async {
     var library = await checkLibrary('typedef F(int g());');
     checkElementText(library, r'''
-typedef F = dynamic Function(() → int g);
+typedef F = dynamic Function(int Function() g);
 ''');
   }
 
@@ -9644,7 +9644,7 @@ class D {
     var library = await checkLibrary('typedef void F<T extends F>();');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends () → void> = void Function();
+notSimplyBounded typedef F<T extends void Function()> = void Function();
 ''');
   }
 
@@ -9652,7 +9652,7 @@ notSimplyBounded typedef F<T extends () → void> = void Function();
     var library = await checkLibrary('typedef void F<T extends List<F>>();');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
-notSimplyBounded typedef F<T extends List<() → void>> = void Function();
+notSimplyBounded typedef F<T extends List<void Function()>> = void Function();
 ''');
   }
 
@@ -9908,7 +9908,7 @@ class C<T> {
   void f() {}
 }
 C<int> c;
-() → void v;
+void Function() v;
 ''');
   }
 
