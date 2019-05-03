@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/rules/prefer_single_quotes.dart';
 
 const _desc =
     r"Prefer double quotes where they won't require escape sequences.";
@@ -54,94 +53,8 @@ class PreferDoubleQuotes extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = new QuoteVisitor(this, useSingle: false);
     registry.addSimpleStringLiteral(this, visitor);
     registry.addStringInterpolation(this, visitor);
-  }
-}
-
-/// The only way to get immediate children in a unified, typesafe way, is to
-/// call visitChildren on that node, and pass in a visitor. This collects at the
-/// top level and stops.
-class _ImmediateChildrenVisitor extends UnifyingAstVisitor {
-  final _children = <AstNode>[];
-
-  @override
-  visitNode(AstNode node) {
-    _children.add(node);
-  }
-
-  static List<AstNode> childrenOf(AstNode node) {
-    final visitor = new _ImmediateChildrenVisitor();
-    node.visitChildren(visitor);
-    return visitor._children;
-  }
-}
-
-/// Do a top-down analysis to search for string nodes. Note, do not pass in
-/// string nodes directly to this visitor, or you will always get true. Pass in
-/// its children.
-class _IsOrContainsStringVisitor extends UnifyingAstVisitor<bool> {
-  /// Different way to express `accept` in a way that's clearer in this visitor.
-  bool isOrContainsString(AstNode node) => node.accept(this);
-
-  /// Scan as little of the tree as possible, by bailing out on first match. For
-  /// all leaf nodes, they will either have a method defined here and return
-  /// true, or they will return false because leaves have no children.
-  @override
-  bool visitNode(AstNode node) =>
-      _ImmediateChildrenVisitor.childrenOf(node).any(isOrContainsString);
-
-  @override
-  bool visitSimpleStringLiteral(SimpleStringLiteral string) => true;
-
-  @override
-  bool visitStringInterpolation(StringInterpolation string) => true;
-}
-
-class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
-
-  _Visitor(this.rule);
-
-  /// Strings interpolations can contain other string nodes. Check like this.
-  bool containsString(StringInterpolation string) {
-    final checkHasString = new _IsOrContainsStringVisitor();
-    return string.elements.any((child) => child.accept(checkHasString));
-  }
-
-  /// Strings can be within interpolations (ie, nested). Check like this.
-  bool isNestedString(AstNode node) =>
-      // careful: node.getAncestor will check the node itself.
-      node.parent?.thisOrAncestorOfType<StringInterpolation>() != null;
-
-  @override
-  void visitSimpleStringLiteral(SimpleStringLiteral string) {
-    if (!string.isSingleQuoted || string.value.contains('"')) {
-      return;
-    }
-
-    // Bail out on 'strings ${x ? "containing" : "other"} strings'
-    if (!isNestedString(string)) {
-      rule.reportLintForToken(string.literal);
-    }
-  }
-
-  @override
-  void visitStringInterpolation(StringInterpolation node) {
-    if (!node.isSingleQuoted) {
-      return;
-    }
-
-    // slightly more complicated check there are no single quotes
-    if (node.elements
-        .any((e) => e is InterpolationString && e.value.contains('"'))) {
-      return;
-    }
-
-    // Bail out on "strings ${x ? 'containing' : 'other'} strings"
-    if (!containsString(node) && !isNestedString(node)) {
-      rule.reportLint(node);
-    }
   }
 }
