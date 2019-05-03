@@ -956,11 +956,21 @@ class LinkedUnitContext {
     } else if (kind == LinkedNodeTypeKind.function) {
       var typeParameterDataList = linkedType.functionTypeParameters;
 
-      var typeParameters = <TypeParameterElement>[];
-      for (var typeParameterData in typeParameterDataList) {
+      var typeParametersLength = typeParameterDataList.length;
+      var typeParameters = List<TypeParameterElement>(typeParametersLength);
+      for (var i = 0; i < typeParametersLength; ++i) {
+        var typeParameterData = typeParameterDataList[i];
         var element = TypeParameterElementImpl(typeParameterData.name, -1);
-        typeParameters.add(element);
+        typeParameters[i] = element;
         _typeParameters[_nextSyntheticTypeParameterId++] = element;
+      }
+
+      // Type parameters might use each other in bounds, including forward
+      // references. So, we read bounds after reading all type parameters.
+      for (var i = 0; i < typeParametersLength; ++i) {
+        var typeParameterData = typeParameterDataList[i];
+        TypeParameterElementImpl element = typeParameters[i];
+        element.bound = readType(typeParameterData.bound);
       }
 
       var returnType = readType(linkedType.functionReturnType);
@@ -970,7 +980,7 @@ class LinkedUnitContext {
         return ParameterElementImpl.synthetic(p.name, type, kind);
       }).toList();
 
-      for (var i = 0; i < typeParameterDataList.length; ++i) {
+      for (var i = 0; i < typeParametersLength; ++i) {
         _typeParameters.remove(--_nextSyntheticTypeParameterId);
       }
 
