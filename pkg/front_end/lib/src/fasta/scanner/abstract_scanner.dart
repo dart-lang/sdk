@@ -56,11 +56,6 @@ abstract class AbstractScanner implements Scanner {
   /// and https://github.com/dart-lang/language/issues/60
   bool _enableGtGtGt = false;
 
-  /// Experimental flag for enabling scanning of `>>>=`.
-  /// See https://github.com/dart-lang/language/issues/61
-  /// and https://github.com/dart-lang/language/issues/60
-  bool _enableGtGtGtEq = false;
-
   /// Experimental flag for enabling scanning of NNBD tokens
   /// such as 'required' and 'late'.
   bool _enableNonNullable = false;
@@ -115,7 +110,6 @@ abstract class AbstractScanner implements Scanner {
     if (config != null) {
       _enableNonNullable = config.enableNonNullable;
       _enableGtGtGt = config.enableGtGtGt;
-      _enableGtGtGtEq = config.enableGtGtGtEq;
     }
   }
 
@@ -716,7 +710,7 @@ abstract class AbstractScanner implements Scanner {
         return advance();
       } else if (_enableGtGtGt && identical($GT, next)) {
         next = advance();
-        if (_enableGtGtGtEq && identical($EQ, next)) {
+        if (_enableGtGtGt && identical($EQ, next)) {
           appendPrecedenceToken(TokenType.GT_GT_GT_EQ);
           return advance();
         }
