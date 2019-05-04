@@ -55,13 +55,18 @@ class Scanner {
   bool scanLazyAssignmentOperators = false;
 
   /**
-   * A flag indicating whether the scanner should recognize the `>>>` operator.
+   * A flag indicating whether the scanner should recognize the `>>>` operator
+   * and the `>>>=` operator.
+   *
+   * Use [configureFeatures] rather than this field.
    */
   bool enableGtGtGt = false;
 
   /**
    * A flag indicating whether the scanner should recognize the `late` and
    * `required` keywords.
+   *
+   * Use [configureFeatures] rather than this field.
    */
   bool enableNonNullable = false;
 
@@ -122,7 +127,8 @@ class Scanner {
   Token tokenize() {
     fasta.ScannerResult result = fasta.scanString(_contents,
         configuration: fasta.ScannerConfiguration(
-            enableGtGtGt: enableGtGtGt, enableNonNullable: enableNonNullable),
+            enableTripleShift: enableGtGtGt,
+            enableNonNullable: enableNonNullable),
         includeComments: _preserveComments,
         scanLazyAssignmentOperators: scanLazyAssignmentOperators);
 
@@ -157,7 +163,6 @@ class Scanner {
       featureSet == null
           ? fasta.ScannerConfiguration()
           : fasta.ScannerConfiguration(
-              enableGtGtGt: featureSet.isEnabled(Feature.triple_shift),
-              enableGtGtGtEq: featureSet.isEnabled(Feature.triple_shift),
+              enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
               enableNonNullable: featureSet.isEnabled(Feature.non_nullable));
 }

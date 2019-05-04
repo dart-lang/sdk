@@ -54,7 +54,7 @@ abstract class AbstractScanner implements Scanner {
   /// Experimental flag for enabling scanning of `>>>`.
   /// See https://github.com/dart-lang/language/issues/61
   /// and https://github.com/dart-lang/language/issues/60
-  bool _enableGtGtGt = false;
+  bool _enableTripleShift = false;
 
   /// Experimental flag for enabling scanning of NNBD tokens
   /// such as 'required' and 'late'.
@@ -109,7 +109,7 @@ abstract class AbstractScanner implements Scanner {
   set configuration(ScannerConfiguration config) {
     if (config != null) {
       _enableNonNullable = config.enableNonNullable;
-      _enableGtGtGt = config.enableGtGtGt;
+      _enableTripleShift = config.enableTripleShift;
     }
   }
 
@@ -708,9 +708,9 @@ abstract class AbstractScanner implements Scanner {
       if (identical($EQ, next)) {
         appendPrecedenceToken(TokenType.GT_GT_EQ);
         return advance();
-      } else if (_enableGtGtGt && identical($GT, next)) {
+      } else if (_enableTripleShift && identical($GT, next)) {
         next = advance();
-        if (_enableGtGtGt && identical($EQ, next)) {
+        if (_enableTripleShift && identical($EQ, next)) {
           appendPrecedenceToken(TokenType.GT_GT_GT_EQ);
           return advance();
         }
@@ -1540,18 +1540,11 @@ class ScannerConfiguration {
   /// Experimental flag for enabling scanning of `>>>`.
   /// See https://github.com/dart-lang/language/issues/61
   /// and https://github.com/dart-lang/language/issues/60
-  final bool enableGtGtGt;
-
-  /// Experimental flag for enabling scanning of `>>>=`.
-  /// See https://github.com/dart-lang/language/issues/61
-  /// and https://github.com/dart-lang/language/issues/60
-  final bool enableGtGtGtEq;
+  final bool enableTripleShift;
 
   const ScannerConfiguration({
-    bool enableGtGtGt,
-    bool enableGtGtGtEq,
+    bool enableTripleShift,
     bool enableNonNullable,
-  })  : this.enableGtGtGt = enableGtGtGt ?? false,
-        this.enableGtGtGtEq = enableGtGtGtEq ?? false,
+  })  : this.enableTripleShift = enableTripleShift ?? false,
         this.enableNonNullable = enableNonNullable ?? false;
 }

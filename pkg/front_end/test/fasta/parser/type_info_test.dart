@@ -33,8 +33,7 @@ main() {
 ScannerResult scanString(String source,
         {bool includeComments: false, Recover recover}) =>
     scanner.scanString(source,
-        configuration: const ScannerConfiguration(
-            enableGtGtGt: true, enableGtGtGtEq: true),
+        configuration: const ScannerConfiguration(enableTripleShift: true),
         includeComments: includeComments,
         recover: recover);
 
