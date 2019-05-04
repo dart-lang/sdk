@@ -35,6 +35,8 @@ import 'expression_in_map_test.dart' as expression_in_map;
 import 'extends_non_class_test.dart' as extends_non_class;
 import 'final_not_initialized_test.dart' as final_not_initialized;
 import 'implements_non_class_test.dart' as implements_non_class;
+import 'implicit_this_reference_in_initializer_test.dart'
+    as implicit_this_reference_in_initializer;
 import 'import_deferred_library_with_load_function_test.dart'
     as import_deferred_library_with_load_function;
 import 'invalid_assignment_test.dart' as invalid_assignment;
@@ -188,6 +190,7 @@ main() {
     extends_non_class.main();
     final_not_initialized.main();
     implements_non_class.main();
+    implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
