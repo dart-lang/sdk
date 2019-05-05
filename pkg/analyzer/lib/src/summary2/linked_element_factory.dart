@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/core_types.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
@@ -78,33 +77,6 @@ class LinkedElementFactory {
   LibraryElementImpl libraryOfUri(String uriStr) {
     var reference = rootReference.getChild(uriStr);
     return elementOfReference(reference);
-  }
-
-  LinkedNode nodeOfReference(Reference reference) {
-//    if (reference.node != null) {
-//      return reference.node;
-//    }
-//
-//    var unitRef = reference.parent?.parent;
-//    var unitContainer = unitRef?.parent;
-//    if (unitContainer?.name == '@unit') {
-//      var libraryUriStr = unitContainer.parent.name;
-//      var libraryData = libraryMap[libraryUriStr];
-//      for (var unitData in libraryData.node.units) {
-//        var definingUnitContext = LinkedUnitContext(
-//          libraryData.context,
-//          TokensContext(unitData.tokens),
-//        );
-//        _ElementRequest._indexUnitDeclarations(
-//          definingUnitContext,
-//          unitRef,
-//          unitData.node,
-//        );
-//        return reference.node;
-//      }
-//    }
-
-    throw UnimplementedError('$reference');
   }
 }
 
@@ -199,7 +171,6 @@ class _ElementRequest {
       return reference.element;
     }
 
-    // TODO(scheglov) support other elements
     throw StateError('Not found: $input');
   }
 

@@ -354,21 +354,6 @@ class LinkedUnitContext {
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
-//    if (kind == LinkedNodeKind.constructorDeclaration) {
-//      parameterList = node.constructorDeclaration_parameters;
-//    } else if (kind == LinkedNodeKind.functionDeclaration) {
-//      return getFormalParameters(node.functionDeclaration_functionExpression);
-//    } else if (kind == LinkedNodeKind.functionExpression) {
-//      parameterList = node.functionExpression_formalParameters;
-//    } else if (kind == LinkedNodeKind.functionTypeAlias) {
-//      parameterList = node.functionTypeAlias_formalParameters;
-//    } else if (kind == LinkedNodeKind.genericFunctionType) {
-//      parameterList = node.genericFunctionType_formalParameters;
-//    } else if (kind == LinkedNodeKind.methodDeclaration) {
-//      parameterList = node.methodDeclaration_formalParameters;
-//    } else {
-//      throw UnimplementedError('$kind');
-//    }
   }
 
   Reference getGenericFunctionTypeReference(GenericFunctionType node) {
@@ -498,32 +483,6 @@ class LinkedUnitContext {
         return parent2.metadata;
       }
     }
-//    var kind = node.kind;
-//    if (kind == LinkedNodeKind.classDeclaration ||
-//        kind == LinkedNodeKind.classTypeAlias ||
-//        kind == LinkedNodeKind.constructorDeclaration ||
-//        kind == LinkedNodeKind.enumConstantDeclaration ||
-//        kind == LinkedNodeKind.enumDeclaration ||
-//        kind == LinkedNodeKind.exportDirective ||
-//        kind == LinkedNodeKind.functionDeclaration ||
-//        kind == LinkedNodeKind.functionTypeAlias ||
-//        kind == LinkedNodeKind.libraryDirective ||
-//        kind == LinkedNodeKind.importDirective ||
-//        kind == LinkedNodeKind.methodDeclaration ||
-//        kind == LinkedNodeKind.mixinDeclaration ||
-//        kind == LinkedNodeKind.partDirective ||
-//        kind == LinkedNodeKind.partOfDirective ||
-//        kind == LinkedNodeKind.variableDeclaration) {
-//      return node.annotatedNode_metadata;
-//    }
-//    if (kind == LinkedNodeKind.defaultFormalParameter) {
-//      return getMetadataOrEmpty(node.defaultFormalParameter_parameter);
-//    }
-//    if (kind == LinkedNodeKind.fieldFormalParameter ||
-//        kind == LinkedNodeKind.functionTypedFormalParameter ||
-//        kind == LinkedNodeKind.simpleFormalParameter) {
-//      return node.normalFormalParameter_metadata;
-//    }
     return const <Annotation>[];
   }
 
@@ -794,16 +753,6 @@ class LinkedUnitContext {
       VariableDeclarationList parent = node.parent;
       return parent.isConst;
     }
-//    var kind = node.kind;
-//    if (kind == LinkedNodeKind.defaultFormalParameter) {
-//      return isConst(node.defaultFormalParameter_parameter);
-//    }
-//    if (kind == LinkedNodeKind.simpleFormalParameter) {
-//      return isConstKeyword(node.simpleFormalParameter_keyword);
-//    }
-//    if (kind == LinkedNodeKind.variableDeclaration) {
-//      return node.variableDeclaration_declaration.isConst;
-//    }
     throw UnimplementedError('${node.runtimeType}');
   }
 
