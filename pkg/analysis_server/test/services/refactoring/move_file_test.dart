@@ -75,6 +75,75 @@ import 'package:test/222/new_name.dart';
 ''');
   }
 
+  @failingTest
+  test_file_imported_with_package_uri_lib_change() async {
+    // The current testing stack does not support creating such bazel roots
+    var file =
+        newFile('/home/test0/test1/test2/lib/111/name.dart', content: '');
+    addTestSource(r'''
+import 'package:test0.test1.test2/111/name.dart';
+''');
+
+    // Since the file being refactored isn't the test source, we set the
+    // testAnalysisResult manually here, the path is referenced through the
+    // referenced File object to run on Windows:
+    testAnalysisResult = await session.getResolvedUnit(file.path);
+
+    _createRefactoring('/home/test0/test1/test3/lib/111/name.dart',
+        oldFile: file.path);
+    await _assertSuccessfulRefactoring();
+
+    assertFileChangeResult(testFile, '''
+import 'package:test0.test1.test3/111/name.dart';
+''');
+  }
+
+  @failingTest
+  test_file_imported_with_package_uri_lib_change_down() async {
+    // The current testing stack does not support creating such bazel roots
+    var file =
+        newFile('/home/test0/test1/test2/lib/111/name.dart', content: '');
+    addTestSource(r'''
+import 'package:test0.test1.test2/111/name.dart';
+''');
+
+    // Since the file being refactored isn't the test source, we set the
+    // testAnalysisResult manually here, the path is referenced through the
+    // referenced File object to run on Windows:
+    testAnalysisResult = await session.getResolvedUnit(file.path);
+
+    _createRefactoring('/home/test0/test1/test2/test3/lib/111/name.dart',
+        oldFile: file.path);
+    await _assertSuccessfulRefactoring();
+
+    assertFileChangeResult(testFile, '''
+import 'package:test0.test1.test2.test3/111/name.dart';
+''');
+  }
+
+  @failingTest
+  test_file_imported_with_package_uri_lib_change_up() async {
+    // The current testing stack does not support creating such bazel roots
+    var file =
+        newFile('/home/test0/test1/test2/lib/111/name.dart', content: '');
+    addTestSource(r'''
+import 'package:test0.test1.test2/111/name.dart';
+''');
+
+    // Since the file being refactored isn't the test source, we set the
+    // testAnalysisResult manually here, the path is referenced through the
+    // referenced File object to run on Windows:
+    testAnalysisResult = await session.getResolvedUnit(file.path);
+
+    _createRefactoring('/home/test0/test1/lib/111/name.dart',
+        oldFile: file.path);
+    await _assertSuccessfulRefactoring();
+
+    assertFileChangeResult(testFile, '''
+import 'package:test0.test1/111/name.dart';
+''');
+  }
+
   test_file_imported_with_package_uri_sideways() async {
     var file = newFile('/home/test/lib/111/old_name.dart', content: '');
     addTestSource(r'''
