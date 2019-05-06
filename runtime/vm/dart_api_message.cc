@@ -1132,14 +1132,15 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
   return true;
 }
 
-Message* ApiMessageWriter::WriteCMessage(Dart_CObject* object,
-                                         Dart_Port dest_port,
-                                         Message::Priority priority) {
+std::unique_ptr<Message> ApiMessageWriter::WriteCMessage(
+    Dart_CObject* object,
+    Dart_Port dest_port,
+    Message::Priority priority) {
   bool success = WriteCObject(object);
   if (!success) {
     UnmarkAllCObjects(object);
     free(buffer());
-    return NULL;
+    return nullptr;
   }
 
   // Write out all objects that were added to the forward list and have
@@ -1150,15 +1151,15 @@ Message* ApiMessageWriter::WriteCMessage(Dart_CObject* object,
     if (!success) {
       UnmarkAllCObjects(object);
       free(buffer());
-      return NULL;
+      return nullptr;
     }
   }
 
   UnmarkAllCObjects(object);
   MessageFinalizableData* finalizable_data = finalizable_data_;
   finalizable_data_ = NULL;
-  return new Message(dest_port, buffer(), BytesWritten(), finalizable_data,
-                     priority);
+  return Message::New(dest_port, buffer(), BytesWritten(), finalizable_data,
+                      priority);
 }
 
 }  // namespace dart

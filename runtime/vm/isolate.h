@@ -9,6 +9,8 @@
 #error "Should not include runtime"
 #endif
 
+#include <memory>
+
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/atomic.h"
@@ -1197,8 +1199,8 @@ class IsolateSpawnState {
   const char* class_name_;
   const char* function_name_;
   const char* debug_name_;
-  Message* serialized_args_;
-  Message* serialized_message_;
+  std::unique_ptr<Message> serialized_args_;
+  std::unique_ptr<Message> serialized_message_;
 
   // This counter tracks the number of outstanding calls to spawn by the parent
   // isolate.

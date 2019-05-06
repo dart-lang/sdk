@@ -159,9 +159,9 @@ class ApiMessageWriter : public BaseWriter {
   ~ApiMessageWriter();
 
   // Writes a message with a single object.
-  Message* WriteCMessage(Dart_CObject* object,
-                         Dart_Port dest_port,
-                         Message::Priority priority);
+  std::unique_ptr<Message> WriteCMessage(Dart_CObject* object,
+                                         Dart_Port dest_port,
+                                         Message::Priority priority);
 
  private:
   static const intptr_t kDartCObjectTypeBits = 4;

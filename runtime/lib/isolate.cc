@@ -95,7 +95,7 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
 
   if (ApiObjectConverter::CanConvert(obj.raw())) {
     PortMap::PostMessage(
-        new Message(destination_port_id, obj.raw(), Message::kNormalPriority));
+        Message::New(destination_port_id, obj.raw(), Message::kNormalPriority));
   } else {
     MessageWriter writer(can_send_any_object);
     // TODO(turnidge): Throw an exception when the return value is false?

@@ -179,7 +179,7 @@ void JSONStream::PrintError(intptr_t code, const char* details_format, ...) {
 
 void JSONStream::PostNullReply(Dart_Port port) {
   PortMap::PostMessage(
-      new Message(port, Object::null(), Message::kNormalPriority));
+      Message::New(port, Object::null(), Message::kNormalPriority));
 }
 
 static void Finalizer(void* isolate_callback_data,

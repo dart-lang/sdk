@@ -656,13 +656,12 @@ BENCHMARK(SerializeNull) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     MessageWriter writer(true);
-    Message* message = writer.WriteMessage(null_object, ILLEGAL_PORT,
-                                           Message::kNormalPriority);
+    std::unique_ptr<Message> message = writer.WriteMessage(
+        null_object, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(message, thread);
+    MessageSnapshotReader reader(message.get(), thread);
     reader.ReadObject();
-    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -680,13 +679,12 @@ BENCHMARK(SerializeSmi) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     MessageWriter writer(true);
-    Message* message =
+    std::unique_ptr<Message> message =
         writer.WriteMessage(smi_object, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(message, thread);
+    MessageSnapshotReader reader(message.get(), thread);
     reader.ReadObject();
-    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -706,13 +704,12 @@ BENCHMARK(SimpleMessage) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     MessageWriter writer(true);
-    Message* message = writer.WriteMessage(array_object, ILLEGAL_PORT,
-                                           Message::kNormalPriority);
+    std::unique_ptr<Message> message = writer.WriteMessage(
+        array_object, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(message, thread);
+    MessageSnapshotReader reader(message.get(), thread);
     reader.ReadObject();
-    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -741,13 +738,12 @@ BENCHMARK(LargeMap) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     MessageWriter writer(true);
-    Message* message =
+    std::unique_ptr<Message> message =
         writer.WriteMessage(map, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(message, thread);
+    MessageSnapshotReader reader(message.get(), thread);
     reader.ReadObject();
-    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();

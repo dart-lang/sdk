@@ -21,7 +21,7 @@ class NativeMessageHandler : public MessageHandler {
   const char* name() const { return name_; }
   Dart_NativeMessageHandler func() const { return func_; }
 
-  MessageStatus HandleMessage(Message* message);
+  MessageStatus HandleMessage(std::unique_ptr<Message> message);
 
 #if defined(DEBUG)
   // Check that it is safe to access this handler.

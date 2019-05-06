@@ -41,15 +41,15 @@ class IsolateLeaveScope {
 
 static bool PostCObjectHelper(Dart_Port port_id, Dart_CObject* message) {
   ApiMessageWriter writer;
-  Message* msg =
+  std::unique_ptr<Message> msg =
       writer.WriteCMessage(message, port_id, Message::kNormalPriority);
 
-  if (msg == NULL) {
+  if (msg == nullptr) {
     return false;
   }
 
   // Post the message at the given port.
-  return PortMap::PostMessage(msg);
+  return PortMap::PostMessage(std::move(msg));
 }
 
 DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
@@ -59,7 +59,7 @@ DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
 DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message) {
   if (Smi::IsValid(message)) {
     return PortMap::PostMessage(
-        new Message(port_id, Smi::New(message), Message::kNormalPriority));
+        Message::New(port_id, Smi::New(message), Message::kNormalPriority));
   }
   Dart_CObject cobj;
   cobj.type = Dart_CObject_kInt64;

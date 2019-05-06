@@ -103,9 +103,10 @@ class VerifyOriginId : public IsolateVisitor {
 };
 #endif
 
-static Message* SerializeMessage(Dart_Port dest_port, const Instance& obj) {
+static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
+                                                 const Instance& obj) {
   if (ApiObjectConverter::CanConvert(obj.raw())) {
-    return new Message(dest_port, obj.raw(), Message::kNormalPriority);
+    return Message::New(dest_port, obj.raw(), Message::kNormalPriority);
   } else {
     MessageWriter writer(false);
     return writer.WriteMessage(obj, dest_port, Message::kNormalPriority);
@@ -238,7 +239,7 @@ class IsolateMessageHandler : public MessageHandler {
 
   const char* name() const;
   void MessageNotify(Message::Priority priority);
-  MessageStatus HandleMessage(Message* message);
+  MessageStatus HandleMessage(std::unique_ptr<Message> message);
 #ifndef PRODUCT
   void NotifyPauseOnStart();
   void NotifyPauseOnExit();
@@ -498,7 +499,7 @@ bool Isolate::HasPendingMessages() {
 }
 
 MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
-    Message* message) {
+    std::unique_ptr<Message> message) {
   ASSERT(IsCurrentIsolate());
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
@@ -520,16 +521,13 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   if (!message->IsOOB() && (message->dest_port() != Message::kIllegalPort)) {
     msg_handler = DartLibraryCalls::LookupHandler(message->dest_port());
     if (msg_handler.IsError()) {
-      delete message;
       return ProcessUnhandledException(Error::Cast(msg_handler));
     }
     if (msg_handler.IsNull()) {
       // If the port has been closed then the message will be dropped at this
       // point. Make sure to post to the delivery failure port in that case.
       if (message->RedirectToDeliveryFailurePort()) {
-        PortMap::PostMessage(message);
-      } else {
-        delete message;
+        PortMap::PostMessage(std::move(message));
       }
       return kOK;
     }
@@ -542,12 +540,11 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     // We should only be sending RawObjects that can be converted to CObjects.
     ASSERT(ApiObjectConverter::CanConvert(msg_obj.raw()));
   } else {
-    MessageSnapshotReader reader(message, thread);
+    MessageSnapshotReader reader(message.get(), thread);
     msg_obj = reader.ReadObject();
   }
   if (msg_obj.IsError()) {
     // An error occurred while reading the message.
-    delete message;
     return ProcessUnhandledException(Error::Cast(msg_obj));
   }
   if (!msg_obj.IsNull() && !msg_obj.IsInstance()) {
@@ -639,7 +636,6 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       ASSERT(result.IsNull());
     }
   }
-  delete message;
   return status;
 }
 
@@ -2491,9 +2487,9 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
     element = Smi::New(Isolate::kBeforeNextEventAction);
     msg.SetAt(2, element);
     MessageWriter writer(false);
-    Message* message =
+    std::unique_ptr<Message> message =
         writer.WriteMessage(msg, main_port(), Message::kOOBPriority);
-    bool posted = PortMap::PostMessage(message);
+    bool posted = PortMap::PostMessage(std::move(message));
     ASSERT(posted);
   }
 }
@@ -2744,12 +2740,12 @@ void Isolate::KillLocked(LibMsgId msg_id) {
 
   {
     ApiMessageWriter writer;
-    Message* message =
+    std::unique_ptr<Message> message =
         writer.WriteCMessage(&kill_msg, main_port(), Message::kOOBPriority);
     ASSERT(message != nullptr);
 
     // Post the message at the given port.
-    bool success = PortMap::PostMessage(message);
+    bool success = PortMap::PostMessage(std::move(message));
     ASSERT(success);
   }
 }
@@ -3027,8 +3023,6 @@ IsolateSpawnState::~IsolateSpawnState() {
   delete[] class_name_;
   delete[] function_name_;
   delete[] debug_name_;
-  delete serialized_args_;
-  delete serialized_message_;
 }
 
 RawObject* IsolateSpawnState::ResolveFunction() {
@@ -3109,11 +3103,11 @@ RawObject* IsolateSpawnState::ResolveFunction() {
 }
 
 RawInstance* IsolateSpawnState::BuildArgs(Thread* thread) {
-  return DeserializeMessage(thread, serialized_args_);
+  return DeserializeMessage(thread, serialized_args_.get());
 }
 
 RawInstance* IsolateSpawnState::BuildMessage(Thread* thread) {
-  return DeserializeMessage(thread, serialized_message_);
+  return DeserializeMessage(thread, serialized_message_.get());
 }
 
 void IsolateSpawnState::DecrementSpawnCount() {

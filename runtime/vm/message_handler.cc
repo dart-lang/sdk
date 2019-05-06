@@ -121,7 +121,8 @@ void MessageHandler::Run(ThreadPool* pool,
   ASSERT(task_running);
 }
 
-void MessageHandler::PostMessage(Message* message, bool before_events) {
+void MessageHandler::PostMessage(std::unique_ptr<Message> message,
+                                 bool before_events) {
   Message::Priority saved_priority;
   bool task_running = true;
   {
@@ -149,14 +150,13 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
 
     saved_priority = message->priority();
     if (message->IsOOB()) {
-      oob_queue_->Enqueue(message, before_events);
+      oob_queue_->Enqueue(std::move(message), before_events);
     } else {
-      queue_->Enqueue(message, before_events);
+      queue_->Enqueue(std::move(message), before_events);
     }
     if (paused_for_messages_) {
       ml.Notify();
     }
-    message = NULL;  // Do not access message.  May have been deleted.
 
     if ((pool_ != NULL) && (task_ == NULL)) {
       ASSERT(!delete_me_);
@@ -170,10 +170,11 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
   MessageNotify(saved_priority);
 }
 
-Message* MessageHandler::DequeueMessage(Message::Priority min_priority) {
+std::unique_ptr<Message> MessageHandler::DequeueMessage(
+    Message::Priority min_priority) {
   // TODO(turnidge): Add assert that monitor_ is held here.
-  Message* message = oob_queue_->Dequeue();
-  if ((message == NULL) && (min_priority < Message::kOOBPriority)) {
+  std::unique_ptr<Message> message = oob_queue_->Dequeue();
+  if ((message == nullptr) && (min_priority < Message::kOOBPriority)) {
     message = queue_->Dequeue();
   }
   return message;
@@ -196,8 +197,8 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
   Message::Priority min_priority =
       ((allow_normal_messages && !paused()) ? Message::kNormalPriority
                                             : Message::kOOBPriority);
-  Message* message = DequeueMessage(min_priority);
-  while (message != NULL) {
+  std::unique_ptr<Message> message = DequeueMessage(min_priority);
+  while (message != nullptr) {
     intptr_t message_len = message->Size();
     if (FLAG_trace_isolates) {
       OS::PrintErr(
@@ -214,11 +215,10 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
     ml->Exit();
     Message::Priority saved_priority = message->priority();
     Dart_Port saved_dest_port = message->dest_port();
-    MessageStatus status = HandleMessage(message);
+    MessageStatus status = HandleMessage(std::move(message));
     if (status > max_status) {
       max_status = status;
     }
-    message = NULL;  // May be deleted by now.
     ml->Enter();
     if (FLAG_trace_isolates) {
       OS::PrintErr(

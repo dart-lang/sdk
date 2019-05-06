@@ -1461,9 +1461,10 @@ MessageWriter::~MessageWriter() {
   delete finalizable_data_;
 }
 
-Message* MessageWriter::WriteMessage(const Object& obj,
-                                     Dart_Port dest_port,
-                                     Message::Priority priority) {
+std::unique_ptr<Message> MessageWriter::WriteMessage(
+    const Object& obj,
+    Dart_Port dest_port,
+    Message::Priority priority) {
   ASSERT(kind() == Snapshot::kMessage);
   ASSERT(isolate() != NULL);
 
@@ -1486,8 +1487,8 @@ Message* MessageWriter::WriteMessage(const Object& obj,
 
   MessageFinalizableData* finalizable_data = finalizable_data_;
   finalizable_data_ = NULL;
-  return new Message(dest_port, buffer(), BytesWritten(), finalizable_data,
-                     priority);
+  return Message::New(dest_port, buffer(), BytesWritten(), finalizable_data,
+                      priority);
 }
 
 }  // namespace dart

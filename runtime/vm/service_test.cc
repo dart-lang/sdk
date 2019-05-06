@@ -35,7 +35,7 @@ class ServiceTestMessageHandler : public MessageHandler {
     free(_msg);
   }
 
-  MessageStatus HandleMessage(Message* message) {
+  MessageStatus HandleMessage(std::unique_ptr<Message> message) {
     if (_msg != NULL) {
       free(_msg);
       _msg = NULL;
@@ -47,7 +47,7 @@ class ServiceTestMessageHandler : public MessageHandler {
       response_obj = message->raw_obj();
     } else {
       Thread* thread = Thread::Current();
-      MessageSnapshotReader reader(message, thread);
+      MessageSnapshotReader reader(message.get(), thread);
       response_obj = reader.ReadObject();
     }
     if (response_obj.IsString()) {
@@ -63,8 +63,6 @@ class ServiceTestMessageHandler : public MessageHandler {
       response ^= response_array.At(0);
       _msg = strdup(reinterpret_cast<char*>(response.DataAddr(0)));
     }
-
-    delete message;
 
     return kOK;
   }
