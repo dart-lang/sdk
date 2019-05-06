@@ -36,6 +36,7 @@ class TypeAliasSelfReferenceFinder {
 
 class _Finder {
   final AstNode self;
+  final Set<AstNode> visited = Set.identity();
   bool hasSelfReference = false;
 
   _Finder(this.self);
@@ -100,10 +101,26 @@ class _Finder {
           hasSelfReference = true;
           return;
         }
-        if (typeNode is FunctionTypeAlias) {
-          functionTypeAlias(typeNode);
+        if (typeNode is ClassDeclaration) {
+          if (visited.add(typeNode)) {
+            _typeParameterList(typeNode.typeParameters);
+          }
+        } else if (typeNode is ClassTypeAlias) {
+          if (visited.add(typeNode)) {
+            _typeParameterList(typeNode.typeParameters);
+          }
+        } else if (typeNode is FunctionTypeAlias) {
+          if (visited.add(typeNode)) {
+            functionTypeAlias(typeNode);
+          }
         } else if (typeNode is GenericTypeAlias) {
-          genericTypeAlias(typeNode);
+          if (visited.add(typeNode)) {
+            genericTypeAlias(typeNode);
+          }
+        } else if (typeNode is MixinDeclaration) {
+          if (visited.add(typeNode)) {
+            _typeParameterList(typeNode.typeParameters);
+          }
         }
         _argumentList(node.typeArguments);
       }
