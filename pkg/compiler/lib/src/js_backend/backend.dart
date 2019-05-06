@@ -22,7 +22,6 @@ import '../inferrer/types.dart';
 import '../io/source_information.dart'
     show SourceInformation, SourceInformationStrategy;
 import '../js/js.dart' as jsAst;
-import '../js/js.dart' show js;
 import '../js_model/elements.dart';
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
@@ -633,19 +632,6 @@ class JavaScriptBackend {
   WorldImpact codegen(CodegenWorkItem work, JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults) {
     MemberEntity element = work.element;
-    if (compiler.elementHasCompileTimeError(element)) {
-      DiagnosticMessage message =
-          // If there's more than one error, the first is probably most
-          // informative, as the following errors may be side-effects of the
-          // first error.
-          compiler.elementsWithCompileTimeErrors[element].first;
-      String messageText = message.message.computeMessage();
-      jsAst.LiteralString messageLiteral =
-          js.escapedString("Compile time error in $element: $messageText");
-      generatedCode[element] =
-          js("function () { throw new Error(#); }", [messageLiteral]);
-      return const WorldImpact();
-    }
     if (element.isConstructor &&
         element.enclosingClass == closedWorld.commonElements.jsNullClass) {
       // Work around a problem compiling JSNull's constructor.
@@ -775,10 +761,6 @@ class JavaScriptBackend {
     sourceInformationStrategy.onComplete();
     tracer.close();
   }
-
-  /// Enable compilation of code with compile time errors. Returns `true` if
-  /// supported by the backend.
-  bool enableCodegenWithErrorsIfSupported(Spannable node) => true;
 
   jsAst.Expression rewriteAsync(
       CommonElements commonElements,

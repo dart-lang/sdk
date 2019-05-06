@@ -88,12 +88,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case Feature.CATCH_STATEMENT:
           registerImpact(_impacts.catchStatement);
           break;
-        case Feature.COMPILE_TIME_ERROR:
-          if (_options.generateCodeWithCompileTimeErrors) {
-            // TODO(johnniwinther): This should have its own uncatchable error.
-            registerImpact(_impacts.throwRuntimeError);
-          }
-          break;
         case Feature.FALL_THROUGH_ERROR:
           registerImpact(_impacts.fallThroughError);
           break;

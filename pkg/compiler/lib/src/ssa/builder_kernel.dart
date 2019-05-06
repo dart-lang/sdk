@@ -5258,8 +5258,6 @@ class KernelSsaGraphBuilder extends ir.Visitor with GraphBuilder {
       return false;
     }
 
-    if (compiler.elementHasCompileTimeError(function)) return false;
-
     bool insideLoop = loopDepth > 0 || graph.calledInLoop;
 
     // Bail out early if the inlining decision is in the cache and we can't

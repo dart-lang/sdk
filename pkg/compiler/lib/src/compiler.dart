@@ -85,12 +85,6 @@ abstract class Compiler {
   Map<Entity, WorldImpact> get impactCache => _impactCache;
   ImpactCacheDeleter get impactCacheDeleter => _impactCacheDeleter;
 
-  // TODO(zarah): Remove this map and incorporate compile-time errors
-  // in the model.
-  /// Tracks elements with compile-time errors.
-  final Map<Entity, List<DiagnosticMessage>> elementsWithCompileTimeErrors =
-      new Map<Entity, List<DiagnosticMessage>>();
-
   final Environment environment;
   // TODO(sigmund): delete once we migrate the rest of the compiler to use
   // `environment` directly.
@@ -244,7 +238,7 @@ abstract class Compiler {
       KernelResult result = await kernelLoader.load(uri);
       reporter.log("Kernel load complete");
       if (result == null) return;
-      if (compilationFailed && !options.generateCodeWithCompileTimeErrors) {
+      if (compilationFailed) {
         return;
       }
       if (options.cfeOnly) return;
@@ -338,13 +332,7 @@ abstract class Compiler {
     _reporter.reportSuppressedMessagesSummary();
 
     if (compilationFailed) {
-      if (!options.generateCodeWithCompileTimeErrors) {
-        return null;
-      }
-      if (mainFunction == null) return null;
-      if (!backend.enableCodegenWithErrorsIfSupported(NO_LOCATION_SPANNABLE)) {
-        return null;
-      }
+      return null;
     }
 
     assert(mainFunction != null);
@@ -538,7 +526,6 @@ abstract class Compiler {
     if (markCompilationAsFailed(message, kind)) {
       compilationFailed = true;
     }
-    registerCompileTimeError(currentElement, message);
   }
 
   /// Helper for determining whether the current element is declared within
@@ -603,27 +590,6 @@ abstract class Compiler {
     }
     return null;
   }
-
-  /// Returns [true] if a compile-time error has been reported for element.
-  bool elementHasCompileTimeError(Entity element) {
-    return elementsWithCompileTimeErrors.containsKey(element);
-  }
-
-  /// Associate [element] with a compile-time error [message].
-  void registerCompileTimeError(Entity element, DiagnosticMessage message) {
-    // The information is only needed if [generateCodeWithCompileTimeErrors].
-    if (options.generateCodeWithCompileTimeErrors) {
-      if (element == null) {
-        // Record as global error.
-        // TODO(zarah): Extend element model to represent compile-time
-        // errors instead of using a map.
-        element = frontendStrategy.elementEnvironment.mainFunction;
-      }
-      elementsWithCompileTimeErrors
-          .putIfAbsent(element, () => <DiagnosticMessage>[])
-          .add(message);
-    }
-  }
 }
 
 class _CompilerOutput implements api.CompilerOutput {
@@ -637,14 +603,8 @@ class _CompilerOutput implements api.CompilerOutput {
   api.OutputSink createOutputSink(
       String name, String extension, api.OutputType type) {
     if (_compiler.compilationFailed) {
-      if (!_compiler.options.generateCodeWithCompileTimeErrors ||
-          _compiler.options.testMode) {
-        // Disable output in test mode: The build bot currently uses the time
-        // stamp of the generated file to determine whether the output is
-        // up-to-date.
-        return const NullCompilerOutput()
-            .createOutputSink(name, extension, type);
-      }
+      // Ensure that we don't emit output when the compilation has failed.
+      return const NullCompilerOutput().createOutputSink(name, extension, type);
     }
     return _userOutput.createOutputSink(name, extension, type);
   }
@@ -758,13 +718,6 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     if (kind == api.Diagnostic.ERROR ||
         kind == api.Diagnostic.CRASH ||
         (options.fatalWarnings && kind == api.Diagnostic.WARNING)) {
-      Entity errorElement;
-      if (message.spannable is Entity) {
-        errorElement = message.spannable;
-      } else {
-        errorElement = currentElement;
-      }
-      compiler.registerCompileTimeError(errorElement, message);
       compiler.fatalDiagnosticReported(message, infos, kind);
     }
   }

@@ -215,9 +215,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to generate code containing user's `assert` statements.
   bool enableUserAssertions = false;
 
-  /// Whether to generate output even when there are compile-time errors.
-  bool generateCodeWithCompileTimeErrors = false;
-
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
 
@@ -385,8 +382,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
       ..experimentNewRti = _hasOption(options, Flags.experimentNewRti)
-      ..generateCodeWithCompileTimeErrors =
-          _hasOption(options, Flags.generateCodeWithCompileTimeErrors)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       ..outputUri = _extractUriOption(options, '--out=')
       ..platformBinaries =
@@ -463,9 +458,6 @@ class CompilerOptions implements DiagnosticOptions {
         trustPrimitives = true;
       }
     }
-
-    // TODO(johnniwinther): Should we support this in the future?
-    generateCodeWithCompileTimeErrors = false;
 
     // Strong mode always trusts type annotations (inferred or explicit), so
     // assignments checks should be trusted.

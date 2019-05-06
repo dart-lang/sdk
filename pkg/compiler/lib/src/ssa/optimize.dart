@@ -3079,9 +3079,6 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
           (_, FieldEntity member) {
         FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(member);
         if (fieldData.isElided) return;
-        if (compiler.elementHasCompileTimeError(
-            // ignore: UNNECESSARY_CAST
-            member as Entity)) return;
         if (fieldData.isInitializedInAllocator) {
           // TODO(sra): Can we avoid calling HGraph.addConstant?
           ConstantValue value = fieldData.initialValue;
