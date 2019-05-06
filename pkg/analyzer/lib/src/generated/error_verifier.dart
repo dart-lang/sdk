@@ -4810,6 +4810,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// or inferred type arguments. When that happens, it reports error code
   /// [StrongModeCode.STRICT_RAW_TYPE].
   void _checkForRawTypeName(TypeName node) {
+    AstNode parentEscapingTypeArguments(TypeName node) {
+      AstNode parent = node.parent;
+      while (parent is TypeArgumentList || parent is TypeName) {
+        if (parent.parent == null) {
+          return parent;
+        }
+        parent = parent.parent;
+      }
+      return parent;
+    }
+
     if (!_options.strictRawTypes || node == null) return;
     if (node.typeArguments != null) {
       // Type has explicit type arguments.
@@ -4817,8 +4828,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     if (_isMissingTypeArguments(
         node, node.type, node.name.staticElement, null)) {
-      _errorReporter
-          .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [node.type]);
+      AstNode unwrappedParent = parentEscapingTypeArguments(node);
+      if (unwrappedParent is AsExpression) {
+        _errorReporter.reportErrorForNode(
+            HintCode.STRICT_RAW_TYPE_IN_AS, node, [node.type]);
+      } else if (unwrappedParent is IsExpression) {
+        _errorReporter.reportErrorForNode(
+            HintCode.STRICT_RAW_TYPE_IN_IS, node, [node.type]);
+      } else {
+        _errorReporter
+            .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [node.type]);
+      }
     }
   }
 

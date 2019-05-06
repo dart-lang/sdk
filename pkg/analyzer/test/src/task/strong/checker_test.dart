@@ -4414,13 +4414,21 @@ main() {
 
   {
     Object isCheck;
-    if (isCheck is /*info:STRICT_RAW_TYPE*/List) {}
-    if (isCheck is /*info:STRICT_RAW_TYPE*/C) {}
+    if (isCheck is /*info:STRICT_RAW_TYPE_IN_IS*/List) {}
+    if (isCheck is List</*info:STRICT_RAW_TYPE_IN_IS*/List>) {}
+    if (isCheck is /*info:STRICT_RAW_TYPE_IN_IS*/C) {}
 
     if (isCheck is List<dynamic>) {}
     if (isCheck is List<int>) {}
     if (isCheck is C<dynamic>) {}
     if (isCheck is C<int>) {}
+  }
+
+  {
+    Object asCheck;
+    var asList = asCheck as /*info:STRICT_RAW_TYPE_IN_AS*/List;
+    var asMap = asCheck as Map<dynamic, /*info:STRICT_RAW_TYPE_IN_AS*/List>;
+    var asC = asCheck as /*info:STRICT_RAW_TYPE_IN_AS*/C;
   }
 }
     ''');
