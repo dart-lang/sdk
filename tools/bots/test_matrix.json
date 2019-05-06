@@ -1347,6 +1347,13 @@
           "script": "tools/bots/dart_sdk.py"
         },
         {
+          "name": "run smoke tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "tools/bots/aot_smoke_tests.dart"
+          ]
+        },
+        {
           "name": "build api docs",
           "script": "tools/bots/dart_sdk.py",
           "arguments": [ "api_docs" ]
@@ -1362,10 +1369,9 @@
       ]
     },
     {
-      "builders": ["dart-sdk-mac",
-                   "dart-sdk-win"],
+      "builders": ["dart-sdk-mac"],
       "meta": {
-        "description": "This configuration is used by the sdk-builders for MacOS and Windows."
+        "description": "This configuration is used by the sdk-builders for MacOS."
       },
       "steps": [
         {
@@ -1389,6 +1395,50 @@
         {
           "name": "upload sdk",
           "script": "tools/bots/dart_sdk.py"
+        },
+        {
+          "name": "run smoke tests",
+          "script": "xcodebuild/ReleaseX64/dart",
+          "arguments": [
+            "tools/bots/aot_smoke_tests.dart"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": ["dart-sdk-win"],
+      "meta": {
+        "description": "This configuration is used by the sdk-builders for Windows."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["--arch=ia32,x64",
+                        "--mode=release", "create_sdk"]
+        },
+        {
+          "name": "build gen_kernel.dart.snapshot and dart2aot",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64", "--mode=release",
+                        "copy_gen_kernel_snapshot", "copy_dart2aot"]
+        },
+        {
+          "name": "build gen_snapshot and dartaotruntime",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64", "--mode=product",
+                        "copy_gen_snapshot", "copy_dartaotruntime"]
+        },
+        {
+          "name": "upload sdk",
+          "script": "tools/bots/dart_sdk.py"
+        },
+        {
+          "name": "run smoke tests",
+          "script": "out/ReleaseX64/dart.exe",
+          "arguments": [
+            "tools/bots/aot_smoke_tests.dart"
+          ]
         }
       ]
     },
