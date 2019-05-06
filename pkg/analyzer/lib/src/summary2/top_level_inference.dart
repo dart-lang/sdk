@@ -69,10 +69,10 @@ class ConstantInitializersResolver {
   void _variableDeclarationList(VariableDeclarationList node) {
     if (node.isConst && node.type != null) {
       for (var variable in node.variables) {
-        var initializer = variable.initializer;
-        if (initializer != null) {
+        if (variable.initializer != null) {
           var astResolver = AstResolver(linker, _library, _scope);
-          astResolver.resolve(initializer, doAstRewrite: true);
+          astResolver.rewriteAst(variable.initializer);
+          astResolver.resolve(variable.initializer);
         }
       }
     }
@@ -278,7 +278,8 @@ class _InferenceNode extends graph.Node<_InferenceNode> {
 
   void _resolveInitializer() {
     var astResolver = AstResolver(_walker._linker, _library, _scope);
-    astResolver.resolve(_node.initializer, doAstRewrite: true);
+    astResolver.rewriteAst(_node.initializer);
+    astResolver.resolve(_node.initializer);
   }
 }
 

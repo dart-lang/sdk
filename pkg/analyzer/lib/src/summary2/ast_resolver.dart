@@ -22,7 +22,6 @@ class AstResolver {
     AstNode node, {
     ClassElement enclosingClassElement,
     ExecutableElement enclosingExecutableElement,
-    bool doAstRewrite = false,
   }) {
     var featureSet = node.thisOrAncestorOfType<CompilationUnit>().featureSet;
     var source = _FakeSource();
@@ -32,13 +31,6 @@ class AstResolver {
         _library, source, _linker.typeProvider, errorListener,
         nameScope: _nameScope);
     node.accept(typeResolverVisitor);
-
-    if (doAstRewrite) {
-      var astRewriteVisitor = new AstRewriteVisitor(_linker.typeSystem,
-          _library, source, _linker.typeProvider, errorListener,
-          nameScope: _nameScope);
-      node.accept(astRewriteVisitor);
-    }
 
     var variableResolverVisitor = new VariableResolverVisitor(
         _library, source, _linker.typeProvider, errorListener,
@@ -61,6 +53,16 @@ class AstResolver {
     );
 
     node.accept(resolverVisitor);
+  }
+
+  void rewriteAst(AstNode node) {
+    var source = _FakeSource();
+    var errorListener = AnalysisErrorListener.NULL_LISTENER;
+
+    var astRewriteVisitor = new AstRewriteVisitor(_linker.typeSystem, _library,
+        source, _linker.typeProvider, errorListener,
+        nameScope: _nameScope);
+    node.accept(astRewriteVisitor);
   }
 }
 
