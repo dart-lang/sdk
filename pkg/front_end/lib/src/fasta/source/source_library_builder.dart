@@ -618,7 +618,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
     scope.setters.forEach((String name, Declaration setter) {
       Declaration member = scopeBuilder[name];
-      if (member == null || !member.isField || member.isFinal) return;
+      if (member == null ||
+          !member.isField ||
+          member.isFinal ||
+          member.isConst) {
+        return;
+      }
       addProblem(templateConflictsWithMember.withArguments(name),
           setter.charOffset, noLength, fileUri);
       // TODO(ahe): Context to previous message?

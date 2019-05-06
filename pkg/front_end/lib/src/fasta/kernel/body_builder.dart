@@ -1843,8 +1843,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         setter = declaration;
       } else if (declaration.isGetter) {
         setter = scope.lookupSetter(name, charOffset, uri);
-      } else if (declaration.isField && !declaration.isFinal) {
-        setter = declaration;
+      } else if (declaration.isField) {
+        if (declaration.isFinal || declaration.isConst) {
+          setter = scope.lookupSetter(name, charOffset, uri);
+        } else {
+          setter = declaration;
+        }
       }
       StaticAccessGenerator generator = new StaticAccessGenerator.fromBuilder(
           this, declaration, token, setter);
