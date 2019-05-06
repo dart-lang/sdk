@@ -50,6 +50,7 @@ class TestConfiguration {
       this.firefoxPath,
       this.dartPath,
       this.dartPrecompiledPath,
+      this.genSnapshotPath,
       this.taskCount,
       this.shardCount,
       this.shard,
@@ -125,6 +126,7 @@ class TestConfiguration {
   final String firefoxPath;
   final String dartPath;
   final String dartPrecompiledPath;
+  final String genSnapshotPath;
   final List<String> testList;
 
   final int taskCount;

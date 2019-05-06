@@ -712,15 +712,17 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   Command computeDartBootstrapCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
     var buildDir = _configuration.buildDirectory;
-    String exec;
-    if (_isAndroid) {
-      if (_isArm) {
-        exec = "$buildDir/clang_x86/gen_snapshot";
-      } else if (_configuration.architecture == Architecture.arm64) {
-        exec = "$buildDir/clang_x64/gen_snapshot";
+    String exec = _configuration.genSnapshotPath;
+    if (exec == null) {
+      if (_isAndroid) {
+        if (_isArm) {
+          exec = "$buildDir/clang_x86/gen_snapshot";
+        } else if (_configuration.architecture == Architecture.arm64) {
+          exec = "$buildDir/clang_x64/gen_snapshot";
+        }
+      } else {
+        exec = "$buildDir/gen_snapshot";
       }
-    } else {
-      exec = "$buildDir/gen_snapshot";
     }
 
     final args = <String>[];

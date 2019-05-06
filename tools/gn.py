@@ -82,7 +82,7 @@ def ToCommandLine(gn_args):
 def HostCpuForArch(arch):
   if arch in ['ia32', 'arm', 'armv6', 'armv5te',
               'simarm', 'simarmv6', 'simarmv5te', 'simdbc',
-              'armsimdbc']:
+              'armsimdbc', 'simarm_x64']:
     return 'x86'
   if arch in ['x64', 'arm64', 'simarm64', 'simdbc64', 'armsimdbc64']:
     return 'x64'
@@ -92,7 +92,7 @@ def HostCpuForArch(arch):
 def TargetCpuForArch(arch, target_os):
   if arch in ['ia32', 'simarm', 'simarmv6', 'simarmv5te']:
     return 'x86'
-  if arch in ['x64', 'simarm64']:
+  if arch in ['x64', 'simarm64', 'simarm_x64']:
     return 'x64'
   if arch == 'simdbc':
     return 'arm' if target_os == 'android' else 'x86'
@@ -111,7 +111,7 @@ def DartTargetCpuForArch(arch):
     return 'ia32'
   if arch in ['x64']:
     return 'x64'
-  if arch in ['arm', 'simarm']:
+  if arch in ['arm', 'simarm', 'simarm_x64']:
     return 'arm'
   if arch in ['armv6', 'simarmv6']:
     return 'armv6'
@@ -306,7 +306,7 @@ def ProcessOptions(args):
   for arch in args.arch:
     archs = ['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
              'simarmv5te', 'armv5te', 'simarm64', 'arm64',
-             'simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']
+             'simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64','simarm_x64']
     if not arch in archs:
       print ("Unknown arch %s" % arch)
       return False
@@ -359,7 +359,7 @@ def parse_args(args):
       type=str,
       help='Target architectures (comma-separated).',
       metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
-              'simarm64,arm64,simdbc,armsimdbc]',
+              'simarm64,arm64,simdbc,armsimdbc,simarm_x64]',
       default='x64')
   common_group.add_argument('--mode', '-m',
       type=str,
