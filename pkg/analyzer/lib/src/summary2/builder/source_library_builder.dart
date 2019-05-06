@@ -123,7 +123,12 @@ class SourceLibraryBuilder {
 
           var reference = containerRef.getChild(name);
           reference.node2 = node;
-          localScope.declare(name, reference);
+
+          if (node.isSetter) {
+            localScope.declare('$name=', reference);
+          } else {
+            localScope.declare(name, reference);
+          }
         } else if (node is ast.FunctionTypeAlias) {
           var name = node.name.name;
           var reference = typeAliasRef.getChild(name);
