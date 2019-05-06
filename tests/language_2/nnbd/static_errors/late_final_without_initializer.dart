@@ -4,8 +4,8 @@
 
 // SharedOptions=--enable-experiment=non-nullable
 
-// Test that it is not a compile time error to write to a `final` variable if
-// that variable is declared `late` and does not have an initializer.
+// Test that it is not a compile time error for a `final` variable to not have
+// an initializer if that variable is declared as `late`.
 import 'package:expect/expect.dart';
 import 'dart:core';
 
