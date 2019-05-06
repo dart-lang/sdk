@@ -477,13 +477,23 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     subscriptions.addAll(params.subscriptions);
 
     if (subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
-      server.createDeclarationsTracker((change) {
+      var data = server.declarationsTrackerData;
+      var soFarLibraries = data.startListening((change) {
         server.sendNotification(
-          createCompletionAvailableSuggestionsNotification(change),
+          createCompletionAvailableSuggestionsNotification(
+            change.changed,
+            change.removed,
+          ),
         );
       });
+      server.sendNotification(
+        createCompletionAvailableSuggestionsNotification(
+          soFarLibraries,
+          [],
+        ),
+      );
     } else {
-      server.disposeDeclarationsTracker();
+      server.declarationsTrackerData.stopListening();
     }
 
     return CompletionSetSubscriptionsResult().toResponse(request.id);
