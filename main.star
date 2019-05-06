@@ -319,6 +319,9 @@ def dart_builder(name,
                              location_regexp=location_regexp)
         else:
             builder = name + "-" + channel if channel else name
+	    channel_properties = dict(properties)
+	    if channel in ['dev', 'stable']:
+	      channel_properties['no_approvals'] = True
             luci.builder(
                 name=builder,
                 build_numbers=True,
@@ -327,7 +330,7 @@ def dart_builder(name,
                 dimensions=dimensions,
                 executable=dart_recipe(recipe),
                 priority=priority,
-                properties=properties,
+                properties=channel_properties,
                 notifies=[notifies]
                 if notifies and not channel and enabled else None,
                 schedule=schedule if enabled else None,
