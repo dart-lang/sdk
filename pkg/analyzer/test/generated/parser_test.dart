@@ -2515,6 +2515,20 @@ mixin ErrorParserTestMixin implements AbstractParserTestCase {
     listener.assertErrors([expectedError(ParserErrorCode.CONST_METHOD, 0, 5)]);
   }
 
+  void test_constMethod_noReturnType() {
+    createParser('const m() {}');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrors([expectedError(ParserErrorCode.CONST_METHOD, 0, 5)]);
+  }
+
+  void test_constMethod_noReturnType2() {
+    createParser('const m();');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrors([expectedError(ParserErrorCode.CONST_METHOD, 0, 5)]);
+  }
+
   void test_constructorPartial() {
     createParser('class C { C< }');
     parser.parseCompilationUnit2();

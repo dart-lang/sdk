@@ -1460,9 +1460,7 @@ class AstBuilder extends StackListener {
     }
 
     void method(Token operatorKeyword, SimpleIdentifier name) {
-      if (modifiers?.constKeyword != null &&
-          body != null &&
-          (body.length > 1 || body.beginToken?.lexeme != ';')) {
+      if (modifiers?.constKeyword != null) {
         // This error is also reported in OutlineBuilder.endMethod
         handleRecoverableError(
             messageConstMethod, modifiers.constKeyword, modifiers.constKeyword);
