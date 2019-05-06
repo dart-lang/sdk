@@ -153,6 +153,10 @@ class LinkedUnitContext {
       return LazyFormalParameter.get(node).data.codeLength;
     } else if (node is FunctionDeclaration) {
       return LazyFunctionDeclaration.get(node).data.codeLength;
+    } else if (node is FunctionTypeAliasImpl) {
+      return LazyFunctionTypeAlias.get(node).data.codeLength;
+    } else if (node is GenericTypeAlias) {
+      return LazyGenericTypeAlias.get(node).data.codeLength;
     } else if (node is MethodDeclaration) {
       return LazyMethodDeclaration.get(node).data.codeLength;
     } else if (node is MixinDeclaration) {
@@ -180,6 +184,10 @@ class LinkedUnitContext {
       return LazyFormalParameter.get(node).data.codeOffset;
     } else if (node is FunctionDeclaration) {
       return LazyFunctionDeclaration.get(node).data.codeOffset;
+    } else if (node is FunctionTypeAliasImpl) {
+      return LazyFunctionTypeAlias.get(node).data.codeOffset;
+    } else if (node is GenericTypeAlias) {
+      return LazyGenericTypeAlias.get(node).data.codeOffset;
     } else if (node is MethodDeclaration) {
       return LazyMethodDeclaration.get(node).data.codeOffset;
     } else if (node is MixinDeclaration) {
@@ -437,7 +445,11 @@ class LinkedUnitContext {
       return node.metadata;
     } else if (node is CompilationUnit) {
       assert(node == _unit);
-      return _getPartDirectiveAnnotation();
+      if (indexInLibrary != 0) {
+        return _getPartDirectiveAnnotation();
+      } else {
+        return const <Annotation>[];
+      }
     } else if (node is ConstructorDeclaration) {
       LazyConstructorDeclaration.readMetadata(_astReader, node);
       return node.metadata;
@@ -1092,17 +1104,15 @@ class LinkedUnitContext {
   }
 
   NodeList<Annotation> _getPartDirectiveAnnotation() {
-    if (indexInLibrary != 0) {
-      var definingContext = libraryContext.definingUnit;
-      var unit = definingContext.unit;
-      var partDirectiveIndex = 0;
-      for (var directive in unit.directives) {
-        if (directive is PartDirective) {
-          partDirectiveIndex++;
-          if (partDirectiveIndex == indexInLibrary) {
-            LazyDirective.readMetadata(definingContext._astReader, directive);
-            return directive.metadata;
-          }
+    var definingContext = libraryContext.definingUnit;
+    var unit = definingContext.unit;
+    var partDirectiveIndex = 0;
+    for (var directive in unit.directives) {
+      if (directive is PartDirective) {
+        partDirectiveIndex++;
+        if (partDirectiveIndex == indexInLibrary) {
+          LazyDirective.readMetadata(definingContext._astReader, directive);
+          return directive.metadata;
         }
       }
     }

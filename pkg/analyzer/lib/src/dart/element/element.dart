@@ -1654,7 +1654,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       : resynthesizerContext = null,
         _unlinkedUnit = null,
         _unlinkedPart = null,
-        super.forLinkedNode(enclosingLibrary, reference, linkedNode);
+        super.forLinkedNode(enclosingLibrary, reference, linkedNode) {
+    _nameOffset = -1;
+  }
 
   /// Initialize using the given serialized information.
   CompilationUnitElementImpl.forSerialized(LibraryElementImpl enclosingLibrary,

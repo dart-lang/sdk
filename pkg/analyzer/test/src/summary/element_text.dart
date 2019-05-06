@@ -354,6 +354,7 @@ class _ElementWriter {
     if (e is GenericTypeAliasElement) {
       buffer.write('typedef ');
       writeName(e);
+      writeCodeRange(e);
       writeTypeParameterElements(e.typeParameters);
 
       buffer.write(' = ');

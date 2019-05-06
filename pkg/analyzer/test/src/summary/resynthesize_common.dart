@@ -2094,6 +2094,108 @@ void commentAroundAnnotation/*codeOffset=266, codeLength=58*/() {}
         withConstElements: false);
   }
 
+  test_codeRange_functionTypeAlias() async {
+    var library = await checkLibrary('''
+typedef Raw();
+
+/// Comment 1.
+/// Comment 2.
+typedef HasDocComment();
+
+@Object()
+typedef HasAnnotation();
+
+@Object()
+/// Comment 1.
+/// Comment 2.
+typedef AnnotationThenComment();
+
+/// Comment 1.
+/// Comment 2.
+@Object()
+typedef CommentThenAnnotation();
+
+/// Comment 1.
+@Object()
+/// Comment 2.
+typedef CommentAroundAnnotation();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef Raw/*codeOffset=0, codeLength=14*/ = dynamic Function();
+/// Comment 1.
+/// Comment 2.
+typedef HasDocComment/*codeOffset=16, codeLength=54*/ = dynamic Function();
+@Object()
+typedef HasAnnotation/*codeOffset=72, codeLength=34*/ = dynamic Function();
+/// Comment 1.
+/// Comment 2.
+@Object()
+typedef AnnotationThenComment/*codeOffset=108, codeLength=72*/ = dynamic Function();
+/// Comment 1.
+/// Comment 2.
+@Object()
+typedef CommentThenAnnotation/*codeOffset=182, codeLength=72*/ = dynamic Function();
+/// Comment 2.
+@Object()
+typedef CommentAroundAnnotation/*codeOffset=271, codeLength=59*/ = dynamic Function();
+''',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
+  test_codeRange_genericTypeAlias() async {
+    var library = await checkLibrary('''
+typedef Raw = Function();
+
+/// Comment 1.
+/// Comment 2.
+typedef HasDocComment = Function();
+
+@Object()
+typedef HasAnnotation = Function();
+
+@Object()
+/// Comment 1.
+/// Comment 2.
+typedef AnnotationThenComment = Function();
+
+/// Comment 1.
+/// Comment 2.
+@Object()
+typedef CommentThenAnnotation = Function();
+
+/// Comment 1.
+@Object()
+/// Comment 2.
+typedef CommentAroundAnnotation = Function();
+''');
+    checkElementText(
+        library,
+        r'''
+typedef Raw/*codeOffset=0, codeLength=25*/ = dynamic Function();
+/// Comment 1.
+/// Comment 2.
+typedef HasDocComment/*codeOffset=27, codeLength=65*/ = dynamic Function();
+@Object()
+typedef HasAnnotation/*codeOffset=94, codeLength=45*/ = dynamic Function();
+/// Comment 1.
+/// Comment 2.
+@Object()
+typedef AnnotationThenComment/*codeOffset=141, codeLength=83*/ = dynamic Function();
+/// Comment 1.
+/// Comment 2.
+@Object()
+typedef CommentThenAnnotation/*codeOffset=226, codeLength=83*/ = dynamic Function();
+/// Comment 2.
+@Object()
+typedef CommentAroundAnnotation/*codeOffset=326, codeLength=70*/ = dynamic Function();
+''',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
   test_codeRange_method() async {
     var library = await checkLibrary('''
 class C {
