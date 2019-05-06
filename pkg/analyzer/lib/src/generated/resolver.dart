@@ -7908,6 +7908,12 @@ class TypeResolverVisitor extends ScopedVisitor {
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
     GenericFunctionTypeElementImpl element = node.type?.element;
+    if (node.type != null) {
+      var nullability =
+          _typeNameResolver._getNullability(node.question != null);
+      (node as GenericFunctionTypeImpl).type =
+          (node.type as TypeImpl).withNullability(nullability);
+    }
     if (element != null) {
       super.visitGenericFunctionType(node);
       element.returnType =

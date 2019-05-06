@@ -177,10 +177,7 @@ m() {
 ''');
   }
 
-  @failingTest
   test_invoke_nullable() async {
-    // test is failing because nullable function invocations aren't being
-    // resolved correctly
     await assertErrorCodesInCode(r'''
 m() {
   Function()? x;
