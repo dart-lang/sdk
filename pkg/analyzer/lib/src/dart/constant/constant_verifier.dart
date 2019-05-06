@@ -46,19 +46,17 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   final ConstantEvaluationEngine _evaluationEngine;
 
   /// Initialize a newly created constant verifier.
-  ///
-  /// @param errorReporter the error reporter by which errors will be reported
-  ///
-  /// TODO(paulberry): make [featureSet] a required parameter.
   ConstantVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
       TypeProvider typeProvider, DeclaredVariables declaredVariables,
-      {bool forAnalysisDriver: false, FeatureSet featureSet})
+      // TODO(brianwilkerson) Remove the unused parameter `forAnalysisDriver`.
+      {bool forAnalysisDriver,
+      // TODO(paulberry): make [featureSet] a required parameter.
+      FeatureSet featureSet})
       : this._(
             errorReporter,
             currentLibrary,
             typeProvider,
             declaredVariables,
-            forAnalysisDriver,
             currentLibrary.context.typeSystem,
             featureSet ??
                 (currentLibrary.context.analysisOptions as AnalysisOptionsImpl)
@@ -69,7 +67,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       this._currentLibrary,
       this._typeProvider,
       this.declaredVariables,
-      bool forAnalysisDriver,
       TypeSystem typeSystem,
       FeatureSet featureSet)
       : _constantUpdate2018Enabled =
@@ -77,9 +74,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         _intType = _typeProvider.intType,
         _evaluationEngine = new ConstantEvaluationEngine(
             _typeProvider, declaredVariables,
-            forAnalysisDriver: forAnalysisDriver,
-            typeSystem: typeSystem,
-            experimentStatus: featureSet);
+            typeSystem: typeSystem, experimentStatus: featureSet);
 
   @override
   void visitAnnotation(Annotation node) {

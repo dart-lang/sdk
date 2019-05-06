@@ -20,9 +20,7 @@ void computeConstants(
     ExperimentStatus experimentStatus) {
   var evaluationEngine = ConstantEvaluationEngine(
       typeProvider, declaredVariables,
-      forAnalysisDriver: true,
-      typeSystem: typeSystem,
-      experimentStatus: experimentStatus);
+      typeSystem: typeSystem, experimentStatus: experimentStatus);
 
   var nodes = <_ConstantNode>[];
   var nodeMap = <ConstantEvaluationTarget, _ConstantNode>{};
