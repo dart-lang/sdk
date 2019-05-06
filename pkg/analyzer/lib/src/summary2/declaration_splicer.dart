@@ -23,8 +23,10 @@ class DeclarationSplicer {
 
   void splice(CompilationUnit full) {
     var partialNode = _unitElement.linkedContext.readUnitEagerly();
-    _directives(full, partialNode);
-    _declarations(full, partialNode);
+    _walk(_ElementWalker.forCompilationUnit(_unitElement), () {
+      _directives(full, partialNode);
+      _declarations(full, partialNode);
+    });
   }
 
   FunctionBody _body(FunctionBody full) {
@@ -94,14 +96,12 @@ class DeclarationSplicer {
   }
 
   void _declarations(CompilationUnit full, CompilationUnit partial) {
-    _walk(_ElementWalker.forCompilationUnit(_unitElement), () {
-      var fullList = full.declarations;
-      var partialList = partial.declarations;
-      for (var i = 0; i < fullList.length; ++i) {
-        var partialNode = _node(fullList[i], partialList[i]);
-        fullList[i] = partialNode;
-      }
-    });
+    var fullList = full.declarations;
+    var partialList = partial.declarations;
+    for (var i = 0; i < fullList.length; ++i) {
+      var partialNode = _node(fullList[i], partialList[i]);
+      fullList[i] = partialNode;
+    }
   }
 
   void _directives(CompilationUnit full, CompilationUnit partial) {
@@ -261,6 +261,20 @@ class DeclarationSplicer {
       node.staticElement = element;
     }
     return element;
+  }
+
+  /// Associate [nodes] with the corresponding [ElementAnnotation]s.
+  void _metadata(List<Annotation> nodes, Element element) {
+    var elements = element.metadata;
+    if (nodes.length != elements.length) {
+      throw StateError('Found ${nodes.length} annotation nodes and '
+          '${elements.length} element annotations');
+    }
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      node.elementAnnotation = elements[i];
+      _buildLocalElements(node);
+    }
   }
 
   void _methodDeclaration(MethodDeclaration full, MethodDeclaration partial) {
@@ -456,18 +470,6 @@ class DeclarationSplicer {
     _walker = walker;
     f();
     _walker = outer;
-  }
-
-  /// Associate [nodes] with the corresponding [ElementAnnotation]s.
-  static void _metadata(List<Annotation> nodes, Element element) {
-    var elements = element.metadata;
-    if (nodes.length != elements.length) {
-      throw StateError('Found ${nodes.length} annotation nodes and '
-          '${elements.length} element annotations');
-    }
-    for (var i = 0; i < nodes.length; i++) {
-      nodes[i].elementAnnotation = elements[i];
-    }
   }
 }
 
