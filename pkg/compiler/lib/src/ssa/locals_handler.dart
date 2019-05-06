@@ -15,7 +15,7 @@ import '../js_model/closure.dart' show JRecordField, JClosureField;
 import '../js_model/locals.dart' show JLocal;
 import '../world.dart' show JClosedWorld;
 
-import 'graph_builder.dart';
+import 'builder_kernel.dart';
 import 'nodes.dart';
 import 'types.dart';
 
@@ -32,7 +32,7 @@ class LocalsHandler {
   /// don't have source locations for [Elements.compareByPosition].
   Map<Local, HInstruction> directLocals = new Map<Local, HInstruction>();
   Map<Local, FieldEntity> redirectionMapping = new Map<Local, FieldEntity>();
-  final GraphBuilder builder;
+  final KernelSsaGraphBuilder builder;
   ScopeInfo scopeInfo;
   Map<TypeVariableType, TypeVariableLocal> typeVariableLocals =
       new Map<TypeVariableType, TypeVariableLocal>();
@@ -65,10 +65,10 @@ class LocalsHandler {
   LocalsHandler(this.builder, this.executableContext, this.memberContext,
       this.instanceType, this._nativeData, this._interceptorData);
 
-  JClosedWorld get closedWorld => builder.closedWorld;
+  JClosedWorld get _closedWorld => builder.closedWorld;
 
   AbstractValueDomain get _abstractValueDomain =>
-      closedWorld.abstractValueDomain;
+      _closedWorld.abstractValueDomain;
 
   GlobalTypeInferenceResults get _globalInferenceResults =>
       builder.globalInferenceResults;
@@ -80,13 +80,14 @@ class LocalsHandler {
     if (instanceType != null) {
       ClassEntity typeContext = DartTypes.getClassContext(newType);
       if (typeContext != null) {
-        newType = builder.types.substByContext(
+        newType = _closedWorld.dartTypes.substByContext(
             newType,
-            builder.types.asInstanceOf(
-                builder.types.getThisType(instanceType.element), typeContext));
+            _closedWorld.dartTypes.asInstanceOf(
+                _closedWorld.dartTypes.getThisType(instanceType.element),
+                typeContext));
       }
       if (!instanceType.containsTypeVariables) {
-        newType = builder.types.substByContext(newType, instanceType);
+        newType = _closedWorld.dartTypes.substByContext(newType, instanceType);
       }
     }
     return newType;
@@ -278,7 +279,7 @@ class LocalsHandler {
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
       HParameterValue value = new HParameterValue(
-          parameter, closedWorld.abstractValueDomain.createNullableExact(cls));
+          parameter, _closedWorld.abstractValueDomain.createNullableExact(cls));
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAtEntry(value);
       if (builder.lastAddedParameter == null) {
@@ -438,15 +439,13 @@ class LocalsHandler {
       // Inside the closure the box is stored in a closure-field and cannot
       // be accessed directly.
       HInstruction box = readLocal(localBox);
-      builder.add(
-          new HFieldSet(builder.abstractValueDomain, redirect, box, value)
-            ..sourceInformation = sourceInformation);
+      builder.add(new HFieldSet(_abstractValueDomain, redirect, box, value)
+        ..sourceInformation = sourceInformation);
     } else {
       assert(_isUsedInTryOrGenerator(local));
       HLocalValue localValue = getLocal(local);
-      builder.add(
-          new HLocalSet(builder.abstractValueDomain, local, localValue, value)
-            ..sourceInformation = sourceInformation);
+      builder.add(new HLocalSet(_abstractValueDomain, local, localValue, value)
+        ..sourceInformation = sourceInformation);
     }
   }
 
@@ -653,7 +652,7 @@ class LocalsHandler {
     if (result == null) {
       ThisLocal local = scopeInfo.thisLocal;
       ClassEntity cls = local.enclosingClass;
-      if (closedWorld.isUsedAsMixin(cls)) {
+      if (_closedWorld.isUsedAsMixin(cls)) {
         // If the enclosing class is used as a mixin, [:this:] can be
         // of the class that mixins the enclosing class. These two
         // classes do not have a subclass relationship, so, for

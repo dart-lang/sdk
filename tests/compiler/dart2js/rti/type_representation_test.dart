@@ -199,44 +199,44 @@ main() {
   expect(
       instantiate(List_, [Typedef5_]),
       '[$List_rep, {$func: 1,'
-      ' $args: [$int_rep, $String_rep]}]',
+          ' $args: [$int_rep, $String_rep]}]',
       '[$List_rep, {$func: 1,'
-      ' $args: [$int_rep, $String_rep]$Typedef5_tag}]');
+          ' $args: [$int_rep, $String_rep]$Typedef5_tag}]');
   expect(
       instantiate(List_, [Typedef6_]),
       '[$List_rep, {$func: 1,'
-      ' $args: [$int_rep], $opt: [$String_rep]}]',
+          ' $args: [$int_rep], $opt: [$String_rep]}]',
       '[$List_rep, {$func: 1,'
-      ' $args: [$int_rep], $opt: [$String_rep]$Typedef6_tag}]');
+          ' $args: [$int_rep], $opt: [$String_rep]$Typedef6_tag}]');
   expect(
       instantiate(List_, [Typedef7_]),
       '[$List_rep, {$func: 1, $args: '
-      '[$int_rep, $String_rep], $opt: [[$List_rep, $int_rep],,]}]',
+          '[$int_rep, $String_rep], $opt: [[$List_rep, $int_rep],,]}]',
       '[$List_rep, {$func: 1, $args: '
-      '[$int_rep, $String_rep], $opt: [[$List_rep, $int_rep],,]'
-      '$Typedef7_tag}]');
+          '[$int_rep, $String_rep], $opt: [[$List_rep, $int_rep],,]'
+          '$Typedef7_tag}]');
   expect(
       instantiate(List_, [Typedef8_]),
       '[$List_rep, {$func: 1, $args: [$int_rep],'
-      ' $named: {b: $String_rep}}]',
+          ' $named: {b: $String_rep}}]',
       '[$List_rep, {$func: 1, $args: [$int_rep],'
-      ' $named: {b: $String_rep}$Typedef8_tag}]');
+          ' $named: {b: $String_rep}$Typedef8_tag}]');
   expect(
       instantiate(List_, [Typedef9_]),
       '[$List_rep, {$func: 1, '
-      '$args: [$int_rep, $String_rep], $named: '
-      '{c: [$List_rep, $int_rep], d: null}}]',
+          '$args: [$int_rep, $String_rep], $named: '
+          '{c: [$List_rep, $int_rep], d: null}}]',
       '[$List_rep, {$func: 1, '
-      '$args: [$int_rep, $String_rep], $named: {c: [$List_rep, $int_rep],'
-      ' d: null}$Typedef9_tag}]');
+          '$args: [$int_rep, $String_rep], $named: {c: [$List_rep, $int_rep],'
+          ' d: null}$Typedef9_tag}]');
   expect(
       instantiate(List_, [Typedef10_]),
       '[$List_rep, {$func: 1, '
-      '$args: [{$func: 1, $retvoid, '
-      '$args: [$int_rep], $opt: [,]}]}]',
+          '$args: [{$func: 1, $retvoid, '
+          '$args: [$int_rep], $opt: [,]}]}]',
       '[$List_rep, {$func: 1, '
-      '$args: [{$func: 1, $retvoid, '
-      '$args: [$int_rep], $opt: [,]}]$Typedef10_tag}]');
+          '$args: [{$func: 1, $retvoid, '
+          '$args: [$int_rep], $opt: [,]}]$Typedef10_tag}]');
 
   expect(
       instantiate(List_, [Typedef11_]),

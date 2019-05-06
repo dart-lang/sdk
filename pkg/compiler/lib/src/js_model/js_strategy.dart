@@ -180,13 +180,18 @@ class KernelSsaBuilder implements SsaBuilder {
     _inlineCache ??= new FunctionInlineCache(closedWorld.annotationsData);
     return task.measure(() {
       KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
+          _compiler.options,
+          _compiler.reporter,
           work.element,
           _elementMap.getMemberThisType(work.element),
-          _compiler,
+          _compiler.dumpInfoTask,
           _elementMap,
           results,
           closedWorld,
           work.registry,
+          _compiler.backend.namer,
+          _compiler.backend.emitter,
+          _compiler.backend.tracer,
           _compiler.backend.emitter.nativeEmitter,
           _compiler.backend.sourceInformationStrategy,
           _inlineCache);

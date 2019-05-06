@@ -679,24 +679,6 @@ class JavaScriptBackend {
     return programSize;
   }
 
-  /// Returns [:true:] if the checking of [type] is performed directly on the
-  /// object and not on an interceptor.
-  bool hasDirectCheckFor(CommonElements commonElements, DartType type) {
-    if (!type.isInterfaceType) return false;
-    InterfaceType interfaceType = type;
-    ClassEntity element = interfaceType.element;
-    return element == commonElements.stringClass ||
-        element == commonElements.boolClass ||
-        element == commonElements.numClass ||
-        element == commonElements.intClass ||
-        element == commonElements.doubleClass ||
-        element == commonElements.jsArrayClass ||
-        element == commonElements.jsMutableArrayClass ||
-        element == commonElements.jsExtendableArrayClass ||
-        element == commonElements.jsFixedArrayClass ||
-        element == commonElements.jsUnmodifiableArrayClass;
-  }
-
   /// This method is called immediately after the [library] and its parts have
   /// been loaded.
   void setAnnotations(LibraryEntity library) {

@@ -65,7 +65,7 @@ main() => new A();
 '''),
   const Test(
       'Js-interop class with external method with optional parameters '
-      'with default values.',
+          'with default values.',
       '''
 @JS()
 library test;
@@ -172,7 +172,7 @@ main() => new B();
 '''),
   const Test(
       'Js-interop class that extends a js-interop class, '
-      'reversed declaration order.',
+          'reversed declaration order.',
       '''
 @JS()
 library test;
@@ -353,7 +353,7 @@ main() => new A(a: 1);
 '''),
   const Test(
       'External factory constructor with named parameters '
-      'with default parameters.',
+          'with default parameters.',
       '''
 @JS()
 library test;
