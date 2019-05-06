@@ -3776,7 +3776,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
     this.inferenceContext = new InferenceContext._(
         typeProvider, typeSystem, strongModeHints, errorReporter);
-    this.typeAnalyzer = new StaticTypeAnalyzer(this);
+    this.typeAnalyzer = new StaticTypeAnalyzer(this, featureSet);
   }
 
   /// Return the element representing the function containing the current node,
