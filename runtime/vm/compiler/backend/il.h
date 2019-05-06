@@ -5303,6 +5303,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   static bool IsFixedLengthArrayCid(intptr_t cid);
+  static bool IsTypedDataViewFactory(const Function& function);
 
   virtual bool AllowsCSE() const { return slot_.is_immutable(); }
   virtual bool HasUnknownSideEffects() const { return false; }

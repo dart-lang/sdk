@@ -2632,6 +2632,30 @@ bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
   }
 }
 
+bool LoadFieldInstr::IsTypedDataViewFactory(const Function& function) {
+  auto kind = MethodRecognizer::RecognizeKind(function);
+  switch (kind) {
+    case MethodRecognizer::kTypedData_ByteDataView_factory:
+    case MethodRecognizer::kTypedData_Int8ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint8ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint8ClampedArrayView_factory:
+    case MethodRecognizer::kTypedData_Int16ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint16ArrayView_factory:
+    case MethodRecognizer::kTypedData_Int32ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint32ArrayView_factory:
+    case MethodRecognizer::kTypedData_Int64ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint64ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float32ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float64ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_Int32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float64x2ArrayView_factory:
+      return true;
+    default:
+      return false;
+  }
+}
+
 Definition* ConstantInstr::Canonicalize(FlowGraph* flow_graph) {
   return HasUses() ? this : NULL;
 }
@@ -2703,6 +2727,16 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       if (call->is_known_list_constructor() &&
           IsFixedLengthArrayCid(call->Type()->ToCid())) {
         return call->ArgumentAt(1);
+      } else if (IsTypedDataViewFactory(call->function())) {
+        // Typed data view factories all take three arguments (after
+        // the implicit type arguments parameter):
+        //
+        // 1) _TypedList buffer -- the underlying data for the view
+        // 2) int offsetInBytes -- the offset into the buffer to start viewing
+        // 3) int length        -- the number of elements in the view
+        //
+        // Here, we forward the third.
+        return call->ArgumentAt(3);
       }
     } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
       if (slot().kind() == Slot::Kind::kArray_length) {
@@ -2717,6 +2751,24 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
           return flow_graph->GetConstant(
               Smi::Handle(Smi::New(slot.field().guarded_list_length())));
         }
+      }
+    }
+  } else if (slot().kind() == Slot::Kind::kTypedDataView_data) {
+    // This case cover the first explicit argument to typed data view
+    // factories, the data (buffer).
+    Definition* array = instance()->definition()->OriginalDefinition();
+    if (StaticCallInstr* call = array->AsStaticCall()) {
+      if (IsTypedDataViewFactory(call->function())) {
+        return call->ArgumentAt(1);
+      }
+    }
+  } else if (slot().kind() == Slot::Kind::kTypedDataView_offset_in_bytes) {
+    // This case cover the second explicit argument to typed data view
+    // factories, the offset into the buffer.
+    Definition* array = instance()->definition()->OriginalDefinition();
+    if (StaticCallInstr* call = array->AsStaticCall()) {
+      if (IsTypedDataViewFactory(call->function())) {
+        return call->ArgumentAt(2);
       }
     }
   } else if (slot().IsTypeArguments()) {
