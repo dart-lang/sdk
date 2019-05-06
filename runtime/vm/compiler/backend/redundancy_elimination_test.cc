@@ -595,22 +595,17 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_SingleBlock) {
   BoxInstr* boxed_result = nullptr;
 
   ILMatcher cursor(flow_graph, entry);
-  RELEASE_ASSERT(cursor.TryMatch({
-      kMoveGlob,
-      {kMatchAndMoveStaticCall, &list_factory},
-      kMoveGlob,
-      {kMatchAndMoveUnboxedConstant, &double_one},
-      kMoveGlob,
-      {kMatchAndMoveStoreIndexed, &first_store},
-      kMoveGlob,
-      {kMatchAndMoveStoreIndexed, &second_store},
-      kMoveGlob,
-      {kMatchAndMoveLoadIndexed, &final_load},
-      kMoveGlob,
-      {kMatchAndMoveBox, &boxed_result},
-      kMoveGlob,
-      kMatchReturn,
-  }));
+  RELEASE_ASSERT(cursor.TryMatch(
+      {
+          {kMatchAndMoveStaticCall, &list_factory},
+          {kMatchAndMoveUnboxedConstant, &double_one},
+          {kMatchAndMoveStoreIndexed, &first_store},
+          {kMatchAndMoveStoreIndexed, &second_store},
+          {kMatchAndMoveLoadIndexed, &final_load},
+          {kMatchAndMoveBox, &boxed_result},
+          kMatchReturn,
+      },
+      /*insert_before=*/kMoveGlob));
 
   EXPECT(first_store->array()->definition() == list_factory);
   EXPECT(second_store->array()->definition() == list_factory);
@@ -697,19 +692,21 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
   BoxInstr* boxed_result = nullptr;
 
   ILMatcher cursor(flow_graph, entry);
-  RELEASE_ASSERT(cursor.TryMatch({
-      kMoveGlob, {kMatchAndMoveStaticCall, &list_factory},
-      kMoveGlob, kMatchAndMoveBranchTrue,
-      kMoveGlob, kMatchAndMoveBranchTrue,
-      kMoveGlob, kMatchAndMoveBranchFalse,
-      kMoveGlob, {kMatchAndMoveUnboxedConstant, &double_one},
-      kMoveGlob, {kMatchAndMoveStoreIndexed, &first_store},
-      kMoveGlob, kMatchAndMoveBranchFalse,
-      kMoveGlob, {kMatchAndMoveStoreIndexed, &second_store},
-      kMoveGlob, {kMatchAndMoveLoadIndexed, &final_load},
-      kMoveGlob, {kMatchAndMoveBox, &boxed_result},
-      kMoveGlob, kMatchReturn,
-  }));
+  RELEASE_ASSERT(cursor.TryMatch(
+      {
+          {kMatchAndMoveStaticCall, &list_factory},
+          kMatchAndMoveBranchTrue,
+          kMatchAndMoveBranchTrue,
+          kMatchAndMoveBranchFalse,
+          {kMatchAndMoveUnboxedConstant, &double_one},
+          {kMatchAndMoveStoreIndexed, &first_store},
+          kMatchAndMoveBranchFalse,
+          {kMatchAndMoveStoreIndexed, &second_store},
+          {kMatchAndMoveLoadIndexed, &final_load},
+          {kMatchAndMoveBox, &boxed_result},
+          kMatchReturn,
+      },
+      /*insert_before=*/kMoveGlob));
 
   EXPECT(first_store->array()->definition() == list_factory);
   EXPECT(second_store->array()->definition() == list_factory);

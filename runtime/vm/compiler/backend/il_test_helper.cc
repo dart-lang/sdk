@@ -178,8 +178,15 @@ void TestPipeline::CompileGraphAndAttachFunction() {
   }
 }
 
-bool ILMatcher::TryMatch(std::initializer_list<MatchCode> match_codes) {
+bool ILMatcher::TryMatch(std::initializer_list<MatchCode> match_codes,
+                         MatchOpCode insert_before) {
   std::vector<MatchCode> qcodes = match_codes;
+
+  if (insert_before != kInvalidMatchOpCode) {
+    for (auto pos = qcodes.begin(); pos < qcodes.end(); pos++) {
+      pos = qcodes.insert(pos, insert_before) + 1;
+    }
+  }
 
   if (trace_) {
     OS::PrintErr("ILMatcher: Matching the following graph\n");

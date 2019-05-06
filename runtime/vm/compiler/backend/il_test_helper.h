@@ -114,6 +114,10 @@ enum MatchOpCode {
 
   // Moves forward until the next match code matches.
   kMoveGlob,
+
+  // Invalid match opcode used as default [insert_before] argument to TryMatch
+  // to signal that no insertions should occur.
+  kInvalidMatchOpCode,
 };
 
 // Match codes used for [ILMatcher], see below.
@@ -179,7 +183,11 @@ class ILMatcher : public ValueObject {
   //
   // Returns `true` if the match was successful and cursor has been updated,
   // otherwise returns `false`.
-  bool TryMatch(std::initializer_list<MatchCode> match_codes);
+  //
+  // If [insert_before] is a valid match opcode, then it will be inserted
+  // before each MatchCode in [match_codes] prior to matching.
+  bool TryMatch(std::initializer_list<MatchCode> match_codes,
+                MatchOpCode insert_before = kInvalidMatchOpCode);
 
  private:
   Instruction* MatchInternal(std::vector<MatchCode> match_codes,
