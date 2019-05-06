@@ -61,11 +61,19 @@ class ManifestValidator {
         orElse: () => null);
     if (feature != null) {
       if (!feature.attributes.containsKey(ANDROID_REQUIRED)) {
-        _reportErrorForNode(reporter, feature, ANDROID_NAME,
-            ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE);
+        _reportErrorForNode(
+            reporter,
+            feature,
+            ANDROID_NAME,
+            ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
+            [HARDWARE_FEATURE_TOUCHSCREEN]);
       } else if (feature.attributes[ANDROID_REQUIRED] == 'true') {
-        _reportErrorForNode(reporter, feature, ANDROID_NAME,
-            ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE);
+        _reportErrorForNode(
+            reporter,
+            feature,
+            ANDROID_NAME,
+            ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE,
+            [HARDWARE_FEATURE_TOUCHSCREEN]);
       }
     } else {
       _reportErrorForNode(
@@ -83,11 +91,19 @@ class ManifestValidator {
         .toList();
     unsupported.forEach((element) {
       if (!element.attributes.containsKey(ANDROID_REQUIRED)) {
-        _reportErrorForNode(reporter, element, ANDROID_NAME,
-            ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE);
+        _reportErrorForNode(
+            reporter,
+            element,
+            ANDROID_NAME,
+            ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
+            [element.attributes[ANDROID_NAME]]);
       } else if (element.attributes[ANDROID_REQUIRED] == 'true') {
-        _reportErrorForNode(reporter, element, ANDROID_NAME,
-            ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE);
+        _reportErrorForNode(
+            reporter,
+            element,
+            ANDROID_NAME,
+            ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE,
+            [element.attributes[ANDROID_NAME]]);
       }
     });
   }

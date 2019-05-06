@@ -803,12 +803,15 @@ analyzer:
       new File(manifestPath).writeAsStringSync('''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
 ''');
       await drive(manifestPath, options: filePath);
-      expect(bulletToDash(outSink),
-          contains("warning - This feature is not supported on Chrome OS"));
+      expect(
+          bulletToDash(outSink),
+          contains(
+              "warning - The feature android.software.home_screen is not supported on Chrome OS"));
       expect(exitCode, 0);
     });
   }
