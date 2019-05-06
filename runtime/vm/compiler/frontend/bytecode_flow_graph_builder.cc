@@ -799,12 +799,15 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
   Token::Kind token_kind = MethodTokenRecognizer::RecognizeTokenKind(name);
 
   intptr_t checked_argument_count = 1;
-  if ((token_kind != Token::kILLEGAL) ||
-      (name.raw() ==
-       Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()).raw())) {
+  if (token_kind != Token::kILLEGAL) {
     intptr_t argument_count = arg_desc.Count();
     ASSERT(argument_count <= 2);
     checked_argument_count = argument_count;
+  } else if (name.raw() ==
+             Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()).raw()) {
+    ASSERT(arg_desc.Count() == 2);
+    checked_argument_count = 2;
+    token_kind = Token::kIS;
   } else if (name.raw() ==
              Library::PrivateCoreLibName(Symbols::_instanceOf()).raw()) {
     token_kind = Token::kIS;
