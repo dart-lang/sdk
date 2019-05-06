@@ -1410,24 +1410,22 @@ void BytecodeFlowGraphBuilder::BuildJumpIfStrictCompare(Token::Kind cmp_kind) {
 
   LoadStackSlots(2);
 
-  TargetEntryInstr* eq_branch = nullptr;
-  TargetEntryInstr* ne_branch = nullptr;
-  code_ += B->BranchIfStrictEqual(&eq_branch, &ne_branch);
-
-  TargetEntryInstr* then_entry =
-      (cmp_kind == Token::kEQ) ? eq_branch : ne_branch;
-  TargetEntryInstr* else_entry =
-      (cmp_kind == Token::kEQ) ? ne_branch : eq_branch;
+  // Fallthrough should correspond to 'then' branch target.
+  // This results in a slightly better regalloc.
+  TargetEntryInstr* then_entry = nullptr;
+  TargetEntryInstr* else_entry = nullptr;
+  code_ += B->BranchIfEqual(&then_entry, &else_entry,
+                            /* negate = */ (cmp_kind == Token::kEQ));
 
   const intptr_t target_pc = pc_ + DecodeOperandT().value();
   JoinEntryInstr* join = jump_targets_.Lookup(target_pc);
   ASSERT(join != nullptr);
 
-  code_ = Fragment(then_entry);
+  code_ = Fragment(else_entry);
   code_ += B->Goto(join);
   PropagateStackState(target_pc);
 
-  code_ = Fragment(else_entry);
+  code_ = Fragment(then_entry);
 }
 
 void BytecodeFlowGraphBuilder::BuildJumpIfEqStrict() {
