@@ -1401,8 +1401,11 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   Null visitField(ir.Field node) {
     thisType = new ThisInterfaceType.from(node.enclosingClass?.thisType);
+    _currentVariables = new Set<ir.VariableDeclaration>();
     visitNode(node.initializer);
     handleField(node);
+    _invalidatedVariables.removeAll(_currentVariables);
+    _currentVariables = null;
     thisType = null;
   }
 
