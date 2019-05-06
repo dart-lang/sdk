@@ -1523,6 +1523,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<void> {
     FunctionType type = new FunctionTypeImpl(element);
     element.type = type;
     (node as GenericFunctionTypeImpl).type = type;
+    (node as GenericFunctionTypeImpl).declaredElement = element;
     holder.validate();
   }
 

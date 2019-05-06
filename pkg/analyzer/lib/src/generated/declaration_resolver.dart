@@ -510,6 +510,7 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   void _setGenericFunctionType(TypeAnnotation typeNode, DartType type) {
     if (typeNode is GenericFunctionTypeImpl) {
       typeNode.type = type;
+      typeNode.declaredElement = type.element;
     } else if (typeNode is NamedType) {
       typeNode.type = type;
       if (type is ParameterizedType) {

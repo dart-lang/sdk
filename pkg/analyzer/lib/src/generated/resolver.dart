@@ -6009,7 +6009,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       super.visitGenericFunctionType(node);
       return;
     }
-    GenericFunctionTypeElement element = type.element;
+    GenericFunctionTypeElement element =
+        (node as GenericFunctionTypeImpl).declaredElement;
     Scope outerScope = nameScope;
     try {
       if (element == null) {
@@ -7907,7 +7908,8 @@ class TypeResolverVisitor extends ScopedVisitor {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
-    GenericFunctionTypeElementImpl element = node.type?.element;
+    GenericFunctionTypeElementImpl element =
+        (node as GenericFunctionTypeImpl).declaredElement;
     if (node.type != null) {
       var nullability =
           _typeNameResolver._getNullability(node.question != null);
