@@ -15,7 +15,6 @@ import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
-import '../js_backend/constant_handler_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_backend/namer.dart';
@@ -75,8 +74,6 @@ abstract class GraphBuilder {
   Namer get namer => backend.namer;
 
   RuntimeTypesNeed get rtiNeed => closedWorld.rtiNeed;
-
-  JavaScriptConstantCompiler get constants => backend.constants;
 
   RuntimeTypesEncoder get rtiEncoder => backend.rtiEncoder;
 

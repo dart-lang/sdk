@@ -15,7 +15,6 @@ import 'common/names.dart' show Selectors, Uris;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
-import 'compile_time_constants.dart';
 import 'common_elements.dart' show ElementEnvironment;
 import 'deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import 'diagnostics/code_location.dart';
@@ -110,10 +109,6 @@ abstract class Compiler {
 
   GenericTask selfTask;
 
-  /// The constant environment for the frontend interpretation of compile-time
-  /// constants.
-  ConstantEnvironment constants;
-
   EnqueueTask enqueuer;
   DeferredLoadTask deferredLoadTask;
   DumpInfoTask dumpInfoTask;
@@ -176,7 +171,6 @@ abstract class Compiler {
           options, provider, _outputProvider, reporter, measurer),
       kernelFrontEndTask,
       globalInference = new GlobalTypeInferenceTask(this),
-      constants = backend.constantCompilerTask,
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
       // [enqueuer] is created earlier because it contains the resolution world
       // objects needed by other tasks.

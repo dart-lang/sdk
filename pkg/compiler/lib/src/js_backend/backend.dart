@@ -48,7 +48,6 @@ import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
 import 'codegen_listener.dart';
-import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
 import 'enqueuer.dart';
 import 'impact_transformer.dart';
@@ -355,10 +354,6 @@ class JavaScriptBackend {
   /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
 
-  /// The compiler task responsible for the compilation of constants for both
-  /// the frontend and the backend.
-  final JavaScriptConstantTask constantCompilerTask;
-
   /// Backend transformation methods for the world impacts.
   ImpactTransformer impactTransformer;
 
@@ -386,8 +381,7 @@ class JavaScriptBackend {
       bool useMultiSourceInfo: false,
       bool useNewSourceInfo: false})
       : this.sourceInformationStrategy =
-            compiler.backendStrategy.sourceInformationStrategy,
-        constantCompilerTask = new JavaScriptConstantTask(compiler) {
+            compiler.backendStrategy.sourceInformationStrategy {
     CommonElements commonElements = compiler.frontendStrategy.commonElements;
     _backendUsageBuilder =
         new BackendUsageBuilderImpl(compiler.frontendStrategy);
@@ -464,12 +458,6 @@ class JavaScriptBackend {
   }
 
   CheckedModeHelpers get checkedModeHelpers => _checkedModeHelpers;
-
-  /// Returns constant environment for the JavaScript interpretation of the
-  /// constants.
-  JavaScriptConstantCompiler get constants {
-    return constantCompilerTask.jsConstantCompiler;
-  }
 
   Namer determineNamer(JClosedWorld closedWorld) {
     return compiler.options.enableMinification

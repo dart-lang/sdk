@@ -22,8 +22,6 @@ import '../../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
 import '../../js_backend/backend.dart' show SuperMemberData;
 import '../../js_backend/backend_usage.dart';
-import '../../js_backend/constant_handler_javascript.dart'
-    show JavaScriptConstantCompiler;
 import '../../js_backend/custom_elements_analysis.dart';
 import '../../js_backend/inferred_data.dart';
 import '../../js_backend/interceptor_data.dart';
@@ -67,7 +65,6 @@ class ProgramBuilder {
   final CodegenWorld _codegenWorld;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
   final BackendUsage _backendUsage;
-  final JavaScriptConstantCompiler _constantHandler;
   final NativeData _nativeData;
   final RuntimeTypesNeed _rtiNeed;
   final InterceptorData _interceptorData;
@@ -111,7 +108,6 @@ class ProgramBuilder {
       this._codegenWorld,
       this._nativeCodegenEnqueuer,
       this._backendUsage,
-      this._constantHandler,
       this._nativeData,
       this._rtiNeed,
       this._interceptorData,
@@ -138,7 +134,6 @@ class ProgramBuilder {
             _codegenWorld,
             _namer,
             _task.emitter,
-            _constantHandler,
             _nativeData,
             _interceptorData,
             _oneShotInterceptorData,
@@ -435,11 +430,14 @@ class ProgramBuilder {
 
   List<StaticField> _buildStaticLazilyInitializedFields(
       LibrariesMap librariesMap) {
-    Iterable<FieldEntity> lazyFields = _constantHandler
-        .getLazilyInitializedFieldsForEmission()
-        .where((FieldEntity element) =>
-            _outputUnitData.outputUnitForMember(element) ==
-            librariesMap.outputUnit);
+    List<FieldEntity> lazyFields = [];
+    _codegenWorld.forEachStaticField((FieldEntity field) {
+      if (_closedWorld.fieldAnalysis.getFieldData(field).isLazy &&
+          _outputUnitData.outputUnitForMember(field) ==
+              librariesMap.outputUnit) {
+        lazyFields.add(field);
+      }
+    });
     return _sorter
         .sortMembers(lazyFields)
         .map(_buildLazyField)

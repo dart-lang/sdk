@@ -182,7 +182,6 @@ class CodeEmitterTask extends CompilerTask {
           codegenWorld,
           backend.nativeCodegenEnqueuer,
           closedWorld.backendUsage,
-          backend.constants,
           closedWorld.nativeData,
           closedWorld.rtiNeed,
           closedWorld.interceptorData,

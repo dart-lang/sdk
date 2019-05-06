@@ -17,7 +17,6 @@ class Collector {
   // TODO(floitsch): the code-emitter task should not need a namer.
   final Namer _namer;
   final Emitter _emitter;
-  final JavaScriptConstantCompiler _constantHandler;
   final NativeData _nativeData;
   final InterceptorData _interceptorData;
   final OneShotInterceptorData _oneShotInterceptorData;
@@ -55,7 +54,6 @@ class Collector {
       this._codegenWorld,
       this._namer,
       this._emitter,
-      this._constantHandler,
       this._nativeData,
       this._interceptorData,
       this._oneShotInterceptorData,
@@ -268,14 +266,14 @@ class Collector {
       list.add(element);
     }
 
-    List<FieldEntity> fields = [];
+    List<FieldEntity> eagerFields = [];
     _codegenWorld.forEachStaticField((FieldEntity field) {
       if (_closedWorld.fieldAnalysis.getFieldData(field).isEager) {
-        fields.add(field);
+        eagerFields.add(field);
       }
     });
 
-    fields.sort((FieldEntity a, FieldEntity b) {
+    eagerFields.sort((FieldEntity a, FieldEntity b) {
       FieldAnalysisData aFieldData = _closedWorld.fieldAnalysis.getFieldData(a);
       FieldAnalysisData bFieldData = _closedWorld.fieldAnalysis.getFieldData(b);
       int aIndex = aFieldData.eagerCreationIndex;
@@ -292,7 +290,7 @@ class Collector {
         return _sorter.compareMembersByLocation(a, b);
       }
     });
-    fields.forEach(addToOutputUnit);
+    eagerFields.forEach(addToOutputUnit);
   }
 
   void computeNeededLibraries() {

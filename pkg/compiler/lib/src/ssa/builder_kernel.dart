@@ -53,7 +53,6 @@ import 'kernel_string_builder.dart';
 import 'locals_handler.dart';
 import 'loop_handler.dart';
 import 'nodes.dart';
-import 'ssa.dart';
 import 'ssa_branch_builder.dart';
 import 'switch_continue_analysis.dart';
 import 'type_builder.dart';
@@ -81,8 +80,7 @@ class StackFrame {
       this.staticTypeProvider);
 }
 
-class KernelSsaGraphBuilder extends ir.Visitor
-    with GraphBuilder, SsaBuilderFieldMixin {
+class KernelSsaGraphBuilder extends ir.Visitor with GraphBuilder {
   @override
   final MemberEntity targetElement;
   final MemberEntity initialTargetElement;
@@ -244,21 +242,26 @@ class KernelSsaGraphBuilder extends ir.Visitor
                   targetElement, _ensureDefaultArgumentValues(target.function));
             }
           } else if (target is ir.Field) {
-            if (handleConstantField(targetElement, registry, closedWorld)) {
-              // No code is generated for `targetElement`: All references inline
-              // the constant value.
-              return null;
-            } else if (targetElement.isStatic || targetElement.isTopLevel) {
-              if (_fieldAnalysis.getFieldData(targetElement).isLazy) {
-                // TODO(johnniwinther): Lazy fields should be collected like
-                // eager and non-final fields.
-                backend.constants.registerLazyStatic(targetElement);
+            FieldAnalysisData fieldData =
+                closedWorld.fieldAnalysis.getFieldData(targetElement);
+
+            if (fieldData.initialValue != null) {
+              registry.worldImpact.registerConstantUse(
+                  new ConstantUse.init(fieldData.initialValue));
+              if (targetElement.isStatic || targetElement.isTopLevel) {
+                /// No code is created for this field: All references inline the
+                /// constant value.
+                return null;
               }
-            } else {
-              assert(targetElement.isInstanceMember);
-              if (_fieldAnalysis
-                      .getFieldData(targetElement)
-                      .isEffectivelyFinal ||
+            } else if (fieldData.isLazy) {
+              // The generated initializer needs be wrapped in the cyclic-error
+              // helper.
+              registry.worldImpact.registerStaticUse(new StaticUse.staticInvoke(
+                  closedWorld.commonElements.cyclicThrowHelper,
+                  CallStructure.ONE_ARG));
+            }
+            if (targetElement.isInstanceMember) {
+              if (fieldData.isEffectivelyFinal ||
                   !options.parameterCheckPolicy.isEmitted) {
                 // No need for a checked setter.
                 return null;
