@@ -1645,9 +1645,6 @@ class FastaParserTestCase
     // Adjust the feature set based on language version comment.
     void languageVersionChanged(
         fasta.Scanner scanner, LanguageVersionToken languageVersion) {
-      // TODO(danrubel): Move this to a central location
-      // and base this on the feature set being downgraded.
-
       featureSet = featureSet.restrictToVersion(
           Version(languageVersion.major, languageVersion.minor, 0));
       scanner.configuration = Scanner.buildConfig(featureSet);

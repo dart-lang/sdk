@@ -704,11 +704,6 @@ class FileState {
       return _createEmptyCompilationUnit(featureSet);
     }
 
-    // TODO(paulberry): adjust featureSet as appropriate if there is a "@dart"
-    // comment and/or an SDK constraint that restricts what features should be
-    // available.  Ideally we would like the parser to make this adjustment (at
-    // least in the case of "@dart") because it's the component that recognizes
-    // "@dart" comments.
     CharSequenceReader reader = new CharSequenceReader(content);
     Scanner scanner = new Scanner(source, reader, errorListener)
       ..configureFeatures(featureSet);
@@ -718,8 +713,11 @@ class FileState {
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
     bool useFasta = analysisOptions.useFastaParser;
+    // Pass the feature set from the scanner to the parser
+    // because the scanner may have detected a language version comment
+    // and downgraded the feature set it holds.
     Parser parser = new Parser(source, errorListener,
-        featureSet: featureSet, useFasta: useFasta);
+        featureSet: scanner.featureSet, useFasta: useFasta);
     parser.enableOptionalNewAndConst = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;

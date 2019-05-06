@@ -95,6 +95,7 @@ import 'non_constant_set_element_from_deferred_library_test.dart'
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
 import 'non_constant_spread_expression_from_deferred_library_test.dart'
     as non_constant_spread_expression_from_deferred_library;
+import 'non_null_opt_out_test.dart' as non_null_opt_out;
 import 'not_iterable_spread_test.dart' as not_iterable_spread;
 import 'not_map_spread_test.dart' as not_map_spread;
 import 'not_null_aware_null_spread_test.dart' as not_null_aware_null_spread;
@@ -231,6 +232,7 @@ main() {
     non_constant_set_element.main();
     non_constant_set_element_from_deferred_library.main();
     non_constant_spread_expression_from_deferred_library.main();
+    non_null_opt_out.main();
     not_iterable_spread.main();
     not_map_spread.main();
     not_null_aware_null_spread.main();

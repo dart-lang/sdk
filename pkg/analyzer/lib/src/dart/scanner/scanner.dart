@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/fasta/scanner.dart' as fasta;
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:front_end/src/scanner/token.dart' show Token, TokenType;
+import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 
@@ -70,6 +71,8 @@ class Scanner {
    */
   bool enableNonNullable = false;
 
+  FeatureSet _featureSet;
+
   /**
    * Initialize a newly created scanner to scan characters from the given
    * [source]. The given character [reader] will be used to read the characters
@@ -92,6 +95,18 @@ class Scanner {
     lineStarts.add(0);
   }
 
+  /**
+   * The features associated with this scanner.
+   *
+   * If a language version comment (e.g. '// @dart = 2.3') is detected
+   * when calling [tokenize] and this field is non-null, then this field
+   * will be updated to contain a downgraded feature set based upon the
+   * language version specified.
+   *
+   * Use [configureFeatures] to set the features.
+   */
+  FeatureSet get featureSet => _featureSet;
+
   set preserveComments(bool preserveComments) {
     this._preserveComments = preserveComments;
   }
@@ -102,6 +117,7 @@ class Scanner {
   /// that callers are forced to use this API.  Note that this would be a
   /// breaking change.
   void configureFeatures(FeatureSet featureSet) {
+    this._featureSet = featureSet;
     enableGtGtGt = featureSet.isEnabled(Feature.triple_shift);
     enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
   }
@@ -126,11 +142,14 @@ class Scanner {
 
   Token tokenize() {
     fasta.ScannerResult result = fasta.scanString(_contents,
-        configuration: fasta.ScannerConfiguration(
-            enableTripleShift: enableGtGtGt,
-            enableNonNullable: enableNonNullable),
+        configuration: _featureSet != null
+            ? buildConfig(_featureSet)
+            : fasta.ScannerConfiguration(
+                enableTripleShift: enableGtGtGt,
+                enableNonNullable: enableNonNullable),
         includeComments: _preserveComments,
-        scanLazyAssignmentOperators: scanLazyAssignmentOperators);
+        scanLazyAssignmentOperators: scanLazyAssignmentOperators,
+        languageVersionChanged: _languageVersionChanged);
 
     // fasta pretends there is an additional line at EOF
     result.lineStarts.removeLast();
@@ -156,6 +175,15 @@ class Scanner {
       } while (!token.isEof);
     }
     return firstToken;
+  }
+
+  void _languageVersionChanged(
+      fasta.Scanner scanner, fasta.LanguageVersionToken languageVersion) {
+    if (_featureSet != null) {
+      _featureSet = _featureSet.restrictToVersion(
+          Version(languageVersion.major, languageVersion.minor, 0));
+      scanner.configuration = buildConfig(_featureSet);
+    }
   }
 
   /// Return a ScannerConfiguration based upon the specified feature set.
