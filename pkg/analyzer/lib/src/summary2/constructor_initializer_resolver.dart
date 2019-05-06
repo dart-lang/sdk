@@ -46,6 +46,9 @@ class ConstructorInitializerResolver {
 
     _astResolver = AstResolver(_linker, _libraryElement, initializerScope);
 
+    FunctionBodyImpl body = _constructorNode.body;
+    body.localVariableInfo = LocalVariableInfo();
+
     _initializers();
     _redirectedConstructor();
   }
@@ -64,6 +67,7 @@ class ConstructorInitializerResolver {
         initializer,
         enclosingClassElement: _classElement,
         enclosingExecutableElement: _constructorElement,
+        enclosingFunctionBody: _constructorNode.body,
       );
     }
   }

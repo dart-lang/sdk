@@ -3887,6 +3887,11 @@ class ResolverVisitor extends ScopedVisitor {
     // TODO(brianwilkerson) Remove this method.
   }
 
+  /// Set the enclosing function body when partial AST is resolved.
+  void prepareCurrentFunctionBody(FunctionBody body) {
+    _currentFunctionBody = body;
+  }
+
   /// Set information about enclosing declarations.
   void prepareEnclosingDeclarations({
     ClassElement enclosingClassElement,

@@ -22,6 +22,7 @@ class AstResolver {
     AstNode node, {
     ClassElement enclosingClassElement,
     ExecutableElement enclosingExecutableElement,
+    FunctionBody enclosingFunctionBody,
   }) {
     var featureSet = node.thisOrAncestorOfType<CompilationUnit>().featureSet;
     var source = _FakeSource();
@@ -51,6 +52,9 @@ class AstResolver {
       enclosingClassElement: enclosingClassElement,
       enclosingExecutableElement: enclosingExecutableElement,
     );
+    if (enclosingFunctionBody != null) {
+      resolverVisitor.prepareCurrentFunctionBody(enclosingFunctionBody);
+    }
 
     node.accept(resolverVisitor);
   }
