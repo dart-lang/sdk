@@ -7,6 +7,7 @@ import 'package:analysis_server/src/nullability/constraint_gatherer.dart';
 import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/nullability_graph.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -149,6 +150,8 @@ class NullabilityMigration {
 
   final _constraints = Solver();
 
+  final _graph = NullabilityGraph();
+
   /// Prepares to perform nullability migration.
   ///
   /// If [permissive] is `true`, exception handling logic will try to proceed
@@ -172,7 +175,7 @@ class NullabilityMigration {
 
   void processInput(CompilationUnit unit, TypeProvider typeProvider) {
     unit.accept(ConstraintGatherer(typeProvider, _variables, _constraints,
-        unit.declaredElement.source, _permissive, assumptions));
+        _graph, unit.declaredElement.source, _permissive, assumptions));
   }
 }
 

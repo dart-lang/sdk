@@ -7,6 +7,7 @@ import 'package:analysis_server/src/nullability/constraint_gatherer.dart';
 import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/nullability_graph.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
@@ -30,6 +31,9 @@ main() {
 class ConstraintGathererTest extends ConstraintsTestBase {
   @override
   final _Constraints constraints = _Constraints();
+
+  @override
+  final graph = NullabilityGraph();
 
   void assertConditional(
       NullabilityNode node, NullabilityNode left, NullabilityNode right) {
@@ -788,6 +792,8 @@ Type f() {
 abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
   Constraints get constraints;
 
+  NullabilityGraph get graph;
+
   /// Analyzes the given source code, producing constraint variables and
   /// constraints for it.
   @override
@@ -795,8 +801,8 @@ abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
       {NullabilityMigrationAssumptions assumptions:
           const NullabilityMigrationAssumptions()}) async {
     var unit = await super.analyze(code);
-    unit.accept(ConstraintGatherer(
-        typeProvider, _variables, constraints, testSource, false, assumptions));
+    unit.accept(ConstraintGatherer(typeProvider, _variables, constraints, graph,
+        testSource, false, assumptions));
     return unit;
   }
 }

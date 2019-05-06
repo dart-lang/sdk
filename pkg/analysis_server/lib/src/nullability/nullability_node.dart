@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/nullability/decorated_type.dart';
+import 'package:analysis_server/src/nullability/nullability_graph.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -30,11 +31,6 @@ class NullabilityNode {
   /// migrated) forces this type to be non-nullable.
   final ConstraintVariable nullable;
 
-  /// List of all the nodes that are "downstream" of this one (i.e. if this node
-  /// is nullable, then all the nodes in [_downstreamNodes] will either have to
-  /// be nullable, or null checks will have to be added).
-  final _downstreamNodes = <NullabilityNode>[];
-
   ConstraintVariable _nonNullIntent;
 
   bool _isPossiblyOptional = false;
@@ -57,6 +53,7 @@ class NullabilityNode {
       Expression conditionalExpression,
       NullabilityNode a,
       NullabilityNode b,
+      NullabilityGraph graph,
       ConstraintVariable Function(
               Expression, ConstraintVariable, ConstraintVariable)
           joinNullabilities) = NullabilityNodeForLUB._;
@@ -87,11 +84,6 @@ class NullabilityNode {
   /// Gets a string that can be appended to a type name during debugging to help
   /// annotate the nullability of that type.
   String get debugSuffix => nullable == null ? '' : '?($nullable)';
-
-  /// Iterates through all nodes that are "downstream" of this node (i.e. if
-  /// this node is nullable, then all the nodes in [downstreamNodes] will either
-  /// have to be nullable, or null checks will have to be added).
-  Iterable<NullabilityNode> get downstreamNodes => _downstreamNodes;
 
   /// Indicates whether this node is always nullable, by construction.
   bool get isAlwaysNullable => identical(nullable, ConstraintVariable.always);
@@ -162,9 +154,10 @@ class NullabilityNode {
       CheckExpression checkNotNull,
       List<NullabilityNode> guards,
       Constraints constraints,
+      NullabilityGraph graph,
       bool inConditionalControlFlow) {
     var additionalConditions = <ConstraintVariable>[];
-    sourceNode._downstreamNodes.add(destinationNode);
+    graph.connect(sourceNode, destinationNode);
     if (sourceNode.nullable != null) {
       additionalConditions.add(sourceNode.nullable);
       var destinationNonNullIntent = destinationNode.nonNullIntent;
@@ -223,12 +216,13 @@ class NullabilityNodeForLUB extends NullabilityNode {
       Expression expression,
       this.left,
       this.right,
+      NullabilityGraph graph,
       ConstraintVariable Function(
               ConditionalExpression, ConstraintVariable, ConstraintVariable)
           joinNullabilities)
       : super._(joinNullabilities(expression, left.nullable, right.nullable)) {
-    left._downstreamNodes.add(this);
-    right._downstreamNodes.add(this);
+    graph.connect(left, this);
+    graph.connect(right, this);
   }
 }
 
