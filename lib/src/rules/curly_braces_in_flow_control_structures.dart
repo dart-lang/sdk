@@ -87,7 +87,9 @@ class _Visitor extends SimpleAstVisitor {
   @override
   void visitIfStatement(IfStatement node) {
     var elseStatement = node.elseStatement;
-    if (elseStatement == null) {
+    var parent = node.parent;
+    if (elseStatement == null &&
+        !(parent is IfStatement && parent.elseStatement == node)) {
       if (node.thenStatement is Block) return;
 
       final unit = node.root as CompilationUnit;
