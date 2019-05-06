@@ -10,7 +10,7 @@
 //
 // The following modifications were made:
 // - remove "package:vm" dependency (only used for one interface)
-// - pass in the class hierarchy that DDC already has available.
+// - optionally pass in the class hierarchy that DDC already has available.
 library track_widget_constructor_locations;
 
 // The kernel/src import below that requires lint `ignore_for_file`
@@ -314,9 +314,9 @@ class WidgetCreatorTracker {
   /// [ClassHierarchy] instance, with new dispatch targets; or at least let
   /// the existing instance know that some of its dispatch tables are not
   /// valid anymore.
-  final ClassHierarchy hierarchy;
+  ClassHierarchy hierarchy;
 
-  WidgetCreatorTracker(this.hierarchy);
+  WidgetCreatorTracker([this.hierarchy]);
 
   void _resolveFlutterClasses(Iterable<Library> libraries) {
     // If the Widget or Debug location classes have been updated we need to get
@@ -438,6 +438,23 @@ class WidgetCreatorTracker {
     clazz.constructors.forEach(handleConstructor);
   }
 
+  Component _computeFullProgram(Component deltaProgram) {
+    final Set<Library> libraries = new Set<Library>();
+    final List<Library> workList = <Library>[];
+    for (Library library in deltaProgram.libraries) {
+      workList.add(library);
+    }
+    while (workList.isNotEmpty) {
+      final Library library = workList.removeLast();
+      for (LibraryDependency dependency in library.dependencies) {
+        if (libraries.add(dependency.targetLibrary)) {
+          workList.add(dependency.targetLibrary);
+        }
+      }
+    }
+    return new Component()..libraries.addAll(libraries);
+  }
+
   /// Transform the given [module].
   void transform(Component module) {
     final List<Library> libraries = module.libraries;
@@ -452,6 +469,14 @@ class WidgetCreatorTracker {
       // This application doesn't actually use the package:flutter library.
       return;
     }
+
+    // TODO(jacobr): once there is a working incremental ClassHierarchy
+    // constructor switch to using it instead of building a ClassHierarchy off
+    // the full program.
+    hierarchy ??= new ClassHierarchy(
+      _computeFullProgram(module),
+      onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {},
+    );
 
     final Set<Class> transformedClasses = new Set<Class>.identity();
     final Set<Library> librariesToTransform = new Set<Library>.identity()

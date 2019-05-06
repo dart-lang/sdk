@@ -16,6 +16,7 @@ import 'package:args/args.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
+import 'package:dev_compiler/src/flutter/track_widget_constructor_locations.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
@@ -127,7 +128,8 @@ final summaryArgsParser = new ArgParser()
   ..addMultiOption('source')
   ..addOption('output')
   ..addFlag('reuse-compiler-result', defaultsTo: false)
-  ..addFlag('use-incremental-compiler', defaultsTo: false);
+  ..addFlag('use-incremental-compiler', defaultsTo: false)
+  ..addFlag('track-kernel-creation', defaultsTo: false);
 
 class ComputeKernelResult {
   final bool succeeded;
@@ -171,6 +173,13 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   var excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
 
   var summaryOnly = parsedArgs['summary-only'] as bool;
+  var trackKernelCreation = parsedArgs['track-kernel-creation'] as bool;
+
+  if (summaryOnly && trackKernelCreation) {
+    throw new ArgumentError('error: --summary-only is not compatible with '
+        '--track-kernel-creation');
+  }
+
   // TODO(sigmund,jakemac): make target mandatory. We allow null to be backwards
   // compatible while we migrate existing clients of this tool.
   var targetName =
@@ -287,13 +296,23 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         incrementalComponent.problemsAsJson = null;
         incrementalComponent.mainMethod = null;
         target.performOutlineTransformations(incrementalComponent);
+      } else if (trackKernelCreation) {
+        (new WidgetCreatorTracker()).transform(incrementalComponent);
       }
 
       return Future.value(fe.serializeComponent(incrementalComponent));
     });
+  } else if (summaryOnly) {
+    kernel = await fe.compileSummary(state, sources, onDiagnostic);
   } else {
-    kernel = await fe.compile(state, sources, onDiagnostic,
-        summaryOnly: summaryOnly);
+    Component component =
+        await fe.compileComponent(state, sources, onDiagnostic);
+
+    if (trackKernelCreation) {
+      (new WidgetCreatorTracker()).transform(component);
+    }
+    kernel = fe.serializeComponent(component,
+        filter: (library) => sources.contains(library.importUri));
   }
 
   if (kernel != null) {

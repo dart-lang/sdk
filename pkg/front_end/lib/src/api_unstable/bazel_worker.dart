@@ -23,9 +23,7 @@ import '../fasta/compiler_context.dart' show CompilerContext;
 
 import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 
-import '../fasta/kernel/utils.dart' show serializeComponent;
-
-import '../kernel_generator_impl.dart' show generateKernel;
+import '../kernel_generator_impl.dart' show CompilerResult, generateKernel;
 
 import 'compiler_state.dart'
     show InitializedCompilerState, WorkerInputComponent, digestsEqual;
@@ -193,9 +191,9 @@ Future<InitializedCompilerState> initializeCompiler(
   return new InitializedCompilerState(options, processedOpts);
 }
 
-Future<List<int>> compile(InitializedCompilerState compilerState,
+Future<CompilerResult> _compile(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
-    {bool summaryOnly}) async {
+    {bool summaryOnly}) {
   summaryOnly ??= true;
   CompilerOptions options = compilerState.options;
   options..onDiagnostic = diagnosticMessageHandler;
@@ -204,11 +202,24 @@ Future<List<int>> compile(InitializedCompilerState compilerState,
   processedOpts.inputs.clear();
   processedOpts.inputs.addAll(inputs);
 
-  var result = await generateKernel(processedOpts,
+  return generateKernel(processedOpts,
       buildSummary: summaryOnly, buildComponent: !summaryOnly);
+}
+
+Future<List<int>> compileSummary(InitializedCompilerState compilerState,
+    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler) async {
+  var result = await _compile(compilerState, inputs, diagnosticMessageHandler,
+      summaryOnly: true);
+  return result?.summary;
+}
+
+Future<Component> compileComponent(InitializedCompilerState compilerState,
+    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler) async {
+  var result = await _compile(compilerState, inputs, diagnosticMessageHandler,
+      summaryOnly: false);
 
   var component = result?.component;
-  if (component != null && !summaryOnly) {
+  if (component != null) {
     for (var lib in component.libraries) {
       if (!inputs.contains(lib.importUri)) {
         // Excluding the library also means that their canonical names will not
@@ -220,9 +231,5 @@ Future<List<int>> compile(InitializedCompilerState compilerState,
       }
     }
   }
-
-  return summaryOnly
-      ? result?.summary
-      : serializeComponent(result?.component,
-          filter: (library) => inputs.contains(library.importUri));
+  return component;
 }
