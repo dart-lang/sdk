@@ -1514,6 +1514,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (context is FunctionType &&
         type is FunctionType &&
         ts is Dart2TypeSystem) {
+      // TODO(scheglov) Also store type arguments for identifiers.
       return ts.inferFunctionTypeInstantiation(context, type,
           errorReporter: _resolver.errorReporter, errorNode: node);
     }
@@ -1577,12 +1578,31 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
           argTypes.add(argumentList.arguments[i].staticType);
         }
       }
-      return ts.inferGenericFunctionOrType(
+      var typeArgs = ts.inferGenericFunctionOrType2<FunctionType>(
           fnType, params, argTypes, InferenceContext.getContext(node),
           isConst: isConst,
           errorReporter: _resolver.errorReporter,
           errorNode: errorNode);
+      if (node is InvocationExpressionImpl) {
+        node.typeArgumentTypes = typeArgs;
+      }
+      if (typeArgs != null) {
+        return fnType.instantiate(typeArgs);
+      }
+      return fnType;
     }
+
+    // There is currently no other place where we set type arguments
+    // for FunctionExpressionInvocation(s), so set it here, if not inferred.
+    if (node is FunctionExpressionInvocationImpl) {
+      if (typeArguments != null) {
+        var typeArgs = typeArguments.arguments.map((n) => n.type).toList();
+        node.typeArgumentTypes = typeArgs;
+      } else {
+        node.typeArgumentTypes = const <DartType>[];
+      }
+    }
+
     return null;
   }
 

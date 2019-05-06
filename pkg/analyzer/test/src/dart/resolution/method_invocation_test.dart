@@ -629,7 +629,10 @@ main() {
       StaticTypeWarningCode.UNDEFINED_METHOD,
     ]);
 
-    _assertUnresolvedMethodInvocation('foo<int>();');
+    _assertUnresolvedMethodInvocation(
+      'foo<int>();',
+      expectedTypeArguments: ['int'],
+    );
     assertTypeName(findNode.typeName('int>'), intElement, 'int');
   }
 
@@ -1018,6 +1021,7 @@ main() {
       findNode.methodInvocation('foo<int>()'),
       findElement.topFunction('foo'),
       '() → Map<num, dynamic>',
+      expectedTypeArguments: ['num', 'dynamic'],
     );
     assertTypeName(findNode.typeName('int>'), intElement, 'int');
   }
@@ -1132,6 +1136,7 @@ main() {
       invocation,
       import.topFunction('foo'),
       '(int, int) → int',
+      expectedTypeArguments: ['int'],
     );
     assertImportPrefix(invocation.target, import.prefix);
   }
@@ -1159,6 +1164,7 @@ main() {
       import.topGetter('foo'),
       '(int, int) → int',
       expectedMethodNameType: '() → <T>(T, T) → T',
+      expectedTypeArguments: ['int'],
     );
     assertImportPrefix(invocation.target, import.prefix);
   }
@@ -1231,6 +1237,7 @@ main(C c) {
       '(int) → void',
       expectedMethodNameType: '(int) → void',
     );
+    assertTypeArgumentTypes(invocation, []);
   }
 
   test_hasReceiver_instance_method_generic() async {
@@ -1254,7 +1261,9 @@ main(C c) {
       findElement.method('foo'),
       '(int) → int',
       expectedMethodNameType: '(int) → int',
+      expectedTypeArguments: ['int'],
     );
+    assertTypeArgumentTypes(invocation, ['int']);
   }
 
   test_hasReceiver_instance_method_issue30552() async {
@@ -1721,9 +1730,77 @@ main() {
     );
   }
 
+  test_typeArgumentTypes_generic_inferred() async {
+    await assertNoErrorsInCode(r'''
+U foo<T, U>(T a) => null;
+
+main() {
+  bool v = foo(0);
+}
+''');
+
+    var invocation = findNode.methodInvocation('foo(0)');
+    assertTypeArgumentTypes(invocation, ['int', 'bool']);
+  }
+
+  test_typeArgumentTypes_generic_instantiateToBounds() async {
+    await assertNoErrorsInCode(r'''
+void foo<T extends num>() {}
+
+main() {
+  foo();
+}
+''');
+
+    var invocation = findNode.methodInvocation('foo();');
+    assertTypeArgumentTypes(invocation, ['num']);
+  }
+
+  test_typeArgumentTypes_generic_typeArguments_notBounds() async {
+    addTestFile(r'''
+void foo<T extends num>() {}
+
+main() {
+  foo<bool>();
+}
+''');
+    await resolveTestFile();
+
+    var invocation = findNode.methodInvocation('foo<bool>();');
+    assertTypeArgumentTypes(invocation, ['bool']);
+  }
+
+  test_typeArgumentTypes_generic_typeArguments_wrongNumber() async {
+    addTestFile(r'''
+void foo<T>() {}
+
+main() {
+  foo<int, double>();
+}
+''');
+    await resolveTestFile();
+
+    var invocation = findNode.methodInvocation('foo<int, double>();');
+    assertTypeArgumentTypes(invocation, ['dynamic']);
+  }
+
+  test_typeArgumentTypes_notGeneric() async {
+    await assertNoErrorsInCode(r'''
+void foo(int a) {}
+
+main() {
+  foo(0);
+}
+''');
+
+    var invocation = findNode.methodInvocation('foo(0)');
+    assertTypeArgumentTypes(invocation, []);
+  }
+
   void _assertInvalidInvocation(String search, Element expectedElement,
       {String expectedMethodNameType,
       String expectedNameType,
+      List<String> expectedTypeArguments: const <String>[],
       bool dynamicNameType: false}) {
     var invocation = findNode.methodInvocation(search);
     if (dynamicNameType) {
@@ -1737,12 +1814,21 @@ main() {
       expectedMethodNameType: expectedMethodNameType,
       expectedNameType: expectedNameType,
       expectedType: 'dynamic',
+      expectedTypeArguments: expectedTypeArguments,
     );
+    assertTypeArgumentTypes(invocation, expectedTypeArguments);
   }
 
-  void _assertUnresolvedMethodInvocation(String search) {
+  void _assertUnresolvedMethodInvocation(
+    String search, {
+    List<String> expectedTypeArguments: const <String>[],
+  }) {
     // TODO(scheglov) clean up
-    _assertInvalidInvocation(search, null);
+    _assertInvalidInvocation(
+      search,
+      null,
+      expectedTypeArguments: expectedTypeArguments,
+    );
 //    var invocation = findNode.methodInvocation(search);
 //    assertTypeDynamic(invocation.methodName);
 //    // TODO(scheglov) I think `invokeType` should be `null`.

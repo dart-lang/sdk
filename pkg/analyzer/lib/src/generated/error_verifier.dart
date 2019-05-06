@@ -3479,8 +3479,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (invokeType is FunctionType &&
         declaredType is FunctionType &&
         declaredType.typeFormals.isNotEmpty) {
-      Iterable<DartType> typeArgs =
-          FunctionTypeImpl.recoverTypeArguments(declaredType, invokeType);
+      List<DartType> typeArgs = node.typeArgumentTypes;
       if (typeArgs.any((t) => t.isDynamic)) {
         // Issue an error depending on what we're trying to call.
         Expression function = node.function;

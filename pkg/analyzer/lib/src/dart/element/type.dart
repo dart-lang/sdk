@@ -947,43 +947,6 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   /**
-   * Given a generic function type [g] and an instantiated function type [f],
-   * find a list of type arguments TArgs such that `g<TArgs> == f`,
-   * and return TArgs.
-   *
-   * This function must be called with type [f] that was instantiated from [g].
-   *
-   * If [g] is not generic, returns an empty list.
-   */
-  static Iterable<DartType> recoverTypeArguments(
-      FunctionType g, FunctionType f) {
-    // TODO(jmesserly): perhaps a better design here would be: instead of
-    // recording staticInvokeType on InvocationExpression, we could record the
-    // instantiated type arguments, that way we wouldn't need to recover them.
-    //
-    // For now though, this is a pretty quick operation.
-    if (g.typeFormals.isEmpty) {
-      assert(g == f);
-      return const <DartType>[];
-    }
-    assert(f.typeFormals.isEmpty);
-    assert(g.typeFormals.length <= f.typeArguments.length);
-
-    // Instantiation in Analyzer works like this:
-    // Given:
-    //     {U/T} <S> T -> S
-    // Where {U/T} represents the typeArguments (U) and typeParameters (T) list,
-    // and <S> represents the typeFormals.
-    //
-    // Now instantiate([V]), and the result should be:
-    //     {U/T, V/S} T -> S.
-    //
-    // Therefore, we can recover the typeArguments from our instantiated
-    // function.
-    return f.typeArguments.skip(f.typeArguments.length - g.typeFormals.length);
-  }
-
-  /**
    * Compares two function types [t] and [s] to see if their corresponding
    * parameter types match [parameterRelation], return types match
    * [returnRelation], and type parameter bounds match [boundsRelation].

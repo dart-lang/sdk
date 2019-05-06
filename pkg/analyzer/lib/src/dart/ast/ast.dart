@@ -6324,6 +6324,9 @@ abstract class InvocationExpressionImpl extends ExpressionImpl
   TypeArgumentListImpl _typeArguments;
 
   @override
+  List<DartType> typeArgumentTypes;
+
+  @override
   DartType staticInvokeType;
 
   /// Initialize a newly created invocation.

@@ -279,11 +279,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual.baseElement, same(expectedBase));
   }
 
-  void assertMethodInvocation(MethodInvocation invocation,
-      Element expectedElement, String expectedInvokeType,
-      {String expectedMethodNameType,
-      String expectedNameType,
-      String expectedType}) {
+  void assertMethodInvocation(
+    MethodInvocation invocation,
+    Element expectedElement,
+    String expectedInvokeType, {
+    String expectedMethodNameType,
+    String expectedNameType,
+    String expectedType,
+    List<String> expectedTypeArguments: const <String>[],
+  }) {
     MethodInvocationImpl invocationImpl = invocation;
 
     // TODO(scheglov) Check for Member.
@@ -304,6 +308,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 //      }
 //    }
 //    assertType(invocation.methodName, expectedNameType);
+
+    assertTypeArgumentTypes(invocation, expectedTypeArguments);
 
     assertInvokeType(invocation, expectedInvokeType);
 
@@ -369,6 +375,14 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
     expect(actual?.toString(withNullability: typeToStringWithNullability),
         expected);
+  }
+
+  void assertTypeArgumentTypes(
+    InvocationExpression node,
+    List<String> expected,
+  ) {
+    var actual = node.typeArgumentTypes.map((t) => '$t').toList();
+    expect(actual, expected);
   }
 
   void assertTypeDynamic(Expression expression) {

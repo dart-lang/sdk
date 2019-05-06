@@ -3471,6 +3471,15 @@ abstract class InvocationExpression implements Expression {
   /// Return the type arguments to be applied to the method being invoked, or
   /// `null` if no type arguments were provided.
   TypeArgumentList get typeArguments;
+
+  /// Return the actual type arguments of the invocation, either explicitly
+  /// specified in [typeArguments], or inferred.
+  ///
+  /// If the AST has been resolved, never returns `null`, returns an empty list
+  /// if the [function] does not have type parameters.
+  ///
+  /// Return `null` if the AST structure has not been resolved.
+  List<DartType> get typeArgumentTypes;
 }
 
 /// An is expression.
