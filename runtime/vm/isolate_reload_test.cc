@@ -578,6 +578,32 @@ TEST_CASE(IsolateReload_ClassAdded) {
   EXPECT_STREQ("hello from A", SimpleInvokeStr(lib, "main"));
 }
 
+TEST_CASE(IsolateReload_ClassRemoved) {
+  const char* kScript =
+      "class A {\n"
+      "  toString() => 'hello from A';\n"
+      "}\n"
+      "List<dynamic> list = <dynamic>[];"
+      "main() {\n"
+      "  list.add(new A());\n"
+      "  return list[0].toString();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello from A", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "List<dynamic> list = <dynamic>[];\n"
+      "main() {\n"
+      "  return list[0].toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("hello from A", SimpleInvokeStr(lib, "main"));
+}
+
 TEST_CASE(IsolateReload_LibraryImportAdded) {
   const char* kScript =
       "main() {\n"

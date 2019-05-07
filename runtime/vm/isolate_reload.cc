@@ -453,6 +453,7 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, JSONStream* js)
       error_(Error::null()),
       old_classes_set_storage_(Array::null()),
       class_map_storage_(Array::null()),
+      removed_class_set_storage_(Array::null()),
       old_libraries_set_storage_(Array::null()),
       library_map_storage_(Array::null()),
       become_map_storage_(Array::null()),
@@ -699,6 +700,8 @@ void IsolateReloadContext::Reload(bool force_reload,
   old_classes_set_storage_ =
       HashTables::New<UnorderedHashSet<ClassMapTraits> >(4);
   class_map_storage_ = HashTables::New<UnorderedHashMap<ClassMapTraits> >(4);
+  removed_class_set_storage_ =
+      HashTables::New<UnorderedHashSet<ClassMapTraits> >(4);
   old_libraries_set_storage_ =
       HashTables::New<UnorderedHashSet<LibraryMapTraits> >(4);
   library_map_storage_ =
@@ -841,6 +844,8 @@ void IsolateReloadContext::FinalizeLoading() {
     return;
   }
   BuildLibraryMapping();
+  BuildRemovedClassesSet();
+
   TIR_Print("---- LOAD SUCCEEDED\n");
   if (ValidateReload()) {
     Commit();
@@ -1475,6 +1480,18 @@ void IsolateReloadContext::Commit() {
     }
 
     class_map.Release();
+
+    {
+      UnorderedHashSet<ClassMapTraits> removed_class_set(
+          removed_class_set_storage_);
+      UnorderedHashSet<ClassMapTraits>::Iterator it(&removed_class_set);
+      while (it.MoveNext()) {
+        const intptr_t entry = it.Current();
+        old_cls ^= removed_class_set.GetKey(entry);
+        old_cls.PatchFieldsAndFunctions();
+      }
+      removed_class_set.Release();
+    }
   }
 
   if (FLAG_identity_reload) {
@@ -2156,6 +2173,86 @@ void IsolateReloadContext::BuildLibraryMapping() {
       AddBecomeMapping(old, replacement_or_new);
     }
   }
+}
+
+// Find classes that have been removed from the program.
+// Instances of these classes may still be referenced from variables, so the
+// functions of these class may still execute in the future, and they need to
+// be given patch class owners still they correctly reference their (old) kernel
+// data even after the library's kernel data is updated.
+//
+// Note that all such classes must belong to a library that has either been
+// changed or removed.
+void IsolateReloadContext::BuildRemovedClassesSet() {
+  // Find all old classes [mapped_old_classes_set].
+  UnorderedHashMap<ClassMapTraits> class_map(class_map_storage_);
+  UnorderedHashSet<ClassMapTraits> mapped_old_classes_set(
+      HashTables::New<UnorderedHashSet<ClassMapTraits> >(
+          class_map.NumOccupied()));
+  {
+    UnorderedHashMap<ClassMapTraits>::Iterator it(&class_map);
+    Class& cls = Class::Handle();
+    Class& new_cls = Class::Handle();
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      new_cls = Class::RawCast(class_map.GetKey(entry));
+      cls = Class::RawCast(class_map.GetPayload(entry, 0));
+      mapped_old_classes_set.InsertOrGet(cls);
+    }
+  }
+  class_map.Release();
+
+  // Find all reloaded libraries [mapped_old_library_set].
+  UnorderedHashMap<LibraryMapTraits> library_map(library_map_storage_);
+  UnorderedHashMap<LibraryMapTraits>::Iterator it_library(&library_map);
+  UnorderedHashSet<LibraryMapTraits> mapped_old_library_set(
+      HashTables::New<UnorderedHashSet<LibraryMapTraits> >(
+          library_map.NumOccupied()));
+  {
+    Library& old_library = Library::Handle();
+    Library& new_library = Library::Handle();
+    while (it_library.MoveNext()) {
+      const intptr_t entry = it_library.Current();
+      new_library ^= library_map.GetKey(entry);
+      old_library ^= library_map.GetPayload(entry, 0);
+      if (new_library.raw() != old_library.raw()) {
+        mapped_old_library_set.InsertOrGet(old_library);
+      }
+    }
+  }
+
+  // For every old class, check if it's library was reloaded and if
+  // the class was mapped. If the class wasn't mapped - add it to
+  // [removed_class_set].
+  UnorderedHashSet<ClassMapTraits> old_classes_set(old_classes_set_storage_);
+  UnorderedHashSet<ClassMapTraits>::Iterator it(&old_classes_set);
+  UnorderedHashSet<ClassMapTraits> removed_class_set(
+      removed_class_set_storage_);
+  Class& old_cls = Class::Handle();
+  Class& new_cls = Class::Handle();
+  Library& old_library = Library::Handle();
+  Library& mapped_old_library = Library::Handle();
+  while (it.MoveNext()) {
+    const intptr_t entry = it.Current();
+    old_cls ^= Class::RawCast(old_classes_set.GetKey(entry));
+    old_library = old_cls.library();
+    if (old_library.IsNull()) {
+      continue;
+    }
+    mapped_old_library ^= mapped_old_library_set.GetOrNull(old_library);
+    if (!mapped_old_library.IsNull()) {
+      new_cls ^= mapped_old_classes_set.GetOrNull(old_cls);
+      if (new_cls.IsNull()) {
+        removed_class_set.InsertOrGet(old_cls);
+      }
+    }
+  }
+  removed_class_set_storage_ = removed_class_set.Release().raw();
+
+  old_classes_set.Release();
+  mapped_old_classes_set.Release();
+  mapped_old_library_set.Release();
+  library_map.Release();
 }
 
 void IsolateReloadContext::AddClassMapping(const Class& replacement_or_new,
