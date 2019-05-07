@@ -81,6 +81,14 @@ class ConstraintGathererTest extends ConstraintsTestBase {
     }
   }
 
+  /// Checks that there are no nullability nodes upstream from [node] that could
+  /// cause it to become nullable.
+  void assertNoUpstreamNullability(NullabilityNode node) {
+    for (var upstreamNode in graph.getUpstreamNodes(node)) {
+      expect(upstreamNode, NullabilityNode.never);
+    }
+  }
+
   /// Verifies that a null check will occur under the proper circumstances.
   ///
   /// [expressionChecks] is the object tracking whether or not a null check is
@@ -175,7 +183,7 @@ Int f(Int i, Int j) => (i + j);
 int f(int i, int j) => i + j;
 ''');
 
-    assertNoConstraints(decoratedTypeAnnotation('int f').node.nullable);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int f').node);
   }
 
   test_binaryExpression_add_right_check() async {
@@ -205,7 +213,7 @@ Int f(Int i, Int j) => i + j/*check*/;
 bool f(int i, int j) => i == j;
 ''');
 
-    assertNoConstraints(decoratedTypeAnnotation('bool f').node.nullable);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool f').node);
   }
 
   test_boolLiteral() async {
@@ -214,7 +222,7 @@ bool f() {
   return true;
 }
 ''');
-    assertNoConstraints(decoratedTypeAnnotation('bool').node.nullable);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
   }
 
   test_conditionalExpression_condition_check() async {
@@ -312,7 +320,7 @@ int/*1*/ f(int/*2*/ i) => i/*3*/;
 void f({int i = 1}) {}
 ''');
 
-    assertNoConstraints(decoratedTypeAnnotation('int').node.nullable);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
 
   test_functionDeclaration_parameter_named_default_null() async {
@@ -344,7 +352,7 @@ void f({int i}) {}
             namedNoDefaultParameterHeuristic:
                 NamedNoDefaultParameterHeuristic.assumeRequired));
 
-    assertNoConstraints(decoratedTypeAnnotation('int').node.nullable);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
 
   test_functionDeclaration_parameter_named_no_default_required_assume_nullable() async {
@@ -357,7 +365,7 @@ void f({@required int i}) {}
             namedNoDefaultParameterHeuristic:
                 NamedNoDefaultParameterHeuristic.assumeNullable));
 
-    assertNoConstraints(decoratedTypeAnnotation('int').node.nullable);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
 
   test_functionDeclaration_parameter_named_no_default_required_assume_required() async {
@@ -370,7 +378,7 @@ void f({@required int i}) {}
             namedNoDefaultParameterHeuristic:
                 NamedNoDefaultParameterHeuristic.assumeRequired));
 
-    assertNoConstraints(decoratedTypeAnnotation('int').node.nullable);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
 
   test_functionDeclaration_parameter_positionalOptional_default_notNull() async {
@@ -378,7 +386,7 @@ void f({@required int i}) {}
 void f([int i = 1]) {}
 ''');
 
-    assertNoConstraints(decoratedTypeAnnotation('int').node.nullable);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
 
   test_functionDeclaration_parameter_positionalOptional_default_null() async {
@@ -481,8 +489,8 @@ void g() {
     // The call at `f()` is presumed to be in error; no constraint is recorded.
     var optional_i = possiblyOptionalParameter('int i');
     expect(optional_i, isNull);
-    var nullable_i = decoratedTypeAnnotation('int i').node.nullable;
-    assertNoConstraints(nullable_i);
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    assertNoUpstreamNullability(nullable_i);
   }
 
   test_functionInvocation_parameter_null() async {
@@ -615,7 +623,7 @@ int f() {
   return 0;
 }
 ''');
-    assertNoConstraints(decoratedTypeAnnotation('int').node.nullable);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
 
   test_methodDeclaration_resets_unconditional_control_flow() async {
@@ -757,7 +765,7 @@ String f() {
   return 'x';
 }
 ''');
-    assertNoConstraints(decoratedTypeAnnotation('String').node.nullable);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('String').node);
   }
 
   test_thisExpression() async {
@@ -767,7 +775,7 @@ class C {
 }
 ''');
 
-    assertNoConstraints(decoratedTypeAnnotation('C f').node.nullable);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('C f').node);
   }
 
   test_throwExpression() async {
@@ -776,7 +784,7 @@ int f() {
   return throw null;
 }
 ''');
-    assertNoConstraints(decoratedTypeAnnotation('int').node.nullable);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
 
   test_typeName() async {
@@ -785,7 +793,7 @@ Type f() {
   return int;
 }
 ''');
-    assertNoConstraints(decoratedTypeAnnotation('Type').node.nullable);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Type').node);
   }
 }
 
