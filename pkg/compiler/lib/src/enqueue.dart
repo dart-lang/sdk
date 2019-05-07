@@ -16,6 +16,7 @@ import 'options.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'inferrer/types.dart';
+import 'js_backend/backend.dart' show CodegenInputs;
 import 'js_backend/enqueuer.dart';
 import 'universe/member_usage.dart';
 import 'universe/resolution_world_builder.dart';
@@ -64,10 +65,12 @@ class EnqueueTask extends CompilerTask {
           ..onEmptyForTesting = compiler.onResolutionQueueEmptyForTesting;
   }
 
-  Enqueuer createCodegenEnqueuer(JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
+  Enqueuer createCodegenEnqueuer(
+      JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults,
+      CodegenInputs codegen) {
     Enqueuer enqueuer = compiler.backend.createCodegenEnqueuer(
-        this, compiler, closedWorld, globalInferenceResults)
+        this, compiler, closedWorld, globalInferenceResults, codegen)
       ..onEmptyForTesting = compiler.onCodegenQueueEmptyForTesting;
     if (retainDataForTesting) {
       codegenEnqueuerForTesting = enqueuer;

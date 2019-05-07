@@ -31,7 +31,7 @@ import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'io/source_information.dart' show SourceInformation;
-import 'js_backend/backend.dart' show JavaScriptBackend;
+import 'js_backend/backend.dart' show CodegenInputs, JavaScriptBackend;
 import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
 import 'kernel/kernel_strategy.dart';
@@ -363,8 +363,11 @@ abstract class Compiler {
     if (options.showInternalProgress) reporter.log('Compiling...');
     phase = PHASE_COMPILING;
 
-    Enqueuer codegenEnqueuer =
-        startCodegen(closedWorld, globalInferenceResults);
+    CodegenInputs codegen = backend.onCodegenStart(closedWorld);
+    Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(
+        closedWorld, globalInferenceResults, codegen);
+    _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
+
     processQueue(closedWorld.elementEnvironment, codegenEnqueuer, mainFunction,
         onProgress: showCodegenProgress);
     codegenEnqueuer.logSummary(reporter.log);
@@ -372,15 +375,15 @@ abstract class Compiler {
     if (retainDataForTesting) {
       codegenWorldForTesting = codegenWorld;
     }
-    int programSize = backend.assembleProgram(
-        closedWorld, globalInferenceResults.inferredData, codegenWorld);
+    int programSize = backend.assembleProgram(closedWorld,
+        globalInferenceResults.inferredData, codegen, codegenWorld);
 
     if (options.dumpInfo) {
       dumpInfoTask.reportSize(programSize);
       dumpInfoTask.dumpInfo(closedWorld, globalInferenceResults);
     }
 
-    backend.onCodegenEnd();
+    backend.onCodegenEnd(codegen);
 
     checkQueue(codegenEnqueuer);
   }
@@ -416,16 +419,6 @@ abstract class Compiler {
         generateJavaScriptCode(globalInferenceResults);
       }
     });
-  }
-
-  Enqueuer startCodegen(JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
-    Enqueuer codegenEnqueuer =
-        enqueuer.createCodegenEnqueuer(closedWorld, globalInferenceResults);
-    _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
-    codegenEnqueuer.applyImpact(backend.onCodegenStart(
-        closedWorld, _codegenWorldBuilder, closedWorld.sorter));
-    return codegenEnqueuer;
   }
 
   /// Perform the steps needed to fully end the resolution phase.

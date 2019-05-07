@@ -13,7 +13,8 @@ import '../constants/values.dart';
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
-import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
+import '../js_backend/js_backend.dart'
+    show CodegenInputs, JavaScriptBackend, Namer;
 import '../js_backend/inferred_data.dart';
 import '../universe/codegen_world_builder.dart';
 import '../world.dart' show JClosedWorld;
@@ -24,7 +25,6 @@ import 'metadata_collector.dart' show MetadataCollector;
 import 'model.dart';
 import 'native_emitter.dart' show NativeEmitter;
 import 'type_test_registry.dart' show TypeTestRegistry;
-import 'sorter.dart';
 
 /// Generates the code for all used classes in the program. Static fields (even
 /// in classes) are ignored, since they can be treated as non-class elements.
@@ -73,24 +73,22 @@ class CodeEmitterTask extends CompilerTask {
   /// Returns true, if the emitter supports reflection.
   bool get supportsReflection => _emitterFactory.supportsReflection;
 
-  void _finalizeRti(CodegenWorld codegenWorld) {
+  void _finalizeRti(CodegenInputs codegen, CodegenWorld codegenWorld) {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
     typeTestRegistry.computeRequiredTypeChecks(
         backend.rtiChecksBuilder, codegenWorld);
     // Compute the classes needed by RTI.
     typeTestRegistry.computeRtiNeededClasses(
-        backend.rtiSubstitutions, backend.generatedCode.keys);
+        codegen.rtiSubstitutions, backend.generatedCode.keys);
   }
 
   /// Creates the [Emitter] for this task.
-  void createEmitter(Namer namer, JClosedWorld closedWorld,
-      CodegenWorldBuilder codegenWorldBuilder, Sorter sorter) {
+  void createEmitter(Namer namer, JClosedWorld closedWorld) {
     measure(() {
       _nativeEmitter =
           new NativeEmitter(this, closedWorld, backend.nativeCodegenEnqueuer);
-      _emitter =
-          _emitterFactory.createEmitter(this, namer, closedWorld, sorter);
+      _emitter = _emitterFactory.createEmitter(this, namer, closedWorld);
       metadataCollector = new MetadataCollector(
           compiler.options,
           compiler.reporter,
@@ -102,10 +100,14 @@ class CodeEmitterTask extends CompilerTask {
     });
   }
 
-  int assembleProgram(Namer namer, JClosedWorld closedWorld,
-      InferredData inferredData, CodegenWorld codegenWorld) {
+  int assembleProgram(
+      Namer namer,
+      JClosedWorld closedWorld,
+      InferredData inferredData,
+      CodegenInputs codegen,
+      CodegenWorld codegenWorld) {
     return measure(() {
-      _finalizeRti(codegenWorld);
+      _finalizeRti(codegen, codegenWorld);
       ProgramBuilder programBuilder = new ProgramBuilder(
           compiler.options,
           compiler.reporter,
@@ -118,10 +120,10 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.nativeData,
           closedWorld.rtiNeed,
           closedWorld.interceptorData,
-          backend.superMemberData,
+          codegen.superMemberData,
           typeTestRegistry.rtiChecks,
-          backend.rtiEncoder,
-          backend.oneShotInterceptorData,
+          codegen.rtiEncoder,
+          codegen.oneShotInterceptorData,
           backend.customElementsCodegenAnalysis,
           backend.generatedCode,
           namer,
@@ -146,8 +148,8 @@ abstract class EmitterFactory {
   bool get supportsReflection;
 
   /// Create the [Emitter] for the emitter [task] that uses the given [namer].
-  Emitter createEmitter(CodeEmitterTask task, Namer namer,
-      JClosedWorld closedWorld, Sorter sorter);
+  Emitter createEmitter(
+      CodeEmitterTask task, Namer namer, JClosedWorld closedWorld);
 }
 
 abstract class Emitter {

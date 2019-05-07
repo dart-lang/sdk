@@ -52,7 +52,6 @@ import '../headers.dart';
 import '../js_emitter.dart' show NativeEmitter;
 import '../js_emitter.dart' show buildTearOffCode, NativeGenerator;
 import '../model.dart';
-import '../sorter.dart' show Sorter;
 
 part 'fragment_emitter.dart';
 
@@ -83,8 +82,8 @@ class ModelEmitter {
   static const String typeNameProperty = r"builtin$cls";
 
   ModelEmitter(this.compiler, this.namer, this.nativeEmitter, this._closedWorld,
-      Sorter sorter, this.task, this.shouldGenerateSourceMap)
-      : _constantOrdering = new ConstantOrdering(sorter) {
+      this.task, this.shouldGenerateSourceMap)
+      : _constantOrdering = new ConstantOrdering(_closedWorld.sorter) {
     this.constantEmitter = new ConstantEmitter(
         compiler.options,
         _closedWorld.commonElements,

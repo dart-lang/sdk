@@ -113,10 +113,12 @@ class JsBackendStrategy implements BackendStrategy {
   }
 
   @override
-  WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
+  WorkItemBuilder createCodegenWorkItemBuilder(
+      JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults,
+      CodegenInputs codegen) {
     return new KernelCodegenWorkItemBuilder(
-        _compiler.backend, closedWorld, globalInferenceResults);
+        _compiler.backend, closedWorld, globalInferenceResults, codegen);
   }
 
   @override
@@ -144,15 +146,16 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
   final JavaScriptBackend _backend;
   final JClosedWorld _closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
+  final CodegenInputs _codegen;
 
-  KernelCodegenWorkItemBuilder(
-      this._backend, this._closedWorld, this._globalInferenceResults);
+  KernelCodegenWorkItemBuilder(this._backend, this._closedWorld,
+      this._globalInferenceResults, this._codegen);
 
   @override
   CodegenWorkItem createWorkItem(MemberEntity entity) {
     if (entity.isAbstract) return null;
     return new KernelCodegenWorkItem(
-        _backend, _closedWorld, _globalInferenceResults, entity);
+        _backend, _closedWorld, _globalInferenceResults, _codegen, entity);
   }
 }
 
@@ -164,15 +167,17 @@ class KernelCodegenWorkItem extends CodegenWorkItem {
   @override
   final CodegenRegistry registry;
   final GlobalTypeInferenceResults _globalInferenceResults;
+  final CodegenInputs _codegen;
 
   KernelCodegenWorkItem(this._backend, this._closedWorld,
-      this._globalInferenceResults, this.element)
+      this._globalInferenceResults, this._codegen, this.element)
       : registry =
             new CodegenRegistry(_closedWorld.elementEnvironment, element);
 
   @override
   WorldImpact run() {
-    return _backend.codegen(this, _closedWorld, _globalInferenceResults);
+    return _backend.generateCode(
+        this, _closedWorld, _globalInferenceResults, _codegen);
   }
 }
 

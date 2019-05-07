@@ -21,7 +21,6 @@ import '../io/source_information.dart' show SourceInformationStrategy;
 import '../js/js.dart' as jsAst;
 import '../js_model/elements.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, Emitter;
-import '../js_emitter/sorter.dart' show Sorter;
 import '../kernel/dart2js_target.dart';
 import '../native/enqueue.dart';
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
@@ -292,7 +291,7 @@ enum SyntheticConstantKind {
   NAME
 }
 
-class JavaScriptBackend implements CodegenInputs {
+class JavaScriptBackend {
   static const String JS = 'JS';
   static const String JS_BUILTIN = 'JS_BUILTIN';
   static const String JS_EMBEDDED_GLOBAL = 'JS_EMBEDDED_GLOBAL';
@@ -307,16 +306,12 @@ class JavaScriptBackend implements CodegenInputs {
 
   CodeEmitterTask emitterTask;
 
-  @override
-  Emitter get emitter => emitterTask.emitter;
-
   /// The generated code as a js AST for compiled methods.
   final Map<MemberEntity, jsAst.Expression> generatedCode =
       <MemberEntity, jsAst.Expression>{};
 
   Namer _namer;
 
-  @override
   Namer get namer {
     assert(_namer != null,
         failedAt(NO_LOCATION_SPANNABLE, "Namer has not been created yet."));
@@ -333,8 +328,6 @@ class JavaScriptBackend implements CodegenInputs {
   }
 
   RuntimeTypesChecksBuilder _rtiChecksBuilder;
-
-  RuntimeTypesSubstitutions _rtiSubstitutions;
 
   RuntimeTypesEncoder _rtiEncoder;
 
@@ -364,19 +357,10 @@ class JavaScriptBackend implements CodegenInputs {
 
   NativeDataBuilderImpl _nativeDataBuilder;
   NativeDataBuilder get nativeDataBuilder => _nativeDataBuilder;
-  OneShotInterceptorData _oneShotInterceptorData;
   BackendUsageBuilder _backendUsageBuilder;
-
-  CheckedModeHelpers _checkedModeHelpers;
-
-  @override
-  final SuperMemberData superMemberData = new SuperMemberData();
 
   NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   NativeCodegenEnqueuer _nativeCodegenEnqueuer;
-
-  @override
-  Tracer tracer;
 
   JavaScriptBackend(this.compiler,
       {bool generateSourceMap: true,
@@ -387,7 +371,6 @@ class JavaScriptBackend implements CodegenInputs {
     CommonElements commonElements = compiler.frontendStrategy.commonElements;
     _backendUsageBuilder =
         new BackendUsageBuilderImpl(compiler.frontendStrategy);
-    _checkedModeHelpers = new CheckedModeHelpers();
     emitterTask = new CodeEmitterTask(compiler, generateSourceMap);
     noSuchMethodRegistry = new NoSuchMethodRegistryImpl(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
@@ -425,15 +408,6 @@ class JavaScriptBackend implements CodegenInputs {
     return _customElementsCodegenAnalysis;
   }
 
-  @override
-  OneShotInterceptorData get oneShotInterceptorData {
-    assert(
-        _oneShotInterceptorData != null,
-        failedAt(NO_LOCATION_SPANNABLE,
-            "OneShotInterceptorData has not been prepared yet."));
-    return _oneShotInterceptorData;
-  }
-
   RuntimeTypesChecksBuilder get rtiChecksBuilder {
     assert(
         _rtiChecksBuilder != null,
@@ -448,16 +422,6 @@ class JavaScriptBackend implements CodegenInputs {
 
   RuntimeTypesChecksBuilder get rtiChecksBuilderForTesting => _rtiChecksBuilder;
 
-  @override
-  RuntimeTypesSubstitutions get rtiSubstitutions {
-    assert(
-        _rtiSubstitutions != null,
-        failedAt(NO_LOCATION_SPANNABLE,
-            "RuntimeTypesSubstitutions has not been created yet."));
-    return _rtiSubstitutions;
-  }
-
-  @override
   RuntimeTypesEncoder get rtiEncoder {
     assert(
         _rtiEncoder != null,
@@ -465,9 +429,6 @@ class JavaScriptBackend implements CodegenInputs {
             "RuntimeTypesEncoder has not been created."));
     return _rtiEncoder;
   }
-
-  @override
-  CheckedModeHelpers get checkedModeHelpers => _checkedModeHelpers;
 
   Namer determineNamer(JClosedWorld closedWorld) {
     return compiler.options.enableMinification
@@ -605,20 +566,13 @@ class JavaScriptBackend implements CodegenInputs {
       CompilerTask task,
       Compiler compiler,
       JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
+      GlobalTypeInferenceResults globalInferenceResults,
+      CodegenInputs codegen) {
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
     BackendImpacts impacts = new BackendImpacts(commonElements);
     _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
         commonElements, elementEnvironment, closedWorld.nativeData);
-    _nativeCodegenEnqueuer = new NativeCodegenEnqueuer(
-        compiler.options,
-        elementEnvironment,
-        commonElements,
-        closedWorld.dartTypes,
-        emitterTask,
-        closedWorld.liveNativeClasses,
-        closedWorld.nativeData);
     return new CodegenEnqueuer(
         task,
         compiler.options,
@@ -626,8 +580,8 @@ class JavaScriptBackend implements CodegenInputs {
             closedWorld.nativeData,
             closedWorld,
             compiler.abstractValueStrategy.createSelectorStrategy()),
-        compiler.backendStrategy
-            .createCodegenWorkItemBuilder(closedWorld, globalInferenceResults),
+        compiler.backendStrategy.createCodegenWorkItemBuilder(
+            closedWorld, globalInferenceResults, codegen),
         new CodegenEnqueuerListener(
             elementEnvironment,
             commonElements,
@@ -640,8 +594,11 @@ class JavaScriptBackend implements CodegenInputs {
 
   Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
 
-  WorldImpact codegen(CodegenWorkItem work, JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
+  WorldImpact generateCode(
+      CodegenWorkItem work,
+      JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults,
+      CodegenInputs codegen) {
     MemberEntity element = work.element;
     if (element.isConstructor &&
         element.enclosingClass == closedWorld.commonElements.jsNullClass) {
@@ -650,7 +607,7 @@ class JavaScriptBackend implements CodegenInputs {
     }
 
     jsAst.Fun function = functionCompiler.compile(
-        work, this, closedWorld, globalInferenceResults);
+        work, codegen, closedWorld, globalInferenceResults);
     if (function != null) {
       if (function.sourceInformation == null) {
         function = function.withSourceInformation(
@@ -683,9 +640,9 @@ class JavaScriptBackend implements CodegenInputs {
 
   /// Generates the output and returns the total size of the generated code.
   int assembleProgram(JClosedWorld closedWorld, InferredData inferredData,
-      CodegenWorld codegenWorld) {
+      CodegenInputs codegen, CodegenWorld codegenWorld) {
     int programSize = emitterTask.assembleProgram(
-        namer, closedWorld, inferredData, codegenWorld);
+        namer, closedWorld, inferredData, codegen, codegenWorld);
     closedWorld.noSuchMethodData.emitDiagnostic(reporter);
     return programSize;
   }
@@ -707,30 +664,38 @@ class JavaScriptBackend implements CodegenInputs {
 
   /// Called when the compiler starts running the codegen enqueuer. The
   /// [WorldImpact] of enabled backend features is returned.
-  WorldImpact onCodegenStart(JClosedWorld closedWorld,
-      CodegenWorldBuilder codegenWorldBuilder, Sorter sorter) {
-    _oneShotInterceptorData = new OneShotInterceptorData(
-        closedWorld.interceptorData, closedWorld.commonElements);
+  CodegenInputs onCodegenStart(JClosedWorld closedWorld) {
     _namer = determineNamer(closedWorld);
-    tracer = new Tracer(closedWorld, namer, compiler.outputProvider);
+    OneShotInterceptorData oneShotInterceptorData = new OneShotInterceptorData(
+        closedWorld.interceptorData, closedWorld.commonElements);
+    Tracer tracer = new Tracer(closedWorld, namer, compiler.outputProvider);
     _rtiEncoder = _namer.rtiEncoder = new RuntimeTypesEncoderImpl(
         namer,
         closedWorld.nativeData,
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
         closedWorld.rtiNeed);
-    emitterTask.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
+    _nativeCodegenEnqueuer = new NativeCodegenEnqueuer(
+        compiler.options,
+        closedWorld.elementEnvironment,
+        closedWorld.commonElements,
+        closedWorld.dartTypes,
+        emitterTask,
+        closedWorld.liveNativeClasses,
+        closedWorld.nativeData);
+    emitterTask.createEmitter(namer, closedWorld);
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.
     BackendImpacts impacts = new BackendImpacts(closedWorld.commonElements);
+    RuntimeTypesSubstitutions rtiSubstitutions;
     if (compiler.options.disableRtiOptimization) {
-      _rtiSubstitutions = new TrivialRuntimeTypesSubstitutions(closedWorld);
+      rtiSubstitutions = new TrivialRuntimeTypesSubstitutions(closedWorld);
       _rtiChecksBuilder =
-          new TrivialRuntimeTypesChecksBuilder(closedWorld, _rtiSubstitutions);
+          new TrivialRuntimeTypesChecksBuilder(closedWorld, rtiSubstitutions);
     } else {
       RuntimeTypesImpl runtimeTypesImpl = new RuntimeTypesImpl(closedWorld);
       _rtiChecksBuilder = runtimeTypesImpl;
-      _rtiSubstitutions = runtimeTypesImpl;
+      rtiSubstitutions = runtimeTypesImpl;
     }
 
     _codegenImpactTransformer = new CodegenImpactTransformer(
@@ -747,14 +712,17 @@ class JavaScriptBackend implements CodegenInputs {
         rtiChecksBuilder,
         emitterTask.nativeEmitter);
 
-    functionCompiler.onCodegenStart(this);
-    return const WorldImpact();
+    CodegenInputs codegen = new CodegenImpl(emitterTask.emitter,
+        oneShotInterceptorData, rtiSubstitutions, rtiEncoder, namer, tracer);
+
+    functionCompiler.onCodegenStart(codegen);
+    return codegen;
   }
 
   /// Called when code generation has been completed.
-  void onCodegenEnd() {
+  void onCodegenEnd(CodegenInputs codegen) {
     sourceInformationStrategy.onComplete();
-    tracer.close();
+    codegen.tracer.close();
   }
 
   /// Creates an impact strategy to use for compilation.
@@ -833,11 +801,7 @@ class SuperMemberData {
 }
 
 /// Interface for resources only used during code generation.
-///
-/// This is currently implemented by the [JavaScriptBackend] but should be
-/// a separate object created when the codegen phase starts.
 abstract class CodegenInputs {
-  // TODO(johnniwinther): Should be the modular part of the emitter.
   Emitter get emitter;
   CheckedModeHelpers get checkedModeHelpers;
   OneShotInterceptorData get oneShotInterceptorData;
@@ -847,4 +811,33 @@ abstract class CodegenInputs {
   Namer get namer;
   SuperMemberData get superMemberData;
   Tracer get tracer;
+}
+
+class CodegenImpl implements CodegenInputs {
+  @override
+  final Emitter emitter;
+
+  @override
+  final CheckedModeHelpers checkedModeHelpers = new CheckedModeHelpers();
+
+  @override
+  final OneShotInterceptorData oneShotInterceptorData;
+
+  @override
+  final RuntimeTypesSubstitutions rtiSubstitutions;
+
+  @override
+  final RuntimeTypesEncoder rtiEncoder;
+
+  @override
+  final Namer namer;
+
+  @override
+  final SuperMemberData superMemberData = new SuperMemberData();
+
+  @override
+  final Tracer tracer;
+
+  CodegenImpl(this.emitter, this.oneShotInterceptorData, this.rtiSubstitutions,
+      this.rtiEncoder, this.namer, this.tracer);
 }

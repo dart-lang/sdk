@@ -40,7 +40,7 @@ abstract class BackendStrategy {
 
   /// Creates the [WorkItemBuilder] used by the codegen enqueuer.
   WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults);
+      GlobalTypeInferenceResults globalInferenceResults, CodegenInputs codegen);
 
   /// Creates the [SsaBuilder] used for the element model.
   SsaBuilder createSsaBuilder(CompilerTask task, CodegenInputs codegen,

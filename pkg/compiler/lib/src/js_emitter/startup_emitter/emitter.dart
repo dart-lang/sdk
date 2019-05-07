@@ -20,7 +20,6 @@ import '../js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../js_emitter.dart' as emitterTask show EmitterBase, EmitterFactory;
 import '../model.dart';
 import '../program_builder/program_builder.dart' show ProgramBuilder;
-import '../sorter.dart' show Sorter;
 import 'model_emitter.dart';
 
 class EmitterFactory implements emitterTask.EmitterFactory {
@@ -32,10 +31,10 @@ class EmitterFactory implements emitterTask.EmitterFactory {
   bool get supportsReflection => false;
 
   @override
-  Emitter createEmitter(CodeEmitterTask task, Namer namer,
-      JClosedWorld closedWorld, Sorter sorter) {
+  Emitter createEmitter(
+      CodeEmitterTask task, Namer namer, JClosedWorld closedWorld) {
     return new Emitter(task.compiler, namer, task.nativeEmitter, closedWorld,
-        sorter, task, generateSourceMap);
+        task, generateSourceMap);
   }
 }
 
@@ -48,16 +47,10 @@ class Emitter extends emitterTask.EmitterBase {
 
   JavaScriptBackend get _backend => _compiler.backend;
 
-  Emitter(
-      this._compiler,
-      this.namer,
-      NativeEmitter nativeEmitter,
-      this._closedWorld,
-      Sorter sorter,
-      CodeEmitterTask task,
-      bool shouldGenerateSourceMap)
+  Emitter(this._compiler, this.namer, NativeEmitter nativeEmitter,
+      this._closedWorld, CodeEmitterTask task, bool shouldGenerateSourceMap)
       : _emitter = new ModelEmitter(_compiler, namer, nativeEmitter,
-            _closedWorld, sorter, task, shouldGenerateSourceMap);
+            _closedWorld, task, shouldGenerateSourceMap);
 
   DiagnosticReporter get reporter => _compiler.reporter;
 
