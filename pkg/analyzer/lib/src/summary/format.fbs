@@ -3088,11 +3088,14 @@ table UnlinkedUnit2 {
   /// URIs of `export` directives.
   exports:[string] (id: 1);
 
-  /// URIs of `import` directives.
-  imports:[string] (id: 2);
+  /// Is `true` if the unit contains a `library` directive.
+  hasLibraryDirective:bool (id: 6);
 
   /// Is `true` if the unit contains a `part of` directive.
-  isPartOf:bool (id: 3);
+  hasPartOfDirective:bool (id: 3);
+
+  /// URIs of `import` directives.
+  imports:[string] (id: 2);
 
   /// Offsets of the first character of each line in the source code.
   lineStarts:[uint] (id: 5);

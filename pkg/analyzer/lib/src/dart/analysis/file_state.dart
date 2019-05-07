@@ -246,7 +246,7 @@ class FileState {
       return !_fsState.externalSummaries.linkedMap.containsKey(uriStr);
     }
     if (_unlinked2 != null) {
-      return _unlinked2.isPartOf;
+      return !_unlinked2.hasLibraryDirective && _unlinked2.hasPartOfDirective;
     }
     return _unlinked.libraryNameOffset == 0 && _unlinked.isPartOf;
   }
@@ -861,7 +861,8 @@ class FileState {
     var exports = <String>[];
     var imports = <String>['dart:core'];
     var parts = <String>[];
-    var isPartOf = false;
+    var hasLibraryDirective = false;
+    var hasPartOfDirective = false;
     for (var directive in unit.directives) {
       if (directive is ExportDirective) {
         var uriStr = directive.uri.stringValue;
@@ -869,11 +870,13 @@ class FileState {
       } else if (directive is ImportDirective) {
         var uriStr = directive.uri.stringValue;
         imports.add(uriStr ?? '');
+      } else if (directive is LibraryDirective) {
+        hasLibraryDirective = true;
       } else if (directive is PartDirective) {
         var uriStr = directive.uri.stringValue;
         parts.add(uriStr ?? '');
       } else if (directive is PartOfDirective) {
-        isPartOf = true;
+        hasPartOfDirective = true;
       }
     }
     return UnlinkedUnit2Builder(
@@ -881,7 +884,8 @@ class FileState {
       exports: exports,
       imports: imports,
       parts: parts,
-      isPartOf: isPartOf,
+      hasLibraryDirective: hasLibraryDirective,
+      hasPartOfDirective: hasPartOfDirective,
       lineStarts: unit.lineInfo.lineStarts,
     );
   }

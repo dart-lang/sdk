@@ -4849,13 +4849,17 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
   @Id(1)
   List<String> get exports;
 
-  /// URIs of `import` directives.
-  @Id(2)
-  List<String> get imports;
+  /// Is `true` if the unit contains a `library` directive.
+  @Id(6)
+  bool get hasLibraryDirective;
 
   /// Is `true` if the unit contains a `part of` directive.
   @Id(3)
-  bool get isPartOf;
+  bool get hasPartOfDirective;
+
+  /// URIs of `import` directives.
+  @Id(2)
+  List<String> get imports;
 
   /// Offsets of the first character of each line in the source code.
   @informative

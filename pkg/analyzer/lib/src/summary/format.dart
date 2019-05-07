@@ -29274,8 +29274,9 @@ class UnlinkedUnit2Builder extends Object
     implements idl.UnlinkedUnit2 {
   List<int> _apiSignature;
   List<String> _exports;
+  bool _hasLibraryDirective;
+  bool _hasPartOfDirective;
   List<String> _imports;
-  bool _isPartOf;
   List<int> _lineStarts;
   List<String> _parts;
 
@@ -29298,19 +29299,27 @@ class UnlinkedUnit2Builder extends Object
   }
 
   @override
+  bool get hasLibraryDirective => _hasLibraryDirective ??= false;
+
+  /// Is `true` if the unit contains a `library` directive.
+  set hasLibraryDirective(bool value) {
+    this._hasLibraryDirective = value;
+  }
+
+  @override
+  bool get hasPartOfDirective => _hasPartOfDirective ??= false;
+
+  /// Is `true` if the unit contains a `part of` directive.
+  set hasPartOfDirective(bool value) {
+    this._hasPartOfDirective = value;
+  }
+
+  @override
   List<String> get imports => _imports ??= <String>[];
 
   /// URIs of `import` directives.
   set imports(List<String> value) {
     this._imports = value;
-  }
-
-  @override
-  bool get isPartOf => _isPartOf ??= false;
-
-  /// Is `true` if the unit contains a `part of` directive.
-  set isPartOf(bool value) {
-    this._isPartOf = value;
   }
 
   @override
@@ -29333,14 +29342,16 @@ class UnlinkedUnit2Builder extends Object
   UnlinkedUnit2Builder(
       {List<int> apiSignature,
       List<String> exports,
+      bool hasLibraryDirective,
+      bool hasPartOfDirective,
       List<String> imports,
-      bool isPartOf,
       List<int> lineStarts,
       List<String> parts})
       : _apiSignature = apiSignature,
         _exports = exports,
+        _hasLibraryDirective = hasLibraryDirective,
+        _hasPartOfDirective = hasPartOfDirective,
         _imports = imports,
-        _isPartOf = isPartOf,
         _lineStarts = lineStarts,
         _parts = parts;
 
@@ -29375,7 +29386,7 @@ class UnlinkedUnit2Builder extends Object
         signature.addString(x);
       }
     }
-    signature.addBool(this._isPartOf == true);
+    signature.addBool(this._hasPartOfDirective == true);
     if (this._parts == null) {
       signature.addInt(0);
     } else {
@@ -29384,6 +29395,7 @@ class UnlinkedUnit2Builder extends Object
         signature.addString(x);
       }
     }
+    signature.addBool(this._hasLibraryDirective == true);
   }
 
   List<int> toBuffer() {
@@ -29422,11 +29434,14 @@ class UnlinkedUnit2Builder extends Object
     if (offset_exports != null) {
       fbBuilder.addOffset(1, offset_exports);
     }
+    if (_hasLibraryDirective == true) {
+      fbBuilder.addBool(6, true);
+    }
+    if (_hasPartOfDirective == true) {
+      fbBuilder.addBool(3, true);
+    }
     if (offset_imports != null) {
       fbBuilder.addOffset(2, offset_imports);
-    }
-    if (_isPartOf == true) {
-      fbBuilder.addBool(3, true);
     }
     if (offset_lineStarts != null) {
       fbBuilder.addOffset(5, offset_lineStarts);
@@ -29461,8 +29476,9 @@ class _UnlinkedUnit2Impl extends Object
 
   List<int> _apiSignature;
   List<String> _exports;
+  bool _hasLibraryDirective;
+  bool _hasPartOfDirective;
   List<String> _imports;
-  bool _isPartOf;
   List<int> _lineStarts;
   List<String> _parts;
 
@@ -29481,16 +29497,24 @@ class _UnlinkedUnit2Impl extends Object
   }
 
   @override
+  bool get hasLibraryDirective {
+    _hasLibraryDirective ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
+    return _hasLibraryDirective;
+  }
+
+  @override
+  bool get hasPartOfDirective {
+    _hasPartOfDirective ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
+    return _hasPartOfDirective;
+  }
+
+  @override
   List<String> get imports {
     _imports ??= const fb.ListReader<String>(const fb.StringReader())
         .vTableGet(_bc, _bcOffset, 2, const <String>[]);
     return _imports;
-  }
-
-  @override
-  bool get isPartOf {
-    _isPartOf ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
-    return _isPartOf;
   }
 
   @override
@@ -29514,8 +29538,11 @@ abstract class _UnlinkedUnit2Mixin implements idl.UnlinkedUnit2 {
     Map<String, Object> _result = <String, Object>{};
     if (apiSignature.isNotEmpty) _result["apiSignature"] = apiSignature;
     if (exports.isNotEmpty) _result["exports"] = exports;
+    if (hasLibraryDirective != false)
+      _result["hasLibraryDirective"] = hasLibraryDirective;
+    if (hasPartOfDirective != false)
+      _result["hasPartOfDirective"] = hasPartOfDirective;
     if (imports.isNotEmpty) _result["imports"] = imports;
-    if (isPartOf != false) _result["isPartOf"] = isPartOf;
     if (lineStarts.isNotEmpty) _result["lineStarts"] = lineStarts;
     if (parts.isNotEmpty) _result["parts"] = parts;
     return _result;
@@ -29525,8 +29552,9 @@ abstract class _UnlinkedUnit2Mixin implements idl.UnlinkedUnit2 {
   Map<String, Object> toMap() => {
         "apiSignature": apiSignature,
         "exports": exports,
+        "hasLibraryDirective": hasLibraryDirective,
+        "hasPartOfDirective": hasPartOfDirective,
         "imports": imports,
-        "isPartOf": isPartOf,
         "lineStarts": lineStarts,
         "parts": parts,
       };
