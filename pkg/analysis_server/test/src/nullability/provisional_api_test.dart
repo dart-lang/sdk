@@ -231,37 +231,6 @@ void test(C<int> c) {
     await _checkSingleFileChanges(content, expected);
   }
 
-  test_data_flow_generic_inward_hint() async {
-    var content = '''
-class C<T> {
-  void f(T? t) {}
-}
-void g(C<int> c, int i) {
-  c.f(i);
-}
-void test(C<int> c) {
-  g(c, null);
-}
-''';
-
-    // The user may override the behavior shown in test_data_flow_generic_inward
-    // by explicitly marking f's use of T as nullable.  Since this makes g's
-    // call to f valid regardless of the type of c, c's type will remain
-    // C<int>.
-    var expected = '''
-class C<T> {
-  void f(T? t) {}
-}
-void g(C<int> c, int? i) {
-  c.f(i);
-}
-void test(C<int> c) {
-  g(c, null);
-}
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
   test_data_flow_inward() async {
     var content = '''
 int f(int i) => 0;

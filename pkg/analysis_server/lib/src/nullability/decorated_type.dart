@@ -165,7 +165,7 @@ class DecoratedTypeAnnotation extends DecoratedType
       : super(type, nullabilityNode, typeArguments: typeArguments);
 
   @override
-  bool get isEmpty => node.isAlwaysNullable || !node.isNullable;
+  bool get isEmpty => !node.isNullable;
 
   @override
   Iterable<SourceEdit> get modifications =>

@@ -829,19 +829,6 @@ class ConstraintVariableGathererTest extends MigrationVisitorTestBase {
       _variables.decoratedElementType(
           findNode.functionDeclaration(search).declaredElement);
 
-  @failingTest
-  test_interfaceType_nullable() async {
-    // The tests are now being run without enabling nnbd, which causes the '?'
-    // to be reported as an error.
-    await analyze('''
-void f(int? x) {}
-''');
-    var decoratedType = decoratedTypeAnnotation('int?');
-    expect(decoratedFunctionType('f').positionalParameters[0],
-        same(decoratedType));
-    expect(decoratedType.node.nullable, same(ConstraintVariable.always));
-  }
-
   test_interfaceType_typeParameter() async {
     await analyze('''
 void f(List<int> x) {}
