@@ -99,9 +99,7 @@ class _Visitor extends SimpleAstVisitor {
       }
     } else {
       _check(node.thenStatement);
-      if (elseStatement is IfStatement) {
-        _check(elseStatement.thenStatement);
-      } else {
+      if (elseStatement is! IfStatement) {
         _check(elseStatement);
       }
     }
