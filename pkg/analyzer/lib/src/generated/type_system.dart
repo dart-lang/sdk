@@ -2082,6 +2082,11 @@ abstract class TypeSystem implements public.TypeSystem {
     return null;
   }
 
+  DartType promoteToNonNull(TypeImpl type) {
+    // TODO(mfairhurst): handle type parameter types
+    return type.withNullability(NullabilitySuffix.none);
+  }
+
   /**
    * Attempts to make a better guess for the type of a binary with the given
    * [operator], given that resolution has so far produced the [currentType].

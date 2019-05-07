@@ -71,7 +71,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   TypePromotionManager _promoteManager;
 
-  bool nonNullableEnabled;
+  /**
+   * Whether NNBD is enabled for this compilation unit.
+   */
+  bool _nonNullableEnabled;
 
   /**
    * Initialize a newly created type analyzer.
@@ -86,7 +89,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     AnalysisOptionsImpl analysisOptions =
         _resolver.definingLibrary.context.analysisOptions;
     _strictInference = analysisOptions.strictInference;
-    nonNullableEnabled = featureSet.isEnabled(Feature.non_nullable);
+    _nonNullableEnabled = featureSet.isEnabled(Feature.non_nullable);
   }
 
   /**
@@ -288,10 +291,22 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       DartType staticType = _getStaticType(rightHandSide);
       _recordStaticType(node, staticType);
     } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
-      // The static type of a compound assignment using ??= is the least upper
-      // bound of the static types of the LHS and RHS.
-      _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide,
-          read: true);
+      if (_nonNullableEnabled) {
+        // The static type of a compound assignment using ??= with NNBD is the
+        // least upper bound of the static types of the LHS and RHS after
+        // promoting the LHS/ to non-null (as we know its value will not be used
+        // if null)
+        _analyzeLeastUpperBoundTypes(
+            node,
+            _typeSystem.promoteToNonNull(
+                _getExpressionType(node.leftHandSide, read: true)),
+            _getExpressionType(node.rightHandSide, read: true));
+      } else {
+        // The static type of a compound assignment using ??= before NNBD is the
+        // least upper bound of the static types of the LHS and RHS.
+        _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide,
+            read: true);
+      }
       return;
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
@@ -370,11 +385,23 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     if (node.operator.type == TokenType.QUESTION_QUESTION) {
-      // Evaluation of an if-null expression e of the form e1 ?? e2 is
-      // equivalent to the evaluation of the expression
-      // ((x) => x == null ? e2 : x)(e1).  The static type of e is the least
-      // upper bound of the static type of e1 and the static type of e2.
-      _analyzeLeastUpperBound(node, node.leftOperand, node.rightOperand);
+      if (_nonNullableEnabled) {
+        // The static type of a compound assignment using ??= with NNBD is the
+        // least upper bound of the static types of the LHS and RHS after
+        // promoting the LHS/ to non-null (as we know its value will not be used
+        // if null)
+        _analyzeLeastUpperBoundTypes(
+            node,
+            _typeSystem.promoteToNonNull(
+                _getExpressionType(node.leftOperand, read: true)),
+            _getExpressionType(node.rightOperand, read: true));
+      } else {
+        // Without NNBD, evaluation of an if-null expression e of the form
+        // e1 ?? e2 is equivalent to the evaluation of the expression
+        // ((x) => x == null ? e2 : x)(e1).  The static type of e is the least
+        // upper bound of the static type of e1 and the static type of e2.
+        _analyzeLeastUpperBound(node, node.leftOperand, node.rightOperand);
+      }
       return;
     }
     DartType staticType = node.staticInvokeType?.returnType ?? _dynamicType;
@@ -874,7 +901,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       // TODO(brianwilkerson) Report this internal error.
     }
 
-    if (node.operator.type == TokenType.QUESTION_PERIOD && nonNullableEnabled) {
+    if (node.operator.type == TokenType.QUESTION_PERIOD &&
+        _nonNullableEnabled) {
       staticType =
           (staticType as TypeImpl).withNullability(NullabilitySuffix.question);
     }
@@ -1087,10 +1115,21 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       {bool read: false}) {
     DartType staticType1 = _getExpressionType(expr1, read: read);
     DartType staticType2 = _getExpressionType(expr2, read: read);
+
+    _analyzeLeastUpperBoundTypes(node, staticType1, staticType2);
+  }
+
+  /**
+   * Set the static type of [node] to be the least upper bound of the static
+   * types [staticType1] and [staticType2].
+   */
+  void _analyzeLeastUpperBoundTypes(
+      Expression node, DartType staticType1, DartType staticType2) {
     if (staticType1 == null) {
       // TODO(brianwilkerson) Determine whether this can still happen.
       staticType1 = _dynamicType;
     }
+
     if (staticType2 == null) {
       // TODO(brianwilkerson) Determine whether this can still happen.
       staticType2 = _dynamicType;
@@ -1186,7 +1225,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       returnType = type.returnType;
     }
 
-    if (isNullableInvoke && nonNullableEnabled) {
+    if (isNullableInvoke && _nonNullableEnabled) {
       returnType = returnType?.withNullability(NullabilitySuffix.question);
     }
 
