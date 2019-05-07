@@ -7,60 +7,114 @@ library dart2js.js_emitter.startup_emitter;
 import 'package:js_runtime/shared/embedded_names.dart'
     show JsBuiltin, METADATA, TYPES;
 
+import '../../../compiler_new.dart';
 import '../../common.dart';
-import '../../compiler.dart' show Compiler;
+import '../../common/tasks.dart';
 import '../../constants/values.dart' show ConstantValue;
 import '../../deferred_load.dart' show OutputUnit;
+import '../../dump_info.dart';
 import '../../elements/entities.dart';
+import '../../io/source_information.dart';
 import '../../js/js.dart' as js;
-import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
+import '../../js_backend/js_backend.dart' show CodegenInputs, Namer;
+import '../../js_backend/runtime_types.dart';
+import '../../options.dart';
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
 import '../../world.dart' show JClosedWorld;
-import '../js_emitter.dart' show CodeEmitterTask, NativeEmitter;
-import '../js_emitter.dart' as emitterTask show EmitterBase, EmitterFactory;
+import '../js_emitter.dart' show Emitter;
 import '../model.dart';
 import '../program_builder/program_builder.dart' show ProgramBuilder;
 import 'model_emitter.dart';
 
-class EmitterFactory implements emitterTask.EmitterFactory {
-  final bool generateSourceMap;
-
-  EmitterFactory({this.generateSourceMap});
-
-  @override
-  bool get supportsReflection => false;
-
-  @override
-  Emitter createEmitter(
-      CodeEmitterTask task, Namer namer, JClosedWorld closedWorld) {
-    return new Emitter(task.compiler, namer, task.nativeEmitter, closedWorld,
-        task, generateSourceMap);
-  }
-}
-
-class Emitter extends emitterTask.EmitterBase {
-  final Compiler _compiler;
+class EmitterImpl implements Emitter {
+  final DiagnosticReporter _reporter;
   final JClosedWorld _closedWorld;
-  @override
+  final RuntimeTypesEncoder _rtiEncoder;
   final Namer namer;
-  final ModelEmitter _emitter;
-
-  JavaScriptBackend get _backend => _compiler.backend;
-
-  Emitter(this._compiler, this.namer, NativeEmitter nativeEmitter,
-      this._closedWorld, CodeEmitterTask task, bool shouldGenerateSourceMap)
-      : _emitter = new ModelEmitter(_compiler, namer, nativeEmitter,
-            _closedWorld, task, shouldGenerateSourceMap);
-
-  DiagnosticReporter get reporter => _compiler.reporter;
+  ModelEmitter _emitter;
 
   @override
-  int emitProgram(ProgramBuilder programBuilder, CodegenWorld codegenWorld) {
+  Program programForTesting;
+
+  EmitterImpl(
+      CompilerOptions options,
+      this._reporter,
+      CompilerOutput outputProvider,
+      DumpInfoTask dumpInfoTask,
+      this.namer,
+      this._closedWorld,
+      this._rtiEncoder,
+      SourceInformationStrategy sourceInformationStrategy,
+      CompilerTask task,
+      bool shouldGenerateSourceMap) {
+    _emitter = new ModelEmitter(
+        options,
+        _reporter,
+        outputProvider,
+        dumpInfoTask,
+        namer,
+        _closedWorld,
+        task,
+        this,
+        sourceInformationStrategy,
+        _rtiEncoder,
+        shouldGenerateSourceMap);
+  }
+
+  @override
+  int emitProgram(ProgramBuilder programBuilder, CodegenInputs codegen,
+      CodegenWorld codegenWorld) {
     Program program = programBuilder.buildProgram();
     if (retainDataForTesting) {
       programForTesting = program;
     }
-    return _emitter.emitProgram(program, codegenWorld);
+    return _emitter.emitProgram(program, codegen, codegenWorld);
+  }
+
+  js.PropertyAccess globalPropertyAccessForMember(MemberEntity element) {
+    js.Name name = namer.globalPropertyNameForMember(element);
+    js.PropertyAccess pa = new js.PropertyAccess(
+        new js.VariableUse(namer.globalObjectForMember(element)), name);
+    return pa;
+  }
+
+  js.PropertyAccess globalPropertyAccessForClass(ClassEntity element) {
+    js.Name name = namer.globalPropertyNameForClass(element);
+    js.PropertyAccess pa = new js.PropertyAccess(
+        new js.VariableUse(namer.globalObjectForClass(element)), name);
+    return pa;
+  }
+
+  js.PropertyAccess globalPropertyAccessForType(Entity element) {
+    js.Name name = namer.globalPropertyNameForType(element);
+    js.PropertyAccess pa = new js.PropertyAccess(
+        new js.VariableUse(namer.globalObjectForType(element)), name);
+    return pa;
+  }
+
+  @override
+  js.PropertyAccess staticFieldAccess(FieldEntity element) {
+    return globalPropertyAccessForMember(element);
+  }
+
+  @override
+  js.PropertyAccess staticFunctionAccess(FunctionEntity element) {
+    return globalPropertyAccessForMember(element);
+  }
+
+  @override
+  js.PropertyAccess constructorAccess(ClassEntity element) {
+    return globalPropertyAccessForClass(element);
+  }
+
+  @override
+  js.Expression interceptorClassAccess(ClassEntity element) {
+    return globalPropertyAccessForClass(element);
+  }
+
+  @override
+  js.Expression typeAccess(Entity element) {
+    return globalPropertyAccessForType(element);
   }
 
   @override
@@ -127,19 +181,19 @@ class Emitter extends emitterTask.EmitterBase {
         return js.js.expressionTemplateFor('#.substring($isPrefixLength)');
 
       case JsBuiltin.isFunctionType:
-        return _backend.rtiEncoder.templateForIsFunctionType;
+        return _rtiEncoder.templateForIsFunctionType;
 
       case JsBuiltin.isFutureOrType:
-        return _backend.rtiEncoder.templateForIsFutureOrType;
+        return _rtiEncoder.templateForIsFutureOrType;
 
       case JsBuiltin.isVoidType:
-        return _backend.rtiEncoder.templateForIsVoidType;
+        return _rtiEncoder.templateForIsVoidType;
 
       case JsBuiltin.isDynamicType:
-        return _backend.rtiEncoder.templateForIsDynamicType;
+        return _rtiEncoder.templateForIsDynamicType;
 
       case JsBuiltin.isJsInteropTypeArgument:
-        return _backend.rtiEncoder.templateForIsJsInteropTypeArgument;
+        return _rtiEncoder.templateForIsJsInteropTypeArgument;
 
       case JsBuiltin.rawRtiToJsConstructorName:
         return js.js.expressionTemplateFor("#.name");
@@ -166,7 +220,7 @@ class Emitter extends emitterTask.EmitterBase {
         return js.js.expressionTemplateFor("$typesAccess[#]");
 
       default:
-        reporter.internalError(
+        _reporter.internalError(
             NO_LOCATION_SPANNABLE, "Unhandled Builtin: $builtin");
         return null;
     }

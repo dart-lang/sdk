@@ -34,11 +34,11 @@ class CodeEmitterTask extends CompilerTask {
   TypeTestRegistry typeTestRegistry;
   NativeEmitter _nativeEmitter;
   MetadataCollector metadataCollector;
-  final EmitterFactory _emitterFactory;
   Emitter _emitter;
-  final Compiler compiler;
+  final Compiler _compiler;
+  final bool _generateSourceMap;
 
-  JavaScriptBackend get backend => compiler.backend;
+  JavaScriptBackend get _backend => _compiler.backend;
 
   @deprecated
   // This field should be removed. It's currently only needed for dump-info and
@@ -47,11 +47,8 @@ class CodeEmitterTask extends CompilerTask {
   /// Contains a list of all classes that are emitted.
   Set<ClassEntity> neededClasses;
 
-  CodeEmitterTask(Compiler compiler, bool generateSourceMap)
-      : compiler = compiler,
-        _emitterFactory = startup_js_emitter.EmitterFactory(
-            generateSourceMap: generateSourceMap),
-        super(compiler.measurer);
+  CodeEmitterTask(this._compiler, this._generateSourceMap)
+      : super(_compiler.measurer);
 
   NativeEmitter get nativeEmitter {
     assert(
@@ -70,33 +67,40 @@ class CodeEmitterTask extends CompilerTask {
   @override
   String get name => 'Code emitter';
 
-  /// Returns true, if the emitter supports reflection.
-  bool get supportsReflection => _emitterFactory.supportsReflection;
-
   void _finalizeRti(CodegenInputs codegen, CodegenWorld codegenWorld) {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
     typeTestRegistry.computeRequiredTypeChecks(
-        backend.rtiChecksBuilder, codegenWorld);
+        _backend.rtiChecksBuilder, codegenWorld);
     // Compute the classes needed by RTI.
     typeTestRegistry.computeRtiNeededClasses(
-        codegen.rtiSubstitutions, backend.generatedCode.keys);
+        codegen.rtiSubstitutions, _backend.generatedCode.keys);
   }
 
   /// Creates the [Emitter] for this task.
   void createEmitter(Namer namer, JClosedWorld closedWorld) {
     measure(() {
       _nativeEmitter =
-          new NativeEmitter(this, closedWorld, backend.nativeCodegenEnqueuer);
-      _emitter = _emitterFactory.createEmitter(this, namer, closedWorld);
+          new NativeEmitter(this, closedWorld, _backend.nativeCodegenEnqueuer);
+      _emitter = new startup_js_emitter.EmitterImpl(
+          _compiler.options,
+          _compiler.reporter,
+          _compiler.outputProvider,
+          _compiler.dumpInfoTask,
+          namer,
+          closedWorld,
+          _backend.rtiEncoder,
+          _backend.sourceInformationStrategy,
+          this,
+          _generateSourceMap);
       metadataCollector = new MetadataCollector(
-          compiler.options,
-          compiler.reporter,
+          _compiler.options,
+          _compiler.reporter,
           _emitter,
-          backend.rtiEncoder,
+          _backend.rtiEncoder,
           closedWorld.elementEnvironment);
       typeTestRegistry = new TypeTestRegistry(
-          compiler.options, closedWorld.elementEnvironment);
+          _compiler.options, closedWorld.elementEnvironment);
     });
   }
 
@@ -109,13 +113,13 @@ class CodeEmitterTask extends CompilerTask {
     return measure(() {
       _finalizeRti(codegen, codegenWorld);
       ProgramBuilder programBuilder = new ProgramBuilder(
-          compiler.options,
-          compiler.reporter,
+          _compiler.options,
+          _compiler.reporter,
           closedWorld.elementEnvironment,
           closedWorld.commonElements,
           closedWorld.outputUnitData,
           codegenWorld,
-          backend.nativeCodegenEnqueuer,
+          _backend.nativeCodegenEnqueuer,
           closedWorld.backendUsage,
           closedWorld.nativeData,
           closedWorld.rtiNeed,
@@ -124,18 +128,18 @@ class CodeEmitterTask extends CompilerTask {
           typeTestRegistry.rtiChecks,
           codegen.rtiEncoder,
           codegen.oneShotInterceptorData,
-          backend.customElementsCodegenAnalysis,
-          backend.generatedCode,
+          _backend.customElementsCodegenAnalysis,
+          _backend.generatedCode,
           namer,
           this,
           closedWorld,
           closedWorld.fieldAnalysis,
           inferredData,
-          backend.sourceInformationStrategy,
+          _backend.sourceInformationStrategy,
           closedWorld.sorter,
           typeTestRegistry.rtiNeededClasses,
           closedWorld.elementEnvironment.mainFunction);
-      int size = emitter.emitProgram(programBuilder, codegenWorld);
+      int size = emitter.emitProgram(programBuilder, codegen, codegenWorld);
       // TODO(floitsch): we shouldn't need the `neededClasses` anymore.
       neededClasses = programBuilder.collector.neededClasses;
       return size;
@@ -143,21 +147,13 @@ class CodeEmitterTask extends CompilerTask {
   }
 }
 
-abstract class EmitterFactory {
-  /// Returns true, if the emitter supports reflection.
-  bool get supportsReflection;
-
-  /// Create the [Emitter] for the emitter [task] that uses the given [namer].
-  Emitter createEmitter(
-      CodeEmitterTask task, Namer namer, JClosedWorld closedWorld);
-}
-
 abstract class Emitter {
   Program get programForTesting;
 
   /// Uses the [programBuilder] to generate a model of the program, emits
   /// the program, and returns the size of the generated output.
-  int emitProgram(ProgramBuilder programBuilder, CodegenWorld codegenWorld);
+  int emitProgram(ProgramBuilder programBuilder, CodegenInputs codegen,
+      CodegenWorld codegenWorld);
 
   /// Returns the JS function that must be invoked to get the value of the
   /// lazily initialized static.
@@ -207,56 +203,4 @@ abstract class Emitter {
 
   /// Returns the size of the code generated for a given output [unit].
   int generatedSize(OutputUnit unit);
-}
-
-abstract class EmitterBase implements Emitter {
-  @override
-  Program programForTesting;
-  Namer get namer;
-
-  jsAst.PropertyAccess globalPropertyAccessForMember(MemberEntity element) {
-    jsAst.Name name = namer.globalPropertyNameForMember(element);
-    jsAst.PropertyAccess pa = new jsAst.PropertyAccess(
-        new jsAst.VariableUse(namer.globalObjectForMember(element)), name);
-    return pa;
-  }
-
-  jsAst.PropertyAccess globalPropertyAccessForClass(ClassEntity element) {
-    jsAst.Name name = namer.globalPropertyNameForClass(element);
-    jsAst.PropertyAccess pa = new jsAst.PropertyAccess(
-        new jsAst.VariableUse(namer.globalObjectForClass(element)), name);
-    return pa;
-  }
-
-  jsAst.PropertyAccess globalPropertyAccessForType(Entity element) {
-    jsAst.Name name = namer.globalPropertyNameForType(element);
-    jsAst.PropertyAccess pa = new jsAst.PropertyAccess(
-        new jsAst.VariableUse(namer.globalObjectForType(element)), name);
-    return pa;
-  }
-
-  @override
-  jsAst.PropertyAccess staticFieldAccess(FieldEntity element) {
-    return globalPropertyAccessForMember(element);
-  }
-
-  @override
-  jsAst.PropertyAccess staticFunctionAccess(FunctionEntity element) {
-    return globalPropertyAccessForMember(element);
-  }
-
-  @override
-  jsAst.PropertyAccess constructorAccess(ClassEntity element) {
-    return globalPropertyAccessForClass(element);
-  }
-
-  @override
-  jsAst.Expression interceptorClassAccess(ClassEntity element) {
-    return globalPropertyAccessForClass(element);
-  }
-
-  @override
-  jsAst.Expression typeAccess(Entity element) {
-    return globalPropertyAccessForType(element);
-  }
 }

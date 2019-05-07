@@ -658,7 +658,7 @@ class JavaScriptBackend {
     processor.extractJsInteropAnnotations(library);
     Uri uri = library.canonicalUri;
     if (uri == Uris.dart_html) {
-      htmlLibraryIsLoaded = true;
+      _backendUsageBuilder.registerHtmlIsLoaded();
     }
   }
 
