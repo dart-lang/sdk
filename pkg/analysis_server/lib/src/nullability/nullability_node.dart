@@ -89,9 +89,6 @@ class NullabilityNode {
   /// annotate the nullability of that type.
   String get debugSuffix => nullable == null ? '' : '?($nullable)';
 
-  /// Indicates whether this node is always nullable, by construction.
-  bool get isAlwaysNullable => identical(nullable, ConstraintVariable.always);
-
   /// Indicates whether this node is never nullable, by construction.
   bool get isNeverNullable => nullable == null;
 

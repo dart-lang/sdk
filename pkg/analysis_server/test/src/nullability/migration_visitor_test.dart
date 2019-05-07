@@ -46,6 +46,9 @@ class ConstraintGathererTest extends ConstraintsTestBase {
     } else {
       if (right.isNeverNullable) {
         expect(conditionalNode.nullable, same(left.nullable));
+      } else if (left.nullable == ConstraintVariable.always ||
+          right.nullable == ConstraintVariable.always) {
+        expect(conditionalNode.nullable, same(ConstraintVariable.always));
       } else {
         assertConnection(left, conditionalNode);
         assertConnection(right, conditionalNode);
@@ -278,8 +281,9 @@ int f(bool b, int i) {
 }
 ''');
 
+    var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
-    expect(nullable_conditional.isAlwaysNullable, true);
+    assertConditional(nullable_conditional, NullabilityNode.always, nullable_i);
   }
 
   test_conditionalExpression_right_non_null() async {
@@ -304,8 +308,9 @@ int f(bool b, int i) {
 }
 ''');
 
+    var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
-    expect(nullable_conditional.isAlwaysNullable, true);
+    assertConditional(nullable_conditional, nullable_i, NullabilityNode.always);
   }
 
   test_functionDeclaration_expression_body() async {
