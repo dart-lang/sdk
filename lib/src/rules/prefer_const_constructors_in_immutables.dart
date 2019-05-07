@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/ast.dart';
 
 const _desc = r'Prefer declare const constructors on `@immutable` classes.';
 
@@ -86,7 +84,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         (isRedirected && element.redirectedConstructor.isConst ||
             (!isRedirected &&
                 _hasConstConstructorInvocation(node) &&
-                _hasOnlyConstExpressionsInIntializerList(node)))) {
+                context.canBeConstConstructor(node)))) {
       rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
     }
   }
@@ -130,19 +128,4 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _hasMixin(ClassElement clazz) => clazz.mixins.isNotEmpty;
-
-  bool _hasOnlyConstExpressionsInIntializerList(ConstructorDeclaration node) {
-    bool hasConstError;
-
-    // put a fake const keyword and check if there's const error
-    node.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
-    try {
-      hasConstError = hasErrorWithConstantVerifier(context, node);
-    } finally {
-      // restore const keyword
-      node.constKeyword = null;
-    }
-
-    return !hasConstError;
-  }
 }
