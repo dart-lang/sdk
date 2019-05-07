@@ -50,10 +50,16 @@ class ConstraintGathererTest extends ConstraintsTestBase {
       if (right.isNeverNullable) {
         expect(conditionalNode.nullable, same(left.nullable));
       } else {
-        assertConstraint([left.nullable], conditionalNode.nullable);
-        assertConstraint([right.nullable], conditionalNode.nullable);
+        assertConnection(left, conditionalNode);
+        assertConnection(right, conditionalNode);
       }
     }
+  }
+
+  /// Checks that there is a connection from [sourceNode] to [destinationNode].
+  void assertConnection(
+      NullabilityNode sourceNode, NullabilityNode destinationNode) {
+    expect(graph.getDownstreamNodes(sourceNode), contains(destinationNode));
   }
 
   /// Checks that a constraint was recorded with a left hand side of
@@ -328,8 +334,8 @@ void f({int i = 1}) {}
 void f({int i = null}) {}
 ''');
 
-    assertConstraint([ConstraintVariable.always],
-        decoratedTypeAnnotation('int').node.nullable);
+    assertConnection(
+        NullabilityNode.always, decoratedTypeAnnotation('int').node);
   }
 
   test_functionDeclaration_parameter_named_no_default_assume_nullable() async {
@@ -340,8 +346,8 @@ void f({int i}) {}
             namedNoDefaultParameterHeuristic:
                 NamedNoDefaultParameterHeuristic.assumeNullable));
 
-    assertConstraint([ConstraintVariable.always],
-        decoratedTypeAnnotation('int').node.nullable);
+    assertConnection(
+        NullabilityNode.always, decoratedTypeAnnotation('int').node);
   }
 
   test_functionDeclaration_parameter_named_no_default_assume_required() async {
@@ -394,8 +400,8 @@ void f([int i = 1]) {}
 void f([int i = null]) {}
 ''');
 
-    assertConstraint([ConstraintVariable.always],
-        decoratedTypeAnnotation('int').node.nullable);
+    assertConnection(
+        NullabilityNode.always, decoratedTypeAnnotation('int').node);
   }
 
   test_functionDeclaration_parameter_positionalOptional_no_default() async {
@@ -403,8 +409,8 @@ void f([int i = null]) {}
 void f([int i]) {}
 ''');
 
-    assertConstraint([ConstraintVariable.always],
-        decoratedTypeAnnotation('int').node.nullable);
+    assertConnection(
+        NullabilityNode.always, decoratedTypeAnnotation('int').node);
   }
 
   test_functionDeclaration_parameter_positionalOptional_no_default_assume_required() async {
@@ -417,8 +423,8 @@ void f([int i]) {}
             namedNoDefaultParameterHeuristic:
                 NamedNoDefaultParameterHeuristic.assumeRequired));
 
-    assertConstraint([ConstraintVariable.always],
-        decoratedTypeAnnotation('int').node.nullable);
+    assertConnection(
+        NullabilityNode.always, decoratedTypeAnnotation('int').node);
   }
 
   test_functionDeclaration_resets_unconditional_control_flow() async {
@@ -473,7 +479,7 @@ void g() {
 }
 ''');
     var optional_i = possiblyOptionalParameter('int i');
-    assertConstraint([], optional_i.nullable);
+    assertConnection(NullabilityNode.always, optional_i);
   }
 
   test_functionInvocation_parameter_named_missing_required() async {
@@ -675,8 +681,8 @@ void g(C<int/*3*/>/*4*/ c) {
 }
 ''');
 
-    assertConstraint([decoratedTypeAnnotation('int/*3*/').node.nullable],
-        decoratedTypeAnnotation('int/*1*/').node.nullable);
+    assertConnection(decoratedTypeAnnotation('int/*3*/').node,
+        decoratedTypeAnnotation('int/*1*/').node);
     assertNullCheck(checkExpression('c/*check*/'),
         decoratedTypeAnnotation('C<int/*3*/>/*4*/').node,
         contextNode: decoratedTypeAnnotation('C<int/*1*/>/*2*/').node);
@@ -743,8 +749,8 @@ int f() {
 }
 ''');
 
-    assertConstraint([ConstraintVariable.always],
-        decoratedTypeAnnotation('int').node.nullable);
+    assertConnection(
+        NullabilityNode.always, decoratedTypeAnnotation('int').node);
   }
 
   test_return_null() async {
