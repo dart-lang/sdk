@@ -111,8 +111,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         .initializers
         .firstWhere((e) => e is RedirectingConstructorInvocation,
             orElse: () => null);
-    if (redirectInvocation != null)
+    if (redirectInvocation != null) {
       return redirectInvocation.staticElement.isConst;
+    }
     // construct with implicit super()
     return clazz.supertype.constructors
         .firstWhere((e) => e.name.isEmpty)
