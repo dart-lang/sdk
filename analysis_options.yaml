@@ -1,3 +1,5 @@
+include: package:pedantic/analysis_options.yaml
+
 analyzer:
   exclude:
     # ignore vscode .history files

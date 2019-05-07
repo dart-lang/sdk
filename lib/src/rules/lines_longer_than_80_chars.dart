@@ -119,10 +119,11 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor {
 
   @override
   visitSimpleStringLiteral(SimpleStringLiteral node) {
-    if (node.isMultiline)
+    if (node.isMultiline) {
       _handleMultilines(node);
-    else
+    } else {
       _handleSingleLine(node, node.value);
+    }
   }
 
   @override

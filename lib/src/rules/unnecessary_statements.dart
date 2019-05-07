@@ -135,8 +135,9 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
     // Allow getters; getters with side effects were the main cause of false
     // positives.
     var bestElement = node.identifier.staticElement;
-    if (bestElement is PropertyAccessorElement && !bestElement.isSynthetic)
+    if (bestElement is PropertyAccessorElement && !bestElement.isSynthetic) {
       return;
+    }
 
     super.visitPrefixedIdentifier(node);
   }

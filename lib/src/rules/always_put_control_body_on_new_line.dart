@@ -82,8 +82,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitIfStatement(IfStatement node) {
     _checkNodeOnNextLine(node.thenStatement, node.rightParenthesis.end);
-    if (node.elseKeyword != null && node.elseStatement is! IfStatement)
+    if (node.elseKeyword != null && node.elseStatement is! IfStatement) {
       _checkNodeOnNextLine(node.elseStatement, node.elseKeyword.end);
+    }
   }
 
   @override
