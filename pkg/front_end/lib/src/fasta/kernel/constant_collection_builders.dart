@@ -22,6 +22,8 @@ abstract class _ListOrSetConstantBuilder<L extends Expression,
 
   Message get messageForIteration;
 
+  _ListOrSetConstantBuilder<L, C> newTempBuilder();
+
   /// Add an element (which is possibly a spread or an if element) to the
   /// constant list being built by this builder.
   void add(Expression element) {
@@ -32,12 +34,10 @@ abstract class _ListOrSetConstantBuilder<L extends Expression,
       if (evaluator.shouldBeUnevaluated) {
         // Unevaluated if
         evaluator.enterLazy();
-        Constant then = evaluator._evaluateSubexpression(
-            makeLiteral([evaluator.cloner.clone(element.then)]));
+        Constant then = (newTempBuilder()..add(element.then)).build();
         Constant otherwise;
         if (element.otherwise != null) {
-          otherwise = evaluator._evaluateSubexpression(
-              makeLiteral([evaluator.cloner.clone(element.otherwise)]));
+          otherwise = (newTempBuilder()..add(element.otherwise)).build();
         } else {
           otherwise = makeConstant([]);
         }
@@ -128,6 +128,8 @@ abstract class _ListOrSetConstantBuilder<L extends Expression,
   }
 
   void addConstant(Constant constant, TreeNode context);
+
+  Constant build();
 }
 
 class ListConstantBuilder
@@ -148,6 +150,10 @@ class ListConstantBuilder
   Message get messageForIteration => messageConstEvalIterationInConstList;
 
   @override
+  ListConstantBuilder newTempBuilder() =>
+      new ListConstantBuilder(original, const DynamicType(), evaluator);
+
+  @override
   void addConstant(Constant constant, TreeNode context) {
     List<Constant> lastPart;
     if (parts.last is List<Constant>) {
@@ -158,6 +164,7 @@ class ListConstantBuilder
     lastPart.add(evaluator.ensureIsSubtype(constant, elementType, context));
   }
 
+  @override
   Constant build() {
     if (parts.length == 1) {
       // Fully evaluated
@@ -199,6 +206,10 @@ class SetConstantBuilder
   Message get messageForIteration => messageConstEvalIterationInConstSet;
 
   @override
+  SetConstantBuilder newTempBuilder() =>
+      new SetConstantBuilder(original, const DynamicType(), evaluator);
+
+  @override
   void addConstant(Constant constant, TreeNode context) {
     if (!evaluator.hasPrimitiveEqual(constant)) {
       evaluator.report(context,
@@ -218,6 +229,7 @@ class SetConstantBuilder
     lastPart.add(evaluator.ensureIsSubtype(constant, elementType, context));
   }
 
+  @override
   Constant build() {
     if (parts.length == 1) {
       // Fully evaluated
@@ -274,6 +286,9 @@ class MapConstantBuilder {
   MapConstantBuilder(
       this.original, this.keyType, this.valueType, this.evaluator);
 
+  MapConstantBuilder newTempBuilder() => new MapConstantBuilder(
+      original, const DynamicType(), const DynamicType(), evaluator);
+
   /// Add a map entry (which is possibly a spread or an if map entry) to the
   /// constant map being built by this builder
   void add(MapEntry element) {
@@ -284,14 +299,10 @@ class MapConstantBuilder {
       if (evaluator.shouldBeUnevaluated) {
         // Unevaluated if
         evaluator.enterLazy();
-        Constant then = evaluator._evaluateSubexpression(new MapLiteral(
-            [evaluator.cloner.clone(element.then)],
-            isConst: true));
+        Constant then = (newTempBuilder()..add(element.then)).build();
         Constant otherwise;
         if (element.otherwise != null) {
-          otherwise = evaluator._evaluateSubexpression(new MapLiteral(
-              [evaluator.cloner.clone(element.otherwise)],
-              isConst: true));
+          otherwise = (newTempBuilder()..add(element.otherwise)).build();
         } else {
           otherwise =
               new MapConstant(const DynamicType(), const DynamicType(), []);
