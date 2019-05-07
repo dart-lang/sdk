@@ -223,7 +223,7 @@ if __name__ == '__main__':
       # Patch in all the PRODUCT built AOT binaries.
       CopyAotBinaries(arch, sdk_path)
       with bot.BuildStep('Create and upload sdk zip for ' + arch):
-        CreateAndUploadSDKZip(arch)
+        CreateAndUploadSDKZip(arch, sdk_path)
     DartArchiveUnstrippedBinaries()
     if BUILD_OS == 'linux':
       CreateUploadVersionFile()
