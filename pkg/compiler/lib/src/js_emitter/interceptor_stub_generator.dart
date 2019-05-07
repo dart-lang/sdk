@@ -23,12 +23,12 @@ import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
 
-import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;
+import 'code_emitter_task.dart' show Emitter;
 
 class InterceptorStubGenerator {
   final CompilerOptions _options;
   final CommonElements _commonElements;
-  final CodeEmitterTask _emitterTask;
+  final Emitter _emitter;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
   final Namer _namer;
   final OneShotInterceptorData _oneShotInterceptorData;
@@ -39,7 +39,7 @@ class InterceptorStubGenerator {
   InterceptorStubGenerator(
       this._options,
       this._commonElements,
-      this._emitterTask,
+      this._emitter,
       this._nativeCodegenEnqueuer,
       this._namer,
       this._oneShotInterceptorData,
@@ -51,11 +51,9 @@ class InterceptorStubGenerator {
 
   InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
-  Emitter get _emitter => _emitterTask.emitter;
-
   jsAst.Expression generateGetInterceptorMethod(Set<ClassEntity> classes) {
     jsAst.Expression interceptorFor(ClassEntity cls) {
-      return _emitterTask.interceptorPrototypeAccess(cls);
+      return _emitter.interceptorPrototypeAccess(cls);
     }
 
     /// Build a JavaScript AST node for doing a type check on

@@ -621,11 +621,14 @@ class FragmentEmitter {
       // TODO(29455): 'hunkHelpers' displaces other names, so don't minify it.
       'hunkHelpers': js.VariableDeclaration('hunkHelpers', allowRename: false),
       'directAccessTestExpression': js.js(directAccessTestExpression),
-      'cyclicThrow': backend.emitter
+      'cyclicThrow': backend.emitterTask.emitter
           .staticFunctionAccess(_closedWorld.commonElements.cyclicThrowHelper),
       'operatorIsPrefix': js.string(namer.operatorIsPrefix),
-      'tearOffCode': new js.Block(buildTearOffCode(compiler.options,
-          backend.emitter.emitter, backend.namer, _closedWorld.commonElements)),
+      'tearOffCode': new js.Block(buildTearOffCode(
+          compiler.options,
+          backend.emitterTask.emitter,
+          backend.namer,
+          _closedWorld.commonElements)),
       'embeddedTypes': generateEmbeddedGlobalAccess(TYPES),
       'embeddedInterceptorTags':
           generateEmbeddedGlobalAccess(INTERCEPTORS_BY_TAG),

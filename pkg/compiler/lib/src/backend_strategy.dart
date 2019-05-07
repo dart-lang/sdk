@@ -43,7 +43,7 @@ abstract class BackendStrategy {
       GlobalTypeInferenceResults globalInferenceResults);
 
   /// Creates the [SsaBuilder] used for the element model.
-  SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
+  SsaBuilder createSsaBuilder(CompilerTask task, CodegenInputs codegen,
       SourceInformationStrategy sourceInformationStrategy);
 
   /// Returns the [SourceInformationStrategy] use for the element model.

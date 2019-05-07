@@ -110,11 +110,16 @@ class Emitter extends emitterTask.EmitterBase {
   }
 
   @override
-  js.PropertyAccess prototypeAccess(
-      ClassEntity element, bool hasBeenInstantiated) {
+  js.PropertyAccess prototypeAccess(ClassEntity element,
+      {bool hasBeenInstantiated}) {
     js.Expression constructor =
         hasBeenInstantiated ? constructorAccess(element) : typeAccess(element);
     return js.js('#.prototype', constructor);
+  }
+
+  @override
+  js.Expression interceptorPrototypeAccess(ClassEntity e) {
+    return js.js('#.prototype', interceptorClassAccess(e));
   }
 
   @override

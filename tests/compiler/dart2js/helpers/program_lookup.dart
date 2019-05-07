@@ -43,7 +43,7 @@ class ProgramLookup {
   final Namer namer;
 
   ProgramLookup(Compiler compiler)
-      : this.program = compiler.backend.emitter.emitter.programForTesting,
+      : this.program = compiler.backend.emitterTask.emitter.programForTesting,
         this.namer = compiler.backend.namer;
 
   Fragment getFragment(OutputUnit outputUnit) {

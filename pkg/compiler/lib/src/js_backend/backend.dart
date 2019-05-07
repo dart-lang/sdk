@@ -6,36 +6,30 @@ library js_backend.backend;
 
 import '../common.dart';
 import '../common/backend_api.dart' show ImpactTransformer;
-import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/names.dart' show Uris;
 import '../common/tasks.dart' show CompilerTask;
-import '../common_elements.dart'
-    show CommonElements, ElementEnvironment, JElementEnvironment;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../compiler.dart' show Compiler;
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/entities.dart';
-import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import '../frontend_strategy.dart';
 import '../inferrer/types.dart';
-import '../io/source_information.dart'
-    show SourceInformation, SourceInformationStrategy;
+import '../io/source_information.dart' show SourceInformationStrategy;
 import '../js/js.dart' as jsAst;
 import '../js_model/elements.dart';
-import '../js/rewrite_async.dart';
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask, Emitter;
 import '../js_emitter/sorter.dart' show Sorter;
 import '../kernel/dart2js_target.dart';
 import '../native/enqueue.dart';
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
-import '../universe/call_structure.dart' show CallStructure;
 import '../universe/class_hierarchy.dart'
     show ClassHierarchyBuilder, ClassQueries;
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
-import '../universe/use.dart' show StaticUse;
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
@@ -59,10 +53,13 @@ import 'resolution_listener.dart';
 import 'runtime_types.dart';
 
 abstract class FunctionCompiler {
-  void onCodegenStart();
+  void onCodegenStart(CodegenInputs codegen);
 
   /// Generates JavaScript code for `work.element`.
-  jsAst.Fun compile(CodegenWorkItem work, JClosedWorld closedWorld,
+  jsAst.Fun compile(
+      CodegenWorkItem work,
+      CodegenInputs codegen,
+      JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults);
 
   Iterable get tasks;
@@ -295,7 +292,7 @@ enum SyntheticConstantKind {
   NAME
 }
 
-class JavaScriptBackend {
+class JavaScriptBackend implements CodegenInputs {
   static const String JS = 'JS';
   static const String JS_BUILTIN = 'JS_BUILTIN';
   static const String JS_EMBEDDED_GLOBAL = 'JS_EMBEDDED_GLOBAL';
@@ -308,7 +305,10 @@ class JavaScriptBackend {
 
   FunctionCompiler functionCompiler;
 
-  CodeEmitterTask emitter;
+  CodeEmitterTask emitterTask;
+
+  @override
+  Emitter get emitter => emitterTask.emitter;
 
   /// The generated code as a js AST for compiled methods.
   final Map<MemberEntity, jsAst.Expression> generatedCode =
@@ -316,6 +316,7 @@ class JavaScriptBackend {
 
   Namer _namer;
 
+  @override
   Namer get namer {
     assert(_namer != null,
         failedAt(NO_LOCATION_SPANNABLE, "Namer has not been created yet."));
@@ -327,7 +328,7 @@ class JavaScriptBackend {
 
   List<CompilerTask> get tasks {
     List<CompilerTask> result = functionCompiler.tasks;
-    result.add(emitter);
+    result.add(emitterTask);
     return result;
   }
 
@@ -368,11 +369,13 @@ class JavaScriptBackend {
 
   CheckedModeHelpers _checkedModeHelpers;
 
+  @override
   final SuperMemberData superMemberData = new SuperMemberData();
 
   NativeResolutionEnqueuer _nativeResolutionEnqueuer;
   NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
+  @override
   Tracer tracer;
 
   JavaScriptBackend(this.compiler,
@@ -385,11 +388,15 @@ class JavaScriptBackend {
     _backendUsageBuilder =
         new BackendUsageBuilderImpl(compiler.frontendStrategy);
     _checkedModeHelpers = new CheckedModeHelpers();
-    emitter = new CodeEmitterTask(compiler, generateSourceMap);
+    emitterTask = new CodeEmitterTask(compiler, generateSourceMap);
     noSuchMethodRegistry = new NoSuchMethodRegistryImpl(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
     functionCompiler = new SsaFunctionCompiler(
-        this, compiler.measurer, sourceInformationStrategy);
+        compiler.options,
+        compiler.reporter,
+        compiler.backendStrategy,
+        compiler.measurer,
+        sourceInformationStrategy);
   }
 
   DiagnosticReporter get reporter => compiler.reporter;
@@ -418,6 +425,7 @@ class JavaScriptBackend {
     return _customElementsCodegenAnalysis;
   }
 
+  @override
   OneShotInterceptorData get oneShotInterceptorData {
     assert(
         _oneShotInterceptorData != null,
@@ -440,6 +448,7 @@ class JavaScriptBackend {
 
   RuntimeTypesChecksBuilder get rtiChecksBuilderForTesting => _rtiChecksBuilder;
 
+  @override
   RuntimeTypesSubstitutions get rtiSubstitutions {
     assert(
         _rtiSubstitutions != null,
@@ -448,6 +457,7 @@ class JavaScriptBackend {
     return _rtiSubstitutions;
   }
 
+  @override
   RuntimeTypesEncoder get rtiEncoder {
     assert(
         _rtiEncoder != null,
@@ -456,6 +466,7 @@ class JavaScriptBackend {
     return _rtiEncoder;
   }
 
+  @override
   CheckedModeHelpers get checkedModeHelpers => _checkedModeHelpers;
 
   Namer determineNamer(JClosedWorld closedWorld) {
@@ -605,7 +616,7 @@ class JavaScriptBackend {
         elementEnvironment,
         commonElements,
         closedWorld.dartTypes,
-        emitter,
+        emitterTask,
         closedWorld.liveNativeClasses,
         closedWorld.nativeData);
     return new CodegenEnqueuer(
@@ -638,8 +649,8 @@ class JavaScriptBackend {
       return const WorldImpact();
     }
 
-    jsAst.Fun function =
-        functionCompiler.compile(work, closedWorld, globalInferenceResults);
+    jsAst.Fun function = functionCompiler.compile(
+        work, this, closedWorld, globalInferenceResults);
     if (function != null) {
       if (function.sourceInformation == null) {
         function = function.withSourceInformation(
@@ -673,8 +684,8 @@ class JavaScriptBackend {
   /// Generates the output and returns the total size of the generated code.
   int assembleProgram(JClosedWorld closedWorld, InferredData inferredData,
       CodegenWorld codegenWorld) {
-    int programSize =
-        emitter.assembleProgram(namer, closedWorld, inferredData, codegenWorld);
+    int programSize = emitterTask.assembleProgram(
+        namer, closedWorld, inferredData, codegenWorld);
     closedWorld.noSuchMethodData.emitDiagnostic(reporter);
     return programSize;
   }
@@ -698,7 +709,6 @@ class JavaScriptBackend {
   /// [WorldImpact] of enabled backend features is returned.
   WorldImpact onCodegenStart(JClosedWorld closedWorld,
       CodegenWorldBuilder codegenWorldBuilder, Sorter sorter) {
-    functionCompiler.onCodegenStart();
     _oneShotInterceptorData = new OneShotInterceptorData(
         closedWorld.interceptorData, closedWorld.commonElements);
     _namer = determineNamer(closedWorld);
@@ -709,7 +719,7 @@ class JavaScriptBackend {
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
         closedWorld.rtiNeed);
-    emitter.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
+    emitterTask.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.
     BackendImpacts impacts = new BackendImpacts(closedWorld.commonElements);
@@ -734,7 +744,10 @@ class JavaScriptBackend {
         nativeCodegenEnqueuer,
         namer,
         oneShotInterceptorData,
-        rtiChecksBuilder);
+        rtiChecksBuilder,
+        emitterTask.nativeEmitter);
+
+    functionCompiler.onCodegenStart(this);
     return const WorldImpact();
   }
 
@@ -742,117 +755,6 @@ class JavaScriptBackend {
   void onCodegenEnd() {
     sourceInformationStrategy.onComplete();
     tracer.close();
-  }
-
-  jsAst.Expression rewriteAsync(
-      CommonElements commonElements,
-      JElementEnvironment elementEnvironment,
-      CodegenRegistry registry,
-      FunctionEntity element,
-      jsAst.Expression code,
-      DartType asyncTypeParameter,
-      SourceInformation bodySourceInformation,
-      SourceInformation exitSourceInformation) {
-    if (element.asyncMarker == AsyncMarker.SYNC) return code;
-
-    AsyncRewriterBase rewriter = null;
-    jsAst.Name name = namer.methodPropertyName(
-        element is JGeneratorBody ? element.function : element);
-
-    switch (element.asyncMarker) {
-      case AsyncMarker.ASYNC:
-        rewriter = _makeAsyncRewriter(commonElements, elementEnvironment,
-            registry, element, code, asyncTypeParameter, name);
-        break;
-      case AsyncMarker.SYNC_STAR:
-        rewriter = new SyncStarRewriter(reporter, element,
-            endOfIteration:
-                emitter.staticFunctionAccess(commonElements.endOfIteration),
-            iterableFactory: emitter
-                .staticFunctionAccess(commonElements.syncStarIterableFactory),
-            iterableFactoryTypeArguments: _fetchItemType(asyncTypeParameter),
-            yieldStarExpression:
-                emitter.staticFunctionAccess(commonElements.yieldStar),
-            uncaughtErrorExpression: emitter
-                .staticFunctionAccess(commonElements.syncStarUncaughtError),
-            safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
-            bodyName: namer.deriveAsyncBodyName(name));
-        registry.registerStaticUse(new StaticUse.staticInvoke(
-            commonElements.syncStarIterableFactory,
-            const CallStructure.unnamed(1, 1), [
-          elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)
-        ]));
-        break;
-      case AsyncMarker.ASYNC_STAR:
-        rewriter = new AsyncStarRewriter(reporter, element,
-            asyncStarHelper:
-                emitter.staticFunctionAccess(commonElements.asyncStarHelper),
-            streamOfController:
-                emitter.staticFunctionAccess(commonElements.streamOfController),
-            wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
-            newController: emitter.staticFunctionAccess(
-                commonElements.asyncStarStreamControllerFactory),
-            newControllerTypeArguments: _fetchItemType(asyncTypeParameter),
-            safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
-            yieldExpression:
-                emitter.staticFunctionAccess(commonElements.yieldSingle),
-            yieldStarExpression:
-                emitter.staticFunctionAccess(commonElements.yieldStar),
-            bodyName: namer.deriveAsyncBodyName(name));
-        registry.registerStaticUse(new StaticUse.staticInvoke(
-            commonElements.asyncStarStreamControllerFactory,
-            const CallStructure.unnamed(1, 1), [
-          elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)
-        ]));
-        break;
-    }
-    return rewriter.rewrite(code, bodySourceInformation, exitSourceInformation);
-  }
-
-  /// Returns an optional expression that evaluates [type].  Returns `null` if
-  /// the type expression is determined by the outside context and should be
-  /// added as a function parameter to the rewritten code.
-  // TODO(sra): We could also return an empty list if the generator takes no
-  // type (e.g. due to rtiNeed optimization).
-  List<jsAst.Expression> _fetchItemType(DartType type) {
-    if (type == null) return null;
-    var ast = rtiEncoder.getTypeRepresentation(emitter.emitter, type, null);
-    return <jsAst.Expression>[ast];
-  }
-
-  AsyncRewriter _makeAsyncRewriter(
-      CommonElements commonElements,
-      JElementEnvironment elementEnvironment,
-      CodegenRegistry registry,
-      FunctionEntity element,
-      jsAst.Expression code,
-      DartType elementType,
-      jsAst.Name name) {
-    var startFunction = commonElements.asyncHelperStartSync;
-    var completerFactory = commonElements.asyncAwaitCompleterFactory;
-
-    List<jsAst.Expression> itemTypeExpression = _fetchItemType(elementType);
-
-    var rewriter = new AsyncRewriter(reporter, element,
-        asyncStart: emitter.staticFunctionAccess(startFunction),
-        asyncAwait:
-            emitter.staticFunctionAccess(commonElements.asyncHelperAwait),
-        asyncReturn:
-            emitter.staticFunctionAccess(commonElements.asyncHelperReturn),
-        asyncRethrow:
-            emitter.staticFunctionAccess(commonElements.asyncHelperRethrow),
-        wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
-        completerFactory: emitter.staticFunctionAccess(completerFactory),
-        completerFactoryTypeArguments: itemTypeExpression,
-        safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
-        bodyName: namer.deriveAsyncBodyName(name));
-
-    registry.registerStaticUse(new StaticUse.staticInvoke(
-        completerFactory,
-        const CallStructure.unnamed(0, 1),
-        [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)]));
-
-    return rewriter;
   }
 
   /// Creates an impact strategy to use for compilation.
@@ -928,4 +830,21 @@ class SuperMemberData {
   bool isAliasedSuperMember(MemberEntity member) {
     return _aliasedSuperMembers.contains(member);
   }
+}
+
+/// Interface for resources only used during code generation.
+///
+/// This is currently implemented by the [JavaScriptBackend] but should be
+/// a separate object created when the codegen phase starts.
+abstract class CodegenInputs {
+  // TODO(johnniwinther): Should be the modular part of the emitter.
+  Emitter get emitter;
+  CheckedModeHelpers get checkedModeHelpers;
+  OneShotInterceptorData get oneShotInterceptorData;
+  RuntimeTypesSubstitutions get rtiSubstitutions;
+  RuntimeTypesEncoder get rtiEncoder;
+  // TODO(johnniwinther): Should be the modular part of the namer.
+  Namer get namer;
+  SuperMemberData get superMemberData;
+  Tracer get tracer;
 }

@@ -37,7 +37,6 @@ import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
-import '../js_emitter/js_emitter.dart' show NativeEmitter;
 import '../js_model/locals.dart' show JumpVisitor;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/element_map.dart';
@@ -114,7 +113,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
   final CompilerOptions options;
   final DiagnosticReporter reporter;
-  final CodeEmitterTask _emitter;
+  final Emitter _emitter;
   final Namer _namer;
   final MemberEntity targetElement;
   final MemberEntity _initialTargetElement;
@@ -143,8 +142,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   LoopHandler _loopHandler;
   TypeBuilder _typeBuilder;
 
-  final NativeEmitter _nativeEmitter;
-
   /// True if we are visiting the expression of a throw statement; we assume
   /// this is a slow path.
   bool _inExpressionOfThrow = false;
@@ -171,7 +168,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       this._namer,
       this._emitter,
       this._tracer,
-      this._nativeEmitter,
       this._sourceInformationStrategy,
       this._inlineCache)
       : this.targetElement = _effectiveTargetElementFor(_initialTargetElement),
@@ -1491,7 +1487,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         parameterStructure: function.parameterStructure);
 
     if (closedWorld.nativeData.isNativeMember(targetElement)) {
-      _nativeEmitter.nativeMethods.add(targetElement);
+      registry.registerNativeMethod(targetElement);
       String nativeName;
       if (closedWorld.nativeData.hasFixedBackendName(targetElement)) {
         nativeName = closedWorld.nativeData.getFixedBackendName(targetElement);
@@ -4716,7 +4712,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   HForeignCode _invokeJsInteropFunction(
       FunctionEntity element, List<HInstruction> arguments) {
     assert(closedWorld.nativeData.isJsInteropMember(element));
-    _nativeEmitter.nativeMethods.add(element);
+    registry.registerNativeMethod(element);
 
     if (element is ConstructorEntity &&
         element.isFactoryConstructor &&

@@ -141,8 +141,7 @@ abstract class JsToElementMap {
   LibraryEntity getLibrary(ir.Library node);
 
   /// Returns the [js.Template] for the `JsBuiltin` [constant] value.
-  js.Template getJsBuiltinTemplate(
-      ConstantValue constant, CodeEmitterTask emitter);
+  js.Template getJsBuiltinTemplate(ConstantValue constant, Emitter emitter);
 
   /// Returns a [Spannable] for a message pointing to the IR [node] in the
   /// context of [member].

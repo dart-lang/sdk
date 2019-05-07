@@ -85,12 +85,18 @@ main() {
       [String expectedTypedefRepresentation]) {
     bool encodeTypedefName = false;
     Expression expression = typeRepresentation.getTypeRepresentation(
-        backend.emitter.emitter, type, onVariable, (x) => encodeTypedefName);
+        backend.emitterTask.emitter,
+        type,
+        onVariable,
+        (x) => encodeTypedefName);
     Expect.stringEquals(expectedRepresentation, stringify(expression));
 
     encodeTypedefName = true;
     expression = typeRepresentation.getTypeRepresentation(
-        backend.emitter.emitter, type, onVariable, (x) => encodeTypedefName);
+        backend.emitterTask.emitter,
+        type,
+        onVariable,
+        (x) => encodeTypedefName);
     if (expectedTypedefRepresentation == null) {
       expectedTypedefRepresentation = expectedRepresentation;
     }
@@ -98,8 +104,8 @@ main() {
   }
 
   String getJsName(Entity cls) {
-    Expression name =
-        typeRepresentation.getJavaScriptClassName(cls, backend.emitter.emitter);
+    Expression name = typeRepresentation.getJavaScriptClassName(
+        cls, backend.emitterTask.emitter);
     return stringify(name);
   }
 

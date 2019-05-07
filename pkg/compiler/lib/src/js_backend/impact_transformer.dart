@@ -15,6 +15,7 @@ import '../common_elements.dart' show ElementEnvironment;
 import '../constants/expressions.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../js_emitter/native_emitter.dart';
 import '../native/enqueue.dart';
 import '../native/behavior.dart';
 import '../options.dart';
@@ -351,6 +352,7 @@ class CodegenImpactTransformer {
   final Namer _namer;
   final OneShotInterceptorData _oneShotInterceptorData;
   final RuntimeTypesChecksBuilder _rtiChecksBuilder;
+  final NativeEmitter _nativeEmitter;
 
   CodegenImpactTransformer(
       this._options,
@@ -363,7 +365,8 @@ class CodegenImpactTransformer {
       this._nativeCodegenEnqueuer,
       this._namer,
       this._oneShotInterceptorData,
-      this._rtiChecksBuilder);
+      this._rtiChecksBuilder,
+      this._nativeEmitter);
 
   void onIsCheckForCodegen(DartType type, TransformedWorldImpact transformed) {
     if (type.isDynamic) return;
@@ -441,6 +444,15 @@ class CodegenImpactTransformer {
 
     for (GenericInstantiation instantiation in impact.genericInstantiations) {
       _rtiChecksBuilder.registerGenericInstantiation(instantiation);
+    }
+
+    for (NativeBehavior behavior in impact.nativeBehaviors) {
+      _nativeCodegenEnqueuer.registerNativeBehavior(
+          transformed, behavior, impact);
+    }
+
+    for (FunctionEntity function in impact.nativeMethods) {
+      _nativeEmitter.nativeMethods.add(function);
     }
 
     // TODO(johnniwinther): Remove eager registration.

@@ -269,7 +269,7 @@ class NativeEmitter {
         if (stubParameter.name == name) {
           type = type.unaliased;
           if (type.isFunctionType) {
-            closureConverter ??= _emitterTask
+            closureConverter ??= _emitterTask.emitter
                 .staticFunctionAccess(_commonElements.closureConverter);
 
             // The parameter type is a function type either directly or through

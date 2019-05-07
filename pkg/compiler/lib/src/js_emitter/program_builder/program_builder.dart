@@ -342,7 +342,7 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
         _options,
         _commonElements,
-        _task,
+        _task.emitter,
         _nativeCodegenEnqueuer,
         _namer,
         _oneShotInterceptorData,
@@ -969,7 +969,8 @@ class ProgramBuilder {
     if (!_methodNeedsStubs(element)) return const <ParameterStubMethod>[];
 
     ParameterStubGenerator generator = new ParameterStubGenerator(
-        _task,
+        _task.emitter,
+        _task.nativeEmitter,
         _namer,
         _rtiEncoder,
         _nativeData,
@@ -1015,7 +1016,7 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
         _options,
         _commonElements,
-        _task,
+        _task.emitter,
         _nativeCodegenEnqueuer,
         _namer,
         _oneShotInterceptorData,
@@ -1111,7 +1112,7 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
         _options,
         _commonElements,
-        _task,
+        _task.emitter,
         _nativeCodegenEnqueuer,
         _namer,
         _oneShotInterceptorData,

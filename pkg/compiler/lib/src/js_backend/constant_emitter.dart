@@ -320,7 +320,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   @override
   jsAst.Expression visitInterceptor(InterceptorConstantValue constant, [_]) {
     ClassEntity interceptorClass = constant.cls;
-    return _task.interceptorPrototypeAccess(interceptorClass);
+    return _emitter.interceptorPrototypeAccess(interceptorClass);
   }
 
   @override

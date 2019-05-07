@@ -73,73 +73,6 @@ class CodeEmitterTask extends CompilerTask {
   /// Returns true, if the emitter supports reflection.
   bool get supportsReflection => _emitterFactory.supportsReflection;
 
-  /// Returns the closure expression of a static function.
-  jsAst.Expression isolateStaticClosureAccess(FunctionEntity element) {
-    return emitter.isolateStaticClosureAccess(element);
-  }
-
-  /// Returns the JS function that must be invoked to get the value of the
-  /// lazily initialized static.
-  jsAst.Expression isolateLazyInitializerAccess(FieldEntity element) {
-    return emitter.isolateLazyInitializerAccess(element);
-  }
-
-  /// Returns the JS code for accessing the embedded [global].
-  jsAst.Expression generateEmbeddedGlobalAccess(String global) {
-    return emitter.generateEmbeddedGlobalAccess(global);
-  }
-
-  /// Returns the JS code for accessing the given [constant].
-  jsAst.Expression constantReference(ConstantValue constant) {
-    return emitter.constantReference(constant);
-  }
-
-  jsAst.Expression staticFieldAccess(FieldEntity e) {
-    return emitter.staticFieldAccess(e);
-  }
-
-  /// Returns the JS function representing the given function.
-  ///
-  /// The function must be invoked and can not be used as closure.
-  jsAst.Expression staticFunctionAccess(FunctionEntity e) {
-    return emitter.staticFunctionAccess(e);
-  }
-
-  /// Returns the JS constructor of the given element.
-  ///
-  /// The returned expression must only be used in a JS `new` expression.
-  jsAst.Expression constructorAccess(ClassEntity e) {
-    return emitter.constructorAccess(e);
-  }
-
-  /// Returns the JS prototype of the given class [e].
-  jsAst.Expression prototypeAccess(ClassEntity e,
-      {bool hasBeenInstantiated: false}) {
-    return emitter.prototypeAccess(e, hasBeenInstantiated);
-  }
-
-  /// Returns the JS prototype of the given interceptor class [e].
-  jsAst.Expression interceptorPrototypeAccess(ClassEntity e) {
-    return jsAst.js('#.prototype', interceptorClassAccess(e));
-  }
-
-  /// Returns the JS constructor of the given interceptor class [e].
-  jsAst.Expression interceptorClassAccess(ClassEntity e) {
-    return emitter.interceptorClassAccess(e);
-  }
-
-  /// Returns the JS expression representing the type [e].
-  ///
-  /// The given type [e] might be a Typedef.
-  jsAst.Expression typeAccess(Entity e) {
-    return emitter.typeAccess(e);
-  }
-
-  /// Returns the JS template for the given [builtin].
-  jsAst.Template builtinTemplateFor(JsBuiltin builtin) {
-    return emitter.templateForBuiltin(builtin);
-  }
-
   void _finalizeRti(CodegenWorld codegenWorld) {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
@@ -247,8 +180,10 @@ abstract class Emitter {
   jsAst.Expression constructorAccess(ClassEntity e);
 
   /// Returns the JS prototype of the given class [e].
-  jsAst.Expression prototypeAccess(
-      covariant ClassEntity e, bool hasBeenInstantiated);
+  jsAst.Expression prototypeAccess(ClassEntity e, {bool hasBeenInstantiated});
+
+  /// Returns the JS prototype of the given interceptor class [e].
+  jsAst.Expression interceptorPrototypeAccess(ClassEntity e);
 
   /// Returns the JS constructor of the given interceptor class [e].
   jsAst.Expression interceptorClassAccess(ClassEntity e);

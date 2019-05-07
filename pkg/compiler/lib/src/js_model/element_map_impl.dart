@@ -2111,12 +2111,11 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   @override
-  js.Template getJsBuiltinTemplate(
-      ConstantValue constant, CodeEmitterTask emitter) {
+  js.Template getJsBuiltinTemplate(ConstantValue constant, Emitter emitter) {
     int index = extractEnumIndexFromConstantValue(
         constant, commonElements.jsBuiltinEnum);
     if (index == null) return null;
-    return emitter.builtinTemplateFor(JsBuiltin.values[index]);
+    return emitter.templateForBuiltin(JsBuiltin.values[index]);
   }
 }
 

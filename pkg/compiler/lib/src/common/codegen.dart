@@ -7,6 +7,7 @@ library dart2js.common.codegen;
 import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
+import '../native/behavior.dart';
 import '../universe/feature.dart';
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
@@ -34,6 +35,10 @@ class CodegenImpact extends WorldImpact {
 
   Iterable<GenericInstantiation> get genericInstantiations =>
       const <GenericInstantiation>[];
+
+  Iterable<NativeBehavior> get nativeBehaviors => const [];
+
+  Iterable<FunctionEntity> get nativeMethods => const [];
 }
 
 class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
@@ -43,6 +48,8 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   bool _usesInterceptor = false;
   EnumSet<AsyncMarker> _asyncMarkers;
   Set<GenericInstantiation> _genericInstantiations;
+  List<NativeBehavior> _nativeBehaviors;
+  Set<FunctionEntity> _nativeMethods;
 
   _CodegenImpact();
 
@@ -117,6 +124,26 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   Iterable<GenericInstantiation> get genericInstantiations {
     return _genericInstantiations ?? const <GenericInstantiation>[];
   }
+
+  void registerNativeBehavior(NativeBehavior nativeBehavior) {
+    _nativeBehaviors ??= [];
+    _nativeBehaviors.add(nativeBehavior);
+  }
+
+  @override
+  Iterable<NativeBehavior> get nativeBehaviors {
+    return _nativeBehaviors ?? const <NativeBehavior>[];
+  }
+
+  void registerNativeMethod(FunctionEntity function) {
+    _nativeMethods ??= {};
+    _nativeMethods.add(function);
+  }
+
+  @override
+  Iterable<FunctionEntity> get nativeMethods {
+    return _nativeMethods ?? const [];
+  }
 }
 
 // TODO(johnniwinther): Split this class into interface and implementation.
@@ -186,6 +213,14 @@ class CodegenRegistry {
 
   void registerGenericInstantiation(GenericInstantiation instantiation) {
     worldImpact.registerGenericInstantiation(instantiation);
+  }
+
+  void registerNativeBehavior(NativeBehavior nativeBehavior) {
+    worldImpact.registerNativeBehavior(nativeBehavior);
+  }
+
+  void registerNativeMethod(FunctionEntity function) {
+    worldImpact.registerNativeMethod(function);
   }
 }
 

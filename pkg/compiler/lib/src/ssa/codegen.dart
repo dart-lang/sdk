@@ -10,7 +10,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 import '../common.dart';
 import '../common/names.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
-import '../common/tasks.dart' show CompilerTask;
+import '../common/tasks.dart' show Measurer, CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../common_elements.dart' show JCommonElements;
@@ -29,7 +29,6 @@ import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
-import '../native/enqueue.dart';
 import '../options.dart';
 import '../tracer.dart';
 import '../universe/call_structure.dart' show CallStructure;
@@ -47,12 +46,12 @@ abstract class CodegenPhase {
 }
 
 class SsaCodeGeneratorTask extends CompilerTask {
-  final JavaScriptBackend backend;
-  final SourceInformationStrategy sourceInformationFactory;
+  final CompilerOptions _options;
+  final SourceInformationStrategy sourceInformationStrategy;
 
-  SsaCodeGeneratorTask(JavaScriptBackend backend, this.sourceInformationFactory)
-      : this.backend = backend,
-        super(backend.compiler.measurer);
+  SsaCodeGeneratorTask(
+      Measurer measurer, this._options, this.sourceInformationStrategy)
+      : super(measurer);
 
   @override
   String get name => 'SSA code generator';
@@ -61,7 +60,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       List<js.Parameter> parameters, js.Block body) {
     js.Fun finish(js.AsyncModifier asyncModifier) {
       return new js.Fun(parameters, body, asyncModifier: asyncModifier)
-          .withSourceInformation(sourceInformationFactory
+          .withSourceInformation(sourceInformationStrategy
               .createBuilderForContext(element)
               .buildDeclaration(element));
     }
@@ -79,67 +78,65 @@ class SsaCodeGeneratorTask extends CompilerTask {
     }
   }
 
-  js.Expression generateCode(
-      CodegenWorkItem work, HGraph graph, JClosedWorld closedWorld) {
+  js.Expression generateCode(CodegenWorkItem work, HGraph graph,
+      CodegenInputs codegen, JClosedWorld closedWorld) {
     if (work.element.isField) {
-      return generateLazyInitializer(work, graph, closedWorld);
+      return generateLazyInitializer(work, graph, codegen, closedWorld);
     } else {
-      return generateMethod(work, graph, closedWorld);
+      return generateMethod(work, graph, codegen, closedWorld);
     }
   }
 
-  js.Expression generateLazyInitializer(
-      CodegenWorkItem work, HGraph graph, JClosedWorld closedWorld) {
+  js.Expression generateLazyInitializer(CodegenWorkItem work, HGraph graph,
+      CodegenInputs codegen, JClosedWorld closedWorld) {
     return measure(() {
-      backend.tracer.traceGraph("codegen", graph);
-      SourceInformation sourceInformation = sourceInformationFactory
+      codegen.tracer.traceGraph("codegen", graph);
+      SourceInformation sourceInformation = sourceInformationStrategy
           .createBuilderForContext(work.element)
           .buildDeclaration(work.element);
-      SsaCodeGenerator codegen = new SsaCodeGenerator(
+      SsaCodeGenerator codeGenerator = new SsaCodeGenerator(
           this,
-          backend.compiler.options,
-          backend.emitter,
-          backend.nativeCodegenEnqueuer,
-          backend.checkedModeHelpers,
-          backend.oneShotInterceptorData,
-          backend.rtiSubstitutions,
-          backend.rtiEncoder,
-          backend.namer,
-          backend.superMemberData,
-          backend.tracer,
+          _options,
+          codegen.emitter,
+          codegen.checkedModeHelpers,
+          codegen.oneShotInterceptorData,
+          codegen.rtiSubstitutions,
+          codegen.rtiEncoder,
+          codegen.namer,
+          codegen.superMemberData,
+          codegen.tracer,
           closedWorld,
           work);
-      codegen.visitGraph(graph);
-      return new js.Fun(codegen.parameters, codegen.body)
+      codeGenerator.visitGraph(graph);
+      return new js.Fun(codeGenerator.parameters, codeGenerator.body)
           .withSourceInformation(sourceInformation);
     });
   }
 
-  js.Expression generateMethod(
-      CodegenWorkItem work, HGraph graph, JClosedWorld closedWorld) {
+  js.Expression generateMethod(CodegenWorkItem work, HGraph graph,
+      CodegenInputs codegen, JClosedWorld closedWorld) {
     return measure(() {
       FunctionEntity element = work.element;
       if (element.asyncMarker != AsyncMarker.SYNC) {
         work.registry.registerAsyncMarker(element.asyncMarker);
       }
-      SsaCodeGenerator codegen = new SsaCodeGenerator(
+      SsaCodeGenerator codeGenerator = new SsaCodeGenerator(
           this,
-          backend.compiler.options,
-          backend.emitter,
-          backend.nativeCodegenEnqueuer,
-          backend.checkedModeHelpers,
-          backend.oneShotInterceptorData,
-          backend.rtiSubstitutions,
-          backend.rtiEncoder,
-          backend.namer,
-          backend.superMemberData,
-          backend.tracer,
+          _options,
+          codegen.emitter,
+          codegen.checkedModeHelpers,
+          codegen.oneShotInterceptorData,
+          codegen.rtiSubstitutions,
+          codegen.rtiEncoder,
+          codegen.namer,
+          codegen.superMemberData,
+          codegen.tracer,
           closedWorld,
           work);
-      codegen.visitGraph(graph);
-      backend.tracer.traceGraph("codegen", graph);
+      codeGenerator.visitGraph(graph);
+      codegen.tracer.traceGraph("codegen", graph);
       return buildJavaScriptFunction(graph.needsAsyncRewrite, work.element,
-          codegen.parameters, codegen.body);
+          codeGenerator.parameters, codeGenerator.body);
     });
   }
 }
@@ -165,8 +162,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   final CompilerTask _codegenTask;
   final CompilerOptions _options;
-  final CodeEmitterTask _emitter;
-  final NativeCodegenEnqueuer _nativeEnqueuer;
+  final Emitter _emitter;
   final CheckedModeHelpers _checkedModeHelpers;
   final OneShotInterceptorData _oneShotInterceptorData;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
@@ -223,7 +219,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       this._codegenTask,
       this._options,
       this._emitter,
-      this._nativeEnqueuer,
       this._checkedModeHelpers,
       this._oneShotInterceptorData,
       this._rtiSubstitutions,
@@ -2274,8 +2269,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void registerForeignTypes(HForeign node) {
     NativeBehavior nativeBehavior = node.nativeBehavior;
     if (nativeBehavior == null) return;
-    _nativeEnqueuer.registerNativeBehavior(
-        _registry.worldImpact, nativeBehavior, node);
+    _registry.registerNativeBehavior(nativeBehavior);
   }
 
   @override
@@ -3279,9 +3273,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       case TypeInfoExpressionKind.COMPLETE:
         int index = 0;
         js.Expression result = _rtiEncoder.getTypeRepresentation(
-            _emitter.emitter,
-            type,
-            (TypeVariableType variable) => arguments[index++]);
+            _emitter, type, (TypeVariableType variable) => arguments[index++]);
         assert(
             index == node.inputs.length,
             "Not all input is read for type ${type}: "

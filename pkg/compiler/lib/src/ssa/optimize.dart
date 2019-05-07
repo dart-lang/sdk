@@ -5,8 +5,7 @@
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/names.dart' show Selectors;
-import '../common/tasks.dart' show CompilerTask;
-import '../compiler.dart' show Compiler;
+import '../common/tasks.dart' show Measurer, CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../common_elements.dart' show JCommonElements;
@@ -40,28 +39,26 @@ abstract class OptimizationPhase {
 }
 
 class SsaOptimizerTask extends CompilerTask {
-  final JavaScriptBackend _backend;
+  final CompilerOptions _options;
 
   Map<HInstruction, Range> ranges = <HInstruction, Range>{};
 
   Map<MemberEntity, OptimizationTestLog> loggersForTesting;
 
-  SsaOptimizerTask(this._backend) : super(_backend.compiler.measurer);
+  SsaOptimizerTask(Measurer measurer, this._options) : super(measurer);
 
   @override
   String get name => 'SSA optimizer';
 
-  Compiler get _compiler => _backend.compiler;
-
-  CompilerOptions get _options => _compiler.options;
-
-  RuntimeTypesSubstitutions get _rtiSubstitutions => _backend.rtiSubstitutions;
-
-  void optimize(CodegenWorkItem work, HGraph graph, JClosedWorld closedWorld,
+  void optimize(
+      CodegenWorkItem work,
+      HGraph graph,
+      CodegenInputs codegen,
+      JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults) {
     void runPhase(OptimizationPhase phase) {
       measureSubtask(phase.name, () => phase.visitGraph(graph));
-      _backend.tracer.traceGraph(phase.name, graph);
+      codegen.tracer.traceGraph(phase.name, graph);
       assert(graph.isValid(), 'Graph not valid after ${phase.name}');
     }
 
@@ -82,7 +79,7 @@ class SsaOptimizerTask extends CompilerTask {
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
         new SsaInstructionSimplifier(globalInferenceResults, _options,
-            _rtiSubstitutions, closedWorld, registry, log),
+            codegen.rtiSubstitutions, closedWorld, registry, log),
         new SsaTypeConversionInserter(closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
@@ -91,10 +88,10 @@ class SsaOptimizerTask extends CompilerTask {
         // After type propagation, more instructions can be
         // simplified.
         new SsaInstructionSimplifier(globalInferenceResults, _options,
-            _rtiSubstitutions, closedWorld, registry, log),
+            codegen.rtiSubstitutions, closedWorld, registry, log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
         new SsaInstructionSimplifier(globalInferenceResults, _options,
-            _rtiSubstitutions, closedWorld, registry, log),
+            codegen.rtiSubstitutions, closedWorld, registry, log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
         new SsaTypePropagator(globalInferenceResults, _options,
             closedWorld.commonElements, closedWorld, log),
@@ -107,7 +104,7 @@ class SsaOptimizerTask extends CompilerTask {
         new SsaTypePropagator(globalInferenceResults, _options,
             closedWorld.commonElements, closedWorld, log),
         codeMotion = new SsaCodeMotion(closedWorld.abstractValueDomain),
-        loadElimination = new SsaLoadElimination(_compiler, closedWorld),
+        loadElimination = new SsaLoadElimination(closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
         // After GVN and load elimination the same value may be used in code
@@ -120,7 +117,7 @@ class SsaOptimizerTask extends CompilerTask {
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
         new SsaInstructionSimplifier(globalInferenceResults, _options,
-            _rtiSubstitutions, closedWorld, registry, log),
+            codegen.rtiSubstitutions, closedWorld, registry, log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
       ];
       phases.forEach(runPhase);
@@ -143,7 +140,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaCodeMotion(closedWorld.abstractValueDomain),
           new SsaValueRangeAnalyzer(closedWorld, this),
           new SsaInstructionSimplifier(globalInferenceResults, _options,
-              _rtiSubstitutions, closedWorld, registry, log),
+              codegen.rtiSubstitutions, closedWorld, registry, log),
           new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
           new SsaSimplifyInterceptors(closedWorld, work.element.enclosingClass),
           new SsaDeadCodeEliminator(closedWorld, this),
@@ -155,7 +152,7 @@ class SsaOptimizerTask extends CompilerTask {
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
           new SsaInstructionSimplifier(globalInferenceResults, _options,
-              _rtiSubstitutions, closedWorld, registry, log),
+              codegen.rtiSubstitutions, closedWorld, registry, log),
         ];
       }
       phases.forEach(runPhase);
@@ -2946,7 +2943,6 @@ class SsaTypeConversionInserter extends HBaseVisitor
 /// [HFieldGet]), when it knows the value stored in that memory location, and
 /// stores that overwrite with the same value.
 class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
-  final Compiler compiler;
   final JClosedWorld _closedWorld;
   final JFieldAnalysis _fieldAnalysis;
   @override
@@ -2956,7 +2952,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   bool newGvnCandidates = false;
   HGraph _graph;
 
-  SsaLoadElimination(this.compiler, this._closedWorld)
+  SsaLoadElimination(this._closedWorld)
       : _fieldAnalysis = _closedWorld.fieldAnalysis;
 
   AbstractValueDomain get _abstractValueDomain =>

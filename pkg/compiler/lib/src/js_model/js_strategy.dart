@@ -12,6 +12,7 @@ import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart';
 import '../compiler.dart';
 import '../deferred_load.dart';
+import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../enqueue.dart';
 import '../io/kernel_source_information.dart'
@@ -23,13 +24,17 @@ import '../inferrer/types.dart';
 import '../js/js_source_mapping.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/inferred_data.dart';
+import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
+import '../js_emitter/code_emitter_task.dart';
 import '../kernel/kernel_strategy.dart';
 import '../native/behavior.dart';
+import '../options.dart';
 import '../ssa/builder_kernel.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
 import '../ssa/types.dart';
+import '../tracer.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
@@ -92,13 +97,19 @@ class JsBackendStrategy implements BackendStrategy {
   }
 
   @override
-  SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
+  SsaBuilder createSsaBuilder(CompilerTask task, CodegenInputs codegen,
       SourceInformationStrategy sourceInformationStrategy) {
     return new KernelSsaBuilder(
         task,
-        backend.compiler,
+        _compiler.options,
+        _compiler.reporter,
+        _compiler.dumpInfoTask,
         // ignore:deprecated_member_use_from_same_package
-        elementMap);
+        elementMap,
+        codegen.namer,
+        codegen.emitter,
+        codegen.tracer,
+        sourceInformationStrategy);
   }
 
   @override
@@ -167,33 +178,50 @@ class KernelCodegenWorkItem extends CodegenWorkItem {
 
 /// Task for building SSA from kernel IR loaded from .dill.
 class KernelSsaBuilder implements SsaBuilder {
-  final CompilerTask task;
-  final Compiler _compiler;
+  final CompilerTask _task;
+  final CompilerOptions _options;
+  final DiagnosticReporter _reporter;
+  final DumpInfoTask _dumpInfoTask;
   final JsToElementMap _elementMap;
+  final Namer _namer;
+  final Emitter _emitter;
+  final Tracer _tracer;
+  final SourceInformationStrategy _sourceInformationStrategy;
+
+  // TODO(johnniwinther,sra): Inlining decisions should not be based on the
+  // order in which ssa graphs are built.
   FunctionInlineCache _inlineCache;
 
-  KernelSsaBuilder(this.task, this._compiler, this._elementMap);
+  KernelSsaBuilder(
+      this._task,
+      this._options,
+      this._reporter,
+      this._dumpInfoTask,
+      this._elementMap,
+      this._namer,
+      this._emitter,
+      this._tracer,
+      this._sourceInformationStrategy);
 
   @override
   HGraph build(CodegenWorkItem work, JClosedWorld closedWorld,
       GlobalTypeInferenceResults results) {
     _inlineCache ??= new FunctionInlineCache(closedWorld.annotationsData);
-    return task.measure(() {
+    return _task.measure(() {
       KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
-          _compiler.options,
-          _compiler.reporter,
+          _options,
+          _reporter,
           work.element,
           _elementMap.getMemberThisType(work.element),
-          _compiler.dumpInfoTask,
+          _dumpInfoTask,
           _elementMap,
           results,
           closedWorld,
           work.registry,
-          _compiler.backend.namer,
-          _compiler.backend.emitter,
-          _compiler.backend.tracer,
-          _compiler.backend.emitter.nativeEmitter,
-          _compiler.backend.sourceInformationStrategy,
+          _namer,
+          _emitter,
+          _tracer,
+          _sourceInformationStrategy,
           _inlineCache);
       return builder.build();
     });

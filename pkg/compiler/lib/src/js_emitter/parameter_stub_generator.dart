@@ -23,12 +23,14 @@ import '../world.dart' show JClosedWorld;
 
 import 'model.dart';
 
-import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;
+import 'code_emitter_task.dart' show Emitter;
+import 'native_emitter.dart';
 
 class ParameterStubGenerator {
   static final Set<Selector> emptySelectorSet = new Set<Selector>();
 
-  final CodeEmitterTask _emitterTask;
+  final Emitter _emitter;
+  final NativeEmitter _nativeEmitter;
   final Namer _namer;
   final RuntimeTypesEncoder _rtiEncoder;
   final NativeData _nativeData;
@@ -38,7 +40,8 @@ class ParameterStubGenerator {
   final SourceInformationStrategy _sourceInformationStrategy;
 
   ParameterStubGenerator(
-      this._emitterTask,
+      this._emitter,
+      this._nativeEmitter,
       this._namer,
       this._rtiEncoder,
       this._nativeData,
@@ -46,8 +49,6 @@ class ParameterStubGenerator {
       this._codegenWorld,
       this._closedWorld,
       this._sourceInformationStrategy);
-
-  Emitter get _emitter => _emitterTask.emitter;
 
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
@@ -190,7 +191,7 @@ class ParameterStubGenerator {
 
     var body; // List or jsAst.Statement.
     if (_nativeData.hasFixedBackendName(member)) {
-      body = _emitterTask.nativeEmitter.generateParameterStubStatements(
+      body = _nativeEmitter.generateParameterStubStatements(
           member,
           isInterceptedMethod,
           _namer.invocationName(selector),
@@ -206,7 +207,7 @@ class ParameterStubGenerator {
         // Instead we need to call the statically resolved target.
         //   `<class>.prototype.bar$1.call(this, argument0, ...)`.
         body = js.statement('return #.#.call(this, #);', [
-          _emitterTask.prototypeAccess(superClass, hasBeenInstantiated: true),
+          _emitter.prototypeAccess(superClass, hasBeenInstantiated: true),
           methodName,
           targetArguments
         ]);
