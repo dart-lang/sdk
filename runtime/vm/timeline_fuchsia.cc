@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(HOST_OS_FUCHSIA) && defined(SUPPORT_TIMELINE)
+#if defined(HOST_OS_FUCHSIA) && defined(SUPPORT_TIMELINE) &&                   \
+    !defined(FUCHSIA_SDK)
 
 #include <trace-engine/context.h>
 #include <trace-engine/instrumentation.h>
