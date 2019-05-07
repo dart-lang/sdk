@@ -7344,6 +7344,7 @@ class MixinElementImpl extends ClassElementImpl {
         constraints = onClause.superclassConstraints
             .map((node) => node.type)
             .whereType<InterfaceType>()
+            .where(_isInterfaceTypeInterface)
             .toList();
       }
       if (constraints == null || constraints.isEmpty) {
