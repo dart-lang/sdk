@@ -146,6 +146,88 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('_a');
   }
 
+  @failingTest
+  test_ForStatement() async {
+    addTestSource('''
+    f() { for(AbstractCrazyNonsenseClassName ^) {} }
+    ''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestName('abstractCrazyNonsenseClassName');
+    assertSuggestName('crazyNonsenseClassName');
+    assertSuggestName('nonsenseClassName');
+    assertSuggestName('className');
+    assertSuggestName('name');
+    // private versions
+    assertNotSuggested('_abstractCrazyNonsenseClassName');
+    assertNotSuggested('_crazyNonsenseClassName');
+    assertNotSuggested('_nonsenseClassName');
+    assertNotSuggested('_className');
+    assertNotSuggested('_name');
+  }
+
+  test_ForStatement_partial() async {
+    addTestSource('''
+    f() { for(AbstractCrazyNonsenseClassName a^) {} }
+    ''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggestName('abstractCrazyNonsenseClassName');
+    assertSuggestName('crazyNonsenseClassName');
+    assertSuggestName('nonsenseClassName');
+    assertSuggestName('className');
+    assertSuggestName('name');
+    // private versions
+    assertNotSuggested('_abstractCrazyNonsenseClassName');
+    assertNotSuggested('_crazyNonsenseClassName');
+    assertNotSuggested('_nonsenseClassName');
+    assertNotSuggested('_className');
+    assertNotSuggested('_name');
+  }
+
+  @failingTest
+  test_ForStatement_prefixed() async {
+    addTestSource('''
+    f() { for(prefix.AbstractCrazyNonsenseClassName ^) {} }
+    ''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggestName('abstractCrazyNonsenseClassName');
+    assertSuggestName('crazyNonsenseClassName');
+    assertSuggestName('nonsenseClassName');
+    assertSuggestName('className');
+    assertSuggestName('name');
+    // private versions
+    assertNotSuggested('_abstractCrazyNonsenseClassName');
+    assertNotSuggested('_crazyNonsenseClassName');
+    assertNotSuggested('_nonsenseClassName');
+    assertNotSuggested('_className');
+    assertNotSuggested('_name');
+  }
+
+  test_ForStatement_prefixed_partial() async {
+    addTestSource('''
+    f() { for(prefix.AbstractCrazyNonsenseClassName a^) {} }
+    ''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggestName('abstractCrazyNonsenseClassName');
+    assertSuggestName('crazyNonsenseClassName');
+    assertSuggestName('nonsenseClassName');
+    assertSuggestName('className');
+    assertSuggestName('name');
+    // private versions
+    assertNotSuggested('_abstractCrazyNonsenseClassName');
+    assertNotSuggested('_crazyNonsenseClassName');
+    assertNotSuggested('_nonsenseClassName');
+    assertNotSuggested('_className');
+    assertNotSuggested('_name');
+  }
+
   test_TopLevelVariableDeclaration_dont_suggest_type() async {
     addTestSource('''
     a ^
