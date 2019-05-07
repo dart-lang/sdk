@@ -86,7 +86,8 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitIfStatement(IfStatement node) {
-    if (node.elseStatement == null) {
+    var elseStatement = node.elseStatement;
+    if (elseStatement == null) {
       if (node.thenStatement is Block) return;
 
       final unit = node.root as CompilationUnit;
@@ -94,9 +95,11 @@ class _Visitor extends SimpleAstVisitor {
           unit.lineInfo.getLocation(node.thenStatement.end).lineNumber) {
         rule.reportLint(node.thenStatement);
       }
-    } else if (node.elseStatement is! IfStatement) {
+    } else {
       _check(node.thenStatement);
-      _check(node.elseStatement);
+      if (elseStatement is! IfStatement) {
+        _check(elseStatement);
+      }
     }
   }
 
