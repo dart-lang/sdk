@@ -4,8 +4,10 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
@@ -14,6 +16,7 @@ class ConstructorInitializerResolver {
   final Linker _linker;
   final LibraryElementImpl _libraryElement;
 
+  CompilationUnitElement _unitElement;
   ClassElement _classElement;
   ConstructorElement _constructorElement;
   ConstructorDeclarationImpl _constructorNode;
@@ -23,6 +26,7 @@ class ConstructorInitializerResolver {
 
   void resolve() {
     for (var unit in _libraryElement.units) {
+      _unitElement = unit;
       for (var classElement in unit.types) {
         _classElement = classElement;
         for (var constructorElement in classElement.constructors) {
@@ -61,6 +65,10 @@ class ConstructorInitializerResolver {
       initializers.clear();
       return;
     }
+
+    var holder = ElementHolder();
+    var elementBuilder = LocalElementBuilder(holder, _unitElement);
+    initializers.accept(elementBuilder);
 
     for (var initializer in initializers) {
       _astResolver.resolve(
