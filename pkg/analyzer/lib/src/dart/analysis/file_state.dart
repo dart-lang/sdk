@@ -745,6 +745,7 @@ class FileState {
       var signature = new ApiSignature();
       signature.addUint32List(_fsState._unlinkedSalt);
       signature.addString(_contentHash);
+      signature.addBool(_exists);
       contentSignature = signature.toByteList();
       _unlinkedKey = '${hex.encode(contentSignature)}.unlinked2';
     }
