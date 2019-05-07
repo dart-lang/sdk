@@ -21,9 +21,6 @@
     'front_end': {
       'filepath': '^pkg/front_end',
     },
-    'http': {
-      'filepath': '^sdk/lib/_http',
-    },
     'kernel': {
       'filepath': '^pkg/kernel',
     },
@@ -68,11 +65,10 @@
   },
 
   'WATCHLISTS': {
-    'build': [ 'zra@google.com', 'keertip@google.com' ],
+    'build': [ 'keertip@google.com' ],
     'dart2js': [ 'johnniwinther@google.com', 'sigmund@google.com',
                  'sra@google.com'],
     'front_end': [ 'dart-fe-team+reviews@google.com' ],
-    'http': [ 'zra@google.com' ],
     'kernel': [ 'karlklose@google.com', 'jensj@google.com', 'kmillikin@google.com',
                 'alexmarkov@google.com' ],
     'messages_review': [ 'dart-uxr+reviews@google.com' ],
