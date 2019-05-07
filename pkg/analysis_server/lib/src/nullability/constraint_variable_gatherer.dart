@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/nullability/conditional_discard.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/nullability_graph.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -40,8 +41,10 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   final NullabilityMigrationAssumptions assumptions;
 
-  ConstraintVariableGatherer(
-      this._variables, this._source, this._permissive, this.assumptions);
+  final NullabilityGraph _graph;
+
+  ConstraintVariableGatherer(this._variables, this._source, this._permissive,
+      this.assumptions, this._graph);
 
   /// Creates and stores a [DecoratedType] object corresponding to the given
   /// [type] AST, and returns it.
@@ -50,8 +53,8 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
         // TODO(danrubel): Return something other than this
         // to indicate that we should insert a type for the declaration
         // that is missing a type reference.
-        ? new DecoratedType(
-            DynamicTypeImpl.instance, NullabilityNode.forInferredDynamicType())
+        ? new DecoratedType(DynamicTypeImpl.instance,
+            NullabilityNode.forInferredDynamicType(_graph), _graph)
         : type.accept(this);
   }
 
@@ -125,8 +128,8 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(node is NamedType); // TODO(paulberry)
     var type = node.type;
     if (type.isVoid) {
-      return DecoratedType(
-          type, NullabilityNode.forTypeAnnotation(node.end, always: true));
+      return DecoratedType(type,
+          NullabilityNode.forTypeAnnotation(node.end, always: true), _graph);
     }
     assert(
         type is InterfaceType || type is TypeParameterType); // TODO(paulberry)
@@ -145,6 +148,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
         NullabilityNode.forTypeAnnotation(node.end,
             always: node.question != null),
         node.end,
+        _graph,
         typeArguments: typeArguments);
     _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType);
     return decoratedType;
@@ -161,7 +165,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     // TODO(paulberry): test that it's correct to use `null` for the nullability
     // of the function type
     var functionType = DecoratedType(
-        declaredElement.type, NullabilityNode.never,
+        declaredElement.type, NullabilityNode.never, _graph,
         returnType: decoratedReturnType,
         positionalParameters: [],
         namedParameters: {});

@@ -89,14 +89,14 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       this._source,
       this._permissive,
       this.assumptions)
-      : _notNullType =
-            DecoratedType(typeProvider.objectType, NullabilityNode.never),
+      : _notNullType = DecoratedType(
+            typeProvider.objectType, NullabilityNode.never, _graph),
         _nonNullableBoolType =
-            DecoratedType(typeProvider.boolType, NullabilityNode.never),
+            DecoratedType(typeProvider.boolType, NullabilityNode.never, _graph),
         _nonNullableTypeType =
-            DecoratedType(typeProvider.typeType, NullabilityNode.never),
-        _nullType =
-            DecoratedType(typeProvider.nullType, NullabilityNode.always);
+            DecoratedType(typeProvider.typeType, NullabilityNode.never, _graph),
+        _nullType = DecoratedType(
+            typeProvider.nullType, NullabilityNode.always, _graph);
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -133,7 +133,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
         throw element.runtimeType; // TODO(paulberry)
       }
       return decoratedBaseType.substitute(
-          _constraints, substitution, elementType);
+          _constraints, _graph, substitution, elementType);
     } else {
       return decoratedBaseType;
     }
@@ -196,7 +196,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitBooleanLiteral(BooleanLiteral node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, NullabilityNode.never, _graph);
   }
 
   @override
@@ -216,7 +216,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     var overallType = DecoratedType(
         node.staticType,
         NullabilityNode.forLUB(
-            node, thenType.node, elseType.node, _graph, _joinNullabilities));
+            node, thenType.node, elseType.node, _graph, _joinNullabilities),
+        _graph);
     _variables.recordDecoratedExpressionType(node, overallType);
     return overallType;
   }
@@ -311,7 +312,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitIntegerLiteral(IntegerLiteral node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, NullabilityNode.never, _graph);
   }
 
   @override
@@ -412,24 +413,24 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitStringLiteral(StringLiteral node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, NullabilityNode.never, _graph);
   }
 
   @override
   DecoratedType visitThisExpression(ThisExpression node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, NullabilityNode.never, _graph);
   }
 
   @override
   DecoratedType visitThrowExpression(ThrowExpression node) {
     node.expression.accept(this);
     // TODO(paulberry): do we need to check the expression type?  I think not.
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, NullabilityNode.never, _graph);
   }
 
   @override
   DecoratedType visitTypeName(TypeName typeName) {
-    return DecoratedType(typeName.type, NullabilityNode.never);
+    return DecoratedType(typeName.type, NullabilityNode.never, _graph);
   }
 
   /// Creates the necessary constraint(s) for an assignment from [sourceType] to

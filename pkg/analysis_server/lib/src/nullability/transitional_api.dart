@@ -146,11 +146,11 @@ class NullabilityMigration {
 
   final NullabilityMigrationAssumptions assumptions;
 
-  final _variables = Variables();
+  final Variables _variables;
 
   final _constraints = Solver();
 
-  final _graph = NullabilityGraph();
+  final NullabilityGraph _graph;
 
   /// Prepares to perform nullability migration.
   ///
@@ -160,8 +160,12 @@ class NullabilityMigration {
   /// is fully implemented.
   NullabilityMigration(
       {bool permissive: false,
-      this.assumptions: const NullabilityMigrationAssumptions()})
-      : _permissive = permissive;
+      NullabilityMigrationAssumptions assumptions:
+          const NullabilityMigrationAssumptions()})
+      : this._(permissive, assumptions, NullabilityGraph());
+
+  NullabilityMigration._(this._permissive, this.assumptions, this._graph)
+      : _variables = Variables(_graph);
 
   Map<Source, List<PotentialModification>> finish() {
     _constraints.applyHeuristics();
@@ -169,8 +173,8 @@ class NullabilityMigration {
   }
 
   void prepareInput(CompilationUnit unit) {
-    unit.accept(ConstraintVariableGatherer(
-        _variables, unit.declaredElement.source, _permissive, assumptions));
+    unit.accept(ConstraintVariableGatherer(_variables,
+        unit.declaredElement.source, _permissive, assumptions, _graph));
   }
 
   void processInput(CompilationUnit unit, TypeProvider typeProvider) {
@@ -269,10 +273,14 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final _potentialModifications = <Source, List<PotentialModification>>{};
 
+  final NullabilityGraph _graph;
+
+  Variables(this._graph);
+
   @override
   DecoratedType decoratedElementType(Element element, {bool create: false}) =>
       _decoratedElementTypes[element] ??= create
-          ? DecoratedType.forElement(element)
+          ? DecoratedType.forElement(element, _graph)
           : throw StateError('No element found');
 
   Map<Source, List<PotentialModification>> getPotentialModifications() =>

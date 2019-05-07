@@ -32,9 +32,6 @@ class ConstraintGathererTest extends ConstraintsTestBase {
   @override
   final _Constraints constraints = _Constraints();
 
-  @override
-  final graph = NullabilityGraph();
-
   void assertConditional(
       NullabilityNode node, NullabilityNode left, NullabilityNode right) {
     var conditionalNode = node as NullabilityNodeForLUB;
@@ -806,8 +803,6 @@ Type f() {
 abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
   Constraints get constraints;
 
-  NullabilityGraph get graph;
-
   /// Analyzes the given source code, producing constraint variables and
   /// constraints for it.
   @override
@@ -851,7 +846,8 @@ void f(x) {}
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
     expect(decoratedType.type.isDynamic, isTrue);
-    expect(decoratedType.node.nullable, same(ConstraintVariable.always));
+    expect(graph.getUpstreamNodes(decoratedType.node),
+        contains(NullabilityNode.always));
   }
 
   test_topLevelFunction_parameterType_named_no_default() async {
@@ -918,7 +914,8 @@ f() {}
 ''');
     var decoratedType = decoratedFunctionType('f').returnType;
     expect(decoratedType.type.isDynamic, isTrue);
-    expect(decoratedType.node.nullable, same(ConstraintVariable.always));
+    expect(graph.getUpstreamNodes(decoratedType.node),
+        contains(NullabilityNode.always));
   }
 
   test_topLevelFunction_returnType_simple() async {
@@ -932,9 +929,15 @@ int f() => 0;
 }
 
 class MigrationVisitorTestBase extends AbstractSingleUnitTest {
-  final _variables = _Variables();
+  final _Variables _variables;
 
   FindNode findNode;
+
+  final NullabilityGraph graph;
+
+  MigrationVisitorTestBase() : this._(NullabilityGraph());
+
+  MigrationVisitorTestBase._(this.graph) : _variables = _Variables(graph);
 
   TypeProvider get typeProvider => testAnalysisResult.typeProvider;
 
@@ -942,8 +945,8 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
       {NullabilityMigrationAssumptions assumptions:
           const NullabilityMigrationAssumptions()}) async {
     await resolveTestUnit(code);
-    testUnit.accept(
-        ConstraintVariableGatherer(_variables, testSource, false, assumptions));
+    testUnit.accept(ConstraintVariableGatherer(
+        _variables, testSource, false, assumptions, graph));
     findNode = FindNode(code, testUnit);
     return testUnit;
   }
@@ -1023,6 +1026,8 @@ class _Variables extends Variables {
   final _expressionChecks = <Expression, ExpressionChecks>{};
 
   final _possiblyOptional = <DefaultFormalParameter, NullabilityNode>{};
+
+  _Variables(NullabilityGraph graph) : super(graph);
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
   ExpressionChecks checkExpression(Expression expression) =>

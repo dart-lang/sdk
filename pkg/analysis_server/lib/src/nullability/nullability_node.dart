@@ -40,7 +40,11 @@ class NullabilityNode {
   ///
   /// TODO(paulberry): this should go away; we should decorate the actual
   /// inferred type rather than assuming `dynamic`.
-  NullabilityNode.forInferredDynamicType() : this._(ConstraintVariable.always);
+  factory NullabilityNode.forInferredDynamicType(NullabilityGraph graph) {
+    var node = NullabilityNode._(TypeIsNullable(null));
+    graph.connect(NullabilityNode.always, node);
+    return node;
+  }
 
   /// Creates a [NullabilityNode] representing the nullability of an
   /// expression which is nullable iff both [a] and [b] are nullable.
