@@ -53,8 +53,6 @@ class Scanner {
 
   Token firstToken;
 
-  bool scanLazyAssignmentOperators = false;
-
   /**
    * A flag indicating whether the scanner should recognize the `>>>` operator
    * and the `>>>=` operator.
@@ -148,7 +146,6 @@ class Scanner {
                 enableTripleShift: enableGtGtGt,
                 enableNonNullable: enableNonNullable),
         includeComments: _preserveComments,
-        scanLazyAssignmentOperators: scanLazyAssignmentOperators,
         languageVersionChanged: _languageVersionChanged);
 
     // fasta pretends there is an additional line at EOF

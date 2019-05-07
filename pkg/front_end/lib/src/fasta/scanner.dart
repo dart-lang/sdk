@@ -90,7 +90,6 @@ ScannerResult scanString(String source,
     {ScannerConfiguration configuration,
     bool includeComments: false,
     LanguageVersionChanged languageVersionChanged,
-    bool scanLazyAssignmentOperators: false,
     Recover recover}) {
   assert(source != null, 'source must not be null');
   StringScanner scanner = new StringScanner(source,

@@ -85,8 +85,7 @@ class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
 @reflectiveTest
 class ScannerTest_Fasta extends ScannerTestBase {
   @override
-  Token scanWithListener(String source, ErrorListener listener,
-      {bool lazyAssignmentOperators: false}) {
+  Token scanWithListener(String source, ErrorListener listener) {
     var result = scanString(source, includeComments: true);
     var token = result.tokens;
 

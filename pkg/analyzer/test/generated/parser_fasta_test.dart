@@ -1464,11 +1464,6 @@ class FastaParserTestCase
   @override
   bool allowNativeClause = false;
 
-  @override
-  set enableLazyAssignmentOperators(bool value) {
-    // Lazy assignment operators are always enabled
-  }
-
   set enableOptionalNewAndConst(bool enable) {
     // ignored
   }
@@ -1910,10 +1905,7 @@ class FastaParserTestCase
 
   @override
   Statement parseStatement(String source,
-      {bool enableLazyAssignmentOperators,
-      int expectedEndOffset,
-      FeatureSet featureSet,
-      bool inAsync = false}) {
+      {int expectedEndOffset, FeatureSet featureSet, bool inAsync = false}) {
     createParser(source,
         expectedEndOffset: expectedEndOffset, featureSet: featureSet);
     if (inAsync) {

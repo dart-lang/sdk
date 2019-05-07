@@ -58,8 +58,6 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   void set allowNativeClause(bool value);
 
-  void set enableLazyAssignmentOperators(bool value);
-
   /**
    * Set a flag indicating whether the parser should parse instance creation
    * expressions that lack either the `new` or `const` keyword.
@@ -233,8 +231,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   SimpleIdentifier parseSimpleIdentifier(String code);
 
-  Statement parseStatement(String source,
-      {bool enableLazyAssignmentOperators, int expectedEndOffset});
+  Statement parseStatement(String source, {int expectedEndOffset});
 
   Expression parseStringLiteral(String code);
 
@@ -6437,7 +6434,6 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
 
   void test_parseExpression_assign_compound() {
     if (usingFastaParser && AbstractScanner.LAZY_ASSIGNMENT_ENABLED) {
-      enableLazyAssignmentOperators = true;
       Expression expression = parseExpression('x ||= y');
       var assignmentExpression = expression as AssignmentExpression;
       expect(assignmentExpression.leftHandSide, isNotNull);
@@ -9365,12 +9361,6 @@ class ParserTestCase extends EngineTestCase
   bool parseAsync = true;
 
   /**
-   * A flag indicating whether lazy assignment operators should be enabled for
-   * the test.
-   */
-  bool enableLazyAssignmentOperators = false;
-
-  /**
    * A flag indicating whether the parser should parse instance creation
    * expressions that lack either the `new` or `const` keyword.
    */
@@ -9428,9 +9418,7 @@ class ParserTestCase extends EngineTestCase
     //
     // Scan the source.
     //
-    ScannerResult result = scanString(content,
-        includeComments: true,
-        scanLazyAssignmentOperators: enableLazyAssignmentOperators);
+    ScannerResult result = scanString(content, includeComments: true);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
@@ -9578,9 +9566,7 @@ class ParserTestCase extends EngineTestCase
     //
     // Scan the source.
     //
-    ScannerResult result = scanString(content,
-        includeComments: true,
-        scanLazyAssignmentOperators: enableLazyAssignmentOperators);
+    ScannerResult result = scanString(content, includeComments: true);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
@@ -9624,9 +9610,7 @@ class ParserTestCase extends EngineTestCase
     //
     // Scan the source.
     //
-    ScannerResult result = scanString(content,
-        includeComments: true,
-        scanLazyAssignmentOperators: enableLazyAssignmentOperators);
+    ScannerResult result = scanString(content, includeComments: true);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
@@ -9964,13 +9948,9 @@ class ParserTestCase extends EngineTestCase
    * Parse the given [content] as a statement. If [enableLazyAssignmentOperators]
    * is `true`, then lazy assignment operators should be enabled.
    */
-  Statement parseStatement(String content,
-      {bool enableLazyAssignmentOperators, int expectedEndOffset}) {
+  Statement parseStatement(String content, {int expectedEndOffset}) {
     Source source = new TestSource();
     listener = new GatheringErrorListener();
-    if (enableLazyAssignmentOperators != null) {
-      this.enableLazyAssignmentOperators = enableLazyAssignmentOperators;
-    }
 
     void reportError(
         ScannerErrorCode errorCode, int offset, List<Object> arguments) {
@@ -9981,9 +9961,7 @@ class ParserTestCase extends EngineTestCase
     //
     // Scan the source.
     //
-    ScannerResult result = scanString(content,
-        includeComments: true,
-        scanLazyAssignmentOperators: enableLazyAssignmentOperators);
+    ScannerResult result = scanString(content, includeComments: true);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
@@ -10028,8 +10006,7 @@ class ParserTestCase extends EngineTestCase
     //
     // Scan the source.
     //
-    ScannerResult result = scanString(content,
-        scanLazyAssignmentOperators: enableLazyAssignmentOperators);
+    ScannerResult result = scanString(content);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
