@@ -114,3 +114,15 @@ class E {
     assert(tlg != null); // LINT
   }
 }
+
+class F<T> {
+  bool get foo => true;
+}
+
+class G<T> extends F<T> {
+  G()
+    {
+      assert(foo); // OK
+    }
+}
+
