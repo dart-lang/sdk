@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -660,40 +661,106 @@ num b1;
 ''');
   }
 
-  test_initializer_extractProperty() async {
-    var library = await _encodeDecodeLibrary(r'''
+  test_initializer_extractProperty_explicitlyTyped_differentLibraryCycle() async {
+    newFile('/a.dart', content: r'''
 class C {
-  bool b;
+  int f = 0;
 }
-C f() => null;
-var x = f().b;
+''');
+    var library = await _encodeDecodeLibrary(r'''
+import 'a.dart';
+var x = new C().f;
 ''');
     checkElementText(library, r'''
-class C {
-  bool b;
-}
-bool x;
-C f() {}
+import 'a.dart';
+int x;
 ''');
   }
 
-  test_initializer_extractProperty_inOtherLibraryCycle() async {
-    newFile('/a.dart', content: r'''
-import 'b.dart';
+  test_initializer_extractProperty_explicitlyTyped_sameLibrary() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  int f = 0;
+}
 var x = new C().f;
 ''');
-    newFile('/b.dart', content: r'''
+    checkElementText(library, r'''
+class C {
+  int f;
+}
+int x;
+''');
+  }
+
+  test_initializer_extractProperty_explicitlyTyped_sameLibraryCycle() async {
+    newFile('/a.dart', content: r'''
+import 'test.dart'; // just do make it part of the library cycle
+class C {
+  int f = 0;
+}
+''');
+    var library = await _encodeDecodeLibrary(r'''
+import 'a.dart';
+var x = new C().f;
+''');
+    checkElementText(library, r'''
+import 'a.dart';
+int x;
+''');
+  }
+
+  test_initializer_extractProperty_implicitlyTyped_differentLibraryCycle() async {
+    newFile('/a.dart', content: r'''
 class C {
   var f = 0;
 }
 ''');
     var library = await _encodeDecodeLibrary(r'''
 import 'a.dart';
-var t1 = x;
+var x = new C().f;
+''');
+    if (AnalysisDriver.useSummary2) {
+      checkElementText(library, r'''
+import 'a.dart';
+int x;
+''');
+    } else {
+      checkElementText(library, r'''
+import 'a.dart';
+dynamic x;
+''');
+    }
+  }
+
+  test_initializer_extractProperty_implicitlyTyped_sameLibrary() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  var f = 0;
+}
+var x = new C().f;
+''');
+    checkElementText(library, r'''
+class C {
+  int f;
+}
+dynamic x;
+''');
+  }
+
+  test_initializer_extractProperty_implicitlyTyped_sameLibraryCycle() async {
+    newFile('/a.dart', content: r'''
+import 'test.dart'; // just do make it part of the library cycle
+class C {
+  var f = 0;
+}
+''');
+    var library = await _encodeDecodeLibrary(r'''
+import 'a.dart';
+var x = new C().f;
 ''');
     checkElementText(library, r'''
 import 'a.dart';
-dynamic t1;
+dynamic x;
 ''');
   }
 
