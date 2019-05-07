@@ -86,7 +86,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         (isRedirected && element.redirectedConstructor.isConst ||
             (!isRedirected &&
                 _hasConstConstructorInvocation(node) &&
-                _hasOnlyConstExpressionsInIntializerList(node)))) {
+                context.canBeConstConstructor(node)))) {
       rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
     }
   }
@@ -129,7 +129,4 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _hasMixin(ClassElement clazz) => clazz.mixins.isNotEmpty;
-
-  bool _hasOnlyConstExpressionsInIntializerList(ConstructorDeclaration node) =>
-      context.canBeConstConstructor(node);
 }
