@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -1203,7 +1204,11 @@ class C {
     FunctionExpressionInvocation invocation = field.initializer;
     FunctionExpression closure = invocation.function.unParenthesized;
     FunctionElementImpl closureElement = closure.declaredElement;
-    expect(closureElement.enclosingElement, same(fieldInitializer));
+    if (AnalysisDriver.useSummary2) {
+      expect(closureElement.enclosingElement, same(field.declaredElement));
+    } else {
+      expect(closureElement.enclosingElement, same(fieldInitializer));
+    }
   }
 
   test_closure_inTopLevelVariable() async {
@@ -1221,7 +1226,11 @@ var v = (() => 42)();
     FunctionExpressionInvocation invocation = variable.initializer;
     FunctionExpression closure = invocation.function.unParenthesized;
     FunctionElementImpl closureElement = closure.declaredElement;
-    expect(closureElement.enclosingElement, same(variableInitializer));
+    if (AnalysisDriver.useSummary2) {
+      expect(closureElement.enclosingElement, same(variable.declaredElement));
+    } else {
+      expect(closureElement.enclosingElement, same(variableInitializer));
+    }
   }
 
   test_conditionalExpression() async {
@@ -5439,8 +5448,13 @@ class C<T> {
       assertMember(invocation.methodName, 'C<int>', mElement);
       assertType(invocation.methodName, '<U>(int, U) → Map<int, U>');
 
-      _assertArgumentToParameter(arguments[0], mElement.parameters[0]);
-      _assertArgumentToParameter(arguments[1], mElement.parameters[1]);
+      if (AnalysisDriver.useSummary2) {
+        _assertArgumentToParameter2(arguments[0], 'int');
+        _assertArgumentToParameter2(arguments[1], 'double');
+      } else {
+        _assertArgumentToParameter(arguments[0], mElement.parameters[0]);
+        _assertArgumentToParameter(arguments[1], mElement.parameters[1]);
+      }
     }
   }
 
@@ -5560,8 +5574,13 @@ class C {
     expect(invocation.staticType, typeProvider.stringType);
 
     List<Expression> arguments = invocation.argumentList.arguments;
-    _assertArgumentToParameter(arguments[0], funElement.parameters[0]);
-    _assertArgumentToParameter(arguments[1], funElement.parameters[1]);
+    if (AnalysisDriver.useSummary2) {
+      _assertArgumentToParameter2(arguments[0], 'int');
+      _assertArgumentToParameter2(arguments[1], 'int');
+    } else {
+      _assertArgumentToParameter(arguments[0], funElement.parameters[0]);
+      _assertArgumentToParameter(arguments[1], funElement.parameters[1]);
+    }
   }
 
   test_methodInvocation_notFunction_local_dynamic() async {
@@ -7217,7 +7236,7 @@ enum MyEnum {
 
     SimpleIdentifier dName = enumNode.name;
     expect(dName.staticElement, same(enumElement));
-    expect(dName.staticType, typeProvider.typeType);
+    expect(dName.staticType, isNull);
 
     {
       var aElement = enumElement.getField('A');
@@ -8739,6 +8758,21 @@ main() {
     }
     ParameterElement baseActual = base;
     expect(baseActual, same(expected));
+
+    if (argument is NamedExpression) {
+      SimpleIdentifier name = argument.name.label;
+      expect(name.staticElement, same(actual));
+      expect(name.staticType, isNull);
+    }
+  }
+
+  /// Assert that the [argument] has the [expectedType]. If the [argument] is
+  /// a [NamedExpression], the name must be resolved to the same parameter.
+  void _assertArgumentToParameter2(Expression argument, String expectedType,
+      {DartType memberType}) {
+    ParameterElement actual = argument.staticParameterElement;
+    var actualType = actual.type;
+    expect('$actualType', expectedType);
 
     if (argument is NamedExpression) {
       SimpleIdentifier name = argument.name.label;

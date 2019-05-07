@@ -147,7 +147,6 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     ClassElement element = _match(node.name, _walker.getEnum());
-    node.name.staticType = _typeProvider.typeType;
     resolveMetadata(node, node.metadata, element);
     _walk(new ElementWalker.forClass(element), () {
       for (EnumConstantDeclaration constant in node.constants) {

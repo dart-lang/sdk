@@ -447,9 +447,10 @@ class DeclarationSplicer {
   ) {
     var element = _walker.getVariable();
     _match(partial.name, element);
-
-    partial.initializer = full.initializer;
-    _buildLocalElements(partial.initializer);
+    _walk(_ElementWalker.forVariable(element), () {
+      partial.initializer = full.initializer;
+      _buildLocalElements(partial.initializer);
+    });
   }
 
   void _variableDeclarationList(
@@ -545,6 +546,8 @@ class _ElementWalker {
       : element = element,
         _parameters = element.parameters,
         _typeParameters = element.typeParameters;
+
+  _ElementWalker.forVariable(VariableElement element) : element = element;
 
   PropertyAccessorElement getAccessor() {
     return _accessors[_accessorIndex++];
