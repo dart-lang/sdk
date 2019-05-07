@@ -27,7 +27,7 @@ ImportLibraryRequest importLibraryElementImpl({
   }
 
   var requestedElements = requestedLibrary.exportNamespace.definedNames;
-  _removeEntriesForDynamicAndNever(requestedElements);
+  _removeEntryForDynamic(requestedElements);
 
   // Find URIs of all libraries that import the requested name into the target.
   var unprefixedNameUriSet = Set<Uri>();
@@ -145,13 +145,11 @@ ImportLibraryRequest importLibraryElementImpl({
   return ImportLibraryRequest(requestedLibraryUri, prefix);
 }
 
-/// The types `dynamic` and `Never` are part of 'dart:core', but have no
-/// library.
-void _removeEntriesForDynamicAndNever(Map<String, Element> requestedElements) {
+/// The type `dynamic` is part of 'dart:core', but has no library.
+void _removeEntryForDynamic(Map<String, Element> requestedElements) {
   requestedElements.removeWhere((_, element) {
     if (element.librarySource == null) {
-      assert(
-          element.displayName == 'dynamic' || element.displayName == 'Never');
+      assert(element.displayName == 'dynamic');
       return true;
     }
     return false;

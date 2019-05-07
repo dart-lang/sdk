@@ -169,7 +169,6 @@ class SourceLibraryBuilder {
     }
     if ('$uri' == 'dart:core') {
       localScope.declare('dynamic', reference.getChild('dynamic'));
-      localScope.declare('Never', reference.getChild('Never'));
     }
   }
 

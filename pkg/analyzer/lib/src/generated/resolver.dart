@@ -6553,9 +6553,6 @@ class TypeNameResolver {
     if (element == DynamicElementImpl.instance) {
       _setElement(typeName, element);
       type = DynamicTypeImpl.instance;
-    } else if (element is NeverElementImpl) {
-      _setElement(typeName, element);
-      type = element.type;
     } else if (element is FunctionTypeAliasElement) {
       _setElement(typeName, element);
       type = element.type as TypeImpl;
@@ -7234,7 +7231,7 @@ abstract class TypeProvider {
   InterfaceType get mapType;
 
   /// Return the type representing the built-in type 'Never'.
-  DartType get neverType;
+  InterfaceType get neverType;
 
   /// Return a list containing all of the types that cannot be either extended
   /// or implemented.
@@ -7291,11 +7288,11 @@ abstract class TypeProvider {
 abstract class TypeProviderBase implements TypeProvider {
   @override
   List<InterfaceType> get nonSubtypableTypes => <InterfaceType>[
-        boolType,
-        doubleType,
-        intType,
         nullType,
         numType,
+        intType,
+        doubleType,
+        boolType,
         stringType
       ];
 
@@ -7324,11 +7321,17 @@ class TypeProviderImpl extends TypeProviderBase {
   /// The type representing the built-in type 'bool'.
   InterfaceType _boolType;
 
+  /// The type representing the type 'bottom'.
+  DartType _bottomType;
+
   /// The type representing the built-in type 'double'.
   InterfaceType _doubleType;
 
   /// The type representing the built-in type 'Deprecated'.
   InterfaceType _deprecatedType;
+
+  /// The type representing the built-in type 'dynamic'.
+  DartType _dynamicType;
 
   /// The type representing the built-in type 'Function'.
   InterfaceType _functionType;
@@ -7372,6 +7375,9 @@ class TypeProviderImpl extends TypeProviderBase {
   /// An shared object representing the value 'null'.
   DartObjectImpl _nullObject;
 
+  /// The type representing the type 'Never'.
+  InterfaceType _neverType;
+
   /// The type representing the type 'Null'.
   InterfaceType _nullType;
 
@@ -7412,7 +7418,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get boolType => _boolType;
 
   @override
-  DartType get bottomType => BottomTypeImpl.instance;
+  DartType get bottomType => _bottomType;
 
   @override
   InterfaceType get deprecatedType => _deprecatedType;
@@ -7421,7 +7427,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get doubleType => _doubleType;
 
   @override
-  DartType get dynamicType => DynamicTypeImpl.instance;
+  DartType get dynamicType => _dynamicType;
 
   @override
   InterfaceType get functionType => _functionType;
@@ -7463,7 +7469,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get mapType => _mapType;
 
   @override
-  DartType get neverType => BottomTypeImpl.instance;
+  InterfaceType get neverType => _neverType;
 
   @override
   DartObjectImpl get nullObject {
@@ -7503,6 +7509,16 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType get typeType => _typeType;
 
+  InterfaceType _createNever(Namespace namespace) {
+    // TODO(brianwilkerson) Remove this method when the class is defined in the
+    //  SDK.
+    CompilationUnitElement compilationUnit =
+        boolType.element.getAncestor((e) => e is CompilationUnitElement);
+    ClassElementImpl element = ElementFactory.classElement('Never', objectType);
+    element.enclosingElement = compilationUnit;
+    return element.type;
+  }
+
   /// Return the type with the given [typeName] from the given [namespace], or
   /// `null` if there is no class with the given name.
   InterfaceType _getType(Namespace namespace, String typeName) {
@@ -7525,8 +7541,10 @@ class TypeProviderImpl extends TypeProviderBase {
         new NamespaceBuilder().createPublicNamespaceForLibrary(asyncLibrary);
 
     _boolType = _getType(coreNamespace, 'bool');
+    _bottomType = BottomTypeImpl.instance;
     _deprecatedType = _getType(coreNamespace, 'Deprecated');
     _doubleType = _getType(coreNamespace, 'double');
+    _dynamicType = DynamicTypeImpl.instance;
     _functionType = _getType(coreNamespace, 'Function');
     _futureOrType = _getType(asyncNamespace, 'FutureOr');
     _futureType = _getType(asyncNamespace, 'Future');
@@ -7534,6 +7552,8 @@ class TypeProviderImpl extends TypeProviderBase {
     _iterableType = _getType(coreNamespace, 'Iterable');
     _listType = _getType(coreNamespace, 'List');
     _mapType = _getType(coreNamespace, 'Map');
+    _neverType =
+        _getType(coreNamespace, 'Never') ?? _createNever(coreNamespace);
     _nullType = _getType(coreNamespace, 'Null');
     _numType = _getType(coreNamespace, 'num');
     _objectType = _getType(coreNamespace, 'Object');
@@ -7543,13 +7563,13 @@ class TypeProviderImpl extends TypeProviderBase {
     _stringType = _getType(coreNamespace, 'String');
     _symbolType = _getType(coreNamespace, 'Symbol');
     _typeType = _getType(coreNamespace, 'Type');
-    _futureDynamicType = _futureType.instantiate(<DartType>[dynamicType]);
+    _futureDynamicType = _futureType.instantiate(<DartType>[_dynamicType]);
     _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
-    _iterableDynamicType = _iterableType.instantiate(<DartType>[dynamicType]);
+    _iterableDynamicType = _iterableType.instantiate(<DartType>[_dynamicType]);
     _iterableObjectType = _iterableType.instantiate(<DartType>[_objectType]);
     _mapObjectObjectType =
         _mapType.instantiate(<DartType>[_objectType, _objectType]);
-    _streamDynamicType = _streamType.instantiate(<DartType>[dynamicType]);
+    _streamDynamicType = _streamType.instantiate(<DartType>[_dynamicType]);
     // FutureOr<T> is still fairly new, so if we're analyzing an SDK that
     // doesn't have it yet, create an element for it.
     _futureOrType ??= createPlaceholderFutureOr(_futureType, _objectType);

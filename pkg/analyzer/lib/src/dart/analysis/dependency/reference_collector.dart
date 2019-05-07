@@ -631,10 +631,7 @@ class ReferenceCollector {
     if (node.isSynthetic) return;
 
     var name = node.name;
-    if (_localScopes.contains(name) ||
-        name == 'void' ||
-        name == 'dynamic' ||
-        name == 'Never') {
+    if (_localScopes.contains(name) || name == 'void' || name == 'dynamic') {
       return;
     }
 

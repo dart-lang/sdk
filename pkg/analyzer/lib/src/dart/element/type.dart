@@ -63,9 +63,7 @@ class BottomTypeImpl extends TypeImpl {
   /**
    * Prevent the creation of instances of this class.
    */
-  BottomTypeImpl._() : super(new NeverElementImpl(), "Never") {
-    (element as NeverElementImpl).type = this;
-  }
+  BottomTypeImpl._() : super(null, "<bottom>");
 
   @override
   int get hashCode => 0;

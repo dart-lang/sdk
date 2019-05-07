@@ -289,8 +289,6 @@ class LibraryContext {
     var rootReference = Reference.root();
     rootReference.getChild('dart:core').getChild('dynamic').element =
         DynamicElementImpl.instance;
-    rootReference.getChild('dart:core').getChild('Never').element =
-        NeverElementImpl.instance;
 
     elementFactory = LinkedElementFactory(
       analysisContext,

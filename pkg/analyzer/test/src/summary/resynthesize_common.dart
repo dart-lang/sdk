@@ -8969,7 +8969,7 @@ final v = f() ? <T>(T t) => 0 : <T>(T t) => 1;
 bool f() => true;
 ''');
     checkElementText(library, r'''
-final int Function(Never) v;
+final int Function(<bottom>) v;
 bool f() {}
 ''');
   }

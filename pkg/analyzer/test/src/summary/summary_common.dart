@@ -9504,7 +9504,7 @@ var v = extract(f);
     UnlinkedVariable variable = serializeVariableText('int v = null;');
     expect(variable.initializer.returnType, isNull);
     checkInferredTypeSlot(
-        variable.initializer.inferredReturnTypeSlot, null, 'Never',
+        variable.initializer.inferredReturnTypeSlot, null, '*bottom*',
         onlyInStrongMode: false);
   }
 
@@ -10827,7 +10827,7 @@ bool f() => true;
     EntityRef inferredType = getTypeRefForSlot(variable.inferredTypeSlot);
     checkLinkedTypeRef(inferredType.syntheticReturnType, 'dart:core', 'int');
     expect(inferredType.syntheticParams, hasLength(1));
-    checkLinkedTypeRef(inferredType.syntheticParams[0].type, null, 'Never');
+    checkLinkedTypeRef(inferredType.syntheticParams[0].type, null, '*bottom*');
   }
 
   test_syntheticFunctionType_inGenericClass() {

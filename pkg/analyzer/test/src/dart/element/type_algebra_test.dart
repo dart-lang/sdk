@@ -92,7 +92,7 @@ typedef F<T> = T Function(T);
       {t: intType},
       {t: BottomTypeImpl.instance},
     ).substituteType(type);
-    assertElementTypeString(result, '(Never) → int');
+    assertElementTypeString(result, '(<bottom>) → int');
   }
 }
 

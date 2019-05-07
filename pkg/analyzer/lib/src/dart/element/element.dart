@@ -7815,30 +7815,6 @@ class MultiplyInheritedPropertyAccessorElementImpl
   }
 }
 
-/// The synthetic element representing the declaration of the type `Never`.
-class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
-  /// Return the unique instance of this class.
-  static NeverElementImpl get instance =>
-      BottomTypeImpl.instance.element as NeverElementImpl;
-
-  @override
-  BottomTypeImpl type;
-
-  /// Initialize a newly created instance of this class. Instances of this class
-  /// should <b>not</b> be created except as part of creating the type
-  /// associated with this element. The single instance of this class should be
-  /// accessed through the method [instance].
-  NeverElementImpl() : super('Never', -1) {
-    setModifier(Modifier.SYNTHETIC, true);
-  }
-
-  @override
-  ElementKind get kind => ElementKind.NEVER;
-
-  @override
-  T accept<T>(ElementVisitor<T> visitor) => null;
-}
-
 /// A [VariableElementImpl], which is not a parameter.
 abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   /// The unlinked representation of the variable in the summary.
