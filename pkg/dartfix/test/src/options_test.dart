@@ -108,7 +108,7 @@ main() {
   });
 
   test('list fixes', () {
-    parse(['--list'], errorOut: 'Display this help message', listFixes: true);
+    parse(['--list'], normalOut: '', listFixes: true);
   });
 
   test('overwrite', () {
