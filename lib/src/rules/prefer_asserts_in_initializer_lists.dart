@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart'; // ignore: implementation_imports
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Prefer putting asserts in initializer list.';
@@ -79,15 +80,21 @@ class _AssertVisitor extends RecursiveAstVisitor {
     needInstance = true;
   }
 
-  bool _hasAccessor(PropertyAccessorElement element) {
+  PropertyAccessorElement _getBaseElement(PropertyAccessorElement element) =>
+      element is PropertyAccessorMember ? element.baseElement : element;
+
+  bool _hasAccessor(PropertyAccessorElement e) {
+    final element = _getBaseElement(e);
     final type = classElement.type;
     final name = element.name;
     if (element.isGetter) {
-      return type.lookUpGetter(name, element.library) == element ||
-          type.lookUpInheritedGetter(name) == element;
+      return _getBaseElement(type.lookUpGetter(name, element.library)) ==
+              element ||
+          _getBaseElement(type.lookUpInheritedGetter(name)) == element;
     } else {
-      return type.lookUpSetter(name, element.library) == element ||
-          type.lookUpInheritedSetter(name) == element;
+      return _getBaseElement(type.lookUpSetter(name, element.library)) ==
+              element ||
+          _getBaseElement(type.lookUpInheritedSetter(name)) == element;
     }
   }
 
