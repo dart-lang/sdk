@@ -6815,6 +6815,70 @@ abstract class D {
 ''');
   }
 
+  test_inferred_type_nullability_class_ref_none() async {
+    featureSet = enableNnbd;
+    addSource('/a.dart', 'int f() => 0;');
+    var library = await checkLibrary('''
+import 'a.dart';
+var x = f();
+''');
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+int x;
+''',
+        annotateNullability: true);
+  }
+
+  test_inferred_type_nullability_class_ref_question() async {
+    featureSet = enableNnbd;
+    addSource('/a.dart', 'int? f() => 0;');
+    var library = await checkLibrary('''
+import 'a.dart';
+var x = f();
+''');
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+int? x;
+''',
+        annotateNullability: true);
+  }
+
+  test_inferred_type_nullability_function_type_none() async {
+    featureSet = enableNnbd;
+    addSource('/a.dart', 'void Function() f() => () {};');
+    var library = await checkLibrary('''
+import 'a.dart';
+var x = f();
+''');
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+void Function() x;
+''',
+        annotateNullability: true);
+  }
+
+  test_inferred_type_nullability_function_type_question() async {
+    featureSet = enableNnbd;
+    addSource('/a.dart', 'void Function()? f() => () {};');
+    var library = await checkLibrary('''
+import 'a.dart';
+var x = f();
+''');
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+void Function()? x;
+''',
+        annotateNullability: true);
+  }
+
   test_inferred_type_refers_to_bound_type_param() async {
     var library = await checkLibrary('''
 class C<T> extends D<int, T> {

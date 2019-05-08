@@ -187,7 +187,10 @@ EntityRefBuilder _createLinkedType(
     CompilationUnitElementInBuildUnit compilationUnit,
     TypeParameterSerializationContext typeParameterContext,
     {int slot}) {
-  EntityRefBuilder result = new EntityRefBuilder(slot: slot);
+  EntityRefBuilder result = new EntityRefBuilder(
+      slot: slot,
+      nullabilitySuffix:
+          encodeNullabilitySuffix((type as TypeImpl).nullabilitySuffix));
   if (type is InterfaceType) {
     ClassElementForLink element = type.element;
     result.reference = compilationUnit.addReference(element);
@@ -1413,11 +1416,12 @@ abstract class CompilationUnitElementForLink
         return DynamicTypeImpl.instance;
       }
     }
+    DartType result;
     if (entity.paramReference != 0) {
-      return context.typeParameterContext
+      result = context.typeParameterContext
           .getTypeParameterType(entity.paramReference);
     } else if (entity.entityKind == EntityRefKind.genericFunctionType) {
-      return new GenericFunctionTypeElementForLink(
+      result = new GenericFunctionTypeElementForLink(
               this,
               context,
               entity.typeParameters,
@@ -1427,13 +1431,13 @@ abstract class CompilationUnitElementForLink
     } else if (entity.syntheticReturnType != null) {
       FunctionElementImpl element =
           new FunctionElementForLink_Synthetic(this, context, entity);
-      return element.type;
+      result = element.type;
     } else if (entity.implicitFunctionTypeIndices.isNotEmpty) {
       DartType type = resolveRef(entity.reference).asStaticType;
       for (int index in entity.implicitFunctionTypeIndices) {
         type = (type as FunctionType).parameters[index].type;
       }
-      return type;
+      result = type;
     } else {
       ReferenceableElementForLink element = resolveRef(entity.reference);
       bool implicitTypeArgumentsInUse = false;
@@ -1452,13 +1456,18 @@ abstract class CompilationUnitElementForLink
         }
       }
 
-      var type = element.buildType(
+      result = element.buildType(
           getTypeArgument, entity.implicitFunctionTypeIndices);
       if (implicitTypeArgumentsInUse) {
-        _typesWithImplicitArguments[type] = true;
+        _typesWithImplicitArguments[result] = true;
       }
-      return type;
     }
+    var nullabilitySuffix = decodeNullabilitySuffix(entity.nullabilitySuffix);
+    var resultAsImpl = result as TypeImpl;
+    if (resultAsImpl.nullabilitySuffix != nullabilitySuffix) {
+      result = resultAsImpl.withNullability(nullabilitySuffix);
+    }
+    return result;
   }
 
   @override

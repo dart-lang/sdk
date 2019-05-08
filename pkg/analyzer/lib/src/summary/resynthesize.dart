@@ -31,6 +31,30 @@ import 'package:analyzer/src/summary/summary_sdk.dart';
  */
 final _typesWithImplicitTypeArguments = new Expando();
 
+NullabilitySuffix decodeNullabilitySuffix(EntityRefNullabilitySuffix suffix) {
+  switch (suffix) {
+    case EntityRefNullabilitySuffix.none:
+      return NullabilitySuffix.none;
+    case EntityRefNullabilitySuffix.question:
+      return NullabilitySuffix.question;
+    case EntityRefNullabilitySuffix.starOrIrrelevant:
+      return NullabilitySuffix.star;
+  }
+  throw new StateError('Unrecognized nullability suffix');
+}
+
+EntityRefNullabilitySuffix encodeNullabilitySuffix(NullabilitySuffix suffix) {
+  switch (suffix) {
+    case NullabilitySuffix.none:
+      return EntityRefNullabilitySuffix.none;
+    case NullabilitySuffix.question:
+      return EntityRefNullabilitySuffix.question;
+    case NullabilitySuffix.star:
+      return EntityRefNullabilitySuffix.starOrIrrelevant;
+  }
+  throw new StateError('Unrecognized nullability suffix');
+}
+
 /// An instance of [LibraryResynthesizer] is responsible for resynthesizing the
 /// elements in a single library from that library's summary.
 abstract class LibraryResynthesizer {
@@ -1376,7 +1400,7 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
           getTypeArgument,
           type.implicitFunctionTypeIndices);
     }
-    var nullabilitySuffix = _translateNullabilitySuffix(type.nullabilitySuffix);
+    var nullabilitySuffix = decodeNullabilitySuffix(type.nullabilitySuffix);
     var resultAsImpl = result as TypeImpl;
     if (resultAsImpl.nullabilitySuffix != nullabilitySuffix) {
       result = resultAsImpl.withNullability(nullabilitySuffix);
@@ -1626,19 +1650,6 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
       return getConstructorForInfo(type, info);
     }
     return null;
-  }
-
-  NullabilitySuffix _translateNullabilitySuffix(
-      EntityRefNullabilitySuffix suffix) {
-    switch (suffix) {
-      case EntityRefNullabilitySuffix.none:
-        return NullabilitySuffix.none;
-      case EntityRefNullabilitySuffix.question:
-        return NullabilitySuffix.question;
-      case EntityRefNullabilitySuffix.starOrIrrelevant:
-        return NullabilitySuffix.star;
-    }
-    throw new StateError('Unrecognized nullability suffix');
   }
 
   /**
