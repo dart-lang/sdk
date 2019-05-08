@@ -140,62 +140,62 @@ class LinkedUnitContext {
 
   int getCodeLength(AstNode node) {
     if (node is ClassDeclaration) {
-      return LazyClassDeclaration.get(node).data.codeLength;
+      return LazyClassDeclaration.getCodeLength(_astReader, node);
     } else if (node is ClassTypeAlias) {
-      return LazyClassTypeAlias.get(node).data.codeLength;
+      return LazyClassTypeAlias.getCodeLength(_astReader, node);
     } else if (node is CompilationUnit) {
-      return data.node.codeLength;
+      return node.length;
     } else if (node is ConstructorDeclaration) {
-      return LazyConstructorDeclaration.get(node).data.codeLength;
+      return LazyConstructorDeclaration.getCodeLength(_astReader, node);
     } else if (node is EnumDeclaration) {
-      return LazyEnumDeclaration.get(node).data.codeLength;
+      return LazyEnumDeclaration.getCodeLength(_astReader, node);
     } else if (node is FormalParameter) {
-      return LazyFormalParameter.get(node).data.codeLength;
+      return LazyFormalParameter.getCodeLength(_astReader, node);
     } else if (node is FunctionDeclaration) {
-      return LazyFunctionDeclaration.get(node).data.codeLength;
+      return LazyFunctionDeclaration.getCodeLength(_astReader, node);
     } else if (node is FunctionTypeAliasImpl) {
-      return LazyFunctionTypeAlias.get(node).data.codeLength;
+      return LazyFunctionTypeAlias.getCodeLength(_astReader, node);
     } else if (node is GenericTypeAlias) {
-      return LazyGenericTypeAlias.get(node).data.codeLength;
+      return LazyGenericTypeAlias.getCodeLength(_astReader, node);
     } else if (node is MethodDeclaration) {
-      return LazyMethodDeclaration.get(node).data.codeLength;
+      return LazyMethodDeclaration.getCodeLength(_astReader, node);
     } else if (node is MixinDeclaration) {
-      return LazyMixinDeclaration.get(node).data.codeLength;
+      return LazyMixinDeclaration.getCodeLength(_astReader, node);
     } else if (node is TypeParameter) {
-      return LazyTypeParameter.get(node).data.codeLength;
+      return LazyTypeParameter.getCodeLength(_astReader, node);
     } else if (node is VariableDeclaration) {
-      return LazyVariableDeclaration.get(node).data.codeLength;
+      return LazyVariableDeclaration.getCodeLength(_astReader, node);
     }
     throw UnimplementedError('${node.runtimeType}');
   }
 
   int getCodeOffset(AstNode node) {
     if (node is ClassDeclaration) {
-      return LazyClassDeclaration.get(node).data.codeOffset;
+      return LazyClassDeclaration.getCodeOffset(_astReader, node);
     } else if (node is ClassTypeAlias) {
-      return LazyClassTypeAlias.get(node).data.codeOffset;
+      return LazyClassTypeAlias.getCodeOffset(_astReader, node);
     } else if (node is CompilationUnit) {
-      return data.node.codeOffset;
+      return 0;
     } else if (node is ConstructorDeclaration) {
-      return LazyConstructorDeclaration.get(node).data.codeOffset;
+      return LazyConstructorDeclaration.getCodeOffset(_astReader, node);
     } else if (node is EnumDeclaration) {
-      return LazyEnumDeclaration.get(node).data.codeOffset;
+      return LazyEnumDeclaration.getCodeOffset(_astReader, node);
     } else if (node is FormalParameter) {
-      return LazyFormalParameter.get(node).data.codeOffset;
+      return LazyFormalParameter.getCodeOffset(_astReader, node);
     } else if (node is FunctionDeclaration) {
-      return LazyFunctionDeclaration.get(node).data.codeOffset;
+      return LazyFunctionDeclaration.getCodeOffset(_astReader, node);
     } else if (node is FunctionTypeAliasImpl) {
-      return LazyFunctionTypeAlias.get(node).data.codeOffset;
+      return LazyFunctionTypeAlias.getCodeOffset(_astReader, node);
     } else if (node is GenericTypeAlias) {
-      return LazyGenericTypeAlias.get(node).data.codeOffset;
+      return LazyGenericTypeAlias.getCodeOffset(_astReader, node);
     } else if (node is MethodDeclaration) {
-      return LazyMethodDeclaration.get(node).data.codeOffset;
+      return LazyMethodDeclaration.getCodeOffset(_astReader, node);
     } else if (node is MixinDeclaration) {
-      return LazyMixinDeclaration.get(node).data.codeOffset;
+      return LazyMixinDeclaration.getCodeOffset(_astReader, node);
     } else if (node is TypeParameter) {
-      return LazyTypeParameter.get(node).data.codeOffset;
+      return LazyTypeParameter.getCodeOffset(_astReader, node);
     } else if (node is VariableDeclaration) {
-      return LazyVariableDeclaration.get(node).data.codeOffset;
+      return LazyVariableDeclaration.getCodeOffset(_astReader, node);
     }
     throw UnimplementedError('${node.runtimeType}');
   }

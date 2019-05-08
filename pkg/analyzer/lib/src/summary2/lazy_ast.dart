@@ -109,6 +109,28 @@ class LazyClassDeclaration {
     return node.getProperty(_key);
   }
 
+  static int getCodeLength(
+    AstBinaryReader reader,
+    ClassDeclaration node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeLength;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    AstBinaryReader reader,
+    ClassDeclaration node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeOffset;
+    }
+    return node.offset;
+  }
+
   static void readDocumentationComment(
     AstBinaryReader reader,
     ClassDeclaration node,
@@ -214,6 +236,28 @@ class LazyClassTypeAlias {
     return node.getProperty(_key);
   }
 
+  static int getCodeLength(
+    AstBinaryReader reader,
+    ClassTypeAlias node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeLength;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    AstBinaryReader reader,
+    ClassTypeAlias node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeOffset;
+    }
+    return node.offset;
+  }
+
   static void readDocumentationComment(
     AstBinaryReader reader,
     ClassTypeAlias node,
@@ -289,6 +333,44 @@ class LazyClassTypeAlias {
   }
 }
 
+class LazyCompilationUnit {
+  static const _key = 'lazyAst';
+
+  final LinkedNode data;
+
+  LazyCompilationUnit(this.data);
+
+  static LazyCompilationUnit get(CompilationUnit node) {
+    return node.getProperty(_key);
+  }
+
+  static int getCodeLength(
+    AstBinaryReader reader,
+    CompilationUnit node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeLength;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    AstBinaryReader reader,
+    CompilationUnit node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeOffset;
+    }
+    return node.offset;
+  }
+
+  static void setData(CompilationUnit node, LinkedNode data) {
+    node.setProperty(_key, LazyCompilationUnit(data));
+  }
+}
+
 class LazyConstructorDeclaration {
   static const _key = 'lazyAst';
 
@@ -305,6 +387,28 @@ class LazyConstructorDeclaration {
 
   static LazyConstructorDeclaration get(ConstructorDeclaration node) {
     return node.getProperty(_key);
+  }
+
+  static int getCodeLength(
+    AstBinaryReader reader,
+    ConstructorDeclaration node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeLength;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    AstBinaryReader reader,
+    ConstructorDeclaration node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeOffset;
+    }
+    return node.offset;
   }
 
   static void readBody(
@@ -498,6 +602,28 @@ class LazyEnumDeclaration {
     return node.getProperty(_key);
   }
 
+  static int getCodeLength(
+    AstBinaryReader reader,
+    EnumDeclaration node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeLength;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    AstBinaryReader reader,
+    EnumDeclaration node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeOffset;
+    }
+    return node.offset;
+  }
+
   static void readConstants(
     AstBinaryReader reader,
     EnumDeclaration node,
@@ -611,6 +737,28 @@ class LazyFormalParameter {
     return node.getProperty(_key);
   }
 
+  static int getCodeLength(
+    AstBinaryReader reader,
+    FormalParameter node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeLength;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    AstBinaryReader reader,
+    FormalParameter node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeOffset;
+    }
+    return node.offset;
+  }
+
   static DartType getType(
     AstBinaryReader reader,
     FormalParameter node,
@@ -628,7 +776,7 @@ class LazyFormalParameter {
 
   static TopLevelInferenceError getTypeInferenceError(FormalParameter node) {
     var lazy = get(node);
-    if (!lazy._hasTypeInferenceError) {
+    if (lazy != null && !lazy._hasTypeInferenceError) {
       var error = lazy.data.topLevelTypeInferenceError;
       LazyAst.setTypeInferenceError(node, error);
       lazy._hasTypeInferenceError = true;
@@ -721,6 +869,28 @@ class LazyFunctionDeclaration {
 
   static LazyFunctionDeclaration get(FunctionDeclaration node) {
     return node.getProperty(_key);
+  }
+
+  static int getCodeLength(
+    AstBinaryReader reader,
+    FunctionDeclaration node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeLength;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    AstBinaryReader reader,
+    FunctionDeclaration node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeOffset;
+    }
+    return node.offset;
   }
 
   static DartType getReturnType(
@@ -858,6 +1028,28 @@ class LazyFunctionTypeAlias {
 
   static LazyFunctionTypeAlias get(FunctionTypeAlias node) {
     return node.getProperty(_key);
+  }
+
+  static int getCodeLength(
+    AstBinaryReader reader,
+    FunctionTypeAlias node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeLength;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    AstBinaryReader reader,
+    FunctionTypeAlias node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeOffset;
+    }
+    return node.offset;
   }
 
   static bool getHasSelfReference(FunctionTypeAlias node) {
@@ -1020,6 +1212,28 @@ class LazyGenericTypeAlias {
     return node.getProperty(_key);
   }
 
+  static int getCodeLength(
+    AstBinaryReader reader,
+    GenericTypeAlias node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeLength;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    AstBinaryReader reader,
+    GenericTypeAlias node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeOffset;
+    }
+    return node.offset;
+  }
+
   static bool getHasSelfReference(GenericTypeAlias node) {
     return node.getProperty(_hasSelfReferenceKey);
   }
@@ -1091,6 +1305,28 @@ class LazyMethodDeclaration {
 
   static LazyMethodDeclaration get(MethodDeclaration node) {
     return node.getProperty(_key);
+  }
+
+  static int getCodeLength(
+    AstBinaryReader reader,
+    MethodDeclaration node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeLength;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    AstBinaryReader reader,
+    MethodDeclaration node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeOffset;
+    }
+    return node.offset;
   }
 
   static DartType getReturnType(
@@ -1230,6 +1466,28 @@ class LazyMixinDeclaration {
     return lazy;
   }
 
+  static int getCodeLength(
+    AstBinaryReader reader,
+    MixinDeclaration node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeLength;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    AstBinaryReader reader,
+    MixinDeclaration node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeOffset;
+    }
+    return node.offset;
+  }
+
   static void readDocumentationComment(
     AstBinaryReader reader,
     MixinDeclaration node,
@@ -1362,6 +1620,28 @@ class LazyTypeParameter {
     return node.getProperty(_key);
   }
 
+  static int getCodeLength(
+    AstBinaryReader reader,
+    TypeParameter node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeLength;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    AstBinaryReader reader,
+    TypeParameter node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeOffset;
+    }
+    return node.offset;
+  }
+
   static DartType getDefaultType(AstBinaryReader reader, TypeParameter node) {
     var lazy = get(node);
     if (lazy != null && !lazy._hasDefaultType) {
@@ -1416,6 +1696,38 @@ class LazyVariableDeclaration {
     return node.getProperty(_key);
   }
 
+  static int getCodeLength(
+    AstBinaryReader reader,
+    VariableDeclaration node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeLength;
+    }
+    VariableDeclarationList parent = node.parent;
+    if (parent.variables[0] == node) {
+      return node.end - parent.offset;
+    } else {
+      return node.end - node.offset;
+    }
+  }
+
+  static int getCodeOffset(
+    AstBinaryReader reader,
+    VariableDeclaration node,
+  ) {
+    if (reader.isLazy) {
+      var lazy = get(node);
+      return lazy.data.codeOffset;
+    }
+    VariableDeclarationList parent = node.parent;
+    if (parent.variables[0] == node) {
+      return parent.offset;
+    } else {
+      return node.offset;
+    }
+  }
+
   static DartType getType(
     AstBinaryReader reader,
     VariableDeclaration node,
@@ -1434,7 +1746,7 @@ class LazyVariableDeclaration {
   static TopLevelInferenceError getTypeInferenceError(
       VariableDeclaration node) {
     var lazy = get(node);
-    if (!lazy._hasTypeInferenceError) {
+    if (lazy != null && !lazy._hasTypeInferenceError) {
       var error = lazy.data.topLevelTypeInferenceError;
       LazyAst.setTypeInferenceError(node, error);
       lazy._hasTypeInferenceError = true;
