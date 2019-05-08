@@ -63,7 +63,7 @@ class DartAssistKind {
   static const CONVERT_INTO_ABSOLUTE_IMPORT = const AssistKind(
       'dart.assist.convert.relativeToAbsoluteImport',
       30,
-      "Convert to absolute import",
+      "Convert to 'package:' import",
       associatedErrorCodes: <String>['avoid_relative_lib_imports']);
   static const CONVERT_INTO_FOR_INDEX = const AssistKind(
       'dart.assist.convert.forEachToForIndex', 30, "Convert to for-index loop");

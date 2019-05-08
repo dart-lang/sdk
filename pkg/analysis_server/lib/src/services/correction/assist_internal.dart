@@ -1230,17 +1230,21 @@ class AssistProcessor {
   }
 
   Future<void> _addProposal_convertToAbsoluteImport() async {
-    var node = this.node;
+    AstNode node = this.node;
     if (node is StringLiteral) {
       node = node.parent;
     }
     if (node is ImportDirective) {
-      var importDirective = node;
-      var importUri = node.uriSource?.uri;
+      ImportDirective importDirective = node;
+      if (Uri.parse(node.uriContent)?.scheme == 'package') {
+        // Don't offer to convert a 'package:' URI to itself.
+        return;
+      }
+      Uri importUri = node.uriSource?.uri;
       if (importUri?.scheme != 'package') {
         return;
       }
-      var changeBuilder = _newDartChangeBuilder();
+      DartChangeBuilder changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (builder) {
         builder.addSimpleReplacement(
             range.node(importDirective.uri), "'$importUri'");

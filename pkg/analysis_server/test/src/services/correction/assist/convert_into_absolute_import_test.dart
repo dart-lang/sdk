@@ -19,17 +19,6 @@ class ConvertIntoAbsoluteImportTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_INTO_ABSOLUTE_IMPORT;
 
-  test_fileName_onUri() async {
-    addSource('/home/test/lib/foo.dart', '');
-
-    await resolveTestUnit('''
-import 'foo.dart';
-''');
-    await assertHasAssistAt('foo.dart', '''
-import 'package:test/foo.dart';
-''');
-  }
-
   test_fileName_onImport() async {
     addSource('/home/test/lib/foo.dart', '');
 
@@ -42,6 +31,17 @@ import 'package:test/foo.dart';
 ''');
   }
 
+  test_fileName_onUri() async {
+    addSource('/home/test/lib/foo.dart', '');
+
+    await resolveTestUnit('''
+import 'foo.dart';
+''');
+    await assertHasAssistAt('foo.dart', '''
+import 'package:test/foo.dart';
+''');
+  }
+
   test_nonPackage_Uri() async {
     addSource('/home/test/lib/foo.dart', '');
 
@@ -50,6 +50,16 @@ import 'dart:core';
 ''');
 
     await assertNoAssistAt('dart:core');
+    await assertNoAssistAt('import');
+  }
+
+  test_packageUri() async {
+    addSource('/home/test/lib/foo.dart', '');
+
+    await resolveTestUnit('''
+import 'package:test/foo.dart';
+''');
+    await assertNoAssistAt('foo.dart');
     await assertNoAssistAt('import');
   }
 
