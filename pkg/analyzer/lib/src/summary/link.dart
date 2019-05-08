@@ -2471,7 +2471,7 @@ class ExprTypeComputer {
         reportConstEvaluationErrors: false);
     var typeResolverVisitor = new TypeResolverVisitor(
         library, source, typeProvider, errorListener,
-        nameScope: nameScope);
+        featureSet: featureSet, nameScope: nameScope);
     var variableResolverVisitor = new VariableResolverVisitor(
         library, source, typeProvider, errorListener,
         nameScope: nameScope, localVariableInfo: LocalVariableInfo());

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -1173,8 +1174,12 @@ class TypeResolverVisitorTest extends ParserTestCase
     element.definingCompilationUnit = new CompilationUnitElementImpl();
     _typeProvider = new TestTypeProvider();
     libraryScope = new LibraryScope(element);
+    // TODO(paulberry): make it possible to override the feature set so we can
+    // test NNBD features.
+    var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
     _visitor = new TypeResolverVisitor(
         element, librarySource, _typeProvider, _listener,
+        featureSet: featureSet,
         nameScope: libraryScope,
         shouldSetElementSupertypes: shouldSetElementSupertypes);
   }
@@ -1209,9 +1214,14 @@ A V = new A();
       var libraryElement = new LibraryElementImpl.forNode(context, null, null)
         ..definingCompilationUnit = unitElement;
       var libraryScope = new LibraryScope(libraryElement);
+      // TODO(paulberry): make it possible to override the feature set so we can
+      // test NNBD features.
+      var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
       var visitor = new TypeResolverVisitor(
           libraryElement, source, _typeProvider, _listener,
-          nameScope: libraryScope, mode: TypeResolverMode.api);
+          featureSet: featureSet,
+          nameScope: libraryScope,
+          mode: TypeResolverMode.api);
       libraryScope.define(A);
       unit.accept(visitor);
     }
@@ -2080,9 +2090,14 @@ A v = new A();
       var libraryElement = new LibraryElementImpl.forNode(context, null, null)
         ..definingCompilationUnit = unitElement;
       libraryScope = new LibraryScope(libraryElement);
+      // TODO(paulberry): make it possible to override the feature set so we can
+      // test NNBD features.
+      var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
       visitor = new TypeResolverVisitor(
           libraryElement, source, _typeProvider, _listener,
-          nameScope: libraryScope, mode: TypeResolverMode.local);
+          featureSet: featureSet,
+          nameScope: libraryScope,
+          mode: TypeResolverMode.local);
     }
 
     // Define top-level types.

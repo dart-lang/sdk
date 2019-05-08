@@ -59,7 +59,6 @@ class LibraryAnalyzer {
   final TypeProvider _typeProvider;
 
   final TypeSystem _typeSystem;
-  bool isNonNullableLibrary = false;
   LibraryElement _libraryElement;
 
   LibraryScope _libraryScope;
@@ -114,9 +113,7 @@ class LibraryAnalyzer {
     for (FileState file in _library.libraryFiles) {
       units[file] = _parse(file);
     }
-    // TODO(danrubel): Verify that all units are either nullable or non-nullable
-    isNonNullableLibrary =
-        (units.values.first as CompilationUnitImpl).isNonNullable;
+    // TODO(danrubel): Verify that all units have the same @dart override
 
     // Resolve URIs in directives to corresponding sources.
     units.forEach((file, unit) {
@@ -239,7 +236,7 @@ class LibraryAnalyzer {
       errorListener.onError(pendingError.toAnalysisError());
     }
 
-    unit.accept(new DeadCodeVerifier(errorReporter, isNonNullableLibrary,
+    unit.accept(new DeadCodeVerifier(errorReporter, unit.featureSet,
         typeSystem: _context.typeSystem));
 
     // Dart2js analysis.
@@ -643,14 +640,13 @@ class LibraryAnalyzer {
 
     // TODO(scheglov) remove EnumMemberBuilder class
 
-    new TypeParameterBoundsResolver(
-            _context.typeSystem, _libraryElement, source, errorListener,
-            isNonNullableUnit: isNonNullableLibrary)
+    new TypeParameterBoundsResolver(_context.typeSystem, _libraryElement,
+            source, errorListener, unit.featureSet)
         .resolveTypeBounds(unit);
 
     unit.accept(new TypeResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
-        isNonNullableUnit: isNonNullableLibrary));
+        featureSet: unit.featureSet));
 
     unit.accept(new VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,

@@ -1485,9 +1485,10 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Initialize a newly created dead code verifier that will report dead code
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
-  DeadCodeVerifier(this._errorReporter, this._isNonNullableUnit,
+  DeadCodeVerifier(this._errorReporter, FeatureSet featureSet,
       {TypeSystem typeSystem})
-      : this._typeSystem = typeSystem ?? new Dart2TypeSystem(null);
+      : this._typeSystem = typeSystem ?? new Dart2TypeSystem(null),
+        _isNonNullableUnit = featureSet.isEnabled(Feature.non_nullable);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -6974,14 +6975,13 @@ class TypeParameterBoundsResolver {
   Scope libraryScope = null;
   TypeNameResolver typeNameResolver = null;
 
-  TypeParameterBoundsResolver(
-      this.typeSystem, this.library, this.source, this.errorListener,
-      {bool isNonNullableUnit = false})
+  TypeParameterBoundsResolver(this.typeSystem, this.library, this.source,
+      this.errorListener, FeatureSet featureSet)
       : libraryScope = new LibraryScope(library),
         typeNameResolver = new TypeNameResolver(
             typeSystem,
             typeSystem.typeProvider,
-            isNonNullableUnit,
+            featureSet.isEnabled(Feature.non_nullable),
             library,
             source,
             errorListener);
@@ -7641,19 +7641,26 @@ class TypeResolverVisitor extends ScopedVisitor {
   /// [nameScope] is the scope used to resolve identifiers in the node that will
   /// first be visited.  If `null` or unspecified, a new [LibraryScope] will be
   /// created based on [definingLibrary] and [typeProvider].
+  ///
+  /// Note: in a future release of the analyzer, the [featureSet] parameter will
+  /// be required.
   TypeResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
       {Scope nameScope,
-      this.isNonNullableUnit: false,
+      @Deprecated('Use featureSet instead') bool isNonNullableUnit: false,
+      FeatureSet featureSet,
       this.mode: TypeResolverMode.everything,
       bool shouldUseWithClauseInferredTypes: true,
       this.shouldSetElementSupertypes: false})
-      : super(definingLibrary, source, typeProvider, errorListener,
+      : isNonNullableUnit = featureSet?.isEnabled(Feature.non_nullable) ??
+            // ignore: deprecated_member_use_from_same_package
+            isNonNullableUnit,
+        super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     _dynamicType = typeProvider.dynamicType;
     _typeSystem = TypeSystem.create(definingLibrary.context);
     _typeNameResolver = new TypeNameResolver(_typeSystem, typeProvider,
-        isNonNullableUnit, definingLibrary, source, errorListener,
+        this.isNonNullableUnit, definingLibrary, source, errorListener,
         shouldUseWithClauseInferredTypes: shouldUseWithClauseInferredTypes);
   }
 

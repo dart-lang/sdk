@@ -30,7 +30,7 @@ class AstResolver {
 
     var typeResolverVisitor = new TypeResolverVisitor(
         _library, source, _linker.typeProvider, errorListener,
-        nameScope: _nameScope);
+        featureSet: featureSet, nameScope: _nameScope);
     node.accept(typeResolverVisitor);
 
     var variableResolverVisitor = new VariableResolverVisitor(
