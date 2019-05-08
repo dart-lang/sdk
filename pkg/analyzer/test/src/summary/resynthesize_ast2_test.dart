@@ -114,11 +114,40 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
+  test_class_ref_nullability_none() => super.test_class_ref_nullability_none();
+
+  @override
+  @failingTest
+  test_class_ref_nullability_question() =>
+      super.test_class_ref_nullability_question();
+
+  @override
+  @failingTest
+  test_generic_function_type_nullability_none() =>
+      super.test_generic_function_type_nullability_none();
+
+  @override
+  @failingTest
+  test_generic_function_type_nullability_question() =>
+      super.test_generic_function_type_nullability_question();
+
+  @override
+  @failingTest
   test_syntheticFunctionType_genericClosure() async {
     // TODO(scheglov) Bug in TypeSystem.getLeastUpperBound().
     // LUB(<T>(T) → int, <T>(T) → int) gives `(T) → int`, note absence of `<T>`.
     await super.test_syntheticFunctionType_genericClosure();
   }
+
+  @override
+  @failingTest
+  test_type_param_ref_nullability_none() =>
+      super.test_type_param_ref_nullability_none();
+
+  @override
+  @failingTest
+  test_type_param_ref_nullability_question() =>
+      super.test_type_param_ref_nullability_question();
 
   void _addLibraryUnits(
     Source definingSource,

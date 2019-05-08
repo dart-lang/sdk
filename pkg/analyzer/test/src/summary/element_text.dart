@@ -59,7 +59,8 @@ void checkElementText(LibraryElement library, String expected,
     bool withOffsets: false,
     bool withSyntheticAccessors: false,
     bool withSyntheticFields: false,
-    bool withTypes: false}) {
+    bool withTypes: false,
+    bool annotateNullability: false}) {
   var writer = new _ElementWriter(
       withCodeRanges: withCodeRanges,
       withConstElements: withConstElements,
@@ -67,7 +68,8 @@ void checkElementText(LibraryElement library, String expected,
       withOffsets: withOffsets,
       withSyntheticAccessors: withSyntheticAccessors,
       withSyntheticFields: withSyntheticFields,
-      withTypes: withTypes);
+      withTypes: withTypes,
+      annotateNullability: annotateNullability);
   writer.writeLibraryElement(library);
 
   String actualText = writer.buffer.toString();
@@ -135,6 +137,7 @@ class _ElementWriter {
   final bool withSyntheticAccessors;
   final bool withSyntheticFields;
   final bool withTypes;
+  final bool annotateNullability;
   final StringBuffer buffer = new StringBuffer();
 
   _ElementWriter(
@@ -144,7 +147,8 @@ class _ElementWriter {
       this.withOffsets: false,
       this.withSyntheticAccessors: false,
       this.withSyntheticFields: false,
-      this.withTypes: false});
+      this.withTypes: false,
+      this.annotateNullability: false});
 
   bool isDynamicType(DartType type) => type is DynamicTypeImpl;
 
@@ -946,6 +950,18 @@ class _ElementWriter {
       buffer.write(')');
     } else {
       buffer.write(type.displayName);
+    }
+    if (annotateNullability) {
+      switch ((type as TypeImpl).nullabilitySuffix) {
+        case NullabilitySuffix.none:
+          break;
+        case NullabilitySuffix.question:
+          buffer.write('?');
+          break;
+        case NullabilitySuffix.star:
+          buffer.write('*');
+          break;
+      }
     }
   }
 

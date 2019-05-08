@@ -1343,17 +1343,18 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
         type = refinedType;
       }
     }
+    DartType result;
     if (type.paramReference != 0) {
-      return context.typeParameterContext
+      result = context.typeParameterContext
           .getTypeParameterType(type.paramReference);
     } else if (type.entityKind == EntityRefKind.genericFunctionType) {
       GenericFunctionTypeElement element =
           new GenericFunctionTypeElementImpl.forSerialized(context, type);
-      return element.type;
+      result = element.type;
     } else if (type.syntheticReturnType != null) {
       FunctionElementImpl element =
           new FunctionElementImpl_forLUB(context, type);
-      return element.type;
+      result = element.type;
     } else {
       DartType getTypeArgument(int i) {
         if (i < type.typeArguments.length) {
@@ -1369,12 +1370,18 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
         return DynamicTypeImpl.instance;
       }
 
-      return referenceInfo.buildType(
+      result = referenceInfo.buildType(
           instantiateToBoundsAllowed,
           type.typeArguments.length,
           getTypeArgument,
           type.implicitFunctionTypeIndices);
     }
+    var nullabilitySuffix = _translateNullabilitySuffix(type.nullabilitySuffix);
+    var resultAsImpl = result as TypeImpl;
+    if (resultAsImpl.nullabilitySuffix != nullabilitySuffix) {
+      result = resultAsImpl.withNullability(nullabilitySuffix);
+    }
+    return result;
   }
 
   @override
@@ -1619,6 +1626,19 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
       return getConstructorForInfo(type, info);
     }
     return null;
+  }
+
+  NullabilitySuffix _translateNullabilitySuffix(
+      EntityRefNullabilitySuffix suffix) {
+    switch (suffix) {
+      case EntityRefNullabilitySuffix.none:
+        return NullabilitySuffix.none;
+      case EntityRefNullabilitySuffix.question:
+        return NullabilitySuffix.question;
+      case EntityRefNullabilitySuffix.starOrIrrelevant:
+        return NullabilitySuffix.star;
+    }
+    throw new StateError('Unrecognized nullability suffix');
   }
 
   /**

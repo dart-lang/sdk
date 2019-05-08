@@ -204,6 +204,8 @@ mixin GetElementTestCases implements ResynthesizeTestHelpers {
 /// applied to a class implementing [ResynthesizeTestStrategy], along with the
 /// mixin [ResynthesizeTestHelpers].
 mixin ResynthesizeTestCases implements ResynthesizeTestHelpers {
+  FeatureSet get disableNnbd => FeatureSet.forTesting(sdkVersion: '2.2.2');
+
   FeatureSet get enableNnbd =>
       FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
 
@@ -1474,6 +1476,54 @@ class C<T> {}
 class C<T> {
 }
 ''');
+  }
+
+  test_class_ref_nullability_none() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+class C {}
+C c;
+''');
+    checkElementText(
+        library,
+        '''
+class C {
+}
+C c;
+''',
+        annotateNullability: true);
+  }
+
+  test_class_ref_nullability_question() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+class C {}
+C? c;
+''');
+    checkElementText(
+        library,
+        '''
+class C {
+}
+C? c;
+''',
+        annotateNullability: true);
+  }
+
+  test_class_ref_nullability_star() async {
+    featureSet = disableNnbd;
+    var library = await checkLibrary('''
+class C {}
+C c;
+''');
+    checkElementText(
+        library,
+        '''
+class C {
+}
+C* c;
+''',
+        annotateNullability: true);
   }
 
   test_class_setter_abstract() async {
@@ -6102,6 +6152,45 @@ FutureOr<int> f() {}
     expect(y.type.toString(), 'dynamic');
   }
 
+  test_generic_function_type_nullability_none() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+void Function() f;
+''');
+    checkElementText(
+        library,
+        '''
+void Function() f;
+''',
+        annotateNullability: true);
+  }
+
+  test_generic_function_type_nullability_question() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+void Function()? f;
+''');
+    checkElementText(
+        library,
+        '''
+void Function()? f;
+''',
+        annotateNullability: true);
+  }
+
+  test_generic_function_type_nullability_star() async {
+    featureSet = disableNnbd;
+    var library = await checkLibrary('''
+void Function() f;
+''');
+    checkElementText(
+        library,
+        '''
+void Function()* f;
+''',
+        annotateNullability: true);
+  }
+
   test_generic_gClass_gMethodStatic() async {
     var library = await checkLibrary('''
 class C<T, U> {
@@ -9209,6 +9298,57 @@ p.C v;
     checkElementText(library, r'''
 dynamic v;
 ''');
+  }
+
+  test_type_param_ref_nullability_none() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+class C<T> {
+  T t;
+}
+''');
+    checkElementText(
+        library,
+        '''
+class C<T> {
+  T t;
+}
+''',
+        annotateNullability: true);
+  }
+
+  test_type_param_ref_nullability_question() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+class C<T> {
+  T? t;
+}
+''');
+    checkElementText(
+        library,
+        '''
+class C<T> {
+  T? t;
+}
+''',
+        annotateNullability: true);
+  }
+
+  test_type_param_ref_nullability_star() async {
+    featureSet = disableNnbd;
+    var library = await checkLibrary('''
+class C<T> {
+  T t;
+}
+''');
+    checkElementText(
+        library,
+        '''
+class C<T> {
+  T* t;
+}
+''',
+        annotateNullability: true);
   }
 
   test_type_reference_lib_to_lib() async {
