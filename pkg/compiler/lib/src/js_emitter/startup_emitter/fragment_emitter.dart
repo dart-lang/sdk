@@ -572,10 +572,10 @@ class FragmentEmitter {
   final CompilerOptions _options;
   final DumpInfoTask _dumpInfoTask;
   final Namer _namer;
+  final Emitter _emitter;
   final ConstantEmitter _constantEmitter;
   final ModelEmitter _modelEmitter;
   final JClosedWorld _closedWorld;
-  final CodegenInputs _codegen;
   final CodegenWorld _codegenWorld;
 
   js.Name _call0Name, _call1Name, _call2Name;
@@ -590,10 +590,10 @@ class FragmentEmitter {
       this._options,
       this._dumpInfoTask,
       this._namer,
+      this._emitter,
       this._constantEmitter,
       this._modelEmitter,
       this._closedWorld,
-      this._codegen,
       this._codegenWorld);
 
   js.Expression generateEmbeddedGlobalAccess(String global) =>
@@ -629,11 +629,11 @@ class FragmentEmitter {
       // TODO(29455): 'hunkHelpers' displaces other names, so don't minify it.
       'hunkHelpers': js.VariableDeclaration('hunkHelpers', allowRename: false),
       'directAccessTestExpression': js.js(directAccessTestExpression),
-      'cyclicThrow': _codegen.emitter
+      'cyclicThrow': _emitter
           .staticFunctionAccess(_closedWorld.commonElements.cyclicThrowHelper),
       'operatorIsPrefix': js.string(_namer.operatorIsPrefix),
       'tearOffCode': new js.Block(buildTearOffCode(
-          _options, _codegen.emitter, _namer, _closedWorld.commonElements)),
+          _options, _emitter, _namer, _closedWorld.commonElements)),
       'embeddedTypes': generateEmbeddedGlobalAccess(TYPES),
       'embeddedInterceptorTags':
           generateEmbeddedGlobalAccess(INTERCEPTORS_BY_TAG),

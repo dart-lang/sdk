@@ -136,7 +136,7 @@ part 'namer_names.dart';
 ///
 /// For local variables, the [Namer] only provides *proposed names*. These names
 /// must be disambiguated elsewhere.
-class Namer {
+class Namer extends ModularNamer {
   static const List<String> javaScriptKeywords = const <String>[
     // ES5 7.6.1.1 Keywords.
     'break',
@@ -439,6 +439,7 @@ class Namer {
   }
 
   final String asyncPrefix = r"$async$";
+  @override
   final String staticStateHolder = r'$';
   final String getterPrefix = r'get$';
   final String lazyGetterPrefix = r'$get$';
@@ -481,6 +482,8 @@ class Namer {
   final String rtiName = r'$ti';
 
   jsAst.Name _rtiFieldJsName;
+
+  @override
   jsAst.Name get rtiFieldJsName =>
       _rtiFieldJsName ??= new StringBackedName(rtiName);
 
@@ -741,24 +744,6 @@ class Namer {
     return longName;
   }
 
-  String breakLabelName(LabelDefinition label) {
-    return '\$${label.labelName}\$${label.target.nestingLevel}';
-  }
-
-  String implicitBreakLabelName(JumpTarget target) {
-    return '\$${target.nestingLevel}';
-  }
-
-  // We sometimes handle continue targets differently from break targets,
-  // so we have special continue-only labels.
-  String continueLabelName(LabelDefinition label) {
-    return 'c\$${label.labelName}\$${label.target.nestingLevel}';
-  }
-
-  String implicitContinueLabelName(JumpTarget target) {
-    return 'c\$${target.nestingLevel}';
-  }
-
   /// If the [originalName] is not private returns [originalName]. Otherwise
   /// mangles the [originalName] so that each library has its own distinguished
   /// version of the name.
@@ -823,7 +808,7 @@ class Namer {
     });
   }
 
-  /// Annotated name for [method] encoding arity and named parameters.
+  @override
   jsAst.Name instanceMethodName(FunctionEntity method) {
     // TODO(johnniwinther): Avoid the use of [ConstructorBodyEntity] and
     // [JGeneratorBody]. The codegen model should be explicit about its
@@ -882,7 +867,7 @@ class Namer {
     return suffixes;
   }
 
-  /// Annotated name for the member being invoked by [selector].
+  @override
   jsAst.Name invocationName(Selector selector) {
     switch (selector.kind) {
       case SelectorKind.GETTER:
@@ -974,7 +959,7 @@ class Namer {
   jsAst.Name globalPropertyNameForType(Entity element) =>
       _disambiguateGlobalType(element);
 
-  /// Returns the JavaScript property name used to store an instance field.
+  @override
   jsAst.Name instanceFieldPropertyName(FieldEntity element) {
     ClassEntity enclosingClass = element.enclosingClass;
 
@@ -1488,11 +1473,7 @@ class Namer {
     }
   }
 
-  /// Property name used for a specialization of `getInterceptor`.
-  ///
-  /// js_runtime contains a top-level `getInterceptor` method. The
-  /// specializations have the same name, but with a suffix to avoid name
-  /// collisions.
+  @override
   jsAst.Name nameForGetInterceptor(Iterable<ClassEntity> classes) {
     // If the base Interceptor class is in the set of intercepted classes, we
     // need to go through the generic getInterceptor method (any subclass of the
@@ -1515,15 +1496,7 @@ class Namer {
         [root, _literalDollar, new StringBackedName(suffix)]);
   }
 
-  /// Returns the runtime name for [element].
-  ///
-  /// This name is used as the basis for deriving `is` and `as` property names
-  /// for the given type.
-  ///
-  /// The result is not always safe as a property name unless prefixing
-  /// [operatorIsPrefix] or [operatorAsPrefix]. If this is a function type,
-  /// then by convention, an underscore must also separate [operatorIsPrefix]
-  /// from the type name.
+  @override
   jsAst.Name runtimeTypeName(Entity element) {
     if (element == null) return _literalDynamic;
     // The returned name affects both the global and instance member namespaces:
@@ -1546,26 +1519,7 @@ class Namer {
   /// and a global property name in which to store its JS constructor.
   jsAst.Name className(ClassEntity class_) => _disambiguateGlobalType(class_);
 
-  /// Property name on which [member] can be accessed directly,
-  /// without clashing with another JS property name.
-  ///
-  /// This is used for implementing super-calls, where ordinary dispatch
-  /// semantics must be circumvented. For example:
-  ///
-  ///     class A { foo() }
-  ///     class B extends A {
-  ///         foo() { super.foo() }
-  ///     }
-  ///
-  /// Example translation to JS:
-  ///
-  ///     A.prototype.super$A$foo = function() {...}
-  ///     A.prototype.foo$0 = A.prototype.super$A$foo
-  ///
-  ///     B.prototype.foo$0 = function() {
-  ///         this.super$A$foo(); // super.foo()
-  ///     }
-  ///
+  @override
   jsAst.Name aliasedSuperMemberPropertyName(MemberEntity member) {
     assert(!member.isField); // Fields do not need super aliases.
     return _disambiguateInternalMember(member, () {
@@ -1575,12 +1529,7 @@ class Namer {
     });
   }
 
-  /// Property name in which to store the given static or instance [method].
-  /// For instance methods, this includes the suffix encoding arity and named
-  /// parameters.
-  ///
-  /// The name is not necessarily unique to [method], since a static method
-  /// may share its name with an instance method.
+  @override
   jsAst.Name methodPropertyName(FunctionEntity method) {
     return method.isInstanceMember
         ? instanceMethodName(method)
@@ -1625,6 +1574,11 @@ class Namer {
       return 'P';
     }
     return userGlobalObjects[library.name.hashCode % userGlobalObjects.length];
+  }
+
+  @override
+  jsAst.VariableUse readGlobalObjectForLibrary(LibraryEntity library) {
+    return new jsAst.VariableUse(globalObjectForLibrary(library));
   }
 
   jsAst.Name lazyInitializerName(FieldEntity element) {
@@ -1698,6 +1652,7 @@ class Namer {
     });
   }
 
+  @override
   jsAst.Name operatorIsType(DartType type) {
     if (type.isFunctionType) {
       // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
@@ -1711,6 +1666,7 @@ class Namer {
     return operatorIs(interfaceType.element);
   }
 
+  @override
   jsAst.Name operatorIs(ClassEntity element) {
     // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
     return new CompoundName(
@@ -1726,16 +1682,13 @@ class Namer {
     return name;
   }
 
+  @override
   jsAst.Name substitutionName(ClassEntity element) {
     return new CompoundName(
         [new StringBackedName(operatorAsPrefix), runtimeTypeName(element)]);
   }
 
-  /// Translates a [String] into the corresponding [Name] data structure as
-  /// used by the namer.
-  ///
-  /// If [name] is a setter or getter name, the corresponding [GetterName] or
-  /// [SetterName] data structure is used.
+  @override
   jsAst.Name asName(String name) {
     if (name.startsWith(getterPrefix) && name.length > getterPrefix.length) {
       return new GetterName(_literalGetterPrefix,
@@ -1762,16 +1715,12 @@ class Namer {
     return name;
   }
 
-  /// Returns a safe variable name for use in async rewriting.
-  ///
-  /// Has the same property as [safeVariableName] but does not clash with
-  /// names returned from there.
-  /// Additionally, when used as a prefix to a variable name, the result
-  /// will be safe to use, as well.
+  @override
   String safeVariablePrefixForAsyncRewrite(String name) {
     return "$asyncPrefix$name";
   }
 
+  @override
   jsAst.Name deriveAsyncBodyName(jsAst.Name original) {
     return new _AsyncName(_literalAsyncPrefix, original);
   }
@@ -2381,5 +2330,131 @@ class NamingScope {
   bool hasSuggestion(String original) => _suggestedNames.containsKey(original);
   bool isSuggestion(String candidate) {
     return _suggestedNames.containsValue(candidate);
+  }
+}
+
+/// Namer interface that can be used in modular code generation.
+abstract class ModularNamer {
+  /// Returns a variable use of the [reservedGlobalObjectNames] for [library].
+  jsAst.VariableUse readGlobalObjectForLibrary(LibraryEntity library);
+
+  /// Returns the name for the instance field that holds runtime type arguments
+  /// on generic classes.
+  jsAst.Name get rtiFieldJsName;
+
+  /// Property name on which [member] can be accessed directly,
+  /// without clashing with another JS property name.
+  ///
+  /// This is used for implementing super-calls, where ordinary dispatch
+  /// semantics must be circumvented. For example:
+  ///
+  ///     class A { foo() }
+  ///     class B extends A {
+  ///         foo() { super.foo() }
+  ///     }
+  ///
+  /// Example translation to JS:
+  ///
+  ///     A.prototype.super$A$foo = function() {...}
+  ///     A.prototype.foo$0 = A.prototype.super$A$foo
+  ///
+  ///     B.prototype.foo$0 = function() {
+  ///         this.super$A$foo(); // super.foo()
+  ///     }
+  ///
+  jsAst.Name aliasedSuperMemberPropertyName(MemberEntity member);
+
+  /// Returns the JavaScript property name used to store an instance field.
+  jsAst.Name instanceFieldPropertyName(FieldEntity element);
+
+  /// Annotated name for [method] encoding arity and named parameters.
+  jsAst.Name instanceMethodName(FunctionEntity method);
+
+  /// Translates a [String] into the corresponding [Name] data structure as
+  /// used by the namer.
+  ///
+  /// If [name] is a setter or getter name, the corresponding [GetterName] or
+  /// [SetterName] data structure is used.
+  jsAst.Name asName(String name);
+
+  /// Annotated name for the member being invoked by [selector].
+  jsAst.Name invocationName(Selector selector);
+
+  /// Property name used for a specialization of `getInterceptor`.
+  ///
+  /// js_runtime contains a top-level `getInterceptor` method. The
+  /// specializations have the same name, but with a suffix to avoid name
+  /// collisions.
+  jsAst.Name nameForGetInterceptor(Iterable<ClassEntity> classes);
+
+  jsAst.Name operatorIsType(DartType type);
+
+  /// Returns the runtime name for [element].
+  ///
+  /// This name is used as the basis for deriving `is` and `as` property names
+  /// for the given type.
+  ///
+  /// The result is not always safe as a property name unless prefixing
+  /// [operatorIsPrefix] or [operatorAsPrefix]. If this is a function type,
+  /// then by convention, an underscore must also separate [operatorIsPrefix]
+  /// from the type name.
+  jsAst.Name runtimeTypeName(Entity element);
+
+  /// Returns the name for the async body of the method with the [original]
+  /// name.
+  jsAst.Name deriveAsyncBodyName(jsAst.Name original);
+
+  /// Property name in which to store the given static or instance [method].
+  /// For instance methods, this includes the suffix encoding arity and named
+  /// parameters.
+  ///
+  /// The name is not necessarily unique to [method], since a static method
+  /// may share its name with an instance method.
+  jsAst.Name methodPropertyName(FunctionEntity method);
+
+  /// Returns a safe variable name for use in async rewriting.
+  ///
+  /// Has the same property as [safeVariableName] but does not clash with
+  /// names returned from there.
+  /// Additionally, when used as a prefix to a variable name, the result
+  /// will be safe to use, as well.
+  String safeVariablePrefixForAsyncRewrite(String name);
+
+  /// Returns the name for the holder of static state.
+  ///
+  /// This is used for mutable static fields.
+  String get staticStateHolder;
+
+  /// Returns the name of the `isX` property for classes that implement
+  /// [element].
+  jsAst.Name operatorIs(ClassEntity element);
+
+  /// Returns the name of the `asX` function for classes that implement the
+  /// generic class [element].
+  jsAst.Name substitutionName(ClassEntity element);
+
+  /// Returns the label name for [label] used as a break target.
+  String breakLabelName(LabelDefinition label) {
+    return '\$${label.labelName}\$${label.target.nestingLevel}';
+  }
+
+  /// Returns the label name for the implicit break label needed for the jump
+  /// [target].
+  String implicitBreakLabelName(JumpTarget target) {
+    return '\$${target.nestingLevel}';
+  }
+
+  /// Returns the label name for [label] used as a continue target.
+  ///
+  /// We sometimes handle continue targets differently from break targets,
+  /// so we have special continue-only labels.
+  String continueLabelName(LabelDefinition label) {
+    return 'c\$${label.labelName}\$${label.target.nestingLevel}';
+  }
+
+  /// Returns the label name for the implicit continue label needed for the jump
+  /// [target].
+  String implicitContinueLabelName(JumpTarget target) {
+    return 'c\$${target.nestingLevel}';
   }
 }

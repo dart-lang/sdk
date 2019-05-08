@@ -188,8 +188,8 @@ class KernelSsaBuilder implements SsaBuilder {
   final DiagnosticReporter _reporter;
   final DumpInfoTask _dumpInfoTask;
   final JsToElementMap _elementMap;
-  final Namer _namer;
-  final Emitter _emitter;
+  final ModularNamer _namer;
+  final ModularEmitter _emitter;
   final Tracer _tracer;
   final SourceInformationStrategy _sourceInformationStrategy;
 

@@ -139,7 +139,7 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.sorter,
           typeTestRegistry.rtiNeededClasses,
           closedWorld.elementEnvironment.mainFunction);
-      int size = emitter.emitProgram(programBuilder, codegen, codegenWorld);
+      int size = emitter.emitProgram(programBuilder, codegenWorld);
       // TODO(floitsch): we shouldn't need the `neededClasses` anymore.
       neededClasses = programBuilder.collector.neededClasses;
       return size;
@@ -147,23 +147,14 @@ class CodeEmitterTask extends CompilerTask {
   }
 }
 
-abstract class Emitter {
-  Program get programForTesting;
-
-  /// Uses the [programBuilder] to generate a model of the program, emits
-  /// the program, and returns the size of the generated output.
-  int emitProgram(ProgramBuilder programBuilder, CodegenInputs codegen,
-      CodegenWorld codegenWorld);
-
-  /// Returns the JS function that must be invoked to get the value of the
-  /// lazily initialized static.
-  jsAst.Expression isolateLazyInitializerAccess(covariant FieldEntity element);
-
-  /// Returns the closure expression of a static function.
-  jsAst.Expression isolateStaticClosureAccess(covariant FunctionEntity element);
-
-  /// Returns the JS code for accessing the embedded [global].
-  jsAst.Expression generateEmbeddedGlobalAccess(String global);
+/// Interface for the subset of the [Emitter] that can be used during modular
+/// code generation.
+///
+/// Note that the emission phase is not itself modular but performed on
+/// performed on the closed world computed by the codegen enqueuer.
+abstract class ModularEmitter {
+  /// Returns the JS prototype of the given class [e].
+  jsAst.Expression prototypeAccess(ClassEntity e, {bool hasBeenInstantiated});
 
   /// Returns the JS function representing the given function.
   ///
@@ -172,13 +163,35 @@ abstract class Emitter {
 
   jsAst.Expression staticFieldAccess(FieldEntity element);
 
+  /// Returns the JS function that must be invoked to get the value of the
+  /// lazily initialized static.
+  jsAst.Expression isolateLazyInitializerAccess(covariant FieldEntity element);
+
+  /// Returns the closure expression of a static function.
+  jsAst.Expression isolateStaticClosureAccess(covariant FunctionEntity element);
+
   /// Returns the JS constructor of the given element.
   ///
   /// The returned expression must only be used in a JS `new` expression.
   jsAst.Expression constructorAccess(ClassEntity e);
 
-  /// Returns the JS prototype of the given class [e].
-  jsAst.Expression prototypeAccess(ClassEntity e, {bool hasBeenInstantiated});
+  /// Returns the JS code for accessing the embedded [global].
+  jsAst.Expression generateEmbeddedGlobalAccess(String global);
+
+  /// Returns the JS code for accessing the given [constant].
+  jsAst.Expression constantReference(ConstantValue constant);
+}
+
+/// Interface for the emitter that is used during the emission phase on the
+/// closed world computed by the codegen enqueuer.
+///
+/// These methods are _not_ available during modular code generation.
+abstract class Emitter implements ModularEmitter {
+  Program get programForTesting;
+
+  /// Uses the [programBuilder] to generate a model of the program, emits
+  /// the program, and returns the size of the generated output.
+  int emitProgram(ProgramBuilder programBuilder, CodegenWorld codegenWorld);
 
   /// Returns the JS prototype of the given interceptor class [e].
   jsAst.Expression interceptorPrototypeAccess(ClassEntity e);
@@ -194,9 +207,6 @@ abstract class Emitter {
 
   int compareConstants(ConstantValue a, ConstantValue b);
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);
-
-  /// Returns the JS code for accessing the given [constant].
-  jsAst.Expression constantReference(ConstantValue constant);
 
   /// Returns the JS template for the given [builtin].
   jsAst.Template templateForBuiltin(JsBuiltin builtin);

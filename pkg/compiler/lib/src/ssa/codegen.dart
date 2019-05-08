@@ -24,9 +24,9 @@ import '../js_backend/interceptor_data.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
-import '../js_backend/namer.dart';
+import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/runtime_types.dart';
-import '../js_emitter/code_emitter_task.dart';
+import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
 import '../options.dart';
@@ -162,12 +162,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   final CompilerTask _codegenTask;
   final CompilerOptions _options;
-  final Emitter _emitter;
+  final ModularEmitter _emitter;
   final CheckedModeHelpers _checkedModeHelpers;
   final OneShotInterceptorData _oneShotInterceptorData;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
   final RuntimeTypesEncoder _rtiEncoder;
-  final Namer _namer;
+  final ModularNamer _namer;
   final SuperMemberData _superMemberData;
   final Tracer _tracer;
   final JClosedWorld _closedWorld;
@@ -1811,8 +1811,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(node.inputs.length == 1);
       _registry.registerSpecializedGetInterceptor(node.interceptedClasses);
       js.Name name = _namer.nameForGetInterceptor(node.interceptedClasses);
-      var isolate = new js.VariableUse(
-          _namer.globalObjectForLibrary(_commonElements.interceptorsLibrary));
+      js.VariableUse isolate = _namer
+          .readGlobalObjectForLibrary(_commonElements.interceptorsLibrary);
       use(node.receiver);
       List<js.Expression> arguments = <js.Expression>[pop()];
       push(js
@@ -1903,8 +1903,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   @override
   void visitOneShotInterceptor(HOneShotInterceptor node) {
     List<js.Expression> arguments = visitArguments(node.inputs);
-    var isolate = new js.VariableUse(
-        _namer.globalObjectForLibrary(_commonElements.interceptorsLibrary));
+    js.VariableUse isolate =
+        _namer.readGlobalObjectForLibrary(_commonElements.interceptorsLibrary);
     Selector selector = node.selector;
     js.Name methodName = _oneShotInterceptorData.registerOneShotInterceptor(
         selector, _namer, _closedWorld);

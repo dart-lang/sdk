@@ -16,7 +16,7 @@ import '../../dump_info.dart';
 import '../../elements/entities.dart';
 import '../../io/source_information.dart';
 import '../../js/js.dart' as js;
-import '../../js_backend/js_backend.dart' show CodegenInputs, Namer;
+import '../../js_backend/js_backend.dart' show Namer;
 import '../../js_backend/runtime_types.dart';
 import '../../options.dart';
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
@@ -62,13 +62,12 @@ class EmitterImpl implements Emitter {
   }
 
   @override
-  int emitProgram(ProgramBuilder programBuilder, CodegenInputs codegen,
-      CodegenWorld codegenWorld) {
+  int emitProgram(ProgramBuilder programBuilder, CodegenWorld codegenWorld) {
     Program program = programBuilder.buildProgram();
     if (retainDataForTesting) {
       programForTesting = program;
     }
-    return _emitter.emitProgram(program, codegen, codegenWorld);
+    return _emitter.emitProgram(program, codegenWorld);
   }
 
   js.PropertyAccess globalPropertyAccessForMember(MemberEntity element) {

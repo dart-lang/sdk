@@ -33,10 +33,10 @@ import '../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/inferred_data.dart';
-import '../js_backend/namer.dart';
+import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types.dart';
-import '../js_emitter/code_emitter_task.dart';
+import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/locals.dart' show JumpVisitor;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/element_map.dart';
@@ -113,8 +113,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
   final CompilerOptions options;
   final DiagnosticReporter reporter;
-  final Emitter _emitter;
-  final Namer _namer;
+  final ModularEmitter _emitter;
+  final ModularNamer _namer;
   final MemberEntity targetElement;
   final MemberEntity _initialTargetElement;
   final JClosedWorld closedWorld;

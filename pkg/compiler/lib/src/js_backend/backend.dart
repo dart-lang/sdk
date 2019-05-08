@@ -20,7 +20,7 @@ import '../inferrer/types.dart';
 import '../io/source_information.dart' show SourceInformationStrategy;
 import '../js/js.dart' as jsAst;
 import '../js_model/elements.dart';
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask, Emitter;
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask, ModularEmitter;
 import '../kernel/dart2js_target.dart';
 import '../native/enqueue.dart';
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
@@ -802,20 +802,19 @@ class SuperMemberData {
 
 /// Interface for resources only used during code generation.
 abstract class CodegenInputs {
-  Emitter get emitter;
+  ModularEmitter get emitter;
   CheckedModeHelpers get checkedModeHelpers;
   OneShotInterceptorData get oneShotInterceptorData;
   RuntimeTypesSubstitutions get rtiSubstitutions;
   RuntimeTypesEncoder get rtiEncoder;
-  // TODO(johnniwinther): Should be the modular part of the namer.
-  Namer get namer;
+  ModularNamer get namer;
   SuperMemberData get superMemberData;
   Tracer get tracer;
 }
 
 class CodegenImpl implements CodegenInputs {
   @override
-  final Emitter emitter;
+  final ModularEmitter emitter;
 
   @override
   final CheckedModeHelpers checkedModeHelpers = new CheckedModeHelpers();
@@ -830,7 +829,7 @@ class CodegenImpl implements CodegenInputs {
   final RuntimeTypesEncoder rtiEncoder;
 
   @override
-  final Namer namer;
+  final ModularNamer namer;
 
   @override
   final SuperMemberData superMemberData = new SuperMemberData();
