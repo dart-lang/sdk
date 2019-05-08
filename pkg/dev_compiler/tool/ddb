@@ -21,9 +21,16 @@ import 'package:path/path.dart' as path;
 // configurable for manual testing.
 const ignoreWhitelistedErrors = false;
 
-void main(List<String> args) {
+void main(List<String> args) async {
+  void printUsage() {
+    print('Usage: ddb [options] <dart-script-file>\n');
+    print('Compiles <dart-script-file> with the dev_compiler and runs it on a '
+        'JS platform.\n');
+  }
+
   // Parse flags.
   var parser = new ArgParser()
+    ..addFlag('help', abbr: 'h', help: 'Display this message.')
     ..addFlag('kernel',
         abbr: 'k', help: 'Compile with the new kernel-based front end.')
     ..addFlag('debug',
@@ -44,8 +51,16 @@ void main(List<String> args) {
     ..addOption('binary', abbr: 'b', help: 'Runtime binary path.');
 
   var options = parser.parse(args);
+  if (options['help']) {
+    printUsage();
+    print('Available options:');
+    print(parser.usage);
+    exit(0);
+  }
   if (options.rest.length != 1) {
-    throw 'Expected a single dart entrypoint.';
+    print('Dart script file required.\n');
+    printUsage();
+    exit(1);
   }
   var entry = options.rest.first;
   var libRoot = path.dirname(entry);
@@ -79,13 +94,11 @@ void main(List<String> args) {
   /// Writes stdout and stderr from [result] to this process.
   ///
   /// Will exit with the exit code from [result] when it's not zero.
-  void echoResult(ProcessResult result) {
-    stdout
-      ..write(result.stdout)
-      ..flush();
-    stderr
-      ..write(result.stderr)
-      ..flush();
+  void echoResult(ProcessResult result) async {
+    stdout.write(result.stdout);
+    await stdout.flush();
+    stderr.write(result.stderr);
+    await stderr.flush();
     if (result.exitCode != 0) exit(result.exitCode);
   }
 
@@ -127,28 +140,22 @@ void main(List<String> args) {
         dartSdk, 'lib', '_internal', kernel ? 'ddc_sdk.dill' : 'ddc_sdk.sum');
   }
   ProcessResult result;
-  if (kernel) {
-    result = runDdc('dartdevc', [
-      '--kernel',
-      '--modules=$mod',
-      '--dart-sdk-summary=$ddcSdk',
-      '--enable-experiment=$experiment',
-      '-o',
-      '$libRoot/$basename.js',
-      entry
-    ]);
-  } else {
-    result = runDdc('dartdevc', [
-      '--modules=$mod',
-      '--dart-sdk-summary=$ddcSdk',
+  var ddcArgs = [
+    if (kernel) '--kernel',
+    '--modules=$mod',
+    '--dart-sdk-summary=$ddcSdk',
+    // TODO(nshahan) Cleanup when we settle on using or removing library-root.
+    if (!kernel)
       '--library-root=$libRoot',
+    if (experiment.isNotEmpty)
       '--enable-experiment=$experiment',
-      '-o',
-      '$libRoot/$basename.js',
-      entry
-    ]);
-  }
-  echoResult(result);
+    '-o',
+    '$libRoot/$basename.js',
+    entry
+  ];
+
+  result = runDdc('dartdevc', ddcArgs);
+  await echoResult(result);
 
   if (chrome) {
     String chromeBinary;
@@ -241,5 +248,5 @@ void main(List<String> args) {
     var d8Binary = binary ?? 'd8';
     result = Process.runSync(d8Binary, ['--module', d8File]);
   }
-  echoResult(result);
+  await echoResult(result);
 }
