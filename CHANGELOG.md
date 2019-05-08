@@ -1,3 +1,11 @@
+# 0.1.88
+
+* fixed `prefer_asserts_in_initializer_lists` false positives
+* fixed `curly_braces_in_flow_control_structures` to handle more cases
+* new lint: `prefer_double_quotes`
+* new lint: `sort_child_properties_last`
+* fixed `type_annotate_public_apis` false positive for `static const` initializers
+
 # 0.1.87
 
 * change: `prefer_const_constructors_in_immutables` is currently overly permissive, pending analyzer changes (#1537)
