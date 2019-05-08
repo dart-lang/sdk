@@ -36,7 +36,7 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "a0a24a4bd5e4d913264fccfd600139af5b20c8e9",
+  "co19_2_rev": "7bd9873fceb872aeb8c6ee69f14de7f7e7605e4e",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -91,11 +91,12 @@ vars = {
   "http_retry_tag": "0.1.1",
   "http_tag" : "0.12.0+2",
   "http_throttle_tag" : "1.0.2",
+  "icu_rev" : "c56c671998902fcc4fc9ace88c83daa99f980793",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.86",
+  "linter_tag": "0.1.87",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.0.3",
@@ -111,10 +112,10 @@ vars = {
   "pedantic_tag": "v1.5.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
-  "protobuf_rev": "0c77167b16d00b561a6055bfe26690af7f26ae88",
+  "protobuf_rev": "7d34c9e4e552a4f66acce32e4344ae27756a1949",
   "pub_rev": "8c363fe26f059c3063f1129adbb3c4e22a8ce954",
   "pub_semver_tag": "1.4.2",
-  "quiver_tag": "2.0.0+1",
+  "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "2.1.5",
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
   "shelf_static_rev": "v0.2.8",
@@ -209,6 +210,10 @@ deps = {
   Var("dart_root") + "/third_party/ply":
       Var("chromium_git") + "/chromium/src/third_party/ply.git" +
       "@" + Var("ply_rev"),
+
+  Var("dart_root") + "/third_party/icu":
+      Var("chromium_git") + "/chromium/deps/icu.git" +
+      "@" + Var("icu_rev"),
 
   Var("dart_root") + "/tools/idl_parser":
       Var("chromium_git") + "/chromium/src/tools/idl_parser.git" +
@@ -315,7 +320,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/quiver":
       Var("chromium_git")
       + "/external/github.com/google/quiver-dart.git"
-      + "@" + Var("quiver_tag"),
+      + "@" + Var("quiver-dart_tag"),
   Var("dart_root") + "/third_party/pkg/resource":
       Var("dart_git") + "resource.git" + "@" + Var("resource_rev"),
   Var("dart_root") + "/third_party/pkg/shelf":

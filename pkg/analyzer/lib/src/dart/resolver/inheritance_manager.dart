@@ -359,6 +359,8 @@ class InheritanceManager {
       if (r > numOfRequiredParams) {
         r = numOfRequiredParams;
       }
+      // TODO(brianwilkerson) Handle the fact that named parameters can now be
+      //  required.
       namedParametersList.addAll(_getNamedParameterNames(element));
     }
     return _createSyntheticExecutableElement(
@@ -426,6 +428,8 @@ class InheritanceManager {
       parameter.parameterKind = ParameterKind.POSITIONAL;
       parameters[i] = parameter;
     }
+    // TODO(brianwilkerson) Handle the fact that named parameters can now be
+    //  required.
     for (int m = 0; m < namedParameters.length; m++, i++) {
       ParameterElementImpl parameter =
           new ParameterElementImpl(namedParameters[m], 0);

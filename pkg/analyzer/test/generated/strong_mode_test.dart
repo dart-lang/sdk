@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -24,19 +24,15 @@ import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(StrongModeCastsTest);
     defineReflectiveTests(StrongModeLocalInferenceTest);
     defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
     defineReflectiveTests(StrongModeTypePropagationTest);
-    defineReflectiveTests(StrongModeCastsWithUiAsCodeTest);
   });
 }
 
 @reflectiveTest
-class StrongModeCastsWithUiAsCodeTest extends ResolverTestCase {
-  @override
-  List<String> get enabledExperiments =>
-      [EnableString.spread_collections, EnableString.control_flow_collections];
-
+class StrongModeCastsTest extends ResolverTestCase {
   test_implicitCastMetadata_ifElement_condition() async {
     var source = addSource(r'''
 class C {
@@ -2702,8 +2698,12 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
-      ParameterizedType fType = invoke.staticInvokeType;
-      expect(fType.typeArguments[0].toString(), 'T');
+      FunctionType fType = invoke.staticInvokeType;
+      if (AnalysisDriver.useSummary2) {
+        expect('$fType', '((T) → T, (T, T) → int, (T) → T) → void');
+      } else {
+        expect(fType.typeArguments[0].toString(), 'T');
+      }
     }
   }
 
@@ -2729,8 +2729,12 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
-      ParameterizedType fType = invoke.staticInvokeType;
-      expect(fType.typeArguments[0].toString(), 'T');
+      FunctionType fType = invoke.staticInvokeType;
+      if (AnalysisDriver.useSummary2) {
+        expect('$fType', '(List<T>, (T, T) → int, List<T>) → void');
+      } else {
+        expect(fType.typeArguments[0].toString(), 'T');
+      }
     }
   }
 
@@ -2756,8 +2760,12 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
-      ParameterizedType fType = invoke.staticInvokeType;
-      expect(fType.typeArguments[0].toString(), 'T');
+      FunctionType fType = invoke.staticInvokeType;
+      if (AnalysisDriver.useSummary2) {
+        expect('$fType', '(T, (T, T) → int, T) → void');
+      } else {
+        expect(fType.typeArguments[0].toString(), 'T');
+      }
     }
   }
 
@@ -3898,74 +3906,16 @@ class B<T2, U2> {
 }
 
 @reflectiveTest
-class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
-    with StrongModeStaticTypeAnalyzer2TestCases {
+class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
+  void expectStaticInvokeType(String search, String type) {
+    var invocation = findIdentifier(search).parent as MethodInvocation;
+    expect(invocation.staticInvokeType.toString(), type);
+  }
+
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     resetWith(options: options);
-  }
-
-  @failingTest
-  @override
-  test_genericFunction_parameter() {
-    return super.test_genericFunction_parameter();
-  }
-
-  @failingTest
-  @override
-  test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit() {
-    return super
-        .test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit();
-  }
-
-  @failingTest
-  @override
-  test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred() {
-    return super
-        .test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred();
-  }
-
-  @failingTest
-  @override
-  test_genericMethod_functionInvocation_functionTypedParameter_explicit() {
-    return super
-        .test_genericMethod_functionInvocation_functionTypedParameter_explicit();
-  }
-
-  @failingTest
-  @override
-  test_genericMethod_functionInvocation_functionTypedParameter_inferred() {
-    return super
-        .test_genericMethod_functionInvocation_functionTypedParameter_inferred();
-  }
-
-  @failingTest
-  @override
-  test_genericMethod_functionTypedParameter_tearoff() {
-    return super.test_genericMethod_functionTypedParameter_tearoff();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_nestedCaptureBounds() {
-    // https://github.com/dart-lang/sdk/issues/30236
-    return super.test_genericMethod_nestedCaptureBounds();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_tearoff_instantiated() {
-    return super.test_genericMethod_tearoff_instantiated();
-  }
-}
-
-/// Test cases for [StrongModeStaticTypeAnalyzer2Test]
-mixin StrongModeStaticTypeAnalyzer2TestCases
-    implements StaticTypeAnalyzer2TestShared {
-  void expectStaticInvokeType(String search, String type) {
-    var invocation = findIdentifier(search).parent as MethodInvocation;
-    expect(invocation.staticInvokeType.toString(), type);
   }
 
   test_dynamicObjectGetter_hashCode() async {
@@ -4049,15 +3999,13 @@ void main() {
   }
 
   test_genericFunction_parameter() async {
+    // TODO(paulberry): remove when dartbug.com/28515 fixed.
+    if (!AnalysisDriver.useSummary2) return;
+
     await resolveTestUnit(r'''
 void g(T f<T>(T x)) {}
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
-    expectFunctionType('f', '<T>(T) → T',
-        elementTypeParams: '[]', typeFormals: '[T]');
-    SimpleIdentifier f = findIdentifier('f');
-    ParameterElementImpl e = f.staticElement;
-    FunctionType type = e.type;
+''');
+    var type = expectFunctionType2('f', '<T>(T) → T');
     FunctionType ft = type.instantiate([typeProvider.stringType]);
     expect(ft.toString(), '(String) → String');
   }
@@ -4222,26 +4170,33 @@ void test<S>(T Function<T>(T) pf) {
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit() async {
+    // TODO(paulberry): remove when dartbug.com/28515 fixed.
+    if (!AnalysisDriver.useSummary2) return;
+
     await resolveTestUnit(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)<int>(3);
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
+''');
     expectIdentifierType('paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred() async {
+    // TODO(paulberry): remove when dartbug.com/28515 fixed.
+    if (!AnalysisDriver.useSummary2) return;
+
     await resolveTestUnit(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)(3);
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
+''');
     expectIdentifierType('paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_inferred() async {
+    // TODO(paulberry): remove when dartbug.com/28515 fixed.
+    if (!AnalysisDriver.useSummary2) return;
+
     await resolveTestUnit(r'''
 class C<E> {
   T f<T>(T e) => null;
@@ -4264,8 +4219,7 @@ void test<S>(T Function<T>(T) pf) {
   var localCall = (lf)(3);
   var paramCall = (pf)(3);
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
+''');
     expectIdentifierType('methodCall', "int");
     expectIdentifierType('staticCall', "int");
     expectIdentifierType('staticFieldCall', "int");
@@ -4308,22 +4262,26 @@ void test<S>(T Function<T>(T) pf) {
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_explicit() async {
+    // TODO(paulberry): remove when dartbug.com/28515 fixed.
+    if (!AnalysisDriver.useSummary2) return;
+
     await resolveTestUnit(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = pf<int>(3);
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
+''');
     expectIdentifierType('paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_inferred() async {
+    // TODO(paulberry): remove when dartbug.com/28515 fixed.
+    if (!AnalysisDriver.useSummary2) return;
+
     await resolveTestUnit(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = pf(3);
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
+''');
     expectIdentifierType('paramCall', "int");
   }
 
@@ -4381,12 +4339,14 @@ main() {
   }
 
   test_genericMethod_functionTypedParameter_tearoff() async {
+    // TODO(paulberry): remove when dartbug.com/28515 fixed.
+    if (!AnalysisDriver.useSummary2) return;
+
     await resolveTestUnit(r'''
 void test<S>(T pf<T>(T e)) {
   var paramTearOff = pf;
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
+''');
     expectIdentifierType('paramTearOff', "<T>(T) → T");
   }
 
@@ -4497,6 +4457,7 @@ class C<T> {
     expectIdentifierType('f;', '<S₀>(S₀) → S');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/30236')
   test_genericMethod_nestedCaptureBounds() async {
     await resolveTestUnit(r'''
 class C<T> {
@@ -4706,6 +4667,7 @@ void test<S>(T Function<T>(T) pf) {
     expectIdentifierType('paramTearOff', "<T>(T) → T");
   }
 
+  @failingTest
   test_genericMethod_tearoff_instantiated() async {
     await resolveTestUnit(r'''
 class C<E> {

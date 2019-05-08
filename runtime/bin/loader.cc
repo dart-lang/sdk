@@ -292,7 +292,7 @@ void Loader::ResolveDependenciesAsFilePaths() {
     Dart_Handle result =
         Loader::ResolveAsFilePath(uri, &file_path, &file_path_length);
     if (Dart_IsError(result)) {
-      Log::Print("Error resolving dependency: %s\n", Dart_GetError(result));
+      Syslog::Print("Error resolving dependency: %s\n", Dart_GetError(result));
       return;
     }
 

@@ -43,17 +43,17 @@ def ParseArgs(args):
 def ValidateArgs(args):
   if args.gn:
     if args.exclude_patterns or args.copy_from or args.to:
-      print "--gn mode does not accept other switches"
+      print ("--gn mode does not accept other switches")
       return False
     if not args.gn_paths:
-      print "--gn mode requires a list of source specifications"
+      print ("--gn mode requires a list of source specifications")
       return False
     return True
   if not args.copy_from or not os.path.isdir(args.copy_from):
-    print "--from argument must refer to a directory"
+    print ("--from argument must refer to a directory")
     return False
   if not args.to:
-    print "--to is required"
+    print ("--to is required")
     return False
   return True
 
@@ -118,10 +118,10 @@ def ListTree(src, ignore=None):
 # directory, and source_dirs[n+1] is a list of ignore patterns.
 def SourcesToGN(source_dirs):
   if len(source_dirs) % 2 != 0:
-    print "--gn list length should be a multiple of 2."
+    print ("--gn list length should be a multiple of 2.")
     return False
   data = []
-  for i in xrange(0, len(source_dirs), 2):
+  for i in range(0, len(source_dirs), 2):
     path = source_dirs[i]
     ignores = source_dirs[i + 1]
     if ignores in ["{}"]:
@@ -131,7 +131,7 @@ def SourcesToGN(source_dirs):
       sources = ListTree(path, ignore=shutil.ignore_patterns(*patterns))
     data.append(sources)
   scope_data = {"sources": data}
-  print gn_helpers.ToGNString(scope_data)
+  print (gn_helpers.ToGNString(scope_data))
   return True
 
 

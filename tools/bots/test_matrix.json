@@ -318,7 +318,7 @@
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": { },
     "dartk-checked-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
-	"enable-asserts": true
+        "enable-asserts": true
     }},
     "dartk-(linux|mac|win)-(debug|product|release)-(arm64|simarm|simarm64|simdbc64)": { },
     "dartk-optcounter-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
@@ -392,6 +392,7 @@
         },
         {
           "name": "unit tests",
+          "script": "tools/disguised_test.py",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
              "pkg/(kernel|front_end|fasta)"
@@ -1346,6 +1347,13 @@
           "script": "tools/bots/dart_sdk.py"
         },
         {
+          "name": "run smoke tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "tools/bots/aot_smoke_tests.dart"
+          ]
+        },
+        {
           "name": "build api docs",
           "script": "tools/bots/dart_sdk.py",
           "arguments": [ "api_docs" ]
@@ -1361,10 +1369,9 @@
       ]
     },
     {
-      "builders": ["dart-sdk-mac",
-                   "dart-sdk-win"],
+      "builders": ["dart-sdk-mac"],
       "meta": {
-        "description": "This configuration is used by the sdk-builders for MacOS and Windows."
+        "description": "This configuration is used by the sdk-builders for MacOS."
       },
       "steps": [
         {
@@ -1388,6 +1395,50 @@
         {
           "name": "upload sdk",
           "script": "tools/bots/dart_sdk.py"
+        },
+        {
+          "name": "run smoke tests",
+          "script": "xcodebuild/ReleaseX64/dart",
+          "arguments": [
+            "tools/bots/aot_smoke_tests.dart"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": ["dart-sdk-win"],
+      "meta": {
+        "description": "This configuration is used by the sdk-builders for Windows."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["--arch=ia32,x64",
+                        "--mode=release", "create_sdk"]
+        },
+        {
+          "name": "build gen_kernel.dart.snapshot and dart2aot",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64", "--mode=release",
+                        "copy_gen_kernel_snapshot", "copy_dart2aot"]
+        },
+        {
+          "name": "build gen_snapshot and dartaotruntime",
+          "script": "tools/build.py",
+          "arguments": ["--arch=x64", "--mode=product",
+                        "copy_gen_snapshot", "copy_dartaotruntime"]
+        },
+        {
+          "name": "upload sdk",
+          "script": "tools/bots/dart_sdk.py"
+        },
+        {
+          "name": "run smoke tests",
+          "script": "out/ReleaseX64/dart.exe",
+          "arguments": [
+            "tools/bots/aot_smoke_tests.dart"
+          ]
         }
       ]
     },
@@ -1674,7 +1725,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!front_end/|kernel/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|front_end|kernel)/)"
           ]
         },
         {
@@ -1708,7 +1759,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!front_end/|kernel/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|front_end|kernel)/)"
           ]
         },
         {
@@ -1916,6 +1967,38 @@
           ],
           "shards": 100,
           "fileset": "fuzzer"
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-dartkb-linux-release-x64-abi"
+      ],
+      "meta": {
+        "description": "This configuration runs tests for each supported ABI version."
+      },
+      "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "--bytecode"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "create_sdk"
+          ]
+        },
+        {
+          "name": "run tests",
+          "script": "tools/run_abi_tests.py"
         }
       ]
     }

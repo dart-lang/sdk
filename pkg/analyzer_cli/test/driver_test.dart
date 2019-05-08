@@ -789,24 +789,6 @@ analyzer:
     });
   }
 
-  test_pubspecYaml() async {
-    await withTempDirAsync((tempDir) async {
-      String filePath = path.join(tempDir, AnalysisEngine.PUBSPEC_YAML_FILE);
-      new File(filePath).writeAsStringSync('''
-name: foo
-flutter:
-  assets:
-    doesNotExist.gif
-''');
-      await drive(filePath);
-      expect(
-          bulletToDash(outSink),
-          contains(
-              "warning - The value of the 'asset' field is expected to be a list of relative file paths"));
-      expect(exitCode, 0);
-    });
-  }
-
   test_manifestFileChecks() async {
     await withTempDirAsync((tempDir) async {
       String filePath =
@@ -821,12 +803,33 @@ analyzer:
       new File(manifestPath).writeAsStringSync('''
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
 ''');
       await drive(manifestPath, options: filePath);
-      expect(bulletToDash(outSink),
-          contains("warning - This feature is not supported on Chrome OS"));
+      expect(
+          bulletToDash(outSink),
+          contains(
+              "warning - The feature android.software.home_screen is not supported on Chrome OS"));
+      expect(exitCode, 0);
+    });
+  }
+
+  test_pubspecYaml() async {
+    await withTempDirAsync((tempDir) async {
+      String filePath = path.join(tempDir, AnalysisEngine.PUBSPEC_YAML_FILE);
+      new File(filePath).writeAsStringSync('''
+name: foo
+flutter:
+  assets:
+    doesNotExist.gif
+''');
+      await drive(filePath);
+      expect(
+          bulletToDash(outSink),
+          contains(
+              "warning - The value of the 'asset' field is expected to be a list of relative file paths"));
       expect(exitCode, 0);
     });
   }
@@ -963,6 +966,9 @@ class OptionsTest_PreviewDart2 extends OptionsTest {
 
 class TestSource implements Source {
   TestSource();
+
+  @override
+  String get fullName => '/package/lib/test.dart';
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

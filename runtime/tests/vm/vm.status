@@ -2,10 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-cc/AllocGeneric_Overflow: Crash, Fail # These tests are expected to crash on all platforms.
-cc/ArrayNew_Overflow_Crash: Crash, Fail # These tests are expected to crash on all platforms.
-cc/CodeExecutability: Crash, Fail # These tests are expected to crash on all platforms.
-cc/CodeImmutability: Crash, Fail # These tests are expected to crash on all platforms.
 cc/Dart2JSCompileAll: Fail, Crash # Issue 27369
 cc/Dart2JSCompilerStats: Fail, Crash # Issue 27369
 cc/Fail0: Fail # These tests are expected to crash on all platforms.
@@ -18,7 +14,6 @@ cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash # Issue 32981. Fail
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
 cc/IsolateReload_RunNewFieldInitializersWithGenerics: Fail # Issue 32299
-cc/SNPrint_BadArgs: Crash, Fail # These tests are expected to crash on all platforms.
 dart/data_uri_import_test/none: SkipByDesign
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
@@ -27,10 +22,6 @@ dart/use_bare_instructions_flag_test: Pass, Slow # Spawns several subprocesses
 
 [ $mode == debug ]
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
-
-[ $builder_tag == asan ]
-cc/CodeExecutability: Fail, OK # Address Sanitizer turns a crash into a failure.
-cc/CodeImmutability: Fail, OK # Address Sanitizer turns a crash into a failure.
 
 [ $builder_tag == optimization_counter_threshold ]
 dart/appjit*: SkipByDesign # Test needs to a particular opt-counter value
@@ -115,7 +106,7 @@ cc/GenKernelKernelCombined: Skip  # Issue 34393.
 cc/GenKernelKernelMaxRSS: Skip  # Issue 34393.
 dart/appjit_bytecode_simple_test: Skip  # Issue 34393.
 
-[ $arch == simarm || $arch == simarm64 || $arch == simdbc || $arch == simdbc64 || $arch == ia32 || $arch == arm ]
+[ $arch == simarm || $arch == simdbc || $arch == simdbc64 || $arch == ia32 || $arch == arm ]
 cc/GenKernelKernelLoadKernel: SkipByDesign  # No interpreter support.
 cc/GenKernelKernelReadAllBytecode: SkipByDesign  # No interpreter support.
 cc/GenKernelKernelCombined: SkipByDesign  # No interpreter support.

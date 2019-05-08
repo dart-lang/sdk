@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -622,6 +621,22 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitForElement(ForElement node) {
+    // for (^) {}
+    // for (Str^ str = null;) {}
+    // In theory it is possible to specify any expression in initializer,
+    // but for any practical use we need only types.
+    if (entity == node.forLoopParts) {
+      optype.includeTypeNameSuggestions = true;
+    }
+
+    if (entity == node.body) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     dynamic entity = this.entity;
     if (entity is Token) {
@@ -688,22 +703,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitForStatement(ForStatement node) {
-    var entity = this.entity;
-    var entity2 = entity; // Work around limitations of type promotion
-    if (entity2 is SyntacticEntity &&
-        entity2.offset >= node.forLoopParts.offset &&
-        entity2.end <= node.forLoopParts.end) {
-      // Older versions of the analyzer yield elements of `node.forLoopParts`
-      // when iterating through children of `ForEachStatement`.  Handle this
-      // situation by simulating the behavior of newer versions of the analyzer.
-      // TODO(paulberry): remove this case once we require a version of analyzer
-      // containing a1349ac52972a4c69e1b05079ed1662b3b0f8c3f
-      if (entity2.offset == node.forLoopParts.offset) {
-        entity = node.forLoopParts;
-      } else {
-        return node.forLoopParts.accept(this);
-      }
-    }
     // for (^) {}
     // for (Str^ str = null;) {}
     // In theory it is possible to specify any expression in initializer,
@@ -732,6 +731,19 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (identical(entity, node.returnType) ||
         identical(entity, node.name) && node.returnType == null) {
       optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  visitIfElement(IfElement node) {
+    if (identical(entity, node.condition)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    } else if (identical(entity, node.thenElement) ||
+        identical(entity, node.elseElement)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
     }
   }
 
@@ -967,6 +979,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     // higher up in the parse tree, and the SimpleIdentifier will be the
     // entity.
     assert(false);
+  }
+
+  @override
+  visitSpreadElement(SpreadElement node) {
+    if (identical(entity, node.expression)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
   }
 
   @override

@@ -31,9 +31,9 @@ namespace dart {
   V(NonBoolTypeError)                                                          \
   V(InstantiateType)                                                           \
   V(InstantiateTypeArguments)                                                  \
-  V(InvokeClosureNoSuchMethod)                                                 \
+  V(NoSuchMethodFromCallStub)                                                  \
+  V(NoSuchMethodFromPrologue)                                                  \
   V(InvokeNoSuchMethod)                                                        \
-  V(InvokeNoSuchMethodDispatcher)                                              \
   V(MegamorphicCacheMissHandler)                                               \
   V(OptimizeInvokedFunction)                                                   \
   V(TraceICCall)                                                               \
@@ -79,7 +79,9 @@ namespace dart {
   V(double, LibcAsin, double)                                                  \
   V(double, LibcAtan, double)                                                  \
   V(double, LibcAtan2, double, double)                                         \
-  V(RawBool*, CaseInsensitiveCompareUC16, RawString*, RawSmi*, RawSmi*,        \
+  V(RawBool*, CaseInsensitiveCompareUCS2, RawString*, RawSmi*, RawSmi*,        \
+    RawSmi*)                                                                   \
+  V(RawBool*, CaseInsensitiveCompareUTF16, RawString*, RawSmi*, RawSmi*,       \
     RawSmi*)                                                                   \
   V(void, EnterSafepoint)                                                      \
   V(void, ExitSafepoint)

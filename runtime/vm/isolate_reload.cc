@@ -172,7 +172,7 @@ void InstanceMorpher::RunNewFieldInitializers() const {
     // Create a function that returns the expression.
     const Field* field = new_fields_->At(i);
     if (field->kernel_offset() > 0) {
-      eval_func ^= kernel::CreateFieldInitializerFunction(thread, zone, *field);
+      eval_func = kernel::CreateFieldInitializerFunction(thread, zone, *field);
     } else {
       UNREACHABLE();
     }
@@ -987,25 +987,40 @@ void IsolateReloadContext::CheckpointClasses() {
   ClassAndSize* local_saved_class_table = reinterpret_cast<ClassAndSize*>(
       malloc(sizeof(ClassAndSize) * saved_num_cids_));
 
+  // Copy classes into saved_class_table_ first. Make sure there are no
+  // safepoints until saved_class_table_ is filled up and saved so class raw
+  // pointers in saved_class_table_ are properly visited by GC.
+  {
+    NoSafepointScope no_safepoint_scope(Thread::Current());
+
+    for (intptr_t i = 0; i < saved_num_cids_; i++) {
+      if (class_table->IsValidIndex(i) && class_table->HasValidClassAt(i)) {
+        // Copy the class into the saved class table.
+        local_saved_class_table[i] = class_table->PairAt(i);
+      } else {
+        // No class at this index, mark it as NULL.
+        local_saved_class_table[i] = ClassAndSize(NULL);
+      }
+    }
+
+    // Elements of saved_class_table_ are now visible to GC.
+    saved_class_table_ = local_saved_class_table;
+  }
+
+  // Add classes to the set. Set is stored in the Array, so adding an element
+  // may allocate Dart object on the heap and trigger GC.
   Class& cls = Class::Handle();
   UnorderedHashSet<ClassMapTraits> old_classes_set(old_classes_set_storage_);
   for (intptr_t i = 0; i < saved_num_cids_; i++) {
     if (class_table->IsValidIndex(i) && class_table->HasValidClassAt(i)) {
-      // Copy the class into the saved class table and add it to the set.
-      local_saved_class_table[i] = class_table->PairAt(i);
       if (i != kFreeListElement && i != kForwardingCorpse) {
         cls = class_table->At(i);
         bool already_present = old_classes_set.Insert(cls);
         ASSERT(!already_present);
       }
-    } else {
-      // No class at this index, mark it as NULL.
-      local_saved_class_table[i] = ClassAndSize(NULL);
     }
   }
   old_classes_set_storage_ = old_classes_set.Release().raw();
-  // Assigning the field must be done after saving the class table.
-  saved_class_table_ = local_saved_class_table;
   TIR_Print("---- System had %" Pd " classes\n", saved_num_cids_);
 }
 
@@ -1075,7 +1090,7 @@ void IsolateReloadContext::FindModifiedSources(
     scripts = lib.LoadedScripts();
     for (intptr_t script_idx = 0; script_idx < scripts.Length(); script_idx++) {
       script ^= scripts.At(script_idx);
-      uri ^= script.url();
+      uri = script.url();
       if (ContainsScriptUri(modified_sources_uris, uri.ToCString())) {
         // We've already accounted for this script in a prior library.
         continue;
@@ -1185,7 +1200,7 @@ BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload,
   if (root_lib_modified) {
     // The root library was either moved or replaced. Mark it as modified to
     // force a reload of the potential root library replacement.
-    lib ^= object_store()->root_library();
+    lib = object_store()->root_library();
     modified_libs->Add(lib.index());
   }
 
@@ -1840,8 +1855,10 @@ void IsolateReloadContext::set_saved_libraries(
 void IsolateReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(from(), to());
   if (saved_class_table_ != NULL) {
-    visitor->VisitPointers(
-        reinterpret_cast<RawObject**>(&saved_class_table_[0]), saved_num_cids_);
+    for (intptr_t i = 0; i < saved_num_cids_; i++) {
+      visitor->VisitPointer(
+          reinterpret_cast<RawObject**>(&(saved_class_table_[i].class_)));
+    }
   }
 }
 
@@ -1941,7 +1958,7 @@ void IsolateReloadContext::RunInvalidationVisitors() {
     const KernelProgramInfo& info = *kernel_infos[i];
     // Clear the libraries cache.
     {
-      data ^= info.libraries_cache();
+      data = info.libraries_cache();
       ASSERT(!data.IsNull());
       IntHashMap table(&key, &value, &data);
       table.Clear();
@@ -1949,7 +1966,7 @@ void IsolateReloadContext::RunInvalidationVisitors() {
     }
     // Clear the classes cache.
     {
-      data ^= info.classes_cache();
+      data = info.classes_cache();
       ASSERT(!data.IsNull());
       IntHashMap table(&key, &value, &data);
       table.Clear();
@@ -2101,7 +2118,7 @@ RawLibrary* IsolateReloadContext::OldLibraryOrNullBaseMoved(
     if (!old_url.StartsWith(old_url_prefix)) {
       continue;
     }
-    old_suffix ^= String::SubString(old_url, old_prefix_length);
+    old_suffix = String::SubString(old_url, old_prefix_length);
     if (old_suffix.IsNull()) {
       continue;
     }
@@ -2122,7 +2139,7 @@ void IsolateReloadContext::BuildLibraryMapping() {
   Library& old = Library::Handle();
   for (intptr_t i = num_saved_libs_; i < libs.Length(); i++) {
     replacement_or_new = Library::RawCast(libs.At(i));
-    old ^= OldLibraryOrNull(replacement_or_new);
+    old = OldLibraryOrNull(replacement_or_new);
     if (old.IsNull()) {
       if (FLAG_identity_reload) {
         TIR_Print("Could not find original library for %s\n",

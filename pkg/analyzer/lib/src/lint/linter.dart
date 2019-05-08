@@ -14,6 +14,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions, Logger;
@@ -43,6 +44,7 @@ class CamelCaseString {
   static final _camelCaseTester = new RegExp(r'^([_$]*)([A-Z?$]+[a-z0-9]*)+$');
 
   final String value;
+
   CamelCaseString(this.value) {
     if (!isCamelCase(value)) {
       throw new ArgumentError('$value is not CamelCase');
@@ -189,8 +191,11 @@ class Hyperlink {
   final String label;
   final String href;
   final bool bold;
+
   const Hyperlink(this.label, this.href, {this.bold: false});
+
   String get html => '<a href="$href">${_emph(label)}</a>';
+
   String _emph(msg) => bold ? '<strong>$msg</strong>' : msg;
 }
 
@@ -218,6 +223,16 @@ abstract class LinterContext {
   /// Note that this method can cause constant evaluation to occur, which can be
   /// computationally expensive.
   bool canBeConst(InstanceCreationExpression expression);
+
+  /// Return `true` if it would be valid for the given constructor declaration
+  /// [node] to have a keyword of `const`.
+  ///
+  /// The [node] is expected to be a node within one of the compilation
+  /// units in [allUnits].
+  ///
+  /// Note that this method can cause constant evaluation to occur, which can be
+  /// computationally expensive.
+  bool canBeConstConstructor(ConstructorDeclaration node);
 }
 
 /// Implementation of [LinterContext]
@@ -257,18 +272,50 @@ class LinterContextImpl implements LinterContext {
     // exception.
     //
     Token oldKeyword = expression.keyword;
-    ConstantAnalysisErrorListener listener =
-        new ConstantAnalysisErrorListener();
     try {
       expression.keyword = new KeywordToken(Keyword.CONST, expression.offset);
-      LibraryElement library = element.library;
-      ErrorReporter errorReporter = new ErrorReporter(listener, element.source);
-      expression.accept(new ConstantVerifier(
-          errorReporter, library, typeProvider, declaredVariables));
+      return !_hasConstantVerifierError(expression);
     } finally {
       expression.keyword = oldKeyword;
     }
-    return !listener.hasConstError;
+  }
+
+  @override
+  bool canBeConstConstructor(ConstructorDeclaration node) {
+    ConstructorElement element = node.declaredElement;
+
+    ClassElement classElement = element.enclosingElement;
+    if (classElement.hasNonFinalField) return false;
+
+    var oldKeyword = node.constKeyword;
+    try {
+      temporaryConstConstructorElements[element] = true;
+      node.constKeyword = KeywordToken(Keyword.CONST, node.offset);
+      return !_hasConstantVerifierError(node);
+    } finally {
+      temporaryConstConstructorElements[element] = null;
+      node.constKeyword = oldKeyword;
+    }
+  }
+
+  /// Return `true` if [ConstantVerifier] reports an error for the [node].
+  bool _hasConstantVerifierError(AstNode node) {
+    var unitElement = currentUnit.unit.declaredElement;
+    var libraryElement = unitElement.library;
+
+    var listener = ConstantAnalysisErrorListener();
+    var errorReporter = ErrorReporter(listener, unitElement.source);
+
+    node.accept(
+      ConstantVerifier(
+        errorReporter,
+        libraryElement,
+        typeProvider,
+        declaredVariables,
+        featureSet: currentUnit.unit.featureSet,
+      ),
+    );
+    return listener.hasConstError;
   }
 }
 
@@ -299,10 +346,12 @@ class LinterOptions extends DriverOptions {
   String analysisOptions;
   LintFilter filter;
   file_system.ResourceProvider resourceProvider;
+
   // todo (pq): consider migrating to named params (but note Linter dep).
   LinterOptions([this.enabledLints, this.analysisOptions]) {
     enabledLints ??= Registry.ruleRegistry;
   }
+
   void configure(LintConfig config) {
     enabledLints = Registry.ruleRegistry.where((LintRule rule) =>
         !config.ruleConfigs.any((rc) => rc.disables(rule.name)));
@@ -478,6 +527,7 @@ class PrintingReporter implements Reporter, Logger {
 
 abstract class Reporter {
   void exception(LinterException exception);
+
   void warn(String message);
 }
 

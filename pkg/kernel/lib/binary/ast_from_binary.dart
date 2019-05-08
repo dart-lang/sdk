@@ -76,14 +76,19 @@ class BinaryBuilder {
   List<String> debugPath = <String>[];
 
   bool _isReadingLibraryImplementation = false;
+  final bool alwaysCreateNewNamedNodes;
 
   /// If binary contains metadata section with payloads referencing other nodes
   /// such Kernel binary can't be read lazily because metadata cross references
   /// will not be resolved correctly.
   bool _disableLazyReading = false;
 
-  BinaryBuilder(this._bytes, {this.filename, disableLazyReading = false})
-      : _disableLazyReading = disableLazyReading;
+  BinaryBuilder(this._bytes,
+      {this.filename,
+      bool disableLazyReading = false,
+      bool alwaysCreateNewNamedNodes})
+      : _disableLazyReading = disableLazyReading,
+        this.alwaysCreateNewNamedNodes = alwaysCreateNewNamedNodes ?? false;
 
   fail(String message) {
     throw ParseError(message,
@@ -803,6 +808,9 @@ class BinaryBuilder {
     var canonicalName = readCanonicalNameReference();
     Reference reference = canonicalName.getReference();
     Library library = reference.node;
+    if (alwaysCreateNewNamedNodes) {
+      library = null;
+    }
     bool shouldWriteData = library == null || _isReadingLibraryImplementation;
     if (library == null) {
       library =
@@ -923,6 +931,9 @@ class BinaryBuilder {
     var canonicalName = readCanonicalNameReference();
     var reference = canonicalName.getReference();
     Typedef node = reference.node;
+    if (alwaysCreateNewNamedNodes) {
+      node = null;
+    }
     bool shouldWriteData = node == null || _isReadingLibraryImplementation;
     if (node == null) {
       node = new Typedef(null, null, reference: reference);
@@ -968,6 +979,9 @@ class BinaryBuilder {
     var canonicalName = readCanonicalNameReference();
     var reference = canonicalName.getReference();
     Class node = reference.node;
+    if (alwaysCreateNewNamedNodes) {
+      node = null;
+    }
     bool shouldWriteData = node == null || _isReadingLibraryImplementation;
     if (node == null) {
       node = new Class(reference: reference)..level = ClassLevel.Temporary;
@@ -1040,6 +1054,9 @@ class BinaryBuilder {
     var canonicalName = readCanonicalNameReference();
     var reference = canonicalName.getReference();
     Field node = reference.node;
+    if (alwaysCreateNewNamedNodes) {
+      node = null;
+    }
     bool shouldWriteData = node == null || _isReadingLibraryImplementation;
     if (node == null) {
       node = new Field(null, reference: reference);
@@ -1079,6 +1096,9 @@ class BinaryBuilder {
     var canonicalName = readCanonicalNameReference();
     var reference = canonicalName.getReference();
     Constructor node = reference.node;
+    if (alwaysCreateNewNamedNodes) {
+      node = null;
+    }
     bool shouldWriteData = node == null || _isReadingLibraryImplementation;
     if (node == null) {
       node = new Constructor(null, reference: reference);
@@ -1125,6 +1145,9 @@ class BinaryBuilder {
     var canonicalName = readCanonicalNameReference();
     var reference = canonicalName.getReference();
     Procedure node = reference.node;
+    if (alwaysCreateNewNamedNodes) {
+      node = null;
+    }
     bool shouldWriteData = node == null || _isReadingLibraryImplementation;
     if (node == null) {
       node = new Procedure(null, null, null, reference: reference);
@@ -1184,6 +1207,9 @@ class BinaryBuilder {
     var canonicalName = readCanonicalNameReference();
     var reference = canonicalName.getReference();
     RedirectingFactoryConstructor node = reference.node;
+    if (alwaysCreateNewNamedNodes) {
+      node = null;
+    }
     bool shouldWriteData = node == null || _isReadingLibraryImplementation;
     if (node == null) {
       node = new RedirectingFactoryConstructor(null, reference: reference);

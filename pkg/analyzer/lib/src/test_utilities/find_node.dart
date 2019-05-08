@@ -107,6 +107,10 @@ class FindNode {
     return _node(search, (n) => n is FunctionExpression);
   }
 
+  FunctionExpressionInvocation functionExpressionInvocation(String search) {
+    return _node(search, (n) => n is FunctionExpressionInvocation);
+  }
+
   FunctionTypeAlias functionTypeAlias(String search) {
     return _node(search, (n) => n is FunctionTypeAlias);
   }

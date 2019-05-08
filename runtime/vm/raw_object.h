@@ -693,7 +693,6 @@ class RawObject {
   friend class SizeExcludingClassVisitor;  // GetClassId
   friend class InstanceAccumulator;        // GetClassId
   friend class RetainingPathVisitor;       // GetClassId
-  friend class SkippedCodeFunctions;       // StorePointer
   friend class ImageReader;                // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
@@ -847,10 +846,10 @@ class RawFunction : public RawObject {
     kGetterFunction,     // represents getter functions e.g: get foo() { .. }.
     kSetterFunction,     // represents setter functions e.g: set foo(..) { .. }.
     kConstructor,
-    kImplicitGetter,             // represents an implicit getter for fields.
-    kImplicitSetter,             // represents an implicit setter for fields.
-    kImplicitStaticFinalGetter,  // represents an implicit getter for static
-                                 // final fields (incl. static const fields).
+    kImplicitGetter,        // represents an implicit getter for fields.
+    kImplicitSetter,        // represents an implicit setter for fields.
+    kImplicitStaticGetter,  // represents an implicit getter for static
+                            // fields with initializers
     kStaticFieldInitializer,
     kMethodExtractor,  // converts method into implicit closure on the receiver.
     kNoSuchMethodDispatcher,  // invokes noSuchMethod.
@@ -875,14 +874,9 @@ class RawFunction : public RawObject {
   static constexpr intptr_t kMaxOptionalParametersBits = 14;
 
  private:
-  // So that the SkippedCodeFunctions::DetachCode can null out the code fields.
-  friend class SkippedCodeFunctions;
   friend class Class;
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
-
-  static bool ShouldVisitCode(RawCode* raw_code);
-  static bool CheckUsageCounter(RawFunction* raw_fun);
 
   uword entry_point_;  // Accessed from generated code.
   uword unchecked_entry_point_;  // Accessed from generated code.
@@ -1329,7 +1323,6 @@ class RawCode : public RawObject {
   friend class Function;
   template <bool>
   friend class MarkingVisitorBase;
-  friend class SkippedCodeFunctions;
   friend class StackFrame;
   friend class Profiler;
   friend class FunctionDeserializationCluster;
@@ -1415,7 +1408,6 @@ class RawInstructions : public RawObject {
   friend class StackFrame;
   template <bool>
   friend class MarkingVisitorBase;
-  friend class SkippedCodeFunctions;
   friend class Function;
   friend class ImageReader;
   friend class ImageWriter;
@@ -2436,11 +2428,17 @@ class RawRegExp : public RawInstance {
   VISIT_TO(RawObject*, external_two_byte_sticky_function_)
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
-  intptr_t num_registers_;
+  // The same pattern may use different amount of registers if compiled
+  // for a one-byte target than a two-byte target. For example, we do not
+  // need to allocate registers to check whether the current position is within
+  // a surrogate pair when matching a Unicode pattern against a one-byte string.
+  intptr_t num_one_byte_registers_;
+  intptr_t num_two_byte_registers_;
 
   // A bitfield with two fields:
   // type: Uninitialized, simple or complex.
-  // flags: Represents global/local, case insensitive, multiline.
+  // flags: Represents global/local, case insensitive, multiline, unicode,
+  //        dotAll.
   int8_t type_flags_;
 };
 

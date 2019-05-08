@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/scanner/token.dart';
@@ -155,12 +156,30 @@ abstract class AstFactory {
   /// in the compilation unit. The list of [directives] can be `null` if there
   /// are no directives in the compilation unit. The list of [declarations] can
   /// be `null` if there are no declarations in the compilation unit.
+  @Deprecated('Use compilationUnit2')
   CompilationUnit compilationUnit(
       Token beginToken,
       ScriptTag scriptTag,
       List<Directive> directives,
       List<CompilationUnitMember> declarations,
-      Token endToken);
+      Token endToken,
+      [FeatureSet featureSet]);
+
+  /// Returns a newly created compilation unit to have the given directives and
+  /// declarations.  The [scriptTag] can be `null` (or omitted) if there is no
+  /// script tag in the compilation unit.  The list of [declarations] can be
+  /// `null` (or omitted) if there are no directives in the compilation unit.
+  /// The list of `declarations` can be `null` (or omitted) if there are no
+  /// declarations in the compilation unit.  The [featureSet] can be `null` if
+  /// the set of features for this compilation unit is not known (this
+  /// restricts what analysis can be done of the compilation unit).
+  CompilationUnit compilationUnit2(
+      {@required Token beginToken,
+      ScriptTag scriptTag,
+      List<Directive> directives,
+      List<CompilationUnitMember> declarations,
+      @required Token endToken,
+      @required FeatureSet featureSet});
 
   /// Returns a newly created conditional expression.
   ConditionalExpression conditionalExpression(
@@ -907,12 +926,26 @@ abstract class AstFactory {
   /// [comment] and [metadata] can be `null` if the variable list does not have
   /// the corresponding attribute. The [keyword] can be `null` if a type was
   /// specified. The [type] must be `null` if the keyword is 'var'.
+  ///
+  /// Use [variableDeclarationList2] instead.
   VariableDeclarationList variableDeclarationList(
       Comment comment,
       List<Annotation> metadata,
       Token keyword,
       TypeAnnotation type,
       List<VariableDeclaration> variables);
+
+  /// Returns a newly created variable declaration list. Either or both of the
+  /// [comment] and [metadata] can be `null` if the variable list does not have
+  /// the corresponding attribute. The [keyword] can be `null` if a type was
+  /// specified. The [type] must be `null` if the keyword is 'var'.
+  VariableDeclarationList variableDeclarationList2(
+      {Comment comment,
+      List<Annotation> metadata,
+      Token lateKeyword,
+      Token keyword,
+      TypeAnnotation type,
+      List<VariableDeclaration> variables});
 
   /// Returns a newly created variable declaration statement.
   VariableDeclarationStatement variableDeclarationStatement(

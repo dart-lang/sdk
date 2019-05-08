@@ -176,9 +176,9 @@ class InferredTypeCollector {
     } else {
       result = param.name;
     }
-    if (param.kind == UnlinkedParamKind.named) {
+    if (param.kind == UnlinkedParamKind.optionalNamed) {
       result = '{$result}';
-    } else if (param.kind == UnlinkedParamKind.positional) {
+    } else if (param.kind == UnlinkedParamKind.optionalPositional) {
       result = '[$result]';
     }
     return result;

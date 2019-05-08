@@ -485,8 +485,19 @@ Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
     LocalVariable* store_expression = MakeTemporary();
     instructions += LoadLocal(store_expression);
     instructions += GuardFieldClass(field_clone, GetNextDeoptId());
-    instructions += LoadLocal(store_expression);
-    instructions += GuardFieldLength(field_clone, GetNextDeoptId());
+
+    // Field length guard can be omitted if it is not needed.
+    // However, it is possible that we were tracking list length previously,
+    // and generated length guards in the past. We need to generate same IL
+    // to keep deopt ids stable, but we can discard generated IL fragment
+    // if length guard is not needed.
+    Fragment length_guard;
+    length_guard += LoadLocal(store_expression);
+    length_guard += GuardFieldLength(field_clone, GetNextDeoptId());
+
+    if (field_clone.needs_length_check()) {
+      instructions += length_guard;
+    }
 
     // If we are tracking exactness of the static type of the field then
     // emit appropriate guard.

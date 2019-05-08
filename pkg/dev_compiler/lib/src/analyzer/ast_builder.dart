@@ -100,6 +100,10 @@ class AstBuilder {
         return TokenType.GT_GT;
       case ">>=":
         return TokenType.GT_GT_EQ;
+      case ">>>":
+        return TokenType.GT_GT_GT;
+      case ">>>=":
+        return TokenType.GT_GT_GT_EQ;
       case "#":
         return TokenType.HASH;
       case "[]":

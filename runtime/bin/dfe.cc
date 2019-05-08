@@ -16,7 +16,6 @@
 #include "bin/utils.h"
 #include "include/dart_tools_api.h"
 #include "platform/utils.h"
-#include "vm/os.h"
 
 extern "C" {
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
@@ -137,23 +136,22 @@ bool DFE::InitKernelServiceAndPlatformDills(int target_abi_version) {
 
     // Look in the old abi version directory.
     char* script_uri =
-        OS::SCreate(NULL, "%s%s/%d/%s", dir_prefix.get(), kAbiVersionsDir,
-                    target_abi_version, kPlatformStrongDillFile);
+        Utils::SCreate("%s%s/%d/%s", dir_prefix.get(), kAbiVersionsDir,
+                       target_abi_version, kPlatformStrongDillFile);
     if (!TryReadKernelFile(script_uri,
                            const_cast<uint8_t**>(&platform_strong_dill_),
                            &platform_strong_dill_size_)) {
-      Log::PrintErr("Can't find old ABI dill file: %s\n", script_uri);
+      Syslog::PrintErr("Can't find old ABI dill file: %s\n", script_uri);
       free(script_uri);
       return false;
     }
     free(script_uri);
-    script_uri =
-        OS::SCreate(NULL, "%s%s/%d/%s", dir_prefix.get(), kAbiVersionsDir,
-                    target_abi_version, kKernelServiceDillFile);
+    script_uri = Utils::SCreate("%s%s/%d/%s", dir_prefix.get(), kAbiVersionsDir,
+                                target_abi_version, kKernelServiceDillFile);
     if (!TryReadKernelFile(script_uri,
                            const_cast<uint8_t**>(&kernel_service_dill_),
                            &kernel_service_dill_size_)) {
-      Log::PrintErr("Can't find old ABI dill file: %s\n", script_uri);
+      Syslog::PrintErr("Can't find old ABI dill file: %s\n", script_uri);
       free(script_uri);
       return false;
     } else {
@@ -164,7 +162,7 @@ bool DFE::InitKernelServiceAndPlatformDills(int target_abi_version) {
 
   // Look for the frontend snapshot next to the executable.
   frontend_filename_ =
-      OS::SCreate(NULL, "%s%s", dir_prefix.get(), kKernelServiceSnapshot);
+      Utils::SCreate("%s%s", dir_prefix.get(), kKernelServiceSnapshot);
   if (File::Exists(NULL, frontend_filename_)) {
     return true;
   }
@@ -174,8 +172,8 @@ bool DFE::InitKernelServiceAndPlatformDills(int target_abi_version) {
   // If the frontend snapshot is not found next to the executable, then look for
   // it in the "snapshots" directory.
   frontend_filename_ =
-      OS::SCreate(NULL, "%s%s%s%s", dir_prefix.get(), kSnapshotsDirectory,
-                  File::PathSeparator(), kKernelServiceSnapshot);
+      Utils::SCreate("%s%s%s%s", dir_prefix.get(), kSnapshotsDirectory,
+                     File::PathSeparator(), kKernelServiceSnapshot);
   if (File::Exists(NULL, frontend_filename_)) {
     return true;
   }

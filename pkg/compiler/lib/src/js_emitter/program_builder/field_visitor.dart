@@ -27,19 +27,13 @@ class FieldVisitor {
   final CompilerOptions _options;
   final JElementEnvironment _elementEnvironment;
   final JCommonElements _commonElements;
-  final CodegenWorldBuilder _codegenWorldBuilder;
+  final CodegenWorld _codegenWorld;
   final NativeData _nativeData;
   final Namer _namer;
   final JClosedWorld _closedWorld;
 
-  FieldVisitor(
-      this._options,
-      this._elementEnvironment,
-      this._commonElements,
-      this._codegenWorldBuilder,
-      this._nativeData,
-      this._namer,
-      this._closedWorld);
+  FieldVisitor(this._options, this._elementEnvironment, this._commonElements,
+      this._codegenWorld, this._nativeData, this._namer, this._closedWorld);
 
   /// Invokes [f] for each of the fields of [element].
   ///
@@ -65,8 +59,7 @@ class FieldVisitor {
 
       // If the class is never instantiated we still need to set it up for
       // inheritance purposes, but we can simplify its JavaScript constructor.
-      isInstantiated =
-          _codegenWorldBuilder.directlyInstantiatedClasses.contains(cls);
+      isInstantiated = _codegenWorld.directlyInstantiatedClasses.contains(cls);
     } else if (library != null) {
       isLibrary = true;
       assert(visitStatics, failedAt(library));
@@ -141,16 +134,14 @@ class FieldVisitor {
   bool fieldNeedsGetter(FieldEntity field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
-    return field.enclosingClass != null &&
-        _codegenWorldBuilder.hasInvokedGetter(field);
+    return field.isInstanceMember && _codegenWorld.hasInvokedGetter(field);
   }
 
   bool fieldNeedsSetter(FieldEntity field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     if (!field.isAssignable) return false;
-    return field.enclosingClass != null &&
-        _codegenWorldBuilder.hasInvokedSetter(field);
+    return field.isInstanceMember && _codegenWorld.hasInvokedSetter(field);
   }
 
   static bool fieldAccessNeverThrows(FieldEntity field) {

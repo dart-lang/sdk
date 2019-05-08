@@ -38,6 +38,10 @@ import("compiler/compiler_sources.gni")
 import("heap/heap_sources.gni")
 import("vm_sources.gni")
 
+if (is_fuchsia) {
+  import("//build/fuchsia/sdk.gni")
+}
+
 config("libdart_vm_config") {
   if (is_fuchsia) {
     libs = [ "zircon" ]
@@ -60,16 +64,21 @@ config("libdart_vm_config") {
 
 library_for_all_configs("libdart_vm") {
   target_type = "source_set"
+  extra_deps = [ "//third_party/icu" ]
   if (is_fuchsia) {
-    extra_deps = [
-      # TODO(US-399): Remove time_service specific code when it is no longer
-      # necessary.
-      "//sdk/lib/sys/cpp",
-      "//sdk/fidl/fuchsia.timezone",
+    if (using_fuchsia_sdk) {
+      extra_deps += [ "$fuchsia_sdk_root/pkg/lib/sys/cpp" ]
+    } else {
+      extra_deps += [
+        # TODO(US-399): Remove time_service specific code when it is no longer
+        # necessary.
+        "//sdk/lib/sys/cpp",
+        "//sdk/fidl/fuchsia.timezone",
 
-      "//zircon/public/lib/fbl",
-      "//zircon/public/lib/trace-engine",
-    ]
+        "//zircon/public/lib/fbl",
+        "//zircon/public/lib/trace-engine",
+      ]
+    }
   }
   public_configs = [ ":libdart_vm_config" ]
   set_sources_assignment_filter([
@@ -84,10 +93,12 @@ library_for_all_configs("libdart_vm") {
 library_for_all_configs("libdart_lib") {
   target_type = "source_set"
   if (is_fuchsia) {
-    extra_deps = [
-      "//zircon/public/lib/fbl",
-      "//zircon/public/lib/trace-engine",
-    ]
+    if (!using_fuchsia_sdk) {
+      extra_deps = [
+        "//zircon/public/lib/fbl",
+        "//zircon/public/lib/trace-engine",
+      ]
+    }
   }
   include_dirs = [ ".." ]
   allsources =

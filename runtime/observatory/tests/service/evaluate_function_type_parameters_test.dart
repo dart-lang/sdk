@@ -11,11 +11,11 @@ import 'test_helper.dart';
 topLevel<S>() {
   debugger();
 
-  void inner1<T>(T x) {
+  void inner1<TBool, TString, TDouble, TInt>(TInt x) {
     debugger();
   }
 
-  inner1<int>(3);
+  inner1<bool, String, double, int>(3);
 
   void inner2() {
     debugger();
@@ -25,7 +25,7 @@ topLevel<S>() {
 }
 
 class A {
-  foo<T>() {
+  foo<T, S>() {
     debugger();
   }
 
@@ -36,7 +36,7 @@ class A {
 
 void testMain() {
   topLevel<String>();
-  (new A()).foo<int>();
+  (new A()).foo<int, bool>();
   (new A()).bar<dynamic>(42);
 }
 
@@ -62,7 +62,19 @@ var tests = <IsolateTest>[
     expect(stack.type, equals('Stack'));
     expect(await stack['frames'][topFrame].location.getLine(), 16);
 
-    Instance result = await isolate.evalFrame(topFrame, "T.toString()");
+    Instance result = await isolate.evalFrame(topFrame, "TBool.toString()");
+    print(result);
+    expect(result.valueAsString, equals("bool"));
+
+    result = await isolate.evalFrame(topFrame, "TString.toString()");
+    print(result);
+    expect(result.valueAsString, equals("String"));
+
+    result = await isolate.evalFrame(topFrame, "TDouble.toString()");
+    print(result);
+    expect(result.valueAsString, equals("double"));
+
+    result = await isolate.evalFrame(topFrame, "TInt.toString()");
     print(result);
     expect(result.valueAsString, equals("int"));
 
@@ -99,6 +111,10 @@ var tests = <IsolateTest>[
     Instance result = await isolate.evalFrame(topFrame, "T.toString()");
     print(result);
     expect(result.valueAsString, equals("int"));
+
+    result = await isolate.evalFrame(topFrame, "S.toString()");
+    print(result);
+    expect(result.valueAsString, equals("bool"));
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,

@@ -41,13 +41,27 @@ class StubCodeCompiler : public AllStatic {
   static void GenerateMegamorphicMissStub(Assembler* assembler);
   static void GenerateAllocationStubForClass(Assembler* assembler,
                                              const Class& cls);
+
+  enum Optimized {
+    kUnoptimized,
+    kOptimized,
+  };
+  enum CallType {
+    kInstanceCall,
+    kStaticCall,
+  };
+  enum Exactness {
+    kCheckExactness,
+    kIgnoreExactness,
+  };
   static void GenerateNArgsCheckInlineCacheStub(
       Assembler* assembler,
       intptr_t num_args,
       const RuntimeEntry& handle_ic_miss,
       Token::Kind kind,
-      bool optimized = false,
-      bool exactness_check = false);
+      Optimized optimized,
+      CallType type,
+      Exactness exactness);
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);

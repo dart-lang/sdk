@@ -785,6 +785,17 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the default value.");
 
   /**
+   * It is an error to call the default List constructor with a length argument
+   * and a type argument which is potentially non-nullable.
+   */
+  static const CompileTimeErrorCode DEFAULT_LIST_CONSTRUCTOR_MISMATCH =
+      const CompileTimeErrorCode(
+          'DEFAULT_LIST_CONSTRUCTOR_MISMATCH',
+          "A list whose values cannot be 'null' cannot be given an initial length "
+              "because the initial values would all be 'null'.",
+          correction: "Try removing the argument.");
+
+  /**
    * 6.2.1 Required Formals: By means of a function signature that names the
    * parameter and describes its type as a function type. It is a compile-time
    * error if any default values are specified in the signature of such a
@@ -806,6 +817,15 @@ class CompileTimeErrorCode extends ErrorCode {
           "Default values aren't allowed in factory constructors that redirect "
               "to another constructor.",
           correction: "Try removing the default value.");
+
+  /**
+   * It is an error if a required named parameter has a default value.
+   */
+  static const CompileTimeErrorCode DEFAULT_VALUE_ON_REQUIRED_PARAMETER =
+      const CompileTimeErrorCode('DEFAULT_VALUE_ON_REQUIRED_PARAMETER',
+          "Required named parameters cannot have a default value.",
+          correction: "Try removing either the default value or the 'required' "
+              "modifier.");
 
   /**
    * 3.1 Scoping: It is a compile-time error if there is more than one entity
@@ -1493,6 +1513,20 @@ class CompileTimeErrorCode extends ErrorCode {
               "Try using a generic function type (returnType 'Function(' parameters ')').");
 
   /**
+   * It is an error if an optional parameter (named or otherwise) with no
+   * default value has a potentially non-nullable type. This is produced in
+   * cases where there is no valid default value.
+   */
+  static const CompileTimeErrorCode INVALID_OPTIONAL_PARAMETER_TYPE =
+      const CompileTimeErrorCode(
+          'INVALID_OPTIONAL_PARAMETER_TYPE',
+          "The parameter '{0}' cannot have a value of 'null' because of its "
+              "type, but no default value it valid, so it must be a required "
+              "parameter.",
+          correction: "Try making this nullable (by adding a '?') or "
+              "making this a required parameter.");
+
+  /**
    * If a class declaration has a member declaration, the signature of that
    * member declaration becomes the signature in the interface. It's a
    * compile-time error if that signature is not a valid override of all
@@ -1672,6 +1706,33 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Check your Dart SDK installation for completeness.");
 
   /**
+   * It is an error if an optional parameter (named or otherwise) with no
+   * default value has a potentially non-nullable type.
+   */
+  static const CompileTimeErrorCode MISSING_DEFAULT_VALUE_FOR_PARAMETER =
+      const CompileTimeErrorCode(
+          'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+          "The parameter '{0}' cannot have a value of 'null' because of its "
+              "type, so it must either be a required parameter or have a "
+              "default value.",
+          correction:
+              "Try adding either a default value or the 'required' modifier.");
+
+  /**
+   * It is an error if a named parameter that is marked as being required is
+   * not bound to an argument at a call site.
+   *
+   * Parameters:
+   * 0: the name of the parameter
+   */
+  static const CompileTimeErrorCode MISSING_REQUIRED_ARGUMENT =
+      const CompileTimeErrorCode(
+          'MISSING_REQUIRED_ARGUMENT',
+          "The named parameter '{0}' is required so "
+              "there needs to be a corresponding argument.",
+          correction: "Try adding the required argument.");
+
+  /**
    * It's a compile-time error to apply a mixin containing super-invocations to
    * a class that doesn't have a concrete implementation of the super-invoked
    * members compatible with the super-constraint interface.
@@ -1695,15 +1756,18 @@ class CompileTimeErrorCode extends ErrorCode {
 
   /**
    * It's a compile-time error to apply a mixin to a class that doesn't
-   * implement all the on type requirements of the mixin declaration.
+   * implement all the `on` type requirements of the mixin declaration.
    *
    * Parameters:
-   * 0: the display name of the not implemented type
+   * 0: the display name of the mixin
+   * 1: the display name of the superclass
+   * 2: the display name of the type that is not implemented
    */
   static const CompileTimeErrorCode
       MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE = const CompileTimeErrorCode(
           'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
-          "The class doesn't implement the required class '{0}'.",
+          "'{0}' cannot be mixed onto '{1}' "
+              "because '{1}' does not implement '{2}'.",
           correction: "Try extending the class '{0}'.");
 
   /**

@@ -68,13 +68,14 @@ List<protocol.IncludedSuggestionSet> computeIncludedSetList(
 
 /// Convert the [LibraryChange] into the corresponding protocol notification.
 protocol.Notification createCompletionAvailableSuggestionsNotification(
-  LibraryChange change,
+  List<Library> changed,
+  List<int> removed,
 ) {
   return protocol.CompletionAvailableSuggestionsParams(
-    changedLibraries: change.changed.map((library) {
+    changedLibraries: changed.map((library) {
       return _protocolAvailableSuggestionSet(library);
     }).toList(),
-    removedLibraries: change.removed,
+    removedLibraries: removed,
   ).toNotification();
 }
 
@@ -217,5 +218,57 @@ class CompletionLibrariesWorker implements SchedulerWorker {
   @override
   Future<void> performWork() async {
     tracker.doWork();
+  }
+}
+
+class DeclarationsTrackerData {
+  final DeclarationsTracker _tracker;
+
+  /// The set of libraries reported by [_tracker] so far.
+  ///
+  /// We create [_tracker] at the server start, but the completion domain
+  /// should send available declarations only when the corresponding
+  /// subscription is done. OTOH, we don't want the changes stream grow
+  /// infinitely as the same libraries are changed multiple times. So, we drain
+  /// the changes stream in this map, and send it at subscription.
+  final Map<int, Library> _idToLibrary = {};
+
+  /// When the completion domain subscribes for changes, we start redirecting
+  /// changes to this listener.
+  void Function(LibraryChange) _listener = null;
+
+  DeclarationsTrackerData(this._tracker) {
+    _tracker.changes.listen((change) {
+      if (_listener != null) {
+        _listener(change);
+      } else {
+        for (var library in change.changed) {
+          _idToLibrary[library.id] = library;
+        }
+        for (var id in change.removed) {
+          _idToLibrary.remove(id);
+        }
+      }
+    });
+  }
+
+  /// Start listening for available libraries, and return the libraries that
+  /// were accumulated so far.
+  List<Library> startListening(void Function(LibraryChange) listener) {
+    if (_listener != null) {
+      throw StateError('Already listening.');
+    }
+    _listener = listener;
+
+    var accumulatedLibraries = _idToLibrary.values.toList();
+    _idToLibrary.clear();
+    return accumulatedLibraries;
+  }
+
+  void stopListening() {
+    if (_listener == null) {
+      throw StateError('Not listening.');
+    }
+    _listener = null;
   }
 }

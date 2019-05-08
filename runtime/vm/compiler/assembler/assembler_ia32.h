@@ -723,6 +723,10 @@ class Assembler : public AssemblerBase {
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }
 
+  // Moves one word from the memory at [from] to the memory at [to].
+  // Needs a temporary register.
+  void MoveMemoryToMemory(Address to, Address from, Register tmp);
+
   bool has_single_entry_point() const { return true; }
 
   // Set up a Dart frame on entry with a frame pointer and PC information to
@@ -822,6 +826,9 @@ class Assembler : public AssemblerBase {
   // We consider 16-bit integers, powers of two and corresponding masks
   // as safe values that can be emdedded into the code object.
   static bool IsSafeSmi(const Object& object) {
+    if (!target::IsSmi(object)) {
+      return false;
+    }
     int64_t value;
     if (HasIntegerValue(object, &value)) {
       return Utils::IsInt(16, value) || Utils::IsPowerOfTwo(value) ||

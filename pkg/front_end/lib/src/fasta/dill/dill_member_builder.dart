@@ -57,10 +57,8 @@ class DillMemberBuilder extends MemberBuilder {
   }
 
   bool get isSynthetic {
-    // TODO(ahe): Kernel should eventually support a synthetic bit.
-    return isConstructor &&
-        name == "" &&
-        (charOffset == parent.charOffset || charOffset == -1);
+    final Member member = this.member;
+    return member is Constructor && member.isSynthetic;
   }
 
   bool get isField => member is Field;

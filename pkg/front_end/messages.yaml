@@ -574,15 +574,6 @@ ConstClass:
   analyzerCode: ParserErrorCode.CONST_CLASS
   script: "const class C {}"
 
-ConstAndCovariant:
-  index: 57
-  template: "Members can't be declared to be both 'const' and 'covariant'."
-  tip: "Try removing either the 'const' or 'covariant' keyword."
-  analyzerCode: ParserErrorCode.CONST_AND_COVARIANT
-  script:
-    - "class C { covariant const C f; }"
-    - "class C { const covariant C f; }"
-
 ConstAndFinal:
   index: 58
   template: "Members can't be declared to be both 'const' and 'final'."
@@ -594,11 +585,11 @@ ConstAndFinal:
     - "const final int x = 5;"
     - "final const int x = 5;"
 
-ConstAndVar:
+ConflictingModifiers:
   index: 59
-  template: "Members can't be declared to be both 'const' and 'var'."
-  tip: "Try removing either the 'const' or 'var' keyword."
-  analyzerCode: ParserErrorCode.CONST_AND_VAR
+  template: "Members can't be declared to be both '#string' and '#string2'."
+  tip: "Try removing one of the keywords."
+  analyzerCode: ParserErrorCode.CONFLICTING_MODIFIERS
   script:
     - "class C { const var x; }"
     - "class C { var const x; }"
@@ -641,7 +632,7 @@ ModifierOutOfOrder:
     - "class C { factory const C() = prefix.B.foo; }"
 
 TypeBeforeFactory:
-  index: 97
+  index: 57
   template: "Factory constructors cannot have a return type."
   tip: "Try removing the type appearing before 'factory'."
   analyzerCode: ParserErrorCode.TYPE_BEFORE_FACTORY
@@ -662,14 +653,6 @@ ConstMethod:
   analyzerCode: ParserErrorCode.CONST_METHOD
   script:
     - "class C { const m() {} }"
-
-CovariantAfterFinal:
-  index: 65
-  template: "The modifier 'covariant' should be before the modifier 'final'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.COVARIANT_AFTER_FINAL
-  script:
-    - "final covariant f;"
 
 CovariantAfterVar:
   index: 8
@@ -2576,7 +2559,7 @@ InvalidSuperInInitializer:
   analyzerCode: ParserErrorCode.INVALID_SUPER_IN_INITIALIZER
 
 InvalidThisInInitializer:
-  index: 96
+  index: 65
   template: "Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())"
   analyzerCode: ParserErrorCode.INVALID_THIS_IN_INITIALIZER
 

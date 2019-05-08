@@ -42,6 +42,7 @@ CantUseControlFlowOrSpreadAsConstant/example: Fail
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
 ColonInPlaceOfIn/example: Fail
+ConflictingModifiers/script1: Fail
 ConflictsWithConstructor/example: Fail
 ConflictsWithFactory/analyzerCode: Fail
 ConflictsWithFactory/example: Fail
@@ -50,10 +51,8 @@ ConflictsWithMemberWarning/example: Fail
 ConflictsWithSetter/example: Fail
 ConflictsWithSetterWarning/example: Fail
 ConflictsWithTypeVariable/example: Fail
-ConstAndCovariant/script2: Fail
 ConstAndFinal/declaration3: Fail
 ConstAndFinal/declaration4: Fail
-ConstAndVar/script1: Fail
 ConstConstructorInSubclassOfMixinApplication/example: Fail
 ConstConstructorNonFinalField/example: Fail
 ConstConstructorRedirectionToNonConst/analyzerCode: Fail # The analyzer doesn't report this error.
@@ -102,7 +101,6 @@ ContinueOutsideOfLoop/script1: Fail
 ContinueWithoutLabelInCase/script1: Fail
 CouldNotParseUri/analyzerCode: Fail
 CouldNotParseUri/example: Fail
-CovariantAfterFinal/script1: Fail
 CovariantAfterVar/script1: Fail
 CovariantAndStatic/script1: Fail
 CovariantAndStatic/script2: Fail

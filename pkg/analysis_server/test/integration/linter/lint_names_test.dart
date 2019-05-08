@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -66,11 +67,14 @@ class CompilationUnitParser {
     var reader = new CharSequenceReader(contents);
     var stringSource = new StringSource(contents, name);
     var errorListener = new _ErrorListener();
-    var scanner = new Scanner(stringSource, reader, errorListener);
+    var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
+    var scanner = new Scanner(stringSource, reader, errorListener)
+      ..configureFeatures(featureSet);
     var startToken = scanner.tokenize();
     errorListener.throwIfErrors();
 
-    var parser = new Parser(stringSource, errorListener);
+    var parser =
+        new Parser(stringSource, errorListener, featureSet: featureSet);
     var cu = parser.parseCompilationUnit(startToken);
     errorListener.throwIfErrors();
 

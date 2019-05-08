@@ -15,7 +15,6 @@ import 'common/names.dart' show Selectors, Uris;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
-import 'compile_time_constants.dart';
 import 'common_elements.dart' show ElementEnvironment;
 import 'deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import 'diagnostics/code_location.dart';
@@ -32,7 +31,7 @@ import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'io/source_information.dart' show SourceInformation;
-import 'js_backend/backend.dart' show JavaScriptBackend;
+import 'js_backend/backend.dart' show CodegenInputs, JavaScriptBackend;
 import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
 import 'kernel/kernel_strategy.dart';
@@ -86,12 +85,6 @@ abstract class Compiler {
   Map<Entity, WorldImpact> get impactCache => _impactCache;
   ImpactCacheDeleter get impactCacheDeleter => _impactCacheDeleter;
 
-  // TODO(zarah): Remove this map and incorporate compile-time errors
-  // in the model.
-  /// Tracks elements with compile-time errors.
-  final Map<Entity, List<DiagnosticMessage>> elementsWithCompileTimeErrors =
-      new Map<Entity, List<DiagnosticMessage>>();
-
   final Environment environment;
   // TODO(sigmund): delete once we migrate the rest of the compiler to use
   // `environment` directly.
@@ -109,10 +102,6 @@ abstract class Compiler {
   AbstractValueStrategy abstractValueStrategy;
 
   GenericTask selfTask;
-
-  /// The constant environment for the frontend interpretation of compile-time
-  /// constants.
-  ConstantEnvironment constants;
 
   EnqueueTask enqueuer;
   DeferredLoadTask deferredLoadTask;
@@ -176,7 +165,6 @@ abstract class Compiler {
           options, provider, _outputProvider, reporter, measurer),
       kernelFrontEndTask,
       globalInference = new GlobalTypeInferenceTask(this),
-      constants = backend.constantCompilerTask,
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
       // [enqueuer] is created earlier because it contains the resolution world
       // objects needed by other tasks.
@@ -209,6 +197,8 @@ abstract class Compiler {
             "CodegenWorldBuilder has not been created yet."));
     return _codegenWorldBuilder;
   }
+
+  CodegenWorld codegenWorldForTesting;
 
   bool get disableTypeInference =>
       options.disableTypeInference || compilationFailed;
@@ -248,7 +238,7 @@ abstract class Compiler {
       KernelResult result = await kernelLoader.load(uri);
       reporter.log("Kernel load complete");
       if (result == null) return;
-      if (compilationFailed && !options.generateCodeWithCompileTimeErrors) {
+      if (compilationFailed) {
         return;
       }
       if (options.cfeOnly) return;
@@ -342,13 +332,7 @@ abstract class Compiler {
     _reporter.reportSuppressedMessagesSummary();
 
     if (compilationFailed) {
-      if (!options.generateCodeWithCompileTimeErrors) {
-        return null;
-      }
-      if (mainFunction == null) return null;
-      if (!backend.enableCodegenWithErrorsIfSupported(NO_LOCATION_SPANNABLE)) {
-        return null;
-      }
+      return null;
     }
 
     assert(mainFunction != null);
@@ -379,21 +363,27 @@ abstract class Compiler {
     if (options.showInternalProgress) reporter.log('Compiling...');
     phase = PHASE_COMPILING;
 
-    Enqueuer codegenEnqueuer =
-        startCodegen(closedWorld, globalInferenceResults);
+    CodegenInputs codegen = backend.onCodegenStart(closedWorld);
+    Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(
+        closedWorld, globalInferenceResults, codegen);
+    _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
+
     processQueue(closedWorld.elementEnvironment, codegenEnqueuer, mainFunction,
         onProgress: showCodegenProgress);
     codegenEnqueuer.logSummary(reporter.log);
-
-    int programSize = backend.assembleProgram(
-        closedWorld, globalInferenceResults.inferredData);
+    CodegenWorld codegenWorld = codegenWorldBuilder.close();
+    if (retainDataForTesting) {
+      codegenWorldForTesting = codegenWorld;
+    }
+    int programSize = backend.assembleProgram(closedWorld,
+        globalInferenceResults.inferredData, codegen, codegenWorld);
 
     if (options.dumpInfo) {
       dumpInfoTask.reportSize(programSize);
       dumpInfoTask.dumpInfo(closedWorld, globalInferenceResults);
     }
 
-    backend.onCodegenEnd();
+    backend.onCodegenEnd(codegen);
 
     checkQueue(codegenEnqueuer);
   }
@@ -429,16 +419,6 @@ abstract class Compiler {
         generateJavaScriptCode(globalInferenceResults);
       }
     });
-  }
-
-  Enqueuer startCodegen(JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
-    Enqueuer codegenEnqueuer =
-        enqueuer.createCodegenEnqueuer(closedWorld, globalInferenceResults);
-    _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
-    codegenEnqueuer.applyImpact(backend.onCodegenStart(
-        closedWorld, _codegenWorldBuilder, closedWorld.sorter));
-    return codegenEnqueuer;
   }
 
   /// Perform the steps needed to fully end the resolution phase.
@@ -539,7 +519,6 @@ abstract class Compiler {
     if (markCompilationAsFailed(message, kind)) {
       compilationFailed = true;
     }
-    registerCompileTimeError(currentElement, message);
   }
 
   /// Helper for determining whether the current element is declared within
@@ -604,27 +583,6 @@ abstract class Compiler {
     }
     return null;
   }
-
-  /// Returns [true] if a compile-time error has been reported for element.
-  bool elementHasCompileTimeError(Entity element) {
-    return elementsWithCompileTimeErrors.containsKey(element);
-  }
-
-  /// Associate [element] with a compile-time error [message].
-  void registerCompileTimeError(Entity element, DiagnosticMessage message) {
-    // The information is only needed if [generateCodeWithCompileTimeErrors].
-    if (options.generateCodeWithCompileTimeErrors) {
-      if (element == null) {
-        // Record as global error.
-        // TODO(zarah): Extend element model to represent compile-time
-        // errors instead of using a map.
-        element = frontendStrategy.elementEnvironment.mainFunction;
-      }
-      elementsWithCompileTimeErrors
-          .putIfAbsent(element, () => <DiagnosticMessage>[])
-          .add(message);
-    }
-  }
 }
 
 class _CompilerOutput implements api.CompilerOutput {
@@ -638,14 +596,8 @@ class _CompilerOutput implements api.CompilerOutput {
   api.OutputSink createOutputSink(
       String name, String extension, api.OutputType type) {
     if (_compiler.compilationFailed) {
-      if (!_compiler.options.generateCodeWithCompileTimeErrors ||
-          _compiler.options.testMode) {
-        // Disable output in test mode: The build bot currently uses the time
-        // stamp of the generated file to determine whether the output is
-        // up-to-date.
-        return const NullCompilerOutput()
-            .createOutputSink(name, extension, type);
-      }
+      // Ensure that we don't emit output when the compilation has failed.
+      return const NullCompilerOutput().createOutputSink(name, extension, type);
     }
     return _userOutput.createOutputSink(name, extension, type);
   }
@@ -759,13 +711,6 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     if (kind == api.Diagnostic.ERROR ||
         kind == api.Diagnostic.CRASH ||
         (options.fatalWarnings && kind == api.Diagnostic.WARNING)) {
-      Entity errorElement;
-      if (message.spannable is Entity) {
-        errorElement = message.spannable;
-      } else {
-        errorElement = currentElement;
-      }
-      compiler.registerCompileTimeError(errorElement, message);
       compiler.fatalDiagnosticReported(message, infos, kind);
     }
   }

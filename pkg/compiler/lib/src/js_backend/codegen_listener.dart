@@ -82,8 +82,12 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       mainImpact.registerStaticUse(
           new StaticUse.staticInvoke(mainMethod, callStructure));
     }
-    mainImpact.registerStaticUse(
-        new StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
+    if (mainMethod.isGetter) {
+      mainImpact.registerStaticUse(new StaticUse.staticGet(mainMethod));
+    } else {
+      mainImpact.registerStaticUse(
+          new StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
+    }
     return mainImpact;
   }
 

@@ -4,6 +4,7 @@
 
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
+#include "platform/unicode.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart.h"
@@ -21,7 +22,6 @@
 #include "vm/service.h"
 #include "vm/snapshot.h"
 #include "vm/symbols.h"
-#include "vm/unicode.h"
 
 namespace dart {
 
@@ -95,7 +95,7 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
 
   if (ApiObjectConverter::CanConvert(obj.raw())) {
     PortMap::PostMessage(
-        new Message(destination_port_id, obj.raw(), Message::kNormalPriority));
+        Message::New(destination_port_id, obj.raw(), Message::kNormalPriority));
   } else {
     MessageWriter writer(can_send_any_object);
     // TODO(turnidge): Throw an exception when the return value is false?

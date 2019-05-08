@@ -306,7 +306,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
       break;
     }
-    case RawFunction::kImplicitStaticFinalGetter: {
+    case RawFunction::kImplicitStaticGetter: {
       ASSERT(helper_.PeekTag() == kField);
       ASSERT(function.IsStaticFunction());
       // In addition to static field initializers, scopes/local variables

@@ -556,8 +556,13 @@ class ConnectionTask<S> {
 }
 
 /**
- * The [RawSocket] is a low-level interface to a socket, exposing the raw
- * events signaled by the system. It's a [Stream] of [RawSocketEvent]s.
+ * A [RawSocket] is an unbuffered interface to a TCP socket.
+ *
+ * The raw socket delivers the data stream in the same chunks as the underlying
+ * operating system.
+ *
+ * It is not the same as a
+ * [POSIX raw socket](http://man7.org/linux/man-pages/man7/raw.7.html).
  */
 abstract class RawSocket implements Stream<RawSocketEvent> {
   /**
@@ -830,12 +835,16 @@ class Datagram {
 }
 
 /**
- * The [RawDatagramSocket] is a low-level interface to an UDP socket,
- * exposing the raw events signaled by the system. It's a [Stream] of
- * [RawSocketEvent]s.
+ * A [RawDatagramSocket] is an unbuffered interface to a UDP socket.
+ *
+ * The raw datagram socket delivers the datagrams in the same chunks as the
+ * underlying operating system. It's a [Stream] of [RawSocketEvent]s.
  *
  * Note that the event [RawSocketEvent.readClosed] will never be
  * received as an UDP socket cannot be closed by a remote peer.
+ *
+ * It is not the same as a
+ * [POSIX raw socket](http://man7.org/linux/man-pages/man7/raw.7.html).
  */
 abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
   /**

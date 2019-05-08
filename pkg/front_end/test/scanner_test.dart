@@ -79,8 +79,7 @@ class ErrorListener {
 }
 
 abstract class ScannerTestBase {
-  Token scanWithListener(String source, ErrorListener listener,
-      {bool lazyAssignmentOperators: false});
+  Token scanWithListener(String source, ErrorListener listener);
 
   void test_ampersand() {
     _assertToken(TokenType.AMPERSAND, "&");
@@ -92,8 +91,7 @@ abstract class ScannerTestBase {
 
   void test_ampersand_ampersand_eq() {
     if (AbstractScanner.LAZY_ASSIGNMENT_ENABLED) {
-      _assertToken(TokenType.AMPERSAND_AMPERSAND_EQ, "&&=",
-          lazyAssignmentOperators: true);
+      _assertToken(TokenType.AMPERSAND_AMPERSAND_EQ, "&&=");
     }
   }
 
@@ -152,7 +150,7 @@ abstract class ScannerTestBase {
 
   void test_bar_bar_eq() {
     if (AbstractScanner.LAZY_ASSIGNMENT_ENABLED) {
-      _assertToken(TokenType.BAR_BAR_EQ, "||=", lazyAssignmentOperators: true);
+      _assertToken(TokenType.BAR_BAR_EQ, "||=");
     }
   }
 
@@ -1326,11 +1324,9 @@ abstract class ScannerTestBase {
    * Assert that the token scanned from the given [source] has the
    * [expectedType].
    */
-  Token _assertToken(TokenType expectedType, String source,
-      {bool lazyAssignmentOperators: false}) {
+  Token _assertToken(TokenType expectedType, String source) {
     // Fasta generates errors for unmatched '{', '[', etc
-    Token originalToken = _scan(source,
-        lazyAssignmentOperators: lazyAssignmentOperators, ignoreErrors: true);
+    Token originalToken = _scan(source, ignoreErrors: true);
     expect(originalToken, isNotNull);
     expect(originalToken.type, expectedType);
     expect(originalToken.offset, 0);
@@ -1342,8 +1338,7 @@ abstract class ScannerTestBase {
       return originalToken;
     } else if (expectedType == TokenType.SINGLE_LINE_COMMENT) {
       // Adding space to an end-of-line comment changes the comment.
-      Token tokenWithSpaces = _scan(" $source",
-          lazyAssignmentOperators: lazyAssignmentOperators, ignoreErrors: true);
+      Token tokenWithSpaces = _scan(" $source", ignoreErrors: true);
       expect(tokenWithSpaces, isNotNull);
       expect(tokenWithSpaces.type, expectedType);
       expect(tokenWithSpaces.offset, 1);
@@ -1352,23 +1347,20 @@ abstract class ScannerTestBase {
       return originalToken;
     } else if (expectedType == TokenType.INT ||
         expectedType == TokenType.DOUBLE) {
-      Token tokenWithLowerD = _scan("${source}d",
-          lazyAssignmentOperators: lazyAssignmentOperators, ignoreErrors: true);
+      Token tokenWithLowerD = _scan("${source}d", ignoreErrors: true);
       expect(tokenWithLowerD, isNotNull);
       expect(tokenWithLowerD.type, expectedType);
       expect(tokenWithLowerD.offset, 0);
       expect(tokenWithLowerD.length, source.length);
       expect(tokenWithLowerD.lexeme, source);
-      Token tokenWithUpperD = _scan("${source}D",
-          lazyAssignmentOperators: lazyAssignmentOperators, ignoreErrors: true);
+      Token tokenWithUpperD = _scan("${source}D", ignoreErrors: true);
       expect(tokenWithUpperD, isNotNull);
       expect(tokenWithUpperD.type, expectedType);
       expect(tokenWithUpperD.offset, 0);
       expect(tokenWithUpperD.length, source.length);
       expect(tokenWithUpperD.lexeme, source);
     }
-    Token tokenWithSpaces = _scan(" $source ",
-        lazyAssignmentOperators: lazyAssignmentOperators, ignoreErrors: true);
+    Token tokenWithSpaces = _scan(" $source ", ignoreErrors: true);
     expect(tokenWithSpaces, isNotNull);
     expect(tokenWithSpaces.type, expectedType);
     expect(tokenWithSpaces.offset, 1);
@@ -1407,11 +1399,9 @@ abstract class ScannerTestBase {
     expect(token.type, TokenType.EOF);
   }
 
-  Token _scan(String source,
-      {bool lazyAssignmentOperators: false, bool ignoreErrors: false}) {
+  Token _scan(String source, {bool ignoreErrors: false}) {
     ErrorListener listener = new ErrorListener();
-    Token token = scanWithListener(source, listener,
-        lazyAssignmentOperators: lazyAssignmentOperators);
+    Token token = scanWithListener(source, listener);
     if (!ignoreErrors) {
       listener.assertNoErrors();
     }

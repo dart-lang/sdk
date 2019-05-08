@@ -19,6 +19,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/token_details/token_detail_builder.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -202,9 +203,20 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         var libraryPath = fileElement.element.librarySource.fullName;
 
         var resolvedLibrary = await session.getResolvedLibrary(libraryPath);
-        var requestedLibraryElement = await session.getLibraryByUri(
-          library.uriStr,
-        );
+
+        analyzer.LibraryElement requestedLibraryElement;
+        try {
+          requestedLibraryElement = await session.getLibraryByUri(
+            library.uriStr,
+          );
+        } on ArgumentError catch (e) {
+          server.sendResponse(Response.invalidParameter(
+            request,
+            'uri',
+            'Invalid URI: ${library.uriStr}\n$e',
+          ));
+          return;
+        }
 
         var requestedElement =
             requestedLibraryElement.exportNamespace.get(requestedName);
@@ -344,7 +356,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
             request,
             'params.offset',
             'Expected offset between 0 and source length inclusive,'
-            ' but found $offset'));
+                ' but found $offset'));
         return;
       }
 
@@ -465,13 +477,23 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     subscriptions.addAll(params.subscriptions);
 
     if (subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
-      server.createDeclarationsTracker((change) {
+      var data = server.declarationsTrackerData;
+      var soFarLibraries = data.startListening((change) {
         server.sendNotification(
-          createCompletionAvailableSuggestionsNotification(change),
+          createCompletionAvailableSuggestionsNotification(
+            change.changed,
+            change.removed,
+          ),
         );
       });
+      server.sendNotification(
+        createCompletionAvailableSuggestionsNotification(
+          soFarLibraries,
+          [],
+        ),
+      );
     } else {
-      server.disposeDeclarationsTracker();
+      server.declarationsTrackerData.stopListening();
     }
 
     return CompletionSetSubscriptionsResult().toResponse(request.id);

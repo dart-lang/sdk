@@ -51,7 +51,7 @@ void testRelativize() {
       '../sdk/lib/_internal/compiler/implementation/dart2js.dart',
       '///C:/Users/person/dart_checkout_for_stuff/dart/ReleaseIA32/dart.exe',
       '///c:/Users/person/dart_checkout_for_stuff/dart/sdk/lib/_internal/compiler/'
-      'implementation/dart2js.dart',
+          'implementation/dart2js.dart',
       true);
 
   c('/Users/person/file.dart', '/users/person/', '/Users/person/file.dart',

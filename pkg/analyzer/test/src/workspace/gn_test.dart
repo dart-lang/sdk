@@ -7,6 +7,8 @@ import 'package:analyzer/src/workspace/gn.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
+
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GnWorkspaceTest);
@@ -206,7 +208,8 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     var targetFile = newFile('/ws/some/code/lib/code.dart');
 
     var package = workspace.findPackageFor(targetFile.path);
-    expect(package.contains('/ws2/some/file.dart'), isFalse);
+    expect(package.contains(TestSource(convertPath('/ws2/some/file.dart'))),
+        isFalse);
   }
 
   void test_contains_differentPackageInWorkspace() {
@@ -217,7 +220,10 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     var package = workspace.findPackageFor(targetFile.path);
     // A file that is _not_ in this package is not required to have a BUILD.gn
     // file above it, for simplicity and reduced I/O.
-    expect(package.contains('/ws/some/other/code/file.dart'), isFalse);
+    expect(
+        package
+            .contains(TestSource(convertPath('/ws/some/other/code/file.dart'))),
+        isFalse);
   }
 
   void test_contains_samePackage() {
@@ -230,10 +236,10 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     var targetTestFile = newFile('/ws/some/code/test/code_test.dart');
 
     var package = workspace.findPackageFor(targetFile.path);
-    expect(package.contains(targetFile2.path), isTrue);
-    expect(package.contains(targetFile3.path), isTrue);
-    expect(package.contains(targetBinFile.path), isTrue);
-    expect(package.contains(targetTestFile.path), isTrue);
+    expect(package.contains(TestSource(targetFile2.path)), isTrue);
+    expect(package.contains(TestSource(targetFile3.path)), isTrue);
+    expect(package.contains(TestSource(targetBinFile.path)), isTrue);
+    expect(package.contains(TestSource(targetTestFile.path)), isTrue);
   }
 
   void test_contains_subPackage() {
@@ -246,7 +252,8 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     var package =
         workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'));
     expect(
-        package.contains(convertPath('/ws/some/code/testing/lib/testing.dart')),
+        package.contains(
+            TestSource(convertPath('/ws/some/code/testing/lib/testing.dart'))),
         isFalse);
   }
 }

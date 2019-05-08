@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
 import 'package:analyzer/src/dart/ast/utilities.dart' show UIAsCodeVisitorMixin;
 import 'package:analyzer/src/dart/element/element.dart';
@@ -3961,23 +3962,30 @@ class CodeGenerator extends Object
       return null;
     }
     return _emitFunctionTypeArguments(
-        function.staticType, node.staticInvokeType, node.typeArguments);
+        node, function.staticType, node.staticInvokeType, node.typeArguments);
   }
 
   /// If `g` is a generic function type, and `f` is an instantiation of it,
   /// then this will return the type arguments to apply, otherwise null.
-  List<JS.Expression> _emitFunctionTypeArguments(DartType g, DartType f,
+  List<JS.Expression> _emitFunctionTypeArguments(
+      AstNode node, DartType g, DartType f,
       [TypeArgumentList typeArgs]) {
+    if (node is InvocationExpression) {
+      if (g is! FunctionType && typeArgs == null) {
+        return null;
+      }
+      var typeArguments = node.typeArgumentTypes;
+      return typeArguments.map(_emitType).toList(growable: false);
+    }
+
     if (g is FunctionType &&
         g.typeFormals.isNotEmpty &&
         f is FunctionType &&
         f.typeFormals.isEmpty) {
-      return _recoverTypeArguments(g, f).map(_emitType).toList(growable: false);
-    } else if (typeArgs != null) {
-      // Dynamic calls may have type arguments, even though the function types
-      // are not known.
-      return _visitExpressionList(typeArgs.arguments);
+      var typeArguments = _recoverTypeArguments(g, f);
+      return typeArguments.map(_emitType).toList(growable: false);
     }
+
     return null;
   }
 
@@ -5177,9 +5185,12 @@ class CodeGenerator extends Object
       return ast.propertyAccess(newTarget, node.propertyName);
     } else {
       var invoke = node as MethodInvocation;
-      return ast.methodInvoke(newTarget, invoke.methodName,
+      var newNode = ast.methodInvoke(newTarget, invoke.methodName,
           invoke.typeArguments, invoke.argumentList.arguments)
         ..staticInvokeType = invoke.staticInvokeType;
+      (newNode as MethodInvocationImpl).typeArgumentTypes =
+          invoke.typeArgumentTypes;
+      return newNode;
     }
   }
 
@@ -5193,7 +5204,7 @@ class CodeGenerator extends Object
 
     // TODO(jmesserly): handle explicitly passed type args.
     if (type == null) return null;
-    return _emitFunctionTypeArguments(type, instantiated);
+    return _emitFunctionTypeArguments(null, type, instantiated);
   }
 
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].

@@ -12,6 +12,46 @@ void main() {
     expect(unit.toString(), equals("void main() => print('Hello, world!');"));
   });
 
+  group('Supports spread collections', () {
+    var contents = 'var x = [...[]];';
+    void checkCompilationUnit(CompilationUnit unit) {
+      var declaration = unit.declarations.single as TopLevelVariableDeclaration;
+      var listLiteral =
+          declaration.variables.variables.single.initializer as ListLiteral;
+      var spread = listLiteral.elements.single as SpreadElement;
+      expect(spread.expression, TypeMatcher<ListLiteral>());
+    }
+
+    test('with errors suppressed', () {
+      checkCompilationUnit(
+          parseCompilationUnit(contents, suppressErrors: true));
+    });
+    test('with errors enabled', () {
+      checkCompilationUnit(parseCompilationUnit(contents));
+    });
+  });
+
+  group('Supports control flow collections', () {
+    var contents = 'var x = [if (true) 0 else "foo"];';
+    void checkCompilationUnit(CompilationUnit unit) {
+      var declaration = unit.declarations.single as TopLevelVariableDeclaration;
+      var listLiteral =
+          declaration.variables.variables.single.initializer as ListLiteral;
+      var ifElement = listLiteral.elements.single as IfElement;
+      expect(ifElement.condition, TypeMatcher<BooleanLiteral>());
+      expect(ifElement.thenElement, TypeMatcher<IntegerLiteral>());
+      expect(ifElement.elseElement, TypeMatcher<StringLiteral>());
+    }
+
+    test('with errors suppressed', () {
+      checkCompilationUnit(
+          parseCompilationUnit(contents, suppressErrors: true));
+    });
+    test('with errors enabled', () {
+      checkCompilationUnit(parseCompilationUnit(contents));
+    });
+  });
+
   test("throws errors for an invalid compilation unit", () {
     expect(() {
       parseCompilationUnit("void main() => print('Hello, world!')",

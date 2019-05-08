@@ -59,7 +59,7 @@ main() {
           expectedType,
           '${type}',
           "Unexpected type for $name"
-          "${cls != null ? ' in class $cls' : ''}.");
+              "${cls != null ? ' in class $cls' : ''}.");
       return type;
     }
 
@@ -73,7 +73,7 @@ main() {
           expectedType,
           '${returnType}',
           "Unexpected return type for $name"
-          "${cls != null ? ' in class $cls' : ''}.");
+              "${cls != null ? ' in class $cls' : ''}.");
       return returnType;
     }
 

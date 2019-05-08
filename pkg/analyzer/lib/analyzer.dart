@@ -7,6 +7,7 @@ library analyzer;
 
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -40,9 +41,14 @@ export 'package:analyzer/src/generated/utilities_dart.dart';
 /// If [parseFunctionBodies] is [false] then only function signatures will be
 /// parsed.
 CompilationUnit parseCompilationUnit(String contents,
-    {String name, bool suppressErrors: false, bool parseFunctionBodies: true}) {
+    {String name,
+    bool suppressErrors: false,
+    bool parseFunctionBodies: true,
+    FeatureSet featureSet}) {
+  // TODO(paulberry): make featureSet a required parameter
+  featureSet ??= FeatureSet.fromEnableFlags([]);
   Source source = new StringSource(contents, name);
-  return _parseSource(contents, source,
+  return _parseSource(contents, source, featureSet,
       suppressErrors: suppressErrors, parseFunctionBodies: parseFunctionBodies);
 }
 
@@ -54,7 +60,11 @@ CompilationUnit parseCompilationUnit(String contents,
 /// If [parseFunctionBodies] is [false] then only function signatures will be
 /// parsed.
 CompilationUnit parseDartFile(String path,
-    {bool suppressErrors: false, bool parseFunctionBodies: true}) {
+    {bool suppressErrors: false,
+    bool parseFunctionBodies: true,
+    FeatureSet featureSet}) {
+  // TODO(paulberry): Make featureSet a required parameter
+  featureSet ??= FeatureSet.fromEnableFlags([]);
   String contents = new File(path).readAsStringSync();
   var sourceFactory = new SourceFactory(
       [new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)]);
@@ -68,7 +78,7 @@ CompilationUnit parseDartFile(String path,
     throw new ArgumentError("Source $source doesn't exist");
   }
 
-  return _parseSource(contents, source,
+  return _parseSource(contents, source, featureSet,
       suppressErrors: suppressErrors, parseFunctionBodies: parseFunctionBodies);
 }
 
@@ -83,13 +93,16 @@ CompilationUnit parseDartFile(String path,
 /// Throws an [AnalyzerErrorGroup] if any errors occurred, unless
 /// [suppressErrors] is `true`, in which case any errors are discarded.
 CompilationUnit parseDirectives(String contents,
-    {String name, bool suppressErrors: false}) {
+    {String name, bool suppressErrors: false, FeatureSet featureSet}) {
+  // TODO(paulberry): make featureSet a required parameter.
+  featureSet ??= FeatureSet.fromEnableFlags([]);
   var source = new StringSource(contents, name);
   var errorCollector = new _ErrorCollector();
   var reader = new CharSequenceReader(contents);
-  var scanner = new Scanner(source, reader, errorCollector);
+  var scanner = new Scanner(source, reader, errorCollector)
+    ..configureFeatures(featureSet);
   var token = scanner.tokenize();
-  var parser = new Parser(source, errorCollector);
+  var parser = new Parser(source, errorCollector, featureSet: featureSet);
   var unit = parser.parseDirectives(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
 
@@ -103,13 +116,15 @@ String stringLiteralToString(StringLiteral literal) {
   return literal.stringValue;
 }
 
-CompilationUnit _parseSource(String contents, Source source,
+CompilationUnit _parseSource(
+    String contents, Source source, FeatureSet featureSet,
     {bool suppressErrors: false, bool parseFunctionBodies: true}) {
   var reader = new CharSequenceReader(contents);
   var errorCollector = new _ErrorCollector();
-  var scanner = new Scanner(source, reader, errorCollector);
+  var scanner = new Scanner(source, reader, errorCollector)
+    ..configureFeatures(featureSet);
   var token = scanner.tokenize();
-  var parser = new Parser(source, errorCollector)
+  var parser = new Parser(source, errorCollector, featureSet: featureSet)
     ..parseFunctionBodies = parseFunctionBodies;
   var unit = parser.parseCompilationUnit(token)
     ..lineInfo = new LineInfo(scanner.lineStarts);

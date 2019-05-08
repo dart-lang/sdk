@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/nullability/decorated_type.dart';
+import 'package:analysis_server/src/nullability/nullability_graph.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -34,29 +35,28 @@ class NullabilityNode {
 
   bool _isPossiblyOptional = false;
 
-  /// Creates a [NullabilityNode] representing the nullability of a conditional
-  /// expression which is nullable iff both [a] and [b] are nullable.
-  ///
-  /// The constraint variable contained in the new node is created using the
-  /// [joinNullabilities] callback.  TODO(paulberry): this should become
-  /// unnecessary once constraint solving is performed directly using
-  /// [NullabilityNode] objects.
-  NullabilityNode.forConditionalexpression(
-      ConditionalExpression conditionalExpression,
-      NullabilityNode a,
-      NullabilityNode b,
-      ConstraintVariable Function(
-              ConditionalExpression, ConstraintVariable, ConstraintVariable)
-          joinNullabilities)
-      : this._(
-            joinNullabilities(conditionalExpression, a.nullable, b.nullable));
-
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type is `dynamic` due to type inference.
   ///
   /// TODO(paulberry): this should go away; we should decorate the actual
   /// inferred type rather than assuming `dynamic`.
   NullabilityNode.forInferredDynamicType() : this._(ConstraintVariable.always);
+
+  /// Creates a [NullabilityNode] representing the nullability of an
+  /// expression which is nullable iff both [a] and [b] are nullable.
+  ///
+  /// The constraint variable contained in the new node is created using the
+  /// [joinNullabilities] callback.  TODO(paulberry): this should become
+  /// unnecessary once constraint solving is performed directly using
+  /// [NullabilityNode] objects.
+  factory NullabilityNode.forLUB(
+      Expression conditionalExpression,
+      NullabilityNode a,
+      NullabilityNode b,
+      NullabilityGraph graph,
+      ConstraintVariable Function(
+              Expression, ConstraintVariable, ConstraintVariable)
+          joinNullabilities) = NullabilityNodeForLUB._;
 
   /// Creates a [NullabilityNode] representing the nullability of a type
   /// substitution where [outerNode] is the nullability node for the type
@@ -69,10 +69,10 @@ class NullabilityNode {
   /// the new nullability node behave consistently with the old nodes.
   /// TODO(paulberry): this should become unnecessary once constraint solving is
   /// performed directly using [NullabilityNode] objects.
-  NullabilityNode.forSubstitution(Constraints constraints,
-      NullabilityNode innerNode, NullabilityNode outerNode)
-      : this._(ConstraintVariable.or(
-            constraints, innerNode?.nullable, outerNode.nullable));
+  factory NullabilityNode.forSubstitution(
+      Constraints constraints,
+      NullabilityNode innerNode,
+      NullabilityNode outerNode) = NullabilityNodeForSubstitution._;
 
   /// Creates a [NullabilityNode] representing the nullability of a type
   /// annotation appearing explicitly in the user's program.
@@ -88,9 +88,12 @@ class NullabilityNode {
   /// Indicates whether this node is always nullable, by construction.
   bool get isAlwaysNullable => identical(nullable, ConstraintVariable.always);
 
+  /// Indicates whether this node is never nullable, by construction.
+  bool get isNeverNullable => nullable == null;
+
   /// After constraint solving, this getter can be used to query whether the
   /// type associated with this node should be considered nullable.
-  bool get isNullable => nullable.value;
+  bool get isNullable => nullable == null ? false : nullable.value;
 
   /// Indicates whether this node is associated with a named parameter for which
   /// nullability migration needs to decide whether it is optional or required.
@@ -151,8 +154,10 @@ class NullabilityNode {
       CheckExpression checkNotNull,
       List<NullabilityNode> guards,
       Constraints constraints,
+      NullabilityGraph graph,
       bool inConditionalControlFlow) {
     var additionalConditions = <ConstraintVariable>[];
+    graph.connect(sourceNode, destinationNode);
     if (sourceNode.nullable != null) {
       additionalConditions.add(sourceNode.nullable);
       var destinationNonNullIntent = destinationNode.nonNullIntent;
@@ -198,4 +203,48 @@ class NullabilityNode {
     conditions.addAll(additionalConditions);
     constraints.record(conditions, consequence);
   }
+}
+
+/// Derived class for nullability nodes that arise from the least-upper-bound
+/// implied by a conditional expression.
+class NullabilityNodeForLUB extends NullabilityNode {
+  final NullabilityNode left;
+
+  final NullabilityNode right;
+
+  NullabilityNodeForLUB._(
+      Expression expression,
+      this.left,
+      this.right,
+      NullabilityGraph graph,
+      ConstraintVariable Function(
+              ConditionalExpression, ConstraintVariable, ConstraintVariable)
+          joinNullabilities)
+      : super._(joinNullabilities(expression, left.nullable, right.nullable)) {
+    graph.connect(left, this);
+    graph.connect(right, this);
+  }
+}
+
+/// Derived class for nullability nodes that arise from type variable
+/// substitution.
+class NullabilityNodeForSubstitution extends NullabilityNode {
+  /// Nullability node representing the inner type of the substitution.
+  ///
+  /// For example, if this NullabilityNode arose from substituting `int*` for
+  /// `T` in the type `T*`, [innerNode] is the nullability corresponding to the
+  /// `*` in `int*`.
+  final NullabilityNode innerNode;
+
+  /// Nullability node representing the outer type of the substitution.
+  ///
+  /// For example, if this NullabilityNode arose from substituting `int*` for
+  /// `T` in the type `T*`, [innerNode] is the nullability corresponding to the
+  /// `*` in `T*`.
+  final NullabilityNode outerNode;
+
+  NullabilityNodeForSubstitution._(
+      Constraints constraints, this.innerNode, this.outerNode)
+      : super._(ConstraintVariable.or(
+            constraints, innerNode?.nullable, outerNode.nullable));
 }

@@ -22,24 +22,20 @@ class ParseBase with ResourceProviderMixin {
     var content = file.readAsStringSync();
 
     var analysisOptions = this.analysisOptions;
-    var experimentStatus = analysisOptions.experimentStatus;
+    var featureSet = analysisOptions.contextFeatures;
 
     var errorListener = RecordingErrorListener();
 
     var reader = CharSequenceReader(content);
-    var scanner = Scanner(source, reader, errorListener);
+    var scanner = Scanner(source, reader, errorListener)
+      ..configureFeatures(featureSet);
 
-    scanner.enableGtGtGt = experimentStatus.constant_update_2018;
     var token = scanner.tokenize();
 
     var useFasta = analysisOptions.useFastaParser;
-    var parser = Parser(source, errorListener, useFasta: useFasta);
+    var parser = Parser(source, errorListener,
+        featureSet: featureSet, useFasta: useFasta);
     parser.enableOptionalNewAndConst = true;
-    parser.enableNonNullable = experimentStatus.non_nullable;
-    parser.enableSpreadCollections = experimentStatus.spread_collections;
-    parser.enableControlFlowCollections =
-        experimentStatus.control_flow_collections;
-    parser.enableTripleShift = experimentStatus.triple_shift;
 
     var unit = parser.parseCompilationUnit(token);
     unit.lineInfo = LineInfo(scanner.lineStarts);

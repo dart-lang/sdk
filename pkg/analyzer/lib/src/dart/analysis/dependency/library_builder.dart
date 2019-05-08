@@ -678,11 +678,13 @@ class _LibraryBuilder {
     if (parameters == null) return;
 
     for (var parameter in parameters.parameters) {
-      if (parameter.isRequired) {
+      if (parameter.isRequiredPositional) {
         signature.addInt(1);
+      } else if (parameter.isRequiredNamed) {
+        signature.addInt(4);
       } else if (parameter.isOptionalPositional) {
         signature.addInt(2);
-      } else {
+      } else if (parameter.isOptionalNamed) {
         signature.addInt(3);
       }
 

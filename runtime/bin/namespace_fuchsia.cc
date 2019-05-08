@@ -45,7 +45,7 @@ NamespaceImpl::~NamespaceImpl() {
   if (fdio_ns_ != NULL) {
     zx_status_t status = fdio_ns_destroy(fdio_ns_);
     if (status != ZX_OK) {
-      Log::PrintErr("fdio_ns_destroy: %s\n", zx_status_get_string(status));
+      Syslog::PrintErr("fdio_ns_destroy: %s\n", zx_status_get_string(status));
     }
   }
 }

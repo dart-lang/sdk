@@ -52,7 +52,7 @@ runTestCase(Uri source) async {
 
     ProcessResult result =
         Process.runSync(Platform.resolvedExecutable, [file.path]);
-    expect(result.exitCode, 0);
+    expect(result.exitCode, 0, reason: '${result.stderr}\n${result.stdout}');
   } finally {
     if (file.existsSync()) {
       file.deleteSync();

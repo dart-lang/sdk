@@ -1017,8 +1017,10 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
-      Token varFinalOrConst) {
+  void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
+      Token covariantToken, Token varFinalOrConst) {
+    // TODO(danrubel): handle required token
+    reportNonNullableModifierError(requiredToken);
     push((covariantToken != null ? covariantMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
   }
@@ -1287,9 +1289,17 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void endTopLevelFields(Token staticToken, Token covariantToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     debugEvent("endTopLevelFields");
+    // TODO(danrubel): handle NNBD 'late' modifier
+    reportNonNullableModifierError(lateToken);
     List<FieldInfo> fieldInfos = popFieldInfos(count);
     TypeBuilder type = nullIfParserRecovery(pop());
     int modifiers = (staticToken != null ? staticMask : 0) |
@@ -1304,9 +1314,11 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
-      int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
+    // TODO(danrubel): handle NNBD 'late' modifier
+    reportNonNullableModifierError(lateToken);
     List<FieldInfo> fieldInfos = popFieldInfos(count);
     TypeBuilder type = pop();
     int modifiers = (staticToken != null ? staticMask : 0) |

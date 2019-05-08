@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 
-import 'graph_builder.dart';
+import 'builder_kernel.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
 
@@ -20,10 +21,13 @@ class SsaBranch {
 }
 
 class SsaBranchBuilder {
-  final GraphBuilder builder;
+  final KernelSsaGraphBuilder builder;
   final Spannable diagnosticNode;
 
   SsaBranchBuilder(this.builder, [this.diagnosticNode]);
+
+  AbstractValueDomain get _abstractValueDomain =>
+      builder.closedWorld.abstractValueDomain;
 
   void checkNotAborted() {
     if (builder.isAborted()) {
@@ -42,7 +46,7 @@ class SsaBranchBuilder {
     checkNotAborted();
     assert(identical(builder.current, builder.lastOpenedBlock));
     HInstruction conditionValue = builder.popBoolified();
-    HIf branch = new HIf(builder.abstractValueDomain, conditionValue)
+    HIf branch = new HIf(_abstractValueDomain, conditionValue)
       ..sourceInformation = sourceInformation;
     HBasicBlock conditionExitBlock = builder.current;
     builder.close(branch);
@@ -159,9 +163,8 @@ class SsaBranchBuilder {
       boolifiedLeft = builder.popBoolified();
       builder.stack.add(boolifiedLeft);
       if (!isAnd) {
-        builder.push(
-            new HNot(builder.pop(), builder.abstractValueDomain.boolType)
-              ..sourceInformation = sourceInformation);
+        builder.push(new HNot(builder.pop(), _abstractValueDomain.boolType)
+          ..sourceInformation = sourceInformation);
       }
     }
 
@@ -177,7 +180,7 @@ class SsaBranchBuilder {
     HPhi result = new HPhi.manyInputs(
         null,
         <HInstruction>[boolifiedRight, notIsAnd],
-        builder.abstractValueDomain.dynamicType)
+        _abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation;
     builder.current.addPhi(result);
     builder.stack.add(result);
@@ -204,7 +207,7 @@ class SsaBranchBuilder {
     if (isExpression) {
       assert(thenValue != null && elseValue != null);
       HPhi phi = new HPhi.manyInputs(null, <HInstruction>[thenValue, elseValue],
-          builder.abstractValueDomain.dynamicType);
+          _abstractValueDomain.dynamicType);
       joinBranch.block.addPhi(phi);
       builder.stack.add(phi);
     }

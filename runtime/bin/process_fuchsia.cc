@@ -31,16 +31,16 @@
 #include "bin/fdutils.h"
 #include "bin/file.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/namespace.h"
 #include "bin/namespace_fuchsia.h"
 #include "platform/signal_blocker.h"
+#include "platform/syslog.h"
 #include "platform/utils.h"
 
 // #define PROCESS_LOGGING 1
 #if defined(PROCESS_LOGGING)
-#define LOG_ERR(msg, ...) Log::PrintErr("Dart Process: " msg, ##__VA_ARGS__)
-#define LOG_INFO(msg, ...) Log::Print("Dart Process: " msg, ##__VA_ARGS__)
+#define LOG_ERR(msg, ...) Syslog::PrintErr("Dart Process: " msg, ##__VA_ARGS__)
+#define LOG_INFO(msg, ...) Syslog::Print("Dart Process: " msg, ##__VA_ARGS__)
 #else
 #define LOG_ERR(msg, ...)
 #define LOG_INFO(msg, ...)
@@ -207,8 +207,8 @@ class ExitCodeHandler {
     pkt.key = kShutdownPacketKey;
     zx_status_t status = zx_port_queue(port_, &pkt);
     if (status != ZX_OK) {
-      Log::PrintErr("ExitCodeHandler: zx_port_queue failed: %s\n",
-                    zx_status_get_string(status));
+      Syslog::PrintErr("ExitCodeHandler: zx_port_queue failed: %s\n",
+                       zx_status_get_string(status));
     }
   }
 
@@ -249,8 +249,8 @@ class ExitCodeHandler {
     zx_status_t status = zx_object_get_info(
         process, ZX_INFO_PROCESS, &proc_info, sizeof(proc_info), NULL, NULL);
     if (status != ZX_OK) {
-      Log::PrintErr("ExitCodeHandler: zx_object_get_info failed: %s\n",
-                    zx_status_get_string(status));
+      Syslog::PrintErr("ExitCodeHandler: zx_object_get_info failed: %s\n",
+                       zx_status_get_string(status));
     } else {
       return_code = proc_info.return_code;
     }
@@ -270,8 +270,8 @@ class ExitCodeHandler {
       ASSERT((result == -1) || (result == sizeof(exit_code_fd)));
       if ((result == -1) && (errno != EPIPE)) {
         int err = errno;
-        Log::PrintErr("Failed to write exit code for process %d: errno=%d\n",
-                      process, err);
+        Syslog::PrintErr("Failed to write exit code for process %d: errno=%d\n",
+                         process, err);
       }
       LOG_INFO("ExitCodeHandler thread wrote %ld bytes to fd %ld\n", result,
                exit_code_fd);
@@ -365,8 +365,8 @@ bool Process::Wait(intptr_t pid,
   zx_handle_t port;
   zx_status_t status = zx_port_create(0, &port);
   if (status != ZX_OK) {
-    Log::PrintErr("Process::Wait: zx_port_create failed: %s\n",
-                  zx_status_get_string(status));
+    Syslog::PrintErr("Process::Wait: zx_port_create failed: %s\n",
+                     zx_status_get_string(status));
     return false;
   }
 
@@ -390,8 +390,8 @@ bool Process::Wait(intptr_t pid,
     zx_port_packet_t pkt;
     status = zx_port_wait(port, ZX_TIME_INFINITE, &pkt);
     if (status != ZX_OK) {
-      Log::PrintErr("Process::Wait: zx_port_wait failed: %s\n",
-                    zx_status_get_string(status));
+      Syslog::PrintErr("Process::Wait: zx_port_wait failed: %s\n",
+                       zx_status_get_string(status));
       return false;
     }
     IOHandle* event_handle = reinterpret_cast<IOHandle*>(pkt.key);
@@ -434,7 +434,8 @@ bool Process::Wait(intptr_t pid,
         exit_tmp = NULL;
       }
     } else {
-      Log::PrintErr("Process::Wait: Unexpected wait key: %p\n", event_handle);
+      Syslog::PrintErr("Process::Wait: Unexpected wait key: %p\n",
+                       event_handle);
     }
     if (out_tmp != NULL) {
       if (!out_tmp->AsyncWait(port, events, out_key)) {

@@ -20,6 +20,7 @@
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/kernel_loader.h"
 #endif
+#include "platform/unicode.h"
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
@@ -32,6 +33,7 @@
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
+#include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
@@ -49,7 +51,6 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/thread_registry.h"
-#include "vm/unicode.h"
 #include "vm/uri.h"
 #include "vm/version.h"
 
@@ -1092,8 +1093,10 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
     }
     return reinterpret_cast<Dart_Isolate>(NULL);
   }
+
+  Thread* T = Thread::Current();
+  bool success = false;
   {
-    Thread* T = Thread::Current();
     StackZone zone(T);
     HANDLESCOPE(T);
     // We enter an API scope here as InitializeIsolate could compile some
@@ -1111,25 +1114,27 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
         Library::CheckFunctionFingerprints();
       }
 #endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT).
-      // We exit the API scope entered above.
-      T->ExitApiScope();
-      // A Thread structure has been associated to the thread, we do the
-      // safepoint transition explicitly here instead of using the
-      // TransitionXXX scope objects as the reverse transition happens
-      // outside this scope in Dart_ShutdownIsolate/Dart_ExitIsolate.
-      T->set_execution_state(Thread::kThreadInNative);
-      T->EnterSafepoint();
-      if (error != NULL) {
-        *error = NULL;
-      }
-      return Api::CastIsolate(I);
-    }
-    if (error != NULL) {
+      success = true;
+    } else if (error != NULL) {
       *error = strdup(error_obj.ToErrorCString());
     }
     // We exit the API scope entered above.
     T->ExitApiScope();
   }
+
+  if (success) {
+    // A Thread structure has been associated to the thread, we do the
+    // safepoint transition explicitly here instead of using the
+    // TransitionXXX scope objects as the reverse transition happens
+    // outside this scope in Dart_ShutdownIsolate/Dart_ExitIsolate.
+    T->set_execution_state(Thread::kThreadInNative);
+    T->EnterSafepoint();
+    if (error != NULL) {
+      *error = NULL;
+    }
+    return Api::CastIsolate(I);
+  }
+
   Dart::ShutdownIsolate();
   return reinterpret_cast<Dart_Isolate>(NULL);
 }
@@ -1280,6 +1285,12 @@ DART_EXPORT void Dart_ThreadEnableProfiling() {
   os_thread->EnableThreadInterrupts();
 }
 
+DART_EXPORT void Dart_AddSymbols(const char* dso_name,
+                                 void* buffer,
+                                 intptr_t buffer_size) {
+  NativeSymbolResolver::AddSymbols(dso_name, buffer, buffer_size);
+}
+
 DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port,
                                              char** error) {
 #if defined(PRODUCT)
@@ -1294,12 +1305,18 @@ DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port,
 
   const intptr_t kBufferLength = 512;
   char method[kBufferLength];
+
+  // clang-format off
   intptr_t method_length = snprintf(method, kBufferLength, "{"
       "\"jsonrpc\": \"2.0\","
       "\"method\": \"_writeCpuProfileTimeline\","
       "\"id\": \"\","
-      "\"params\": {\"isolateId\": \"isolates/%" Pd64 "\"}"
-    "}", main_port);
+      "\"params\": {"
+      "  \"isolateId\": \"isolates/%" Pd64 "\","
+      "  \"tags\": \"None\""
+      "}"
+  "}", main_port);
+  // clang-format on
   ASSERT(method_length <= kBufferLength);
 
   char* response = NULL;
@@ -1761,7 +1778,7 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   RawObject* raw_obj = Api::UnwrapHandle(handle);
   if (ApiObjectConverter::CanConvert(raw_obj)) {
     return PortMap::PostMessage(
-        new Message(port_id, raw_obj, Message::kNormalPriority));
+        Message::New(port_id, raw_obj, Message::kNormalPriority));
   }
 
   const Object& object = Object::Handle(Z, raw_obj);
@@ -2380,7 +2397,7 @@ DART_EXPORT Dart_Handle Dart_GetStaticMethodClosure(Dart_Handle library,
     return Api::NewError(
         "function_name must be the name of a regular function.");
   }
-  func ^= func.ImplicitClosureFunction();
+  func = func.ImplicitClosureFunction();
   if (func.IsNull()) {
     return Dart_Null();
   }
@@ -3700,10 +3717,10 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     const auto& view_obj = Api::UnwrapTypedDataViewHandle(Z, object);
     ASSERT(!view_obj.IsNull());
     Smi& val = Smi::Handle();
-    val ^= view_obj.length();
+    val = view_obj.length();
     length = val.Value();
     size_in_bytes = length * TypedDataView::ElementSizeInBytes(class_id);
-    val ^= view_obj.offset_in_bytes();
+    val = view_obj.offset_in_bytes();
     intptr_t offset_in_bytes = val.Value();
     const auto& obj = Instance::Handle(view_obj.typed_data());
     T->IncrementNoSafepointScopeDepth();
@@ -5153,7 +5170,7 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
           number_of_type_arguments, array.Length());
     }
     // Set up the type arguments array.
-    type_args_obj ^= TypeArguments::New(num_expected_type_arguments);
+    type_args_obj = TypeArguments::New(num_expected_type_arguments);
     AbstractType& type_arg = AbstractType::Handle();
     for (intptr_t i = 0; i < number_of_type_arguments; i++) {
       type_arg ^= array.At(i);
@@ -5938,6 +5955,9 @@ DART_EXPORT Dart_Handle Dart_SortClasses() {
   return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
 #else
   DARTSCOPE(Thread::Current());
+  // Prevent background compiler from running while code is being cleared and
+  // adding new code.
+  BackgroundCompiler::Stop(Isolate::Current());
   // We don't have mechanisms to change class-ids that are embedded in code and
   // ICData.
   ClassFinalizer::ClearAllCode();
@@ -6133,7 +6153,7 @@ static void DropRegExpMatchCode(Zone* zone) {
   ASSERT(!func.IsNull());
   Code& code = Code::Handle(zone);
   if (func.HasCode()) {
-    code ^= func.CurrentCode();
+    code = func.CurrentCode();
     ASSERT(!code.IsNull());
     code.DisableDartCode();
   }
@@ -6141,10 +6161,10 @@ static void DropRegExpMatchCode(Zone* zone) {
   func.ClearICDataArray();
   ASSERT(!func.HasCode());
 
-  func ^= reg_exp_class.LookupFunctionAllowPrivate(execute_match_sticky_name);
+  func = reg_exp_class.LookupFunctionAllowPrivate(execute_match_sticky_name);
   ASSERT(!func.IsNull());
   if (func.HasCode()) {
-    code ^= func.CurrentCode();
+    code = func.CurrentCode();
     ASSERT(!code.IsNull());
     code.DisableDartCode();
   }

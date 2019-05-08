@@ -11,7 +11,8 @@ import '../../common_elements.dart' show CommonElements;
 import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
-import '../../elements/types.dart' show DartType, InterfaceType, DynamicType;
+import '../../elements/types.dart';
+import '../../ir/static_type.dart';
 import '../../serialization/serialization.dart';
 import '../../universe/class_hierarchy.dart';
 import '../../universe/selector.dart' show Selector;
@@ -260,6 +261,35 @@ class CommonMasks implements AbstractValueDomain {
   @override
   TypeMask createNullableSubtype(ClassEntity cls) {
     return new TypeMask.subtype(cls, _closedWorld);
+  }
+
+  @override
+  AbstractValue createFromStaticType(DartType type,
+      [ClassRelation classRelation = ClassRelation.subtype]) {
+    while (type is TypeVariableType) {
+      TypeVariableType typeVariable = type;
+      type = _closedWorld.elementEnvironment
+          .getTypeVariableBound(typeVariable.element);
+      classRelation = ClassRelation.subtype;
+    }
+    if (type is InterfaceType) {
+      switch (classRelation) {
+        case ClassRelation.exact:
+          return new TypeMask.exact(type.element, _closedWorld);
+        case ClassRelation.thisExpression:
+          if (!_closedWorld.isUsedAsMixin(type.element)) {
+            return new TypeMask.subclass(type.element, _closedWorld);
+          }
+          break;
+        case ClassRelation.subtype:
+          break;
+      }
+      return new TypeMask.subtype(type.element, _closedWorld);
+    } else if (type is FunctionType) {
+      return new TypeMask.subtype(commonElements.functionClass, _closedWorld);
+    } else {
+      return dynamicType;
+    }
   }
 
   @override

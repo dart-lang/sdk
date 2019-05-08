@@ -181,9 +181,9 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     compiler::StubCodeCompiler::GenerateAllocationStubForClass(&assembler, cls);
 
     if (thread->IsMutatorThread()) {
-      stub ^= Code::FinalizeCodeAndNotify(name, nullptr, &assembler,
-                                          pool_attachment,
-                                          /*optimized1*/ false);
+      stub = Code::FinalizeCodeAndNotify(name, nullptr, &assembler,
+                                         pool_attachment,
+                                         /*optimized1*/ false);
       // Check if background compilation thread has not already added the stub.
       if (cls.allocation_stub() == Code::null()) {
         stub.set_owner(cls);
@@ -207,8 +207,8 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
         // Do not Garbage collect during this stage and instead allow the
         // heap to grow.
         NoHeapGrowthControlScope no_growth_control;
-        stub ^= Code::FinalizeCode(nullptr, &assembler, pool_attachment,
-                                   /*optimized=*/false, /*stats=*/nullptr);
+        stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
+                                  /*optimized=*/false, /*stats=*/nullptr);
         stub.set_owner(cls);
         cls.set_allocation_stub(stub);
       }

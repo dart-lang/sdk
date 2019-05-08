@@ -16,7 +16,7 @@ part of dart.core;
  * for the specification of JavaScript regular expressions.
  *
  * [firstMatch] is the main implementation method that applies a regular
- * expression to a string and returns the first [Match]. All
+ * expression to a string and returns the first [RegExpMatch]. All
  * other methods in [RegExp] can build on it.
  *
  * Use [allMatches] to look for all matches of a regular expression in
@@ -27,7 +27,7 @@ part of dart.core;
  * ```dart
  * RegExp exp = new RegExp(r"(\w+)");
  * String str = "Parse my string";
- * Iterable<Match> matches = exp.allMatches(str);
+ * Iterable<RegExpMatch> matches = exp.allMatches(str);
  * ```
  *
  * Note the use of a _raw string_ (a string prefixed with `r`)
@@ -47,6 +47,12 @@ abstract class RegExp implements Pattern {
    *
    * If `caseSensitive` is disabled, then case is ignored.
    *
+   * If `unicode` is enabled, then the pattern is treated as a Unicode
+   * pattern as described by the ECMAScript standard.
+   *
+   * If `dotAll` is enabled, then the `.` pattern will match _all_ characters,
+   * including line terminators.
+   *
    * Example:
    *
    * ```dart
@@ -60,7 +66,10 @@ abstract class RegExp implements Pattern {
    * interpolation is required.
    */
   external factory RegExp(String source,
-      {bool multiLine = false, bool caseSensitive = true});
+      {bool multiLine = false,
+      bool caseSensitive = true,
+      bool unicode = false,
+      bool dotAll = false});
 
   /**
    * Returns a regular expression that matches [text].
@@ -79,14 +88,14 @@ abstract class RegExp implements Pattern {
    * Searches for the first match of the regular expression
    * in the string [input]. Returns `null` if there is no match.
    */
-  Match firstMatch(String input);
+  RegExpMatch firstMatch(String input);
 
   /**
    * Returns an iterable of the matches of the regular expression on [input].
    *
    * If [start] is provided, only start looking for matches at `start`.
    */
-  Iterable<Match> allMatches(String input, [int start = 0]);
+  Iterable<RegExpMatch> allMatches(String input, [int start = 0]);
 
   /**
    * Returns whether the regular expression has a match in the string [input].
@@ -120,6 +129,33 @@ abstract class RegExp implements Pattern {
    * versions of the same letter.
    */
   bool get isCaseSensitive;
+
+  /**
+   * Whether this regular expression is in Unicode mode.
+   *
+   * In Unicode mode, UTF-16 surrogate pairs in the original string will be
+   * treated as a single code point and will not match separately. Otherwise,
+   * the target string will be treated purely as a sequence of individual code
+   * units and surrogates will not be treated specially.
+   *
+   * In Unicode mode, the syntax of the RegExp pattern is more restricted, but
+   * some pattern features, like Unicode property escapes, are only available in
+   * this mode.
+   */
+  bool get isUnicode;
+
+  /**
+   * Whether "." in this regular expression matches line terminators.
+   *
+   * When false, the "." character matches a single character, unless that
+   * character is a line terminator. When true, then the "." character will
+   * match any single character including line terminators.
+   *
+   * This feature is distinct from [isMultiline], as they affect the behavior
+   * of different pattern characters, and so they can be used together or
+   * separately.
+   */
+  bool get isDotAll;
 }
 
 /**

@@ -1119,7 +1119,7 @@ ConstantPool {
     #L2:
     switch(x) {
       #L3:
-      case #C1:
+      case 1:
         {
           try {
             dart.core::print("before try 1");
@@ -1144,7 +1144,7 @@ ConstantPool {
           break #L2;
         }
       #L4:
-      case #C2:
+      case 2:
         {
           dart.core::print("case 2");
           break #L2;
@@ -1190,8 +1190,4 @@ ConstantPool {
     }
   }
   static method main() → dynamic {}
-}
-constants  {
-  #C1 = 1
-  #C2 = 2
 }

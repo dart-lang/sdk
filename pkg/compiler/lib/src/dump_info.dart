@@ -204,7 +204,7 @@ class ElementInfoCollector {
 
     classInfo.size = size;
 
-    if (!compiler.backend.emitter.neededClasses.contains(clazz) &&
+    if (!compiler.backend.emitterTask.neededClasses.contains(clazz) &&
         classInfo.fields.isEmpty &&
         classInfo.functions.isEmpty) {
       return null;
@@ -269,11 +269,13 @@ class ElementInfoCollector {
 
     List<ParameterInfo> parameters = <ParameterInfo>[];
     List<String> inferredParameterTypes = <String>[];
-    codegenWorldBuilder.forEachParameterAsLocal(function, (parameter) {
+
+    closedWorld.elementEnvironment.forEachParameterAsLocal(
+        closedWorld.globalLocalsMap, function, (parameter) {
       inferredParameterTypes.add('${_resultOfParameter(parameter)}');
     });
     int parameterIndex = 0;
-    codegenWorldBuilder.forEachParameter(function, (type, name, _) {
+    closedWorld.elementEnvironment.forEachParameter(function, (type, name, _) {
       parameters.add(new ParameterInfo(
           name, inferredParameterTypes[parameterIndex++], '$type'));
     });
@@ -348,7 +350,7 @@ class ElementInfoCollector {
           ? compiler.options.outputUri.pathSegments.last
           : deferredPartFileName(compiler.options, outputUnit.name);
       OutputUnitInfo info = new OutputUnitInfo(filename, outputUnit.name,
-          backend.emitter.emitter.generatedSize(outputUnit));
+          backend.emitterTask.emitter.generatedSize(outputUnit));
       info.imports
           .addAll(closedWorld.outputUnitData.getImportNames(outputUnit));
       result.outputUnits.add(info);

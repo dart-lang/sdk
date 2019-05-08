@@ -31,46 +31,50 @@ import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../../../compiler_new.dart';
 import '../../common.dart';
-import '../../compiler.dart' show Compiler;
+import '../../common/tasks.dart';
 import '../../constants/values.dart'
     show ConstantValue, FunctionConstantValue, NullConstantValue;
 import '../../common_elements.dart' show CommonElements;
+import '../../dump_info.dart';
 import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
 import '../../io/location_provider.dart' show LocationCollector;
+import '../../io/source_information.dart';
 import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
-    show JavaScriptBackend, Namer, ConstantEmitter, StringBackedName;
+    show CodegenInputs, Namer, ConstantEmitter, StringBackedName;
 import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
+import '../../js_backend/runtime_types.dart';
+import '../../options.dart';
+import '../../universe/codegen_world_builder.dart' show CodegenWorld;
 import '../../world.dart';
 import '../code_emitter_task.dart';
 import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';
-import '../js_emitter.dart' show NativeEmitter;
 import '../js_emitter.dart' show buildTearOffCode, NativeGenerator;
 import '../model.dart';
-import '../sorter.dart' show Sorter;
 
 part 'fragment_emitter.dart';
 
 class ModelEmitter {
-  final Compiler compiler;
-  final Namer namer;
-  final CodeEmitterTask task;
-  ConstantEmitter constantEmitter;
-  final NativeEmitter nativeEmitter;
-  final bool shouldGenerateSourceMap;
+  final CompilerOptions _options;
+  final DiagnosticReporter _reporter;
+  final CompilerOutput _outputProvider;
+  final DumpInfoTask _dumpInfoTask;
+  final Namer _namer;
+  final CompilerTask _task;
+  ConstantEmitter _constantEmitter;
+  final bool _shouldGenerateSourceMap;
   final JClosedWorld _closedWorld;
   final ConstantOrdering _constantOrdering;
+  final SourceInformationStrategy _sourceInformationStrategy;
 
   // The full code that is written to each hunk part-file.
   final Map<Fragment, CodeOutput> outputBuffers = {};
 
   Set<Fragment> omittedFragments = Set();
-
-  JavaScriptBackend get backend => compiler.backend;
 
   /// For deferred loading we communicate the initializers via this global var.
   static const String deferredInitializersGlobal =
@@ -81,22 +85,30 @@ class ModelEmitter {
 
   static const String typeNameProperty = r"builtin$cls";
 
-  ModelEmitter(this.compiler, this.namer, this.nativeEmitter, this._closedWorld,
-      Sorter sorter, this.task, this.shouldGenerateSourceMap)
-      : _constantOrdering = new ConstantOrdering(sorter) {
-    this.constantEmitter = new ConstantEmitter(
-        compiler.options,
+  ModelEmitter(
+      this._options,
+      this._reporter,
+      this._outputProvider,
+      this._dumpInfoTask,
+      this._namer,
+      this._closedWorld,
+      this._task,
+      Emitter emitter,
+      this._sourceInformationStrategy,
+      RuntimeTypesEncoder rtiEncoder,
+      this._shouldGenerateSourceMap)
+      : _constantOrdering = new ConstantOrdering(_closedWorld.sorter) {
+    this._constantEmitter = new ConstantEmitter(
+        _options,
         _closedWorld.commonElements,
-        compiler.codegenWorldBuilder,
+        _closedWorld.elementEnvironment,
         _closedWorld.rtiNeed,
-        compiler.backend.rtiEncoder,
+        rtiEncoder,
         _closedWorld.fieldAnalysis,
-        task,
+        emitter,
         this.generateConstantReference,
         constantListGenerator);
   }
-
-  DiagnosticReporter get reporter => compiler.reporter;
 
   js.Expression constantListGenerator(js.Expression array) {
     // TODO(floitsch): remove hard-coded name.
@@ -135,7 +147,7 @@ class ModelEmitter {
 
     // Sorting by the long name clusters constants with the same constructor
     // which compresses a tiny bit better.
-    int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
+    int r = _namer.constantLongName(a).compareTo(_namer.constantLongName(b));
     if (r != 0) return r;
 
     // Resolve collisions in the long name by using a structural order.
@@ -144,8 +156,8 @@ class ModelEmitter {
 
   js.Expression generateStaticClosureAccess(FunctionEntity element) {
     return js.js('#.#()', [
-      namer.globalObjectForMember(element),
-      namer.staticClosureName(element)
+      _namer.globalObjectForMember(element),
+      _namer.staticClosureName(element)
     ]);
   }
 
@@ -158,19 +170,27 @@ class ModelEmitter {
     // We are only interested in the "isInlined" part, but it does not hurt to
     // test for the other predicates.
     if (isConstantInlinedOrAlreadyEmitted(value)) {
-      return constantEmitter.generate(value);
+      return _constantEmitter.generate(value);
     }
     return js.js('#.#',
-        [namer.globalObjectForConstant(value), namer.constantName(value)]);
+        [_namer.globalObjectForConstant(value), _namer.constantName(value)]);
   }
 
-  int emitProgram(Program program) {
+  int emitProgram(
+      Program program, CodegenInputs codegen, CodegenWorld codegenWorld) {
     MainFragment mainFragment = program.fragments.first;
     List<DeferredFragment> deferredFragments =
         new List<DeferredFragment>.from(program.deferredFragments);
 
     FragmentEmitter fragmentEmitter = new FragmentEmitter(
-        compiler, namer, backend, constantEmitter, this, _closedWorld);
+        _options,
+        _dumpInfoTask,
+        _namer,
+        _constantEmitter,
+        this,
+        _closedWorld,
+        codegen,
+        codegenWorld);
 
     var deferredLoadingState = new DeferredLoadingState();
     js.Statement mainCode =
@@ -211,14 +231,14 @@ class ModelEmitter {
     writeMainFragment(mainFragment, mainCode,
         isSplit: program.deferredFragments.isNotEmpty ||
             program.hasSoftDeferredClasses ||
-            compiler.options.experimentalTrackAllocations);
+            _options.experimentalTrackAllocations);
 
     if (_closedWorld.backendUsage.requiresPreamble &&
-        !backend.htmlLibraryIsLoaded) {
-      reporter.reportHintMessage(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
+        !_closedWorld.backendUsage.isHtmlLoaded) {
+      _reporter.reportHintMessage(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
 
-    if (compiler.options.deferredMapUri != null) {
+    if (_options.deferredMapUri != null) {
       writeDeferredMap();
     }
 
@@ -232,13 +252,13 @@ class ModelEmitter {
     flavor.write('fast startup emitter');
     // TODO(johnniwinther): Remove this flavor.
     flavor.write(', strong');
-    if (compiler.options.trustPrimitives) flavor.write(', trust primitives');
-    if (compiler.options.omitImplicitChecks) flavor.write(', omit checks');
-    if (compiler.options.laxRuntimeTypeToString) {
+    if (_options.trustPrimitives) flavor.write(', trust primitives');
+    if (_options.omitImplicitChecks) flavor.write(', omit checks');
+    if (_options.laxRuntimeTypeToString) {
       flavor.write(', lax runtime type');
     }
-    if (compiler.options.useContentSecurityPolicy) flavor.write(', CSP');
-    return new js.Comment(generatedBy(compiler, flavor: '$flavor'));
+    if (_options.useContentSecurityPolicy) flavor.write(', CSP');
+    return new js.Comment(generatedBy(_options, flavor: '$flavor'));
   }
 
   /// Writes all deferred fragment's code into files.
@@ -272,15 +292,15 @@ class ModelEmitter {
       {bool isSplit}) {
     LocationCollector locationCollector;
     List<CodeOutputListener> codeOutputListeners;
-    if (shouldGenerateSourceMap) {
-      task.measureSubtask('source-maps', () {
+    if (_shouldGenerateSourceMap) {
+      _task.measureSubtask('source-maps', () {
         locationCollector = new LocationCollector();
         codeOutputListeners = <CodeOutputListener>[locationCollector];
       });
     }
 
     CodeOutput mainOutput = new StreamCodeOutput(
-        compiler.outputProvider.createOutputSink('', 'js', OutputType.js),
+        _outputProvider.createOutputSink('', 'js', OutputType.js),
         codeOutputListeners);
     outputBuffers[fragment] = mainOutput;
 
@@ -292,29 +312,29 @@ class ModelEmitter {
     ]);
 
     mainOutput.addBuffer(js.createCodeBuffer(
-        program, compiler.options, backend.sourceInformationStrategy,
-        monitor: compiler.dumpInfoTask));
+        program, _options, _sourceInformationStrategy,
+        monitor: _dumpInfoTask));
 
-    if (shouldGenerateSourceMap) {
-      task.measureSubtask('source-maps', () {
+    if (_shouldGenerateSourceMap) {
+      _task.measureSubtask('source-maps', () {
         mainOutput.add(SourceMapBuilder.generateSourceMapTag(
-            compiler.options.sourceMapUri, compiler.options.outputUri));
+            _options.sourceMapUri, _options.outputUri));
       });
     }
 
     mainOutput.close();
 
-    if (shouldGenerateSourceMap) {
-      task.measureSubtask('source-maps', () {
+    if (_shouldGenerateSourceMap) {
+      _task.measureSubtask('source-maps', () {
         SourceMapBuilder.outputSourceMap(
             mainOutput,
             locationCollector,
-            namer.createMinifiedGlobalNameMap(),
-            namer.createMinifiedInstanceNameMap(),
+            _namer.createMinifiedGlobalNameMap(),
+            _namer.createMinifiedInstanceNameMap(),
             '',
-            compiler.options.sourceMapUri,
-            compiler.options.outputUri,
-            compiler.outputProvider);
+            _options.sourceMapUri,
+            _options.outputUri,
+            _outputProvider);
       });
     }
   }
@@ -330,8 +350,8 @@ class ModelEmitter {
     outputListeners.add(hasher);
 
     LocationCollector locationCollector;
-    if (shouldGenerateSourceMap) {
-      task.measureSubtask('source-maps', () {
+    if (_shouldGenerateSourceMap) {
+      _task.measureSubtask('source-maps', () {
         locationCollector = new LocationCollector();
         outputListeners.add(locationCollector);
       });
@@ -340,8 +360,8 @@ class ModelEmitter {
     String hunkPrefix = fragment.outputFileName;
 
     CodeOutput output = new StreamCodeOutput(
-        compiler.outputProvider
-            .createOutputSink(hunkPrefix, deferredExtension, OutputType.jsPart),
+        _outputProvider.createOutputSink(
+            hunkPrefix, deferredExtension, OutputType.jsPart),
         outputListeners);
 
     outputBuffers[fragment] = output;
@@ -362,8 +382,8 @@ class ModelEmitter {
     ]);
 
     output.addBuffer(js.createCodeBuffer(
-        program, compiler.options, backend.sourceInformationStrategy,
-        monitor: compiler.dumpInfoTask));
+        program, _options, _sourceInformationStrategy,
+        monitor: _dumpInfoTask));
 
     // Make a unique hash of the code (before the sourcemaps are added)
     // This will be used to retrieve the initializing function from the global
@@ -374,11 +394,11 @@ class ModelEmitter {
     output.add('\n${deferredInitializersGlobal}["$hash"] = '
         '${deferredInitializersGlobal}.current');
 
-    if (shouldGenerateSourceMap) {
-      task.measureSubtask('source-maps', () {
+    if (_shouldGenerateSourceMap) {
+      _task.measureSubtask('source-maps', () {
         Uri mapUri, partUri;
-        Uri sourceMapUri = compiler.options.sourceMapUri;
-        Uri outputUri = compiler.options.outputUri;
+        Uri sourceMapUri = _options.sourceMapUri;
+        Uri outputUri = _options.outputUri;
         String partName = "$hunkPrefix.$partExtension";
         String hunkFileName = "$hunkPrefix.$deferredExtension";
 
@@ -386,21 +406,19 @@ class ModelEmitter {
           String mapFileName = hunkFileName + ".map";
           List<String> mapSegments = sourceMapUri.pathSegments.toList();
           mapSegments[mapSegments.length - 1] = mapFileName;
-          mapUri =
-              compiler.options.sourceMapUri.replace(pathSegments: mapSegments);
+          mapUri = _options.sourceMapUri.replace(pathSegments: mapSegments);
         }
 
         if (outputUri != null) {
           List<String> partSegments = outputUri.pathSegments.toList();
           partSegments[partSegments.length - 1] = hunkFileName;
-          partUri =
-              compiler.options.outputUri.replace(pathSegments: partSegments);
+          partUri = _options.outputUri.replace(pathSegments: partSegments);
         }
 
         output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
         output.close();
         SourceMapBuilder.outputSourceMap(output, locationCollector, {}, {},
-            partName, mapUri, partUri, compiler.outputProvider);
+            partName, mapUri, partUri, _outputProvider);
       });
     } else {
       output.close();
@@ -420,11 +438,11 @@ class ModelEmitter {
     mapping["_comment"] = "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
     mapping.addAll(_closedWorld.outputUnitData.computeDeferredMap(
-        compiler.options, _closedWorld.elementEnvironment,
+        _options, _closedWorld.elementEnvironment,
         omittedUnits:
             omittedFragments.map((fragemnt) => fragemnt.outputUnit).toSet()));
-    compiler.outputProvider.createOutputSink(
-        compiler.options.deferredMapUri.path, '', OutputType.deferredMap)
+    _outputProvider.createOutputSink(
+        _options.deferredMapUri.path, '', OutputType.deferredMap)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();
   }

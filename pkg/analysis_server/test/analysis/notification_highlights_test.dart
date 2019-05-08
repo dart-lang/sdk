@@ -17,6 +17,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationHighlightsTest);
     defineReflectiveTests(HighlightsWithControlFlowCollectionsTest);
+    defineReflectiveTests(HighlightsWithNnbdTest);
     defineReflectiveTests(HighlightTypeTest);
   });
 }
@@ -1148,6 +1149,37 @@ f(a, b) {
     await prepareHighlights();
     assertHasStringRegion(HighlightRegionType.LITERAL_MAP,
         "const <int, String>{1: 'a', 2: 'b', 3: 'c'}");
+  }
+}
+
+@reflectiveTest
+class HighlightsWithNnbdTest extends HighlightsTestSupport {
+  @override
+  void createProject({Map<String, String> packageRoots}) {
+    addAnalysisOptionsFile('''
+analyzer:
+  enable-experiment:
+    - non-nullable
+''');
+    super.createProject(packageRoots: packageRoots);
+  }
+
+  test_KEYWORD_late() async {
+    addTestFile('''
+class C {
+  late int x;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'late');
+  }
+
+  test_KEYWORD_required() async {
+    addTestFile('''
+void f({required int x}) {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'required');
   }
 }
 

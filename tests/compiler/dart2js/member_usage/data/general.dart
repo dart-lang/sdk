@@ -34,43 +34,75 @@ class B {
 /*element: C.:invoke*/
 class C extends A {
   /*element: C.method1:invoke*/
+  @override
   method1() {}
 
   /*element: B.method2:invoke*/
+  @override
   method2() {}
+
+  @override
   method4() {}
 
   /*element: C.getter:read*/
+  @override
   get getter => 42;
+
+  @override
   set setter(_) {}
 }
 
 /*element: D.:invoke*/
 class D implements B {
+  @override
   method1() {}
 
   /*element: D.method2:invoke*/
+  @override
   method2() {}
+
+  @override
   method5() {}
+
+  @override
   get getter => 42;
 
   /*element: D.setter=:write*/
+  @override
   set setter(_) {}
 }
 
 class E implements A {
+  @override
   method1() {}
+
+  @override
   method2() {}
+
+  @override
   method4() {}
+
+  @override
   get getter => 42;
+
+  @override
   set setter(_) {}
 }
 
 class F extends B {
+  @override
   method1() {}
+
+  @override
   method2() {}
+
+  @override
   method5() {}
+
+  @override
   get getter => 42;
+
+  @override
   set setter(_) {}
 }
 
@@ -134,12 +166,15 @@ abstract class O extends N {}
 /*element: P.:invoke*/
 class P implements O {
   /*element: P.method1:invoke*/
+  @override
   method1() {}
 
   /*element: P.getter:read*/
+  @override
   get getter => 42;
 
   /*element: P.setter=:write*/
+  @override
   set setter(_) {}
 }
 
@@ -165,7 +200,7 @@ class Class1b {
 
 /*element: Class2.:invoke*/
 class Class2 {
-  /*element: Class2.c:init,read*/
+  /*element: Class2.c:init,invoke,read=static*/
   Class1a c;
 }
 

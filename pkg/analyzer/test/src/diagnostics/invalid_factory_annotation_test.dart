@@ -19,31 +19,37 @@ class InvalidFactoryAnnotationTest extends DriverResolutionTest
     with PackageMixin {
   test_class() async {
     addMetaPackage();
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @factory
 class X {
 }
-''', [HintCode.INVALID_FACTORY_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_FACTORY_ANNOTATION, 33, 8),
+    ]);
   }
 
   test_field() async {
     addMetaPackage();
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class X {
   @factory
   int x;
 }
-''', [HintCode.INVALID_FACTORY_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_FACTORY_ANNOTATION, 45, 8),
+    ]);
   }
 
   test_topLevelFunction() async {
     addMetaPackage();
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @factory
 main() { }
-''', [HintCode.INVALID_FACTORY_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_FACTORY_ANNOTATION, 33, 8),
+    ]);
   }
 }

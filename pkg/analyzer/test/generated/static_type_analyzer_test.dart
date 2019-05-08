@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -1533,6 +1534,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     _typeProvider = context.typeProvider;
     _visitor = new ResolverVisitor(
         inheritance, definingLibrary, source, _typeProvider, _listener,
+        featureSet: FeatureSet.forTesting(),
         nameScope: new LibraryScope(definingLibrary));
     return _visitor.typeAnalyzer;
   }

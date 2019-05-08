@@ -37,8 +37,6 @@ class ObjectPointerVisitor {
   // Range of pointers to visit 'first' <= pointer <= 'last'.
   virtual void VisitPointers(RawObject** first, RawObject** last) = 0;
 
-  virtual bool visit_function_code() const { return true; }
-  virtual void add_skipped_code_function(RawFunction* funct) { UNREACHABLE(); }
   // len argument is the number of pointers to visit starting from 'p'.
   void VisitPointers(RawObject** p, intptr_t len) {
     VisitPointers(p, (p + len - 1));

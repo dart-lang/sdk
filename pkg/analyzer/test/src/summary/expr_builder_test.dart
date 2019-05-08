@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -296,7 +296,6 @@ class C {
   }
 
   void test_list_for() {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[for (i = 0; i < 10; i++) i]';
     // Resynthesis inserts synthetic "const" tokens; work around that.
     var expectedText = 'const $sourceText';
@@ -305,7 +304,6 @@ class C {
   }
 
   void test_list_for_each_with_declaration_typed() {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[for (int i in const []) i]';
     // Resynthesis inserts synthetic "const" tokens; work around that.
     var expectedText = 'const $sourceText';
@@ -319,7 +317,6 @@ class C {
   }
 
   void test_list_for_each_with_declaration_untyped() {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[for (var i in const []) i]';
     // Resynthesis inserts synthetic "const" tokens; work around that.
     var expectedText = 'const $sourceText';
@@ -333,7 +330,6 @@ class C {
   }
 
   void test_list_for_each_with_identifier() {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[for (i in const []) i]';
     // Resynthesis inserts synthetic "const" tokens; work around that.
     var expectedText = 'const $sourceText';
@@ -342,7 +338,6 @@ class C {
   }
 
   void test_list_for_each_with_identifier_await() {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[await for (i in const []) i]';
     // Resynthesis inserts synthetic "const" tokens; work around that.
     var expectedText = 'const $sourceText';
@@ -351,7 +346,6 @@ class C {
   }
 
   void test_list_for_empty_condition() {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[for (i = 0;; i++) i]';
     // Resynthesis inserts synthetic "const" tokens; work around that.
     var expectedText = 'const $sourceText';
@@ -360,7 +354,6 @@ class C {
   }
 
   void test_list_for_empty_initializer() {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[for (; i < 10; i++) i]';
     // Resynthesis inserts synthetic "const" tokens; work around that.
     var expectedText = 'const $sourceText';
@@ -369,7 +362,6 @@ class C {
   }
 
   void test_list_for_two_updaters() {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[for (i = 0; i < 10; i++, j++) i]';
     // Resynthesis inserts synthetic "const" tokens; work around that.
     var expectedText = 'const $sourceText';
@@ -378,7 +370,6 @@ class C {
   }
 
   void test_list_for_with_one_declaration_typed() {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[for (int i = 0; i < 10; i++) i]';
     // Resynthesis inserts synthetic "const" tokens; work around that.
     var expectedText = 'const $sourceText';
@@ -398,7 +389,6 @@ class C {
   }
 
   void test_list_for_with_one_declaration_untyped() {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[for (var i = 0; i < 10; i++) i]';
     // Resynthesis inserts synthetic "const" tokens; work around that.
     var expectedText = 'const $sourceText';
@@ -418,7 +408,6 @@ class C {
   }
 
   void test_list_for_with_two_declarations_untyped() {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[for (var i = 0, j = 0; i < 10; j++) i]';
     // Resynthesis inserts synthetic "const" tokens; work around that.
     var expectedText = 'const $sourceText';
@@ -439,7 +428,6 @@ class C {
   }
 
   void test_list_for_with_uninitialized_declaration_untyped() {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[for (var i; i < 10; i++) i]';
     // Resynthesis inserts synthetic "const" tokens; work around that.
     var expectedText = 'const $sourceText';
@@ -459,7 +447,6 @@ class C {
   }
 
   void test_list_for_zero_updaters() {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '[for (i = 0; i < 10;) i]';
     // Resynthesis inserts synthetic "const" tokens; work around that.
     var expectedText = 'const $sourceText';
@@ -488,7 +475,6 @@ class C {
   }
 
   void test_map_for() {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '{1 : 2, for (i = 0; i < 10; i++) i : i}';
     // Resynthesis inserts synthetic "const" tokens; work around that.
     var expectedText = 'const $sourceText';
@@ -646,7 +632,6 @@ class B {
   }
 
   void test_set_for() {
-    experimentStatus = ExperimentStatus(control_flow_collections: true);
     var sourceText = '{1, for (i = 0; i < 10; i++) i}';
     // Resynthesis inserts synthetic "const" tokens; work around that.
     var expectedText = 'const $sourceText';
@@ -772,8 +757,9 @@ mixin ExprBuilderTestHelpers implements ResynthesizeTestStrategy {
 class ExprBuilderWithConstantUpdateTest extends ResynthesizeTestStrategyTwoPhase
     with ExprBuilderTestHelpers {
   @override
-  ExperimentStatus get experimentStatus =>
-      new ExperimentStatus.fromStrings([EnableString.constant_update_2018]);
+  FeatureSet get featureSet => new FeatureSet.forTesting(
+      sdkVersion: '2.2.2',
+      additionalFeatures: [Feature.constant_update_2018, Feature.triple_shift]);
 
   void test_bitShiftRightLogical() {
     checkSimpleExpression('0 >>> 1');
@@ -782,6 +768,8 @@ class ExprBuilderWithConstantUpdateTest extends ResynthesizeTestStrategyTwoPhase
 
 @reflectiveTest
 class TokensToStringTest {
+  final featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
+
   void test_empty_list_no_space() {
     // This is an interesting test case because "[]" is scanned as a single
     // token, but the parser splits it into two.
@@ -860,7 +848,8 @@ class TokensToStringTest {
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
     var reader = new CharSequenceReader(newString);
     var stringSource = new StringSource(newString, null);
-    var scanner = new Scanner(stringSource, reader, errorListener);
+    var scanner = new Scanner(stringSource, reader, errorListener)
+      ..configureFeatures(featureSet);
     var startToken = scanner.tokenize();
     var newTokens = _extractTokenList(startToken);
     expect(newTokens, originalTokens);
@@ -888,9 +877,11 @@ class TokensToStringTest {
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
     var reader = new CharSequenceReader(sourceText);
     var stringSource = new StringSource(sourceText, null);
-    var scanner = new Scanner(stringSource, reader, errorListener);
+    var scanner = new Scanner(stringSource, reader, errorListener)
+      ..configureFeatures(featureSet);
     var startToken = scanner.tokenize();
-    var parser = new Parser(stringSource, errorListener);
+    var parser =
+        new Parser(stringSource, errorListener, featureSet: featureSet);
     var compilationUnit = parser.parseCompilationUnit(startToken);
     var f = compilationUnit.declarations[0] as FunctionDeclaration;
     var body = f.functionExpression.body as ExpressionFunctionBody;

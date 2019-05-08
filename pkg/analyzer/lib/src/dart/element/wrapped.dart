@@ -71,6 +71,9 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
   bool get hasLoadLibraryFunction => wrappedUnit.hasLoadLibraryFunction;
 
   @override
+  bool get hasMustCallSuper => wrappedUnit.hasMustCallSuper;
+
+  @override
   bool get hasOptionalTypeArgs => wrappedUnit.hasOptionalTypeArgs;
 
   @override
@@ -262,6 +265,9 @@ class WrappedImportElement implements ImportElement {
 
   @override
   bool get hasLiteral => wrappedImport.hasLiteral;
+
+  @override
+  bool get hasMustCallSuper => wrappedImport.hasMustCallSuper;
 
   @override
   bool get hasOptionalTypeArgs => wrappedImport.hasOptionalTypeArgs;
@@ -470,6 +476,9 @@ class WrappedLibraryElement implements LibraryElement {
 
   @override
   bool get hasLoadLibraryFunction => wrappedLib.hasLoadLibraryFunction;
+
+  @override
+  bool get hasMustCallSuper => wrappedLib.hasMustCallSuper;
 
   @override
   bool get hasOptionalTypeArgs => wrappedLib.hasOptionalTypeArgs;

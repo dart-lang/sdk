@@ -104,7 +104,7 @@ void PreallocatedStackTraceBuilder::AddFrame(const Object& code,
       dropped_frames_++;
     }
     // Encode the number of dropped frames into the pc offset.
-    frame_offset ^= Smi::New(dropped_frames_);
+    frame_offset = Smi::New(dropped_frames_);
     stacktrace_.SetPcOffsetAtFrame(null_slot, frame_offset);
     // Move frames one slot down so that we can accommodate the new frame.
     for (intptr_t i = start; i < StackTrace::kPreallocatedStackdepth; i++) {
@@ -130,21 +130,24 @@ static void BuildStackTrace(StackTraceBuilder* builder) {
   Code& code = Code::Handle();
   Bytecode& bytecode = Bytecode::Handle();
   Smi& offset = Smi::Handle();
-  while (frame != NULL) {
-    if (frame->IsDartFrame()) {
-      if (frame->is_interpreted()) {
-        bytecode = frame->LookupDartBytecode();
-        ASSERT(bytecode.ContainsInstructionAt(frame->pc()));
-        offset = Smi::New(frame->pc() - bytecode.PayloadStart());
-        builder->AddFrame(bytecode, offset);
-      } else {
-        code = frame->LookupDartCode();
-        ASSERT(code.ContainsInstructionAt(frame->pc()));
-        offset = Smi::New(frame->pc() - code.PayloadStart());
-        builder->AddFrame(code, offset);
-      }
+  for (; frame != NULL; frame = frames.NextFrame()) {
+    if (!frame->IsDartFrame()) {
+      continue;
     }
-    frame = frames.NextFrame();
+    if (frame->is_interpreted()) {
+      bytecode = frame->LookupDartBytecode();
+      ASSERT(bytecode.ContainsInstructionAt(frame->pc()));
+      if (bytecode.function() == Function::null()) {
+        continue;
+      }
+      offset = Smi::New(frame->pc() - bytecode.PayloadStart());
+      builder->AddFrame(bytecode, offset);
+    } else {
+      code = frame->LookupDartCode();
+      ASSERT(code.ContainsInstructionAt(frame->pc()));
+      offset = Smi::New(frame->pc() - code.PayloadStart());
+      builder->AddFrame(code, offset);
+    }
   }
 }
 
@@ -695,7 +698,7 @@ static void ThrowExceptionHelper(Thread* thread,
       thread->long_jump_base()->Jump(1, error);
       UNREACHABLE();
     }
-    stacktrace ^= isolate->object_store()->preallocated_stack_trace();
+    stacktrace = isolate->object_store()->preallocated_stack_trace();
     PreallocatedStackTraceBuilder frame_builder(stacktrace);
     ASSERT(existing_stacktrace.IsNull() ||
            (existing_stacktrace.raw() == stacktrace.raw()));

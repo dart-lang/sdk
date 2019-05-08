@@ -1191,8 +1191,16 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
     // them even in checked mode and strong mode.
     switch (parsed_function().function().kind()) {
       case RawFunction::kImplicitGetter: {
-        const Field& field = Field::Handle(function().accessor_field());
+        Field& field = Field::Handle(function().accessor_field());
         ASSERT(!field.IsNull());
+#if defined(DEBUG)
+        // HACK: Clone the field to ignore assertion in Field::guarded_cid().
+        // The assertion is intended to ensure that the background compiler sees
+        // consistent cids, but that's not important in this case because
+        // IsPotentialUnboxedField can go from true to false, but not false to
+        // true, and we only do this optimisation if it is false.
+        field = field.CloneFromOriginal();
+#endif
 
         // Only intrinsify getter if the field cannot contain a mutable double.
         // Reading from a mutable double box requires allocating a fresh double.
@@ -1207,8 +1215,13 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
       }
       case RawFunction::kImplicitSetter: {
         if (!isolate()->argument_type_checks()) {
-          const Field& field = Field::Handle(function().accessor_field());
+          Field& field = Field::Handle(function().accessor_field());
           ASSERT(!field.IsNull());
+#if defined(DEBUG)
+          // HACK: Clone the field to ignore assertion in Field::guarded_cid().
+          // The same reasons as above apply, but we only check if it's dynamic.
+          field = field.CloneFromOriginal();
+#endif
 
           if (field.is_instance() &&
               (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
@@ -1668,6 +1681,30 @@ void ParallelMoveResolver::PerformMove(int index) {
   compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
 }
 
+#if !defined(TARGET_ARCH_DBC)
+void ParallelMoveResolver::EmitMove(int index) {
+  MoveOperands* const move = moves_[index];
+  const Location dst = move->dest();
+  if (dst.IsStackSlot() || dst.IsDoubleStackSlot()) {
+    ASSERT((dst.base_reg() != FPREG) ||
+           ((-compiler::target::frame_layout.VariableIndexForFrameSlot(
+                dst.stack_index())) < compiler_->StackSize()));
+  }
+  const Location src = move->src();
+  ParallelMoveResolver::TemporaryAllocator temp(this, /*blocked=*/kNoRegister);
+  compiler_->EmitMove(dst, src, &temp);
+#if defined(DEBUG)
+  // Allocating a scratch register here may cause stack spilling. Neither the
+  // source nor destination register should be SP-relative in that case.
+  for (const Location loc : {dst, src}) {
+    ASSERT(!temp.DidAllocateTemporary() || !loc.HasStackIndex() ||
+           loc.base_reg() != SPREG);
+  }
+#endif
+  move->Eliminate();
+}
+#endif
+
 bool ParallelMoveResolver::IsScratchLocation(Location loc) {
   for (int i = 0; i < moves_.length(); ++i) {
     if (moves_[i]->Blocks(loc)) {
@@ -1740,12 +1777,19 @@ ParallelMoveResolver::ScratchFpuRegisterScope::~ScratchFpuRegisterScope() {
   }
 }
 
-ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
+ParallelMoveResolver::TemporaryAllocator::TemporaryAllocator(
     ParallelMoveResolver* resolver,
     Register blocked)
-    : resolver_(resolver), reg_(kNoRegister), spilled_(false) {
-  uword blocked_mask = RegMaskBit(blocked) | kReservedCpuRegisters;
-  if (resolver->compiler_->intrinsic_mode()) {
+    : resolver_(resolver),
+      blocked_(blocked),
+      reg_(kNoRegister),
+      spilled_(false) {}
+
+Register ParallelMoveResolver::TemporaryAllocator::AllocateTemporary() {
+  ASSERT(reg_ == kNoRegister);
+
+  uword blocked_mask = RegMaskBit(blocked_) | kReservedCpuRegisters;
+  if (resolver_->compiler_->intrinsic_mode()) {
     // Block additional registers that must be preserved for intrinsics.
     blocked_mask |= RegMaskBit(ARGS_DESC_REG);
 #if !defined(TARGET_ARCH_IA32)
@@ -1759,14 +1803,29 @@ ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
                                          kNumberOfCpuRegisters - 1, &spilled_));
 
   if (spilled_) {
-    resolver->SpillScratch(reg_);
+    resolver_->SpillScratch(reg_);
   }
+
+  DEBUG_ONLY(allocated_ = true;)
+  return reg_;
 }
 
-ParallelMoveResolver::ScratchRegisterScope::~ScratchRegisterScope() {
+void ParallelMoveResolver::TemporaryAllocator::ReleaseTemporary() {
   if (spilled_) {
     resolver_->RestoreScratch(reg_);
   }
+  reg_ = kNoRegister;
+}
+
+ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
+    ParallelMoveResolver* resolver,
+    Register blocked)
+    : allocator_(resolver, blocked) {
+  reg_ = allocator_.AllocateTemporary();
+}
+
+ParallelMoveResolver::ScratchRegisterScope::~ScratchRegisterScope() {
+  allocator_.ReleaseTemporary();
 }
 
 const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
@@ -1936,7 +1995,7 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
       Function::Handle(zone, Resolver::ResolveDynamicForReceiverClass(
                                  cls, name, args_desc, allow_add));
   if (target_function.IsNull()) return false;
-  *fn_return ^= target_function.raw();
+  *fn_return = target_function.raw();
   return true;
 }
 

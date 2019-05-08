@@ -550,8 +550,8 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
-      int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("Fields", staticToken);
     state.discard(count); // Field names.
     state.checkEmpty(endToken);
@@ -1238,8 +1238,14 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endTopLevelFields(Token staticToken, Token covariantToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     debugEvent("TopLevelFields", staticToken);
     state.discard(count); // Field names.
     state.checkEmpty(endToken);

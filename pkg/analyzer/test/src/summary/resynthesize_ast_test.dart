@@ -10,8 +10,8 @@ import 'test_strategies.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ResynthesizeAstStrongTest);
     defineReflectiveTests(ApplyCheckElementTextReplacements);
+    defineReflectiveTests(ResynthesizeAstStrongTest);
   });
 }
 

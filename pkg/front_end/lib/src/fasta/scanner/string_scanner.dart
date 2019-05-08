@@ -8,9 +8,13 @@ import '../../scanner/token.dart' show Token, SyntheticStringToken, TokenType;
 
 import '../../scanner/token.dart' as analyzer show StringToken;
 
+import 'abstract_scanner.dart'
+    show LanguageVersionChanged, ScannerConfiguration;
+
 import 'array_based_scanner.dart' show ArrayBasedScanner;
 
-import 'token.dart' show CommentToken, DartDocToken, StringToken;
+import 'token.dart'
+    show CommentToken, DartDocToken, LanguageVersionToken, StringToken;
 
 import 'error_token.dart' show ErrorToken;
 
@@ -25,9 +29,12 @@ class StringScanner extends ArrayBasedScanner {
   /** The current offset in [string]. */
   int scanOffset = -1;
 
-  StringScanner(String string, {bool includeComments: false})
+  StringScanner(String string,
+      {ScannerConfiguration configuration,
+      bool includeComments: false,
+      LanguageVersionChanged languageVersionChanged})
       : string = ensureZeroTermination(string),
-        super(includeComments);
+        super(configuration, includeComments, languageVersionChanged);
 
   static String ensureZeroTermination(String string) {
     return (string.isEmpty || string.codeUnitAt(string.length - 1) != 0)
@@ -81,6 +88,14 @@ class StringScanner extends ArrayBasedScanner {
       [int extraOffset = 0]) {
     return new DartDocToken.fromSubstring(
         type, string, start, scanOffset + extraOffset, tokenStart,
+        canonicalize: true);
+  }
+
+  @override
+  LanguageVersionToken createLanguageVersionToken(
+      int start, int major, int minor) {
+    return new LanguageVersionToken.fromSubstring(
+        string, start, scanOffset, tokenStart, major, minor,
         canonicalize: true);
   }
 

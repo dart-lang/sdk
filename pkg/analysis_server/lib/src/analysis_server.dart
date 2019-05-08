@@ -149,7 +149,9 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   ByteStore byteStore;
   nd.AnalysisDriverScheduler analysisDriverScheduler;
+
   DeclarationsTracker declarationsTracker;
+  DeclarationsTrackerData declarationsTrackerData;
 
   /// The controller for [onAnalysisSetChanged].
   final StreamController _onAnalysisSetChangedController =
@@ -202,12 +204,19 @@ class AnalysisServer extends AbstractAnalysisServer {
       }
       _analysisPerformanceLogger = new PerformanceLog(sink);
     }
+
     byteStore = createByteStore(resourceProvider);
+
     analysisDriverScheduler = new nd.AnalysisDriverScheduler(
         _analysisPerformanceLogger,
         driverWatcher: pluginWatcher);
     analysisDriverScheduler.status.listen(sendStatusNotificationNew);
     analysisDriverScheduler.start();
+
+    declarationsTracker = DeclarationsTracker(byteStore, resourceProvider);
+    declarationsTrackerData = DeclarationsTrackerData(declarationsTracker);
+    analysisDriverScheduler.outOfBandWorker =
+        CompletionLibrariesWorker(declarationsTracker);
 
     contextManager = new ContextManagerImpl(
         resourceProvider,
@@ -274,27 +283,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// The stream that is notified with `true` when analysis is started.
   Stream<bool> get onAnalysisStarted {
     return _onAnalysisStartedController.stream;
-  }
-
-  void createDeclarationsTracker(void Function(LibraryChange) listener) {
-    if (declarationsTracker != null) return;
-
-    declarationsTracker = DeclarationsTracker(byteStore, resourceProvider);
-    declarationsTracker.changes.listen(listener);
-
-    _addContextsToDeclarationsTracker();
-
-    // Configure the scheduler to run the tracker.
-    analysisDriverScheduler.outOfBandWorker =
-        CompletionLibrariesWorker(declarationsTracker);
-
-    // We might have done running drivers work, so ask the scheduler to check.
-    analysisDriverScheduler.notify(null);
-  }
-
-  void disposeDeclarationsTracker() {
-    declarationsTracker = null;
-    analysisDriverScheduler.outOfBandWorker = null;
   }
 
   /// The socket from which requests are being read has been closed.
@@ -389,10 +377,8 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Notify the declarations tracker that the file with the given [path] was
   /// changed - added, updated, or removed.  Schedule processing of the file.
   void notifyDeclarationsTracker(String path) {
-    if (declarationsTracker != null) {
-      declarationsTracker.changeFile(path);
-      analysisDriverScheduler.notify(null);
-    }
+    declarationsTracker.changeFile(path);
+    analysisDriverScheduler.notify(null);
   }
 
   /// Read all files, resolve all URIs, and perform required analysis in
@@ -513,7 +499,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// projects/contexts support.
   void setAnalysisRoots(String requestId, List<String> includedPaths,
       List<String> excludedPaths, Map<String, String> packageRoots) {
-    declarationsTracker?.discardContexts();
+    declarationsTracker.discardContexts();
     if (notificationManager != null) {
       notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
     }
@@ -702,11 +688,9 @@ class AnalysisServer extends AbstractAnalysisServer {
   }
 
   void _addContextsToDeclarationsTracker() {
-    if (declarationsTracker != null) {
-      for (var driver in driverMap.values) {
-        declarationsTracker.addContext(driver.analysisContext);
-        driver.resetUriResolution();
-      }
+    for (var driver in driverMap.values) {
+      declarationsTracker.addContext(driver.analysisContext);
+      driver.resetUriResolution();
     }
   }
 

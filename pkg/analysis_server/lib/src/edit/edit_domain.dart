@@ -810,7 +810,7 @@ class EditDomainHandler extends AbstractRequestHandler {
           // try RENAME
           {
             RenameRefactoring renameRefactoring = new RenameRefactoring(
-                refactoringWorkspace, resolvedUnit.session, element);
+                refactoringWorkspace, resolvedUnit, element);
             if (renameRefactoring != null) {
               kinds.add(RefactoringKind.RENAME);
             }
@@ -1148,13 +1148,11 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {
-      // TODO(brianwilkerson) Re-implement this refactoring under the new analysis driver
-//      _resetOnAnalysisStarted();
-//      ContextSourcePair contextSource = server.getContextSourcePair(file);
-//      engine.AnalysisContext context = contextSource.context;
-//      Source source = contextSource.source;
-//      refactoring = new MoveFileRefactoring(
-//          server.resourceProvider, searchEngine, context, source, file);
+      var resolvedUnit = await server.getResolvedUnit(file);
+      if (resolvedUnit != null) {
+        refactoring = new MoveFileRefactoring(
+            server.resourceProvider, refactoringWorkspace, resolvedUnit, file);
+      }
     }
     if (kind == RefactoringKind.RENAME) {
       var resolvedUnit = await server.getResolvedUnit(file);
@@ -1166,8 +1164,8 @@ class _RefactoringManager {
               RenameRefactoring.getElementToRename(node, element);
 
           // do create the refactoring
-          refactoring = new RenameRefactoring(refactoringWorkspace,
-              resolvedUnit.session, renameElement.element);
+          refactoring = new RenameRefactoring(
+              refactoringWorkspace, resolvedUnit, renameElement.element);
           feedback = new RenameFeedback(
               renameElement.offset, renameElement.length, 'kind', 'oldName');
         }

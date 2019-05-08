@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
@@ -56,9 +57,8 @@ import 'package:front_end/src/fasta/source/stack_listener.dart'
     show NullValue, StackListener;
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:front_end/src/scanner/token.dart'
-    show CommentToken, SyntheticStringToken, SyntheticToken;
+    show SyntheticStringToken, SyntheticToken;
 import 'package:kernel/ast.dart' show AsyncMarker;
-import 'package:pub_semver/pub_semver.dart';
 
 const _invalidCollectionElement = const _InvalidCollectionElement._();
 
@@ -69,7 +69,6 @@ class AstBuilder extends StackListener {
   final FastaErrorReporter errorReporter;
   final Uri fileUri;
   ScriptTag scriptTag;
-  Version languageVersion;
   final List<Directive> directives = <Directive>[];
   final List<CompilationUnitMember> declarations = <CompilationUnitMember>[];
   final localDeclarations = <int, AstNode>{};
@@ -106,7 +105,10 @@ class AstBuilder extends StackListener {
 
   bool parseFunctionBodies = true;
 
-  /// `true` if non-nullable behavior is enabled
+  /// `true` if non-nullable behavior is enabled.
+  ///
+  /// When setting this field, be sure to set `scanner.enableNonNullable`
+  /// to the same value.
   bool enableNonNullable = false;
 
   /// `true` if spread-collections behavior is enabled
@@ -117,6 +119,8 @@ class AstBuilder extends StackListener {
 
   /// `true` if triple-shift behavior is enabled
   bool enableTripleShift = false;
+
+  FeatureSet _featureSet;
 
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
       [Uri uri])
@@ -169,11 +173,12 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
-      Token varFinalOrConst) {
+  void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
+      Token covariantToken, Token varFinalOrConst) {
     push(new _Modifiers()
       ..covariantKeyword = covariantToken
-      ..finalConstOrVarKeyword = varFinalOrConst);
+      ..finalConstOrVarKeyword = varFinalOrConst
+      ..requiredToken = requiredToken);
   }
 
   @override
@@ -255,10 +260,13 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+  void beginVariablesDeclaration(
+      Token token, Token lateToken, Token varFinalOrConst) {
     debugEvent("beginVariablesDeclaration");
-    if (varFinalOrConst != null) {
-      push(new _Modifiers()..finalConstOrVarKeyword = varFinalOrConst);
+    if (varFinalOrConst != null || lateToken != null) {
+      push(new _Modifiers()
+        ..finalConstOrVarKeyword = varFinalOrConst
+        ..lateToken = lateToken);
     } else {
       push(NullValue.Modifiers);
     }
@@ -274,6 +282,21 @@ class AstBuilder extends StackListener {
         }
       });
     }
+  }
+
+  /// Configures the parser appropriately for the given [featureSet].
+  ///
+  /// TODO(paulberry): stop exposing `enableNonNullable`,
+  /// `enableSpreadCollections`, `enableControlFlowCollections`, and
+  /// `enableTripleShift` so that callers are forced to use this API.  Note that
+  /// this will not be a breaking change, because this code is in `lib/src`.
+  void configureFeatures(FeatureSet featureSet) {
+    enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
+    enableSpreadCollections = featureSet.isEnabled(Feature.spread_collections);
+    enableControlFlowCollections =
+        featureSet.isEnabled(Feature.control_flow_collections);
+    enableTripleShift = featureSet.isEnabled(Feature.triple_shift);
+    _featureSet = featureSet;
   }
 
   @override
@@ -481,11 +504,13 @@ class AstBuilder extends StackListener {
     Token beginToken = pop();
     checkEmpty(endToken.charOffset);
 
-    CompilationUnitImpl unit = ast.compilationUnit(
-            beginToken, scriptTag, directives, declarations, endToken)
-        as CompilationUnitImpl;
-    unit.languageVersion = languageVersion;
-    unit.isNonNullable = enableNonNullable;
+    CompilationUnitImpl unit = ast.compilationUnit2(
+        beginToken: beginToken,
+        scriptTag: scriptTag,
+        directives: directives,
+        declarations: declarations,
+        endToken: endToken,
+        featureSet: _featureSet) as CompilationUnitImpl;
     push(unit);
   }
 
@@ -696,27 +721,27 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
-      int count, Token beginToken, Token semicolon) {
+  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("Fields");
 
     List<VariableDeclaration> variables = popTypedList(count);
     TypeAnnotation type = pop();
-    _Modifiers modifiers = new _Modifiers()
-      ..staticKeyword = staticToken
-      ..covariantKeyword = covariantToken
-      ..finalConstOrVarKeyword = varFinalOrConst;
-    var variableList = ast.variableDeclarationList(
-        null, null, modifiers?.finalConstOrVarKeyword, type, variables);
-    Token covariantKeyword = modifiers?.covariantKeyword;
+    var variableList = ast.variableDeclarationList2(
+      lateKeyword: lateToken,
+      keyword: varFinalOrConst,
+      type: type,
+      variables: variables,
+    );
+    Token covariantKeyword = covariantToken;
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
     (classDeclaration ?? mixinDeclaration).members.add(ast.fieldDeclaration2(
         comment: comment,
         metadata: metadata,
         covariantKeyword: covariantKeyword,
-        staticKeyword: modifiers?.staticKeyword,
+        staticKeyword: staticToken,
         fieldList: variableList,
         semicolon: semicolon));
   }
@@ -791,6 +816,10 @@ class AstBuilder extends StackListener {
     _Modifiers modifiers = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
     Token covariantKeyword = modifiers?.covariantKeyword;
+    Token requiredKeyword = modifiers?.requiredToken;
+    if (!enableNonNullable) {
+      reportNonNullableModifierError(requiredKeyword);
+    }
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata,
         thisKeyword ?? typeOrFunctionTypedParameter?.beginToken ?? nameToken);
@@ -806,6 +835,7 @@ class AstBuilder extends StackListener {
             comment: comment,
             metadata: metadata,
             covariantKeyword: covariantKeyword,
+            requiredKeyword: requiredKeyword,
             returnType: typeOrFunctionTypedParameter.returnType,
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
             parameters: typeOrFunctionTypedParameter.parameters);
@@ -815,6 +845,7 @@ class AstBuilder extends StackListener {
             comment: comment,
             metadata: metadata,
             covariantKeyword: covariantKeyword,
+            requiredKeyword: requiredKeyword,
             type: typeOrFunctionTypedParameter.returnType,
             thisKeyword: thisKeyword,
             period: periodAfterThis,
@@ -828,6 +859,7 @@ class AstBuilder extends StackListener {
             comment: comment,
             metadata: metadata,
             covariantKeyword: covariantKeyword,
+            requiredKeyword: requiredKeyword,
             keyword: keyword,
             type: type,
             identifier: name);
@@ -836,6 +868,7 @@ class AstBuilder extends StackListener {
             comment: comment,
             metadata: metadata,
             covariantKeyword: covariantKeyword,
+            requiredKeyword: requiredKeyword,
             keyword: keyword,
             type: type,
             thisKeyword: thisKeyword,
@@ -844,7 +877,8 @@ class AstBuilder extends StackListener {
       }
     }
 
-    ParameterKind analyzerKind = _toAnalyzerParameterKind(kind);
+    ParameterKind analyzerKind =
+        _toAnalyzerParameterKind(kind, requiredKeyword);
     FormalParameter parameter = node;
     if (analyzerKind != ParameterKind.REQUIRED) {
       parameter = ast.defaultFormalParameter(
@@ -1426,9 +1460,7 @@ class AstBuilder extends StackListener {
     }
 
     void method(Token operatorKeyword, SimpleIdentifier name) {
-      if (modifiers?.constKeyword != null &&
-          body != null &&
-          (body.length > 1 || body.beginToken?.lexeme != ';')) {
+      if (modifiers?.constKeyword != null) {
         // This error is also reported in OutlineBuilder.endMethod
         handleRecoverableError(
             messageConstMethod, modifiers.constKeyword, modifiers.constKeyword);
@@ -1725,20 +1757,25 @@ class AstBuilder extends StackListener {
     debugEvent("TopLevelDeclaration");
   }
 
-  void endTopLevelFields(Token staticToken, Token covariantToken,
-      Token varFinalOrConst, int count, Token beginToken, Token semicolon) {
+  void endTopLevelFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("TopLevelFields");
 
     List<VariableDeclaration> variables = popTypedList(count);
     TypeAnnotation type = pop();
-    _Modifiers modifiers = new _Modifiers()
-      ..staticKeyword = staticToken
-      ..covariantKeyword = covariantToken
-      ..finalConstOrVarKeyword = varFinalOrConst;
-    Token keyword = modifiers?.finalConstOrVarKeyword;
-    var variableList =
-        ast.variableDeclarationList(null, null, keyword, type, variables);
+    var variableList = ast.variableDeclarationList2(
+      lateKeyword: lateToken,
+      keyword: varFinalOrConst,
+      type: type,
+      variables: variables,
+    );
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
     declarations.add(ast.topLevelVariableDeclaration(
@@ -1848,8 +1885,14 @@ class AstBuilder extends StackListener {
     Comment comment = _findComment(metadata,
         variables[0].beginToken ?? type?.beginToken ?? modifiers.beginToken);
     push(ast.variableDeclarationStatement(
-        ast.variableDeclarationList(
-            comment, metadata, keyword, type, variables),
+        ast.variableDeclarationList2(
+          comment: comment,
+          metadata: metadata,
+          lateKeyword: modifiers?.lateToken,
+          keyword: keyword,
+          type: type,
+          variables: variables,
+        ),
         semicolon));
   }
 
@@ -2471,16 +2514,6 @@ class AstBuilder extends StackListener {
 
     SimpleIdentifier name = pop();
     push(ast.label(name, colon));
-  }
-
-  @override
-  void handleLanguageVersion(Token commentToken, int major, int minor) {
-    debugEvent('LanguageVersion');
-    assert(commentToken is CommentToken);
-    assert(major != null);
-    assert(minor != null);
-
-    languageVersion = Version(major, minor, 0);
   }
 
   void handleLiteralBool(Token token) {
@@ -3253,10 +3286,14 @@ class AstBuilder extends StackListener {
     return variableDeclaration;
   }
 
-  ParameterKind _toAnalyzerParameterKind(FormalParameterKind type) {
+  ParameterKind _toAnalyzerParameterKind(
+      FormalParameterKind type, Token requiredKeyword) {
     if (type == FormalParameterKind.optionalPositional) {
       return ParameterKind.POSITIONAL;
     } else if (type == FormalParameterKind.optionalNamed) {
+      if (requiredKeyword != null) {
+        return ParameterKind.NAMED_REQUIRED;
+      }
       return ParameterKind.NAMED;
     } else {
       return ParameterKind.REQUIRED;
@@ -3291,34 +3328,8 @@ class _Modifiers {
   Token finalConstOrVarKeyword;
   Token staticKeyword;
   Token covariantKeyword;
-
-  _Modifiers([List<Token> modifierTokens]) {
-    // No need to check the order and uniqueness of the modifiers, or that
-    // disallowed modifiers are not used; the parser should do that.
-    // TODO(paulberry,ahe): implement the necessary logic in the parser.
-    if (modifierTokens != null) {
-      for (var token in modifierTokens) {
-        var s = token.lexeme;
-        if (identical('abstract', s)) {
-          abstractKeyword = token;
-        } else if (identical('const', s)) {
-          finalConstOrVarKeyword = token;
-        } else if (identical('external', s)) {
-          externalKeyword = token;
-        } else if (identical('final', s)) {
-          finalConstOrVarKeyword = token;
-        } else if (identical('static', s)) {
-          staticKeyword = token;
-        } else if (identical('var', s)) {
-          finalConstOrVarKeyword = token;
-        } else if (identical('covariant', s)) {
-          covariantKeyword = token;
-        } else {
-          unhandled("$s", "modifier", token.charOffset, null);
-        }
-      }
-    }
-  }
+  Token requiredToken;
+  Token lateToken;
 
   /// Return the token that is lexically first.
   Token get beginToken {
@@ -3328,7 +3339,9 @@ class _Modifiers {
       externalKeyword,
       finalConstOrVarKeyword,
       staticKeyword,
-      covariantKeyword
+      covariantKeyword,
+      requiredToken,
+      lateToken,
     ]) {
       if (firstToken == null) {
         firstToken = token;

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:package_config/packages.dart';
@@ -68,10 +69,13 @@ class BasicWorkspacePackage extends WorkspacePackage {
   BasicWorkspacePackage(this.root, this.workspace);
 
   @override
-  bool contains(String path) {
+  bool contains(Source source) {
+    // When dealing with a BasicWorkspace, [source] will always have a valid
+    // fullName.
+    String filePath = source.fullName;
     // There is a 1-1 relationship between [BasicWorkspace]s and
     // [BasicWorkspacePackage]s. If a file is in a package's workspace, then it
     // is in the package as well.
-    return workspace.provider.pathContext.isWithin(root, path);
+    return workspace.provider.pathContext.isWithin(root, filePath);
   }
 }

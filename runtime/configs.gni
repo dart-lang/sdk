@@ -24,6 +24,10 @@ _jit_config = _base_config + _maybe_product
 
 _jit_product_config = _base_config + _product
 
+_base_libfuzzer_config = [ "$_dart_runtime:dart_libfuzzer_config" ]
+
+_libfuzzer_config = _base_config + _base_libfuzzer_config
+
 _precompiled_runtime_config =
     _base_config + [
       "$_dart_runtime:dart_maybe_product_config",
@@ -94,6 +98,11 @@ _all_configs = [
     configs = _nosnapshot_with_precompiler_product_fuchsia_config
     snapshot = false
   },
+  {
+    suffix = "_libfuzzer"
+    configs = _libfuzzer_config
+    snapshot = true
+  },
 ]
 
 # This template creates a target for each of the configurations listed above.
@@ -156,9 +165,6 @@ template("library_for_all_configs") {
                                "extra_deps",
                                "configurable_deps",
                              ])
-      if (is_fuchsia) {
-        configs -= [ "//build/config:symbol_visibility_hidden" ]
-      }
       configs += conf.configs + extra_configs
       configured_deps = []
       foreach(dep, configurable_deps) {

@@ -180,11 +180,10 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     for (var lib in cachedSdkInput.component.libraries) {
       lib.isExternal = false;
     }
+    cachedSdkInput.component.adoptChildren();
     for (WorkerInputComponent cachedInput in workerInputCache.values) {
       cachedInput.component.adoptChildren();
     }
-    cachedSdkInput.component.unbindCanonicalNames();
-    cachedSdkInput.component.computeCanonicalNames();
 
     // Reuse the incremental compiler, but reset as needed.
     incrementalCompiler = oldState.incrementalCompiler;
@@ -219,9 +218,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       for (var lib in component.libraries) {
         lib.isExternal = cachedInput.externalLibs.contains(lib.importUri);
       }
-      // We don't unbind as the root was unbound already. We do have to
-      // compute the canonical names though, to rebind everything in the
-      // component.
       component.computeCanonicalNames();
       doneInputSummaries[i] = component;
     }
@@ -232,7 +228,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Uri summary = inputSummaries[index];
     List<int> data = await fileSystem.entityForUri(summary).readAsBytes();
     WorkerInputComponent cachedInput = WorkerInputComponent(
-        data, await compilerState.processedOpts.loadComponent(data, nameRoot));
+        data,
+        await compilerState.processedOpts
+            .loadComponent(data, nameRoot, alwaysCreateNewNamedNodes: true));
     workerInputCache[summary] = cachedInput;
     doneInputSummaries[index] = cachedInput.component;
   }

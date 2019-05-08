@@ -26,6 +26,85 @@ class NonNullableTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
+  test_local_getterNullAwareAccess_interfaceType() async {
+    addTestFile(r'''
+m() {
+  int? x;
+  return x?.isEven;
+}
+''');
+
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.propertyAccess('x?.isEven'), 'bool?');
+  }
+
+  test_local_methodNullAwareCall_interfaceType() async {
+    await addTestFile(r'''
+class C {
+  bool x() => true;
+}
+m() {
+  C? c;
+  return c?.x();
+}
+''');
+
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.methodInvocation('c?.x()'), 'bool?');
+  }
+
+  test_local_nullCoalesce_nullableInt_int() async {
+    await addTestFile(r'''
+m() {
+  int? x;
+  int y;
+  x ?? y;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.binary('x ?? y'), 'int');
+  }
+
+  test_local_nullCoalesce_nullableInt_nullableInt() async {
+    await addTestFile(r'''
+m() {
+  int? x;
+  x ?? x;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.binary('x ?? x'), 'int?');
+  }
+
+  test_local_nullCoalesceAssign_nullableInt_int() async {
+    await addTestFile(r'''
+m() {
+  int? x;
+  int y;
+  x ??= y;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.assignment('x ??= y'), 'int');
+  }
+
+  test_local_nullCoalesceAssign_nullableInt_nullableInt() async {
+    await addTestFile(r'''
+m() {
+  int? x;
+  x ??= x;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.assignment('x ??= x'), 'int?');
+  }
+
   test_local_parameter_interfaceType() async {
     addTestFile('''
 main() {

@@ -32,6 +32,8 @@ import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary2/declaration_splicer.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -53,6 +55,7 @@ class LibraryAnalyzer {
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContext _context;
   final ElementResynthesizer _resynthesizer;
+  final LinkedElementFactory _elementFactory;
   final TypeProvider _typeProvider;
 
   final TypeSystem _typeSystem;
@@ -85,6 +88,7 @@ class LibraryAnalyzer {
       this._isLibraryUri,
       this._context,
       this._resynthesizer,
+      this._elementFactory,
       this._inheritance,
       this._library,
       this._resourceProvider)
@@ -119,8 +123,12 @@ class LibraryAnalyzer {
       _resolveUriBasedDirectives(file, unit);
     });
 
-    _libraryElement = _resynthesizer
-        .getElement(new ElementLocationImpl.con3([_library.uriStr]));
+    if (_elementFactory != null) {
+      _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
+    } else {
+      _libraryElement = _resynthesizer
+          .getElement(new ElementLocationImpl.con3([_library.uriStr]));
+    }
     _libraryScope = new LibraryScope(_libraryElement);
 
     _resolveDirectives(units);
@@ -204,7 +212,7 @@ class LibraryAnalyzer {
       ErrorReporter errorReporter, CompilationUnit unit) {
     ConstantVerifier constantVerifier = new ConstantVerifier(
         errorReporter, _libraryElement, _typeProvider, _declaredVariables,
-        forAnalysisDriver: true);
+        featureSet: unit.featureSet, forAnalysisDriver: true);
     unit.accept(constantVerifier);
   }
 
@@ -240,7 +248,7 @@ class LibraryAnalyzer {
     }
 
     unit.accept(new BestPracticesVerifier(
-        errorReporter, _typeProvider, _libraryElement,
+        errorReporter, _typeProvider, _libraryElement, unit, file.content,
         typeSystem: _context.typeSystem,
         resourceProvider: _resourceProvider,
         analysisOptions: _context.analysisOptions));
@@ -623,7 +631,11 @@ class LibraryAnalyzer {
       }
     }
 
-    new DeclarationResolver().resolve(unit, unitElement);
+    if (_elementFactory != null) {
+      new DeclarationSplicer(unitElement).splice(unit);
+    } else {
+      new DeclarationResolver().resolve(unit, unitElement);
+    }
 
     unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
         source, _typeProvider, errorListener,
@@ -644,15 +656,21 @@ class LibraryAnalyzer {
         _libraryElement, source, _typeProvider, errorListener,
         nameScope: _libraryScope));
 
-    unit.accept(new PartialResolverVisitor(_inheritance, _libraryElement,
-        source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
+    unit.accept(new PartialResolverVisitor(
+        _inheritance,
+        _libraryElement,
+        source,
+        _typeProvider,
+        AnalysisErrorListener.NULL_LISTENER,
+        unit.featureSet));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
     unit.accept(new ResolverVisitor(
-        _inheritance, _libraryElement, source, _typeProvider, errorListener));
+        _inheritance, _libraryElement, source, _typeProvider, errorListener,
+        featureSet: unit.featureSet));
   }
 
   /**

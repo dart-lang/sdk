@@ -1996,14 +1996,14 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index,
     wrapper.uri = &uri_string;
     UriToSourceTableEntry* pair = uri_to_source_table->LookupValue(&wrapper);
     if (pair != nullptr) {
-      sources ^= pair->sources->raw();
-      line_starts ^= pair->line_starts->raw();
+      sources = pair->sources->raw();
+      line_starts = pair->line_starts->raw();
     }
   }
 
   if (sources.IsNull() || line_starts.IsNull()) {
     const String& script_source = helper_.GetSourceFor(index);
-    line_starts ^= helper_.GetLineStartsFor(index);
+    line_starts = helper_.GetLineStartsFor(index);
 
     if (script_source.raw() == Symbols::Empty().raw() &&
         line_starts.Length() == 0 && uri_string.Length() > 0) {
@@ -2017,8 +2017,8 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index,
         lib ^= libs.At(i);
         script = lib.LookupScript(uri_string, /* useResolvedUri = */ true);
         if (!script.IsNull() && script.kind() == RawScript::kKernelTag) {
-          sources ^= script.Source();
-          line_starts ^= script.line_starts();
+          sources = script.Source();
+          line_starts = script.line_starts();
           break;
         }
       }
@@ -2091,7 +2091,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
       Z,
       Function::New(
           getter_name,
-          field_helper->IsStatic() ? RawFunction::kImplicitStaticFinalGetter
+          field_helper->IsStatic() ? RawFunction::kImplicitStaticGetter
                                    : RawFunction::kImplicitGetter,
           field_helper->IsStatic(),
           // The functions created by the parser have is_const for static fields

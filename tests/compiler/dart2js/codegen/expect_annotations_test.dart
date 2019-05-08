@@ -48,8 +48,8 @@ runTest() async {
 
   void testTypeMatch(FunctionEntity function, TypeMask expectedParameterType,
       TypeMask expectedReturnType, GlobalTypeInferenceResults results) {
-    compiler.codegenWorldBuilder.forEachParameterAsLocal(function,
-        (Local parameter) {
+    closedWorld.elementEnvironment.forEachParameterAsLocal(
+        closedWorld.globalLocalsMap, function, (Local parameter) {
       TypeMask type = results.resultOfParameter(parameter);
       Expect.equals(
           expectedParameterType, simplify(type, closedWorld), "$parameter");

@@ -10,6 +10,8 @@ import 'package:analyzer/dart/element/type.dart';
 /// AST to elements and types in the element model.
 ///
 /// Clients should not extend, implement or mix-in this class.
+// TODO(brianwilkerson) This was added for unifying with the front_end, and is
+//  no longer needed. It should be removed.
 abstract class ResolutionMap {
   /// Return the best element available for the function being invoked at
   /// [node]. If resolution was able to find a better element based on type

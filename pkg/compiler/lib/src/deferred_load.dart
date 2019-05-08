@@ -296,7 +296,7 @@ abstract class DeferredLoadTask extends CompilerTask {
               _collectTypeArgumentDependencies(
                   staticUse.type.typeArguments, dependencies);
               break;
-            case StaticUseKind.INVOKE:
+            case StaticUseKind.STATIC_INVOKE:
             case StaticUseKind.CLOSURE_CALL:
             case StaticUseKind.DIRECT_INVOKE:
               // TODO(johnniwinther): Use rti need data to skip unneeded type

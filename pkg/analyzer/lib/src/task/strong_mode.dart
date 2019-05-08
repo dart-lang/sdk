@@ -16,6 +16,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart'
     show FieldElementForLink_ClassField, ParameterElementForLink;
+import 'package:analyzer/src/summary2/lazy_ast.dart';
 
 /**
  * Sets the type of the field. The types in implicit accessors are updated
@@ -169,7 +170,14 @@ class InstanceMemberInferrer {
           parameterType = type;
         }
       } else if (parameterType != type) {
-        if (parameter is ParameterElementForLink) {
+        if (parameter is ParameterElementImpl && parameter.linkedNode != null) {
+          LazyAst.setTypeInferenceError(
+            parameter.linkedNode,
+            TopLevelInferenceErrorBuilder(
+              kind: TopLevelInferenceErrorKind.overrideConflictParameterType,
+            ),
+          );
+        } else if (parameter is ParameterElementForLink) {
           parameter.setInferenceError(new TopLevelInferenceErrorBuilder(
               kind: TopLevelInferenceErrorKind.overrideConflictParameterType));
         }
@@ -411,7 +419,14 @@ class InstanceMemberInferrer {
     _FieldOverrideInferenceResult typeResult =
         _computeFieldOverrideType(field.getter);
     if (typeResult.isError) {
-      if (field is FieldElementForLink_ClassField) {
+      if (field is FieldElementImpl && field.linkedNode != null) {
+        LazyAst.setTypeInferenceError(
+          field.linkedNode,
+          TopLevelInferenceErrorBuilder(
+            kind: TopLevelInferenceErrorKind.overrideConflictFieldType,
+          ),
+        );
+      } else if (field is FieldElementForLink_ClassField) {
         field.setInferenceError(new TopLevelInferenceErrorBuilder(
             kind: TopLevelInferenceErrorKind.overrideConflictFieldType));
       }
@@ -420,8 +435,12 @@ class InstanceMemberInferrer {
 
     if (field.hasImplicitType) {
       DartType newType = typeResult.type;
-      if (newType == null && field.initializer != null) {
-        newType = field.initializer.returnType;
+
+      if (newType == null) {
+        var initializer = field.initializer;
+        if (initializer != null) {
+          newType = initializer.returnType;
+        }
       }
 
       if (newType == null || newType.isBottom || newType.isDartCoreNull) {

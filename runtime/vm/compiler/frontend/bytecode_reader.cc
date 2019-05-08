@@ -58,11 +58,27 @@ void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
     case RawFunction::kImplicitSetter:
       function.AttachBytecode(Object::implicit_setter_bytecode());
       return;
+    case RawFunction::kImplicitStaticGetter:
+      if (IsStaticFieldGetterGeneratedAsInitializer(function, helper_->zone_)) {
+        break;
+      }
+      function.AttachBytecode(Object::implicit_static_getter_bytecode());
+      return;
     case RawFunction::kMethodExtractor:
       function.AttachBytecode(Object::method_extractor_bytecode());
       return;
-    default: {
-    }
+    case RawFunction::kInvokeFieldDispatcher:
+      if (Class::Handle(function.Owner()).id() == kClosureCid) {
+        function.AttachBytecode(Object::invoke_closure_bytecode());
+      } else {
+        function.AttachBytecode(Object::invoke_field_bytecode());
+      }
+      return;
+    case RawFunction::kNoSuchMethodDispatcher:
+      function.AttachBytecode(Object::nsm_dispatcher_bytecode());
+      return;
+    default:
+      break;
   }
 
   intptr_t code_offset = 0;
@@ -103,7 +119,10 @@ void BytecodeMetadataHelper::ParseBytecodeFunction(
   if (function.HasBytecode() &&
       (function.kind() != RawFunction::kImplicitGetter) &&
       (function.kind() != RawFunction::kImplicitSetter) &&
-      (function.kind() != RawFunction::kMethodExtractor)) {
+      (function.kind() != RawFunction::kImplicitStaticGetter) &&
+      (function.kind() != RawFunction::kMethodExtractor) &&
+      (function.kind() != RawFunction::kInvokeFieldDispatcher) &&
+      (function.kind() != RawFunction::kNoSuchMethodDispatcher)) {
     return;
   }
 
@@ -423,7 +442,7 @@ RawType* BytecodeReaderHelper::ReadFunctionSignature(
 
   // Finalize function type.
   type = func.SignatureType();
-  type ^= ClassFinalizer::FinalizeType(*(active_class_->klass), type);
+  type = ClassFinalizer::FinalizeType(*(active_class_->klass), type);
   return Type::Cast(type).raw();
 }
 
@@ -1414,7 +1433,7 @@ RawTypeArguments* BytecodeReaderHelper::ReadTypeArguments(
   // finalize the argument types.
   // (This can for example make the [type_arguments] vector larger)
   type = Type::New(instantiator, type_arguments, TokenPosition::kNoSource);
-  type ^= ClassFinalizer::FinalizeType(*active_class_->klass, type);
+  type = ClassFinalizer::FinalizeType(*active_class_->klass, type);
   return type.arguments();
 }
 
@@ -1536,15 +1555,14 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
 
     if ((flags & kHasGetterFlag) != 0) {
       name ^= ReadObject();
-      function =
-          Function::New(name,
-                        is_static ? RawFunction::kImplicitStaticFinalGetter
-                                  : RawFunction::kImplicitGetter,
-                        is_static, is_const,
-                        false,  // is_abstract
-                        false,  // is_external
-                        false,  // is_native
-                        script_class, position);
+      function = Function::New(name,
+                               is_static ? RawFunction::kImplicitStaticGetter
+                                         : RawFunction::kImplicitGetter,
+                               is_static, is_const,
+                               false,  // is_abstract
+                               false,  // is_external
+                               false,  // is_native
+                               script_class, position);
       function.set_end_token_pos(end_position);
       function.set_result_type(type);
       function.set_is_debuggable(false);
@@ -1902,7 +1920,7 @@ void BytecodeReaderHelper::ParseBytecodeFunction(
     case RawFunction::kImplicitSetter:
       BytecodeScopeBuilder(parsed_function).BuildScopes();
       break;
-    case RawFunction::kImplicitStaticFinalGetter: {
+    case RawFunction::kImplicitStaticGetter: {
       if (IsStaticFieldGetterGeneratedAsInitializer(function, Z)) {
         ReadCode(function, function.bytecode_offset());
       } else {
@@ -2234,7 +2252,7 @@ RawObject* BytecodeReader::ReadAnnotation(const Field& annotation_field) {
 
 bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
                                                Zone* zone) {
-  ASSERT(function.kind() == RawFunction::kImplicitStaticFinalGetter);
+  ASSERT(function.kind() == RawFunction::kImplicitStaticGetter);
 
   const auto& field = Field::Handle(zone, function.accessor_field());
   return field.is_declared_in_bytecode() && field.is_const() &&

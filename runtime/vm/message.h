@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_MESSAGE_H_
 #define RUNTIME_VM_MESSAGE_H_
 
+#include <memory>
+
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/finalizable_data.h"
@@ -61,6 +63,11 @@ class Message {
 
   ~Message();
 
+  template <typename... Args>
+  static std::unique_ptr<Message> New(Args&&... args) {
+    return std::unique_ptr<Message>(new Message(std::forward<Args>(args)...));
+  }
+
   Dart_Port dest_port() const { return dest_port_; }
 
   uint8_t* snapshot() const {
@@ -114,11 +121,11 @@ class MessageQueue {
   MessageQueue();
   ~MessageQueue();
 
-  void Enqueue(Message* msg, bool before_events);
+  void Enqueue(std::unique_ptr<Message> msg, bool before_events);
 
   // Gets the next message from the message queue or NULL if no
   // message is available.  This function will not block.
-  Message* Dequeue();
+  std::unique_ptr<Message> Dequeue();
 
   bool IsEmpty() { return head_ == NULL; }
 

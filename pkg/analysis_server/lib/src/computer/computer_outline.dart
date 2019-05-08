@@ -21,7 +21,7 @@ class DartUnitOutlineComputer {
   final Flutter flutter;
 
   DartUnitOutlineComputer(this.resolvedUnit, {this.withBasicFlutter: false})
-      : flutter = Flutter.of(resolvedUnit.session);
+      : flutter = Flutter.of(resolvedUnit);
 
   /**
    * Returns the computed outline, not `null`.

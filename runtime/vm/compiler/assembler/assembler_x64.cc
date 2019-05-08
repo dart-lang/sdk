@@ -1732,18 +1732,14 @@ void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
 }
 
-// RDI receiver, RBX guarded cid as Smi.
+// RDX receiver, RBX guarded cid as Smi.
 // Preserve R10 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntry() {
   has_single_entry_point_ = false;
   intptr_t start = CodeSize();
-  Label immediate, have_cid, miss;
+  Label have_cid, miss;
   Bind(&miss);
   jmp(Address(THR, Thread::monomorphic_miss_entry_offset()));
-
-  Bind(&immediate);
-  movq(TMP, Immediate(kSmiCid));
-  jmp(&have_cid, kNearJump);
 
   // Ensure the monomorphic entry is 2-byte aligned (so GC can see them if we
   // store them in ICData / MegamorphicCache arrays)
@@ -1753,16 +1749,19 @@ void Assembler::MonomorphicCheckedEntry() {
   ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffset);
   ASSERT((CodeSize() & kSmiTagMask) == kSmiTag);
 
+  movq(RAX, Immediate(kSmiCid));
   SmiUntag(RBX);
-  testq(RDI, Immediate(kSmiTagMask));
-  j(ZERO, &immediate, kNearJump);
-  nop(1);
-
-  LoadClassId(TMP, RDI);
-
+  testq(RDX, Immediate(kSmiTagMask));
+  j(ZERO, &have_cid, kNearJump);
+  LoadClassId(RAX, RDX);
   Bind(&have_cid);
-  cmpq(TMP, RBX);
+
+  cmpq(RAX, RBX);
   j(NOT_EQUAL, &miss, Assembler::kNearJump);
+
+  // Ensure the unchecked entry is 2-byte aligned (so GC can see them if we
+  // store them in ICData / MegamorphicCache arrays).
+  nop(1);
 
   // Fall through to unchecked entry.
   ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffset);

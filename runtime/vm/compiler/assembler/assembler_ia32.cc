@@ -2262,6 +2262,11 @@ void Assembler::Bind(Label* label) {
   label->BindTo(bound);
 }
 
+void Assembler::MoveMemoryToMemory(Address dst, Address src, Register tmp) {
+  movl(tmp, src);
+  movl(dst, tmp);
+}
+
 #ifndef PRODUCT
 void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,

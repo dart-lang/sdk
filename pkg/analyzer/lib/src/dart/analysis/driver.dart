@@ -94,13 +94,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 79;
+  static const int DATA_VERSION = 80;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
    * zero, we stop writing any new exception contexts in this process.
    */
   static int allowedNumberOfContextsToWrite = 10;
+
+  /**
+   * Whether summary2 should be used to resynthesize elements.
+   */
+  static final bool useSummary2 = false;
 
   /**
    * The scheduler that schedules analysis work in this, and possibly other
@@ -740,11 +745,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * [uri], which is either resynthesized from the provided external summary
    * store, or built for a file to which the given [uri] is resolved.
    *
+   * Throw [ArgumentError] if the [uri] does not correspond to a file.
+   *
    * Throw [ArgumentError] if the [uri] corresponds to a part.
    */
   Future<LibraryElement> getLibraryByUri(String uri) async {
     var uriObj = Uri.parse(uri);
     var file = _fsState.getFileForUri(uriObj);
+
+    if (file.isUnresolved) {
+      throw ArgumentError('$uri cannot be resolved to a file.');
+    }
 
     if (file.isExternalLibrary) {
       return _createLibraryContext(file).getLibraryElement(file);
@@ -1432,6 +1443,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             libraryContext.isLibraryUri,
             libraryContext.analysisContext,
             libraryContext.resynthesizer,
+            libraryContext.elementFactory,
             libraryContext.inheritanceManager,
             library,
             _resourceProvider);
@@ -1500,6 +1512,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           libraryContext.isLibraryUri,
           libraryContext.analysisContext,
           libraryContext.resynthesizer,
+          libraryContext.elementFactory,
           libraryContext.inheritanceManager,
           library,
           _resourceProvider);
@@ -1594,6 +1607,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _unlinkedSalt,
       _linkedSalt,
       externalSummaries: _externalSummaries,
+      useSummary2: useSummary2,
     );
     _fileTracker = new FileTracker(_logger, _fsState, _changeHook);
   }
@@ -1608,7 +1622,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
-    if (_libraryContext == null) {
+    if (_libraryContext == null || useSummary2) {
       _libraryContext = new LibraryContext(
         session: currentSession,
         logger: _logger,
@@ -1619,6 +1633,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         sourceFactory: _sourceFactory,
         externalSummaries: _externalSummaries,
         targetLibrary: library,
+        useSummary2: useSummary2,
       );
     } else {
       _libraryContext.load(library);

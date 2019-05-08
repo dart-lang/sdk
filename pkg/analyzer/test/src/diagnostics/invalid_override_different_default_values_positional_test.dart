@@ -32,13 +32,19 @@ class C extends A {
   }
 
   test_differentValues() async {
-    await _assertError(r'''
+    await assertErrorsInCode(r'''
 class A {
   m([x = 0]) {}
 }
 class B extends A {
   m([x = 1]) {}
-}''');
+}''', [
+      error(
+          StaticWarningCode
+              .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
+          53,
+          5),
+    ]);
   }
 
   test_equal_values_generic_different_files() async {
@@ -58,7 +64,7 @@ class D extends C {
   test_equal_values_generic_undefined_value_base() async {
     // Note: we expect some errors due to the constant referring to undefined
     // values, but there should not be any INVALID_OVERRIDE... error.
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   m([x = Undefined.value]) {}
 }
@@ -66,15 +72,15 @@ class B extends A {
   m([x = 1]) {}
 }
 ''', [
-      CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
-      StaticWarningCode.UNDEFINED_IDENTIFIER
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 19, 9),
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 19, 9),
     ]);
   }
 
   test_equal_values_generic_undefined_value_both() async {
     // Note: we expect some errors due to the constant referring to undefined
     // values, but there should not be any INVALID_OVERRIDE... error.
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   m([x = Undefined.value]) {}
 }
@@ -82,17 +88,17 @@ class B extends A {
   m([x = Undefined2.value2]) {}
 }
 ''', [
-      CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
-      CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
-      StaticWarningCode.UNDEFINED_IDENTIFIER,
-      StaticWarningCode.UNDEFINED_IDENTIFIER
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 19, 9),
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 19, 9),
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 71, 10),
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 71, 10),
     ]);
   }
 
   test_equal_values_generic_undefined_value_derived() async {
     // Note: we expect some errors due to the constant referring to undefined
     // values, but there should not be any INVALID_OVERRIDE... error.
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   m([x = 1]) {}
 }
@@ -100,8 +106,8 @@ class B extends A {
   m([x = Undefined.value]) {}
 }
 ''', [
-      CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
-      StaticWarningCode.UNDEFINED_IDENTIFIER
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 57, 9),
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 57, 9),
     ]);
   }
 
@@ -164,19 +170,19 @@ class B extends A {
     // If the base class provided an explicit value for a default parameter,
     // then it is a static warning for the derived class to provide a different
     // value, even if implicitly.
-    await _assertError(r'''
+    await assertErrorsInCode(r'''
 class A {
   foo([x = 1]) {}
 }
 class B extends A {
   foo([x]) {}
 }
-''');
-  }
-
-  Future<void> _assertError(String code) async {
-    await assertErrorCodesInCode(code, [
-      StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
+''', [
+      error(
+          StaticWarningCode
+              .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
+          57,
+          1),
     ]);
   }
 }

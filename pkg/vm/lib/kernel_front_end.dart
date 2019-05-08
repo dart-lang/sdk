@@ -678,6 +678,14 @@ Future writeOutputSplitByPackages(
     BytecodeSizeStatistics.reset();
   }
 
+  ClassHierarchy hierarchy;
+  if (genBytecode) {
+    // Calculating class hierarchy is an expensive operation.
+    // Calculate it once and reuse while generating bytecode for each package.
+    hierarchy =
+        new ClassHierarchy(component, onAmbiguousSupertypes: (cls, a, b) {});
+  }
+
   await runWithFrontEndCompilerContext(source, compilerOptions, component,
       () async {
     for (String package in packages) {
@@ -698,6 +706,7 @@ Future writeOutputSplitByPackages(
             .toList();
         generateBytecode(component,
             libraries: libraries,
+            hierarchy: hierarchy,
             emitSourcePositions: emitBytecodeSourcePositions,
             emitAnnotations: emitBytecodeAnnotations,
             useFutureBytecodeFormat: useFutureBytecodeFormat,

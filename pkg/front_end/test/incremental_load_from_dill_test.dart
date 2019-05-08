@@ -33,7 +33,15 @@ import 'package:front_end/src/fasta/severity.dart' show Severity;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/kernel.dart'
-    show Class, Component, EmptyStatement, Field, Library, Procedure;
+    show
+        Class,
+        Component,
+        EmptyStatement,
+        Field,
+        Library,
+        LibraryDependency,
+        Name,
+        Procedure;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
@@ -294,8 +302,6 @@ Future<Null> newWorldTest(
       for (Component c in moduleComponents.values) {
         c.adoptChildren();
       }
-      sdk.unbindCanonicalNames();
-      sdk.computeCanonicalNames();
 
       modulesToUse = new List<Component>();
       for (String moduleName in world["modules"]) {
@@ -310,7 +316,9 @@ Future<Null> newWorldTest(
         if (moduleComponent == null) {
           moduleComponent = new Component(nameRoot: sdk.root);
           new BinaryBuilder(moduleData[moduleName],
-                  filename: null, disableLazyReading: false)
+                  filename: null,
+                  disableLazyReading: false,
+                  alwaysCreateNewNamedNodes: true)
               .readComponent(moduleComponent);
           moduleComponents[moduleName] = moduleComponent;
           modulesToUse.add(moduleComponent);
@@ -433,8 +441,8 @@ Future<Null> newWorldTest(
     Stopwatch stopwatch = new Stopwatch()..start();
     Component component = await compiler.computeDelta(
         entryPoints: entries,
-        fullComponent:
-            brandNewWorld ? false : (noFullComponent ? false : true));
+        fullComponent: brandNewWorld ? false : (noFullComponent ? false : true),
+        simulateTransformer: world["simulateTransformer"]);
     if (outlineOnly) {
       for (Library lib in component.libraries) {
         for (Class c in lib.classes) {
@@ -458,6 +466,24 @@ Future<Null> newWorldTest(
     print("Compile took ${stopwatch.elapsedMilliseconds} ms");
 
     checkExpectedContent(world, component);
+
+    if (!noFullComponent) {
+      Set<Library> allLibraries = new Set<Library>();
+      for (Library lib in component.libraries) {
+        computeAllReachableLibrariesFor(lib, allLibraries);
+      }
+      if (allLibraries.length != component.libraries.length) {
+        Expect.fail("Expected for the reachable stuff to be equal to "
+            "${component.libraries} but it was $allLibraries");
+      }
+      Set<Library> tooMany = allLibraries.toSet()
+        ..removeAll(component.libraries);
+      if (tooMany.isNotEmpty) {
+        Expect.fail("Expected for the reachable stuff to be equal to "
+            "${component.libraries} but these were there too: $tooMany "
+            "(and others were missing)");
+      }
+    }
 
     newestWholeComponentData = util.postProcess(component);
     newestWholeComponent = component;
@@ -542,7 +568,9 @@ Future<Null> newWorldTest(
       gotWarning = false;
       formattedWarnings.clear();
       Component component2 = await compiler.computeDelta(
-          entryPoints: entries, fullComponent: true);
+          entryPoints: entries,
+          fullComponent: true,
+          simulateTransformer: world["simulateTransformer"]);
       performErrorAndWarningCheck(
           world, gotError, formattedErrors, gotWarning, formattedWarnings);
       List<int> thisWholeComponent = util.postProcess(component2);
@@ -571,6 +599,29 @@ Future<Null> newWorldTest(
           .isNotEmpty) {
         Expect.fail("Previously got error messages $prevFormattedWarnings, "
             "now had ${formattedWarnings}.");
+      }
+    }
+
+    if (world["expressionCompilation"] != null) {
+      Uri uri = base.resolve(world["expressionCompilation"]["uri"]);
+      String expression = world["expressionCompilation"]["expression"];
+      await compiler.compileExpression(expression, {}, [], "debugExpr", uri);
+    }
+  }
+}
+
+void computeAllReachableLibrariesFor(Library lib, Set<Library> allLibraries) {
+  Set<Library> libraries = new Set<Library>();
+  List<Library> workList = <Library>[];
+  allLibraries.add(lib);
+  libraries.add(lib);
+  workList.add(lib);
+  while (workList.isNotEmpty) {
+    Library library = workList.removeLast();
+    for (LibraryDependency dependency in library.dependencies) {
+      if (libraries.add(dependency.targetLibrary)) {
+        workList.add(dependency.targetLibrary);
+        allLibraries.add(dependency.targetLibrary);
       }
     }
   }
@@ -858,7 +909,9 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 
   @override
   Future<Component> computeDelta(
-      {List<Uri> entryPoints, bool fullComponent = false}) async {
+      {List<Uri> entryPoints,
+      bool fullComponent = false,
+      bool simulateTransformer}) async {
     Component result = await super
         .computeDelta(entryPoints: entryPoints, fullComponent: fullComponent);
 
@@ -869,6 +922,39 @@ class TestIncrementalCompiler extends IncrementalCompiler {
       throw "Loaders builder should contain the sdk, "
           "but didn't even contain dart:core.";
     }
+
+    if (simulateTransformer == true) {
+      doSimulateTransformer(result);
+    }
     return result;
+  }
+}
+
+void doSimulateTransformer(Component c) {
+  for (Library lib in c.libraries) {
+    if (lib.fields
+        .where((f) => f.name.name == "lalala_SimulateTransformer")
+        .toList()
+        .isNotEmpty) continue;
+    Name fieldName = new Name("lalala_SimulateTransformer");
+    Field field = new Field(fieldName,
+        isFinal: true,
+        reference: lib.reference.canonicalName
+            ?.getChildFromFieldWithName(fieldName)
+            ?.reference);
+    lib.addMember(field);
+    for (Class c in lib.classes) {
+      if (c.fields
+          .where((f) => f.name.name == "lalala_SimulateTransformer")
+          .toList()
+          .isNotEmpty) continue;
+      fieldName = new Name("lalala_SimulateTransformer");
+      field = new Field(fieldName,
+          isFinal: true,
+          reference: c.reference.canonicalName
+              ?.getChildFromFieldWithName(fieldName)
+              ?.reference);
+      c.addMember(field);
+    }
   }
 }

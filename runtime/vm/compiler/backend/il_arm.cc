@@ -1002,45 +1002,13 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ ReserveAlignedFrameSpace(compiler::ffi::NumStackSlots(arg_locations_) *
                               kWordSize);
 
-  // Load a 32-bit argument, or a 32-bit component of a 64-bit argument.
-  auto load_single_slot = [&](Location from, Location to) {
-    if (!to.IsStackSlot()) return;
-    if (from.IsRegister()) {
-      __ str(from.reg(), LocationToStackSlotAddress(to));
-    } else if (from.IsFpuRegister()) {
-      __ vstrs(EvenSRegisterOf(EvenDRegisterOf(from.fpu_reg())),
-               LocationToStackSlotAddress(to));
-    } else if (from.IsStackSlot() || from.IsDoubleStackSlot()) {
-      ASSERT(from.base_reg() == FPREG);
-      __ ldr(TMP, Address(saved_fp, from.ToStackSlotOffset()));
-      __ str(TMP, LocationToStackSlotAddress(to));
-    } else {
-      UNREACHABLE();
-    }
-  };
-
+  FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
+                     /*stack_delta=*/0);
   for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
-    Location origin = locs()->in(i);
-    Location target = arg_locations_[i];
-
-    if (target.IsStackSlot()) {
-      load_single_slot(origin, target);
-    } else if (target.IsDoubleStackSlot()) {
-      if (origin.IsFpuRegister()) {
-        __ vstrd(EvenDRegisterOf(origin.fpu_reg()),
-                 LocationToStackSlotAddress(target));
-      } else {
-        ASSERT(origin.IsDoubleStackSlot() && origin.base_reg() == FPREG);
-        __ vldrd(DTMP, Address(saved_fp, origin.ToStackSlotOffset()));
-        __ vstrd(DTMP, LocationToStackSlotAddress(target));
-      }
-    } else if (target.IsPairLocation()) {
-      ASSERT(origin.IsPairLocation());
-      load_single_slot(origin.AsPairLocation()->At(0),
-                       target.AsPairLocation()->At(0));
-      load_single_slot(origin.AsPairLocation()->At(1),
-                       target.AsPairLocation()->At(1));
-    }
+    const Location origin = rebase.Rebase(locs()->in(i));
+    const Location target = arg_locations_[i];
+    NoTemporaryAllocator no_temp;
+    compiler->EmitMove(target, origin, &no_temp);
   }
 
   // We need to copy the return address up into the dummy stack frame so the
@@ -1225,18 +1193,19 @@ Representation LoadIndexedInstr::representation() const {
   switch (class_id_) {
     case kArrayCid:
     case kImmutableArrayCid:
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
+      return kTagged;
     case kOneByteStringCid:
     case kTwoByteStringCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kTypedDataUint16ArrayCid:
     case kExternalOneByteStringCid:
     case kExternalTwoByteStringCid:
-      return kTagged;
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+      return kUnboxedIntPtr;
     case kTypedDataInt32ArrayCid:
       return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
@@ -1333,19 +1302,12 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
     } else {
       locs->set_out(0, Location::RequiresFpuRegister());
     }
-  } else if (representation() == kUnboxedUint32) {
-    ASSERT(class_id() == kTypedDataUint32ArrayCid);
-    locs->set_out(0, Location::RequiresRegister());
-  } else if (representation() == kUnboxedInt32) {
-    ASSERT(class_id() == kTypedDataInt32ArrayCid);
-    locs->set_out(0, Location::RequiresRegister());
   } else if (representation() == kUnboxedInt64) {
     ASSERT(class_id() == kTypedDataInt64ArrayCid ||
            class_id() == kTypedDataUint64ArrayCid);
     locs->set_out(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
   } else {
-    ASSERT(representation() == kTagged);
     locs->set_out(0, Location::RequiresRegister());
   }
   if (!directly_addressable) {
@@ -1438,94 +1400,95 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  if ((representation() == kUnboxedUint32) ||
-      (representation() == kUnboxedInt32)) {
-    Register result = locs()->out(0).reg();
-    switch (class_id()) {
-      case kTypedDataInt32ArrayCid:
-        ASSERT(representation() == kUnboxedInt32);
-        if (aligned()) {
-          __ ldr(result, element_address);
-        } else {
-          __ LoadWordUnaligned(result, address, TMP);
-        }
-        break;
-      case kTypedDataUint32ArrayCid:
-        ASSERT(representation() == kUnboxedUint32);
-        if (aligned()) {
-          __ ldr(result, element_address);
-        } else {
-          __ LoadWordUnaligned(result, address, TMP);
-        }
-        break;
-      default:
-        UNREACHABLE();
-    }
-    return;
-  }
-
-  if (representation() == kUnboxedInt64) {
-    ASSERT(!directly_addressable);  // need to add to register
-    ASSERT(class_id() == kTypedDataInt64ArrayCid ||
-           class_id() == kTypedDataUint64ArrayCid);
-    ASSERT(locs()->out(0).IsPairLocation());
-    PairLocation* result_pair = locs()->out(0).AsPairLocation();
-    Register result_lo = result_pair->At(0).reg();
-    Register result_hi = result_pair->At(1).reg();
-    if (aligned()) {
-      __ ldr(result_lo, Address(address));
-      __ ldr(result_hi, Address(address, kWordSize));
-    } else {
-      __ LoadWordUnaligned(result_lo, address, TMP);
-      __ AddImmediate(address, address, kWordSize);
-      __ LoadWordUnaligned(result_hi, address, TMP);
-    }
-    return;
-  }
-
-  ASSERT(representation() == kTagged);
-
-  const Register result = locs()->out(0).reg();
   switch (class_id()) {
-    case kTypedDataInt8ArrayCid:
+    case kTypedDataInt32ArrayCid: {
+      const Register result = locs()->out(0).reg();
+      ASSERT(representation() == kUnboxedInt32);
+      if (aligned()) {
+        __ ldr(result, element_address);
+      } else {
+        __ LoadWordUnaligned(result, address, TMP);
+      }
+      break;
+    }
+    case kTypedDataUint32ArrayCid: {
+      const Register result = locs()->out(0).reg();
+      ASSERT(representation() == kUnboxedUint32);
+      if (aligned()) {
+        __ ldr(result, element_address);
+      } else {
+        __ LoadWordUnaligned(result, address, TMP);
+      }
+      break;
+    }
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid: {
+      ASSERT(representation() == kUnboxedInt64);
+      ASSERT(!directly_addressable);  // need to add to register
+      ASSERT(locs()->out(0).IsPairLocation());
+      PairLocation* result_pair = locs()->out(0).AsPairLocation();
+      const Register result_lo = result_pair->At(0).reg();
+      const Register result_hi = result_pair->At(1).reg();
+      if (aligned()) {
+        __ ldr(result_lo, Address(address));
+        __ ldr(result_hi, Address(address, kWordSize));
+      } else {
+        __ LoadWordUnaligned(result_lo, address, TMP);
+        __ AddImmediate(address, address, kWordSize);
+        __ LoadWordUnaligned(result_hi, address, TMP);
+      }
+      break;
+    }
+    case kTypedDataInt8ArrayCid: {
+      const Register result = locs()->out(0).reg();
+      ASSERT(representation() == kUnboxedIntPtr);
       ASSERT(index_scale() == 1);
       ASSERT(aligned());
       __ ldrsb(result, element_address);
-      __ SmiTag(result);
       break;
+    }
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
     case kOneByteStringCid:
-    case kExternalOneByteStringCid:
+    case kExternalOneByteStringCid: {
+      const Register result = locs()->out(0).reg();
+      ASSERT(representation() == kUnboxedIntPtr);
       ASSERT(index_scale() == 1);
       ASSERT(aligned());
       __ ldrb(result, element_address);
-      __ SmiTag(result);
       break;
-    case kTypedDataInt16ArrayCid:
+    }
+    case kTypedDataInt16ArrayCid: {
+      const Register result = locs()->out(0).reg();
+      ASSERT(representation() == kUnboxedIntPtr);
       if (aligned()) {
         __ ldrsh(result, element_address);
       } else {
         __ LoadHalfWordUnaligned(result, address, TMP);
       }
-      __ SmiTag(result);
       break;
+    }
     case kTypedDataUint16ArrayCid:
     case kTwoByteStringCid:
-    case kExternalTwoByteStringCid:
+    case kExternalTwoByteStringCid: {
+      const Register result = locs()->out(0).reg();
+      ASSERT(representation() == kUnboxedIntPtr);
       if (aligned()) {
         __ ldrh(result, element_address);
       } else {
         __ LoadHalfWordUnsignedUnaligned(result, address, TMP);
       }
-      __ SmiTag(result);
       break;
-    default:
+    }
+    default: {
+      const Register result = locs()->out(0).reg();
+      ASSERT(representation() == kTagged);
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
       __ ldr(result, element_address);
       break;
+    }
   }
 }
 
@@ -1537,15 +1500,16 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
+      return kTagged;
     case kOneByteStringCid:
     case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
     case kTypedDataInt16ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
     case kTypedDataUint16ArrayCid:
-      return kTagged;
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+      return kUnboxedIntPtr;
     case kTypedDataInt32ArrayCid:
       return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
@@ -1708,19 +1672,20 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ArrayCid:
     case kOneByteStringCid: {
+      ASSERT(RequiredInputRepresentation(2) == kUnboxedIntPtr);
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
         __ LoadImmediate(IP, static_cast<int8_t>(constant.Value()));
         __ strb(IP, element_address);
       } else {
         const Register value = locs()->in(2).reg();
-        __ SmiUntag(IP, value);
-        __ strb(IP, element_address);
+        __ strb(value, element_address);
       }
       break;
     }
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid: {
+      ASSERT(RequiredInputRepresentation(2) == kUnboxedIntPtr);
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
         intptr_t value = constant.Value();
@@ -1734,24 +1699,23 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ strb(IP, element_address);
       } else {
         const Register value = locs()->in(2).reg();
-        __ LoadImmediate(IP, 0x1FE);  // Smi 0xFF.
-        __ cmp(value, Operand(IP));   // Compare Smi value and smi 0xFF.
         // Clamp to 0x00 or 0xFF respectively.
-        __ mov(IP, Operand(0), LE);      // IP = value <= 0x1FE ? 0 : 0x1FE.
+        __ LoadImmediate(IP, 0xFF);
+        __ cmp(value, Operand(IP));      // Compare Smi value and smi 0xFF.
+        __ mov(IP, Operand(0), LE);      // IP = value <= 0xFF ? 0 : 0xFF.
         __ mov(IP, Operand(value), LS);  // IP = value in range ? value : IP.
-        __ SmiUntag(IP);
         __ strb(IP, element_address);
       }
       break;
     }
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid: {
+      ASSERT(RequiredInputRepresentation(2) == kUnboxedIntPtr);
       const Register value = locs()->in(2).reg();
-      __ SmiUntag(IP, value);
       if (aligned()) {
-        __ strh(IP, element_address);
+        __ strh(value, element_address);
       } else {
-        __ StoreHalfWordUnaligned(IP, temp, temp2);
+        __ StoreHalfWordUnaligned(value, temp, temp2);
       }
       break;
     }
@@ -1865,13 +1829,6 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t nullability = field().is_nullable() ? kNullCid : kIllegalCid;
 
   if (field_cid == kDynamicCid) {
-    if (Compiler::IsBackgroundCompilation()) {
-      // Field state changed while compiling.
-      Compiler::AbortBackgroundCompilation(
-          deopt_id(),
-          "GuardFieldClassInstr: field state changed while compiling");
-    }
-    ASSERT(!compiler->is_optimizing());
     return;  // Nothing to emit.
   }
 
@@ -2025,13 +1982,6 @@ LocationSummary* GuardFieldLengthInstr::MakeLocationSummary(Zone* zone,
 
 void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (field().guarded_list_length() == Field::kNoFixedLength) {
-    if (Compiler::IsBackgroundCompilation()) {
-      // Field state changed while compiling.
-      Compiler::AbortBackgroundCompilation(
-          deopt_id(),
-          "GuardFieldLengthInstr: field state changed while compiling");
-    }
-    ASSERT(!compiler->is_optimizing());
     return;  // Nothing to emit.
   }
 
@@ -2635,7 +2585,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       num_elements()->BindsToConstant() &&
       num_elements()->BoundConstant().IsSmi()) {
     const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
-    if ((length >= 0) && (length <= Array::kMaxElements)) {
+    if (Array::IsValidLength(length)) {
       Label slow_path, done;
       InlineArrayAllocation(compiler, length, &slow_path, &done);
       __ Bind(&slow_path);
@@ -3600,7 +3550,8 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     } else {
       summary->set_in(1, Location::RequiresRegister());
       summary->set_temp(0, Location::RequiresRegister());
-      summary->set_temp(1, Location::RequiresFpuRegister());
+      // Request register that overlaps with S0..S31.
+      summary->set_temp(1, Location::FpuRegisterLocation(Q0));
     }
     summary->set_out(0, Location::RequiresRegister());
     return summary;
@@ -3609,7 +3560,8 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::RequiresRegister());
     summary->set_temp(0, Location::RequiresRegister());
-    summary->set_temp(1, Location::RequiresFpuRegister());
+    // Request register that overlaps with S0..S31.
+    summary->set_temp(1, Location::FpuRegisterLocation(Q0));
     summary->set_out(0, Location::RequiresRegister());
     return summary;
   }
@@ -5149,7 +5101,7 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* CaseInsensitiveCompareUC16Instr::MakeLocationSummary(
+LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
   const intptr_t kNumTemps = 0;
@@ -5163,8 +5115,7 @@ LocationSummary* CaseInsensitiveCompareUC16Instr::MakeLocationSummary(
   return summary;
 }
 
-void CaseInsensitiveCompareUC16Instr::EmitNativeCode(
-    FlowGraphCompiler* compiler) {
+void CaseInsensitiveCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Call the function.
   __ CallRuntime(TargetFunction(), TargetFunction().argument_count());
 }
@@ -5723,7 +5674,8 @@ LocationSummary* TruncDivModInstr::MakeLocationSummary(Zone* zone,
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RequiresRegister());
   summary->set_temp(0, Location::RequiresRegister());
-  summary->set_temp(1, Location::RequiresFpuRegister());
+  // Request register that overlaps with S0..S31.
+  summary->set_temp(1, Location::FpuRegisterLocation(Q0));
   // Output is a pair of registers.
   summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                      Location::RequiresRegister()));
@@ -6723,7 +6675,7 @@ void UnboxedWidthExtenderInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register reg = locs()->in(0).reg();
   // There are no builtin sign- or zero-extension instructions, so we'll have to
   // use shifts instead.
-  const intptr_t shift_length = (kWordSize - from_width_bytes_) * kBitsPerByte;
+  const intptr_t shift_length = (kWordSize - from_width_bytes()) * kBitsPerByte;
   __ Lsl(reg, reg, Operand(shift_length));
   switch (representation_) {
     case kUnboxedInt32:  // Sign extend operand.

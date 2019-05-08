@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// The same as [ExperimentStatus.knownFeatures], except when a call to
 /// [overrideKnownFeatures] is in progress.
@@ -17,19 +19,42 @@ Map<String, ExperimentalFeature> _knownFeatures =
 /// unrecognized flags are ignored, conflicting flags are resolved in favor of
 /// the flag appearing last.
 List<bool> decodeFlags(List<String> flags) {
-  var decodedFlags = <bool>[];
+  var decodedFlags = List<bool>.filled(_knownFeatures.length, false);
   for (var feature in _knownFeatures.values) {
-    if (feature.isExpired) continue;
-    var index = feature.index;
-    while (decodedFlags.length <= index) {
-      decodedFlags.add(false);
-    }
-    decodedFlags[index] = feature.isEnabledByDefault;
+    decodedFlags[feature.index] = feature.isEnabledByDefault;
   }
   for (var entry in _flagStringsToMap(flags).entries) {
     decodedFlags[entry.key] = entry.value;
   }
   return decodedFlags;
+}
+
+/// Computes a set of features for use in a unit test.  Computes the set of
+/// features enabled in [sdkVersion], plus any specified [additionalFeatures].
+///
+/// If [sdkVersion] is not supplied (or is `null`), then the current set of
+/// enabled features is used as the starting point.
+List<bool> enableFlagsForTesting(
+    {String sdkVersion, List<Feature> additionalFeatures: const []}) {
+  var flags = decodeFlags([]);
+  if (sdkVersion != null) {
+    flags = restrictEnableFlagsToVersion(flags, Version.parse(sdkVersion));
+  }
+  for (ExperimentalFeature feature in additionalFeatures) {
+    flags[feature.index] = true;
+  }
+  return flags;
+}
+
+/// Pretty-prints the given set of enable flags as a set of feature names.
+String experimentStatusToString(List<bool> enableFlags) {
+  var featuresInSet = <String>[];
+  for (var feature in _knownFeatures.values) {
+    if (enableFlags[feature.index]) {
+      featuresInSet.add(feature.enableString);
+    }
+  }
+  return 'FeatureSet{${featuresInSet.join(', ')}}';
 }
 
 /// Converts the flags in [status] to a list of strings suitable for
@@ -62,6 +87,19 @@ T overrideKnownFeatures<T>(
   } finally {
     _knownFeatures = oldKnownFeatures;
   }
+}
+
+/// Computes a new set of enable flags based on [flags], but with any features
+/// that were not present in [version] set to `false`.
+List<bool> restrictEnableFlagsToVersion(List<bool> flags, Version version) {
+  flags = List.from(flags);
+  for (var feature in _knownFeatures.values) {
+    if (!feature.isEnabledByDefault ||
+        feature.firstSupportedVersion > version) {
+      flags[feature.index] = false;
+    }
+  }
+  return flags;
 }
 
 /// Validates whether there are any disagreements between the strings given in
@@ -205,12 +243,9 @@ class ConflictingFlags extends ValidationResult {
 
 /// Information about a single experimental flag that the user might use to
 /// request that a feature be enabled (or disabled).
-class ExperimentalFeature {
+class ExperimentalFeature implements Feature {
   /// Index of the flag in the private data structure maintained by
   /// [ExperimentStatus].
-  ///
-  /// For expired features, the index should be null, since no enable/disable
-  /// state needs to be stored.
   ///
   /// This index should not be relied upon to be stable over time.  For instance
   /// it should not be used to serialize the state of experiments to long term
@@ -231,12 +266,49 @@ class ExperimentalFeature {
   /// Documentation for the feature, if known.  `null` for expired flags.
   final String documentation;
 
+  final String _firstSupportedVersion;
+
   const ExperimentalFeature(this.index, this.enableString,
-      this.isEnabledByDefault, this.isExpired, this.documentation)
-      : assert(isExpired ? index == null : index != null);
+      this.isEnabledByDefault, this.isExpired, this.documentation,
+      {String firstSupportedVersion})
+      : _firstSupportedVersion = firstSupportedVersion,
+        assert(index != null),
+        assert(isEnabledByDefault
+            ? firstSupportedVersion != null
+            : firstSupportedVersion == null),
+        assert(enableString != null);
 
   /// The string to disable the feature.
   String get disableString => 'no-$enableString';
+
+  @override
+  String get experimentalFlag => isExpired ? null : enableString;
+
+  @override
+  Version get firstSupportedVersion {
+    if (_firstSupportedVersion == null) {
+      return null;
+    } else {
+      return Version.parse(_firstSupportedVersion);
+    }
+  }
+
+  @override
+  FeatureStatus get status {
+    if (isExpired) {
+      if (isEnabledByDefault) {
+        return FeatureStatus.current;
+      } else {
+        return FeatureStatus.abandoned;
+      }
+    } else {
+      if (isEnabledByDefault) {
+        return FeatureStatus.provisional;
+      } else {
+        return FeatureStatus.future;
+      }
+    }
+  }
 
   /// Retrieves the string to enable or disable the feature, depending on
   /// [value].

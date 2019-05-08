@@ -5,6 +5,9 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -12,6 +15,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/tokens_context.dart';
 
 /// The context of a unit - the context of the bundle, and the unit tokens.
@@ -20,6 +24,8 @@ class LinkedUnitContext {
   final LinkedLibraryContext libraryContext;
   final int indexInLibrary;
   final String uriStr;
+  final Reference reference;
+  final bool isSynthetic;
   final LinkedNodeUnit data;
   final TokensContext tokensContext;
 
@@ -28,19 +34,25 @@ class LinkedUnitContext {
   CompilationUnit _unit;
   bool _hasDirectivesRead = false;
 
-  /// Mapping from identifiers to real or synthetic type parameters.
-  ///
-  /// Real type parameters have corresponding [TypeParameter] nodes, and are
-  /// referenced from other AST nodes.
+  /// Mapping from identifiers to elements for generic function types.
+  final Map<int, GenericFunctionTypeElementImpl> _genericFunctionTypes = {};
+
+  /// Mapping from identifiers to synthetic type parameters.
   ///
   /// Synthetic type parameters are added when [readType] begins reading a
   /// [FunctionType], and removed when reading is done.
-  final Map<int, TypeParameterElement> _typeParameters = {};
+  final Map<int, TypeParameterElementImpl> _typeParameters = {};
 
   int _nextSyntheticTypeParameterId = 0x10000;
 
-  LinkedUnitContext(this.bundleContext, this.libraryContext,
-      this.indexInLibrary, this.uriStr, this.data,
+  LinkedUnitContext(
+      this.bundleContext,
+      this.libraryContext,
+      this.indexInLibrary,
+      this.uriStr,
+      this.reference,
+      this.isSynthetic,
+      this.data,
       {CompilationUnit unit})
       : tokensContext = data != null ? TokensContext(data.tokens) : null {
     _astReader = AstBinaryReader(this);
@@ -50,11 +62,34 @@ class LinkedUnitContext {
     _hasDirectivesRead = _unit != null;
   }
 
+  LinkedUnitContext._(
+      this.bundleContext,
+      this.libraryContext,
+      this.indexInLibrary,
+      this.uriStr,
+      this.reference,
+      this.isSynthetic,
+      this.data,
+      this.tokensContext);
+
+  bool get hasPartOfDirective {
+    for (var directive in unit_withDirectives.directives) {
+      if (directive is PartOfDirective) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Return `true` if this unit is a part of a bundle that is being linked.
+  bool get isLinking => bundleContext.isLinking;
+
   CompilationUnit get unit => _unit;
 
   CompilationUnit get unit_withDeclarations {
     if (_unit == null) {
       _unit = _astReader.readNode(data.node);
+      _unit.lineInfo = LineInfo(data.lineStarts);
     }
     return _unit;
   }
@@ -71,13 +106,29 @@ class LinkedUnitContext {
     return _unit;
   }
 
-  /// Every [TypeParameter] node has [TypeParameterElement], which is created
-  /// during reading of this node. All type parameter nodes are read before
-  /// any nodes that reference them (bounds are read lazily later).
-  void addTypeParameter(int id, TypeParameter node) {
-    var element = TypeParameterElementImpl.forLinkedNode(null, null, node);
-    _typeParameters[id] = element;
-    node.name.staticElement = element;
+  /// Every [GenericFunctionType] node has [GenericFunctionTypeElement], which
+  /// is created during reading of this node.
+  void addGenericFunctionType(int id, GenericFunctionTypeImpl node) {
+    if (this.reference == null) return;
+
+    LazyAst.setGenericFunctionTypeId(node, id);
+
+    var element = _genericFunctionTypes[id];
+    if (element == null) {
+      element = GenericFunctionTypeElementImpl.forLinkedNode(
+        this.reference.element,
+        null,
+        node,
+      );
+      _genericFunctionTypes[id] = element;
+    }
+
+    node.declaredElement = element;
+
+    var containerRef = this.reference.getChild('@genericFunctionType');
+    var reference = containerRef.getChild('$id');
+    reference.element = element;
+    element.reference = reference;
   }
 
   /// Return the [LibraryElement] referenced in the [node].
@@ -92,14 +143,24 @@ class LinkedUnitContext {
       return LazyClassDeclaration.get(node).data.codeLength;
     } else if (node is ClassTypeAlias) {
       return LazyClassTypeAlias.get(node).data.codeLength;
+    } else if (node is CompilationUnit) {
+      return data.node.codeLength;
     } else if (node is ConstructorDeclaration) {
       return LazyConstructorDeclaration.get(node).data.codeLength;
+    } else if (node is EnumDeclaration) {
+      return LazyEnumDeclaration.get(node).data.codeLength;
     } else if (node is FormalParameter) {
       return LazyFormalParameter.get(node).data.codeLength;
     } else if (node is FunctionDeclaration) {
       return LazyFunctionDeclaration.get(node).data.codeLength;
+    } else if (node is FunctionTypeAliasImpl) {
+      return LazyFunctionTypeAlias.get(node).data.codeLength;
+    } else if (node is GenericTypeAlias) {
+      return LazyGenericTypeAlias.get(node).data.codeLength;
     } else if (node is MethodDeclaration) {
       return LazyMethodDeclaration.get(node).data.codeLength;
+    } else if (node is MixinDeclaration) {
+      return LazyMixinDeclaration.get(node).data.codeLength;
     } else if (node is TypeParameter) {
       return LazyTypeParameter.get(node).data.codeLength;
     } else if (node is VariableDeclaration) {
@@ -113,14 +174,24 @@ class LinkedUnitContext {
       return LazyClassDeclaration.get(node).data.codeOffset;
     } else if (node is ClassTypeAlias) {
       return LazyClassTypeAlias.get(node).data.codeOffset;
+    } else if (node is CompilationUnit) {
+      return data.node.codeOffset;
     } else if (node is ConstructorDeclaration) {
       return LazyConstructorDeclaration.get(node).data.codeOffset;
+    } else if (node is EnumDeclaration) {
+      return LazyEnumDeclaration.get(node).data.codeOffset;
     } else if (node is FormalParameter) {
       return LazyFormalParameter.get(node).data.codeOffset;
     } else if (node is FunctionDeclaration) {
       return LazyFunctionDeclaration.get(node).data.codeOffset;
+    } else if (node is FunctionTypeAliasImpl) {
+      return LazyFunctionTypeAlias.get(node).data.codeOffset;
+    } else if (node is GenericTypeAlias) {
+      return LazyGenericTypeAlias.get(node).data.codeOffset;
     } else if (node is MethodDeclaration) {
       return LazyMethodDeclaration.get(node).data.codeOffset;
+    } else if (node is MixinDeclaration) {
+      return LazyMixinDeclaration.get(node).data.codeOffset;
     } else if (node is TypeParameter) {
       return LazyTypeParameter.get(node).data.codeOffset;
     } else if (node is VariableDeclaration) {
@@ -158,6 +229,23 @@ class LinkedUnitContext {
         }
       }
     }
+  }
+
+  DartType getDefaultType(TypeParameter node) {
+    return LazyTypeParameter.getDefaultType(_astReader, node);
+  }
+
+  String getDefaultValueCode(AstNode node) {
+    if (node is DefaultFormalParameter) {
+      LazyFormalParameter.readDefaultValue(_astReader, node);
+      return node.defaultValue?.toString();
+    }
+    return null;
+  }
+
+  int getDirectiveOffset(AstNode node) {
+    LazyDirective.readMetadata(_astReader, node);
+    return node.offset;
   }
 
   Comment getDocumentationComment(AstNode node) {
@@ -215,6 +303,16 @@ class LinkedUnitContext {
     return node.constants;
   }
 
+  String getFieldFormalParameterName(AstNode node) {
+    if (node is DefaultFormalParameter) {
+      return getFieldFormalParameterName(node.parameter);
+    } else if (node is FieldFormalParameter) {
+      return node.identifier.name;
+    } else {
+      throw StateError('${node.runtimeType}');
+    }
+  }
+
   Iterable<VariableDeclaration> getFields(ClassOrMixinDeclaration node) sync* {
     var members = _getClassOrMixinMembers(node);
     for (var member in members) {
@@ -240,6 +338,18 @@ class LinkedUnitContext {
     } else if (node is FunctionExpression) {
       LazyFunctionExpression.readFormalParameters(_astReader, node);
       return node.parameters?.parameters;
+    } else if (node is FormalParameter) {
+      if (node is DefaultFormalParameter) {
+        return getFormalParameters(node.parameter);
+      } else if (node is FieldFormalParameter) {
+        LazyFormalParameter.readFormalParameters(_astReader, node);
+        return node.parameters?.parameters;
+      } else if (node is FunctionTypedFormalParameter) {
+        LazyFormalParameter.readFormalParameters(_astReader, node);
+        return node.parameters.parameters;
+      } else {
+        return null;
+      }
     } else if (node is FunctionTypeAlias) {
       LazyFunctionTypeAlias.readFormalParameters(_astReader, node);
       return node.parameters.parameters;
@@ -252,26 +362,25 @@ class LinkedUnitContext {
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
-//    if (kind == LinkedNodeKind.constructorDeclaration) {
-//      parameterList = node.constructorDeclaration_parameters;
-//    } else if (kind == LinkedNodeKind.functionDeclaration) {
-//      return getFormalParameters(node.functionDeclaration_functionExpression);
-//    } else if (kind == LinkedNodeKind.functionExpression) {
-//      parameterList = node.functionExpression_formalParameters;
-//    } else if (kind == LinkedNodeKind.functionTypeAlias) {
-//      parameterList = node.functionTypeAlias_formalParameters;
-//    } else if (kind == LinkedNodeKind.genericFunctionType) {
-//      parameterList = node.genericFunctionType_formalParameters;
-//    } else if (kind == LinkedNodeKind.methodDeclaration) {
-//      parameterList = node.methodDeclaration_formalParameters;
-//    } else {
-//      throw UnimplementedError('$kind');
-//    }
+  }
+
+  Reference getGenericFunctionTypeReference(GenericFunctionType node) {
+    var id = LazyAst.getGenericFunctionTypeId(node);
+    return reference.getChild('@genericFunctionType').getChild('$id');
   }
 
   GenericFunctionType getGeneticTypeAliasFunction(GenericTypeAlias node) {
     LazyGenericTypeAlias.readFunctionType(_astReader, node);
     return node.functionType;
+  }
+
+  bool getHasTypedefSelfReference(AstNode node) {
+    if (node is FunctionTypeAlias) {
+      return LazyFunctionTypeAlias.getHasSelfReference(node);
+    } else if (node is GenericTypeAlias) {
+      return LazyGenericTypeAlias.getHasSelfReference(node);
+    }
+    return false;
   }
 
   ImplementsClause getImplementsClause(AstNode node) {
@@ -286,6 +395,18 @@ class LinkedUnitContext {
       return node.implementsClause;
     } else {
       throw UnimplementedError('${node.runtimeType}');
+    }
+  }
+
+  bool getInheritsCovariant(AstNode node) {
+    if (node is DefaultFormalParameter) {
+      return getInheritsCovariant(node.parameter);
+    } else if (node is FormalParameter) {
+      return LazyAst.getInheritsCovariant(node);
+    } else if (node is VariableDeclaration) {
+      return LazyAst.getInheritsCovariant(node);
+    } else {
+      throw StateError('${node.runtimeType}');
     }
   }
 
@@ -324,7 +445,11 @@ class LinkedUnitContext {
       return node.metadata;
     } else if (node is CompilationUnit) {
       assert(node == _unit);
-      return _getPartDirectiveAnnotation();
+      if (indexInLibrary != 0) {
+        return _getPartDirectiveAnnotation();
+      } else {
+        return const <Annotation>[];
+      }
     } else if (node is ConstructorDeclaration) {
       LazyConstructorDeclaration.readMetadata(_astReader, node);
       return node.metadata;
@@ -348,8 +473,17 @@ class LinkedUnitContext {
     } else if (node is FunctionTypeAlias) {
       LazyFunctionTypeAlias.readMetadata(_astReader, node);
       return node.metadata;
+    } else if (node is GenericTypeAlias) {
+      LazyGenericTypeAlias.readMetadata(_astReader, node);
+      return node.metadata;
     } else if (node is MethodDeclaration) {
       LazyMethodDeclaration.readMetadata(_astReader, node);
+      return node.metadata;
+    } else if (node is MixinDeclaration) {
+      LazyMixinDeclaration.readMetadata(_astReader, node);
+      return node.metadata;
+    } else if (node is TypeParameter) {
+      LazyTypeParameter.readMetadata(_astReader, node);
       return node.metadata;
     } else if (node is VariableDeclaration) {
       var parent2 = node.parent.parent;
@@ -361,32 +495,6 @@ class LinkedUnitContext {
         return parent2.metadata;
       }
     }
-//    var kind = node.kind;
-//    if (kind == LinkedNodeKind.classDeclaration ||
-//        kind == LinkedNodeKind.classTypeAlias ||
-//        kind == LinkedNodeKind.constructorDeclaration ||
-//        kind == LinkedNodeKind.enumConstantDeclaration ||
-//        kind == LinkedNodeKind.enumDeclaration ||
-//        kind == LinkedNodeKind.exportDirective ||
-//        kind == LinkedNodeKind.functionDeclaration ||
-//        kind == LinkedNodeKind.functionTypeAlias ||
-//        kind == LinkedNodeKind.libraryDirective ||
-//        kind == LinkedNodeKind.importDirective ||
-//        kind == LinkedNodeKind.methodDeclaration ||
-//        kind == LinkedNodeKind.mixinDeclaration ||
-//        kind == LinkedNodeKind.partDirective ||
-//        kind == LinkedNodeKind.partOfDirective ||
-//        kind == LinkedNodeKind.variableDeclaration) {
-//      return node.annotatedNode_metadata;
-//    }
-//    if (kind == LinkedNodeKind.defaultFormalParameter) {
-//      return getMetadataOrEmpty(node.defaultFormalParameter_parameter);
-//    }
-//    if (kind == LinkedNodeKind.fieldFormalParameter ||
-//        kind == LinkedNodeKind.functionTypedFormalParameter ||
-//        kind == LinkedNodeKind.simpleFormalParameter) {
-//      return node.normalFormalParameter_metadata;
-//    }
     return const <Annotation>[];
   }
 
@@ -405,13 +513,27 @@ class LinkedUnitContext {
     }
   }
 
+  List<String> getMixinSuperInvokedNames(MixinDeclaration node) {
+    return LazyMixinDeclaration.get(node).getSuperInvokedNames();
+  }
+
   int getNameOffset(AstNode node) {
-    if (node is NamedCompilationUnitMember) {
-      return node.name.offset;
+    if (node is ConstructorDeclaration) {
+      if (node.name != null) {
+        return node.name.offset;
+      } else {
+        return node.returnType.offset;
+      }
     } else if (node is EnumConstantDeclaration) {
       return node.name.offset;
     } else if (node is FormalParameter) {
-      return node.identifier.offset;
+      return node.identifier?.offset ?? -1;
+    } else if (node is MethodDeclaration) {
+      return node.name.offset;
+    } else if (node is NamedCompilationUnitMember) {
+      return node.name.offset;
+    } else if (node is TypeParameter) {
+      return node.name.offset;
     } else if (node is VariableDeclaration) {
       return node.name.offset;
     }
@@ -436,6 +558,28 @@ class LinkedUnitContext {
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
+  }
+
+  TypeAnnotation getReturnTypeNode(AstNode node) {
+    if (node is FunctionTypeAlias) {
+      LazyFunctionTypeAlias.readReturnTypeNode(_astReader, node);
+      return node.returnType;
+    } else if (node is GenericFunctionType) {
+      LazyGenericFunctionType.readReturnTypeNode(_astReader, node);
+      return node.returnType;
+    } else if (node is FunctionDeclaration) {
+      LazyFunctionDeclaration.readReturnTypeNode(_astReader, node);
+      return node.returnType;
+    } else if (node is MethodDeclaration) {
+      LazyMethodDeclaration.readReturnTypeNode(_astReader, node);
+      return node.returnType;
+    } else {
+      throw UnimplementedError('${node.runtimeType}');
+    }
+  }
+
+  String getSelectedUri(UriBasedDirective node) {
+    return LazyDirective.getSelectedUri(node);
   }
 
   String getSimpleName(LinkedNode node) {
@@ -487,6 +631,18 @@ class LinkedUnitContext {
     }
   }
 
+  TopLevelInferenceError getTypeInferenceError(AstNode node) {
+    if (node is DefaultFormalParameter) {
+      return getTypeInferenceError(node.parameter);
+    } else if (node is SimpleFormalParameter) {
+      return LazyFormalParameter.getTypeInferenceError(node);
+    } else if (node is VariableDeclaration) {
+      return LazyVariableDeclaration.getTypeInferenceError(node);
+    } else {
+      return null;
+    }
+  }
+
   TypeAnnotation getTypeParameterBound(TypeParameter node) {
     LazyTypeParameter.readBound(_astReader, node);
     return node.bound;
@@ -499,10 +655,16 @@ class LinkedUnitContext {
       return node.typeParameters;
     } else if (node is ConstructorDeclaration) {
       return null;
+    } else if (node is DefaultFormalParameter) {
+      return getTypeParameters2(node.parameter);
+    } else if (node is FieldFormalParameter) {
+      return null;
     } else if (node is FunctionDeclaration) {
       LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
       return getTypeParameters2(node.functionExpression);
     } else if (node is FunctionExpression) {
+      return node.typeParameters;
+    } else if (node is FunctionTypedFormalParameter) {
       return node.typeParameters;
     } else if (node is FunctionTypeAlias) {
       return node.typeParameters;
@@ -514,6 +676,8 @@ class LinkedUnitContext {
       return node.typeParameters;
     } else if (node is MixinDeclaration) {
       return node.typeParameters;
+    } else if (node is SimpleFormalParameter) {
+      return null;
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
@@ -540,18 +704,26 @@ class LinkedUnitContext {
   }
 
   bool hasImplicitReturnType(AstNode node) {
+    if (node is FunctionDeclaration) {
+      LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
+      return node.returnType == null;
+    }
     if (node is MethodDeclaration) {
+      LazyMethodDeclaration.readReturnTypeNode(_astReader, node);
       return node.returnType == null;
     }
     return false;
   }
 
   bool hasImplicitType(AstNode node) {
-    if (node is VariableDeclaration) {
-      VariableDeclarationList parent = node.parent;
-      return parent.type == null;
+    if (node is DefaultFormalParameter) {
+      return hasImplicitType(node.parameter);
     } else if (node is SimpleFormalParameter) {
       return node.type == null;
+    } else if (node is VariableDeclaration) {
+      VariableDeclarationList parent = node.parent;
+      LazyVariableDeclarationList.readTypeNode(_astReader, parent);
+      return parent.type == null;
     }
     return false;
   }
@@ -571,7 +743,7 @@ class LinkedUnitContext {
     } else if (node is FunctionDeclaration) {
       return false;
     } else if (node is MethodDeclaration) {
-      return node.isAbstract;
+      return LazyMethodDeclaration.isAbstract(node);
     }
     throw UnimplementedError('${node.runtimeType}');
   }
@@ -593,16 +765,6 @@ class LinkedUnitContext {
       VariableDeclarationList parent = node.parent;
       return parent.isConst;
     }
-//    var kind = node.kind;
-//    if (kind == LinkedNodeKind.defaultFormalParameter) {
-//      return isConst(node.defaultFormalParameter_parameter);
-//    }
-//    if (kind == LinkedNodeKind.simpleFormalParameter) {
-//      return isConstKeyword(node.simpleFormalParameter_keyword);
-//    }
-//    if (kind == LinkedNodeKind.variableDeclaration) {
-//      return node.variableDeclaration_declaration.isConst;
-//    }
     throw UnimplementedError('${node.runtimeType}');
   }
 
@@ -614,14 +776,17 @@ class LinkedUnitContext {
     return isConstKeyword(node.variableDeclarationList_keyword);
   }
 
-  bool isCovariant(AstNode node) {
-    if (node is FormalParameter) {
+  bool isExplicitlyCovariant(AstNode node) {
+    if (node is EnumConstantDeclaration) {
+      return false;
+    } else if (node is FormalParameter) {
       return node.covariantKeyword != null;
     } else if (node is VariableDeclaration) {
       var parent2 = node.parent.parent;
       return parent2 is FieldDeclaration && parent2.covariantKeyword != null;
+    } else {
+      throw StateError('${node.runtimeType}');
     }
-    return false;
   }
 
   bool isExternal(AstNode node) {
@@ -674,6 +839,19 @@ class LinkedUnitContext {
     }
   }
 
+  bool isLate(AstNode node) {
+    if (node is VariableDeclaration) {
+      return node.isLate;
+    }
+    if (node is VariableDeclarationList) {
+      return node.isLate;
+    }
+    if (node is EnumConstantDeclaration) {
+      return false;
+    }
+    throw UnimplementedError('${node.runtimeType}');
+  }
+
   bool isLibraryKeyword(int token) {
     return tokensContext.type(token) == UnlinkedTokenType.LIBRARY;
   }
@@ -712,7 +890,7 @@ class LinkedUnitContext {
     return tokensContext.type(token) == UnlinkedTokenType.SYNC;
   }
 
-  Expression readInitializer(ElementImpl enclosing, AstNode node) {
+  Expression readInitializer(AstNode node) {
     if (node is DefaultFormalParameter) {
       LazyFormalParameter.readDefaultValue(_astReader, node);
       return node.defaultValue;
@@ -739,11 +917,21 @@ class LinkedUnitContext {
     } else if (kind == LinkedNodeTypeKind.function) {
       var typeParameterDataList = linkedType.functionTypeParameters;
 
-      var typeParameters = <TypeParameterElement>[];
-      for (var typeParameterData in typeParameterDataList) {
+      var typeParametersLength = typeParameterDataList.length;
+      var typeParameters = List<TypeParameterElement>(typeParametersLength);
+      for (var i = 0; i < typeParametersLength; ++i) {
+        var typeParameterData = typeParameterDataList[i];
         var element = TypeParameterElementImpl(typeParameterData.name, -1);
-        typeParameters.add(element);
+        typeParameters[i] = element;
         _typeParameters[_nextSyntheticTypeParameterId++] = element;
+      }
+
+      // Type parameters might use each other in bounds, including forward
+      // references. So, we read bounds after reading all type parameters.
+      for (var i = 0; i < typeParametersLength; ++i) {
+        var typeParameterData = typeParameterDataList[i];
+        TypeParameterElementImpl element = typeParameters[i];
+        element.bound = readType(typeParameterData.bound);
       }
 
       var returnType = readType(linkedType.functionReturnType);
@@ -753,26 +941,37 @@ class LinkedUnitContext {
         return ParameterElementImpl.synthetic(p.name, type, kind);
       }).toList();
 
-      for (var i = 0; i < typeParameterDataList.length; ++i) {
+      for (var i = 0; i < typeParametersLength; ++i) {
         _typeParameters.remove(--_nextSyntheticTypeParameterId);
       }
+
+      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
 
       return FunctionTypeImpl.synthetic(
         returnType,
         typeParameters,
         formalParameters,
-      );
+      ).withNullability(nullabilitySuffix);
     } else if (kind == LinkedNodeTypeKind.interface) {
       var element = bundleContext.elementOfIndex(linkedType.interfaceClass);
+      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
       return InterfaceTypeImpl.explicit(
         element,
         linkedType.interfaceTypeArguments.map(readType).toList(),
+        nullabilitySuffix: nullabilitySuffix,
       );
     } else if (kind == LinkedNodeTypeKind.typeParameter) {
+      TypeParameterElement element;
       var id = linkedType.typeParameterId;
-      var element = _typeParameters[id];
-      assert(element != null);
-      return TypeParameterTypeImpl(element);
+      if (id != 0) {
+        element = _typeParameters[id];
+        assert(element != null);
+      } else {
+        var index = linkedType.typeParameterElement;
+        element = bundleContext.elementOfIndex(index);
+      }
+      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
+      return TypeParameterTypeImpl(element).withNullability(nullabilitySuffix);
     } else if (kind == LinkedNodeTypeKind.void_) {
       return VoidTypeImpl.instance;
     } else {
@@ -780,8 +979,48 @@ class LinkedUnitContext {
     }
   }
 
+  /// Read new resolved [CompilationUnit] from the [data], and in contrast to
+  /// reading AST for element model, read it eagerly. We can do this, because
+  /// the element model is fully accessible, so we don't need to worry about
+  /// potential forward references.
+  ///
+  /// The new instance of [CompilationUnit] is required because the client of
+  /// this method is going to modify the unit - merge parsed, not yet resolved
+  /// function bodies into it, and resolve them.
+  CompilationUnit readUnitEagerly() {
+    reference.element.accept(
+      _TypeParameterReader(),
+    );
+    _RecursiveTypeReader(this).read(unit);
+
+    var context = LinkedUnitContext._(
+      bundleContext,
+      libraryContext,
+      indexInLibrary,
+      uriStr,
+      reference,
+      isSynthetic,
+      data,
+      TokensContext(data.tokens),
+    );
+    context._genericFunctionTypes.addAll(_genericFunctionTypes);
+    var astReader = AstBinaryReader(context);
+    return astReader.readNode(data.node);
+  }
+
+  void setInheritsCovariant(AstNode node, bool value) {
+    if (node is FormalParameter) {
+      LazyAst.setInheritsCovariant(node, value);
+    } else if (node is VariableDeclaration) {
+      LazyAst.setInheritsCovariant(node, value);
+    } else {
+      throw StateError('${node.runtimeType}');
+    }
+  }
+
   void setOverrideInferenceDone(AstNode node) {
-    assert(!_astReader.isLazy);
+    // TODO(scheglov) This assert fails, check how to avoid this.
+//    assert(!_astReader.isLazy);
     LazyAst.setOverrideInferenceDone(node);
   }
 
@@ -790,7 +1029,11 @@ class LinkedUnitContext {
   }
 
   void setVariableType(AstNode node, DartType type) {
-    LazyAst.setType(node, type);
+    if (node is DefaultFormalParameter) {
+      setVariableType(node.parameter, type);
+    } else {
+      LazyAst.setType(node, type);
+    }
   }
 
   bool shouldBeConstFieldElement(AstNode node) {
@@ -799,8 +1042,8 @@ class LinkedUnitContext {
       if (variableList.isConst) return true;
 
       if (variableList.isFinal) {
-        ClassDeclaration classDeclaration = variableList.parent.parent;
-        for (var member in classDeclaration.members) {
+        ClassOrMixinDeclaration class_ = variableList.parent.parent;
+        for (var member in class_.members) {
           if (member is ConstructorDeclaration && member.constKeyword != null) {
             return true;
           }
@@ -823,9 +1066,10 @@ class LinkedUnitContext {
   ParameterKind _formalParameterKind(LinkedNodeFormalParameterKind kind) {
     if (kind == LinkedNodeFormalParameterKind.optionalNamed) {
       return ParameterKind.NAMED;
-    }
-    if (kind == LinkedNodeFormalParameterKind.optionalPositional) {
+    } else if (kind == LinkedNodeFormalParameterKind.optionalPositional) {
       return ParameterKind.POSITIONAL;
+    } else if (kind == LinkedNodeFormalParameterKind.requiredNamed) {
+      return ParameterKind.NAMED_REQUIRED;
     }
     return ParameterKind.REQUIRED;
   }
@@ -860,17 +1104,15 @@ class LinkedUnitContext {
   }
 
   NodeList<Annotation> _getPartDirectiveAnnotation() {
-    if (indexInLibrary != 0) {
-      var definingContext = libraryContext.definingUnit;
-      var unit = definingContext.unit;
-      var partDirectiveIndex = 0;
-      for (var directive in unit.directives) {
-        if (directive is PartDirective) {
-          partDirectiveIndex++;
-          if (partDirectiveIndex == indexInLibrary) {
-            LazyDirective.readMetadata(definingContext._astReader, directive);
-            return directive.metadata;
-          }
+    var definingContext = libraryContext.definingUnit;
+    var unit = definingContext.unit;
+    var partDirectiveIndex = 0;
+    for (var directive in unit.directives) {
+      if (directive is PartDirective) {
+        partDirectiveIndex++;
+        if (partDirectiveIndex == indexInLibrary) {
+          LazyDirective.readMetadata(definingContext._astReader, directive);
+          return directive.metadata;
         }
       }
     }
@@ -903,5 +1145,110 @@ class LinkedUnitContext {
       throw UnimplementedError('$kind');
     }
     return typeParameterList?.typeParameterList_typeParameters;
+  }
+
+  static NullabilitySuffix _nullabilitySuffix(EntityRefNullabilitySuffix data) {
+    switch (data) {
+      case EntityRefNullabilitySuffix.starOrIrrelevant:
+        return NullabilitySuffix.star;
+      case EntityRefNullabilitySuffix.question:
+        return NullabilitySuffix.question;
+      case EntityRefNullabilitySuffix.none:
+        return NullabilitySuffix.none;
+      default:
+        throw StateError('$data');
+    }
+  }
+}
+
+/// Ensure that all [GenericFunctionType] and [TypeParameter] nodes are read,
+/// so their elements are created and set in [Reference]s.
+class _RecursiveTypeReader {
+  final LinkedUnitContext context;
+
+  _RecursiveTypeReader(this.context);
+
+  void read(AstNode node) {
+    if (node == null) {
+    } else if (node is ClassDeclaration) {
+      _readTypeParameters(node);
+      node.members.forEach(read);
+    } else if (node is ClassTypeAlias) {
+      _readTypeParameters(node);
+    } else if (node is CompilationUnit) {
+      for (var declaration in node.declarations) {
+        read(declaration);
+      }
+    } else if (node is ConstructorDeclaration) {
+      _readFormalParameters(node);
+    } else if (node is EnumDeclaration) {
+    } else if (node is FieldDeclaration) {
+      read(node.fields);
+    } else if (node is FunctionDeclaration) {
+      _readTypeParameters(node);
+      _readFormalParameters(node);
+      _readReturnType(node);
+    } else if (node is FunctionTypeAlias) {
+      _readTypeParameters(node);
+      _readFormalParameters(node);
+      _readReturnType(node);
+    } else if (node is GenericFunctionType) {
+      _readTypeParameters(node);
+      _readFormalParameters(node);
+      _readReturnType(node);
+    } else if (node is GenericTypeAlias) {
+      _readTypeParameters(node);
+      LazyGenericTypeAlias.readFunctionType(context._astReader, node);
+      read(node.functionType);
+    } else if (node is MethodDeclaration) {
+      _readTypeParameters(node);
+      _readFormalParameters(node);
+      _readReturnType(node);
+    } else if (node is MixinDeclaration) {
+      _readTypeParameters(node);
+      node.members.forEach(read);
+    } else if (node is TopLevelVariableDeclaration) {
+      read(node.variables);
+    } else if (node is TypeName) {
+      node.typeArguments?.arguments?.forEach(read);
+    } else if (node is VariableDeclarationList) {
+      LazyVariableDeclarationList.readTypeNode(context._astReader, node);
+      read(node.type);
+    } else {
+      throw StateError('${node.runtimeType}');
+    }
+  }
+
+  void _readFormalParameters(AstNode node) {
+    var formalParameters = context.getFormalParameters(node);
+    if (formalParameters == null) return;
+
+    for (var formalParameter in formalParameters) {
+      if (formalParameter is SimpleFormalParameter) {
+        read(formalParameter.type);
+      }
+    }
+  }
+
+  void _readReturnType(AstNode node) {
+    var returnType = context.getReturnTypeNode(node);
+    read(returnType);
+  }
+
+  void _readTypeParameters(AstNode node) {
+    var typeParameters = context.getTypeParameters2(node);
+    if (typeParameters == null) return;
+
+    for (var typeParameter in typeParameters.typeParameters) {
+      var bound = context.getTypeParameterBound(typeParameter);
+      read(bound);
+    }
+  }
+}
+
+class _TypeParameterReader extends RecursiveElementVisitor<void> {
+  @override
+  void visitTypeParameterElement(TypeParameterElement element) {
+    super.visitTypeParameterElement(element);
   }
 }

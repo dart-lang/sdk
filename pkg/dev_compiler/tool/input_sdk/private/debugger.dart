@@ -6,6 +6,7 @@ library dart._debugger;
 
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JSArray;
+import 'dart:_js_helper' show InternalMap;
 import 'dart:_runtime' as dart;
 import 'dart:core';
 import 'dart:collection';
@@ -33,6 +34,7 @@ class JsonMLConfig {
   static const keyToString = JsonMLConfig("keyToString");
   static const asClass = JsonMLConfig("asClass");
   static const asObject = JsonMLConfig("asObject");
+  static const asMap = JsonMLConfig("asMap");
   toString() => "JsonMLConfig($name)";
 }
 
@@ -458,6 +460,7 @@ class DartFormatter {
       TypeFormatter(),
       NamedConstructorFormatter(),
       MapFormatter(),
+      MapOverviewFormatter(),
       IterableFormatter(),
       IterableSpanFormatter(),
       MapEntryFormatter(),
@@ -677,9 +680,43 @@ class FunctionFormatter implements Formatter {
       ];
 }
 
-/// Formatter for Dart Map objects.
-class MapFormatter implements Formatter {
+/// Formatter for Objects that implement Map but are not system Maps.
+///
+/// This shows two sub-views, one for instance fields and one for
+/// Map key/value pairs.
+class MapOverviewFormatter implements Formatter {
+  // Because this comes after MapFormatter in the list, internal
+  // maps will be picked up by that formatter.
   accept(object, config) => object is Map;
+
+  bool hasChildren(object) => true;
+
+  String preview(object) {
+    Map map = object;
+    try {
+      return '${getObjectTypeName(map)}';
+    } catch (e) {
+      return safePreview(object, JsonMLConfig.none);
+    }
+  }
+
+  List<NameValuePair> children(object) => [
+        NameValuePair(
+            name: "[[instance view]]",
+            value: object,
+            config: JsonMLConfig.asObject),
+        NameValuePair(
+            name: "[[entries]]", value: object, config: JsonMLConfig.asMap)
+      ];
+}
+
+/// Formatter for Dart Map objects.
+///
+/// This is only used for internal maps, or when shown as [[entries]]
+/// from MapOverViewFormatter.
+class MapFormatter implements Formatter {
+  accept(object, config) =>
+      object is InternalMap || config == JsonMLConfig.asMap;
 
   bool hasChildren(object) => true;
 
@@ -703,19 +740,8 @@ class MapFormatter implements Formatter {
       entries.add(
           NameValuePair(name: entries.length.toString(), value: entryWrapper));
     });
-    addInstanceMembers(object, entries);
     addMetadataChildren(object, entries);
     return entries.toList();
-  }
-
-  // We've formatted as a Map, but we may want to see the internals
-  // of the Map, particularly for domain objects that implement Map.
-  // Add an ObjectFormatter view underneath.
-  void addInstanceMembers(object, Set<NameValuePair> ret) {
-    ret.add(NameValuePair(
-        name: "[[instance members]]",
-        value: object,
-        config: JsonMLConfig.asObject));
   }
 }
 

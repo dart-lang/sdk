@@ -311,6 +311,22 @@ class _ElementWriter {
     buffer.writeln(';');
   }
 
+  void writeExportScope(LibraryElement e) {
+    if (!withExportScope) return;
+
+    buffer.writeln();
+    buffer.writeln('-' * 20);
+    buffer.writeln('Exports:');
+
+    var map = e.exportNamespace.definedNames;
+    var names = map.keys.toList()..sort();
+    for (var name in names) {
+      var element = map[name];
+      var elementLocationStr = _getElementLocationString(element);
+      buffer.writeln('  $name: $elementLocationStr');
+    }
+  }
+
   void writeFunctionElement(FunctionElement e) {
     writeDocumentation(e);
     writeMetadata(e, '', '\n');
@@ -338,14 +354,20 @@ class _ElementWriter {
     if (e is GenericTypeAliasElement) {
       buffer.write('typedef ');
       writeName(e);
+      writeCodeRange(e);
       writeTypeParameterElements(e.typeParameters);
 
       buffer.write(' = ');
 
-      writeType(e.function.returnType);
-      buffer.write(' Function');
-      writeTypeParameterElements(e.function.typeParameters);
-      writeParameterElements(e.function.parameters);
+      var function = e.function;
+      if (function != null) {
+        writeType(function.returnType);
+        buffer.write(' Function');
+        writeTypeParameterElements(function.typeParameters);
+        writeParameterElements(function.parameters);
+      } else {
+        buffer.write('<null>');
+      }
     } else {
       buffer.write('typedef ');
       writeType2(e.returnType);
@@ -705,7 +727,7 @@ class _ElementWriter {
     String defaultValueSeparator;
     Expression defaultValue;
     String closeString;
-    if (e.isNotOptional) {
+    if (e.isRequiredPositional) {
       closeString = '';
     } else if (e.isOptionalPositional) {
       buffer.write('[');
@@ -726,12 +748,7 @@ class _ElementWriter {
     writeIf(e.isCovariant, 'covariant ');
     writeIf(e.isFinal, 'final ');
 
-    if (e.parameters.isNotEmpty) {
-      var type = e.type as FunctionType;
-      writeType2(type.returnType);
-    } else {
-      writeType2(e.type);
-    }
+    writeType2(e.type);
 
     if (e is FieldFormalParameterElement) {
       buffer.write('this.');
@@ -741,8 +758,9 @@ class _ElementWriter {
     writeCodeRange(e);
 
     if (e.parameters.isNotEmpty) {
-      writeList('(', ')', e.parameters, ', ', writeParameterElement,
-          includeEmpty: true);
+      buffer.write('/*');
+      writeList('(', ')', e.parameters, ', ', writeParameterElement);
+      buffer.write('*/');
     }
 
     writeVariableTypeInferenceError(e);
@@ -874,6 +892,7 @@ class _ElementWriter {
       writeMetadata(e, '', '\n');
     }
 
+    writeIf(e.isLate, 'late ');
     writeIf(e.isFinal, 'final ');
     writeIf(e.isConst, 'const ');
     writeType2(type);
@@ -904,6 +923,27 @@ class _ElementWriter {
       if (type.element.typeParameters.isNotEmpty) {
         writeList('<', '>', type.typeArguments, ', ', writeType);
       }
+    } else if (type is CircularFunctionTypeImpl) {
+      buffer.write('...');
+    } else if (type is FunctionType) {
+      writeType2(type.returnType);
+      buffer.write('Function');
+      writeTypeParameterElements(type.typeFormals);
+      buffer.write('(');
+      bool commaNeeded = false;
+      commaNeeded = _writeParameters(
+          type.parameters.where((p) => p.isRequiredPositional),
+          commaNeeded,
+          '',
+          '');
+      commaNeeded = _writeParameters(
+          type.parameters.where((p) => p.isOptionalPositional),
+          commaNeeded,
+          '[',
+          ']');
+      commaNeeded = _writeParameters(
+          type.parameters.where((p) => p.isNamed), commaNeeded, '{', '}');
+      buffer.write(')');
     } else {
       buffer.write(type.displayName);
     }
@@ -915,12 +955,18 @@ class _ElementWriter {
   }
 
   void writeTypeParameterElement(TypeParameterElement e) {
+    writeMetadata(e, '', '\n');
     writeName(e);
     writeCodeRange(e);
     if (e.bound != null && !e.bound.isObject) {
       buffer.write(' extends ');
       writeType(e.bound);
     }
+    // TODO(scheglov) print the default type
+//    if (e is TypeParameterElementImpl && e.defaultType != null) {
+//      buffer.write(' = ');
+//      writeType(e.defaultType);
+//    }
   }
 
   void writeTypeParameterElements(List<TypeParameterElement> elements) {
@@ -940,22 +986,6 @@ class _ElementWriter {
     e.topLevelVariables.forEach(writePropertyInducingElement);
     e.accessors.forEach(writePropertyAccessorElement);
     e.functions.forEach(writeFunctionElement);
-  }
-
-  void writeExportScope(LibraryElement e) {
-    if (!withExportScope) return;
-
-    buffer.writeln();
-    buffer.writeln('-' * 20);
-    buffer.writeln('Exports:');
-
-    var map = e.exportNamespace.definedNames;
-    var names = map.keys.toList()..sort();
-    for (var name in names) {
-      var element = map[name];
-      var elementLocationStr = _getElementLocationString(element);
-      buffer.writeln('  $name: $elementLocationStr');
-    }
   }
 
   void writeUri(Source source) {
@@ -1025,6 +1055,32 @@ class _ElementWriter {
       }
     }
     return components.join(';');
+  }
+
+  bool _writeParameters(Iterable<ParameterElement> parameters, bool commaNeeded,
+      String prefix, String suffix) {
+    if (parameters.isEmpty) return commaNeeded;
+    if (commaNeeded) {
+      buffer.write(', ');
+      commaNeeded = false;
+    }
+    buffer.write(prefix);
+    for (var parameter in parameters) {
+      if (commaNeeded) {
+        buffer.write(', ');
+      }
+      if (parameter.isRequiredNamed) {
+        buffer.write('required ');
+      }
+      writeType(parameter.type);
+      if (parameter.isNamed) {
+        buffer.write(' ');
+        buffer.write(parameter.name);
+      }
+      commaNeeded = true;
+    }
+    buffer.write(suffix);
+    return commaNeeded;
   }
 }
 

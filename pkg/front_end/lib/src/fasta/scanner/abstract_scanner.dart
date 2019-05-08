@@ -26,11 +26,14 @@ import 'error_token.dart'
 
 import 'keyword_state.dart' show KeywordState;
 
-import 'token.dart' show CommentToken, DartDocToken;
+import 'token.dart' show CommentToken, DartDocToken, LanguageVersionToken;
 
 import 'token_constants.dart';
 
 import 'characters.dart';
+
+typedef void LanguageVersionChanged(
+    Scanner scanner, LanguageVersionToken languageVersion);
 
 abstract class AbstractScanner implements Scanner {
   /**
@@ -43,15 +46,19 @@ abstract class AbstractScanner implements Scanner {
 
   final bool includeComments;
 
+  /// Called when the scanner detects a language version comment
+  /// so that the listener can update the scanner configuration
+  /// based upon the specified language version.
+  final LanguageVersionChanged languageVersionChanged;
+
   /// Experimental flag for enabling scanning of `>>>`.
   /// See https://github.com/dart-lang/language/issues/61
   /// and https://github.com/dart-lang/language/issues/60
-  bool enableGtGtGt = false;
+  bool _enableTripleShift = false;
 
-  /// Experimental flag for enabling scanning of `>>>=`.
-  /// See https://github.com/dart-lang/language/issues/61
-  /// and https://github.com/dart-lang/language/issues/60
-  bool enableGtGtGtEq = false;
+  /// Experimental flag for enabling scanning of NNBD tokens
+  /// such as 'required' and 'late'.
+  bool _enableNonNullable = false;
 
   /**
    * The string offset for the next token that will be created.
@@ -90,9 +97,20 @@ abstract class AbstractScanner implements Scanner {
 
   final List<int> lineStarts;
 
-  AbstractScanner(this.includeComments, {int numberOfBytesHint})
+  AbstractScanner(ScannerConfiguration config, this.includeComments,
+      this.languageVersionChanged,
+      {int numberOfBytesHint})
       : lineStarts = new LineStarts(numberOfBytesHint) {
     this.tail = this.tokens;
+    this.configuration = config;
+  }
+
+  @override
+  set configuration(ScannerConfiguration config) {
+    if (config != null) {
+      _enableNonNullable = config.enableNonNullable;
+      _enableTripleShift = config.enableTripleShift;
+    }
   }
 
   /**
@@ -249,6 +267,13 @@ abstract class AbstractScanner implements Scanner {
   DartDocToken createDartDocToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]);
 
+  /**
+   * Returns a new language version token from the scan offset [start]
+   * to the current [scanOffset] similar to createCommentToken.
+   */
+  LanguageVersionToken createLanguageVersionToken(
+      int start, int major, int minor);
+
   /** Documentation in subclass [ArrayBasedScanner]. */
   void discardOpenLt();
 
@@ -261,6 +286,21 @@ abstract class AbstractScanner implements Scanner {
   Token tokenize() {
     while (!atEndOfFile()) {
       int next = advance();
+
+      // Scan the header looking for a language version
+      if (!identical(next, $EOF)) {
+        Token oldTail = tail;
+        next = bigHeaderSwitch(next);
+        if (!identical(next, $EOF) && tail.kind == SCRIPT_TOKEN) {
+          oldTail = tail;
+          next = bigHeaderSwitch(next);
+        }
+        while (!identical(next, $EOF) && tail == oldTail) {
+          next = bigHeaderSwitch(next);
+        }
+        next = next;
+      }
+
       while (!identical(next, $EOF)) {
         next = bigSwitch(next);
       }
@@ -275,6 +315,17 @@ abstract class AbstractScanner implements Scanner {
     lineStarts.add(stringOffset + 1);
 
     return firstToken();
+  }
+
+  int bigHeaderSwitch(int next) {
+    if (!identical(next, $SLASH)) {
+      return bigSwitch(next);
+    }
+    beginToken();
+    if (!identical($SLASH, peek())) {
+      return tokenizeSlashOrComment(next);
+    }
+    return tokenizeLanguageVersionOrSingleLineComment(next);
   }
 
   int bigSwitch(int next) {
@@ -657,9 +708,9 @@ abstract class AbstractScanner implements Scanner {
       if (identical($EQ, next)) {
         appendPrecedenceToken(TokenType.GT_GT_EQ);
         return advance();
-      } else if (enableGtGtGt && identical($GT, next)) {
+      } else if (_enableTripleShift && identical($GT, next)) {
         next = advance();
-        if (enableGtGtGtEq && identical($EQ, next)) {
+        if (_enableTripleShift && identical($EQ, next)) {
           appendPrecedenceToken(TokenType.GT_GT_GT_EQ);
           return advance();
         }
@@ -835,11 +886,111 @@ abstract class AbstractScanner implements Scanner {
     }
   }
 
-  int tokenizeSingleLineComment(int next, int start) {
-    bool asciiOnly = true;
-    bool dartdoc = identical($SLASH, peek());
-    while (true) {
+  int tokenizeLanguageVersionOrSingleLineComment(int next) {
+    int start = scanOffset;
+    next = advance();
+
+    // Dart doc
+    if (identical($SLASH, peek())) {
+      return tokenizeSingleLineComment(next, start);
+    }
+
+    // "@dart"
+    next = advance();
+    while (identical($SPACE, next)) {
       next = advance();
+    }
+    if (!identical($AT, next)) {
+      return tokenizeSingleLineCommentRest(next, start, false);
+    }
+    next = advance();
+    if (!identical($d, next)) {
+      return tokenizeSingleLineCommentRest(next, start, false);
+    }
+    next = advance();
+    if (!identical($a, next)) {
+      return tokenizeSingleLineCommentRest(next, start, false);
+    }
+    next = advance();
+    if (!identical($r, next)) {
+      return tokenizeSingleLineCommentRest(next, start, false);
+    }
+    next = advance();
+    if (!identical($t, next)) {
+      return tokenizeSingleLineCommentRest(next, start, false);
+    }
+    next = advance();
+
+    // "="
+    while (identical($SPACE, next)) {
+      next = advance();
+    }
+    if (!identical($EQ, next)) {
+      return tokenizeSingleLineCommentRest(next, start, false);
+    }
+    next = advance();
+
+    // major
+    while (identical($SPACE, next)) {
+      next = advance();
+    }
+    int major = 0;
+    int majorStart = scanOffset;
+    while (isDigit(next)) {
+      major = major * 10 + next - $0;
+      next = advance();
+    }
+    if (scanOffset == majorStart) {
+      return tokenizeSingleLineCommentRest(next, start, false);
+    }
+
+    // minor
+    if (!identical($PERIOD, next)) {
+      return tokenizeSingleLineCommentRest(next, start, false);
+    }
+    next = advance();
+    int minor = 0;
+    int minorStart = scanOffset;
+    while (isDigit(next)) {
+      minor = minor * 10 + next - $0;
+      next = advance();
+    }
+    if (scanOffset == minorStart) {
+      return tokenizeSingleLineCommentRest(next, start, false);
+    }
+
+    // trailing spaces
+    while (identical($SPACE, next)) {
+      next = advance();
+    }
+    if (next != $LF && next != $CR && next != $EOF) {
+      return tokenizeSingleLineCommentRest(next, start, false);
+    }
+
+    var languageVersion = createLanguageVersionToken(start, major, minor);
+    if (languageVersionChanged != null) {
+      // TODO(danrubel): make this required and remove the languageVersion field
+      languageVersionChanged(this, languageVersion);
+    } else {
+      // TODO(danrubel): remove this hack and require listener to update
+      // the scanner's configuration.
+      configuration = ScannerConfiguration.classic;
+    }
+    if (includeComments) {
+      _appendToCommentStream(languageVersion);
+    }
+    return next;
+  }
+
+  int tokenizeSingleLineComment(int next, int start) {
+    bool dartdoc = identical($SLASH, peek());
+    next = advance();
+    return tokenizeSingleLineCommentRest(next, start, dartdoc);
+  }
+
+  int tokenizeSingleLineCommentRest(int next, int start, bool dartdoc) {
+    bool asciiOnly = true;
+    while (true) {
       if (next > 127) asciiOnly = false;
       if (identical($LF, next) ||
           identical($CR, next) ||
@@ -852,6 +1003,7 @@ abstract class AbstractScanner implements Scanner {
         }
         return next;
       }
+      next = advance();
     }
   }
 
@@ -981,6 +1133,10 @@ abstract class AbstractScanner implements Scanner {
       next = advance();
     }
     if (state == null || state.keyword == null) {
+      return tokenizeIdentifier(next, start, allowDollar);
+    }
+    if (!_enableNonNullable &&
+        (state.keyword == Keyword.LATE || state.keyword == Keyword.REQUIRED)) {
       return tokenizeIdentifier(next, start, allowDollar);
     }
     if (($A <= next && next <= $Z) ||
@@ -1369,4 +1525,26 @@ class LineStarts extends Object with ListMixin<int> {
     newArray.setRange(0, arrayLength, array);
     array = newArray;
   }
+}
+
+/// [ScannerConfiguration] contains information for configuring which tokens
+/// the scanner produces based upon the Dart language level.
+class ScannerConfiguration {
+  static const classic = ScannerConfiguration();
+  static const nonNullable = ScannerConfiguration(enableNonNullable: true);
+
+  /// Experimental flag for enabling scanning of NNBD tokens
+  /// such as 'required' and 'late'
+  final bool enableNonNullable;
+
+  /// Experimental flag for enabling scanning of `>>>`.
+  /// See https://github.com/dart-lang/language/issues/61
+  /// and https://github.com/dart-lang/language/issues/60
+  final bool enableTripleShift;
+
+  const ScannerConfiguration({
+    bool enableTripleShift,
+    bool enableNonNullable,
+  })  : this.enableTripleShift = enableTripleShift ?? false,
+        this.enableNonNullable = enableNonNullable ?? false;
 }

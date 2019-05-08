@@ -6,6 +6,7 @@ import 'package:analysis_server/src/nullability/conditional_discard.dart';
 import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/nullability_graph.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analysis_server/src/nullability/unit_propagation.dart';
@@ -37,6 +38,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   /// Constraints gathered by the visitor are stored here.
   final Constraints _constraints;
+
+  final NullabilityGraph _graph;
 
   /// The file being analyzed.
   final Source _source;
@@ -78,8 +81,14 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// or expression.
   bool _inConditionalControlFlow = false;
 
-  ConstraintGatherer(TypeProvider typeProvider, this._variables,
-      this._constraints, this._source, this._permissive, this.assumptions)
+  ConstraintGatherer(
+      TypeProvider typeProvider,
+      this._variables,
+      this._constraints,
+      this._graph,
+      this._source,
+      this._permissive,
+      this.assumptions)
       : _notNullType =
             DecoratedType(typeProvider.objectType, NullabilityNode.never),
         _nonNullableBoolType =
@@ -206,8 +215,8 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(_isSimple(elseType)); // TODO(paulberry)
     var overallType = DecoratedType(
         node.staticType,
-        NullabilityNode.forConditionalexpression(
-            node, thenType.node, elseType.node, _joinNullabilities));
+        NullabilityNode.forLUB(
+            node, thenType.node, elseType.node, _graph, _joinNullabilities));
     _variables.recordDecoratedExpressionType(node, overallType);
     return overallType;
   }
@@ -228,6 +237,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
             null,
             _guards,
             _constraints,
+            _graph,
             false);
       } else {
         assert(assumptions.namedNoDefaultParameterHeuristic ==
@@ -432,10 +442,13 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
     if (expression != null) {
       checkNotNull = CheckExpression(expression);
       _variables.recordExpressionChecks(
-          _source, expression, ExpressionChecks(checkNotNull));
+          _source,
+          expression,
+          ExpressionChecks(
+              expression.end, sourceType.node, destinationType.node, _guards));
     }
     NullabilityNode.recordAssignment(sourceType.node, destinationType.node,
-        checkNotNull, _guards, _constraints, _inConditionalControlFlow);
+        checkNotNull, _guards, _constraints, _graph, _inConditionalControlFlow);
     // TODO(paulberry): it's a cheat to pass in expression=null for the
     // recursive checks.  Really we want to unify all the checks in a single
     // ExpressionChecks object.
@@ -499,7 +512,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// Creates a constraint variable (if necessary) representing the nullability
   /// of [node], which is the disjunction of the nullabilities [a] and [b].
   ConstraintVariable _joinNullabilities(
-      ConditionalExpression node, ConstraintVariable a, ConstraintVariable b) {
+      Expression node, ConstraintVariable a, ConstraintVariable b) {
     if (a == null) return b;
     if (b == null) return a;
     if (identical(a, ConstraintVariable.always) ||

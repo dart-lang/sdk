@@ -8,7 +8,6 @@ no_allow_absolute_addresses_test: SkipByDesign # Not supported.
 
 [ $compiler == app_jit ]
 full_coverage_test: Skip # Platform.executable
-io/code_collection_test: Skip # Platform.executable
 io/namespace_test: RuntimeError # Issue 33168
 io/platform_resolved_executable_test/00: RuntimeError # Issue 33168
 io/platform_resolved_executable_test/01: RuntimeError # Issue 33168
@@ -93,7 +92,6 @@ io/stdout_stderr_non_blocking_test: Pass, Timeout # Issue 35192
 io/file_constructor_test: RuntimeError
 
 [ $runtime == vm && ($arch == arm || $arch == arm64) ]
-io/code_collection_test: Timeout, Pass
 io/dart_std_io_pipe_test: Timeout, Pass
 io/file_input_stream_test: Skip # Issue 26109
 io/file_stream_test: Skip # Issue 26109
@@ -101,7 +99,6 @@ io/file_typed_data_test: Skip # Issue 26109
 io/process_sync_test: Timeout, Pass
 
 [ $runtime == vm && ($arch == simarm || $arch == simarm64) ]
-io/code_collection_test: Timeout, Pass
 io/dart_std_io_pipe_test: Timeout, Pass
 io/http_client_stays_alive_test: Skip # Spawns process in Dart2 mode.
 io/process_sync_test: Timeout, Pass

@@ -97,33 +97,7 @@ class BazelPackageUriResolver extends UriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    path.Context context = _workspace.provider.pathContext;
     String filePath = source.fullName;
-
-    Uri restore(String root, String filePath) {
-      if (root != null && context.isWithin(root, filePath)) {
-        String relative = context.relative(filePath, from: root);
-        List<String> components = context.split(relative);
-        if (components.length > 4 &&
-            components[0] == 'third_party' &&
-            components[1] == 'dart' &&
-            components[3] == 'lib') {
-          String packageName = components[2];
-          String pathInLib = components.skip(4).join('/');
-          return Uri.parse('package:$packageName/$pathInLib');
-        } else {
-          for (int i = 2; i < components.length - 1; i++) {
-            String component = components[i];
-            if (component == 'lib') {
-              String packageName = components.getRange(0, i).join('.');
-              String pathInLib = components.skip(i + 1).join('/');
-              return Uri.parse('package:$packageName/$pathInLib');
-            }
-          }
-        }
-      }
-      return null;
-    }
 
     // Search in each root.
     for (String root in [
@@ -132,12 +106,41 @@ class BazelPackageUriResolver extends UriResolver {
       _workspace.readonly,
       _workspace.root
     ]) {
-      Uri uri = restore(root, filePath);
-      if (uri != null) {
-        return uri;
+      List<String> uriParts = _restoreUriParts(root, filePath);
+      if (uriParts != null) {
+        return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
       }
     }
 
+    return null;
+  }
+
+  /// Restore [filePath] to its 'package:' URI parts.
+  ///
+  /// Returns `null` if [root] is null or if [filePath] is not within [root].
+  List<String> _restoreUriParts(String root, String filePath) {
+    path.Context context = _workspace.provider.pathContext;
+    if (root != null && context.isWithin(root, filePath)) {
+      String relative = context.relative(filePath, from: root);
+      List<String> components = context.split(relative);
+      if (components.length > 4 &&
+          components[0] == 'third_party' &&
+          components[1] == 'dart' &&
+          components[3] == 'lib') {
+        String packageName = components[2];
+        String pathInLib = components.skip(4).join('/');
+        return [packageName, pathInLib];
+      } else {
+        for (int i = 2; i < components.length - 1; i++) {
+          String component = components[i];
+          if (component == 'lib') {
+            String packageName = components.getRange(0, i).join('.');
+            String pathInLib = components.skip(i + 1).join('/');
+            return [packageName, pathInLib];
+          }
+        }
+      }
+    }
     return null;
   }
 }
@@ -276,7 +279,13 @@ class BazelWorkspace extends Workspace {
 
       if (folder.getChildAssumingFile(_buildFileName).exists) {
         // Found the BUILD file, denoting a Dart package.
-        return BazelWorkspacePackage(folder.path, this);
+        List<String> uriParts = (packageUriResolver as BazelPackageUriResolver)
+            ._restoreUriParts(root, '${folder.path}/lib/__fake__.dart');
+        if (uriParts == null || uriParts.isEmpty) {
+          return BazelWorkspacePackage(null, folder.path, this);
+        } else {
+          return BazelWorkspacePackage(uriParts[0], folder.path, this);
+        }
       }
 
       // Go up a folder.
@@ -299,6 +308,10 @@ class BazelWorkspace extends Workspace {
    * corresponding readonly workspace root.
    */
   static BazelWorkspace find(ResourceProvider provider, String filePath) {
+    Resource resource = provider.getResource(filePath);
+    if (resource is File && resource.parent != null) {
+      filePath = resource.parent.path;
+    }
     path.Context context = provider.pathContext;
     Folder folder = provider.getFolder(filePath);
     while (true) {
@@ -373,24 +386,33 @@ class BazelWorkspace extends Workspace {
  * a given package in a BazelWorkspace.
  */
 class BazelWorkspacePackage extends WorkspacePackage {
+  /// A prefix for any URI of a path in this package.
+  final String _uriPrefix;
+
   final String root;
 
   final BazelWorkspace workspace;
 
-  BazelWorkspacePackage(this.root, this.workspace);
+  BazelWorkspacePackage(String packageName, this.root, this.workspace)
+      : this._uriPrefix = 'package:$packageName/';
 
   @override
-  bool contains(String path) {
-    if (workspace.findFile(path) == null) {
+  bool contains(Source source) {
+    if (source.uri.isScheme('package')) {
+      return source.uri.toString().startsWith(_uriPrefix);
+    }
+    String filePath = source.fullName;
+    if (filePath == null) return false;
+    if (workspace.findFile(filePath) == null) {
       return false;
     }
-    if (!workspace.provider.pathContext.isWithin(root, path)) {
+    if (!workspace.provider.pathContext.isWithin(root, filePath)) {
       return false;
     }
 
-    // Just because [path] is within [root] does not mean it is in this
+    // Just because [filePath] is within [root] does not mean it is in this
     // package; it could be in a "subpackage." Must go through the work of
-    // learning exactly which package [path] is contained in.
-    return workspace.findPackageFor(path).root == root;
+    // learning exactly which package [filePath] is contained in.
+    return workspace.findPackageFor(filePath).root == root;
   }
 }

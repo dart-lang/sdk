@@ -10,6 +10,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart' as error;
 import 'package:analyzer/src/dart/scanner/reader.dart';
@@ -273,7 +274,8 @@ class Driver {
   List<int> _getBreakOffsets(String text) {
     List<int> breakOffsets = <int>[];
     Scanner scanner = new Scanner(null, new CharSequenceReader(text),
-        error.AnalysisErrorListener.NULL_LISTENER);
+        error.AnalysisErrorListener.NULL_LISTENER)
+      ..configureFeatures(FeatureSet.forTesting(sdkVersion: '2.2.2'));
     Token token = scanner.tokenize();
     // TODO(brianwilkerson) Randomize. Sometimes add zero (0) as a break point.
     while (token.type != TokenType.EOF) {

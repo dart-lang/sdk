@@ -244,9 +244,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
-      Token varFinalOrConst) {
-    super.beginFormalParameter(token, kind, covariantToken, varFinalOrConst);
+  void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
+      Token covariantToken, Token varFinalOrConst) {
+    super.beginFormalParameter(
+        token, kind, requiredToken, covariantToken, varFinalOrConst);
     begin('FormalParameter');
   }
 
@@ -526,8 +527,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
-    super.beginVariablesDeclaration(token, varFinalOrConst);
+  void beginVariablesDeclaration(
+      Token token, Token lateToken, Token varFinalOrConst) {
+    super.beginVariablesDeclaration(token, lateToken, varFinalOrConst);
     begin('VariablesDeclaration');
   }
 
@@ -701,12 +703,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
-      int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     // beginMember --> endFields, endMember
     expectIn('Member');
-    super.endFields(staticToken, covariantToken, varFinalOrConst, count,
-        beginToken, endToken);
+    super.endFields(staticToken, covariantToken, lateToken, varFinalOrConst,
+        count, beginToken, endToken);
   }
 
   @override
@@ -1014,11 +1016,17 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endTopLevelFields(Token staticToken, Token covariantToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     end('TopLevelMember');
-    super.endTopLevelFields(staticToken, covariantToken, varFinalOrConst, count,
-        beginToken, endToken);
+    super.endTopLevelFields(staticToken, covariantToken, lateToken,
+        varFinalOrConst, count, beginToken, endToken);
   }
 
   @override

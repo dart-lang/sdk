@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -19,7 +20,6 @@ main() {
     defineReflectiveTests(TopLevelInferenceTest);
     defineReflectiveTests(TopLevelInferenceErrorsTest);
     defineReflectiveTests(TopLevelInferenceTestWithSpread);
-    defineReflectiveTests(TopLevelInferenceErrorsTestWithUiAsCode);
 //    defineReflectiveTests(ApplyCheckElementTextReplacements);
   });
 }
@@ -366,14 +366,6 @@ class C implements A, B {
 }
 
 @reflectiveTest
-class TopLevelInferenceErrorsTestWithUiAsCode
-    extends TopLevelInferenceErrorsTest {
-  @override
-  List<String> get enabledExperiments =>
-      [EnableString.spread_collections, EnableString.control_flow_collections];
-}
-
-@reflectiveTest
 class TopLevelInferenceTest extends BaseAnalysisDriverTest {
   test_initializer_additive() async {
     var library = await _encodeDecodeLibrary(r'''
@@ -506,8 +498,8 @@ var uFuture = () async => await fFuture();
 ''');
     checkElementText(library, r'''
 import 'dart:async';
-() → Future<int> uValue;
-() → Future<int> uFuture;
+Future<int> Function() uValue;
+Future<int> Function() uFuture;
 int fValue() {}
 Future<int> fFuture() async {}
 ''');
@@ -669,40 +661,106 @@ num b1;
 ''');
   }
 
-  test_initializer_extractProperty() async {
-    var library = await _encodeDecodeLibrary(r'''
+  test_initializer_extractProperty_explicitlyTyped_differentLibraryCycle() async {
+    newFile('/a.dart', content: r'''
 class C {
-  bool b;
+  int f = 0;
 }
-C f() => null;
-var x = f().b;
+''');
+    var library = await _encodeDecodeLibrary(r'''
+import 'a.dart';
+var x = new C().f;
 ''');
     checkElementText(library, r'''
-class C {
-  bool b;
-}
-bool x;
-C f() {}
+import 'a.dart';
+int x;
 ''');
   }
 
-  test_initializer_extractProperty_inOtherLibraryCycle() async {
-    newFile('/a.dart', content: r'''
-import 'b.dart';
+  test_initializer_extractProperty_explicitlyTyped_sameLibrary() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  int f = 0;
+}
 var x = new C().f;
 ''');
-    newFile('/b.dart', content: r'''
+    checkElementText(library, r'''
+class C {
+  int f;
+}
+int x;
+''');
+  }
+
+  test_initializer_extractProperty_explicitlyTyped_sameLibraryCycle() async {
+    newFile('/a.dart', content: r'''
+import 'test.dart'; // just do make it part of the library cycle
+class C {
+  int f = 0;
+}
+''');
+    var library = await _encodeDecodeLibrary(r'''
+import 'a.dart';
+var x = new C().f;
+''');
+    checkElementText(library, r'''
+import 'a.dart';
+int x;
+''');
+  }
+
+  test_initializer_extractProperty_implicitlyTyped_differentLibraryCycle() async {
+    newFile('/a.dart', content: r'''
 class C {
   var f = 0;
 }
 ''');
     var library = await _encodeDecodeLibrary(r'''
 import 'a.dart';
-var t1 = x;
+var x = new C().f;
+''');
+    if (AnalysisDriver.useSummary2) {
+      checkElementText(library, r'''
+import 'a.dart';
+int x;
+''');
+    } else {
+      checkElementText(library, r'''
+import 'a.dart';
+dynamic x;
+''');
+    }
+  }
+
+  test_initializer_extractProperty_implicitlyTyped_sameLibrary() async {
+    var library = await _encodeDecodeLibrary(r'''
+class C {
+  var f = 0;
+}
+var x = new C().f;
+''');
+    checkElementText(library, r'''
+class C {
+  int f;
+}
+dynamic x;
+''');
+  }
+
+  test_initializer_extractProperty_implicitlyTyped_sameLibraryCycle() async {
+    newFile('/a.dart', content: r'''
+import 'test.dart'; // just do make it part of the library cycle
+class C {
+  var f = 0;
+}
+''');
+    var library = await _encodeDecodeLibrary(r'''
+import 'a.dart';
+var x = new C().f;
 ''');
     checkElementText(library, r'''
 import 'a.dart';
-dynamic t1;
+dynamic x;
 ''');
   }
 
@@ -795,11 +853,11 @@ var v_async_returnFuture = () async => vFuture;
     checkElementText(library, r'''
 import 'dart:async';
 Future<int> vFuture;
-() → int v_noParameters_inferredReturnType;
-(String) → int v_hasParameter_withType_inferredReturnType;
-(String) → String v_hasParameter_withType_returnParameter;
-() → Future<int> v_async_returnValue;
-() → Future<int> v_async_returnFuture;
+int Function() v_noParameters_inferredReturnType;
+int Function(String) v_hasParameter_withType_inferredReturnType;
+String Function(String) v_hasParameter_withType_returnParameter;
+Future<int> Function() v_async_returnValue;
+Future<int> Function() v_async_returnFuture;
 ''');
   }
 
@@ -867,14 +925,14 @@ class A {
   String instanceClassMethod(int p) {}
 }
 int topLevelVariable;
-(int) → String r_topLevelFunction;
+String Function(int) r_topLevelFunction;
 int r_topLevelVariable;
 int r_topLevelGetter;
 int r_staticClassVariable;
 int r_staticGetter;
-(int) → String r_staticClassMethod;
+String Function(int) r_staticClassMethod;
 A instanceOfA;
-(int) → String r_instanceClassMethod;
+String Function(int) r_instanceClassMethod;
 int get topLevelGetter {}
 String topLevelFunction(int p) {}
 ''');
@@ -1988,12 +2046,12 @@ class B extends A<int> {
     checkElementText(library, r'''
 typedef F<T> = dynamic Function();
 class A<T> {
-  () → dynamic get x {}
-  List<() → dynamic> get y {}
+  dynamic Function() get x {}
+  List<dynamic Function()> get y {}
 }
 class B extends A<int> {
-  () → dynamic get x {}
-  List<() → dynamic> get y {}
+  dynamic Function() get x {}
+  List<dynamic Function()> get y {}
 }
 ''');
   }

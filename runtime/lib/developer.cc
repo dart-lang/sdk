@@ -130,8 +130,8 @@ DEFINE_NATIVE_ENTRY(Developer_getServiceMinorVersion, 0, 0) {
 
 static void SendNull(const SendPort& port) {
   const Dart_Port destination_port_id = port.Id();
-  PortMap::PostMessage(new Message(destination_port_id, Object::null(),
-                                   Message::kNormalPriority));
+  PortMap::PostMessage(Message::New(destination_port_id, Object::null(),
+                                    Message::kNormalPriority));
 }
 
 DEFINE_NATIVE_ENTRY(Developer_getServerInfo, 0, 1) {

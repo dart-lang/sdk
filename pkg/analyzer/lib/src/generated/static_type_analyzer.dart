@@ -4,22 +4,26 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart'
     show getExpressionType, getReadType;
+import 'package:meta/meta.dart';
 
 /**
  * Instances of the class `StaticTypeAnalyzer` perform two type-related tasks. First, they
@@ -68,11 +72,16 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   TypePromotionManager _promoteManager;
 
   /**
+   * Whether NNBD is enabled for this compilation unit.
+   */
+  bool _nonNullableEnabled;
+
+  /**
    * Initialize a newly created type analyzer.
    *
    * @param resolver the resolver driving this participant
    */
-  StaticTypeAnalyzer(this._resolver) {
+  StaticTypeAnalyzer(this._resolver, FeatureSet featureSet) {
     _typeProvider = _resolver.typeProvider;
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
@@ -80,6 +89,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     AnalysisOptionsImpl analysisOptions =
         _resolver.definingLibrary.context.analysisOptions;
     _strictInference = analysisOptions.strictInference;
+    _nonNullableEnabled = featureSet.isEnabled(Feature.non_nullable);
   }
 
   /**
@@ -123,9 +133,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       List<ParameterElement> parameters = node.parameterElements;
       {
         Iterator<ParameterElement> positional =
-            parameters.where((p) => !p.isNamed).iterator;
+            parameters.where((p) => p.isPositional).iterator;
         Iterator<ParameterElement> fnPositional =
-            functionType.parameters.where((p) => !p.isNamed).iterator;
+            functionType.parameters.where((p) => p.isPositional).iterator;
         while (positional.moveNext() && fnPositional.moveNext()) {
           inferType(positional.current, fnPositional.current.type);
         }
@@ -281,10 +291,22 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       DartType staticType = _getStaticType(rightHandSide);
       _recordStaticType(node, staticType);
     } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
-      // The static type of a compound assignment using ??= is the least upper
-      // bound of the static types of the LHS and RHS.
-      _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide,
-          read: true);
+      if (_nonNullableEnabled) {
+        // The static type of a compound assignment using ??= with NNBD is the
+        // least upper bound of the static types of the LHS and RHS after
+        // promoting the LHS/ to non-null (as we know its value will not be used
+        // if null)
+        _analyzeLeastUpperBoundTypes(
+            node,
+            _typeSystem.promoteToNonNull(
+                _getExpressionType(node.leftHandSide, read: true)),
+            _getExpressionType(node.rightHandSide, read: true));
+      } else {
+        // The static type of a compound assignment using ??= before NNBD is the
+        // least upper bound of the static types of the LHS and RHS.
+        _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide,
+            read: true);
+      }
       return;
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
@@ -363,11 +385,23 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     if (node.operator.type == TokenType.QUESTION_QUESTION) {
-      // Evaluation of an if-null expression e of the form e1 ?? e2 is
-      // equivalent to the evaluation of the expression
-      // ((x) => x == null ? e2 : x)(e1).  The static type of e is the least
-      // upper bound of the static type of e1 and the static type of e2.
-      _analyzeLeastUpperBound(node, node.leftOperand, node.rightOperand);
+      if (_nonNullableEnabled) {
+        // The static type of a compound assignment using ??= with NNBD is the
+        // least upper bound of the static types of the LHS and RHS after
+        // promoting the LHS/ to non-null (as we know its value will not be used
+        // if null)
+        _analyzeLeastUpperBoundTypes(
+            node,
+            _typeSystem.promoteToNonNull(
+                _getExpressionType(node.leftOperand, read: true)),
+            _getExpressionType(node.rightOperand, read: true));
+      } else {
+        // Without NNBD, evaluation of an if-null expression e of the form
+        // e1 ?? e2 is equivalent to the evaluation of the expression
+        // ((x) => x == null ? e2 : x)(e1).  The static type of e is the least
+        // upper bound of the static type of e1 and the static type of e2.
+        _analyzeLeastUpperBound(node, node.leftOperand, node.rightOperand);
+      }
       return;
     }
     DartType staticType = node.staticInvokeType?.returnType ?? _dynamicType;
@@ -500,7 +534,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _inferGenericInvocationExpression(node);
-    DartType staticType = _computeInvokeReturnType(node.staticInvokeType);
+    DartType staticType = _computeInvokeReturnType(node.staticInvokeType,
+        isNullableInvoke: false);
     _recordStaticType(node, staticType);
   }
 
@@ -670,8 +705,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         _inferMethodInvocationInlineJS(node);
 
     if (!inferredStaticType) {
-      DartType staticStaticType =
-          _computeInvokeReturnType(node.staticInvokeType);
+      DartType staticStaticType = _computeInvokeReturnType(
+          node.staticInvokeType,
+          isNullableInvoke: node.operator?.type == TokenType.QUESTION_PERIOD);
       _recordStaticType(node, staticStaticType);
     }
   }
@@ -775,6 +811,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else if (staticElement is VariableElement) {
       staticType = staticElement.type;
     }
+
     staticType = _inferGenericInstantiationFromContext(node, staticType);
     if (!_inferObjectAccess(node, staticType, prefixedIdentifier)) {
       _recordStaticType(prefixedIdentifier, staticType);
@@ -863,7 +900,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
+
+    if (node.operator.type == TokenType.QUESTION_PERIOD &&
+        _nonNullableEnabled) {
+      staticType =
+          (staticType as TypeImpl).withNullability(NullabilitySuffix.question);
+    }
     staticType = _inferGenericInstantiationFromContext(node, staticType);
+
     if (!_inferObjectAccess(node, staticType, propertyName)) {
       _recordStaticType(propertyName, staticType);
       _recordStaticType(node, staticType);
@@ -1071,10 +1115,21 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       {bool read: false}) {
     DartType staticType1 = _getExpressionType(expr1, read: read);
     DartType staticType2 = _getExpressionType(expr2, read: read);
+
+    _analyzeLeastUpperBoundTypes(node, staticType1, staticType2);
+  }
+
+  /**
+   * Set the static type of [node] to be the least upper bound of the static
+   * types [staticType1] and [staticType2].
+   */
+  void _analyzeLeastUpperBoundTypes(
+      Expression node, DartType staticType1, DartType staticType2) {
     if (staticType1 == null) {
       // TODO(brianwilkerson) Determine whether this can still happen.
       staticType1 = _dynamicType;
     }
+
     if (staticType2 == null) {
       // TODO(brianwilkerson) Determine whether this can still happen.
       staticType2 = _dynamicType;
@@ -1159,15 +1214,22 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * Compute the return type of the method or function represented by the given
    * type that is being invoked.
    */
-  DartType _computeInvokeReturnType(DartType type) {
+  DartType _computeInvokeReturnType(DartType type,
+      {@required bool isNullableInvoke}) {
+    TypeImpl returnType;
     if (type is InterfaceType) {
       MethodElement callMethod = type.lookUpMethod(
           FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
-      return callMethod?.type?.returnType ?? _dynamicType;
+      returnType = callMethod?.type?.returnType;
     } else if (type is FunctionType) {
-      return type.returnType ?? _dynamicType;
+      returnType = type.returnType;
     }
-    return _dynamicType;
+
+    if (isNullableInvoke && _nonNullableEnabled) {
+      returnType = returnType?.withNullability(NullabilitySuffix.question);
+    }
+
+    return returnType ?? _dynamicType;
   }
 
   /**
@@ -1208,13 +1270,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       //
       FunctionType propertyType = element.type;
       if (propertyType != null) {
-        return _computeInvokeReturnType(propertyType.returnType);
+        return _computeInvokeReturnType(propertyType.returnType,
+            isNullableInvoke: false);
       }
     } else if (element is ExecutableElement) {
-      return _computeInvokeReturnType(element.type);
+      return _computeInvokeReturnType(element.type, isNullableInvoke: false);
     } else if (element is VariableElement) {
       DartType variableType = _promoteManager.getStaticType(element);
-      return _computeInvokeReturnType(variableType);
+      return _computeInvokeReturnType(variableType, isNullableInvoke: false);
     }
     return _dynamicType;
   }
@@ -1512,6 +1575,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (context is FunctionType &&
         type is FunctionType &&
         ts is Dart2TypeSystem) {
+      // TODO(scheglov) Also store type arguments for identifiers.
       return ts.inferFunctionTypeInstantiation(context, type,
           errorReporter: _resolver.errorReporter, errorNode: node);
     }
@@ -1528,8 +1592,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void _inferGenericInvocationExpression(InvocationExpression node) {
     ArgumentList arguments = node.argumentList;
     var type = node.function.staticType;
-    var freshType =
-        type is FunctionType ? new FunctionTypeImpl.fresh(type) : type;
+    var freshType = _getFreshType(type);
 
     FunctionType inferred = _inferGenericInvoke(
         node, freshType, node.typeArguments, arguments, node.function);
@@ -1576,12 +1639,31 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
           argTypes.add(argumentList.arguments[i].staticType);
         }
       }
-      return ts.inferGenericFunctionOrType(
+      var typeArgs = ts.inferGenericFunctionOrType2<FunctionType>(
           fnType, params, argTypes, InferenceContext.getContext(node),
           isConst: isConst,
           errorReporter: _resolver.errorReporter,
           errorNode: errorNode);
+      if (node is InvocationExpressionImpl) {
+        node.typeArgumentTypes = typeArgs;
+      }
+      if (typeArgs != null) {
+        return fnType.instantiate(typeArgs);
+      }
+      return fnType;
     }
+
+    // There is currently no other place where we set type arguments
+    // for FunctionExpressionInvocation(s), so set it here, if not inferred.
+    if (node is FunctionExpressionInvocationImpl) {
+      if (typeArguments != null) {
+        var typeArgs = typeArguments.arguments.map((n) => n.type).toList();
+        node.typeArgumentTypes = typeArgs;
+      } else {
+        node.typeArgumentTypes = const <DartType>[];
+      }
+    }
+
     return null;
   }
 
@@ -1961,6 +2043,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     function.shareParameters(type.parameters);
     function.type = new FunctionTypeImpl(function);
     return new FunctionTypeImpl.fresh(function.type);
+  }
+
+  static DartType _getFreshType(DartType type) {
+    if (type is FunctionType) {
+      if (AnalysisDriver.useSummary2) {
+        var parameters = getFreshTypeParameters(type.typeFormals);
+        return parameters.applyToFunctionType(type);
+      } else {
+        return new FunctionTypeImpl.fresh(type);
+      }
+    } else {
+      return type;
+    }
   }
 }
 

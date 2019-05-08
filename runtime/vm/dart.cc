@@ -379,8 +379,21 @@ bool Dart::HasApplicationIsolateLocked() {
 void Dart::WaitForApplicationIsolateShutdown() {
   ASSERT(!Isolate::creation_enabled_);
   MonitorLocker ml(Isolate::isolates_list_monitor_);
+  intptr_t num_attempts = 0;
   while (HasApplicationIsolateLocked()) {
-    ml.Wait();
+    Monitor::WaitResult retval = ml.Wait(1000);
+    if (retval == Monitor::kTimedOut) {
+      num_attempts += 1;
+      if (num_attempts > 10) {
+        for (Isolate* isolate = Isolate::isolates_list_head_; isolate != NULL;
+             isolate = isolate->next_) {
+          if (!Isolate::IsVMInternalIsolate(isolate)) {
+            OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
+                         num_attempts, isolate->name_);
+          }
+        }
+      }
+    }
   }
 }
 
@@ -388,9 +401,19 @@ void Dart::WaitForApplicationIsolateShutdown() {
 void Dart::WaitForIsolateShutdown() {
   ASSERT(!Isolate::creation_enabled_);
   MonitorLocker ml(Isolate::isolates_list_monitor_);
+  intptr_t num_attempts = 0;
   while ((Isolate::isolates_list_head_ != NULL) &&
          (Isolate::isolates_list_head_->next_ != NULL)) {
-    ml.Wait();
+    Monitor::WaitResult retval = ml.Wait(1000);
+    if (retval == Monitor::kTimedOut) {
+      num_attempts += 1;
+      if (num_attempts > 10) {
+        for (Isolate* isolate = Isolate::isolates_list_head_; isolate != NULL;
+             isolate = isolate->next_)
+          OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
+                       num_attempts, isolate->name_);
+      }
+    }
   }
   ASSERT(Isolate::isolates_list_head_ == Dart::vm_isolate());
 }

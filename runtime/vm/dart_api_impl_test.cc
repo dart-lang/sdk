@@ -3469,8 +3469,8 @@ VM_UNIT_TEST_CASE(DartAPI_LocalHandles) {
   ApiLocalScope* scope = thread->api_top_scope();
   Dart_Handle handles[300];
   {
-    StackZone zone(thread);
     TransitionNativeToVM transition1(thread);
+    StackZone zone(thread);
     HANDLESCOPE(thread);
     Smi& val = Smi::Handle();
     TransitionVMToNative transition2(thread);

@@ -521,8 +521,11 @@ abstract class Element implements AnalysisTarget {
   /// Return `true` if this element has an annotation of the form `@JS(..)`.
   bool get hasJS;
 
-  /// Return `true` if this element has an annotation of the form '@literal'.
+  /// Return `true` if this element has an annotation of the form `@literal`.
   bool get hasLiteral;
+
+  /// Return  `true` if this element has an annotation of the form `@mustCallSuper`.
+  bool get hasMustCallSuper;
 
   /// Return `true` if this element has an annotation of the form
   /// `@optionalTypeArgs`.
@@ -534,10 +537,10 @@ abstract class Element implements AnalysisTarget {
   /// Return `true` if this element has an annotation of the form `@protected`.
   bool get hasProtected;
 
-  /// Return `true` if this element has an annotation of the form '@required'.
+  /// Return `true` if this element has an annotation of the form `@required`.
   bool get hasRequired;
 
-  /// Return `true` if this element has an annotation of the form '@sealed'.
+  /// Return `true` if this element has an annotation of the form `@sealed`.
   bool get hasSealed;
 
   /// Return `true` if this element has an annotation of the form
@@ -1051,13 +1054,6 @@ abstract class FieldElement
   /// Return `true` if this element is an enum constant.
   bool get isEnumConstant;
 
-  /// Return `true` if this field uses lazy evaluation semantics.
-  ///
-  /// This will always return `false` unless the experiment 'non-nullable' is
-  /// enabled.
-  @experimental
-  bool get isLazy;
-
   /// Returns `true` if this field can be overridden in strong mode.
   @deprecated
   bool get isVirtual;
@@ -1333,12 +1329,12 @@ abstract class LocalElement implements Element {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LocalVariableElement implements LocalElement, VariableElement {
-  /// Return `true` if this local variable uses lazy evaluation semantics.
+  /// Return `true` if this local variable uses late evaluation semantics.
   ///
   /// This will always return `false` unless the experiment 'non-nullable' is
   /// enabled.
   @experimental
-  bool get isLazy;
+  bool get isLate;
 }
 
 /// An element that represents a method defined within a type.
@@ -1404,9 +1400,10 @@ abstract class ParameterElement
   /// Return `true` if this parameter is an initializing formal parameter.
   bool get isInitializingFormal;
 
-  /// Return `true` if this parameter is a named parameter. Named parameters are
-  /// always optional, even when they are annotated with the `@required`
-  /// annotation.
+  /// Return `true` if this parameter is a named parameter. Named parameters
+  /// that are annotated with the `@required` annotation are considered
+  /// optional.  Named parameters that are annotated with the `required` syntax
+  /// are considered required.
   bool get isNamed;
 
   /// Return `true` if this parameter is a required parameter. Required
@@ -1420,8 +1417,17 @@ abstract class ParameterElement
   bool get isNotOptional;
 
   /// Return `true` if this parameter is an optional parameter. Optional
-  /// parameters can either be positional or named.
+  /// parameters can either be positional or named.  Named parameters that are
+  /// annotated with the `@required` annotation are considered optional.  Named
+  /// parameters that are annotated with the `required` syntax are considered
+  /// required.
   bool get isOptional;
+
+  /// Return `true` if this parameter is both an optional and named parameter.
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional.  Named parameters that are annotated with the
+  /// `required` syntax are considered required.
+  bool get isOptionalNamed;
 
   /// Return `true` if this parameter is both an optional and positional
   /// parameter.
@@ -1430,6 +1436,16 @@ abstract class ParameterElement
   /// Return `true` if this parameter is a positional parameter. Positional
   /// parameters can either be required or optional.
   bool get isPositional;
+
+  /// Return `true` if this parameter is both a required and named parameter.
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional.  Named parameters that are annotated with the
+  /// `required` syntax are considered required.
+  bool get isRequiredNamed;
+
+  /// Return `true` if this parameter is both a required and positional
+  /// parameter.
+  bool get isRequiredPositional;
 
   /// Return the kind of this parameter.
   @deprecated
@@ -1528,6 +1544,13 @@ abstract class PropertyInducingElement implements VariableElement {
   /// explicitly defined (is not synthetic) then the getter associated with it
   /// will be synthetic.
   PropertyAccessorElement get getter;
+
+  /// Return `true` if this variable uses late evaluation semantics.
+  ///
+  /// This will always return `false` unless the experiment 'non-nullable' is
+  /// enabled.
+  @experimental
+  bool get isLate;
 
   /// Return the propagated type of this variable, or `null` if type propagation
   /// has not been performed, for example because the variable is not final.

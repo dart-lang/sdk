@@ -622,6 +622,7 @@ function fetchCPUProfile(vmAddress, isolateIds, timeOrigin, timeExtent) {
                      parser.hostname +
                      ':' +
                      parser.port +
+                     parser.pathname.replace(/\/ws$/, "") +
                      '/_getCpuProfileTimeline?tags=None&isolateId=' +
                      isolateId +
                      '&timeOriginMicros=' + timeOrigin +
@@ -646,6 +647,7 @@ function fetchTimeline(vmAddress, isolateIds, mode) {
                    parser.hostname +
                    ':' +
                    parser.port +
+                   parser.pathname.replace(/\/ws$/, "") +
                    '/_getVMTimeline';
   fetchUri(requestUri, function(event) {
     // Grab the response.

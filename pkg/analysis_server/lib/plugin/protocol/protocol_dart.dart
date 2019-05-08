@@ -239,7 +239,7 @@ bool _isStatic(engine.Element element) {
 // Sort @required named parameters before optional ones.
 int _preferRequiredParams(
     engine.ParameterElement e1, engine.ParameterElement e2) {
-  int rank1 = e1.hasRequired ? 0 : !e1.isNamed ? -1 : 1;
-  int rank2 = e2.hasRequired ? 0 : !e2.isNamed ? -1 : 1;
+  int rank1 = (e1.isRequiredNamed || e1.hasRequired) ? 0 : !e1.isNamed ? -1 : 1;
+  int rank2 = (e2.isRequiredNamed || e2.hasRequired) ? 0 : !e2.isNamed ? -1 : 1;
   return rank1 - rank2;
 }

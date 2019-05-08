@@ -202,9 +202,10 @@ class SourceClassBuilder extends KernelClassBuilder
     scope.setters.forEach((String name, Declaration setter) {
       Declaration member = scopeBuilder[name];
       if (member == null ||
-          !(member.isField && !member.isFinal ||
-              member.isRegularMethod && member.isStatic && setter.isStatic))
+          !(member.isField && !member.isFinal && !member.isConst ||
+              member.isRegularMethod && member.isStatic && setter.isStatic)) {
         return;
+      }
       if (member.isInstanceMember == setter.isInstanceMember) {
         addProblem(templateConflictsWithMember.withArguments(name),
             setter.charOffset, noLength);

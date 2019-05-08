@@ -791,7 +791,8 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
         return;
       }
 
-      if ((pc + 1) < pc) {
+      const uword pc_value = reinterpret_cast<uword>(pc);
+      if ((pc_value + 1) < pc_value) {
         // It is not uncommon to encounter an invalid pc as we
         // traverse a stack frame.  Most of these we can tolerate.  If
         // the pc is so large that adding one to it will cause an
@@ -805,7 +806,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
       // Move the lower bound up.
       lower_bound_ = reinterpret_cast<uword>(fp);
 
-      if (!Append(reinterpret_cast<uword>(pc), reinterpret_cast<uword>(fp))) {
+      if (!Append(pc_value, reinterpret_cast<uword>(fp))) {
         return;
       }
     }

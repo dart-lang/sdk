@@ -1713,15 +1713,20 @@ abstract class HInvoke extends HInstruction {
   /// calling convention where the first input is the methods and the second
   /// input is the Dart receiver.
   bool isInterceptedCall = false;
-  HInvoke(List<HInstruction> inputs, type) : super(inputs, type) {
+
+  HInvoke(List<HInstruction> inputs, AbstractValue resultType)
+      : super(inputs, resultType) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
   }
   static const int ARGUMENTS_OFFSET = 1;
+
   @override
   bool canThrow(AbstractValueDomain domain) => true;
+
   @override
   bool isAllocation(AbstractValueDomain domain) => _isAllocation;
+
   void setAllocation(bool value) {
     _isAllocation = value;
   }
@@ -1731,22 +1736,36 @@ abstract class HInvokeDynamic extends HInvoke {
   final InvokeDynamicSpecializer specializer;
   @override
   Selector selector;
-  AbstractValue mask;
+  AbstractValue _receiverType;
+  final AbstractValue _originalReceiverType;
   MemberEntity element;
 
-  HInvokeDynamic(Selector selector, this.mask, this.element,
-      List<HInstruction> inputs, bool isIntercepted, AbstractValue type)
+  HInvokeDynamic(Selector selector, this._receiverType, this.element,
+      List<HInstruction> inputs, bool isIntercepted, AbstractValue resultType)
       : this.selector = selector,
+        this._originalReceiverType = _receiverType,
         specializer = isIntercepted
             ? InvokeDynamicSpecializer.lookupSpecializer(selector)
             : const InvokeDynamicSpecializer(),
-        super(inputs, type) {
+        super(inputs, resultType) {
     assert(isIntercepted != null);
+    assert(_receiverType != null);
     isInterceptedCall = isIntercepted;
   }
+
+  AbstractValue get receiverType => _receiverType;
+
+  void updateReceiverType(
+      AbstractValueDomain abstractValueDomain, AbstractValue value) {
+    _receiverType =
+        abstractValueDomain.intersection(_originalReceiverType, value);
+  }
+
   @override
-  toString() => 'invoke dynamic: selector=$selector, mask=$mask';
+  String toString() => 'invoke dynamic: selector=$selector, mask=$receiverType';
+
   HInstruction get receiver => inputs[0];
+
   @override
   HInstruction getDartReceiver(JClosedWorld closedWorld) {
     return isCallOnInterceptor(closedWorld) ? inputs[1] : inputs[0];
@@ -1762,8 +1781,10 @@ abstract class HInvokeDynamic extends HInvoke {
 
   @override
   int typeCode() => HInstruction.INVOKE_DYNAMIC_TYPECODE;
+
   @override
   bool typeEquals(other) => other is HInvokeDynamic;
+
   @override
   bool dataEquals(HInvokeDynamic other) {
     // Use the name and the kind instead of [Selector.operator==]
@@ -1778,9 +1799,9 @@ class HInvokeClosure extends HInvokeDynamic {
   @override
   final List<DartType> typeArguments;
 
-  HInvokeClosure(Selector selector, List<HInstruction> inputs,
-      AbstractValue type, this.typeArguments)
-      : super(selector, null, null, inputs, false, type) {
+  HInvokeClosure(Selector selector, AbstractValue receiverType,
+      List<HInstruction> inputs, AbstractValue resultType, this.typeArguments)
+      : super(selector, receiverType, null, inputs, false, resultType) {
     assert(selector.isClosureCall);
     assert(selector.callStructure.typeArgumentCount == typeArguments.length);
     assert(!isInterceptedCall);
@@ -1795,19 +1816,20 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
 
   HInvokeDynamicMethod(
       Selector selector,
-      AbstractValue mask,
+      AbstractValue receiverType,
       List<HInstruction> inputs,
-      AbstractValue type,
+      AbstractValue resultType,
       this.typeArguments,
       SourceInformation sourceInformation,
       {bool isIntercepted: false})
-      : super(selector, mask, null, inputs, isIntercepted, type) {
+      : super(selector, receiverType, null, inputs, isIntercepted, resultType) {
     this.sourceInformation = sourceInformation;
     assert(selector.callStructure.typeArgumentCount == typeArguments.length);
   }
 
   @override
-  String toString() => 'invoke dynamic method: selector=$selector, mask=$mask';
+  String toString() =>
+      'invoke dynamic method: selector=$selector, mask=$receiverType';
   @override
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 }
@@ -1815,27 +1837,30 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
 abstract class HInvokeDynamicField extends HInvokeDynamic {
   HInvokeDynamicField(
       Selector selector,
-      AbstractValue mask,
+      AbstractValue receiverType,
       MemberEntity element,
       List<HInstruction> inputs,
       bool isIntercepted,
-      AbstractValue type)
-      : super(selector, mask, element, inputs, isIntercepted, type);
+      AbstractValue resultType)
+      : super(
+            selector, receiverType, element, inputs, isIntercepted, resultType);
 
   @override
-  String toString() => 'invoke dynamic field: selector=$selector, mask=$mask';
+  String toString() =>
+      'invoke dynamic field: selector=$selector, mask=$receiverType';
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
   HInvokeDynamicGetter(
       Selector selector,
-      AbstractValue mask,
+      AbstractValue receiverType,
       MemberEntity element,
       List<HInstruction> inputs,
       bool isIntercepted,
-      AbstractValue type,
+      AbstractValue resultType,
       SourceInformation sourceInformation)
-      : super(selector, mask, element, inputs, isIntercepted, type) {
+      : super(selector, receiverType, element, inputs, isIntercepted,
+            resultType) {
     this.sourceInformation = sourceInformation;
   }
 
@@ -1854,7 +1879,8 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
       : super.canThrow(domain);
 
   @override
-  String toString() => 'invoke dynamic getter: selector=$selector, mask=$mask';
+  String toString() =>
+      'invoke dynamic getter: selector=$selector, mask=$receiverType';
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
@@ -1864,13 +1890,16 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 
   HInvokeDynamicSetter(
       Selector selector,
-      AbstractValue mask,
+      AbstractValue receiverType,
       MemberEntity element,
       List<HInstruction> inputs,
       bool isIntercepted,
-      AbstractValue type,
+      // TODO(johnniwinther): The result type for a setter should be the empty
+      // type.
+      AbstractValue resultType,
       SourceInformation sourceInformation)
-      : super(selector, mask, element, inputs, isIntercepted, type) {
+      : super(selector, receiverType, element, inputs, isIntercepted,
+            resultType) {
     this.sourceInformation = sourceInformation;
   }
 
@@ -1882,7 +1911,7 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 
   @override
   String toString() =>
-      'invoke dynamic setter: selector=$selector, mask=$mask, element=$element';
+      'invoke dynamic setter: selector=$selector, mask=$receiverType, element=$element';
 }
 
 class HInvokeStatic extends HInvoke {
@@ -3176,12 +3205,12 @@ class HOneShotInterceptor extends HInvokeDynamic {
   HOneShotInterceptor(
       AbstractValueDomain domain,
       Selector selector,
-      AbstractValue mask,
+      AbstractValue receiverType,
       List<HInstruction> inputs,
-      AbstractValue type,
+      AbstractValue resultType,
       this.typeArguments,
       this.interceptedClasses)
-      : super(selector, mask, null, inputs, true, type) {
+      : super(selector, receiverType, null, inputs, true, resultType) {
     assert(inputs[0] is HConstant);
     assert(inputs[0].instructionType == domain.nullType);
     assert(selector.callStructure.typeArgumentCount == typeArguments.length);
@@ -3190,7 +3219,8 @@ class HOneShotInterceptor extends HInvokeDynamic {
   bool isCallOnInterceptor(JClosedWorld closedWorld) => true;
 
   @override
-  String toString() => 'one shot interceptor: selector=$selector, mask=$mask';
+  String toString() =>
+      'one shot interceptor: selector=$selector, mask=$receiverType';
   @override
   accept(HVisitor visitor) => visitor.visitOneShotInterceptor(this);
 }
@@ -3730,8 +3760,8 @@ class HStringConcat extends HInstruction {
 /// The part of string interpolation which converts and interpolated expression
 /// into a String value.
 class HStringify extends HInstruction {
-  HStringify(HInstruction input, AbstractValue type)
-      : super(<HInstruction>[input], type) {
+  HStringify(HInstruction input, AbstractValue resultType)
+      : super(<HInstruction>[input], resultType) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
   }

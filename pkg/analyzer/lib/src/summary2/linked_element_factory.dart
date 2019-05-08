@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/core_types.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
@@ -58,6 +57,8 @@ class LinkedElementFactory {
 
   List<Reference> exportsOfLibrary(String uriStr) {
     var library = libraryMap[uriStr];
+    if (library == null) return const [];
+
     var exportIndexList = library.node.exports;
     var exportReferences = List<Reference>(exportIndexList.length);
     for (var i = 0; i < exportIndexList.length; ++i) {
@@ -68,36 +69,14 @@ class LinkedElementFactory {
     return exportReferences;
   }
 
+  bool isLibraryUri(String uriStr) {
+    var libraryContext = libraryMap[uriStr];
+    return !libraryContext.definingUnit.hasPartOfDirective;
+  }
+
   LibraryElementImpl libraryOfUri(String uriStr) {
     var reference = rootReference.getChild(uriStr);
     return elementOfReference(reference);
-  }
-
-  LinkedNode nodeOfReference(Reference reference) {
-//    if (reference.node != null) {
-//      return reference.node;
-//    }
-//
-//    var unitRef = reference.parent?.parent;
-//    var unitContainer = unitRef?.parent;
-//    if (unitContainer?.name == '@unit') {
-//      var libraryUriStr = unitContainer.parent.name;
-//      var libraryData = libraryMap[libraryUriStr];
-//      for (var unitData in libraryData.node.units) {
-//        var definingUnitContext = LinkedUnitContext(
-//          libraryData.context,
-//          TokensContext(unitData.tokens),
-//        );
-//        _ElementRequest._indexUnitDeclarations(
-//          definingUnitContext,
-//          unitRef,
-//          unitData.node,
-//        );
-//        return reference.node;
-//      }
-//    }
-
-    throw UnimplementedError('$reference');
   }
 }
 
@@ -134,6 +113,11 @@ class _ElementRequest {
       return _enum(unit, reference);
     }
 
+    if (parentName == '@field') {
+      var enclosing = elementOfReference(parent2);
+      return _field(enclosing, reference);
+    }
+
     if (parentName == '@function') {
       CompilationUnitElementImpl enclosing = elementOfReference(parent2);
       return _function(enclosing, reference);
@@ -149,14 +133,35 @@ class _ElementRequest {
       return _method(enclosing, reference);
     }
 
+    if (parentName == '@mixin') {
+      var unit = elementOfReference(parent2);
+      return _mixin(unit, reference);
+    }
+
     if (parentName == '@parameter') {
       ExecutableElementImpl enclosing = elementOfReference(parent2);
       return _parameter(enclosing, reference);
     }
 
+    if (parentName == '@prefix') {
+      LibraryElementImpl enclosing = elementOfReference(parent2);
+      return _prefix(enclosing, reference);
+    }
+
     if (parentName == '@typeAlias') {
       var unit = elementOfReference(parent2);
       return _typeAlias(unit, reference);
+    }
+
+    if (parentName == '@typeParameter') {
+      var enclosing = elementOfReference(parent2);
+      if (enclosing is ParameterElement) {
+        (enclosing as ParameterElement).typeParameters;
+      } else {
+        (enclosing as TypeParameterizedElement).typeParameters;
+      }
+      assert(reference.element != null);
+      return reference.element;
     }
 
     if (parentName == '@unit') {
@@ -166,7 +171,6 @@ class _ElementRequest {
       return reference.element;
     }
 
-    // TODO(scheglov) support other elements
     throw StateError('Not found: $input');
   }
 
@@ -179,6 +183,12 @@ class _ElementRequest {
       return reference.element;
     }
     if (enclosing is CompilationUnitElementImpl) {
+      enclosing.accessors;
+      // Requesting accessors sets elements for accessors and variables.
+      assert(reference.element != null);
+      return reference.element;
+    }
+    if (enclosing is EnumElementImpl) {
       enclosing.accessors;
       // Requesting accessors sets elements for accessors and variables.
       assert(reference.element != null);
@@ -212,19 +222,21 @@ class _ElementRequest {
     var sourceFactory = elementFactory.analysisContext.sourceFactory;
     var librarySource = sourceFactory.forUri(uriStr);
 
+    // The URI cannot be resolved, we don't know the library.
+    if (librarySource == null) return null;
+
     var libraryContext = elementFactory.libraryMap[uriStr];
-    // TODO(scheglov) don't use node
-    var node2 = libraryContext.node;
-    var hasName = node2.name.isNotEmpty;
+    var libraryNode = libraryContext.node;
+    var hasName = libraryNode.name.isNotEmpty;
 
     var definingUnitContext = libraryContext.definingUnit;
 
     var libraryElement = LibraryElementImpl.forLinkedNode(
       elementFactory.analysisContext,
       elementFactory.analysisSession,
-      node2.name,
-      hasName ? node2.nameOffset : -1,
-      node2.name.length,
+      libraryNode.name,
+      hasName ? libraryNode.nameOffset : -1,
+      libraryNode.name.length,
       definingUnitContext,
       reference,
       definingUnitContext.unit_withDeclarations,
@@ -239,9 +251,10 @@ class _ElementRequest {
       var unitElement = CompilationUnitElementImpl.forLinkedNode(
         libraryElement,
         unitContext,
-        unitContainerRef.getChild(unitContext.uriStr),
+        unitContext.reference,
         unitNode,
       );
+      unitElement.lineInfo = unitNode.lineInfo;
       unitElement.source = unitSource;
       unitElement.librarySource = librarySource;
       units.add(unitElement);
@@ -269,6 +282,13 @@ class _ElementRequest {
     return reference.element;
   }
 
+  FieldElementImpl _field(ClassElementImpl enclosing, Reference reference) {
+    enclosing.fields;
+    // Requesting fields sets elements for all fields.
+    assert(reference.element != null);
+    return reference.element;
+  }
+
   Element _function(CompilationUnitElementImpl enclosing, Reference reference) {
     enclosing.functions;
     assert(reference.element != null);
@@ -289,8 +309,26 @@ class _ElementRequest {
     return reference.element;
   }
 
+  MixinElementImpl _mixin(
+      CompilationUnitElementImpl unit, Reference reference) {
+    if (reference.node2 == null) {
+      _indexUnitElementDeclarations(unit);
+      assert(reference.node2 != null, '$reference');
+    }
+    MixinElementImpl.forLinkedNode(unit, reference, reference.node2);
+    return reference.element;
+  }
+
   Element _parameter(ExecutableElementImpl enclosing, Reference reference) {
     enclosing.parameters;
+    assert(reference.element != null);
+    return reference.element;
+  }
+
+  PrefixElementImpl _prefix(LibraryElementImpl library, Reference reference) {
+    for (var import in library.imports) {
+      import.prefix;
+    }
     assert(reference.element != null);
     return reference.element;
   }
@@ -316,6 +354,7 @@ class _ElementRequest {
     var classRef = unitRef.getChild('@class');
     var enumRef = unitRef.getChild('@enum');
     var functionRef = unitRef.getChild('@function');
+    var mixinRef = unitRef.getChild('@mixin');
     var typeAliasRef = unitRef.getChild('@typeAlias');
     var variableRef = unitRef.getChild('@variable');
     for (var declaration in unitNode.declarations) {
@@ -337,6 +376,9 @@ class _ElementRequest {
       } else if (declaration is GenericTypeAlias) {
         var name = declaration.name.name;
         typeAliasRef.getChild(name).node2 = declaration;
+      } else if (declaration is MixinDeclaration) {
+        var name = declaration.name.name;
+        mixinRef.getChild(name).node2 = declaration;
       } else if (declaration is TopLevelVariableDeclaration) {
         for (var variable in declaration.variables.variables) {
           var name = variable.name.name;

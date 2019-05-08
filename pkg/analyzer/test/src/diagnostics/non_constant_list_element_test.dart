@@ -12,57 +12,12 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantListElementTest);
-    defineReflectiveTests(NonConstantListElementWithUiAsCodeAndConstantsTest);
-    defineReflectiveTests(NonConstantListElementWithUiAsCodeTest);
+    defineReflectiveTests(NonConstantListElementWithConstantsTest);
   });
 }
 
 @reflectiveTest
 class NonConstantListElementTest extends DriverResolutionTest {
-  test_const_topVar() async {
-    await assertErrorCodesInCode('''
-final dynamic a = 0;
-var v = const [a];
-''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
-  }
-
-  test_const_topVar_nested() async {
-    await assertErrorCodesInCode(r'''
-final dynamic a = 0;
-var v = const [a + 1];
-''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
-  }
-
-  test_nonConst_topVar() async {
-    await assertNoErrorsInCode('''
-final dynamic a = 0;
-var v = [a];
-''');
-  }
-}
-
-@reflectiveTest
-class NonConstantListElementWithUiAsCodeAndConstantsTest
-    extends NonConstantListElementWithUiAsCodeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-      EnableString.constant_update_2018
-    ];
-}
-
-@reflectiveTest
-class NonConstantListElementWithUiAsCodeTest
-    extends NonConstantListElementTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-    ];
-
   test_const_forElement() async {
     await assertErrorCodesInCode(r'''
 const Set set = {};
@@ -133,4 +88,33 @@ final dynamic a = 0;
 var v = const [if (1 > 0) a];
 ''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
   }
+
+  test_const_topVar() async {
+    await assertErrorCodesInCode('''
+final dynamic a = 0;
+var v = const [a];
+''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+  }
+
+  test_const_topVar_nested() async {
+    await assertErrorCodesInCode(r'''
+final dynamic a = 0;
+var v = const [a + 1];
+''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+  }
+
+  test_nonConst_topVar() async {
+    await assertNoErrorsInCode('''
+final dynamic a = 0;
+var v = [a];
+''');
+  }
+}
+
+@reflectiveTest
+class NonConstantListElementWithConstantsTest
+    extends NonConstantListElementTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [EnableString.constant_update_2018];
 }

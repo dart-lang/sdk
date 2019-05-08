@@ -332,11 +332,11 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       return true;
     } else if (instruction.element == null) {
       if (closedWorld.includesClosureCall(
-          instruction.selector, instruction.mask)) {
+          instruction.selector, instruction.receiverType)) {
         return false;
       }
-      Iterable<MemberEntity> targets =
-          closedWorld.locateMembers(instruction.selector, instruction.mask);
+      Iterable<MemberEntity> targets = closedWorld.locateMembers(
+          instruction.selector, instruction.receiverType);
       if (targets.length == 1) {
         MemberEntity target = targets.first;
         ClassEntity cls = target.enclosingClass;
@@ -436,7 +436,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
     HInstruction receiver = instruction.getDartReceiver(closedWorld);
     AbstractValue receiverType = receiver.instructionType;
-    instruction.mask = receiverType;
+    instruction.updateReceiverType(abstractValueDomain, receiverType);
 
     // Try to refine that the receiver is not null after this call by inserting
     // a refinement node (HTypeKnown).

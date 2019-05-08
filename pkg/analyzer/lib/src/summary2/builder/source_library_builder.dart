@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
+import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart' show LibraryScope;
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -20,6 +22,7 @@ import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/scope.dart';
+import 'package:analyzer/src/summary2/types_builder.dart';
 
 class SourceLibraryBuilder {
   final Linker linker;
@@ -85,6 +88,7 @@ class SourceLibraryBuilder {
       var classRef = unitRef.getChild('@class');
       var enumRef = unitRef.getChild('@enum');
       var functionRef = unitRef.getChild('@function');
+      var mixinRef = unitRef.getChild('@mixin');
       var typeAliasRef = unitRef.getChild('@typeAlias');
       var getterRef = unitRef.getChild('@getter');
       var setterRef = unitRef.getChild('@setter');
@@ -119,7 +123,12 @@ class SourceLibraryBuilder {
 
           var reference = containerRef.getChild(name);
           reference.node2 = node;
-          localScope.declare(name, reference);
+
+          if (node.isSetter) {
+            localScope.declare('$name=', reference);
+          } else {
+            localScope.declare(name, reference);
+          }
         } else if (node is ast.FunctionTypeAlias) {
           var name = node.name.name;
           var reference = typeAliasRef.getChild(name);
@@ -134,7 +143,7 @@ class SourceLibraryBuilder {
           localScope.declare(name, reference);
         } else if (node is ast.MixinDeclaration) {
           var name = node.name.name;
-          var reference = classRef.getChild(name);
+          var reference = mixinRef.getChild(name);
           reference.node2 = node;
           localScope.declare(name, reference);
         } else if (node is ast.TopLevelVariableDeclaration) {
@@ -158,79 +167,6 @@ class SourceLibraryBuilder {
         }
       }
     }
-//    for (var unit in units) {
-//      var unitRef = reference.getChild('@unit').getChild('${unit.uri}');
-//      var classRef = unitRef.getChild('@class');
-//      var enumRef = unitRef.getChild('@enum');
-//      var functionRef = unitRef.getChild('@function');
-//      var typeAliasRef = unitRef.getChild('@typeAlias');
-//      var getterRef = unitRef.getChild('@getter');
-//      var setterRef = unitRef.getChild('@setter');
-//      var variableRef = unitRef.getChild('@variable');
-//      for (var node in unit.node.compilationUnit_declarations) {
-//        if (node.kind == LinkedNodeKind.classDeclaration ||
-//            node.kind == LinkedNodeKind.classTypeAlias ||
-//            node.kind == LinkedNodeKind.mixinDeclaration) {
-//          var name = unit.context.getUnitMemberName(node);
-//          var reference = classRef.getChild(name);
-//          reference.node = node;
-//          scope.declare(name, reference);
-//        } else if (node.kind == LinkedNodeKind.enumDeclaration) {
-//          var name = unit.context.getUnitMemberName(node);
-//          var reference = enumRef.getChild(name);
-//          reference.node = node;
-//          scope.declare(name, reference);
-//        } else if (node.kind == LinkedNodeKind.functionDeclaration) {
-//          var name = unit.context.getUnitMemberName(node);
-//
-//          Reference containerRef;
-//          if (unit.context.isGetterFunction(node)) {
-//            containerRef = getterRef;
-//          } else if (unit.context.isSetterFunction(node)) {
-//            containerRef = setterRef;
-//          } else {
-//            containerRef = functionRef;
-//          }
-//
-//          var reference = containerRef.getChild(name);
-//          reference.node = node;
-//
-//          scope.declare(name, reference);
-//        } else if (node.kind == LinkedNodeKind.functionTypeAlias) {
-//          var name = unit.context.getUnitMemberName(node);
-//          var reference = typeAliasRef.getChild(name);
-//          reference.node = node;
-//
-//          scope.declare(name, reference);
-//        } else if (node.kind == LinkedNodeKind.genericTypeAlias) {
-//          var name = unit.context.getUnitMemberName(node);
-//          var reference = typeAliasRef.getChild(name);
-//          reference.node = node;
-//
-//          scope.declare(name, reference);
-//        } else if (node.kind == LinkedNodeKind.topLevelVariableDeclaration) {
-//          var variableList = node.topLevelVariableDeclaration_variableList;
-//          for (var variable in variableList.variableDeclarationList_variables) {
-//            var name = unit.context.getVariableName(variable);
-//
-//            var reference = variableRef.getChild(name);
-//            reference.node = node;
-//
-//            var getter = getterRef.getChild(name);
-//            scope.declare(name, getter);
-//
-//            if (!unit.context.isConst(variable) &&
-//                !unit.context.isFinal(variable)) {
-//              var setter = setterRef.getChild(name);
-//              scope.declare('$name=', setter);
-//            }
-//          }
-//        } else {
-//          // TODO(scheglov) implement
-//          throw UnimplementedError('${node.kind}');
-//        }
-//      }
-//    }
     if ('$uri' == 'dart:core') {
       localScope.declare('dynamic', reference.getChild('dynamic'));
     }
@@ -284,6 +220,24 @@ class SourceLibraryBuilder {
     });
   }
 
+  void collectMixinSuperInvokedNames() {
+    for (var unitContext in context.units) {
+      for (var declaration in unitContext.unit.declarations) {
+        if (declaration is ast.MixinDeclaration) {
+          var names = Set<String>();
+          var collector = MixinSuperInvokedNamesCollector(names);
+          for (var executable in declaration.members) {
+            if (executable is ast.MethodDeclaration) {
+              executable.body.accept(collector);
+            }
+          }
+          var lazy = LazyMixinDeclaration.get(declaration);
+          lazy.setSuperInvokedNames(names.toList());
+        }
+      }
+    }
+  }
+
   void resolveConstructors() {
     ConstructorInitializerResolver(linker, element).resolve();
   }
@@ -293,13 +247,13 @@ class SourceLibraryBuilder {
   }
 
   void resolveMetadata() {
-    var metadataResolver = MetadataResolver(linker, element);
-    for (var unitContext in context.units) {
-      unitContext.unit.accept(metadataResolver);
+    for (CompilationUnitElementImpl unit in element.units) {
+      var resolver = MetadataResolver(linker, element, unit);
+      unit.linkedNode.accept(resolver);
     }
   }
 
-  void resolveTypes(List<ast.AstNode> nodesToBuildType) {
+  void resolveTypes(NodesToBuildType nodesToBuildType) {
     for (var unitContext in context.units) {
       var unitRef = reference.getChild('@unit');
       var unitReference = unitRef.getChild(unitContext.uriStr);
@@ -309,6 +263,7 @@ class SourceLibraryBuilder {
         linker.elementFactory,
         element,
         unitReference,
+        linker.contextFeatures.isEnabled(Feature.non_nullable),
         libraryScope,
       );
       unitContext.unit.accept(resolver);
@@ -342,7 +297,9 @@ class SourceLibraryBuilder {
       directive.configurations,
       directive.uri.stringValue,
     );
-    if (relativeUriStr.isEmpty) return null;
+    if (relativeUriStr == null || relativeUriStr.isEmpty) {
+      return null;
+    }
     var relativeUri = Uri.parse(relativeUriStr);
     return resolveRelativeUri(this.uri, relativeUri);
   }

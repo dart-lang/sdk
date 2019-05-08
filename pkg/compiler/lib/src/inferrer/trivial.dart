@@ -6,6 +6,7 @@ import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart' show DartType;
+import '../ir/static_type.dart';
 import '../serialization/serialization.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
@@ -355,6 +356,11 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue createNonNullExact(ClassEntity cls) =>
+      const TrivialAbstractValue();
+
+  @override
+  AbstractValue createFromStaticType(DartType type,
+          [ClassRelation classRelation = ClassRelation.subtype]) =>
       const TrivialAbstractValue();
 
   @override

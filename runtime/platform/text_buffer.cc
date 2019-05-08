@@ -6,8 +6,8 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/unicode.h"
 #include "platform/utils.h"
-#include "vm/unicode.h"
 
 namespace dart {
 
@@ -135,7 +135,7 @@ void TextBuffer::AddEscapedString(const char* s) {
 void TextBuffer::EnsureCapacity(intptr_t len) {
   intptr_t remaining = buf_size_ - msg_len_;
   if (remaining <= len) {
-    intptr_t new_size = buf_size_ + Utils::Maximum(buf_size_, len);
+    intptr_t new_size = buf_size_ + Utils::Maximum(buf_size_, len + 1);
     char* new_buf = reinterpret_cast<char*>(realloc(buf_, new_size));
     if (new_buf == NULL) {
       OUT_OF_MEMORY();

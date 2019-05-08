@@ -19,11 +19,11 @@
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "platform/hashmap.h"
+#include "platform/syslog.h"
 #include "platform/utils.h"
 
 namespace dart {
@@ -284,37 +284,38 @@ void EventHandlerImplementation::HandleInterruptFd() {
 
 #ifdef DEBUG_KQUEUE
 static void PrintEventMask(intptr_t fd, struct kevent* event) {
-  Log::Print("%d ", static_cast<int>(fd));
+  Syslog::Print("%d ", static_cast<int>(fd));
 
-  Log::Print("filter=0x%x:", event->filter);
+  Syslog::Print("filter=0x%x:", event->filter);
   if (event->filter == EVFILT_READ) {
-    Log::Print("EVFILT_READ ");
+    Syslog::Print("EVFILT_READ ");
   }
   if (event->filter == EVFILT_WRITE) {
-    Log::Print("EVFILT_WRITE ");
+    Syslog::Print("EVFILT_WRITE ");
   }
 
-  Log::Print("flags: %x: ", event->flags);
+  Syslog::Print("flags: %x: ", event->flags);
   if ((event->flags & EV_EOF) != 0) {
-    Log::Print("EV_EOF ");
+    Syslog::Print("EV_EOF ");
   }
   if ((event->flags & EV_ERROR) != 0) {
-    Log::Print("EV_ERROR ");
+    Syslog::Print("EV_ERROR ");
   }
   if ((event->flags & EV_CLEAR) != 0) {
-    Log::Print("EV_CLEAR ");
+    Syslog::Print("EV_CLEAR ");
   }
   if ((event->flags & EV_ADD) != 0) {
-    Log::Print("EV_ADD ");
+    Syslog::Print("EV_ADD ");
   }
   if ((event->flags & EV_DELETE) != 0) {
-    Log::Print("EV_DELETE ");
+    Syslog::Print("EV_DELETE ");
   }
 
-  Log::Print("- fflags: %d ", event->fflags);
-  Log::Print("- data: %ld ", event->data);
-  Log::Print("(available %d) ", static_cast<int>(FDUtils::AvailableBytes(fd)));
-  Log::Print("\n");
+  Syslog::Print("- fflags: %d ", event->fflags);
+  Syslog::Print("- data: %ld ", event->data);
+  Syslog::Print("(available %d) ",
+                static_cast<int>(FDUtils::AvailableBytes(fd)));
+  Syslog::Print("\n");
 }
 #endif
 

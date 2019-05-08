@@ -601,7 +601,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       Code& code = Code::Handle(zone);
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         func ^= refs.At(i);
-        code ^= func.CurrentCode();
+        code = func.CurrentCode();
         if (func.HasCode() && !code.IsDisabled()) {
           func.SetInstructions(code);  // Set entrypoint.
           func.SetWasCompiled(true);
@@ -3630,7 +3630,8 @@ class RegExpSerializationCluster : public SerializationCluster {
       RawRegExp* regexp = objects_[i];
       AutoTraceObject(regexp);
       WriteFromTo(regexp);
-      s->Write<int32_t>(regexp->ptr()->num_registers_);
+      s->Write<int32_t>(regexp->ptr()->num_one_byte_registers_);
+      s->Write<int32_t>(regexp->ptr()->num_two_byte_registers_);
       s->Write<int8_t>(regexp->ptr()->type_flags_);
     }
   }
@@ -3661,7 +3662,8 @@ class RegExpDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(regexp, kRegExpCid,
                                      RegExp::InstanceSize());
       ReadFromTo(regexp);
-      regexp->ptr()->num_registers_ = d->Read<int32_t>();
+      regexp->ptr()->num_one_byte_registers_ = d->Read<int32_t>();
+      regexp->ptr()->num_two_byte_registers_ = d->Read<int32_t>();
       regexp->ptr()->type_flags_ = d->Read<int8_t>();
     }
   }
@@ -4689,8 +4691,16 @@ void Serializer::AddVMIsolateBaseObjects() {
                 "<implicit getter>");
   AddBaseObject(Object::implicit_setter_bytecode().raw(), "Bytecode",
                 "<implicit setter>");
+  AddBaseObject(Object::implicit_static_getter_bytecode().raw(), "Bytecode",
+                "<implicit static getter>");
   AddBaseObject(Object::method_extractor_bytecode().raw(), "Bytecode",
                 "<method extractor>");
+  AddBaseObject(Object::invoke_closure_bytecode().raw(), "Bytecode",
+                "<invoke closure>");
+  AddBaseObject(Object::invoke_field_bytecode().raw(), "Bytecode",
+                "<invoke field>");
+  AddBaseObject(Object::nsm_dispatcher_bytecode().raw(), "Bytecode",
+                "<nsm dispatcher>");
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
@@ -5148,7 +5158,11 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::empty_exception_handlers().raw());
   AddBaseObject(Object::implicit_getter_bytecode().raw());
   AddBaseObject(Object::implicit_setter_bytecode().raw());
+  AddBaseObject(Object::implicit_static_getter_bytecode().raw());
   AddBaseObject(Object::method_extractor_bytecode().raw());
+  AddBaseObject(Object::invoke_closure_bytecode().raw());
+  AddBaseObject(Object::invoke_field_bytecode().raw());
+  AddBaseObject(Object::nsm_dispatcher_bytecode().raw());
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);

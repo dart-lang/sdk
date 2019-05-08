@@ -65,14 +65,18 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode COLON_IN_PLACE_OF_IN = _COLON_IN_PLACE_OF_IN;
 
+  static const ParserErrorCode CONFLICTING_MODIFIERS = _CONFLICTING_MODIFIERS;
+
   // TODO(danrubel): Remove this unused error code
   static const ParserErrorCode CONST_AFTER_FACTORY = _MODIFIER_OUT_OF_ORDER;
 
-  static const ParserErrorCode CONST_AND_COVARIANT = _CONST_AND_COVARIANT;
+  // TODO(danrubel): Remove this unused error code
+  static const ParserErrorCode CONST_AND_COVARIANT = _CONFLICTING_MODIFIERS;
 
   static const ParserErrorCode CONST_AND_FINAL = _CONST_AND_FINAL;
 
-  static const ParserErrorCode CONST_AND_VAR = _CONST_AND_VAR;
+  // TODO(danrubel): Remove this unused error code
+  static const ParserErrorCode CONST_AND_VAR = _CONFLICTING_MODIFIERS;
 
   static const ParserErrorCode CONST_CLASS = _CONST_CLASS;
 
@@ -102,7 +106,8 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode CONTINUE_WITHOUT_LABEL_IN_CASE =
       _CONTINUE_WITHOUT_LABEL_IN_CASE;
 
-  static const ParserErrorCode COVARIANT_AFTER_FINAL = _COVARIANT_AFTER_FINAL;
+  // TODO(danrubel): Remove this unused error code
+  static const ParserErrorCode COVARIANT_AFTER_FINAL = _MODIFIER_OUT_OF_ORDER;
 
   static const ParserErrorCode COVARIANT_AFTER_VAR = _COVARIANT_AFTER_VAR;
 

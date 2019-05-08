@@ -41,7 +41,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     for (var sdkLibrary in sdk.sdkLibraries) {
       var source = sourceFactory.resolveUri(null, sdkLibrary.shortName);
       var text = getFile(source.fullName).readAsStringSync();
-      var unit = parseText(text);
+      var unit = parseText(text, featureSet);
 
       var inputUnits = <LinkInputUnit>[];
       _addLibraryUnits(source, unit, inputUnits);
@@ -112,18 +112,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_const_constructor_inferred_args() async {
-    await super.test_const_constructor_inferred_args();
-  }
-
-  @override
-  @failingTest
-  test_parameter_covariant_inherited() async {
-    await super.test_parameter_covariant_inherited();
-  }
-
-  @override
-  @failingTest
   test_syntheticFunctionType_genericClosure() async {
     // TODO(scheglov) Bug in TypeSystem.getLeastUpperBound().
     // LUB(<T>(T) → int, <T>(T) → int) gives `(T) → int`, note absence of `<T>`.
@@ -136,7 +124,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     List<LinkInputUnit> units,
   ) {
     units.add(
-      LinkInputUnit(definingSource, definingUnit),
+      LinkInputUnit(definingSource, false, definingUnit),
     );
     for (var directive in definingUnit.directives) {
       if (directive is PartDirective) {
@@ -149,14 +137,14 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
         if (partSource != null) {
           var text = _readSafely(partSource.fullName);
-          var unit = parseText(text, experimentStatus: experimentStatus);
+          var unit = parseText(text, featureSet);
           units.add(
-            LinkInputUnit(partSource, unit),
+            LinkInputUnit(partSource, false, unit),
           );
         } else {
-          var unit = parseText('', experimentStatus: experimentStatus);
+          var unit = parseText('', featureSet);
           units.add(
-            LinkInputUnit(partSource, unit),
+            LinkInputUnit(partSource, false, unit),
           );
         }
       }
@@ -175,7 +163,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     }
 
     var text = _readSafely(source.fullName);
-    var unit = parseText(text, experimentStatus: experimentStatus);
+    var unit = parseText(text, featureSet);
 
     var units = <LinkInputUnit>[];
     _addLibraryUnits(source, unit, units);

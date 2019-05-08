@@ -256,7 +256,7 @@ class FieldMember extends VariableMember implements FieldElement {
   bool get isEnumConstant => baseElement.isEnumConstant;
 
   @override
-  bool get isLazy => baseElement.isLazy;
+  bool get isLate => baseElement.isLate;
 
   @deprecated
   @override
@@ -426,6 +426,9 @@ abstract class Member implements Element {
 
   @override
   bool get hasLiteral => _baseElement.hasLiteral;
+
+  @override
+  bool get hasMustCallSuper => _baseElement.hasMustCallSuper;
 
   @override
   bool get hasOptionalTypeArgs => _baseElement.hasOptionalTypeArgs;
@@ -648,10 +651,10 @@ class MethodMember extends ExecutableMember implements MethodElement {
         if (closing != null) {
           buffer.write(closing);
         }
-        if (parameterKind == ParameterKind.POSITIONAL) {
+        if (parameter.isOptionalPositional) {
           buffer.write("[");
           closing = "]";
-        } else if (parameterKind == ParameterKind.NAMED) {
+        } else if (parameter.isNamed) {
           buffer.write("{");
           closing = "}";
         } else {

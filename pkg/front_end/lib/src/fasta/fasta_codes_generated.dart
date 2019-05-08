@@ -757,6 +757,36 @@ const MessageCode messageColonInPlaceOfIn = const MessageCode(
     tip: r"""Try replacing the colon with the keyword 'in'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateConflictingModifiers = const Template<
+        Message Function(String string, String string2)>(
+    messageTemplate:
+        r"""Members can't be declared to be both '#string' and '#string2'.""",
+    tipTemplate: r"""Try removing one of the keywords.""",
+    withArguments: _withArgumentsConflictingModifiers);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeConflictingModifiers =
+    const Code<Message Function(String string, String string2)>(
+        "ConflictingModifiers", templateConflictingModifiers,
+        index: 59);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConflictingModifiers(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeConflictingModifiers,
+      message:
+          """Members can't be declared to be both '${string}' and '${string2}'.""",
+      tip: """Try removing one of the keywords.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateConflictsWithConstructor =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Conflicts with constructor '#name'.""",
@@ -920,17 +950,6 @@ const MessageCode messageConflictsWithTypeVariableCause = const MessageCode(
     message: r"""This is the type variable.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstAndCovariant = messageConstAndCovariant;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstAndCovariant = const MessageCode(
-    "ConstAndCovariant",
-    index: 57,
-    message:
-        r"""Members can't be declared to be both 'const' and 'covariant'.""",
-    tip: r"""Try removing either the 'const' or 'covariant' keyword.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstAndFinal = messageConstAndFinal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -938,15 +957,6 @@ const MessageCode messageConstAndFinal = const MessageCode("ConstAndFinal",
     index: 58,
     message: r"""Members can't be declared to be both 'const' and 'final'.""",
     tip: r"""Try removing either the 'const' or 'final' keyword.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstAndVar = messageConstAndVar;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstAndVar = const MessageCode("ConstAndVar",
-    index: 59,
-    message: r"""Members can't be declared to be both 'const' and 'var'.""",
-    tip: r"""Try removing either the 'const' or 'var' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstClass = messageConstClass;
@@ -1943,17 +1953,6 @@ Message _withArgumentsCouldNotParseUri(String string, String string2) {
       message: """Couldn't parse URI '${string}':
   ${string2}.""", arguments: {'string': string, 'string2': string2});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeCovariantAfterFinal = messageCovariantAfterFinal;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCovariantAfterFinal = const MessageCode(
-    "CovariantAfterFinal",
-    index: 65,
-    message:
-        r"""The modifier 'covariant' should be before the modifier 'final'.""",
-    tip: r"""Try re-ordering the modifiers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCovariantAfterVar = messageCovariantAfterVar;
@@ -6366,7 +6365,7 @@ const Code<Null> codeInvalidThisInInitializer = messageInvalidThisInInitializer;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidThisInInitializer = const MessageCode(
     "InvalidThisInInitializer",
-    index: 96,
+    index: 65,
     message:
         r"""Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())""");
 
@@ -9360,7 +9359,7 @@ const Code<Null> codeTypeBeforeFactory = messageTypeBeforeFactory;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeBeforeFactory = const MessageCode(
     "TypeBeforeFactory",
-    index: 97,
+    index: 57,
     message: r"""Factory constructors cannot have a return type.""",
     tip: r"""Try removing the type appearing before 'factory'.""");
 

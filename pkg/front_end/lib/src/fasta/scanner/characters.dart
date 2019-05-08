@@ -116,6 +116,10 @@ const int $FIRST_SURROGATE = 0xd800;
 const int $LAST_SURROGATE = 0xdfff;
 const int $LAST_CODE_POINT = 0x10ffff;
 
+bool isDigit(int characterCode) {
+  return $0 <= characterCode && characterCode <= $9;
+}
+
 bool isHexDigit(int characterCode) {
   if (characterCode <= $9) return $0 <= characterCode;
   characterCode |= $a ^ $A;

@@ -1491,7 +1491,7 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
       bool isDeclarableType = false;
       int numTypeParameters = linkedReference.numTypeParameters;
       if (linkedReference.kind == ReferenceKind.unresolved) {
-        type = UndefinedTypeImpl.instance;
+        type = DynamicTypeImpl.instance;
         element = null;
         isDeclarableType = true;
       } else if (name == 'dynamic') {

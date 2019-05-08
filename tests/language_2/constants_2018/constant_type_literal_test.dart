@@ -9,15 +9,16 @@
 import "dart:core";
 import "dart:core" as core;
 // No reloading support for deferred loading.
-// See https://github.com/dart-lang/sdk/issues/33118,
-import "dart:core" deferred as dcore; //# 01: crash on reload
+// See https://github.com/dart-lang/sdk/issues/33118.
+import "dart:core" deferred as dcore; //# 01: compile-time error
 
 // Declares F function type alias, M mixin and C class.
 import "constant_type_literal_types.dart";
 import "constant_type_literal_types.dart" as p;
 // No reloading support for deferred loading.
-// See https://github.com/dart-lang/sdk/issues/33118,
-import "constant_type_literal_types.dart" deferred as d; //# 02: crash on reload
+// See https://github.com/dart-lang/sdk/issues/33118.
+import "constant_type_literal_types.dart" //# 02: compile-time error
+    deferred as d; //# 02: continued
 
 main() {
   const Test(int, core.int);
@@ -25,11 +26,11 @@ main() {
   const Test(M, p.M);
   const Test(F, p.F);
   const c1 = //
-      dcore. //# 01: compile-time error
+      dcore. //# 01: continued
           int;
   const Test(c1, int);
   const c2 = //
-      d. //# 02: compile-time error
+      d. //# 02: continued
           C;
   const Test(c2, C);
 }

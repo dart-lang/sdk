@@ -13,7 +13,9 @@ class MessageHandlerTestPeer {
   explicit MessageHandlerTestPeer(MessageHandler* handler)
       : handler_(handler) {}
 
-  void PostMessage(Message* message) { handler_->PostMessage(message); }
+  void PostMessage(std::unique_ptr<Message> message) {
+    handler_->PostMessage(std::move(message));
+  }
   void ClosePort(Dart_Port port) { handler_->ClosePort(port); }
   void CloseAllPorts() { handler_->CloseAllPorts(); }
 
@@ -47,11 +49,10 @@ class TestMessageHandler : public MessageHandler {
 
   void MessageNotify(Message::Priority priority) { notify_count_++; }
 
-  MessageStatus HandleMessage(Message* message) {
+  MessageStatus HandleMessage(std::unique_ptr<Message> message) {
     // For testing purposes, keep a list of the ports
     // for all messages we receive.
     AddPortToBuffer(message->dest_port());
-    delete message;
     message_count_++;
     MessageStatus status = kOK;
     if (results_ != NULL) {
@@ -116,9 +117,10 @@ void TestEndFunction(uword data) {
   return (reinterpret_cast<TestMessageHandler*>(data))->End();
 }
 
-static Message* BlankMessage(Dart_Port dest, Message::Priority priority) {
-  return new Message(dest, reinterpret_cast<uint8_t*>(malloc(1)), 1, NULL,
-                     priority);
+static std::unique_ptr<Message> BlankMessage(Dart_Port dest,
+                                             Message::Priority priority) {
+  return Message::New(dest, reinterpret_cast<uint8_t*>(malloc(1)), 1, nullptr,
+                      priority);
 }
 
 VM_UNIT_TEST_CASE(MessageHandler_PostMessage) {
@@ -127,28 +129,28 @@ VM_UNIT_TEST_CASE(MessageHandler_PostMessage) {
   EXPECT_EQ(0, handler.notify_count());
 
   // Post a message.
-  Message* message = BlankMessage(1, Message::kNormalPriority);
-  handler_peer.PostMessage(message);
+  std::unique_ptr<Message> message = BlankMessage(1, Message::kNormalPriority);
+  Message* raw_message = message.get();
+  handler_peer.PostMessage(std::move(message));
 
   // The notify callback is called.
   EXPECT_EQ(1, handler.notify_count());
 
   // The message has been added to the correct queue.
-  EXPECT(message == handler_peer.queue()->Dequeue());
-  EXPECT(NULL == handler_peer.oob_queue()->Dequeue());
-  delete message;
+  EXPECT(raw_message == handler_peer.queue()->Dequeue().get());
+  EXPECT(nullptr == handler_peer.oob_queue()->Dequeue());
 
   // Post an oob message.
   message = BlankMessage(1, Message::kOOBPriority);
-  handler_peer.PostMessage(message);
+  raw_message = message.get();
+  handler_peer.PostMessage(std::move(message));
 
   // The notify callback is called.
   EXPECT_EQ(2, handler.notify_count());
 
   // The message has been added to the correct queue.
-  EXPECT(message == handler_peer.oob_queue()->Dequeue());
-  EXPECT(NULL == handler_peer.queue()->Dequeue());
-  delete message;
+  EXPECT(raw_message == handler_peer.oob_queue()->Dequeue().get());
+  EXPECT(nullptr == handler_peer.queue()->Dequeue());
 }
 
 VM_UNIT_TEST_CASE(MessageHandler_HasOOBMessages) {
@@ -158,8 +160,8 @@ VM_UNIT_TEST_CASE(MessageHandler_HasOOBMessages) {
   EXPECT(!handler.HasOOBMessages());
 
   // Post a normal message.
-  Message* message = BlankMessage(1, Message::kNormalPriority);
-  handler_peer.PostMessage(message);
+  std::unique_ptr<Message> message = BlankMessage(1, Message::kNormalPriority);
+  handler_peer.PostMessage(std::move(message));
   EXPECT(!handler.HasOOBMessages());
   {
     // Acquire ownership of message handler queues, verify one regular message.
@@ -169,7 +171,7 @@ VM_UNIT_TEST_CASE(MessageHandler_HasOOBMessages) {
 
   // Post an oob message.
   message = BlankMessage(1, Message::kOOBPriority);
-  handler_peer.PostMessage(message);
+  handler_peer.PostMessage(std::move(message));
   EXPECT(handler.HasOOBMessages());
   {
     // Acquire ownership of message handler queues, verify one regular and one
@@ -186,32 +188,31 @@ VM_UNIT_TEST_CASE(MessageHandler_HasOOBMessages) {
 VM_UNIT_TEST_CASE(MessageHandler_ClosePort) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
-  Message* message1 = BlankMessage(1, Message::kNormalPriority);
-  handler_peer.PostMessage(message1);
-  Message* message2 = BlankMessage(2, Message::kNormalPriority);
-  handler_peer.PostMessage(message2);
+  std::unique_ptr<Message> message;
+  message = BlankMessage(1, Message::kNormalPriority);
+  Message* raw_message1 = message.get();
+  handler_peer.PostMessage(std::move(message));
+  message = BlankMessage(2, Message::kNormalPriority);
+  Message* raw_message2 = message.get();
+  handler_peer.PostMessage(std::move(message));
 
   handler_peer.ClosePort(1);
 
   // Closing the port does not drop the messages from the queue.
-  EXPECT(message1 == handler_peer.queue()->Dequeue());
-  EXPECT(message2 == handler_peer.queue()->Dequeue());
-  delete message1;
-  delete message2;
+  EXPECT(raw_message1 == handler_peer.queue()->Dequeue().get());
+  EXPECT(raw_message2 == handler_peer.queue()->Dequeue().get());
 }
 
 VM_UNIT_TEST_CASE(MessageHandler_CloseAllPorts) {
   TestMessageHandler handler;
   MessageHandlerTestPeer handler_peer(&handler);
-  Message* message1 = BlankMessage(1, Message::kNormalPriority);
-  handler_peer.PostMessage(message1);
-  Message* message2 = BlankMessage(2, Message::kNormalPriority);
-  handler_peer.PostMessage(message2);
+  handler_peer.PostMessage(BlankMessage(1, Message::kNormalPriority));
+  handler_peer.PostMessage(BlankMessage(2, Message::kNormalPriority));
 
   handler_peer.CloseAllPorts();
 
   // All messages are dropped from the queue.
-  EXPECT(NULL == handler_peer.queue()->Dequeue());
+  EXPECT(nullptr == handler_peer.queue()->Dequeue());
 }
 
 VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage) {
@@ -220,14 +221,10 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage) {
   Dart_Port port1 = PortMap::CreatePort(&handler);
   Dart_Port port2 = PortMap::CreatePort(&handler);
   Dart_Port port3 = PortMap::CreatePort(&handler);
-  Message* message1 = BlankMessage(port1, Message::kNormalPriority);
-  handler_peer.PostMessage(message1);
-  Message* oob_message1 = BlankMessage(port2, Message::kOOBPriority);
-  handler_peer.PostMessage(oob_message1);
-  Message* message2 = BlankMessage(port2, Message::kNormalPriority);
-  handler_peer.PostMessage(message2);
-  Message* oob_message2 = BlankMessage(port3, Message::kOOBPriority);
-  handler_peer.PostMessage(oob_message2);
+  handler_peer.PostMessage(BlankMessage(port1, Message::kNormalPriority));
+  handler_peer.PostMessage(BlankMessage(port2, Message::kOOBPriority));
+  handler_peer.PostMessage(BlankMessage(port2, Message::kNormalPriority));
+  handler_peer.PostMessage(BlankMessage(port3, Message::kOOBPriority));
 
   // We handle both oob messages and a single normal message.
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
@@ -250,12 +247,9 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_ProcessOOBAfterError) {
   Dart_Port port1 = PortMap::CreatePort(&handler);
   Dart_Port port2 = PortMap::CreatePort(&handler);
   Dart_Port port3 = PortMap::CreatePort(&handler);
-  Message* message1 = BlankMessage(port1, Message::kNormalPriority);
-  handler_peer.PostMessage(message1);
-  Message* oob_message1 = BlankMessage(port2, Message::kOOBPriority);
-  handler_peer.PostMessage(oob_message1);
-  Message* oob_message2 = BlankMessage(port3, Message::kOOBPriority);
-  handler_peer.PostMessage(oob_message2);
+  handler_peer.PostMessage(BlankMessage(port1, Message::kNormalPriority));
+  handler_peer.PostMessage(BlankMessage(port2, Message::kOOBPriority));
+  handler_peer.PostMessage(BlankMessage(port3, Message::kOOBPriority));
 
   // When we get an error, we continue processing oob messages but
   // stop handling normal messages.
@@ -281,14 +275,10 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_Shutdown) {
   Dart_Port port2 = PortMap::CreatePort(&handler);
   Dart_Port port3 = PortMap::CreatePort(&handler);
   Dart_Port port4 = PortMap::CreatePort(&handler);
-  Message* message1 = BlankMessage(port1, Message::kNormalPriority);
-  handler_peer.PostMessage(message1);
-  Message* oob_message1 = BlankMessage(port2, Message::kOOBPriority);
-  handler_peer.PostMessage(oob_message1);
-  Message* oob_message2 = BlankMessage(port3, Message::kOOBPriority);
-  handler_peer.PostMessage(oob_message2);
-  Message* oob_message3 = BlankMessage(port4, Message::kOOBPriority);
-  handler_peer.PostMessage(oob_message3);
+  handler_peer.PostMessage(BlankMessage(port1, Message::kNormalPriority));
+  handler_peer.PostMessage(BlankMessage(port2, Message::kOOBPriority));
+  handler_peer.PostMessage(BlankMessage(port3, Message::kOOBPriority));
+  handler_peer.PostMessage(BlankMessage(port4, Message::kOOBPriority));
 
   // When we get a shutdown message, we stop processing all messages.
   EXPECT_EQ(MessageHandler::kShutdown, handler.HandleNextMessage());
@@ -311,14 +301,10 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleOOBMessages) {
   Dart_Port port2 = PortMap::CreatePort(&handler);
   Dart_Port port3 = PortMap::CreatePort(&handler);
   Dart_Port port4 = PortMap::CreatePort(&handler);
-  Message* message1 = BlankMessage(port1, Message::kNormalPriority);
-  handler_peer.PostMessage(message1);
-  Message* message2 = BlankMessage(port2, Message::kNormalPriority);
-  handler_peer.PostMessage(message2);
-  Message* oob_message1 = BlankMessage(port3, Message::kOOBPriority);
-  handler_peer.PostMessage(oob_message1);
-  Message* oob_message2 = BlankMessage(port4, Message::kOOBPriority);
-  handler_peer.PostMessage(oob_message2);
+  handler_peer.PostMessage(BlankMessage(port1, Message::kNormalPriority));
+  handler_peer.PostMessage(BlankMessage(port2, Message::kNormalPriority));
+  handler_peer.PostMessage(BlankMessage(port3, Message::kOOBPriority));
+  handler_peer.PostMessage(BlankMessage(port4, Message::kOOBPriority));
 
   // We handle both oob messages but no normal messages.
   EXPECT_EQ(MessageHandler::kOK, handler.HandleOOBMessages());
@@ -340,8 +326,8 @@ static void SendMessages(uword param) {
   MessageHandler* handler = info->handler;
   MessageHandlerTestPeer handler_peer(handler);
   for (int i = 0; i < info->count; i++) {
-    Message* message = BlankMessage(info->ports[i], Message::kNormalPriority);
-    handler_peer.PostMessage(message);
+    handler_peer.PostMessage(
+        BlankMessage(info->ports[i], Message::kNormalPriority));
   }
 }
 
@@ -358,8 +344,7 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
   handler.Run(&pool, TestStartFunction, TestEndFunction,
               reinterpret_cast<uword>(&handler));
   Dart_Port port = PortMap::CreatePort(&handler);
-  Message* message = BlankMessage(port, Message::kNormalPriority);
-  handler_peer.PostMessage(message);
+  handler_peer.PostMessage(BlankMessage(port, Message::kNormalPriority));
 
   // Wait for the first message to be handled.
   while (sleep < kMaxSleep && handler.message_count() < 1) {
@@ -373,7 +358,7 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
   EXPECT_EQ(port, handler_ports[0]);
 
   // Start a thread which sends more messages.
-  Dart_Port* ports = new Dart_Port[10];
+  Dart_Port ports[10];
   for (int i = 0; i < 10; i++) {
     ports[i] = PortMap::CreatePort(&handler);
   }
@@ -396,7 +381,6 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
   }
   handler_peer.decrement_live_ports();
   EXPECT(!handler.HasLivePorts());
-  delete[] ports;
 }
 
 }  // namespace dart

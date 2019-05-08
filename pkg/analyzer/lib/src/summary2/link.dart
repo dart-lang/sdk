@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart' show AstNode, CompilationUnit;
+import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
@@ -22,9 +23,9 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/simply_bounded.dart';
-import 'package:analyzer/src/summary2/tokens_writer.dart';
 import 'package:analyzer/src/summary2/top_level_inference.dart';
-import 'package:analyzer/src/summary2/type_builder.dart';
+import 'package:analyzer/src/summary2/type_alias.dart';
+import 'package:analyzer/src/summary2/types_builder.dart';
 
 LinkResult link(
   AnalysisOptions analysisOptions,
@@ -83,6 +84,10 @@ class Linker {
     );
   }
 
+  FeatureSet get contextFeatures {
+    return analysisContext.analysisOptions.contextFeatures;
+  }
+
   void link(List<LinkedNodeBundle> inputBundles,
       List<LinkInputLibrary> inputLibraries) {
     for (var input in inputBundles) {
@@ -101,12 +106,6 @@ class Linker {
     _createLinkingBundle();
   }
 
-  void _addExporters() {
-    for (var library in builders.values) {
-      library.addExporters();
-    }
-  }
-
   void _addSyntheticConstructors() {
     for (var library in builders.values) {
       library.addSyntheticConstructors();
@@ -115,34 +114,49 @@ class Linker {
 
   void _buildOutlines() {
     _resolveUriDirectives();
-    _addExporters();
     _computeLibraryScopes();
     _addSyntheticConstructors();
     _createTypeSystem();
     _resolveTypes();
+    TypeAliasSelfReferenceFinder().perform(this);
     _createLoadLibraryFunctions();
     _performTopLevelInference();
     _resolveConstructors();
+    _resolveConstantInitializers();
     _resolveDefaultValues();
     _resolveMetadata();
+    _collectMixinSuperInvokedNames();
+  }
+
+  void _collectMixinSuperInvokedNames() {
+    for (var library in builders.values) {
+      library.collectMixinSuperInvokedNames();
+    }
   }
 
   void _computeLibraryScopes() {
+    for (var library in builders.values) {
+      library.addLocalDeclarations();
+    }
+
+    for (var library in builders.values) {
+      library.buildInitialExportScope();
+    }
+
     var exporters = new Set<SourceLibraryBuilder>();
     var exportees = new Set<SourceLibraryBuilder>();
 
     for (var library in builders.values) {
-      library.addLocalDeclarations();
+      library.addExporters();
+    }
+
+    for (var library in builders.values) {
       if (library.exporters.isNotEmpty) {
         exportees.add(library);
         for (var exporter in library.exporters) {
           exporters.add(exporter.exporter);
         }
       }
-    }
-
-    for (var library in builders.values) {
-      library.buildInitialExportScope();
     }
 
     var both = new Set<SourceLibraryBuilder>();
@@ -183,20 +197,17 @@ class Linker {
     for (var builder in builders.values) {
       linkingLibraries.add(builder.node);
 
-      for (var unit2 in builder.context.units) {
-        var unit = unit2.unit;
-        var tokensResult = TokensWriter().writeTokens(
-          unit.beginToken,
-          unit.endToken,
-        );
-        var tokensContext = tokensResult.toContext();
+      for (var unitContext in builder.context.units) {
+        var unit = unitContext.unit;
 
-        var writer = new AstBinaryWriter(linkingBundleContext, tokensContext);
+        var writer = AstBinaryWriter(linkingBundleContext);
         var unitLinkedNode = writer.writeNode(unit);
         builder.node.units.add(
           LinkedNodeUnitBuilder(
-            uriStr: unit2.uriStr,
-            tokens: tokensResult.tokens,
+            isSynthetic: unitContext.isSynthetic,
+            uriStr: unitContext.uriStr,
+            lineStarts: unit.lineInfo.lineStarts,
+            tokens: writer.tokensBuilder,
             node: unitLinkedNode,
           ),
         );
@@ -236,6 +247,10 @@ class Linker {
     TopLevelInference(this).infer();
   }
 
+  void _resolveConstantInitializers() {
+    ConstantInitializersResolver(this).perform();
+  }
+
   void _resolveConstructors() {
     for (var library in builders.values) {
       library.resolveConstructors();
@@ -255,12 +270,12 @@ class Linker {
   }
 
   void _resolveTypes() {
-    var nodesToBuildType = <AstNode>[];
+    var nodesToBuildType = NodesToBuildType();
     for (var library in builders.values) {
       library.resolveTypes(nodesToBuildType);
     }
     computeSimplyBounded(bundleContext, builders.values);
-    TypeBuilder(typeSystem).build(nodesToBuildType);
+    TypesBuilder(typeSystem).build(nodesToBuildType);
   }
 
   void _resolveUriDirectives() {
@@ -279,9 +294,10 @@ class LinkInputLibrary {
 
 class LinkInputUnit {
   final Source source;
+  final bool isSynthetic;
   final CompilationUnit unit;
 
-  LinkInputUnit(this.source, this.unit);
+  LinkInputUnit(this.source, this.isSynthetic, this.unit);
 }
 
 class LinkResult {

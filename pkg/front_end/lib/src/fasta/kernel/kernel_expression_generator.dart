@@ -1350,8 +1350,14 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
           setter = declaration.findStaticBuilder(
               name.name, offsetForToken(token), uri, helper.library,
               isSetter: true);
-        } else if (member.isField && !member.isFinal) {
-          setter = member;
+        } else if (member.isField) {
+          if (member.isFinal || member.isConst) {
+            setter = declaration.findStaticBuilder(
+                name.name, offsetForToken(token), uri, helper.library,
+                isSetter: true);
+          } else {
+            setter = member;
+          }
         }
         generator = new StaticAccessGenerator.fromBuilder(
             helper, member, send.token, setter);

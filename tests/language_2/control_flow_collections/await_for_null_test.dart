@@ -11,11 +11,11 @@ void main() {
   asyncTest(() async {
     // Null stream.
     Stream<int> nullStream = null;
-    asyncExpectThrows<NoSuchMethodError>(
+    asyncExpectThrows<Error>(
         () async => <int>[await for (var i in nullStream) 1]);
-    asyncExpectThrows<NoSuchMethodError>(
+    asyncExpectThrows<Error>(
         () async => <int, int>{await for (var i in nullStream) 1: 1});
-    asyncExpectThrows<NoSuchMethodError>(
+    asyncExpectThrows<Error>(
         () async => <int>{await for (var i in nullStream) 1});
   });
 }

@@ -36,9 +36,6 @@ enum Feature {
   /// A catch statement.
   CATCH_STATEMENT,
 
-  /// A compile time error.
-  COMPILE_TIME_ERROR,
-
   /// A fall through in a switch case.
   FALL_THROUGH_ERROR,
 

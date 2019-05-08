@@ -102,7 +102,7 @@ class RunKernelTask : public ThreadPool::Task {
                      error);
       }
       free(error);
-      error = NULL;
+      error = nullptr;
       KernelIsolate::SetKernelIsolate(NULL);
       KernelIsolate::InitializingFailed();
       return;

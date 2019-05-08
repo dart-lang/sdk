@@ -22,6 +22,10 @@ void assertThrows(fn, [num testid = null]) {
   Expect.throws(fn, null, "Test $testid");
 }
 
+void assertDoesNotThrow(fn, [num testid = null]) {
+  fn();
+}
+
 void assertNull(actual, [num testid = null]) {
   Expect.isNull(actual, "Test $testid");
 }

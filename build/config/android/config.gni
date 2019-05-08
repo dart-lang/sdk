@@ -15,6 +15,9 @@ if (is_android) {
     android_sdk_root = default_android_sdk_root
     android_sdk_version = default_android_sdk_version
     android_sdk_build_tools_version = default_android_sdk_build_tools_version
+
+    # Unused by Dart. Required for GN files in the third_party package ICU.
+    enable_java_templates = false
   }
 
   # Host stuff -----------------------------------------------------------------

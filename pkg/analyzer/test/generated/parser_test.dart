@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -56,8 +57,6 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   bool get allowNativeClause;
 
   void set allowNativeClause(bool value);
-
-  void set enableLazyAssignmentOperators(bool value);
 
   /**
    * Set a flag indicating whether the parser should parse instance creation
@@ -232,8 +231,7 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   SimpleIdentifier parseSimpleIdentifier(String code);
 
-  Statement parseStatement(String source,
-      {bool enableLazyAssignmentOperators, int expectedEndOffset});
+  Statement parseStatement(String source, {int expectedEndOffset});
 
   Expression parseStringLiteral(String code);
 
@@ -437,6 +435,11 @@ mixin ClassMemberParserTestMixin implements AbstractParserTestCase {
     expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
     expect(list, isNotNull);
+    expect(list.keyword, isNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isFalse);
+    expect(list.lateKeyword, isNull);
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
@@ -456,6 +459,12 @@ mixin ClassMemberParserTestMixin implements AbstractParserTestCase {
     expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
     expect(list, isNotNull);
+    expect(list, isNotNull);
+    expect(list.keyword, isNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isFalse);
+    expect(list.lateKeyword, isNull);
     TypeName type = list.type;
     expect(type.name.name, 'List');
     NodeList typeArguments = type.typeArguments.arguments;
@@ -507,6 +516,12 @@ Function(int, String) v;
     expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
     expect(list, isNotNull);
+    expect(list, isNotNull);
+    expect(list.keyword, isNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isFalse);
+    expect(list.lateKeyword, isNull);
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
@@ -527,6 +542,12 @@ Function(int, String) v;
     expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
     expect(list, isNotNull);
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isFalse);
+    expect(list.lateKeyword, isNull);
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
@@ -546,6 +567,12 @@ Function(int, String) v;
     expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
     expect(list, isNotNull);
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isFalse);
+    expect(list.lateKeyword, isNull);
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
@@ -565,6 +592,12 @@ Function(int, String) v;
     expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
     expect(list, isNotNull);
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isFalse);
+    expect(list.lateKeyword, isNull);
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
@@ -585,6 +618,12 @@ Function(int, String) v;
     expect(field.staticKeyword, isNull);
     VariableDeclarationList list = field.fields;
     expect(list, isNotNull);
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isFalse);
+    expect(list.lateKeyword, isNull);
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
@@ -636,6 +675,12 @@ Function(int, String) v;
     expect(field.staticKeyword, isNotNull);
     VariableDeclarationList list = field.fields;
     expect(list, isNotNull);
+    expect(list, isNotNull);
+    expect(list.keyword, isNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isFalse);
+    expect(list.lateKeyword, isNull);
     NodeList<VariableDeclaration> variables = list.variables;
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
@@ -2462,6 +2507,20 @@ mixin ErrorParserTestMixin implements AbstractParserTestCase {
 
   void test_constMethod() {
     createParser('const int m() {}');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrors([expectedError(ParserErrorCode.CONST_METHOD, 0, 5)]);
+  }
+
+  void test_constMethod_noReturnType() {
+    createParser('const m() {}');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener.assertErrors([expectedError(ParserErrorCode.CONST_METHOD, 0, 5)]);
+  }
+
+  void test_constMethod_noReturnType2() {
+    createParser('const m();');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([expectedError(ParserErrorCode.CONST_METHOD, 0, 5)]);
@@ -6375,7 +6434,6 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
 
   void test_parseExpression_assign_compound() {
     if (usingFastaParser && AbstractScanner.LAZY_ASSIGNMENT_ENABLED) {
-      enableLazyAssignmentOperators = true;
       Expression expression = parseExpression('x ||= y');
       var assignmentExpression = expression as AssignmentExpression;
       expect(assignmentExpression.leftHandSide, isNotNull);
@@ -8150,6 +8208,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8167,6 +8226,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8184,6 +8244,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8204,6 +8265,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
@@ -8222,6 +8284,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
@@ -8239,6 +8302,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
@@ -8257,6 +8321,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isGenericFunctionType);
@@ -8274,6 +8339,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8292,6 +8358,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8309,6 +8376,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8329,6 +8397,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8346,6 +8415,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8363,6 +8433,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8382,6 +8453,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8399,6 +8471,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8415,6 +8488,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8434,6 +8508,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
@@ -8451,6 +8526,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
@@ -8467,6 +8543,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNotNull);
@@ -8485,6 +8562,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isGenericFunctionType);
@@ -8501,6 +8579,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8520,6 +8599,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8537,6 +8617,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8553,6 +8634,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8572,6 +8654,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNull);
     expect(simpleParameter.type, isNotNull);
@@ -8591,6 +8674,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8608,6 +8692,7 @@ class C {
     expect(parameter, isSimpleFormalParameter);
     SimpleFormalParameter simpleParameter = parameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -8624,6 +8709,7 @@ class C {
     SimpleFormalParameter simpleParameter =
         defaultParameter.parameter as SimpleFormalParameter;
     expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNull);
     expect(simpleParameter.identifier, isNotNull);
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
@@ -9275,12 +9361,6 @@ class ParserTestCase extends EngineTestCase
   bool parseAsync = true;
 
   /**
-   * A flag indicating whether lazy assignment operators should be enabled for
-   * the test.
-   */
-  bool enableLazyAssignmentOperators = false;
-
-  /**
    * A flag indicating whether the parser should parse instance creation
    * expressions that lack either the `new` or `const` keyword.
    */
@@ -9338,9 +9418,7 @@ class ParserTestCase extends EngineTestCase
     //
     // Scan the source.
     //
-    ScannerResult result = scanString(content,
-        includeComments: true,
-        scanLazyAssignmentOperators: enableLazyAssignmentOperators);
+    ScannerResult result = scanString(content, includeComments: true);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
@@ -9354,7 +9432,7 @@ class ParserTestCase extends EngineTestCase
     //
     // Create and initialize the parser.
     //
-    parser = new Parser(source, listener);
+    parser = new Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.allowNativeClause = allowNativeClause;
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
@@ -9488,9 +9566,7 @@ class ParserTestCase extends EngineTestCase
     //
     // Scan the source.
     //
-    ScannerResult result = scanString(content,
-        includeComments: true,
-        scanLazyAssignmentOperators: enableLazyAssignmentOperators);
+    ScannerResult result = scanString(content, includeComments: true);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
@@ -9502,7 +9578,8 @@ class ParserTestCase extends EngineTestCase
     }
     listener.setLineInfo(source, result.lineStarts);
 
-    Parser parser = new Parser(source, listener);
+    Parser parser =
+        new Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
@@ -9533,9 +9610,7 @@ class ParserTestCase extends EngineTestCase
     //
     // Scan the source.
     //
-    ScannerResult result = scanString(content,
-        includeComments: true,
-        scanLazyAssignmentOperators: enableLazyAssignmentOperators);
+    ScannerResult result = scanString(content, includeComments: true);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
@@ -9546,7 +9621,8 @@ class ParserTestCase extends EngineTestCase
       }
     }
 
-    Parser parser = new Parser(source, listener);
+    Parser parser =
+        new Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = new LineInfo(result.lineStarts);
@@ -9872,13 +9948,9 @@ class ParserTestCase extends EngineTestCase
    * Parse the given [content] as a statement. If [enableLazyAssignmentOperators]
    * is `true`, then lazy assignment operators should be enabled.
    */
-  Statement parseStatement(String content,
-      {bool enableLazyAssignmentOperators, int expectedEndOffset}) {
+  Statement parseStatement(String content, {int expectedEndOffset}) {
     Source source = new TestSource();
     listener = new GatheringErrorListener();
-    if (enableLazyAssignmentOperators != null) {
-      this.enableLazyAssignmentOperators = enableLazyAssignmentOperators;
-    }
 
     void reportError(
         ScannerErrorCode errorCode, int offset, List<Object> arguments) {
@@ -9889,9 +9961,7 @@ class ParserTestCase extends EngineTestCase
     //
     // Scan the source.
     //
-    ScannerResult result = scanString(content,
-        includeComments: true,
-        scanLazyAssignmentOperators: enableLazyAssignmentOperators);
+    ScannerResult result = scanString(content, includeComments: true);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
@@ -9903,7 +9973,8 @@ class ParserTestCase extends EngineTestCase
     }
     listener.setLineInfo(source, result.lineStarts);
 
-    Parser parser = new Parser(source, listener);
+    Parser parser =
+        new Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     Statement statement = parser.parseStatement(token);
     expect(statement, isNotNull);
@@ -9935,8 +10006,7 @@ class ParserTestCase extends EngineTestCase
     //
     // Scan the source.
     //
-    ScannerResult result = scanString(content,
-        scanLazyAssignmentOperators: enableLazyAssignmentOperators);
+    ScannerResult result = scanString(content);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
@@ -9948,7 +10018,8 @@ class ParserTestCase extends EngineTestCase
     }
     listener.setLineInfo(source, result.lineStarts);
 
-    Parser parser = new Parser(source, listener);
+    Parser parser =
+        new Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     List<Statement> statements = parser.parseStatements(token);
     expect(statements, hasLength(expectedCount));
@@ -12345,7 +12416,10 @@ class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
   }
 
   void test_Parser() {
-    expect(new Parser(NonExistingSource.unknown, null), isNotNull);
+    expect(
+        new Parser(NonExistingSource.unknown, null,
+            featureSet: FeatureSet.forTesting()),
+        isNotNull);
   }
 
   void test_skipPrefixedIdentifier_invalid() {
@@ -16401,6 +16475,18 @@ mixin TopLevelParserTestMixin implements AbstractParserTestCase {
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
+  }
+
+  void test_parseCompilationUnit_pseudo_asTypeName() {
+    for (Keyword keyword in Keyword.values) {
+      if (keyword.isPseudo) {
+        String lexeme = keyword.lexeme;
+        parseCompilationUnit('$lexeme f;');
+        parseCompilationUnit('class C {$lexeme f;}');
+        parseCompilationUnit('f($lexeme g) {}');
+        parseCompilationUnit('f() {$lexeme g;}');
+      }
+    }
   }
 
   void test_parseCompilationUnit_pseudo_prefixed() {

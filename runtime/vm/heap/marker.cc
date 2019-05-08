@@ -21,92 +21,6 @@
 
 namespace dart {
 
-// Collects a list of RawFunction whose code_ or unoptimized_code_ slots were
-// treated as weak (not visited) during marking because they had low usage.
-// These slots (and the corresponding entry_point_ caches) must be cleared after
-// marking if the target RawCode were not otherwise marked. (--collect-code)
-class SkippedCodeFunctions {
- public:
-  SkippedCodeFunctions() {}
-
-  void Add(RawFunction* func) {
-    // With concurrent mark, we hold raw pointers across safepoints.
-    ASSERT(func->IsOldObject());
-
-    skipped_code_functions_.Add(func);
-  }
-
-  void DetachCode() {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    Thread* thread = Thread::Current();
-    StackZone zone(thread);  // For log prints.
-    HANDLESCOPE(thread);
-
-    intptr_t unoptimized_code_count = 0;
-    intptr_t current_code_count = 0;
-    for (int i = 0; i < skipped_code_functions_.length(); i++) {
-      RawFunction* func = skipped_code_functions_[i];
-      RawCode* code = func->ptr()->code_;
-      if (!code->IsMarked()) {
-        // If the code wasn't strongly visited through other references
-        // after skipping the function's code pointer, then we disconnect the
-        // code from the function.
-        if (FLAG_enable_interpreter && Function::HasBytecode(func)) {
-          func->StorePointer(&(func->ptr()->code_),
-                             StubCode::InterpretCall().raw());
-          uword entry_point = StubCode::InterpretCall().EntryPoint();
-          func->ptr()->entry_point_ = entry_point;
-          func->ptr()->unchecked_entry_point_ = entry_point;
-        } else {
-          func->StorePointer(&(func->ptr()->code_),
-                             StubCode::LazyCompile().raw());
-          uword entry_point = StubCode::LazyCompile().EntryPoint();
-          func->ptr()->entry_point_ = entry_point;
-          func->ptr()->unchecked_entry_point_ = entry_point;
-        }
-        if (FLAG_log_code_drop) {
-          // NOTE: This code runs while GC is in progress and runs within
-          // a NoHandleScope block. Hence it is not okay to use a regular Zone
-          // or Scope handle. We use a direct stack handle so the raw pointer in
-          // this handle is not traversed. The use of a handle is mainly to
-          // be able to reuse the handle based code and avoid having to add
-          // helper functions to the raw object interface.
-          String name;
-          name = func->ptr()->name_;
-          THR_Print("Detaching code: %s\n", name.ToCString());
-          current_code_count++;
-        }
-      }
-
-      code = func->ptr()->unoptimized_code_;
-      if (!code->IsMarked()) {
-        // If the code wasn't strongly visited through other references
-        // after skipping the function's code pointer, then we disconnect the
-        // code from the function.
-        func->StorePointer(&(func->ptr()->unoptimized_code_), Code::null());
-        if (FLAG_log_code_drop) {
-          unoptimized_code_count++;
-        }
-      }
-    }
-    if (FLAG_log_code_drop) {
-      THR_Print("  total detached current: %" Pd "\n", current_code_count);
-      THR_Print("  total detached unoptimized: %" Pd "\n",
-                unoptimized_code_count);
-    }
-    // Clean up.
-    skipped_code_functions_.Clear();
-#endif  // !DART_PRECOMPILED_RUNTIME
-  }
-
- private:
-  MallocGrowableArray<RawFunction*> skipped_code_functions_;
-
-  DISALLOW_COPY_AND_ASSIGN(SkippedCodeFunctions);
-};
-
 class MarkerWorkList : public ValueObject {
  public:
   explicit MarkerWorkList(MarkingStack* marking_stack)
@@ -172,8 +86,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   MarkingVisitorBase(Isolate* isolate,
                      PageSpace* page_space,
                      MarkingStack* marking_stack,
-                     MarkingStack* deferred_marking_stack,
-                     SkippedCodeFunctions* skipped_code_functions)
+                     MarkingStack* deferred_marking_stack)
       : ObjectPointerVisitor(isolate),
         thread_(Thread::Current()),
 #ifndef PRODUCT
@@ -185,7 +98,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         work_list_(marking_stack),
         deferred_work_list_(deferred_marking_stack),
         delayed_weak_properties_(NULL),
-        skipped_code_functions_(skipped_code_functions),
         marked_bytes_(0),
         marked_micros_(0) {
     ASSERT(thread_->isolate() == isolate);
@@ -198,7 +110,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   }
 
   ~MarkingVisitorBase() {
-    delete skipped_code_functions_;
 #ifndef PRODUCT
     delete[] class_stats_count_;
     delete[] class_stats_size_;
@@ -286,13 +197,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     }
   }
 
-  bool visit_function_code() const { return skipped_code_functions_ == NULL; }
-
-  virtual void add_skipped_code_function(RawFunction* func) {
-    ASSERT(!visit_function_code());
-    skipped_code_functions_->Add(func);
-  }
-
   void EnqueueWeakProperty(RawWeakProperty* raw_weak) {
     ASSERT(raw_weak->IsHeapObject());
     ASSERT(raw_weak->IsOldObject());
@@ -346,10 +250,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   // Called when all marking is complete.
   void Finalize() {
     work_list_.Finalize();
-    // Detach code from functions.
-    if (skipped_code_functions_ != NULL) {
-      skipped_code_functions_->DetachCode();
-    }
     // Clear pending weak properties.
     RawWeakProperty* cur_weak = delayed_weak_properties_;
     delayed_weak_properties_ = NULL;
@@ -447,7 +347,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   MarkerWorkList work_list_;
   MarkerWorkList deferred_work_list_;
   RawWeakProperty* delayed_weak_properties_;
-  SkippedCodeFunctions* skipped_code_functions_;
   uintptr_t marked_bytes_;
   int64_t marked_micros_;
 
@@ -881,7 +780,7 @@ GCMarker::~GCMarker() {
   delete[] visitors_;
 }
 
-void GCMarker::StartConcurrentMark(PageSpace* page_space, bool collect_code) {
+void GCMarker::StartConcurrentMark(PageSpace* page_space) {
   isolate_->EnableIncrementalBarrier(&marking_stack_, &deferred_marking_stack_);
 
   const intptr_t num_tasks = FLAG_marker_tasks;
@@ -901,11 +800,8 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space, bool collect_code) {
   ResetRootSlices();
   for (intptr_t i = 0; i < num_tasks; i++) {
     ASSERT(visitors_[i] == NULL);
-    SkippedCodeFunctions* skipped_code_functions =
-        collect_code ? new SkippedCodeFunctions() : NULL;
     visitors_[i] = new SyncMarkingVisitor(isolate_, page_space, &marking_stack_,
-                                          &deferred_marking_stack_,
-                                          skipped_code_functions);
+                                          &deferred_marking_stack_);
 
     // Begin marking on a helper thread.
     bool result = Dart::thread_pool()->Run(
@@ -920,7 +816,7 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space, bool collect_code) {
   }
 }
 
-void GCMarker::MarkObjects(PageSpace* page_space, bool collect_code) {
+void GCMarker::MarkObjects(PageSpace* page_space) {
   if (isolate_->marking_stack() != NULL) {
     isolate_->DisableIncrementalBarrier();
   }
@@ -933,11 +829,8 @@ void GCMarker::MarkObjects(PageSpace* page_space, bool collect_code) {
       TIMELINE_FUNCTION_GC_DURATION(thread, "Mark");
       int64_t start = OS::GetCurrentMonotonicMicros();
       // Mark everything on main thread.
-      SkippedCodeFunctions* skipped_code_functions =
-          collect_code ? new SkippedCodeFunctions() : NULL;
       UnsyncMarkingVisitor mark(isolate_, page_space, &marking_stack_,
-                                &deferred_marking_stack_,
-                                skipped_code_functions);
+                                &deferred_marking_stack_);
       ResetRootSlices();
       IterateRoots(&mark);
       mark.ProcessDeferredMarking();
@@ -965,11 +858,8 @@ void GCMarker::MarkObjects(PageSpace* page_space, bool collect_code) {
           visitor = visitors_[i];
           visitors_[i] = NULL;
         } else {
-          SkippedCodeFunctions* skipped_code_functions =
-              collect_code ? new SkippedCodeFunctions() : NULL;
           visitor = new SyncMarkingVisitor(
-              isolate_, page_space, &marking_stack_, &deferred_marking_stack_,
-              skipped_code_functions);
+              isolate_, page_space, &marking_stack_, &deferred_marking_stack_);
         }
 
         bool result = Dart::thread_pool()->Run(new ParallelMarkTask(

@@ -158,7 +158,7 @@ class MinidumpFile(object):
       raise Exception('Unsupported minidump header magic')
     self.directories = []
     offset = self.header.stream_directories_rva
-    for _ in xrange(self.header.stream_count):
+    for _ in range(self.header.stream_count):
       self.directories.append(self.Read(MINIDUMP_DIRECTORY, offset))
       offset += MINIDUMP_DIRECTORY.size
 

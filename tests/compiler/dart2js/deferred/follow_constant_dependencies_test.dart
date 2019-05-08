@@ -32,7 +32,7 @@ void main() {
     }
 
     dynamic codegenWorldBuilder = compiler.codegenWorldBuilder;
-    codegenWorldBuilder.compiledConstants
+    codegenWorldBuilder.compiledConstantsForTesting
         .forEach(addConstantWithDependendencies);
     for (String stringValue in ["cA", "cB", "cC"]) {
       StringConstantValue constant =

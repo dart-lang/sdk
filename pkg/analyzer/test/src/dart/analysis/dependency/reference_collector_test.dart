@@ -5,8 +5,6 @@
 import 'package:analyzer/src/dart/analysis/dependency/library_builder.dart'
     hide buildLibrary;
 import 'package:analyzer/src/dart/analysis/dependency/node.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,7 +18,6 @@ main() {
     defineReflectiveTests(ImplReferenceCollectorTest);
     defineReflectiveTests(ShadowReferenceCollectorTest);
     defineReflectiveTests(StatementReferenceCollectorTest);
-    defineReflectiveTests(StatementReferenceCollectorTest_SpreadCollections);
     defineReflectiveTests(TypeReferenceCollectorTest);
   });
 }
@@ -2158,14 +2155,6 @@ test() sync* {
 }
 
 @reflectiveTest
-class StatementReferenceCollectorTest_SpreadCollections
-    extends StatementReferenceCollectorTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.spread_collections];
-}
-
-@reflectiveTest
 class TypeReferenceCollectorTest extends _Base {
   test_dynamic() async {
     var library = await buildTestLibrary(a, r'''
@@ -2213,7 +2202,7 @@ A Function([B, C]) test() {}
 
   test_function_shadow_typeParameters() async {
     var library = await buildTestLibrary(a, r'''
-A Function<T extends U, U>(B) test() {}
+A Function<T2 extends U2, U2>(B) test() {}
 ''');
     _assertApi(library, 'test', NodeKind.FUNCTION, unprefixed: ['A', 'B']);
   }

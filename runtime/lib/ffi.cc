@@ -42,9 +42,9 @@ static bool IsPointerType(const AbstractType& type) {
       Class::Handle(Isolate::Current()->object_store()->ffi_pointer_class());
   AbstractType& pointer_type =
       AbstractType::Handle(pointer_class.DeclarationType());
-  pointer_type ^= pointer_type.InstantiateFrom(Object::null_type_arguments(),
-                                               Object::null_type_arguments(),
-                                               kNoneFree, NULL, Heap::kNew);
+  pointer_type = pointer_type.InstantiateFrom(Object::null_type_arguments(),
+                                              Object::null_type_arguments(),
+                                              kNoneFree, NULL, Heap::kNew);
   ASSERT(pointer_type.IsInstantiated());
   ASSERT(type.IsInstantiated());
   return type.IsSubtypeOf(pointer_type, Heap::kNew);
@@ -594,7 +594,7 @@ DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 1) {
   TypeArguments& type_args = TypeArguments::Handle(zone);
   type_args = TypeArguments::New(1);
   type_args.SetTypeAt(Pointer::kNativeTypeArgPos, type_arg);
-  type_args ^= type_args.Canonicalize();
+  type_args = type_args.Canonicalize();
 
   Class& native_function_class = Class::Handle(
       Isolate::Current()->class_table()->At(kFfiNativeFunctionCid));

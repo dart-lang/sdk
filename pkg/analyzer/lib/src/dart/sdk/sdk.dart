@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io' as io;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -129,6 +130,16 @@ abstract class AbstractDartSdk implements DartSdk {
     });
   }
 
+  /**
+   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
+   */
+  Map<String, Object> debugInfo() {
+    return <String, Object>{
+      'runtimeType': '$runtimeType',
+      'libraryMap': libraryMap.debugInfo(),
+    };
+  }
+
   @override
   Source fromFileUri(Uri uri) {
     File file =
@@ -217,16 +228,6 @@ abstract class AbstractDartSdk implements DartSdk {
       _uriToSourceMap[dartUri] = source;
     }
     return source;
-  }
-
-  /**
-   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
-   */
-  Map<String, Object> debugInfo() {
-    return <String, Object>{
-      'runtimeType': '$runtimeType',
-      'libraryMap': libraryMap.debugInfo(),
-    };
   }
 
   String _getPath(File file) {
@@ -551,16 +552,6 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   }
 
   /**
-   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
-   */
-  @override
-  Map<String, Object> debugInfo() {
-    var result = super.debugInfo();
-    result['directory'] = _sdkDirectory.path;
-    return result;
-  }
-
-  /**
    * Determine the search order for trying to locate the [_LIBRARIES_FILE].
    */
   Iterable<File> get _libraryMapLocations sync* {
@@ -572,6 +563,16 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     yield libraryDirectory
         .getChildAssumingFolder(_INTERNAL_DIR)
         .getChildAssumingFile(_LIBRARIES_FILE);
+  }
+
+  /**
+   * Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
+   */
+  @override
+  Map<String, Object> debugInfo() {
+    var result = super.debugInfo();
+    result['directory'] = _sdkDirectory.path;
+    return result;
   }
 
   @override
@@ -897,9 +898,13 @@ class SdkLibrariesReader {
    */
   LibraryMap readFromSource(Source source, String libraryFileContents) {
     BooleanErrorListener errorListener = new BooleanErrorListener();
+    // TODO(paulberry): initialize the feature set appropriately based on the
+    // version of the SDK we are reading, and enable flags.
+    var featureSet = FeatureSet.fromEnableFlags([]);
     Scanner scanner = new Scanner(
-        source, new CharSequenceReader(libraryFileContents), errorListener);
-    Parser parser = new Parser(source, errorListener);
+        source, new CharSequenceReader(libraryFileContents), errorListener)
+      ..configureFeatures(featureSet);
+    Parser parser = new Parser(source, errorListener, featureSet: featureSet);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
     SdkLibrariesReader_LibraryBuilder libraryBuilder =
         new SdkLibrariesReader_LibraryBuilder(_useDart2jsPaths);

@@ -398,7 +398,11 @@ class Object {
   V(Array, extractor_parameter_names)                                          \
   V(Bytecode, implicit_getter_bytecode)                                        \
   V(Bytecode, implicit_setter_bytecode)                                        \
+  V(Bytecode, implicit_static_getter_bytecode)                                 \
   V(Bytecode, method_extractor_bytecode)                                       \
+  V(Bytecode, invoke_closure_bytecode)                                         \
+  V(Bytecode, invoke_field_bytecode)                                           \
+  V(Bytecode, nsm_dispatcher_bytecode)                                         \
   V(Instance, sentinel)                                                        \
   V(Instance, transition_sentinel)                                             \
   V(Instance, unknown_constant)                                                \
@@ -1969,9 +1973,6 @@ enum {
 
 class Function : public Object {
  public:
-  // A value to prevent premature code collection. lg(32) = 5 major GCs.
-  static constexpr intptr_t kGraceUsageCounter = 32;
-
   RawString* name() const { return raw_ptr()->name_; }
   RawString* UserVisibleName() const;  // Same as scrubbed name.
   RawString* QualifiedScrubbedName() const {
@@ -2151,7 +2152,7 @@ class Function : public Object {
   bool HasCode() const;
   static bool HasCode(RawFunction* function);
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  static bool HasBytecode(RawFunction* function);
+  static inline bool HasBytecode(RawFunction* function);
 #endif
 
   static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
@@ -2172,7 +2173,7 @@ class Function : public Object {
   bool IsBytecodeAllowed(Zone* zone) const;
   void AttachBytecode(const Bytecode& bytecode) const;
   RawBytecode* bytecode() const { return raw_ptr()->bytecode_; }
-  bool HasBytecode() const;
+  inline bool HasBytecode() const;
 #endif
 
   virtual intptr_t Hash() const;
@@ -2218,7 +2219,7 @@ class Function : public Object {
   bool IsImplicitGetterOrSetter() const {
     return kind() == RawFunction::kImplicitGetter ||
            kind() == RawFunction::kImplicitSetter ||
-           kind() == RawFunction::kImplicitStaticFinalGetter;
+           kind() == RawFunction::kImplicitStaticGetter;
   }
 
   // Returns true iff an implicit closure function has been created
@@ -2296,7 +2297,7 @@ class Function : public Object {
       case RawFunction::kImplicitClosureFunction:
       case RawFunction::kSignatureFunction:
       case RawFunction::kConstructor:
-      case RawFunction::kImplicitStaticFinalGetter:
+      case RawFunction::kImplicitStaticGetter:
       case RawFunction::kStaticFieldInitializer:
       case RawFunction::kIrregexpFunction:
         return false;
@@ -2315,7 +2316,7 @@ class Function : public Object {
       case RawFunction::kSetterFunction:
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
-      case RawFunction::kImplicitStaticFinalGetter:
+      case RawFunction::kImplicitStaticGetter:
       case RawFunction::kStaticFieldInitializer:
       case RawFunction::kIrregexpFunction:
         return true;
@@ -2530,13 +2531,17 @@ class Function : public Object {
   // dependencies. It will be compiled into optimized code immediately when it's
   // run.
   bool ForceOptimize() const {
-    return IsFfiTrampoline()
+    if (IsFfiTrampoline()) {
+      return true;
+    }
     // On DBC we use native calls instead of IR for the view factories (see
     // kernel_to_il.cc)
 #if !defined(TARGET_ARCH_DBC)
-           || IsTypedDataViewFactory()
+    if (IsTypedDataViewFactory()) {
+      return true;
+    }
 #endif
-        ;
+    return false;
   }
 
   bool CanBeInlined() const;
@@ -2595,7 +2600,7 @@ class Function : public Object {
     switch (kind()) {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
-      case RawFunction::kImplicitStaticFinalGetter:
+      case RawFunction::kImplicitStaticGetter:
       case RawFunction::kNoSuchMethodDispatcher:
       case RawFunction::kInvokeFieldDispatcher:
       case RawFunction::kDynamicInvocationForwarder:
@@ -3140,8 +3145,15 @@ class FfiTrampolineData : public Object {
 
 class Field : public Object {
  public:
+  // The field that this field was cloned from, or this field itself if it isn't
+  // a clone. The purpose of cloning is that the fields the background compiler
+  // sees are consistent.
   RawField* Original() const;
+
+  // Set the original field that this field was cloned from.
   void SetOriginal(const Field& value) const;
+
+  // Returns whether this field is an original or a clone.
   bool IsOriginal() const {
     if (IsNull()) {
       return true;
@@ -3372,17 +3384,23 @@ class Field : public Object {
   // to have or kDynamicCid if such class id is not known.
   // Stores to this field must update this information hence the name.
   intptr_t guarded_cid() const {
-#if defined(DEGUG)
+#if defined(DEBUG)
+    // This assertion ensures that the cid seen by the background compiler is
+    // consistent. So the assertion passes if the field is a clone. It also
+    // passes if the field is static, because we don't use field guards on
+    // static fields.
     Thread* thread = Thread::Current();
-    ASSERT(!IsOriginal() || thread->IsMutator() || thread->IsAtSafepoint());
+    ASSERT(!IsOriginal() || is_static() || thread->IsMutatorThread() ||
+           thread->IsAtSafepoint());
 #endif
     return raw_ptr()->guarded_cid_;
   }
 
   void set_guarded_cid(intptr_t cid) const {
-#if defined(DEGUG)
+#if defined(DEBUG)
     Thread* thread = Thread::Current();
-    ASSERT(!IsOriginal() || thread->IsMutator() || thread->IsAtSafepoint());
+    ASSERT(!IsOriginal() || is_static() || thread->IsMutatorThread() ||
+           thread->IsAtSafepoint());
 #endif
     StoreNonPointer(&raw_ptr()->guarded_cid_, cid);
   }
@@ -4398,8 +4416,8 @@ class Instructions : public Object {
   static const intptr_t kPolymorphicEntryOffset = 0;
   static const intptr_t kMonomorphicEntryOffset = 0;
 #elif defined(TARGET_ARCH_X64)
-  static const intptr_t kPolymorphicEntryOffset = 16;
-  static const intptr_t kMonomorphicEntryOffset = 36;
+  static const intptr_t kPolymorphicEntryOffset = 8;
+  static const intptr_t kMonomorphicEntryOffset = 32;
 #elif defined(TARGET_ARCH_ARM)
   static const intptr_t kPolymorphicEntryOffset = 0;
   static const intptr_t kMonomorphicEntryOffset = 20;
@@ -5528,13 +5546,17 @@ class Context : public Object {
            (kWordSize * context_index);
   }
 
+  static bool IsValidLength(intptr_t len) {
+    return 0 <= len && len <= kMaxElements;
+  }
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawContext) == OFFSET_OF_RETURNED_VALUE(RawContext, data));
     return 0;
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(0 <= len && len <= kMaxElements);
+    ASSERT(IsValidLength(len));
     return RoundedAllocationSize(sizeof(RawContext) + (len * kBytesPerElement));
   }
 
@@ -7447,8 +7469,6 @@ class String : public Instance {
   friend class TwoByteString;
   friend class ExternalOneByteString;
   friend class ExternalTwoByteString;
-  // So that SkippedCodeFunctions can print a debug string from a NoHandleScope.
-  friend class SkippedCodeFunctions;
   friend class RawOneByteString;
   friend class RODataSerializationCluster;  // SetHash
 };
@@ -8009,6 +8029,10 @@ class Array : public Instance {
     return OFFSET_OF(RawArray, type_arguments_);
   }
 
+  static bool IsValidLength(intptr_t len) {
+    return 0 <= len && len <= kMaxElements;
+  }
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawArray) == OFFSET_OF_RETURNED_VALUE(RawArray, data));
     return 0;
@@ -8017,7 +8041,7 @@ class Array : public Instance {
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that variable length data is not adding to the object length.
     ASSERT(sizeof(RawArray) == (sizeof(RawInstance) + (2 * kWordSize)));
-    ASSERT(0 <= len && len <= kMaxElements);
+    ASSERT(IsValidLength(len));
     return RoundedAllocationSize(sizeof(RawArray) + (len * kBytesPerElement));
   }
 
@@ -9106,6 +9130,55 @@ class StackTrace : public Instance {
   friend class Debugger;
 };
 
+class RegExpFlags {
+ public:
+  // Flags are passed to a regex object as follows:
+  // 'i': ignore case, 'g': do global matches, 'm': pattern is multi line,
+  // 'u': pattern is full Unicode, not just BMP, 's': '.' in pattern matches
+  // all characters including line terminators.
+  enum Flags {
+    kNone = 0,
+    kGlobal = 1,
+    kIgnoreCase = 2,
+    kMultiLine = 4,
+    kUnicode = 8,
+    kDotAll = 16,
+  };
+
+  static const int kDefaultFlags = 0;
+
+  RegExpFlags() : value_(kDefaultFlags) {}
+  explicit RegExpFlags(int value) : value_(value) {}
+
+  inline bool IsGlobal() const { return (value_ & kGlobal) != 0; }
+  inline bool IgnoreCase() const { return (value_ & kIgnoreCase) != 0; }
+  inline bool IsMultiLine() const { return (value_ & kMultiLine) != 0; }
+  inline bool IsUnicode() const { return (value_ & kUnicode) != 0; }
+  inline bool IsDotAll() const { return (value_ & kDotAll) != 0; }
+
+  inline bool NeedsUnicodeCaseEquivalents() {
+    // Both unicode and ignore_case flags are set. We need to use ICU to find
+    // the closure over case equivalents.
+    return IsUnicode() && IgnoreCase();
+  }
+
+  void SetGlobal() { value_ |= kGlobal; }
+  void SetIgnoreCase() { value_ |= kIgnoreCase; }
+  void SetMultiLine() { value_ |= kMultiLine; }
+  void SetUnicode() { value_ |= kUnicode; }
+  void SetDotAll() { value_ |= kDotAll; }
+
+  const char* ToCString() const;
+
+  int value() const { return value_; }
+
+  bool operator==(const RegExpFlags& other) { return value_ == other.value_; }
+  bool operator!=(const RegExpFlags& other) { return value_ != other.value_; }
+
+ private:
+  int value_;
+};
+
 // Internal JavaScript regular expression object.
 class RegExp : public Instance {
  public:
@@ -9119,20 +9192,11 @@ class RegExp : public Instance {
     kComplex = 2,
   };
 
-  // Flags are passed to a regex object as follows:
-  // 'i': ignore case, 'g': do global matches, 'm': pattern is multi line.
-  enum Flags {
-    kNone = 0,
-    kGlobal = 1,
-    kIgnoreCase = 2,
-    kMultiLine = 4,
-  };
-
   enum {
     kTypePos = 0,
     kTypeSize = 2,
     kFlagsPos = 2,
-    kFlagsSize = 4,
+    kFlagsSize = 5,
   };
 
   class TypeBits : public BitField<int8_t, RegExType, kTypePos, kTypeSize> {};
@@ -9142,11 +9206,10 @@ class RegExp : public Instance {
   bool is_simple() const { return (type() == kSimple); }
   bool is_complex() const { return (type() == kComplex); }
 
-  bool is_global() const { return (flags() & kGlobal); }
-  bool is_ignore_case() const { return (flags() & kIgnoreCase); }
-  bool is_multi_line() const { return (flags() & kMultiLine); }
-
-  intptr_t num_registers() const { return raw_ptr()->num_registers_; }
+  intptr_t num_registers(bool is_one_byte) const {
+    return is_one_byte ? raw_ptr()->num_one_byte_registers_
+                       : raw_ptr()->num_two_byte_registers_;
+  }
 
   RawString* pattern() const { return raw_ptr()->pattern_; }
   RawSmi* num_bracket_expressions() const {
@@ -9210,15 +9273,48 @@ class RegExp : public Instance {
 
   void set_num_bracket_expressions(intptr_t value) const;
   void set_capture_name_map(const Array& array) const;
-  void set_is_global() const { set_flags(flags() | kGlobal); }
-  void set_is_ignore_case() const { set_flags(flags() | kIgnoreCase); }
-  void set_is_multi_line() const { set_flags(flags() | kMultiLine); }
+  void set_is_global() const {
+    RegExpFlags f = flags();
+    f.SetGlobal();
+    set_flags(f);
+  }
+  void set_is_ignore_case() const {
+    RegExpFlags f = flags();
+    f.SetIgnoreCase();
+    set_flags(f);
+  }
+  void set_is_multi_line() const {
+    RegExpFlags f = flags();
+    f.SetMultiLine();
+    set_flags(f);
+  }
+  void set_is_unicode() const {
+    RegExpFlags f = flags();
+    f.SetUnicode();
+    set_flags(f);
+  }
+  void set_is_dot_all() const {
+    RegExpFlags f = flags();
+    f.SetDotAll();
+    set_flags(f);
+  }
   void set_is_simple() const { set_type(kSimple); }
   void set_is_complex() const { set_type(kComplex); }
-  void set_num_registers(intptr_t value) const {
-    StoreNonPointer(&raw_ptr()->num_registers_, value);
+  void set_num_registers(bool is_one_byte, intptr_t value) const {
+    if (is_one_byte) {
+      StoreNonPointer(&raw_ptr()->num_one_byte_registers_, value);
+    } else {
+      StoreNonPointer(&raw_ptr()->num_two_byte_registers_, value);
+    }
   }
 
+  RegExpFlags flags() const {
+    return RegExpFlags(FlagsBits::decode(raw_ptr()->type_flags_));
+  }
+  void set_flags(RegExpFlags flags) const {
+    StoreNonPointer(&raw_ptr()->type_flags_,
+                    FlagsBits::update(flags.value(), raw_ptr()->type_flags_));
+  }
   const char* Flags() const;
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
@@ -9234,13 +9330,8 @@ class RegExp : public Instance {
     StoreNonPointer(&raw_ptr()->type_flags_,
                     TypeBits::update(type, raw_ptr()->type_flags_));
   }
-  void set_flags(intptr_t value) const {
-    StoreNonPointer(&raw_ptr()->type_flags_,
-                    FlagsBits::update(value, raw_ptr()->type_flags_));
-  }
 
   RegExType type() const { return TypeBits::decode(raw_ptr()->type_flags_); }
-  intptr_t flags() const { return FlagsBits::decode(raw_ptr()->type_flags_); }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(RegExp, Instance);
   friend class Class;
@@ -9385,6 +9476,16 @@ DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
   }
 #endif
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+bool Function::HasBytecode() const {
+  return raw_ptr()->bytecode_ != Bytecode::null();
+}
+
+bool Function::HasBytecode(RawFunction* function) {
+  return function->ptr()->bytecode_ != Bytecode::null();
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 intptr_t Field::Offset() const {
   ASSERT(is_instance());  // Valid only for dart instance fields.

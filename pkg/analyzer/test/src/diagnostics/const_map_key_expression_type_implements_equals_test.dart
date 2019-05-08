@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -11,9 +10,6 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstMapKeyExpressionTypeImplementsEqualsTest);
-    defineReflectiveTests(
-      ConstMapKeyExpressionTypeImplementsEqualsWithUIAsCodeTest,
-    );
   });
 }
 
@@ -34,15 +30,20 @@ main() {
   }
 
   test_constField() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   const {double.INFINITY: 0};
 }
-''', [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+''', [
+      error(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          18,
+          15),
+    ]);
   }
 
   test_direct() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -51,14 +52,19 @@ class A {
 main() {
   const {const A() : 0};
 }
-''', [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+''', [
+      error(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          75,
+          9),
+    ]);
   }
 
   test_dynamic() async {
     // Note: static type of B.a is "dynamic", but actual type of the const
     // object is A.  We need to make sure we examine the actual type when
     // deciding whether there is a problem with operator==.
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -71,11 +77,16 @@ class B {
 main() {
   const {B.a : 0};
 }
-''', [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+''', [
+      error(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          118,
+          3),
+    ]);
   }
 
   test_factory() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   const factory A() = B;
 }
@@ -88,11 +99,16 @@ class B implements A {
 main() {
   const {const A(): 42};
 }
-''', [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+''', [
+      error(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          121,
+          9),
+    ]);
   }
 
   test_super() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   const A();
   operator ==(other) => false;
@@ -105,14 +121,11 @@ class B extends A {
 main() {
   const {const B() : 0};
 }
-''', [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+''', [
+      error(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          111,
+          9),
+    ]);
   }
-}
-
-@reflectiveTest
-class ConstMapKeyExpressionTypeImplementsEqualsWithUIAsCodeTest
-    extends ConstMapKeyExpressionTypeImplementsEqualsTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = ['control-flow-collections', 'spread-collections'];
 }

@@ -12,7 +12,7 @@ import 'dart:math' show min;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:kernel/ast.dart' show Location;
+import 'package:kernel/ast.dart' show Location, TreeNode;
 
 import '../compute_platform_binaries_location.dart' show translateSdk;
 
@@ -77,6 +77,9 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
       String path = relativizeUri(translateSdk(message.uri));
       int offset = message.charOffset;
       location ??= (offset == -1 ? null : getLocation(message.uri, offset));
+      if (location?.line == TreeNode.noOffset) {
+        location = null;
+      }
       String sourceLine = getSourceLine(location);
       if (sourceLine == null) {
         sourceLine = "";
@@ -110,7 +113,7 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
         sourceLine = "\n$sourceLine\n$pointer";
       }
       String position =
-          location == null ? ":1" : ":${location.line}:${location.column}";
+          location == null ? "" : ":${location.line}:${location.column}";
       return "$path$position: $text$sourceLine";
     } else {
       return text;

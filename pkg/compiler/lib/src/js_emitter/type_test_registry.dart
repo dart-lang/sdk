@@ -23,12 +23,10 @@ class TypeTestRegistry {
   Set<ClassEntity> _rtiNeededClasses;
 
   final CompilerOptions _options;
-  final CodegenWorldBuilder _codegenWorldBuilder;
 
   RuntimeTypesChecks _rtiChecks;
 
-  TypeTestRegistry(
-      this._options, this._codegenWorldBuilder, this._elementEnvironment);
+  TypeTestRegistry(this._options, this._elementEnvironment);
 
   RuntimeTypesChecks get rtiChecks {
     assert(
@@ -70,8 +68,8 @@ class TypeTestRegistry {
     addClassesWithSuperclasses(rtiChecks.requiredClasses);
   }
 
-  void computeRequiredTypeChecks(RuntimeTypesChecksBuilder rtiChecksBuilder) {
-    _rtiChecks =
-        rtiChecksBuilder.computeRequiredChecks(_codegenWorldBuilder, _options);
+  void computeRequiredTypeChecks(
+      RuntimeTypesChecksBuilder rtiChecksBuilder, CodegenWorld codegenWorld) {
+    _rtiChecks = rtiChecksBuilder.computeRequiredChecks(codegenWorld, _options);
   }
 }

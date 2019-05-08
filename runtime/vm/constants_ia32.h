@@ -53,15 +53,12 @@ enum XmmRegister {
 
 // Architecture independent aliases.
 typedef XmmRegister FpuRegister;
-const FpuRegister FpuTMP = XMM0;
+const FpuRegister FpuTMP = XMM7;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
-static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
-    "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"};
-
-static const char* fpu_reg_names[kNumberOfXmmRegisters] = {
-    "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7"};
+extern const char* cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* fpu_reg_names[kNumberOfXmmRegisters];
 
 // Register aliases.
 const Register TMP = kNoRegister;   // No scratch register used by assembler.

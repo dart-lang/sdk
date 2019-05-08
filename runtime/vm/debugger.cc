@@ -445,7 +445,7 @@ static bool IsImplicitFunction(const Function& func) {
   switch (func.kind()) {
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitSetter:
-    case RawFunction::kImplicitStaticFinalGetter:
+    case RawFunction::kImplicitStaticGetter:
     case RawFunction::kStaticFieldInitializer:
     case RawFunction::kMethodExtractor:
     case RawFunction::kNoSuchMethodDispatcher:
@@ -633,7 +633,7 @@ void ActivationFrame::GetVarDescriptors() {
       if (!error.IsNull()) {
         Exceptions::PropagateError(error);
       }
-      unoptimized_code ^= function().unoptimized_code();
+      unoptimized_code = function().unoptimized_code();
     }
     ASSERT(!unoptimized_code.IsNull());
     var_descriptors_ = unoptimized_code.GetLocalVarDescriptors();
@@ -960,9 +960,9 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
         ASSERT(function().name() == Symbols::Call().raw());
         ASSERT(function().IsInvokeFieldDispatcher());
         // Closure.call frames.
-        ctx_ ^= Closure::Cast(obj).context();
+        ctx_ = Closure::Cast(obj).context();
       } else if (obj.IsContext()) {
-        ctx_ ^= Context::Cast(obj).raw();
+        ctx_ = Context::Cast(obj).raw();
       } else {
         ASSERT(obj.IsNull());
       }
@@ -1367,15 +1367,22 @@ RawTypeArguments* ActivationFrame::BuildParameters(
     TypeArguments& type_params = TypeArguments::Handle();
     TypeParameter& type_param = TypeParameter::Handle();
     Function& current = Function::Handle(function().raw());
+    intptr_t mapping_offset = num_vars;
     for (intptr_t i = 0; !current.IsNull(); i += current.NumTypeParameters(),
                   current = current.parent_function()) {
       type_params = current.type_parameters();
-      for (intptr_t j = 0; j < current.NumTypeParameters(); ++j) {
+      intptr_t size = current.NumTypeParameters();
+      ASSERT(mapping_offset >= size);
+      mapping_offset -= size;
+      for (intptr_t j = 0; j < size; ++j) {
         type_param = TypeParameter::RawCast(type_params.TypeAt(j));
         name = type_param.Name();
-        // Write the names in backwards so they match up with the order of the
-        // types in 'type_arguments'.
-        type_params_names.SetAt(num_vars - (i + j) - 1, name);
+        // Write the names in backwards in terms of chain of functions.
+        // But keep the order of names within the same function. so they
+        // match up with the order of the types in 'type_arguments'.
+        // Index:0 1 2 3 ...
+        //       |Names in Grandparent| |Names in Parent| ..|Names in Child|
+        type_params_names.SetAt(mapping_offset + j, name);
       }
     }
     if (!type_arguments.IsNull()) {
@@ -1627,20 +1634,20 @@ void Debugger::Shutdown() {
     return;
   }
   while (breakpoint_locations_ != NULL) {
-    BreakpointLocation* bpt = breakpoint_locations_;
+    BreakpointLocation* loc = breakpoint_locations_;
     breakpoint_locations_ = breakpoint_locations_->next();
-    delete bpt;
+    delete loc;
   }
   while (latent_locations_ != NULL) {
-    BreakpointLocation* bpt = latent_locations_;
+    BreakpointLocation* loc = latent_locations_;
     latent_locations_ = latent_locations_->next();
-    delete bpt;
+    delete loc;
   }
   while (code_breakpoints_ != NULL) {
-    CodeBreakpoint* bpt = code_breakpoints_;
+    CodeBreakpoint* cbpt = code_breakpoints_;
     code_breakpoints_ = code_breakpoints_->next();
-    bpt->Disable();
-    delete bpt;
+    cbpt->Disable();
+    delete cbpt;
   }
   if (NeedsIsolateEvents()) {
     ServiceEvent event(isolate_, ServiceEvent::kIsolateExit);
@@ -2055,7 +2062,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           function = it.function();
 
           if (skip_sync_async_frames_count > 0) {
-            function_name ^= function.QualifiedScrubbedName();
+            function_name = function.QualifiedScrubbedName();
             if (CheckAndSkipAsync(skip_sync_async_frames_count,
                                   function_name)) {
               skip_sync_async_frames_count--;
@@ -2110,7 +2117,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
         function = code.function();
 
         if (skip_sync_async_frames_count > 0) {
-          function_name ^= function.QualifiedScrubbedName();
+          function_name = function.QualifiedScrubbedName();
           if (CheckAndSkipAsync(skip_sync_async_frames_count, function_name)) {
             skip_sync_async_frames_count--;
           } else {
@@ -2427,7 +2434,8 @@ void Debugger::PauseException(const Instance& exc) {
 TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
                                              TokenPosition requested_token_pos,
                                              TokenPosition last_token_pos,
-                                             intptr_t requested_column) {
+                                             intptr_t requested_column,
+                                             TokenPosition exact_token_pos) {
   ASSERT(func.HasCode());
   ASSERT(!func.HasOptimizedCode());
 
@@ -2449,6 +2457,9 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
   TokenPosition best_fit_pos = TokenPosition::kMaxSource;
   intptr_t best_column = INT_MAX;
   intptr_t best_line = INT_MAX;
+  // best_token_pos and exact_token_pos are only used
+  // if column number is provided.
+  TokenPosition best_token_pos = TokenPosition::kNoSource;
   PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.MoveNext()) {
     const TokenPosition pos = iter.TokenPos();
@@ -2461,17 +2472,26 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
     intptr_t token_start_column = -1;
     intptr_t token_line = -1;
     if (requested_column >= 0) {
-      intptr_t token_len = -1;
-      // TODO(turnidge): GetTokenLocation is a very expensive
-      // operation, and this code will blow up when we are setting
-      // column breakpoints on, for example, a large, single-line
-      // program.  Consider rewriting this code so that it only scans
-      // the program code once and caches the token positions and
-      // lengths.
-      script.GetTokenLocation(pos, &token_line, &token_start_column,
-                              &token_len);
-      intptr_t token_end_column = token_start_column + token_len - 1;
-      if ((token_end_column < requested_column) ||
+      // Find next closest safepoint
+      PcDescriptors::Iterator iter2(desc, kSafepointKind);
+      TokenPosition next_closest_token_position = TokenPosition::kMaxSource;
+      while (iter2.MoveNext()) {
+        const TokenPosition next = iter2.TokenPos();
+        if (next < next_closest_token_position && next > pos) {
+          next_closest_token_position = next;
+        }
+      }
+
+      TokenPosition ignored;
+      TokenPosition end_of_line_pos;
+      script.GetTokenLocation(pos, &token_line, &token_start_column);
+      script.TokenRangeAtLine(token_line, &ignored, &end_of_line_pos);
+      TokenPosition token_end_pos =
+          (end_of_line_pos < next_closest_token_position)
+              ? end_of_line_pos
+              : next_closest_token_position;
+
+      if ((token_end_pos < exact_token_pos) ||
           (token_start_column > best_column)) {
         // Prefer the token with the lowest column number compatible
         // with the requested column.
@@ -2484,6 +2504,9 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
       best_fit_pos = pos;
       best_line = token_line;
       best_column = token_start_column;
+      // best_token_pos is only used when column number is specified.
+      best_token_pos = TokenPosition(exact_token_pos.value() -
+                                     (requested_column - best_column));
     }
   }
 
@@ -2520,12 +2543,7 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
       }
 
       if (requested_column >= 0) {
-        intptr_t ignored = -1;
-        intptr_t token_start_column = -1;
-        // We look for other tokens at the best column in case there
-        // is more than one token at the same column offset.
-        script.GetTokenLocation(pos, &ignored, &token_start_column);
-        if (token_start_column != best_column) {
+        if (pos != best_token_pos) {
           continue;
         }
       }
@@ -2545,7 +2563,7 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
   // longer are requesting a specific column number.
   if (last_token_pos < func.end_token_pos()) {
     return ResolveBreakpointPos(func, last_token_pos, func.end_token_pos(),
-                                -1 /* no column */);
+                                -1 /* no column */, TokenPosition::kNoSource);
   }
   return TokenPosition::kNoSource;
 }
@@ -2813,26 +2831,35 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
       // have already been compiled. We can resolve the breakpoint now.
       DeoptimizeWorld();
       func ^= functions.At(0);
+      TokenPosition exact_token_pos = TokenPosition(-1);
+      // if requested_column is larger than zero, [token_pos, last_token_pos]
+      // governs one single line of code.
+      if (token_pos != last_token_pos && requested_column >= 0) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        exact_token_pos =
+            FindExactTokenPosition(script, token_pos, requested_column);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+      }
       TokenPosition breakpoint_pos = ResolveBreakpointPos(
-          func, token_pos, last_token_pos, requested_column);
+          func, token_pos, last_token_pos, requested_column, exact_token_pos);
       if (breakpoint_pos.IsReal()) {
-        BreakpointLocation* bpt =
-            GetBreakpointLocation(script, breakpoint_pos, requested_column);
-        if (bpt != NULL) {
+        BreakpointLocation* loc = GetBreakpointLocation(script, breakpoint_pos,
+                                                        requested_column, true);
+        if (loc != NULL) {
           // A source breakpoint for this location already exists.
-          return bpt;
+          return loc;
         }
-        bpt = new BreakpointLocation(script, token_pos, last_token_pos,
+        loc = new BreakpointLocation(script, breakpoint_pos, breakpoint_pos,
                                      requested_line, requested_column);
-        bpt->SetResolved(func, breakpoint_pos);
-        RegisterBreakpointLocation(bpt);
+        loc->SetResolved(func, breakpoint_pos);
+        RegisterBreakpointLocation(loc);
 
         // Create code breakpoints for all compiled functions we found.
         const intptr_t num_functions = functions.Length();
         for (intptr_t i = 0; i < num_functions; i++) {
           func ^= functions.At(i);
           ASSERT(func.HasCode());
-          MakeCodeBreakpointAt(func, bpt);
+          MakeCodeBreakpointAt(func, loc);
         }
         if (FLAG_verbose_debug) {
           intptr_t line_number;
@@ -2843,7 +2870,7 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
               "function '%s' at line %" Pd " col %" Pd "\n",
               func.ToFullyQualifiedCString(), line_number, column_number);
         }
-        return bpt;
+        return loc;
       }
     }
   }
@@ -2866,14 +2893,14 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
           func.ToFullyQualifiedCString(), line_number, column_number);
     }
   }
-  BreakpointLocation* bpt =
+  BreakpointLocation* loc =
       GetBreakpointLocation(script, token_pos, requested_column);
-  if (bpt == NULL) {
-    bpt = new BreakpointLocation(script, token_pos, last_token_pos,
+  if (loc == NULL) {
+    loc = new BreakpointLocation(script, token_pos, last_token_pos,
                                  requested_line, requested_column);
-    RegisterBreakpointLocation(bpt);
+    RegisterBreakpointLocation(loc);
   }
-  return bpt;
+  return loc;
 }
 
 // Synchronize the enabled/disabled state of all code breakpoints
@@ -3042,32 +3069,32 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
     return NULL;
   }
 
-  BreakpointLocation* bpt = NULL;
+  BreakpointLocation* loc = NULL;
   ASSERT(first_token_idx <= last_token_idx);
-  while ((bpt == NULL) && (first_token_idx <= last_token_idx)) {
-    bpt = SetBreakpoint(script, first_token_idx, last_token_idx, line_number,
+  while ((loc == NULL) && (first_token_idx <= last_token_idx)) {
+    loc = SetBreakpoint(script, first_token_idx, last_token_idx, line_number,
                         column_number, Function::Handle());
     first_token_idx.Next();
   }
-  if ((bpt == NULL) && FLAG_verbose_debug) {
+  if ((loc == NULL) && FLAG_verbose_debug) {
     OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,
                  script_url.ToCString());
   }
-  return bpt;
+  return loc;
 }
 
 // static
 void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
-  BreakpointLocation* bpt = breakpoint_locations_;
-  while (bpt != NULL) {
-    bpt->VisitObjectPointers(visitor);
-    bpt = bpt->next();
+  BreakpointLocation* loc = breakpoint_locations_;
+  while (loc != NULL) {
+    loc->VisitObjectPointers(visitor);
+    loc = loc->next();
   }
-  bpt = latent_locations_;
-  while (bpt != NULL) {
-    bpt->VisitObjectPointers(visitor);
-    bpt = bpt->next();
+  loc = latent_locations_;
+  while (loc != NULL) {
+    loc->VisitObjectPointers(visitor);
+    loc = loc->next();
   }
   CodeBreakpoint* cbpt = code_breakpoints_;
   while (cbpt != NULL) {
@@ -3793,6 +3820,22 @@ RawFunction* Debugger::FindInnermostClosure(const Function& function,
   return best_fit.raw();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+// On single line of code with given column number,
+// Calculate exact tokenPosition
+TokenPosition Debugger::FindExactTokenPosition(const Script& script,
+                                               TokenPosition start_of_line,
+                                               intptr_t column_number) {
+  intptr_t line = -1;
+  intptr_t col = -1;
+  Zone* zone = Thread::Current()->zone();
+  kernel::KernelLineStartsReader line_starts_reader(
+      TypedData::Handle(zone, script.line_starts()), zone);
+  line_starts_reader.LocationForPosition(start_of_line.value(), &line, &col);
+  return TokenPosition(start_of_line.value() + (column_number - col));
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 void Debugger::NotifyCompilation(const Function& func) {
   if (breakpoint_locations_ == NULL) {
     // Return with minimal overhead if there are no breakpoints.
@@ -3814,7 +3857,18 @@ void Debugger::NotifyCompilation(const Function& func) {
     if (FunctionOverlaps(func, script, loc->token_pos(),
                          loc->end_token_pos())) {
       Function& inner_function = Function::Handle(zone);
-      inner_function = FindInnermostClosure(func, loc->token_pos());
+      TokenPosition token_pos = loc->token_pos();
+      TokenPosition end_token_pos = loc->end_token_pos();
+      if (token_pos != end_token_pos && loc->requested_column_number() >= 0) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        // Narrow down the token position range to a single value
+        // if requested column number is provided so that inner
+        // Closure won't be missed.
+        token_pos = FindExactTokenPosition(script, token_pos,
+                                           loc->requested_column_number());
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+      }
+      inner_function = FindInnermostClosure(func, token_pos);
       if (!inner_function.IsNull()) {
         // The local function of a function we just compiled cannot
         // be compiled already.
@@ -3837,7 +3891,7 @@ void Debugger::NotifyCompilation(const Function& func) {
         // Resolve source breakpoint in the newly compiled function.
         TokenPosition bp_pos =
             ResolveBreakpointPos(func, loc->token_pos(), loc->end_token_pos(),
-                                 loc->requested_column_number());
+                                 loc->requested_column_number(), token_pos);
         if (!bp_pos.IsDebugPause()) {
           if (FLAG_verbose_debug) {
             OS::PrintErr("Failed resolving breakpoint for function '%s'\n",
@@ -4004,25 +4058,25 @@ void Debugger::NotifyDoneLoading() {
 // TODO(hausner): Could potentially make this faster by checking
 // whether the call target at pc is a debugger stub.
 bool Debugger::HasActiveBreakpoint(uword pc) {
-  CodeBreakpoint* bpt = GetCodeBreakpoint(pc);
-  return (bpt != NULL) && (bpt->IsEnabled());
+  CodeBreakpoint* cbpt = GetCodeBreakpoint(pc);
+  return (cbpt != NULL) && (cbpt->IsEnabled());
 }
 
 CodeBreakpoint* Debugger::GetCodeBreakpoint(uword breakpoint_address) {
-  CodeBreakpoint* bpt = code_breakpoints_;
-  while (bpt != NULL) {
-    if (bpt->pc() == breakpoint_address) {
-      return bpt;
+  CodeBreakpoint* cbpt = code_breakpoints_;
+  while (cbpt != NULL) {
+    if (cbpt->pc() == breakpoint_address) {
+      return cbpt;
     }
-    bpt = bpt->next();
+    cbpt = cbpt->next();
   }
   return NULL;
 }
 
 RawCode* Debugger::GetPatchedStubAddress(uword breakpoint_address) {
-  CodeBreakpoint* bpt = GetCodeBreakpoint(breakpoint_address);
-  if (bpt != NULL) {
-    return bpt->OrigStubAddress();
+  CodeBreakpoint* cbpt = GetCodeBreakpoint(breakpoint_address);
+  if (cbpt != NULL) {
+    return cbpt->OrigStubAddress();
   }
   UNREACHABLE();
   return Code::null();
@@ -4149,14 +4203,22 @@ void Debugger::RemoveUnlinkedCodeBreakpoints() {
 
 BreakpointLocation* Debugger::GetBreakpointLocation(const Script& script,
                                                     TokenPosition token_pos,
-                                                    intptr_t requested_column) {
-  BreakpointLocation* bpt = breakpoint_locations_;
-  while (bpt != NULL) {
-    if ((bpt->script_ == script.raw()) && (bpt->token_pos_ == token_pos) &&
-        (bpt->requested_column_number_ == requested_column)) {
-      return bpt;
+                                                    intptr_t requested_column,
+                                                    bool is_resolved) {
+  BreakpointLocation* loc = breakpoint_locations_;
+  while (loc != NULL) {
+    // When BreakpointLocation has been resolved BreakpointLocation
+    // should check only token position. Whether column or line
+    // breakpoint should be the same once resolved into the
+    // same token position.
+    bool column_match =
+        (is_resolved) ? true
+                      : (loc->requested_column_number_ == requested_column);
+    if ((loc->script_ == script.raw()) && (loc->token_pos_ == token_pos) &&
+        column_match) {
+      return loc;
     }
-    bpt = bpt->next();
+    loc = loc->next();
   }
   return NULL;
 }
@@ -4208,33 +4270,33 @@ void Debugger::Continue() {
 BreakpointLocation* Debugger::GetLatentBreakpoint(const String& url,
                                                   intptr_t line,
                                                   intptr_t column) {
-  BreakpointLocation* bpt = latent_locations_;
+  BreakpointLocation* loc = latent_locations_;
   String& bpt_url = String::Handle();
-  while (bpt != NULL) {
-    bpt_url = bpt->url();
-    if (bpt_url.Equals(url) && (bpt->requested_line_number() == line) &&
-        (bpt->requested_column_number() == column)) {
-      return bpt;
+  while (loc != NULL) {
+    bpt_url = loc->url();
+    if (bpt_url.Equals(url) && (loc->requested_line_number() == line) &&
+        (loc->requested_column_number() == column)) {
+      return loc;
     }
-    bpt = bpt->next();
+    loc = loc->next();
   }
   // No breakpoint for this location requested. Allocate new one.
-  bpt = new BreakpointLocation(url, line, column);
-  bpt->set_next(latent_locations_);
-  latent_locations_ = bpt;
-  return bpt;
+  loc = new BreakpointLocation(url, line, column);
+  loc->set_next(latent_locations_);
+  latent_locations_ = loc;
+  return loc;
 }
 
-void Debugger::RegisterBreakpointLocation(BreakpointLocation* bpt) {
-  ASSERT(bpt->next() == NULL);
-  bpt->set_next(breakpoint_locations_);
-  breakpoint_locations_ = bpt;
+void Debugger::RegisterBreakpointLocation(BreakpointLocation* loc) {
+  ASSERT(loc->next() == NULL);
+  loc->set_next(breakpoint_locations_);
+  breakpoint_locations_ = loc;
 }
 
-void Debugger::RegisterCodeBreakpoint(CodeBreakpoint* bpt) {
-  ASSERT(bpt->next() == NULL);
-  bpt->set_next(code_breakpoints_);
-  code_breakpoints_ = bpt;
+void Debugger::RegisterCodeBreakpoint(CodeBreakpoint* cbpt) {
+  ASSERT(cbpt->next() == NULL);
+  cbpt->set_next(code_breakpoints_);
+  code_breakpoints_ = cbpt;
 }
 
 #endif  // !PRODUCT

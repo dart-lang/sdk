@@ -13,10 +13,11 @@ import 'dartfuzz_api_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.9';
+const String version = '1.12';
 
-// Restriction on statement and expression depths.
-const int stmtDepth = 2;
+// Restriction on statements and expressions.
+const int stmtLength = 2;
+const int stmtDepth = 1;
 const int exprDepth = 2;
 
 // Naming conventions.
@@ -471,7 +472,7 @@ class DartFuzz {
 
   // Emit statements. Returns true if code may fall-through.
   bool emitStatements(int depth) {
-    int s = 1 + rand.nextInt(4);
+    int s = 1 + rand.nextInt(stmtLength);
     for (int i = 0; i < s; i++) {
       if (!emitStatement(depth)) {
         return false; // rest would be dead code

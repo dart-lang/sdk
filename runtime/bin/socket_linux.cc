@@ -10,8 +10,8 @@
 #include <errno.h>  // NOLINT
 
 #include "bin/fdutils.h"
-#include "bin/log.h"
 #include "platform/signal_blocker.h"
+#include "platform/syslog.h"
 #include "platform/utils.h"
 
 namespace dart {
@@ -105,11 +105,11 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
       }
       const int kBufferSize = 1024;
       char error_buf[kBufferSize];
-      Log::PrintErr("Dart Socket ERROR: %s:%d: %s.", __FILE__, __LINE__,
-                    Utils::StrError(errno, error_buf, kBufferSize));
+      Syslog::PrintErr("Dart Socket ERROR: %s:%d: %s.", __FILE__, __LINE__,
+                       Utils::StrError(errno, error_buf, kBufferSize));
     }
 #else   // !defined SO_REUSEPORT
-    Log::PrintErr(
+    Syslog::PrintErr(
         "Dart Socket ERROR: %s:%d: `reusePort` not available on this Linux "
         "version.",
         __FILE__, __LINE__);

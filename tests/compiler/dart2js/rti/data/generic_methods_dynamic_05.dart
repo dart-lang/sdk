@@ -5,7 +5,7 @@
 // Test derived from language_2/generic_methods_dynamic_test/05
 
 /*omit.class: global#JSArray:deps=[List],explicit=[JSArray],needsArgs*/
-/*strong.class: global#JSArray:deps=[ArrayIterator,List],direct,explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs*/
+/*strong.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],indirect,needsArgs*/
 
 /*omit.class: global#List:deps=[C.bar],explicit=[List,List<B>],needsArgs*/
 /*strong.class: global#List:deps=[C.bar],explicit=[List,List<B>,List<String>],indirect,needsArgs*/

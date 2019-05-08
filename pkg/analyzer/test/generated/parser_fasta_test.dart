@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
@@ -18,11 +19,13 @@ import 'package:analyzer/src/string_source.dart';
 import 'package:front_end/src/fasta/parser/async_modifier.dart';
 import 'package:front_end/src/fasta/parser/forwarding_listener.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
+import 'package:front_end/src/fasta/scanner.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart'
-    show ScannerResult, scanString;
+    show LanguageVersionToken, ScannerConfiguration, ScannerResult, scanString;
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
+import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -55,10 +58,13 @@ typedef analyzer.Token ParseFunction(analyzer.Token token);
 @reflectiveTest
 class ClassMemberParserTest_Fasta extends FastaParserTestCase
     with ClassMemberParserTestMixin {
+  final tripleShift = FeatureSet.forTesting(
+      sdkVersion: '2.0.0', additionalFeatures: [Feature.triple_shift]);
+
   void test_parseClassMember_operator_gtgtgt() {
     CompilationUnitImpl unit = parseCompilationUnit(
         'class C { bool operator >>>(other) => false; }',
-        enableGtGtGt: true);
+        featureSet: tripleShift);
     ClassDeclaration declaration = unit.declarations[0];
     MethodDeclaration method = declaration.members[0];
 
@@ -77,7 +83,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   void test_parseClassMember_operator_gtgtgteq() {
     CompilationUnitImpl unit = parseCompilationUnit(
         'class C { foo(int value) { x >>>= value; } }',
-        enableGtGtGtEq: true);
+        featureSet: tripleShift);
     ClassDeclaration declaration = unit.declarations[0];
     MethodDeclaration method = declaration.members[0];
     BlockFunctionBody blockFunctionBody = method.body;
@@ -90,6 +96,184 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(assignment.operator.lexeme, '>>>=');
     SimpleIdentifier rightHandSide = assignment.rightHandSide;
     expect(rightHandSide.name, 'value');
+  }
+
+  void test_parseField_const_late() {
+    createParser('const late T f = 0;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 6, 4),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.covariantKeyword, isNull);
+    expect(field.documentationComment, isNull);
+    expect(field.metadata, hasLength(0));
+    expect(field.staticKeyword, isNull);
+    VariableDeclarationList list = field.fields;
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isTrue);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isTrue);
+    expect(list.lateKeyword, isNotNull);
+    NodeList<VariableDeclaration> variables = list.variables;
+    expect(variables, hasLength(1));
+    VariableDeclaration variable = variables[0];
+    expect(variable.name, isNotNull);
+  }
+
+  void test_parseField_final_late() {
+    createParser('final late T f;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 4),
+    ]);
+    expect(member, isNotNull);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.covariantKeyword, isNull);
+    expect(field.documentationComment, isNull);
+    expect(field.metadata, hasLength(0));
+    expect(field.staticKeyword, isNull);
+    VariableDeclarationList list = field.fields;
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isTrue);
+    expect(list.isLate, isTrue);
+    expect(list.lateKeyword, isNotNull);
+    NodeList<VariableDeclaration> variables = list.variables;
+    expect(variables, hasLength(1));
+    VariableDeclaration variable = variables[0];
+    expect(variable.name, isNotNull);
+  }
+
+  void test_parseField_late() {
+    createParser('late T f;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.covariantKeyword, isNull);
+    expect(field.documentationComment, isNull);
+    expect(field.metadata, hasLength(0));
+    expect(field.staticKeyword, isNull);
+    VariableDeclarationList list = field.fields;
+    expect(list, isNotNull);
+    expect(list.keyword, isNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isTrue);
+    expect(list.lateKeyword, isNotNull);
+    NodeList<VariableDeclaration> variables = list.variables;
+    expect(variables, hasLength(1));
+    VariableDeclaration variable = variables[0];
+    expect(variable.name, isNotNull);
+  }
+
+  void test_parseField_late_const() {
+    createParser('late const T f = 0;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 5, 5),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.covariantKeyword, isNull);
+    expect(field.documentationComment, isNull);
+    expect(field.metadata, hasLength(0));
+    expect(field.staticKeyword, isNull);
+    VariableDeclarationList list = field.fields;
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isTrue);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isTrue);
+    expect(list.lateKeyword, isNotNull);
+    NodeList<VariableDeclaration> variables = list.variables;
+    expect(variables, hasLength(1));
+    VariableDeclaration variable = variables[0];
+    expect(variable.name, isNotNull);
+  }
+
+  void test_parseField_late_final() {
+    createParser('late final T f;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.covariantKeyword, isNull);
+    expect(field.documentationComment, isNull);
+    expect(field.metadata, hasLength(0));
+    expect(field.staticKeyword, isNull);
+    VariableDeclarationList list = field.fields;
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isTrue);
+    expect(list.isLate, isTrue);
+    expect(list.lateKeyword, isNotNull);
+    NodeList<VariableDeclaration> variables = list.variables;
+    expect(variables, hasLength(1));
+    VariableDeclaration variable = variables[0];
+    expect(variable.name, isNotNull);
+  }
+
+  void test_parseField_late_var() {
+    createParser('late var f;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 5, 3),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.covariantKeyword, isNull);
+    expect(field.documentationComment, isNull);
+    expect(field.metadata, hasLength(0));
+    expect(field.staticKeyword, isNull);
+    VariableDeclarationList list = field.fields;
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isTrue);
+    expect(list.lateKeyword, isNotNull);
+    NodeList<VariableDeclaration> variables = list.variables;
+    expect(variables, hasLength(1));
+    VariableDeclaration variable = variables[0];
+    expect(variable.name, isNotNull);
+  }
+
+  void test_parseField_var_late() {
+    createParser('var late f;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 4, 4),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.covariantKeyword, isNull);
+    expect(field.documentationComment, isNull);
+    expect(field.metadata, hasLength(0));
+    expect(field.staticKeyword, isNull);
+    VariableDeclarationList list = field.fields;
+    expect(list, isNotNull);
+    expect(list.keyword, isNotNull);
+    expect(list.isConst, isFalse);
+    expect(list.isFinal, isFalse);
+    expect(list.isLate, isTrue);
+    expect(list.lateKeyword, isNotNull);
+    NodeList<VariableDeclaration> variables = list.variables;
+    expect(variables, hasLength(1));
+    VariableDeclaration variable = variables[0];
+    expect(variable.name, isNotNull);
   }
 }
 
@@ -108,8 +292,12 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
         errors: errors,
         expectedEndOffset: expectedEndOffset,
         inAsync: inAsync,
-        parseSpreadCollections: true,
-        parseControlFlowCollections: true);
+        featureSet: FeatureSet.forTesting(
+            sdkVersion: '2.0.0',
+            additionalFeatures: [
+              Feature.spread_collections,
+              Feature.control_flow_collections
+            ]));
   }
 
   void test_listLiteral_for() {
@@ -933,6 +1121,8 @@ main() { // missing async
 @reflectiveTest
 class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
+  final beforeUiAsCode = FeatureSet.forTesting(sdkVersion: '2.2.0');
+
   void test_binaryExpression_allOperators() {
     // https://github.com/dart-lang/sdk/issues/36255
     for (TokenType type in TokenType.all) {
@@ -948,9 +1138,9 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     }
   }
 
-  void test_listLiteral_spread() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    ListLiteral list = parseExpression('[1, ...[2]]', errors: [
+  void test_listLiteral_spread_disabled() {
+    ListLiteral list =
+        parseExpression('[1, ...[2]]', featureSet: beforeUiAsCode, errors: [
       expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 3),
     ]);
     expect(list.elements, hasLength(1));
@@ -958,9 +1148,9 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(first.value, 1);
   }
 
-  void test_listLiteral_spreadQ() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    ListLiteral list = parseExpression('[1, ...?[2]]', errors: [
+  void test_listLiteral_spreadQ_disabled() {
+    ListLiteral list =
+        parseExpression('[1, ...?[2]]', featureSet: beforeUiAsCode, errors: [
       expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 4),
     ]);
     expect(list.elements, hasLength(1));
@@ -992,8 +1182,9 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value.value, 6);
   }
 
-  void test_mapLiteral_invalid_set_entry() {
-    SetOrMapLiteral map = parseExpression('<int, int>{1}', errors: [
+  void test_mapLiteral_invalid_set_entry_uiAsCodeDisabled() {
+    SetOrMapLiteral map =
+        parseExpression('<int, int>{1}', featureSet: beforeUiAsCode, errors: [
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 12, 1),
     ]);
@@ -1032,63 +1223,67 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(map.elements, hasLength(0));
   }
 
-  void test_mapLiteral_spread() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetOrMapLiteral map = parseExpression('{1: 2, ...{3: 4}}', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 7, 3),
-    ]);
-    expect(map.constKeyword, isNull);
-    expect(map.typeArguments, isNull);
-    expect(map.elements, hasLength(1));
-  }
-
-  void test_mapLiteral_spread2_typed() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetOrMapLiteral map =
-        parseExpression('<int, int>{1: 2, ...{3: 4}}', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 3),
-    ]);
+  void test_mapLiteral_spread2_typed_disabled() {
+    SetOrMapLiteral map = parseExpression('<int, int>{1: 2, ...{3: 4}}',
+        featureSet: beforeUiAsCode,
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 3),
+        ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
     expect(map.elements, hasLength(1));
   }
 
-  void test_mapLiteral_spread_typed() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetOrMapLiteral map = parseExpression('<int, int>{...{3: 4}}', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 3),
-    ]);
+  void test_mapLiteral_spread_disabled() {
+    SetOrMapLiteral map = parseExpression('{1: 2, ...{3: 4}}',
+        featureSet: beforeUiAsCode,
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 7, 3),
+        ]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.elements, hasLength(1));
+  }
+
+  void test_mapLiteral_spread_typed_disabled() {
+    SetOrMapLiteral map = parseExpression('<int, int>{...{3: 4}}',
+        featureSet: beforeUiAsCode,
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 3),
+        ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
     expect(map.elements, hasLength(0));
   }
 
-  void test_mapLiteral_spreadQ() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetOrMapLiteral map = parseExpression('{1: 2, ...?{3: 4}}', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 7, 4),
-    ]);
-    expect(map.constKeyword, isNull);
-    expect(map.typeArguments, isNull);
-    expect(map.elements, hasLength(1));
-  }
-
-  void test_mapLiteral_spreadQ2_typed() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetOrMapLiteral map =
-        parseExpression('<int, int>{1: 2, ...?{3: 4}}', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 4),
-    ]);
+  void test_mapLiteral_spreadQ2_typed_disabled() {
+    SetOrMapLiteral map = parseExpression('<int, int>{1: 2, ...?{3: 4}}',
+        featureSet: beforeUiAsCode,
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 4),
+        ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
     expect(map.elements, hasLength(1));
   }
 
-  void test_mapLiteral_spreadQ_typed() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
-    SetOrMapLiteral map = parseExpression('<int, int>{...?{3: 4}}', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 4),
-    ]);
+  void test_mapLiteral_spreadQ_disabled() {
+    SetOrMapLiteral map = parseExpression('{1: 2, ...?{3: 4}}',
+        featureSet: beforeUiAsCode,
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 7, 4),
+        ]);
+    expect(map.constKeyword, isNull);
+    expect(map.typeArguments, isNull);
+    expect(map.elements, hasLength(1));
+  }
+
+  void test_mapLiteral_spreadQ_typed_disabled() {
+    SetOrMapLiteral map = parseExpression('<int, int>{...?{3: 4}}',
+        featureSet: beforeUiAsCode,
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 11, 4),
+        ]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
     expect(map.elements, hasLength(0));
@@ -1143,8 +1338,9 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value.value, 3);
   }
 
-  void test_setLiteral_invalid_map_entry() {
-    SetOrMapLiteral set = parseExpression('<int>{1: 1}', errors: [
+  void test_setLiteral_invalid_map_entry_beforeUiAsCode() {
+    SetOrMapLiteral set =
+        parseExpression('<int>{1: 1}', featureSet: beforeUiAsCode, errors: [
       expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 1),
     ]);
     expect(set.constKeyword, isNull);
@@ -1170,9 +1366,9 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value.value, 3);
   }
 
-  void test_setLiteral_spread2() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
+  void test_setLiteral_spread2_disabled() {
     SetOrMapLiteral set = parseExpression('{3, ...[4]}',
+        featureSet: beforeUiAsCode,
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 3)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
@@ -1181,9 +1377,9 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value.value, 3);
   }
 
-  void test_setLiteral_spread2Q() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
+  void test_setLiteral_spread2Q_disabled() {
     SetOrMapLiteral set = parseExpression('{3, ...?[4]}',
+        featureSet: beforeUiAsCode,
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 4)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNull);
@@ -1192,18 +1388,18 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value.value, 3);
   }
 
-  void test_setLiteral_spread_typed() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
+  void test_setLiteral_spread_typed_disabled() {
     SetOrMapLiteral set = parseExpression('<int>{...[3]}',
+        featureSet: beforeUiAsCode,
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 6, 3)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNotNull);
     expect(set.elements, hasLength(0));
   }
 
-  void test_setLiteral_spreadQ_typed() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
+  void test_setLiteral_spreadQ_typed_disabled() {
     SetOrMapLiteral set = parseExpression('<int>{...?[3]}',
+        featureSet: beforeUiAsCode,
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 6, 4)]);
     expect(set.constKeyword, isNull);
     expect(set.typeArguments, isNotNull);
@@ -1221,18 +1417,18 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(value.value, 3);
   }
 
-  void test_setOrMapLiteral_spread() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
+  void test_setOrMapLiteral_spread_disabled() {
     SetOrMapLiteral map = parseExpression('{...{3: 4}}',
+        featureSet: beforeUiAsCode,
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 1, 3)]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
     expect(map.elements, hasLength(0));
   }
 
-  void test_setOrMapLiteral_spreadQ() {
-    // TODO(danrubel): Remove this once spread_collections is enabled by default
+  void test_setOrMapLiteral_spreadQ_disabled() {
     SetOrMapLiteral map = parseExpression('{...?{3: 4}}',
+        featureSet: beforeUiAsCode,
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 1, 4)]);
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
@@ -1248,17 +1444,25 @@ class FastaParserTestCase
     with ParserTestHelpers
     implements AbstractParserTestCase {
   static final List<ErrorCode> NO_ERROR_COMPARISON = <ErrorCode>[];
+
+  final controlFlow = FeatureSet.forTesting(
+      sdkVersion: '2.0.0',
+      additionalFeatures: [Feature.control_flow_collections]);
+
+  final spread = FeatureSet.forTesting(
+      sdkVersion: '2.0.0', additionalFeatures: [Feature.spread_collections]);
+
+  final nonNullable = FeatureSet.forTesting(
+      sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]);
+
+  final preNonNullable = FeatureSet.forTesting(sdkVersion: '2.2.2');
+
   ParserProxy _parserProxy;
 
   analyzer.Token _fastaTokens;
 
   @override
   bool allowNativeClause = false;
-
-  @override
-  set enableLazyAssignmentOperators(bool value) {
-    // Lazy assignment operators are always enabled
-  }
 
   set enableOptionalNewAndConst(bool enable) {
     // ignored
@@ -1305,10 +1509,13 @@ class FastaParserTestCase
   }
 
   @override
-  void createParser(String content, {int expectedEndOffset}) {
-    var scanner = new StringScanner(content, includeComments: true);
+  void createParser(String content,
+      {int expectedEndOffset, FeatureSet featureSet}) {
+    featureSet ??= FeatureSet.forTesting();
+    var scanner = new StringScanner(content,
+        configuration: ScannerConfiguration.nonNullable, includeComments: true);
     _fastaTokens = scanner.tokenize();
-    _parserProxy = new ParserProxy(_fastaTokens,
+    _parserProxy = new ParserProxy(_fastaTokens, featureSet,
         allowNativeClause: allowNativeClause,
         expectedEndOffset: expectedEndOffset);
   }
@@ -1399,16 +1606,12 @@ class FastaParserTestCase
   CompilationUnit parseCompilationUnit(String content,
       {List<ErrorCode> codes,
       List<ExpectedError> errors,
-      bool enableControlFlowCollections,
-      bool enableGtGtGt,
-      bool enableGtGtGtEq}) {
+      FeatureSet featureSet}) {
     GatheringErrorListener listener =
         new GatheringErrorListener(checkRanges: true);
 
-    CompilationUnit unit = parseCompilationUnit2(content, listener,
-        enableControlFlowCollections: enableControlFlowCollections,
-        enableGtGtGt: enableGtGtGt,
-        enableGtGtGtEq: enableGtGtGtEq);
+    CompilationUnit unit =
+        parseCompilationUnit2(content, listener, featureSet: featureSet);
 
     // Assert and return result
     if (codes != null) {
@@ -1424,9 +1627,8 @@ class FastaParserTestCase
 
   CompilationUnit parseCompilationUnit2(
       String content, GatheringErrorListener listener,
-      {bool enableControlFlowCollections,
-      bool enableGtGtGt,
-      bool enableGtGtGtEq}) {
+      {FeatureSet featureSet}) {
+    featureSet ??= FeatureSet.forTesting();
     var source = new StringSource(content, 'parser_test_StringSource.dart');
 
     void reportError(
@@ -1435,11 +1637,19 @@ class FastaParserTestCase
           .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
     }
 
+    // Adjust the feature set based on language version comment.
+    void languageVersionChanged(
+        fasta.Scanner scanner, LanguageVersionToken languageVersion) {
+      featureSet = featureSet.restrictToVersion(
+          Version(languageVersion.major, languageVersion.minor, 0));
+      scanner.configuration = Scanner.buildConfig(featureSet);
+    }
+
     // Scan tokens
     ScannerResult result = scanString(content,
         includeComments: true,
-        enableGtGtGt: enableGtGtGt ?? enableGtGtGtEq ?? false,
-        enableGtGtGtEq: enableGtGtGtEq ?? false);
+        configuration: Scanner.buildConfig(featureSet),
+        languageVersionChanged: languageVersionChanged);
     Token token = result.tokens;
     if (result.hasErrors) {
       // The default recovery strategy used by scanString
@@ -1454,15 +1664,11 @@ class FastaParserTestCase
     // Run parser
     ErrorReporter errorReporter = new ErrorReporter(listener, source);
     fasta.Parser parser = new fasta.Parser(null);
-    AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true);
+    AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true)
+      ..configureFeatures(featureSet);
     parser.listener = astBuilder;
     astBuilder.parser = parser;
     astBuilder.allowNativeClause = allowNativeClause;
-    if (enableControlFlowCollections != null) {
-      astBuilder.enableControlFlowCollections = enableControlFlowCollections;
-    }
-    astBuilder.enableTripleShift =
-        enableGtGtGt == true || enableGtGtGtEq == true;
     parser.parseUnit(_fastaTokens);
     CompilationUnitImpl unit = astBuilder.pop();
     unit.localDeclarations = astBuilder.localDeclarations;
@@ -1514,12 +1720,9 @@ class FastaParserTestCase
       List<ExpectedError> errors,
       int expectedEndOffset,
       bool inAsync = false,
-      bool parseSpreadCollections = false,
-      bool parseControlFlowCollections = false}) {
-    createParser(source, expectedEndOffset: expectedEndOffset);
-    _parserProxy.astBuilder.enableSpreadCollections = parseSpreadCollections;
-    _parserProxy.astBuilder.enableControlFlowCollections =
-        parseControlFlowCollections;
+      FeatureSet featureSet}) {
+    createParser(source,
+        expectedEndOffset: expectedEndOffset, featureSet: featureSet);
     if (inAsync) {
       _parserProxy.fastaParser.asyncState = AsyncModifier.Async;
     }
@@ -1702,16 +1905,9 @@ class FastaParserTestCase
 
   @override
   Statement parseStatement(String source,
-      {bool enableLazyAssignmentOperators,
-      int expectedEndOffset,
-      bool parseSetLiterals = false,
-      bool parseSpreadCollections = false,
-      bool parseControlFlowCollections = false,
-      bool inAsync = false}) {
-    createParser(source, expectedEndOffset: expectedEndOffset);
-    _parserProxy.astBuilder.enableSpreadCollections = parseSpreadCollections;
-    _parserProxy.astBuilder.enableControlFlowCollections =
-        parseControlFlowCollections;
+      {int expectedEndOffset, FeatureSet featureSet, bool inAsync = false}) {
+    createParser(source,
+        expectedEndOffset: expectedEndOffset, featureSet: featureSet);
     if (inAsync) {
       _parserProxy.fastaParser.asyncState = AsyncModifier.Async;
     }
@@ -1782,32 +1978,188 @@ class FastaParserTestCase
  */
 @reflectiveTest
 class FormalParameterParserTest_Fasta extends FastaParserTestCase
-    with FormalParameterParserTestMixin {}
+    with FormalParameterParserTestMixin {
+  FormalParameter parseNNBDFormalParameter(String code, ParameterKind kind,
+      {List<ExpectedError> errors}) {
+    String parametersCode;
+    if (kind == ParameterKind.REQUIRED) {
+      parametersCode = '($code)';
+    } else if (kind == ParameterKind.POSITIONAL) {
+      parametersCode = '([$code])';
+    } else if (kind == ParameterKind.NAMED) {
+      parametersCode = '({$code})';
+    } else {
+      fail('$kind');
+    }
+    createParser(parametersCode, featureSet: nonNullable);
+    FormalParameterList list =
+        _parserProxy.parseFormalParameterList(inFunctionType: false);
+    assertErrors(errors: errors);
+    return list.parameters.single;
+  }
+
+  void test_parseFormalParameter_covariant_required_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter = parseNNBDFormalParameter(
+        'covariant required A a : null', kind,
+        errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 12, 8)]);
+    expect(parameter, isNotNull);
+    expect(parameter, isDefaultFormalParameter);
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.isNamed, isTrue);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+
+  void test_parseFormalParameter_final_required_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter = parseNNBDFormalParameter(
+        'final required a : null', kind,
+        errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 8, 8)]);
+    expect(parameter, isNotNull);
+    expect(parameter, isDefaultFormalParameter);
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.isNamed, isTrue);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+
+  void test_parseFormalParameter_required_covariant_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter =
+        parseNNBDFormalParameter('required covariant A a : null', kind);
+    expect(parameter, isNotNull);
+    expect(parameter, isDefaultFormalParameter);
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNotNull);
+    expect(simpleParameter.requiredKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.isNamed, isTrue);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+
+  void test_parseFormalParameter_required_final_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter =
+        parseNNBDFormalParameter('required final a : null', kind);
+    expect(parameter, isNotNull);
+    expect(parameter, isDefaultFormalParameter);
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.isNamed, isTrue);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+
+  void test_parseFormalParameter_required_type_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter =
+        parseNNBDFormalParameter('required A a : null', kind);
+    expect(parameter, isNotNull);
+    expect(parameter, isDefaultFormalParameter);
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNull);
+    expect(simpleParameter.type, isNotNull);
+    expect(simpleParameter.isNamed, isTrue);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+
+  void test_parseFormalParameter_required_var_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter =
+        parseNNBDFormalParameter('required var a : null', kind);
+    expect(parameter, isNotNull);
+    expect(parameter, isDefaultFormalParameter);
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.isNamed, isTrue);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+
+  void test_parseFormalParameter_var_required_named() {
+    ParameterKind kind = ParameterKind.NAMED;
+    FormalParameter parameter = parseNNBDFormalParameter(
+        'var required a : null', kind,
+        errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 8)]);
+    expect(parameter, isNotNull);
+    expect(parameter, isDefaultFormalParameter);
+    DefaultFormalParameter defaultParameter = parameter;
+    SimpleFormalParameter simpleParameter =
+        defaultParameter.parameter as SimpleFormalParameter;
+    expect(simpleParameter.covariantKeyword, isNull);
+    expect(simpleParameter.requiredKeyword, isNotNull);
+    expect(simpleParameter.identifier, isNotNull);
+    expect(simpleParameter.keyword, isNotNull);
+    expect(simpleParameter.type, isNull);
+    expect(simpleParameter.isNamed, isTrue);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+}
 
 /**
  * Tests of the fasta parser based on [ComplexParserTestMixin].
  */
 @reflectiveTest
 class NNBDParserTest_Fasta extends FastaParserTestCase {
-  CompilationUnit parseNNBDCompilationUnit(String code,
-      {List<ExpectedError> errors}) {
-    createParser(code);
-    _parserProxy.astBuilder.enableNonNullable = true;
-    CompilationUnit unit = _parserProxy.parseCompilationUnit2();
-    assertErrors(errors: errors);
-    return unit;
-  }
-
   void test_assignment_complex() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x + bar(7); }');
+    parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x + bar(7); }',
+        featureSet: nonNullable);
   }
 
   void test_assignment_simple() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }');
+    parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }',
+        featureSet: nonNullable);
   }
 
   void test_binary_expression_statement() {
-    final unit = parseNNBDCompilationUnit('D? foo(X? x) { X ?? x2; }');
+    final unit = parseCompilationUnit('D? foo(X? x) { X ?? x2; }',
+        featureSet: nonNullable);
     FunctionDeclaration funct = unit.declarations[0];
     BlockFunctionBody body = funct.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
@@ -1820,24 +2172,28 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
   }
 
   void test_conditional() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X ? 7 : y; }');
+    parseCompilationUnit('D? foo(X? x) { X ? 7 : y; }',
+        featureSet: nonNullable);
   }
 
   void test_conditional_complex() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X ? x2 = x + bar(7) : y; }');
+    parseCompilationUnit('D? foo(X? x) { X ? x2 = x + bar(7) : y; }',
+        featureSet: nonNullable);
   }
 
   void test_conditional_error() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X ? ? x2 = x + bar(7) : y; }',
+    parseCompilationUnit('D? foo(X? x) { X ? ? x2 = x + bar(7) : y; }',
         errors: [
           expectedError(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
           expectedError(ParserErrorCode.EXPECTED_TOKEN, 40, 1),
           expectedError(ParserErrorCode.MISSING_IDENTIFIER, 40, 1),
-        ]);
+        ],
+        featureSet: nonNullable);
   }
 
   void test_conditional_simple() {
-    parseNNBDCompilationUnit('D? foo(X? x) { X ? x2 = x : y; }');
+    parseCompilationUnit('D? foo(X? x) { X ? x2 = x : y; }',
+        featureSet: nonNullable);
   }
 
   void test_enableNonNullable_false() {
@@ -1846,49 +2202,59 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
   }
 
   void test_for() {
-    parseNNBDCompilationUnit('main() { for(int x = 0; x < 7; ++x) { } }');
+    parseCompilationUnit('main() { for(int x = 0; x < 7; ++x) { } }',
+        featureSet: nonNullable);
   }
 
   void test_for_conditional() {
-    parseNNBDCompilationUnit(
-        'main() { for(x ? y = 7 : y = 8; y < 10; ++y) { } }');
+    parseCompilationUnit('main() { for(x ? y = 7 : y = 8; y < 10; ++y) { } }',
+        featureSet: nonNullable);
   }
 
   void test_for_nullable() {
-    parseNNBDCompilationUnit('main() { for(int? x = 0; x < 7; ++x) { } }');
+    parseCompilationUnit('main() { for(int? x = 0; x < 7; ++x) { } }',
+        featureSet: nonNullable);
   }
 
   void test_foreach() {
-    parseNNBDCompilationUnit('main() { for(int x in [7]) { } }');
+    parseCompilationUnit('main() { for(int x in [7]) { } }',
+        featureSet: nonNullable);
   }
 
   void test_foreach_nullable() {
-    parseNNBDCompilationUnit('main() { for(int? x in [7, null]) { } }');
+    parseCompilationUnit('main() { for(int? x in [7, null]) { } }',
+        featureSet: nonNullable);
   }
 
   void test_gft_nullable() {
-    parseNNBDCompilationUnit('main() { C? Function() x = 7; }');
+    parseCompilationUnit('main() { C? Function() x = 7; }',
+        featureSet: nonNullable);
   }
 
   void test_gft_nullable_1() {
-    parseNNBDCompilationUnit('main() { C Function()? x = 7; }');
+    parseCompilationUnit('main() { C Function()? x = 7; }',
+        featureSet: nonNullable);
   }
 
   void test_gft_nullable_2() {
-    parseNNBDCompilationUnit('main() { C? Function()? x = 7; }');
+    parseCompilationUnit('main() { C? Function()? x = 7; }',
+        featureSet: nonNullable);
   }
 
   void test_gft_nullable_3() {
-    parseNNBDCompilationUnit('main() { C? Function()? Function()? x = 7; }');
+    parseCompilationUnit('main() { C? Function()? Function()? x = 7; }',
+        featureSet: nonNullable);
   }
 
   void test_gft_nullable_prefixed() {
-    parseNNBDCompilationUnit('main() { C.a? Function()? x = 7; }');
+    parseCompilationUnit('main() { C.a? Function()? x = 7; }',
+        featureSet: nonNullable);
   }
 
   void test_is_nullable() {
-    CompilationUnit unit =
-        parseNNBDCompilationUnit('main() { x is String? ? (x + y) : z; }');
+    CompilationUnit unit = parseCompilationUnit(
+        'main() { x is String? ? (x + y) : z; }',
+        featureSet: nonNullable);
     FunctionDeclaration function = unit.declarations[0];
     BlockFunctionBody body = function.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
@@ -1903,8 +2269,9 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
   }
 
   void test_is_nullable_parenthesis() {
-    CompilationUnit unit =
-        parseNNBDCompilationUnit('main() { (x is String?) ? (x + y) : z; }');
+    CompilationUnit unit = parseCompilationUnit(
+        'main() { (x is String?) ? (x + y) : z; }',
+        featureSet: nonNullable);
     FunctionDeclaration function = unit.declarations[0];
     BlockFunctionBody body = function.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
@@ -1919,8 +2286,51 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
     expect(elseExpression, isSimpleIdentifier);
   }
 
+  void test_is_nullable_parenthesis_optOut() {
+    parseCompilationUnit('''
+// @dart = 2.2
+main() { (x is String?) ? (x + y) : z; }
+''',
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 36, 1)],
+        featureSet: nonNullable);
+  }
+
+  void test_late_as_identifier() {
+    parseCompilationUnit('''
+class C {
+  int late;
+}
+
+void f(C c) {
+  print(c.late);
+}
+
+main() {
+  f(new C());
+}
+''', featureSet: preNonNullable);
+  }
+
+  void test_late_as_identifier_optOut() {
+    parseCompilationUnit('''
+// @dart = 2.2
+class C {
+  int late;
+}
+
+void f(C c) {
+  print(c.late);
+}
+
+main() {
+  f(new C());
+}
+''', featureSet: nonNullable);
+  }
+
   void test_nullCheck() {
-    var unit = parseNNBDCompilationUnit('f(int? y) { var x = y!; }');
+    var unit = parseCompilationUnit('f(int? y) { var x = y!; }',
+        featureSet: nonNullable);
     FunctionDeclaration function = unit.declarations[0];
     BlockFunctionBody body = function.functionExpression.body;
     VariableDeclarationStatement statement = body.block.statements[0];
@@ -1931,11 +2341,12 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
   }
 
   void test_nullCheck_disabled() {
-    // TODO(danrubel): remove this once NNBD is enabled by default
-    var unit = parseCompilationUnit('f(int? y) { var x = y!; }', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
-    ]);
+    var unit = parseCompilationUnit('f(int? y) { var x = y!; }',
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
+        ],
+        featureSet: preNonNullable);
     FunctionDeclaration function = unit.declarations[0];
     BlockFunctionBody body = function.functionExpression.body;
     VariableDeclarationStatement statement = body.block.statements[0];
@@ -1944,124 +2355,137 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
   }
 
   void test_nullCheckFunctionResult() {
-    parseNNBDCompilationUnit('f() { var x = g()! + 7; }');
+    parseCompilationUnit('f() { var x = g()! + 7; }', featureSet: nonNullable);
   }
 
   void test_nullCheckIndexedValue() {
-    parseNNBDCompilationUnit('f(int? y) { var x = y[0]! + 7; }');
+    parseCompilationUnit('f(int? y) { var x = y[0]! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckIndexedValue2() {
-    parseNNBDCompilationUnit('f(int? y) { var x = super.y[0]! + 7; }');
+    parseCompilationUnit('f(int? y) { var x = super.y[0]! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckInExpression() {
-    parseNNBDCompilationUnit('f(int? y) { var x = y! + 7; }');
+    parseCompilationUnit('f(int? y) { var x = y! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckInExpression_disabled() {
-    // TODO(danrubel): remove this once NNBD is enabled by default
-    parseCompilationUnit('f(int? y) { var x = y! + 7; }', errors: [
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
-      expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
-    ]);
+    parseCompilationUnit('f(int? y) { var x = y! + 7; }',
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 5, 1),
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 21, 1),
+        ],
+        featureSet: preNonNullable);
   }
 
   void test_nullCheckMethodResult() {
-    parseNNBDCompilationUnit('f() { var x = g.m()! + 7; }');
+    parseCompilationUnit('f() { var x = g.m()! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckMethodResult2() {
-    parseNNBDCompilationUnit('f() { var x = g?.m()! + 7; }');
+    parseCompilationUnit('f() { var x = g?.m()! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckMethodResult3() {
-    parseNNBDCompilationUnit('f() { var x = super.m()! + 7; }');
+    parseCompilationUnit('f() { var x = super.m()! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckOnConstConstructor() {
-    parseNNBDCompilationUnit('f() { var x = const Foo()!; }');
+    parseCompilationUnit('f() { var x = const Foo()!; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckOnConstructor() {
-    parseNNBDCompilationUnit('f() { var x = new Foo()!; }');
+    parseCompilationUnit('f() { var x = new Foo()!; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckOnLiteral_disabled() {
-    // TODO(danrubel): remove this once NNBD is enabled by default
     parseCompilationUnit('f() { var x = 0!; }',
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)]);
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)],
+        featureSet: preNonNullable);
   }
 
   void test_nullCheckOnLiteralDouble() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = 1.2!; }');
+    parseCompilationUnit('f() { var x = 1.2!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnLiteralInt() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = 0!; }');
+    parseCompilationUnit('f() { var x = 0!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnLiteralList() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = [1,2]!; }');
+    parseCompilationUnit('f() { var x = [1,2]!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnLiteralMap() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = {1:2}!; }');
+    parseCompilationUnit('f() { var x = {1:2}!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnLiteralSet() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = {1,2}!; }');
+    parseCompilationUnit('f() { var x = {1,2}!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnLiteralString() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = "seven"!; }');
+    parseCompilationUnit('f() { var x = "seven"!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnNull() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = null!; }');
+    parseCompilationUnit('f() { var x = null!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnSymbol() {
     // Issues like this should be caught during later analysis
-    parseNNBDCompilationUnit('f() { var x = #seven!; }');
+    parseCompilationUnit('f() { var x = #seven!; }', featureSet: nonNullable);
   }
 
   void test_nullCheckOnValue() {
-    parseNNBDCompilationUnit('f(Point p) { var x = p.y! + 7; }');
+    parseCompilationUnit('f(Point p) { var x = p.y! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckOnValue_disabled() {
-    // TODO(danrubel): remove this once NNBD is enabled by default
     parseCompilationUnit('f(Point p) { var x = p.y! + 7; }',
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 24, 1)]);
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 24, 1)],
+        featureSet: preNonNullable);
   }
 
   void test_nullCheckParenthesizedExpression() {
-    parseNNBDCompilationUnit('f(int? y) { var x = (y)! + 7; }');
+    parseCompilationUnit('f(int? y) { var x = (y)! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_nullCheckPropertyAccess() {
-    parseNNBDCompilationUnit('f() { var x = g.p! + 7; }');
+    parseCompilationUnit('f() { var x = g.p! + 7; }', featureSet: nonNullable);
   }
 
   void test_nullCheckPropertyAccess2() {
-    parseNNBDCompilationUnit('f() { var x = g?.p! + 7; }');
+    parseCompilationUnit('f() { var x = g?.p! + 7; }', featureSet: nonNullable);
   }
 
   void test_nullCheckPropertyAccess3() {
-    parseNNBDCompilationUnit('f() { var x = super.p! + 7; }');
+    parseCompilationUnit('f() { var x = super.p! + 7; }',
+        featureSet: nonNullable);
   }
 
   void test_postfix_null_assertion_and_unary_prefix_operator_precedence() {
     // -x! is parsed as -(x!).
-    var unit = parseNNBDCompilationUnit('void main() { -x!; }');
+    var unit =
+        parseCompilationUnit('void main() { -x!; }', featureSet: nonNullable);
     var function = unit.declarations[0] as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
@@ -2073,7 +2497,8 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
 
   void test_postfix_null_assertion_of_postfix_expression() {
     // x++! is parsed as (x++)!.
-    var unit = parseNNBDCompilationUnit('void main() { x++!; }');
+    var unit =
+        parseCompilationUnit('void main() { x++!; }', featureSet: nonNullable);
     var function = unit.declarations[0] as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
@@ -2105,21 +2530,23 @@ class ParserProxy extends analyzer.ParserAdapter {
    * Creates a [ParserProxy] which is prepared to begin parsing at the given
    * Fasta token.
    */
-  factory ParserProxy(analyzer.Token firstToken,
+  factory ParserProxy(analyzer.Token firstToken, FeatureSet featureSet,
       {bool allowNativeClause: false, int expectedEndOffset}) {
     TestSource source = new TestSource();
     var errorListener = new GatheringErrorListener(checkRanges: true);
     var errorReporter = new ErrorReporter(errorListener, source);
-    return new ParserProxy._(firstToken, errorReporter, null, errorListener,
+    return new ParserProxy._(
+        firstToken, errorReporter, null, errorListener, featureSet,
         allowNativeClause: allowNativeClause,
         expectedEndOffset: expectedEndOffset);
   }
 
   ParserProxy._(analyzer.Token firstToken, ErrorReporter errorReporter,
-      Uri fileUri, this._errorListener,
+      Uri fileUri, this._errorListener, FeatureSet featureSet,
       {bool allowNativeClause: false, this.expectedEndOffset})
       : super(firstToken, errorReporter, fileUri,
             allowNativeClause: allowNativeClause) {
+    configureFeatures(featureSet);
     _eventListener = new ForwardingTestListener(astBuilder);
     fastaParser.listener = _eventListener;
   }
@@ -2299,8 +2726,8 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   }
 
   void test_incompleteForEach2() {
-    ForStatement statement = parseStatement('for (String item i) {}',
-        parseControlFlowCollections: true);
+    ForStatement statement =
+        parseStatement('for (String item i) {}', featureSet: controlFlow);
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 4),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1)
@@ -2373,6 +2800,58 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
   @override
   void test_parseCommentReferences_skipLink_reference_multiLine() =>
       super.test_parseCommentReferences_skipLink_reference_multiLine();
+
+  void test_parseVariableDeclaration_final_late() {
+    var statement = parseStatement('final late a;', featureSet: nonNullable)
+        as VariableDeclarationStatement;
+    var declarationList = statement.variables;
+    assertErrors(
+        errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 4)]);
+    expect(declarationList.keyword.lexeme, 'final');
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclaration_late() {
+    var statement = parseStatement('late a;', featureSet: nonNullable)
+        as VariableDeclarationStatement;
+    var declarationList = statement.variables;
+    assertNoErrors();
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclaration_late_final() {
+    var statement = parseStatement('late final a;', featureSet: nonNullable)
+        as VariableDeclarationStatement;
+    var declarationList = statement.variables;
+    assertNoErrors();
+    expect(declarationList.keyword.lexeme, 'final');
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclaration_late_init() {
+    var statement = parseStatement('late a = 0;', featureSet: nonNullable)
+        as VariableDeclarationStatement;
+    var declarationList = statement.variables;
+    assertNoErrors();
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclaration_late_type() {
+    var statement = parseStatement('late A a;', featureSet: nonNullable)
+        as VariableDeclarationStatement;
+    var declarationList = statement.variables;
+    assertNoErrors();
+    expect(declarationList.lateKeyword, isNotNull);
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNotNull);
+    expect(declarationList.variables, hasLength(1));
+  }
 }
 
 /**
@@ -2420,7 +2899,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
     ForStatement forStatement = parseStatement(
       'await for (element in list) {}',
       inAsync: true,
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNotNull);
@@ -2434,10 +2913,44 @@ class StatementParserTest_Fasta extends FastaParserTestCase
     expect(forStatement.body, isNotNull);
   }
 
+  void test_parseForStatement_each_finalExternal() {
+    ForStatement forStatement = parseStatement(
+      'for (final external in list) {}',
+      featureSet: controlFlow,
+    );
+    assertNoErrors();
+    expect(forStatement.awaitKeyword, isNull);
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.loopVariable.identifier.name, 'external');
+    expect(forLoopParts.inKeyword, isNotNull);
+    expect(forLoopParts.iterable, isNotNull);
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseForStatement_each_finalRequired() {
+    ForStatement forStatement = parseStatement(
+      'for (final required in list) {}',
+      featureSet: controlFlow,
+    );
+    assertNoErrors();
+    expect(forStatement.awaitKeyword, isNull);
+    expect(forStatement.forKeyword, isNotNull);
+    expect(forStatement.leftParenthesis, isNotNull);
+    ForEachPartsWithDeclaration forLoopParts = forStatement.forLoopParts;
+    expect(forLoopParts.loopVariable.identifier.name, 'required');
+    expect(forLoopParts.inKeyword, isNotNull);
+    expect(forLoopParts.iterable, isNotNull);
+    expect(forStatement.rightParenthesis, isNotNull);
+    expect(forStatement.body, isNotNull);
+  }
+
   void test_parseForStatement_each_genericFunctionType2() {
     ForStatement forStatement = parseStatement(
       'for (void Function<T>(T) element in list) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -2454,7 +2967,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_each_identifier2() {
     ForStatement forStatement = parseStatement(
       'for (element in list) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -2471,7 +2984,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_each_noType_metadata2() {
     ForStatement forStatement = parseStatement(
       'for (@A var element in list) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -2489,7 +3002,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_each_type2() {
     ForStatement forStatement = parseStatement(
       'for (A element in list) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -2506,7 +3019,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_each_var2() {
     ForStatement forStatement = parseStatement(
       'for (var element in list) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.awaitKeyword, isNull);
@@ -2523,7 +3036,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_c2() {
     ForStatement forStatement = parseStatement(
       'for (; i < count;) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2541,7 +3054,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_cu2() {
     ForStatement forStatement = parseStatement(
       'for (; i < count; i++) {}',
-      parseControlFlowCollections: true,
+      featureSet: controlFlow,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2559,7 +3072,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_ecu2() {
     ForStatement forStatement = parseStatement(
       'for (i--; i < count; i++) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2577,7 +3090,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_i2() {
     ForStatement forStatement = parseStatement(
       'for (var i = 0;;) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2598,7 +3111,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_i_withMetadata2() {
     ForStatement forStatement = parseStatement(
       'for (@A var i = 0;;) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2619,7 +3132,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_ic2() {
     ForStatement forStatement = parseStatement(
       'for (var i = 0; i < count;) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2639,7 +3152,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_icu2() {
     ForStatement forStatement = parseStatement(
       'for (var i = 0; i < count; i++) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2659,7 +3172,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_iicuu2() {
     ForStatement forStatement = parseStatement(
       'for (int i = 0, j = count; i < j; i++, j--) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2679,7 +3192,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_iu2() {
     ForStatement forStatement = parseStatement(
       'for (var i = 0;; i++) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2699,7 +3212,7 @@ class StatementParserTest_Fasta extends FastaParserTestCase
   void test_parseForStatement_loop_u2() {
     ForStatement forStatement = parseStatement(
       'for (;; i++) {}',
-      parseSpreadCollections: true,
+      featureSet: spread,
     );
     assertNoErrors();
     expect(forStatement.forKeyword, isNotNull);
@@ -2754,101 +3267,6 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class TopLevelParserTest_Fasta extends FastaParserTestCase
     with TopLevelParserTestMixin {
-  void test_languageVersion_afterImport() {
-    var unit = parseCompilationUnit('''
-import 'foo.dart';
-// @dart = 2.3
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion, isNull);
-  }
-
-  void test_languageVersion_beforeComment() {
-    var unit = parseCompilationUnit('''
-// some other comment
-// @dart = 2.3
-// yet another comment
-import 'foo.dart';
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion.major, 2);
-    expect(unit.languageVersion.minor, 3);
-  }
-
-  void test_languageVersion_beforeFunction() {
-    var unit = parseCompilationUnit('''
-// @dart = 2.3
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion.major, 2);
-    expect(unit.languageVersion.minor, 3);
-  }
-
-  void test_languageVersion_beforeImport() {
-    var unit = parseCompilationUnit('''
-// @dart = 2.3
-import 'foo.dart';
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion.major, 2);
-    expect(unit.languageVersion.minor, 3);
-  }
-
-  void test_languageVersion_beforeImport_afterScript() {
-    var unit = parseCompilationUnit('''
-#!/bin/dart
-// @dart = 2.3
-import 'foo.dart';
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion.major, 2);
-    expect(unit.languageVersion.minor, 3);
-  }
-
-  void test_languageVersion_beforeLibrary() {
-    var unit = parseCompilationUnit('''
-// @dart = 2.3
-library foo;
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion.major, 2);
-    expect(unit.languageVersion.minor, 3);
-  }
-
-  void test_languageVersion_incomplete_version() {
-    var unit = parseCompilationUnit('''
-// @dart = 2.
-library foo;
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion, isNull);
-  }
-
-  void test_languageVersion_invalid_identifier() {
-    var unit = parseCompilationUnit('''
-// @dart = blat
-library foo;
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion, isNull);
-  }
-
-  void test_languageVersion_invalid_version() {
-    var unit = parseCompilationUnit('''
-// @dart = 2.x
-library foo;
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion, isNull);
-  }
-
-  void test_languageVersion_unspecified() {
-    var unit = parseCompilationUnit('''
-main() {}
-''') as CompilationUnitImpl;
-    expect(unit.languageVersion, isNull);
-  }
-
   void test_parseClassDeclaration_native_allowed() {
     allowNativeClause = true;
     test_parseClassDeclaration_native();
@@ -3083,5 +3501,53 @@ mixin A {
     createParser('/// Doc\nmixin M {}');
     MixinDeclaration declaration = parseFullCompilationUnitMember();
     expectCommentText(declaration.documentationComment, '/// Doc');
+  }
+
+  void test_parseTopLevelVariable_final_late() {
+    var unit = parseCompilationUnit('final late a;',
+        featureSet: nonNullable,
+        errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 4)]);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    var declarationList = declaration.variables;
+    expect(declarationList.keyword.lexeme, 'final');
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseTopLevelVariable_late() {
+    var unit = parseCompilationUnit('late a;', featureSet: nonNullable);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    var declarationList = declaration.variables;
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseTopLevelVariable_late_final() {
+    var unit = parseCompilationUnit('late final a;', featureSet: nonNullable);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    var declarationList = declaration.variables;
+    expect(declarationList.keyword.lexeme, 'final');
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseTopLevelVariable_late_init() {
+    var unit = parseCompilationUnit('late a = 0;', featureSet: nonNullable);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    var declarationList = declaration.variables;
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseTopLevelVariable_late_type() {
+    var unit = parseCompilationUnit('late A a;', featureSet: nonNullable);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    var declarationList = declaration.variables;
+    expect(declarationList.lateKeyword, isNotNull);
+    expect(declarationList.keyword, isNull);
+    expect(declarationList.type, isNotNull);
+    expect(declarationList.variables, hasLength(1));
   }
 }

@@ -272,8 +272,8 @@ class Listener implements UnescapeErrorListener {
     logEvent("FactoryMethod");
   }
 
-  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
-      Token varFinalOrConst) {}
+  void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
+      Token covariantToken, Token varFinalOrConst) {}
 
   void endFormalParameter(Token thisKeyword, Token periodAfterThis,
       Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
@@ -298,8 +298,8 @@ class Listener implements UnescapeErrorListener {
   /// - Variable declarations (count times)
   ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
-  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
-      int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     logEvent("Fields");
   }
 
@@ -901,8 +901,14 @@ class Listener implements UnescapeErrorListener {
   ///   - Field initializer
   /// Doesn't have a corresponding begin event.
   /// Use [beginTopLevelMember] instead.
-  void endTopLevelFields(Token staticToken, Token covariantToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     logEvent("TopLevelFields");
   }
 
@@ -964,6 +970,17 @@ class Listener implements UnescapeErrorListener {
           templateExperimentNotEnabled.withArguments('non-nullable'),
           questionMark,
           questionMark);
+    }
+  }
+
+  // TODO(danrubel): Remove this once all listeners have been updated
+  // to properly handle nullable types
+  void reportNonNullableModifierError(Token modifierToken) {
+    if (modifierToken != null) {
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments('non-nullable'),
+          modifierToken,
+          modifierToken);
     }
   }
 
@@ -1050,7 +1067,8 @@ class Listener implements UnescapeErrorListener {
   /// Handle the start of a variables declaration.  Substructures:
   /// - Metadata
   /// - Type
-  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {}
+  void beginVariablesDeclaration(
+      Token token, Token lateToken, Token varFinalOrConst) {}
 
   void endVariablesDeclaration(int count, Token endToken) {
     logEvent("VariablesDeclaration");
@@ -1403,15 +1421,6 @@ class Listener implements UnescapeErrorListener {
 
   void handleScript(Token token) {
     logEvent("Script");
-  }
-
-  /// A language version comment was parsed of the form
-  /// // @dart = <major>.<minor>
-  ///
-  /// For more information, see
-  /// https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/language-versioning.md#individual-library-language-version-override
-  void handleLanguageVersion(Token commentToken, int major, int minor) {
-    // TODO(danrubel): Update listeners to handle this
   }
 
   /// A type has been just parsed, and the parser noticed that the next token

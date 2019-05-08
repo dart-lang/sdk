@@ -158,8 +158,12 @@ static int64_t GenKernelKernelBenchmark(const char* name,
   bool read_fully = file->ReadFully(kernel_buffer, kernel_buffer_size);
   EXPECT(read_fully);
 
-  bool enable_interpreter_orig = FLAG_enable_interpreter;
-  FLAG_enable_interpreter = true;
+  // Enable bytecode compiler in order to read bytecode.
+  // Enabling interpreter also does the trick, but it causes flaky crashes
+  // as unoptimized background compiler (which is required for interpreter)
+  // was not initialized when isolate was created.
+  const bool use_bytecode_compiler_orig = FLAG_use_bytecode_compiler;
+  FLAG_use_bytecode_compiler = true;
 
   Timer timer(true, name);
   if (benchmark_load) {
@@ -184,7 +188,7 @@ static int64_t GenKernelKernelBenchmark(const char* name,
 
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
-  FLAG_enable_interpreter = enable_interpreter_orig;
+  FLAG_use_bytecode_compiler = use_bytecode_compiler_orig;
   free(dill_path);
   free(kernel_buffer);
   return elapsed_time;
@@ -652,13 +656,12 @@ BENCHMARK(SerializeNull) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     MessageWriter writer(true);
-    Message* message = writer.WriteMessage(null_object, ILLEGAL_PORT,
-                                           Message::kNormalPriority);
+    std::unique_ptr<Message> message = writer.WriteMessage(
+        null_object, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(message, thread);
+    MessageSnapshotReader reader(message.get(), thread);
     reader.ReadObject();
-    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -676,13 +679,12 @@ BENCHMARK(SerializeSmi) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     MessageWriter writer(true);
-    Message* message =
+    std::unique_ptr<Message> message =
         writer.WriteMessage(smi_object, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(message, thread);
+    MessageSnapshotReader reader(message.get(), thread);
     reader.ReadObject();
-    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -702,13 +704,12 @@ BENCHMARK(SimpleMessage) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     MessageWriter writer(true);
-    Message* message = writer.WriteMessage(array_object, ILLEGAL_PORT,
-                                           Message::kNormalPriority);
+    std::unique_ptr<Message> message = writer.WriteMessage(
+        array_object, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(message, thread);
+    MessageSnapshotReader reader(message.get(), thread);
     reader.ReadObject();
-    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -737,13 +738,12 @@ BENCHMARK(LargeMap) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     MessageWriter writer(true);
-    Message* message =
+    std::unique_ptr<Message> message =
         writer.WriteMessage(map, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(message, thread);
+    MessageSnapshotReader reader(message.get(), thread);
     reader.ReadObject();
-    delete message;
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:package_config/packages.dart';
@@ -71,10 +72,12 @@ class PubWorkspacePackage extends WorkspacePackage {
   PubWorkspacePackage(this.root, this.workspace);
 
   @override
-  bool contains(String path) {
+  bool contains(Source source) {
+    String filePath = filePathFromSource(source);
+    if (filePath == null) return false;
     // There is a 1-1 relationship between [PubWorkspace]s and
     // [PubWorkspacePackage]s. If a file is in a package's workspace, then it
     // is in the package as well.
-    return workspace.provider.pathContext.isWithin(root, path);
+    return workspace.provider.pathContext.isWithin(root, filePath);
   }
 }

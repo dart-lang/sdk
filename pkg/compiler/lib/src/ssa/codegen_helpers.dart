@@ -136,7 +136,7 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
   @override
   HInstruction visitInvokeDynamic(HInvokeDynamic node) {
     if (node.isInterceptedCall) {
-      tryReplaceInterceptorWithDummy(node, node.selector, node.mask);
+      tryReplaceInterceptorWithDummy(node, node.selector, node.receiverType);
     }
     return node;
   }

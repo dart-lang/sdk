@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'graph_builder.dart';
+import 'builder_kernel.dart';
 import 'nodes.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 import '../universe/use.dart' show TypeUse;
+import '../world.dart';
 
 /// Enum that defines how a member has access to the current type variables.
 enum ClassTypeVariableAccess {
@@ -35,8 +36,14 @@ enum ClassTypeVariableAccess {
 /// Functions to insert type checking, coercion, and instruction insertion
 /// depending on the environment for dart code.
 abstract class TypeBuilder {
-  final GraphBuilder builder;
+  final KernelSsaGraphBuilder builder;
+
   TypeBuilder(this.builder);
+
+  JClosedWorld get _closedWorld => builder.closedWorld;
+
+  AbstractValueDomain get _abstractValueDomain =>
+      _closedWorld.abstractValueDomain;
 
   /// Create a type mask for 'trusting' a DartType. Returns `null` if there is
   /// no approximating type mask (i.e. the type mask would be `dynamic`).
@@ -46,10 +53,10 @@ abstract class TypeBuilder {
     type = type.unaliased;
     if (type.isDynamic) return null;
     if (!type.isInterfaceType) return null;
-    if (type == builder.commonElements.objectType) return null;
+    if (type == _closedWorld.commonElements.objectType) return null;
     // The type element is either a class or the void element.
     ClassEntity element = (type as InterfaceType).element;
-    return builder.abstractValueDomain.createNullableSubtype(element);
+    return _abstractValueDomain.createNullableSubtype(element);
   }
 
   /// Create an instruction to simply trust the provided type.
@@ -123,7 +130,7 @@ abstract class TypeBuilder {
   }
 
   HInstruction potentiallyCheckOrTrustTypeOfCondition(HInstruction original) {
-    DartType boolType = builder.commonElements.boolType;
+    DartType boolType = _closedWorld.commonElements.boolType;
     HInstruction checkedOrTrusted = original;
     if (builder.options.conditionCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, boolType);
@@ -194,11 +201,11 @@ abstract class TypeBuilder {
     HInstruction target =
         builder.localsHandler.readThis(sourceInformation: sourceInformation);
     HInstruction interceptor =
-        new HInterceptor(target, builder.abstractValueDomain.nonNullType)
+        new HInterceptor(target, _abstractValueDomain.nonNullType)
           ..sourceInformation = sourceInformation;
     builder.add(interceptor);
     builder.push(new HTypeInfoReadVariable.intercepted(
-        variable, interceptor, target, builder.abstractValueDomain.dynamicType)
+        variable, interceptor, target, _abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation);
     return builder.pop();
   }
@@ -218,9 +225,9 @@ abstract class TypeBuilder {
     }
     HInstruction representation = new HTypeInfoExpression(
         TypeInfoExpressionKind.INSTANCE,
-        builder.closedWorld.elementEnvironment.getThisType(interface.element),
+        _closedWorld.elementEnvironment.getThisType(interface.element),
         inputs,
-        builder.abstractValueDomain.dynamicType)
+        _abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation;
     return representation;
   }
@@ -231,7 +238,7 @@ abstract class TypeBuilder {
     argument = argument.unaliased;
     if (argument.treatAsDynamic) {
       // Represent [dynamic] as [null].
-      return builder.graph.addConstantNull(builder.closedWorld);
+      return builder.graph.addConstantNull(_closedWorld);
     }
 
     if (argument.isTypeVariable) {
@@ -249,7 +256,7 @@ abstract class TypeBuilder {
         TypeInfoExpressionKind.COMPLETE,
         argument,
         inputs,
-        builder.abstractValueDomain.dynamicType)
+        _abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation;
     builder.add(result);
     return result;
@@ -268,8 +275,8 @@ abstract class TypeBuilder {
     type = type.unaliased;
     if (type.isInterfaceType && !type.treatAsRaw) {
       InterfaceType interfaceType = type;
-      AbstractValue subtype = builder.abstractValueDomain
-          .createNullableSubtype(interfaceType.element);
+      AbstractValue subtype =
+          _abstractValueDomain.createNullableSubtype(interfaceType.element);
       HInstruction representations = buildTypeArgumentRepresentations(
           type, builder.sourceElement, sourceInformation);
       builder.add(representations);
@@ -292,7 +299,7 @@ abstract class TypeBuilder {
           type, kind, refinedMask, original, reifiedType)
         ..sourceInformation = sourceInformation;
     } else {
-      return original.convertType(builder.closedWorld, type, kind)
+      return original.convertType(_closedWorld, type, kind)
         ..sourceInformation = sourceInformation;
     }
   }

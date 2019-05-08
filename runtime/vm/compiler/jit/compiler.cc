@@ -101,7 +101,6 @@ static void PrecompilationModeHandler(bool value) {
 #endif
 
     FLAG_background_compilation = false;
-    FLAG_collect_code = false;
     FLAG_enable_mirrors = false;
     // TODO(dacoharkes): Ffi support in AOT
     // https://github.com/dart-lang/sdk/issues/35765
@@ -167,11 +166,10 @@ void IrregexpCompilationPipeline::ParseFunction(
   RegExp& regexp = RegExp::Handle(parsed_function->function().regexp());
 
   const String& pattern = String::Handle(regexp.pattern());
-  const bool multiline = regexp.is_multi_line();
 
   RegExpCompileData* compile_data = new (zone) RegExpCompileData();
   // Parsing failures are handled in the RegExp factory constructor.
-  RegExpParser::ParseRegExp(pattern, multiline, compile_data);
+  RegExpParser::ParseRegExp(pattern, regexp.flags(), compile_data);
 
   regexp.set_num_bracket_expressions(compile_data->capture_count);
   regexp.set_capture_name_map(compile_data->capture_name_map);
@@ -427,12 +425,6 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
   }
 #endif  // !defined(PRODUCT)
 
-  if (function.is_intrinsic() &&
-      (function.usage_counter() < Function::kGraceUsageCounter)) {
-    // Intrinsic functions may execute without incrementing their usage counter.
-    // Give them a non-zero initial usage to prevent premature code collection.
-    function.set_usage_counter(Function::kGraceUsageCounter);
-  }
   if (!function.IsOptimizable()) {
     // A function with huge unoptimized code can become non-optimizable
     // after generating unoptimized code.
@@ -786,7 +778,6 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         }
         done = true;
       }
-
     }
   }
   return result->raw();
@@ -794,7 +785,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
 static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
                                         const Function& function,
-                                        bool optimized,
+                                        volatile bool optimized,
                                         intptr_t osr_id) {
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());

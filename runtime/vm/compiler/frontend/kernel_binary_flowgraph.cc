@@ -165,7 +165,11 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
       Field::ZoneHandle(Z, H.LookupFieldByKernelField(canonical_name));
   if (PeekTag() == kNullLiteral) {
     SkipExpression();  // read past the null literal.
-    field.RecordStore(Object::null_object());
+    if (H.thread()->IsMutatorThread()) {
+      field.RecordStore(Object::null_object());
+    } else {
+      ASSERT(field.is_nullable());
+    }
     return Fragment();
   }
 
@@ -936,7 +940,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
         return B->BuildGraphOfFieldAccessor(function);
-      case RawFunction::kImplicitStaticFinalGetter: {
+      case RawFunction::kImplicitStaticGetter: {
         if (IsStaticFieldGetterGeneratedAsInitializer(function, Z)) {
           break;
         }
@@ -946,6 +950,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
         return B->BuildGraphOfDynamicInvocationForwarder(function);
       case RawFunction::kMethodExtractor:
         return B->BuildGraphOfMethodExtractor(function);
+      case RawFunction::kNoSuchMethodDispatcher:
+        return B->BuildGraphOfNoSuchMethodDispatcher(function);
       default:
         break;
     }
@@ -968,7 +974,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     if (function.HasBytecode() &&
         (function.kind() != RawFunction::kImplicitGetter) &&
         (function.kind() != RawFunction::kImplicitSetter) &&
-        (function.kind() != RawFunction::kMethodExtractor)) {
+        (function.kind() != RawFunction::kImplicitStaticGetter) &&
+        (function.kind() != RawFunction::kMethodExtractor) &&
+        (function.kind() != RawFunction::kInvokeFieldDispatcher) &&
+        (function.kind() != RawFunction::kNoSuchMethodDispatcher)) {
       BytecodeFlowGraphBuilder bytecode_compiler(
           flow_graph_builder_, parsed_function(),
           &(flow_graph_builder_->ic_data_array_));
@@ -991,7 +1000,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       return BuildGraphOfFunction(!function.IsFactory());
     }
     case RawFunction::kImplicitGetter:
-    case RawFunction::kImplicitStaticFinalGetter:
+    case RawFunction::kImplicitStaticGetter:
     case RawFunction::kImplicitSetter: {
       const Field& field = Field::Handle(Z, function.accessor_field());
       if (field.is_const() && field.IsUninitialized()) {
@@ -1053,7 +1062,7 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
     case RawFunction::kClosureFunction:
     case RawFunction::kConstructor:
     case RawFunction::kImplicitGetter:
-    case RawFunction::kImplicitStaticFinalGetter:
+    case RawFunction::kImplicitStaticGetter:
     case RawFunction::kImplicitSetter:
     case RawFunction::kStaticFieldInitializer:
     case RawFunction::kMethodExtractor:
@@ -1977,7 +1986,7 @@ Fragment StreamingFlowGraphBuilder::BuildArgumentsFromActualArguments(
   // List of named.
   list_length = ReadListLength();  // read list length.
   if (argument_names != NULL && list_length > 0) {
-    *argument_names ^= Array::New(list_length, Heap::kOld);
+    *argument_names = Array::New(list_length, Heap::kOld);
   }
   for (intptr_t i = 0; i < list_length; ++i) {
     String& name =
@@ -2907,7 +2916,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
 
     SkipListOfExpressions();
     intptr_t named_list_length = ReadListLength();
-    argument_names ^= Array::New(named_list_length, H.allocation_space());
+    argument_names = Array::New(named_list_length, H.allocation_space());
     for (intptr_t i = 0; i < named_list_length; i++) {
       const String& arg_name = H.DartSymbolObfuscate(ReadStringReference());
       argument_names.SetAt(i, arg_name);
@@ -4015,12 +4024,14 @@ Fragment StreamingFlowGraphBuilder::BuildBreakStatement() {
       target_index, &outer_finally, &target_context_depth);
 
   Fragment instructions;
+  // Break statement should pause before manipulation of context, which
+  // will possibly cause debugger having incorrect context object.
+  if (NeedsDebugStepCheck(parsed_function()->function(), position)) {
+    instructions += DebugStepCheck(position);
+  }
   instructions +=
       TranslateFinallyFinalizers(outer_finally, target_context_depth);
   if (instructions.is_open()) {
-    if (NeedsDebugStepCheck(parsed_function()->function(), position)) {
-      instructions += DebugStepCheck(position);
-    }
     instructions += Goto(destination);
   }
   return instructions;

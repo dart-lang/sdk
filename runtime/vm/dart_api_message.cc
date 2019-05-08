@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/dart_api_message.h"
+#include "platform/unicode.h"
 #include "vm/object.h"
 #include "vm/snapshot_ids.h"
 #include "vm/symbols.h"
-#include "vm/unicode.h"
 
 namespace dart {
 
@@ -892,7 +892,7 @@ bool ApiMessageWriter::WriteCObject(Dart_CObject* object) {
   Dart_CObject_Type type = object->type;
   if (type == Dart_CObject_kArray) {
     const intptr_t array_length = object->value.as_array.length;
-    if (array_length < 0 || array_length > Array::kMaxElements) {
+    if (!Array::IsValidLength(array_length)) {
       return false;
     }
 
@@ -925,7 +925,7 @@ bool ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
   Dart_CObject_Type type = object->type;
   if (type == Dart_CObject_kArray) {
     const intptr_t array_length = object->value.as_array.length;
-    if (array_length < 0 || array_length > Array::kMaxElements) {
+    if (!Array::IsValidLength(array_length)) {
       return false;
     }
     // Write out the serialization header value for this object.
@@ -948,7 +948,7 @@ bool ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
       static_cast<Dart_CObject_Type>(object->type & kDartCObjectTypeMask);
   ASSERT(type == Dart_CObject_kArray);
   const intptr_t array_length = object->value.as_array.length;
-  if (array_length < 0 || array_length > Array::kMaxElements) {
+  if (!Array::IsValidLength(array_length)) {
     return false;
   }
 
@@ -1132,14 +1132,15 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
   return true;
 }
 
-Message* ApiMessageWriter::WriteCMessage(Dart_CObject* object,
-                                         Dart_Port dest_port,
-                                         Message::Priority priority) {
+std::unique_ptr<Message> ApiMessageWriter::WriteCMessage(
+    Dart_CObject* object,
+    Dart_Port dest_port,
+    Message::Priority priority) {
   bool success = WriteCObject(object);
   if (!success) {
     UnmarkAllCObjects(object);
     free(buffer());
-    return NULL;
+    return nullptr;
   }
 
   // Write out all objects that were added to the forward list and have
@@ -1150,15 +1151,15 @@ Message* ApiMessageWriter::WriteCMessage(Dart_CObject* object,
     if (!success) {
       UnmarkAllCObjects(object);
       free(buffer());
-      return NULL;
+      return nullptr;
     }
   }
 
   UnmarkAllCObjects(object);
   MessageFinalizableData* finalizable_data = finalizable_data_;
   finalizable_data_ = NULL;
-  return new Message(dest_port, buffer(), BytesWritten(), finalizable_data,
-                     priority);
+  return Message::New(dest_port, buffer(), BytesWritten(), finalizable_data,
+                      priority);
 }
 
 }  // namespace dart

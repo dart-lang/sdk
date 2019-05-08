@@ -976,6 +976,16 @@ DART_EXPORT void Dart_ThreadDisableProfiling();
 DART_EXPORT void Dart_ThreadEnableProfiling();
 
 /**
+ * Register symbol information for the Dart VM's profiler and crash dumps.
+ *
+ * This consumes the output of //topaz/runtime/dart/profiler_symbols, which
+ * should be treated as opaque.
+ */
+DART_EXPORT void Dart_AddSymbols(const char* dso_name,
+                                 void* buffer,
+                                 intptr_t buffer_size);
+
+/**
  * Exits an isolate. After this call, Dart_CurrentIsolate will
  * return NULL.
  *

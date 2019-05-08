@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -16,12 +15,8 @@ main() {
 
 @reflectiveTest
 class InvalidCastNewExprTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = ['set-literals'];
-
   test_listLiteral_const() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 const c = <B>[A()];
 class A {
   const A();
@@ -30,13 +25,13 @@ class B extends A {
   const B();
 }
 ''', [
-      StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
-      StrongModeCode.INVALID_CAST_NEW_EXPR,
+      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 14, 3),
+      error(StrongModeCode.INVALID_CAST_NEW_EXPR, 14, 3),
     ]);
   }
 
   test_listLiteral_nonConst() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 var c = <B>[A()];
 class A {
   const A();
@@ -44,11 +39,13 @@ class A {
 class B extends A {
   const B();
 }
-''', [StrongModeCode.INVALID_CAST_NEW_EXPR]);
+''', [
+      error(StrongModeCode.INVALID_CAST_NEW_EXPR, 12, 3),
+    ]);
   }
 
   test_setLiteral_const() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 const c = <B>{A()};
 class A {
   const A();
@@ -57,13 +54,13 @@ class B extends A {
   const B();
 }
 ''', [
-      StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
-      StrongModeCode.INVALID_CAST_NEW_EXPR,
+      error(StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 14, 3),
+      error(StrongModeCode.INVALID_CAST_NEW_EXPR, 14, 3),
     ]);
   }
 
   test_setLiteral_nonConst() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 var c = <B>{A()};
 class A {
   const A();
@@ -71,6 +68,8 @@ class A {
 class B extends A {
   const B();
 }
-''', [StrongModeCode.INVALID_CAST_NEW_EXPR]);
+''', [
+      error(StrongModeCode.INVALID_CAST_NEW_EXPR, 12, 3),
+    ]);
   }
 }

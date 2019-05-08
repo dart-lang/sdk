@@ -513,7 +513,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   DartdocDirectiveInfo _getDartdocDirectiveInfoFor(ResolvedUnitResult result) {
     // TODO(brianwilkerson) Consider moving this to AnalysisServer.
     return server.declarationsTracker
-            ?.getContext(result.session.analysisContext)
+            .getContext(result.session.analysisContext)
             ?.dartdocDirectiveInfo ??
         new DartdocDirectiveInfo();
   }

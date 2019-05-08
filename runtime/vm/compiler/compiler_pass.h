@@ -17,6 +17,7 @@ namespace dart {
 
 #define COMPILER_PASS_LIST(V)                                                  \
   V(AllocateRegisters)                                                         \
+  V(AllocateRegistersForGraphIntrinsic)                                        \
   V(AllocationSinking_DetachMaterializations)                                  \
   V(AllocationSinking_Sink)                                                    \
   V(ApplyClassIds)                                                             \
@@ -141,6 +142,10 @@ class CompilerPass {
   static void ParseFilters(const char* filter);
 
   enum PipelineMode { kJIT, kAOT };
+
+  static void RunGraphIntrinsicPipeline(CompilerPassState* state);
+
+  static void RunInliningPipeline(PipelineMode mode, CompilerPassState* state);
 
   static void RunPipeline(PipelineMode mode, CompilerPassState* state);
 

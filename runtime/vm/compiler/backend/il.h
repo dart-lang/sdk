@@ -18,6 +18,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/parser.h"
+#include "vm/runtime_entry.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/token_position.h"
 
@@ -422,7 +423,7 @@ struct InstrAttrs {
   M(Unbox, kNoGC)                                                              \
   M(BoxInt64, _)                                                               \
   M(UnboxInt64, kNoGC)                                                         \
-  M(CaseInsensitiveCompareUC16, _)                                             \
+  M(CaseInsensitiveCompare, _)                                                 \
   M(BinaryInt64Op, kNoGC)                                                      \
   M(ShiftInt64Op, kNoGC)                                                       \
   M(SpeculativeShiftInt64Op, kNoGC)                                            \
@@ -934,8 +935,8 @@ class Instruction : public ZoneAllocated {
   }
 
  private:
-  friend class BranchInstr;      // For RawSetInputAt.
-  friend class IfThenElseInstr;  // For RawSetInputAt.
+  friend class BranchInstr;          // For RawSetInputAt.
+  friend class IfThenElseInstr;      // For RawSetInputAt.
   friend class CheckConditionInstr;  // For RawSetInputAt.
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
@@ -1377,8 +1378,7 @@ class BlockEntryWithInitialDefs : public BlockEntryInstr {
 
 class GraphEntryInstr : public BlockEntryWithInitialDefs {
  public:
-  GraphEntryInstr(const ParsedFunction& parsed_function,
-                  intptr_t osr_id);
+  GraphEntryInstr(const ParsedFunction& parsed_function, intptr_t osr_id);
 
   DECLARE_INSTRUCTION(GraphEntry)
 
@@ -1835,12 +1835,12 @@ class Definition : public Instruction {
   bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
   void ClearSSATempIndex() { ssa_temp_index_ = -1; }
   bool HasPairRepresentation() const {
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
-    return representation() == kPairOfTagged;
-#else
-    return (representation() == kPairOfTagged) ||
-           (representation() == kUnboxedInt64);
-#endif
+    if (compiler::target::kWordSize == 8) {
+      return representation() == kPairOfTagged;
+    } else {
+      return (representation() == kPairOfTagged) ||
+             (representation() == kUnboxedInt64);
+    }
   }
 
   // Compile time type of the definition, which may be requested before type
@@ -4922,7 +4922,7 @@ class AllocateObjectInstr : public TemplateAllocation<0, NoThrow> {
 
   const Function& closure_function() const { return closure_function_; }
   void set_closure_function(const Function& function) {
-    closure_function_ ^= function.raw();
+    closure_function_ = function.raw();
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -4979,6 +4979,7 @@ class AllocateUninitializedContextInstr
   }
 
   static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
+    if (!Context::IsValidLength(num_context_variables)) return false;
     return Heap::IsAllocatableInNewSpace(
         Context::InstanceSize(num_context_variables));
   }
@@ -5133,12 +5134,11 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
     if (!num_elements()->BindsToConstant()) return false;
     const Object& length = num_elements()->BoundConstant();
     if (!length.IsSmi()) return false;
-    const intptr_t value = Smi::Cast(length).Value();
-    if (value < 0) return false;
-    return WillAllocateNewOrRemembered(value);
+    return WillAllocateNewOrRemembered(Smi::Cast(length).Value());
   }
 
   static bool WillAllocateNewOrRemembered(const intptr_t length) {
+    if (!Array::IsValidLength(length)) return false;
     return !Array::UseCardMarkingForAllocation(length);
   }
 
@@ -5303,6 +5303,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   static bool IsFixedLengthArrayCid(intptr_t cid);
+  static bool IsTypedDataViewFactory(const Function& function);
 
   virtual bool AllowsCSE() const { return slot_.is_immutable(); }
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -5429,6 +5430,7 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
   }
 
   static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
+    if (!Context::IsValidLength(num_context_variables)) return false;
     return Heap::IsAllocatableInNewSpace(
         Context::InstanceSize(num_context_variables));
   }
@@ -5620,6 +5622,10 @@ class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
     SetInputAt(0, value);
   }
 
+#if defined(TARGET_ARCH_DBC)
+  void EmitAllocateBox(FlowGraphCompiler* compiler);
+#endif
+
  private:
   intptr_t ValueOffset() const {
     return Boxing::ValueOffset(from_representation());
@@ -5786,6 +5792,8 @@ class UnboxIntegerInstr : public UnboxInstr {
 
   bool is_truncating() const { return is_truncating_; }
 
+  void mark_truncating() { is_truncating_ = true; }
+
   virtual CompileType ComputeType() const;
 
   virtual bool AttributesEqual(Instruction* other) const {
@@ -5951,18 +5959,18 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
 // Calls into the runtime and performs a case-insensitive comparison of the
 // UTF16 strings (i.e. TwoByteString or ExternalTwoByteString) located at
 // str[lhs_index:lhs_index + length] and str[rhs_index:rhs_index + length].
-//
-// TODO(zerny): Remove this once (if) functions inherited from unibrow
-// are moved to dart code.
-class CaseInsensitiveCompareUC16Instr
+// Depending on the runtime entry passed, we will treat the strings as either
+// UCS2 (no surrogate handling) or UTF16 (surrogates handled appropriately).
+class CaseInsensitiveCompareInstr
     : public TemplateDefinition<4, NoThrow, Pure> {
  public:
-  CaseInsensitiveCompareUC16Instr(Value* str,
-                                  Value* lhs_index,
-                                  Value* rhs_index,
-                                  Value* length,
-                                  intptr_t cid)
-      : cid_(cid) {
+  CaseInsensitiveCompareInstr(Value* str,
+                              Value* lhs_index,
+                              Value* rhs_index,
+                              Value* length,
+                              const RuntimeEntry& entry,
+                              intptr_t cid)
+      : entry_(entry), cid_(cid) {
     ASSERT(cid == kTwoByteStringCid || cid == kExternalTwoByteStringCid);
     ASSERT(index_scale() == 2);
     SetInputAt(0, str);
@@ -5976,7 +5984,7 @@ class CaseInsensitiveCompareUC16Instr
   Value* rhs_index() const { return inputs_[2]; }
   Value* length() const { return inputs_[3]; }
 
-  const RuntimeEntry& TargetFunction() const;
+  const RuntimeEntry& TargetFunction() const { return entry_; }
   bool IsExternal() const { return cid_ == kExternalTwoByteStringCid; }
   intptr_t class_id() const { return cid_; }
   intptr_t index_scale() const { return Instance::ElementSizeFor(cid_); }
@@ -5985,17 +5993,18 @@ class CaseInsensitiveCompareUC16Instr
 
   virtual Representation representation() const { return kTagged; }
 
-  DECLARE_INSTRUCTION(CaseInsensitiveCompareUC16)
+  DECLARE_INSTRUCTION(CaseInsensitiveCompare)
   virtual CompileType ComputeType() const;
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsCaseInsensitiveCompareUC16()->cid_ == cid_;
+    return other->AsCaseInsensitiveCompare()->cid_ == cid_;
   }
 
  private:
+  const RuntimeEntry& entry_;
   const intptr_t cid_;
 
-  DISALLOW_COPY_AND_ASSIGN(CaseInsensitiveCompareUC16Instr);
+  DISALLOW_COPY_AND_ASSIGN(CaseInsensitiveCompareInstr);
 };
 
 // Represents Math's static min and max functions.
@@ -7535,6 +7544,8 @@ class GenericCheckBoundInstr : public CheckBoundBase {
 
   bool IsRedundant(const RangeBoundary& length);
 
+  virtual bool MayThrow() const { return true; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);
 };
@@ -7631,6 +7642,8 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
            (converter->is_truncating() == is_truncating());
   }
 
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
+
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual CompileType ComputeType() const {
@@ -7660,10 +7673,10 @@ class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
         from_representation_(from),
         to_representation_(to) {
     ASSERT(from != to);
-    ASSERT(to == kUnboxedInt32 && from == kUnboxedFloat ||
-           to == kUnboxedFloat && from == kUnboxedInt32 ||
-           to == kUnboxedInt64 && from == kUnboxedDouble ||
-           to == kUnboxedDouble && from == kUnboxedInt64);
+    ASSERT((to == kUnboxedInt32 && from == kUnboxedFloat) ||
+           (to == kUnboxedFloat && from == kUnboxedInt32) ||
+           (to == kUnboxedInt64 && from == kUnboxedDouble) ||
+           (to == kUnboxedDouble && from == kUnboxedInt64));
     SetInputAt(0, value);
   }
 
@@ -7712,18 +7725,24 @@ class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnboxedWidthExtenderInstr(Value* value,
                             Representation rep,
-                            intptr_t from_width_bytes)
+                            SmallRepresentation from_rep)
       : TemplateDefinition(DeoptId::kNone),
         representation_(rep),
-        from_width_bytes_(from_width_bytes) {
-    ASSERT(from_width_bytes == 1 || from_width_bytes == 2);
-    ASSERT(rep == kUnboxedInt32 || rep == kUnboxedUint32);
+        from_representation_(from_rep) {
+    ASSERT(rep == kUnboxedInt32 && (from_rep == kSmallUnboxedInt8 ||
+                                    from_rep == kSmallUnboxedInt16) ||
+           rep == kUnboxedUint32 && (from_rep == kSmallUnboxedUint8 ||
+                                     from_rep == kSmallUnboxedUint16));
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
 
   Representation representation() const { return representation_; }
+
+  SmallRepresentation from_representation() const {
+    return from_representation_;
+  }
 
   bool ComputeCanDeoptimize() const { return false; }
 
@@ -7736,7 +7755,7 @@ class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
     ASSERT(other->IsUnboxedWidthExtender());
     const UnboxedWidthExtenderInstr* ext = other->AsUnboxedWidthExtender();
     return ext->representation() == representation() &&
-           ext->from_width_bytes_ == from_width_bytes_;
+           ext->from_representation_ == from_representation_;
   }
 
   virtual CompileType ComputeType() const { return CompileType::Int(); }
@@ -7746,8 +7765,18 @@ class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
+  intptr_t from_width_bytes() const {
+    if (from_representation_ == kSmallUnboxedInt8 ||
+        from_representation_ == kSmallUnboxedUint8) {
+      return 1;
+    }
+    ASSERT(from_representation_ == kSmallUnboxedInt16 ||
+           from_representation_ == kSmallUnboxedUint16);
+    return 2;
+  }
+
   const Representation representation_;
-  const intptr_t from_width_bytes_;
+  const SmallRepresentation from_representation_;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxedWidthExtenderInstr);
 };

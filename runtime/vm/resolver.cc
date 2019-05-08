@@ -75,12 +75,11 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
 
   const bool is_getter = Field::IsGetterName(function_name);
   if (is_getter) {
-    demangled ^= Field::NameFromGetter(function_name);
+    demangled = Field::NameFromGetter(function_name);
   }
 
   if (Function::IsDynamicInvocationForwarderName(function_name)) {
-    demangled ^=
-        Function::DemangleDynamicInvocationForwarderName(function_name);
+    demangled = Function::DemangleDynamicInvocationForwarderName(function_name);
 #ifdef DART_PRECOMPILED_RUNTIME
     // In precompiled mode, the non-dynamic version of the function may be
     // tree-shaken away, so can't necessarily resolve the demanged name.
@@ -112,20 +111,20 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
   // Now look for an instance function whose name matches function_name
   // in the class.
   while (!cls.IsNull()) {
-    function ^= cls.LookupDynamicFunction(function_name);
+    function = cls.LookupDynamicFunction(function_name);
     if (!function.IsNull()) {
       return function.raw();
     }
     // Getter invocation might actually be a method extraction.
     if (FLAG_lazy_dispatchers) {
       if (is_getter && function.IsNull()) {
-        function ^= cls.LookupDynamicFunction(demangled);
+        function = cls.LookupDynamicFunction(demangled);
         if (!function.IsNull() && allow_add) {
           // We were looking for the getter but found a method with the same
           // name. Create a method extractor and return it.
           // The extractor does not exist yet, so using GetMethodExtractor is
           // not necessary here.
-          function ^= function.CreateMethodExtractor(function_name);
+          function = function.CreateMethodExtractor(function_name);
           return function.raw();
         }
       }

@@ -23,9 +23,7 @@ import '../fasta/compiler_context.dart' show CompilerContext;
 
 import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 
-import '../fasta/kernel/utils.dart' show serializeComponent;
-
-import '../kernel_generator_impl.dart' show generateKernel;
+import '../kernel_generator_impl.dart' show CompilerResult, generateKernel;
 
 import 'compiler_state.dart'
     show InitializedCompilerState, WorkerInputComponent, digestsEqual;
@@ -114,8 +112,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     for (WorkerInputComponent cachedInput in workerInputCache.values) {
       cachedInput.component.adoptChildren();
     }
-    sdkComponent.unbindCanonicalNames();
-    sdkComponent.computeCanonicalNames();
 
     // Reuse the incremental compiler, but reset as needed.
     incrementalCompiler = oldState.incrementalCompiler;
@@ -125,9 +121,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   }
 
   // Then read all the input summary components.
-  // The nameRoot from the sdk was either just created or just unbound.
-  // If just unbound, only the sdk stuff is bound. Either way, don't clear it
-  // again and bind as much as possible before loading new stuff!
   CanonicalName nameRoot = cachedSdkInput.component.root;
   final inputSummaries = <Component>[];
   List<Uri> loadFromDill = new List<Uri>();
@@ -144,8 +137,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       for (var lib in component.libraries) {
         lib.isExternal = cachedInput.externalLibs.contains(lib.importUri);
       }
-      // We don't unbind as the root was unbound already. We do have to compute
-      // the canonical names though, to rebind everything in the component.
       component.adoptChildren();
       component.computeCanonicalNames();
       inputSummaries.add(component);
@@ -158,7 +149,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     WorkerInputComponent cachedInput = WorkerInputComponent(
         summaryDigest,
         await processedOpts.loadComponent(
-            await fileSystem.entityForUri(summary).readAsBytes(), nameRoot));
+            await fileSystem.entityForUri(summary).readAsBytes(), nameRoot,
+            alwaysCreateNewNamedNodes: true));
     workerInputCache[summary] = cachedInput;
     inputSummaries.add(cachedInput.component);
   }
@@ -199,9 +191,9 @@ Future<InitializedCompilerState> initializeCompiler(
   return new InitializedCompilerState(options, processedOpts);
 }
 
-Future<List<int>> compile(InitializedCompilerState compilerState,
+Future<CompilerResult> _compile(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
-    {bool summaryOnly}) async {
+    {bool summaryOnly}) {
   summaryOnly ??= true;
   CompilerOptions options = compilerState.options;
   options..onDiagnostic = diagnosticMessageHandler;
@@ -210,11 +202,24 @@ Future<List<int>> compile(InitializedCompilerState compilerState,
   processedOpts.inputs.clear();
   processedOpts.inputs.addAll(inputs);
 
-  var result = await generateKernel(processedOpts,
+  return generateKernel(processedOpts,
       buildSummary: summaryOnly, buildComponent: !summaryOnly);
+}
+
+Future<List<int>> compileSummary(InitializedCompilerState compilerState,
+    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler) async {
+  var result = await _compile(compilerState, inputs, diagnosticMessageHandler,
+      summaryOnly: true);
+  return result?.summary;
+}
+
+Future<Component> compileComponent(InitializedCompilerState compilerState,
+    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler) async {
+  var result = await _compile(compilerState, inputs, diagnosticMessageHandler,
+      summaryOnly: false);
 
   var component = result?.component;
-  if (component != null && !summaryOnly) {
+  if (component != null) {
     for (var lib in component.libraries) {
       if (!inputs.contains(lib.importUri)) {
         // Excluding the library also means that their canonical names will not
@@ -226,9 +231,5 @@ Future<List<int>> compile(InitializedCompilerState compilerState,
       }
     }
   }
-
-  return summaryOnly
-      ? result?.summary
-      : serializeComponent(result?.component,
-          filter: (library) => inputs.contains(library.importUri));
+  return component;
 }

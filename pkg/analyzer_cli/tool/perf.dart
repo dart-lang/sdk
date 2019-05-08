@@ -6,6 +6,7 @@
 import 'dart:async';
 import 'dart:io' show exit;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
@@ -77,7 +78,9 @@ void collectSources(Source start, Set<Source> files) {
 /// Uses the diet-parser to parse only directives in [source].
 CompilationUnit parseDirectives(Source source) {
   var token = tokenize(source);
-  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
+  var featureSet = FeatureSet.fromEnableFlags([]);
+  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER,
+      featureSet: featureSet);
   return parser.parseDirectives(token);
 }
 
@@ -107,7 +110,9 @@ void parseFiles(Set<Source> files) {
 /// Parse the full body of [source] and return it's compilation unit.
 CompilationUnit parseFull(Source source) {
   var token = tokenize(source);
-  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
+  var featureSet = FeatureSet.fromEnableFlags([]);
+  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER,
+      featureSet: featureSet);
   return parser.parseCompilationUnit(token);
 }
 
@@ -192,10 +197,13 @@ Token tokenize(Source source) {
   scanTimer.start();
   var contents = source.contents.data;
   scanTotalChars += contents.length;
+  // TODO(paulberry): figure out the appropriate featureSet to use here
+  var featureSet = FeatureSet.fromEnableFlags([]);
   // TODO(sigmund): is there a way to scan from a random-access-file without
   // first converting to String?
   var scanner = new Scanner(source, new CharSequenceReader(contents),
       AnalysisErrorListener.NULL_LISTENER)
+    ..configureFeatures(featureSet)
     ..preserveComments = false;
   var token = scanner.tokenize();
   scanTimer.stop();

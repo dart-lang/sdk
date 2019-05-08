@@ -10,6 +10,7 @@
 #include "vm/bitmap.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/constants.h"
+#include "vm/cpu.h"
 
 namespace dart {
 
@@ -37,6 +38,16 @@ enum Representation {
   kNumRepresentations
 };
 
+// The representation of 8 and 16 bit integers in 32 bit. SmallRepresentation
+// tracks the real representation of these small integers.
+enum SmallRepresentation {
+  kNoSmallRepresentation,
+  kSmallUnboxedInt8,
+  kSmallUnboxedUint8,
+  kSmallUnboxedInt16,
+  kSmallUnboxedUint16,
+};
+
 // 'UnboxedFfiIntPtr' should be able to hold a pointer of the target word-size.
 // On a 32-bit platform, it's an unsigned 32-bit int because it should be
 // zero-extended to 64-bits, not sign-extended (pointers are inherently
@@ -50,6 +61,8 @@ static constexpr Representation kUnboxedFfiIntPtr =
 // bit representation to be able to do arithmetic on pointers.
 static constexpr Representation kUnboxedIntPtr =
     compiler::target::kWordSize == 4 ? kUnboxedInt32 : kUnboxedInt64;
+
+class FrameRebase;
 
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding
@@ -206,6 +219,11 @@ class TemplateLocation : public ValueObject {
 
   TemplatePairLocation<TemplateLocation<Register, FpuRegister>>*
   AsPairLocation() const;
+
+  // For pair locations, returns the ith component (for i in {0, 1}).
+  TemplateLocation<Register, FpuRegister> Component(intptr_t i) const {
+    return AsPairLocation()->At(i);
+  }
 
   // Unallocated locations.
   enum Policy {
@@ -392,10 +410,24 @@ class TemplateLocation : public ValueObject {
  private:
   explicit TemplateLocation(uword value) : value_(value) {}
 
+  void set_stack_index(intptr_t index) {
+    ASSERT(HasStackIndex());
+    value_ = PayloadField::update(
+        StackIndexField::update(EncodeStackIndex(index), payload()), value_);
+  }
+
+  void set_base_reg(Register reg) {
+    ASSERT(HasStackIndex());
+    value_ = PayloadField::update(StackSlotBaseField::update(reg, payload()),
+                                  value_);
+  }
+
   TemplateLocation(Kind kind, uword payload)
       : value_(KindField::encode(kind) | PayloadField::encode(payload)) {}
 
   uword payload() const { return PayloadField::decode(value_); }
+
+  friend class FrameRebase;
 
   class KindField : public BitField<uword, Kind, kKindBitsPos, kKindBitsSize> {
   };
@@ -562,9 +594,15 @@ class RegisterSet : public ValueObject {
       Add(Location::RegisterLocation(reg));
     }
 
-    for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
-      Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
+#if defined(TARGET_ARCH_ARM)
+    if (TargetCPUFeatures::vfp_supported()) {
+#endif
+      for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
+        Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
+      }
+#if defined(TARGET_ARCH_ARM)
     }
+#endif
   }
 
   void Add(Location loc, Representation rep = kTagged) {
@@ -786,6 +824,36 @@ class LocationSummary : public ZoneAllocated {
 #if defined(DEBUG)
   intptr_t writable_inputs_;
 #endif
+};
+
+// Describes a change of stack frame where the stack or base register or stack
+// offset may change. This class allows easily rebasing stack locations across
+// frame manipulations.
+//
+// If the stack offset register matches 'old_base', it is changed to 'new_base'
+// and 'stack_delta' (# of slots) is applied.
+class FrameRebase : public ValueObject {
+ public:
+  FrameRebase(Register old_base, Register new_base, intptr_t stack_delta)
+      : old_base_(old_base), new_base_(new_base), stack_delta_(stack_delta) {}
+
+  Location Rebase(Location loc) {
+    if (loc.IsPairLocation()) {
+      return Location::Pair(Rebase(loc.Component(0)), Rebase(loc.Component(1)));
+    }
+    if (!loc.HasStackIndex() || loc.base_reg() != old_base_) {
+      return loc;
+    }
+
+    loc.set_base_reg(new_base_);
+    loc.set_stack_index(loc.stack_index() + stack_delta_);
+    return loc;
+  }
+
+ private:
+  Register old_base_;
+  Register new_base_;
+  intptr_t stack_delta_;
 };
 
 }  // namespace dart

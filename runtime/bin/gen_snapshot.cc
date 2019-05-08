@@ -18,13 +18,13 @@
 #include "bin/eventhandler.h"
 #include "bin/file.h"
 #include "bin/loader.h"
-#include "bin/log.h"
 #include "bin/options.h"
 #include "bin/platform.h"
 #include "bin/snapshot_utils.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
+#include "platform/syslog.h"
 
 #include "include/dart_api.h"
 #include "include/dart_tools_api.h"
@@ -46,7 +46,7 @@ static const int kErrorExitCode = 255;
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
     intptr_t exit_code = 0;                                                    \
-    Log::PrintErr("Error: %s\n", Dart_GetError(result));                       \
+    Syslog::PrintErr("Error: %s\n", Dart_GetError(result));                    \
     if (Dart_IsCompilationError(result)) {                                     \
       exit_code = kCompilationErrorExitCode;                                   \
     } else if (Dart_IsApiError(result)) {                                      \
@@ -152,7 +152,7 @@ static bool IsSnapshottingForPrecompilation() {
 
 // clang-format off
 static void PrintUsage() {
-  Log::PrintErr(
+  Syslog::PrintErr(
 "Usage: gen_snapshot [<vm-flags>] [<options>] <dart-kernel-file>             \n"
 "                                                                            \n"
 "Common options:                                                             \n"
@@ -194,7 +194,7 @@ static void PrintUsage() {
 "                                                                            \n"
 "\n");
   if (verbose) {
-    Log::PrintErr(
+    Syslog::PrintErr(
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");
     const char* print_flags = "--print_flags";
@@ -237,13 +237,13 @@ static int ParseArguments(int argc,
     PrintUsage();
     Platform::Exit(0);
   } else if (version) {
-    Log::PrintErr("Dart VM version: %s\n", Dart_VersionString());
+    Syslog::PrintErr("Dart VM version: %s\n", Dart_VersionString());
     Platform::Exit(0);
   }
 
   // Verify consistency of arguments.
   if (inputs->count() < 1) {
-    Log::PrintErr("At least one input is required\n");
+    Syslog::PrintErr("At least one input is required\n");
     return -1;
   }
 
@@ -251,7 +251,7 @@ static int ParseArguments(int argc,
     case kCore: {
       if ((vm_snapshot_data_filename == NULL) ||
           (isolate_snapshot_data_filename == NULL)) {
-        Log::PrintErr(
+        Syslog::PrintErr(
             "Building a core snapshot requires specifying output files for "
             "--vm_snapshot_data and --isolate_snapshot_data.\n\n");
         return -1;
@@ -263,7 +263,7 @@ static int ParseArguments(int argc,
           (vm_snapshot_instructions_filename == NULL) ||
           (isolate_snapshot_data_filename == NULL) ||
           (isolate_snapshot_instructions_filename == NULL)) {
-        Log::PrintErr(
+        Syslog::PrintErr(
             "Building a core JIT snapshot requires specifying output "
             "files for --vm_snapshot_data, --vm_snapshot_instructions, "
             "--isolate_snapshot_data and --isolate_snapshot_instructions.\n\n");
@@ -277,7 +277,7 @@ static int ParseArguments(int argc,
           (isolate_snapshot_data_filename == NULL) ||
           ((isolate_snapshot_instructions_filename == NULL) &&
            (reused_instructions_filename == NULL))) {
-        Log::PrintErr(
+        Syslog::PrintErr(
             "Building an app JIT snapshot requires specifying input files for "
             "--load_vm_snapshot_data and --load_vm_snapshot_instructions, an "
             " output file for --isolate_snapshot_data, and either an output "
@@ -293,7 +293,7 @@ static int ParseArguments(int argc,
            (vm_snapshot_instructions_filename == NULL) ||
            (isolate_snapshot_data_filename == NULL) ||
            (isolate_snapshot_instructions_filename == NULL))) {
-        Log::PrintErr(
+        Syslog::PrintErr(
             "Building an AOT snapshot as blobs requires specifying output "
             "file for --blobs_container_filename or "
             "files for --vm_snapshot_data, --vm_snapshot_instructions, "
@@ -305,7 +305,7 @@ static int ParseArguments(int argc,
            (vm_snapshot_instructions_filename != NULL) ||
            (isolate_snapshot_data_filename != NULL) ||
            (isolate_snapshot_instructions_filename != NULL))) {
-        Log::PrintErr(
+        Syslog::PrintErr(
             "Building an AOT snapshot as blobs requires specifying output "
             "file for --blobs_container_filename or "
             "files for --vm_snapshot_data, --vm_snapshot_instructions, "
@@ -317,7 +317,7 @@ static int ParseArguments(int argc,
     }
     case kAppAOTAssembly: {
       if (assembly_filename == NULL) {
-        Log::PrintErr(
+        Syslog::PrintErr(
             "Building an AOT snapshot as assembly requires specifying "
             "an output file for --assembly.\n\n");
         return -1;
@@ -326,7 +326,7 @@ static int ParseArguments(int argc,
     }
     case kVMAOTAssembly: {
       if (assembly_filename == NULL) {
-        Log::PrintErr(
+        Syslog::PrintErr(
             "Building an AOT snapshot as assembly requires specifying "
             "an output file for --assembly.\n\n");
         return -1;
@@ -336,14 +336,14 @@ static int ParseArguments(int argc,
   }
 
   if (!obfuscate && obfuscation_map_filename != NULL) {
-    Log::PrintErr(
+    Syslog::PrintErr(
         "--obfuscation_map=<...> should only be specified when obfuscation is "
         "enabled by --obfuscate flag.\n\n");
     return -1;
   }
 
   if (obfuscate && !IsSnapshottingForPrecompilation()) {
-    Log::PrintErr(
+    Syslog::PrintErr(
         "Obfuscation can only be enabled when building AOT snapshot.\n\n");
     return -1;
   }
@@ -354,7 +354,7 @@ static int ParseArguments(int argc,
 static File* OpenFile(const char* filename) {
   File* file = File::Open(NULL, filename, File::kWriteTruncate);
   if (file == NULL) {
-    Log::PrintErr("Error: Unable to write file: %s\n\n", filename);
+    Syslog::PrintErr("Error: Unable to write file: %s\n\n", filename);
     Dart_ExitScope();
     Dart_ShutdownIsolate();
     exit(kErrorExitCode);
@@ -368,7 +368,7 @@ static void WriteFile(const char* filename,
   File* file = OpenFile(filename);
   RefCntReleaseScope<File> rs(file);
   if (!file->WriteFully(buffer, size)) {
-    Log::PrintErr("Error: Unable to write file: %s\n\n", filename);
+    Syslog::PrintErr("Error: Unable to write file: %s\n\n", filename);
     Dart_ExitScope();
     Dart_ShutdownIsolate();
     exit(kErrorExitCode);
@@ -378,7 +378,7 @@ static void WriteFile(const char* filename,
 static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
   File* file = File::Open(NULL, filename, File::kRead);
   if (file == NULL) {
-    Log::PrintErr("Unable to open file %s\n", filename);
+    Syslog::PrintErr("Unable to open file %s\n", filename);
     Dart_ExitScope();
     Dart_ShutdownIsolate();
     exit(kErrorExitCode);
@@ -387,7 +387,7 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
   *size = file->Length();
   *buffer = reinterpret_cast<uint8_t*>(malloc(*size));
   if (!file->ReadFully(*buffer, *size)) {
-    Log::PrintErr("Unable to read file %s\n", filename);
+    Syslog::PrintErr("Unable to read file %s\n", filename);
     Dart_ExitScope();
     Dart_ShutdownIsolate();
     exit(kErrorExitCode);
@@ -479,7 +479,7 @@ static std::unique_ptr<MappedMemory> MapFile(const char* filename,
                                              const uint8_t** buffer) {
   File* file = File::Open(NULL, filename, File::kRead);
   if (file == NULL) {
-    Log::PrintErr("Failed to open: %s\n", filename);
+    Syslog::PrintErr("Failed to open: %s\n", filename);
     exit(kErrorExitCode);
   }
   RefCntReleaseScope<File> rs(file);
@@ -491,7 +491,7 @@ static std::unique_ptr<MappedMemory> MapFile(const char* filename,
   }
   MappedMemory* mapping = file->Map(type, 0, length);
   if (mapping == NULL) {
-    Log::PrintErr("Failed to read: %s\n", filename);
+    Syslog::PrintErr("Failed to read: %s\n", filename);
     exit(kErrorExitCode);
   }
   *buffer = reinterpret_cast<const uint8_t*>(mapping->address());
@@ -597,7 +597,7 @@ static void StreamingWriteCallback(void* callback_data,
                                    intptr_t size) {
   File* file = reinterpret_cast<File*>(callback_data);
   if (!file->WriteFully(buffer, size)) {
-    Log::PrintErr("Error: Unable to write snapshot file\n\n");
+    Syslog::PrintErr("Error: Unable to write snapshot file\n\n");
     Dart_ExitScope();
     Dart_ShutdownIsolate();
     exit(kErrorExitCode);
@@ -629,10 +629,10 @@ static void CreateAndWritePrecompiledSnapshot() {
     std::unique_ptr<MappedMemory> mapped_shared_instructions;
     if (shared_blobs_filename != NULL) {
       AppSnapshot* shared_blobs = NULL;
-      Log::PrintErr("Shared blobs in gen_snapshot are for testing only.\n");
+      Syslog::PrintErr("Shared blobs in gen_snapshot are for testing only.\n");
       shared_blobs = Snapshot::TryReadAppSnapshot(shared_blobs_filename);
       if (shared_blobs == NULL) {
-        Log::PrintErr("Failed to load: %s\n", shared_blobs_filename);
+        Syslog::PrintErr("Failed to load: %s\n", shared_blobs_filename);
         Dart_ExitScope();
         Dart_ShutdownIsolate();
         exit(kErrorExitCode);
@@ -732,7 +732,7 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
   }
   if (isolate == NULL) {
     delete isolate_data;
-    Log::PrintErr("%s\n", error);
+    Syslog::PrintErr("%s\n", error);
     free(error);
     return kErrorExitCode;
   }
@@ -821,7 +821,7 @@ int main(int argc, char** argv) {
   DartUtils::SetEnvironment(environment);
 
   if (!Platform::Initialize()) {
-    Log::PrintErr("Initialization failed\n");
+    Syslog::PrintErr("Initialization failed\n");
     return kErrorExitCode;
   }
   Console::SaveConfig();
@@ -843,14 +843,11 @@ int main(int argc, char** argv) {
 #if !defined(TARGET_ARCH_IA32)
     vm_options.AddArgument("--link_natives_lazily");
 #endif
-#if !defined(PRODUCT)
-    vm_options.AddArgument("--collect_code=false");
-#endif
   }
 
   char* error = Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
   if (error != NULL) {
-    Log::PrintErr("Setting VM flags failed: %s\n", error);
+    Syslog::PrintErr("Setting VM flags failed: %s\n", error);
     free(error);
     return kErrorExitCode;
   }
@@ -892,7 +889,7 @@ int main(int argc, char** argv) {
 
   error = Dart_Initialize(&init_params);
   if (error != NULL) {
-    Log::PrintErr("VM initialization failed: %s\n", error);
+    Syslog::PrintErr("VM initialization failed: %s\n", error);
     free(error);
     return kErrorExitCode;
   }
@@ -904,7 +901,7 @@ int main(int argc, char** argv) {
 
   error = Dart_Cleanup();
   if (error != NULL) {
-    Log::PrintErr("VM cleanup failed: %s\n", error);
+    Syslog::PrintErr("VM cleanup failed: %s\n", error);
     free(error);
   }
   EventHandler::Stop();

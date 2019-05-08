@@ -470,6 +470,30 @@ class Class9 {
     const ConstantData(
         'const Class9()', 'ConstructedConstant(Class9(field=IntConstant(0)))'),
   ]),
+  const TestData('type-variables', '''
+class A {
+  const A();
+}
+
+class C1<T> {
+  final T a;
+  const C1(dynamic t) : a = t; // adds implicit cast `as T`
+}
+
+T id<T>(T t) => t;
+
+class C2<T> {
+  final T Function(T) a;
+  const C2(dynamic t) : a = id; // implicit partial instantiation
+}
+''', const <ConstantData>[
+    const ConstantData('const C1<A>(const A())',
+        'ConstructedConstant(C1<A>(a=ConstructedConstant(A())))'),
+    const ConstantData(
+        'const C2<A>(id)',
+        'ConstructedConstant(C2<A>(a='
+            'InstantiationConstant([A],FunctionConstant(id))))'),
+  ])
 ];
 
 main(List<String> args) {
@@ -509,6 +533,7 @@ Future testData(TestData data) async {
       'main.dart': source
     }, options: [
       Flags.enableAsserts,
+      '${Flags.enableLanguageExperiments}=constant-update-2018',
     ]);
     Compiler compiler = result.compiler;
     KernelFrontEndStrategy frontEndStrategy = compiler.frontendStrategy;

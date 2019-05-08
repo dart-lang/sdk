@@ -90,8 +90,10 @@ bool polyfill(window) => JS('', '''(() => {
       }
     }
     if (typeof $window.SourceBufferList == "undefined") {
-      $window.SourceBufferList =
-        new $window.MediaSource().sourceBuffers.constructor;
+      if ('MediaSource' in $window) {
+        $window.SourceBufferList =
+          new $window.MediaSource().sourceBuffers.constructor; 
+      }
     }
     if (typeof $window.SpeechRecognition == "undefined") {
       $window.SpeechRecognition = $window.webkitSpeechRecognition;

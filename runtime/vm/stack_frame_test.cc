@@ -306,7 +306,7 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
         "     * dart frame corresponding to StackFrame.frameCount"
         "     * dart frame corresponding to StackFrame2Test.noSuchMethod"
         "     * entry frame"
-        "     * exit frame (call to runtime InvokeNoSuchMethodDispatcher)"
+        "     * exit frame (call to runtime NoSuchMethodFromCallStub)"
         "     * IC stub"
         "     * dart frame corresponding to StackFrame2Test.testMain"
         "     * entry frame"

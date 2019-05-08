@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 
 /// Defines the AST model. The AST (Abstract Syntax Tree) model describes the
@@ -1223,6 +1224,17 @@ abstract class CompilationUnit implements AstNode {
   /// [token].
   void set endToken(Token token);
 
+  /// The set of features available to this compilation unit, or `null` if
+  /// unknown.
+  ///
+  /// Determined by some combination of the .packages file, the enclosing
+  /// package's SDK version constraint, and/or the presence of a `@dart`
+  /// directive in a comment at the top of the file.
+  ///
+  /// Might be `null` if, for example, this [CompilationUnit] has been
+  /// resynthesized from a summary,
+  FeatureSet get featureSet;
+
   /// Return the line information for this compilation unit.
   LineInfo get lineInfo;
 
@@ -2289,14 +2301,16 @@ abstract class FormalParameter implements AstNode {
   /// even though they are implicitly final.
   bool get isFinal;
 
-  /// Return `true` if this parameter is a named parameter. Named parameters are
-  /// always optional, even when they are annotated with the `@required`
-  /// annotation.
+  /// Return `true` if this parameter is a named parameter. Named parameters can
+  /// either be required or optional.
   bool get isNamed;
 
   /// Return `true` if this parameter is an optional parameter. Optional
   /// parameters can either be positional or named.
   bool get isOptional;
+
+  /// Return `true` if this parameter is both an optional and named parameter.
+  bool get isOptionalNamed;
 
   /// Return `true` if this parameter is both an optional and positional
   /// parameter.
@@ -2307,11 +2321,21 @@ abstract class FormalParameter implements AstNode {
   bool get isPositional;
 
   /// Return `true` if this parameter is a required parameter. Required
-  /// parameters are always positional.
+  /// parameters can either be positional or named.
   ///
   /// Note: this will return `false` for a named parameter that is annotated
   /// with the `@required` annotation.
   bool get isRequired;
+
+  /// Return `true` if this parameter is both a required and named parameter.
+  ///
+  /// Note: this will return `false` for a named parameter that is annotated
+  /// with the `@required` annotation.
+  bool get isRequiredNamed;
+
+  /// Return `true` if this parameter is both a required and positional
+  /// parameter.
+  bool get isRequiredPositional;
 
   /// Return the kind of this parameter.
   @deprecated
@@ -3447,6 +3471,15 @@ abstract class InvocationExpression implements Expression {
   /// Return the type arguments to be applied to the method being invoked, or
   /// `null` if no type arguments were provided.
   TypeArgumentList get typeArguments;
+
+  /// Return the actual type arguments of the invocation, either explicitly
+  /// specified in [typeArguments], or inferred.
+  ///
+  /// If the AST has been resolved, never returns `null`, returns an empty list
+  /// if the [function] does not have type parameters.
+  ///
+  /// Return `null` if the AST structure has not been resolved.
+  List<DartType> get typeArgumentTypes;
 }
 
 /// An is expression.
@@ -5227,6 +5260,9 @@ abstract class VariableDeclaration implements Declaration {
   /// even though they are implicitly final.
   bool get isFinal;
 
+  /// Return `true` if this variable was declared with the 'late' modifier.
+  bool get isLate;
+
   /// Return the name of the variable being declared.
   SimpleIdentifier get name;
 
@@ -5240,10 +5276,10 @@ abstract class VariableDeclaration implements Declaration {
 ///        finalConstVarOrType [VariableDeclaration] (',' [VariableDeclaration])*
 ///
 ///    finalConstVarOrType ::=
-///      | 'final' [TypeAnnotation]?
+///      'final' 'late'? [TypeAnnotation]?
 ///      | 'const' [TypeAnnotation]?
 ///      | 'var'
-///      | [TypeAnnotation]
+///      | 'late'? [TypeAnnotation]
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class VariableDeclarationList implements AnnotatedNode {
@@ -5257,6 +5293,10 @@ abstract class VariableDeclarationList implements AnnotatedNode {
   /// this is a syntactic check rather than a semantic check.)
   bool get isFinal;
 
+  /// Return `true` if the variables in this list were declared with the 'late'
+  /// modifier.
+  bool get isLate;
+
   /// Return the token representing the 'final', 'const' or 'var' keyword, or
   /// `null` if no keyword was included.
   Token get keyword;
@@ -5264,6 +5304,10 @@ abstract class VariableDeclarationList implements AnnotatedNode {
   /// Set the token representing the 'final', 'const' or 'var' keyword to the
   /// given [token].
   void set keyword(Token token);
+
+  /// Return the token representing the 'late' keyword, or `null` if the late
+  /// modifier was not included.
+  Token get lateKeyword;
 
   /// Return the type of the variables being declared, or `null` if no type was
   /// provided.

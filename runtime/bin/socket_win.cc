@@ -9,12 +9,12 @@
 #include "bin/eventhandler.h"
 #include "bin/file.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/socket_base_win.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {
@@ -171,7 +171,7 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr,
 
   if (reusePort) {
     // ignore reusePort - not supported on this platform.
-    Log::PrintErr(
+    Syslog::PrintErr(
         "Dart Socket ERROR: %s:%d: `reusePort` not supported for "
         "Windows.",
         __FILE__, __LINE__);

@@ -87,7 +87,7 @@ type StringReference {
 }
 
 type ConstantReference {
-  UInt index; // Index into the Component's constants.
+  UInt offset; // Byte offset into the Component's constants.
 }
 
 type SourceInfo {

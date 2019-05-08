@@ -152,7 +152,7 @@ class ChangeSetTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class EnclosedScopeTest extends ResolverTestCase {
+class EnclosedScopeTest extends DriverResolutionTest {
   test_define_duplicate() async {
     Scope rootScope = new _RootScope();
     EnclosedScope scope = new EnclosedScope(rootScope);
@@ -332,7 +332,7 @@ class LibraryScopeTest extends ResolverTestCase {
 }
 
 @reflectiveTest
-class PrefixedNamespaceTest extends ResolverTestCase {
+class PrefixedNamespaceTest extends DriverResolutionTest {
   void test_lookup_missing() {
     ClassElement element = ElementFactory.classElement2('A');
     PrefixedNamespace namespace = new PrefixedNamespace('p', _toMap([element]));
@@ -361,7 +361,7 @@ class PrefixedNamespaceTest extends ResolverTestCase {
 }
 
 @reflectiveTest
-class ScopeTest extends ResolverTestCase {
+class ScopeTest extends DriverResolutionTest {
   void test_define_duplicate() {
     Scope scope = new _RootScope();
     SimpleIdentifier identifier = AstTestFactory.identifier3('v');
@@ -574,155 +574,143 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
  * and warnings are reported when the analysis engine is run in strict mode.
  */
 @reflectiveTest
-class StrictModeTest extends ResolverTestCase {
-  @override
-  void setUp() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.hint = false;
-    resetWith(options: options);
-  }
-
+class StrictModeTest extends DriverResolutionTest {
   test_assert_is() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(num n) {
   assert (n is int);
   return n & 0x0F;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 47, 1),
+    ]);
   }
 
   test_conditional_and_is() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 int f(num n) {
   return (n is int && n > 0) ? n & 0x0F : 0;
 }''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
   }
 
   test_conditional_is() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 int f(num n) {
   return (n is int) ? n & 0x0F : 0;
 }''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
   }
 
   test_conditional_isNot() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(num n) {
   return (n is! int) ? 0 : n & 0x0F;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 44, 1),
+    ]);
   }
 
   test_conditional_or_is() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(num n) {
   return (n is! int || n < 0) ? 0 : n & 0x0F;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 53, 1),
+    ]);
   }
 
-  @failingTest
+//  @failingTest
   test_for() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(List<int> list) {
   num sum = 0;
   for (num i = 0; i < list.length; i++) {
     sum += list[i];
   }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(HintCode.MISSING_RETURN, 0, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 3),
+    ]);
   }
 
   test_forEach() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(List<int> list) {
   num sum = 0;
   for (num n in list) {
     sum += n & 0x0F;
   }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(HintCode.MISSING_RETURN, 0, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 76, 1),
+    ]);
   }
 
   test_if_and_is() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 int f(num n) {
   if (n is int && n > 0) {
     return n & 0x0F;
   }
   return 0;
 }''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
   }
 
   test_if_is() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 int f(num n) {
   if (n is int) {
     return n & 0x0F;
   }
   return 0;
 }''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
   }
 
   test_if_isNot() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(num n) {
   if (n is! int) {
     return 0;
   } else {
     return n & 0x0F;
   }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 72, 1),
+    ]);
   }
 
   test_if_isNot_abrupt() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(num n) {
   if (n is! int) {
     return 0;
   }
   return n & 0x0F;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 63, 1),
+    ]);
   }
 
   test_if_or_is() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(num n) {
   if (n is! int || n < 0) {
     return 0;
   } else {
     return n & 0x0F;
   }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 81, 1),
+    ]);
   }
 
   test_localVar() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f() {
   num n = 1234;
   return n & 0x0F;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 37, 1),
+    ]);
   }
 }
 
@@ -1834,6 +1822,7 @@ A v = new A();
         AstTestFactory.functionTypedFormalParameter(
             AstTestFactory.typeName4('R'), 'g', [eNode]);
     ParameterElementImpl gElement = ElementFactory.requiredParameter('g');
+    gElement.typeParameters = [elementE];
     gNode.identifier.staticElement = gElement;
 
     FunctionTypeImpl gType =
@@ -1952,7 +1941,7 @@ A v = new A();
       ..staticElement = new _StaleElement();
     TypeName typeName = astFactory.typeName(id, null);
     _resolveNode(typeName, []);
-    expect(typeName.type, UndefinedTypeImpl.instance);
+    expect(typeName.type, DynamicTypeImpl.instance);
     expect(typeName.name.staticElement, null);
     _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
   }
@@ -1993,7 +1982,7 @@ A v = new A();
     TypeName typeName =
         astFactory.typeName(AstTestFactory.identifier(prefix, suffix), null);
     _resolveNode(typeName, []);
-    expect(typeName.type, UndefinedTypeImpl.instance);
+    expect(typeName.type, DynamicTypeImpl.instance);
     expect(prefix.staticElement, null);
     expect(suffix.staticElement, null);
     _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);

@@ -6,7 +6,7 @@ import("../configs.gni")
 import("platform_sources.gni")
 
 library_for_all_configs("libdart_platform") {
-  target_type = "static_library"
+  target_type = "source_set"
   public_configs = [ "../vm:libdart_vm_config" ]
   sources = platform_sources
   include_dirs = [ ".." ]

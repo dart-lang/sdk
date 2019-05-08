@@ -6,6 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../src/dart/resolution/driver_resolution.dart';
 import 'resolver_test_case.dart';
 
 main() {
@@ -15,34 +16,31 @@ main() {
 }
 
 @reflectiveTest
-class NonHintCodeTest extends ResolverTestCase {
+class NonHintCodeTest extends DriverResolutionTest {
   test_async_future_object_without_return() async {
-    Source source = addSource('''
+    await assertErrorsInCode('''
 import 'dart:async';
 Future<Object> f() async {}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.MISSING_RETURN]);
-    verify([source]);
+''', [
+      error(HintCode.MISSING_RETURN, 21, 14),
+    ]);
   }
 
   test_issue20904BuggyTypePromotionAtIfJoin_1() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 f(var message, var dynamic_) {
   if (message is Function) {
     message = dynamic_;
   }
   int s = message;
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
+}
+''');
   }
 
   test_issue20904BuggyTypePromotionAtIfJoin_3() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 f(var message) {
   var dynamic_;
   if (message is Function) {
@@ -51,15 +49,13 @@ f(var message) {
     return;
   }
   int s = message;
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
+}
+''');
   }
 
   test_issue20904BuggyTypePromotionAtIfJoin_4() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 f(var message) {
   if (message is Function) {
     message = '';
@@ -67,14 +63,12 @@ f(var message) {
     return;
   }
   String s = message;
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
+}
+''');
   }
 
   test_propagatedFieldType() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 class A { }
 class X<T> {
   final x = new List<T>();
@@ -84,14 +78,12 @@ class Z {
   foo() {
     y.x.add(new A());
   }
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
+}
+''');
   }
 
   test_proxy_annotation_prefixed() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 library L;
 @proxy
 class A {}
@@ -103,13 +95,12 @@ f(var a) {
   var y = a + a;
   a++;
   ++a;
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
+}
+''');
   }
 
   test_proxy_annotation_prefixed2() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 library L;
 @proxy
 class A {}
@@ -123,13 +114,12 @@ class B {
     a++;
     ++a;
   }
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
+}
+''');
   }
 
   test_proxy_annotation_prefixed3() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 library L;
 class B {
   f(var a) {
@@ -143,13 +133,12 @@ class B {
   }
 }
 @proxy
-class A {}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
+class A {}
+''');
   }
 
   test_undefinedMethod_assignmentExpression_inSubtype() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 class A {}
 class B extends A {
   operator +(B b) {return new B();}
@@ -158,23 +147,21 @@ f(var a, var a2) {
   a = new A();
   a2 = new A();
   a += a2;
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
+}
+''');
   }
 
   test_undefinedMethod_dynamic() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 class D<T extends dynamic> {
   fieldAccess(T t) => t.abc;
   methodAccess(T t) => t.xyz(1, 2, 'three');
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
+}
+''');
   }
 
   test_undefinedMethod_unionType_all() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   int m(int x) => 0;
 }
@@ -189,13 +176,12 @@ f(A a, B b) {
     ab = b;
   }
   ab.m();
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
+}
+''');
   }
 
   test_undefinedMethod_unionType_some() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   int m(int x) => 0;
 }
@@ -208,9 +194,8 @@ f(A a, B b) {
     ab = b;
   }
   ab.m(0);
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
+}
+''');
   }
 }
 
@@ -219,24 +204,24 @@ class PubSuggestionCodeTest extends ResolverTestCase {
   //  the first would fail. We should implement these checks and enable the
   //  tests.
   test_import_package() async {
-    Source source = addSource("import 'package:somepackage/other.dart';");
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+    await assertErrorsInCode('''
+import 'package:somepackage/other.dart';
+''', [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
   test_import_packageWithDotDot() async {
-    Source source = addSource("import 'package:somepackage/../other.dart';");
-    await computeAnalysisResult(source);
-    assertErrors(source, [
+    await assertErrorsInCode('''
+import 'package:somepackage/../other.dart';
+''', [
       CompileTimeErrorCode.URI_DOES_NOT_EXIST,
       HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT
     ]);
   }
 
   test_import_packageWithLeadingDotDot() async {
-    Source source = addSource("import 'package:../other.dart';");
-    await computeAnalysisResult(source);
-    assertErrors(source, [
+    await assertErrorsInCode('''
+import 'package:../other.dart';
+''', [
       CompileTimeErrorCode.URI_DOES_NOT_EXIST,
       HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT
     ]);

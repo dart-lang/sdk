@@ -13,11 +13,10 @@ class Collector {
   final JCommonElements _commonElements;
   final JElementEnvironment _elementEnvironment;
   final OutputUnitData _outputUnitData;
-  final CodegenWorldBuilder _worldBuilder;
+  final CodegenWorld _codegenWorld;
   // TODO(floitsch): the code-emitter task should not need a namer.
   final Namer _namer;
   final Emitter _emitter;
-  final JavaScriptConstantCompiler _constantHandler;
   final NativeData _nativeData;
   final InterceptorData _interceptorData;
   final OneShotInterceptorData _oneShotInterceptorData;
@@ -52,10 +51,9 @@ class Collector {
       this._commonElements,
       this._elementEnvironment,
       this._outputUnitData,
-      this._worldBuilder,
+      this._codegenWorld,
       this._namer,
       this._emitter,
-      this._constantHandler,
       this._nativeData,
       this._interceptorData,
       this._oneShotInterceptorData,
@@ -66,7 +64,7 @@ class Collector {
 
   Set<ClassEntity> computeInterceptorsReferencedFromConstants() {
     Set<ClassEntity> classes = new Set<ClassEntity>();
-    List<ConstantValue> constants = _worldBuilder.getConstantsForEmission();
+    Iterable<ConstantValue> constants = _codegenWorld.getConstantsForEmission();
     for (ConstantValue constant in constants) {
       if (constant is InterceptorConstantValue) {
         InterceptorConstantValue interceptorConstant = constant;
@@ -127,8 +125,8 @@ class Collector {
 
   /// Compute all the constants that must be emitted.
   void computeNeededConstants() {
-    List<ConstantValue> constants =
-        _worldBuilder.getConstantsForEmission(_emitter.compareConstants);
+    Iterable<ConstantValue> constants =
+        _codegenWorld.getConstantsForEmission(_emitter.compareConstants);
     for (ConstantValue constant in constants) {
       if (_emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
 
@@ -156,7 +154,7 @@ class Collector {
     Set<ClassEntity> instantiatedClasses =
         // TODO(johnniwinther): This should be accessed from a codegen closed
         // world.
-        _worldBuilder.directlyInstantiatedClasses
+        _codegenWorld.directlyInstantiatedClasses
             .where(computeClassFilter(backendTypeHelpers))
             .toSet();
 
@@ -268,14 +266,14 @@ class Collector {
       list.add(element);
     }
 
-    List<FieldEntity> fields =
-        // TODO(johnniwinther): This should be accessed from a codegen closed
-        // world.
-        _worldBuilder.allReferencedStaticFields.where((FieldEntity field) {
-      return _closedWorld.fieldAnalysis.getFieldData(field).isEager;
-    }).toList();
+    List<FieldEntity> eagerFields = [];
+    _codegenWorld.forEachStaticField((FieldEntity field) {
+      if (_closedWorld.fieldAnalysis.getFieldData(field).isEager) {
+        eagerFields.add(field);
+      }
+    });
 
-    fields.sort((FieldEntity a, FieldEntity b) {
+    eagerFields.sort((FieldEntity a, FieldEntity b) {
       FieldAnalysisData aFieldData = _closedWorld.fieldAnalysis.getFieldData(a);
       FieldAnalysisData bFieldData = _closedWorld.fieldAnalysis.getFieldData(b);
       int aIndex = aFieldData.eagerCreationIndex;
@@ -292,7 +290,7 @@ class Collector {
         return _sorter.compareMembersByLocation(a, b);
       }
     });
-    fields.forEach(addToOutputUnit);
+    eagerFields.forEach(addToOutputUnit);
   }
 
   void computeNeededLibraries() {

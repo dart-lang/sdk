@@ -196,7 +196,7 @@ class FixProcessor {
         unitLibraryElement = context.resolveResult.libraryElement,
         unit = context.resolveResult.unit,
         utils = CorrectionUtils(context.resolveResult),
-        flutter = Flutter.of(context.resolveResult.session),
+        flutter = Flutter.of(context.resolveResult),
         error = context.error,
         errorOffset = context.error.offset,
         errorLength = context.error.length;
@@ -1747,7 +1747,7 @@ class FixProcessor {
       // prepare parameters and arguments
       Iterable<ParameterElement> requiredParameters = superConstructor
           .parameters
-          .where((parameter) => parameter.isNotOptional);
+          .where((parameter) => parameter.isRequiredPositional);
       // add proposal
       ClassMemberLocation targetLocation =
           utils.prepareNewConstructorLocation(targetClassNode);
@@ -2343,9 +2343,11 @@ class FixProcessor {
     ClassDeclaration declaration =
         node.thisOrAncestorOfType<ClassDeclaration>();
     if (declaration != null && declaration.extendsClause == null) {
+      // TODO(brianwilkerson) Find a way to pass in the name of the class
+      //  without needing to parse the message.
       String message = error.message;
-      int startIndex = message.indexOf("'", message.indexOf("'") + 1) + 1;
-      int endIndex = message.indexOf("'", startIndex);
+      int endIndex = message.lastIndexOf("'");
+      int startIndex = message.lastIndexOf("'", endIndex - 1) + 1;
       String typeName = message.substring(startIndex, endIndex);
       var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -3908,7 +3910,7 @@ class FixProcessor {
     // Prepare the last required parameter.
     FormalParameter lastRequiredParameter;
     for (FormalParameter parameter in parameters) {
-      if (parameter.isRequired) {
+      if (parameter.isRequiredPositional) {
         lastRequiredParameter = parameter;
       }
     }
@@ -4692,7 +4694,7 @@ class _ExecutableParameters {
 
   _ExecutableParameters._(this.sessionHelper, this.executable) {
     for (var parameter in executable.parameters) {
-      if (parameter.isNotOptional) {
+      if (parameter.isRequiredPositional) {
         required.add(parameter);
       } else if (parameter.isOptionalPositional) {
         optionalPositional.add(parameter);

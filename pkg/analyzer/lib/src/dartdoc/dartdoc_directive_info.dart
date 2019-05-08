@@ -18,6 +18,13 @@ class DartdocDirectiveInfo {
       r'[ ]*{@template\s+(.+?)}([\s\S]+?){@endtemplate}[ ]*\n?',
       multiLine: true);
 
+  /// A regular expression used to match a youtube or animation directive.
+  ///
+  /// These are in the form:
+  /// `{@youtube 560 315 https://www.youtube.com/watch?v=2uaoEDOgk_I}`.
+  static final videoRegExp =
+      new RegExp(r'{@(youtube|animation)\s+[^}]+\s+[^}]+\s+([^}]+)}');
+
   /// A table mapping the names of templates to the unprocessed bodies of the
   /// templates.
   final Map<String, String> templateMap = {};
@@ -45,8 +52,12 @@ class DartdocDirectiveInfo {
     }
   }
 
-  /// Process the given Dartdoc [comment], replacing any macro directives with
-  /// the body of the corresponding template.
+  /// Process the given Dartdoc [comment], replacing any known dartdoc
+  /// directives with the associated content.
+  ///
+  /// Macro directives are replaced with the body of the corresponding template.
+  ///
+  /// Youtube and animation directives are replaced with markdown hyperlinks.
   String processDartdoc(String comment) {
     List<String> lines = _stripDelimiters(comment);
     for (int i = lines.length - 1; i >= 0; i--) {
@@ -58,6 +69,20 @@ class DartdocDirectiveInfo {
         if (value != null) {
           lines[i] = value;
         }
+        continue;
+      }
+
+      match = videoRegExp.firstMatch(line);
+      if (match != null) {
+        String uri = match.group(2);
+        if (uri != null && uri.isNotEmpty) {
+          String label = uri;
+          if (label.startsWith('https://')) {
+            label = label.substring('https://'.length);
+          }
+          lines[i] = '[$label]($uri)';
+        }
+        continue;
       }
     }
     return lines.join('\n');

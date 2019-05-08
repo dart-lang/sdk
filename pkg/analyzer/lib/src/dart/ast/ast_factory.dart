@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -178,14 +179,27 @@ class AstFactoryImpl extends AstFactory {
       new CommentReferenceImpl(newKeyword, identifier);
 
   @override
+  @deprecated
   CompilationUnit compilationUnit(
           Token beginToken,
           ScriptTag scriptTag,
           List<Directive> directives,
           List<CompilationUnitMember> declarations,
-          Token endToken) =>
-      new CompilationUnitImpl(
-          beginToken, scriptTag, directives, declarations, endToken);
+          Token endToken,
+          [FeatureSet featureSet]) =>
+      new CompilationUnitImpl(beginToken, scriptTag, directives, declarations,
+          endToken, featureSet);
+
+  @override
+  CompilationUnit compilationUnit2(
+          {Token beginToken,
+          ScriptTag scriptTag,
+          List<Directive> directives,
+          List<CompilationUnitMember> declarations,
+          Token endToken,
+          FeatureSet featureSet}) =>
+      new CompilationUnitImpl(beginToken, scriptTag, directives, declarations,
+          endToken, featureSet);
 
   @override
   ConditionalExpression conditionalExpression(
@@ -1021,7 +1035,19 @@ class AstFactoryImpl extends AstFactory {
           TypeAnnotation type,
           List<VariableDeclaration> variables) =>
       new VariableDeclarationListImpl(
-          comment, metadata, keyword, type, variables);
+          comment, metadata, null, keyword, type, variables);
+
+  @override
+  VariableDeclarationList variableDeclarationList2(
+      {Comment comment,
+      List<Annotation> metadata,
+      Token lateKeyword,
+      Token keyword,
+      TypeAnnotation type,
+      List<VariableDeclaration> variables}) {
+    return new VariableDeclarationListImpl(
+        comment, metadata, lateKeyword, keyword, type, variables);
+  }
 
   @override
   VariableDeclarationStatement variableDeclarationStatement(

@@ -10,7 +10,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart'
     show File, Folder, ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';

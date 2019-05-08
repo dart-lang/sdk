@@ -82,7 +82,7 @@ class ClassFunctionVisitor : public ClassVisitor {
     for (intptr_t j = 0; j < fields_.Length(); j++) {
       field_ ^= fields_.At(j);
       if (field_.is_static() && field_.HasInitializerFunction()) {
-        function_ ^= field_.InitializerFunction();
+        function_ = field_.InitializerFunction();
         visitor_->Visit(function_);
       }
     }

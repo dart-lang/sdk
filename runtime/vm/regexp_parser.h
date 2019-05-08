@@ -14,13 +14,18 @@ namespace dart {
 // Accumulates RegExp atoms and assertions into lists of terms and alternatives.
 class RegExpBuilder : public ZoneAllocated {
  public:
-  RegExpBuilder();
+  explicit RegExpBuilder(RegExpFlags flags);
 
   void AddCharacter(uint16_t character);
+  void AddUnicodeCharacter(uint32_t character);
+  void AddEscapedUnicodeCharacter(uint32_t character);
   // "Adds" an empty expression. Does nothing except consume a
   // following quantifier
   void AddEmpty();
+  void AddCharacterClass(RegExpCharacterClass* cc);
+  void AddCharacterClassForDesugaring(uint32_t c);
   void AddAtom(RegExpTree* tree);
+  void AddTerm(RegExpTree* tree);
   void AddAssertion(RegExpTree* tree);
   void NewAlternative();  // '|'
   // Attempt to add a quantifier to the last atom added. The return value
@@ -30,17 +35,30 @@ class RegExpBuilder : public ZoneAllocated {
                            intptr_t max,
                            RegExpQuantifier::QuantifierType type);
   RegExpTree* ToRegExp();
+  RegExpFlags flags() const { return flags_; }
+  bool ignore_case() const { return flags_.IgnoreCase(); }
+  bool is_multi_line() const { return flags_.IsMultiLine(); }
+  bool is_dot_all() const { return flags_.IsDotAll(); }
 
  private:
+  static const uint16_t kNoPendingSurrogate = 0;
+  void AddLeadSurrogate(uint16_t lead_surrogate);
+  void AddTrailSurrogate(uint16_t trail_surrogate);
+  void FlushPendingSurrogate();
   void FlushCharacters();
   void FlushText();
   void FlushTerms();
+  bool NeedsDesugaringForUnicode(RegExpCharacterClass* cc);
+  bool NeedsDesugaringForIgnoreCase(uint32_t c);
 
   Zone* zone() const { return zone_; }
+  bool is_unicode() const { return flags_.IsUnicode(); }
 
   Zone* zone_;
   bool pending_empty_;
+  RegExpFlags flags_;
   ZoneGrowableArray<uint16_t>* characters_;
+  uint16_t pending_surrogate_;
   GrowableArray<RegExpTree*> terms_;
   GrowableArray<RegExpTree*> text_;
   GrowableArray<RegExpTree*> alternatives_;
@@ -56,16 +74,15 @@ using RegExpCaptureName = ZoneGrowableArray<uint16_t>;
 
 class RegExpParser : public ValueObject {
  public:
-  RegExpParser(const String& in, String* error, bool multiline_mode);
+  RegExpParser(const String& in, String* error, RegExpFlags regexp_flags);
 
   static void ParseRegExp(const String& input,
-                          bool multiline,
+                          RegExpFlags regexp_flags,
                           RegExpCompileData* result);
 
   RegExpTree* ParsePattern();
   RegExpTree* ParseDisjunction();
   RegExpTree* ParseGroup();
-  RegExpTree* ParseCharacterClass();
 
   // Parses a {...,...} quantifier and stores the range in the given
   // out parameters.
@@ -78,6 +95,24 @@ class RegExpParser : public ValueObject {
   // Checks whether the following is a length-digit hexadecimal number,
   // and sets the value if it is.
   bool ParseHexEscape(intptr_t length, uint32_t* value);
+  bool ParseUnicodeEscape(uint32_t* value);
+  bool ParseUnlimitedLengthHexNumber(uint32_t max_value, uint32_t* value);
+
+  // Parses either {UNICODE_PROPERTY_NAME=UNICODE_PROPERTY_VALUE} or
+  // the shorthand {UNICODE_PROPERTY_NAME_OR_VALUE} and stores the
+  // result in the given out parameters. If the shorthand is used,
+  // nothing will be added to name_2.
+  bool ParsePropertyClassName(ZoneGrowableArray<char>* name_1,
+                              ZoneGrowableArray<char>* name_2);
+  // Adds the specified unicode property to the provided character range.
+  bool AddPropertyClassRange(ZoneGrowableArray<CharacterRange>* add_to,
+                             bool negate,
+                             ZoneGrowableArray<char>* name_1,
+                             ZoneGrowableArray<char>* name_2);
+  // Returns a regexp node that corresponds to one of these unicode
+  // property sequences: "Any", "ASCII", "Assigned".
+  RegExpTree* GetPropertySequence(ZoneGrowableArray<char>* name_1);
+  RegExpTree* ParseCharacterClass(const RegExpBuilder* builder);
 
   uint32_t ParseOctalLiteral();
 
@@ -87,7 +122,10 @@ class RegExpParser : public ValueObject {
   // can be reparsed.
   bool ParseBackReferenceIndex(intptr_t* index_out);
 
-  CharacterRange ParseClassAtom(uint16_t* char_class);
+  // Attempts to parse a possible escape within a character class.
+  bool ParseClassEscape(ZoneGrowableArray<CharacterRange>* ranges,
+                        bool add_unicode_case_equivalents,
+                        uint32_t* char_out);
   void ReportError(const char* message);
   void Advance();
   void Advance(intptr_t dist);
@@ -100,6 +138,9 @@ class RegExpParser : public ValueObject {
   void set_contains_anchor() { contains_anchor_ = true; }
   intptr_t captures_started() { return captures_started_; }
   intptr_t position() { return next_pos_ - 1; }
+  bool is_unicode() const { return top_level_flags_.IsUnicode(); }
+
+  static bool IsSyntaxCharacterOrSlash(uint32_t c);
 
   static const intptr_t kMaxCaptures = 1 << 16;
   static const uint32_t kEndMarker = (1 << 21);
@@ -120,9 +161,10 @@ class RegExpParser : public ValueObject {
                       RegExpLookaround::Type lookaround_type,
                       intptr_t disjunction_capture_index,
                       const RegExpCaptureName* capture_name,
+                      RegExpFlags flags,
                       Zone* zone)
         : previous_state_(previous_state),
-          builder_(new (zone) RegExpBuilder()),
+          builder_(new (zone) RegExpBuilder(flags)),
           group_type_(group_type),
           lookaround_type_(lookaround_type),
           disjunction_capture_index_(disjunction_capture_index),
@@ -198,6 +240,7 @@ class RegExpParser : public ValueObject {
   bool has_more() { return has_more_; }
   bool has_next() { return next_pos_ < in().Length(); }
   uint32_t Next();
+  uint32_t ReadNext(bool update_position);
   const String& in() { return in_; }
   void ScanForCaptures();
 
@@ -212,7 +255,7 @@ class RegExpParser : public ValueObject {
   // The capture count is only valid after we have scanned for captures.
   intptr_t capture_count_;
   bool has_more_;
-  bool multiline_;
+  RegExpFlags top_level_flags_;
   bool simple_;
   bool contains_anchor_;
   bool is_scanned_for_captures_;

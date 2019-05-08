@@ -502,7 +502,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     var name = original.name ?? "";
     var element = original.element;
     var function = new FunctionElementImpl(name, -1);
-    function.enclosingElement = element.enclosingElement;
+    function.enclosingElement = element?.enclosingElement;
     function.isSynthetic = true;
     function.returnType = newType.returnType;
     function.typeParameters = freshVarElements;
@@ -602,8 +602,14 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   Map<String, DartType> get namedParameterTypes {
+    // TODO(brianwilkerson) This implementation breaks the contract because the
+    //  parameters will not necessarily be returned in the order in which they
+    //  were declared.
     Map<String, DartType> types = <String, DartType>{};
     _forEachParameterType(ParameterKind.NAMED, (name, type) {
+      types[name] = type;
+    });
+    _forEachParameterType(ParameterKind.NAMED_REQUIRED, (name, type) {
       types[name] = type;
     });
     return types;
@@ -672,6 +678,9 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes,
       {bool withNullability = false}) {
+    // TODO(paulberry): update to use the new "Function" syntax to avoid
+    // ambiguity with NNBD, and eliminate code duplication with
+    // _ElementWriter.writeType.  See issue #35818.
     if (visitedTypes.add(this)) {
       if (typeFormals.isNotEmpty) {
         // To print a type with type variables, first make sure we have unique
@@ -936,43 +945,6 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   /**
-   * Given a generic function type [g] and an instantiated function type [f],
-   * find a list of type arguments TArgs such that `g<TArgs> == f`,
-   * and return TArgs.
-   *
-   * This function must be called with type [f] that was instantiated from [g].
-   *
-   * If [g] is not generic, returns an empty list.
-   */
-  static Iterable<DartType> recoverTypeArguments(
-      FunctionType g, FunctionType f) {
-    // TODO(jmesserly): perhaps a better design here would be: instead of
-    // recording staticInvokeType on InvocationExpression, we could record the
-    // instantiated type arguments, that way we wouldn't need to recover them.
-    //
-    // For now though, this is a pretty quick operation.
-    if (g.typeFormals.isEmpty) {
-      assert(g == f);
-      return const <DartType>[];
-    }
-    assert(f.typeFormals.isEmpty);
-    assert(g.typeFormals.length <= f.typeArguments.length);
-
-    // Instantiation in Analyzer works like this:
-    // Given:
-    //     {U/T} <S> T -> S
-    // Where {U/T} represents the typeArguments (U) and typeParameters (T) list,
-    // and <S> represents the typeFormals.
-    //
-    // Now instantiate([V]), and the result should be:
-    //     {U/T, V/S} T -> S.
-    //
-    // Therefore, we can recover the typeArguments from our instantiated
-    // function.
-    return f.typeArguments.skip(f.typeArguments.length - g.typeFormals.length);
-  }
-
-  /**
    * Compares two function types [t] and [s] to see if their corresponding
    * parameter types match [parameterRelation], return types match
    * [returnRelation], and type parameter bounds match [boundsRelation].
@@ -1055,7 +1027,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     var tOptional = <ParameterElement>[];
     var tNamed = <String, ParameterElement>{};
     for (var p in tParams) {
-      if (p.isNotOptional) {
+      if (p.isRequiredPositional) {
         tRequired.add(p);
       } else if (p.isOptionalPositional) {
         tOptional.add(p);
@@ -1069,7 +1041,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     var sOptional = <ParameterElement>[];
     var sNamed = <String, ParameterElement>{};
     for (var p in sParams) {
-      if (p.isNotOptional) {
+      if (p.isRequiredPositional) {
         sRequired.add(p);
       } else if (p.isOptionalPositional) {
         sOptional.add(p);
@@ -3265,87 +3237,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 }
 
 /**
- * The unique instance of the class `UndefinedTypeImpl` implements the type of
- * type names that couldn't be resolved.
- *
- * This class behaves like DynamicTypeImpl in almost every respect, to reduce
- * cascading errors.
- */
-class UndefinedTypeImpl extends TypeImpl {
-  /**
-   * The unique instance of this class.
-   */
-  static final UndefinedTypeImpl instance = new UndefinedTypeImpl._();
-
-  /**
-   * Prevent the creation of instances of this class.
-   */
-  UndefinedTypeImpl._()
-      : super(DynamicElementImpl.instance, Keyword.DYNAMIC.lexeme);
-
-  @override
-  int get hashCode => 1;
-
-  @override
-  bool get isDynamic => true;
-
-  @override
-  bool get isUndefined => true;
-
-  @override
-  NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.star;
-
-  @override
-  bool operator ==(Object object) => identical(object, this);
-
-  @override
-  bool isMoreSpecificThan(DartType type,
-      [bool withDynamic = false, Set<Element> visitedElements]) {
-    // T is S
-    if (identical(this, type)) {
-      return true;
-    }
-    // else
-    return withDynamic;
-  }
-
-  @override
-  bool isSubtypeOf(DartType type) => true;
-
-  @override
-  bool isSupertypeOf(DartType type) => true;
-
-  @override
-  TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
-
-  @override
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true}) {
-    if (isCovariant) {
-      return typeProvider.nullType;
-    } else {
-      return this;
-    }
-  }
-
-  @override
-  DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes,
-      [List<FunctionTypeAliasElement> prune]) {
-    int length = parameterTypes.length;
-    for (int i = 0; i < length; i++) {
-      if (parameterTypes[i] == this) {
-        return argumentTypes[i];
-      }
-    }
-    return this;
-  }
-
-  @override
-  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) => this;
-}
-
-/**
  * The type `void`.
  */
 abstract class VoidType implements DartType {
@@ -3511,7 +3402,7 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
   @override
   List<String> get normalParameterNames {
     return baseParameters
-        .where((parameter) => parameter.isNotOptional)
+        .where((parameter) => parameter.isRequiredPositional)
         .map((parameter) => parameter.name)
         .toList();
   }
@@ -3798,8 +3689,10 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
   List<FunctionTypeAliasElement> get newPrune => const [];
 
   @override
-  List<String> get normalParameterNames =>
-      parameters.where((p) => p.isNotOptional).map((p) => p.name).toList();
+  List<String> get normalParameterNames => parameters
+      .where((p) => p.isRequiredPositional)
+      .map((p) => p.name)
+      .toList();
 
   @override
   List<String> get optionalParameterNames => parameters

@@ -166,6 +166,24 @@ class ProgramCompiler extends Object
   /// label name that was assigned to it.
   final _labelNames = HashMap<Statement, String>.identity();
 
+  /// Indicates that the current context exists within a switch statement that
+  /// uses at least one continue statement with a target label.
+  ///
+  /// JS forbids labels at case statement boundaries, so these switch
+  /// statements must be generated less directly.
+  /// Updated from the method 'visitSwitchStatement'.
+  bool _inLabeledContinueSwitch = false;
+
+  /// A map from switch statements to their state information.
+  /// State information includes the names of the switch statement's implicit
+  /// label name and implicit state variable name.
+  ///
+  /// Entries are only created for switch statements that contain labeled
+  /// continue statements and are used to simulate "jumping" to case statements.
+  /// State variables hold the next constant case expression, while labels act
+  /// as targets for continue and break.
+  final _switchLabelStates = HashMap<Statement, SwitchLabelState>();
+
   final Class _jsArrayClass;
   final Class privateSymbolClass;
   final Class linkedHashMapImplClass;
@@ -3226,6 +3244,12 @@ class ProgramCompiler extends Object
 
   @override
   visitBreakStatement(BreakStatement node) {
+    // Switch statements with continue labels must explicitly break to their
+    // implicit label due to their being wrapped in a loop.
+    if (_inLabeledContinueSwitch &&
+        _switchLabelStates.containsKey(node.target.body)) {
+      return JS.Break(_switchLabelStates[node.target.body].label);
+    }
     // Can it be compiled to a break without a label?
     if (_currentBreakTargets.contains(node.target)) {
       return JS.Break(null);
@@ -3238,7 +3262,7 @@ class ProgramCompiler extends Object
     // Ensure the effective target is labeled.  Labels are named globally per
     // Kernel binary.
     //
-    // TODO(kmillikin): Preserve Dart label names in Kernel and here.
+    // TODO(markzipan): Retrieve the real label name with source offsets
     var target = _effectiveTargets[node.target];
     var name = _labelNames[target];
     if (name == null) _labelNames[target] = name = 'L${_labelNames.length}';
@@ -3407,43 +3431,102 @@ class ProgramCompiler extends Object
 
   @override
   visitSwitchStatement(SwitchStatement node) {
+    // Switches with labeled continues are generated as an infinite loop with
+    // an explicit variable for holding the switch's next case state and an
+    // explicit label. Any implicit breaks are made explicit (e.g., when break
+    // is omitted for the final case statement).
+    var previous = _inLabeledContinueSwitch;
+    _inLabeledContinueSwitch = hasLabeledContinue(node);
+
     var cases = <JS.SwitchCase>[];
-    var emptyBlock = JS.Block.empty();
-    for (var c in node.cases) {
-      // TODO(jmesserly): make sure we are statically checking fall through
-      var body = _visitStatement(c.body).toBlock();
-      var expressions = c.expressions;
-      var last =
-          expressions.isNotEmpty && !c.isDefault ? expressions.last : null;
-      for (var e in expressions) {
-        var jsExpr = _visitExpression(e);
-        cases.add(JS.SwitchCase(jsExpr, e == last ? body : emptyBlock));
+
+    if (_inLabeledContinueSwitch) {
+      var labelState = JS.TemporaryId("labelState");
+      // TODO(markzipan): Retrieve the real label name with source offsets
+      var labelName = 'SL${_switchLabelStates.length}';
+      _switchLabelStates[node] = SwitchLabelState(labelName, labelState);
+
+      for (var c in node.cases) {
+        var subcases =
+            _visitSwitchCase(c, lastSwitchCase: c == node.cases.last);
+        if (subcases.isNotEmpty) cases.addAll(subcases);
       }
-      if (c.isDefault) cases.add(JS.SwitchCase.defaultCase(body));
+
+      var switchExpr = _visitExpression(node.expression);
+      var switchStmt = JS.Switch(labelState, cases);
+      var loopBody = JS.Block([switchStmt, JS.Break(null)]);
+      var loopStmt = JS.While(js.boolean(true), loopBody);
+      // Note: Cannot use _labelNames, as the label must be on the loop.
+      // not the block surrounding the switch statement.
+      var labeledStmt = JS.LabeledStatement(labelName, loopStmt);
+      var block = JS.Block([
+        js.statement('let # = #', [labelState, switchExpr]),
+        labeledStmt
+      ]);
+      _inLabeledContinueSwitch = previous;
+      return block;
     }
 
-    return JS.Switch(_visitExpression(node.expression), cases);
+    for (var c in node.cases) {
+      var subcases = _visitSwitchCase(c);
+      if (subcases.isNotEmpty) cases.addAll(subcases);
+    }
+
+    var stmt = JS.Switch(_visitExpression(node.expression), cases);
+    _inLabeledContinueSwitch = previous;
+    return stmt;
+  }
+
+  /// Helper for visiting a SwitchCase statement.
+  ///
+  /// lastSwitchCase is only used when the current switch statement contains
+  /// labeled continues. Dart permits the final case to implicitly break, but
+  /// switch statements with labeled continues must explicitly break/continue
+  /// to escape the surrounding infinite loop.
+  List<JS.SwitchCase> _visitSwitchCase(SwitchCase node,
+      {bool lastSwitchCase: false}) {
+    var cases = <JS.SwitchCase>[];
+    var emptyBlock = JS.Block.empty();
+    // TODO(jmesserly): make sure we are statically checking fall through
+    var body = _visitStatement(node.body).toBlock();
+    var expressions = node.expressions;
+    var lastExpr =
+        expressions.isNotEmpty && !node.isDefault ? expressions.last : null;
+    for (var e in expressions) {
+      var jsExpr = _visitExpression(e);
+      cases.add(JS.SwitchCase(jsExpr, e == lastExpr ? body : emptyBlock));
+    }
+    if (node.isDefault) {
+      cases.add(JS.SwitchCase.defaultCase(body));
+    }
+    // Switch statements with continue labels must explicitly break from their
+    // last case to escape the additional loop around the switch.
+    if (lastSwitchCase && _inLabeledContinueSwitch && cases.isNotEmpty) {
+      // TODO(markzipan): avoid generating unreachable breaks
+      assert(_switchLabelStates.containsKey(node.parent));
+      var breakStmt = JS.Break(_switchLabelStates[node.parent].label);
+      var switchBody = JS.Block(cases.last.body.statements..add(breakStmt));
+      var updatedSwitch = JS.SwitchCase(cases.last.expression, switchBody);
+      cases.removeLast();
+      cases.add(updatedSwitch);
+    }
+    return cases;
   }
 
   @override
   visitContinueSwitchStatement(ContinueSwitchStatement node) {
-    SwitchCase switchCase;
-    for (Statement current = node;;) {
-      var parent = current.parent;
-      if (parent is Block && parent.statements.last == current) {
-        current = parent;
-        continue;
-      }
-      if (parent is SwitchCase) switchCase = parent;
-      break;
-    }
-    if (switchCase != null) {
-      var switchCases = (switchCase.parent as SwitchStatement).cases;
-      var fromIndex = switchCases.indexOf(switchCase);
-      var toIndex = switchCases.indexOf(node.target);
-      if (toIndex == fromIndex + 1) {
-        return JS.Comment('continue to next case');
-      }
+    var switchStmt = node.target.parent;
+    if (_inLabeledContinueSwitch &&
+        _switchLabelStates.containsKey(switchStmt)) {
+      var switchState = _switchLabelStates[switchStmt];
+      // Use the first constant expression that can match the collated switch
+      // case. Use an unused symbol otherwise to force the default case.
+      var jsExpr = node.target.expressions.isEmpty
+          ? js.call("Symbol('_default')", [])
+          : _visitExpression(node.target.expressions[0]);
+      var setStateStmt = js.statement("# = #", [switchState.variable, jsExpr]);
+      var continueStmt = JS.Continue(switchState.label);
+      return JS.Block([setStateStmt, continueStmt]);
     }
     return _emitInvalidNode(
             node, 'see https://github.com/dart-lang/sdk/issues/29352')
@@ -5260,4 +5343,11 @@ bool _isObjectMethodCall(String name, Arguments args) {
         args.types.isEmpty;
   }
   return false;
+}
+
+class SwitchLabelState {
+  String label;
+  JS.Identifier variable;
+
+  SwitchLabelState(this.label, this.variable);
 }

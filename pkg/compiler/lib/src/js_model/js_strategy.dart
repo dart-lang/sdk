@@ -12,6 +12,7 @@ import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart';
 import '../compiler.dart';
 import '../deferred_load.dart';
+import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../enqueue.dart';
 import '../io/kernel_source_information.dart'
@@ -23,13 +24,17 @@ import '../inferrer/types.dart';
 import '../js/js_source_mapping.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/inferred_data.dart';
+import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
+import '../js_emitter/code_emitter_task.dart';
 import '../kernel/kernel_strategy.dart';
 import '../native/behavior.dart';
+import '../options.dart';
 import '../ssa/builder_kernel.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
 import '../ssa/types.dart';
+import '../tracer.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
@@ -92,29 +97,37 @@ class JsBackendStrategy implements BackendStrategy {
   }
 
   @override
-  SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
+  SsaBuilder createSsaBuilder(CompilerTask task, CodegenInputs codegen,
       SourceInformationStrategy sourceInformationStrategy) {
     return new KernelSsaBuilder(
         task,
-        backend.compiler,
+        _compiler.options,
+        _compiler.reporter,
+        _compiler.dumpInfoTask,
         // ignore:deprecated_member_use_from_same_package
-        elementMap);
+        elementMap,
+        codegen.namer,
+        codegen.emitter,
+        codegen.tracer,
+        sourceInformationStrategy);
   }
 
   @override
-  WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
+  WorkItemBuilder createCodegenWorkItemBuilder(
+      JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults,
+      CodegenInputs codegen) {
     return new KernelCodegenWorkItemBuilder(
-        _compiler.backend, closedWorld, globalInferenceResults);
+        _compiler.backend, closedWorld, globalInferenceResults, codegen);
   }
 
   @override
   CodegenWorldBuilder createCodegenWorldBuilder(
       NativeBasicData nativeBasicData,
-      covariant JsClosedWorld closedWorld,
+      JClosedWorld closedWorld,
       SelectorConstraintsStrategy selectorConstraintsStrategy) {
     return new CodegenWorldBuilderImpl(
-        closedWorld.elementMap, closedWorld, selectorConstraintsStrategy);
+        closedWorld, selectorConstraintsStrategy);
   }
 
   @override
@@ -133,15 +146,16 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
   final JavaScriptBackend _backend;
   final JClosedWorld _closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
+  final CodegenInputs _codegen;
 
-  KernelCodegenWorkItemBuilder(
-      this._backend, this._closedWorld, this._globalInferenceResults);
+  KernelCodegenWorkItemBuilder(this._backend, this._closedWorld,
+      this._globalInferenceResults, this._codegen);
 
   @override
   CodegenWorkItem createWorkItem(MemberEntity entity) {
     if (entity.isAbstract) return null;
     return new KernelCodegenWorkItem(
-        _backend, _closedWorld, _globalInferenceResults, entity);
+        _backend, _closedWorld, _globalInferenceResults, _codegen, entity);
   }
 }
 
@@ -153,43 +167,66 @@ class KernelCodegenWorkItem extends CodegenWorkItem {
   @override
   final CodegenRegistry registry;
   final GlobalTypeInferenceResults _globalInferenceResults;
+  final CodegenInputs _codegen;
 
   KernelCodegenWorkItem(this._backend, this._closedWorld,
-      this._globalInferenceResults, this.element)
+      this._globalInferenceResults, this._codegen, this.element)
       : registry =
             new CodegenRegistry(_closedWorld.elementEnvironment, element);
 
   @override
   WorldImpact run() {
-    return _backend.codegen(this, _closedWorld, _globalInferenceResults);
+    return _backend.generateCode(
+        this, _closedWorld, _globalInferenceResults, _codegen);
   }
 }
 
 /// Task for building SSA from kernel IR loaded from .dill.
 class KernelSsaBuilder implements SsaBuilder {
-  final CompilerTask task;
-  final Compiler _compiler;
+  final CompilerTask _task;
+  final CompilerOptions _options;
+  final DiagnosticReporter _reporter;
+  final DumpInfoTask _dumpInfoTask;
   final JsToElementMap _elementMap;
+  final Namer _namer;
+  final Emitter _emitter;
+  final Tracer _tracer;
+  final SourceInformationStrategy _sourceInformationStrategy;
+
+  // TODO(johnniwinther,sra): Inlining decisions should not be based on the
+  // order in which ssa graphs are built.
   FunctionInlineCache _inlineCache;
 
-  KernelSsaBuilder(this.task, this._compiler, this._elementMap);
+  KernelSsaBuilder(
+      this._task,
+      this._options,
+      this._reporter,
+      this._dumpInfoTask,
+      this._elementMap,
+      this._namer,
+      this._emitter,
+      this._tracer,
+      this._sourceInformationStrategy);
 
   @override
   HGraph build(CodegenWorkItem work, JClosedWorld closedWorld,
       GlobalTypeInferenceResults results) {
     _inlineCache ??= new FunctionInlineCache(closedWorld.annotationsData);
-    return task.measure(() {
+    return _task.measure(() {
       KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
+          _options,
+          _reporter,
           work.element,
           _elementMap.getMemberThisType(work.element),
-          _compiler,
+          _dumpInfoTask,
           _elementMap,
           results,
           closedWorld,
-          _compiler.codegenWorldBuilder,
           work.registry,
-          _compiler.backend.emitter.nativeEmitter,
-          _compiler.backend.sourceInformationStrategy,
+          _namer,
+          _emitter,
+          _tracer,
+          _sourceInformationStrategy,
           _inlineCache);
       return builder.build();
     });
@@ -268,7 +305,7 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
 
   @override
   AbstractValue inferredIndexType(ir.ForInStatement node) {
-    return AbstractValueFactory.inferredTypeForSelector(
+    return AbstractValueFactory.inferredResultTypeForSelector(
         new Selector.index(), typeOfIterator(node), _globalInferenceResults);
   }
 
@@ -285,8 +322,8 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   }
 
   @override
-  AbstractValue selectorTypeOf(Selector selector, AbstractValue mask) {
-    return AbstractValueFactory.inferredTypeForSelector(
+  AbstractValue resultTypeOfSelector(Selector selector, AbstractValue mask) {
+    return AbstractValueFactory.inferredResultTypeForSelector(
         selector, mask, _globalInferenceResults);
   }
 

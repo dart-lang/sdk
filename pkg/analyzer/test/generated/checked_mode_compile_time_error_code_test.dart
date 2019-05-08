@@ -227,10 +227,7 @@ class A {
   const A(String this.x);
 }
 var v = const A('foo');
-''', [
-      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-      StaticWarningCode.UNDEFINED_CLASS
-    ]);
+''', [StaticWarningCode.UNDEFINED_CLASS]);
   }
 
   test_fieldFormalParameterNotAssignableToField_implements() async {
@@ -362,10 +359,7 @@ class A {
   final Unresolved y;
 }
 var v = const A('foo');
-''', [
-      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-      StaticWarningCode.UNDEFINED_CLASS
-    ]);
+''', [StaticWarningCode.UNDEFINED_CLASS]);
   }
 
   test_fieldTypeOk_generic() async {
@@ -489,10 +483,7 @@ class A {
   const A(Unresolved x);
 }
 var v = const A('foo');
-''', [
-      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-      StaticWarningCode.UNDEFINED_CLASS
-    ]);
+''', [StaticWarningCode.UNDEFINED_CLASS]);
   }
 
   test_redirectingConstructor_paramTypeMismatch() async {
@@ -544,9 +535,6 @@ const int x = 'foo';
   test_topLevelVarNotAssignable_undefined() async {
     await assertErrorCodesInCode('''
 const Unresolved x = 'foo';
-''', [
-      CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
-      StaticWarningCode.UNDEFINED_CLASS
-    ]);
+''', [StaticWarningCode.UNDEFINED_CLASS]);
   }
 }

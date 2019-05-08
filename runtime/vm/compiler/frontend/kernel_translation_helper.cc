@@ -2899,7 +2899,7 @@ void TypeTranslator::BuildTypeParameterType() {
   if (parameter_index < class_types.Length()) {
     // The index of the type parameter in [parameters] is
     // the same index into the `klass->type_parameters()` array.
-    result_ ^= class_types.TypeAt(parameter_index);
+    result_ = class_types.TypeAt(parameter_index);
     return;
   }
   parameter_index -= class_types.Length();
@@ -2924,7 +2924,7 @@ void TypeTranslator::BuildTypeParameterType() {
       //   }
       //
       if (class_types.Length() > parameter_index) {
-        result_ ^= class_types.TypeAt(parameter_index);
+        result_ = class_types.TypeAt(parameter_index);
         return;
       }
       parameter_index -= class_types.Length();
@@ -2936,7 +2936,7 @@ void TypeTranslator::BuildTypeParameterType() {
             : 0;
     if (procedure_type_parameter_count > 0) {
       if (procedure_type_parameter_count > parameter_index) {
-        result_ ^=
+        result_ =
             TypeArguments::Handle(Z, active_class_->member->type_parameters())
                 .TypeAt(parameter_index);
         if (finalize_) {
@@ -2951,7 +2951,7 @@ void TypeTranslator::BuildTypeParameterType() {
 
   if (active_class_->local_type_parameters != NULL) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
-      result_ ^= active_class_->local_type_parameters->TypeAt(parameter_index);
+      result_ = active_class_->local_type_parameters->TypeAt(parameter_index);
       if (finalize_) {
         result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
       }
@@ -2963,7 +2963,7 @@ void TypeTranslator::BuildTypeParameterType() {
   if (type_parameter_scope_ != NULL &&
       parameter_index < type_parameter_scope_->outer_parameter_count() +
                             type_parameter_scope_->parameter_count()) {
-    result_ ^= Type::DynamicType();
+    result_ = Type::DynamicType();
     return;
   }
 

@@ -346,6 +346,8 @@ class RunServiceTask : public ThreadPool::Task {
                      ": Isolate creation error: %s\n",
                      error);
       }
+      free(error);
+      error = nullptr;
       ServiceIsolate::SetServiceIsolate(NULL);
       ServiceIsolate::InitializingFailed();
       return;

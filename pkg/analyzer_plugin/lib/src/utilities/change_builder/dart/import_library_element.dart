@@ -112,7 +112,7 @@ ImportLibraryRequest importLibraryElementImpl({
 
   // Check for existing imports of the requested library.
   for (var import in targetLibrary.imports) {
-    if (import.importedLibrary.source.uri == requestedLibraryUri) {
+    if (import.importedLibrary?.source?.uri == requestedLibraryUri) {
       var importedNames = import.namespace.definedNames;
       if (import.prefix == null) {
         if (canUseUnprefixedImport &&

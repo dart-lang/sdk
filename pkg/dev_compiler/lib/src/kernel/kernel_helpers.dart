@@ -276,3 +276,56 @@ Class getSuperclassAndMixins(Class c, List<Class> mixins) {
   }
   return sc;
 }
+
+/// Returns true if a switch statement contains any continues with a label.
+bool hasLabeledContinue(SwitchStatement node) {
+  var visitor = LabelContinueFinder();
+  node.accept(visitor);
+  return visitor.found;
+}
+
+class LabelContinueFinder extends StatementVisitor {
+  var found = false;
+
+  visit(Statement s) {
+    if (!found && s != null) s.accept(this);
+  }
+
+  @override
+  visitBlock(Block node) => node.statements.forEach(visit);
+  @override
+  visitAssertBlock(AssertBlock node) => node.statements.forEach(visit);
+  @override
+  visitWhileStatement(WhileStatement node) => visit(node.body);
+  @override
+  visitDoStatement(DoStatement node) => visit(node.body);
+  @override
+  visitForStatement(ForStatement node) => visit(node.body);
+  @override
+  visitForInStatement(ForInStatement node) => visit(node.body);
+  @override
+  visitContinueSwitchStatement(ContinueSwitchStatement node) => found = true;
+
+  @override
+  visitSwitchStatement(SwitchStatement node) {
+    node.cases.forEach((c) => visit(c.body));
+  }
+
+  @override
+  visitIfStatement(IfStatement node) {
+    visit(node.then);
+    visit(node.otherwise);
+  }
+
+  @override
+  visitTryCatch(TryCatch node) {
+    visit(node.body);
+    node.catches.forEach((c) => visit(c.body));
+  }
+
+  @override
+  visitTryFinally(TryFinally node) {
+    visit(node.body);
+    visit(node.finalizer);
+  }
+}

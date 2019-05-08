@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart' as public;
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/type.dart';
@@ -193,8 +194,12 @@ class Dart2TypeSystem extends TypeSystem {
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
-    return inferrer.infer(fnType, fnType.typeFormals,
-        errorReporter: errorReporter, errorNode: errorNode);
+    var inferredTypes = inferrer.infer(
+      fnType.typeFormals,
+      errorReporter: errorReporter,
+      errorNode: errorNode,
+    );
+    return fnType.instantiate(inferredTypes);
   }
 
   /// Infers a generic type, function, method, or list/map literal
@@ -227,10 +232,53 @@ class Dart2TypeSystem extends TypeSystem {
       AstNode errorNode,
       bool downwards: false,
       bool isConst: false}) {
+    var inferredTypes = inferGenericFunctionOrType2(
+      genericType,
+      parameters,
+      argumentTypes,
+      returnContextType,
+      errorReporter: errorReporter,
+      errorNode: errorNode,
+      downwards: downwards,
+      isConst: isConst,
+    );
+    return genericType.instantiate(inferredTypes);
+  }
+
+  /// Infers type arguments for a generic type, function, method, or
+  /// list/map literal, using the downward context type as well as the
+  /// argument types if available.
+  ///
+  /// For example, given a function type with generic type parameters, this
+  /// infers the type parameters from the actual argument types, and returns the
+  /// instantiated function type.
+  ///
+  /// Concretely, given a function type with parameter types P0, P1, ... Pn,
+  /// result type R, and generic type parameters T0, T1, ... Tm, use the
+  /// argument types A0, A1, ... An to solve for the type parameters.
+  ///
+  /// For each parameter Pi, we want to ensure that Ai <: Pi. We can do this by
+  /// running the subtype algorithm, and when we reach a type parameter Tj,
+  /// recording the lower or upper bound it must satisfy. At the end, all
+  /// constraints can be combined to determine the type.
+  ///
+  /// All constraints on each type parameter Tj are tracked, as well as where
+  /// they originated, so we can issue an error message tracing back to the
+  /// argument values, type parameter "extends" clause, or the return type
+  /// context.
+  List<DartType> inferGenericFunctionOrType2<T extends ParameterizedType>(
+      T genericType,
+      List<ParameterElement> parameters,
+      List<DartType> argumentTypes,
+      DartType returnContextType,
+      {ErrorReporter errorReporter,
+      AstNode errorNode,
+      bool downwards: false,
+      bool isConst: false}) {
     // TODO(jmesserly): expose typeFormals on ParameterizedType.
     List<TypeParameterElement> typeFormals = typeFormalsAsElements(genericType);
     if (typeFormals.isEmpty) {
-      return genericType;
+      return null;
     }
 
     // Create a TypeSystem that will allow certain type parameters to be
@@ -257,7 +305,7 @@ class Dart2TypeSystem extends TypeSystem {
           genericType: genericType);
     }
 
-    return inferrer.infer(genericType, typeFormals,
+    return inferrer.infer(typeFormals,
         errorReporter: errorReporter,
         errorNode: errorNode,
         downwardsInferPhase: downwards);
@@ -297,7 +345,7 @@ class Dart2TypeSystem extends TypeSystem {
       Map<TypeParameterType, DartType> knownTypes}) {
     int count = typeFormals.length;
     if (count == 0) {
-      return null;
+      return const <DartType>[];
     }
 
     Set<TypeParameterType> all = new Set<TypeParameterType>();
@@ -323,6 +371,9 @@ class Dart2TypeSystem extends TypeSystem {
       Set<DartType> visitedTypes = new HashSet<DartType>();
 
       void appendParameters(DartType type) {
+        if (type == null) {
+          return;
+        }
         if (visitedTypes.contains(type)) {
           return;
         }
@@ -330,6 +381,13 @@ class Dart2TypeSystem extends TypeSystem {
         if (type is TypeParameterType && all.contains(type)) {
           parameters ??= <TypeParameterType>[];
           parameters.add(type);
+        } else if (AnalysisDriver.useSummary2) {
+          if (type is FunctionType) {
+            appendParameters(type.returnType);
+            type.parameters.map((p) => p.type).forEach(appendParameters);
+          } else if (type is InterfaceType) {
+            type.typeArguments.forEach(appendParameters);
+          }
         } else if (type is ParameterizedType) {
           type.typeArguments.forEach(appendParameters);
         }
@@ -771,6 +829,8 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     // Union the named parameters together.
+    // TODO(brianwilkerson) Handle the fact that named parameters can now be
+    //  required.
     Map<String, DartType> fNamed = f.namedParameterTypes;
     Map<String, DartType> gNamed = g.namedParameterTypes;
     for (String name in fNamed.keys.toSet()..addAll(gNamed.keys)) {
@@ -1145,16 +1205,16 @@ class GenericInferrer {
     tryMatchSubtypeOf(declaredType, contextType, origin, covariant: true);
   }
 
-  /// Given the constraints that were given by calling [isSubtypeOf], find the
-  /// instantiation of the generic function that satisfies these constraints.
+  /// Given the constraints that were given by calling [constrainArgument] and
+  /// [constrainReturnType], find the type arguments for the [typeFormals] that
+  /// satisfies these constraints.
   ///
   /// If [downwardsInferPhase] is set, we are in the first pass of inference,
   /// pushing context types down. At that point we are allowed to push down
   /// `?` to precisely represent an unknown type. If [downwardsInferPhase] is
   /// false, we are on our final inference pass, have all available information
   /// including argument types, and must not conclude `?` for any type formal.
-  T infer<T extends ParameterizedType>(
-      T genericType, List<TypeParameterElement> typeFormals,
+  List<DartType> infer(List<TypeParameterElement> typeFormals,
       {bool considerExtendsClause: true,
       ErrorReporter errorReporter,
       AstNode errorNode,
@@ -1188,7 +1248,7 @@ class GenericInferrer {
     // If the downwards infer phase has failed, we'll catch this in the upwards
     // phase later on.
     if (downwardsInferPhase) {
-      return genericType.instantiate(inferredTypes) as T;
+      return inferredTypes;
     }
 
     // Check the inferred types against all of the constraints.
@@ -1247,8 +1307,8 @@ class GenericInferrer {
 
     // Use instantiate to bounds to finish things off.
     var hasError = new List<bool>.filled(fnTypeParams.length, false);
-    var result = _typeSystem.instantiateToBounds(genericType,
-        hasError: hasError, knownTypes: knownTypes) as T;
+    var result = _typeSystem.instantiateTypeFormalsToBounds(typeFormals,
+        hasError: hasError, knownTypes: knownTypes);
 
     // Report any errors from instantiateToBounds.
     for (int i = 0; i < hasError.length; i++) {
@@ -1266,6 +1326,7 @@ class GenericInferrer {
         ]);
       }
     }
+
     return result;
   }
 
@@ -1978,8 +2039,13 @@ abstract class TypeSystem implements public.TypeSystem {
       inferrer.constrainReturnType(srcs[i], dests[i]);
       inferrer.constrainReturnType(dests[i], srcs[i]);
     }
-    var result = inferrer.infer(mixinElement.type, typeParameters,
-        considerExtendsClause: false);
+
+    var inferredTypes = inferrer.infer(
+      typeParameters,
+      considerExtendsClause: false,
+    );
+    var result = mixinElement.type.instantiate(inferredTypes);
+
     for (int i = 0; i < srcs.length; i++) {
       if (!srcs[i]
           .substitute2(result.typeArguments, mixinElement.type.typeArguments)
@@ -2014,6 +2080,11 @@ abstract class TypeSystem implements public.TypeSystem {
     }
 
     return null;
+  }
+
+  DartType promoteToNonNull(TypeImpl type) {
+    // TODO(mfairhurst): handle type parameter types
+    return type.withNullability(NullabilitySuffix.none);
   }
 
   /**
@@ -2166,6 +2237,8 @@ abstract class TypeSystem implements public.TypeSystem {
           ParameterKind.POSITIONAL));
     }
 
+    // TODO(brianwilkerson) Handle the fact that named parameters can now be
+    //  required.
     Map<String, DartType> fNamed = f.namedParameterTypes;
     Map<String, DartType> gNamed = g.namedParameterTypes;
     for (String name in fNamed.keys.toSet()..retainAll(gNamed.keys)) {

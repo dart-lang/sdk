@@ -20,7 +20,7 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
     type.accept1(this, sb);
   }
 
-  void _writeTypes(List<ir.DartType> types, StringBuffer sb) {
+  void _writeTypes(Iterable<ir.DartType> types, StringBuffer sb) {
     String comma = '';
     for (ir.DartType type in types) {
       sb.write(comma);
@@ -29,7 +29,8 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
     }
   }
 
-  void _writeTypeArguments(List<ir.DartType> typeArguments, StringBuffer sb) {
+  void _writeTypeArguments(
+      Iterable<ir.DartType> typeArguments, StringBuffer sb) {
     if (typeArguments.isNotEmpty) {
       sb.write('<');
       _writeTypes(typeArguments, sb);

@@ -17,10 +17,10 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
+#include "platform/syslog.h"
 
 #include "platform/utils.h"
 
@@ -1420,7 +1420,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
     if (!ok && (overlapped == NULL)) {
       if (GetLastError() == ERROR_ABANDONED_WAIT_0) {
         // The completion port should never be closed.
-        Log::Print("Completion port closed\n");
+        Syslog::Print("Completion port closed\n");
         UNREACHABLE();
       } else {
         // Timeout is signalled by false result and NULL in overlapped.

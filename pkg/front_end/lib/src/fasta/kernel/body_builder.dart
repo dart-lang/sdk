@@ -531,16 +531,26 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endTopLevelFields(Token staticToken, Token covariantToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     debugEvent("TopLevelFields");
+    // TODO(danrubel): handle NNBD 'late' modifier
+    reportNonNullableModifierError(lateToken);
     push(count);
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
-      int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
+    // TODO(danrubel): handle NNBD 'late' modifier
+    reportNonNullableModifierError(lateToken);
     push(count);
   }
 
@@ -591,7 +601,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       buildDartType(pop()); // Type.
     }
     List<Expression> annotations = pop();
-    if (annotations != null) {
+    // Fields with duplicate names are sorted out in the else branch of the
+    // `declaration.next == null` above.
+    if (annotations != null && fields.isNotEmpty) {
       inferAnnotations(annotations);
       Field field = fields.first.target;
       // The first (and often only field) will not get a clone.
@@ -1489,7 +1501,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       int offset = candidate.fileOffset;
       Message contextMessage;
       int length = noLength;
-      if (offset == -1 && candidate is Constructor) {
+      if (candidate is Constructor && candidate.isSynthetic) {
         offset = candidate.enclosingClass.fileOffset;
         contextMessage = fasta.templateCandidateFoundIsDefaultConstructor
             .withArguments(candidate.enclosingClass.name);
@@ -1831,8 +1843,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         setter = declaration;
       } else if (declaration.isGetter) {
         setter = scope.lookupSetter(name, charOffset, uri);
-      } else if (declaration.isField && !declaration.isFinal) {
-        setter = declaration;
+      } else if (declaration.isField) {
+        if (declaration.isFinal || declaration.isConst) {
+          setter = scope.lookupSetter(name, charOffset, uri);
+        } else {
+          setter = declaration;
+        }
       }
       StaticAccessGenerator generator = new StaticAccessGenerator.fromBuilder(
           this, declaration, token, setter);
@@ -2130,8 +2146,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+  void beginVariablesDeclaration(
+      Token token, Token lateToken, Token varFinalOrConst) {
     debugEvent("beginVariablesDeclaration");
+    // TODO(danrubel): handle NNBD 'late' modifier
+    reportNonNullableModifierError(lateToken);
     UnresolvedType<KernelTypeBuilder> type = pop();
     int modifiers = Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     super.push(currentLocalVariableModifiers);
@@ -2862,8 +2881,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
-      Token varFinalOrConst) {
+  void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
+      Token covariantToken, Token varFinalOrConst) {
+    // TODO(danrubel): handle required token
+    reportNonNullableModifierError(requiredToken);
     push((covariantToken != null ? covariantMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
   }

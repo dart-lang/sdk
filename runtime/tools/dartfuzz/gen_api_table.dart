@@ -252,16 +252,20 @@ void addToTable(String ret, String name, String proto) {
   if (ret.contains('?') || proto.contains('?')) {
     return;
   }
-  // Restrict parameters for a few hardcoded cases,
-  // for example, to avoid excessive runtime or memory
-  // allocation in the generated fuzzing program or to
-  // avoid false divergences.
-  if (name == 'padLeft' || name == 'padRight') {
-    proto = proto.replaceAll('I', 'i');
-  } else if (name == 'pid' ||
+  // Avoid some obvious false divergences.
+  if (name == 'pid' ||
+      name == 'hashCode' ||
       name == 'Platform.executable' ||
       name == 'Platform.resolvedExecutable') {
     return;
+  }
+  // Restrict parameters for a few hardcoded cases,
+  // for example, to avoid excessive runtime or memory
+  // allocation in the generated fuzzing program.
+  if (name == 'padLeft' || name == 'padRight') {
+    proto = proto.replaceAll('I', 'i');
+  } else if (name == 'List.filled') {
+    proto = proto.replaceFirst('I', 'i');
   }
   // Add to table.
   getTable(ret).add(DartLib(name, proto));

@@ -1,68 +1,244 @@
-## 2.3.0-dev.0.5
+## 2.3.1-dev.0.0
 
-* Cherry-pick 347b72c260949fa96ec5a45f3d6b1e2388ea245a to dev
+### Core library changes
 
-## 2.3.0-dev.0.4
+#### `dart:async`
+* BREAKING CHANGE:
+  Fixes bug in `StreamIterator` which allowed constructor argument to be `null`.
+  Also allowed `await for` on a `null` stream. This is now a runtime error.
 
-* Cherry-pick d03323783a5a5a571916457fcf084d103fce86b3 to dev
-* Cherry-pick 14d09498b7830fba62816ec8db3ed9b58601b841 to dev
+#### `dart:core`
 
-## 2.3.0-dev.0.3
+* **Breaking change**: The `RegExp` interface has been extended with two new
+  constructor named parameters:
 
-* Cherry-pick 04e1b0d976151cc6aa5dcc80667d568c95495c80 to dev
+  * `unicode:` (`bool`, default: `false`), for Unicode patterns , and
+  * `dotAll:` (`bool`, default: `false`), to change the matching behavior of
+    '.' to also match line terminating characters.
 
-## 2.3.0-dev.0.2
+  Appropriate properties for these named parameters have also been added so
+  their use can be detected after construction.
 
-* Cherry-pick d8a0d68bd66b388e4c5f6dc38f4fd940a4cb88bc to dev
-* Cherry-pick 1ecedb23416943b13fd3f48a5d398f2cfa6dbee4 to dev
-* Cherry-pick 2c304d997f08e9ba1d8d1af665522b31d695f19a to dev
-* Cherry-pick 1f1592edce7122ff657d9538d58d9cce0cae46e6 to dev
-* Cherry-pick cf4444b803a376bb1ad6442e1f09434a4d58167b to dev
+  In addition, `RegExp` methods that originally returned `Match` objects
+  now return a more specific subtype, `RegExpMatch`, which adds two features:
 
-## 2.3.0-dev.0.1
+  * `Iterable<String> groupNames`, a property that contains the names of all
+    named capture groups, and
+  * `String namedGroup(String name)`: a method that retrieves the match for
+    the given named capture group
 
-* Cherry-pick 43eebea5a3715d7c3904cd85a35db5cffaae687e to dev
+  This change only affects implementers of the `RegExp` interface; current
+  code using Dart regular expressions will not be affected.
 
-## 2.3.0-dev.0.0
+#### `dart:isolate`
 
-### Tool Changes
+* BREAKING CHANGE: The `await for` allowed `null` as a stream due to a bug
+  in `StreamIterator` class. This bug has now been fixed.
 
-#### Linter
+## 2.3.0 - 2019-05-08
 
-The Linter was updated to `0.1.86` which includes the following change:
-* new lint: `prefer_inlined_adds`
+The focus in this release is on the new "UI-as-code" language features which
+make collections more expressive and declarative.
 
-## 2.2.1-dev.4.2
+### Language
 
-* Cherry-pick ab66a3808b28dfc94eaf0ed151c13f4fc696b5dc to dev
+Flutter is growing rapidly, which means many Dart users are building UI in code
+out of big deeply-nested expressions. Our goal with 2.3.0 was to [make that kind
+of code easier to write and maintain][ui-as-code]. Collection literals are a
+large component, so we focused on three features to make collections more
+powerful. We'll use list literals in the examples below, but these features also
+work in map and set literals.
 
-## 2.2.1-dev.4.1
+[ui-as-code]: https://medium.com/dartlang/making-dart-a-better-language-for-ui-f1ccaf9f546c
 
-* Cherry-pick 72b7e95c74b3ec0f0530322923713162a83013e2 to dev
+#### Spread
 
-## 2.2.1-dev.4.0
+Placing `...` before an expression inside a collection literal unpacks the
+result of the expression and inserts its elements directly inside the new
+collection. Where before you had to write something like this:
+
+```dart
+CupertinoPageScaffold(
+  child: ListView(children: [
+    Tab2Header()
+  ]..addAll(buildTab2Conversation())
+    ..add(buildFooter())),
+);
+```
+
+Now you can write this:
+
+```dart
+CupertinoPageScaffold(
+  child: ListView(children: [
+    Tab2Header(),
+    ...buildTab2Conversation(),
+    buildFooter()
+  ]),
+);
+```
+
+If you know the expression might evaluate to null and you want to treat that as
+equivalent to zero elements, you can use the null-aware spread `...?`.
+
+#### Collection if
+
+Sometimes you might want to include one or more elements in a collection only
+under certain conditions. If you're lucky, you can use a `?:` operator to
+selectively swap out a single element, but if you want to exchange more than one
+or omit elements, you are forced to write imperative code like this:
+
+```dart
+Widget build(BuildContext context) {
+  var children = [
+    IconButton(icon: Icon(Icons.menu)),
+    Expanded(child: title)
+  ];
+
+  if (isAndroid) {
+    children.add(IconButton(icon: Icon(Icons.search)));
+  }
+
+  return Row(children: children);
+}
+```
+
+We now allow `if` inside collection literals to conditionally omit or (with
+`else`) swap out an element:
+
+```dart
+Widget build(BuildContext context) {
+  return Row(
+    children: [
+      IconButton(icon: Icon(Icons.menu)),
+      Expanded(child: title),
+      if (isAndroid)
+        IconButton(icon: Icon(Icons.search)),
+    ],
+  );
+}
+```
+
+Unlike the existing `?:` operator, a collection `if` can be composed with
+spreads to conditionally include or omit multiple items:
+
+```dart
+Widget build(BuildContext context) {
+  return Row(
+    children: [
+      IconButton(icon: Icon(Icons.menu)),
+      if (isAndroid) ...[
+        Expanded(child: title),
+        IconButton(icon: Icon(Icons.search)),
+      ]
+    ],
+  );
+}
+```
+
+#### Collection for
+
+In many cases, the higher-order methods on Iterable give you a declarative way
+to modify a collection in the context of a single expression. But some
+operations, especially involving both transforming and filtering, can be
+cumbersome to express in a functional style.
+
+To solve this problem, you can use `for` inside a collection literal. Each
+iteration of the loop produces an element which is then inserted in the
+resulting collection. Consider the following code:
+
+```dart
+var command = [
+  engineDartPath,
+  frontendServer,
+  ...fileSystemRoots.map((root) => "--filesystem-root=$root"),
+  ...entryPoints
+      .where((entryPoint) => fileExists("lib/$entryPoint.json"))
+      .map((entryPoint) => "lib/$entryPoint"),
+  mainPath
+];
+```
+
+With a collection `for`, the code becomes simpler:
+
+```dart
+var command = [
+  engineDartPath,
+  frontendServer,
+  for (var root in fileSystemRoots) "--filesystem-root=$root",
+  for (var entryPoint in entryPoints)
+    if (fileExists("lib/$entryPoint.json")) "lib/$entryPoint",
+  mainPath
+];
+```
+
+As you can see, all three of these features can be freely composed. For full
+details of the changes, see [the official proposal][ui-as-code proposal].
+
+[ui-as-code proposal]: https://github.com/dart-lang/language/blob/master/accepted/future-releases/unified-collections/feature-specification.md
+
+**Note: These features are not currently supported in *const* collection
+literals. In a future release, we intend to relax this restriction and allow
+spread and collection `if` inside const collections.**
+
+### Core library changes
+
+#### `dart:isolate`
+
+*   Added `debugName` property to `Isolate`.
+*   Added `debugName` optional parameter to `Isolate.spawn` and
+    `Isolate.spawnUri`.
+
+#### `dart:core`
+
+*   RegExp patterns can now use lookbehind assertions.
+*   RegExp patterns can now use named capture groups and named backreferences.
+    Currently, named group matches can only be retrieved in Dart either by the
+    implicit index of the named group or by downcasting the returned Match
+    object to the type RegExpMatch. The RegExpMatch interface contains methods
+    for retrieving the available group names and retrieving a match by group
+    name.
 
 ### Dart VM
 
-* The VM service now requires an authentication code by default. This behavior
-  can be disabled by providing the `--disable-service-auth-codes` flag.
+*   The VM service now requires an authentication code by default. This behavior
+    can be disabled by providing the `--disable-service-auth-codes` flag.
 
-### Tool Changes
+*   Support for deprecated flags '-c' and '--checked' has been removed.
 
-#### Linter
+### Dart for the Web
 
-The Linter was updated to `0.1.85` which includes the following changes:
+#### dart2js
 
-* new lint: `prefer_inlined_adds`
-* new lint: `prefer_for_elements_to_map_fromIterable`
-* new lint: `prefer_if_elements_to_conditional_expressions`
-* new lint: `diagnostic_describe_all_properties`
+A binary format was added to dump-info. The old JSON format is still available
+and provided by default, but we are starting to deprecate it. The new binary
+format is more compact and cheaper to generate. On some large apps we tested, it
+was 4x faster to serialize and used 6x less memory.
 
-## 2.2.1-dev.3.1
+To use the binary format today, use `--dump-info=binary`, instead of
+`--dump-info`.
 
-* Cherry-pick 245576a096a2da54ef21d664d37d1f50f6f8dbb7 to dev
-* Cherry-pick a47b4ad2b8683cc8a82aa0ff89da2db7a3be27a3 to dev
-* Cherry-pick 9a2b222cba94126591b5d985a42d40c704a73c90 to dev
+What to expect next?
+
+*   The [visualizer tool][visualizer] will not be updated to support the new
+    binary format, but you can find several command-line tools at
+    `package:dart2js_info` that provide similar features to those in the
+    visualizer.
+
+*   The command-line tools in `package:dart2js_info` also work with the old JSON
+    format, so you can start using them even before you enable the new format.
+
+*   In a future release `--dump-info` will default to `--dump-info=binary`. At
+    that point, there will be an option to fallback to the JSON format, but the
+    visualizer tool will be deprecated.
+
+*   A release after that, the JSON format will no longer be available from
+    dart2js, but may be available from a command-line tool in
+    `package:dart2js_info`.
+
+[visualizer]: https://dart-lang.github.io/dump-info-visualizer/
+
+### Tools
 
 #### dartfmt
 
@@ -71,103 +247,35 @@ The Linter was updated to `0.1.85` which includes the following changes:
 *   Properly format trailing commas in assertions.
 *   Improve indentation of adjacent strings in argument lists.
 
-## 2.2.1-dev.3.0
-
-### Dart VM
-
-* Support for deprecated flags '-c' and '--checked' has been removed
-
-### Core library changes
-
-#### `dart:isolate`
-
-* Added `debugName` property to `Isolate`.
-* Added `debugName` optional parameter to `Isolate.spawn` and
-  `Isolate.spawnUri`.
-
-### Tool Changes
-
-#### dartfmt
-
-* Tweak set literal formatting to follow other collection literals.
-* Add support for "UI as code" features.
-
 #### Linter
 
-The Linter was updated to `0.1.83` which includes the following changes:
+The Linter was updated to `0.1.86`, which includes the following changes:
 
-* updated `file_names` to skip prefixed-extension Dart files (e.g., `.css.dart`, `.g.dart`)
-* miscellaneous rule documentation fixes
-* fixed NPE in `avoid_shadowing_type_parameters`
-* added linter version numbering for use in analyzer summaries
-* fixed type utilities to handle inheritance cycles
-* fixed `unnecessary_parenthesis` false positives
-
-## 2.2.1-dev.2.0
-
-## 2.2.1-dev.1.1
-
-* Cherry-pick 567d552de8ff93d704111467e7f3bf3b896ab684 to dev
-* Cherry-pick 4ca57befd707a0309e384472a566c084eef0e56e to dev
-
-## 2.2.1-dev.1.0
-
-* Support for deprecated flags '-c' and '--checked' has been removed
-* RegExp patterns can now use lookbehind assertions.
-* RegExp patterns can now use named capture groups and named backreferences.
-  Currently, named group matches can only be retrieved in Dart either by
-  the implicit index of the named group or by downcasting the returned Match
-  object to the type RegExpMatch. The RegExpMatch interface contains methods
-  for retrieving the available group names and retrieving a match by group name.
-
-### Tool Changes
+*   Added the following lints: `prefer_inlined_adds`,
+    `prefer_for_elements_to_map_fromIterable`,
+    `prefer_if_elements_to_conditional_expressions`,
+    `diagnostic_describe_all_properties`.
+*   Updated `file_names` to skip prefixed-extension Dart files (`.css.dart`,
+  `.g.dart`, etc.).
+*   Fixed false positives in `unnecessary_parenthesis`.
 
 #### Pub client
 
-* Added a CHANGELOG validator that complains if you `pub publish` without mentioning the current
-  version.
-* Removed validation of library names when doing `pub publish`.
-* Added support for `pub global activate`ing package from a custom pub URL.
-* Added subcommand: `pub logout`. Logs you out of the current session.
-* Fix: Use default server for `pub uploader` command.
+*   Added a CHANGELOG validator that complains if you `pub publish` without
+    mentioning the current version.
+*   Removed validation of library names when doing `pub publish`.
+*   Added support for `pub global activate`ing package from a custom pub URL.
+*   Added subcommand: `pub logout`. Logs you out of the current session.
 
-#### dart2js
+#### Dart native
 
-*  `--dump-info=binary`
+Initial support for compiling Dart apps to native machine code has been added.
+Two new tools have been added to the `bin` folder of the Dart SDK:
 
-   A binary format was added to dump-info. The old JSON format is still
-   available and provided by default, but we are starting to deprecate it.
+* `dart2aot`: AOT (ahead-of-time) compiles a Dart program to native
+machine code. The tool is supported on Windows, macOS, and Linux.
 
-   The new binary format is more compact and cheaper to generate.  On some large
-   apps we tested, it was 4x faster to serialize and used 6x less memory.
-
-   To use it today, use `--dump-info=binary`, instead of `--dump-info`.
-
-   What to expect next?
-   * The [visualizer tool][visualizer] will not be updated to support this new
-     format, but you can find several command-line tools at
-     `package:dart2js_info` that provide similar features to those in the
-     visualizer.
-
-   * The command-line tools in `package:dart2js_info` also work with the old
-     JSON format, so you can start using it even before you enable the new
-     format.
-
-   * In a future release `--dump-info` will default to `--dump-info=binary`. At
-     that point, there will be an option to fallback to the JSON format, but the
-     visualizer tool will be deprecated.
-
-   * A release after that, the JSON format will no longer be available from
-     dart2js, but may be availabe from a command-line tool in
-     `package:dart2js_info`.
-
-[visualizer]: https://dart-lang.github.io/dump-info-visualizer/
-
-## 2.2.1-dev.0.0
-
-* Cherry-pick 6f8415245d4dd298730facf83e03de69fc29bbd3 to dev
-* Cherry-pick e7d263b05f7f66d15f778df60ee60625e9a3c5f4 to dev
-* Cherry-pick dc8a56bc0ece296915c7016e0a8241c7068eca18 to dev
+* `dartaotruntime`: A small runtime used for executing an AOT compiled program.
 
 ## 2.2.0 - 2019-02-26
 

@@ -32,15 +32,12 @@ main() {
 @reflectiveTest
 class ScannerTest_Replacement extends ScannerTestBase {
   @override
-  analyzer.Token scanWithListener(String source, ErrorListener listener,
-      {bool lazyAssignmentOperators: false}) {
+  analyzer.Token scanWithListener(String source, ErrorListener listener) {
     // Process the source similar to
     // pkg/analyzer/lib/src/dart/scanner/scanner.dart
     // to simulate replacing the analyzer scanner
 
-    fasta.ScannerResult result = fasta.scanString(source,
-        includeComments: true,
-        scanLazyAssignmentOperators: lazyAssignmentOperators,
+    fasta.ScannerResult result = fasta.scanString(source, includeComments: true,
         recover: ((List<int> bytes, fasta.Token tokens, List<int> lineStarts) {
       // perform recovery as a separate step
       // so that the token stream can be validated before and after recovery
@@ -200,10 +197,9 @@ class ScannerTest_Replacement extends ScannerTestBase {
     ]);
   }
 
-  analyzer.Token _scan(String source, {bool lazyAssignmentOperators: false}) {
+  analyzer.Token _scan(String source) {
     ErrorListener listener = new ErrorListener();
-    analyzer.Token token = scanWithListener(source, listener,
-        lazyAssignmentOperators: lazyAssignmentOperators);
+    analyzer.Token token = scanWithListener(source, listener);
     listener.assertNoErrors();
     return token;
   }

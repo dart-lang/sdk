@@ -86,7 +86,7 @@ static void CollectFinalizedSuperClasses(
   super_type = cls.super_type();
   if (!super_type.IsNull()) {
     if (super_type.HasTypeClass()) {
-      cls ^= super_type.type_class();
+      cls = super_type.type_class();
       if (cls.is_finalized()) {
         AddSuperType(super_type, finalized_super_classes);
       }
@@ -128,7 +128,7 @@ class InterfaceFinder {
       if (!array->IsNull()) {
         for (intptr_t i = 0; i < array->Length(); ++i) {
           *type ^= array->At(i);
-          *interface_class ^= class_table_->At(type->type_class_id());
+          *interface_class = class_table_->At(type->type_class_id());
           FindAllInterfaces(*interface_class);
         }
       }
@@ -156,7 +156,7 @@ static void CollectImmediateSuperInterfaces(const Class& cls,
   for (intptr_t i = 0; i < interfaces.Length(); ++i) {
     type ^= interfaces.At(i);
     if (!type.HasTypeClass()) continue;
-    ifc ^= type.type_class();
+    ifc = type.type_class();
     for (intptr_t j = 0; j < cids->length(); ++j) {
       if ((*cids)[j] == ifc.id()) {
         // Already added.
@@ -560,7 +560,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
     ASSERT(num_super_type_args ==
            (cls.NumTypeArguments() - cls.NumOwnTypeArguments()));
     if (!super_type.IsFinalized() && !super_type.IsBeingFinalized()) {
-      super_type ^= FinalizeType(cls, super_type, kFinalize, pending_types);
+      super_type = FinalizeType(cls, super_type, kFinalize, pending_types);
       cls.set_super_type(super_type);
     }
     TypeArguments& super_type_args =
@@ -585,7 +585,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
             super_type_args.SetTypeAt(i, super_type_arg);
           } else {
             if (!super_type_arg.IsFinalized()) {
-              super_type_arg ^=
+              super_type_arg =
                   FinalizeType(cls, super_type_arg, kFinalize, pending_types);
               super_type_args.SetTypeAt(i, super_type_arg);
               // Note that super_type_arg may still not be finalized here, in

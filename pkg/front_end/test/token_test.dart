@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/scanner.dart' show ScannerConfiguration;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
@@ -100,6 +101,7 @@ class Foo {
       Keyword.MIXIN,
       Keyword.OPERATOR,
       Keyword.PART,
+      Keyword.REQUIRED,
       Keyword.SET,
       Keyword.STATIC,
       Keyword.TYPEDEF,
@@ -117,12 +119,16 @@ class Foo {
       Keyword.COVARIANT,
       Keyword.EXTERNAL,
       Keyword.FINAL,
+      Keyword.LATE,
+      Keyword.REQUIRED,
       Keyword.STATIC,
       Keyword.VAR,
     ]);
     for (Keyword keyword in Keyword.values) {
       var isModifier = modifierKeywords.contains(keyword);
-      var scanner = new StringScanner(keyword.lexeme, includeComments: true);
+      var scanner = new StringScanner(keyword.lexeme,
+          configuration: ScannerConfiguration.nonNullable,
+          includeComments: true);
       Token token = scanner.tokenize();
       expect(token.isModifier, isModifier, reason: keyword.name);
       if (isModifier) {
@@ -149,6 +155,14 @@ class Foo {
       expect(token.isTopLevelKeyword, isTopLevelKeyword, reason: keyword.name);
       if (isTopLevelKeyword) {
         expect(token.isModifier, isFalse, reason: keyword.name);
+      }
+    }
+  }
+
+  void test_noPseudoModifiers() {
+    for (Keyword keyword in Keyword.values) {
+      if (keyword.isModifier) {
+        expect(keyword.isPseudo, isFalse, reason: keyword.lexeme);
       }
     }
   }

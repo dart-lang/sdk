@@ -56,6 +56,7 @@
 /// - Where possible, we favor method dispatch instead of "is" and "as"
 ///   checks.  E.g. see [ReferenceableElementForLink.asConstructor].
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
@@ -317,12 +318,14 @@ UnlinkedParamBuilder _serializeSyntheticParam(
     TypeParameterSerializationContext typeParameterContext) {
   UnlinkedParamBuilder b = new UnlinkedParamBuilder();
   b.name = parameter.name;
-  if (parameter.isNotOptional) {
-    b.kind = UnlinkedParamKind.required;
+  if (parameter.isRequiredPositional) {
+    b.kind = UnlinkedParamKind.requiredPositional;
+  } else if (parameter.isRequiredNamed) {
+    b.kind = UnlinkedParamKind.requiredNamed;
   } else if (parameter.isOptionalPositional) {
-    b.kind = UnlinkedParamKind.positional;
-  } else if (parameter.isNamed) {
-    b.kind = UnlinkedParamKind.named;
+    b.kind = UnlinkedParamKind.optionalPositional;
+  } else if (parameter.isOptionalNamed) {
+    b.kind = UnlinkedParamKind.optionalNamed;
   }
   DartType type = parameter.type;
   if (!parameter.hasImplicitType) {
@@ -2455,8 +2458,14 @@ class ExprTypeComputer {
           new TypeParameterScope(nameScope, enclosingClass), enclosingClass);
     }
     var inheritance = new InheritanceManager2(linker.typeSystem);
+    // Note: this is a bit of a hack; we ought to use the feature set for the
+    // compilation unit being analyzed, but that's not feasible because sumaries
+    // don't record the feature set.  This should be resolved when we switch to
+    // the "summary2" mechanism.
+    var featureSet = FeatureSet.fromEnableFlags([]);
     var resolverVisitor = new ResolverVisitor(
         inheritance, library, source, typeProvider, errorListener,
+        featureSet: featureSet,
         nameScope: nameScope,
         propagateTypes: false,
         reportConstEvaluationErrors: false);
@@ -2467,7 +2476,7 @@ class ExprTypeComputer {
         library, source, typeProvider, errorListener,
         nameScope: nameScope, localVariableInfo: LocalVariableInfo());
     var partialResolverVisitor = new PartialResolverVisitor(
-        inheritance, library, source, typeProvider, errorListener,
+        inheritance, library, source, typeProvider, errorListener, featureSet,
         nameScope: nameScope);
     return new ExprTypeComputer._(
         unit._unitResynthesizer,
@@ -2566,6 +2575,9 @@ class FieldElementForLink_ClassField extends VariableElementForLink
       : enclosingElement = enclosingElement,
         super(unlinkedVariable, enclosingElement.enclosingElement,
             initializerForInference);
+
+  @override
+  bool get isLate => unlinkedVariable.isLate;
 
   @override
   bool get isStatic => unlinkedVariable.isStatic;
@@ -4290,15 +4302,22 @@ class ParameterElementForLink implements ParameterElementImpl {
   bool get isInitializingFormal => unlinkedParam.isInitializingFormal;
 
   @override
-  bool get isNamed => parameterKind == ParameterKind.NAMED;
+  bool get isNamed =>
+      parameterKind == ParameterKind.NAMED ||
+      parameterKind == ParameterKind.NAMED_REQUIRED;
 
   @override
-  bool get isNotOptional => parameterKind == ParameterKind.REQUIRED;
+  bool get isNotOptional =>
+      parameterKind == ParameterKind.REQUIRED ||
+      parameterKind == ParameterKind.NAMED_REQUIRED;
 
   @override
   bool get isOptional =>
       parameterKind == ParameterKind.NAMED ||
       parameterKind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isOptionalNamed => parameterKind == ParameterKind.NAMED;
 
   @override
   bool get isOptionalPositional => parameterKind == ParameterKind.POSITIONAL;
@@ -4309,16 +4328,27 @@ class ParameterElementForLink implements ParameterElementImpl {
       parameterKind == ParameterKind.REQUIRED;
 
   @override
+  bool get isRequiredNamed => parameterKind == ParameterKind.NAMED_REQUIRED;
+
+  @override
+  bool get isRequiredPositional => parameterKind == ParameterKind.REQUIRED;
+
+  @override
+  get linkedNode => null;
+
+  @override
   String get name => unlinkedParam.name;
 
   @override
   ParameterKind get parameterKind {
     switch (unlinkedParam.kind) {
-      case UnlinkedParamKind.required:
+      case UnlinkedParamKind.requiredPositional:
         return ParameterKind.REQUIRED;
-      case UnlinkedParamKind.positional:
+      case UnlinkedParamKind.requiredNamed:
+        return ParameterKind.NAMED_REQUIRED;
+      case UnlinkedParamKind.optionalPositional:
         return ParameterKind.POSITIONAL;
-      case UnlinkedParamKind.named:
+      case UnlinkedParamKind.optionalNamed:
         return ParameterKind.NAMED;
     }
     return null;
@@ -4402,15 +4432,22 @@ class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
   bool get isInitializingFormal => unlinkedParam.isInitializingFormal;
 
   @override
-  bool get isNamed => parameterKind == ParameterKind.NAMED;
+  bool get isNamed =>
+      parameterKind == ParameterKind.NAMED ||
+      parameterKind == ParameterKind.NAMED_REQUIRED;
 
   @override
-  bool get isNotOptional => parameterKind == ParameterKind.REQUIRED;
+  bool get isNotOptional =>
+      parameterKind == ParameterKind.REQUIRED ||
+      parameterKind == ParameterKind.NAMED_REQUIRED;
 
   @override
   bool get isOptional =>
       parameterKind == ParameterKind.NAMED ||
       parameterKind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isOptionalNamed => parameterKind == ParameterKind.NAMED;
 
   @override
   bool get isOptionalPositional => parameterKind == ParameterKind.POSITIONAL;
@@ -4419,6 +4456,12 @@ class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
   bool get isPositional =>
       parameterKind == ParameterKind.POSITIONAL ||
       parameterKind == ParameterKind.REQUIRED;
+
+  @override
+  bool get isRequiredNamed => parameterKind == ParameterKind.NAMED_REQUIRED;
+
+  @override
+  bool get isRequiredPositional => parameterKind == ParameterKind.REQUIRED;
 
   @override
   bool get isSynthetic => true;
@@ -5480,9 +5523,6 @@ class TypeProviderForLink extends TypeProviderBase {
   @override
   InterfaceType get typeType =>
       _typeType ??= _buildInterfaceType(_linker.coreLibrary, 'Type');
-
-  @override
-  DartType get undefinedType => UndefinedTypeImpl.instance;
 
   InterfaceType _buildInterfaceType(
       LibraryElementForLink library, String name) {

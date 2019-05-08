@@ -98,7 +98,7 @@ List<int> test5(int m, int n) {
 }
 
 main() {
-  int n = 100000;
+  int n = 20000;
   int g = 457;
 
   var a = test1(n);

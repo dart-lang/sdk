@@ -283,6 +283,10 @@ abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
   /// Unlinked information for the unit.
   @Id(1)
   UnlinkedUnit get unit;
+
+  /// Unlinked information for the unit.
+  @Id(5)
+  UnlinkedUnit2 get unit2;
 }
 
 /// Information about a single declaration.
@@ -487,6 +491,10 @@ abstract class EntityRef extends base.SummaryClass {
   @Id(4)
   List<int> get implicitFunctionTypeIndices;
 
+  /// If the reference represents a type, the nullability of the type.
+  @Id(10)
+  EntityRefNullabilitySuffix get nullabilitySuffix;
+
   /// If this is a reference to a type parameter, one-based index into the list
   /// of [UnlinkedTypeParam]s currently in effect.  Indexing is done using De
   /// Bruijn index conventions; that is, innermost parameters come first, and
@@ -569,6 +577,30 @@ enum EntityRefKind {
   /// The entity represents a function type that was synthesized by a LUB
   /// computation.
   syntheticFunction
+}
+
+/// Enum representing nullability suffixes in summaries.
+///
+/// This enum is similar to [NullabilitySuffix], but the order is different so
+/// that [EntityRefNullabilitySuffix.starOrIrrelevant] can be the default.
+enum EntityRefNullabilitySuffix {
+  /// An indication that the canonical representation of the type under
+  /// consideration ends with `*`.  Types having this nullability suffix are
+  /// called "legacy types"; it has not yet been determined whether they should
+  /// be unioned with the Null type.
+  ///
+  /// Also used in circumstances where no nullability suffix information is
+  /// needed.
+  starOrIrrelevant,
+
+  /// An indication that the canonical representation of the type under
+  /// consideration ends with `?`.  Types having this nullability suffix should
+  /// be interpreted as being unioned with the Null type.
+  question,
+
+  /// An indication that the canonical representation of the type under
+  /// consideration does not end with either `?` or `*`.
+  none,
 }
 
 /// Enum used to indicate the kind of a name in index.
@@ -849,6 +881,12 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.annotation)
   LinkedNode get annotation_constructorName;
 
+  @VariantId(17, variant: LinkedNodeKind.annotation)
+  int get annotation_element;
+
+  @VariantId(23, variant: LinkedNodeKind.annotation)
+  LinkedNodeType get annotation_elementType;
+
   @VariantId(8, variant: LinkedNodeKind.annotation)
   LinkedNode get annotation_name;
 
@@ -1086,6 +1124,7 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(34, variantList: [
     LinkedNodeKind.classDeclaration,
     LinkedNodeKind.classTypeAlias,
+    LinkedNodeKind.compilationUnit,
     LinkedNodeKind.constructorDeclaration,
     LinkedNodeKind.defaultFormalParameter,
     LinkedNodeKind.enumDeclaration,
@@ -1105,6 +1144,7 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(33, variantList: [
     LinkedNodeKind.classDeclaration,
     LinkedNodeKind.classTypeAlias,
+    LinkedNodeKind.compilationUnit,
     LinkedNodeKind.constructorDeclaration,
     LinkedNodeKind.defaultFormalParameter,
     LinkedNodeKind.enumDeclaration,
@@ -1127,11 +1167,20 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   int get combinator_keyword;
 
+  @VariantId(2, variant: LinkedNodeKind.comment)
+  List<LinkedNode> get comment_references;
+
   @VariantId(28, variant: LinkedNodeKind.comment)
   List<int> get comment_tokens;
 
   @VariantId(29, variant: LinkedNodeKind.comment)
   LinkedNodeCommentType get comment_type;
+
+  @VariantId(6, variant: LinkedNodeKind.commentReference)
+  LinkedNode get commentReference_identifier;
+
+  @VariantId(15, variant: LinkedNodeKind.commentReference)
+  int get commentReference_newKeyword;
 
   @VariantId(15, variant: LinkedNodeKind.compilationUnit)
   int get compilationUnit_beginToken;
@@ -1268,8 +1317,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.defaultFormalParameter)
   LinkedNode get defaultFormalParameter_defaultValue;
 
-  @VariantId(27, variant: LinkedNodeKind.defaultFormalParameter)
-  bool get defaultFormalParameter_isNamed;
+  @VariantId(26, variant: LinkedNodeKind.defaultFormalParameter)
+  LinkedNodeFormalParameterKind get defaultFormalParameter_kind;
 
   @VariantId(7, variant: LinkedNodeKind.defaultFormalParameter)
   LinkedNode get defaultFormalParameter_parameter;
@@ -1457,13 +1506,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.forElement)
   LinkedNode get forElement_body;
 
-  @VariantId(26, variantList: [
-    LinkedNodeKind.fieldFormalParameter,
-    LinkedNodeKind.functionTypedFormalParameter,
-    LinkedNodeKind.simpleFormalParameter,
-  ])
-  LinkedNodeFormalParameterKind get formalParameter_kind;
-
   @VariantId(15, variant: LinkedNodeKind.formalParameterList)
   int get formalParameterList_leftDelimiter;
 
@@ -1593,6 +1635,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.genericFunctionType)
   int get genericFunctionType_functionKeyword;
 
+  @VariantId(17, variant: LinkedNodeKind.genericFunctionType)
+  int get genericFunctionType_id;
+
   @VariantId(16, variant: LinkedNodeKind.genericFunctionType)
   int get genericFunctionType_question;
 
@@ -1694,6 +1739,14 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(7, variant: LinkedNodeKind.indexExpression)
   LinkedNode get indexExpression_target;
+
+  @VariantId(27, variantList: [
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.simpleFormalParameter,
+    LinkedNodeKind.variableDeclaration,
+  ])
+  bool get inheritsCovariant;
 
   @VariantId(6, variant: LinkedNodeKind.instanceCreationExpression)
   LinkedNode get instanceCreationExpression_arguments;
@@ -1845,6 +1898,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.mixinDeclaration)
   LinkedNode get mixinDeclaration_onClause;
 
+  @VariantId(36, variant: LinkedNodeKind.mixinDeclaration)
+  List<String> get mixinDeclaration_superInvokedNames;
+
   @VariantId(14, variantList: [
     LinkedNodeKind.classDeclaration,
     LinkedNodeKind.classTypeAlias,
@@ -1916,19 +1972,19 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   LinkedNode get normalFormalParameter_identifier;
 
-  @VariantId(27, variantList: [
-    LinkedNodeKind.fieldFormalParameter,
-    LinkedNodeKind.functionTypedFormalParameter,
-    LinkedNodeKind.simpleFormalParameter,
-  ])
-  bool get normalFormalParameter_isCovariant;
-
   @VariantId(4, variantList: [
     LinkedNodeKind.fieldFormalParameter,
     LinkedNodeKind.functionTypedFormalParameter,
     LinkedNodeKind.simpleFormalParameter,
   ])
   List<LinkedNode> get normalFormalParameter_metadata;
+
+  @VariantId(18, variantList: [
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.simpleFormalParameter,
+  ])
+  int get normalFormalParameter_requiredKeyword;
 
   @VariantId(15, variant: LinkedNodeKind.nullLiteral)
   int get nullLiteral_literal;
@@ -2062,6 +2118,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(23, variant: LinkedNodeKind.simpleIdentifier)
   LinkedNodeType get simpleIdentifier_elementType;
 
+  @VariantId(27, variant: LinkedNodeKind.simpleIdentifier)
+  bool get simpleIdentifier_isDeclaration;
+
   @VariantId(16, variant: LinkedNodeKind.simpleIdentifier)
   int get simpleIdentifier_token;
 
@@ -2173,6 +2232,12 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.throwExpression)
   int get throwExpression_throwKeyword;
 
+  @VariantId(35, variantList: [
+    LinkedNodeKind.simpleFormalParameter,
+    LinkedNodeKind.variableDeclaration,
+  ])
+  TopLevelInferenceError get topLevelTypeInferenceError;
+
   @VariantId(15, variant: LinkedNodeKind.topLevelVariableDeclaration)
   int get topLevelVariableDeclaration_semicolon;
 
@@ -2193,6 +2258,12 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(16, variant: LinkedNodeKind.tryStatement)
   int get tryStatement_tryKeyword;
+
+  @VariantId(27, variantList: [
+    LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.genericTypeAlias,
+  ])
+  bool get typeAlias_hasSelfReference;
 
   @VariantId(19, variantList: [
     LinkedNodeKind.classTypeAlias,
@@ -2244,11 +2315,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.typeParameter)
   LinkedNode get typeParameter_bound;
 
+  @VariantId(23, variant: LinkedNodeKind.typeParameter)
+  LinkedNodeType get typeParameter_defaultType;
+
   @VariantId(15, variant: LinkedNodeKind.typeParameter)
   int get typeParameter_extendsKeyword;
-
-  @VariantId(16, variant: LinkedNodeKind.typeParameter)
-  int get typeParameter_id;
 
   @VariantId(7, variant: LinkedNodeKind.typeParameter)
   LinkedNode get typeParameter_name;
@@ -2297,6 +2368,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(15, variant: LinkedNodeKind.variableDeclarationList)
   int get variableDeclarationList_keyword;
+
+  @VariantId(16, variant: LinkedNodeKind.variableDeclarationList)
+  int get variableDeclarationList_lateKeyword;
 
   @VariantId(6, variant: LinkedNodeKind.variableDeclarationList)
   LinkedNode get variableDeclarationList_type;
@@ -2364,9 +2438,10 @@ enum LinkedNodeCommentType { block, documentation, endOfLine }
 
 /// Kinds of formal parameters.
 enum LinkedNodeFormalParameterKind {
-  required,
+  requiredPositional,
   optionalPositional,
-  optionalNamed
+  optionalNamed,
+  requiredNamed
 }
 
 /// Kinds of [LinkedNode].
@@ -2389,6 +2464,7 @@ enum LinkedNodeKind {
   classDeclaration,
   classTypeAlias,
   comment,
+  commentReference,
   compilationUnit,
   conditionalExpression,
   configuration,
@@ -2532,10 +2608,10 @@ abstract class LinkedNodeType extends base.SummaryClass {
   @Id(2)
   List<LinkedNodeTypeTypeParameter> get functionTypeParameters;
 
-  @Id(7)
+  @Id(8)
   int get genericTypeAliasReference;
 
-  @Id(8)
+  @Id(9)
   List<LinkedNodeType> get genericTypeAliasTypeArguments;
 
   /// Reference to a [LinkedNodeReferences].
@@ -2548,7 +2624,13 @@ abstract class LinkedNodeType extends base.SummaryClass {
   @Id(5)
   LinkedNodeTypeKind get kind;
 
+  @Id(10)
+  EntityRefNullabilitySuffix get nullabilitySuffix;
+
   @Id(6)
+  int get typeParameterElement;
+
+  @Id(7)
   int get typeParameterId;
 }
 
@@ -2585,6 +2667,14 @@ abstract class LinkedNodeTypeTypeParameter extends base.SummaryClass {
 
 /// Information about a single library in a [LinkedNodeLibrary].
 abstract class LinkedNodeUnit extends base.SummaryClass {
+  @Id(3)
+  bool get isSynthetic;
+
+  /// Offsets of the first character of each line in the source code.
+  @informative
+  @Id(4)
+  List<int> get lineStarts;
+
   @Id(2)
   LinkedNode get node;
 
@@ -4257,14 +4347,17 @@ abstract class UnlinkedParam extends base.SummaryClass {
 
 /// Enum used to indicate the kind of a parameter.
 enum UnlinkedParamKind {
-  /// Parameter is required.
-  required,
+  /// Parameter is required and positional.
+  requiredPositional,
 
-  /// Parameter is positional optional (enclosed in `[]`)
-  positional,
+  /// Parameter is optional and positional (enclosed in `[]`)
+  optionalPositional,
 
-  /// Parameter is named optional (enclosed in `{}`)
-  named
+  /// Parameter is optional and named (enclosed in `{}`)
+  optionalNamed,
+
+  /// Parameter is required and named (enclosed in `{}`).
+  requiredNamed
 }
 
 /// Unlinked summary information about a part declaration.
@@ -4419,6 +4512,7 @@ enum UnlinkedTokenType {
   BACKSLASH,
   BANG,
   BANG_EQ,
+  BANG_EQ_EQ,
   BAR,
   BAR_BAR,
   BAR_EQ,
@@ -4446,6 +4540,7 @@ enum UnlinkedTokenType {
   EOF,
   EQ,
   EQ_EQ,
+  EQ_EQ_EQ,
   EXPORT,
   EXTENDS,
   EXTERNAL,
@@ -4461,6 +4556,8 @@ enum UnlinkedTokenType {
   GT_EQ,
   GT_GT,
   GT_GT_EQ,
+  GT_GT_GT,
+  GT_GT_GT_EQ,
   HASH,
   HEXADECIMAL,
   HIDE,
@@ -4474,6 +4571,7 @@ enum UnlinkedTokenType {
   INT,
   INTERFACE,
   IS,
+  LATE,
   LIBRARY,
   LT,
   LT_EQ,
@@ -4508,6 +4606,7 @@ enum UnlinkedTokenType {
   QUESTION_PERIOD,
   QUESTION_QUESTION,
   QUESTION_QUESTION_EQ,
+  REQUIRED,
   RETHROW,
   RETURN,
   SCRIPT_TAG,
@@ -4735,6 +4834,43 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   List<UnlinkedVariable> get variables;
 }
 
+/// Unlinked summary information about a compilation unit.
+@TopLevel('UUN2')
+abstract class UnlinkedUnit2 extends base.SummaryClass {
+  factory UnlinkedUnit2.fromBuffer(List<int> buffer) =>
+      generated.readUnlinkedUnit2(buffer);
+
+  /// The MD5 hash signature of the API portion of this unit. It depends on all
+  /// tokens that might affect APIs of declarations in the unit.
+  @Id(0)
+  List<int> get apiSignature;
+
+  /// URIs of `export` directives.
+  @Id(1)
+  List<String> get exports;
+
+  /// Is `true` if the unit contains a `library` directive.
+  @Id(6)
+  bool get hasLibraryDirective;
+
+  /// Is `true` if the unit contains a `part of` directive.
+  @Id(3)
+  bool get hasPartOfDirective;
+
+  /// URIs of `import` directives.
+  @Id(2)
+  List<String> get imports;
+
+  /// Offsets of the first character of each line in the source code.
+  @informative
+  @Id(5)
+  List<int> get lineStarts;
+
+  /// URIs of `part` directives.
+  @Id(4)
+  List<String> get parts;
+}
+
 /// Unlinked summary information about a top level variable, local variable, or
 /// a field.
 abstract class UnlinkedVariable extends base.SummaryClass {
@@ -4786,6 +4922,10 @@ abstract class UnlinkedVariable extends base.SummaryClass {
   /// Indicates whether the variable is declared using the `final` keyword.
   @Id(7)
   bool get isFinal;
+
+  /// Indicates whether the variable is declared using the `late` keyword.
+  @Id(16)
+  bool get isLate;
 
   /// Indicates whether the variable is declared using the `static` keyword.
   ///

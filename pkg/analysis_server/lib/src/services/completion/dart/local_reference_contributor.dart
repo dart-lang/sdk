@@ -514,7 +514,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }).toList();
 
     Iterable<ParameterElement> requiredParameters = paramList
-        .where((FormalParameter param) => param.isRequired)
+        .where((FormalParameter param) => param.isRequiredPositional)
         .map((p) => p.declaredElement);
     suggestion.requiredParameterCount = requiredParameters.length;
 

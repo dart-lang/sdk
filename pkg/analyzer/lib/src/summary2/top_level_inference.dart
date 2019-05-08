@@ -11,6 +11,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/summary2/ast_resolver.dart';
@@ -30,6 +32,53 @@ AstNode _getLinkedNode(Element element) {
   return (element as ElementImpl).linkedNode;
 }
 
+/// Resolver for typed constant top-level variables and fields initializers.
+///
+/// Initializers of untyped variables are resolved during [TopLevelInference].
+class ConstantInitializersResolver {
+  final Linker linker;
+
+  LibraryElement _library;
+  Scope _scope;
+
+  ConstantInitializersResolver(this.linker);
+
+  DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
+
+  void perform() {
+    for (var builder in linker.builders.values) {
+      _library = builder.element;
+      for (var unitContext in builder.context.units) {
+        for (var unitMember in unitContext.unit.declarations) {
+          _scope = builder.libraryScope;
+          if (unitMember is TopLevelVariableDeclaration) {
+            _variableDeclarationList(unitMember.variables);
+          } else if (unitMember is ClassOrMixinDeclaration) {
+            _scope = LinkingNodeContext.get(unitMember).scope;
+            for (var classMember in unitMember.members) {
+              if (classMember is FieldDeclaration) {
+                _variableDeclarationList(classMember.fields);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void _variableDeclarationList(VariableDeclarationList node) {
+    if (node.isConst && node.type != null) {
+      for (var variable in node.variables) {
+        if (variable.initializer != null) {
+          var astResolver = AstResolver(linker, _library, _scope);
+          astResolver.rewriteAst(variable.initializer);
+          astResolver.resolve(variable.initializer);
+        }
+      }
+    }
+  }
+}
+
 class TopLevelInference {
   final Linker linker;
 
@@ -38,8 +87,11 @@ class TopLevelInference {
   DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
   void infer() {
+    var initializerInference = _InitializerInference(linker);
+    initializerInference.createNodes();
+
     _performOverrideInference();
-    _InitializerInference(linker).perform();
+    initializerInference.perform();
     _inferConstructorFieldFormals();
   }
 
@@ -84,15 +136,35 @@ class TopLevelInference {
   }
 
   void _performOverrideInference() {
+    var inferrer = new InstanceMemberInferrer(
+      linker.typeProvider,
+      linker.inheritance,
+    );
     for (var builder in linker.builders.values) {
       for (var unit in builder.element.units) {
-        new InstanceMemberInferrer(
-          linker.typeProvider,
-          linker.inheritance,
-        ).inferCompilationUnit(unit);
+        inferrer.inferCompilationUnit(unit);
       }
     }
   }
+}
+
+class _FunctionElementForLink_Initializer implements FunctionElementImpl {
+  final _InferenceNode _node;
+
+  @override
+  Element enclosingElement;
+
+  _FunctionElementForLink_Initializer(this._node);
+
+  @override
+  DartType get returnType {
+    if (!_node.isEvaluated) {
+      _node._walker.walk(_node);
+    }
+    return LazyAst.getType(_node._node);
+  }
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _InferenceDependenciesCollector extends RecursiveAstVisitor<void> {
@@ -111,17 +183,32 @@ class _InferenceNode extends graph.Node<_InferenceNode> {
   final _InferenceWalker _walker;
   final LibraryElement _library;
   final Scope _scope;
+  final PropertyInducingElementImpl _element;
   final VariableDeclaration _node;
 
   @override
   bool isEvaluated = false;
 
-  _InferenceNode(this._walker, this._library, this._scope, this._node);
+  _InferenceNode(
+    this._walker,
+    this._library,
+    this._scope,
+    this._element,
+    this._node,
+  );
+
+  bool get isImplicitlyTypedInstanceField {
+    VariableDeclarationList variables = _node.parent;
+    if (variables.type == null) {
+      var parent = variables.parent;
+      return parent is FieldDeclaration && !parent.isStatic;
+    }
+    return false;
+  }
 
   @override
   List<_InferenceNode> computeDependencies() {
-    _node.initializer.accept(LocalElementBuilder(ElementHolder(), null));
-
+    _buildLocalElements();
     _resolveInitializer();
 
     var collector = _InferenceDependenciesCollector();
@@ -131,17 +218,26 @@ class _InferenceNode extends graph.Node<_InferenceNode> {
       return const <_InferenceNode>[];
     }
 
-    return collector._set
+    var dependencies = collector._set
         .map(_walker.getNode)
         .where((node) => node != null)
         .toList();
+
+    for (var node in dependencies) {
+      if (node.isImplicitlyTypedInstanceField) {
+        LazyAst.setType(_node, DynamicTypeImpl.instance);
+        isEvaluated = true;
+        return const <_InferenceNode>[];
+      }
+    }
+
+    return dependencies;
   }
 
   void evaluate() {
     _resolveInitializer();
 
-    VariableDeclarationList parent = _node.parent;
-    if (parent.type == null) {
+    if (LazyAst.getType(_node) == null) {
       var initializerType = _node.initializer.staticType;
       initializerType = _dynamicIfNull(initializerType);
       LazyAst.setType(_node, initializerType);
@@ -150,14 +246,40 @@ class _InferenceNode extends graph.Node<_InferenceNode> {
     isEvaluated = true;
   }
 
-  void markCircular() {
+  void markCircular(List<_InferenceNode> cycle) {
     LazyAst.setType(_node, DynamicTypeImpl.instance);
+
+    var cycleNames = Set<String>();
+    for (var inferenceNode in cycle) {
+      var node = inferenceNode._node;
+      if (node is VariableDeclaration) {
+        cycleNames.add(node.name.name);
+      } else {
+        cycleNames.add('<unknown>');
+      }
+    }
+
+    LazyAst.setTypeInferenceError(
+      _node,
+      TopLevelInferenceErrorBuilder(
+        kind: TopLevelInferenceErrorKind.dependencyCycle,
+        arguments: cycleNames.toList(),
+      ),
+    );
+
     isEvaluated = true;
+  }
+
+  void _buildLocalElements() {
+    var holder = ElementHolder();
+    _node.initializer.accept(LocalElementBuilder(holder, null));
+    _element.encloseElements(holder.functions);
   }
 
   void _resolveInitializer() {
     var astResolver = AstResolver(_walker._linker, _library, _scope);
-    astResolver.resolve(_node.initializer, doAstRewrite: true);
+    astResolver.rewriteAst(_node.initializer);
+    astResolver.resolve(_node.initializer);
   }
 }
 
@@ -167,11 +289,6 @@ class _InferenceWalker extends graph.DependencyWalker<_InferenceNode> {
 
   _InferenceWalker(this._linker);
 
-  void addNode(Element element, LibraryElement library, Scope scope,
-      VariableDeclaration node) {
-    _nodes[element] = _InferenceNode(this, library, scope, node);
-  }
-
   @override
   void evaluate(_InferenceNode v) {
     v.evaluate();
@@ -180,7 +297,7 @@ class _InferenceWalker extends graph.DependencyWalker<_InferenceNode> {
   @override
   void evaluateScc(List<_InferenceNode> scc) {
     for (var node in scc) {
-      node.markCircular();
+      node.markCircular(scc);
     }
   }
 
@@ -206,17 +323,12 @@ class _InitializerInference {
 
   _InitializerInference(this._linker) : _walker = _InferenceWalker(_linker);
 
-  void perform() {
+  void createNodes() {
     for (var builder in _linker.builders.values) {
       _library = builder.element;
       for (var unit in _library.units) {
-        for (var class_ in unit.types) {
-          var node = _getLinkedNode(class_);
-          _scope = LinkingNodeContext.get(node).scope;
-          for (var element in class_.fields) {
-            _addNode(element);
-          }
-        }
+        unit.types.forEach(_addClassElementFields);
+        unit.mixins.forEach(_addClassElementFields);
 
         _scope = builder.libraryScope;
         for (var element in unit.topLevelVariables) {
@@ -224,22 +336,34 @@ class _InitializerInference {
         }
       }
     }
+  }
+
+  void perform() {
     _walker.walkNodes();
+  }
+
+  void _addClassElementFields(ClassElement class_) {
+    var node = _getLinkedNode(class_);
+    _scope = LinkingNodeContext.get(node).scope;
+    for (var element in class_.fields) {
+      _addNode(element);
+    }
   }
 
   void _addNode(PropertyInducingElement element) {
     if (element.isSynthetic) return;
 
     VariableDeclaration node = _getLinkedNode(element);
-    VariableDeclarationList variableList = node.parent;
-    if (variableList.type == null || element.isConst) {
-      if (node.initializer != null) {
-        _walker.addNode(element, _library, _scope, node);
-      } else {
-        if (LazyAst.getType(node) == null) {
-          LazyAst.setType(node, DynamicTypeImpl.instance);
-        }
-      }
+    if (LazyAst.getType(node) != null) return;
+
+    if (node.initializer != null) {
+      var inferenceNode =
+          _InferenceNode(_walker, _library, _scope, element, node);
+      _walker._nodes[element] = inferenceNode;
+      (element as PropertyInducingElementImpl).initializer =
+          _FunctionElementForLink_Initializer(inferenceNode);
+    } else {
+      LazyAst.setType(node, DynamicTypeImpl.instance);
     }
   }
 }

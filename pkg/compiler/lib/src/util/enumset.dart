@@ -36,14 +36,16 @@ abstract class EnumSet<E> {
   /// value indices.
   void set value(int mask);
 
-  /// Adds [enumValue] to this set.
-  void add(E enumValue);
+  /// Adds [enumValue] to this set. Returns `true` if the set was changed by
+  /// this action.
+  bool add(E enumValue);
 
   /// Adds all enum values in [set] to this set.
   void addAll(EnumSet<E> set);
 
-  /// Removes [enumValue] from this set.
-  void remove(E enumValue);
+  /// Removes [enumValue] from this set. Returns `true` if the set was changed
+  /// by this action.
+  bool remove(E enumValue);
 
   /// Removes all enum values in [set] from this set. The set of removed values
   /// is returned.
@@ -149,8 +151,10 @@ class _EnumSet<E> extends EnumSet<E> {
   }
 
   @override
-  void add(E enumValue) {
+  bool add(E enumValue) {
+    int before = _value;
     _value |= 1 << (enumValue as dynamic).index;
+    return _value != before;
   }
 
   @override
@@ -159,8 +163,10 @@ class _EnumSet<E> extends EnumSet<E> {
   }
 
   @override
-  void remove(E enumValue) {
+  bool remove(E enumValue) {
+    int before = _value;
     _value &= ~(1 << (enumValue as dynamic).index);
+    return _value != before;
   }
 
   @override
@@ -201,7 +207,7 @@ class _ConstEnumSet<E> extends EnumSet<E> {
   }
 
   @override
-  void add(E enumValue) {
+  bool add(E enumValue) {
     throw new UnsupportedError('EnumSet.add');
   }
 
@@ -212,16 +218,36 @@ class _ConstEnumSet<E> extends EnumSet<E> {
 
   @override
   void clear() {
-    throw new UnsupportedError('EnumSet.clear');
+    if (isEmpty) {
+      // We allow this no-op operation on an immutable set to support using a
+      // constant empty set together with mutable sets where applicable.
+    } else {
+      throw new UnsupportedError('EnumSet.clear');
+    }
   }
 
   @override
-  void remove(E enumValue) {
+  bool remove(E enumValue) {
+    if (isEmpty) {
+      // We allow this no-op operation on an immutable set to support using a
+      // constant empty set together with mutable sets where applicable.
+      return false;
+    }
     throw new UnsupportedError('EnumSet.remove');
   }
 
   @override
   EnumSet<E> removeAll(EnumSet<E> set) {
+    if (isEmpty) {
+      // We allow this no-op operation on an immutable set to support using a
+      // constant empty set together with mutable sets where applicable.
+      return this;
+    }
+    if (set.isEmpty) {
+      // We allow this no-op operation on an immutable set to support using a
+      // constant empty set together with mutable sets where applicable.
+      return set.clone();
+    }
     throw new UnsupportedError('EnumSet.removeAll');
   }
 }

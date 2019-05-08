@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
@@ -13,18 +14,20 @@ import 'package:analyzer/src/summary2/link.dart';
 class MetadataResolver extends ThrowingAstVisitor<void> {
   final Linker _linker;
   final LibraryElement _libraryElement;
+  final CompilationUnitElement _unitElement;
 
   Scope scope;
 
-  MetadataResolver(this._linker, this._libraryElement);
+  MetadataResolver(this._linker, this._libraryElement, this._unitElement);
 
   @override
   void visitAnnotation(Annotation node) {
-    // TODO(scheglov) get rid of?
-    node.elementAnnotation = ElementAnnotationImpl(null);
+    node.elementAnnotation = ElementAnnotationImpl(_unitElement);
+
+    var holder = ElementHolder();
+    node.accept(LocalElementBuilder(holder, null));
 
     var astResolver = AstResolver(_linker, _libraryElement, scope);
-    // TODO(scheglov) enclosing elements?
     astResolver.resolve(node);
   }
 
@@ -117,9 +120,16 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    node.typeParameters?.accept(this);
+    node.parameters.accept(this);
+  }
+
+  @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    // TODO: implement visitGenericTypeAlias
-//    super.visitGenericTypeAlias(node);
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    node.functionType?.accept(this);
   }
 
   @override
@@ -141,8 +151,9 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    // TODO: implement visitMixinDeclaration
-//    super.visitMixinDeclaration(node);
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    node.members.accept(this);
   }
 
   @override
@@ -166,8 +177,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitTypeParameter(TypeParameter node) {
+    node.metadata.accept(this);
+  }
+
+  @override
   void visitTypeParameterList(TypeParameterList node) {
-    // TODO: implement visitTypeParameterList
-//    super.visitTypeParameterList(node);
+    node.typeParameters.accept(this);
   }
 }

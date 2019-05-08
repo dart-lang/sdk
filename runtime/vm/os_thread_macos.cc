@@ -14,6 +14,7 @@
 #include <mach/task_info.h>    // NOLINT
 #include <mach/thread_act.h>   // NOLINT
 #include <mach/thread_info.h>  // NOLINT
+#include <signal.h>            // NOLINT
 #include <sys/errno.h>         // NOLINT
 #include <sys/sysctl.h>        // NOLINT
 #include <sys/types.h>         // NOLINT
@@ -21,6 +22,7 @@
 #include "platform/address_sanitizer.h"
 #include "platform/assert.h"
 #include "platform/safe_stack.h"
+#include "platform/signal_blocker.h"
 #include "platform/utils.h"
 
 namespace dart {
@@ -86,6 +88,20 @@ class ThreadStartData {
   DISALLOW_COPY_AND_ASSIGN(ThreadStartData);
 };
 
+// Spawned threads inherit their spawner's signal mask. We sometimes spawn
+// threads for running Dart code from a thread that is blocking SIGPROF.
+// This function explicitly unblocks SIGPROF so the profiler continues to
+// sample this thread.
+static void UnblockSIGPROF() {
+  sigset_t set;
+  sigemptyset(&set);
+  sigaddset(&set, SIGPROF);
+  int r = pthread_sigmask(SIG_UNBLOCK, &set, NULL);
+  USE(r);
+  ASSERT(r == 0);
+  ASSERT(!CHECK_IS_BLOCKING(SIGPROF));
+}
+
 // Dispatch to the thread start function provided by the caller. This trampoline
 // is used to ensure that the thread is properly destroyed if the thread just
 // exits.
@@ -105,7 +121,7 @@ static void* ThreadStart(void* data_ptr) {
   if (thread != NULL) {
     OSThread::SetCurrent(thread);
     thread->set_name(name);
-
+    UnblockSIGPROF();
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
   }

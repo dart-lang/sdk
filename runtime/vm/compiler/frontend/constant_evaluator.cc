@@ -579,7 +579,7 @@ void ConstantEvaluator::EvaluateConstructorInvocationInternal() {
     result_ ^= result.raw();
   } else {
     ASSERT(!receiver->IsNull());
-    result_ ^= (*receiver).raw();
+    result_ = (*receiver).raw();
   }
   if (I->obfuscate() &&
       (result_.clazz() == I->object_store()->symbol_class())) {
@@ -589,7 +589,7 @@ void ConstantEvaluator::EvaluateConstructorInvocationInternal() {
 }
 
 void ConstantEvaluator::EvaluateNot() {
-  result_ ^= Bool::Get(!EvaluateBooleanExpressionHere()).raw();
+  result_ = Bool::Get(!EvaluateBooleanExpressionHere()).raw();
 }
 
 void ConstantEvaluator::EvaluateLogicalExpression() {
@@ -1050,7 +1050,7 @@ bool ConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
   if (!IsBuildingFlowGraph()) return false;
 
   const Function& function = flow_graph_builder_->parsed_function_->function();
-  if ((function.kind() == RawFunction::kImplicitStaticFinalGetter ||
+  if ((function.kind() == RawFunction::kImplicitStaticGetter ||
        function.kind() == RawFunction::kStaticFieldInitializer) &&
       !I->CanOptimizeImmediately()) {
     // Don't cache constants in initializer expressions. They get
@@ -1083,7 +1083,7 @@ void ConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
   if (!IsBuildingFlowGraph()) return;
 
   const Function& function = flow_graph_builder_->parsed_function_->function();
-  if ((function.kind() == RawFunction::kImplicitStaticFinalGetter ||
+  if ((function.kind() == RawFunction::kImplicitStaticGetter ||
        function.kind() == RawFunction::kStaticFieldInitializer) &&
       !I->CanOptimizeImmediately()) {
     // Don't cache constants in initializer expressions. They get

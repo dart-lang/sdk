@@ -1461,15 +1461,16 @@ MessageWriter::~MessageWriter() {
   delete finalizable_data_;
 }
 
-Message* MessageWriter::WriteMessage(const Object& obj,
-                                     Dart_Port dest_port,
-                                     Message::Priority priority) {
+std::unique_ptr<Message> MessageWriter::WriteMessage(
+    const Object& obj,
+    Dart_Port dest_port,
+    Message::Priority priority) {
   ASSERT(kind() == Snapshot::kMessage);
   ASSERT(isolate() != NULL);
 
   // Setup for long jump in case there is an exception while writing
   // the message.
-  bool has_exception = false;
+  volatile bool has_exception = false;
   {
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
@@ -1486,8 +1487,8 @@ Message* MessageWriter::WriteMessage(const Object& obj,
 
   MessageFinalizableData* finalizable_data = finalizable_data_;
   finalizable_data_ = NULL;
-  return new Message(dest_port, buffer(), BytesWritten(), finalizable_data,
-                     priority);
+  return Message::New(dest_port, buffer(), BytesWritten(), finalizable_data,
+                      priority);
 }
 
 }  // namespace dart

@@ -12,6 +12,7 @@ import '../elements/names.dart' show Name;
 import '../elements/types.dart';
 import '../ir/closure.dart';
 import '../ir/element_map.dart';
+import '../ir/static_type_cache.dart';
 import '../js_model/element_map.dart';
 import '../js_model/env.dart';
 import '../ordered_typeset.dart';
@@ -939,8 +940,6 @@ class JRecord extends JClass {
 /// A variable that has been "boxed" to prevent name shadowing with the
 /// original variable and ensure that this variable is updated/read with the
 /// most recent value.
-/// This corresponds to BoxFieldElement; we reuse BoxLocal from the original
-/// algorithm to correspond to the actual name of the variable.
 class JRecordField extends JField {
   /// Tag used for identifying serialized [JRecordField] objects in a
   /// debugging data stream.
@@ -973,8 +972,16 @@ class JRecordField extends JField {
     sink.end(tag);
   }
 
+  // TODO(johnniwinther): Remove these anomalies. Maybe by separating the
+  // J-entities from the K-entities.
   @override
   bool get isInstanceMember => false;
+
+  @override
+  bool get isTopLevel => false;
+
+  @override
+  bool get isStatic => false;
 }
 
 class ClosureClassData extends RecordClassData {
@@ -1059,7 +1066,7 @@ abstract class ClosureMemberData implements JMemberData {
   ClosureMemberData(this.definition, this.memberThisType);
 
   @override
-  Map<ir.Expression, ir.DartType> get staticTypes {
+  StaticTypeCache get staticTypes {
     // The cached types are stored in the data for enclosing member.
     throw new UnsupportedError("ClosureMemberData.staticTypes");
   }

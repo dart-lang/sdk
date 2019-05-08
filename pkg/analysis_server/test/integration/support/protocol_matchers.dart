@@ -35,6 +35,7 @@ final Matcher isAddContentOverlay = new LazyMatcher(() => new MatchesJsonObject(
  *   "correction": optional String
  *   "code": String
  *   "url": optional String
+ *   "contextMessages": optional List<DiagnosticMessage>
  *   "hasFix": optional bool
  * }
  */
@@ -48,6 +49,7 @@ final Matcher isAnalysisError =
         }, optionalFields: {
           "correction": isString,
           "url": isString,
+          "contextMessages": isListOf(isDiagnosticMessage),
           "hasFix": isBool
         }));
 
@@ -385,6 +387,17 @@ final Matcher isDartFix = new LazyMatcher(() => new MatchesJsonObject(
 final Matcher isDartFixSuggestion = new LazyMatcher(() => new MatchesJsonObject(
     "DartFixSuggestion", {"description": isString},
     optionalFields: {"location": isLocation}));
+
+/**
+ * DiagnosticMessage
+ *
+ * {
+ *   "message": String
+ *   "location": Location
+ * }
+ */
+final Matcher isDiagnosticMessage = new LazyMatcher(() => new MatchesJsonObject(
+    "DiagnosticMessage", {"message": isString, "location": isLocation}));
 
 /**
  * Element

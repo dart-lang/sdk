@@ -799,12 +799,15 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
   Token::Kind token_kind = MethodTokenRecognizer::RecognizeTokenKind(name);
 
   intptr_t checked_argument_count = 1;
-  if ((token_kind != Token::kILLEGAL) ||
-      (name.raw() ==
-       Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()).raw())) {
+  if (token_kind != Token::kILLEGAL) {
     intptr_t argument_count = arg_desc.Count();
     ASSERT(argument_count <= 2);
     checked_argument_count = argument_count;
+  } else if (name.raw() ==
+             Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()).raw()) {
+    ASSERT(arg_desc.Count() == 2);
+    checked_argument_count = 2;
+    token_kind = Token::kIS;
   } else if (name.raw() ==
              Library::PrivateCoreLibName(Symbols::_instanceOf()).raw()) {
     token_kind = Token::kIS;
@@ -1407,24 +1410,22 @@ void BytecodeFlowGraphBuilder::BuildJumpIfStrictCompare(Token::Kind cmp_kind) {
 
   LoadStackSlots(2);
 
-  TargetEntryInstr* eq_branch = nullptr;
-  TargetEntryInstr* ne_branch = nullptr;
-  code_ += B->BranchIfStrictEqual(&eq_branch, &ne_branch);
-
-  TargetEntryInstr* then_entry =
-      (cmp_kind == Token::kEQ) ? eq_branch : ne_branch;
-  TargetEntryInstr* else_entry =
-      (cmp_kind == Token::kEQ) ? ne_branch : eq_branch;
+  // Fallthrough should correspond to 'then' branch target.
+  // This results in a slightly better regalloc.
+  TargetEntryInstr* then_entry = nullptr;
+  TargetEntryInstr* else_entry = nullptr;
+  code_ += B->BranchIfEqual(&then_entry, &else_entry,
+                            /* negate = */ (cmp_kind == Token::kEQ));
 
   const intptr_t target_pc = pc_ + DecodeOperandT().value();
   JoinEntryInstr* join = jump_targets_.Lookup(target_pc);
   ASSERT(join != nullptr);
 
-  code_ = Fragment(then_entry);
+  code_ = Fragment(else_entry);
   code_ += B->Goto(join);
   PropagateStackState(target_pc);
 
-  code_ = Fragment(else_entry);
+  code_ = Fragment(then_entry);
 }
 
 void BytecodeFlowGraphBuilder::BuildJumpIfEqStrict() {

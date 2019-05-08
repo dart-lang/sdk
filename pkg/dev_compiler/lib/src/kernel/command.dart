@@ -323,6 +323,7 @@ Future<CompilerResult> _compile(List<String> args,
   // TODO(jmesserly): remove this hack once Flutter SDK has a `dartdevc` with
   // support for the widget inspector.
   if (argResults['track-widget-creation'] as bool) {
+    component.computeCanonicalNames();
     WidgetCreatorTracker(hierarchy).transform(component);
   }
 

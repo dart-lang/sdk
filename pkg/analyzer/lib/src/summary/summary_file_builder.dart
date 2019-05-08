@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
@@ -129,10 +130,14 @@ class _Builder {
     AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
     String code = source.contents.data;
     CharSequenceReader reader = new CharSequenceReader(code);
-    Scanner scanner = new Scanner(source, reader, errorListener);
+    // TODO(paulberry): figure out the appropriate featureSet to use here
+    var featureSet = FeatureSet.fromEnableFlags([]);
+    Scanner scanner = new Scanner(source, reader, errorListener)
+      ..configureFeatures(featureSet);
     Token token = scanner.tokenize();
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
     Parser parser = new Parser(source, errorListener,
+        featureSet: featureSet,
         useFasta: context.analysisOptions.useFastaParser);
     parser.enableOptionalNewAndConst = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);

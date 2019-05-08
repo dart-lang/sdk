@@ -4,15 +4,9 @@
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/tokens_writer.dart';
 
-/// The context for reading or writing tokens.
-///
-/// Tokens cannot be compared, so tokens for [indexOfToken] must be previously
-/// received from [tokenOfIndex], or the context must be created from a
-/// [TokensResult] (the result of writing previously parsed tokens).
+/// The context for reading tokens.
 class TokensContext {
   final UnlinkedTokens _tokens;
   final List<Token> _indexToToken;
@@ -21,36 +15,6 @@ class TokensContext {
   TokensContext(this._tokens)
       : _indexToToken = List<Token>(_tokens.type.length),
         _tokenToIndex = Map.identity();
-
-  TokensContext.fromResult(
-      this._tokens, this._indexToToken, this._tokenToIndex);
-
-  /// TODO(scheglov) Not used yet, maybe remove.
-  int addSyntheticToken(
-      UnlinkedTokenKind kind, UnlinkedTokenType type, String lexeme) {
-    var index = _tokens.kind.length;
-    UnlinkedTokensBuilder tokens = _tokens;
-    tokens.kind.add(kind);
-    tokens.lexeme.add(lexeme);
-    tokens.offset.add(0);
-    tokens.length.add(0);
-    tokens.type.add(type);
-    tokens.next.add(0);
-    tokens.endGroup.add(0);
-    tokens.precedingComment.add(0);
-    tokens.isSynthetic.add(true);
-    return index;
-  }
-
-  int indexOfToken(Token token) {
-    if (token == null) return 0;
-
-    var index = _tokenToIndex[token];
-    if (index == null) {
-      throw StateError('Unexpected token: $token');
-    }
-    return index;
-  }
 
   String lexeme(int index) {
     return _tokens.lexeme[index];
@@ -167,6 +131,8 @@ class TokensContext {
         return TokenType.BANG;
       case UnlinkedTokenType.BANG_EQ:
         return TokenType.BANG_EQ;
+      case UnlinkedTokenType.BANG_EQ_EQ:
+        return TokenType.BANG_EQ_EQ;
       case UnlinkedTokenType.BAR:
         return TokenType.BAR;
       case UnlinkedTokenType.BAR_BAR:
@@ -221,6 +187,8 @@ class TokensContext {
         return TokenType.EQ;
       case UnlinkedTokenType.EQ_EQ:
         return TokenType.EQ_EQ;
+      case UnlinkedTokenType.EQ_EQ_EQ:
+        return TokenType.EQ_EQ_EQ;
       case UnlinkedTokenType.EXPORT:
         return Keyword.EXPORT;
       case UnlinkedTokenType.EXTENDS:
@@ -251,6 +219,10 @@ class TokensContext {
         return TokenType.GT_GT;
       case UnlinkedTokenType.GT_GT_EQ:
         return TokenType.GT_GT_EQ;
+      case UnlinkedTokenType.GT_GT_GT:
+        return TokenType.GT_GT_GT;
+      case UnlinkedTokenType.GT_GT_GT_EQ:
+        return TokenType.GT_GT_GT_EQ;
       case UnlinkedTokenType.HASH:
         return TokenType.HASH;
       case UnlinkedTokenType.HEXADECIMAL:
@@ -277,6 +249,8 @@ class TokensContext {
         return Keyword.INTERFACE;
       case UnlinkedTokenType.IS:
         return TokenType.IS;
+      case UnlinkedTokenType.LATE:
+        return Keyword.LATE;
       case UnlinkedTokenType.LIBRARY:
         return Keyword.LIBRARY;
       case UnlinkedTokenType.LT:
@@ -345,6 +319,8 @@ class TokensContext {
         return TokenType.QUESTION_QUESTION;
       case UnlinkedTokenType.QUESTION_QUESTION_EQ:
         return TokenType.QUESTION_QUESTION_EQ;
+      case UnlinkedTokenType.REQUIRED:
+        return Keyword.REQUIRED;
       case UnlinkedTokenType.RETHROW:
         return Keyword.RETHROW;
       case UnlinkedTokenType.RETURN:

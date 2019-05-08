@@ -107,7 +107,8 @@ class DartUnitHoverComputer {
 
   static String computeDocumentation(
       DartdocDirectiveInfo dartdocInfo, Element element) {
-    // TODO(dantup) We're reusing this in parameter information - move it somewhere shared?
+    // TODO(dantup) We're reusing this in parameter information - move it
+    // somewhere shared?
     if (element is FieldFormalParameterElement) {
       element = (element as FieldFormalParameterElement).field;
     }

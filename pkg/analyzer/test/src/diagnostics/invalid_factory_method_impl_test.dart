@@ -31,7 +31,7 @@ class State { }
 
   test_badReturn() async {
     addMetaPackage();
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class Stateful {
   State _s = new State();
@@ -40,7 +40,9 @@ class Stateful {
   State createState() => _s;
 }
 class State { }
-''', [HintCode.INVALID_FACTORY_METHOD_IMPL]);
+''', [
+      error(HintCode.INVALID_FACTORY_METHOD_IMPL, 96, 11),
+    ]);
   }
 
   test_block() async {
@@ -131,13 +133,15 @@ class MyState extends State { }
 
   test_voidReturn() async {
     addMetaPackage();
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
 class Stateful {
   @factory
   void createState() {}
 }
-''', [HintCode.INVALID_FACTORY_METHOD_DECL]);
+''', [
+      error(HintCode.INVALID_FACTORY_METHOD_DECL, 69, 11),
+    ]);
   }
 }

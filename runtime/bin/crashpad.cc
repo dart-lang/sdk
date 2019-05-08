@@ -14,8 +14,8 @@
 #endif
 
 #include "bin/error_exit.h"
-#include "bin/log.h"
 #include "bin/platform.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {
@@ -66,7 +66,7 @@ void InitializeCrashpadClient() {
   SetStdHandle(STD_ERROR_HANDLE, original_stderr);
 
   if (!success) {
-    Log::PrintErr("Failed to start the crash handler!\n");
+    Syslog::PrintErr("Failed to start the crash handler!\n");
     Platform::Exit(kErrorExitCode);
   }
   crashpad::CrashpadInfo::GetCrashpadInfo()

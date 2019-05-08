@@ -34,6 +34,7 @@ import '../ir/element_map.dart';
 import '../ir/impact.dart';
 import '../ir/impact_data.dart';
 import '../ir/static_type.dart';
+import '../ir/static_type_cache.dart';
 import '../ir/scope.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
@@ -1389,14 +1390,13 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         typeMapsForTesting[member] = builder.typeMapsForTesting = {};
       }
       node.accept(builder);
-      memberData.staticTypes = builder.cachedStaticTypes;
+      memberData.staticTypes = builder.getStaticTypeCache();
       return builder.impactBuilder;
     }
   }
 
-  Map<ir.Expression, ir.DartType> getCachedStaticTypes(KMember member) {
-    Map<ir.Expression, ir.DartType> staticTypes =
-        members.getData(member).staticTypes;
+  StaticTypeCache getCachedStaticTypes(KMember member) {
+    StaticTypeCache staticTypes = members.getData(member).staticTypes;
     assert(staticTypes != null, "No static types cached for $member.");
     return staticTypes;
   }

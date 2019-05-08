@@ -52,6 +52,20 @@ class B extends A {
 ''', [HintCode.MUST_CALL_SUPER]);
   }
 
+  test_fromExtendingClass_abstractImplementation() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+abstract class A {
+  @mustCallSuper
+  void a();
+}
+class B extends A {
+  @override
+  void a() {}
+}
+''');
+  }
+
   test_fromInterface() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -64,6 +78,20 @@ class C implements A {
   void a() {}
 }
 ''');
+  }
+
+  test_fromMixin() async {
+    await assertErrorCodesInCode(r'''
+import 'package:meta/meta.dart';
+class Mixin {
+  @mustCallSuper
+  void a() {}
+}
+class C with Mixin {
+  @override
+  void a() {}
+}
+''', [HintCode.MUST_CALL_SUPER]);
   }
 
   test_indirectlyInherited() async {
@@ -80,6 +108,35 @@ class C extends A {
   }
 }
 class D extends C {
+  @override
+  void a() {}
+}
+''', [HintCode.MUST_CALL_SUPER]);
+  }
+
+  test_indirectlyInheritedFromMixin() async {
+    await assertErrorCodesInCode(r'''
+import 'package:meta/meta.dart';
+class Mixin {
+  @mustCallSuper
+  void b() {}
+}
+class C extends Object with Mixin {}
+class D extends C {
+  @override
+  void b() {}
+}
+''', [HintCode.MUST_CALL_SUPER]);
+  }
+
+  test_indirectlyInheritedFromMixinConstraint() async {
+    await assertErrorCodesInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a() {}
+}
+mixin C on A {
   @override
   void a() {}
 }

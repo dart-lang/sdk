@@ -85,8 +85,7 @@ class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
 @reflectiveTest
 class ScannerTest_Fasta extends ScannerTestBase {
   @override
-  Token scanWithListener(String source, ErrorListener listener,
-      {bool lazyAssignmentOperators: false}) {
+  Token scanWithListener(String source, ErrorListener listener) {
     var result = scanString(source, includeComments: true);
     var token = result.tokens;
 
@@ -717,15 +716,26 @@ class ScannerTest_Fasta_Direct_UTF8 extends ScannerTest_Fasta_Direct {
   ScannerResult scanSource(source, {includeComments: true}) {
     List<int> encoded = utf8.encode(source).toList(growable: true);
     encoded.add(0); // Ensure 0 terminted bytes for UTF8 scanner
-    return usedForFuzzTesting.scan(encoded, includeComments: includeComments);
+    return usedForFuzzTesting.scan(encoded,
+        includeComments: includeComments,
+        languageVersionChanged: languageVersionChanged);
   }
 }
 
 /// Scanner tests that exercise the Fasta scanner directly.
 @reflectiveTest
 class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
+  LanguageVersionToken languageVersion;
+
+  void languageVersionChanged(
+      Scanner scanner, LanguageVersionToken languageVersion) {
+    this.languageVersion = languageVersion;
+  }
+
   ScannerResult scanSource(source, {includeComments: true}) =>
-      scanString(source, includeComments: includeComments);
+      scanString(source,
+          includeComments: includeComments,
+          languageVersionChanged: languageVersionChanged);
 
   @override
   Token scan(String source) {
@@ -742,6 +752,140 @@ class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
       token = next;
     }
     return first;
+  }
+
+  void test_languageVersion_afterImport() {
+    var result = scanSource('''
+import 'foo.dart';
+// @dart = 2.3
+main() {}
+''');
+    expect(languageVersion, isNull);
+    expectComments(result.tokens, [], -1);
+  }
+
+  void test_languageVersion_beforeComment() {
+    var result = scanSource('''
+// some other comment
+// @dart = 2.3
+// yet another comment
+import 'foo.dart';
+main() {}
+''');
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
+    expectComments(
+        result.tokens,
+        [
+          '// some other comment',
+          '// @dart = 2.3',
+          '// yet another comment',
+        ],
+        1);
+  }
+
+  void test_languageVersion_beforeFunction() {
+    var result = scanSource('''
+// @dart = 2.3
+main() {}
+''');
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
+    expectComments(result.tokens, ['// @dart = 2.3'], 0);
+  }
+
+  void test_languageVersion_beforeFunction_trailingX() {
+    var result = scanSource('''
+// @dart = 2.3 x
+main() {}
+''');
+    expect(languageVersion, isNull);
+    expectComments(result.tokens, ['// @dart = 2.3 x'], -1);
+  }
+
+  void test_languageVersion_beforeFunction_noComments() {
+    var result = scanSource('''
+// @dart = 2.3
+main() {}
+''', includeComments: false);
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
+    expectComments(result.tokens, [], -1);
+  }
+
+  void test_languageVersion_beforeImport() {
+    var result = scanSource('''
+// @dart = 2.3
+import 'foo.dart';
+main() {}
+''');
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
+    expectComments(result.tokens, ['// @dart = 2.3'], 0);
+  }
+
+  void test_languageVersion_beforeImport_afterScript() {
+    var result = scanSource('''
+#!/bin/dart
+// @dart = 2.3
+import 'foo.dart';
+main() {}
+''');
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
+    expectComments(result.tokens.next, ['// @dart = 2.3'], 0);
+  }
+
+  void test_languageVersion_beforeLibrary() {
+    var result = scanSource('''
+// @dart = 2.3
+library foo;
+main() {}
+''');
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
+    expectComments(result.tokens, ['// @dart = 2.3'], 0);
+  }
+
+  void test_languageVersion_beforeLibrary_noSpaces() {
+    var result = scanSource('''
+// @dart=2.3
+library foo;
+main() {}
+''');
+    expect(languageVersion.major, 2);
+    expect(languageVersion.minor, 3);
+    expectComments(result.tokens, ['// @dart=2.3'], 0);
+  }
+
+  void test_languageVersion_incomplete_version() {
+    var result = scanSource('''
+// @dart = 2.
+library foo;
+main() {}
+''');
+    expect(languageVersion, isNull);
+    expectComments(result.tokens, ['// @dart = 2.'], -1);
+  }
+
+  void test_languageVersion_invalid_identifier() {
+    var result = scanSource('''
+// @dart = blat
+library foo;
+main() {}
+''');
+    expect(languageVersion, isNull);
+    expectComments(result.tokens, ['// @dart = blat'], -1);
+  }
+
+  void test_languageVersion_invalid_version() {
+    var result = scanSource('''
+// @dart = 2.x
+library foo;
+main() {}
+''');
+    expect(languageVersion, isNull);
+    expectComments(result.tokens, ['// @dart = 2.x'], -1);
   }
 
   void test_linestarts() {
@@ -790,5 +934,34 @@ class ScannerTest_Fasta_Direct extends ScannerTest_Fasta_Base {
       ++index;
       token = token.next;
     }
+  }
+
+  void expectComments(
+      Token token, List<String> expectedComments, int versionIndex) {
+    int index = 0;
+    token = token.precedingComments;
+    while (token != null) {
+      if (index == versionIndex) {
+        if (token is! LanguageVersionToken) {
+          fail('Expected version comment at index $index');
+        }
+      } else {
+        if (token is LanguageVersionToken) {
+          fail('Did not expect version comment at index $index');
+        }
+      }
+      if (index >= expectedComments.length) {
+        fail('Unexpected comment at index $index');
+      }
+      if (token is CommentToken) {
+        expect(token.lexeme, expectedComments[index],
+            reason: 'comment at $index');
+      } else {
+        fail('Expected comment token at index $index');
+      }
+      ++index;
+      token = token.next;
+    }
+    expect(index, expectedComments.length, reason: 'unexpected comments');
   }
 }

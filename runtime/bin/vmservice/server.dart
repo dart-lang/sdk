@@ -216,14 +216,15 @@ class Server {
     return false;
   }
 
-  /// Checks the [requestUri] for the service auth token and returns the path.
-  /// If the service auth token check fails, returns null.
-  String _checkAuthTokenAndGetPath(Uri requestUri) {
+  /// Checks the [requestUri] for the service auth token and returns the path
+  /// as a String. If the service auth token check fails, returns null.
+  /// Returns a Uri if a redirect is required.
+  dynamic _checkAuthTokenAndGetPath(Uri requestUri) {
     if (_authCodesDisabled) {
       return requestUri.path == '/' ? ROOT_REDIRECT_PATH : requestUri.path;
     }
     final List<String> requestPathSegments = requestUri.pathSegments;
-    if (requestPathSegments.length < 2) {
+    if (requestPathSegments.isEmpty) {
       // Malformed.
       return null;
     }
@@ -232,6 +233,18 @@ class Server {
     if (authToken != serviceAuthToken) {
       // Malformed.
       return null;
+    }
+    // Missing a trailing '/'. We'll need to redirect to serve
+    // ROOT_REDIRECT_PATH correctly, otherwise the response is misinterpreted.
+    if (requestPathSegments.length == 1) {
+      // requestPathSegments is unmodifiable. Copy it.
+      final List<String> pathSegments = <String>[]..addAll(requestPathSegments);
+
+      // Adding an empty string to the path segments results in the path having
+      // a trailing '/'.
+      pathSegments.add('');
+
+      return requestUri.replace(pathSegments: pathSegments);
     }
     // Construct the actual request path by chopping off the auth token.
     return (requestPathSegments[1] == '')
@@ -305,16 +318,24 @@ class Server {
       return;
     }
 
-    final String path = _checkAuthTokenAndGetPath(request.uri);
-    if (path == null) {
+    final dynamic result = _checkAuthTokenAndGetPath(request.uri);
+    if (result == null) {
       // Either no authentication code was provided when one was expected or an
       // incorrect authentication code was provided.
       request.response.statusCode = HttpStatus.forbidden;
       request.response.write("missing or invalid authentication code");
       request.response.close();
       return;
+    } else if (result is Uri) {
+      // The URI contains the valid auth token but is missing a trailing '/'.
+      // Redirect to the same URI with the trailing '/' to correctly serve
+      // index.html.
+      request.response.redirect(result as Uri);
+      request.response.close();
+      return;
     }
 
+    final String path = result;
     if (path == WEBSOCKET_PATH) {
       WebSocketTransformer.upgrade(request).then((WebSocket webSocket) {
         new WebSocketClient(webSocket, _service);
@@ -338,7 +359,8 @@ class Server {
     }
     // HTTP based service request.
     final client = new HttpRequestClient(request, _service);
-    final message = new Message.fromUri(client, Uri.parse(path));
+    final message = new Message.fromUri(
+        client, Uri(path: path, queryParameters: request.uri.queryParameters));
     client.onRequest(message); // exception free, no need to try catch
   }
 

@@ -98,11 +98,6 @@ class ConstantEvaluationEngine {
   final ConstantEvaluationValidator validator;
 
   /**
-   * Whether this engine is used inside Analysis Driver.
-   */
-  final bool forAnalysisDriver;
-
-  /**
    * Initialize a newly created [ConstantEvaluationEngine].  The [typeProvider]
    * is used to access known types.  [_declaredVariables] is the set of
    * variables declared on the command line using '-D'.  The [validator], if
@@ -113,7 +108,8 @@ class ConstantEvaluationEngine {
       {ConstantEvaluationValidator validator,
       ExperimentStatus experimentStatus,
       TypeSystem typeSystem,
-      this.forAnalysisDriver: false})
+      // TODO(brianwilkerson) Remove the unused parameter `forAnalysisDriver`.
+      @deprecated bool forAnalysisDriver})
       : typeProvider = typeProvider,
         validator =
             validator ?? new ConstantEvaluationValidator_ForProduction(),
@@ -902,9 +898,6 @@ class ConstantEvaluationEngine {
     if (obj.isNull) {
       return true;
     }
-    if (type.isUndefined) {
-      return false;
-    }
     var objType = obj.type;
     if (objType.isDartCoreInt && type.isDartCoreDouble) {
       // Work around dartbug.com/35993 by allowing `int` to be used in a place
@@ -1019,7 +1012,8 @@ class ConstantEvaluationValidator_ForProduction
  */
 class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /**
-   * The type provider used to access the known types.
+   * The evaluation engine used to access the feature set, type system, and type
+   * provider.
    */
   final ConstantEvaluationEngine evaluationEngine;
 
@@ -1717,23 +1711,13 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         element is PropertyAccessorElement ? element.variable : element;
     if (variableElement is VariableElementImpl) {
       // We access values of constant variables here in two cases: when we
-      // compute values of other constant  variables, or when we compute values
-      // and errors for other constant expressions. In any case, with Analysis
-      // Driver, we compute values of all dependencies first (or detect  cycle).
-      // So, the value has already been computed. Just return it.
-      if (evaluationEngine.forAnalysisDriver) {
-        EvaluationResultImpl value = variableElement.evaluationResult;
-        if (variableElement.isConst && value != null) {
-          return value.value;
-        }
-      } else {
-        // TODO(scheglov) Once we remove task model, we can remove this code.
-        evaluationEngine.validator.beforeGetEvaluationResult(variableElement);
-        variableElement.computeConstantValue();
-        EvaluationResultImpl value = variableElement.evaluationResult;
-        if (variableElement.isConst && value != null) {
-          return value.value;
-        }
+      // compute values of other constant variables, or when we compute values
+      // and errors for other constant expressions. In either case we have
+      // already computed values of all dependencies first (or detect a cycle),
+      // so the value has already been computed and we can just return it.
+      EvaluationResultImpl value = variableElement.evaluationResult;
+      if (variableElement.isConst && value != null) {
+        return value.value;
       }
     } else if (variableElement is ExecutableElement) {
       ExecutableElement function = element;
@@ -1804,7 +1788,7 @@ class DartObjectComputer {
   final ErrorReporter _errorReporter;
 
   /**
-   * The type provider used to access the known types.
+   * The evaluation engine used to access the type system, and type provider.
    */
   final ConstantEvaluationEngine _evaluationEngine;
 

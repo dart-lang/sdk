@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -35,21 +35,18 @@ String absUri(String path) {
 }
 
 CompilationUnit parseText(
-  String text, {
-  ExperimentStatus experimentStatus,
-}) {
-  experimentStatus ??= ExperimentStatus();
+  String text,
+  FeatureSet featureSet,
+) {
+  featureSet ??= FeatureSet.forTesting(sdkVersion: '2.3.0');
   CharSequenceReader reader = new CharSequenceReader(text);
   Scanner scanner =
       new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER)
-        ..enableGtGtGt = experimentStatus.constant_update_2018;
+        ..configureFeatures(featureSet);
   Token token = scanner.tokenize();
   Parser parser = new Parser(
-      NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER)
-    ..enableNonNullable = experimentStatus.non_nullable
-    ..enableSpreadCollections = experimentStatus.spread_collections
-    ..enableControlFlowCollections = experimentStatus.control_flow_collections
-    ..enableTripleShift = experimentStatus.triple_shift;
+      NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER,
+      featureSet: featureSet);
   CompilationUnit unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
   return unit;
@@ -96,8 +93,8 @@ void _validateLinkedLibrary(LinkedLibrary linkedLibrary) {
 /// The tests themselves can then be provided via mixin, allowing summaries to
 /// be tested in a variety of ways.
 abstract class ResynthesizeTestStrategy {
-  /// The set of [ExperimentStatus] enabled in this test.
-  ExperimentStatus experimentStatus;
+  /// The set of features enabled in this test.
+  FeatureSet featureSet;
 
   void set allowMissingFiles(bool value);
 
@@ -130,7 +127,7 @@ abstract class ResynthesizeTestStrategy {
 class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
     implements ResynthesizeTestStrategy {
   @override
-  ExperimentStatus experimentStatus = ExperimentStatus();
+  FeatureSet featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
 
   final Set<Source> serializedSources = new Set<Source>();
 
@@ -179,8 +176,7 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
         .map((Source source) => source.uri.toString())
         .toSet();
 
-    var analysisOptions = AnalysisOptionsImpl()
-      ..enabledExperiments = experimentStatus.toStringList();
+    var analysisOptions = AnalysisOptionsImpl()..contextFeatures = featureSet;
 
     Map<String, LinkedLibrary> linkedSummaries = link(nonSdkLibraryUris,
         getDependency, getUnit, declaredVariables, analysisOptions);
@@ -229,8 +225,7 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
         contents = '';
       }
 
-      CompilationUnit unit =
-          parseText(contents, experimentStatus: experimentStatus);
+      CompilationUnit unit = parseText(contents, featureSet);
 
       UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
       bundleAssembler.addUnlinkedUnit(source, unlinkedUnit);
@@ -311,8 +306,8 @@ class SerializedMockSdk {
 /// The tests themselves can then be provided via mixin, allowing summaries to
 /// be tested in a variety of ways.
 abstract class SummaryBaseTestStrategy {
-  /// The set of [ExperimentStatus] enabled in this test.
-  ExperimentStatus experimentStatus;
+  /// The set of features enabled in this test.
+  FeatureSet featureSet;
 
   /// Add the given package bundle as a dependency so that it may be referenced
   /// by the files under test.
@@ -531,12 +526,12 @@ abstract class _SummaryBaseTestStrategyTwoPhase
       new _FilesToLink<UnlinkedUnitBuilder>();
 
   @override
-  ExperimentStatus experimentStatus = ExperimentStatus();
+  FeatureSet featureSet = FeatureSet.forTesting();
 
   _LinkerInputs _linkerInputs;
 
-  AnalysisOptions get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = experimentStatus.toStringList();
+  AnalysisOptions get analysisOptions =>
+      AnalysisOptionsImpl()..contextFeatures = featureSet;
 
   bool get _allowMissingFiles;
 
@@ -547,7 +542,7 @@ abstract class _SummaryBaseTestStrategyTwoPhase
 
   @override
   void addNamedSource(String filePath, String contents) {
-    CompilationUnit unit = parseText(contents);
+    CompilationUnit unit = parseText(contents, featureSet);
     UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
     _filesToLink.uriToUnit[absUri(filePath)] = unlinkedUnit;
   }
@@ -572,7 +567,7 @@ abstract class _SummaryBaseTestStrategyTwoPhase
   }
 
   UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text) =>
-      serializeAstUnlinked(parseText(text, experimentStatus: experimentStatus));
+      serializeAstUnlinked(parseText(text, featureSet));
 
   _LinkerInputs _createLinkerInputs(String text,
       {String path: '/test.dart', String uri}) {

@@ -35,11 +35,11 @@ class GCMarker {
   // Mark roots synchronously, then spawn tasks to concurrently drain the
   // marking queue. Only called when no marking or sweeping is in progress.
   // Marking must later be finalized by calling MarkObjects.
-  void StartConcurrentMark(PageSpace* page_space, bool collect_code);
+  void StartConcurrentMark(PageSpace* page_space);
 
   // (Re)mark roots, drain the marking queue and finalize weak references.
   // Does not required StartConcurrentMark to have been previously called.
-  void MarkObjects(PageSpace* page_space, bool collect_code);
+  void MarkObjects(PageSpace* page_space);
 
   intptr_t marked_words() const { return marked_bytes_ >> kWordSizeLog2; }
   intptr_t MarkedWordsPerMicro() const;

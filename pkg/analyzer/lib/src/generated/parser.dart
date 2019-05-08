@@ -7,6 +7,7 @@ library analyzer.parser;
 import 'dart:collection';
 import "dart:math" as math;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -194,18 +195,37 @@ class Parser {
 
   bool allowNativeClause;
 
+  FeatureSet _featureSet;
+
   /// Initialize a newly created parser to parse tokens in the given [_source]
   /// and to report any errors that are found to the given [_errorListener].
+  ///
+  /// In a future major version release of the analyzer, the [featureSet]
+  /// argument will be required.
   factory Parser(Source source, AnalysisErrorListener errorListener,
-      {bool useFasta}) {
+      {bool useFasta, FeatureSet featureSet}) {
     if (useFasta ?? Parser.useFasta) {
-      return new _Parser2(source, errorListener, allowNativeClause: true);
+      var parser = new _Parser2(source, errorListener, allowNativeClause: true);
+      if (featureSet != null) {
+        parser.configureFeatures(featureSet);
+      }
+      return parser;
     } else {
-      return new Parser.withoutFasta(source, errorListener);
+      return new Parser.withoutFasta(source, errorListener,
+          featureSet: featureSet);
     }
   }
 
-  Parser.withoutFasta(this._source, this._errorListener);
+  /// Creates a parser using the old (legacy) analyzer parsing logic.
+  ///
+  /// In a future major version release of the analyzer, the [featureSet]
+  /// argument will be required.
+  Parser.withoutFasta(this._source, this._errorListener,
+      {FeatureSet featureSet}) {
+    if (featureSet != null) {
+      _configureFeatures(featureSet);
+    }
+  }
 
   /// Return the current token.
   Token get currentToken => _currentToken;
@@ -226,6 +246,7 @@ class Parser {
   void set enableAssertInitializer(bool enable) {}
 
   /// Enables or disables parsing of control flow collections.
+  @Deprecated('Pass a FeatureSet to the constructor instead')
   void set enableControlFlowCollections(bool value) {
     if (value) {
       throw new UnimplementedError('control_flow_collections experiment'
@@ -234,6 +255,7 @@ class Parser {
   }
 
   /// Enables or disables non-nullable by default.
+  @Deprecated('Pass a FeatureSet to the constructor instead')
   void set enableNonNullable(bool value) {
     if (value) {
       throw new UnimplementedError(
@@ -258,6 +280,7 @@ class Parser {
   }
 
   /// Enables or disables parsing of spread collections.
+  @Deprecated('Pass a FeatureSet to the constructor instead')
   void set enableSpreadCollections(bool value) {
     if (value) {
       throw new UnimplementedError(
@@ -266,6 +289,7 @@ class Parser {
   }
 
   /// Enables or disables parsing of the triple shift operators.
+  @Deprecated('Pass a FeatureSet to the constructor instead')
   void set enableTripleShift(bool value) {
     if (value) {
       throw new UnimplementedError('triple_shift experiment'
@@ -337,6 +361,12 @@ class Parser {
       index = _translateCharacter(buffer, lexeme, index);
     }
     return buffer.toString();
+  }
+
+  /// Configures the parser appropriately for the given [featureSet].
+  @Deprecated('Pass a FeatureSet to the constructor instead')
+  void configureFeatures(FeatureSet featureSet) {
+    _configureFeatures(featureSet);
   }
 
   /// Return a synthetic identifier.
@@ -1620,7 +1650,8 @@ class Parser {
     try {
       BooleanErrorListener listener = new BooleanErrorListener();
       Scanner scanner = new Scanner(
-          null, new SubSequenceReader(referenceSource, sourceOffset), listener);
+          null, new SubSequenceReader(referenceSource, sourceOffset), listener)
+        ..configureFeatures(_featureSet);
       scanner.setSourceStart(1, 1);
       Token firstToken = scanner.tokenize();
       if (listener.errorReported) {
@@ -1906,7 +1937,8 @@ class Parser {
         } on _TooDeepTreeError {
           _reportErrorForToken(ParserErrorCode.STACK_OVERFLOW, _currentToken);
           Token eof = new Token.eof(0);
-          return astFactory.compilationUnit(eof, null, null, null, eof);
+          return astFactory.compilationUnit2(
+              beginToken: eof, endToken: eof, featureSet: _featureSet);
         }
         if (member != null) {
           declarations.add(member);
@@ -1955,8 +1987,13 @@ class Parser {
 //        }
       }
     }
-    return astFactory.compilationUnit(
-        firstToken, scriptTag, directives, declarations, _currentToken);
+    return astFactory.compilationUnit2(
+        beginToken: firstToken,
+        scriptTag: scriptTag,
+        directives: directives,
+        declarations: declarations,
+        endToken: _currentToken,
+        featureSet: _featureSet);
   }
 
   /// Parse a compilation unit member. The [commentAndMetadata] is the metadata
@@ -2406,12 +2443,20 @@ class Parser {
         while (!_matches(TokenType.EOF)) {
           _advance();
         }
-        return astFactory.compilationUnit(
-            firstToken, scriptTag, directives, null, _currentToken);
+        return astFactory.compilationUnit2(
+            beginToken: firstToken,
+            scriptTag: scriptTag,
+            directives: directives,
+            endToken: _currentToken,
+            featureSet: _featureSet);
       }
     }
-    return astFactory.compilationUnit(
-        firstToken, scriptTag, directives, null, _currentToken);
+    return astFactory.compilationUnit2(
+        beginToken: firstToken,
+        scriptTag: scriptTag,
+        directives: directives,
+        endToken: _currentToken,
+        featureSet: _featureSet);
   }
 
   /// Parse a documentation comment based on the given list of documentation
@@ -5549,6 +5594,26 @@ class Parser {
       }
     }
     return false;
+  }
+
+  void _configureFeatures(FeatureSet featureSet) {
+    if (featureSet.isEnabled(Feature.control_flow_collections)) {
+      throw new UnimplementedError('control_flow_collections experiment'
+          ' not supported by analyzer parser');
+    }
+    if (featureSet.isEnabled(Feature.non_nullable)) {
+      throw new UnimplementedError(
+          'non-nullable experiment not supported by analyzer parser');
+    }
+    if (featureSet.isEnabled(Feature.spread_collections)) {
+      throw new UnimplementedError(
+          'spread_collections experiment not supported by analyzer parser');
+    }
+    if (featureSet.isEnabled(Feature.triple_shift)) {
+      throw new UnimplementedError('triple_shift experiment'
+          ' not supported by analyzer parser');
+    }
+    _featureSet = featureSet;
   }
 
   /// Convert the given [method] declaration into the nearest valid top-level

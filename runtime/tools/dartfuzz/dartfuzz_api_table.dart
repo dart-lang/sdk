@@ -57,7 +57,6 @@ class DartLib {
     DartLib('JsonUtf8Encoder.DEFAULT_BUFFER_SIZE', 'Vv'),
     DartLib('unicodeReplacementCharacterRune', 'Vv'),
     DartLib('unicodeBomCharacterRune', 'Vv'),
-    DartLib('hashCode', 'Bv'),
     DartLib('DateTime.monday', 'Vv'),
     DartLib('DateTime.tuesday', 'Vv'),
     DartLib('DateTime.wednesday', 'Vv'),
@@ -126,11 +125,9 @@ class DartLib {
     DartLib('ceil', 'DV'),
     DartLib('truncate', 'DV'),
     DartLib('toInt', 'DV'),
-    DartLib('hashCode', 'Dv'),
     DartLib('codeUnitAt', 'SI'),
     DartLib('compareTo', 'SS'),
     DartLib('length', 'Sv'),
-    DartLib('hashCode', 'Sv'),
     DartLib('OSError.noErrorCode', 'Vv'),
     DartLib('ZLibOption.minWindowBits', 'Vv'),
     DartLib('ZLibOption.MIN_WINDOW_BITS', 'Vv'),
@@ -790,7 +787,7 @@ class DartLib {
     DartLib('FileSystemEntity.parentOf', 'VS'),
   ];
   static const listLibs = [
-    DartLib('List.filled', 'VII'),
+    DartLib('List.filled', 'ViI'),
     DartLib('sublist', 'LII'),
     DartLib('codeUnits', 'Sv'),
     DartLib('Uri.parseIPv4Address', 'VS'),

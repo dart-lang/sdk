@@ -29,6 +29,7 @@ import '../options.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
 import '../universe/feature.dart';
+import '../universe/member_usage.dart';
 import '../universe/selector.dart';
 import '../world.dart';
 import 'closure.dart';
@@ -63,7 +64,7 @@ class JsClosedWorldBuilder {
     BackendUsage backendUsage =
         _convertBackendUsage(map, closedWorld.backendUsage);
     NativeData nativeData = _convertNativeData(map, closedWorld.nativeData);
-    _elementMap.nativeBasicData = nativeData;
+    _elementMap.nativeData = nativeData;
     InterceptorData interceptorData =
         _convertInterceptorData(map, nativeData, closedWorld.interceptorData);
 
@@ -202,6 +203,11 @@ class JsClosedWorldBuilder {
     OutputUnitData outputUnitData =
         _convertOutputUnitData(map, kOutputUnitData, closureData);
 
+    Map<MemberEntity, MemberAccess> memberAccess = map.toBackendMemberMap(
+        closedWorld.liveMemberUsage,
+        (MemberUsage usage) =>
+            new MemberAccess(usage.reads, usage.writes, usage.invokes));
+
     return new JsClosedWorld(
         _elementMap,
         nativeData,
@@ -226,7 +232,8 @@ class JsClosedWorldBuilder {
         annotationsData,
         _globalLocalsMap,
         closureData,
-        outputUnitData);
+        outputUnitData,
+        memberAccess);
   }
 
   BackendUsage _convertBackendUsage(
@@ -260,7 +267,8 @@ class JsClosedWorldBuilder {
         runtimeTypeUses: runtimeTypeUses,
         isFunctionApplyUsed: backendUsage.isFunctionApplyUsed,
         isMirrorsUsed: backendUsage.isMirrorsUsed,
-        isNoSuchMethodUsed: backendUsage.isNoSuchMethodUsed);
+        isNoSuchMethodUsed: backendUsage.isNoSuchMethodUsed,
+        isHtmlLoaded: backendUsage.isHtmlLoaded);
   }
 
   NativeBasicData _convertNativeBasicData(
@@ -487,7 +495,7 @@ class JsClosedWorldBuilder {
         map.toBackendLibrary,
         convertClassMap,
         convertMemberMap,
-        (m) => convertMap<ConstantValue, OutputUnit>(
+        (m) => convertMap<ConstantValue, OutputUnit, OutputUnit>(
             m, map.toBackendConstant, (v) => v));
   }
 }
@@ -633,20 +641,20 @@ abstract class JsToFrontendMap {
     return convertMap(map, toBackendClass, convert);
   }
 
-  Map<MemberEntity, V> toBackendMemberMap<V>(
-      Map<MemberEntity, V> map, V convert(V value)) {
+  Map<MemberEntity, V2> toBackendMemberMap<V1, V2>(
+      Map<MemberEntity, V1> map, V2 convert(V1 value)) {
     return convertMap(map, toBackendMember, convert);
   }
 }
 
 E identity<E>(E element) => element;
 
-Map<K, V> convertMap<K, V>(
-    Map<K, V> map, K convertKey(K key), V convertValue(V value)) {
-  Map<K, V> newMap = <K, V>{};
-  map.forEach((K key, V value) {
+Map<K, V2> convertMap<K, V1, V2>(
+    Map<K, V1> map, K convertKey(K key), V2 convertValue(V1 value)) {
+  Map<K, V2> newMap = <K, V2>{};
+  map.forEach((K key, V1 value) {
     K newKey = convertKey(key);
-    V newValue = convertValue(value);
+    V2 newValue = convertValue(value);
     if (newKey != null && newValue != null) {
       // Entities that are not used don't have a corresponding backend entity.
       newMap[newKey] = newValue;

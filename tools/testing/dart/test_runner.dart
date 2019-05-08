@@ -80,6 +80,7 @@ class TestCase extends UniqueObject {
   static final int HAS_SYNTAX_ERROR = 1 << 1;
   static final int HAS_COMPILE_ERROR = 1 << 2;
   static final int HAS_STATIC_WARNING = 1 << 3;
+  static final int HAS_CRASH = 1 << 4;
   /**
    * A list of commands to execute. Most test cases have a single command.
    * Dart2js tests have two commands, one to compile the source and another
@@ -104,7 +105,8 @@ class TestCase extends UniqueObject {
 
     if (info != null) {
       _setExpectations(info);
-      hash = info.originTestPath.relativeTo(Repository.dir).toString().hashCode;
+      hash = (info?.originTestPath?.relativeTo(Repository.dir)?.toString())
+          .hashCode;
     }
   }
 
@@ -113,6 +115,7 @@ class TestCase extends UniqueObject {
     // so we copy the needed bools into flags set in a single integer.
     if (info.hasRuntimeError) _expectations |= HAS_RUNTIME_ERROR;
     if (info.hasSyntaxError) _expectations |= HAS_SYNTAX_ERROR;
+    if (info.hasCrash) _expectations |= HAS_CRASH;
     if (info.hasCompileError || info.hasSyntaxError) {
       _expectations |= HAS_COMPILE_ERROR;
     }
@@ -131,6 +134,7 @@ class TestCase extends UniqueObject {
   bool get hasStaticWarning => _expectations & HAS_STATIC_WARNING != 0;
   bool get hasSyntaxError => _expectations & HAS_SYNTAX_ERROR != 0;
   bool get hasCompileError => _expectations & HAS_COMPILE_ERROR != 0;
+  bool get hasCrash => _expectations & HAS_CRASH != 0;
   bool get isNegative =>
       hasCompileError ||
       hasRuntimeError && configuration.runtime != Runtime.none ||
@@ -146,6 +150,9 @@ class TestCase extends UniqueObject {
   Expectation get result => lastCommandOutput.result(this);
   Expectation get realResult => lastCommandOutput.realResult(this);
   Expectation get realExpected {
+    if (hasCrash) {
+      return Expectation.crash;
+    }
     if (configuration.compiler == Compiler.specParser) {
       if (hasSyntaxError) {
         return Expectation.syntaxError;

@@ -69,7 +69,7 @@ class AssistProcessor {
         typeProvider = context.resolveResult.typeProvider,
         file = context.resolveResult.path,
         utils = new CorrectionUtils(context.resolveResult),
-        flutter = Flutter.of(context.resolveResult.session);
+        flutter = Flutter.of(context.resolveResult);
 
   /**
    * Returns the EOL to use for this [CompilationUnit].
@@ -1009,7 +1009,7 @@ class AssistProcessor {
         if (expression is FunctionExpression) {
           NodeList<FormalParameter> parameters =
               expression.parameters.parameters;
-          if (parameters.length == 1 && parameters[0].isRequired) {
+          if (parameters.length == 1 && parameters[0].isRequiredPositional) {
             if (extractBody(expression) != null) {
               return expression;
             }

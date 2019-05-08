@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -26,6 +27,7 @@ import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -298,7 +300,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   BestPracticesVerifier(
     this._errorReporter,
     TypeProvider typeProvider,
-    this._currentLibrary, {
+    this._currentLibrary,
+    CompilationUnit unit,
+    String content, {
     TypeSystem typeSystem,
     ResourceProvider resourceProvider,
     DeclaredVariables declaredVariables,
@@ -317,7 +321,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _workspacePackage = workspace.findPackageFor(libraryPath);
     _linterContext = LinterContextImpl(
         null /* allUnits */,
-        null /* currentUnit */,
+        new LinterContextUnit(content, unit),
         declaredVariables,
         typeProvider,
         _typeSystem,
@@ -743,15 +747,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    bool isLibraryInWorkspacePackage(LibraryElement library) {
-      if (_workspacePackage == null || library == null) {
-        // Better to not make a big claim that they _are_ in the same package,
-        // if we were unable to determine what package [_currentLibrary] is in.
-        return false;
-      }
-      return _workspacePackage.contains(library.source.fullName);
-    }
-
     if (!_inDeprecatedMember &&
         element != null &&
         isDeprecated(element) &&
@@ -776,7 +771,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
       LibraryElement library =
           element is LibraryElement ? element : element.library;
-      HintCode hintCode = isLibraryInWorkspacePackage(library)
+      HintCode hintCode = _isLibraryInWorkspacePackage(library)
           ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
           : HintCode.DEPRECATED_MEMBER_USE;
       _errorReporter.reportErrorForNode(hintCode, node, [displayName]);
@@ -972,8 +967,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkForInvalidSealedSuperclass(NamedCompilationUnitMember node) {
     bool currentPackageContains(Element element) {
-      String elementLibraryPath = element.library.source.fullName;
-      return _workspacePackage.contains(elementLibraryPath);
+      return _isLibraryInWorkspacePackage(element.library);
     }
 
     // [NamedCompilationUnitMember.declaredElement] is not necessarily a
@@ -1276,6 +1270,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_REQUIRED_PARAM, param, [param.identifier.name]);
     }
+  }
+
+  bool _isLibraryInWorkspacePackage(LibraryElement library) {
+    if (_workspacePackage == null || library == null) {
+      // Better to not make a big claim that they _are_ in the same package,
+      // if we were unable to determine what package [_currentLibrary] is in.
+      return false;
+    }
+    return _workspacePackage.contains(library.source);
   }
 
   /// Check for the passed class declaration for the
@@ -3331,9 +3334,10 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
+      FeatureSet featureSet,
       {Scope nameScope})
       : super(inheritance, definingLibrary, source, typeProvider, errorListener,
-            nameScope: nameScope);
+            featureSet: featureSet, nameScope: nameScope);
 
   /// Resolve the instance fields in the given compilation unit [node].
   void resolveCompilationUnit(CompilationUnit node) {
@@ -3509,9 +3513,10 @@ class PartialResolverVisitor extends ResolverVisitor {
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
+      FeatureSet featureSet,
       {Scope nameScope})
       : super(inheritance, definingLibrary, source, typeProvider, errorListener,
-            nameScope: nameScope);
+            featureSet: featureSet, nameScope: nameScope);
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
@@ -3661,6 +3666,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   final AnalysisOptionsImpl _analysisOptions;
 
+  final bool _uiAsCodeEnabled;
+
   /// The object used to resolve the element associated with the current node.
   ElementResolver elementResolver;
 
@@ -3718,16 +3725,45 @@ class ResolverVisitor extends ScopedVisitor {
   /// the node that will first be visited.  If `null` or unspecified, a new
   /// [LibraryScope] will be created based on [definingLibrary] and
   /// [typeProvider].
+  ///
+  /// TODO(paulberry): make [featureSet] a required parameter (this will be a
+  /// breaking change).
   ResolverVisitor(
+      InheritanceManager2 inheritance,
+      LibraryElement definingLibrary,
+      Source source,
+      TypeProvider typeProvider,
+      AnalysisErrorListener errorListener,
+      {FeatureSet featureSet,
+      Scope nameScope,
+      bool propagateTypes: true,
+      reportConstEvaluationErrors: true})
+      : this._(
+            inheritance,
+            definingLibrary,
+            source,
+            typeProvider,
+            errorListener,
+            featureSet ??
+                definingLibrary.context.analysisOptions.contextFeatures,
+            nameScope,
+            propagateTypes,
+            reportConstEvaluationErrors);
+
+  ResolverVisitor._(
       this.inheritance,
       LibraryElement definingLibrary,
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
-      {Scope nameScope,
-      bool propagateTypes: true,
-      reportConstEvaluationErrors: true})
+      FeatureSet featureSet,
+      Scope nameScope,
+      bool propagateTypes,
+      reportConstEvaluationErrors)
       : _analysisOptions = definingLibrary.context.analysisOptions,
+        _uiAsCodeEnabled =
+            featureSet.isEnabled(Feature.control_flow_collections) ||
+                featureSet.isEnabled(Feature.spread_collections),
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     this.elementResolver = new ElementResolver(this,
@@ -3740,7 +3776,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
     this.inferenceContext = new InferenceContext._(
         typeProvider, typeSystem, strongModeHints, errorReporter);
-    this.typeAnalyzer = new StaticTypeAnalyzer(this);
+    this.typeAnalyzer = new StaticTypeAnalyzer(this, featureSet);
   }
 
   /// Return the element representing the function containing the current node,
@@ -3849,6 +3885,11 @@ class ResolverVisitor extends ScopedVisitor {
   void overrideExpression(Expression expression, DartType potentialType,
       bool allowPrecisionLoss, bool setExpressionType) {
     // TODO(brianwilkerson) Remove this method.
+  }
+
+  /// Set the enclosing function body when partial AST is resolved.
+  void prepareCurrentFunctionBody(FunctionBody body) {
+    _currentFunctionBody = body;
   }
 
   /// Set information about enclosing declarations.
@@ -4806,8 +4847,7 @@ class ResolverVisitor extends ScopedVisitor {
             typeProvider.iterableType.instantiate([elementType]);
         _pushCollectionTypesDownToAll(node.elements,
             elementType: elementType, iterableType: iterableType);
-        if (!_analysisOptions.experimentStatus.spread_collections &&
-            !_analysisOptions.experimentStatus.control_flow_collections &&
+        if (!_uiAsCodeEnabled &&
             node.elements.isEmpty &&
             node.typeArguments == null &&
             node.isMap) {
@@ -5429,7 +5469,7 @@ class ResolverVisitor extends ScopedVisitor {
     int length = parameters.length;
     for (int i = 0; i < length; i++) {
       ParameterElement parameter = parameters[i];
-      if (parameter.isNotOptional) {
+      if (parameter.isRequiredPositional) {
         unnamedParameters.add(parameter);
         unnamedParameterCount++;
         requiredParameterCount++;
@@ -5948,8 +5988,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
             new CaughtException(new AnalysisException(), null));
       } else {
         nameScope = new EnclosedScope(nameScope);
-        GenericFunctionTypeElement typeElement = parameterElement.type.element;
-        List<TypeParameterElement> typeParameters = typeElement.typeParameters;
+        var typeParameters = parameterElement.typeParameters;
         int length = typeParameters.length;
         for (int i = 0; i < length; i++) {
           nameScope.define(typeParameters[i]);
@@ -5970,7 +6009,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       super.visitGenericFunctionType(node);
       return;
     }
-    GenericFunctionTypeElement element = type.element;
+    GenericFunctionTypeElement element =
+        (node as GenericFunctionTypeImpl).declaredElement;
     Scope outerScope = nameScope;
     try {
       if (element == null) {
@@ -6256,7 +6296,6 @@ class ToDoFinder {
 class TypeNameResolver {
   final TypeSystem typeSystem;
   final DartType dynamicType;
-  final DartType undefinedType;
   final bool isNonNullableUnit;
   final AnalysisOptionsImpl analysisOptions;
   final LibraryElement definingLibrary;
@@ -6281,7 +6320,6 @@ class TypeNameResolver {
       this.errorListener,
       {this.shouldUseWithClauseInferredTypes: true})
       : dynamicType = typeProvider.dynamicType,
-        undefinedType = typeProvider.undefinedType,
         analysisOptions = definingLibrary.context.analysisOptions;
 
   /// Report an error with the given error code and arguments.
@@ -6323,8 +6361,8 @@ class TypeNameResolver {
         return;
       }
       if (nameScope.shouldIgnoreUndefined(typeName)) {
-        typeName.staticType = undefinedType;
-        node.type = undefinedType;
+        typeName.staticType = dynamicType;
+        node.type = dynamicType;
         return;
       }
       //
@@ -6344,8 +6382,8 @@ class TypeNameResolver {
           element = nameScope.lookup(prefix, definingLibrary);
           if (element is PrefixElement) {
             if (nameScope.shouldIgnoreUndefined(typeName)) {
-              typeName.staticType = undefinedType;
-              node.type = undefinedType;
+              typeName.staticType = dynamicType;
+              node.type = dynamicType;
               return;
             }
             AstNode grandParent = parent.parent;
@@ -6383,8 +6421,8 @@ class TypeNameResolver {
         }
       }
       if (nameScope.shouldIgnoreUndefined(typeName)) {
-        typeName.staticType = undefinedType;
-        node.type = undefinedType;
+        typeName.staticType = dynamicType;
+        node.type = dynamicType;
         return;
       }
     }
@@ -6501,8 +6539,8 @@ class TypeNameResolver {
       if (element is MultiplyDefinedElement) {
         _setElement(typeName, element);
       }
-      typeName.staticType = undefinedType;
-      node.type = undefinedType;
+      typeName.staticType = dynamicType;
+      node.type = dynamicType;
       return;
     }
 
@@ -6560,8 +6598,8 @@ class TypeNameResolver {
         } else if (element is LocalVariableElement ||
             (element is FunctionElement &&
                 element.enclosingElement is ExecutableElement)) {
-          reportErrorForNode(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
-              typeName, [typeName.name]);
+          errorListener.onError(new DiagnosticFactory()
+              .referencedBeforeDeclaration(source, typeName, element: element));
         } else {
           reportErrorForNode(
               StaticWarningCode.NOT_A_TYPE, typeName, [typeName.name]);
@@ -6675,7 +6713,7 @@ class TypeNameResolver {
   DartType _getType(TypeAnnotation annotation) {
     DartType type = annotation.type;
     if (type == null) {
-      return undefinedType;
+      return dynamicType;
     }
     return type;
   }
@@ -7232,9 +7270,6 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type 'Type'.
   InterfaceType get typeType;
 
-  /// Return the type representing typenames that can't be resolved.
-  DartType get undefinedType;
-
   /// Return 'true' if [id] is the name of a getter on
   /// the Object type.
   bool isObjectGetter(String id);
@@ -7373,9 +7408,6 @@ class TypeProviderImpl extends TypeProviderBase {
   /// The type representing the built-in type 'Type'.
   InterfaceType _typeType;
 
-  /// The type representing typenames that can't be resolved.
-  DartType _undefinedType;
-
   /// Initialize a newly created type provider to provide the types defined in
   /// the given [coreLibrary] and [asyncLibrary].
   TypeProviderImpl(LibraryElement coreLibrary, LibraryElement asyncLibrary) {
@@ -7477,9 +7509,6 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType get typeType => _typeType;
 
-  @override
-  DartType get undefinedType => _undefinedType;
-
   InterfaceType _createNever(Namespace namespace) {
     // TODO(brianwilkerson) Remove this method when the class is defined in the
     //  SDK.
@@ -7534,7 +7563,6 @@ class TypeProviderImpl extends TypeProviderBase {
     _stringType = _getType(coreNamespace, 'String');
     _symbolType = _getType(coreNamespace, 'Symbol');
     _typeType = _getType(coreNamespace, 'Type');
-    _undefinedType = UndefinedTypeImpl.instance;
     _futureDynamicType = _futureType.instantiate(<DartType>[_dynamicType]);
     _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
     _iterableDynamicType = _iterableType.instantiate(<DartType>[_dynamicType]);
@@ -7587,9 +7615,6 @@ enum TypeResolverMode {
 class TypeResolverVisitor extends ScopedVisitor {
   /// The type representing the type 'dynamic'.
   DartType _dynamicType;
-
-  /// The type representing typenames that can't be resolved.
-  DartType _undefinedType;
 
   /// The flag specifying if currently visited class references 'super'
   /// expression.
@@ -7646,7 +7671,6 @@ class TypeResolverVisitor extends ScopedVisitor {
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     _dynamicType = typeProvider.dynamicType;
-    _undefinedType = typeProvider.undefinedType;
     _typeSystem = TypeSystem.create(definingLibrary.context);
     _typeNameResolver = new TypeNameResolver(_typeSystem, typeProvider,
         isNonNullableUnit, definingLibrary, source, errorListener,
@@ -7904,7 +7928,14 @@ class TypeResolverVisitor extends ScopedVisitor {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
-    GenericFunctionTypeElementImpl element = node.type?.element;
+    GenericFunctionTypeElementImpl element =
+        (node as GenericFunctionTypeImpl).declaredElement;
+    if (node.type != null) {
+      var nullability =
+          _typeNameResolver._getNullability(node.question != null);
+      (node as GenericFunctionTypeImpl).type =
+          (node.type as TypeImpl).withNullability(nullability);
+    }
     if (element != null) {
       super.visitGenericFunctionType(node);
       element.returnType =
@@ -8316,7 +8347,10 @@ class TypeResolverVisitor extends ScopedVisitor {
       TypeAnnotation returnType, FormalParameterList parameterList) {
     DartType type = parameter.type;
     GenericFunctionTypeElementImpl typeElement = type.element;
-    typeElement.returnType = _computeReturnType(returnType);
+    // With summary2 we use synthetic FunctionType(s).
+    if (typeElement != null) {
+      typeElement.returnType = _computeReturnType(returnType);
+    }
   }
 }
 

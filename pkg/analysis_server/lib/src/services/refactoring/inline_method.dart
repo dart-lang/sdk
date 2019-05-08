@@ -74,7 +74,7 @@ String _getMethodSourceForInvocation(
       argumentSource = utils.getNodeText(argument);
     } else {
       // report about a missing required parameter
-      if (parameter.isNotOptional) {
+      if (parameter.isRequiredPositional) {
         status.addError('No argument for the parameter "${parameter.name}".',
             newLocation_fromNode(contextNode));
         return;
