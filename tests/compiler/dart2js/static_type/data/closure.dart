@@ -29,7 +29,7 @@ closure1(dynamic c) {
     }
 
     /*dynamic*/ c.next;
-    /*invoke: Null*/ local();
+    /*invoke: [Null Function()]->Null*/ local();
     /*dynamic*/ c.next;
   }
 }
@@ -42,7 +42,7 @@ closure2(dynamic c) {
     }
 
     /*Class*/ c.next;
-    /*invoke: Null*/ local();
+    /*invoke: [Null Function()]->Null*/ local();
     /*Class*/ c.next;
   }
 }
@@ -56,7 +56,7 @@ closure3(dynamic c) {
 
     c = 0;
     /*dynamic*/ c.next;
-    /*invoke: Null*/ local();
+    /*invoke: [Null Function()]->Null*/ local();
     /*dynamic*/ c.next;
   }
 }
@@ -69,7 +69,7 @@ closure4(dynamic c) {
     }
 
     /*Class*/ c.next;
-    /*invoke: Null*/ local();
+    /*invoke: [Null Function()]->Null*/ local();
     /*Class*/ c.next;
     c = 0;
     /*dynamic*/ c.next;
@@ -85,7 +85,7 @@ closure4a(dynamic c) {
     }
 
     /*dynamic*/ c.next;
-    /*invoke: Null*/ local();
+    /*invoke: [Null Function()]->Null*/ local();
     /*dynamic*/ c.next;
     c = 0;
     /*dynamic*/ c.next;
@@ -101,7 +101,7 @@ closure5(dynamic c) {
   }
 
   /*dynamic*/ c.next;
-  /*invoke: Null*/ local();
+  /*invoke: [Null Function()]->Null*/ local();
   /*dynamic*/ c.next;
   c = 0;
   /*dynamic*/ c.next;
@@ -118,10 +118,11 @@ class B extends A {
 closure6(var x) {
   var closure;
   /*dynamic*/ x is B &&
-      _returnTrue(closure = () => /*dynamic*/ x. /*invoke: dynamic*/ f());
+      _returnTrue(
+          closure = () => /*dynamic*/ x. /*invoke: [dynamic]->dynamic*/ f());
   /*dynamic*/ x;
   x = new A();
-  /*dynamic*/ closure. /*invoke: dynamic*/ call();
+  /*dynamic*/ closure. /*invoke: [dynamic]->dynamic*/ call();
   /*dynamic*/ x;
 }
 
@@ -137,20 +138,20 @@ class E extends D {
 
 _closure7(C x) {
   /*C*/ x is D && _returnTrue((() => /*C*/ x))
-      ? /*D*/ x. /*invoke: dynamic*/ f()
+      ? /*D*/ x. /*invoke: [D]->dynamic*/ f()
       : x = new C();
   _returnTrue((() => /*C*/ x)) && /*C*/ x is D
-      ? /*D*/ x. /*invoke: dynamic*/ f()
+      ? /*D*/ x. /*invoke: [D]->dynamic*/ f()
       : x = new C();
 
   (/*C*/ x is D && _returnTrue((() => /*C*/ x))) &&
           (/*D*/ x is E && _returnTrue((() => /*C*/ x)))
-      ? /*E*/ x. /*invoke: dynamic*/ g()
+      ? /*E*/ x. /*invoke: [E]->dynamic*/ g()
       : x = new C();
 
   (_returnTrue((() => /*C*/ x)) && /*C*/ x is E) &&
           (_returnTrue((() => /*C*/ x)) && /*E*/ x is D)
-      ? /*E*/ x. /*invoke: dynamic*/ g()
+      ? /*E*/ x. /*invoke: [E]->dynamic*/ g()
       : x = new C();
 }
 

@@ -20,7 +20,7 @@ do1(dynamic c) {
         /*Class*/ c.next;
       }
       c = 0;
-    } while (/*dynamic*/ c /*invoke: bool*/ != null);
+    } while (/*dynamic*/ c /*invoke: [dynamic]->bool*/ != null);
     /*dynamic*/ c.next;
   }
 }
@@ -30,7 +30,7 @@ do2(dynamic c) {
     /*Class*/ c.next;
     do {
       /*Class*/ c.next;
-    } while (/*Class*/ c /*invoke: bool*/ != null);
+    } while (/*Class*/ c /*invoke: [Class]->bool*/ != null);
     /*Class*/ c.next;
   }
 }

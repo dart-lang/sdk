@@ -16,7 +16,7 @@ class Class1 {
 
 test1() {
   const Class1 c = null;
-  return /*Null*/ c. /*invoke: void*/ method1();
+  return /*Null*/ c. /*invoke: [Null]->void*/ method1();
 }
 
 class Class2<T> {
@@ -28,7 +28,7 @@ class Class2<T> {
 test2() {
   const Class2<int> c = null;
   // TODO(johnniwinther): Track the unreachable code properly.
-  return /*Null*/ c. /*invoke: <bottom>*/ method2();
+  return /*Null*/ c. /*invoke: [Null]-><bottom>*/ method2();
 }
 
 class Class3<T> {
@@ -40,5 +40,5 @@ class Class3<T> {
 test3() {
   const Class3<int> c = null;
   // TODO(johnniwinther): Track the unreachable code properly.
-  return /*Null*/ c. /*invoke: Class3<<bottom>>*/ method3();
+  return /*Null*/ c. /*invoke: [Null]->Class3<<bottom>>*/ method3();
 }
