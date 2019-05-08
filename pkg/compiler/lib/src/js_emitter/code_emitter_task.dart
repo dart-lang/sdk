@@ -168,7 +168,7 @@ abstract class ModularEmitter {
   jsAst.Expression isolateLazyInitializerAccess(covariant FieldEntity element);
 
   /// Returns the closure expression of a static function.
-  jsAst.Expression isolateStaticClosureAccess(covariant FunctionEntity element);
+  jsAst.Expression staticClosureAccess(covariant FunctionEntity element);
 
   /// Returns the JS constructor of the given element.
   ///

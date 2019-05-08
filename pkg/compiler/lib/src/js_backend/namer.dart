@@ -935,27 +935,15 @@ class Namer extends ModularNamer {
         : _disambiguateGlobalMember(element);
   }
 
-  /// Returns a JavaScript property name used to store the member [element] on
-  /// one of the global objects.
-  ///
-  /// Should be used together with [globalObjectForMember], which denotes the
-  /// object on which the returned property name should be used.
+  @override
   jsAst.Name globalPropertyNameForMember(MemberEntity element) =>
       _disambiguateGlobalMember(element);
 
-  /// Returns a JavaScript property name used to store the class [element] on
-  /// one of the global objects.
-  ///
-  /// Should be used together with [globalObjectForClass], which denotes the
-  /// object on which the returned property name should be used.
+  @override
   jsAst.Name globalPropertyNameForClass(ClassEntity element) =>
       _disambiguateGlobalType(element);
 
-  /// Returns a JavaScript property name used to store the type (typedef)
-  /// [element] on one of the global objects.
-  ///
-  /// Should be used together with [globalObjectForType], which denotes the
-  /// object on which the returned property name should be used.
+  @override
   jsAst.Name globalPropertyNameForType(Entity element) =>
       _disambiguateGlobalType(element);
 
@@ -1553,8 +1541,21 @@ class Namer extends ModularNamer {
     return globalObjectForLibrary(element.library);
   }
 
+  @override
+  jsAst.VariableUse readGlobalObjectForMember(MemberEntity element) {
+    if (_isPropertyOfStaticStateHolder(element)) {
+      return new jsAst.VariableUse(staticStateHolder);
+    }
+    return readGlobalObjectForLibrary(element.library);
+  }
+
   String globalObjectForClass(ClassEntity element) {
     return globalObjectForLibrary(element.library);
+  }
+
+  @override
+  jsAst.VariableUse readGlobalObjectForClass(ClassEntity element) {
+    return readGlobalObjectForLibrary(element.library);
   }
 
   String globalObjectForType(Entity element) {
@@ -1562,6 +1563,14 @@ class Namer extends ModularNamer {
       return globalObjectForLibrary(element.library);
     }
     return globalObjectForClass(element);
+  }
+
+  @override
+  jsAst.VariableUse readGlobalObjectForType(Entity element) {
+    if (element is TypedefEntity) {
+      return readGlobalObjectForLibrary(element.library);
+    }
+    return readGlobalObjectForClass(element);
   }
 
   /// Returns the [reservedGlobalObjectNames] for [library].
@@ -1581,6 +1590,7 @@ class Namer extends ModularNamer {
     return new jsAst.VariableUse(globalObjectForLibrary(library));
   }
 
+  @override
   jsAst.Name lazyInitializerName(FieldEntity element) {
     assert(element.isTopLevel || element.isStatic);
     jsAst.Name name = _disambiguateGlobal<MemberEntity>(
@@ -1588,6 +1598,7 @@ class Namer extends ModularNamer {
     return name;
   }
 
+  @override
   jsAst.Name staticClosureName(FunctionEntity element) {
     assert(element.isTopLevel || element.isStatic);
     String enclosing =
@@ -2335,8 +2346,47 @@ class NamingScope {
 
 /// Namer interface that can be used in modular code generation.
 abstract class ModularNamer {
-  /// Returns a variable use of the [reservedGlobalObjectNames] for [library].
+  /// Returns a variable use for accessing [library].
+  ///
+  /// This is one of the [reservedGlobalObjectNames]
   jsAst.VariableUse readGlobalObjectForLibrary(LibraryEntity library);
+
+  /// Returns a variable use for accessing the class [element].
+  ///
+  /// This is one of the [reservedGlobalObjectNames]
+  jsAst.VariableUse readGlobalObjectForClass(ClassEntity element);
+
+  /// Returns a variable use for accessing the type [element].
+  ///
+  /// This is one of the [reservedGlobalObjectNames]
+  jsAst.VariableUse readGlobalObjectForType(Entity element);
+
+  /// Returns a variable use for accessing the member [element].
+  ///
+  /// This is either the [staticStateHolder] or one of the
+  /// [reservedGlobalObjectNames]
+  jsAst.VariableUse readGlobalObjectForMember(MemberEntity element);
+
+  /// Returns a JavaScript property name used to store the class [element] on
+  /// one of the global objects.
+  ///
+  /// Should be used together with [globalObjectForClass], which denotes the
+  /// object on which the returned property name should be used.
+  jsAst.Name globalPropertyNameForClass(ClassEntity element);
+
+  /// Returns a JavaScript property name used to store the member [element] on
+  /// one of the global objects.
+  ///
+  /// Should be used together with [globalObjectForMember], which denotes the
+  /// object on which the returned property name should be used.
+  jsAst.Name globalPropertyNameForMember(MemberEntity element);
+
+  /// Returns a JavaScript property name used to store the type (typedef)
+  /// [element] on one of the global objects.
+  ///
+  /// Should be used together with [globalObjectForType], which denotes the
+  /// object on which the returned property name should be used.
+  jsAst.Name globalPropertyNameForType(Entity element);
 
   /// Returns the name for the instance field that holds runtime type arguments
   /// on generic classes.
@@ -2387,8 +2437,6 @@ abstract class ModularNamer {
   /// collisions.
   jsAst.Name nameForGetInterceptor(Iterable<ClassEntity> classes);
 
-  jsAst.Name operatorIsType(DartType type);
-
   /// Returns the runtime name for [element].
   ///
   /// This name is used as the basis for deriving `is` and `as` property names
@@ -2429,9 +2477,18 @@ abstract class ModularNamer {
   /// [element].
   jsAst.Name operatorIs(ClassEntity element);
 
+  /// Return the name of the `isX` property for classes that implement [type].
+  jsAst.Name operatorIsType(DartType type);
+
   /// Returns the name of the `asX` function for classes that implement the
   /// generic class [element].
   jsAst.Name substitutionName(ClassEntity element);
+
+  /// Returns the name of the lazy initializer for the static field [element].
+  jsAst.Name lazyInitializerName(FieldEntity element);
+
+  /// Returns the name of the closure of the static method [element].
+  jsAst.Name staticClosureName(FunctionEntity element);
 
   /// Returns the label name for [label] used as a break target.
   String breakLabelName(LabelDefinition label) {

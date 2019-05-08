@@ -155,17 +155,10 @@ class ModelEmitter {
     return _constantOrdering.compare(a, b);
   }
 
-  js.Expression generateStaticClosureAccess(FunctionEntity element) {
-    return js.js('#.#()', [
-      _namer.globalObjectForMember(element),
-      _namer.staticClosureName(element)
-    ]);
-  }
-
   js.Expression generateConstantReference(ConstantValue value) {
     if (value.isFunction) {
       FunctionConstantValue functionConstant = value;
-      return generateStaticClosureAccess(functionConstant.element);
+      return _emitter.staticClosureAccess(functionConstant.element);
     }
 
     // We are only interested in the "isInlined" part, but it does not hurt to
