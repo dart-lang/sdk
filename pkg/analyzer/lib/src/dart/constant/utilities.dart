@@ -28,15 +28,11 @@ ConstructorElementImpl getConstructorImpl(ConstructorElement constructor) {
   return constructor;
 }
 
-/**
- * Callback used by [ReferenceFinder] to report that a dependency was found.
- */
+/// Callback used by [ReferenceFinder] to report that a dependency was found.
 typedef void ReferenceFinderCallback(ConstantEvaluationTarget dependency);
 
-/**
- * An [AstCloner] that copies the necessary information from the AST to allow
- * constants to be evaluated.
- */
+/// An [AstCloner] that copies the necessary information from the AST to allow
+/// constants to be evaluated.
 class ConstantAstCloner extends AstCloner {
   ConstantAstCloner() : super(true);
 
@@ -137,15 +133,11 @@ class ConstantAstCloner extends AstCloner {
   }
 }
 
-/**
- * A visitor used to traverse the AST structures of all of the compilation units
- * being resolved and build the full set of dependencies for all constant
- * expressions.
- */
+/// A visitor used to traverse the AST structures of all of the compilation
+/// units being resolved and build the full set of dependencies for all constant
+/// expressions.
 class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
-  /**
-   * The constants whose values need to be computed.
-   */
+  /// The constants whose values need to be computed.
   HashSet<ConstantEvaluationTarget> dependencies =
       new HashSet<ConstantEvaluationTarget>();
 
@@ -204,23 +196,17 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
   }
 }
 
-/**
- * A visitor used to traverse the AST structures of all of the compilation units
- * being resolved and build tables of the constant variables, constant
- * constructors, constant constructor invocations, and annotations found in
- * those compilation units.
- */
+/// A visitor used to traverse the AST structures of all of the compilation
+/// units being resolved and build tables of the constant variables, constant
+/// constructors, constant constructor invocations, and annotations found in
+/// those compilation units.
 class ConstantFinder extends RecursiveAstVisitor<void> {
-  /**
-   * The elements and AST nodes whose constant values need to be computed.
-   */
+  /// The elements and AST nodes whose constant values need to be computed.
   List<ConstantEvaluationTarget> constantsToCompute =
       <ConstantEvaluationTarget>[];
 
-  /**
-   * A flag indicating whether instance variables marked as "final" should be
-   * treated as "const".
-   */
+  /// A flag indicating whether instance variables marked as "final" should be
+  /// treated as "const".
   bool treatFinalInstanceVarAsConst = false;
 
   @override
@@ -296,22 +282,16 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   }
 }
 
-/**
- * An object used to add reference information for a given variable to the
- * bi-directional mapping used to order the evaluation of constants.
- */
+/// An object used to add reference information for a given variable to the
+/// bi-directional mapping used to order the evaluation of constants.
 class ReferenceFinder extends RecursiveAstVisitor<void> {
-  /**
-   * The callback which should be used to report any dependencies that were
-   * found.
-   */
+  /// The callback which should be used to report any dependencies that were
+  /// found.
   final ReferenceFinderCallback _callback;
 
-  /**
-   * Initialize a newly created reference finder to find references from a given
-   * variable to other variables and to add those references to the given graph.
-   * The [_callback] will be invoked for every dependency found.
-   */
+  /// Initialize a newly created reference finder to find references from a
+  /// given variable to other variables and to add those references to the given
+  /// graph. The [_callback] will be invoked for every dependency found.
   ReferenceFinder(this._callback);
 
   @override

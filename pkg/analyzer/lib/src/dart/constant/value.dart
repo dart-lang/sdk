@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * The implementation of the class [DartObject].
- */
+/// The implementation of the class [DartObject].
 import 'dart:collection';
 
 import 'package:analyzer/dart/constant/value.dart';
@@ -16,33 +14,21 @@ import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
-/**
- * The state of an object representing a boolean value.
- */
+/// The state of an object representing a boolean value.
 class BoolState extends InstanceState {
-  /**
-   * An instance representing the boolean value 'false'.
-   */
+  /// An instance representing the boolean value 'false'.
   static BoolState FALSE_STATE = new BoolState(false);
 
-  /**
-   * An instance representing the boolean value 'true'.
-   */
+  /// An instance representing the boolean value 'true'.
   static BoolState TRUE_STATE = new BoolState(true);
 
-  /**
-   * A state that can be used to represent a boolean whose value is not known.
-   */
+  /// A state that can be used to represent a boolean whose value is not known.
   static BoolState UNKNOWN_VALUE = new BoolState(null);
 
-  /**
-   * The value of this instance.
-   */
+  /// The value of this instance.
   final bool value;
 
-  /**
-   * Initialize a newly created state to represent the given [value].
-   */
+  /// Initialize a newly created state to represent the given [value].
   BoolState(this.value);
 
   @override
@@ -134,70 +120,50 @@ class BoolState extends InstanceState {
   @override
   String toString() => value == null ? "-unknown-" : (value ? "true" : "false");
 
-  /**
-   * Return the boolean state representing the given boolean [value].
-   */
+  /// Return the boolean state representing the given boolean [value].
   static BoolState from(bool value) =>
       value ? BoolState.TRUE_STATE : BoolState.FALSE_STATE;
 }
 
-/**
- * Information about a const constructor invocation.
- */
+/// Information about a const constructor invocation.
 class ConstructorInvocation {
-  /**
-   * The constructor that was called.
-   */
+  /// The constructor that was called.
   final ConstructorElement constructor;
 
-  /**
-   * Values of specified arguments, actual values for positional, and `null`
-   * for named (which are provided as [namedArguments]).
-   */
+  /// Values of specified arguments, actual values for positional, and `null`
+  /// for named (which are provided as [namedArguments]).
   final List<DartObjectImpl> _argumentValues;
 
-  /**
-   * The named arguments passed to the constructor.
-   */
+  /// The named arguments passed to the constructor.
   final Map<String, DartObjectImpl> namedArguments;
 
   ConstructorInvocation(
       this.constructor, this._argumentValues, this.namedArguments);
 
-  /**
-   * The positional arguments passed to the constructor.
-   */
+  /// The positional arguments passed to the constructor.
   List<DartObjectImpl> get positionalArguments {
     return _argumentValues.takeWhile((v) => v != null).toList();
   }
 }
 
-/**
- * A representation of an instance of a Dart class.
- */
+/// A representation of an instance of a Dart class.
 class DartObjectImpl implements DartObject {
   /// When `true`, `operator==` only compares constant values, ignoring types.
   ///
   /// This is a temporary hack to work around dartbug.com/35908.
-  /// TODO(paulberry): when #35908 is fixed, remove this hack.
+  // TODO(paulberry): when #35908 is fixed, remove this hack.
   static bool _ignoreTypesInEqualityComparison = false;
 
   @override
   final ParameterizedType type;
 
-  /**
-   * The state of the object.
-   */
+  /// The state of the object.
   final InstanceState _state;
 
-  /**
-   * Initialize a newly created object to have the given [type] and [_state].
-   */
+  /// Initialize a newly created object to have the given [type] and [_state].
   DartObjectImpl(this.type, this._state);
 
-  /**
-   * Create an object to represent an unknown value.
-   */
+  /// Create an object to represent an unknown value.
   factory DartObjectImpl.validWithUnknownValue(ParameterizedType type) {
     if (type.element.library.isDartCore) {
       String typeName = type.name;
@@ -222,34 +188,24 @@ class DartObjectImpl implements DartObject {
   @override
   bool get hasKnownValue => !_state.isUnknown;
 
-  /**
-   * Return `true` if this object represents an object whose type is 'bool'.
-   */
+  /// Return `true` if this object represents an object whose type is 'bool'.
   bool get isBool => _state.isBool;
 
-  /**
-   * Return `true` if this object represents an object whose type is either
-   * 'bool', 'num', 'String', or 'Null'.
-   */
+  /// Return `true` if this object represents an object whose type is either
+  /// 'bool', 'num', 'String', or 'Null'.
   bool get isBoolNumStringOrNull => _state.isBoolNumStringOrNull;
 
-  /**
-   * Return `true` if this object represents an object whose type is 'int'.
-   */
+  /// Return `true` if this object represents an object whose type is 'int'.
   bool get isInt => _state.isInt;
 
   @override
   bool get isNull => _state is NullState;
 
-  /**
-   * Return `true` if this object represents an unknown value.
-   */
+  /// Return `true` if this object represents an unknown value.
   bool get isUnknown => _state.isUnknown;
 
-  /**
-   * Return `true` if this object represents an instance of a user-defined
-   * class.
-   */
+  /// Return `true` if this object represents an instance of a user-defined
+  /// class.
   bool get isUserDefinedObject => _state is GenericState;
 
   @override
@@ -261,14 +217,12 @@ class DartObjectImpl implements DartObject {
     return false;
   }
 
-  /**
-   * Return the result of invoking the '+' operator on this object with the
-   * given [rightOperand]. The [typeProvider] is the type provider used to find
-   * known types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '+' operator on this object with the
+  /// given [rightOperand]. The [typeProvider] is the type provider used to find
+  /// known types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl add(TypeProvider typeProvider, DartObjectImpl rightOperand) {
     InstanceState result = _state.add(rightOperand._state);
     if (result is IntState) {
@@ -284,19 +238,15 @@ class DartObjectImpl implements DartObject {
     throw new StateError("add returned a ${result.runtimeType}");
   }
 
-  /**
-   * Return the result of invoking the '~' operator on this object. The
-   * [typeProvider] is the type provider used to find known types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '~' operator on this object. The
+  /// [typeProvider] is the type provider used to find known types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl bitNot(TypeProvider typeProvider) =>
       new DartObjectImpl(typeProvider.intType, _state.bitNot());
 
-  /**
-   * Return the result of casting this object to the given [castType].
-   */
+  /// Return the result of casting this object to the given [castType].
   DartObjectImpl castToType(TypeProvider typeProvider, TypeSystem typeSystem,
       DartObjectImpl castType) {
     _assertType(castType);
@@ -310,26 +260,22 @@ class DartObjectImpl implements DartObject {
     return this;
   }
 
-  /**
-   * Return the result of invoking the ' ' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the ' ' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl concatenate(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
       new DartObjectImpl(
           typeProvider.stringType, _state.concatenate(rightOperand._state));
 
-  /**
-   * Return the result of applying boolean conversion to this object. The
-   * [typeProvider] is the type provider used to find known types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of applying boolean conversion to this object. The
+  /// [typeProvider] is the type provider used to find known types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl convertToBool(TypeProvider typeProvider) {
     InterfaceType boolType = typeProvider.boolType;
     if (identical(type, boolType)) {
@@ -338,14 +284,12 @@ class DartObjectImpl implements DartObject {
     return new DartObjectImpl(boolType, _state.convertToBool());
   }
 
-  /**
-   * Return the result of invoking the '/' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for
-   * an object of this kind.
-   */
+  /// Return the result of invoking the '/' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for
+  /// an object of this kind.
   DartObjectImpl divide(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
     InstanceState result = _state.divide(rightOperand._state);
@@ -360,14 +304,12 @@ class DartObjectImpl implements DartObject {
     throw new StateError("divide returned a ${result.runtimeType}");
   }
 
-  /**
-   * Return the result of invoking the '&' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl eagerAnd(
       TypeProvider typeProvider, DartObjectImpl rightOperand, bool allowBool) {
     if (allowBool && isBool && rightOperand.isBool) {
@@ -381,14 +323,12 @@ class DartObjectImpl implements DartObject {
         CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
   }
 
-  /**
-   * Return the result of invoking the '|' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '|' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl eagerOr(
       TypeProvider typeProvider, DartObjectImpl rightOperand, bool allowBool) {
     if (allowBool && isBool && rightOperand.isBool) {
@@ -402,14 +342,12 @@ class DartObjectImpl implements DartObject {
         CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
   }
 
-  /**
-   * Return the result of invoking the '^' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '^' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl eagerXor(
       TypeProvider typeProvider, DartObjectImpl rightOperand, bool allowBool) {
     if (allowBool && isBool && rightOperand.isBool) {
@@ -423,14 +361,12 @@ class DartObjectImpl implements DartObject {
         CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
   }
 
-  /**
-   * Return the result of invoking the '==' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '==' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl equalEqual(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
     if (isNull || rightOperand.isNull) {
@@ -467,35 +403,30 @@ class DartObjectImpl implements DartObject {
     return null;
   }
 
-  /**
-   * Return the result of invoking the '&gt;' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&gt;' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl greaterThan(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
       new DartObjectImpl(
           typeProvider.boolType, _state.greaterThan(rightOperand._state));
 
-  /**
-   * Return the result of invoking the '&gt;=' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&gt;=' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl greaterThanOrEqual(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
       new DartObjectImpl(typeProvider.boolType,
           _state.greaterThanOrEqual(rightOperand._state));
 
-  /**
-   * Return the result of testing whether this object has the given [testedType].
-   */
+  /// Return the result of testing whether this object has the given
+  /// [testedType].
   DartObjectImpl hasType(TypeProvider typeProvider, TypeSystem typeSystem,
       DartObjectImpl testedType) {
     _assertType(testedType);
@@ -515,14 +446,12 @@ class DartObjectImpl implements DartObject {
     return new DartObjectImpl(typeProvider.boolType, state);
   }
 
-  /**
-   * Return the result of invoking the '~/' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '~/' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl integerDivide(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
       new DartObjectImpl(
@@ -532,7 +461,7 @@ class DartObjectImpl implements DartObject {
   /// object and sub-objects.
   ///
   /// This is a temporary hack to work around dartbug.com/35908.
-  /// TODO(paulberry): when #35908 is fixed, remove this hack.
+  // TODO(paulberry): when #35908 is fixed, remove this hack.
   bool isEqualIgnoringTypesRecursively(Object other) {
     bool oldIgnoreTypesInEqualityComparison = _ignoreTypesInEqualityComparison;
     _ignoreTypesInEqualityComparison = true;
@@ -543,38 +472,32 @@ class DartObjectImpl implements DartObject {
     }
   }
 
-  /**
-   * Return the result of invoking the identical function on this object with
-   * the [rightOperand]. The [typeProvider] is the type provider used to find
-   * known types.
-   */
+  /// Return the result of invoking the identical function on this object with
+  /// the [rightOperand]. The [typeProvider] is the type provider used to find
+  /// known types.
   DartObjectImpl isIdentical(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
     return new DartObjectImpl(
         typeProvider.boolType, _state.isIdentical(rightOperand._state));
   }
 
-  /**
-   * Return the result of invoking the '&&' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&&' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl lazyAnd(
           TypeProvider typeProvider, DartObjectImpl rightOperandComputer()) =>
       new DartObjectImpl(typeProvider.boolType,
           _state.lazyAnd(() => rightOperandComputer()?._state));
 
-  /**
-   * Return the result of invoking the '==' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '==' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl lazyEqualEqual(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
     if (isNull || rightOperand.isNull) {
@@ -592,76 +515,64 @@ class DartObjectImpl implements DartObject {
         CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
   }
 
-  /**
-   * Return the result of invoking the '||' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '||' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl lazyOr(
           TypeProvider typeProvider, DartObjectImpl rightOperandComputer()) =>
       new DartObjectImpl(typeProvider.boolType,
           _state.lazyOr(() => rightOperandComputer()?._state));
 
-  /**
-   * Return the result of invoking the '&lt;' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&lt;' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl lessThan(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
       new DartObjectImpl(
           typeProvider.boolType, _state.lessThan(rightOperand._state));
 
-  /**
-   * Return the result of invoking the '&lt;=' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&lt;=' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl lessThanOrEqual(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
       new DartObjectImpl(
           typeProvider.boolType, _state.lessThanOrEqual(rightOperand._state));
 
-  /**
-   * Return the result of invoking the '!' operator on this object. The
-   * [typeProvider] is the type provider used to find known types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '!' operator on this object. The
+  /// [typeProvider] is the type provider used to find known types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl logicalNot(TypeProvider typeProvider) =>
       new DartObjectImpl(typeProvider.boolType, _state.logicalNot());
 
-  /**
-   * Return the result of invoking the '&gt;&gt;&gt;' operator on this object
-   * with the [rightOperand]. The [typeProvider] is the type provider used to
-   * find known types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&gt;&gt;&gt;' operator on this object
+  /// with the [rightOperand]. The [typeProvider] is the type provider used to
+  /// find known types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl logicalShiftRight(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
       new DartObjectImpl(
           typeProvider.intType, _state.logicalShiftRight(rightOperand._state));
 
-  /**
-   * Return the result of invoking the '-' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '-' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl minus(TypeProvider typeProvider, DartObjectImpl rightOperand) {
     InstanceState result = _state.minus(rightOperand._state);
     if (result is IntState) {
@@ -675,13 +586,11 @@ class DartObjectImpl implements DartObject {
     throw new StateError("minus returned a ${result.runtimeType}");
   }
 
-  /**
-   * Return the result of invoking the '-' operator on this object. The
-   * [typeProvider] is the type provider used to find known types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '-' operator on this object. The
+  /// [typeProvider] is the type provider used to find known types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl negated(TypeProvider typeProvider) {
     InstanceState result = _state.negated();
     if (result is IntState) {
@@ -695,26 +604,22 @@ class DartObjectImpl implements DartObject {
     throw new StateError("negated returned a ${result.runtimeType}");
   }
 
-  /**
-   * Return the result of invoking the '!=' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '!=' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl notEqual(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
     return equalEqual(typeProvider, rightOperand).logicalNot(typeProvider);
   }
 
-  /**
-   * Return the result of converting this object to a 'String'. The
-   * [typeProvider] is the type provider used to find known types.
-   *
-   * Throws an [EvaluationException] if the object cannot be converted to a
-   * 'String'.
-   */
+  /// Return the result of converting this object to a 'String'. The
+  /// [typeProvider] is the type provider used to find known types.
+  ///
+  /// Throws an [EvaluationException] if the object cannot be converted to a
+  /// 'String'.
   DartObjectImpl performToString(TypeProvider typeProvider) {
     InterfaceType stringType = typeProvider.stringType;
     if (identical(type, stringType)) {
@@ -723,14 +628,12 @@ class DartObjectImpl implements DartObject {
     return new DartObjectImpl(stringType, _state.convertToString());
   }
 
-  /**
-   * Return the result of invoking the '%' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '%' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl remainder(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
     InstanceState result = _state.remainder(rightOperand._state);
@@ -745,50 +648,42 @@ class DartObjectImpl implements DartObject {
     throw new StateError("remainder returned a ${result.runtimeType}");
   }
 
-  /**
-   * Return the result of invoking the '&lt;&lt;' operator on this object with
-   * the [rightOperand]. The [typeProvider] is the type provider used to find
-   * known types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&lt;&lt;' operator on this object with
+  /// the [rightOperand]. The [typeProvider] is the type provider used to find
+  /// known types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl shiftLeft(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
       new DartObjectImpl(
           typeProvider.intType, _state.shiftLeft(rightOperand._state));
 
-  /**
-   * Return the result of invoking the '&gt;&gt;' operator on this object with
-   * the [rightOperand]. The [typeProvider] is the type provider used to find
-   * known types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&gt;&gt;' operator on this object with
+  /// the [rightOperand]. The [typeProvider] is the type provider used to find
+  /// known types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl shiftRight(
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
       new DartObjectImpl(
           typeProvider.intType, _state.shiftRight(rightOperand._state));
 
-  /**
-   * Return the result of invoking the 'length' getter on this object. The
-   * [typeProvider] is the type provider used to find known types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the 'length' getter on this object. The
+  /// [typeProvider] is the type provider used to find known types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl stringLength(TypeProvider typeProvider) =>
       new DartObjectImpl(typeProvider.intType, _state.stringLength());
 
-  /**
-   * Return the result of invoking the '*' operator on this object with the
-   * [rightOperand]. The [typeProvider] is the type provider used to find known
-   * types.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '*' operator on this object with the
+  /// [rightOperand]. The [typeProvider] is the type provider used to find known
+  /// types.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   DartObjectImpl times(TypeProvider typeProvider, DartObjectImpl rightOperand) {
     InstanceState result = _state.times(rightOperand._state);
     if (result is IntState) {
@@ -820,10 +715,8 @@ class DartObjectImpl implements DartObject {
     return null;
   }
 
-  /**
-   * If this constant represents a library function or static method, returns
-   * it, otherwise returns `null`.
-   */
+  /// If this constant represents a library function or static method, returns
+  /// it, otherwise returns `null`.
   ExecutableElement toFunctionValue() {
     InstanceState state = _state;
     return state is FunctionState ? state._element : null;
@@ -895,10 +788,8 @@ class DartObjectImpl implements DartObject {
     return null;
   }
 
-  /**
-   * Throw an exception if the given [object]'s state does not represent a Type
-   * value.
-   */
+  /// Throw an exception if the given [object]'s state does not represent a Type
+  /// value.
   void _assertType(DartObjectImpl object) {
     if (object._state is! TypeState) {
       throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE);
@@ -906,24 +797,16 @@ class DartObjectImpl implements DartObject {
   }
 }
 
-/**
- * The state of an object representing a double.
- */
+/// The state of an object representing a double.
 class DoubleState extends NumState {
-  /**
-   * A state that can be used to represent a double whose value is not known.
-   */
+  /// A state that can be used to represent a double whose value is not known.
   static DoubleState UNKNOWN_VALUE = new DoubleState(null);
 
-  /**
-   * The value of this instance.
-   */
+  /// The value of this instance.
   final double value;
 
-  /**
-   * Initialize a newly created state to represent a double with the given
-   * [value].
-   */
+  /// Initialize a newly created state to represent a double with the given
+  /// [value].
   DoubleState(this.value);
 
   @override
@@ -1248,14 +1131,10 @@ class DoubleState extends NumState {
   String toString() => value == null ? "-unknown-" : value.toString();
 }
 
-/**
- * The state of an object representing a Dart object for which there is no type
- * information.
- */
+/// The state of an object representing a Dart object for which there is no type
+/// information.
 class DynamicState extends InstanceState {
-  /**
-   * The unique instance of this class.
-   */
+  /// The unique instance of this class.
   static DynamicState DYNAMIC_STATE = new DynamicState();
 
   @override
@@ -1407,10 +1286,8 @@ class DynamicState extends InstanceState {
     return _unknownNum(rightOperand);
   }
 
-  /**
-   * Return an object representing an unknown numeric value whose type is based
-   * on the type of the [rightOperand].
-   */
+  /// Return an object representing an unknown numeric value whose type is based
+  /// on the type of the [rightOperand].
   NumState _unknownNum(InstanceState rightOperand) {
     if (rightOperand is IntState) {
       return IntState.UNKNOWN_VALUE;
@@ -1421,34 +1298,22 @@ class DynamicState extends InstanceState {
   }
 }
 
-/**
- * Exception that would be thrown during the evaluation of Dart code.
- */
+/// Exception that would be thrown during the evaluation of Dart code.
 class EvaluationException {
-  /**
-   * The error code associated with the exception.
-   */
+  /// The error code associated with the exception.
   final ErrorCode errorCode;
 
-  /**
-   * Initialize a newly created exception to have the given [errorCode].
-   */
+  /// Initialize a newly created exception to have the given [errorCode].
   EvaluationException(this.errorCode);
 }
 
-/**
- * The state of an object representing a function.
- */
+/// The state of an object representing a function.
 class FunctionState extends InstanceState {
-  /**
-   * The element representing the function being modeled.
-   */
+  /// The element representing the function being modeled.
   final ExecutableElement _element;
 
-  /**
-   * Initialize a newly created state to represent the function with the given
-   * [element].
-   */
+  /// Initialize a newly created state to represent the function with the given
+  /// [element].
   FunctionState(this._element);
 
   @override
@@ -1500,36 +1365,24 @@ class FunctionState extends InstanceState {
   String toString() => _element == null ? "-unknown-" : _element.name;
 }
 
-/**
- * The state of an object representing a Dart object for which there is no more
- * specific state.
- */
+/// The state of an object representing a Dart object for which there is no more
+/// specific state.
 class GenericState extends InstanceState {
-  /**
-   * Pseudo-field that we use to represent fields in the superclass.
-   */
+  /// Pseudo-field that we use to represent fields in the superclass.
   static String SUPERCLASS_FIELD = "(super)";
 
-  /**
-   * A state that can be used to represent an object whose state is not known.
-   */
+  /// A state that can be used to represent an object whose state is not known.
   static GenericState UNKNOWN_VALUE =
       new GenericState(new HashMap<String, DartObjectImpl>());
 
-  /**
-   * The values of the fields of this instance.
-   */
+  /// The values of the fields of this instance.
   final Map<String, DartObjectImpl> _fieldMap;
 
-  /**
-   * Information about the constructor invoked to generate this instance.
-   */
+  /// Information about the constructor invoked to generate this instance.
   final ConstructorInvocation invocation;
 
-  /**
-   * Initialize a newly created state to represent a newly created object. The
-   * [fieldMap] contains the values of the fields of the instance.
-   */
+  /// Initialize a newly created state to represent a newly created object. The
+  /// [fieldMap] contains the values of the fields of the instance.
   GenericState(this._fieldMap, {this.invocation});
 
   @override
@@ -1613,54 +1466,36 @@ class GenericState extends InstanceState {
   }
 }
 
-/**
- * The state of an object representing a Dart object.
- */
+/// The state of an object representing a Dart object.
 abstract class InstanceState {
-  /**
-   * If this represents a generic dart object, return a map from its field names
-   * to their values. Otherwise return null.
-   */
+  /// If this represents a generic dart object, return a map from its field
+  /// names to their values. Otherwise return null.
   Map<String, DartObjectImpl> get fields => null;
 
-  /**
-   * Return `true` if this object represents an object whose type is 'bool'.
-   */
+  /// Return `true` if this object represents an object whose type is 'bool'.
   bool get isBool => false;
 
-  /**
-   * Return `true` if this object represents an object whose type is either
-   * 'bool', 'num', 'String', or 'Null'.
-   */
+  /// Return `true` if this object represents an object whose type is either
+  /// 'bool', 'num', 'String', or 'Null'.
   bool get isBoolNumStringOrNull => false;
 
-  /**
-   * Return `true` if this object represents an object whose type is 'int'.
-   */
+  /// Return `true` if this object represents an object whose type is 'int'.
   bool get isInt => false;
 
-  /**
-   * Return `true` if this object represents the value 'null'.
-   */
+  /// Return `true` if this object represents the value 'null'.
   bool get isNull => false;
 
-  /**
-   * Return `true` if this object represents an unknown value.
-   */
+  /// Return `true` if this object represents an unknown value.
   bool get isUnknown => false;
 
-  /**
-   * Return the name of the type of this value.
-   */
+  /// Return the name of the type of this value.
   String get typeName;
 
-  /**
-   * Return the result of invoking the '+' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '+' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   InstanceState add(InstanceState rightOperand) {
     if (this is StringState && rightOperand is StringState) {
       return concatenate(rightOperand);
@@ -1671,19 +1506,15 @@ abstract class InstanceState {
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Throw an exception if the given [state] does not represent a boolean value.
-   */
+  /// Throw an exception if the given [state] does not represent a boolean value.
   void assertBool(InstanceState state) {
     if (!(state is BoolState || state is DynamicState)) {
       throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     }
   }
 
-  /**
-   * Throw an exception if the given [state] does not represent a boolean,
-   * numeric, string or null value.
-   */
+  /// Throw an exception if the given [state] does not represent a boolean,
+  /// numeric, string or null value.
   void assertBoolNumStringOrNull(InstanceState state) {
     if (!(state is BoolState ||
         state is DoubleState ||
@@ -1697,10 +1528,8 @@ abstract class InstanceState {
     }
   }
 
-  /**
-   * Throw an exception if the given [state] does not represent an integer or
-   * null value.
-   */
+  /// Throw an exception if the given [state] does not represent an integer or
+  /// null value.
   void assertIntOrNull(InstanceState state) {
     if (!(state is IntState ||
         state is NumState ||
@@ -1710,10 +1539,8 @@ abstract class InstanceState {
     }
   }
 
-  /**
-   * Throw an exception if the given [state] does not represent a boolean,
-   * numeric, string or null value.
-   */
+  /// Throw an exception if the given [state] does not represent a boolean,
+  /// numeric, string or null value.
   void assertNumOrNull(InstanceState state) {
     if (!(state is DoubleState ||
         state is IntState ||
@@ -1724,22 +1551,18 @@ abstract class InstanceState {
     }
   }
 
-  /**
-   * Throw an exception if the given [state] does not represent a String value.
-   */
+  /// Throw an exception if the given [state] does not represent a String value.
   void assertString(InstanceState state) {
     if (!(state is StringState || state is DynamicState)) {
       throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     }
   }
 
-  /**
-   * Return the result of invoking the '&' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   IntState bitAnd(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
@@ -1747,25 +1570,21 @@ abstract class InstanceState {
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the '~' operator on this object.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '~' operator on this object.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   IntState bitNot() {
     assertIntOrNull(this);
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the '|' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '|' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   IntState bitOr(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
@@ -1773,13 +1592,11 @@ abstract class InstanceState {
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the '^' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '^' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   IntState bitXor(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
@@ -1787,42 +1604,34 @@ abstract class InstanceState {
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the ' ' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the ' ' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   StringState concatenate(InstanceState rightOperand) {
     assertString(rightOperand);
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of applying boolean conversion to this object.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of applying boolean conversion to this object.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   BoolState convertToBool() => BoolState.FALSE_STATE;
 
-  /**
-   * Return the result of converting this object to a String.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of converting this object to a String.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   StringState convertToString();
 
-  /**
-   * Return the result of invoking the '/' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '/' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   NumState divide(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
@@ -1830,22 +1639,18 @@ abstract class InstanceState {
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the '==' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '==' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   BoolState equalEqual(InstanceState rightOperand);
 
-  /**
-   * Return the result of invoking the '&gt;' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&gt;' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   BoolState greaterThan(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
@@ -1853,13 +1658,11 @@ abstract class InstanceState {
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the '&gt;=' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&gt;=' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   BoolState greaterThanOrEqual(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
@@ -1867,13 +1670,11 @@ abstract class InstanceState {
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the '~/' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '~/' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   IntState integerDivide(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
@@ -1881,19 +1682,15 @@ abstract class InstanceState {
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the identical function on this object with
-   * the [rightOperand].
-   */
+  /// Return the result of invoking the identical function on this object with
+  /// the [rightOperand].
   BoolState isIdentical(InstanceState rightOperand);
 
-  /**
-   * Return the result of invoking the '&&' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&&' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   BoolState lazyAnd(InstanceState rightOperandComputer()) {
     assertBool(this);
     if (convertToBool() == BoolState.FALSE_STATE) {
@@ -1904,22 +1701,18 @@ abstract class InstanceState {
     return rightOperand.convertToBool();
   }
 
-  /**
-   * Return the result of invoking the '==' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '==' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   BoolState lazyEqualEqual(InstanceState rightOperand);
 
-  /**
-   * Return the result of invoking the '||' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '||' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   BoolState lazyOr(InstanceState rightOperandComputer()) {
     assertBool(this);
     if (convertToBool() == BoolState.TRUE_STATE) {
@@ -1930,13 +1723,11 @@ abstract class InstanceState {
     return rightOperand.convertToBool();
   }
 
-  /**
-   * Return the result of invoking the '&lt;' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&lt;' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   BoolState lessThan(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
@@ -1944,13 +1735,11 @@ abstract class InstanceState {
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the '&lt;=' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&lt;=' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   BoolState lessThanOrEqual(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
@@ -1958,13 +1747,11 @@ abstract class InstanceState {
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the '&' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   BoolState logicalAnd(InstanceState rightOperand) {
     assertBool(this);
     assertBool(rightOperand);
@@ -1976,24 +1763,20 @@ abstract class InstanceState {
     return BoolState.from(leftValue & rightValue);
   }
 
-  /**
-   * Return the result of invoking the '!' operator on this object.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '!' operator on this object.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   BoolState logicalNot() {
     assertBool(this);
     return BoolState.TRUE_STATE;
   }
 
-  /**
-   * Return the result of invoking the '|' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '|' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   BoolState logicalOr(InstanceState rightOperand) {
     assertBool(this);
     assertBool(rightOperand);
@@ -2005,13 +1788,11 @@ abstract class InstanceState {
     return BoolState.from(leftValue | rightValue);
   }
 
-  /**
-   * Return the result of invoking the '&gt;&gt;' operator on this object with
-   * the [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&gt;&gt;' operator on this object with
+  /// the [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   IntState logicalShiftRight(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
@@ -2019,13 +1800,11 @@ abstract class InstanceState {
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the '^' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '^' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   BoolState logicalXor(InstanceState rightOperand) {
     assertBool(this);
     assertBool(rightOperand);
@@ -2037,13 +1816,11 @@ abstract class InstanceState {
     return BoolState.from(leftValue ^ rightValue);
   }
 
-  /**
-   * Return the result of invoking the '-' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '-' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   NumState minus(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
@@ -2051,25 +1828,21 @@ abstract class InstanceState {
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the '-' operator on this object.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '-' operator on this object.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   NumState negated() {
     assertNumOrNull(this);
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the '%' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '%' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   NumState remainder(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
@@ -2077,13 +1850,11 @@ abstract class InstanceState {
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the '&lt;&lt;' operator on this object with
-   * the [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&lt;&lt;' operator on this object with
+  /// the [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   IntState shiftLeft(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
@@ -2091,13 +1862,11 @@ abstract class InstanceState {
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the '&gt;&gt;' operator on this object with
-   * the [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '&gt;&gt;' operator on this object with
+  /// the [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   IntState shiftRight(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
@@ -2105,25 +1874,21 @@ abstract class InstanceState {
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the 'length' getter on this object.
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the 'length' getter on this object.
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   IntState stringLength() {
     assertString(this);
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
   }
 
-  /**
-   * Return the result of invoking the '*' operator on this object with the
-   * [rightOperand].
-   *
-   * Throws an [EvaluationException] if the operator is not appropriate for an
-   * object of this kind.
-   */
+  /// Return the result of invoking the '*' operator on this object with the
+  /// [rightOperand].
+  ///
+  /// Throws an [EvaluationException] if the operator is not appropriate for an
+  /// object of this kind.
   NumState times(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
@@ -2132,24 +1897,16 @@ abstract class InstanceState {
   }
 }
 
-/**
- * The state of an object representing an int.
- */
+/// The state of an object representing an int.
 class IntState extends NumState {
-  /**
-   * A state that can be used to represent an int whose value is not known.
-   */
+  /// A state that can be used to represent an int whose value is not known.
   static IntState UNKNOWN_VALUE = new IntState(null);
 
-  /**
-   * The value of this instance.
-   */
+  /// The value of this instance.
   final int value;
 
-  /**
-   * Initialize a newly created state to represent an int with the given
-   * [value].
-   */
+  /// Initialize a newly created state to represent an int with the given
+  /// [value].
   IntState(this.value);
 
   @override
@@ -2638,19 +2395,13 @@ class IntState extends NumState {
   String toString() => value == null ? "-unknown-" : value.toString();
 }
 
-/**
- * The state of an object representing a list.
- */
+/// The state of an object representing a list.
 class ListState extends InstanceState {
-  /**
-   * The elements of the list.
-   */
+  /// The elements of the list.
   final List<DartObjectImpl> _elements;
 
-  /**
-   * Initialize a newly created state to represent a list with the given
-   * [elements].
-   */
+  /// Initialize a newly created state to represent a list with the given
+  /// [elements].
   ListState(this._elements);
 
   @override
@@ -2726,19 +2477,13 @@ class ListState extends InstanceState {
   }
 }
 
-/**
- * The state of an object representing a map.
- */
+/// The state of an object representing a map.
 class MapState extends InstanceState {
-  /**
-   * The entries in the map.
-   */
+  /// The entries in the map.
   final Map<DartObjectImpl, DartObjectImpl> _entries;
 
-  /**
-   * Initialize a newly created state to represent a map with the given
-   * [entries].
-   */
+  /// Initialize a newly created state to represent a map with the given
+  /// [entries].
   MapState(this._entries);
 
   @override
@@ -2817,13 +2562,9 @@ class MapState extends InstanceState {
   }
 }
 
-/**
- * The state of an object representing the value 'null'.
- */
+/// The state of an object representing the value 'null'.
 class NullState extends InstanceState {
-  /**
-   * An instance representing the boolean value 'null'.
-   */
+  /// An instance representing the boolean value 'null'.
   static NullState NULL_STATE = new NullState();
 
   @override
@@ -2879,13 +2620,9 @@ class NullState extends InstanceState {
   String toString() => "null";
 }
 
-/**
- * The state of an object representing a number of an unknown type (a 'num').
- */
+/// The state of an object representing a number of an unknown type (a 'num').
 class NumState extends InstanceState {
-  /**
-   * A state that can be used to represent a number whose value is not known.
-   */
+  /// A state that can be used to represent a number whose value is not known.
   static NumState UNKNOWN_VALUE = new NumState();
 
   @override
@@ -3000,19 +2737,13 @@ class NumState extends InstanceState {
   String toString() => "-unknown-";
 }
 
-/**
- * The state of an object representing a set.
- */
+/// The state of an object representing a set.
 class SetState extends InstanceState {
-  /**
-   * The elements of the set.
-   */
+  /// The elements of the set.
   final Set<DartObjectImpl> _elements;
 
-  /**
-   * Initialize a newly created state to represent a set with the given
-   * [elements].
-   */
+  /// Initialize a newly created state to represent a set with the given
+  /// [elements].
   SetState(this._elements);
 
   @override
@@ -3088,23 +2819,15 @@ class SetState extends InstanceState {
   }
 }
 
-/**
- * The state of an object representing a string.
- */
+/// The state of an object representing a string.
 class StringState extends InstanceState {
-  /**
-   * A state that can be used to represent a double whose value is not known.
-   */
+  /// A state that can be used to represent a double whose value is not known.
   static StringState UNKNOWN_VALUE = new StringState(null);
 
-  /**
-   * The value of this instance.
-   */
+  /// The value of this instance.
   final String value;
 
-  /**
-   * Initialize a newly created state to represent the given [value].
-   */
+  /// Initialize a newly created state to represent the given [value].
   StringState(this.value);
 
   @override
@@ -3183,18 +2906,12 @@ class StringState extends InstanceState {
   String toString() => value == null ? "-unknown-" : "'$value'";
 }
 
-/**
- * The state of an object representing a symbol.
- */
+/// The state of an object representing a symbol.
 class SymbolState extends InstanceState {
-  /**
-   * The value of this instance.
-   */
+  /// The value of this instance.
   final String value;
 
-  /**
-   * Initialize a newly created state to represent the given [value].
-   */
+  /// Initialize a newly created state to represent the given [value].
   SymbolState(this.value);
 
   @override
@@ -3247,18 +2964,12 @@ class SymbolState extends InstanceState {
   String toString() => value == null ? "-unknown-" : "#$value";
 }
 
-/**
- * The state of an object representing a type.
- */
+/// The state of an object representing a type.
 class TypeState extends InstanceState {
-  /**
-   * The element representing the type being modeled.
-   */
+  /// The element representing the type being modeled.
   final DartType _type;
 
-  /**
-   * Initialize a newly created state to represent the given [value].
-   */
+  /// Initialize a newly created state to represent the given [value].
   TypeState(this._type);
 
   @override
