@@ -8,10 +8,11 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../backend_strategy.dart';
 import '../common.dart';
-import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/codegen.dart' show CodegenRegistry;
 import '../common/tasks.dart';
+import '../common/work.dart';
 import '../compiler.dart';
-import '../deferred_load.dart';
+import '../deferred_load.dart' hide WorkItem;
 import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../enqueue.dart';
@@ -152,27 +153,23 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
       this._globalInferenceResults, this._codegen);
 
   @override
-  CodegenWorkItem createWorkItem(MemberEntity entity) {
+  WorkItem createWorkItem(MemberEntity entity) {
     if (entity.isAbstract) return null;
     return new KernelCodegenWorkItem(
         _backend, _closedWorld, _globalInferenceResults, _codegen, entity);
   }
 }
 
-class KernelCodegenWorkItem extends CodegenWorkItem {
+class KernelCodegenWorkItem extends WorkItem {
   final JavaScriptBackend _backend;
   final JClosedWorld _closedWorld;
   @override
   final MemberEntity element;
-  @override
-  final CodegenRegistry registry;
   final GlobalTypeInferenceResults _globalInferenceResults;
   final CodegenInputs _codegen;
 
   KernelCodegenWorkItem(this._backend, this._closedWorld,
-      this._globalInferenceResults, this._codegen, this.element)
-      : registry =
-            new CodegenRegistry(_closedWorld.elementEnvironment, element);
+      this._globalInferenceResults, this._codegen, this.element);
 
   @override
   WorldImpact run() {
@@ -209,20 +206,20 @@ class KernelSsaBuilder implements SsaBuilder {
       this._sourceInformationStrategy);
 
   @override
-  HGraph build(CodegenWorkItem work, JClosedWorld closedWorld,
-      GlobalTypeInferenceResults results) {
+  HGraph build(MemberEntity member, JClosedWorld closedWorld,
+      GlobalTypeInferenceResults results, CodegenRegistry registry) {
     _inlineCache ??= new FunctionInlineCache(closedWorld.annotationsData);
     return _task.measure(() {
       KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
           _options,
           _reporter,
-          work.element,
-          _elementMap.getMemberThisType(work.element),
+          member,
+          _elementMap.getMemberThisType(member),
           _dumpInfoTask,
           _elementMap,
           results,
           closedWorld,
-          work.registry,
+          registry,
           _namer,
           _emitter,
           _tracer,

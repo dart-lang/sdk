@@ -8,13 +8,13 @@ import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
 import '../native/behavior.dart';
+import '../js/js.dart' as js;
 import '../universe/feature.dart';
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilderImpl, WorldImpactVisitor;
 import '../util/enumset.dart';
 import '../util/util.dart' show Pair, Setlet;
-import 'work.dart' show WorkItem;
 
 class CodegenImpact extends WorldImpact {
   const CodegenImpact();
@@ -224,7 +224,9 @@ class CodegenRegistry {
   }
 }
 
-/// [WorkItem] used exclusively by the [CodegenEnqueuer].
-abstract class CodegenWorkItem extends WorkItem {
-  CodegenRegistry get registry;
+class CodegenResult {
+  js.Fun code;
+  CodegenImpact impact;
+
+  CodegenResult(this.code, this.impact);
 }

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/codegen.dart' show CodegenRegistry;
 import '../common/names.dart' show Selectors;
 import '../common/tasks.dart' show Measurer, CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
@@ -51,11 +51,12 @@ class SsaOptimizerTask extends CompilerTask {
   String get name => 'SSA optimizer';
 
   void optimize(
-      CodegenWorkItem work,
+      MemberEntity member,
       HGraph graph,
       CodegenInputs codegen,
       JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
+      GlobalTypeInferenceResults globalInferenceResults,
+      CodegenRegistry registry) {
     void runPhase(OptimizationPhase phase) {
       measureSubtask(phase.name, () => phase.visitGraph(graph));
       codegen.tracer.traceGraph(phase.name, graph);
@@ -63,7 +64,6 @@ class SsaOptimizerTask extends CompilerTask {
     }
 
     bool trustPrimitives = _options.trustPrimitives;
-    CodegenRegistry registry = work.registry;
     Set<HInstruction> boundsChecked = new Set<HInstruction>();
     SsaCodeMotion codeMotion;
     SsaLoadElimination loadElimination;
@@ -71,7 +71,7 @@ class SsaOptimizerTask extends CompilerTask {
     OptimizationTestLog log;
     if (retainDataForTesting) {
       loggersForTesting ??= {};
-      loggersForTesting[work.element] = log = new OptimizationTestLog();
+      loggersForTesting[member] = log = new OptimizationTestLog();
     }
 
     measure(() {
@@ -125,8 +125,7 @@ class SsaOptimizerTask extends CompilerTask {
       // Simplifying interceptors is not strictly just an optimization, it is
       // required for implementation correctness because the code generator
       // assumes it is always performed.
-      runPhase(new SsaSimplifyInterceptors(
-          closedWorld, work.element.enclosingClass));
+      runPhase(new SsaSimplifyInterceptors(closedWorld, member.enclosingClass));
 
       SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(closedWorld, this);
       runPhase(dce);
@@ -142,7 +141,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaInstructionSimplifier(globalInferenceResults, _options,
               codegen.rtiSubstitutions, closedWorld, registry, log),
           new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
-          new SsaSimplifyInterceptors(closedWorld, work.element.enclosingClass),
+          new SsaSimplifyInterceptors(closedWorld, member.enclosingClass),
           new SsaDeadCodeEliminator(closedWorld, this),
         ];
       } else {

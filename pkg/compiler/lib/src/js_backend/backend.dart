@@ -6,9 +6,10 @@ library js_backend.backend;
 
 import '../common.dart';
 import '../common/backend_api.dart' show ImpactTransformer;
-import '../common/codegen.dart' show CodegenWorkItem;
+import '../common/codegen.dart' show CodegenResult;
 import '../common/names.dart' show Uris;
 import '../common/tasks.dart' show CompilerTask;
+import '../common/work.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../compiler.dart' show Compiler;
 import '../deferred_load.dart' show DeferredLoadTask;
@@ -54,9 +55,9 @@ import 'runtime_types.dart';
 abstract class FunctionCompiler {
   void onCodegenStart(CodegenInputs codegen);
 
-  /// Generates JavaScript code for `work.element`.
-  jsAst.Fun compile(
-      CodegenWorkItem work,
+  /// Generates JavaScript code for [member].
+  CodegenResult compile(
+      MemberEntity member,
       CodegenInputs codegen,
       JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults);
@@ -595,33 +596,29 @@ class JavaScriptBackend {
   Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
 
   WorldImpact generateCode(
-      CodegenWorkItem work,
+      WorkItem work,
       JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults,
       CodegenInputs codegen) {
-    MemberEntity element = work.element;
-    if (element.isConstructor &&
-        element.enclosingClass == closedWorld.commonElements.jsNullClass) {
+    MemberEntity member = work.element;
+    if (member.isConstructor &&
+        member.enclosingClass == closedWorld.commonElements.jsNullClass) {
       // Work around a problem compiling JSNull's constructor.
       return const WorldImpact();
     }
 
-    jsAst.Fun function = functionCompiler.compile(
-        work, codegen, closedWorld, globalInferenceResults);
-    if (function != null) {
-      if (function.sourceInformation == null) {
-        function = function.withSourceInformation(
-            sourceInformationStrategy.buildSourceMappedMarker());
-      }
-      generatedCode[element] = function;
+    CodegenResult result = functionCompiler.compile(
+        member, codegen, closedWorld, globalInferenceResults);
+    if (result.code != null) {
+      generatedCode[member] = result.code;
     }
     if (retainDataForTesting) {
       codegenImpactsForTesting ??= <MemberEntity, WorldImpact>{};
-      codegenImpactsForTesting[element] = work.registry.worldImpact;
+      codegenImpactsForTesting[member] = result.impact;
     }
-    WorldImpact worldImpact = _codegenImpactTransformer
-        .transformCodegenImpact(work.registry.worldImpact);
-    compiler.dumpInfoTask.registerImpact(element, worldImpact);
+    WorldImpact worldImpact =
+        _codegenImpactTransformer.transformCodegenImpact(result.impact);
+    compiler.dumpInfoTask.registerImpact(member, worldImpact);
     return worldImpact;
   }
 

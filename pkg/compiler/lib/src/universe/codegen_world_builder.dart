@@ -36,7 +36,7 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
 
 // The immutable result of the [CodegenWorldBuilder].
 abstract class CodegenWorld extends BuiltWorld {
-  /// Calls [f] for each
+  /// Calls [f] for each generic call method on a live closure class.
   void forEachGenericClosureCallMethod(void Function(FunctionEntity) f);
 
   bool hasInvokedGetter(MemberEntity member);

@@ -9,7 +9,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../common.dart';
 import '../common/names.dart';
-import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/codegen.dart' show CodegenRegistry;
 import '../common/tasks.dart' show Measurer, CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
@@ -78,22 +78,31 @@ class SsaCodeGeneratorTask extends CompilerTask {
     }
   }
 
-  js.Expression generateCode(CodegenWorkItem work, HGraph graph,
-      CodegenInputs codegen, JClosedWorld closedWorld) {
-    if (work.element.isField) {
-      return generateLazyInitializer(work, graph, codegen, closedWorld);
+  js.Expression generateCode(
+      MemberEntity member,
+      HGraph graph,
+      CodegenInputs codegen,
+      JClosedWorld closedWorld,
+      CodegenRegistry registry) {
+    if (member.isField) {
+      return generateLazyInitializer(
+          member, graph, codegen, closedWorld, registry);
     } else {
-      return generateMethod(work, graph, codegen, closedWorld);
+      return generateMethod(member, graph, codegen, closedWorld, registry);
     }
   }
 
-  js.Expression generateLazyInitializer(CodegenWorkItem work, HGraph graph,
-      CodegenInputs codegen, JClosedWorld closedWorld) {
+  js.Expression generateLazyInitializer(
+      FieldEntity field,
+      HGraph graph,
+      CodegenInputs codegen,
+      JClosedWorld closedWorld,
+      CodegenRegistry registry) {
     return measure(() {
       codegen.tracer.traceGraph("codegen", graph);
       SourceInformation sourceInformation = sourceInformationStrategy
-          .createBuilderForContext(work.element)
-          .buildDeclaration(work.element);
+          .createBuilderForContext(field)
+          .buildDeclaration(field);
       SsaCodeGenerator codeGenerator = new SsaCodeGenerator(
           this,
           _options,
@@ -106,19 +115,22 @@ class SsaCodeGeneratorTask extends CompilerTask {
           codegen.superMemberData,
           codegen.tracer,
           closedWorld,
-          work);
+          registry);
       codeGenerator.visitGraph(graph);
       return new js.Fun(codeGenerator.parameters, codeGenerator.body)
           .withSourceInformation(sourceInformation);
     });
   }
 
-  js.Expression generateMethod(CodegenWorkItem work, HGraph graph,
-      CodegenInputs codegen, JClosedWorld closedWorld) {
+  js.Expression generateMethod(
+      FunctionEntity method,
+      HGraph graph,
+      CodegenInputs codegen,
+      JClosedWorld closedWorld,
+      CodegenRegistry registry) {
     return measure(() {
-      FunctionEntity element = work.element;
-      if (element.asyncMarker != AsyncMarker.SYNC) {
-        work.registry.registerAsyncMarker(element.asyncMarker);
+      if (method.asyncMarker != AsyncMarker.SYNC) {
+        registry.registerAsyncMarker(method.asyncMarker);
       }
       SsaCodeGenerator codeGenerator = new SsaCodeGenerator(
           this,
@@ -132,10 +144,10 @@ class SsaCodeGeneratorTask extends CompilerTask {
           codegen.superMemberData,
           codegen.tracer,
           closedWorld,
-          work);
+          registry);
       codeGenerator.visitGraph(graph);
       codegen.tracer.traceGraph("codegen", graph);
-      return buildJavaScriptFunction(graph.needsAsyncRewrite, work.element,
+      return buildJavaScriptFunction(graph.needsAsyncRewrite, method,
           codeGenerator.parameters, codeGenerator.body);
     });
   }
@@ -171,7 +183,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final SuperMemberData _superMemberData;
   final Tracer _tracer;
   final JClosedWorld _closedWorld;
-  final CodegenWorkItem _work;
+  final CodegenRegistry _registry;
 
   final Set<HInstruction> generateAtUseSite;
   final Set<HInstruction> controlFlowOperators;
@@ -227,7 +239,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       this._superMemberData,
       this._tracer,
       this._closedWorld,
-      this._work,
+      this._registry,
       {SourceInformation sourceInformation})
       : declaredLocals = new Set<String>(),
         collectedVariableDeclarations = new Set<String>(),
@@ -240,8 +252,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         breakAction = new Set<JumpTarget>(),
         continueAction = new Set<LabelDefinition>(),
         implicitContinueAction = new Set<JumpTarget>();
-
-  CodegenRegistry get _registry => _work.registry;
 
   JCommonElements get _commonElements => _closedWorld.commonElements;
 
