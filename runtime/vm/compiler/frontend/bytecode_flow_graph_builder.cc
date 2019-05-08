@@ -26,7 +26,6 @@ DEFINE_FLAG(bool,
 
 namespace kernel {
 
-// 8-bit unsigned operand.
 BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandA() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -36,7 +35,6 @@ BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandA() {
   }
 }
 
-// 8-bit unsigned operand.
 BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandB() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -46,7 +44,6 @@ BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandB() {
   }
 }
 
-// 8-bit unsigned operand.
 BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandC() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -56,7 +53,6 @@ BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandC() {
   }
 }
 
-// 8/16-bit unsigned operand.
 BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandD() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -66,7 +62,6 @@ BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandD() {
   }
 }
 
-// 8/16-bit unsigned operand.
 BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandE() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -76,7 +71,6 @@ BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandE() {
   }
 }
 
-// 8-bit unsigned operand.
 BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandF() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -86,7 +80,6 @@ BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandF() {
   }
 }
 
-// 8/16-bit signed operand.
 BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandX() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -96,7 +89,6 @@ BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandX() {
   }
 }
 
-// 8/16-bit signed operand.
 BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandY() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -106,7 +98,6 @@ BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandY() {
   }
 }
 
-// 8/24-bit signed operand.
 BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandT() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter

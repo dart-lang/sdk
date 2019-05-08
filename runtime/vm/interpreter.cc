@@ -933,6 +933,8 @@ static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
   BYTECODE_IMPL_LABEL(Name)
 
 #define BYTECODE_HEADER_A_WITH_OLD(Name)                                       \
+  uint32_t rA;                                                                 \
+  USE(rA);                                                                     \
   BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
   rA = pc[1];                                                                  \
   pc += 4;                                                                     \
@@ -960,24 +962,23 @@ static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
   pc += 2;                                                                     \
   BYTECODE_IMPL_LABEL(Name)
 
-// TODO(alexmarkov): Rename rD to rX.
 #define BYTECODE_HEADER_X_WITH_OLD(Name)                                       \
-  int32_t rD;                                                                  \
-  USE(rD);                                                                     \
+  int32_t rX;                                                                  \
+  USE(rX);                                                                     \
   BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
-  rD = static_cast<int16_t>(static_cast<uint16_t>(pc[2]) |                     \
+  rX = static_cast<int16_t>(static_cast<uint16_t>(pc[2]) |                     \
                             (static_cast<uint16_t>(pc[3]) << 8));              \
   pc += 4;                                                                     \
   GOTO_BYTECODE_IMPL(Name);                                                    \
   BYTECODE_WIDE_ENTRY_LABEL(Name)                                              \
-  rD = static_cast<int32_t>(static_cast<uint32_t>(pc[1]) |                     \
+  rX = static_cast<int32_t>(static_cast<uint32_t>(pc[1]) |                     \
                             (static_cast<uint32_t>(pc[2]) << 8) |              \
                             (static_cast<uint32_t>(pc[3]) << 16) |             \
                             (static_cast<uint32_t>(pc[4]) << 24));             \
   pc += 5;                                                                     \
   GOTO_BYTECODE_IMPL(Name);                                                    \
   BYTECODE_ENTRY_LABEL(Name)                                                   \
-  rD = static_cast<int8_t>(pc[1]);                                             \
+  rX = static_cast<int8_t>(pc[1]);                                             \
   pc += 2;                                                                     \
   BYTECODE_IMPL_LABEL(Name)
 
@@ -1003,41 +1004,42 @@ static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
   pc += 2;                                                                     \
   BYTECODE_IMPL_LABEL(Name)
 
-// TODO(alexmarkov): Rename rD to rE.
 #define BYTECODE_HEADER_A_E_WITH_OLD(Name)                                     \
-  uint32_t rD;                                                                 \
-  USE(rD);                                                                     \
+  uint32_t rA, rE;                                                             \
+  USE(rA);                                                                     \
+  USE(rE);                                                                     \
   BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
   rA = pc[1];                                                                  \
-  rD = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8);     \
+  rE = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8);     \
   pc += 4;                                                                     \
   GOTO_BYTECODE_IMPL(Name);                                                    \
   BYTECODE_WIDE_ENTRY_LABEL(Name)                                              \
   rA = pc[1];                                                                  \
-  rD = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8) |    \
+  rE = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8) |    \
        (static_cast<uint32_t>(pc[4]) << 16) |                                  \
        (static_cast<uint32_t>(pc[5]) << 24);                                   \
   pc += 6;                                                                     \
   GOTO_BYTECODE_IMPL(Name);                                                    \
   BYTECODE_ENTRY_LABEL(Name)                                                   \
   rA = pc[1];                                                                  \
-  rD = pc[2];                                                                  \
+  rE = pc[2];                                                                  \
   pc += 3;                                                                     \
   BYTECODE_IMPL_LABEL(Name)
 
-// TODO(alexmarkov): Rename rD to rY.
 #define BYTECODE_HEADER_A_Y_WITH_OLD(Name)                                     \
-  int32_t rD;                                                                  \
-  USE(rD);                                                                     \
+  uint32_t rA;                                                                 \
+  int32_t rY;                                                                  \
+  USE(rA);                                                                     \
+  USE(rY);                                                                     \
   BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
   rA = pc[1];                                                                  \
-  rD = static_cast<int16_t>(static_cast<uint16_t>(pc[2]) |                     \
+  rY = static_cast<int16_t>(static_cast<uint16_t>(pc[2]) |                     \
                             (static_cast<uint16_t>(pc[3]) << 8));              \
   pc += 4;                                                                     \
   GOTO_BYTECODE_IMPL(Name);                                                    \
   BYTECODE_WIDE_ENTRY_LABEL(Name)                                              \
   rA = pc[1];                                                                  \
-  rD = static_cast<int32_t>(static_cast<uint32_t>(pc[2]) |                     \
+  rY = static_cast<int32_t>(static_cast<uint32_t>(pc[2]) |                     \
                             (static_cast<uint32_t>(pc[3]) << 8) |              \
                             (static_cast<uint32_t>(pc[4]) << 16) |             \
                             (static_cast<uint32_t>(pc[5]) << 24));             \
@@ -1045,16 +1047,16 @@ static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
   GOTO_BYTECODE_IMPL(Name);                                                    \
   BYTECODE_ENTRY_LABEL(Name)                                                   \
   rA = pc[1];                                                                  \
-  rD = static_cast<int8_t>(pc[2]);                                             \
+  rY = static_cast<int8_t>(pc[2]);                                             \
   pc += 3;                                                                     \
   BYTECODE_IMPL_LABEL(Name)
 
-// TODO(alexmarkov): Rename rA to rF.
 #define BYTECODE_HEADER_D_F_WITH_OLD(Name)                                     \
-  uint32_t rD;                                                                 \
+  uint32_t rD, rF;                                                             \
   USE(rD);                                                                     \
+  USE(rF);                                                                     \
   BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
-  rA = pc[1];                                                                  \
+  rF = pc[1];                                                                  \
   rD = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8);     \
   pc += 4;                                                                     \
   GOTO_BYTECODE_IMPL(Name);                                                    \
@@ -1062,17 +1064,18 @@ static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
   rD = static_cast<uint32_t>(pc[1]) | (static_cast<uint32_t>(pc[2]) << 8) |    \
        (static_cast<uint32_t>(pc[3]) << 16) |                                  \
        (static_cast<uint32_t>(pc[4]) << 24);                                   \
-  rA = pc[5];                                                                  \
+  rF = pc[5];                                                                  \
   pc += 6;                                                                     \
   GOTO_BYTECODE_IMPL(Name);                                                    \
   BYTECODE_ENTRY_LABEL(Name)                                                   \
   rD = pc[1];                                                                  \
-  rA = pc[2];                                                                  \
+  rF = pc[2];                                                                  \
   pc += 3;                                                                     \
   BYTECODE_IMPL_LABEL(Name)
 
 #define BYTECODE_HEADER_A_B_C_WITH_OLD(Name)                                   \
-  uint16_t rB, rC;                                                             \
+  uint32_t rA, rB, rC;                                                         \
+  USE(rA);                                                                     \
   USE(rB);                                                                     \
   USE(rC);                                                                     \
   BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
@@ -1483,7 +1486,6 @@ RawObject* Interpreter::Call(RawFunction* function,
   RawObject** SP;  // Stack Pointer.
 
   uint32_t op;  // Currently executing op.
-  uint32_t rA;  // A component of the currently executing op.
 
   bool reentering = fp_ != NULL;
   if (!reentering) {
@@ -1596,7 +1598,7 @@ SwitchDispatch:
   // KernelBytecode handlers (see constants_kbc.h for bytecode descriptions).
   {
     BYTECODE(Entry, D);
-    const uint16_t num_locals = rD;
+    const intptr_t num_locals = rD;
 
     // Initialize locals with null & set SP.
     for (intptr_t i = 0; i < num_locals; i++) {
@@ -1609,8 +1611,8 @@ SwitchDispatch:
 
   {
     BYTECODE(EntryFixed, A_E);
-    const uint16_t num_fixed_params = rA;
-    const uint16_t num_locals = rD;
+    const intptr_t num_fixed_params = rA;
+    const intptr_t num_locals = rE;
 
     const intptr_t arg_count = InterpreterHelpers::ArgDescArgCount(argdesc_);
     const intptr_t pos_count = InterpreterHelpers::ArgDescPosCount(argdesc_);
@@ -1629,9 +1631,9 @@ SwitchDispatch:
 
   {
     BYTECODE(EntryOptional, A_B_C);
-    const uint16_t num_fixed_params = rA;
-    const uint16_t num_opt_pos_params = rB;
-    const uint16_t num_opt_named_params = rC;
+    const intptr_t num_fixed_params = rA;
+    const intptr_t num_opt_pos_params = rB;
+    const intptr_t num_opt_named_params = rC;
     const intptr_t min_num_pos_args = num_fixed_params;
     const intptr_t max_num_pos_args = num_fixed_params + num_opt_pos_params;
 
@@ -1742,7 +1744,7 @@ SwitchDispatch:
   {
     BYTECODE(Frame, D);
     // Initialize locals with null and increment SP.
-    const uint16_t num_locals = rD;
+    const intptr_t num_locals = rD;
     for (intptr_t i = 1; i <= num_locals; i++) {
       SP[i] = null_value;
     }
@@ -1785,8 +1787,8 @@ SwitchDispatch:
 
   {
     BYTECODE(CheckFunctionTypeArgs, A_E);
-    const uint16_t declared_type_args_len = rA;
-    const uint16_t first_stack_local_index = rD;
+    const intptr_t declared_type_args_len = rA;
+    const intptr_t first_stack_local_index = rE;
 
     // Decode arguments descriptor's type args len.
     const intptr_t type_args_len =
@@ -1825,7 +1827,7 @@ SwitchDispatch:
     BYTECODE(InstantiateTypeArgumentsTOS, A_E);
     // Stack: instantiator type args, function type args
     RawTypeArguments* type_arguments =
-        static_cast<RawTypeArguments*>(LOAD_CONSTANT(rD));
+        static_cast<RawTypeArguments*>(LOAD_CONSTANT(rE));
 
     RawObject* instantiator_type_args = SP[-1];
     RawObject* function_type_args = SP[0];
@@ -1886,7 +1888,7 @@ SwitchDispatch:
 
   {
     BYTECODE(LoadConstant, A_E);
-    FP[rA] = LOAD_CONSTANT(rD);
+    FP[rA] = LOAD_CONSTANT(rE);
     DISPATCH();
   }
 
@@ -1916,32 +1918,32 @@ SwitchDispatch:
 
   {
     BYTECODE(PushInt, X);
-    *++SP = Smi::New(rD);
+    *++SP = Smi::New(rX);
     DISPATCH();
   }
 
   {
     BYTECODE(Push, X);
-    *++SP = FP[rD];
+    *++SP = FP[rX];
     DISPATCH();
   }
 
   {
     BYTECODE(StoreLocal, X);
-    FP[rD] = *SP;
+    FP[rX] = *SP;
     DISPATCH();
   }
 
   {
     BYTECODE(PopLocal, X);
-    FP[rD] = *SP--;
+    FP[rX] = *SP--;
     DISPATCH();
   }
 
   {
     BYTECODE(MoveSpecial, A_Y);
     ASSERT(rA < KernelBytecode::kSpecialIndexCount);
-    FP[rD] = special_[rA];
+    FP[rY] = special_[rA];
     DISPATCH();
   }
 
@@ -1965,8 +1967,8 @@ SwitchDispatch:
 
     // Invoke target function.
     {
-      const uint16_t argc = rA;
-      const uint16_t kidx = rD;
+      const uint32_t argc = rF;
+      const uint32_t kidx = rD;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
       *++SP = LOAD_CONSTANT(kidx);
@@ -1994,8 +1996,8 @@ SwitchDispatch:
 #endif  // !PRODUCT
 
     {
-      const uint16_t argc = rA;
-      const uint16_t kidx = rD;
+      const uint32_t argc = rF;
+      const uint32_t kidx = rD;
 
       RawObject** call_base = SP - argc + 1;
       RawObject** call_top = SP + 1;
@@ -2026,8 +2028,8 @@ SwitchDispatch:
 #endif  // !PRODUCT
 
     {
-      const uint16_t argc = rA;
-      const uint16_t kidx = rD;
+      const uint32_t argc = rF;
+      const uint32_t kidx = rD;
 
       RawObject** call_base = SP - argc + 1;
       RawObject** call_top = SP + 1;
@@ -2058,8 +2060,8 @@ SwitchDispatch:
 #endif  // !PRODUCT
 
     {
-      const uint16_t argc = rA;
-      const uint16_t kidx = rD;
+      const uint32_t argc = rF;
+      const uint32_t kidx = rD;
 
       RawObject** call_base = SP - argc + 1;
       RawObject** call_top = SP + 1;
@@ -2440,11 +2442,11 @@ SwitchDispatch:
   {
     BYTECODE(StoreContextVar, A_E);
     const uword offset_in_words =
-        static_cast<uword>(Context::variable_offset(rD) / kWordSize);
+        static_cast<uword>(Context::variable_offset(rE) / kWordSize);
     RawContext* instance = reinterpret_cast<RawContext*>(SP[-1]);
     RawObject* value = reinterpret_cast<RawContext*>(SP[0]);
     SP -= 2;  // Drop instance and value.
-    ASSERT(rD < static_cast<uint32_t>(instance->ptr()->num_variables_));
+    ASSERT(rE < static_cast<uint32_t>(instance->ptr()->num_variables_));
     instance->StorePointer(
         reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
         thread);
@@ -2492,9 +2494,9 @@ SwitchDispatch:
   {
     BYTECODE(LoadContextVar, A_E);
     const uword offset_in_words =
-        static_cast<uword>(Context::variable_offset(rD) / kWordSize);
+        static_cast<uword>(Context::variable_offset(rE) / kWordSize);
     RawContext* instance = static_cast<RawContext*>(SP[0]);
-    ASSERT(rD < static_cast<uint32_t>(instance->ptr()->num_variables_));
+    ASSERT(rE < static_cast<uint32_t>(instance->ptr()->num_variables_));
     SP[0] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
     DISPATCH();
   }
@@ -2502,7 +2504,7 @@ SwitchDispatch:
   {
     BYTECODE(AllocateContext, A_E);
     ++SP;
-    const uint16_t num_context_variables = rD;
+    const uint32_t num_context_variables = rE;
     if (!AllocateContext(thread, num_context_variables, pc, FP, SP)) {
       HANDLE_EXCEPTION;
     }
@@ -2604,7 +2606,7 @@ SwitchDispatch:
     const bool smi_ok = is_smi && may_be_smi;
     if (!smi_ok && (args[0] != null_value)) {
       RawSubtypeTestCache* cache =
-          static_cast<RawSubtypeTestCache*>(LOAD_CONSTANT(rD));
+          static_cast<RawSubtypeTestCache*>(LOAD_CONSTANT(rE));
 
       if (!AssertAssignable(thread, pc, FP, SP, args, cache)) {
         HANDLE_EXCEPTION;

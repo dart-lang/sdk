@@ -357,23 +357,22 @@ class BytecodeAssembler {
     _emitInstructionX(Opcode.kPopLocal, rx);
   }
 
-  // TODO(alexmarkov): swap operands.
-  void emitDirectCall(int rf, int rd) {
+  void emitDirectCall(int rd, int rf) {
     emitSourcePosition();
     _emitInstructionDF(Opcode.kDirectCall, rd, rf);
   }
 
-  void emitInterfaceCall(int rf, int rd) {
+  void emitInterfaceCall(int rd, int rf) {
     emitSourcePosition();
     _emitInstructionDF(Opcode.kInterfaceCall, rd, rf);
   }
 
-  void emitUncheckedInterfaceCall(int rf, int rd) {
+  void emitUncheckedInterfaceCall(int rd, int rf) {
     emitSourcePosition();
     _emitInstructionDF(Opcode.kUncheckedInterfaceCall, rd, rf);
   }
 
-  void emitDynamicCall(int rf, int rd) {
+  void emitDynamicCall(int rd, int rf) {
     emitSourcePosition();
     _emitInstructionDF(Opcode.kDynamicCall, rd, rf);
   }

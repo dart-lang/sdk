@@ -790,7 +790,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         : (isSet ? InvocationKind.setter : InvocationKind.method);
     final cpIndex = cp.addDirectCall(kind, target, argDesc);
 
-    asm.emitDirectCall(totalArgCount, cpIndex);
+    asm.emitDirectCall(cpIndex, totalArgCount);
   }
 
   void _genDirectCallWithArgs(Member target, Arguments args,
@@ -1069,7 +1069,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       final argDesc = objectTable.getArgDescHandle(2);
       final cpIndex = cp.addInterfaceCall(
           InvocationKind.method, objectSimpleInstanceOf, argDesc);
-      asm.emitInterfaceCall(2, cpIndex);
+      asm.emitInterfaceCall(cpIndex, 2);
       return;
     }
 
@@ -1083,7 +1083,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final argDesc = objectTable.getArgDescHandle(4);
     final cpIndex =
         cp.addInterfaceCall(InvocationKind.method, objectInstanceOf, argDesc);
-    asm.emitInterfaceCall(4, cpIndex);
+    asm.emitInterfaceCall(cpIndex, 4);
   }
 
   void start(Member node) {
@@ -2301,11 +2301,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       int totalArgCount, int callCpIndex, bool isDynamic, bool isUnchecked) {
     if (isDynamic) {
       assert(!isUnchecked);
-      asm.emitDynamicCall(totalArgCount, callCpIndex);
+      asm.emitDynamicCall(callCpIndex, totalArgCount);
     } else if (isUnchecked) {
-      asm.emitUncheckedInterfaceCall(totalArgCount, callCpIndex);
+      asm.emitUncheckedInterfaceCall(callCpIndex, totalArgCount);
     } else {
-      asm.emitInterfaceCall(totalArgCount, callCpIndex);
+      asm.emitInterfaceCall(callCpIndex, totalArgCount);
     }
   }
 
@@ -2798,9 +2798,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // Front-end inserts implicit cast (type check) which ensures that
     // result of iterable expression is Iterable<dynamic>.
     asm.emitInterfaceCall(
-        1,
         cp.addInterfaceCall(InvocationKind.getter, iterableIterator,
-            objectTable.getArgDescHandle(1)));
+            objectTable.getArgDescHandle(1)),
+        1);
 
     final iteratorTemp = locals.tempIndexInFrame(node);
     asm.emitPopLocal(iteratorTemp);
@@ -2832,9 +2832,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
 
     asm.emitInterfaceCall(
-        1,
         cp.addInterfaceCall(InvocationKind.method, iteratorMoveNext,
-            objectTable.getArgDescHandle(1)));
+            objectTable.getArgDescHandle(1)),
+        1);
     _genJumpIfFalse(/* negated = */ false, done);
 
     _enterScope(node);
@@ -2843,9 +2843,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     asm.emitPush(iteratorTemp);
     asm.emitInterfaceCall(
-        1,
         cp.addInterfaceCall(InvocationKind.getter, iteratorCurrent,
-            objectTable.getArgDescHandle(1)));
+            objectTable.getArgDescHandle(1)),
+        1);
 
     _genStoreVar(node.variable);
 
@@ -3002,9 +3002,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           asm.emitPush(temp);
           _genPushConstExpr(expr);
           asm.emitInterfaceCall(
-              2,
-              cp.addInterfaceCall(InvocationKind.method, coreTypes.objectEquals,
-                  equalsArgDesc));
+              cp.addInterfaceCall(
+                  InvocationKind.method, coreTypes.objectEquals, equalsArgDesc),
+              2);
           _genJumpIfTrue(/* negated = */ false, caseLabel);
         }
       }
