@@ -839,31 +839,6 @@ dart_executable("dart_precompiled_runtime") {
   }
 }
 
-dart_executable("dart_precompiled_runtime_for_linking") {
-  extra_configs = [ "..:dart_precompiled_runtime_config" ]
-  extra_deps = [
-    "..:libdart_precompiled_runtime",
-    "../platform:libdart_platform_precompiled_runtime",
-  ]
-  if (dart_runtime_mode != "release") {
-    extra_deps += [ "../observatory:standalone_observatory_archive" ]
-  }
-  extra_sources = [
-    "builtin.cc",
-    "gzip.cc",
-    "gzip.h",
-    "loader.cc",
-    "loader.h",
-    "main.cc",
-    "snapshot_empty.cc",
-  ]
-  if (dart_runtime_mode == "release") {
-    extra_sources += [ "observatory_assets_empty.cc" ]
-  }
-  extra_defines = [ "DART_LINK_APP_SNAPSHOT" ]
-  target_type = "static_library"
-}
-
 dart_executable("dartaotruntime") {
   extra_configs = [ "..:dart_precompiled_runtime_config" ]
   extra_deps = [
