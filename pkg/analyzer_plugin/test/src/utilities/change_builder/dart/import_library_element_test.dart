@@ -161,6 +161,50 @@ import 'package:test/b.dart' as p;
 
 @reflectiveTest
 class ImportLibraryElement_incompleteCode_Test extends _Base {
+  test_fieldDeclaration_atEnd() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+class C {
+  A^
+}
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'A',
+      expectedCode: r'''
+import 'package:test/a.dart';
+
+class C {
+  A
+}
+''',
+    );
+  }
+
+  test_fieldDeclaration_beforeReturnType() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+class C {
+  A^
+  
+  A foo() => null;
+}
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'A',
+      expectedCode: r'''
+import 'package:test/a.dart';
+
+class C {
+  A
+  
+  A foo() => null;
+}
+''',
+    );
+  }
+
   test_formalParameter() async {
     newFile('/home/test/lib/a.dart', content: 'class A {}');
     newFile('/home/test/lib/b.dart', content: r'''
@@ -180,7 +224,7 @@ f(A) {}
     );
   }
 
-  test_topLevelVariable() async {
+  test_topLevelVariable_atEnd() async {
     newFile('/home/test/lib/a.dart', content: 'class A {}');
     newFile('/home/test/lib/b.dart', content: r'''
 export 'a.dart';
@@ -195,6 +239,26 @@ A^
 import 'package:test/a.dart';
 
 A
+''',
+    );
+  }
+
+  test_topLevelVariable_beforeReturnType() async {
+    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+A^
+
+A foo() => null;
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'A',
+      expectedCode: r'''
+import 'package:test/a.dart';
+
+A
+
+A foo() => null;
 ''',
     );
   }
