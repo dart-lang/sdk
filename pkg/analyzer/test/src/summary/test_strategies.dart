@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -181,9 +182,10 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
     Map<String, LinkedLibrary> linkedSummaries = link(nonSdkLibraryUris,
         getDependency, getUnit, declaredVariables, analysisOptions);
 
+    var synchronousSession =
+        SynchronousSession(analysisOptions, declaredVariables);
     var analysisContext = RestrictedAnalysisContext(
-      analysisOptions,
-      declaredVariables,
+      synchronousSession,
       sourceFactory,
     );
 

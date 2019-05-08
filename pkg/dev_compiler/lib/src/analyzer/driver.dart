@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart' show AnalysisDriver;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -241,8 +242,9 @@ class CompilerAnalysisDriver {
     var bundle = PackageBundle.fromBuffer(summaryBytes);
 
     /// Create an analysis context to contain the state for this build unit.
-    var context = RestrictedAnalysisContext(
-        analysisOptions, declaredVariables, sourceFactory);
+    var synchronousSession =
+        SynchronousSession(analysisOptions, declaredVariables);
+    var context = RestrictedAnalysisContext(synchronousSession, sourceFactory);
     var resynthesizer = StoreBasedSummaryResynthesizer(
       context,
       null,

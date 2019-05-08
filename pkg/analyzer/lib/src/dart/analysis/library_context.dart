@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -72,9 +73,10 @@ class LibraryContext {
       store.addStore(externalSummaries);
     }
 
+    var synchronousSession =
+        SynchronousSession(analysisOptions, declaredVariables);
     analysisContext = new RestrictedAnalysisContext(
-      analysisOptions,
-      declaredVariables,
+      synchronousSession,
       sourceFactory,
     );
 
