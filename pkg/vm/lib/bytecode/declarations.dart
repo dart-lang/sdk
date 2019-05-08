@@ -9,10 +9,7 @@ import 'bytecode_serialization.dart'
     show BufferedWriter, BufferedReader, BytecodeSizeStatistics, StringTable;
 import 'constant_pool.dart' show ConstantPool;
 import 'dbc.dart'
-    show
-        currentBytecodeFormatVersion,
-        futureBytecodeFormatVersion,
-        bytecodeInstructionsAlignment;
+    show currentBytecodeFormatVersion, futureBytecodeFormatVersion;
 import 'disassembler.dart' show BytecodeDisassembler;
 import 'exceptions.dart' show ExceptionsTable;
 import 'object_table.dart' show ObjectTable, ObjectHandle, NameAndType;
@@ -1029,13 +1026,11 @@ class Component {
 
 void _writeBytecodeInstructions(BufferedWriter writer, List<int> bytecodes) {
   writer.writePackedUInt30(bytecodes.length);
-  writer.align(bytecodeInstructionsAlignment);
   writer.writeBytes(bytecodes);
   BytecodeSizeStatistics.instructionsSize += bytecodes.length;
 }
 
 List<int> _readBytecodeInstructions(BufferedReader reader) {
   int len = reader.readPackedUInt30();
-  reader.align(bytecodeInstructionsAlignment);
   return reader.readBytesAsUint8List(len);
 }

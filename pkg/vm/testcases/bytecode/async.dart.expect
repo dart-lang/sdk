@@ -101,7 +101,7 @@ ClosureCode {
   AllocateT
   StoreLocal           r2
   Push                 r2
-  DirectCall           1, CP#8
+  DirectCall           CP#8, 1
   Drop1
   StoreContextVar      0, 1
   Push                 r0
@@ -145,27 +145,27 @@ ClosureCode {
   StoreContextVar      0, 8
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           1, CP#29
+  DirectCall           CP#29, 1
   PopLocal             r3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           1, CP#31
+  DirectCall           CP#31, 1
   StoreContextVar      0, 3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           1, CP#33
+  DirectCall           CP#33, 1
   StoreContextVar      0, 4
   Push                 r0
   LoadContextVar       0, 1
   Push                 r0
   LoadContextVar       0, 8
-  DynamicCall          2, CP#36
+  DynamicCall          CP#36, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 1
-  InterfaceCall        1, CP#37
+  InterfaceCall        CP#37, 1
   ReturnTOS
 
 }
@@ -204,7 +204,7 @@ Try #0 start:
   LoadContextVar       0, 4
   Push                 r4
   LoadContextVar       0, 8
-  DirectCall           4, CP#12
+  DirectCall           CP#12, 4
   PopLocal             r8
   PushNull
   ReturnTOS
@@ -221,7 +221,7 @@ L2:
   LoadContextVar       0, 1
   Push                 r4
   LoadContextVar       0, 2
-  DirectCall           2, CP#14
+  DirectCall           CP#14, 2
   Drop1
   PushNull
   ReturnTOS
@@ -244,7 +244,7 @@ Try #0 handler:
   LoadContextVar       0, 1
   Push                 r8
   Push                 r9
-  InterfaceCall        3, CP#17
+  InterfaceCall        CP#17, 3
   Drop1
   Jump                 L3
 L3:
@@ -275,7 +275,7 @@ Bytecode {
   AllocateT
   StoreLocal           r2
   Push                 r2
-  DirectCall           1, CP#2
+  DirectCall           CP#2, 1
   Drop1
   StoreContextVar      0, 0
   Push                 r0
@@ -312,22 +312,22 @@ Bytecode {
   StoreFieldTOS        CP#6
   PopLocal             r6
   Push                 r6
-  DirectCall           1, CP#23
+  DirectCall           CP#23, 1
   PopLocal             r3
   Push                 r6
-  DirectCall           1, CP#25
+  DirectCall           CP#25, 1
   PopLocal             r4
   Push                 r6
-  DirectCall           1, CP#27
+  DirectCall           CP#27, 1
   PopLocal             r5
   Push                 r0
   LoadContextVar       0, 0
   Push                 r6
-  DynamicCall          2, CP#30
+  DynamicCall          CP#30, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 0
-  InterfaceCall        1, CP#31
+  InterfaceCall        CP#31, 1
   ReturnTOS
 }
 ConstantPool {
@@ -393,7 +393,7 @@ L2:
   LoadContextVar       0, 0
   Push                 r4
   LoadContextVar       0, 1
-  DirectCall           2, CP#8
+  DirectCall           CP#8, 2
   Drop1
   PushNull
   ReturnTOS
@@ -412,7 +412,7 @@ Try #0 handler:
   LoadContextVar       0, 0
   Push                 r8
   Push                 r9
-  InterfaceCall        3, CP#11
+  InterfaceCall        CP#11, 3
   Drop1
   Jump                 L3
 L3:
@@ -446,7 +446,7 @@ Bytecode {
   AllocateT
   StoreLocal           r2
   Push                 r2
-  DirectCall           1, CP#2
+  DirectCall           CP#2, 1
   Drop1
   StoreContextVar      0, 2
   Push                 r0
@@ -493,27 +493,27 @@ Bytecode {
   StoreContextVar      0, 10
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           1, CP#27
+  DirectCall           CP#27, 1
   PopLocal             r3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           1, CP#29
+  DirectCall           CP#29, 1
   StoreContextVar      0, 4
   Push                 r0
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           1, CP#31
+  DirectCall           CP#31, 1
   StoreContextVar      0, 5
   Push                 r0
   LoadContextVar       0, 2
   Push                 r0
   LoadContextVar       0, 10
-  DynamicCall          2, CP#34
+  DynamicCall          CP#34, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 2
-  InterfaceCall        1, CP#35
+  InterfaceCall        CP#35, 1
   ReturnTOS
 }
 ConstantPool {
@@ -589,7 +589,7 @@ Try #0 start:
   LoadContextVar       0, 5
   Push                 r4
   LoadContextVar       0, 10
-  DirectCall           4, CP#8
+  DirectCall           CP#8, 4
   PopLocal             r8
   PushNull
   ReturnTOS
@@ -617,7 +617,7 @@ L2:
   LoadContextVar       0, 5
   Push                 r4
   LoadContextVar       0, 10
-  DirectCall           4, CP#8
+  DirectCall           CP#8, 4
   PopLocal             r9
   PushNull
   ReturnTOS
@@ -632,7 +632,7 @@ L3:
   Push                 r4
   LoadContextVar       0, 9
   Push                 r1
-  InterfaceCall        2, CP#10
+  InterfaceCall        CP#10, 2
   StoreContextVar      0, 3
   Jump                 L4
 L4:
@@ -640,7 +640,7 @@ L4:
   LoadContextVar       0, 2
   Push                 r4
   LoadContextVar       0, 3
-  DirectCall           2, CP#12
+  DirectCall           CP#12, 2
   Drop1
   PushNull
   ReturnTOS
@@ -663,7 +663,7 @@ Try #0 handler:
   LoadContextVar       0, 2
   Push                 r8
   Push                 r9
-  InterfaceCall        3, CP#15
+  InterfaceCall        CP#15, 3
   Drop1
   Jump                 L5
 L5:
@@ -700,7 +700,7 @@ Bytecode {
   AllocateT
   StoreLocal           r2
   Push                 r2
-  DirectCall           1, CP#2
+  DirectCall           CP#2, 1
   Drop1
   StoreContextVar      0, 1
   Push                 r0
@@ -750,27 +750,27 @@ Bytecode {
   StoreContextVar      0, 10
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           1, CP#35
+  DirectCall           CP#35, 1
   PopLocal             r3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           1, CP#37
+  DirectCall           CP#37, 1
   StoreContextVar      0, 3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           1, CP#39
+  DirectCall           CP#39, 1
   StoreContextVar      0, 4
   Push                 r0
   LoadContextVar       0, 1
   Push                 r0
   LoadContextVar       0, 10
-  DynamicCall          2, CP#42
+  DynamicCall          CP#42, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 1
-  InterfaceCall        1, CP#43
+  InterfaceCall        CP#43, 1
   ReturnTOS
 }
 ConstantPool {
@@ -869,7 +869,7 @@ L6:
   LoadContextParent
   LoadContextParent
   LoadContextVar       0, 0
-  InterfaceCall        1, CP#8
+  InterfaceCall        CP#8, 1
   PopLocal             r8
   Push                 r4
   Push                 r8
@@ -879,7 +879,7 @@ L5:
   Push                 r4
   LoadContextVar       2, 1
   StoreLocal           r8
-  InterfaceCall        1, CP#10
+  InterfaceCall        CP#10, 1
   JumpIfFalse          L3
   AllocateContext      3, 1
   StoreLocal           r5
@@ -889,7 +889,7 @@ L5:
   PopLocal             r4
   Push                 r4
   Push                 r8
-  InterfaceCall        1, CP#12
+  InterfaceCall        CP#12, 1
   StoreContextVar      3, 0
   Push                 r4
   LoadContextParent
@@ -923,7 +923,7 @@ L5:
   LoadContextParent
   Push                 r4
   StoreContextVar      0, 6
-  DirectCall           0, CP#14
+  DirectCall           CP#14, 0
   Push                 r4
   LoadContextParent
   LoadContextParent
@@ -939,7 +939,7 @@ L5:
   LoadContextParent
   LoadContextParent
   LoadContextVar       0, 10
-  DirectCall           4, CP#16
+  DirectCall           CP#16, 4
   PopLocal             r10
   PushNull
   ReturnTOS
@@ -964,8 +964,8 @@ L4:
   LoadContextParent
   LoadContextVar       0, 8
   Push                 r1
-  InterfaceCall        2, CP#18
-  InterfaceCall        2, CP#18
+  InterfaceCall        CP#18, 2
+  InterfaceCall        CP#18, 2
   StoreContextVar      1, 0
   Push                 r4
   LoadContextParent
@@ -1024,7 +1024,7 @@ L9:
   LoadContextVar       0, 1
   Push                 r4
   LoadContextVar       0, 2
-  DirectCall           2, CP#20
+  DirectCall           CP#20, 2
   Drop1
   PushNull
   ReturnTOS
@@ -1047,7 +1047,7 @@ Try #0 handler:
   LoadContextVar       0, 1
   Push                 r8
   Push                 r9
-  InterfaceCall        3, CP#23
+  InterfaceCall        CP#23, 3
   Drop1
   Jump                 L10
 L10:
@@ -1087,7 +1087,7 @@ Bytecode {
   AllocateT
   StoreLocal           r2
   Push                 r2
-  DirectCall           1, CP#2
+  DirectCall           CP#2, 1
   Drop1
   StoreContextVar      0, 3
   Push                 r0
@@ -1152,27 +1152,27 @@ Bytecode {
   StoreContextVar      0, 17
   Push                 r0
   LoadContextVar       0, 17
-  DirectCall           1, CP#33
+  DirectCall           CP#33, 1
   PopLocal             r3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 17
-  DirectCall           1, CP#35
+  DirectCall           CP#35, 1
   StoreContextVar      0, 5
   Push                 r0
   Push                 r0
   LoadContextVar       0, 17
-  DirectCall           1, CP#37
+  DirectCall           CP#37, 1
   StoreContextVar      0, 6
   Push                 r0
   LoadContextVar       0, 3
   Push                 r0
   LoadContextVar       0, 17
-  DynamicCall          2, CP#40
+  DynamicCall          CP#40, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 3
-  InterfaceCall        1, CP#41
+  InterfaceCall        CP#41, 1
   ReturnTOS
 }
 ConstantPool {
@@ -1284,7 +1284,7 @@ Try #2 start:
   Push                 r4
   LoadContextParent
   LoadContextVar       0, 17
-  DirectCall           4, CP#8
+  DirectCall           CP#8, 4
   PopLocal             r13
   PushNull
   ReturnTOS
@@ -1300,7 +1300,7 @@ L2:
   LoadContextParent
   LoadContextVar       0, 14
   Push                 r1
-  InterfaceCall        2, CP#10
+  InterfaceCall        CP#10, 2
   StoreContextVar      1, 0
   Jump                 L3
 Try #2 end:
@@ -1328,7 +1328,7 @@ Try #2 handler:
   Push                 r4
   LoadContextVar       1, 1
   PushConstant         CP#13
-  InterfaceCall        2, CP#14
+  InterfaceCall        CP#14, 2
   JumpIfFalse          L4
   Push                 r4
   LoadContextParent
@@ -1361,7 +1361,7 @@ L4:
   Push                 r4
   LoadContextParent
   LoadContextVar       0, 17
-  DirectCall           4, CP#8
+  DirectCall           CP#8, 4
   PopLocal             r13
   PushNull
   ReturnTOS
@@ -1377,7 +1377,7 @@ L6:
   LoadContextParent
   LoadContextVar       0, 15
   Push                 r1
-  InterfaceCall        2, CP#10
+  InterfaceCall        CP#10, 2
   StoreContextVar      1, 0
   Push                 r4
   LoadContextParent
@@ -1408,7 +1408,7 @@ Try #1 handler:
   Push                 r9
   StoreContextVar      0, 13
   PushConstant         CP#16
-  DirectCall           1, CP#17
+  DirectCall           CP#17, 1
   Drop1
   Push                 r4
   LoadContextParent
@@ -1435,7 +1435,7 @@ Try #1 handler:
   Push                 r4
   LoadContextParent
   LoadContextVar       0, 17
-  DirectCall           4, CP#8
+  DirectCall           CP#8, 4
   PopLocal             r12
   PushNull
   ReturnTOS
@@ -1451,7 +1451,7 @@ L8:
   LoadContextParent
   LoadContextVar       0, 16
   Push                 r1
-  InterfaceCall        2, CP#10
+  InterfaceCall        CP#10, 2
   StoreContextVar      1, 0
   Push                 r4
   LoadContextParent
@@ -1470,7 +1470,7 @@ L5:
   LoadContextVar       0, 10
   PopLocal             r4
   PushConstant         CP#16
-  DirectCall           1, CP#17
+  DirectCall           CP#17, 1
   Drop1
   Push                 r4
   LoadContextParent
@@ -1497,7 +1497,7 @@ L5:
   Push                 r4
   LoadContextParent
   LoadContextVar       0, 17
-  DirectCall           4, CP#8
+  DirectCall           CP#8, 4
   PopLocal             r12
   PushNull
   ReturnTOS
@@ -1513,7 +1513,7 @@ L10:
   LoadContextParent
   LoadContextVar       0, 16
   Push                 r1
-  InterfaceCall        2, CP#10
+  InterfaceCall        CP#10, 2
   StoreContextVar      1, 0
   Push                 r4
   LoadContextParent
@@ -1532,7 +1532,7 @@ L7:
   LoadContextVar       0, 10
   PopLocal             r4
   PushConstant         CP#16
-  DirectCall           1, CP#17
+  DirectCall           CP#17, 1
   Drop1
   Push                 r4
   LoadContextParent
@@ -1559,7 +1559,7 @@ L7:
   Push                 r4
   LoadContextParent
   LoadContextVar       0, 17
-  DirectCall           4, CP#8
+  DirectCall           CP#8, 4
   PopLocal             r12
   PushNull
   ReturnTOS
@@ -1575,7 +1575,7 @@ L11:
   LoadContextParent
   LoadContextVar       0, 16
   Push                 r1
-  InterfaceCall        2, CP#10
+  InterfaceCall        CP#10, 2
   StoreContextVar      1, 0
   Push                 r4
   LoadContextParent
@@ -1591,7 +1591,7 @@ L9:
   LoadContextVar       0, 3
   Push                 r4
   LoadContextVar       0, 4
-  DirectCall           2, CP#19
+  DirectCall           CP#19, 2
   Drop1
   PushNull
   ReturnTOS
@@ -1614,7 +1614,7 @@ Try #0 handler:
   LoadContextVar       0, 3
   Push                 r8
   Push                 r9
-  InterfaceCall        3, CP#21
+  InterfaceCall        CP#21, 3
   Drop1
   Jump                 L12
 L12:
@@ -1739,7 +1739,7 @@ ClosureCode {
   AllocateT
   StoreLocal           r2
   Push                 r2
-  DirectCall           1, CP#5
+  DirectCall           CP#5, 1
   Drop1
   StoreContextVar      1, 0
   Push                 r0
@@ -1786,27 +1786,27 @@ ClosureCode {
   StoreContextVar      1, 8
   Push                 r0
   LoadContextVar       1, 8
-  DirectCall           1, CP#29
+  DirectCall           CP#29, 1
   PopLocal             r3
   Push                 r0
   Push                 r0
   LoadContextVar       1, 8
-  DirectCall           1, CP#31
+  DirectCall           CP#31, 1
   StoreContextVar      1, 2
   Push                 r0
   Push                 r0
   LoadContextVar       1, 8
-  DirectCall           1, CP#33
+  DirectCall           CP#33, 1
   StoreContextVar      1, 3
   Push                 r0
   LoadContextVar       1, 0
   Push                 r0
   LoadContextVar       1, 8
-  DynamicCall          2, CP#36
+  DynamicCall          CP#36, 2
   Drop1
   Push                 r0
   LoadContextVar       1, 0
-  InterfaceCall        1, CP#37
+  InterfaceCall        CP#37, 1
   ReturnTOS
 
 }
@@ -1871,7 +1871,7 @@ Try #1 start:
   Push                 r4
   LoadContextParent
   LoadContextVar       1, 8
-  DirectCall           4, CP#9
+  DirectCall           CP#9, 4
   PopLocal             r11
   PushNull
   ReturnTOS
@@ -1908,7 +1908,7 @@ Try #1 handler:
   MoveSpecial          exception, r8
   MoveSpecial          stackTrace, r9
   PushConstant         CP#12
-  DirectCall           1, CP#13
+  DirectCall           CP#13, 1
   Drop1
   Push                 r8
   Push                 r9
@@ -1921,7 +1921,7 @@ L3:
   LoadContextVar       1, 7
   PopLocal             r4
   PushConstant         CP#12
-  DirectCall           1, CP#13
+  DirectCall           CP#13, 1
   Drop1
   Push                 r4
   LoadContextParent
@@ -1932,7 +1932,7 @@ L4:
   LoadContextVar       1, 0
   Push                 r4
   LoadContextVar       1, 1
-  DirectCall           2, CP#15
+  DirectCall           CP#15, 2
   Drop1
   PushNull
   ReturnTOS
@@ -1955,7 +1955,7 @@ Try #0 handler:
   LoadContextVar       1, 0
   Push                 r8
   Push                 r9
-  InterfaceCall        3, CP#17
+  InterfaceCall        CP#17, 3
   Drop1
   Jump                 L5
 L5:
@@ -1989,7 +1989,7 @@ Bytecode {
   AllocateT
   StoreLocal           r2
   Push                 r2
-  DirectCall           1, CP#2
+  DirectCall           CP#2, 1
   Drop1
   StoreContextVar      0, 1
   Push                 r0
@@ -2033,27 +2033,27 @@ Bytecode {
   StoreContextVar      0, 8
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           1, CP#29
+  DirectCall           CP#29, 1
   PopLocal             r3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           1, CP#31
+  DirectCall           CP#31, 1
   StoreContextVar      0, 3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           1, CP#33
+  DirectCall           CP#33, 1
   StoreContextVar      0, 4
   Push                 r0
   LoadContextVar       0, 1
   Push                 r0
   LoadContextVar       0, 8
-  DynamicCall          2, CP#36
+  DynamicCall          CP#36, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 1
-  InterfaceCall        1, CP#37
+  InterfaceCall        CP#37, 1
   ReturnTOS
 }
 ConstantPool {
@@ -2132,7 +2132,7 @@ Try #0 start:
   LoadContextVar       0, 4
   Push                 r4
   LoadContextVar       0, 8
-  DirectCall           4, CP#8
+  DirectCall           CP#8, 4
   PopLocal             r8
   PushNull
   ReturnTOS
@@ -2146,13 +2146,13 @@ L3:
   JumpIfNoAsserts      L2
   Push                 r1
   PushInt              42
-  InterfaceCall        2, CP#10
+  InterfaceCall        CP#10, 2
   AssertBoolean        0
   JumpIfTrue           L2
   PushInt              0
   PushInt              0
   PushNull
-  DirectCall           3, CP#12
+  DirectCall           CP#12, 3
   Drop1
 L2:
   Push                 r4
@@ -2164,7 +2164,7 @@ L4:
   LoadContextVar       0, 1
   Push                 r4
   LoadContextVar       0, 2
-  DirectCall           2, CP#14
+  DirectCall           CP#14, 2
   Drop1
   PushNull
   ReturnTOS
@@ -2187,7 +2187,7 @@ Try #0 handler:
   LoadContextVar       0, 1
   Push                 r8
   Push                 r9
-  InterfaceCall        3, CP#17
+  InterfaceCall        CP#17, 3
   Drop1
   Jump                 L5
 L5:

@@ -44,7 +44,7 @@ Bytecode {
   PopLocal             r2
   Push                 r2
   PushInt              3
-  DynamicCall          2, CP#17
+  DynamicCall          CP#17, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 0
@@ -160,8 +160,8 @@ Bytecode {
   Push                 r0
   InstantiateType      CP#8
   StoreIndexedTOS
-  DirectCall           2, CP#9
-  DirectCall           1, CP#11
+  DirectCall           CP#9, 2
+  DirectCall           CP#11, 1
   Drop1
   PushNull
   ReturnTOS
@@ -197,9 +197,9 @@ Bytecode {
   AllocateT
   StoreLocal           r0
   Push                 r0
-  DirectCall           1, CP#3
+  DirectCall           CP#3, 1
   Drop1
-  InterfaceCall        2, CP#5
+  InterfaceCall        CP#5, 2
   Drop1
   PushConstant         CP#7
   PushConstant         CP#2
@@ -207,9 +207,9 @@ Bytecode {
   AllocateT
   StoreLocal           r0
   Push                 r0
-  DirectCall           1, CP#3
+  DirectCall           CP#3, 1
   Drop1
-  InterfaceCall        2, CP#5
+  InterfaceCall        CP#5, 2
   Drop1
   PushConstant         CP#7
   PushConstant         CP#8
@@ -217,9 +217,9 @@ Bytecode {
   AllocateT
   StoreLocal           r0
   Push                 r0
-  DirectCall           1, CP#3
+  DirectCall           CP#3, 1
   Drop1
-  InterfaceCall        2, CP#5
+  InterfaceCall        CP#5, 2
   Drop1
   PushNull
   ReturnTOS
@@ -267,7 +267,7 @@ Bytecode {
   StoreLocal           r3
   PushConstant         CP#18
   StoreLocal           r6
-  DirectCall           2, CP#19
+  DirectCall           CP#19, 2
   Drop1
   Allocate             CP#21
   StoreLocal           r5
@@ -340,7 +340,7 @@ L2:
   LoadFieldTOS         CP#6
   PushInt              0
   PushInt              1
-  DirectCall           4, CP#8
+  DirectCall           CP#8, 4
   PopLocal             r0
   Push                 FP[-5]
   PushConstant         CP#10
@@ -389,7 +389,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -421,7 +421,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -453,7 +453,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -485,7 +485,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -517,7 +517,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -549,7 +549,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -581,7 +581,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -613,7 +613,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -645,7 +645,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -692,11 +692,11 @@ Bytecode {
   PopLocal             r3
   PushConstant         CP#43
   Push                 r3
-  DynamicCall          2, CP#44
+  DynamicCall          CP#44, 2
   Drop1
   PushConstant         CP#45
   Push                 r3
-  DynamicCall          2, CP#46
+  DynamicCall          CP#46, 2
   Drop1
   PushNull
   ReturnTOS
@@ -772,7 +772,7 @@ L2:
   LoadFieldTOS         CP#6
   PushInt              2
   PushInt              4
-  DirectCall           4, CP#8
+  DirectCall           CP#8, 4
   PopLocal             r0
   AllocateClosure      CP#10
   StoreLocal           r4
@@ -796,11 +796,11 @@ L2:
   PopLocal             r3
   PushConstant         CP#37
   Push                 r3
-  DynamicCall          2, CP#39
+  DynamicCall          CP#39, 2
   Drop1
   PushConstant         CP#40
   Push                 r3
-  DynamicCall          2, CP#41
+  DynamicCall          CP#41, 2
   Drop1
   PushNull
   ReturnTOS
@@ -829,7 +829,7 @@ L2:
   LoadFieldTOS         CP#6
   PushInt              4
   PushInt              6
-  DirectCall           4, CP#8
+  DirectCall           CP#8, 4
   PopLocal             r0
   AllocateClosure      CP#11
   StoreLocal           r4
@@ -852,7 +852,7 @@ L2:
   StoreFieldTOS        CP#1
   PopLocal             r3
   Push                 r3
-  DynamicCall          1, CP#35
+  DynamicCall          CP#35, 1
   Drop1
   PushNull
   ReturnTOS
@@ -927,15 +927,15 @@ ClosureCode {
   Push                 r0
   InstantiateType      CP#21
   StoreIndexedTOS
-  DirectCall           2, CP#22
-  DirectCall           1, CP#24
+  DirectCall           CP#22, 2
+  DirectCall           CP#24, 1
   Drop1
   Push                 r1
   LoadContextVar       0, 0
   LoadTypeArgumentsField CP#14
   Push                 r0
   InstantiateTypeArgumentsTOS 0, CP#26
-  DirectCall           1, CP#27
+  DirectCall           CP#27, 1
   Drop1
   PushNull
   ReturnTOS
@@ -981,7 +981,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -1034,22 +1034,22 @@ Bytecode {
   PopLocal             r3
   Push                 r3
   PushInt              10
-  DynamicCall          2, CP#25
+  DynamicCall          CP#25, 2
   Drop1
   Push                 r3
   PushInt              11
-  DynamicCall          2, CP#26
+  DynamicCall          CP#26, 2
   Drop1
   Push                 r2
-  DirectCall           1, CP#21
+  DirectCall           CP#21, 1
   Drop1
   Push                 r0
   LoadContextVar       0, 2
-  DirectCall           1, CP#21
+  DirectCall           CP#21, 1
   Drop1
   Push                 r0
   LoadContextVar       0, 1
-  DirectCall           1, CP#21
+  DirectCall           CP#21, 1
   Drop1
   Push                 r0
   PushInt              42
@@ -1073,7 +1073,7 @@ Bytecode {
   StoreFieldTOS        CP#1
   PopLocal             r2
   Push                 r2
-  DynamicCall          1, CP#31
+  DynamicCall          CP#31, 1
   Drop1
   PushNull
   ReturnTOS
@@ -1170,11 +1170,11 @@ ClosureCode {
   StoreFieldTOS        CP#1
   PopLocal             r3
   Push                 r3
-  DynamicCall          1, CP#20
+  DynamicCall          CP#20, 1
   Drop1
   Push                 r0
   LoadContextVar       1, 1
-  DirectCall           1, CP#21
+  DirectCall           CP#21, 1
   Drop1
 L1:
   PushNull
@@ -1201,7 +1201,7 @@ ClosureCode {
   Push                 r0
   LoadContextParent
   LoadContextVar       0, 0
-  InterfaceCall        1, CP#7
+  InterfaceCall        CP#7, 1
   Push                 r0
   LoadContextVar       1, 0
   AddInt
@@ -1222,7 +1222,7 @@ ClosureCode {
   LoadContextVar       0, 0
   Push                 r0
   LoadContextVar       0, 3
-  InterfaceCall        2, CP#28
+  InterfaceCall        CP#28, 2
   Drop1
   PushNull
   ReturnTOS
@@ -1285,7 +1285,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -1311,11 +1311,11 @@ Bytecode {
   StoreContextVar      0, 0
   PushConstant         CP#0
   PushConstant         CP#1
-  DirectCall           2, CP#2
+  DirectCall           CP#2, 2
   PopLocal             r2
   PushConstant         CP#0
   PushConstant         CP#1
-  DirectCall           2, CP#2
+  DirectCall           CP#2, 2
   PopLocal             r4
   AllocateContext      1, 1
   StoreLocal           r1
@@ -1351,7 +1351,7 @@ L2:
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#5
-  InterfaceCall        2, CP#17
+  InterfaceCall        CP#17, 2
   Drop1
   Push                 r4
   AllocateClosure      CP#19
@@ -1371,7 +1371,7 @@ L2:
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#5
-  InterfaceCall        2, CP#17
+  InterfaceCall        CP#17, 2
   Drop1
   Push                 r0
   CloneContext         1, 1
@@ -1475,18 +1475,18 @@ Bytecode {
   Entry                5
   CheckStack           0
   Push                 FP[-5]
-  InterfaceCall        1, CP#0
+  InterfaceCall        CP#0, 1
   PopLocal             r2
 L2:
   CheckStack           1
   Push                 r2
-  InterfaceCall        1, CP#2
+  InterfaceCall        CP#2, 1
   JumpIfFalse          L1
   AllocateContext      0, 1
   PopLocal             r0
   Push                 r0
   Push                 r2
-  InterfaceCall        1, CP#4
+  InterfaceCall        CP#4, 1
   StoreContextVar      0, 0
   AllocateClosure      CP#6
   StoreLocal           r4
@@ -1507,11 +1507,11 @@ L2:
   StoreFieldTOS        CP#7
   PopLocal             r3
   Push                 r3
-  DynamicCall          1, CP#20
+  DynamicCall          CP#20, 1
   Drop1
   Push                 r0
   LoadContextVar       0, 0
-  DirectCall           1, CP#21
+  DirectCall           CP#21, 1
   Drop1
   Push                 r0
   LoadContextParent
@@ -1606,7 +1606,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -1773,7 +1773,7 @@ ClosureCode {
   StoreFieldTOS        CP#1
   PopLocal             r2
   Push                 r2
-  DynamicCall          1, CP#16
+  DynamicCall          CP#16, 1
   Drop1
   PushNull
   ReturnTOS

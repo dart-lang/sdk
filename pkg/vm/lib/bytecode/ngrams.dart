@@ -16,16 +16,9 @@ bool isControlFlowInstr(Instruction instr) => isControlFlow(instr.opcode);
 
 class NGram {
   List<Instruction> instrs;
-  List<int> _words;
   BytecodeDisassembler _disassembler;
 
-  NGram(List<int> words, {bool mergePushes = false}) {
-    _disassembler = new BytecodeDisassembler();
-    _words = words;
-    instrs = new List<Instruction>(words.length);
-    for (int i = 0; i < instrs.length; i++) {
-      instrs[i] = _disassembler.decodeInstruction(words[i]);
-    }
+  NGram(this.instrs, {bool mergePushes = false}) {
     if (mergePushes) {
       _mergePushes(instrs);
     }
@@ -48,7 +41,7 @@ class NGram {
   String toString() {
     StringBuffer out = new StringBuffer();
     for (var instr in instrs) {
-      _disassembler.writeInstruction(out, 0, instr);
+      _disassembler.writeInstruction(out, instr);
     }
     return out.toString();
   }
@@ -57,7 +50,7 @@ class NGram {
   static void _mergePushes(List<Instruction> instrs) {
     for (int i = 0; i < instrs.length; i++) {
       if (isPush(instrs[i].opcode)) {
-        instrs[i] = new Instruction(Opcode.kPush, <int>[0]);
+        instrs[i] = new Instruction(Opcode.kPush, false, <int>[0], 0);
       }
     }
   }
@@ -104,14 +97,15 @@ class NGram {
 }
 
 class NGramReader {
-  Uint32List _words;
+  List<Instruction> _instructions;
 
   Map<NGram, int> _ngramCounts = <NGram, int>{};
 
   NGramReader(String traceFilename) {
     File traceFile = File(traceFilename);
-    Uint8List data = traceFile.readAsBytesSync();
-    _words = Uint32List.view(data.buffer);
+    Uint8List bytecode = traceFile.readAsBytesSync();
+    final disassembler = new BytecodeDisassembler();
+    _instructions = disassembler.decode(bytecode);
   }
 
   Map<NGram, int> get ngramCounts => _ngramCounts;
@@ -119,8 +113,9 @@ class NGramReader {
   void readAllNGrams(int windowSize,
       {bool basicBlocks: true, bool mergePushes: false}) {
     int offset = 0;
-    while (offset + windowSize < _words.length) {
-      Uint32List window = _words.sublist(offset, offset + windowSize);
+    while (offset + windowSize < _instructions.length) {
+      List<Instruction> window =
+          _instructions.sublist(offset, offset + windowSize);
       offset += 1;
       NGram ngram = new NGram(window, mergePushes: mergePushes);
       if (basicBlocks && ngram.controlFlowIsNotLast) {

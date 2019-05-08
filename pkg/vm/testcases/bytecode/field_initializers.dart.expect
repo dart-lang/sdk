@@ -70,7 +70,7 @@ Bytecode {
   PushInt              44
   StoreFieldTOS        CP#2
   Push                 FP[-6]
-  DirectCall           1, CP#6
+  DirectCall           CP#6, 1
   Drop1
   PushNull
   ReturnTOS
@@ -111,7 +111,7 @@ Bytecode {
   AddInt
   StoreFieldTOS        CP#2
   Push                 FP[-7]
-  DirectCall           1, CP#6
+  DirectCall           CP#6, 1
   Drop1
   PushNull
   ReturnTOS
@@ -139,7 +139,7 @@ Bytecode {
   CheckStack           0
   Push                 FP[-5]
   PushInt              45
-  DirectCall           2, CP#0
+  DirectCall           CP#0, 2
   Drop1
   PushNull
   ReturnTOS
@@ -163,7 +163,7 @@ Bytecode {
   Push                 FP[-6]
   Push                 FP[-5]
   MulInt
-  DirectCall           3, CP#0
+  DirectCall           CP#0, 3
   Drop1
   PushNull
   ReturnTOS
@@ -221,7 +221,7 @@ Bytecode {
   StoreFieldTOS        CP#0
   Push                 FP[-5]
   PushInt              49
-  DirectCall           2, CP#2
+  DirectCall           CP#2, 2
   Drop1
   PushNull
   ReturnTOS
@@ -252,7 +252,7 @@ Bytecode {
   Push                 FP[-6]
   Push                 FP[-5]
   PushInt              51
-  DirectCall           4, CP#2
+  DirectCall           CP#2, 4
   Drop1
   PushNull
   ReturnTOS

@@ -59,6 +59,7 @@ void generateBytecode(
   List<Library> libraries,
   ClassHierarchy hierarchy,
 }) {
+  verifyBytecodeInstructionDeclarations();
   final coreTypes = new CoreTypes(component);
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   hierarchy ??= new ClassHierarchy(component,
@@ -739,6 +740,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genPushInt(int value) {
+    // TODO(alexmarkov): relax this constraint as PushInt instruction can
+    // hold up to 32-bit signed operand (note that interpreter assumes
+    // it is Smi).
     if (value.bitLength + 1 <= 16) {
       asm.emitPushInt(value);
     } else {
@@ -2290,7 +2294,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         throw 'Unexpected specialized bytecode $opcode';
     }
 
-    asm.emitBytecode0(opcode);
+    asm.emitSpecializedBytecode(opcode);
   }
 
   void _genInstanceCall(
@@ -3088,13 +3092,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     _saveContextForTryBlock(node);
 
-    return asm.exceptionsTable.enterTryBlock(asm.offsetInWords);
+    return asm.exceptionsTable.enterTryBlock(asm.offset);
   }
 
   /// End try block and start its handler.
   void _endTryBlock(TreeNode node, TryBlock tryBlock) {
-    tryBlock.endPC = asm.offsetInWords;
-    tryBlock.handlerPC = asm.offsetInWords;
+    tryBlock.endPC = asm.offset;
+    tryBlock.handlerPC = asm.offset;
 
     // Exception handlers are reachable although there are no labels or jumps.
     asm.isUnreachable = false;
