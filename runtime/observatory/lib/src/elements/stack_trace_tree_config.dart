@@ -18,7 +18,7 @@ class StackTraceTreeConfigChangedEvent {
   StackTraceTreeConfigChangedEvent(this.element);
 }
 
-class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
+class StackTraceTreeConfigElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<StackTraceTreeConfigElement>('stack-trace-tree-config');
 
@@ -78,7 +78,7 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
     assert(mode != null);
     assert(direction != null);
     assert(filter != null);
-    StackTraceTreeConfigElement e = document.createElement(tag.name);
+    StackTraceTreeConfigElement e = new StackTraceTreeConfigElement.created();
     e._r = new RenderingScheduler<StackTraceTreeConfigElement>(e, queue: queue);
     e._showMode = showMode;
     e._showDirection = showDirection;
@@ -89,7 +89,7 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  StackTraceTreeConfigElement.created() : super.created();
+  StackTraceTreeConfigElement.created() : super.created(tag);
 
   @override
   void attached() {

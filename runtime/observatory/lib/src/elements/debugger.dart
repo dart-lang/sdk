@@ -36,7 +36,8 @@ import 'package:observatory/src/elements/source_link.dart';
 abstract class DebuggerCommand extends Command {
   ObservatoryDebugger debugger;
 
-  DebuggerCommand(this.debugger, name, List<Command> children) : super(name, children);
+  DebuggerCommand(this.debugger, name, List<Command> children)
+      : super(name, children);
 
   String get helpShort;
   String get helpLong;
@@ -129,7 +130,8 @@ class HelpCommand extends DebuggerCommand {
 }
 
 class HelpHotkeysCommand extends DebuggerCommand {
-  HelpHotkeysCommand(Debugger debugger) : super(debugger, 'hotkeys', <Command>[]);
+  HelpHotkeysCommand(Debugger debugger)
+      : super(debugger, 'hotkeys', <Command>[]);
 
   Future run(List<String> args) {
     var con = debugger.console;
@@ -213,7 +215,8 @@ class DownCommand extends DebuggerCommand {
       debugger.downFrame(count);
       debugger.console.print('frame = ${debugger.currentFrame}');
     } catch (e) {
-      debugger.console.print('frame must be in range [${e.start}..${e.end-1}]');
+      debugger.console
+          .print('frame must be in range [${e.start}..${e.end - 1}]');
     }
     return new Future.value(null);
   }
@@ -247,7 +250,8 @@ class UpCommand extends DebuggerCommand {
       debugger.upFrame(count);
       debugger.console.print('frame = ${debugger.currentFrame}');
     } on RangeError catch (e) {
-      debugger.console.print('frame must be in range [${e.start}..${e.end-1}]');
+      debugger.console
+          .print('frame must be in range [${e.start}..${e.end - 1}]');
     }
     return new Future.value(null);
   }
@@ -283,7 +287,8 @@ class FrameCommand extends DebuggerCommand {
       debugger.currentFrame = frame;
       debugger.console.print('frame = ${debugger.currentFrame}');
     } on RangeError catch (e) {
-      debugger.console.print('frame must be in range [${e.start}..${e.end-1}]');
+      debugger.console
+          .print('frame must be in range [${e.start}..${e.end - 1}]');
     }
     return new Future.value(null);
   }
@@ -313,7 +318,8 @@ class PauseCommand extends DebuggerCommand {
 }
 
 class ContinueCommand extends DebuggerCommand {
-  ContinueCommand(Debugger debugger) : super(debugger, 'continue', <Command>[]) {
+  ContinueCommand(Debugger debugger)
+      : super(debugger, 'continue', <Command>[]) {
     alias = 'c';
   }
 
@@ -354,7 +360,8 @@ class SmartNextCommand extends DebuggerCommand {
 }
 
 class SyncNextCommand extends DebuggerCommand {
-  SyncNextCommand(Debugger debugger) : super(debugger, 'next-sync', <Command>[]);
+  SyncNextCommand(Debugger debugger)
+      : super(debugger, 'next-sync', <Command>[]);
 
   Future run(List<String> args) {
     return debugger.syncNext();
@@ -370,7 +377,8 @@ class SyncNextCommand extends DebuggerCommand {
 }
 
 class AsyncNextCommand extends DebuggerCommand {
-  AsyncNextCommand(Debugger debugger) : super(debugger, 'next-async', <Command>[]);
+  AsyncNextCommand(Debugger debugger)
+      : super(debugger, 'next-async', <Command>[]);
 
   Future run(List<String> args) {
     return debugger.asyncNext();
@@ -1162,7 +1170,8 @@ class InfoCommand extends DebuggerCommand {
 }
 
 class RefreshStackCommand extends DebuggerCommand {
-  RefreshStackCommand(Debugger debugger) : super(debugger, 'stack', <Command>[]);
+  RefreshStackCommand(Debugger debugger)
+      : super(debugger, 'stack', <Command>[]);
 
   Future run(List<String> args) {
     return debugger.refreshStack();
@@ -2001,7 +2010,7 @@ class ObservatoryDebugger extends Debugger {
   }
 }
 
-class DebuggerPageElement extends HtmlElement implements Renderable {
+class DebuggerPageElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<DebuggerPageElement>('debugger-page', dependencies: const [
     NavTopMenuElement.tag,
@@ -2022,7 +2031,7 @@ class DebuggerPageElement extends HtmlElement implements Renderable {
     assert(objects != null);
     assert(scripts != null);
     assert(events != null);
-    final DebuggerPageElement e = document.createElement(tag.name);
+    final DebuggerPageElement e = new DebuggerPageElement.created();
     final debugger = new ObservatoryDebugger(isolate);
     debugger.page = e;
     debugger.objects = objects;
@@ -2034,7 +2043,7 @@ class DebuggerPageElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  DebuggerPageElement.created() : super.created();
+  DebuggerPageElement.created() : super.created(tag);
 
   Future<StreamSubscription> _vmSubscriptionFuture;
   Future<StreamSubscription> _isolateSubscriptionFuture;
@@ -2056,23 +2065,25 @@ class DebuggerPageElement extends HtmlElement implements Renderable {
     final stackDiv = new DivElement()..classes = ['stack'];
     final stackElement = new DebuggerStackElement(
         _isolate, _debugger, stackDiv, _objects, _scripts, _events);
-    stackDiv.children = <Element>[stackElement];
+    stackDiv.children = <Element>[stackElement.element];
     final consoleDiv = new DivElement()
       ..classes = ['console']
-      ..children = <Element>[consoleElement];
+      ..children = <Element>[consoleElement.element];
     final commandElement = new DebuggerInputElement(_isolate, _debugger);
     final commandDiv = new DivElement()
       ..classes = ['commandline']
-      ..children = <Element>[commandElement];
+      ..children = <Element>[commandElement.element];
 
     children = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: app.queue),
-        new NavVMMenuElement(app.vm, app.events, queue: app.queue),
-        new NavIsolateMenuElement(_isolate, app.events, queue: app.queue),
+        new NavTopMenuElement(queue: app.queue).element,
+        new NavVMMenuElement(app.vm, app.events, queue: app.queue).element,
+        new NavIsolateMenuElement(_isolate, app.events, queue: app.queue)
+            .element,
         navMenu('debugger'),
         new NavNotifyElement(app.notifications,
-            notifyOnPause: false, queue: app.queue)
+                notifyOnPause: false, queue: app.queue)
+            .element
       ]),
       new DivElement()
         ..classes = ['variable']
@@ -2163,7 +2174,7 @@ class DebuggerPageElement extends HtmlElement implements Renderable {
   }
 }
 
-class DebuggerStackElement extends HtmlElement implements Renderable {
+class DebuggerStackElement extends CustomElement implements Renderable {
   static const tag = const Tag<DebuggerStackElement>('debugger-stack');
 
   S.Isolate _isolate;
@@ -2213,7 +2224,7 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
     assert(objects != null);
     assert(scripts != null);
     assert(events != null);
-    final DebuggerStackElement e = document.createElement(tag.name);
+    final DebuggerStackElement e = new DebuggerStackElement.created();
     e._isolate = isolate;
     e._debugger = debugger;
     e._scroller = scroller;
@@ -2286,7 +2297,7 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
 
     var li = new LIElement();
     li.classes.add('list-group-item');
-    li.children.insert(0, frameElement);
+    li.children.insert(0, frameElement.element);
 
     frameList.insert(0, li);
   }
@@ -2298,7 +2309,7 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
 
     var li = new LIElement();
     li.classes.add('list-group-item');
-    li.children.insert(0, messageElement);
+    li.children.insert(0, messageElement.element);
 
     messageList.add(li);
   }
@@ -2323,7 +2334,9 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
     int oldPos = frameElements.length - 1;
     int newPos = newFrames.length - 1;
     while (oldPos >= 0 && newPos >= 0) {
-      if (!frameElements[oldPos].children[0].matchFrame(newFrames[newPos])) {
+      DebuggerFrameElement dbgFrameElement =
+          CustomElement.reverse(frameElements[oldPos].children[0]);
+      if (!dbgFrameElement.matchFrame(newFrames[newPos])) {
         // The rest of the frame elements no longer match.  Remove them.
         for (int i = 0; i <= oldPos; i++) {
           // NOTE(turnidge): removeRange is missing, sadly.
@@ -2357,7 +2370,9 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
 
     if (frameElements.isNotEmpty) {
       for (int i = newCount; i < frameElements.length; i++) {
-        frameElements[i].children[0].updateFrame(newFrames[i]);
+        DebuggerFrameElement dbgFrameElement =
+            CustomElement.reverse(frameElements[i].children[0]);
+        dbgFrameElement.updateFrame(newFrames[i]);
       }
     }
 
@@ -2389,7 +2404,8 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
     if (messageElements.isNotEmpty) {
       // Update old messages.
       for (int i = 0; i < newStartingIndex; i++) {
-        DebuggerMessageElement e = messageElements[i].children[0];
+        DebuggerMessageElement e =
+            CustomElement.reverse(messageElements[i].children[0]);
         e.updateMessage(newMessages[i]);
       }
     }
@@ -2407,7 +2423,8 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
     currentFrame = value;
     List frameElements = _frameList.children;
     for (var frameElement in frameElements) {
-      DebuggerFrameElement dbgFrameElement = frameElement.children[0];
+      DebuggerFrameElement dbgFrameElement =
+          CustomElement.reverse(frameElement.children[0]);
       if (dbgFrameElement.frame.index == currentFrame) {
         dbgFrameElement.setCurrent(true);
       } else {
@@ -2416,10 +2433,10 @@ class DebuggerStackElement extends HtmlElement implements Renderable {
     }
   }
 
-  DebuggerStackElement.created() : super.created();
+  DebuggerStackElement.created() : super.created(tag);
 }
 
-class DebuggerFrameElement extends HtmlElement implements Renderable {
+class DebuggerFrameElement extends CustomElement implements Renderable {
   static const tag = const Tag<DebuggerFrameElement>('debugger-frame');
 
   RenderingScheduler<DebuggerFrameElement> _r;
@@ -2476,7 +2493,7 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
     assert(objects != null);
     assert(scripts != null);
     assert(events != null);
-    final DebuggerFrameElement e = document.createElement(tag.name);
+    final DebuggerFrameElement e = new DebuggerFrameElement.created();
     e._r = new RenderingScheduler<DebuggerFrameElement>(e, queue: queue);
     e._isolate = isolate;
     e._frame = frame;
@@ -2487,7 +2504,7 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  DebuggerFrameElement.created() : super.created();
+  DebuggerFrameElement.created() : super.created(tag);
 
   void render() {
     if (_pinned) {
@@ -2545,16 +2562,17 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
                   ..children = _frame.function?.location == null
                       ? const []
                       : [
-                          new SourceInsetElement(
-                              _isolate,
-                              _frame.function.location,
-                              _scripts,
-                              _objects,
-                              _events,
-                              currentPos: _frame.location.tokenPos,
-                              variables: _frame.variables,
-                              inDebuggerContext: true,
-                              queue: _r.queue)
+                          (new SourceInsetElement(
+                                  _isolate,
+                                  _frame.function.location,
+                                  _scripts,
+                                  _objects,
+                                  _events,
+                                  currentPos: _frame.location.tokenPos,
+                                  variables: _frame.variables,
+                                  inDebuggerContext: true,
+                                  queue: _r.queue))
+                              .element
                         ],
                 new DivElement()
                   ..classes = ['flex-item-vars']
@@ -2643,7 +2661,8 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
                 ? const []
                 : [
                     new FunctionRefElement(_isolate, _frame.function,
-                        queue: _r.queue)
+                            queue: _r.queue)
+                        .element
                   ],
           new SpanElement()..text = ' ( ',
           new SpanElement()
@@ -2651,8 +2670,9 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
                 ? const []
                 : [
                     new SourceLinkElement(
-                        _isolate, _frame.function.location, _scripts,
-                        queue: _r.queue)
+                            _isolate, _frame.function.location, _scripts,
+                            queue: _r.queue)
+                        .element
                   ],
           new SpanElement()..text = ' )'
         ]
@@ -2778,7 +2798,7 @@ class DebuggerFrameElement extends HtmlElement implements Renderable {
   }
 }
 
-class DebuggerMessageElement extends HtmlElement implements Renderable {
+class DebuggerMessageElement extends CustomElement implements Renderable {
   static const tag = const Tag<DebuggerMessageElement>('debugger-message');
 
   RenderingScheduler<DebuggerMessageElement> _r;
@@ -2811,7 +2831,7 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
     assert(message != null);
     assert(objects != null);
     assert(events != null);
-    final DebuggerMessageElement e = document.createElement(tag.name);
+    final DebuggerMessageElement e = new DebuggerMessageElement.created();
     e._r = new RenderingScheduler<DebuggerMessageElement>(e, queue: queue);
     e._isolate = isolate;
     e._message = message;
@@ -2821,7 +2841,7 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  DebuggerMessageElement.created() : super.created();
+  DebuggerMessageElement.created() : super.created(tag);
 
   void render() {
     if (_pinned) {
@@ -2863,13 +2883,14 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
                       ? const []
                       : [
                           new SourceInsetElement(
-                              _isolate,
-                              _message.handler.location,
-                              _scripts,
-                              _objects,
-                              _events,
-                              inDebuggerContext: true,
-                              queue: _r.queue)
+                                  _isolate,
+                                  _message.handler.location,
+                                  _scripts,
+                                  _objects,
+                                  _events,
+                                  inDebuggerContext: true,
+                                  queue: _r.queue)
+                              .element
                         ],
                 new DivElement()
                   ..classes = ['flex-item-vars']
@@ -2931,7 +2952,8 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
                 ? const []
                 : [
                     new FunctionRefElement(_isolate, _message.handler,
-                        queue: _r.queue)
+                            queue: _r.queue)
+                        .element
                   ],
           new SpanElement()..text = ' ( ',
           new SpanElement()
@@ -2939,7 +2961,8 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
                 ? const []
                 : [
                     new SourceLinkElement(_isolate, _message.location, _scripts,
-                        queue: _r.queue)
+                            queue: _r.queue)
+                        .element
                   ],
           new SpanElement()..text = ' )'
         ]
@@ -2998,16 +3021,16 @@ class DebuggerMessageElement extends HtmlElement implements Renderable {
   }
 }
 
-class DebuggerConsoleElement extends HtmlElement implements Renderable {
+class DebuggerConsoleElement extends CustomElement implements Renderable {
   static const tag = const Tag<DebuggerConsoleElement>('debugger-console');
 
   factory DebuggerConsoleElement() {
-    final DebuggerConsoleElement e = document.createElement(tag.name);
+    final DebuggerConsoleElement e = new DebuggerConsoleElement.created();
     e.children = <Element>[new BRElement()];
     return e;
   }
 
-  DebuggerConsoleElement.created() : super.created();
+  DebuggerConsoleElement.created() : super.created(tag);
 
   /// Is [container] scrolled to the within [threshold] pixels of the bottom?
   static bool _isScrolledToBottom(DivElement container, [int threshold = 2]) {
@@ -3086,7 +3109,8 @@ class DebuggerConsoleElement extends HtmlElement implements Renderable {
 
   void printRef(S.Isolate isolate, S.Instance ref, M.ObjectRepository objects,
       {bool newline: true}) {
-    _append(new InstanceRefElement(isolate, ref, objects, queue: app.queue));
+    _append(new InstanceRefElement(isolate, ref, objects, queue: app.queue)
+        .element);
     if (newline) {
       this.newline();
     }
@@ -3107,7 +3131,7 @@ class DebuggerConsoleElement extends HtmlElement implements Renderable {
   ObservatoryApplication get app => ObservatoryApplication.app;
 }
 
-class DebuggerInputElement extends HtmlElement implements Renderable {
+class DebuggerInputElement extends CustomElement implements Renderable {
   static const tag = const Tag<DebuggerInputElement>('debugger-input');
 
   S.Isolate _isolate;
@@ -3134,14 +3158,14 @@ class DebuggerInputElement extends HtmlElement implements Renderable {
 
   factory DebuggerInputElement(
       S.Isolate isolate, ObservatoryDebugger debugger) {
-    final DebuggerInputElement e = document.createElement(tag.name);
+    final DebuggerInputElement e = new DebuggerInputElement.created();
     e.children = <Element>[e._modalPromptDiv, e._textBox];
     e._textBox.select();
     e._textBox.onKeyDown.listen(e._onKeyDown);
     return e;
   }
 
-  DebuggerInputElement.created() : super.created();
+  DebuggerInputElement.created() : super.created(tag);
 
   void _onKeyDown(KeyboardEvent e) {
     if (_busy) {
@@ -3321,9 +3345,9 @@ final SvgSvgElement iconHorizontalThreeDot = new SvgSvgElement()
       ..setAttribute(
           'd',
           'M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 '
-          '2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 '
-          '2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 '
-          '2-2-.9-2-2-2z')
+              '2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 '
+              '2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 '
+              '2-2-.9-2-2-2z')
   ];
 
 final SvgSvgElement iconVerticalThreeDot = new SvgSvgElement()
@@ -3334,9 +3358,9 @@ final SvgSvgElement iconVerticalThreeDot = new SvgSvgElement()
       ..setAttribute(
           'd',
           'M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 '
-          '2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 '
-          '2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 '
-          '2-.9 2-2-.9-2-2-2z')
+              '2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 '
+              '2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 '
+              '2-.9 2-2-.9-2-2-2z')
   ];
 
 final SvgSvgElement iconInfo = new SvgSvgElement()
@@ -3347,7 +3371,7 @@ final SvgSvgElement iconInfo = new SvgSvgElement()
       ..setAttribute(
           'd',
           'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 '
-          '10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z')
+              '10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z')
   ];
 
 final SvgSvgElement iconInfoOutline = new SvgSvgElement()
@@ -3358,7 +3382,7 @@ final SvgSvgElement iconInfoOutline = new SvgSvgElement()
       ..setAttribute(
           'd',
           'M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 '
-          '10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 '
-          '0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 '
-          '9h2V7h-2v2z')
+              '10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 '
+              '0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 '
+              '9h2V7h-2v2z')
   ];

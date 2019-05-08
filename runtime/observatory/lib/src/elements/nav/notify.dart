@@ -10,7 +10,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/nav/notify_event.dart';
 import 'package:observatory/src/elements/nav/notify_exception.dart';
 
-class NavNotifyElement extends HtmlElement implements Renderable {
+class NavNotifyElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavNotifyElement>('nav-notify',
       dependencies: const [
         NavNotifyEventElement.tag,
@@ -35,14 +35,14 @@ class NavNotifyElement extends HtmlElement implements Renderable {
       {bool notifyOnPause: true, RenderingQueue queue}) {
     assert(repository != null);
     assert(notifyOnPause != null);
-    NavNotifyElement e = document.createElement(tag.name);
+    NavNotifyElement e = new NavNotifyElement.created();
     e._r = new RenderingScheduler<NavNotifyElement>(e, queue: queue);
     e._repository = repository;
     e._notifyOnPause = notifyOnPause;
     return e;
   }
 
-  NavNotifyElement.created() : super.created();
+  NavNotifyElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -82,12 +82,14 @@ class NavNotifyElement extends HtmlElement implements Renderable {
 
   Element _toElement(M.Notification notification) {
     if (notification is M.EventNotification) {
-      return new NavNotifyEventElement(notification.event, queue: _r.queue)
-        ..onDelete.listen((_) => _repository.delete(notification));
+      return (new NavNotifyEventElement(notification.event, queue: _r.queue)
+            ..onDelete.listen((_) => _repository.delete(notification)))
+          .element;
     } else if (notification is M.ExceptionNotification) {
-      return new NavNotifyExceptionElement(notification.exception,
-          stacktrace: notification.stacktrace, queue: _r.queue)
-        ..onDelete.listen((_) => _repository.delete(notification));
+      return (new NavNotifyExceptionElement(notification.exception,
+              stacktrace: notification.stacktrace, queue: _r.queue)
+            ..onDelete.listen((_) => _repository.delete(notification)))
+          .element;
     } else {
       assert(false);
       return new DivElement()..text = 'Invalid Notification Type';

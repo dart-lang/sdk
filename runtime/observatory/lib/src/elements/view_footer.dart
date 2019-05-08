@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
-class ViewFooterElement extends HtmlElement implements Renderable {
+class ViewFooterElement extends CustomElement implements Renderable {
   static const tag = const Tag<ViewFooterElement>('view-footer');
 
   RenderingScheduler _r;
@@ -17,12 +17,12 @@ class ViewFooterElement extends HtmlElement implements Renderable {
   Stream<RenderedEvent<ViewFooterElement>> get onRendered => _r.onRendered;
 
   factory ViewFooterElement({RenderingQueue queue}) {
-    ViewFooterElement e = document.createElement(tag.name);
+    ViewFooterElement e = new ViewFooterElement.created();
     e._r = new RenderingScheduler<ViewFooterElement>(e, queue: queue);
     return e;
   }
 
-  ViewFooterElement.created() : super.created();
+  ViewFooterElement.created() : super.created(tag);
 
   @override
   void attached() {

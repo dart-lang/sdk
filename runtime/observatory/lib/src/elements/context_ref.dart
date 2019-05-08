@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class ContextRefElement extends HtmlElement implements Renderable {
+class ContextRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<ContextRefElement>('context-ref',
       dependencies: const [CurlyBlockElement.tag]);
 
@@ -35,7 +35,7 @@ class ContextRefElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(context != null);
     assert(objects != null);
-    ContextRefElement e = document.createElement(tag.name);
+    ContextRefElement e = new ContextRefElement.created();
     e._r = new RenderingScheduler<ContextRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._context = context;
@@ -44,7 +44,7 @@ class ContextRefElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  ContextRefElement.created() : super.created();
+  ContextRefElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -77,20 +77,21 @@ class ContextRefElement extends HtmlElement implements Renderable {
     if (_expandable) {
       children.addAll([
         new SpanElement()..text = ' ',
-        new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-          ..content = <Element>[
-            new DivElement()
-              ..classes = ['indent']
-              ..children = _createValue()
-          ]
-          ..onToggle.listen((e) async {
-            _expanded = e.control.expanded;
-            if (_expanded) {
-              e.control.disabled = true;
-              await _refresh();
-              e.control.disabled = false;
-            }
-          })
+        (new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
+              ..content = <Element>[
+                new DivElement()
+                  ..classes = ['indent']
+                  ..children = _createValue()
+              ]
+              ..onToggle.listen((e) async {
+                _expanded = e.control.expanded;
+                if (_expanded) {
+                  e.control.disabled = true;
+                  await _refresh();
+                  e.control.disabled = false;
+                }
+              }))
+            .element
       ]);
     }
     this.children = children;
@@ -112,8 +113,9 @@ class ContextRefElement extends HtmlElement implements Renderable {
             ..classes = ['memberName']
             ..children = <Element>[
               new ContextRefElement(
-                  _isolate, _loadedContext.parentContext, _objects,
-                  queue: _r.queue)
+                      _isolate, _loadedContext.parentContext, _objects,
+                      queue: _r.queue)
+                  .element
             ]
         ]);
     }

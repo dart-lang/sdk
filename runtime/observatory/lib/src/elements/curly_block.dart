@@ -15,7 +15,7 @@ class CurlyBlockToggleEvent {
   CurlyBlockToggleEvent(this.control);
 }
 
-class CurlyBlockElement extends HtmlElement implements Renderable {
+class CurlyBlockElement extends CustomElement implements Renderable {
   static const tag = const Tag<CurlyBlockElement>('curly-block');
 
   RenderingScheduler<CurlyBlockElement> _r;
@@ -48,14 +48,14 @@ class CurlyBlockElement extends HtmlElement implements Renderable {
       {bool expanded: false, bool disabled: false, RenderingQueue queue}) {
     assert(expanded != null);
     assert(disabled != null);
-    CurlyBlockElement e = document.createElement(tag.name);
+    CurlyBlockElement e = new CurlyBlockElement.created();
     e._r = new RenderingScheduler<CurlyBlockElement>(e, queue: queue);
     e._expanded = expanded;
     e._disabled = disabled;
     return e;
   }
 
-  CurlyBlockElement.created() : super.created();
+  CurlyBlockElement.created() : super.created(tag);
 
   @override
   void attached() {

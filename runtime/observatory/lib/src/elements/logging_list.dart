@@ -10,7 +10,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/utils.dart';
 
-class LoggingListElement extends HtmlElement implements Renderable {
+class LoggingListElement extends CustomElement implements Renderable {
   static const tag = const Tag<LoggingListElement>('logging-list');
 
   RenderingScheduler<LoggingListElement> _r;
@@ -32,14 +32,14 @@ class LoggingListElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(events != null);
-    LoggingListElement e = document.createElement(tag.name);
+    LoggingListElement e = new LoggingListElement.created();
     e._r = new RenderingScheduler<LoggingListElement>(e, queue: queue);
     e._isolate = isolate;
     e._events = events;
     return e;
   }
 
-  LoggingListElement.created() : super.created();
+  LoggingListElement.created() : super.created(tag);
 
   @override
   attached() {

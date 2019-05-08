@@ -9,7 +9,7 @@ import "package:charted/charts/charts.dart";
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
-class IsolateCounterChartElement extends HtmlElement implements Renderable {
+class IsolateCounterChartElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<IsolateCounterChartElement>('isolate-counter-chart');
 
@@ -23,13 +23,13 @@ class IsolateCounterChartElement extends HtmlElement implements Renderable {
 
   factory IsolateCounterChartElement(Map counters, {RenderingQueue queue}) {
     assert(counters != null);
-    IsolateCounterChartElement e = document.createElement(tag.name);
+    IsolateCounterChartElement e = new IsolateCounterChartElement.created();
     e._r = new RenderingScheduler<IsolateCounterChartElement>(e, queue: queue);
     e._counters = counters;
     return e;
   }
 
-  IsolateCounterChartElement.created() : super.created();
+  IsolateCounterChartElement.created() : super.created(tag);
 
   @override
   void attached() {

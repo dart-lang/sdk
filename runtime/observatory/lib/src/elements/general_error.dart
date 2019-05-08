@@ -13,7 +13,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 
-class GeneralErrorElement extends HtmlElement implements Renderable {
+class GeneralErrorElement extends CustomElement implements Renderable {
   static const tag = const Tag<GeneralErrorElement>('general-error',
       dependencies: const [NavTopMenuElement.tag, NavNotifyElement.tag]);
 
@@ -32,14 +32,14 @@ class GeneralErrorElement extends HtmlElement implements Renderable {
       {String message: '', RenderingQueue queue}) {
     assert(notifications != null);
     assert(message != null);
-    GeneralErrorElement e = document.createElement(tag.name);
+    GeneralErrorElement e = new GeneralErrorElement.created();
     e._r = new RenderingScheduler<GeneralErrorElement>(e, queue: queue);
     e._message = message;
     e._notifications = notifications;
     return e;
   }
 
-  GeneralErrorElement.created() : super.created();
+  GeneralErrorElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -57,8 +57,8 @@ class GeneralErrorElement extends HtmlElement implements Renderable {
   void render() {
     children = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered']

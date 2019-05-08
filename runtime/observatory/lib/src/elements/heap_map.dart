@@ -20,7 +20,7 @@ import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 
-class HeapMapElement extends HtmlElement implements Renderable {
+class HeapMapElement extends CustomElement implements Renderable {
   static const tag = const Tag<HeapMapElement>('heap-map', dependencies: const [
     NavTopMenuElement.tag,
     NavVMMenuElement.tag,
@@ -48,7 +48,7 @@ class HeapMapElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(events != null);
     assert(notifications != null);
-    HeapMapElement e = document.createElement(tag.name);
+    HeapMapElement e = new HeapMapElement.created();
     e._r = new RenderingScheduler<HeapMapElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
@@ -57,7 +57,7 @@ class HeapMapElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  HeapMapElement.created() : super.created();
+  HeapMapElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -104,19 +104,23 @@ class HeapMapElement extends HtmlElement implements Renderable {
 
     children = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('heap map'),
-        new NavRefreshElement(label: 'Mark-Compact', queue: _r.queue)
-          ..onRefresh.listen((_) => _refresh(gc: "mark-compact")),
-        new NavRefreshElement(label: 'Mark-Sweep', queue: _r.queue)
-          ..onRefresh.listen((_) => _refresh(gc: "mark-sweep")),
-        new NavRefreshElement(label: 'Scavenge', queue: _r.queue)
-          ..onRefresh.listen((_) => _refresh(gc: "scavenge")),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((_) => _refresh()),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(label: 'Mark-Compact', queue: _r.queue)
+              ..onRefresh.listen((_) => _refresh(gc: "mark-compact")))
+            .element,
+        (new NavRefreshElement(label: 'Mark-Sweep', queue: _r.queue)
+              ..onRefresh.listen((_) => _refresh(gc: "mark-sweep")))
+            .element,
+        (new NavRefreshElement(label: 'Scavenge', queue: _r.queue)
+              ..onRefresh.listen((_) => _refresh(gc: "scavenge")))
+            .element,
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((_) => _refresh()))
+            .element,
+        (new NavNotifyElement(_notifications, queue: _r.queue)).element
       ]),
       new DivElement()
         ..classes = ['content-centered-big']

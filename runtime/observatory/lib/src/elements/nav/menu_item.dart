@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
-class NavMenuItemElement extends HtmlElement implements Renderable {
+class NavMenuItemElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavMenuItemElement>('nav-menu-item');
 
   RenderingScheduler _r;
@@ -32,14 +32,14 @@ class NavMenuItemElement extends HtmlElement implements Renderable {
   factory NavMenuItemElement(String label,
       {String link, RenderingQueue queue}) {
     assert(label != null);
-    NavMenuItemElement e = document.createElement(tag.name);
+    NavMenuItemElement e = new NavMenuItemElement.created();
     e._r = new RenderingScheduler<NavMenuItemElement>(e, queue: queue);
     e._label = label;
     e._link = link;
     return e;
   }
 
-  NavMenuItemElement.created() : super.created();
+  NavMenuItemElement.created() : super.created(tag);
 
   @override
   void attached() {

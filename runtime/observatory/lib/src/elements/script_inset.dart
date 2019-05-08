@@ -16,7 +16,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/utils.dart';
 
-class ScriptInsetElement extends HtmlElement implements Renderable {
+class ScriptInsetElement extends CustomElement implements Renderable {
   static const tag = const Tag<ScriptInsetElement>('script-inset');
 
   RenderingScheduler _r;
@@ -58,7 +58,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     assert(events != null);
     assert(inDebuggerContext != null);
     assert(variables != null);
-    ScriptInsetElement e = document.createElement(tag.name);
+    ScriptInsetElement e = new ScriptInsetElement.created();
     e._r = new RenderingScheduler<ScriptInsetElement>(e, queue: queue);
     e._isolate = isolate;
     e._script = script;
@@ -73,7 +73,7 @@ class ScriptInsetElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  ScriptInsetElement.created() : super.created();
+  ScriptInsetElement.created() : super.created(tag);
 
   bool get noSource => _startPos == -1 || _loadedScript.source == null;
 
@@ -1382,10 +1382,10 @@ final SvgSvgElement _iconRefresh = new SvgSvgElement()
       ..setAttribute(
           'd',
           'M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 '
-          '3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 '
-          '7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 '
-          '0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 '
-          '1.78L13 11h7V4l-2.35 2.35z')
+              '3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 '
+              '7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 '
+              '0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 '
+              '1.78L13 11h7V4l-2.35 2.35z')
   ];
 
 final SvgSvgElement _iconWhatsHot = new SvgSvgElement()
@@ -1396,10 +1396,10 @@ final SvgSvgElement _iconWhatsHot = new SvgSvgElement()
       ..setAttribute(
           'd',
           'M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 '
-          '3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 '
-          '4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 '
-          '17.41 3.8 13.5.67zM11.71 19c-1.78 '
-          '0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 '
-          '1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 '
-          '4.04 0 2.65-2.15 4.8-4.8 4.8z')
+              '3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 '
+              '4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 '
+              '17.41 3.8 13.5.67zM11.71 19c-1.78 '
+              '0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 '
+              '1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 '
+              '4.04 0 2.65-2.15 4.8-4.8 4.8z')
   ];

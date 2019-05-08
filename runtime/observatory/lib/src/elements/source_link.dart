@@ -12,7 +12,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class SourceLinkElement extends HtmlElement implements Renderable {
+class SourceLinkElement extends CustomElement implements Renderable {
   static const tag = const Tag<SourceLinkElement>('source-link');
 
   RenderingScheduler _r;
@@ -32,7 +32,7 @@ class SourceLinkElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(location != null);
-    SourceLinkElement e = document.createElement(tag.name);
+    SourceLinkElement e = new SourceLinkElement.created();
     e._r = new RenderingScheduler<SourceLinkElement>(e, queue: queue);
     e._isolate = isolate;
     e._location = location;
@@ -40,7 +40,7 @@ class SourceLinkElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  SourceLinkElement.created() : super.created();
+  SourceLinkElement.created() : super.created(tag);
 
   @override
   void attached() {

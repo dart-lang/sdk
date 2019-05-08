@@ -8,7 +8,7 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
-class MetricDetailsElement extends HtmlElement implements Renderable {
+class MetricDetailsElement extends CustomElement implements Renderable {
   static const tag = const Tag<MetricDetailsElement>('metric-details');
 
   RenderingScheduler<MetricDetailsElement> _r;
@@ -28,7 +28,7 @@ class MetricDetailsElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(metric != null);
     assert(metrics != null);
-    MetricDetailsElement e = document.createElement(tag.name);
+    MetricDetailsElement e = new MetricDetailsElement.created();
     e._r = new RenderingScheduler<MetricDetailsElement>(e, queue: queue);
     e._isolate = isolate;
     e._metric = metric;
@@ -36,7 +36,7 @@ class MetricDetailsElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  MetricDetailsElement.created() : super.created();
+  MetricDetailsElement.created() : super.created(tag);
 
   @override
   void attached() {

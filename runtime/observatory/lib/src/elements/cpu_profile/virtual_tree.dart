@@ -18,7 +18,7 @@ import 'package:observatory/utils.dart';
 export 'package:observatory/src/elements/stack_trace_tree_config.dart'
     show ProfileTreeMode;
 
-class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
+class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<CpuProfileVirtualTreeElement>('cpu-profile-virtual-tree');
 
@@ -57,8 +57,9 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
     assert(profile != null);
     assert(mode != null);
     assert(direction != null);
-    CpuProfileVirtualTreeElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler<CpuProfileVirtualTreeElement>(e, queue: queue);
+    CpuProfileVirtualTreeElement e = new CpuProfileVirtualTreeElement.created();
+    e._r =
+        new RenderingScheduler<CpuProfileVirtualTreeElement>(e, queue: queue);
     e._isolate = owner;
     e._profile = profile;
     e._mode = mode;
@@ -67,7 +68,7 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  CpuProfileVirtualTreeElement.created() : super.created();
+  CpuProfileVirtualTreeElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -143,7 +144,7 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
     } else if (tree.root.children.length == 1) {
       _tree.expand(tree.root.children.first, autoExpandSingleChildNodes: true);
     }
-    children = <Element>[_tree];
+    children = <Element>[_tree.element];
   }
 
   static HtmlElement _createCpuRow(toggle) {
@@ -196,13 +197,12 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
   static const String _expandedIcon = '▼';
   static const String _collapsedIcon = '►';
 
-  void _updateCpuFunctionRow(
-      HtmlElement element, itemDynamic, int depth) {
+  void _updateCpuFunctionRow(HtmlElement element, itemDynamic, int depth) {
     M.FunctionCallTreeNode item = itemDynamic;
-    element.children[0].text = Utils
-        .formatPercentNormalized(item.profileFunction.normalizedInclusiveTicks);
-    element.children[1].text = Utils
-        .formatPercentNormalized(item.profileFunction.normalizedExclusiveTicks);
+    element.children[0].text = Utils.formatPercentNormalized(
+        item.profileFunction.normalizedInclusiveTicks);
+    element.children[1].text = Utils.formatPercentNormalized(
+        item.profileFunction.normalizedExclusiveTicks);
     _updateLines(element.children[2].children, depth);
     if (item.children.isNotEmpty) {
       element.children[3].text =
@@ -211,14 +211,14 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       element.children[3].text = '';
     }
     element.children[4].text = Utils.formatPercentNormalized(item.percentage);
-    element.children[5] = new FunctionRefElement(
-        _isolate, item.profileFunction.function,
-        queue: _r.queue)
-      ..classes = ['name'];
+    element.children[5] = (new FunctionRefElement(
+            _isolate, item.profileFunction.function,
+            queue: _r.queue)
+          ..classes = ['name'])
+        .element;
   }
 
-  void _updateMemoryFunctionRow(
-      HtmlElement element, itemDynamic, int depth) {
+  void _updateMemoryFunctionRow(HtmlElement element, itemDynamic, int depth) {
     M.FunctionCallTreeNode item = itemDynamic;
     element.children[0].text =
         Utils.formatSize(item.inclusiveNativeAllocations);
@@ -236,24 +236,26 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
       element.children[3].text = '';
     }
     element.children[4].text = Utils.formatPercentNormalized(item.percentage);
-    element.children[5] = new FunctionRefElement(
-        null, item.profileFunction.function,
-        queue: _r.queue)
-      ..classes = ['name'];
+    element.children[5] = (new FunctionRefElement(
+            null, item.profileFunction.function,
+            queue: _r.queue)
+          ..classes = ['name'])
+        .element;
   }
 
   bool _searchFunction(Pattern pattern, itemDynamic) {
     M.FunctionCallTreeNode item = itemDynamic;
-    return M.getFunctionFullName(item.profileFunction.function).contains(pattern);
+    return M
+        .getFunctionFullName(item.profileFunction.function)
+        .contains(pattern);
   }
 
-  void _updateCpuCodeRow(
-      HtmlElement element, itemDynamic, int depth) {
+  void _updateCpuCodeRow(HtmlElement element, itemDynamic, int depth) {
     M.CodeCallTreeNode item = itemDynamic;
-    element.children[0].text = Utils
-        .formatPercentNormalized(item.profileCode.normalizedInclusiveTicks);
-    element.children[1].text = Utils
-        .formatPercentNormalized(item.profileCode.normalizedExclusiveTicks);
+    element.children[0].text = Utils.formatPercentNormalized(
+        item.profileCode.normalizedInclusiveTicks);
+    element.children[1].text = Utils.formatPercentNormalized(
+        item.profileCode.normalizedExclusiveTicks);
     _updateLines(element.children[2].children, depth);
     if (item.children.isNotEmpty) {
       element.children[3].text =
@@ -263,12 +265,12 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
     }
     element.children[4].text = Utils.formatPercentNormalized(item.percentage);
     element.children[5] =
-        new CodeRefElement(_isolate, item.profileCode.code, queue: _r.queue)
-          ..classes = ['name'];
+        (new CodeRefElement(_isolate, item.profileCode.code, queue: _r.queue)
+              ..classes = ['name'])
+            .element;
   }
 
-  void _updateMemoryCodeRow(
-      HtmlElement element, itemDynamic, int depth) {
+  void _updateMemoryCodeRow(HtmlElement element, itemDynamic, int depth) {
     M.CodeCallTreeNode item = itemDynamic;
     element.children[0].text =
         Utils.formatSize(item.inclusiveNativeAllocations);
@@ -287,8 +289,9 @@ class CpuProfileVirtualTreeElement extends HtmlElement implements Renderable {
     }
     element.children[4].text = Utils.formatPercentNormalized(item.percentage);
     element.children[5] =
-        new CodeRefElement(null, item.profileCode.code, queue: _r.queue)
-          ..classes = ['name'];
+        (new CodeRefElement(null, item.profileCode.code, queue: _r.queue)
+              ..classes = ['name'])
+            .element;
   }
 
   bool _searchCode(Pattern pattern, itemDynamic) {

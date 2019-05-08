@@ -22,7 +22,7 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class MegamorphicCacheViewElement extends HtmlElement implements Renderable {
+class MegamorphicCacheViewElement extends CustomElement implements Renderable {
   static const tag = const Tag<MegamorphicCacheViewElement>(
       'megamorphiccache-view',
       dependencies: const [
@@ -83,7 +83,7 @@ class MegamorphicCacheViewElement extends HtmlElement implements Renderable {
     assert(references != null);
     assert(retainingPaths != null);
     assert(objects != null);
-    MegamorphicCacheViewElement e = document.createElement(tag.name);
+    MegamorphicCacheViewElement e = new MegamorphicCacheViewElement.created();
     e._r = new RenderingScheduler<MegamorphicCacheViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
@@ -99,7 +99,7 @@ class MegamorphicCacheViewElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  MegamorphicCacheViewElement.created() : super.created();
+  MegamorphicCacheViewElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -117,17 +117,18 @@ class MegamorphicCacheViewElement extends HtmlElement implements Renderable {
   void render() {
     children = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('megamorphic inline cache'),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            _cache = await _caches.get(_isolate, _cache.id);
-            _r.dirty();
-          }),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                _cache = await _caches.get(_isolate, _cache.id);
+                _r.dirty();
+              }))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
@@ -135,8 +136,9 @@ class MegamorphicCacheViewElement extends HtmlElement implements Renderable {
           new HeadingElement.h2()..text = 'Megamorphic Cache',
           new HRElement(),
           new ObjectCommonElement(_isolate, _cache, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _objects,
-              queue: _r.queue),
+                  _reachableSizes, _references, _retainingPaths, _objects,
+                  queue: _r.queue)
+              .element,
           new BRElement(),
           new DivElement()
             ..classes = ['memberList']
@@ -189,7 +191,7 @@ class MegamorphicCacheViewElement extends HtmlElement implements Renderable {
                 ]
             ],
           new HRElement(),
-          new ViewFooterElement(queue: _r.queue)
+          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

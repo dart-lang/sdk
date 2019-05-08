@@ -13,7 +13,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/utils.dart';
 
-class InstanceRefElement extends HtmlElement implements Renderable {
+class InstanceRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<InstanceRefElement>('instance-ref',
       dependencies: const [CurlyBlockElement.tag]);
 
@@ -37,7 +37,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(instance != null);
     assert(objects != null);
-    InstanceRefElement e = document.createElement(tag.name);
+    InstanceRefElement e = new InstanceRefElement.created();
     e._r = new RenderingScheduler<InstanceRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._instance = instance;
@@ -46,7 +46,7 @@ class InstanceRefElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  InstanceRefElement.created() : super.created();
+  InstanceRefElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -67,20 +67,21 @@ class InstanceRefElement extends HtmlElement implements Renderable {
     if (_expandable && _hasValue()) {
       content.addAll([
         new SpanElement()..text = ' ',
-        new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-          ..content = <Element>[
-            new DivElement()
-              ..classes = ['indent']
-              ..children = _createValue()
-          ]
-          ..onToggle.listen((e) async {
-            _expanded = e.control.expanded;
-            if (_expanded) {
-              e.control.disabled = true;
-              await _refresh();
-              e.control.disabled = false;
-            }
-          })
+        (new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
+              ..content = <Element>[
+                new DivElement()
+                  ..classes = ['indent']
+                  ..children = _createValue()
+              ]
+              ..onToggle.listen((e) async {
+                _expanded = e.control.expanded;
+                if (_expanded) {
+                  e.control.disabled = true;
+                  await _refresh();
+                  e.control.disabled = false;
+                }
+              }))
+            .element
       ]);
     }
 
@@ -268,8 +269,8 @@ class InstanceRefElement extends HtmlElement implements Renderable {
         return _loadedInstance.fields
             .map<Element>((f) => new DivElement()
               ..children = <Element>[
-                new FieldRefElement(_isolate, f.decl, _objects,
-                    queue: _r.queue),
+                new FieldRefElement(_isolate, f.decl, _objects, queue: _r.queue)
+                    .element,
                 new SpanElement()..text = ' = ',
                 anyRef(_isolate, f.value, _objects, queue: _r.queue)
               ])
@@ -329,11 +330,13 @@ class InstanceRefElement extends HtmlElement implements Renderable {
         return [
           new SpanElement()..text = '<key> : ',
           new InstanceRefElement(_isolate, _loadedInstance.key, _objects,
-              queue: _r.queue),
+                  queue: _r.queue)
+              .element,
           new BRElement(),
           new SpanElement()..text = '<value> : ',
           new InstanceRefElement(_isolate, _loadedInstance.value, _objects,
-              queue: _r.queue),
+                  queue: _r.queue)
+              .element,
         ];
       default:
         return [];

@@ -15,7 +15,7 @@ typedef void VirtualCollectionUpdateCallback(
     HtmlElement el, dynamic item, int index);
 typedef bool VirtualCollectionSearchCallback(Pattern pattern, dynamic item);
 
-class VirtualCollectionElement extends HtmlElement implements Renderable {
+class VirtualCollectionElement extends CustomElement implements Renderable {
   static const tag = const Tag<VirtualCollectionElement>('virtual-collection',
       dependencies: const [SearchBarElement.tag]);
 
@@ -53,7 +53,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     assert(create != null);
     assert(update != null);
     assert(items != null);
-    VirtualCollectionElement e = document.createElement(tag.name);
+    VirtualCollectionElement e = new VirtualCollectionElement.created();
     e._r = new RenderingScheduler<VirtualCollectionElement>(e, queue: queue);
     e._create = create;
     e._createHeader = createHeader;
@@ -63,7 +63,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  VirtualCollectionElement.created() : super.created();
+  VirtualCollectionElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -91,13 +91,23 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   final DivElement _spacer = new DivElement()..classes = ['spacer'];
   final DivElement _buffer = new DivElement()..classes = ['buffer'];
 
+  static int safeFloor(double x) {
+    if (x.isNaN) return 0;
+    return x.floor();
+  }
+
+  static int safeCeil(double x) {
+    if (x.isNaN) return 0;
+    return x.ceil();
+  }
+
   dynamic getItemFromElement(HtmlElement element) {
     final el_index = _buffer.children.indexOf(element);
     if (el_index < 0) {
       return null;
     }
     final item_index =
-        _top + el_index - (_buffer.children.length * _inverse_preload).floor();
+        _top + el_index - safeFloor(_buffer.children.length * _inverse_preload);
     if (0 <= item_index && item_index < items.length) {
       return _items[item_index];
     }
@@ -141,7 +151,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
               ..onSearchResultSelected.listen((e) {
                 takeIntoView(e.item);
               });
-        children.insert(0, _searcher);
+        children.insert(0, _searcher.element);
       }
       if (_createHeader != null) {
         _header = new DivElement()
@@ -164,15 +174,15 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
         final minScrollTop = _itemHeight * (index + 1) - _height;
         final maxScrollTop = _itemHeight * index;
         _viewport.scrollTop =
-            ((maxScrollTop - minScrollTop) / 2 + minScrollTop).floor();
+            safeFloor((maxScrollTop - minScrollTop) / 2 + minScrollTop);
       }
       _takeIntoView = null;
     }
 
-    final top = (_viewport.scrollTop / _itemHeight).floor();
+    final top = safeFloor(_viewport.scrollTop / _itemHeight);
 
-    _spacer.style.height = '${_itemHeight*(_items.length)}px';
-    final tail_length = (_height / _itemHeight / _preload).ceil();
+    _spacer.style.height = '${_itemHeight * (_items.length)}px';
+    final tail_length = safeCeil(_height / _itemHeight / _preload);
     final length = tail_length * 2 + tail_length * _preload;
 
     if (_buffer.children.length < length) {
@@ -185,7 +195,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     }
 
     if ((_top == null) || ((top - _top).abs() >= tail_length)) {
-      _buffer.style.top = '${_itemHeight*(top-tail_length)}px';
+      _buffer.style.top = '${_itemHeight * (top - tail_length)}px';
       int i = top - tail_length;
       for (final HtmlElement e in _buffer.children) {
         if (0 <= i && i < _items.length) {
