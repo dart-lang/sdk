@@ -31,10 +31,8 @@ class BytecodeFlowGraphBuilder {
         parsed_function_(parsed_function),
         ic_data_array_(ic_data_array),
         object_pool_(ObjectPool::Handle(zone_)),
-        raw_bytecode_(nullptr),
         bytecode_length_(0),
         pc_(0),
-        bytecode_instr_(KernelBytecode::kTrap),
         position_(TokenPosition::kNoSource),
         local_vars_(zone_, 0),
         parameters_(zone_, 0),
@@ -112,7 +110,8 @@ class BytecodeFlowGraphBuilder {
   Operand DecodeOperandD();
   Operand DecodeOperandX();
   Operand DecodeOperandT();
-  KBCInstr InstructionAt(intptr_t pc, KernelBytecode::Opcode expect_opcode);
+  const KBCInstr* InstructionAt(intptr_t pc,
+                                KernelBytecode::Opcode expect_opcode);
   Constant ConstantAt(Operand entry_index, intptr_t add_index = 0);
   void PushConstant(Constant constant);
   Constant PopConstant();
@@ -150,7 +149,7 @@ class BytecodeFlowGraphBuilder {
   intptr_t GetTryIndex(const PcDescriptors& descriptors, intptr_t pc);
   JoinEntryInstr* EnsureControlFlowJoin(const PcDescriptors& descriptors,
                                         intptr_t pc);
-  bool RequiresScratchVar(KBCInstr instr);
+  bool RequiresScratchVar(const KBCInstr* instr);
   void CollectControlFlow(const PcDescriptors& descriptors,
                           const ExceptionHandlers& handlers,
                           GraphEntryInstr* graph_entry);
@@ -173,10 +172,11 @@ class BytecodeFlowGraphBuilder {
   ParsedFunction* parsed_function_;
   ZoneGrowableArray<const ICData*>* ic_data_array_;
   ObjectPool& object_pool_;
-  KBCInstr* raw_bytecode_;
+  const KBCInstr* raw_bytecode_ = nullptr;
   intptr_t bytecode_length_;
   intptr_t pc_;
-  KBCInstr bytecode_instr_;
+  intptr_t next_pc_ = -1;
+  const KBCInstr* bytecode_instr_ = nullptr;
   TokenPosition position_;  // TODO(alexmarkov): Set/update.
   Fragment code_;
   ZoneGrowableArray<LocalVariable*> local_vars_;

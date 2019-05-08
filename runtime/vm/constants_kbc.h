@@ -73,10 +73,6 @@ namespace dart {
 //   +--------+--------+--------+--------+
 //
 //   +--------+--------+--------+--------+
-//   | opcode |    A   |    B   |    Y   | A_B_Y: 2 unsigned 8-bit operands
-//   +--------+--------+--------+--------+        1 signed 8-bit operand
-//
-//   +--------+--------+--------+--------+
 //   | opcode |             T            |   T: signed 24-bit operand
 //   +--------+--------+--------+--------+
 //
@@ -548,9 +544,12 @@ namespace dart {
 
 // clang-format on
 
-typedef uint32_t KBCInstr;
+typedef uint8_t KBCInstr;
 
 class KernelBytecode {
+ private:
+  static const intptr_t kInstructionSize = 4;
+
  public:
   // Magic value of bytecode files.
   static const intptr_t kMagicValue = 0x44424332;  // 'DBC2'
@@ -567,13 +566,13 @@ class KernelBytecode {
 #undef DECLARE_BYTECODE
   };
 
-  static const char* NameOf(KBCInstr instr) {
+  static const char* NameOf(Opcode op) {
     const char* names[] = {
 #define NAME(name, encoding, op1, op2, op3) #name,
         KERNEL_BYTECODES_LIST(NAME)
 #undef NAME
     };
-    return names[DecodeOpcode(instr)];
+    return names[op];
   }
 
   enum SpecialIndex {
@@ -595,65 +594,45 @@ class KernelBytecode {
   static const intptr_t kYMask = 0xFF;
   static const intptr_t kTShift = 8;
 
-  static KBCInstr Encode(Opcode op, uintptr_t a, uintptr_t b, uintptr_t c) {
-    ASSERT((a & kAMask) == a);
-    ASSERT((b & kBMask) == b);
-    ASSERT((c & kCMask) == c);
-    return op | (a << kAShift) | (b << kBShift) | (c << kCShift);
+  DART_FORCE_INLINE static uint8_t DecodeA(const KBCInstr* bc) { return bc[1]; }
+
+  DART_FORCE_INLINE static uint8_t DecodeB(const KBCInstr* bc) { return bc[2]; }
+
+  DART_FORCE_INLINE static uint8_t DecodeC(const KBCInstr* bc) { return bc[3]; }
+
+  DART_FORCE_INLINE static uint16_t DecodeD(const KBCInstr* bc) {
+    return static_cast<uint16_t>(bc[2]) | (static_cast<uint16_t>(bc[3]) << 8);
   }
 
-  static KBCInstr Encode(Opcode op, uintptr_t a, uintptr_t d) {
-    ASSERT((a & kAMask) == a);
-    ASSERT((d & kDMask) == d);
-    return op | (a << kAShift) | (d << kDShift);
+  DART_FORCE_INLINE static int16_t DecodeX(const KBCInstr* bc) {
+    return static_cast<int16_t>(static_cast<uint16_t>(bc[2]) |
+                                (static_cast<uint16_t>(bc[3]) << 8));
   }
 
-  static KBCInstr EncodeSigned(Opcode op, uintptr_t a, intptr_t x) {
-    ASSERT((a & kAMask) == a);
-    ASSERT((x << kDShift) >> kDShift == x);
-    return op | (a << kAShift) | (x << kDShift);
+  DART_FORCE_INLINE static int32_t DecodeT(const KBCInstr* bc) {
+    return static_cast<int32_t>((static_cast<uint32_t>(bc[1]) << 8) |
+                                (static_cast<uint32_t>(bc[2]) << 16) |
+                                (static_cast<uint32_t>(bc[3]) << 24)) >>
+           (8 - 2);
   }
 
-  static KBCInstr EncodeSigned(Opcode op, intptr_t x) {
-    ASSERT((x << kAShift) >> kAShift == x);
-    return op | (x << kAShift);
+  DART_FORCE_INLINE static Opcode DecodeOpcode(const KBCInstr* bc) {
+    return static_cast<Opcode>(bc[0]);
   }
 
-  static KBCInstr Encode(Opcode op) { return op; }
-
-  DART_FORCE_INLINE static uint8_t DecodeA(KBCInstr bc) {
-    return (bc >> kAShift) & kAMask;
+  DART_FORCE_INLINE static const KBCInstr* Next(const KBCInstr* bc) {
+    return bc + kInstructionSize;
   }
 
-  DART_FORCE_INLINE static uint8_t DecodeB(KBCInstr bc) {
-    return (bc >> kBShift) & kBMask;
+  DART_FORCE_INLINE static const KBCInstr* Previous(const KBCInstr* bc) {
+    return bc - kInstructionSize;
   }
 
-  DART_FORCE_INLINE static uint8_t DecodeC(KBCInstr bc) {
-    return (bc >> kCShift) & kCMask;
-  }
-
-  DART_FORCE_INLINE static uint16_t DecodeD(KBCInstr bc) {
-    return (bc >> kDShift) & kDMask;
-  }
-
-  DART_FORCE_INLINE static int16_t DecodeX(KBCInstr bc) {
-    return static_cast<int16_t>((bc >> kDShift) & kDMask);
-  }
-
-  DART_FORCE_INLINE static int32_t DecodeT(KBCInstr bc) {
-    return static_cast<int32_t>(bc) >> kTShift;
-  }
-
-  DART_FORCE_INLINE static Opcode DecodeOpcode(KBCInstr bc) {
-    return static_cast<Opcode>(bc & 0xFF);
-  }
-
-  DART_FORCE_INLINE static bool IsTrap(KBCInstr instr) {
+  DART_FORCE_INLINE static bool IsTrap(const KBCInstr* instr) {
     return DecodeOpcode(instr) == KernelBytecode::kTrap;
   }
 
-  DART_FORCE_INLINE static bool IsJumpOpcode(KBCInstr instr) {
+  DART_FORCE_INLINE static bool IsJumpOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kJump:
       case KernelBytecode::kJumpIfNoAsserts:
@@ -671,7 +650,7 @@ class KernelBytecode {
     }
   }
 
-  DART_FORCE_INLINE static bool IsCallOpcode(KBCInstr instr) {
+  DART_FORCE_INLINE static bool IsCallOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kIndirectStaticCall:
       case KernelBytecode::kInterfaceCall:
@@ -687,28 +666,31 @@ class KernelBytecode {
 
   static const uint8_t kNativeCallToGrowableListArgc = 2;
 
-  DART_FORCE_INLINE static uint8_t DecodeArgc(KBCInstr call) {
+  DART_FORCE_INLINE static uint8_t DecodeArgc(const KBCInstr* ret_addr) {
+    const KBCInstr* call = Previous(ret_addr);
     if (DecodeOpcode(call) == KernelBytecode::kNativeCall) {
       // The only NativeCall redirecting to a bytecode function is the call
       // to new _GrowableList<E>(0).
       return kNativeCallToGrowableListArgc;
     }
     ASSERT(IsCallOpcode(call));
-    return (call >> 8) & 0xFF;
+    return DecodeA(call);
   }
-
-  static KBCInstr At(uword pc) { return *reinterpret_cast<KBCInstr*>(pc); }
 
   // Converts bytecode PC into an offset.
   // For return addresses used in PcDescriptors, PC is also advanced to the
   // next instruction.
   static intptr_t BytecodePcToOffset(uint32_t pc, bool is_return_address) {
-    return sizeof(KBCInstr) * (pc + (is_return_address ? 1 : 0));
+    return pc + (is_return_address ? kInstructionSize : 0);
   }
 
   static uint32_t OffsetToBytecodePc(intptr_t offset, bool is_return_address) {
-    return (offset / sizeof(KBCInstr)) - (is_return_address ? 1 : 0);
+    return offset - (is_return_address ? kInstructionSize : 0);
   }
+
+  static void GetVMInternalBytecodeInstructions(Opcode opcode,
+                                                const KBCInstr** instructions,
+                                                intptr_t* instructions_size);
 
  private:
   DISALLOW_ALLOCATION();

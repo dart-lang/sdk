@@ -282,7 +282,8 @@ class BytecodeSourcePositionsIterator : ValueObject {
     }
     ASSERT(pairs_remaining_ > 0);
     --pairs_remaining_;
-    cur_bci_ += reader_.ReadUInt();
+    const int kPCMultiplier = 4;
+    cur_bci_ += reader_.ReadUInt() * kPCMultiplier;
     cur_token_pos_ += reader_.ReadSLEB128();
     return true;
   }

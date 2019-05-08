@@ -443,6 +443,21 @@ static type SpecialCharacter(type value) {
   return '\0';
 }
 
+static RawBytecode* CreateVMInternalBytecode(KernelBytecode::Opcode opcode) {
+  const KBCInstr* instructions = nullptr;
+  intptr_t instructions_size = 0;
+
+  KernelBytecode::GetVMInternalBytecodeInstructions(opcode, &instructions,
+                                                    &instructions_size);
+
+  const auto& bytecode = Bytecode::Handle(
+      Bytecode::New(reinterpret_cast<uword>(instructions), instructions_size,
+                    -1, Object::empty_object_pool()));
+  bytecode.set_pc_descriptors(Object::empty_descriptors());
+  bytecode.set_exception_handlers(Object::empty_exception_handlers());
+  return bytecode.raw();
+}
+
 void Object::InitNull(Isolate* isolate) {
   // Should only be run by the vm isolate.
   ASSERT(isolate == Dart::vm_isolate());
@@ -880,84 +895,26 @@ void Object::Init(Isolate* isolate) {
   // needs to be created earlier as VM isolate snapshot reader references it
   // before Object::FinalizeVMIsolate.
 
-  static const KBCInstr getter_instr[2] = {
-      KernelBytecode::Encode(KernelBytecode::kVMInternal_ImplicitGetter),
-      KernelBytecode::Encode(KernelBytecode::kReturnTOS),
-  };
   *implicit_getter_bytecode_ =
-      Bytecode::New(reinterpret_cast<uword>(getter_instr), sizeof(getter_instr),
-                    -1, Object::empty_object_pool());
-  implicit_getter_bytecode_->set_pc_descriptors(Object::empty_descriptors());
-  implicit_getter_bytecode_->set_exception_handlers(
-      Object::empty_exception_handlers());
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_ImplicitGetter);
 
-  static const KBCInstr setter_instr[2] = {
-      KernelBytecode::Encode(KernelBytecode::kVMInternal_ImplicitSetter),
-      KernelBytecode::Encode(KernelBytecode::kReturnTOS),
-  };
   *implicit_setter_bytecode_ =
-      Bytecode::New(reinterpret_cast<uword>(setter_instr), sizeof(setter_instr),
-                    -1, Object::empty_object_pool());
-  implicit_setter_bytecode_->set_pc_descriptors(Object::empty_descriptors());
-  implicit_setter_bytecode_->set_exception_handlers(
-      Object::empty_exception_handlers());
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_ImplicitSetter);
 
-  static const KBCInstr static_getter_instr[2] = {
-      KernelBytecode::Encode(KernelBytecode::kVMInternal_ImplicitStaticGetter),
-      KernelBytecode::Encode(KernelBytecode::kReturnTOS),
-  };
-  *implicit_static_getter_bytecode_ = Bytecode::New(
-      reinterpret_cast<uword>(static_getter_instr), sizeof(static_getter_instr),
-      -1, Object::empty_object_pool());
-  implicit_static_getter_bytecode_->set_pc_descriptors(
-      Object::empty_descriptors());
-  implicit_static_getter_bytecode_->set_exception_handlers(
-      Object::empty_exception_handlers());
+  *implicit_static_getter_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ImplicitStaticGetter);
 
-  static const KBCInstr method_extractor_instr[2] = {
-      KernelBytecode::Encode(KernelBytecode::kVMInternal_MethodExtractor),
-      KernelBytecode::Encode(KernelBytecode::kReturnTOS),
-  };
-  *method_extractor_bytecode_ = Bytecode::New(
-      reinterpret_cast<uword>(method_extractor_instr),
-      sizeof(method_extractor_instr), -1, Object::empty_object_pool());
-  method_extractor_bytecode_->set_pc_descriptors(Object::empty_descriptors());
-  method_extractor_bytecode_->set_exception_handlers(
-      Object::empty_exception_handlers());
+  *method_extractor_bytecode_ =
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_MethodExtractor);
 
-  static const KBCInstr invoke_closure_instr[2] = {
-      KernelBytecode::Encode(KernelBytecode::kVMInternal_InvokeClosure),
-      KernelBytecode::Encode(KernelBytecode::kReturnTOS),
-  };
-  *invoke_closure_bytecode_ = Bytecode::New(
-      reinterpret_cast<uword>(invoke_closure_instr),
-      sizeof(invoke_closure_instr), -1, Object::empty_object_pool());
-  invoke_closure_bytecode_->set_pc_descriptors(Object::empty_descriptors());
-  invoke_closure_bytecode_->set_exception_handlers(
-      Object::empty_exception_handlers());
+  *invoke_closure_bytecode_ =
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeClosure);
 
-  static const KBCInstr invoke_field_instr[2] = {
-      KernelBytecode::Encode(KernelBytecode::kVMInternal_InvokeField),
-      KernelBytecode::Encode(KernelBytecode::kReturnTOS),
-  };
-  *invoke_field_bytecode_ = Bytecode::New(
-      reinterpret_cast<uword>(invoke_field_instr), sizeof(invoke_field_instr),
-      -1, Object::empty_object_pool());
-  invoke_field_bytecode_->set_pc_descriptors(Object::empty_descriptors());
-  invoke_field_bytecode_->set_exception_handlers(
-      Object::empty_exception_handlers());
+  *invoke_field_bytecode_ =
+      CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeField);
 
-  static const KBCInstr nsm_dispatcher_instr[2] = {
-      KernelBytecode::Encode(
-          KernelBytecode::kVMInternal_NoSuchMethodDispatcher),
-      KernelBytecode::Encode(KernelBytecode::kReturnTOS),
-  };
-  *nsm_dispatcher_bytecode_ = Bytecode::New(
-      reinterpret_cast<uword>(nsm_dispatcher_instr),
-      sizeof(nsm_dispatcher_instr), -1, Object::empty_object_pool());
-  nsm_dispatcher_bytecode_->set_pc_descriptors(Object::empty_descriptors());
-  nsm_dispatcher_bytecode_->set_exception_handlers(
-      Object::empty_exception_handlers());
+  *nsm_dispatcher_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_NoSuchMethodDispatcher);
 
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.

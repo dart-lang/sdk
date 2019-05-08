@@ -686,9 +686,10 @@ RawBytecode* BytecodeReaderHelper::ReadBytecode(const ObjectPool& pool) {
                     "BytecodeReaderHelper::ReadBytecode");
 #endif  // defined(SUPPORT_TIMELINE)
   intptr_t size = helper_->ReadUInt();
-  intptr_t offset = Utils::RoundUp(helper_->reader_.offset(), sizeof(KBCInstr));
+  // TODO(alexmarkov): remove padding.
+  const intptr_t kAlignment = 4;
+  intptr_t offset = Utils::RoundUp(helper_->reader_.offset(), kAlignment);
   const uint8_t* data = helper_->reader_.BufferAt(offset);
-  ASSERT(Utils::IsAligned(data, sizeof(KBCInstr)));
   helper_->reader_.set_offset(offset + size);
 
   // Create and return bytecode object.
@@ -718,12 +719,16 @@ void BytecodeReaderHelper::ReadExceptionsTable(const Bytecode& bytecode,
       intptr_t outer_try_index_plus1 = helper_->reader_.ReadUInt();
       intptr_t outer_try_index = outer_try_index_plus1 - 1;
       // PcDescriptors are expressed in terms of return addresses.
+      const int kPCMultiplier = 4;
       intptr_t start_pc = KernelBytecode::BytecodePcToOffset(
-          helper_->reader_.ReadUInt(), /* is_return_address = */ true);
+          helper_->reader_.ReadUInt() * kPCMultiplier,
+          /* is_return_address = */ true);
       intptr_t end_pc = KernelBytecode::BytecodePcToOffset(
-          helper_->reader_.ReadUInt(), /* is_return_address = */ true);
+          helper_->reader_.ReadUInt() * kPCMultiplier,
+          /* is_return_address = */ true);
       intptr_t handler_pc = KernelBytecode::BytecodePcToOffset(
-          helper_->reader_.ReadUInt(), /* is_return_address = */ false);
+          helper_->reader_.ReadUInt() * kPCMultiplier,
+          /* is_return_address = */ false);
       uint8_t flags = helper_->reader_.ReadByte();
       const uint8_t kFlagNeedsStackTrace = 1 << 0;
       const uint8_t kFlagIsSynthetic = 1 << 1;
@@ -2030,8 +2035,9 @@ void BytecodeReaderHelper::ParseForwarderFunction(
 
   if (function.HasOptionalParameters()) {
     const KBCInstr* raw_bytecode =
-        reinterpret_cast<KBCInstr*>(target_bytecode.PayloadStart());
-    KBCInstr entry = raw_bytecode[0];
+        reinterpret_cast<const KBCInstr*>(target_bytecode.PayloadStart());
+    const KBCInstr* entry = raw_bytecode;
+    raw_bytecode = KernelBytecode::Next(raw_bytecode);
     ASSERT(KernelBytecode::DecodeOpcode(entry) ==
            KernelBytecode::kEntryOptional);
     ASSERT(KernelBytecode::DecodeB(entry) ==
@@ -2046,7 +2052,8 @@ void BytecodeReaderHelper::ParseForwarderFunction(
     if (function.HasOptionalPositionalParameters()) {
       for (intptr_t i = 0, n = function.NumOptionalPositionalParameters();
            i < n; ++i) {
-        const KBCInstr load = raw_bytecode[1 + i];
+        const KBCInstr* load = raw_bytecode;
+        raw_bytecode = KernelBytecode::Next(raw_bytecode);
         ASSERT(KernelBytecode::DecodeOpcode(load) ==
                KernelBytecode::kLoadConstant);
         const auto& value = Instance::CheckedZoneHandle(
@@ -2058,8 +2065,9 @@ void BytecodeReaderHelper::ParseForwarderFunction(
       auto& param_name = String::Handle(Z);
       default_values->EnsureLength(num_opt_params, nullptr);
       for (intptr_t i = 0; i < num_opt_params; ++i) {
-        const KBCInstr load_name = raw_bytecode[1 + 2 * i];
-        const KBCInstr load_value = raw_bytecode[1 + 2 * i + 1];
+        const KBCInstr* load_name = raw_bytecode;
+        const KBCInstr* load_value = KernelBytecode::Next(load_name);
+        raw_bytecode = KernelBytecode::Next(load_value);
         ASSERT(KernelBytecode::DecodeOpcode(load_name) ==
                KernelBytecode::kLoadConstant);
         ASSERT(KernelBytecode::DecodeOpcode(load_value) ==

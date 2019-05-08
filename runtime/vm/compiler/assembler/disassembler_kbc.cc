@@ -178,24 +178,6 @@ static void FormatA_B_C(char* buf,
   Apply(&buf, &size, pc, op3, c, "");
 }
 
-// TODO(alexmarkov) This format is currently unused. Restore it if needed, or
-// remove it once bytecode instruction set is finalized.
-//
-// static void FormatA_B_Y(char* buf,
-//                        intptr_t size,
-//                        uword pc,
-//                        uint32_t op,
-//                        Fmt op1,
-//                        Fmt op2,
-//                        Fmt op3) {
-//  const int32_t a = (op >> 8) & 0xFF;
-//  const int32_t b = (op >> 16) & 0xFF;
-//  const int32_t y = static_cast<int8_t>((op >> 24) & 0xFF);
-//  Apply(&buf, &size, pc, op1, a, ", ");
-//  Apply(&buf, &size, pc, op2, b, ", ");
-//  Apply(&buf, &size, pc, op3, y, "");
-// }
-
 #define BYTECODE_FORMATTER(name, encoding, op1, op2, op3)                      \
   static void Format##name(char* buf, intptr_t size, uword pc, uint32_t op) {  \
     Format##encoding(buf, size, pc, op, Fmt##op1, Fmt##op2, Fmt##op3);         \
@@ -209,7 +191,7 @@ static const BytecodeFormatter kFormatters[] = {
 #undef BYTECODE_FORMATTER
 };
 
-static bool HasLoadFromPool(KBCInstr instr) {
+static bool HasLoadFromPool(const KBCInstr* instr) {
   switch (KernelBytecode::DecodeOpcode(instr)) {
     case KernelBytecode::kLoadConstant:
     case KernelBytecode::kPushConstant:
@@ -232,7 +214,7 @@ static bool HasLoadFromPool(KBCInstr instr) {
 static bool GetLoadedObjectAt(uword pc,
                               const ObjectPool& object_pool,
                               Object* obj) {
-  KBCInstr instr = KernelBytecode::At(pc);
+  const KBCInstr* instr = reinterpret_cast<const KBCInstr*>(pc);
   if (HasLoadFromPool(instr)) {
     uint16_t index = KernelBytecode::DecodeD(instr);
     if (object_pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject) {

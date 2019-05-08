@@ -17,8 +17,8 @@ RawTypedData* KBCNativeCallPattern::GetNativeEntryDataAt(
     uword pc,
     const Bytecode& bytecode) {
   ASSERT(bytecode.ContainsInstructionAt(pc));
-  const uword call_pc = pc - sizeof(KBCInstr);
-  KBCInstr call_instr = KernelBytecode::At(call_pc);
+  const KBCInstr* call_instr =
+      KernelBytecode::Previous(reinterpret_cast<const KBCInstr*>(pc));
   ASSERT(KernelBytecode::DecodeOpcode(call_instr) ==
          KernelBytecode::kNativeCall);
   intptr_t native_entry_data_pool_index = KernelBytecode::DecodeD(call_instr);

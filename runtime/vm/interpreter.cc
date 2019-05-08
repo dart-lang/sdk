@@ -229,8 +229,8 @@ class InterpreterHelpers {
   }
 };
 
-DART_FORCE_INLINE static uint32_t* SavedCallerPC(RawObject** FP) {
-  return reinterpret_cast<uint32_t*>(FP[kKBCSavedCallerPcSlotFromFp]);
+DART_FORCE_INLINE static const KBCInstr* SavedCallerPC(RawObject** FP) {
+  return reinterpret_cast<const KBCInstr*>(FP[kKBCSavedCallerPcSlotFromFp]);
 }
 
 DART_FORCE_INLINE static RawFunction* FrameFunction(RawObject** FP) {
@@ -396,11 +396,12 @@ DART_FORCE_INLINE bool Interpreter::IsTracingExecution() const {
 }
 
 // Prints bytecode instruction at given pc for instruction tracing.
-DART_NOINLINE void Interpreter::TraceInstruction(uint32_t* pc) const {
+DART_NOINLINE void Interpreter::TraceInstruction(const KBCInstr* pc) const {
   THR_Print("%" Pu64 " ", icount_);
   if (FLAG_support_disassembler) {
-    KernelBytecodeDisassembler::Disassemble(reinterpret_cast<uword>(pc),
-                                            reinterpret_cast<uword>(pc + 1));
+    KernelBytecodeDisassembler::Disassemble(
+        reinterpret_cast<uword>(pc),
+        reinterpret_cast<uword>(KernelBytecode::Next(pc)));
   } else {
     THR_Print("Disassembler not supported in this mode.\n");
   }
@@ -430,13 +431,15 @@ void Interpreter::FlushTraceBuffer() {
   trace_buffer_idx_ = 0;
 }
 
-DART_NOINLINE void Interpreter::WriteInstructionToTrace(uint32_t* pc) {
+DART_NOINLINE void Interpreter::WriteInstructionToTrace(const KBCInstr* pc) {
   Dart_FileWriteCallback file_write = Dart::file_write_callback();
   if (file_write == NULL) {
     return;
   }
-  if (trace_buffer_idx_ < kTraceBufferInstrs) {
-    trace_buffer_[trace_buffer_idx_++] = static_cast<KBCInstr>(*pc);
+  const KBCInstr* next = KernelBytecode::Next(pc);
+  while ((trace_buffer_idx_ < kTraceBufferInstrs) && (pc != next)) {
+    trace_buffer_[trace_buffer_idx_++] = *pc;
+    ++pc;
   }
   if (trace_buffer_idx_ == kTraceBufferInstrs) {
     FlushTraceBuffer();
@@ -460,10 +463,10 @@ typedef double (*InterpreterLeafFloatRuntimeCall)(double d0, double d1);
 void Interpreter::Exit(Thread* thread,
                        RawObject** base,
                        RawObject** frame,
-                       uint32_t* pc) {
+                       const KBCInstr* pc) {
   frame[0] = Function::null();
   frame[1] = Bytecode::null();
-  frame[2] = reinterpret_cast<RawObject*>(pc);
+  frame[2] = reinterpret_cast<RawObject*>(reinterpret_cast<uword>(pc));
   frame[3] = reinterpret_cast<RawObject*>(base);
 
   RawObject** exit_fp = frame + kKBCDartFrameFixedSize;
@@ -534,7 +537,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
                                                RawFunction* function,
                                                RawObject** call_base,
                                                RawObject** call_top,
-                                               uint32_t** pc,
+                                               const KBCInstr** pc,
                                                RawObject*** FP,
                                                RawObject*** SP) {
   ASSERT(Function::HasCode(function));
@@ -619,7 +622,7 @@ DART_FORCE_INLINE bool Interpreter::InvokeBytecode(Thread* thread,
                                                    RawFunction* function,
                                                    RawObject** call_base,
                                                    RawObject** call_top,
-                                                   uint32_t** pc,
+                                                   const KBCInstr** pc,
                                                    RawObject*** FP,
                                                    RawObject*** SP) {
   ASSERT(Function::HasBytecode(function));
@@ -634,10 +637,11 @@ DART_FORCE_INLINE bool Interpreter::InvokeBytecode(Thread* thread,
   ASSERT(function == FrameFunction(callee_fp));
   RawBytecode* bytecode = function->ptr()->bytecode_;
   callee_fp[kKBCPcMarkerSlotFromFp] = bytecode;
-  callee_fp[kKBCSavedCallerPcSlotFromFp] = reinterpret_cast<RawObject*>(*pc);
+  callee_fp[kKBCSavedCallerPcSlotFromFp] =
+      reinterpret_cast<RawObject*>(reinterpret_cast<uword>(*pc));
   callee_fp[kKBCSavedCallerFpSlotFromFp] = reinterpret_cast<RawObject*>(*FP);
   pp_ = bytecode->ptr()->object_pool_;
-  *pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_);
+  *pc = reinterpret_cast<const KBCInstr*>(bytecode->ptr()->instructions_);
   NOT_IN_PRODUCT(pc_ = *pc);  // For the profiler.
   *FP = callee_fp;
   NOT_IN_PRODUCT(fp_ = callee_fp);  // For the profiler.
@@ -648,7 +652,7 @@ DART_FORCE_INLINE bool Interpreter::InvokeBytecode(Thread* thread,
 DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
                                            RawObject** call_base,
                                            RawObject** call_top,
-                                           uint32_t** pc,
+                                           const KBCInstr** pc,
                                            RawObject*** FP,
                                            RawObject*** SP) {
   RawObject** callee_fp = call_top + kKBCDartFrameFixedSize;
@@ -682,7 +686,7 @@ void Interpreter::InlineCacheMiss(int checked_args,
                                   RawICData* icdata,
                                   RawObject** args,
                                   RawObject** top,
-                                  uint32_t* pc,
+                                  const KBCInstr* pc,
                                   RawObject** FP,
                                   RawObject** SP) {
   RawObject** result = top;
@@ -725,7 +729,7 @@ DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
                                                   RawString* target_name,
                                                   RawObject** call_base,
                                                   RawObject** top,
-                                                  uint32_t** pc,
+                                                  const KBCInstr** pc,
                                                   RawObject*** FP,
                                                   RawObject*** SP) {
   const intptr_t type_args_len =
@@ -766,7 +770,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall1(Thread* thread,
                                                   RawICData* icdata,
                                                   RawObject** call_base,
                                                   RawObject** top,
-                                                  uint32_t** pc,
+                                                  const KBCInstr** pc,
                                                   RawObject*** FP,
                                                   RawObject*** SP,
                                                   bool optimized) {
@@ -811,7 +815,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
                                                   RawICData* icdata,
                                                   RawObject** call_base,
                                                   RawObject** top,
-                                                  uint32_t** pc,
+                                                  const KBCInstr** pc,
                                                   RawObject*** FP,
                                                   RawObject*** SP,
                                                   bool optimized) {
@@ -862,10 +866,10 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 #if defined(DEBUG)
 #define TRACE_INSTRUCTION                                                      \
   if (IsTracingExecution()) {                                                  \
-    TraceInstruction(pc - 1);                                                  \
+    TraceInstruction(pc);                                                      \
   }                                                                            \
   if (IsWritingTraceFile()) {                                                  \
-    WriteInstructionToTrace(pc - 1);                                           \
+    WriteInstructionToTrace(pc);                                               \
   }                                                                            \
   icount_++;
 #else
@@ -878,25 +882,23 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 #define DISPATCH_OP(val)                                                       \
   do {                                                                         \
     op = (val);                                                                \
-    rA = ((op >> 8) & 0xFF);                                                   \
     TRACE_INSTRUCTION                                                          \
-    goto* dispatch[op & 0xFF];                                                 \
+    goto* dispatch[op];                                                        \
   } while (0)
 #else
 #define DISPATCH_OP(val)                                                       \
   do {                                                                         \
     op = (val);                                                                \
-    rA = ((op >> 8) & 0xFF);                                                   \
     TRACE_INSTRUCTION                                                          \
     goto SwitchDispatch;                                                       \
   } while (0)
 #endif
 
 // Fetch next operation from PC, increment program counter and dispatch.
-#define DISPATCH() DISPATCH_OP(*pc++)
+#define DISPATCH() DISPATCH_OP(*pc)
 
 // Load target of a jump instruction into PC.
-#define LOAD_JUMP_TARGET() pc += ((static_cast<int32_t>(op) >> 8) - 1)
+#define LOAD_JUMP_TARGET() pc = rT
 
 // Define entry point that handles bytecode Name with the given operand format.
 #define BYTECODE(Name, Operands)                                               \
@@ -913,42 +915,58 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
   USE(rB);                                                                     \
   USE(rC)
 #define DECODE_A_B_C                                                           \
-  rB = ((op >> KernelBytecode::kBShift) & KernelBytecode::kBMask);             \
-  rC = ((op >> KernelBytecode::kCShift) & KernelBytecode::kCMask);
-
-#define DECLARE_A_B_Y                                                          \
-  uint16_t rB;                                                                 \
-  int8_t rY;                                                                   \
-  USE(rB);                                                                     \
-  USE(rY)
-#define DECODE_A_B_Y                                                           \
-  rB = ((op >> KernelBytecode::kBShift) & KernelBytecode::kBMask);             \
-  rY = ((op >> KernelBytecode::kYShift) & KernelBytecode::kYMask);
+  rA = pc[1];                                                                  \
+  rB = pc[2];                                                                  \
+  rC = pc[3];                                                                  \
+  pc += 4;
 
 #define DECLARE_0
-#define DECODE_0
+#define DECODE_0 pc += 4;
 
 #define DECLARE_A
-#define DECODE_A
-
-#define DECLARE_T
-#define DECODE_T
+#define DECODE_A                                                               \
+  rA = pc[1];                                                                  \
+  pc += 4;
 
 #define DECLARE_D                                                              \
   uint32_t rD;                                                                 \
   USE(rD)
-#define DECODE_D rD = (op >> KernelBytecode::kDShift);
+#define DECODE_D                                                               \
+  rD = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8);     \
+  pc += 4;
 
 #define DECLARE_A_D DECLARE_D
-#define DECODE_A_D DECODE_D
+#define DECODE_A_D                                                             \
+  rA = pc[1];                                                                  \
+  rD = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8);     \
+  pc += 4;
 
 #define DECLARE_X                                                              \
   int32_t rD;                                                                  \
   USE(rD)
-#define DECODE_X rD = (static_cast<int32_t>(op) >> KernelBytecode::kDShift);
+#define DECODE_X                                                               \
+  rD = static_cast<int16_t>(static_cast<uint16_t>(pc[2]) |                     \
+                            (static_cast<uint16_t>(pc[3]) << 8));              \
+  pc += 4;
 
-#define DECLARE_A_X DECLARE_X
-#define DECODE_A_X DECODE_X
+#define DECLARE_A_X                                                            \
+  int32_t rD;                                                                  \
+  USE(rD)
+#define DECODE_A_X                                                             \
+  rA = pc[1];                                                                  \
+  rD = static_cast<int16_t>(static_cast<uint16_t>(pc[2]) |                     \
+                            (static_cast<uint16_t>(pc[3]) << 8));              \
+  pc += 4;
+
+#define DECLARE_T                                                              \
+  const KBCInstr* rT;                                                          \
+  USE(rT)
+#define DECODE_T                                                               \
+  rT = pc + (static_cast<int32_t>((static_cast<uint32_t>(pc[1]) << 8) |        \
+                                  (static_cast<uint32_t>(pc[2]) << 16) |       \
+                                  (static_cast<uint32_t>(pc[3]) << 24)) >>     \
+             (8 - 2));                                                         \
+  pc += 4;
 
 #define HANDLE_EXCEPTION                                                       \
   do {                                                                         \
@@ -1032,7 +1050,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
   }
 
 bool Interpreter::AssertAssignable(Thread* thread,
-                                   uint32_t* pc,
+                                   const KBCInstr* pc,
                                    RawObject** FP,
                                    RawObject** call_top,
                                    RawObject** args,
@@ -1126,7 +1144,7 @@ RawObject* Interpreter::Call(const Function& function,
 // Returns false on exception.
 DART_NOINLINE bool Interpreter::AllocateMint(Thread* thread,
                                              int64_t value,
-                                             uint32_t* pc,
+                                             const KBCInstr* pc,
                                              RawObject** FP,
                                              RawObject** SP) {
   ASSERT(!Smi::IsValid(value));
@@ -1157,7 +1175,7 @@ DART_NOINLINE bool Interpreter::AllocateMint(Thread* thread,
 // Returns false on exception.
 DART_NOINLINE bool Interpreter::AllocateDouble(Thread* thread,
                                                double value,
-                                               uint32_t* pc,
+                                               const KBCInstr* pc,
                                                RawObject** FP,
                                                RawObject** SP) {
   const intptr_t instance_size = Double::InstanceSize();
@@ -1187,7 +1205,7 @@ DART_NOINLINE bool Interpreter::AllocateDouble(Thread* thread,
 // Returns false on exception.
 DART_NOINLINE bool Interpreter::AllocateFloat32x4(Thread* thread,
                                                   simd128_value_t value,
-                                                  uint32_t* pc,
+                                                  const KBCInstr* pc,
                                                   RawObject** FP,
                                                   RawObject** SP) {
   const intptr_t instance_size = Float32x4::InstanceSize();
@@ -1217,7 +1235,7 @@ DART_NOINLINE bool Interpreter::AllocateFloat32x4(Thread* thread,
 // Returns false on exception.
 DART_NOINLINE bool Interpreter::AllocateFloat64x2(Thread* thread,
                                                   simd128_value_t value,
-                                                  uint32_t* pc,
+                                                  const KBCInstr* pc,
                                                   RawObject** FP,
                                                   RawObject** SP) {
   const intptr_t instance_size = Float64x2::InstanceSize();
@@ -1248,7 +1266,7 @@ DART_NOINLINE bool Interpreter::AllocateFloat64x2(Thread* thread,
 bool Interpreter::AllocateArray(Thread* thread,
                                 RawTypeArguments* type_args,
                                 RawObject* length_object,
-                                uint32_t* pc,
+                                const KBCInstr* pc,
                                 RawObject** FP,
                                 RawObject** SP) {
   if (LIKELY(!length_object->IsHeapObject())) {
@@ -1283,7 +1301,7 @@ bool Interpreter::AllocateArray(Thread* thread,
 // Returns false on exception.
 bool Interpreter::AllocateContext(Thread* thread,
                                   intptr_t num_context_variables,
-                                  uint32_t* pc,
+                                  const KBCInstr* pc,
                                   RawObject** FP,
                                   RawObject** SP) {
   const intptr_t instance_size = Context::InstanceSize(num_context_variables);
@@ -1314,7 +1332,7 @@ bool Interpreter::AllocateContext(Thread* thread,
 // Allocate a _Closure and put it into SP[0].
 // Returns false on exception.
 bool Interpreter::AllocateClosure(Thread* thread,
-                                  uint32_t* pc,
+                                  const KBCInstr* pc,
                                   RawObject** FP,
                                   RawObject** SP) {
   const intptr_t instance_size = Closure::InstanceSize();
@@ -1346,7 +1364,7 @@ RawObject* Interpreter::Call(RawFunction* function,
                              RawObject* const* argv,
                              Thread* thread) {
   // Interpreter state (see constants_kbc.h for high-level overview).
-  uint32_t* pc;    // Program Counter: points to the next op to execute.
+  const KBCInstr* pc;  // Program Counter: points to the next op to execute.
   RawObject** FP;  // Frame Pointer.
   RawObject** SP;  // Stack Pointer.
 
@@ -1420,7 +1438,7 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   // Ready to start executing bytecode. Load entry point and corresponding
   // object pool.
-  pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_);
+  pc = reinterpret_cast<const KBCInstr*>(bytecode->ptr()->instructions_);
   NOT_IN_PRODUCT(pc_ = pc);  // For the profiler.
   NOT_IN_PRODUCT(fp_ = FP);  // For the profiler.
   pp_ = bytecode->ptr()->object_pool_;
@@ -1525,12 +1543,13 @@ SwitchDispatch:
       // descriptor.
       RawObject** argdesc_data = argdesc_->ptr()->data();
 
-      intptr_t i = named_count - 1;           // argument position
-      intptr_t j = num_opt_named_params - 1;  // parameter position
-      while ((j >= 0) && (i >= 0)) {
+      intptr_t i = 0;  // argument position
+      intptr_t j = 0;  // parameter position
+      while ((j < num_opt_named_params) && (i < named_count)) {
         // Fetch formal parameter information: name, default value, target slot.
-        const uint32_t load_name = pc[2 * j];
-        const uint32_t load_value = pc[2 * j + 1];
+        const KBCInstr* load_name = pc;
+        const KBCInstr* load_value = KernelBytecode::Next(load_name);
+        pc = KernelBytecode::Next(load_value);
         ASSERT(KernelBytecode::DecodeOpcode(load_name) ==
                KernelBytecode::kLoadConstant);
         ASSERT(KernelBytecode::DecodeOpcode(load_value) ==
@@ -1545,19 +1564,20 @@ SwitchDispatch:
           const intptr_t arg_index = Smi::Value(static_cast<RawSmi*>(
               argdesc_data[ArgumentsDescriptor::position_index(i)]));
           FP[reg] = first_arg[arg_index];
-          i--;  // Consume passed argument.
+          ++i;  // Consume passed argument.
         } else {
           // Parameter was not passed. Fetch default value.
           FP[reg] = LOAD_CONSTANT(KernelBytecode::DecodeD(load_value));
         }
-        j--;  // Next formal parameter.
+        ++j;  // Next formal parameter.
       }
 
       // If we have unprocessed formal parameters then initialize them all
       // using default values.
-      while (j >= 0) {
-        const uint32_t load_name = pc[2 * j];
-        const uint32_t load_value = pc[2 * j + 1];
+      while (j < num_opt_named_params) {
+        const KBCInstr* load_name = pc;
+        const KBCInstr* load_value = KernelBytecode::Next(load_name);
+        pc = KernelBytecode::Next(load_value);
         ASSERT(KernelBytecode::DecodeOpcode(load_name) ==
                KernelBytecode::kLoadConstant);
         ASSERT(KernelBytecode::DecodeOpcode(load_value) ==
@@ -1566,18 +1586,15 @@ SwitchDispatch:
         ASSERT(reg == KernelBytecode::DecodeA(load_value));
 
         FP[reg] = LOAD_CONSTANT(KernelBytecode::DecodeD(load_value));
-        j--;
+        ++j;
       }
 
       // If we have unprocessed passed arguments that means we have mismatch
       // between formal parameters and concrete arguments. This can only
       // occur if the current function is a closure.
-      if (i != -1) {
+      if (i < named_count) {
         goto NoSuchMethodFromPrologue;
       }
-
-      // Skip LoadConstant-s encoding information about named parameters.
-      pc += num_opt_named_params * 2;
 
       // SP points past copied arguments.
       SP = FP + num_fixed_params + num_opt_named_params - 1;
@@ -1593,22 +1610,19 @@ SwitchDispatch:
       // Process the list of default values encoded as a sequence of
       // LoadConstant instructions after EntryOpt bytecode.
       // Execute only those that correspond to parameters that were not passed.
-      for (intptr_t i = pos_count - num_fixed_params; i < num_opt_pos_params;
-           i++) {
-        const uint32_t load_value = pc[i];
+      for (intptr_t i = num_fixed_params; i < pos_count; ++i) {
+        ASSERT(KernelBytecode::DecodeOpcode(pc) ==
+               KernelBytecode::kLoadConstant);
+        pc = KernelBytecode::Next(pc);
+      }
+      for (intptr_t i = pos_count; i < max_num_pos_args; ++i) {
+        const KBCInstr* load_value = pc;
+        pc = KernelBytecode::Next(load_value);
         ASSERT(KernelBytecode::DecodeOpcode(load_value) ==
                KernelBytecode::kLoadConstant);
-#if defined(DEBUG)
-        const uint8_t reg = KernelBytecode::DecodeA(load_value);
-        ASSERT((num_fixed_params + i) == reg);
-#endif
-        FP[num_fixed_params + i] =
-            LOAD_CONSTANT(KernelBytecode::DecodeD(load_value));
+        ASSERT(KernelBytecode::DecodeA(load_value) == i);
+        FP[i] = LOAD_CONSTANT(KernelBytecode::DecodeD(load_value));
       }
-
-      // Skip LoadConstant-s encoding default values for optional positional
-      // parameters.
-      pc += num_opt_pos_params;
 
       // SP points past the last copied parameter.
       SP = FP + max_num_pos_args - 1;
@@ -2214,7 +2228,7 @@ SwitchDispatch:
     }
 
     // Look at the caller to determine how many arguments to pop.
-    const uint8_t argc = KernelBytecode::DecodeArgc(pc[-1]);
+    const uint8_t argc = KernelBytecode::DecodeArgc(pc);
 
     // Restore SP, FP and PP. Push result and dispatch.
     SP = FrameArguments(FP, argc);
@@ -3372,7 +3386,7 @@ SwitchDispatch:
         FP[kKBCFunctionSlotFromFp] = function;
         FP[kKBCPcMarkerSlotFromFp] = bytecode;
         pp_ = bytecode->ptr()->object_pool_;
-        pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_);
+        pc = reinterpret_cast<const KBCInstr*>(bytecode->ptr()->instructions_);
         NOT_IN_PRODUCT(pc_ = pc);  // For the profiler.
         DISPATCH();
       }
@@ -3559,9 +3573,9 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
     thread->set_active_stacktrace(Object::null_object());
     special_[KernelBytecode::kExceptionSpecialIndex] = raw_exception;
     special_[KernelBytecode::kStackTraceSpecialIndex] = raw_stacktrace;
-    pc_ = reinterpret_cast<uint32_t*>(thread->resume_pc());
+    pc_ = reinterpret_cast<const KBCInstr*>(thread->resume_pc());
   } else {
-    pc_ = reinterpret_cast<uint32_t*>(pc);
+    pc_ = reinterpret_cast<const KBCInstr*>(pc);
   }
 
   // Set the tag.

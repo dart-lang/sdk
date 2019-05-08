@@ -5499,8 +5499,6 @@ class Bytecode : public Object {
 
  private:
   void set_instructions(uword instructions) const {
-    // The interpreter requires the instructions to be aligned.
-    ASSERT(Utils::IsAligned(instructions, sizeof(uint32_t)));
     StoreNonPointer(&raw_ptr()->instructions_, instructions);
   }
   void set_instructions_size(intptr_t size) const {
