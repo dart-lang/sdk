@@ -37,10 +37,14 @@ class Module {
   /// [Uri] from [rootUri].
   final Uri mainSource;
 
+  /// Whether this module is also available as a package import, where the
+  /// package name matches the module name.
+  bool isPackage;
+
   Module(this.name, this.dependencies, this.rootUri, this.sources,
-      this.mainSource) {
+      {this.mainSource, this.isPackage: false}) {
     if (!_validModuleName.hasMatch(name)) {
-      throw "invalid module name: $name";
+      throw ArgumentError("invalid module name: $name");
     }
   }
 

@@ -75,9 +75,9 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
   };
 
   var m1 = Module("a", const [], testStrategy.testRootUri,
-      [Uri.parse("a1.dart"), Uri.parse("a2.dart")], null);
+      [Uri.parse("a1.dart"), Uri.parse("a2.dart")]);
   var m2 = Module("b", [m1], testStrategy.testRootUri.resolve('b/'),
-      [Uri.parse("b1.dart"), Uri.parse("b2.dart")], null);
+      [Uri.parse("b1.dart"), Uri.parse("b2.dart")]);
 
   var singleModuleInput = ModularTest([m1], m1);
   var multipleModulesInput = ModularTest([m1, m2], m2);
