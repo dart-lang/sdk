@@ -3905,12 +3905,16 @@ class Library : public Object {
   // If successful returns `true`. If an error happens during constant
   // evaluation, returns `false.
   //
+  // If [only_core] is true, then the annotations on the object will only
+  // be inspected if it is part of a core library.
+  //
   // WARNING: If the isolate received an [UnwindError] this function will not
   // return and rather unwinds until the enclosing setjmp() handler.
-  bool FindPragma(Thread* T,
-                  const Object& object,
-                  const String& pragma_name,
-                  Object* options) const;
+  static bool FindPragma(Thread* T,
+                         bool only_core,
+                         const Object& object,
+                         const String& pragma_name,
+                         Object* options);
 
   RawClass* toplevel_class() const { return raw_ptr()->toplevel_class_; }
   void set_toplevel_class(const Class& value) const;

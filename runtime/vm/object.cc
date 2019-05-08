@@ -3048,12 +3048,14 @@ RawFunction* Function::GetMethodExtractor(const String& getter_name) const {
 }
 
 bool Library::FindPragma(Thread* T,
+                         bool only_core,
                          const Object& obj,
                          const String& pragma_name,
-                         Object* options) const {
+                         Object* options) {
   auto I = T->isolate();
   auto Z = T->zone();
   auto& lib = Library::Handle(Z);
+
   if (obj.IsClass()) {
     auto& klass = Class::Cast(obj);
     if (!klass.has_pragma()) return false;
@@ -3068,6 +3070,10 @@ bool Library::FindPragma(Thread* T,
     lib = Class::Handle(Z, field.Owner()).library();
   } else {
     UNREACHABLE();
+  }
+
+  if (only_core && !lib.IsAnyCoreLibrary()) {
+    return false;
   }
 
   Object& metadata_obj = Object::Handle(Z, lib.GetMetadata(obj));

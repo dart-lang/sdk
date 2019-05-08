@@ -1949,14 +1949,9 @@ Fragment FlowGraphBuilder::BuildEntryPointsIntrospection() {
     function = owner.LookupFunction(func_name);
   }
 
-  auto& tmp = Object::Handle(Z);
-  tmp = function.Owner();
-  tmp = Class::Cast(tmp).library();
-  auto& library = Library::Cast(tmp);
-
   Object& options = Object::Handle(Z);
-  if (!library.FindPragma(thread_, function, Symbols::vm_trace_entrypoints(),
-                          &options) ||
+  if (!Library::FindPragma(thread_, /*only_core=*/false, function,
+                           Symbols::vm_trace_entrypoints(), &options) ||
       options.IsNull() || !options.IsClosure()) {
     return Drop();
   }
