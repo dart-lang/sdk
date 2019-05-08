@@ -15,19 +15,23 @@
 namespace dart {
 
 static const char* kOpcodeNames[] = {
-#define BYTECODE_NAME(name, encoding, op1, op2, op3) #name,
+#define BYTECODE_NAME(name, encoding, kind, op1, op2, op3) #name,
     KERNEL_BYTECODES_LIST(BYTECODE_NAME)
 #undef BYTECODE_NAME
 };
 
 static const size_t kOpcodeCount =
     sizeof(kOpcodeNames) / sizeof(kOpcodeNames[0]);
+static_assert(kOpcodeCount <= 256, "Opcode should fit into a byte");
 
 typedef void (*BytecodeFormatter)(char* buffer,
                                   intptr_t size,
-                                  uword pc,
-                                  uint32_t bc);
-typedef void (*Fmt)(char** buf, intptr_t* size, uword pc, int32_t value);
+                                  KernelBytecode::Opcode opcode,
+                                  const KBCInstr* instr);
+typedef void (*Fmt)(char** buf,
+                    intptr_t* size,
+                    const KBCInstr* instr,
+                    int32_t value);
 
 template <typename ValueType>
 void FormatOperand(char** buf,
@@ -43,35 +47,53 @@ void FormatOperand(char** buf,
   }
 }
 
-static void Fmt___(char** buf, intptr_t* size, uword pc, int32_t value) {}
+static void Fmt___(char** buf,
+                   intptr_t* size,
+                   const KBCInstr* instr,
+                   int32_t value) {}
 
-static void Fmttgt(char** buf, intptr_t* size, uword pc, int32_t value) {
-  FormatOperand(buf, size, "-> %" Px, pc + (value << 2));
+static void Fmttgt(char** buf,
+                   intptr_t* size,
+                   const KBCInstr* instr,
+                   int32_t value) {
+  FormatOperand(buf, size, "-> %" Px, instr + value);
 }
 
-static void Fmtlit(char** buf, intptr_t* size, uword pc, int32_t value) {
+static void Fmtlit(char** buf,
+                   intptr_t* size,
+                   const KBCInstr* instr,
+                   int32_t value) {
   FormatOperand(buf, size, "k%d", value);
 }
 
-static void Fmtreg(char** buf, intptr_t* size, uword pc, int32_t value) {
+static void Fmtreg(char** buf,
+                   intptr_t* size,
+                   const KBCInstr* instr,
+                   int32_t value) {
   FormatOperand(buf, size, "r%d", value);
 }
 
-static void Fmtxeg(char** buf, intptr_t* size, uword pc, int32_t value) {
+static void Fmtxeg(char** buf,
+                   intptr_t* size,
+                   const KBCInstr* instr,
+                   int32_t value) {
   if (value < 0) {
     FormatOperand(buf, size, "FP[%d]", value);
   } else {
-    Fmtreg(buf, size, pc, value);
+    Fmtreg(buf, size, instr, value);
   }
 }
 
-static void Fmtnum(char** buf, intptr_t* size, uword pc, int32_t value) {
+static void Fmtnum(char** buf,
+                   intptr_t* size,
+                   const KBCInstr* instr,
+                   int32_t value) {
   FormatOperand(buf, size, "#%d", value);
 }
 
 static void Apply(char** buf,
                   intptr_t* size,
-                  uword pc,
+                  const KBCInstr* instr,
                   Fmt fmt,
                   int32_t value,
                   const char* suffix) {
@@ -79,7 +101,7 @@ static void Apply(char** buf,
     return;
   }
 
-  fmt(buf, size, pc, value);
+  fmt(buf, size, instr, value);
   if (*size > 0) {
     FormatOperand(buf, size, "%s", suffix);
   }
@@ -87,127 +109,200 @@ static void Apply(char** buf,
 
 static void Format0(char* buf,
                     intptr_t size,
-                    uword pc,
-                    uint32_t op,
+                    KernelBytecode::Opcode opcode,
+                    const KBCInstr* instr,
                     Fmt op1,
                     Fmt op2,
                     Fmt op3) {}
 
-static void FormatT(char* buf,
-                    intptr_t size,
-                    uword pc,
-                    uint32_t op,
-                    Fmt op1,
-                    Fmt op2,
-                    Fmt op3) {
-  const int32_t x = static_cast<int32_t>(op) >> 8;
-  Apply(&buf, &size, pc, op1, x, "");
-}
-
 static void FormatA(char* buf,
                     intptr_t size,
-                    uword pc,
-                    uint32_t op,
+                    KernelBytecode::Opcode opcode,
+                    const KBCInstr* instr,
                     Fmt op1,
                     Fmt op2,
                     Fmt op3) {
-  const int32_t a = (op & 0xFF00) >> 8;
-  Apply(&buf, &size, pc, op1, a, "");
-}
-
-static void FormatA_D(char* buf,
-                      intptr_t size,
-                      uword pc,
-                      uint32_t op,
-                      Fmt op1,
-                      Fmt op2,
-                      Fmt op3) {
-  const int32_t a = (op & 0xFF00) >> 8;
-  const int32_t bc = op >> 16;
-  Apply(&buf, &size, pc, op1, a, ", ");
-  Apply(&buf, &size, pc, op2, bc, "");
-}
-
-static void FormatA_X(char* buf,
-                      intptr_t size,
-                      uword pc,
-                      uint32_t op,
-                      Fmt op1,
-                      Fmt op2,
-                      Fmt op3) {
-  const int32_t a = (op & 0xFF00) >> 8;
-  const int32_t bc = static_cast<int32_t>(op) >> 16;
-  Apply(&buf, &size, pc, op1, a, ", ");
-  Apply(&buf, &size, pc, op2, bc, "");
-}
-
-static void FormatX(char* buf,
-                    intptr_t size,
-                    uword pc,
-                    uint32_t op,
-                    Fmt op1,
-                    Fmt op2,
-                    Fmt op3) {
-  const int32_t bc = static_cast<int32_t>(op) >> 16;
-  Apply(&buf, &size, pc, op1, bc, "");
+  const int32_t a = KernelBytecode::DecodeA(instr);
+  Apply(&buf, &size, instr, op1, a, "");
 }
 
 static void FormatD(char* buf,
                     intptr_t size,
-                    uword pc,
-                    uint32_t op,
+                    KernelBytecode::Opcode opcode,
+                    const KBCInstr* instr,
                     Fmt op1,
                     Fmt op2,
                     Fmt op3) {
-  const int32_t bc = op >> 16;
-  Apply(&buf, &size, pc, op1, bc, "");
+  const int32_t bc = KernelBytecode::DecodeD(instr);
+  Apply(&buf, &size, instr, op1, bc, "");
+}
+
+static void FormatX(char* buf,
+                    intptr_t size,
+                    KernelBytecode::Opcode opcode,
+                    const KBCInstr* instr,
+                    Fmt op1,
+                    Fmt op2,
+                    Fmt op3) {
+  const int32_t bc = KernelBytecode::DecodeX(instr);
+  Apply(&buf, &size, instr, op1, bc, "");
+}
+
+static void FormatT(char* buf,
+                    intptr_t size,
+                    KernelBytecode::Opcode opcode,
+                    const KBCInstr* instr,
+                    Fmt op1,
+                    Fmt op2,
+                    Fmt op3) {
+  const int32_t x = KernelBytecode::DecodeT(instr);
+  Apply(&buf, &size, instr, op1, x, "");
+}
+
+static void FormatA_D(char* buf,
+                      intptr_t size,
+                      KernelBytecode::Opcode opcode,
+                      const KBCInstr* instr,
+                      Fmt op1,
+                      Fmt op2,
+                      Fmt op3) {
+  const int32_t a = KernelBytecode::DecodeA(instr);
+  const int32_t bc = KernelBytecode::DecodeD(instr);
+  Apply(&buf, &size, instr, op1, a, ", ");
+  Apply(&buf, &size, instr, op2, bc, "");
+}
+
+static void FormatA_X(char* buf,
+                      intptr_t size,
+                      KernelBytecode::Opcode opcode,
+                      const KBCInstr* instr,
+                      Fmt op1,
+                      Fmt op2,
+                      Fmt op3) {
+  const int32_t a = KernelBytecode::DecodeA(instr);
+  const int32_t bc = KernelBytecode::DecodeX(instr);
+  Apply(&buf, &size, instr, op1, a, ", ");
+  Apply(&buf, &size, instr, op2, bc, "");
+}
+
+static void FormatA_E(char* buf,
+                      intptr_t size,
+                      KernelBytecode::Opcode opcode,
+                      const KBCInstr* instr,
+                      Fmt op1,
+                      Fmt op2,
+                      Fmt op3) {
+  const int32_t a = KernelBytecode::DecodeA(instr);
+  const int32_t e = KernelBytecode::DecodeE(instr);
+  Apply(&buf, &size, instr, op1, a, ", ");
+  Apply(&buf, &size, instr, op2, e, "");
+}
+
+static void FormatA_Y(char* buf,
+                      intptr_t size,
+                      KernelBytecode::Opcode opcode,
+                      const KBCInstr* instr,
+                      Fmt op1,
+                      Fmt op2,
+                      Fmt op3) {
+  const int32_t a = KernelBytecode::DecodeA(instr);
+  const int32_t y = KernelBytecode::DecodeY(instr);
+  Apply(&buf, &size, instr, op1, a, ", ");
+  Apply(&buf, &size, instr, op2, y, "");
+}
+
+static void FormatD_F(char* buf,
+                      intptr_t size,
+                      KernelBytecode::Opcode opcode,
+                      const KBCInstr* instr,
+                      Fmt op1,
+                      Fmt op2,
+                      Fmt op3) {
+  const int32_t d = KernelBytecode::DecodeD(instr);
+  const int32_t f = KernelBytecode::DecodeF(instr);
+  Apply(&buf, &size, instr, op1, d, ", ");
+  Apply(&buf, &size, instr, op2, f, "");
 }
 
 static void FormatA_B_C(char* buf,
                         intptr_t size,
-                        uword pc,
-                        uint32_t op,
+                        KernelBytecode::Opcode opcode,
+                        const KBCInstr* instr,
                         Fmt op1,
                         Fmt op2,
                         Fmt op3) {
-  const int32_t a = (op >> 8) & 0xFF;
-  const int32_t b = (op >> 16) & 0xFF;
-  const int32_t c = (op >> 24) & 0xFF;
-  Apply(&buf, &size, pc, op1, a, ", ");
-  Apply(&buf, &size, pc, op2, b, ", ");
-  Apply(&buf, &size, pc, op3, c, "");
+  const int32_t a = KernelBytecode::DecodeA(instr);
+  const int32_t b = KernelBytecode::DecodeB(instr);
+  const int32_t c = KernelBytecode::DecodeC(instr);
+  Apply(&buf, &size, instr, op1, a, ", ");
+  Apply(&buf, &size, instr, op2, b, ", ");
+  Apply(&buf, &size, instr, op3, c, "");
 }
 
-#define BYTECODE_FORMATTER(name, encoding, op1, op2, op3)                      \
-  static void Format##name(char* buf, intptr_t size, uword pc, uint32_t op) {  \
-    Format##encoding(buf, size, pc, op, Fmt##op1, Fmt##op2, Fmt##op3);         \
+#define BYTECODE_FORMATTER(name, encoding, kind, op1, op2, op3)                \
+  static void Format##name(char* buf, intptr_t size,                           \
+                           KernelBytecode::Opcode opcode,                      \
+                           const KBCInstr* instr) {                            \
+    Format##encoding(buf, size, opcode, instr, Fmt##op1, Fmt##op2, Fmt##op3);  \
   }
 KERNEL_BYTECODES_LIST(BYTECODE_FORMATTER)
 #undef BYTECODE_FORMATTER
 
 static const BytecodeFormatter kFormatters[] = {
-#define BYTECODE_FORMATTER(name, encoding, op1, op2, op3) &Format##name,
+#define BYTECODE_FORMATTER(name, encoding, kind, op1, op2, op3) &Format##name,
     KERNEL_BYTECODES_LIST(BYTECODE_FORMATTER)
 #undef BYTECODE_FORMATTER
 };
 
-static bool HasLoadFromPool(const KBCInstr* instr) {
+static intptr_t GetConstantPoolIndex(const KBCInstr* instr) {
   switch (KernelBytecode::DecodeOpcode(instr)) {
+    case KernelBytecode::kLoadConstant_Old:
+    case KernelBytecode::kInstantiateTypeArgumentsTOS_Old:
+    case KernelBytecode::kAssertAssignable_Old:
+    case KernelBytecode::kPushConstant_Old:
+    case KernelBytecode::kStoreStaticTOS_Old:
+    case KernelBytecode::kPushStatic_Old:
+    case KernelBytecode::kAllocate_Old:
+    case KernelBytecode::kAllocateClosure_Old:
+    case KernelBytecode::kInstantiateType_Old:
+    case KernelBytecode::kDirectCall_Old:
+    case KernelBytecode::kInterfaceCall_Old:
+    case KernelBytecode::kUncheckedInterfaceCall_Old:
+    case KernelBytecode::kDynamicCall_Old:
+      return KernelBytecode::DecodeD(instr);
+
     case KernelBytecode::kLoadConstant:
-    case KernelBytecode::kPushConstant:
-    case KernelBytecode::kIndirectStaticCall:
-    case KernelBytecode::kInterfaceCall:
-    case KernelBytecode::kUncheckedInterfaceCall:
-    case KernelBytecode::kDynamicCall:
-    case KernelBytecode::kStoreStaticTOS:
-    case KernelBytecode::kPushStatic:
-    case KernelBytecode::kAllocate:
-    case KernelBytecode::kInstantiateType:
+    case KernelBytecode::kLoadConstant_Wide:
     case KernelBytecode::kInstantiateTypeArgumentsTOS:
+    case KernelBytecode::kInstantiateTypeArgumentsTOS_Wide:
     case KernelBytecode::kAssertAssignable:
-      return true;
+    case KernelBytecode::kAssertAssignable_Wide:
+      return KernelBytecode::DecodeE(instr);
+
+    case KernelBytecode::kPushConstant:
+    case KernelBytecode::kPushConstant_Wide:
+    case KernelBytecode::kStoreStaticTOS:
+    case KernelBytecode::kStoreStaticTOS_Wide:
+    case KernelBytecode::kPushStatic:
+    case KernelBytecode::kPushStatic_Wide:
+    case KernelBytecode::kAllocate:
+    case KernelBytecode::kAllocate_Wide:
+    case KernelBytecode::kAllocateClosure:
+    case KernelBytecode::kAllocateClosure_Wide:
+    case KernelBytecode::kInstantiateType:
+    case KernelBytecode::kInstantiateType_Wide:
+    case KernelBytecode::kDirectCall:
+    case KernelBytecode::kDirectCall_Wide:
+    case KernelBytecode::kInterfaceCall:
+    case KernelBytecode::kInterfaceCall_Wide:
+    case KernelBytecode::kUncheckedInterfaceCall:
+    case KernelBytecode::kUncheckedInterfaceCall_Wide:
+    case KernelBytecode::kDynamicCall:
+    case KernelBytecode::kDynamicCall_Wide:
+      return KernelBytecode::DecodeD(instr);
+
     default:
-      return false;
+      return -1;
   }
 }
 
@@ -215,8 +310,8 @@ static bool GetLoadedObjectAt(uword pc,
                               const ObjectPool& object_pool,
                               Object* obj) {
   const KBCInstr* instr = reinterpret_cast<const KBCInstr*>(pc);
-  if (HasLoadFromPool(instr)) {
-    uint16_t index = KernelBytecode::DecodeD(instr);
+  const intptr_t index = GetConstantPoolIndex(instr);
+  if (index >= 0) {
     if (object_pool.TypeAt(index) == ObjectPool::EntryType::kTaggedObject) {
       *obj = object_pool.ObjectAt(index);
       return true;
@@ -233,19 +328,26 @@ void KernelBytecodeDisassembler::DecodeInstruction(char* hex_buffer,
                                                    const Bytecode& bytecode,
                                                    Object** object,
                                                    uword pc) {
-  const uint32_t instr = *reinterpret_cast<uint32_t*>(pc);
-  const uint8_t opcode = instr & 0xFF;
+  const KBCInstr* instr = reinterpret_cast<const KBCInstr*>(pc);
+  const KernelBytecode::Opcode opcode = KernelBytecode::DecodeOpcode(instr);
   ASSERT(opcode < kOpcodeCount);
+  const intptr_t instr_size = KernelBytecode::kInstructionSize[opcode];
+
   size_t name_size =
       Utils::SNPrint(human_buffer, human_size, "%-10s\t", kOpcodeNames[opcode]);
-
   human_buffer += name_size;
   human_size -= name_size;
-  kFormatters[opcode](human_buffer, human_size, pc, instr);
+  kFormatters[opcode](human_buffer, human_size, opcode, instr);
 
-  Utils::SNPrint(hex_buffer, hex_size, "%08x", instr);
+  const intptr_t kCharactersPerByte = 3;
+  if (hex_size > instr_size * kCharactersPerByte) {
+    for (intptr_t i = 0; i < instr_size; ++i) {
+      Utils::SNPrint(hex_buffer + (i * kCharactersPerByte),
+                     hex_size - (i * kCharactersPerByte), " %02x", instr[i]);
+    }
+  }
   if (out_instr_size) {
-    *out_instr_size = sizeof(uint32_t);
+    *out_instr_size = instr_size;
   }
 
   *object = NULL;

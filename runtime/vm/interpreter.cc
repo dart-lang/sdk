@@ -12,6 +12,7 @@
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
@@ -900,72 +901,185 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 // Load target of a jump instruction into PC.
 #define LOAD_JUMP_TARGET() pc = rT
 
-// Define entry point that handles bytecode Name with the given operand format.
-#define BYTECODE(Name, Operands)                                               \
-  BYTECODE_HEADER(Name, DECLARE_##Operands, DECODE_##Operands)
+#define BYTECODE_ENTRY_LABEL(Name) bc##Name:
+#define BYTECODE_WIDE_ENTRY_LABEL(Name) bc##Name##_Wide:
+#define BYTECODE_OLD_ENTRY_LABEL(Name) bc##Name##_Old:
+#define BYTECODE_IMPL_LABEL(Name) bc##Name##Impl:
+#define GOTO_BYTECODE_IMPL(Name) goto bc##Name##Impl;
 
-#define BYTECODE_HEADER(Name, Declare, Decode)                                 \
-  Declare;                                                                     \
-  bc##Name : Decode
+// Define entry point that handles bytecode Name with the given operand format.
+#define BYTECODE(Name, Operands) BYTECODE_HEADER_##Operands##_WITH_OLD(Name)
+
+// TODO(alexmarkov): switch BYTECODE macro to BYTECODE_NEW implementation
+// and replace BYTECODE_NEW with BYTECODE when old instructions are gone.
+// Cleanup BYTECODE_HEADER_*_WITH_OLD macros and drop _WITH_OLD.
+static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
+              "Cleanup support for old bytecode format versions");
+
+#define BYTECODE_NEW(Name, Operands) BYTECODE_HEADER_##Operands(Name)
 
 // Helpers to decode common instruction formats. Used in conjunction with
 // BYTECODE() macro.
-#define DECLARE_A_B_C                                                          \
-  uint16_t rB, rC;                                                             \
-  USE(rB);                                                                     \
-  USE(rC)
-#define DECODE_A_B_C                                                           \
+
+#define BYTECODE_HEADER_0(Name)                                                \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  pc += 1;
+
+#define BYTECODE_HEADER_0_WITH_OLD(Name)                                       \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_HEADER_0(Name)                                                      \
+  BYTECODE_IMPL_LABEL(Name)
+
+#define BYTECODE_HEADER_A_WITH_OLD(Name)                                       \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
   rA = pc[1];                                                                  \
-  rB = pc[2];                                                                  \
-  rC = pc[3];                                                                  \
-  pc += 4;
-
-#define DECLARE_0
-#define DECODE_0 pc += 4;
-
-#define DECLARE_A
-#define DECODE_A                                                               \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
   rA = pc[1];                                                                  \
-  pc += 4;
+  pc += 2;                                                                     \
+  BYTECODE_IMPL_LABEL(Name)
 
-#define DECLARE_D                                                              \
+#define BYTECODE_HEADER_D_WITH_OLD(Name)                                       \
   uint32_t rD;                                                                 \
-  USE(rD)
-#define DECODE_D                                                               \
+  USE(rD);                                                                     \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
   rD = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8);     \
-  pc += 4;
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_WIDE_ENTRY_LABEL(Name)                                              \
+  rD = static_cast<uint32_t>(pc[1]) | (static_cast<uint32_t>(pc[2]) << 8) |    \
+       (static_cast<uint32_t>(pc[3]) << 16) |                                  \
+       (static_cast<uint32_t>(pc[4]) << 24);                                   \
+  pc += 5;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  rD = pc[1];                                                                  \
+  pc += 2;                                                                     \
+  BYTECODE_IMPL_LABEL(Name)
 
-#define DECLARE_A_D DECLARE_D
-#define DECODE_A_D                                                             \
-  rA = pc[1];                                                                  \
-  rD = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8);     \
-  pc += 4;
-
-#define DECLARE_X                                                              \
+// TODO(alexmarkov): Rename rD to rX.
+#define BYTECODE_HEADER_X_WITH_OLD(Name)                                       \
   int32_t rD;                                                                  \
-  USE(rD)
-#define DECODE_X                                                               \
+  USE(rD);                                                                     \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
   rD = static_cast<int16_t>(static_cast<uint16_t>(pc[2]) |                     \
                             (static_cast<uint16_t>(pc[3]) << 8));              \
-  pc += 4;
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_WIDE_ENTRY_LABEL(Name)                                              \
+  rD = static_cast<int32_t>(static_cast<uint32_t>(pc[1]) |                     \
+                            (static_cast<uint32_t>(pc[2]) << 8) |              \
+                            (static_cast<uint32_t>(pc[3]) << 16) |             \
+                            (static_cast<uint32_t>(pc[4]) << 24));             \
+  pc += 5;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  rD = static_cast<int8_t>(pc[1]);                                             \
+  pc += 2;                                                                     \
+  BYTECODE_IMPL_LABEL(Name)
 
-#define DECLARE_A_X                                                            \
-  int32_t rD;                                                                  \
-  USE(rD)
-#define DECODE_A_X                                                             \
-  rA = pc[1];                                                                  \
-  rD = static_cast<int16_t>(static_cast<uint16_t>(pc[2]) |                     \
-                            (static_cast<uint16_t>(pc[3]) << 8));              \
-  pc += 4;
-
-#define DECLARE_T                                                              \
+#define BYTECODE_HEADER_T_WITH_OLD(Name)                                       \
   const KBCInstr* rT;                                                          \
-  USE(rT)
-#define DECODE_T                                                               \
+  USE(rT);                                                                     \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
   rT = pc + (static_cast<int32_t>((static_cast<uint32_t>(pc[1]) << 8) |        \
                                   (static_cast<uint32_t>(pc[2]) << 16) |       \
                                   (static_cast<uint32_t>(pc[3]) << 24)) >>     \
              (8 - 2));                                                         \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_WIDE_ENTRY_LABEL(Name)                                              \
+  rT = pc + (static_cast<int32_t>((static_cast<uint32_t>(pc[1]) << 8) |        \
+                                  (static_cast<uint32_t>(pc[2]) << 16) |       \
+                                  (static_cast<uint32_t>(pc[3]) << 24)) >>     \
+             8);                                                               \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  rT = pc + static_cast<int8_t>(pc[1]);                                        \
+  pc += 2;                                                                     \
+  BYTECODE_IMPL_LABEL(Name)
+
+// TODO(alexmarkov): Rename rD to rE.
+#define BYTECODE_HEADER_A_E_WITH_OLD(Name)                                     \
+  uint32_t rD;                                                                 \
+  USE(rD);                                                                     \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
+  rA = pc[1];                                                                  \
+  rD = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8);     \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_WIDE_ENTRY_LABEL(Name)                                              \
+  rA = pc[1];                                                                  \
+  rD = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8) |    \
+       (static_cast<uint32_t>(pc[4]) << 16) |                                  \
+       (static_cast<uint32_t>(pc[5]) << 24);                                   \
+  pc += 6;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  rA = pc[1];                                                                  \
+  rD = pc[2];                                                                  \
+  pc += 3;                                                                     \
+  BYTECODE_IMPL_LABEL(Name)
+
+// TODO(alexmarkov): Rename rD to rY.
+#define BYTECODE_HEADER_A_Y_WITH_OLD(Name)                                     \
+  int32_t rD;                                                                  \
+  USE(rD);                                                                     \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
+  rA = pc[1];                                                                  \
+  rD = static_cast<int16_t>(static_cast<uint16_t>(pc[2]) |                     \
+                            (static_cast<uint16_t>(pc[3]) << 8));              \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_WIDE_ENTRY_LABEL(Name)                                              \
+  rA = pc[1];                                                                  \
+  rD = static_cast<int32_t>(static_cast<uint32_t>(pc[2]) |                     \
+                            (static_cast<uint32_t>(pc[3]) << 8) |              \
+                            (static_cast<uint32_t>(pc[4]) << 16) |             \
+                            (static_cast<uint32_t>(pc[5]) << 24));             \
+  pc += 6;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  rA = pc[1];                                                                  \
+  rD = static_cast<int8_t>(pc[2]);                                             \
+  pc += 3;                                                                     \
+  BYTECODE_IMPL_LABEL(Name)
+
+// TODO(alexmarkov): Rename rA to rF.
+#define BYTECODE_HEADER_D_F_WITH_OLD(Name)                                     \
+  uint32_t rD;                                                                 \
+  USE(rD);                                                                     \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
+  rA = pc[1];                                                                  \
+  rD = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8);     \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_WIDE_ENTRY_LABEL(Name)                                              \
+  rD = static_cast<uint32_t>(pc[1]) | (static_cast<uint32_t>(pc[2]) << 8) |    \
+       (static_cast<uint32_t>(pc[3]) << 16) |                                  \
+       (static_cast<uint32_t>(pc[4]) << 24);                                   \
+  rA = pc[5];                                                                  \
+  pc += 6;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  rD = pc[1];                                                                  \
+  rA = pc[2];                                                                  \
+  pc += 3;                                                                     \
+  BYTECODE_IMPL_LABEL(Name)
+
+#define BYTECODE_HEADER_A_B_C_WITH_OLD(Name)                                   \
+  uint16_t rB, rC;                                                             \
+  USE(rB);                                                                     \
+  USE(rC);                                                                     \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  rA = pc[1];                                                                  \
+  rB = pc[2];                                                                  \
+  rC = pc[3];                                                                  \
   pc += 4;
 
 #define HANDLE_EXCEPTION                                                       \
@@ -1369,7 +1483,7 @@ RawObject* Interpreter::Call(RawFunction* function,
   RawObject** SP;  // Stack Pointer.
 
   uint32_t op;  // Currently executing op.
-  uint16_t rA;  // A component of the currently executing op.
+  uint32_t rA;  // A component of the currently executing op.
 
   bool reentering = fp_ != NULL;
   if (!reentering) {
@@ -1460,7 +1574,7 @@ RawObject* Interpreter::Call(RawFunction* function,
 
 #ifdef DART_HAS_COMPUTED_GOTO
   static const void* dispatch[] = {
-#define TARGET(name, fmt, fmta, fmtb, fmtc) &&bc##name,
+#define TARGET(name, fmt, kind, fmta, fmtb, fmtc) &&bc##name,
       KERNEL_BYTECODES_LIST(TARGET)
 #undef TARGET
   };
@@ -1469,7 +1583,7 @@ RawObject* Interpreter::Call(RawFunction* function,
   DISPATCH();  // Enter the dispatch loop.
 SwitchDispatch:
   switch (op & 0xFF) {
-#define TARGET(name, fmt, fmta, fmtb, fmtc)                                    \
+#define TARGET(name, fmt, kind, fmta, fmtb, fmtc)                              \
   case KernelBytecode::k##name:                                                \
     goto bc##name;
     KERNEL_BYTECODES_LIST(TARGET)
@@ -1494,7 +1608,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(EntryFixed, A_D);
+    BYTECODE(EntryFixed, A_E);
     const uint16_t num_fixed_params = rA;
     const uint16_t num_locals = rD;
 
@@ -1550,15 +1664,13 @@ SwitchDispatch:
         const KBCInstr* load_name = pc;
         const KBCInstr* load_value = KernelBytecode::Next(load_name);
         pc = KernelBytecode::Next(load_value);
-        ASSERT(KernelBytecode::DecodeOpcode(load_name) ==
-               KernelBytecode::kLoadConstant);
-        ASSERT(KernelBytecode::DecodeOpcode(load_value) ==
-               KernelBytecode::kLoadConstant);
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name));
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value));
         const uint8_t reg = KernelBytecode::DecodeA(load_name);
         ASSERT(reg == KernelBytecode::DecodeA(load_value));
 
         RawString* name = static_cast<RawString*>(
-            LOAD_CONSTANT(KernelBytecode::DecodeD(load_name)));
+            LOAD_CONSTANT(KernelBytecode::DecodeE(load_name)));
         if (name == argdesc_data[ArgumentsDescriptor::name_index(i)]) {
           // Parameter was passed. Fetch passed value.
           const intptr_t arg_index = Smi::Value(static_cast<RawSmi*>(
@@ -1567,7 +1679,7 @@ SwitchDispatch:
           ++i;  // Consume passed argument.
         } else {
           // Parameter was not passed. Fetch default value.
-          FP[reg] = LOAD_CONSTANT(KernelBytecode::DecodeD(load_value));
+          FP[reg] = LOAD_CONSTANT(KernelBytecode::DecodeE(load_value));
         }
         ++j;  // Next formal parameter.
       }
@@ -1578,14 +1690,12 @@ SwitchDispatch:
         const KBCInstr* load_name = pc;
         const KBCInstr* load_value = KernelBytecode::Next(load_name);
         pc = KernelBytecode::Next(load_value);
-        ASSERT(KernelBytecode::DecodeOpcode(load_name) ==
-               KernelBytecode::kLoadConstant);
-        ASSERT(KernelBytecode::DecodeOpcode(load_value) ==
-               KernelBytecode::kLoadConstant);
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name));
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value));
         const uint8_t reg = KernelBytecode::DecodeA(load_name);
         ASSERT(reg == KernelBytecode::DecodeA(load_value));
 
-        FP[reg] = LOAD_CONSTANT(KernelBytecode::DecodeD(load_value));
+        FP[reg] = LOAD_CONSTANT(KernelBytecode::DecodeE(load_value));
         ++j;
       }
 
@@ -1611,17 +1721,15 @@ SwitchDispatch:
       // LoadConstant instructions after EntryOpt bytecode.
       // Execute only those that correspond to parameters that were not passed.
       for (intptr_t i = num_fixed_params; i < pos_count; ++i) {
-        ASSERT(KernelBytecode::DecodeOpcode(pc) ==
-               KernelBytecode::kLoadConstant);
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(pc));
         pc = KernelBytecode::Next(pc);
       }
       for (intptr_t i = pos_count; i < max_num_pos_args; ++i) {
         const KBCInstr* load_value = pc;
         pc = KernelBytecode::Next(load_value);
-        ASSERT(KernelBytecode::DecodeOpcode(load_value) ==
-               KernelBytecode::kLoadConstant);
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value));
         ASSERT(KernelBytecode::DecodeA(load_value) == i);
-        FP[i] = LOAD_CONSTANT(KernelBytecode::DecodeD(load_value));
+        FP[i] = LOAD_CONSTANT(KernelBytecode::DecodeE(load_value));
       }
 
       // SP points past the last copied parameter.
@@ -1676,7 +1784,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(CheckFunctionTypeArgs, A_D);
+    BYTECODE(CheckFunctionTypeArgs, A_E);
     const uint16_t declared_type_args_len = rA;
     const uint16_t first_stack_local_index = rD;
 
@@ -1714,7 +1822,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(InstantiateTypeArgumentsTOS, A_D);
+    BYTECODE(InstantiateTypeArgumentsTOS, A_E);
     // Stack: instantiator type args, function type args
     RawTypeArguments* type_arguments =
         static_cast<RawTypeArguments*>(LOAD_CONSTANT(rD));
@@ -1777,7 +1885,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(LoadConstant, A_D);
+    BYTECODE(LoadConstant, A_E);
     FP[rA] = LOAD_CONSTANT(rD);
     DISPATCH();
   }
@@ -1831,7 +1939,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(MoveSpecial, A_X);
+    BYTECODE(MoveSpecial, A_Y);
     ASSERT(rA < KernelBytecode::kSpecialIndexCount);
     FP[rD] = special_[rA];
     DISPATCH();
@@ -1844,39 +1952,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(IndirectStaticCall, A_D);
-
-#ifndef PRODUCT
-    // Check if single stepping.
-    if (thread->isolate()->single_step()) {
-      Exit(thread, FP, SP + 1, pc);
-      NativeArguments args(thread, 0, NULL, NULL);
-      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
-    }
-#endif  // !PRODUCT
-
-    // Invoke target function.
-    {
-      const uint16_t argc = rA;
-      // Look up the function in the ICData.
-      RawObject* ic_data_obj = SP[0];
-      RawICData* ic_data = RAW_CAST(ICData, ic_data_obj);
-      RawObject** data = ic_data->ptr()->entries_->ptr()->data();
-      InterpreterHelpers::IncrementICUsageCount(data, 0, 0);
-      SP[0] = data[ICData::TargetIndexFor(ic_data->ptr()->state_bits_ & 0x3)];
-      RawObject** call_base = SP - argc;
-      RawObject** call_top = SP;  // *SP contains function
-      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(rD));
-      if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
-        HANDLE_EXCEPTION;
-      }
-    }
-
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DirectCall, A_D);
+    BYTECODE(DirectCall, D_F);
 
 #ifndef PRODUCT
     // Check if single stepping.
@@ -1906,7 +1982,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(InterfaceCall, A_D);
+    BYTECODE(InterfaceCall, D_F);
 
 #ifndef PRODUCT
     // Check if single stepping.
@@ -1938,7 +2014,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(UncheckedInterfaceCall, A_D);
+    BYTECODE(UncheckedInterfaceCall, D_F);
 
 #ifndef PRODUCT
     // Check if single stepping.
@@ -1970,7 +2046,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(DynamicCall, A_D);
+    BYTECODE(DynamicCall, D_F);
 
 #ifndef PRODUCT
     // Check if single stepping.
@@ -2078,7 +2154,12 @@ SwitchDispatch:
           // Change the ArgumentsDescriptor of the call with a new cached one.
           argdesc_ = ArgumentsDescriptor::New(
               0, KernelBytecode::kNativeCallToGrowableListArgc);
-          // Note the special handling of the return of this call in DecodeArgc.
+          if (!thread->isolate()->is_using_old_bytecode_instructions()) {
+            // Replace PC to the return trampoline so ReturnTOS would see
+            // a call bytecode at return address and will be able to get argc
+            // via DecodeArgc.
+            pc = KernelBytecode::GetNativeCallToGrowableListReturnTrampoline();
+          }
           if (!Invoke(thread, SP - 1, SP + 1, &pc, &FP, &SP)) {
             HANDLE_EXCEPTION;
           }
@@ -2228,7 +2309,9 @@ SwitchDispatch:
     }
 
     // Look at the caller to determine how many arguments to pop.
-    const uint8_t argc = KernelBytecode::DecodeArgc(pc);
+    const uint8_t argc = thread->isolate()->is_using_old_bytecode_instructions()
+                             ? KernelBytecode::DecodeArgc_Old(pc)
+                             : KernelBytecode::DecodeArgc(pc);
 
     // Restore SP, FP and PP. Push result and dispatch.
     SP = FrameArguments(FP, argc);
@@ -2237,6 +2320,14 @@ SwitchDispatch:
     NOT_IN_PRODUCT(pc_ = pc);  // For the profiler.
     pp_ = InterpreterHelpers::FrameBytecode(FP)->ptr()->object_pool_;
     *SP = result;
+#if defined(DEBUG)
+    if (IsTracingExecution()) {
+      THR_Print("%" Pu64 " ", icount_);
+      THR_Print("Returning to %s (argc %d)\n",
+                Function::Handle(FrameFunction(FP)).ToFullyQualifiedCString(),
+                static_cast<int>(argc));
+    }
+#endif
     DISPATCH();
   }
 
@@ -2347,7 +2438,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(StoreContextVar, A_D);
+    BYTECODE(StoreContextVar, A_E);
     const uword offset_in_words =
         static_cast<uword>(Context::variable_offset(rD) / kWordSize);
     RawContext* instance = reinterpret_cast<RawContext*>(SP[-1]);
@@ -2399,7 +2490,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(LoadContextVar, A_D);
+    BYTECODE(LoadContextVar, A_E);
     const uword offset_in_words =
         static_cast<uword>(Context::variable_offset(rD) / kWordSize);
     RawContext* instance = static_cast<RawContext*>(SP[0]);
@@ -2409,7 +2500,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(AllocateContext, A_D);
+    BYTECODE(AllocateContext, A_E);
     ++SP;
     const uint16_t num_context_variables = rD;
     if (!AllocateContext(thread, num_context_variables, pc, FP, SP)) {
@@ -2419,7 +2510,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(CloneContext, A_D);
+    BYTECODE(CloneContext, A_E);
     {
       SP[1] = SP[0];  // Context to clone.
       Exit(thread, FP, SP + 2, pc);
@@ -2504,7 +2595,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(AssertAssignable, A_D);
+    BYTECODE(AssertAssignable, A_E);
     // Stack: instance, type, instantiator type args, function type args, name
     RawObject** args = SP - 4;
     const bool may_be_smi = (rA == 1);
@@ -2970,12 +3061,50 @@ SwitchDispatch:
 
   {
     BYTECODE(Trap, 0);
+    BYTECODE(Unused00, 0);
+    BYTECODE_NEW(Unused01, 0);
+    BYTECODE_NEW(Unused02, 0);
+    BYTECODE_NEW(Unused03, 0);
+    BYTECODE_NEW(Unused04, 0);
+    BYTECODE_NEW(Unused05, 0);
+    BYTECODE_NEW(Unused06, 0);
+    BYTECODE_NEW(Unused07, 0);
+    BYTECODE_NEW(Unused08, 0);
+    BYTECODE_NEW(Unused09, 0);
+    BYTECODE_NEW(Unused10, 0);
+    BYTECODE_NEW(Unused11, 0);
+    BYTECODE_NEW(Unused12, 0);
+    BYTECODE_NEW(Unused13, 0);
+    BYTECODE_NEW(Unused14, 0);
+    BYTECODE_NEW(Unused15, 0);
+    BYTECODE_NEW(Unused16, 0);
+    BYTECODE_NEW(Unused17, 0);
+    BYTECODE_NEW(Unused18, 0);
+    BYTECODE_NEW(Unused19, 0);
+    BYTECODE_NEW(Unused20, 0);
+    BYTECODE_NEW(Unused21, 0);
+    BYTECODE_NEW(Unused22, 0);
+    BYTECODE_NEW(Unused23, 0);
+    BYTECODE_NEW(Unused24, 0);
+    BYTECODE_NEW(Unused25, 0);
+    BYTECODE_NEW(Unused26, 0);
+    BYTECODE_NEW(Unused27, 0);
+    BYTECODE_NEW(Unused28, 0);
+    BYTECODE_NEW(Unused29, 0);
+    BYTECODE_NEW(Unused30, 0);
+    BYTECODE_NEW(Unused31, 0);
+    BYTECODE_NEW(Unused32, 0);
+    BYTECODE_NEW(Unused33, 0);
+    BYTECODE_NEW(Unused34, 0);
+    BYTECODE_NEW(Unused35, 0);
+    BYTECODE_NEW(Unused36, 0);
+    BYTECODE_NEW(Unused37, 0);
     UNIMPLEMENTED();
     DISPATCH();
   }
 
   {
-    BYTECODE(VMInternal_ImplicitGetter, 0);
+    BYTECODE_NEW(VMInternal_ImplicitGetter, 0);
 
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kImplicitGetter);
@@ -3024,7 +3153,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_ImplicitSetter, 0);
+    BYTECODE_NEW(VMInternal_ImplicitSetter, 0);
 
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kImplicitSetter);
@@ -3145,7 +3274,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_ImplicitStaticGetter, 0);
+    BYTECODE_NEW(VMInternal_ImplicitStaticGetter, 0);
 
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kImplicitStaticGetter);
@@ -3177,7 +3306,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_MethodExtractor, 0);
+    BYTECODE_NEW(VMInternal_MethodExtractor, 0);
 
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kMethodExtractor);
@@ -3217,7 +3346,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_InvokeClosure, 0);
+    BYTECODE_NEW(VMInternal_InvokeClosure, 0);
 
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kInvokeFieldDispatcher);
@@ -3239,7 +3368,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_InvokeField, 0);
+    BYTECODE_NEW(VMInternal_InvokeField, 0);
 
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kInvokeFieldDispatcher);
@@ -3343,7 +3472,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_ForwardDynamicInvocation, 0);
+    BYTECODE_NEW(VMInternal_ForwardDynamicInvocation, 0);
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) ==
            RawFunction::kDynamicInvocationForwarder);
@@ -3352,14 +3481,14 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_NoSuchMethodDispatcher, 0);
+    BYTECODE_NEW(VMInternal_NoSuchMethodDispatcher, 0);
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kNoSuchMethodDispatcher);
     goto NoSuchMethodFromPrologue;
   }
 
   {
-    BYTECODE(VMInternal_ImplicitStaticClosure, 0);
+    BYTECODE_NEW(VMInternal_ImplicitStaticClosure, 0);
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kImplicitClosureFunction);
     UNIMPLEMENTED();
@@ -3367,7 +3496,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_ImplicitInstanceClosure, 0);
+    BYTECODE_NEW(VMInternal_ImplicitInstanceClosure, 0);
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kImplicitClosureFunction);
     UNIMPLEMENTED();

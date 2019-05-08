@@ -686,9 +686,15 @@ RawBytecode* BytecodeReaderHelper::ReadBytecode(const ObjectPool& pool) {
                     "BytecodeReaderHelper::ReadBytecode");
 #endif  // defined(SUPPORT_TIMELINE)
   intptr_t size = helper_->ReadUInt();
-  // TODO(alexmarkov): remove padding.
-  const intptr_t kAlignment = 4;
-  intptr_t offset = Utils::RoundUp(helper_->reader_.offset(), kAlignment);
+  intptr_t offset = helper_->reader_.offset();
+
+  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
+                "Cleanup support for old bytecode format versions");
+  if (bytecode_component_->GetVersion() < 7) {
+    const intptr_t kAlignment = 4;
+    offset = Utils::RoundUp(offset, kAlignment);
+  }
+
   const uint8_t* data = helper_->reader_.BufferAt(offset);
   helper_->reader_.set_offset(offset + size);
 
@@ -713,21 +719,24 @@ void BytecodeReaderHelper::ReadExceptionsTable(const Bytecode& bytecode,
     ExceptionHandlerList* exception_handlers_list =
         new (Z) ExceptionHandlerList();
 
+    static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
+                  "Cleanup support for old bytecode format versions");
+    const int kPCShifter = (bytecode_component_->GetVersion() < 7) ? 2 : 0;
+
     // Encoding of ExceptionsTable is described in
     // pkg/vm/lib/bytecode/exceptions.dart.
     for (intptr_t try_index = 0; try_index < try_block_count; try_index++) {
       intptr_t outer_try_index_plus1 = helper_->reader_.ReadUInt();
       intptr_t outer_try_index = outer_try_index_plus1 - 1;
       // PcDescriptors are expressed in terms of return addresses.
-      const int kPCMultiplier = 4;
       intptr_t start_pc = KernelBytecode::BytecodePcToOffset(
-          helper_->reader_.ReadUInt() * kPCMultiplier,
+          helper_->reader_.ReadUInt() << kPCShifter,
           /* is_return_address = */ true);
       intptr_t end_pc = KernelBytecode::BytecodePcToOffset(
-          helper_->reader_.ReadUInt() * kPCMultiplier,
+          helper_->reader_.ReadUInt() << kPCShifter,
           /* is_return_address = */ true);
       intptr_t handler_pc = KernelBytecode::BytecodePcToOffset(
-          helper_->reader_.ReadUInt() * kPCMultiplier,
+          helper_->reader_.ReadUInt() << kPCShifter,
           /* is_return_address = */ false);
       uint8_t flags = helper_->reader_.ReadByte();
       const uint8_t kFlagNeedsStackTrace = 1 << 0;
@@ -854,6 +863,9 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   const intptr_t start_offset = helper_->reader_.offset();
 
   intptr_t magic = helper_->reader_.ReadUInt32();
+
+  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 3,
+                "Cleanup support for old bytecode format versions");
   if (magic != KernelBytecode::kMagicValue) {
     return ReadBytecodeComponentV2(md_offset);
   }
@@ -868,6 +880,7 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
            version, KernelBytecode::kMinSupportedBytecodeFormatVersion,
            KernelBytecode::kMaxSupportedBytecodeFormatVersion);
   }
+  BytecodeReader::UseBytecodeVersion(version);
 
   helper_->reader_.ReadUInt32();  // Skip stringTable.numItems
   const intptr_t string_table_offset =
@@ -934,6 +947,8 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
 
 // TODO(alexmarkov): obsolete, remove when dropping support for old bytecode
 // format version.
+static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 3,
+              "Cleanup support for old bytecode format versions");
 RawArray* BytecodeReaderHelper::ReadBytecodeComponentV2(intptr_t md_offset) {
   AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
                               md_offset);
@@ -945,6 +960,7 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponentV2(intptr_t md_offset) {
   if ((version < kMinVersion) || (version > kMaxVersion)) {
     FATAL1("Unsupported Dart bytecode format version %" Pd ".", version);
   }
+  BytecodeReader::UseBytecodeVersion(version);
 
   const intptr_t strings_size = helper_->reader_.ReadUInt();
   helper_->reader_.ReadUInt();  // Objects table size.
@@ -2038,8 +2054,7 @@ void BytecodeReaderHelper::ParseForwarderFunction(
         reinterpret_cast<const KBCInstr*>(target_bytecode.PayloadStart());
     const KBCInstr* entry = raw_bytecode;
     raw_bytecode = KernelBytecode::Next(raw_bytecode);
-    ASSERT(KernelBytecode::DecodeOpcode(entry) ==
-           KernelBytecode::kEntryOptional);
+    ASSERT(KernelBytecode::IsEntryOptionalOpcode(entry));
     ASSERT(KernelBytecode::DecodeB(entry) ==
            function.NumOptionalPositionalParameters());
     ASSERT(KernelBytecode::DecodeC(entry) ==
@@ -2054,10 +2069,9 @@ void BytecodeReaderHelper::ParseForwarderFunction(
            i < n; ++i) {
         const KBCInstr* load = raw_bytecode;
         raw_bytecode = KernelBytecode::Next(raw_bytecode);
-        ASSERT(KernelBytecode::DecodeOpcode(load) ==
-               KernelBytecode::kLoadConstant);
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load));
         const auto& value = Instance::CheckedZoneHandle(
-            Z, obj_pool.ObjectAt(KernelBytecode::DecodeD(load)));
+            Z, obj_pool.ObjectAt(KernelBytecode::DecodeE(load)));
         default_values->Add(&value);
       }
     } else {
@@ -2068,13 +2082,11 @@ void BytecodeReaderHelper::ParseForwarderFunction(
         const KBCInstr* load_name = raw_bytecode;
         const KBCInstr* load_value = KernelBytecode::Next(load_name);
         raw_bytecode = KernelBytecode::Next(load_value);
-        ASSERT(KernelBytecode::DecodeOpcode(load_name) ==
-               KernelBytecode::kLoadConstant);
-        ASSERT(KernelBytecode::DecodeOpcode(load_value) ==
-               KernelBytecode::kLoadConstant);
-        param_name ^= obj_pool.ObjectAt(KernelBytecode::DecodeD(load_name));
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name));
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value));
+        param_name ^= obj_pool.ObjectAt(KernelBytecode::DecodeE(load_name));
         const auto& value = Instance::CheckedZoneHandle(
-            Z, obj_pool.ObjectAt(KernelBytecode::DecodeD(load_value)));
+            Z, obj_pool.ObjectAt(KernelBytecode::DecodeE(load_value)));
 
         const intptr_t num_params = function.NumParameters();
         intptr_t param_index = num_fixed_params;
@@ -2256,6 +2268,28 @@ RawObject* BytecodeReader::ReadAnnotation(const Field& annotation_field) {
 
   return bytecode_metadata_helper.ReadAnnotation(
       annotation_field.bytecode_offset());
+}
+
+static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
+              "Cleanup support for old bytecode format versions");
+void BytecodeReader::UseBytecodeVersion(intptr_t version) {
+  Isolate* isolate = Isolate::Current();
+  bool using_old = isolate->is_using_old_bytecode_instructions();
+  bool using_new = isolate->is_using_new_bytecode_instructions();
+  if (version < 7) {
+    using_old = true;
+    isolate->set_is_using_old_bytecode_instructions(true);
+  } else {
+    using_new = true;
+    isolate->set_is_using_new_bytecode_instructions(true);
+  }
+
+  if (using_old && using_new) {
+    FATAL1(
+        "Unable to use both new and old bytecode instructions in the same Dart "
+        "isolate (%s)",
+        isolate->name());
+  }
 }
 
 bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,

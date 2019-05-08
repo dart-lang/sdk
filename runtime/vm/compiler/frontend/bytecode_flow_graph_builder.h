@@ -108,10 +108,11 @@ class BytecodeFlowGraphBuilder {
   Operand DecodeOperandB();
   Operand DecodeOperandC();
   Operand DecodeOperandD();
+  Operand DecodeOperandE();
+  Operand DecodeOperandF();
   Operand DecodeOperandX();
+  Operand DecodeOperandY();
   Operand DecodeOperandT();
-  const KBCInstr* InstructionAt(intptr_t pc,
-                                KernelBytecode::Opcode expect_opcode);
   Constant ConstantAt(Operand entry_index, intptr_t add_index = 0);
   void PushConstant(Constant constant);
   Constant PopConstant();
@@ -141,7 +142,8 @@ class BytecodeFlowGraphBuilder {
 
   void BuildInstruction(KernelBytecode::Opcode opcode);
 
-#define DECLARE_BUILD_METHOD(name, encoding, op1, op2, op3) void Build##name();
+#define DECLARE_BUILD_METHOD(name, encoding, kind, op1, op2, op3)              \
+  void Build##name();
   KERNEL_BYTECODES_LIST(DECLARE_BUILD_METHOD)
 #undef DECLARE_BUILD_METHOD
 

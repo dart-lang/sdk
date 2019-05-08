@@ -16,6 +16,7 @@
 #include "platform/atomic.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
+#include "vm/constants_kbc.h"
 #include "vm/exceptions.h"
 #include "vm/fixed_cache.h"
 #include "vm/growable_array.h"
@@ -783,6 +784,23 @@ class Isolate : public BaseIsolate {
     return !unsafe_trust_strong_mode_types();
   }
 
+  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
+                "Cleanup support for old bytecode format versions");
+  bool is_using_old_bytecode_instructions() const {
+    return UsingOldBytecodeInstructionsBit::decode(isolate_flags_);
+  }
+  void set_is_using_old_bytecode_instructions(bool value) {
+    isolate_flags_ =
+        UsingOldBytecodeInstructionsBit::update(value, isolate_flags_);
+  }
+  bool is_using_new_bytecode_instructions() const {
+    return UsingNewBytecodeInstructionsBit::decode(isolate_flags_);
+  }
+  void set_is_using_new_bytecode_instructions(bool value) {
+    isolate_flags_ =
+        UsingNewBytecodeInstructionsBit::update(value, isolate_flags_);
+  }
+
   static void KillAllIsolates(LibMsgId msg_id);
   static void KillIfExists(Isolate* isolate, LibMsgId msg_id);
 
@@ -907,7 +925,13 @@ class Isolate : public BaseIsolate {
   V(Obfuscate)                                                                 \
   V(CompactionInProgress)                                                      \
   V(ShouldLoadVmService)                                                       \
-  V(UnsafeTrustStrongModeTypes)
+  V(UnsafeTrustStrongModeTypes)                                                \
+  V(UsingOldBytecodeInstructions)                                              \
+  V(UsingNewBytecodeInstructions)
+
+  static_assert(
+      KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
+      "Cleanup UsingOldBytecodeInstructions and UsingNewBytecodeInstructions");
 
   // Isolate specific flags.
   enum FlagBits {
