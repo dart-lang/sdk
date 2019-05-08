@@ -128,7 +128,6 @@ class SummaryTypeProvider extends TypeProviderBase {
   InterfaceType _listType;
   InterfaceType _mapType;
   InterfaceType _mapObjectObjectType;
-  InterfaceType _neverType;
   DartObjectImpl _nullObject;
   InterfaceType _nullType;
   InterfaceType _numType;
@@ -267,10 +266,7 @@ class SummaryTypeProvider extends TypeProviderBase {
   }
 
   @override
-  InterfaceType get neverType {
-    assert(_coreLibrary != null);
-    return _neverType ??= _getType(_coreLibrary, 'Never');
-  }
+  DartType get neverType => BottomTypeImpl.instance;
 
   @override
   DartObjectImpl get nullObject {

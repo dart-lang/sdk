@@ -26,6 +26,7 @@ import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin;
 import 'method_invocation_test.dart' as method_invocation;
 import 'mixin_test.dart' as mixin_resolution;
+import 'namespace_test.dart' as namespace;
 import 'non_nullable_test.dart' as non_nullable;
 import 'optional_const_test.dart' as optional_const;
 import 'property_access_test.dart' as property_access;
@@ -53,6 +54,7 @@ main() {
     instance_member_inference_mixin.main();
     method_invocation.main();
     mixin_resolution.main();
+    namespace.main();
     non_nullable.main();
     optional_const.main();
     property_access.main();

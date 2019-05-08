@@ -843,25 +843,27 @@ class ElementKind implements Comparable<ElementKind> {
 
   static const ElementKind NAME = const ElementKind('NAME', 15, "<name>");
 
+  static const ElementKind NEVER = const ElementKind('NEVER', 16, "<never>");
+
   static const ElementKind PARAMETER =
-      const ElementKind('PARAMETER', 16, "parameter");
+      const ElementKind('PARAMETER', 17, "parameter");
 
   static const ElementKind PREFIX =
-      const ElementKind('PREFIX', 17, "import prefix");
+      const ElementKind('PREFIX', 18, "import prefix");
 
-  static const ElementKind SETTER = const ElementKind('SETTER', 18, "setter");
+  static const ElementKind SETTER = const ElementKind('SETTER', 19, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      const ElementKind('TOP_LEVEL_VARIABLE', 19, "top level variable");
+      const ElementKind('TOP_LEVEL_VARIABLE', 20, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      const ElementKind('FUNCTION_TYPE_ALIAS', 20, "function type alias");
+      const ElementKind('FUNCTION_TYPE_ALIAS', 21, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      const ElementKind('TYPE_PARAMETER', 21, "type parameter");
+      const ElementKind('TYPE_PARAMETER', 22, "type parameter");
 
   static const ElementKind UNIVERSE =
-      const ElementKind('UNIVERSE', 22, "<universe>");
+      const ElementKind('UNIVERSE', 23, "<universe>");
 
   static const List<ElementKind> values = const [
     CLASS,
@@ -880,6 +882,7 @@ class ElementKind implements Comparable<ElementKind> {
     LOCAL_VARIABLE,
     METHOD,
     NAME,
+    NEVER,
     PARAMETER,
     PREFIX,
     SETTER,

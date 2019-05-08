@@ -64,6 +64,8 @@ class Linker {
   ) {
     var dynamicRef = rootReference.getChild('dart:core').getChild('dynamic');
     dynamicRef.element = DynamicElementImpl.instance;
+    var neverRef = rootReference.getChild('dart:core').getChild('Never');
+    neverRef.element = NeverElementImpl.instance;
 
     linkingBundleContext = LinkingBundleContext(dynamicRef);
 
