@@ -135,8 +135,8 @@ class SpawnIsolateTask : public ThreadPool::Task {
     ASSERT(name != NULL);
 
     Isolate* isolate = reinterpret_cast<Isolate*>((callback)(
-        state_->script_url(), name, state_->package_root(),
-        state_->package_config(), &api_flags, state_->init_data(), &error));
+        state_->script_url(), name, nullptr, state_->package_config(),
+        &api_flags, state_->init_data(), &error));
     state_->DecrementSpawnCount();
     if (isolate == NULL) {
       ReportError(error);
@@ -223,8 +223,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
             message, ILLEGAL_PORT, Message::kNormalPriority));
       }
 
-      // TODO(mfairhurst) remove package_root, as it no longer does anything.
-      const char* utf8_package_root = NULL;
       const char* utf8_package_config =
           packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
       const char* utf8_debug_name =
@@ -234,8 +232,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
           port.Id(), isolate->origin_id(), isolate->init_callback_data(),
           String2UTF8(script_uri), func, &message_buffer,
           isolate->spawn_count_monitor(), isolate->spawn_count(),
-          utf8_package_root, utf8_package_config, paused.value(), fatal_errors,
-          on_exit_port, on_error_port, utf8_debug_name);
+          utf8_package_config, paused.value(), fatal_errors, on_exit_port,
+          on_error_port, utf8_debug_name);
 
       // Since this is a call to Isolate.spawn, copy the parent isolate's code.
       state->isolate_flags()->copy_parent_code = true;
@@ -351,8 +349,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
     ThrowIsolateSpawnException(msg);
   }
 
-  // TODO(mfairhurst) remove package_root, as it no longer does anything.
-  const char* utf8_package_root = NULL;
   const char* utf8_package_config =
       packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
   const char* utf8_debug_name =
@@ -360,10 +356,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
 
   IsolateSpawnState* state = new IsolateSpawnState(
       port.Id(), isolate->init_callback_data(), canonical_uri,
-      utf8_package_root, utf8_package_config, &arguments_buffer,
-      &message_buffer, isolate->spawn_count_monitor(), isolate->spawn_count(),
-      paused.value(), fatal_errors, on_exit_port, on_error_port,
-      utf8_debug_name);
+      utf8_package_config, &arguments_buffer, &message_buffer,
+      isolate->spawn_count_monitor(), isolate->spawn_count(), paused.value(),
+      fatal_errors, on_exit_port, on_error_port, utf8_debug_name);
 
   // If we were passed a value then override the default flags state for
   // checked mode.

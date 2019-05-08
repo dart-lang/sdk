@@ -1160,7 +1160,6 @@ class IsolateSpawnState {
                     SerializedObjectBuffer* message_buffer,
                     Monitor* spawn_count_monitor,
                     intptr_t* spawn_count,
-                    const char* package_root,
                     const char* package_config,
                     bool paused,
                     bool errorsAreFatal,
@@ -1170,7 +1169,6 @@ class IsolateSpawnState {
   IsolateSpawnState(Dart_Port parent_port,
                     void* init_data,
                     const char* script_url,
-                    const char* package_root,
                     const char* package_config,
                     SerializedObjectBuffer* args_buffer,
                     SerializedObjectBuffer* message_buffer,
@@ -1192,7 +1190,6 @@ class IsolateSpawnState {
   Dart_Port on_exit_port() const { return on_exit_port_; }
   Dart_Port on_error_port() const { return on_error_port_; }
   const char* script_url() const { return script_url_; }
-  const char* package_root() const { return package_root_; }
   const char* package_config() const { return package_config_; }
   const char* library_url() const { return library_url_; }
   const char* class_name() const { return class_name_; }
@@ -1217,7 +1214,6 @@ class IsolateSpawnState {
   Dart_Port on_exit_port_;
   Dart_Port on_error_port_;
   const char* script_url_;
-  const char* package_root_;
   const char* package_config_;
   const char* library_url_;
   const char* class_name_;
