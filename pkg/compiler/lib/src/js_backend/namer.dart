@@ -438,9 +438,6 @@ class Namer extends ModularNamer {
     return _jsVariableReserved;
   }
 
-  final String asyncPrefix = r"$async$";
-  @override
-  final String staticStateHolder = r'$';
   final String getterPrefix = r'get$';
   final String lazyGetterPrefix = r'$get$';
   final String setterPrefix = r'set$';
@@ -470,7 +467,6 @@ class Namer extends ModularNamer {
   static final jsAst.Name literalPlus = new StringBackedName('+');
   static final jsAst.Name _literalDynamic = new StringBackedName("dynamic");
 
-  jsAst.Name _literalAsyncPrefix;
   jsAst.Name _literalGetterPrefix;
   jsAst.Name _literalSetterPrefix;
 
@@ -600,7 +596,6 @@ class Namer extends ModularNamer {
   final Map<LibraryEntity, String> _libraryKeys = HashMap();
 
   Namer(this._closedWorld) {
-    _literalAsyncPrefix = new StringBackedName(asyncPrefix);
     _literalGetterPrefix = new StringBackedName(getterPrefix);
     _literalSetterPrefix = new StringBackedName(setterPrefix);
   }
@@ -1726,16 +1721,6 @@ class Namer extends ModularNamer {
     return name;
   }
 
-  @override
-  String safeVariablePrefixForAsyncRewrite(String name) {
-    return "$asyncPrefix$name";
-  }
-
-  @override
-  jsAst.Name deriveAsyncBodyName(jsAst.Name original) {
-    return new _AsyncName(_literalAsyncPrefix, original);
-  }
-
   String operatorNameToIdentifier(String name) {
     if (name == null) return null;
     if (name == '==') {
@@ -2349,23 +2334,23 @@ abstract class ModularNamer {
   /// Returns a variable use for accessing [library].
   ///
   /// This is one of the [reservedGlobalObjectNames]
-  jsAst.VariableUse readGlobalObjectForLibrary(LibraryEntity library);
+  jsAst.Expression readGlobalObjectForLibrary(LibraryEntity library);
 
   /// Returns a variable use for accessing the class [element].
   ///
   /// This is one of the [reservedGlobalObjectNames]
-  jsAst.VariableUse readGlobalObjectForClass(ClassEntity element);
+  jsAst.Expression readGlobalObjectForClass(ClassEntity element);
 
   /// Returns a variable use for accessing the type [element].
   ///
   /// This is one of the [reservedGlobalObjectNames]
-  jsAst.VariableUse readGlobalObjectForType(Entity element);
+  jsAst.Expression readGlobalObjectForType(Entity element);
 
   /// Returns a variable use for accessing the member [element].
   ///
   /// This is either the [staticStateHolder] or one of the
   /// [reservedGlobalObjectNames]
-  jsAst.VariableUse readGlobalObjectForMember(MemberEntity element);
+  jsAst.Expression readGlobalObjectForMember(MemberEntity element);
 
   /// Returns a JavaScript property name used to store the class [element] on
   /// one of the global objects.
@@ -2448,10 +2433,6 @@ abstract class ModularNamer {
   /// from the type name.
   jsAst.Name runtimeTypeName(Entity element);
 
-  /// Returns the name for the async body of the method with the [original]
-  /// name.
-  jsAst.Name deriveAsyncBodyName(jsAst.Name original);
-
   /// Property name in which to store the given static or instance [method].
   /// For instance methods, this includes the suffix encoding arity and named
   /// parameters.
@@ -2459,19 +2440,6 @@ abstract class ModularNamer {
   /// The name is not necessarily unique to [method], since a static method
   /// may share its name with an instance method.
   jsAst.Name methodPropertyName(FunctionEntity method);
-
-  /// Returns a safe variable name for use in async rewriting.
-  ///
-  /// Has the same property as [safeVariableName] but does not clash with
-  /// names returned from there.
-  /// Additionally, when used as a prefix to a variable name, the result
-  /// will be safe to use, as well.
-  String safeVariablePrefixForAsyncRewrite(String name);
-
-  /// Returns the name for the holder of static state.
-  ///
-  /// This is used for mutable static fields.
-  String get staticStateHolder;
 
   /// Returns the name of the `isX` property for classes that implement
   /// [element].
@@ -2489,6 +2457,36 @@ abstract class ModularNamer {
 
   /// Returns the name of the closure of the static method [element].
   jsAst.Name staticClosureName(FunctionEntity element);
+
+  /// The prefix used for encoding async properties.
+  final String asyncPrefix = r"$async$";
+
+  /// Returns the name for the holder of static state.
+  ///
+  /// This is used for mutable static fields.
+  final String staticStateHolder = r'$';
+
+  jsAst.Name _literalAsyncPrefix;
+
+  ModularNamer() {
+    _literalAsyncPrefix = new StringBackedName(asyncPrefix);
+  }
+
+  /// Returns a safe variable name for use in async rewriting.
+  ///
+  /// Has the same property as [safeVariableName] but does not clash with
+  /// names returned from there.
+  /// Additionally, when used as a prefix to a variable name, the result
+  /// will be safe to use, as well.
+  String safeVariablePrefixForAsyncRewrite(String name) {
+    return "$asyncPrefix$name";
+  }
+
+  /// Returns the name for the async body of the method with the [original]
+  /// name.
+  jsAst.Name deriveAsyncBodyName(jsAst.Name original) {
+    return new _AsyncName(_literalAsyncPrefix, original);
+  }
 
   /// Returns the label name for [label] used as a break target.
   String breakLabelName(LabelDefinition label) {
@@ -2514,4 +2512,198 @@ abstract class ModularNamer {
   String implicitContinueLabelName(JumpTarget target) {
     return 'c\$${target.nestingLevel}';
   }
+}
+
+class ModularNamerImpl extends ModularNamer {
+  @override
+  jsAst.Name get rtiFieldJsName {
+    return new ModularName(ModularNameKind.rtiField);
+  }
+
+  @override
+  jsAst.Name runtimeTypeName(Entity element) {
+    return new ModularName(ModularNameKind.runtimeTypeName, element);
+  }
+
+  @override
+  jsAst.Expression readGlobalObjectForLibrary(LibraryEntity library) {
+    return new ModularVariableUse(
+        ModularVariableUseKind.globalObjectForLibrary, library);
+  }
+
+  @override
+  jsAst.Expression readGlobalObjectForClass(ClassEntity element) {
+    return new ModularVariableUse(
+        ModularVariableUseKind.globalObjectForClass, element);
+  }
+
+  @override
+  jsAst.Expression readGlobalObjectForType(Entity element) {
+    return new ModularVariableUse(
+        ModularVariableUseKind.globalObjectForType, element);
+  }
+
+  @override
+  jsAst.Expression readGlobalObjectForMember(MemberEntity element) {
+    return new ModularVariableUse(
+        ModularVariableUseKind.globalObjectForMember, element);
+  }
+
+  @override
+  jsAst.Name aliasedSuperMemberPropertyName(MemberEntity member) {
+    return new ModularName(ModularNameKind.aliasedSuperMember, member);
+  }
+
+  @override
+  jsAst.Name staticClosureName(FunctionEntity element) {
+    return new ModularName(ModularNameKind.staticClosure, element);
+  }
+
+  @override
+  jsAst.Name methodPropertyName(FunctionEntity method) {
+    return new ModularName(ModularNameKind.methodProperty, method);
+  }
+
+  @override
+  jsAst.Name instanceFieldPropertyName(FieldEntity element) {
+    return new ModularName(ModularNameKind.instanceField, element);
+  }
+
+  @override
+  jsAst.Name operatorIsType(DartType type) {
+    return new ModularName(ModularNameKind.operatorIsType, type);
+  }
+
+  @override
+  jsAst.Name instanceMethodName(FunctionEntity method) {
+    return new ModularName(ModularNameKind.instanceMethod, method);
+  }
+
+  @override
+  jsAst.Name invocationName(Selector selector) {
+    return new ModularName(ModularNameKind.invocation, selector);
+  }
+
+  @override
+  jsAst.Name lazyInitializerName(FieldEntity element) {
+    return new ModularName(ModularNameKind.lazyInitializer, element);
+  }
+
+  @override
+  jsAst.Name operatorIs(ClassEntity element) {
+    return new ModularName(ModularNameKind.operatorIs, element);
+  }
+
+  @override
+  jsAst.Name globalPropertyNameForType(Entity element) {
+    return new ModularName(ModularNameKind.globalPropertyNameForType, element);
+  }
+
+  @override
+  jsAst.Name globalPropertyNameForClass(ClassEntity element) {
+    return new ModularName(ModularNameKind.globalPropertyNameForClass, element);
+  }
+
+  @override
+  jsAst.Name globalPropertyNameForMember(MemberEntity element) {
+    return new ModularName(ModularNameKind.globalPropertyNameForClass, element);
+  }
+
+  @override
+  jsAst.Name nameForGetInterceptor(Iterable<ClassEntity> classes) {
+    return new ModularName(ModularNameKind.nameForGetInterceptor, classes);
+  }
+
+  @override
+  jsAst.Name asName(String name) {
+    return new ModularName(ModularNameKind.asName, name);
+  }
+
+  @override
+  jsAst.Name substitutionName(ClassEntity element) {
+    return new ModularName(ModularNameKind.substitution, element);
+  }
+}
+
+enum ModularNameKind {
+  rtiField,
+  runtimeTypeName,
+  aliasedSuperMember,
+  staticClosure,
+  methodProperty,
+  operatorIs,
+  operatorIsType,
+  substitution,
+  instanceMethod,
+  instanceField,
+  invocation,
+  lazyInitializer,
+  globalPropertyNameForClass,
+  globalPropertyNameForType,
+  globalPropertyNameForMember,
+  nameForGetInterceptor,
+  asName,
+}
+
+class ModularName extends jsAst.Name {
+  final ModularNameKind kind;
+  jsAst.Name deferred;
+  final Object data;
+
+  ModularName(this.kind, [this.data]);
+
+  @override
+  String get key {
+    assert(deferred != null);
+    return deferred.key;
+  }
+
+  @override
+  String get name {
+    assert(deferred != null);
+    return deferred.name;
+  }
+
+  @override
+  bool get allowRename {
+    assert(deferred != null);
+    return deferred.allowRename;
+  }
+
+  @override
+  int compareTo(covariant ModularName other) {
+    assert(deferred != null);
+    assert(other.deferred != null);
+    return deferred.compareTo(other.deferred);
+  }
+}
+
+enum ModularVariableUseKind {
+  globalObjectForLibrary,
+  globalObjectForClass,
+  globalObjectForType,
+  globalObjectForMember,
+}
+
+class ModularVariableUse extends jsAst.DeferredExpression {
+  final ModularVariableUseKind kind;
+  final Entity element;
+  jsAst.VariableUse _value;
+
+  ModularVariableUse(this.kind, this.element);
+
+  @override
+  jsAst.VariableUse get value {
+    assert(_value != null);
+    return _value;
+  }
+
+  void set value(jsAst.VariableUse value) {
+    assert(_value == null);
+    assert(value != null);
+    _value = value;
+  }
+
+  @override
+  int get precedenceLevel => value.precedenceLevel;
 }

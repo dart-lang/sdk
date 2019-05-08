@@ -712,7 +712,7 @@ class JavaScriptBackend {
         rtiChecksBuilder,
         emitterTask.nativeEmitter);
 
-    CodegenInputs codegen = new CodegenImpl(emitterTask.emitter,
+    CodegenInputs codegen = new CodegenInputsImpl(emitterTask.emitter,
         oneShotInterceptorData, rtiSubstitutions, rtiEncoder, namer, tracer);
 
     functionCompiler.onCodegenStart(codegen);
@@ -812,7 +812,7 @@ abstract class CodegenInputs {
   Tracer get tracer;
 }
 
-class CodegenImpl implements CodegenInputs {
+class CodegenInputsImpl implements CodegenInputs {
   @override
   final ModularEmitter emitter;
 
@@ -837,6 +837,6 @@ class CodegenImpl implements CodegenInputs {
   @override
   final Tracer tracer;
 
-  CodegenImpl(this.emitter, this.oneShotInterceptorData, this.rtiSubstitutions,
-      this.rtiEncoder, this.namer, this.tracer);
+  CodegenInputsImpl(this.emitter, this.oneShotInterceptorData,
+      this.rtiSubstitutions, this.rtiEncoder, this.namer, this.tracer);
 }
