@@ -72,7 +72,6 @@ class BytecodeReaderHelper : public ValueObject {
   RawLibrary* ReadMain();
 
   RawArray* ReadBytecodeComponent(intptr_t md_offset);
-  RawArray* ReadBytecodeComponentV2(intptr_t md_offset);
 
   // Fills in [is_covariant] and [is_generic_covariant_impl] vectors
   // according to covariance attributes of [function] parameters.

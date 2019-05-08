@@ -963,27 +963,15 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     return bytecode_compiler.BuildGraph();
   }
 
-  // This is the legacy code path to handle bytecode attached to kernel AST
-  // members.
-  // TODO(alexmarkov): clean this up after dropping old format versions.
-  if ((FLAG_use_bytecode_compiler || FLAG_enable_interpreter) &&
-      function.IsBytecodeAllowed(Z)) {
-    if (!function.HasBytecode()) {
-      bytecode_metadata_helper_.ReadMetadata(function);
-    }
-    if (function.HasBytecode() &&
-        (function.kind() != RawFunction::kImplicitGetter) &&
-        (function.kind() != RawFunction::kImplicitSetter) &&
-        (function.kind() != RawFunction::kImplicitStaticGetter) &&
-        (function.kind() != RawFunction::kMethodExtractor) &&
-        (function.kind() != RawFunction::kInvokeFieldDispatcher) &&
-        (function.kind() != RawFunction::kNoSuchMethodDispatcher)) {
-      BytecodeFlowGraphBuilder bytecode_compiler(
-          flow_graph_builder_, parsed_function(),
-          &(flow_graph_builder_->ic_data_array_));
-      return bytecode_compiler.BuildGraph();
-    }
-  }
+  // Certain special functions could have a VM-internal bytecode
+  // attached to them.
+  ASSERT((!function.HasBytecode()) ||
+         (function.kind() == RawFunction::kImplicitGetter) ||
+         (function.kind() == RawFunction::kImplicitSetter) ||
+         (function.kind() == RawFunction::kImplicitStaticGetter) ||
+         (function.kind() == RawFunction::kMethodExtractor) ||
+         (function.kind() == RawFunction::kInvokeFieldDispatcher) ||
+         (function.kind() == RawFunction::kNoSuchMethodDispatcher));
 
   ParseKernelASTFunction();
 

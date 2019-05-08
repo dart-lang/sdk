@@ -373,6 +373,8 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
       Z, Function::NewClosureFunction(name, Function::Cast(parent),
                                       TokenPosition::kNoSource));
 
+  closure.set_is_declared_in_bytecode(true);
+
   closures_->SetAt(closureIndex, closure);
 
   Type& signature_type =
@@ -863,11 +865,8 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   const intptr_t start_offset = helper_->reader_.offset();
 
   intptr_t magic = helper_->reader_.ReadUInt32();
-
-  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 3,
-                "Cleanup support for old bytecode format versions");
   if (magic != KernelBytecode::kMagicValue) {
-    return ReadBytecodeComponentV2(md_offset);
+    FATAL1("Unexpected Dart bytecode magic %" Px, magic);
   }
 
   const intptr_t version = helper_->reader_.ReadUInt32();
@@ -931,62 +930,6 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
           objects_contents_offset, main_offset, members_offset, codes_offset,
           sources_positions_offset, annotations_offset, Heap::kOld));
 
-  BytecodeComponentData bytecode_component(bytecode_component_array);
-
-  // Read object offsets.
-  Smi& offs = Smi::Handle(Z);
-  for (intptr_t i = 0; i < num_objects; ++i) {
-    offs = Smi::New(helper_->reader_.ReadUInt());
-    bytecode_component.SetObject(i, offs);
-  }
-
-  H.SetBytecodeComponent(bytecode_component_array);
-
-  return bytecode_component_array.raw();
-}
-
-// TODO(alexmarkov): obsolete, remove when dropping support for old bytecode
-// format version.
-static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 3,
-              "Cleanup support for old bytecode format versions");
-RawArray* BytecodeReaderHelper::ReadBytecodeComponentV2(intptr_t md_offset) {
-  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
-                              md_offset);
-
-  const intptr_t kMinVersion = 1;
-  const intptr_t kMaxVersion = 2;
-
-  const intptr_t version = helper_->reader_.ReadUInt();
-  if ((version < kMinVersion) || (version > kMaxVersion)) {
-    FATAL1("Unsupported Dart bytecode format version %" Pd ".", version);
-  }
-  BytecodeReader::UseBytecodeVersion(version);
-
-  const intptr_t strings_size = helper_->reader_.ReadUInt();
-  helper_->reader_.ReadUInt();  // Objects table size.
-
-  // Read header of strings table.
-  const intptr_t strings_header_offset = helper_->reader_.offset();
-  const intptr_t num_one_byte_strings = helper_->reader_.ReadUInt32();
-  const intptr_t num_two_byte_strings = helper_->reader_.ReadUInt32();
-  const intptr_t strings_contents_offset =
-      helper_->reader_.offset() +
-      (num_one_byte_strings + num_two_byte_strings) * 4;
-
-  // Read header of objects table.
-  helper_->reader_.set_offset(strings_header_offset + strings_size);
-  const intptr_t num_objects = helper_->reader_.ReadUInt();
-  const intptr_t objects_size = helper_->reader_.ReadUInt();
-
-  // Skip over contents of objects.
-  const intptr_t objects_contents_offset = helper_->reader_.offset();
-  helper_->reader_.set_offset(objects_contents_offset + objects_size);
-
-  const Array& bytecode_component_array =
-      Array::Handle(Z, BytecodeComponentData::New(
-                           Z, version, num_objects, strings_header_offset,
-                           strings_contents_offset, objects_contents_offset, 0,
-                           0, 0, 0, 0, Heap::kOld));
   BytecodeComponentData bytecode_component(bytecode_component_array);
 
   // Read object offsets.
