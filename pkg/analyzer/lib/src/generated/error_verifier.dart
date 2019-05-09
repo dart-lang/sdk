@@ -40,6 +40,16 @@ import 'package:analyzer/src/generated/source.dart';
  */
 class ErrorVerifier extends RecursiveAstVisitor<void> {
   /**
+   * Properties on the object class which are safe to call on nullable types.
+   * 
+   * Note that this must include tear-offs.
+   *
+   * TODO(mfairhurst): Calculate these fields rather than hard-code them.
+   */
+  static final _objectPropertyNames =
+      Set.from(['hashCode', 'runtimeType', 'noSuchMethod', 'toString']);
+
+  /**
    * The error reporter by which errors will be reported.
    */
   final ErrorReporter _errorReporter;
@@ -1054,6 +1064,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     _checkTypeArguments(node);
     _checkForImplicitDynamicInvoke(node);
+    _checkForNullableDereference(methodName);
     _checkForMissingRequiredParam(
         node.staticInvokeType, node.argumentList, node.methodName);
     if (node.operator?.type != TokenType.QUESTION_PERIOD &&
@@ -1134,8 +1145,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     String property = node.identifier.name;
     if (node.staticElement is ExecutableElement &&
-        property != 'hashCode' &&
-        property != 'runtimeType') {
+        !_objectPropertyNames.contains(property)) {
       _checkForNullableDereference(node.prefix);
     }
     super.visitPrefixedIdentifier(node);
@@ -1164,8 +1174,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(typeReference, propertyName);
     if (node.operator?.type != TokenType.QUESTION_PERIOD &&
-        propertyName.name != 'hashCode' &&
-        propertyName.name != 'runtimeType') {
+        !_objectPropertyNames.contains(propertyName.name)) {
       _checkForNullableDereference(node.target);
     }
     _checkForUnnecessaryNullAware(node.target, node.operator);
