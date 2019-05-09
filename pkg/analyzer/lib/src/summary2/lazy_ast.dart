@@ -990,6 +990,24 @@ class LazyFunctionExpression {
     return node.getProperty(_key);
   }
 
+  static bool isAsynchronous(FunctionExpression node) {
+    var lazy = get(node);
+    if (lazy != null) {
+      return lazy.data.executable_isAsynchronous;
+    } else {
+      return node.body.isAsynchronous;
+    }
+  }
+
+  static bool isGenerator(FunctionExpression node) {
+    var lazy = get(node);
+    if (lazy != null) {
+      return lazy.data.executable_isGenerator;
+    } else {
+      return node.body.isGenerator;
+    }
+  }
+
   static void readBody(
     AstBinaryReader reader,
     FunctionExpression node,
@@ -1360,6 +1378,24 @@ class LazyMethodDeclaration {
           LinkedNodeKind.emptyFunctionBody;
     } else {
       return node.isAbstract;
+    }
+  }
+
+  static bool isAsynchronous(MethodDeclaration node) {
+    var lazy = get(node);
+    if (lazy != null) {
+      return lazy.data.executable_isAsynchronous;
+    } else {
+      return node.body.isAsynchronous;
+    }
+  }
+
+  static bool isGenerator(MethodDeclaration node) {
+    var lazy = get(node);
+    if (lazy != null) {
+      return lazy.data.executable_isGenerator;
+    } else {
+      return node.body.isGenerator;
     }
   }
 

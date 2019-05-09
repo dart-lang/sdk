@@ -4747,6 +4747,7 @@ class LinkedNodeBuilder extends Object
   LinkedNodeBuilder _variantField_10;
   idl.LinkedNodeFormalParameterKind _variantField_26;
   double _variantField_21;
+  bool _variantField_37;
   LinkedNodeTypeBuilder _variantField_25;
   String _variantField_30;
   LinkedNodeBuilder _variantField_14;
@@ -9440,6 +9441,14 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  bool get executable_isAsynchronous {
+    assert(kind == idl.LinkedNodeKind.constructorDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression ||
+        kind == idl.LinkedNodeKind.methodDeclaration);
+    return _variantField_27 ??= false;
+  }
+
+  @override
   bool get inheritsCovariant {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
@@ -9474,6 +9483,13 @@ class LinkedNodeBuilder extends Object
 
   set classDeclaration_isDartObject(bool value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration);
+    _variantField_27 = value;
+  }
+
+  set executable_isAsynchronous(bool value) {
+    assert(kind == idl.LinkedNodeKind.constructorDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression ||
+        kind == idl.LinkedNodeKind.methodDeclaration);
     _variantField_27 = value;
   }
 
@@ -9858,6 +9874,21 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  bool get executable_isGenerator {
+    assert(kind == idl.LinkedNodeKind.constructorDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression ||
+        kind == idl.LinkedNodeKind.methodDeclaration);
+    return _variantField_37 ??= false;
+  }
+
+  set executable_isGenerator(bool value) {
+    assert(kind == idl.LinkedNodeKind.constructorDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression ||
+        kind == idl.LinkedNodeKind.methodDeclaration);
+    _variantField_37 = value;
+  }
+
+  @override
   LinkedNodeTypeBuilder get expression_type {
     assert(kind == idl.LinkedNodeKind.adjacentStrings ||
         kind == idl.LinkedNodeKind.assignmentExpression ||
@@ -10178,11 +10209,15 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder functionExpression_body,
     LinkedNodeBuilder functionExpression_formalParameters,
     LinkedNodeBuilder functionExpression_typeParameters,
+    bool executable_isAsynchronous,
+    bool executable_isGenerator,
   })  : _kind = idl.LinkedNodeKind.functionExpression,
         _variantField_24 = actualReturnType,
         _variantField_6 = functionExpression_body,
         _variantField_7 = functionExpression_formalParameters,
-        _variantField_8 = functionExpression_typeParameters;
+        _variantField_8 = functionExpression_typeParameters,
+        _variantField_27 = executable_isAsynchronous,
+        _variantField_37 = executable_isGenerator;
 
   LinkedNodeBuilder.functionTypeAlias({
     LinkedNodeTypeBuilder actualReturnType,
@@ -10244,10 +10279,12 @@ class LinkedNodeBuilder extends Object
     int methodDeclaration_modifierKeyword,
     int methodDeclaration_propertyKeyword,
     int methodDeclaration_actualProperty,
+    bool executable_isAsynchronous,
     LinkedNodeBuilder methodDeclaration_typeParameters,
     int codeLength,
     int codeOffset,
     LinkedNodeBuilder methodDeclaration_name,
+    bool executable_isGenerator,
   })  : _kind = idl.LinkedNodeKind.methodDeclaration,
         _variantField_24 = actualReturnType,
         _variantField_11 = annotatedNode_comment,
@@ -10260,10 +10297,12 @@ class LinkedNodeBuilder extends Object
         _variantField_16 = methodDeclaration_modifierKeyword,
         _variantField_18 = methodDeclaration_propertyKeyword,
         _variantField_19 = methodDeclaration_actualProperty,
+        _variantField_27 = executable_isAsynchronous,
         _variantField_9 = methodDeclaration_typeParameters,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
-        _variantField_10 = methodDeclaration_name;
+        _variantField_10 = methodDeclaration_name,
+        _variantField_37 = executable_isGenerator;
 
   LinkedNodeBuilder.fieldFormalParameter({
     LinkedNodeTypeBuilder actualType,
@@ -10496,10 +10535,12 @@ class LinkedNodeBuilder extends Object
     int constructorDeclaration_externalKeyword,
     int constructorDeclaration_period,
     int constructorDeclaration_separator,
+    bool executable_isAsynchronous,
     LinkedNodeBuilder constructorDeclaration_redirectedConstructor,
     int codeLength,
     int codeOffset,
     LinkedNodeBuilder constructorDeclaration_returnType,
+    bool executable_isGenerator,
   })  : _kind = idl.LinkedNodeKind.constructorDeclaration,
         _variantField_2 = constructorDeclaration_initializers,
         _variantField_11 = annotatedNode_comment,
@@ -10512,10 +10553,12 @@ class LinkedNodeBuilder extends Object
         _variantField_16 = constructorDeclaration_externalKeyword,
         _variantField_18 = constructorDeclaration_period,
         _variantField_19 = constructorDeclaration_separator,
+        _variantField_27 = executable_isAsynchronous,
         _variantField_9 = constructorDeclaration_redirectedConstructor,
         _variantField_34 = codeLength,
         _variantField_33 = codeOffset,
-        _variantField_10 = constructorDeclaration_returnType;
+        _variantField_10 = constructorDeclaration_returnType,
+        _variantField_37 = executable_isGenerator;
 
   LinkedNodeBuilder.dottedName({
     List<LinkedNodeBuilder> dottedName_components,
@@ -11868,6 +11911,7 @@ class LinkedNodeBuilder extends Object
         signature.addString(x);
       }
     }
+    signature.addBool(this._variantField_37 == true);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -12050,6 +12094,9 @@ class LinkedNodeBuilder extends Object
     if (_variantField_21 != null && _variantField_21 != 0.0) {
       fbBuilder.addFloat64(21, _variantField_21);
     }
+    if (_variantField_37 == true) {
+      fbBuilder.addBool(37, true);
+    }
     if (offset_variantField_25 != null) {
       fbBuilder.addOffset(25, offset_variantField_25);
     }
@@ -12129,6 +12176,7 @@ class _LinkedNodeImpl extends Object
   idl.LinkedNode _variantField_10;
   idl.LinkedNodeFormalParameterKind _variantField_26;
   double _variantField_21;
+  bool _variantField_37;
   idl.LinkedNodeType _variantField_25;
   String _variantField_30;
   idl.LinkedNode _variantField_14;
@@ -15394,6 +15442,16 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  bool get executable_isAsynchronous {
+    assert(kind == idl.LinkedNodeKind.constructorDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression ||
+        kind == idl.LinkedNodeKind.methodDeclaration);
+    _variantField_27 ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 27, false);
+    return _variantField_27;
+  }
+
+  @override
   bool get inheritsCovariant {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
@@ -15673,6 +15731,16 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  bool get executable_isGenerator {
+    assert(kind == idl.LinkedNodeKind.constructorDeclaration ||
+        kind == idl.LinkedNodeKind.functionExpression ||
+        kind == idl.LinkedNodeKind.methodDeclaration);
+    _variantField_37 ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 37, false);
+    return _variantField_37;
+  }
+
+  @override
   idl.LinkedNodeType get expression_type {
     assert(kind == idl.LinkedNodeKind.adjacentStrings ||
         kind == idl.LinkedNodeKind.assignmentExpression ||
@@ -15909,6 +15977,10 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (functionExpression_typeParameters != null)
         _result["functionExpression_typeParameters"] =
             functionExpression_typeParameters.toJson();
+      if (executable_isAsynchronous != false)
+        _result["executable_isAsynchronous"] = executable_isAsynchronous;
+      if (executable_isGenerator != false)
+        _result["executable_isGenerator"] = executable_isGenerator;
     }
     if (kind == idl.LinkedNodeKind.functionTypeAlias) {
       if (actualReturnType != null)
@@ -15995,6 +16067,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (methodDeclaration_actualProperty != 0)
         _result["methodDeclaration_actualProperty"] =
             methodDeclaration_actualProperty;
+      if (executable_isAsynchronous != false)
+        _result["executable_isAsynchronous"] = executable_isAsynchronous;
       if (methodDeclaration_typeParameters != null)
         _result["methodDeclaration_typeParameters"] =
             methodDeclaration_typeParameters.toJson();
@@ -16002,6 +16076,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (methodDeclaration_name != null)
         _result["methodDeclaration_name"] = methodDeclaration_name.toJson();
+      if (executable_isGenerator != false)
+        _result["executable_isGenerator"] = executable_isGenerator;
     }
     if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
       if (actualType != null) _result["actualType"] = actualType.toJson();
@@ -16288,6 +16364,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (constructorDeclaration_separator != 0)
         _result["constructorDeclaration_separator"] =
             constructorDeclaration_separator;
+      if (executable_isAsynchronous != false)
+        _result["executable_isAsynchronous"] = executable_isAsynchronous;
       if (constructorDeclaration_redirectedConstructor != null)
         _result["constructorDeclaration_redirectedConstructor"] =
             constructorDeclaration_redirectedConstructor.toJson();
@@ -16296,6 +16374,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (constructorDeclaration_returnType != null)
         _result["constructorDeclaration_returnType"] =
             constructorDeclaration_returnType.toJson();
+      if (executable_isGenerator != false)
+        _result["executable_isGenerator"] = executable_isGenerator;
     }
     if (kind == idl.LinkedNodeKind.dottedName) {
       if (dottedName_components.isNotEmpty)
@@ -17672,6 +17752,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "functionExpression_formalParameters":
             functionExpression_formalParameters,
         "functionExpression_typeParameters": functionExpression_typeParameters,
+        "executable_isAsynchronous": executable_isAsynchronous,
+        "executable_isGenerator": executable_isGenerator,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -17727,10 +17809,12 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "methodDeclaration_modifierKeyword": methodDeclaration_modifierKeyword,
         "methodDeclaration_propertyKeyword": methodDeclaration_propertyKeyword,
         "methodDeclaration_actualProperty": methodDeclaration_actualProperty,
+        "executable_isAsynchronous": executable_isAsynchronous,
         "methodDeclaration_typeParameters": methodDeclaration_typeParameters,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
         "methodDeclaration_name": methodDeclaration_name,
+        "executable_isGenerator": executable_isGenerator,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };
@@ -17934,11 +18018,13 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             constructorDeclaration_externalKeyword,
         "constructorDeclaration_period": constructorDeclaration_period,
         "constructorDeclaration_separator": constructorDeclaration_separator,
+        "executable_isAsynchronous": executable_isAsynchronous,
         "constructorDeclaration_redirectedConstructor":
             constructorDeclaration_redirectedConstructor,
         "codeLength": codeLength,
         "codeOffset": codeOffset,
         "constructorDeclaration_returnType": constructorDeclaration_returnType,
+        "executable_isGenerator": executable_isGenerator,
         "isSynthetic": isSynthetic,
         "kind": kind,
       };

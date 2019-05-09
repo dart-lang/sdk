@@ -1395,6 +1395,20 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(17, variant: LinkedNodeKind.enumDeclaration)
   int get enumDeclaration_rightBracket;
 
+  @VariantId(27, variantList: [
+    LinkedNodeKind.constructorDeclaration,
+    LinkedNodeKind.functionExpression,
+    LinkedNodeKind.methodDeclaration,
+  ])
+  bool get executable_isAsynchronous;
+
+  @VariantId(37, variantList: [
+    LinkedNodeKind.constructorDeclaration,
+    LinkedNodeKind.functionExpression,
+    LinkedNodeKind.methodDeclaration,
+  ])
+  bool get executable_isGenerator;
+
   @VariantId(25, variantList: [
     LinkedNodeKind.adjacentStrings,
     LinkedNodeKind.assignmentExpression,

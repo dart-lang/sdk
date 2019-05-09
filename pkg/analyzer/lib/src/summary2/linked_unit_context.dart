@@ -760,8 +760,18 @@ class LinkedUnitContext {
   }
 
   bool isAsynchronous(AstNode node) {
-    var body = _getFunctionBody(node);
-    return body.isAsynchronous;
+    if (node is ConstructorDeclaration) {
+      return false;
+    } else if (node is FunctionDeclaration) {
+      LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
+      return isAsynchronous(node.functionExpression);
+    } else if (node is FunctionExpression) {
+      return LazyFunctionExpression.isAsynchronous(node);
+    } else if (node is MethodDeclaration) {
+      return LazyMethodDeclaration.isAsynchronous(node);
+    } else {
+      throw UnimplementedError('${node.runtimeType}');
+    }
   }
 
   bool isAsyncKeyword(int token) {
@@ -836,8 +846,18 @@ class LinkedUnitContext {
   }
 
   bool isGenerator(AstNode node) {
-    var body = _getFunctionBody(node);
-    return body.isGenerator;
+    if (node is ConstructorDeclaration) {
+      return false;
+    } else if (node is FunctionDeclaration) {
+      LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
+      return isGenerator(node.functionExpression);
+    } else if (node is FunctionExpression) {
+      return LazyFunctionExpression.isGenerator(node);
+    } else if (node is MethodDeclaration) {
+      return LazyMethodDeclaration.isGenerator(node);
+    } else {
+      throw UnimplementedError('${node.runtimeType}');
+    }
   }
 
   bool isGetter(AstNode node) {
@@ -1094,24 +1114,6 @@ class LinkedUnitContext {
       throw StateError('${node.runtimeType}');
     }
     return node.members;
-  }
-
-  FunctionBody _getFunctionBody(AstNode node) {
-    if (node is ConstructorDeclaration) {
-      LazyConstructorDeclaration.readBody(_astReader, node);
-      return node.body;
-    } else if (node is FunctionDeclaration) {
-      LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
-      return _getFunctionBody(node.functionExpression);
-    } else if (node is FunctionExpression) {
-      LazyFunctionExpression.readBody(_astReader, node);
-      return node.body;
-    } else if (node is MethodDeclaration) {
-      LazyMethodDeclaration.readBody(_astReader, node);
-      return node.body;
-    } else {
-      throw UnimplementedError('${node.runtimeType}');
-    }
   }
 
   NodeList<Annotation> _getPartDirectiveAnnotation() {

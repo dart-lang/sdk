@@ -600,6 +600,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitFunctionExpression(FunctionExpression node) {
     return LinkedNodeBuilder.functionExpression(
+      executable_isAsynchronous: node.body?.isAsynchronous ?? false,
+      executable_isGenerator: node.body?.isGenerator ?? false,
       functionExpression_body: node.body?.accept(this),
       functionExpression_formalParameters: node.parameters?.accept(this),
       functionExpression_typeParameters: node.typeParameters?.accept(this),
@@ -854,6 +856,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitMethodDeclaration(MethodDeclaration node) {
     var builder = LinkedNodeBuilder.methodDeclaration(
+      executable_isAsynchronous: node.body?.isAsynchronous ?? false,
+      executable_isGenerator: node.body?.isGenerator ?? false,
       methodDeclaration_body: node.body?.accept(this),
       methodDeclaration_externalKeyword: _getToken(node.externalKeyword),
       methodDeclaration_formalParameters: node.parameters?.accept(this),
