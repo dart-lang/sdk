@@ -717,7 +717,7 @@ class ConstantEvaluationEngine {
         DartObjectImpl evaluationResult = condition.accept(initializerVisitor);
         if (evaluationResult == null ||
             !evaluationResult.isBool ||
-            evaluationResult.toBoolValue() != true) {
+            evaluationResult.toBoolValue() == false) {
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
           return null;
@@ -1599,14 +1599,16 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     DartObjectImpl conditionResult = condition.accept(this);
     bool conditionValue = conditionResult?.toBoolValue();
     if (conditionValue == null) {
-      // TODO(brianwilkerson) Figure out why the static type is sometimes null.
-      DartType staticType = condition.staticType;
-      if (staticType == null ||
-          typeSystem.isAssignableTo(staticType, _typeProvider.boolType)) {
-        // If the static type is not assignable, then we will have already
-        // reported this error.
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, condition);
+      if (conditionResult?.type != _typeProvider.boolType) {
+        // TODO(brianwilkerson) Figure out why the static type is sometimes null.
+        DartType staticType = condition.staticType;
+        if (staticType == null ||
+            typeSystem.isAssignableTo(staticType, _typeProvider.boolType)) {
+          // If the static type is not assignable, then we will have already
+          // reported this error.
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, condition);
+        }
       }
     }
     return conditionValue;
