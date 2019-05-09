@@ -885,6 +885,8 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
       if (optimized) {
         if (error.IsLanguageError() &&
             LanguageError::Cast(error).kind() == Report::kBailout) {
+          // Functions which cannot deoptimize should never bail out.
+          ASSERT(!function.ForceOptimize());
           // Optimizer bailed out. Disable optimizations and never try again.
           if (trace_compiler) {
             THR_Print("--> disabling optimizations for '%s'\n",
@@ -1160,8 +1162,8 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
     ASSERT(!func.IsNull());
-    if (!func.HasCode() &&
-        !func.is_abstract() && !func.IsRedirectingFactory()) {
+    if (!func.HasCode() && !func.is_abstract() &&
+        !func.IsRedirectingFactory()) {
       result = CompileFunction(thread, func);
       if (result.IsError()) {
         return Error::Cast(result).raw();

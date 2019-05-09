@@ -213,6 +213,7 @@ class CallingConventions {
   static constexpr Register kFirstCalleeSavedCpuReg = kAbiFirstPreservedCpuReg;
   static constexpr Register kFirstNonArgumentRegister = R8;
   static constexpr Register kSecondNonArgumentRegister = R9;
+  static constexpr Register kStackPointerRegister = SPREG;
 };
 
 #undef R

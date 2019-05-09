@@ -5272,10 +5272,6 @@ void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #endif  // defined(TARGET_ARCH_ARM)
 
-#if !defined(TARGET_ARCH_DBC)
-
-#define Z zone_
-
 Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   if (idx == TargetAddressIndex()) {
     return kUnboxedFfiIntPtr;
@@ -5283,6 +5279,10 @@ Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
     return arg_representations_[idx];
   }
 }
+
+#if !defined(TARGET_ARCH_DBC)
+
+#define Z zone_
 
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
@@ -5337,10 +5337,6 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-Representation FfiCallInstr::representation() const {
-  return compiler::ffi::ResultRepresentation(signature_);
-}
-
 Location FfiCallInstr::UnallocateStackSlots(Location in, bool is_atomic) {
   if (in.IsPairLocation()) {
     ASSERT(!is_atomic);
@@ -5361,20 +5357,33 @@ Location FfiCallInstr::UnallocateStackSlots(Location in, bool is_atomic) {
 
 #else
 
-Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
-  UNREACHABLE();
-}
-
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
-  UNREACHABLE();
-}
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
+                                 /*num_temps=*/0, LocationSummary::kCall);
 
-Representation FfiCallInstr::representation() const {
-  UNREACHABLE();
+  summary->set_in(
+      TargetAddressIndex(),
+      Location::RegisterLocation(compiler::ffi::kFunctionAddressRegister));
+  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
+    summary->set_in(i, arg_locations_[i]);
+  }
+  summary->set_out(0, compiler::ffi::ResultLocation(
+                          compiler::ffi::ResultHostRepresentation(signature_)));
+
+  return summary;
 }
 
 #endif  // !defined(TARGET_ARCH_DBC)
+
+Representation FfiCallInstr::representation() const {
+#if !defined(TARGET_ARCH_DBC)
+  return compiler::ffi::ResultRepresentation(signature_);
+#else
+  return compiler::ffi::ResultHostRepresentation(signature_);
+#endif  // !defined(TARGET_ARCH_DBC)
+}
 
 // SIMD
 

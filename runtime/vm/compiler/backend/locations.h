@@ -407,6 +407,9 @@ class TemplateLocation : public ValueObject {
 
   TemplateLocation Copy() const;
 
+  static TemplateLocation read(uword value) { return TemplateLocation(value); }
+  uword write() const { return value_; }
+
  private:
   explicit TemplateLocation(uword value) : value_(value) {}
 

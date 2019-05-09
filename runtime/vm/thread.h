@@ -450,12 +450,8 @@ class Thread : public ThreadState {
   Heap* heap() const { return heap_; }
   static intptr_t heap_offset() { return OFFSET_OF(Thread, heap_); }
 
-  void set_top(uword value) {
-    top_ = value;
-  }
-  void set_end(uword value) {
-    end_ = value;
-  }
+  void set_top(uword value) { top_ = value; }
+  void set_end(uword value) { end_ = value; }
 
   uword top() { return top_; }
   uword end() { return end_; }
@@ -786,6 +782,17 @@ class Thread : public ThreadState {
 
   uint64_t GetRandomUInt64() { return thread_random_.NextUInt64(); }
 
+  uint64_t* GetFfiMarshalledArguments(intptr_t size) {
+    if (ffi_marshalled_arguments_size_ < size) {
+      if (ffi_marshalled_arguments_size_ > 0) {
+        free(ffi_marshalled_arguments_);
+      }
+      ffi_marshalled_arguments_ =
+          reinterpret_cast<uint64_t*>(malloc(size * sizeof(uint64_t)));
+    }
+    return ffi_marshalled_arguments_;
+  }
+
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
 #endif
@@ -886,6 +893,9 @@ class Thread : public ThreadState {
   RawError* sticky_error_;
 
   Random thread_random_;
+
+  intptr_t ffi_marshalled_arguments_size_ = 0;
+  uint64_t* ffi_marshalled_arguments_;
 
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;

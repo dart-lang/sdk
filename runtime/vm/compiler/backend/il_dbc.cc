@@ -992,7 +992,16 @@ EMIT_NATIVE_CODE(StringInterpolate,
 }
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
+  const Representation result_rep =
+      compiler::ffi::ResultHostRepresentation(signature_);
+  // TODO(36809): In 32 bit we'll need a result location as well.
+  const TypedData& signature_descriptor =
+      TypedData::Handle(compiler::ffi::FfiSignatureDescriptor::New(
+          *arg_host_locations_, result_rep));
+
+  const intptr_t sigdesc_kidx = __ AddConstant(signature_descriptor);
+
+  __ FfiCall(sigdesc_kidx);
 }
 
 EMIT_NATIVE_CODE(NativeCall,
@@ -1704,9 +1713,13 @@ void BoxInstr::EmitAllocateBox(FlowGraphCompiler* compiler) {
 }
 
 EMIT_NATIVE_CODE(Box, 1, Location::RequiresRegister(), LocationSummary::kCall) {
-  ASSERT(from_representation() == kUnboxedDouble);
+  ASSERT(from_representation() == kUnboxedDouble ||
+         from_representation() == kUnboxedFloat);
   const Register value = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
+  if (from_representation() == kUnboxedFloat) {
+    __ FloatToDouble(value, value);
+  }
   EmitAllocateBox(compiler);
   __ WriteIntoDouble(out, value);
 }
@@ -1716,23 +1729,30 @@ EMIT_NATIVE_CODE(Unbox, 1, Location::RequiresRegister()) {
     EmitLoadInt64FromBoxOrSmi(compiler);
     return;
   }
-  ASSERT(representation() == kUnboxedDouble);
+  ASSERT(representation() == kUnboxedDouble ||
+         representation() == kUnboxedFloat);
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t box_cid = BoxCid();
   const Register box = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  if (value_cid == box_cid) {
+  if (value_cid == box_cid ||
+      (speculative_mode() == kNotSpeculative && value_cid != kSmiCid)) {
     __ UnboxDouble(result, box);
   } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
     __ SmiToDouble(result, box);
   } else if ((value()->Type()->ToNullableCid() == box_cid) &&
              value()->Type()->is_nullable()) {
     __ IfEqNull(box);
+    ASSERT(CanDeoptimize());
     compiler->EmitDeopt(GetDeoptId(), ICData::kDeoptCheckClass);
     __ UnboxDouble(result, box);
   } else {
     __ CheckedUnboxDouble(result, box);
+    ASSERT(CanDeoptimize());
     compiler->EmitDeopt(GetDeoptId(), ICData::kDeoptCheckClass);
+  }
+  if (representation() == kUnboxedFloat) {
+    __ DoubleToFloat(result, result);
   }
 }
 
