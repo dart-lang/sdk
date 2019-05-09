@@ -37,6 +37,19 @@
 * BREAKING CHANGE: The `await for` allowed `null` as a stream due to a bug
   in `StreamIterator` class. This bug has now been fixed.
 
+### Tools
+
+#### Linter
+
+The Linter was updated to `0.1.88`, which includes the following changes:
+
+*   Fixed `prefer_asserts_in_initializer_lists` false positives
+*   Fixed `curly_braces_in_flow_control_structures` to handle more cases
+*   Added new lint: `prefer_double_quotes`
+*   Added new lint: `sort_child_properties_last`
+*   Fixed `type_annotate_public_apis` false positive for `static const` initializers
+
+
 ## 2.3.0
 
 The focus in this release is on the new "UI-as-code" language features which
