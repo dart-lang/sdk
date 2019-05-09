@@ -4031,8 +4031,13 @@ class Library : public Object {
 #endif  // defined(DART_NO_SNAPSHOT).
 
   static bool IsPrivate(const String& name);
+
   // Construct the full name of a corelib member.
   static const String& PrivateCoreLibName(const String& member);
+
+  // Returns true if [name] matches full name of corelib [member].
+  static bool IsPrivateCoreLibName(const String& name, const String& member);
+
   // Lookup class in the core lib which also contains various VM
   // helper methods and classes. Allow look up of private classes.
   static RawClass* LookupCoreClass(const String& class_name);

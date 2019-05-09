@@ -820,13 +820,12 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
     intptr_t argument_count = arg_desc.Count();
     ASSERT(argument_count <= 2);
     checked_argument_count = argument_count;
-  } else if (name.raw() ==
-             Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()).raw()) {
+  } else if (Library::IsPrivateCoreLibName(name,
+                                           Symbols::_simpleInstanceOf())) {
     ASSERT(arg_desc.Count() == 2);
     checked_argument_count = 2;
     token_kind = Token::kIS;
-  } else if (name.raw() ==
-             Library::PrivateCoreLibName(Symbols::_instanceOf()).raw()) {
+  } else if (Library::IsPrivateCoreLibName(name, Symbols::_instanceOf())) {
     token_kind = Token::kIS;
   }
 

@@ -4260,7 +4260,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 bool InstanceCallInstr::MatchesCoreName(const String& name) {
-  return function_name().raw() == Library::PrivateCoreLibName(name).raw();
+  return Library::IsPrivateCoreLibName(function_name(), name);
 }
 
 RawFunction* InstanceCallInstr::ResolveForReceiverClass(

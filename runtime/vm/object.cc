@@ -11377,6 +11377,15 @@ const String& Library::PrivateCoreLibName(const String& member) {
   return private_name;
 }
 
+bool Library::IsPrivateCoreLibName(const String& name, const String& member) {
+  Zone* zone = Thread::Current()->zone();
+  const auto& core_lib = Library::Handle(zone, Library::CoreLibrary());
+  const auto& private_key = String::Handle(zone, core_lib.private_key());
+
+  ASSERT(core_lib.IsPrivate(member));
+  return name.EqualsConcat(member, private_key);
+}
+
 RawClass* Library::LookupCoreClass(const String& class_name) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
