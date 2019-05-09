@@ -264,6 +264,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       outputFileName,
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
+      enableAsserts: enableAsserts,
       emitBytecodeSourcePositions: emitBytecodeSourcePositions,
       emitBytecodeAnnotations: emitBytecodeAnnotations,
       dropAST: dropAST,
@@ -317,6 +318,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
     await runWithFrontEndCompilerContext(source, options, component, () {
       generateBytecode(component,
+          enableAsserts: enableAsserts,
           emitSourcePositions: emitBytecodeSourcePositions,
           emitAnnotations: emitBytecodeAnnotations,
           useFutureBytecodeFormat: useFutureBytecodeFormat,
@@ -646,6 +648,7 @@ Future writeOutputSplitByPackages(
   String outputFileName, {
   Map<String, String> environmentDefines,
   bool genBytecode: false,
+  bool enableAsserts: true,
   bool emitBytecodeSourcePositions: false,
   bool emitBytecodeAnnotations: false,
   bool dropAST: false,
@@ -707,6 +710,7 @@ Future writeOutputSplitByPackages(
         generateBytecode(component,
             libraries: libraries,
             hierarchy: hierarchy,
+            enableAsserts: enableAsserts,
             emitSourcePositions: emitBytecodeSourcePositions,
             emitAnnotations: emitBytecodeAnnotations,
             useFutureBytecodeFormat: useFutureBytecodeFormat,

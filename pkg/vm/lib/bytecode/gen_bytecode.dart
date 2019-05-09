@@ -50,6 +50,7 @@ const String symbolForTypeCast = ' in type cast';
 
 void generateBytecode(
   ast.Component component, {
+  bool enableAsserts: true,
   bool emitSourcePositions: false,
   bool emitAnnotations: false,
   bool omitAssertSourcePositions: false,
@@ -75,6 +76,7 @@ void generateBytecode(
       typeEnvironment,
       constantsBackend,
       environmentDefines,
+      enableAsserts,
       emitSourcePositions,
       emitAnnotations,
       omitAssertSourcePositions,
@@ -91,6 +93,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final TypeEnvironment typeEnvironment;
   final ConstantsBackend constantsBackend;
   final Map<String, String> environmentDefines;
+  final bool enableAsserts;
   final bool emitSourcePositions;
   final bool emitAnnotations;
   final bool omitAssertSourcePositions;
@@ -139,6 +142,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       this.typeEnvironment,
       this.constantsBackend,
       this.environmentDefines,
+      this.enableAsserts,
       this.emitSourcePositions,
       this.emitAnnotations,
       this.omitAssertSourcePositions,
@@ -1124,12 +1128,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       functionTypeParametersSet = functionTypeParameters.toSet();
     }
     // TODO(alexmarkov): improve caching in ConstantEvaluator and reuse it
-    constantEvaluator = new ConstantEvaluator(
-        constantsBackend,
-        environmentDefines,
-        typeEnvironment,
-        /* enableAsserts = */ true,
-        errorReporter)
+    constantEvaluator = new ConstantEvaluator(constantsBackend,
+        environmentDefines, typeEnvironment, enableAsserts, errorReporter)
       ..env = new EvaluationEnvironment();
 
     if (node.isAbstract || node is Field && !hasInitializerCode(node)) {
@@ -1150,7 +1150,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     savedAssemblers = <BytecodeAssembler>[];
     currentLoopDepth = 0;
 
-    locals = new LocalVariables(node);
+    locals = new LocalVariables(node, enableAsserts);
     locals.enterScope(node);
     assert(!locals.isSyncYieldingFrame);
 
@@ -2686,6 +2686,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitAssertStatement(AssertStatement node) {
+    if (!enableAsserts) {
+      return;
+    }
+
     final Label done = new Label();
     asm.emitJumpIfNoAsserts(done);
 
@@ -2715,6 +2719,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitAssertBlock(AssertBlock node) {
+    if (!enableAsserts) {
+      return;
+    }
+
     final Label done = new Label();
     asm.emitJumpIfNoAsserts(done);
 

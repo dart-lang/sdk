@@ -24,6 +24,7 @@ class LocalVariables {
       <TreeNode, VariableDeclaration>{};
   final Map<ForInStatement, VariableDeclaration> _capturedIteratorVars =
       <ForInStatement, VariableDeclaration>{};
+  final bool enableAsserts;
 
   Scope _currentScope;
   Frame _currentFrame;
@@ -175,7 +176,7 @@ class LocalVariables {
   List<VariableDeclaration> get sortedNamedParameters =>
       _currentFrame.sortedNamedParameters;
 
-  LocalVariables(Member node) {
+  LocalVariables(Member node, this.enableAsserts) {
     final scopeBuilder = new _ScopeBuilder(this);
     node.accept(scopeBuilder);
 
@@ -608,7 +609,18 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   }
 
   @override
+  visitAssertStatement(AssertStatement node) {
+    if (!locals.enableAsserts) {
+      return;
+    }
+    super.visitAssertStatement(node);
+  }
+
+  @override
   visitAssertBlock(AssertBlock node) {
+    if (!locals.enableAsserts) {
+      return;
+    }
     _visitWithScope(node);
   }
 
@@ -1056,7 +1068,18 @@ class _Allocator extends RecursiveVisitor<Null> {
   }
 
   @override
+  visitAssertStatement(AssertStatement node) {
+    if (!locals.enableAsserts) {
+      return;
+    }
+    super.visitAssertStatement(node);
+  }
+
+  @override
   visitAssertBlock(AssertBlock node) {
+    if (!locals.enableAsserts) {
+      return;
+    }
     _visit(node, scope: true);
   }
 
