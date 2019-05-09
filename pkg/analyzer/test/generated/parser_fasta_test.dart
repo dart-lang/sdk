@@ -24,7 +24,6 @@ import 'package:front_end/src/fasta/scanner.dart'
     show LanguageVersionToken, ScannerConfiguration, ScannerResult, scanString;
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
-import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1631,12 +1630,6 @@ class FastaParserTestCase
     featureSet ??= FeatureSet.forTesting();
     var source = new StringSource(content, 'parser_test_StringSource.dart');
 
-    void reportError(
-        ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-      listener
-          .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
-    }
-
     // Adjust the feature set based on language version comment.
     void languageVersionChanged(
         fasta.Scanner scanner, LanguageVersionToken languageVersion) {
@@ -1650,16 +1643,7 @@ class FastaParserTestCase
         includeComments: true,
         configuration: Scanner.buildConfig(featureSet),
         languageVersionChanged: languageVersionChanged);
-    Token token = result.tokens;
-    if (result.hasErrors) {
-      // The default recovery strategy used by scanString
-      // places all error tokens at the head of the stream.
-      while (token.type == TokenType.BAD_INPUT) {
-        translateErrorToken(token, reportError);
-        token = token.next;
-      }
-    }
-    _fastaTokens = token;
+    _fastaTokens = result.tokens;
 
     // Run parser
     ErrorReporter errorReporter = new ErrorReporter(listener, source);
@@ -2696,8 +2680,16 @@ class ParserProxy extends analyzer.ParserAdapter {
    */
   _run(String enclosingEvent, f()) {
     _eventListener.begin(enclosingEvent);
+
+    // Simulate error handling of parseUnit by skipping error tokens
+    // before parsing and reporting them after parsing is complete.
+    Token errorToken = currentToken;
+    currentToken = fastaParser.skipErrorTokens(currentToken);
     var result = f();
+    fastaParser.reportAllErrorTokens(errorToken);
+
     _eventListener.end(enclosingEvent);
+
     String lexeme = currentToken is ErrorToken
         ? currentToken.runtimeType.toString()
         : currentToken.lexeme;

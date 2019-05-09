@@ -9,8 +9,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/fasta/scanner.dart' as fasta;
-import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
-import 'package:front_end/src/scanner/token.dart' show Token, TokenType;
+import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -156,12 +155,6 @@ class Scanner {
 
     lineStarts.addAll(result.lineStarts);
     fasta.Token token = result.tokens;
-    // The default recovery strategy used by scanString
-    // places all error tokens at the head of the stream.
-    while (token.type == TokenType.BAD_INPUT) {
-      translateErrorToken(token, reportError);
-      token = token.next;
-    }
     firstToken = token;
     // Update all token offsets based upon the reader's starting offset
     if (_readerOffset != -1) {

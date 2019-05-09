@@ -330,6 +330,11 @@ class Parser {
   /// ;
   /// ```
   Token parseUnit(Token token) {
+    // Skip over error tokens and report them at the end
+    // so that the parser has the chance to adjust the error location.
+    Token errorToken = token;
+    token = skipErrorTokens(errorToken);
+
     listener.beginCompilationUnit(token);
     int count = 0;
     DirectiveContext directiveState = new DirectiveContext();
@@ -358,6 +363,7 @@ class Parser {
       }
     }
     token = token.next;
+    reportAllErrorTokens(errorToken);
     listener.endCompilationUnit(count, token);
     // Clear fields that could lead to memory leak.
     cachedRewriter = null;
@@ -6295,6 +6301,21 @@ class Parser {
 
   void reportErrorToken(ErrorToken token) {
     listener.handleErrorToken(token);
+  }
+
+  Token reportAllErrorTokens(Token token) {
+    while (token is ErrorToken) {
+      reportErrorToken(token);
+      token = token.next;
+    }
+    return token;
+  }
+
+  Token skipErrorTokens(Token token) {
+    while (token is ErrorToken) {
+      token = token.next;
+    }
+    return token;
   }
 
   Token parseInvalidTopLevelDeclaration(Token token) {
