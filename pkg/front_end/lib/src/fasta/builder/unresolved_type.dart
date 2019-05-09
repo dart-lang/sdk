@@ -18,7 +18,9 @@ class UnresolvedType<T extends TypeBuilder> {
       builder.resolveIn(scope, charOffset, fileUri, library);
 
   /// Performs checks on the type after it's resolved.
-  void checkType() => builder.check(charOffset, fileUri);
+  void checkType(LibraryBuilder library) {
+    return builder.check(library, charOffset, fileUri);
+  }
 
   /// Normalizes the type arguments in accordance with Dart 1 semantics.
   void normalizeType() => builder.normalize(charOffset, fileUri);

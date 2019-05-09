@@ -299,6 +299,13 @@ library;
 // typedef Typedef = Object Function();
 //         ^^^^^^^
 //
+// pkg/front_end/testcases/duplicated_declarations.dart:65:19: Warning: 'C' isn't a type.
+// class Sub extends C {
+//                   ^
+// pkg/front_end/testcases/duplicated_declarations.dart:65:19: Context: This isn't a type.
+// class Sub extends C {
+//                   ^
+//
 // pkg/front_end/testcases/duplicated_declarations.dart:65:19: Error: 'C' isn't a type.
 // class Sub extends C {
 //                   ^

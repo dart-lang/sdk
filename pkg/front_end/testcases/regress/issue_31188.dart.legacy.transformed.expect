@@ -14,13 +14,13 @@ library;
 // type T = Map<A, B>
 // ^^^^
 //
-// pkg/front_end/testcases/regress/issue_31188.dart:7:14: Warning: Getter not found: 'A'.
-// type T = Map<A, B>
-//              ^
-//
 // pkg/front_end/testcases/regress/issue_31188.dart:7:1: Warning: 'type' isn't a type.
 // type T = Map<A, B>
 // ^^^^
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:14: Warning: Getter not found: 'A'.
+// type T = Map<A, B>
+//              ^
 //
 import self as self;
 import "dart:core" as core;

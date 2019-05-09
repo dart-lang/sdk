@@ -854,7 +854,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     for (UnresolvedType<T> t in types) {
       t.resolveIn(scope, this);
       if (!loader.target.legacyMode) {
-        t.checkType();
+        t.checkType(this);
       } else {
         t.normalizeType();
       }
@@ -995,14 +995,16 @@ class DeclarationBuilder<T extends TypeBuilder> {
         parent.addType(type);
       } else if (nameOrQualified is QualifiedName) {
         // Attempt to use a member or type variable as a prefix.
-        type.builder.bind(type.builder.buildInvalidType(
-            templateNotAPrefixInTypeAnnotation
-                .withArguments(
-                    flattenName(nameOrQualified.qualifier, type.charOffset,
-                        type.fileUri),
-                    nameOrQualified.name)
-                .withLocation(type.fileUri, type.charOffset,
-                    nameOrQualified.endCharOffset - type.charOffset)));
+        Message message = templateNotAPrefixInTypeAnnotation.withArguments(
+            flattenName(
+                nameOrQualified.qualifier, type.charOffset, type.fileUri),
+            nameOrQualified.name);
+        library.addProblem(message, type.charOffset,
+            nameOrQualified.endCharOffset - type.charOffset, type.fileUri);
+        type.builder.bind(type.builder.buildInvalidType(message.withLocation(
+            type.fileUri,
+            type.charOffset,
+            nameOrQualified.endCharOffset - type.charOffset)));
       } else {
         scope ??= toScope(null).withTypeVariables(typeVariables);
         type.resolveIn(scope, library);

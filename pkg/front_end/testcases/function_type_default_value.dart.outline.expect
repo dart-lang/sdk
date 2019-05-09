@@ -10,6 +10,10 @@ library;
 // void Function({obj: Object}) x;
 //                   ^
 //
+// pkg/front_end/testcases/function_type_default_value.dart:5:16: Warning: Type 'obj' not found.
+// void Function({obj: Object}) x;
+//                ^^^
+//
 import self as self;
 
 static field () → void x;

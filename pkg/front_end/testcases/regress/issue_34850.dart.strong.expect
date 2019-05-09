@@ -27,6 +27,10 @@ library;
 // Future<List<>> f3() async {
 //             ^^
 //
+// pkg/front_end/testcases/regress/issue_34850.dart:5:2: Error: Type 'foo' not found.
+// <foo<
+//  ^^^
+//
 // pkg/front_end/testcases/regress/issue_34850.dart:5:2: Error: Expected 0 type arguments.
 // <foo<
 //  ^
@@ -34,6 +38,13 @@ library;
 // pkg/front_end/testcases/regress/issue_34850.dart:11:1: Error: Type 'foo' not found.
 // foo
 // ^^^
+//
+// pkg/front_end/testcases/regress/issue_34850.dart:14:1: Error: 'Future' isn't a type.
+// Future<List<>> f3() async {
+// ^^^^^^
+// pkg/front_end/testcases/regress/issue_34850.dart:12:1: Context: This isn't a type.
+// Future<List<int>> f2() async => null;
+// ^^^^^^
 //
 // pkg/front_end/testcases/regress/issue_34850.dart:14:1: Error: Expected 0 type arguments.
 // Future<List<>> f3() async {

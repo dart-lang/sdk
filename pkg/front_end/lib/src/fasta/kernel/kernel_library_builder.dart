@@ -1139,16 +1139,18 @@ class KernelLibraryBuilder
     var builderTemplate = isExport
         ? templateDuplicatedExportInType
         : templateDuplicatedImportInType;
-    return new KernelInvalidTypeBuilder(
+    message = builderTemplate.withArguments(
         name,
-        builderTemplate
-            .withArguments(
-                name,
-                // TODO(ahe): We should probably use a context object here
-                // instead of including URIs in this message.
-                uri,
-                otherUri)
-            .withLocation(fileUri, charOffset, name.length));
+        // TODO(ahe): We should probably use a context object here
+        // instead of including URIs in this message.
+        uri,
+        otherUri);
+    // We report the error lazily (setting suppressMessage to false) because the
+    // spec 18.1 states that 'It is not an error if N is introduced by two or
+    // more imports but never referred to.'
+    return new KernelInvalidTypeBuilder(
+        name, message.withLocation(fileUri, charOffset, name.length),
+        suppressMessage: false);
   }
 
   int finishDeferredLoadTearoffs() {

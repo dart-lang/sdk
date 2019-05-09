@@ -335,7 +335,7 @@ ExpectedInstead:
   #
   analyzerCode: ParserErrorCode.EXPECTED_INSTEAD
   script:
-    - "mixin A extends B { }"
+    - "class B {} mixin A extends B { }"
 
 MultipleLibraryDirectives:
   index: 27
@@ -362,7 +362,7 @@ WithBeforeExtends:
   template: "The extends clause must be before the with clause."
   tip: "Try moving the extends clause before the with clause."
   analyzerCode: ParserErrorCode.WITH_BEFORE_EXTENDS
-  script: "class B {} class A with B extends C {}"
+  script: "class B {} class C {} class A with B extends C {}"
 
 ImplementsBeforeExtends:
   index: 44
