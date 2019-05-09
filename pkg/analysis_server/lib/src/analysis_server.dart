@@ -576,7 +576,11 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Returns `true` if errors should be reported for [file] with the given
   /// absolute path.
   bool shouldSendErrorsNotificationFor(String file) {
-    return contextManager.isInAnalysisRoot(file);
+    // Errors should not be reported for things that are explicitly skipped
+    // during normal analysis (for example dot folders are skipped over in
+    // _handleWatchEventImpl).
+    return contextManager.isInAnalysisRoot(file) &&
+        !contextManager.isContainedInDotFolder(file);
   }
 
   Future<void> shutdown() {
