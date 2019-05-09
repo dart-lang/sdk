@@ -41,6 +41,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   final ResolverVisitor _resolver;
 
   /**
+   * The feature set that should be used to resolve types.
+   */
+  final FeatureSet _featureSet;
+
+  /**
    * The object providing access to the types defined by the language.
    */
   TypeProvider _typeProvider;
@@ -72,16 +77,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   TypePromotionManager _promoteManager;
 
   /**
-   * Whether NNBD is enabled for this compilation unit.
-   */
-  bool _nonNullableEnabled;
-
-  /**
-   * Initialize a newly created type analyzer.
+   * Initialize a newly created static type analyzer to analyze types for the
+   * [_resolver] based on the
    *
    * @param resolver the resolver driving this participant
    */
-  StaticTypeAnalyzer(this._resolver, FeatureSet featureSet) {
+  StaticTypeAnalyzer(this._resolver, this._featureSet) {
     _typeProvider = _resolver.typeProvider;
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
@@ -89,8 +90,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     AnalysisOptionsImpl analysisOptions =
         _resolver.definingLibrary.context.analysisOptions;
     _strictInference = analysisOptions.strictInference;
-    _nonNullableEnabled = featureSet.isEnabled(Feature.non_nullable);
   }
+
+  /**
+   * Return `true` if NNBD is enabled for this compilation unit.
+   */
+  bool get _nonNullableEnabled => _featureSet.isEnabled(Feature.non_nullable);
 
   /**
    * Given a constructor name [node] and a type [type], record an inferred type
@@ -318,7 +323,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
           _getStaticType(node.leftHandSide, read: true),
           operator,
           node.rightHandSide.staticType,
-          staticType);
+          staticType,
+          _featureSet);
       _recordStaticType(node, staticType);
     }
   }
@@ -409,7 +415,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         node.leftOperand.staticType,
         node.operator.type,
         node.rightOperand.staticType,
-        staticType);
+        staticType,
+        _featureSet);
     _recordStaticType(node, staticType);
   }
 

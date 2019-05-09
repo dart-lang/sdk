@@ -40,12 +40,6 @@ class LogicalAndWithNnbdTest extends LogicalAndTest {
 
   @override
   bool get typeToStringWithNullability => true;
-
-  @failingTest
-  @override
-  test_simple() async {
-    await super.test_simple();
-  }
 }
 
 @reflectiveTest
@@ -71,10 +65,4 @@ class LogicalOrWithNnbdTest extends LogicalOrTest {
 
   @override
   bool get typeToStringWithNullability => true;
-
-  @failingTest
-  @override
-  test_simple() async {
-    await super.test_simple();
-  }
 }

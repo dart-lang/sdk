@@ -5,6 +5,7 @@
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' show AstNode;
 import 'package:analyzer/dart/ast/token.dart' show Keyword, TokenType;
 import 'package:analyzer/dart/element/element.dart';
@@ -648,7 +649,7 @@ class Dart2TypeSystem extends TypeSystem {
 
   @override
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
-      DartType rightType, DartType currentType) {
+      DartType rightType, DartType currentType, FeatureSet featureSet) {
     if (leftType is TypeParameterType &&
         leftType.element.bound == typeProvider.numType) {
       if (rightType == leftType || rightType == typeProvider.intType) {
@@ -658,6 +659,9 @@ class Dart2TypeSystem extends TypeSystem {
             operator == TokenType.PLUS_EQ ||
             operator == TokenType.MINUS_EQ ||
             operator == TokenType.STAR_EQ) {
+          if (featureSet.isEnabled(Feature.non_nullable)) {
+            return promoteToNonNull(leftType as TypeImpl);
+          }
           return leftType;
         }
       }
@@ -666,13 +670,16 @@ class Dart2TypeSystem extends TypeSystem {
             operator == TokenType.MINUS ||
             operator == TokenType.STAR ||
             operator == TokenType.SLASH) {
+          if (featureSet.isEnabled(Feature.non_nullable)) {
+            return promoteToNonNull(typeProvider.doubleType as TypeImpl);
+          }
           return typeProvider.doubleType;
         }
       }
       return currentType;
     }
-    return super
-        .refineBinaryExpressionType(leftType, operator, rightType, currentType);
+    return super.refineBinaryExpressionType(
+        leftType, operator, rightType, currentType, featureSet);
   }
 
   @override
@@ -2088,16 +2095,22 @@ abstract class TypeSystem implements public.TypeSystem {
   }
 
   /**
-   * Attempts to make a better guess for the type of a binary with the given
-   * [operator], given that resolution has so far produced the [currentType].
+   * Determine the type of a binary expression with the given [operator] whose
+   * left operand has the type [leftType] and whose right operand has the type
+   * [rightType], given that resolution has so far produced the [currentType].
+   * The [featureSet] is used to determine whether any features that effect the
+   * computation have been enabled.
    */
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
-      DartType rightType, DartType currentType) {
+      DartType rightType, DartType currentType, FeatureSet featureSet) {
     // bool
     if (operator == TokenType.AMPERSAND_AMPERSAND ||
         operator == TokenType.BAR_BAR ||
         operator == TokenType.EQ_EQ ||
         operator == TokenType.BANG_EQ) {
+      if (featureSet.isEnabled(Feature.non_nullable)) {
+        return promoteToNonNull(typeProvider.boolType as TypeImpl);
+      }
       return typeProvider.boolType;
     }
     DartType intType = typeProvider.intType;
@@ -2113,6 +2126,9 @@ abstract class TypeSystem implements public.TypeSystem {
           operator == TokenType.STAR_EQ) {
         DartType doubleType = typeProvider.doubleType;
         if (rightType == doubleType) {
+          if (featureSet.isEnabled(Feature.non_nullable)) {
+            return promoteToNonNull(doubleType as TypeImpl);
+          }
           return doubleType;
         }
       }
@@ -2128,6 +2144,9 @@ abstract class TypeSystem implements public.TypeSystem {
           operator == TokenType.STAR_EQ ||
           operator == TokenType.TILDE_SLASH_EQ) {
         if (rightType == intType) {
+          if (featureSet.isEnabled(Feature.non_nullable)) {
+            return promoteToNonNull(intType as TypeImpl);
+          }
           return intType;
         }
       }

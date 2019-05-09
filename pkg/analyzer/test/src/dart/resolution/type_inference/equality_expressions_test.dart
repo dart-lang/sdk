@@ -40,12 +40,6 @@ class EqualWithNnbdTest extends EqualTest {
 
   @override
   bool get typeToStringWithNullability => true;
-
-  @failingTest
-  @override
-  test_simple() async {
-    await super.test_simple();
-  }
 }
 
 @reflectiveTest
@@ -71,10 +65,4 @@ class NotEqualWithNnbdTest extends NotEqualTest {
 
   @override
   bool get typeToStringWithNullability => true;
-
-  @failingTest
-  @override
-  test_simple() async {
-    await super.test_simple();
-  }
 }
