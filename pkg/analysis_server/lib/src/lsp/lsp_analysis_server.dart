@@ -343,9 +343,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     if (message is RequestMessage) {
       channel.sendResponse(
           new ResponseMessage(message.id, null, error, jsonRpcVersion));
-      // Since the LSP client might not show the failed requests to the user,
-      // also ensure the error is logged to the client.
-      logErrorToClient(error.message);
     } else if (message is ResponseMessage) {
       // For bad response messages where we can't respond with an error, send it as
       // show instead of log.
