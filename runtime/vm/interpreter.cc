@@ -743,6 +743,7 @@ DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
   RawFunction* target;
   if (UNLIKELY(!lookup_cache_.Lookup(receiver_cid, target_name, &target))) {
     // Table lookup miss.
+    top[0] = 0;  // Clean up slot as it may be visited by GC.
     top[1] = call_base[receiver_idx];
     top[2] = target_name;
     top[3] = argdesc_;
