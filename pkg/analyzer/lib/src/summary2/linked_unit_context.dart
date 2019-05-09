@@ -703,6 +703,13 @@ class LinkedUnitContext {
     }
   }
 
+  bool hasDefaultValue(FormalParameter node) {
+    if (node is DefaultFormalParameter) {
+      return LazyFormalParameter.hasDefaultValue(node);
+    }
+    return false;
+  }
+
   bool hasImplicitReturnType(AstNode node) {
     if (node is FunctionDeclaration) {
       LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
@@ -726,6 +733,10 @@ class LinkedUnitContext {
       return parent.type == null;
     }
     return false;
+  }
+
+  bool hasInitializer(VariableDeclaration node) {
+    return LazyVariableDeclaration.hasInitializer(node);
   }
 
   bool hasOverrideInferenceDone(AstNode node) {

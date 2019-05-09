@@ -784,6 +784,15 @@ class LazyFormalParameter {
     return LazyAst.getTypeInferenceError(node);
   }
 
+  static bool hasDefaultValue(DefaultFormalParameter node) {
+    var lazy = LazyFormalParameter.get(node);
+    if (lazy != null) {
+      return lazy.data.defaultFormalParameter_defaultValue != null;
+    } else {
+      return node.defaultValue != null;
+    }
+  }
+
   static void readDefaultValue(
     AstBinaryReader reader,
     DefaultFormalParameter node,
@@ -1752,6 +1761,15 @@ class LazyVariableDeclaration {
       lazy._hasTypeInferenceError = true;
     }
     return LazyAst.getTypeInferenceError(node);
+  }
+
+  static bool hasInitializer(VariableDeclaration node) {
+    var lazy = get(node);
+    if (lazy != null) {
+      return lazy.data.variableDeclaration_initializer != null;
+    } else {
+      return node.initializer != null;
+    }
   }
 
   static void readInitializer(

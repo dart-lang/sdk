@@ -7921,7 +7921,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   FunctionElement get initializer {
     if (_initializer == null) {
       if (linkedNode != null) {
-        if (linkedContext.readInitializer(linkedNode) != null) {
+        if (linkedContext.hasInitializer(linkedNode)) {
           _initializer = new FunctionElementImpl('', -1)
             ..isSynthetic = true
             .._type = FunctionTypeImpl.synthetic(type, [], []);
@@ -8244,7 +8244,7 @@ class ParameterElementImpl extends VariableElementImpl
   FunctionElement get initializer {
     if (_initializer == null) {
       if (linkedNode != null) {
-        if (linkedContext.readInitializer(linkedNode) != null) {
+        if (linkedContext.hasDefaultValue(linkedNode)) {
           _initializer = new FunctionElementImpl('', -1)..isSynthetic = true;
         }
       }
