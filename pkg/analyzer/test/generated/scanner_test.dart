@@ -147,7 +147,7 @@ class LineInfoTest extends EngineTestCase {
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener)
           ..configureFeatures(featureSet);
-    Token token = scanner.tokenize();
+    Token token = scanner.tokenize(reportScannerErrors: false);
     expect(token, TypeMatcher<UnmatchedToken>());
     token = token.next;
     expect(token, TypeMatcher<UnmatchedToken>());
