@@ -35,7 +35,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   /**
    * An enumeration of key identifiers currently part of the W3C draft for DOM3
    * and their mappings to keyCodes.
-   * http://www.w3.org/TR/DOM-Level-3-Events/keyset.html#KeySet-Set
+   * https://www.w3.org/TR/2003/NOTE-DOM-Level-3-Events-20031107/keyset.html#KeySet-Set
    */
   static const Map<String, int> _keyIdentifier = const {
     'Up': KeyCode.UP,
