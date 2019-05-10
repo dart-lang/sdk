@@ -37,23 +37,6 @@ class ConstraintGathererTest extends ConstraintsTestBase {
     var conditionalNode = node as NullabilityNodeForLUB;
     expect(conditionalNode.left, same(left));
     expect(conditionalNode.right, same(right));
-    if (left == NullabilityNode.never) {
-      if (right == NullabilityNode.never) {
-        expect(conditionalNode == NullabilityNode.never, true);
-      } else {
-        expect(conditionalNode.nullable, same(right.nullable));
-      }
-    } else {
-      if (right == NullabilityNode.never) {
-        expect(conditionalNode.nullable, same(left.nullable));
-      } else if (left.nullable == ConstraintVariable.always ||
-          right.nullable == ConstraintVariable.always) {
-        expect(conditionalNode.nullable, same(ConstraintVariable.always));
-      } else {
-        assertConnection(left, conditionalNode);
-        assertConnection(right, conditionalNode);
-      }
-    }
   }
 
   /// Checks that there is a connection from [sourceNode] to [destinationNode].
@@ -840,10 +823,12 @@ void f(List<int> x) {}
     var decoratedListType = decoratedTypeAnnotation('List<int>');
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedListType));
-    expect(decoratedListType.node.nullable, isNotNull);
+    expect(decoratedListType.node, isNotNull);
+    expect(decoratedListType.node, isNot(NullabilityNode.never));
     var decoratedIntType = decoratedTypeAnnotation('int');
     expect(decoratedListType.typeArguments[0], same(decoratedIntType));
-    expect(decoratedIntType.node.nullable, isNotNull);
+    expect(decoratedIntType.node, isNotNull);
+    expect(decoratedIntType.node, isNot(NullabilityNode.never));
   }
 
   test_topLevelFunction_parameterType_implicit_dynamic() async {
@@ -866,8 +851,9 @@ void f({String s}) {}
     var decoratedType = decoratedTypeAnnotation('String');
     var functionType = decoratedFunctionType('f');
     expect(functionType.namedParameters['s'], same(decoratedType));
-    expect(decoratedType.node.nullable, isNotNull);
-    expect(decoratedType.node.nullable, isNot(same(ConstraintVariable.always)));
+    expect(decoratedType.node, isNotNull);
+    expect(decoratedType.node, isNot(NullabilityNode.never));
+    expect(decoratedType.node, isNot(NullabilityNode.always));
     expect(functionType.namedParameters['s'].node.isPossiblyOptional, true);
   }
 
@@ -880,8 +866,9 @@ void f({@required String s}) {}
     var decoratedType = decoratedTypeAnnotation('String');
     var functionType = decoratedFunctionType('f');
     expect(functionType.namedParameters['s'], same(decoratedType));
-    expect(decoratedType.node.nullable, isNotNull);
-    expect(decoratedType.node.nullable, isNot(same(ConstraintVariable.always)));
+    expect(decoratedType.node, isNotNull);
+    expect(decoratedType.node, isNot(NullabilityNode.never));
+    expect(decoratedType.node, isNot(NullabilityNode.always));
     expect(functionType.namedParameters['s'].node.isPossiblyOptional, false);
   }
 
@@ -892,7 +879,8 @@ void f({String s: 'x'}) {}
     var decoratedType = decoratedTypeAnnotation('String');
     var functionType = decoratedFunctionType('f');
     expect(functionType.namedParameters['s'], same(decoratedType));
-    expect(decoratedType.node.nullable, isNotNull);
+    expect(decoratedType.node, isNotNull);
+    expect(decoratedType.node, isNot(NullabilityNode.never));
     expect(functionType.namedParameters['s'].node.isPossiblyOptional, false);
   }
 
@@ -903,7 +891,8 @@ void f([int i]) {}
     var decoratedType = decoratedTypeAnnotation('int');
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
-    expect(decoratedType.node.nullable, isNotNull);
+    expect(decoratedType.node, isNotNull);
+    expect(decoratedType.node, isNot(NullabilityNode.never));
   }
 
   test_topLevelFunction_parameterType_simple() async {
@@ -913,7 +902,8 @@ void f(int i) {}
     var decoratedType = decoratedTypeAnnotation('int');
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
-    expect(decoratedType.node.nullable, isNotNull);
+    expect(decoratedType.node, isNotNull);
+    expect(decoratedType.node, isNot(NullabilityNode.never));
     expect(decoratedType.node.nonNullIntent, isNotNull);
   }
 
@@ -933,7 +923,8 @@ int f() => 0;
 ''');
     var decoratedType = decoratedTypeAnnotation('int');
     expect(decoratedFunctionType('f').returnType, same(decoratedType));
-    expect(decoratedType.node.nullable, isNotNull);
+    expect(decoratedType.node, isNotNull);
+    expect(decoratedType.node, isNot(NullabilityNode.never));
   }
 }
 

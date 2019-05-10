@@ -29,7 +29,7 @@ class NullabilityNode {
   ///
   /// If `null`, that means that an external constraint (outside the code being
   /// migrated) forces this type to be non-nullable.
-  final ConstraintVariable nullable;
+  final ConstraintVariable _nullable;
 
   ConstraintVariable _nonNullIntent;
 
@@ -83,15 +83,15 @@ class NullabilityNode {
   NullabilityNode.forTypeAnnotation(int endOffset, {@required bool always})
       : this._(always ? ConstraintVariable.always : TypeIsNullable(endOffset));
 
-  NullabilityNode._(this.nullable);
+  NullabilityNode._(this._nullable);
 
   /// Gets a string that can be appended to a type name during debugging to help
   /// annotate the nullability of that type.
-  String get debugSuffix => nullable == null ? '' : '?($nullable)';
+  String get debugSuffix => _nullable == null ? '' : '?($_nullable)';
 
   /// After constraint solving, this getter can be used to query whether the
   /// type associated with this node should be considered nullable.
-  bool get isNullable => nullable == null ? false : nullable.value;
+  bool get isNullable => _nullable == null ? false : _nullable.value;
 
   /// Indicates whether this node is associated with a named parameter for which
   /// nullability migration needs to decide whether it is optional or required.
@@ -109,7 +109,7 @@ class NullabilityNode {
   void recordNamedParameterNotSupplied(
       Constraints constraints, List<NullabilityNode> guards) {
     if (isPossiblyOptional) {
-      _recordConstraints(constraints, guards, const [], nullable);
+      _recordConstraints(constraints, guards, const [], _nullable);
     }
   }
 
@@ -156,8 +156,8 @@ class NullabilityNode {
       bool inConditionalControlFlow) {
     var additionalConditions = <ConstraintVariable>[];
     graph.connect(sourceNode, destinationNode);
-    if (sourceNode.nullable != null) {
-      additionalConditions.add(sourceNode.nullable);
+    if (sourceNode._nullable != null) {
+      additionalConditions.add(sourceNode._nullable);
       var destinationNonNullIntent = destinationNode.nonNullIntent;
       // nullable_src => nullable_dst | check_expr
       _recordConstraints(
@@ -165,7 +165,7 @@ class NullabilityNode {
           guards,
           additionalConditions,
           ConstraintVariable.or(
-              constraints, destinationNode.nullable, checkNotNull));
+              constraints, destinationNode._nullable, checkNotNull));
       if (checkNotNull != null) {
         // nullable_src & nonNullIntent_dst => check_expr
         if (destinationNonNullIntent != null) {
@@ -177,7 +177,7 @@ class NullabilityNode {
       additionalConditions.clear();
       var sourceNonNullIntent = sourceNode.nonNullIntent;
       if (!inConditionalControlFlow && sourceNonNullIntent != null) {
-        if (destinationNode.nullable == null) {
+        if (destinationNode._nullable == null) {
           // The destination type can never be nullable so this demonstrates
           // non-null intent.
           _recordConstraints(
@@ -197,7 +197,7 @@ class NullabilityNode {
       List<NullabilityNode> guards,
       List<ConstraintVariable> additionalConditions,
       ConstraintVariable consequence) {
-    var conditions = guards.map((node) => node.nullable).toList();
+    var conditions = guards.map((node) => node._nullable).toList();
     conditions.addAll(additionalConditions);
     constraints.record(conditions, consequence);
   }
@@ -218,7 +218,8 @@ class NullabilityNodeForLUB extends NullabilityNode {
       ConstraintVariable Function(
               ConditionalExpression, ConstraintVariable, ConstraintVariable)
           joinNullabilities)
-      : super._(joinNullabilities(expression, left.nullable, right.nullable)) {
+      : super._(
+            joinNullabilities(expression, left._nullable, right._nullable)) {
     graph.connect(left, this);
     graph.connect(right, this);
   }
@@ -244,5 +245,5 @@ class NullabilityNodeForSubstitution extends NullabilityNode {
   NullabilityNodeForSubstitution._(
       Constraints constraints, this.innerNode, this.outerNode)
       : super._(ConstraintVariable.or(
-            constraints, innerNode?.nullable, outerNode.nullable));
+            constraints, innerNode?._nullable, outerNode._nullable));
 }
