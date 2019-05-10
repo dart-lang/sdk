@@ -9,7 +9,7 @@
 library spawn_tests;
 
 import 'dart:isolate';
-import 'package:expect/async_minitest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 main() {
   test('isolate fromUri - send and reply', () {

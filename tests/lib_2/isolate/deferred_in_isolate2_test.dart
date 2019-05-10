@@ -6,7 +6,7 @@ library deferred_in_isolate2_test;
 
 import 'dart:isolate';
 import 'dart:async';
-import 'package:expect/async_minitest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 import 'deferred_in_isolate2_lib.dart' deferred as lib;
 

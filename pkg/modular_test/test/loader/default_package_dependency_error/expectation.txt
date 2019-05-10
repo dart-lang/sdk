@@ -3,7 +3,6 @@
 expect
   is package? yes
   dependencies: meta
-  async_minitest.dart
   expect.dart
   matchers_lite.dart
   minitest.dart

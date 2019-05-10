@@ -8,7 +8,7 @@ library MirrorsTest;
 
 import 'dart:mirrors';
 import 'package:args/args.dart';
-import 'package:expect/async_minitest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 testLibraryUri(var value, Uri expectedUri) {
   var valueMirror = reflect(value);
