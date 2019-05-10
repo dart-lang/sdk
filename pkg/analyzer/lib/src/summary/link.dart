@@ -1463,11 +1463,7 @@ abstract class CompilationUnitElementForLink
       }
     }
     var nullabilitySuffix = decodeNullabilitySuffix(entity.nullabilitySuffix);
-    var resultAsImpl = result as TypeImpl;
-    if (resultAsImpl.nullabilitySuffix != nullabilitySuffix) {
-      result = resultAsImpl.withNullability(nullabilitySuffix);
-    }
-    return result;
+    return (result as TypeImpl).withNullability(nullabilitySuffix);
   }
 
   @override
