@@ -5,7 +5,7 @@
 // SharedOptions=--enable-experiment=non-nullable
 
 // Test that it is an error to use nullable types in unsound ways.
-void main() {
+void main() async {
   int? x;
   bool? cond;
   List? list;
@@ -51,10 +51,11 @@ void main() {
   cond != null; //# 33: ok
   x?.isEven; //# 34: ok
   x?.round(); //# 35: ok
-  await for(i in stream) {}; //# 36: compile-time error
+  for(i in list) {}; //# 36: compile-time error
+  await for(i in stream) {}; //# 37: compile-time error
 }
 
-generator() {
-  Stream? stream;
-  yield stream; //# 37: compile-time error
+generator() sync* {
+  Iterable? iter;
+  yield* iter; //# 38: compile-time error
 }
