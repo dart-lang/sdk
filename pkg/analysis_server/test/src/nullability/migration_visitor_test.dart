@@ -37,14 +37,14 @@ class ConstraintGathererTest extends ConstraintsTestBase {
     var conditionalNode = node as NullabilityNodeForLUB;
     expect(conditionalNode.left, same(left));
     expect(conditionalNode.right, same(right));
-    if (left.isNeverNullable) {
-      if (right.isNeverNullable) {
-        expect(conditionalNode.isNeverNullable, true);
+    if (left == NullabilityNode.never) {
+      if (right == NullabilityNode.never) {
+        expect(conditionalNode == NullabilityNode.never, true);
       } else {
         expect(conditionalNode.nullable, same(right.nullable));
       }
     } else {
-      if (right.isNeverNullable) {
+      if (right == NullabilityNode.never) {
         expect(conditionalNode.nullable, same(left.nullable));
       } else if (left.nullable == ConstraintVariable.always ||
           right.nullable == ConstraintVariable.always) {
@@ -90,6 +90,10 @@ class ConstraintGathererTest extends ConstraintsTestBase {
   /// Checks that there are no nullability nodes upstream from [node] that could
   /// cause it to become nullable.
   void assertNoUpstreamNullability(NullabilityNode node) {
+    // NullabilityNode.never can never become nullable, even if it has nodes
+    // upstream from it.
+    if (node == NullabilityNode.never) return;
+
     for (var upstreamNode in graph.getUpstreamNodes(node)) {
       expect(upstreamNode, NullabilityNode.never);
     }
@@ -270,7 +274,7 @@ int f(bool b, int i) {
     var nullable_conditional =
         decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
     var nullable_throw = nullable_conditional.left;
-    expect(nullable_throw.isNeverNullable, true);
+    assertNoUpstreamNullability(nullable_throw);
     assertConditional(nullable_conditional, nullable_throw, nullable_i);
   }
 
@@ -297,7 +301,7 @@ int f(bool b, int i) {
     var nullable_conditional =
         decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
     var nullable_throw = nullable_conditional.right;
-    expect(nullable_throw.isNeverNullable, true);
+    assertNoUpstreamNullability(nullable_throw);
     assertConditional(nullable_conditional, nullable_i, nullable_throw);
   }
 
