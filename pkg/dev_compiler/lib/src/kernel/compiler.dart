@@ -335,7 +335,13 @@ class ProgramCompiler extends Object
   }
 
   @override
-  String jsLibraryDebuggerName(Library library) => '${library.importUri}';
+  String jsLibraryDebuggerName(Library library) {
+    var uri = library.importUri;
+    // For package: and dart: uris show the entire
+    if (uri.scheme == 'dart' || uri.scheme == 'package') return uri.toString();
+    // TODO(jmesserly): this is not unique typically.
+    return uri.pathSegments.last;
+  }
 
   @override
   bool isSdkInternalRuntime(Library l) {
