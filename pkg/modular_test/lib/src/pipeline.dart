@@ -39,11 +39,15 @@ class ModularStep {
   /// Data that this step produces.
   final DataId resultId;
 
+  /// Whether this step is only executed on the main module.
+  final bool onlyOnMain;
+
   ModularStep(
       {this.needsSources: true,
       this.dependencyDataNeeded: const [],
       this.moduleDataNeeded: const [],
-      this.resultId});
+      this.resultId,
+      this.onlyOnMain: false});
 }
 
 /// An object to uniquely identify modular data produced by a modular step.
@@ -124,6 +128,7 @@ abstract class Pipeline<S extends ModularStep> {
     }
     parentDependencies.addAll(transitiveDependencies);
 
+    if (step.onlyOnMain && !module.isMain) return;
     // Include only requested data from transitive dependencies.
     Map<Module, Set<DataId>> visibleData = {};
 

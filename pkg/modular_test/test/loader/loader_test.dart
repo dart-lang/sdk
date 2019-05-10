@@ -75,7 +75,8 @@ String _dumpAsText(ModularTest test) {
       buffer.write('\n');
     }
     buffer.write(module.name);
-    if (test.mainModule == module) {
+    if (module.isMain) {
+      Expect.equals(test.mainModule, module);
       buffer.write('\n  **main module**');
     }
     buffer.write('\n  is package? ${module.isPackage ? 'yes' : 'no'}');

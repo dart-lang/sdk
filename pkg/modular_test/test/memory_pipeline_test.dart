@@ -64,6 +64,7 @@ class SourceOnlyStep implements MemoryModularStep {
   final bool needsSources;
   List<DataId> get dependencyDataNeeded => const [];
   List<DataId> get moduleDataNeeded => const [];
+  bool get onlyOnMain => false;
 
   SourceOnlyStep(this.action, this.resultId, this.needsSources);
 
@@ -84,6 +85,7 @@ class ModuleDataStep implements MemoryModularStep {
   final List<DataId> moduleDataNeeded;
   final DataId resultId;
   final DataId inputId;
+  bool get onlyOnMain => false;
 
   ModuleDataStep(this.action, this.inputId, this.resultId, bool requestInput)
       : moduleDataNeeded = requestInput ? [inputId] : [];
@@ -104,6 +106,7 @@ class LinkStep implements MemoryModularStep {
   final DataId inputId;
   final DataId depId;
   final DataId resultId;
+  bool get onlyOnMain => false;
 
   LinkStep(this.action, this.inputId, this.depId, this.resultId,
       bool requestDependencies)

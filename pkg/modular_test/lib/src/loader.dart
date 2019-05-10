@@ -60,7 +60,7 @@ Future<ModularTest> loadTest(Uri uri) async {
         var relativeUri = Uri.parse(fileName);
         var isMain = moduleName == 'main';
         var module = Module(moduleName, [], testUri, [relativeUri],
-            mainSource: isMain ? relativeUri : null);
+            mainSource: isMain ? relativeUri : null, isMain: isMain);
         if (isMain) mainModule = module;
         modules[moduleName] = module;
       } else if (fileName == '.packages') {
