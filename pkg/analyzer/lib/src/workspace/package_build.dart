@@ -285,17 +285,10 @@ class PackageBuildWorkspace extends Workspace {
 
   @override
   WorkspacePackage findPackageFor(String filePath) {
-    final Folder folder = provider.getFolder(filePath);
-    if (provider.pathContext.isWithin(root, folder.path)) {
-      List<String> uriParts =
-          (packageUriResolver as PackageBuildPackageUriResolver)
-              ._restoreUriParts('${folder.path}/lib/__fake__.dart');
-      if (uriParts == null || uriParts.isEmpty) {
-        _theOnlyPackage ??= new PackageBuildWorkspacePackage(null, root, this);
-      } else {
-        _theOnlyPackage ??=
-            new PackageBuildWorkspacePackage(uriParts[0], root, this);
-      }
+    path.Context context = provider.pathContext;
+    final folder = provider.getFolder(context.dirname(filePath));
+    if (context.isWithin(root, folder.path)) {
+      _theOnlyPackage ??= new PackageBuildWorkspacePackage(root, this);
       return _theOnlyPackage;
     } else {
       return null;
@@ -346,22 +339,15 @@ class PackageBuildWorkspace extends Workspace {
  * a given package in a PackageBuildWorkspace.
  */
 class PackageBuildWorkspacePackage extends WorkspacePackage {
-  /// A prefix for any URI of a path in this package.
-  final String _uriPrefix;
-
   final String root;
 
   final PackageBuildWorkspace workspace;
 
-  PackageBuildWorkspacePackage(String packageName, this.root, this.workspace)
-      : this._uriPrefix = 'package:$packageName/';
+  PackageBuildWorkspacePackage(this.root, this.workspace);
 
   @override
   bool contains(Source source) {
-    if (source.uri.isScheme('package')) {
-      return source.uri.toString().startsWith(_uriPrefix);
-    }
-    String filePath = source.fullName;
+    String filePath = filePathFromSource(source);
     if (filePath == null) return false;
     // There is a 1-1 relationship between PackageBuildWorkspaces and
     // PackageBuildWorkspacePackages. If a file is in a package's workspace,
