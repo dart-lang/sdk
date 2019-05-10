@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Regression test for http://dartbug.com/23828/
+// Regression test for http://dartbug.com/23828
 // Used to fail when methods contain a name starting with `get`
 import 'package:expect/expect.dart';
 
