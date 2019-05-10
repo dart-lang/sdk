@@ -3414,6 +3414,15 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
   return cids().HasClassId(value_cid) ? NULL : this;
 }
 
+Definition* LoadClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
+  const intptr_t cid = object()->Type()->ToCid();
+  if (cid != kDynamicCid) {
+    const auto& smi = Smi::ZoneHandle(flow_graph->zone(), Smi::New(cid));
+    return flow_graph->GetConstant(smi);
+  }
+  return this;
+}
+
 Instruction* CheckClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
   if (value()->BindsToConstant()) {
     const Object& constant_value = value()->BoundConstant();

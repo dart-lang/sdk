@@ -5246,6 +5246,8 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DECLARE_INSTRUCTION(LoadClassId)
   virtual CompileType ComputeType() const;
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
   Value* object() const { return inputs_[0]; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
