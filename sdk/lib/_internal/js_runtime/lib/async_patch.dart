@@ -58,7 +58,6 @@ class _AsyncRun {
         storedCallback = callback;
         // Because of a broken shadow-dom polyfill we have to change the
         // children instead a cheap property.
-        // See https://github.com/Polymer/ShadowDOM/issues/468
         JS('', '#.firstChild ? #.removeChild(#): #.appendChild(#)', div, div,
             span, div, span);
       };
