@@ -448,8 +448,8 @@ static void WriteBarrierElimination(FlowGraph* flow_graph) {
     Definition* last_allocated = nullptr;
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (StoreInstanceFieldInstr* instr = current->AsStoreInstanceField()) {
-        if (!current->CanTriggerGC()) {
+      if (!current->CanTriggerGC()) {
+        if (StoreInstanceFieldInstr* instr = current->AsStoreInstanceField()) {
           if (instr->instance()->definition() == last_allocated) {
             instr->set_emit_store_barrier(kNoStoreBarrier);
           }
@@ -457,10 +457,11 @@ static void WriteBarrierElimination(FlowGraph* flow_graph) {
         }
       }
 
-      AllocationInstr* alloc = current->AsAllocation();
-      if (alloc != nullptr && alloc->WillAllocateNewOrRemembered()) {
-        last_allocated = alloc;
-        continue;
+      if (AllocationInstr* alloc = current->AsAllocation()) {
+        if (alloc->WillAllocateNewOrRemembered()) {
+          last_allocated = alloc;
+          continue;
+        }
       }
 
       if (current->CanTriggerGC()) {
