@@ -9,6 +9,10 @@ commit queue.
 It is recommended to have a separate checkout for this branch, so switching
 to/from this branch does not populate/delete all files in the master branch.
 
+Most files in this branch are generated from `main.star`. Run `./main.star` to
+regenerate them after changes have been made. Files that are auto-generated must
+not be modified manually, and they have a file header that states that they are.
+
 ## Initial setup:
 
 ```console
@@ -24,7 +28,8 @@ Now you can create a new branch to make changes:
 
 ```console
 git new-branch add-new-builder
-# edit cr-buildbucket.cfg
+# edit main.star
+./main.star # generate Luci config files
 git commit -a
 
 git cl upload
