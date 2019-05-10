@@ -89,8 +89,10 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
 
 int OS::GetLocalTimeZoneAdjustmentInSeconds() {
   int32_t local_offset, dst_offset;
+  zx_time_t now = 0;
+  zx_clock_get_new(ZX_CLOCK_UTC, &now);
   zx_status_t status = GetLocalAndDstOffsetInSeconds(
-      zx_clock_get(ZX_CLOCK_UTC) / ZX_SEC(1), &local_offset, &dst_offset);
+      now / ZX_SEC(1), &local_offset, &dst_offset);
   return status == ZX_OK ? local_offset : 0;
 }
 
@@ -99,11 +101,13 @@ int64_t OS::GetCurrentTimeMillis() {
 }
 
 int64_t OS::GetCurrentTimeMicros() {
-  return zx_clock_get(ZX_CLOCK_UTC) / kNanosecondsPerMicrosecond;
+  zx_time_t now = 0;
+  zx_clock_get_new(ZX_CLOCK_UTC, &now);
+  return now / kNanosecondsPerMicrosecond;
 }
 
 int64_t OS::GetCurrentMonotonicTicks() {
-  return zx_clock_get(ZX_CLOCK_MONOTONIC);
+  return zx_clock_get_monotonic();
 }
 
 int64_t OS::GetCurrentMonotonicFrequency() {
@@ -117,7 +121,9 @@ int64_t OS::GetCurrentMonotonicMicros() {
 }
 
 int64_t OS::GetCurrentThreadCPUMicros() {
-  return zx_clock_get(ZX_CLOCK_THREAD) / kNanosecondsPerMicrosecond;
+  zx_time_t now = 0;
+  zx_clock_get_new(ZX_CLOCK_THREAD, &now);
+  return now / kNanosecondsPerMicrosecond;
 }
 
 // TODO(5411554):  May need to hoist these architecture dependent code
