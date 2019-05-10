@@ -577,14 +577,14 @@ class MethodInvocationResolver {
   }
 
   void _setResolution(MethodInvocation node, DartType type) {
-    if (type == _dynamicType || _isCoreFunction(type)) {
-      _setDynamicResolution(node);
-      return;
-    }
-
     // TODO(scheglov) We need this for StaticTypeAnalyzer to run inference.
     // But it seems weird. Do we need to know the raw type of a function?!
     node.methodName.staticType = type;
+
+    if (type == _dynamicType || _isCoreFunction(type)) {
+      _setDynamicResolution(node, setNameTypeToDynamic: false);
+      return;
+    }
 
     if (type is InterfaceType) {
       var call = _inheritance.getMember(type, _nameCall);
