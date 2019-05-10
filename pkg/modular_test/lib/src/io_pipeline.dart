@@ -34,7 +34,7 @@ class IOPipeline extends Pipeline<IOModularStep> {
   Map<DataId, Uri> get tmpFoldersForTesting => _tmpFolders;
   bool saveFoldersForTesting;
 
-  IOPipeline(List<ModularStep> steps, {this.saveFoldersForTesting: false})
+  IOPipeline(List<IOModularStep> steps, {this.saveFoldersForTesting: false})
       : super(steps);
 
   @override

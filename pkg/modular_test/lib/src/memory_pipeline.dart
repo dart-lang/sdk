@@ -27,7 +27,7 @@ class MemoryPipeline extends Pipeline<MemoryModularStep> {
   /// A copy of [_result] at the time the pipeline last finished running.
   Map<Module, Map<DataId, Object>> resultsForTesting;
 
-  MemoryPipeline(this._sources, List<ModularStep> steps) : super(steps);
+  MemoryPipeline(this._sources, List<MemoryModularStep> steps) : super(steps);
 
   @override
   Future<void> run(ModularTest test) async {
