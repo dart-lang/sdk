@@ -2584,7 +2584,7 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
           FieldAddress(
               ECX, target::MegamorphicCache::arguments_descriptor_offset()));
   __ movl(EBX, FieldAddress(EAX, target::Function::entry_point_offset()));
-  __ ret();
+  __ jmp(EBX);
 
   __ Bind(&probe_failed);
   // Probe failed, check if it is a miss.

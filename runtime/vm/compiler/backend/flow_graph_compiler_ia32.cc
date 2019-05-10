@@ -951,7 +951,6 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ movl(EBX, Address(ESP, (args_desc.Count() - 1) * kWordSize));
   __ LoadObject(ECX, cache);
   __ call(Address(THR, Thread::megamorphic_call_checked_entry_offset()));
-  __ call(EBX);
 
   AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone, token_pos);
   RecordSafepoint(locs, slow_path_argument_count);
