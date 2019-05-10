@@ -105,26 +105,29 @@ abstract class Pipeline<S extends ModularStep> {
     // TODO(sigmund): validate that [ModularTest] has no cycles.
     Map<Module, Set<DataId>> computedData = {};
     for (var step in steps) {
-      await _recursiveRun(step, test.mainModule, computedData, {});
+      await _recursiveRun(step, test.mainModule, computedData, {}, {});
     }
   }
 
-  Future<void> _recursiveRun(S step, Module module,
-      Map<Module, Set<DataId>> computedData, Set<Module> seen) async {
+  Future<void> _recursiveRun(
+      S step,
+      Module module,
+      Map<Module, Set<DataId>> computedData,
+      Set<Module> seen,
+      Set<Module> parentDependencies) async {
     if (!seen.add(module)) return;
+    parentDependencies.add(module);
+    Set<Module> transitiveDependencies = {};
     for (var dependency in module.dependencies) {
-      await _recursiveRun(step, dependency, computedData, seen);
+      await _recursiveRun(
+          step, dependency, computedData, seen, transitiveDependencies);
     }
+    parentDependencies.addAll(transitiveDependencies);
+
     // Include only requested data from transitive dependencies.
     Map<Module, Set<DataId>> visibleData = {};
 
-    // TODO(sigmund): consider excluding parent modules here. In particular,
-    // [seen] not only contains transitive dependencies, but also this module
-    // and parent modules. Technically we haven't computed any data for those,
-    // so we shouldn't be including any entries for parent modules in
-    // [visibleData].
-    seen.forEach((dep) {
-      if (dep == module) return;
+    transitiveDependencies.forEach((dep) {
       visibleData[dep] = {};
       for (var dataId in step.dependencyDataNeeded) {
         if (computedData[dep].contains(dataId)) {
