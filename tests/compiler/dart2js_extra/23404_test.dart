@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Regression test for http://dartbug.com/23404/
+// Regression test for http://dartbug.com/23404
 import 'package:expect/expect.dart';
 
 // Dart2js crashed when the global metadata had escaped characters. That
