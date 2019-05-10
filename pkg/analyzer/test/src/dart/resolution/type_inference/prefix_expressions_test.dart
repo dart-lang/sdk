@@ -38,10 +38,4 @@ class NotWithNnbdTest extends NotTest {
 
   @override
   bool get typeToStringWithNullability => true;
-
-  @failingTest
-  @override
-  test_simple() async {
-    await super.test_simple();
-  }
 }

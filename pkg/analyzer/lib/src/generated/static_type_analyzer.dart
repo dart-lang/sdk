@@ -233,7 +233,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
-    _recordStaticType(node, _typeProvider.stringType);
+    _recordStaticType(node, _nonNullable(_typeProvider.stringType));
   }
 
   /**
@@ -315,7 +315,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return;
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
-      _recordStaticType(node, _typeProvider.boolType);
+      _recordStaticType(node, _nonNullable(_typeProvider.boolType));
     } else {
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);
@@ -426,7 +426,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
-    _recordStaticType(node, _typeProvider.boolType);
+    _recordStaticType(node, _nonNullable(_typeProvider.boolType));
   }
 
   /**
@@ -465,7 +465,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
-    _recordStaticType(node, _typeProvider.doubleType);
+    _recordStaticType(node, _nonNullable(_typeProvider.doubleType));
   }
 
   @override
@@ -604,9 +604,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (context == null ||
         _typeSystem.isAssignableTo(_typeProvider.intType, context) ||
         !_typeSystem.isAssignableTo(_typeProvider.doubleType, context)) {
-      _recordStaticType(node, _typeProvider.intType);
+      _recordStaticType(node, _nonNullable(_typeProvider.intType));
     } else {
-      _recordStaticType(node, _typeProvider.doubleType);
+      _recordStaticType(node, _nonNullable(_typeProvider.doubleType));
     }
   }
 
@@ -618,7 +618,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitIsExpression(IsExpression node) {
-    _recordStaticType(node, _typeProvider.boolType);
+    _recordStaticType(node, _nonNullable(_typeProvider.boolType));
   }
 
   /**
@@ -644,7 +644,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         }
       }
       _recordStaticType(
-          node, _typeProvider.listType.instantiate(<DartType>[staticType]));
+          node,
+          _nonNullable(
+              _typeProvider.listType.instantiate(<DartType>[staticType])));
       return;
     }
 
@@ -659,6 +661,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       // in fact had an error above, because it will still attempt to return
       // a type. Perhaps we should record inference from TypeSystem if
       // everything was successful?
+      // TODO(brianwilkerson) Determine whether we need to make the inferred
+      //  type non-nullable here or whether it will already be non-nullable.
       _resolver.inferenceContext.recordInference(node, inferred);
       _recordStaticType(node, inferred);
       return;
@@ -799,13 +803,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       if (_isNotTypeLiteral(node)) {
         staticType = staticElement.type;
       } else {
-        staticType = _typeProvider.typeType;
+        staticType = _nonNullable(_typeProvider.typeType);
       }
     } else if (staticElement is FunctionTypeAliasElement) {
       if (_isNotTypeLiteral(node)) {
         staticType = staticElement.type;
       } else {
-        staticType = _typeProvider.typeType;
+        staticType = _nonNullable(_typeProvider.typeType);
       }
     } else if (staticElement is MethodElement) {
       staticType = staticElement.type;
@@ -835,7 +839,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void visitPrefixExpression(PrefixExpression node) {
     TokenType operator = node.operator.type;
     if (operator == TokenType.BANG) {
-      _recordStaticType(node, _typeProvider.boolType);
+      _recordStaticType(node, _nonNullable(_typeProvider.boolType));
     } else {
       // The other cases are equivalent to invoking a method.
       ExecutableElement staticMethodElement = node.staticElement;
@@ -845,7 +849,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         Expression operand = node.operand;
         var operandReadType = _getStaticType(operand, read: true);
         if (operandReadType.isDartCoreInt) {
-          staticType = _typeProvider.intType;
+          staticType = _nonNullable(_typeProvider.intType);
         } else {
           _checkForInvalidAssignmentIncDec(node, operand, staticType);
         }
@@ -942,14 +946,18 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         (node as SetOrMapLiteralImpl).becomeSet();
         var elementType = _getType(typeArguments[0]) ?? _dynamicType;
         _recordStaticType(
-            node, _typeProvider.setType.instantiate(<DartType>[elementType]));
+            node,
+            _nonNullable(
+                _typeProvider.setType.instantiate(<DartType>[elementType])));
         return;
       } else if (typeArguments.length == 2) {
         (node as SetOrMapLiteralImpl).becomeMap();
         var keyType = _getType(typeArguments[0]) ?? _dynamicType;
         var valueType = _getType(typeArguments[1]) ?? _dynamicType;
-        _recordStaticType(node,
-            _typeProvider.mapType.instantiate(<DartType>[keyType, valueType]));
+        _recordStaticType(
+            node,
+            _nonNullable(_typeProvider.mapType
+                .instantiate(<DartType>[keyType, valueType])));
         return;
       }
       // If we get here, then a nonsense number of type arguments were provided,
@@ -965,6 +973,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       assert(literalType.element == _typeProvider.setType.element);
       (node as SetOrMapLiteralImpl).becomeSet();
     }
+    // TODO(brianwilkerson) Decide whether the literalType needs to be made
+    //  non-nullable here or whether that will have happened in
+    //  _inferSetOrMapLiteralType.
     _resolver.inferenceContext.recordInference(node, literalType);
     _recordStaticType(node, literalType);
   }
@@ -1015,13 +1026,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       if (_isNotTypeLiteral(node)) {
         staticType = element.type;
       } else {
-        staticType = _typeProvider.typeType;
+        staticType = _nonNullable(_typeProvider.typeType);
       }
     } else if (element is FunctionTypeAliasElement) {
       if (_isNotTypeLiteral(node)) {
         staticType = element.type;
       } else {
-        staticType = _typeProvider.typeType;
+        staticType = _nonNullable(_typeProvider.typeType);
       }
     } else if (element is MethodElement) {
       staticType = element.type;
@@ -1030,7 +1041,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else if (element is ExecutableElement) {
       staticType = element.type;
     } else if (element is TypeParameterElement) {
-      staticType = _typeProvider.typeType;
+      staticType = _nonNullable(_typeProvider.typeType);
     } else if (element is VariableElement) {
       VariableElement variable = element;
       staticType = _promoteManager.getStaticType(variable);
@@ -1042,7 +1053,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       staticType = _typeProvider.dynamicType;
     } else if (element is DynamicElementImpl) {
-      staticType = _typeProvider.typeType;
+      staticType = _nonNullable(_typeProvider.typeType);
     } else {
       staticType = _dynamicType;
     }
@@ -1056,7 +1067,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
-    _recordStaticType(node, _typeProvider.stringType);
+    _recordStaticType(node, _nonNullable(_typeProvider.stringType));
   }
 
   /**
@@ -1065,7 +1076,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitStringInterpolation(StringInterpolation node) {
-    _recordStaticType(node, _typeProvider.stringType);
+    _recordStaticType(node, _nonNullable(_typeProvider.stringType));
   }
 
   @override
@@ -1081,7 +1092,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   @override
   void visitSymbolLiteral(SymbolLiteral node) {
-    _recordStaticType(node, _typeProvider.symbolType);
+    _recordStaticType(node, _nonNullable(_typeProvider.symbolType));
   }
 
   /**
@@ -1251,13 +1262,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       InterfaceType genericType = body.isAsynchronous
           ? _typeProvider.streamType
           : _typeProvider.iterableType;
-      return genericType.instantiate(<DartType>[type]);
+      return _nonNullable(genericType.instantiate(<DartType>[type]));
     } else if (body.isAsynchronous) {
       if (type.isDartAsyncFutureOr) {
         type = (type as InterfaceType).typeArguments[0];
       }
-      return _typeProvider.futureType
+      DartType futureType = _typeProvider.futureType
           .instantiate(<DartType>[_typeSystem.flatten(type)]);
+      return _nonNullable(futureType);
     } else {
       return type;
     }
@@ -1948,6 +1960,17 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         (parent is MethodInvocation &&
             identical(node, parent.target) &&
             parent.operator.type == TokenType.PERIOD);
+  }
+
+  /**
+   * Return the non-nullable variant of the [type] if NNBD is enabled, otherwise
+   * return the type itself.
+   */
+  DartType _nonNullable(DartType type) {
+    if (_nonNullableEnabled) {
+      return _typeSystem.promoteToNonNull(type);
+    }
+    return type;
   }
 
   /**

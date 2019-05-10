@@ -40,12 +40,6 @@ class IsNotWithNnbdTest extends IsNotTest {
 
   @override
   bool get typeToStringWithNullability => true;
-
-  @failingTest
-  @override
-  test_simple() async {
-    await super.test_simple();
-  }
 }
 
 @reflectiveTest
@@ -71,10 +65,4 @@ class IsWithNnbdTest extends IsTest {
 
   @override
   bool get typeToStringWithNullability => true;
-
-  @failingTest
-  @override
-  test_simple() async {
-    await super.test_simple();
-  }
 }
