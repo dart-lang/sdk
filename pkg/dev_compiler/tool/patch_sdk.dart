@@ -9,6 +9,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+// ignore: deprecated_member_use
 import 'package:analyzer/analyzer.dart'
     show parseCompilationUnit, parseDirectives;
 import 'package:analyzer/dart/ast/ast.dart';
