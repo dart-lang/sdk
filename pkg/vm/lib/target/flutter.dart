@@ -3,11 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 library vm.target.flutter;
 
+import 'package:kernel/ast.dart' show Component, Library;
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/transformations/track_widget_constructor_locations.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
 
 class FlutterTarget extends VmTarget {
-  FlutterTarget(TargetFlags flags) : super(flags);
+  FlutterTarget(TargetFlags flags, {this.trackWidgetCreation = false})
+      : super(flags);
+
+  final bool trackWidgetCreation;
 
   @override
   String get name => 'flutter';
@@ -41,4 +47,16 @@ class FlutterTarget extends VmTarget {
         'dart:ui',
         'dart:vmservice_io',
       ];
+
+  @override
+  void performPreConstantEvaluationTransformations(
+      Component component,
+      CoreTypes coreTypes,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
+      {void logger(String msg)}) {
+    if (trackWidgetCreation) {
+      new WidgetCreatorTracker().transform(component, libraries);
+    }
+  }
 }

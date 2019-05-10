@@ -414,15 +414,13 @@ class WidgetCreatorTracker {
     clazz.constructors.forEach(handleConstructor);
   }
 
-  /// Transform the given [module].
-  void transform(Component module) {
-    final List<Library> libraries = module.libraries;
-
+  /// Transform the given [libraries].
+  void transform(Component module, List<Library> libraries) {
     if (libraries.isEmpty) {
       return;
     }
 
-    _resolveFlutterClasses(libraries);
+    _resolveFlutterClasses(module.libraries);
 
     if (_widgetClass == null) {
       // This application doesn't actually use the package:flutter library.
@@ -431,9 +429,9 @@ class WidgetCreatorTracker {
 
     final Set<Class> transformedClasses = new Set<Class>.identity();
     final Set<Library> librariesToTransform = new Set<Library>.identity()
-      ..addAll(module.libraries);
+      ..addAll(libraries);
 
-    for (Library library in module.libraries) {
+    for (Library library in libraries) {
       if (library.isExternal) {
         continue;
       }
@@ -453,7 +451,7 @@ class WidgetCreatorTracker {
             locationClass: _locationClass,
             tracker: this);
 
-    for (Library library in module.libraries) {
+    for (Library library in libraries) {
       if (library.isExternal) {
         continue;
       }

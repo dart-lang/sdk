@@ -13,7 +13,6 @@ import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/kernel.dart' hide MapEntry;
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
-import 'package:kernel/transformations/track_widget_constructor_locations.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 
@@ -213,6 +212,9 @@ Future<CompilerResult> _compile(List<String> args,
     }
   }
 
+  bool trackWidgetCreation =
+      argResults['track-widget-creation'] as bool ?? false;
+
   var oldCompilerState = compilerState;
   List<Component> doneInputSummaries;
   fe.IncrementalCompiler incrementalCompiler;
@@ -224,7 +226,7 @@ Future<CompilerResult> _compile(List<String> args,
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
         summaryModules.keys.toList(),
-        DevCompilerTarget(),
+        DevCompilerTarget(trackWidgetCreation: trackWidgetCreation),
         fileSystem: fileSystem,
         experiments: experiments);
   } else {
@@ -236,7 +238,7 @@ Future<CompilerResult> _compile(List<String> args,
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
         summaryModules.keys.toList(),
-        DevCompilerTarget(),
+        DevCompilerTarget(trackWidgetCreation: trackWidgetCreation),
         fileSystem: fileSystem,
         experiments: experiments);
     incrementalCompiler = compilerState.incrementalCompiler;
@@ -318,13 +320,6 @@ Future<CompilerResult> _compile(List<String> args,
   if (hierarchy == null) {
     var target = compilerState.options.target as DevCompilerTarget;
     hierarchy = target.hierarchy;
-  }
-
-  // TODO(jmesserly): remove this hack once Flutter SDK has a `dartdevc` with
-  // support for the widget inspector.
-  if (argResults['track-widget-creation'] as bool) {
-    component.computeCanonicalNames();
-    WidgetCreatorTracker().transform(component);
   }
 
   var compiler =

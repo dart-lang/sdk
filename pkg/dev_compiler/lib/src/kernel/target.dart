@@ -8,11 +8,16 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/transformations/track_widget_constructor_locations.dart';
 import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
 
 /// A kernel [Target] to configure the Dart Front End for dartdevc.
 class DevCompilerTarget extends Target {
+  DevCompilerTarget({this.trackWidgetCreation = false});
+
+  final bool trackWidgetCreation;
+
   ClassHierarchy hierarchy;
 
   bool get legacyMode => false;
@@ -84,6 +89,18 @@ class DevCompilerTarget extends Target {
     this.hierarchy = hierarchy;
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
+    }
+  }
+
+  @override
+  void performPreConstantEvaluationTransformations(
+      Component component,
+      CoreTypes coreTypes,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
+      {void logger(String msg)}) {
+    if (trackWidgetCreation) {
+      WidgetCreatorTracker().transform(component, libraries);
     }
   }
 

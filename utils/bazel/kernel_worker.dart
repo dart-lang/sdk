@@ -19,7 +19,6 @@ import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/transformations/track_widget_constructor_locations.dart';
 import 'package:vm/target/vm.dart';
 import 'package:vm/target/flutter.dart';
 import 'package:vm/target/flutter_runner.dart';
@@ -175,11 +174,6 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   var summaryOnly = parsedArgs['summary-only'] as bool;
   var trackKernelCreation = parsedArgs['track-kernel-creation'] as bool;
 
-  if (summaryOnly && trackKernelCreation) {
-    throw new ArgumentError('error: --summary-only is not compatible with '
-        '--track-kernel-creation');
-  }
-
   // TODO(sigmund,jakemac): make target mandatory. We allow null to be backwards
   // compatible while we migrate existing clients of this tool.
   var targetName =
@@ -194,7 +188,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       }
       break;
     case 'flutter':
-      target = new FlutterTarget(targetFlags);
+      target = new FlutterTarget(targetFlags,
+          trackWidgetCreation: trackKernelCreation);
       if (summaryOnly) {
         throw new ArgumentError(
             'error: --summary-only not supported for the flutter target');
@@ -217,7 +212,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     case 'ddc':
       // TODO(jakemac):If `generateKernel` changes to return a summary
       // component, process the component instead.
-      target = new DevCompilerSummaryTarget(sources, excludeNonSources);
+      target = new DevCompilerSummaryTarget(sources, excludeNonSources,
+          trackWidgetCreation: trackKernelCreation);
       if (!summaryOnly) {
         out.writeln('error: --no-summary-only not supported for the '
             'ddc target');
@@ -296,8 +292,6 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         incrementalComponent.problemsAsJson = null;
         incrementalComponent.mainMethod = null;
         target.performOutlineTransformations(incrementalComponent);
-      } else if (trackKernelCreation) {
-        (new WidgetCreatorTracker()).transform(incrementalComponent);
       }
 
       return Future.value(fe.serializeComponent(incrementalComponent));
@@ -307,10 +301,6 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   } else {
     Component component =
         await fe.compileComponent(state, sources, onDiagnostic);
-
-    if (trackKernelCreation) {
-      (new WidgetCreatorTracker()).transform(component);
-    }
     kernel = fe.serializeComponent(component,
         filter: (library) => sources.contains(library.importUri));
   }
@@ -342,7 +332,9 @@ class DevCompilerSummaryTarget extends DevCompilerTarget {
   final List<Uri> sources;
   final bool excludeNonSources;
 
-  DevCompilerSummaryTarget(this.sources, this.excludeNonSources);
+  DevCompilerSummaryTarget(this.sources, this.excludeNonSources,
+      {trackWidgetCreation = false})
+      : super(trackWidgetCreation: trackWidgetCreation);
 
   @override
   void performOutlineTransformations(Component component) {

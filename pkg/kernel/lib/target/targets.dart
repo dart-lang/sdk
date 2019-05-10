@@ -115,6 +115,15 @@ abstract class Target {
   /// slowing down compilation.
   void performOutlineTransformations(Component component) {}
 
+  /// Perform target-specific transformations on the given libraries that must
+  /// run before constant evaluation.
+  void performPreConstantEvaluationTransformations(
+      Component component,
+      CoreTypes coreTypes,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
+      {void logger(String msg)}) {}
+
   /// Perform target-specific modular transformations on the given libraries.
   void performModularTransformationsOnLibraries(
       Component component,
