@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Regression test for http://dartbug.com/23404
-import 'package:expect/expect.dart';
-
+//
 // Dart2js crashed when the global metadata had escaped characters. That
 // happens, for example, when tearing off a function that uses a default
 // argument containing escape characters.
+import 'package:expect/expect.dart';
+
 foo([a = '\u00a0']) => a;
 bar() => '';
 
