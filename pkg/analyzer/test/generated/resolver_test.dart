@@ -44,6 +44,7 @@ main() {
     defineReflectiveTests(ErrorResolverTest);
     defineReflectiveTests(LibraryImportScopeTest);
     defineReflectiveTests(LibraryScopeTest);
+    defineReflectiveTests(NonNullableTypeProviderTest);
     defineReflectiveTests(PrefixedNamespaceTest);
     defineReflectiveTests(ScopeTest);
     defineReflectiveTests(StrictModeTest);
@@ -329,6 +330,129 @@ class LibraryScopeTest extends ResolverTestCase {
         scope.lookup(
             AstTestFactory.identifier3(importedTypeName), definingLibrary),
         importedType);
+  }
+}
+
+@reflectiveTest
+class NonNullableTypeProviderTest extends EngineTestCase {
+  void assertNonNullable(InterfaceType type) {
+    expect((type as TypeImpl).nullabilitySuffix, NullabilitySuffix.none);
+  }
+
+  void test_creation() {
+    //
+    // Create a mock library element with the types expected to be in dart:core.
+    // We cannot use either ElementFactory or TestTypeProvider (which uses
+    // ElementFactory) because we side-effect the elements in ways that would
+    // break other tests.
+    //
+    InterfaceType objectType = _classElement("Object", null).type;
+    InterfaceType boolType = _classElement("bool", objectType).type;
+    InterfaceType numType = _classElement("num", objectType).type;
+    InterfaceType deprecatedType = _classElement('Deprecated', objectType).type;
+    InterfaceType doubleType = _classElement("double", numType).type;
+    InterfaceType functionType = _classElement("Function", objectType).type;
+    InterfaceType futureType = _classElement("Future", objectType, ["T"]).type;
+    InterfaceType futureOrType =
+        _classElement("FutureOr", objectType, ["T"]).type;
+    InterfaceType intType = _classElement("int", numType).type;
+    InterfaceType iterableType =
+        _classElement("Iterable", objectType, ["T"]).type;
+    InterfaceType listType = _classElement("List", objectType, ["E"]).type;
+    InterfaceType mapType = _classElement("Map", objectType, ["K", "V"]).type;
+    InterfaceType nullType = _classElement('Null', objectType).type;
+    InterfaceType setType = _classElement("Set", objectType, ["E"]).type;
+    InterfaceType stackTraceType = _classElement("StackTrace", objectType).type;
+    InterfaceType streamType = _classElement("Stream", objectType, ["T"]).type;
+    InterfaceType stringType = _classElement("String", objectType).type;
+    InterfaceType symbolType = _classElement("Symbol", objectType).type;
+    InterfaceType typeType = _classElement("Type", objectType).type;
+    CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl();
+    coreUnit.types = <ClassElement>[
+      boolType.element,
+      deprecatedType.element,
+      doubleType.element,
+      functionType.element,
+      intType.element,
+      iterableType.element,
+      listType.element,
+      mapType.element,
+      nullType.element,
+      numType.element,
+      setType.element,
+      objectType.element,
+      stackTraceType.element,
+      stringType.element,
+      symbolType.element,
+      typeType.element
+    ];
+    coreUnit.source = new TestSource('dart:core');
+    coreUnit.librarySource = coreUnit.source;
+    CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
+    asyncUnit.types = <ClassElement>[
+      futureType.element,
+      futureOrType.element,
+      streamType.element
+    ];
+    asyncUnit.source = new TestSource('dart:async');
+    asyncUnit.librarySource = asyncUnit.source;
+    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
+        null, null, AstTestFactory.libraryIdentifier2(["dart.core"]));
+    coreLibrary.definingCompilationUnit = coreUnit;
+    LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
+        null, null, AstTestFactory.libraryIdentifier2(["dart.async"]));
+    asyncLibrary.definingCompilationUnit = asyncUnit;
+    //
+    // Create a type provider and ensure that it can return the expected types.
+    //
+    TypeProvider provider =
+        new NonNullableTypeProvider(coreLibrary, asyncLibrary);
+    assertNonNullable(provider.boolType);
+    expect(provider.bottomType, isNotNull);
+    assertNonNullable(provider.deprecatedType);
+    assertNonNullable(provider.doubleType);
+    expect(provider.dynamicType, isNotNull);
+    assertNonNullable(provider.functionType);
+    assertNonNullable(provider.futureType);
+    assertNonNullable(provider.futureOrType);
+    assertNonNullable(provider.intType);
+    assertNonNullable(provider.listType);
+    assertNonNullable(provider.mapType);
+    expect(provider.neverType, isNotNull);
+    assertNonNullable(provider.nullType);
+    assertNonNullable(provider.numType);
+    assertNonNullable(provider.objectType);
+    assertNonNullable(provider.stackTraceType);
+    assertNonNullable(provider.streamType);
+    assertNonNullable(provider.stringType);
+    assertNonNullable(provider.symbolType);
+    assertNonNullable(provider.typeType);
+  }
+
+  ClassElement _classElement(String typeName, InterfaceType superclassType,
+      [List<String> parameterNames]) {
+    ClassElementImpl element =
+        new ClassElementImpl.forNode(AstTestFactory.identifier3(typeName));
+    element.supertype = superclassType;
+    if (parameterNames != null) {
+      int count = parameterNames.length;
+      if (count > 0) {
+        List<TypeParameterElementImpl> typeParameters =
+            new List<TypeParameterElementImpl>(count);
+        List<TypeParameterTypeImpl> typeArguments =
+            new List<TypeParameterTypeImpl>(count);
+        for (int i = 0; i < count; i++) {
+          TypeParameterElementImpl typeParameter =
+              new TypeParameterElementImpl.forNode(
+                  AstTestFactory.identifier3(parameterNames[i]));
+          typeParameters[i] = typeParameter;
+          typeArguments[i] = new TypeParameterTypeImpl(typeParameter);
+          typeParameter.type = typeArguments[i];
+        }
+        element.typeParameters = typeParameters;
+      }
+    }
+    return element;
   }
 }
 

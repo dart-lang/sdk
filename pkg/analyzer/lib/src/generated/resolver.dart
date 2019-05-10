@@ -3402,6 +3402,23 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
   }
 }
 
+/// A type provider that returns non-nullable versions of the SDK types.
+class NonNullableTypeProvider extends TypeProviderImpl {
+  NonNullableTypeProvider(
+      LibraryElement coreLibrary, LibraryElement asyncLibrary)
+      : super(coreLibrary, asyncLibrary);
+
+  @override
+  InterfaceType _getType(Namespace namespace, String typeName) {
+    InterfaceType type = super._getType(namespace, typeName);
+    if (type == null) {
+      return null;
+    }
+    return (type as TypeImpl).withNullability(NullabilitySuffix.none)
+        as InterfaceType;
+  }
+}
+
 /// Instances of the class `OverrideVerifier` visit all of the declarations in a
 /// compilation unit to verify that if they have an override annotation it is
 /// being used correctly.
