@@ -10,7 +10,7 @@ part of html;
  */
 class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   // This code inspired by Closure's KeyHandling library.
-  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keyhandler.js.source.html
+  // https://github.com/google/closure-library/blob/master/closure/goog/events/keyhandler.js
 
   /**
    * The set of keys that have been pressed down without seeing their
