@@ -35,7 +35,7 @@ See [LICENSE][license] and [PATENTS][patents].
 [repo]: https://github.com/dart-lang/sdk
 [lang]: https://www.dartlang.org/docs/dart-up-and-running/ch02.html
 [tools]: https://www.dartlang.org/tools/
-[codelab]: https://www.dartlang.org/codelabs/darrrt/
+[codelab]: https://dart.dev/codelabs
 [dartbug]: http://dartbug.com
 [contrib]: https://github.com/dart-lang/sdk/wiki/Contributing
 [pubsite]: https://pub.dartlang.org
