@@ -13,6 +13,7 @@ import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/kernel.dart' hide MapEntry;
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
+import 'package:kernel/transformations/track_widget_constructor_locations.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 
@@ -20,7 +21,6 @@ import '../compiler/js_names.dart' as JS;
 import '../compiler/module_builder.dart';
 import '../compiler/shared_command.dart';
 import '../compiler/shared_compiler.dart';
-import '../flutter/track_widget_constructor_locations.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;

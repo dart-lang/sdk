@@ -1,25 +1,12 @@
-// Copyright 2013 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-// TODO(jmesserly): this file was copied from:
-// https://github.com/flutter/engine/blob/4b01d795feec3ba8231a397a4ec2759954d8216e/flutter_kernel_transformers/lib/track_widget_constructor_locations.dart
-//
-// Longer term, this transform should be injected by Flutter when they building
-// the Flutter-specific `dartdevc` script.
-//
-// The following modifications were made:
-// - remove "package:vm" dependency (only used for one interface)
-// - removed the class hierarchy parameter.
-library track_widget_constructor_locations;
+library kernel.transformations.track_widget_constructor_locations;
 
-// The kernel/src import below that requires lint `ignore_for_file`
-// is a temporary state of things until kernel team builds better api that would
-// replace api used below. This api was made private in an effort to discourage
-// further use.
-// ignore_for_file: implementation_imports
-import 'package:kernel/ast.dart';
 import 'package:meta/meta.dart';
+
+import '../ast.dart';
 
 // Parameter name used to track were widget constructor calls were made from.
 //
