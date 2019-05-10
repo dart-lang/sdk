@@ -26,6 +26,7 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/field_analysis.dart';
+import '../js_backend/runtime_types.dart' show RuntimeTypeTags;
 import '../js_model/closure.dart';
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../universe/call_structure.dart' show CallStructure;
@@ -34,7 +35,6 @@ import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
 import 'backend.dart';
 import 'native_data.dart';
-import 'runtime_types.dart';
 
 part 'field_naming_mixin.dart';
 part 'frequency_namer.dart';
@@ -459,6 +459,8 @@ class Namer extends ModularNamer {
 
   final String classDescriptorProperty = r'^';
 
+  final RuntimeTypeTags rtiTags;
+
   /// The non-minifying namer's [callPrefix] with a dollar after it.
   static const String _callPrefixDollar = r'call$';
 
@@ -490,21 +492,6 @@ class Namer extends ModularNamer {
   static final RegExp NON_IDENTIFIER_CHAR = new RegExp(r'[^A-Za-z_0-9$]');
 
   final JClosedWorld _closedWorld;
-
-  RuntimeTypesEncoder _rtiEncoder;
-  RuntimeTypesEncoder get rtiEncoder {
-    assert(_rtiEncoder != null,
-        failedAt(NO_LOCATION_SPANNABLE, "Namer.rtiEncoder has not been set."));
-    return _rtiEncoder;
-  }
-
-  void set rtiEncoder(RuntimeTypesEncoder value) {
-    assert(
-        _rtiEncoder == null,
-        failedAt(
-            NO_LOCATION_SPANNABLE, "Namer.rtiEncoder has already been set."));
-    _rtiEncoder = value;
-  }
 
   /// Used disambiguated names in the global namespace, issued by
   /// [_disambiguateGlobal], and [_disambiguateInternalGlobal].
@@ -595,7 +582,7 @@ class Namer extends ModularNamer {
   /// key into maps.
   final Map<LibraryEntity, String> _libraryKeys = HashMap();
 
-  Namer(this._closedWorld) {
+  Namer(this._closedWorld, this.rtiTags) {
     _literalGetterPrefix = new StringBackedName(getterPrefix);
     _literalSetterPrefix = new StringBackedName(setterPrefix);
   }
@@ -667,25 +654,25 @@ class Namer extends ModularNamer {
       case JsGetName.RTI_NAME:
         return asName(rtiName);
       case JsGetName.TYPEDEF_TAG:
-        return asName(typedefTag);
+        return asName(rtiTags.typedefTag);
       case JsGetName.FUNCTION_TYPE_TAG:
-        return asName(functionTypeTag);
+        return asName(rtiTags.functionTypeTag);
       case JsGetName.FUNCTION_TYPE_GENERIC_BOUNDS_TAG:
-        return asName(functionTypeGenericBoundsTag);
+        return asName(rtiTags.functionTypeGenericBoundsTag);
       case JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG:
-        return asName(functionTypeVoidReturnTag);
+        return asName(rtiTags.functionTypeVoidReturnTag);
       case JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG:
-        return asName(functionTypeReturnTypeTag);
+        return asName(rtiTags.functionTypeReturnTypeTag);
       case JsGetName.FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG:
-        return asName(functionTypeRequiredParametersTag);
+        return asName(rtiTags.functionTypeRequiredParametersTag);
       case JsGetName.FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG:
-        return asName(functionTypeOptionalParametersTag);
+        return asName(rtiTags.functionTypeOptionalParametersTag);
       case JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG:
-        return asName(functionTypeNamedParametersTag);
+        return asName(rtiTags.functionTypeNamedParametersTag);
       case JsGetName.FUTURE_OR_TAG:
-        return asName(futureOrTag);
+        return asName(rtiTags.futureOrTag);
       case JsGetName.FUTURE_OR_TYPE_ARGUMENT_TAG:
-        return asName(futureOrTypeTag);
+        return asName(rtiTags.futureOrTypeTag);
       case JsGetName.IS_INDEXABLE_FIELD_NAME:
         return operatorIs(_commonElements.jsIndexingBehaviorInterface);
       case JsGetName.NULL_CLASS_TYPE_NAME:
@@ -730,10 +717,9 @@ class Namer extends ModularNamer {
   String constantLongName(ConstantValue constant) {
     String longName = _constantLongNames[constant];
     if (longName == null) {
-      _constantHasher ??= new ConstantCanonicalHasher(rtiEncoder, _closedWorld);
-      longName =
-          new ConstantNamingVisitor(rtiEncoder, _closedWorld, _constantHasher)
-              .getName(constant);
+      _constantHasher ??= new ConstantCanonicalHasher(this, _closedWorld);
+      longName = new ConstantNamingVisitor(this, _closedWorld, _constantHasher)
+          .getName(constant);
       _constantLongNames[constant] = longName;
     }
     return longName;
@@ -1407,34 +1393,6 @@ class Namer extends ModularNamer {
     return disambiguated;
   }
 
-  String suffixForGetInterceptor(Iterable<ClassEntity> classes) {
-    String abbreviate(ClassEntity cls) {
-      if (cls == _commonElements.objectClass) return "o";
-      if (cls == _commonElements.jsStringClass) return "s";
-      if (cls == _commonElements.jsArrayClass) return "a";
-      if (cls == _commonElements.jsDoubleClass) return "d";
-      if (cls == _commonElements.jsIntClass) return "i";
-      if (cls == _commonElements.jsNumberClass) return "n";
-      if (cls == _commonElements.jsNullClass) return "u";
-      if (cls == _commonElements.jsBoolClass) return "b";
-      if (cls == _commonElements.jsInterceptorClass) return "I";
-      return cls.name;
-    }
-
-    List<String> names = classes
-        .where((cls) => !_nativeData.isNativeOrExtendsNative(cls))
-        .map(abbreviate)
-        .toList();
-    // There is one dispatch mechanism for all native classes.
-    if (classes.any((cls) => _nativeData.isNativeOrExtendsNative(cls))) {
-      names.add("x");
-    }
-    // Sort the names of the classes after abbreviating them to ensure
-    // the suffix is stable and predictable for the suggested names.
-    names.sort();
-    return names.join();
-  }
-
   String _getSuffixForInterceptedClasses(Iterable<ClassEntity> classes) {
     if (classes.isEmpty) {
       // TODO(johnniwinther,sra): If [classes] is empty it should either have
@@ -1452,7 +1410,7 @@ class Namer extends ModularNamer {
       // set of classes for most general variant, e.g. "$lt$n" could be "$lt".
       return '';
     } else {
-      return suffixForGetInterceptor(classes);
+      return suffixForGetInterceptor(_commonElements, _nativeData, classes);
     }
   }
 
@@ -1496,10 +1454,7 @@ class Namer extends ModularNamer {
     return _disambiguateGlobalType(element);
   }
 
-  /// Returns the disambiguated name of [class_].
-  ///
-  /// This is both the *runtime type* of the class (see [runtimeTypeName])
-  /// and a global property name in which to store its JS constructor.
+  @override
   jsAst.Name className(ClassEntity class_) => _disambiguateGlobalType(class_);
 
   @override
@@ -1622,26 +1577,6 @@ class Namer extends ModularNamer {
 
   String get genericInstantiationPrefix => r'$instantiate';
 
-  String get typedefTag => r'typedef';
-
-  String get functionTypeTag => r'func';
-
-  String get functionTypeVoidReturnTag => r'v';
-
-  String get functionTypeReturnTypeTag => r'ret';
-
-  String get functionTypeRequiredParametersTag => r'args';
-
-  String get functionTypeOptionalParametersTag => r'opt';
-
-  String get functionTypeNamedParametersTag => r'named';
-
-  String get functionTypeGenericBoundsTag => r'bounds';
-
-  String get futureOrTag => r'futureOr';
-
-  String get futureOrTypeTag => r'type';
-
   // The name of the variable used to offset function signatures in deferred
   // parts with the fast-startup emitter.
   String get typesOffsetName => r'typesOffset';
@@ -1652,7 +1587,7 @@ class Namer extends ModularNamer {
 
   jsAst.Name getFunctionTypeName(FunctionType functionType) {
     return functionTypeNameMap.putIfAbsent(functionType, () {
-      _functionTypeNamer ??= new FunctionTypeNamer(rtiEncoder);
+      _functionTypeNamer ??= new FunctionTypeNamer();
       String proposedName = _functionTypeNamer.computeName(functionType);
       return getFreshName(instanceScope, proposedName);
     });
@@ -1767,6 +1702,61 @@ class Namer extends ModularNamer {
       return name;
     }
   }
+
+  String getTypeRepresentationForTypeConstant(DartType type) {
+    if (type.isDynamic) return "dynamic";
+    if (type is TypedefType) {
+      return uniqueNameForTypeConstantElement(
+          type.element.library, type.element);
+    }
+    if (type is FunctionType) {
+      // TODO(johnniwinther): Add naming scheme for function type literals.
+      // These currently only occur from kernel.
+      return '()->';
+    }
+    InterfaceType interface = type;
+    String name = uniqueNameForTypeConstantElement(
+        interface.element.library, interface.element);
+
+    // Type constants can currently only be raw types, so there is no point
+    // adding ground-term type parameters, as they would just be 'dynamic'.
+    // TODO(sra): Since the result string is used only in constructing constant
+    // names, it would result in more readable names if the final string was a
+    // legal JavaScript identifier.
+    if (interface.typeArguments.isEmpty) return name;
+    String arguments =
+        new List.filled(interface.typeArguments.length, 'dynamic').join(', ');
+    return '$name<$arguments>';
+  }
+}
+
+String suffixForGetInterceptor(CommonElements commonElements,
+    NativeData nativeData, Iterable<ClassEntity> classes) {
+  String abbreviate(ClassEntity cls) {
+    if (cls == commonElements.objectClass) return "o";
+    if (cls == commonElements.jsStringClass) return "s";
+    if (cls == commonElements.jsArrayClass) return "a";
+    if (cls == commonElements.jsDoubleClass) return "d";
+    if (cls == commonElements.jsIntClass) return "i";
+    if (cls == commonElements.jsNumberClass) return "n";
+    if (cls == commonElements.jsNullClass) return "u";
+    if (cls == commonElements.jsBoolClass) return "b";
+    if (cls == commonElements.jsInterceptorClass) return "I";
+    return cls.name;
+  }
+
+  List<String> names = classes
+      .where((cls) => !nativeData.isNativeOrExtendsNative(cls))
+      .map(abbreviate)
+      .toList();
+  // There is one dispatch mechanism for all native classes.
+  if (classes.any((cls) => nativeData.isNativeOrExtendsNative(cls))) {
+    names.add("x");
+  }
+  // Sort the names of the classes after abbreviating them to ensure
+  // the suffix is stable and predictable for the suggested names.
+  names.sort();
+  return names.join();
 }
 
 /// Generator of names for [ConstantValue] values.
@@ -1788,7 +1778,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   static const MAX_EXTRA_LENGTH = 30;
   static const DEFAULT_TAG_LENGTH = 3;
 
-  final RuntimeTypesEncoder _rtiEncoder;
+  final Namer _namer;
   final JClosedWorld _closedWorld;
   final ConstantCanonicalHasher _hasher;
 
@@ -1797,7 +1787,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   List<String> fragments = <String>[];
   int length = 0;
 
-  ConstantNamingVisitor(this._rtiEncoder, this._closedWorld, this._hasher);
+  ConstantNamingVisitor(this._namer, this._closedWorld, this._hasher);
 
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
@@ -1992,7 +1982,7 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     }
     if (name == null) {
       // e.g. DartType 'dynamic' has no element.
-      name = _rtiEncoder.getTypeRepresentationForTypeConstant(type);
+      name = _namer.getTypeRepresentationForTypeConstant(type);
     }
     addIdentifier(name);
     add(getHashTag(constant, 3));
@@ -2039,11 +2029,11 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   static const _MASK = 0x1fffffff;
   static const _UINT32_LIMIT = 4 * 1024 * 1024 * 1024;
 
-  final RuntimeTypesEncoder _rtiEncoder;
+  final Namer _namer;
   final JClosedWorld _closedWorld;
   final Map<ConstantValue, int> _hashes = {};
 
-  ConstantCanonicalHasher(this._rtiEncoder, this._closedWorld);
+  ConstantCanonicalHasher(this._namer, this._closedWorld);
 
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
@@ -2131,7 +2121,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   int visitType(TypeConstantValue constant, [_]) {
     DartType type = constant.representedType;
     // This name includes the library name and type parameters.
-    String name = _rtiEncoder.getTypeRepresentationForTypeConstant(type);
+    String name = _namer.getTypeRepresentationForTypeConstant(type);
     return _hashString(4, name);
   }
 
@@ -2233,10 +2223,9 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 }
 
 class FunctionTypeNamer extends BaseDartTypeVisitor {
-  final RuntimeTypesEncoder rtiEncoder;
   StringBuffer sb;
 
-  FunctionTypeNamer(this.rtiEncoder);
+  FunctionTypeNamer();
 
   String computeName(DartType type) {
     sb = new StringBuffer();
@@ -2267,9 +2256,19 @@ class FunctionTypeNamer extends BaseDartTypeVisitor {
     sb.write(type.element.name);
   }
 
+  bool _isSimpleFunctionType(FunctionType type) {
+    if (!type.returnType.isDynamic) return false;
+    if (!type.optionalParameterTypes.isEmpty) return false;
+    if (!type.namedParameterTypes.isEmpty) return false;
+    for (DartType parameter in type.parameterTypes) {
+      if (!parameter.isDynamic) return false;
+    }
+    return true;
+  }
+
   @override
   visitFunctionType(FunctionType type, _) {
-    if (rtiEncoder.isSimpleFunctionType(type)) {
+    if (_isSimpleFunctionType(type)) {
       sb.write('args${type.parameterTypes.length}');
       return;
     }
@@ -2458,6 +2457,12 @@ abstract class ModularNamer {
   /// Returns the name of the closure of the static method [element].
   jsAst.Name staticClosureName(FunctionEntity element);
 
+  /// Returns the disambiguated name of [class_].
+  ///
+  /// This is both the *runtime type* of the class (see [runtimeTypeName])
+  /// and a global property name in which to store its JS constructor.
+  jsAst.Name className(ClassEntity class_);
+
   /// The prefix used for encoding async properties.
   final String asyncPrefix = r"$async$";
 
@@ -2523,6 +2528,11 @@ class ModularNamerImpl extends ModularNamer {
   @override
   jsAst.Name runtimeTypeName(Entity element) {
     return new ModularName(ModularNameKind.runtimeTypeName, element);
+  }
+
+  @override
+  jsAst.Name className(ClassEntity element) {
+    return new ModularName(ModularNameKind.className, element);
   }
 
   @override
@@ -2628,6 +2638,7 @@ class ModularNamerImpl extends ModularNamer {
 enum ModularNameKind {
   rtiField,
   runtimeTypeName,
+  className,
   aliasedSuperMember,
   staticClosure,
   methodProperty,

@@ -958,7 +958,8 @@ class ProgramBuilder {
       FunctionType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
       js.Expression thisAccess = js.js(r'this.$receiver');
-      return _rtiEncoder.getSignatureEncoding(_task.emitter, type, thisAccess);
+      return _rtiEncoder.getSignatureEncoding(
+          _namer, _task.emitter, type, thisAccess);
     } else {
       return _task.metadataCollector.reifyType(type, outputUnit);
     }

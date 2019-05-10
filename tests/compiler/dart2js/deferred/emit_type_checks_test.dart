@@ -22,7 +22,7 @@ void main() {
     String mainOutput = collector.getOutput('', OutputType.js);
     String deferredOutput = collector.getOutput('out_1', OutputType.jsPart);
     JavaScriptBackend backend = compiler.backend;
-    String isPrefix = backend.namer.operatorIsPrefix;
+    String isPrefix = backend.namerForTesting.operatorIsPrefix;
     Expect.isTrue(
         deferredOutput.contains('${isPrefix}A: 1'),
         "Deferred output doesn't contain '${isPrefix}A: 1':\n"

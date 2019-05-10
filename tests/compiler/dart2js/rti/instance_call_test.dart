@@ -107,7 +107,7 @@ main() {
     ProgramLookup programLookup = new ProgramLookup(compiler);
 
     js.Name getName(String name, int typeArguments) {
-      return compiler.backend.namer.invocationName(new Selector.call(
+      return compiler.backend.namerForTesting.invocationName(new Selector.call(
           new PublicName(name),
           new CallStructure(1, const <String>[], typeArguments)));
     }

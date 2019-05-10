@@ -81,6 +81,7 @@ class ModularEmitterImpl implements ModularEmitter {
     return js.js('#.prototype', constructor);
   }
 
+  @override
   js.Expression typeAccess(Entity element) {
     return globalPropertyAccessForType(element);
   }

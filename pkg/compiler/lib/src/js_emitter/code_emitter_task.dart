@@ -151,7 +151,7 @@ class CodeEmitterTask extends CompilerTask {
 /// code generation.
 ///
 /// Note that the emission phase is not itself modular but performed on
-/// performed on the closed world computed by the codegen enqueuer.
+/// the closed world computed by the codegen enqueuer.
 abstract class ModularEmitter {
   /// Returns the JS prototype of the given class [e].
   jsAst.Expression prototypeAccess(ClassEntity e, {bool hasBeenInstantiated});
@@ -174,6 +174,9 @@ abstract class ModularEmitter {
   ///
   /// The returned expression must only be used in a JS `new` expression.
   jsAst.Expression constructorAccess(ClassEntity e);
+
+  /// Returns the JS expression representing the type [e].
+  jsAst.Expression typeAccess(Entity e);
 
   /// Returns the JS code for accessing the embedded [global].
   jsAst.Expression generateEmbeddedGlobalAccess(String global);
@@ -198,9 +201,6 @@ abstract class Emitter implements ModularEmitter {
 
   /// Returns the JS constructor of the given interceptor class [e].
   jsAst.Expression interceptorClassAccess(ClassEntity e);
-
-  /// Returns the JS expression representing the type [e].
-  jsAst.Expression typeAccess(Entity e);
 
   /// Returns the JS expression representing a function that returns 'null'
   jsAst.Expression generateFunctionThatReturnsNull();

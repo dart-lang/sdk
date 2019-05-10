@@ -46,7 +46,7 @@ main() {
     ProgramLookup programLookup = new ProgramLookup(compiler);
 
     js.Name getName(String name) {
-      return compiler.backend.namer
+      return compiler.backend.namerForTesting
           .globalPropertyNameForMember(lookupMember(elementEnvironment, name));
     }
 

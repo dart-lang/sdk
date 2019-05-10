@@ -25,7 +25,7 @@ main() {
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     Program program = compiler.backend.emitterTask.emitter.programForTesting;
-    var name = compiler.backend.namer.operatorIs(
+    var name = compiler.backend.namerForTesting.operatorIs(
         compiler.backendClosedWorldForTesting.commonElements.functionClass);
     for (Fragment fragment in program.fragments) {
       for (Library library in fragment.libraries) {

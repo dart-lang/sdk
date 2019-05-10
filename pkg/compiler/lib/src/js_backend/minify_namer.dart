@@ -10,7 +10,8 @@ class MinifyNamer extends Namer
         _MinifiedFieldNamer,
         _MinifyConstructorBodyNamer,
         _MinifiedOneShotInterceptorNamer {
-  MinifyNamer(JClosedWorld closedWorld) : super(closedWorld) {
+  MinifyNamer(JClosedWorld closedWorld, RuntimeTypeTags rtiTags)
+      : super(closedWorld, rtiTags) {
     reserveBackendNames();
     fieldRegistry = new _FieldNamingRegistry(this);
   }
@@ -412,7 +413,8 @@ abstract class _MinifiedOneShotInterceptorNamer implements Namer {
     String callSuffix = selector.isCall
         ? Namer.callSuffixForStructure(selector.callStructure).join()
         : "";
-    String suffix = suffixForGetInterceptor(classes);
+    String suffix =
+        suffixForGetInterceptor(_commonElements, _nativeData, classes);
     String fullName = "\$intercepted$prefix\$$root$callSuffix\$$suffix";
     return _disambiguateInternalGlobal(fullName);
   }
