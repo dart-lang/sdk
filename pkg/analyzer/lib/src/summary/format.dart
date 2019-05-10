@@ -28565,6 +28565,7 @@ class UnlinkedUnitBuilder extends Object
   List<UnlinkedExecutableBuilder> _executables;
   List<UnlinkedExportNonPublicBuilder> _exports;
   List<UnlinkedImportBuilder> _imports;
+  bool _isNNBD;
   bool _isPartOf;
   List<UnlinkedExprBuilder> _libraryAnnotations;
   UnlinkedDocumentationCommentBuilder _libraryDocumentationComment;
@@ -28645,6 +28646,14 @@ class UnlinkedUnitBuilder extends Object
   /// Import declarations in the compilation unit.
   set imports(List<UnlinkedImportBuilder> value) {
     this._imports = value;
+  }
+
+  @override
+  bool get isNNBD => _isNNBD ??= false;
+
+  /// Indicates whether this compilation unit is opted into NNBD.
+  set isNNBD(bool value) {
+    this._isNNBD = value;
   }
 
   @override
@@ -28775,6 +28784,7 @@ class UnlinkedUnitBuilder extends Object
       List<UnlinkedExecutableBuilder> executables,
       List<UnlinkedExportNonPublicBuilder> exports,
       List<UnlinkedImportBuilder> imports,
+      bool isNNBD,
       bool isPartOf,
       List<UnlinkedExprBuilder> libraryAnnotations,
       UnlinkedDocumentationCommentBuilder libraryDocumentationComment,
@@ -28795,6 +28805,7 @@ class UnlinkedUnitBuilder extends Object
         _executables = executables,
         _exports = exports,
         _imports = imports,
+        _isNNBD = isNNBD,
         _isPartOf = isPartOf,
         _libraryAnnotations = libraryAnnotations,
         _libraryDocumentationComment = libraryDocumentationComment,
@@ -28932,6 +28943,7 @@ class UnlinkedUnitBuilder extends Object
         x?.collectApiSignature(signature);
       }
     }
+    signature.addBool(this._isNNBD == true);
   }
 
   List<int> toBuffer() {
@@ -29042,6 +29054,9 @@ class UnlinkedUnitBuilder extends Object
     if (offset_imports != null) {
       fbBuilder.addOffset(5, offset_imports);
     }
+    if (_isNNBD == true) {
+      fbBuilder.addBool(21, true);
+    }
     if (_isPartOf == true) {
       fbBuilder.addBool(18, true);
     }
@@ -29113,6 +29128,7 @@ class _UnlinkedUnitImpl extends Object
   List<idl.UnlinkedExecutable> _executables;
   List<idl.UnlinkedExportNonPublic> _exports;
   List<idl.UnlinkedImport> _imports;
+  bool _isNNBD;
   bool _isPartOf;
   List<idl.UnlinkedExpr> _libraryAnnotations;
   idl.UnlinkedDocumentationComment _libraryDocumentationComment;
@@ -29182,6 +29198,12 @@ class _UnlinkedUnitImpl extends Object
         const fb.ListReader<idl.UnlinkedImport>(const _UnlinkedImportReader())
             .vTableGet(_bc, _bcOffset, 5, const <idl.UnlinkedImport>[]);
     return _imports;
+  }
+
+  @override
+  bool get isNNBD {
+    _isNNBD ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 21, false);
+    return _isNNBD;
   }
 
   @override
@@ -29297,6 +29319,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
       _result["exports"] = exports.map((_value) => _value.toJson()).toList();
     if (imports.isNotEmpty)
       _result["imports"] = imports.map((_value) => _value.toJson()).toList();
+    if (isNNBD != false) _result["isNNBD"] = isNNBD;
     if (isPartOf != false) _result["isPartOf"] = isPartOf;
     if (libraryAnnotations.isNotEmpty)
       _result["libraryAnnotations"] =
@@ -29336,6 +29359,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
         "executables": executables,
         "exports": exports,
         "imports": imports,
+        "isNNBD": isNNBD,
         "isPartOf": isPartOf,
         "libraryAnnotations": libraryAnnotations,
         "libraryDocumentationComment": libraryDocumentationComment,

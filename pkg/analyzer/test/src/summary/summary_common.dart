@@ -1604,6 +1604,26 @@ var v = (() {
     }
   }
 
+  test_compilationUnit_nnbd_disabled_via_dart_directive() {
+    featureSet = enableNnbd;
+    serializeLibraryText('''
+// @dart=2.2
+''');
+    expect(unlinkedUnits[0].isNNBD, false);
+  }
+
+  test_compilationUnit_nnbd_disabled_via_feature_set() {
+    featureSet = disableNnbd;
+    serializeLibraryText('');
+    expect(unlinkedUnits[0].isNNBD, false);
+  }
+
+  test_compilationUnit_nnbd_enabled() {
+    featureSet = enableNnbd;
+    serializeLibraryText('');
+    expect(unlinkedUnits[0].isNNBD, true);
+  }
+
   test_constExpr_binary_add() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 + 2;');
     assertUnlinkedConst(variable.initializer.bodyExpr, '1 + 2', operators: [

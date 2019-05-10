@@ -45,9 +45,12 @@ CompilationUnit parseText(
       new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER)
         ..configureFeatures(featureSet);
   Token token = scanner.tokenize();
+  // Pass the feature set from the scanner to the parser
+  // because the scanner may have detected a language version comment
+  // and downgraded the feature set it holds.
   Parser parser = new Parser(
       NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER,
-      featureSet: featureSet);
+      featureSet: scanner.featureSet);
   CompilationUnit unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
   return unit;

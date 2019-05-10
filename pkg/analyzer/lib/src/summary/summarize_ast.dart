@@ -491,7 +491,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       unlinkedImports.add(new UnlinkedImportBuilder(isImplicit: true));
     }
     compilationUnit.declarations.accept(this);
-    UnlinkedUnitBuilder b = new UnlinkedUnitBuilder();
+    UnlinkedUnitBuilder b = new UnlinkedUnitBuilder(
+        isNNBD: compilationUnit.featureSet.isEnabled(Feature.non_nullable));
     b.lineStarts = compilationUnit.lineInfo?.lineStarts;
     b.isPartOf = isPartOf;
     b.libraryName = libraryName;

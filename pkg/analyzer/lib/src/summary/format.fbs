@@ -3033,6 +3033,9 @@ table UnlinkedUnit {
   /// Import declarations in the compilation unit.
   imports:[UnlinkedImport] (id: 5);
 
+  /// Indicates whether this compilation unit is opted into NNBD.
+  isNNBD:bool (id: 21);
+
   /// Indicates whether the unit contains a "part of" declaration.
   isPartOf:bool (id: 18);
 

@@ -4783,6 +4783,10 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   @Id(5)
   List<UnlinkedImport> get imports;
 
+  /// Indicates whether this compilation unit is opted into NNBD.
+  @Id(21)
+  bool get isNNBD;
+
   /// Indicates whether the unit contains a "part of" declaration.
   @Id(18)
   bool get isPartOf;
