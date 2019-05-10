@@ -324,7 +324,7 @@ Future<CompilerResult> _compile(List<String> args,
   // support for the widget inspector.
   if (argResults['track-widget-creation'] as bool) {
     component.computeCanonicalNames();
-    WidgetCreatorTracker(hierarchy).transform(component);
+    WidgetCreatorTracker().transform(component);
   }
 
   var compiler =

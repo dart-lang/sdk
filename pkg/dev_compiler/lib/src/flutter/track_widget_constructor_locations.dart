@@ -10,7 +10,7 @@
 //
 // The following modifications were made:
 // - remove "package:vm" dependency (only used for one interface)
-// - optionally pass in the class hierarchy that DDC already has available.
+// - removed the class hierarchy parameter.
 library track_widget_constructor_locations;
 
 // The kernel/src import below that requires lint `ignore_for_file`
@@ -19,7 +19,6 @@ library track_widget_constructor_locations;
 // further use.
 // ignore_for_file: implementation_imports
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
 import 'package:meta/meta.dart';
 
 // Parameter name used to track were widget constructor calls were made from.
@@ -126,8 +125,6 @@ bool _maybeAddNamedParameter(
 /// transformed to have a named parameter with the name specified by
 /// `_locationParameterName`.
 class _WidgetCallSiteTransformer extends Transformer {
-  final ClassHierarchy _hierarchy;
-
   /// The [Widget] class defined in the `package:flutter` library.
   ///
   /// Used to perform instanceof checks to determine whether Dart constructor
@@ -143,12 +140,15 @@ class _WidgetCallSiteTransformer extends Transformer {
   /// actual constructor call within the factory.
   Procedure _currentFactory;
 
+  WidgetCreatorTracker _tracker;
+
   _WidgetCallSiteTransformer(
-    this._hierarchy, {
-    @required Class widgetClass,
-    @required Class locationClass,
-  })  : _widgetClass = widgetClass,
-        _locationClass = locationClass;
+      {@required Class widgetClass,
+      @required Class locationClass,
+      @required WidgetCreatorTracker tracker})
+      : _widgetClass = widgetClass,
+        _locationClass = locationClass,
+        _tracker = tracker;
 
   /// Builds a call to the const constructor of the [DebugLocation]
   /// object specifying the location where a constructor call was made and
@@ -200,9 +200,7 @@ class _WidgetCallSiteTransformer extends Transformer {
   }
 
   bool _isSubclassOfWidget(Class clazz) {
-    // TODO(jacobr): use hierarchy.isSubclassOf once we are using the
-    // non-deprecated ClassHierarchy constructor.
-    return _hierarchy.isSubclassOf(clazz, _widgetClass);
+    return _tracker._isSubclassOf(clazz, _widgetClass);
   }
 
   @override
@@ -249,10 +247,8 @@ class _WidgetCallSiteTransformer extends Transformer {
       Class constructedClass) {
     // For factory constructors we need to use the location specified as an
     // argument to the factory constructor rather than the location
-    // TODO(jacobr): use hierarchy.isSubclassOf once we are using the
-    // non-deprecated ClassHierarchy constructor.
     if (_currentFactory != null &&
-        _hierarchy.isSubclassOf(
+        _tracker._isSubclassOf(
             constructedClass, _currentFactory.enclosingClass)) {
       final VariableDeclaration creationLocationParameter = _getNamedParameter(
         _currentFactory.function,
@@ -309,14 +305,7 @@ class WidgetCreatorTracker {
   /// available.
   Class _hasCreationLocationClass;
 
-  /// The [ClassHierarchy] that should be used after applying this transformer.
-  /// If any class was updated, in general we need to create a new
-  /// [ClassHierarchy] instance, with new dispatch targets; or at least let
-  /// the existing instance know that some of its dispatch tables are not
-  /// valid anymore.
-  ClassHierarchy hierarchy;
-
-  WidgetCreatorTracker([this.hierarchy]);
+  WidgetCreatorTracker();
 
   void _resolveFlutterClasses(Iterable<Library> libraries) {
     // If the Widget or Debug location classes have been updated we need to get
@@ -438,23 +427,6 @@ class WidgetCreatorTracker {
     clazz.constructors.forEach(handleConstructor);
   }
 
-  Component _computeFullProgram(Component deltaProgram) {
-    final Set<Library> libraries = new Set<Library>();
-    final List<Library> workList = <Library>[];
-    for (Library library in deltaProgram.libraries) {
-      workList.add(library);
-    }
-    while (workList.isNotEmpty) {
-      final Library library = workList.removeLast();
-      for (LibraryDependency dependency in library.dependencies) {
-        if (libraries.add(dependency.targetLibrary)) {
-          workList.add(dependency.targetLibrary);
-        }
-      }
-    }
-    return new Component()..libraries.addAll(libraries);
-  }
-
   /// Transform the given [module].
   void transform(Component module) {
     final List<Library> libraries = module.libraries;
@@ -469,14 +441,6 @@ class WidgetCreatorTracker {
       // This application doesn't actually use the package:flutter library.
       return;
     }
-
-    // TODO(jacobr): once there is a working incremental ClassHierarchy
-    // constructor switch to using it instead of building a ClassHierarchy off
-    // the full program.
-    hierarchy ??= new ClassHierarchy(
-      _computeFullProgram(module),
-      onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {},
-    );
 
     final Set<Class> transformedClasses = new Set<Class>.identity();
     final Set<Library> librariesToTransform = new Set<Library>.identity()
@@ -498,10 +462,9 @@ class WidgetCreatorTracker {
     // Transform call sites to pass the location parameter.
     final _WidgetCallSiteTransformer callsiteTransformer =
         new _WidgetCallSiteTransformer(
-      hierarchy,
-      widgetClass: _widgetClass,
-      locationClass: _locationClass,
-    );
+            widgetClass: _widgetClass,
+            locationClass: _locationClass,
+            tracker: this);
 
     for (Library library in module.libraries) {
       if (library.isExternal) {
@@ -511,13 +474,17 @@ class WidgetCreatorTracker {
     }
   }
 
-  bool _isSubclassOfWidget(Class clazz) {
-    if (clazz == null) {
-      return false;
+  bool _isSubclassOfWidget(Class clazz) => _isSubclassOf(clazz, _widgetClass);
+
+  bool _isSubclassOf(Class a, Class b) {
+    // TODO(askesc): Cache results.
+    // TODO(askesc): Test for subtype rather than subclass.
+    Class current = a;
+    while (current != null) {
+      if (current == b) return true;
+      current = current.superclass;
     }
-    // TODO(jacobr): use hierarchy.isSubclassOf once we are using the
-    // non-deprecated ClassHierarchy constructor.
-    return hierarchy.isSubclassOf(clazz, _widgetClass);
+    return false;
   }
 
   void _transformWidgetConstructors(Set<Library> librariesToBeTransformed,
