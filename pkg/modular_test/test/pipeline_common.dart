@@ -76,8 +76,8 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
 
   var m1 = Module("a", const [], testStrategy.testRootUri,
       [Uri.parse("a1.dart"), Uri.parse("a2.dart")]);
-  var m2 = Module("b", [m1], testStrategy.testRootUri.resolve('b/'),
-      [Uri.parse("b1.dart"), Uri.parse("b2.dart")]);
+  var m2 = Module("b", [m1], testStrategy.testRootUri,
+      [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")]);
 
   var singleModuleInput = ModularTest([m1], m1);
   var multipleModulesInput = ModularTest([m1, m2], m2);
@@ -110,7 +110,7 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
     expect(testStrategy.getResult(pipeline, m1, concatStep.resultId),
         "a1.dart: A1\na2.dart: A2\n");
     expect(testStrategy.getResult(pipeline, m2, concatStep.resultId),
-        "b1.dart: B1\nb2.dart: B2\n");
+        "b/b1.dart: B1\nb/b2.dart: B2\n");
     await testStrategy.cleanup(pipeline);
   });
 
@@ -125,7 +125,7 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
     expect(testStrategy.getResult(pipeline, m1, lowercaseStep.resultId),
         "a1.dart: a1\na2.dart: a2\n");
     expect(testStrategy.getResult(pipeline, m2, lowercaseStep.resultId),
-        "b1.dart: b1\nb2.dart: b2\n");
+        "b/b1.dart: b1\nb/b2.dart: b2\n");
     await testStrategy.cleanup(pipeline);
   });
 
@@ -163,7 +163,7 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
     expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
         "a1 a1\na2 a2\n");
     expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
-        "a1 a1\na2 a2\n\nb1 b1\nb2 b2\n");
+        "a1 a1\na2 a2\n\nb/b1 b1\nb/b2 b2\n");
     await testStrategy.cleanup(pipeline);
   });
 
@@ -185,7 +185,7 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
     expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
         "a1 a1\na2 a2\n");
     expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
-        "null\nb1 b1\nb2 b2\n");
+        "null\nb/b1 b1\nb/b2 b2\n");
     await testStrategy.cleanup(pipeline);
   });
 
@@ -205,7 +205,7 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
     expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
         "a1 a1\na2 a2\n");
     expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
-        "a1.dart: a1\na2.dart: a2\n\nb1 b1\nb2 b2\n");
+        "a1.dart: a1\na2.dart: a2\n\nb/b1 b1\nb/b2 b2\n");
     await testStrategy.cleanup(pipeline);
   });
 
@@ -227,7 +227,7 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
     expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
         "a1 a1\na2 a2\n");
     expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
-        "null\nb1 b1\nb2 b2\n");
+        "null\nb/b1 b1\nb/b2 b2\n");
     await testStrategy.cleanup(pipeline);
   });
 }

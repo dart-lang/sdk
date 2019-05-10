@@ -69,8 +69,9 @@ class IOPipeline extends Pipeline<IOModularStep> {
     if (step.needsSources) {
       for (var uri in module.sources) {
         var originalUri = module.rootUri.resolveUri(uri);
-        await File.fromUri(originalUri)
-            .copy(folder.uri.resolveUri(uri).toFilePath());
+        var copyUri = folder.uri.resolveUri(uri);
+        await File.fromUri(copyUri).create(recursive: true);
+        await File.fromUri(originalUri).copy(copyUri.toFilePath());
       }
     }
 
