@@ -113,14 +113,22 @@ static void ThrowIsolateSpawnException(const String& message) {
 
 class SpawnIsolateTask : public ThreadPool::Task {
  public:
-  explicit SpawnIsolateTask(IsolateSpawnState* state) : state_(state) {}
+  SpawnIsolateTask(Isolate* parent_isolate, IsolateSpawnState* state)
+      : parent_isolate_(parent_isolate), state_(state) {
+    parent_isolate->IncrementSpawnCount();
+  }
 
-  virtual void Run() {
+  ~SpawnIsolateTask() override {
+    if (parent_isolate_) {
+      parent_isolate_->DecrementSpawnCount();
+    }
+  }
+
+  void Run() override {
     // Create a new isolate.
     char* error = NULL;
     Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
     if (callback == NULL) {
-      state_->DecrementSpawnCount();
       ReportError(
           "Isolate spawn is not supported by this Dart implementation\n");
       delete state_;
@@ -136,8 +144,9 @@ class SpawnIsolateTask : public ThreadPool::Task {
 
     Isolate* isolate = reinterpret_cast<Isolate*>((callback)(
         state_->script_url(), name, nullptr, state_->package_config(),
-        &api_flags, state_->init_data(), &error));
-    state_->DecrementSpawnCount();
+        &api_flags, parent_isolate_->init_callback_data(), &error));
+    parent_isolate_->DecrementSpawnCount();
+    parent_isolate_ = nullptr;
     if (isolate == NULL) {
       ReportError(error);
       delete state_;
@@ -152,7 +161,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
       isolate->set_origin_id(state_->origin_id());
     }
     MutexLocker ml(isolate->mutex());
-    state_->set_isolate(reinterpret_cast<Isolate*>(isolate));
+    state_->set_isolate(isolate);
     isolate->set_spawn_state(state_);
     state_ = NULL;
     if (isolate->is_runnable()) {
@@ -171,6 +180,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     }
   }
 
+  Isolate* parent_isolate_;
   IsolateSpawnState* state_;
 
   DISALLOW_COPY_AND_ASSIGN(SpawnIsolateTask);
@@ -229,21 +239,17 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
           debugName.IsNull() ? NULL : String2UTF8(debugName);
 
       IsolateSpawnState* state = new IsolateSpawnState(
-          port.Id(), isolate->origin_id(), isolate->init_callback_data(),
-          String2UTF8(script_uri), func, &message_buffer,
-          isolate->spawn_count_monitor(), isolate->spawn_count(),
-          utf8_package_config, paused.value(), fatal_errors, on_exit_port,
-          on_error_port, utf8_debug_name);
+          port.Id(), isolate->origin_id(), String2UTF8(script_uri), func,
+          &message_buffer, utf8_package_config, paused.value(), fatal_errors,
+          on_exit_port, on_error_port, utf8_debug_name);
 
       // Since this is a call to Isolate.spawn, copy the parent isolate's code.
       state->isolate_flags()->copy_parent_code = true;
 
-      ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
+      ThreadPool::Task* spawn_task = new SpawnIsolateTask(isolate, state);
 
-      isolate->IncrementSpawnCount();
       if (!Dart::thread_pool()->Run(spawn_task)) {
         // Running on the thread pool failed. Clean up everything.
-        state->DecrementSpawnCount();
         delete state;
         state = NULL;
         delete spawn_task;
@@ -355,10 +361,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
       debugName.IsNull() ? NULL : String2UTF8(debugName);
 
   IsolateSpawnState* state = new IsolateSpawnState(
-      port.Id(), isolate->init_callback_data(), canonical_uri,
-      utf8_package_config, &arguments_buffer, &message_buffer,
-      isolate->spawn_count_monitor(), isolate->spawn_count(), paused.value(),
-      fatal_errors, on_exit_port, on_error_port, utf8_debug_name);
+      port.Id(), canonical_uri, utf8_package_config, &arguments_buffer,
+      &message_buffer, paused.value(), fatal_errors, on_exit_port,
+      on_error_port, utf8_debug_name);
 
   // If we were passed a value then override the default flags state for
   // checked mode.
@@ -370,12 +375,10 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
   // Since this is a call to Isolate.spawnUri, don't copy the parent's code.
   state->isolate_flags()->copy_parent_code = false;
 
-  ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
+  ThreadPool::Task* spawn_task = new SpawnIsolateTask(isolate, state);
 
-  isolate->IncrementSpawnCount();
   if (!Dart::thread_pool()->Run(spawn_task)) {
     // Running on the thread pool failed. Clean up everything.
-    state->DecrementSpawnCount();
     delete state;
     state = NULL;
     delete spawn_task;

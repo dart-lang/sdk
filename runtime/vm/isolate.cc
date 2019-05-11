@@ -2796,6 +2796,13 @@ void Isolate::IncrementSpawnCount() {
   spawn_count_++;
 }
 
+void Isolate::DecrementSpawnCount() {
+  MonitorLocker ml(spawn_count_monitor_);
+  ASSERT(spawn_count_ > 0);
+  spawn_count_--;
+  ml.Notify();
+}
+
 void Isolate::WaitForOutstandingSpawns() {
   MonitorLocker ml(spawn_count_monitor_);
   while (spawn_count_ > 0) {
@@ -2924,12 +2931,9 @@ static const char* NewConstChar(const char* chars) {
 
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      Dart_Port origin_id,
-                                     void* init_data,
                                      const char* script_url,
                                      const Function& func,
                                      SerializedObjectBuffer* message_buffer,
-                                     Monitor* spawn_count_monitor,
-                                     intptr_t* spawn_count,
                                      const char* package_config,
                                      bool paused,
                                      bool errors_are_fatal,
@@ -2939,7 +2943,6 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
     : isolate_(nullptr),
       parent_port_(parent_port),
       origin_id_(origin_id),
-      init_data_(init_data),
       on_exit_port_(on_exit_port),
       on_error_port_(on_error_port),
       script_url_(script_url),
@@ -2950,8 +2953,6 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       debug_name_(debug_name),
       serialized_args_(nullptr),
       serialized_message_(message_buffer->StealMessage()),
-      spawn_count_monitor_(spawn_count_monitor),
-      spawn_count_(spawn_count),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
   const Class& cls = Class::Handle(func.Owner());
@@ -2973,13 +2974,10 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 }
 
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
-                                     void* init_data,
                                      const char* script_url,
                                      const char* package_config,
                                      SerializedObjectBuffer* args_buffer,
                                      SerializedObjectBuffer* message_buffer,
-                                     Monitor* spawn_count_monitor,
-                                     intptr_t* spawn_count,
                                      bool paused,
                                      bool errors_are_fatal,
                                      Dart_Port on_exit_port,
@@ -2988,7 +2986,6 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
     : isolate_(nullptr),
       parent_port_(parent_port),
       origin_id_(ILLEGAL_PORT),
-      init_data_(init_data),
       on_exit_port_(on_exit_port),
       on_error_port_(on_error_port),
       script_url_(script_url),
@@ -2999,8 +2996,6 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       debug_name_(debug_name),
       serialized_args_(args_buffer->StealMessage()),
       serialized_message_(message_buffer->StealMessage()),
-      spawn_count_monitor_(spawn_count_monitor),
-      spawn_count_(spawn_count),
       isolate_flags_(),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
@@ -3103,15 +3098,6 @@ RawInstance* IsolateSpawnState::BuildArgs(Thread* thread) {
 
 RawInstance* IsolateSpawnState::BuildMessage(Thread* thread) {
   return DeserializeMessage(thread, serialized_message_.get());
-}
-
-void IsolateSpawnState::DecrementSpawnCount() {
-  ASSERT(spawn_count_monitor_ != nullptr);
-  ASSERT(spawn_count_ != nullptr);
-  MonitorLocker ml(spawn_count_monitor_);
-  ASSERT(*spawn_count_ > 0);
-  *spawn_count_ = *spawn_count_ - 1;
-  ml.Notify();
 }
 
 }  // namespace dart

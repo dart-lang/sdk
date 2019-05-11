@@ -438,6 +438,7 @@ class Isolate : public BaseIsolate {
   intptr_t* spawn_count() { return &spawn_count_; }
 
   void IncrementSpawnCount();
+  void DecrementSpawnCount();
   void WaitForOutstandingSpawns();
 
   static void SetCreateCallback(Dart_IsolateCreateCallback cb) {
@@ -1154,12 +1155,9 @@ class IsolateSpawnState {
  public:
   IsolateSpawnState(Dart_Port parent_port,
                     Dart_Port origin_id,
-                    void* init_data,
                     const char* script_url,
                     const Function& func,
                     SerializedObjectBuffer* message_buffer,
-                    Monitor* spawn_count_monitor,
-                    intptr_t* spawn_count,
                     const char* package_config,
                     bool paused,
                     bool errorsAreFatal,
@@ -1167,13 +1165,10 @@ class IsolateSpawnState {
                     Dart_Port onError,
                     const char* debug_name);
   IsolateSpawnState(Dart_Port parent_port,
-                    void* init_data,
                     const char* script_url,
                     const char* package_config,
                     SerializedObjectBuffer* args_buffer,
                     SerializedObjectBuffer* message_buffer,
-                    Monitor* spawn_count_monitor,
-                    intptr_t* spawn_count,
                     bool paused,
                     bool errorsAreFatal,
                     Dart_Port onExit,
@@ -1186,7 +1181,6 @@ class IsolateSpawnState {
 
   Dart_Port parent_port() const { return parent_port_; }
   Dart_Port origin_id() const { return origin_id_; }
-  void* init_data() const { return init_data_; }
   Dart_Port on_exit_port() const { return on_exit_port_; }
   Dart_Port on_error_port() const { return on_error_port_; }
   const char* script_url() const { return script_url_; }
@@ -1204,13 +1198,10 @@ class IsolateSpawnState {
   RawInstance* BuildArgs(Thread* thread);
   RawInstance* BuildMessage(Thread* thread);
 
-  void DecrementSpawnCount();
-
  private:
   Isolate* isolate_;
   Dart_Port parent_port_;
   Dart_Port origin_id_;
-  void* init_data_;
   Dart_Port on_exit_port_;
   Dart_Port on_error_port_;
   const char* script_url_;
@@ -1221,11 +1212,6 @@ class IsolateSpawnState {
   const char* debug_name_;
   std::unique_ptr<Message> serialized_args_;
   std::unique_ptr<Message> serialized_message_;
-
-  // This counter tracks the number of outstanding calls to spawn by the parent
-  // isolate.
-  Monitor* spawn_count_monitor_;
-  intptr_t* spawn_count_;
 
   Dart_IsolateFlags isolate_flags_;
   bool paused_;
