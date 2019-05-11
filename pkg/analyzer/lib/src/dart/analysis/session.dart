@@ -222,4 +222,9 @@ class SynchronousSession {
       implicitCasts: analysisOptions.implicitCasts,
     );
   }
+
+  void clearTypeProvider() {
+    _typeProvider = null;
+    _typeSystem = null;
+  }
 }

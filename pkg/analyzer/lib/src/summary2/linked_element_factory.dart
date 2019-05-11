@@ -28,6 +28,10 @@ class LinkedElementFactory {
     return _coreTypes ??= CoreTypes(this);
   }
 
+  bool get hasDartCore {
+    return libraryMap.containsKey('dart:core');
+  }
+
   void addBundle(LinkedBundleContext context) {
     libraryMap.addAll(context.libraryMap);
   }
@@ -77,6 +81,15 @@ class LinkedElementFactory {
   LibraryElementImpl libraryOfUri(String uriStr) {
     var reference = rootReference.getChild(uriStr);
     return elementOfReference(reference);
+  }
+
+  /// We have linked the bundle, and need to disconnect its libraries, so
+  /// that the client can re-add the bundle, this time read from bytes.
+  void removeBundle(LinkedBundleContext context) {
+    for (var uriStr in context.libraryMap.keys) {
+      libraryMap.remove(uriStr);
+      rootReference.removeChild(uriStr);
+    }
   }
 }
 

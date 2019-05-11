@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -14,7 +13,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
@@ -27,23 +25,20 @@ import 'package:analyzer/src/summary2/top_level_inference.dart';
 import 'package:analyzer/src/summary2/type_alias.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 
+var timerLinkingLinkingBundle = Stopwatch();
+var timerLinkingRemoveBundle = Stopwatch();
+
 LinkResult link(
-  AnalysisOptions analysisOptions,
-  SourceFactory sourceFactory,
-  DeclaredVariables declaredVariables,
-  List<LinkedNodeBundle> inputBundles,
+  LinkedElementFactory elementFactory,
   List<LinkInputLibrary> inputLibraries,
 ) {
-  var linker = Linker(analysisOptions, sourceFactory, declaredVariables);
-  linker.link(inputBundles, inputLibraries);
+  var linker = Linker(elementFactory);
+  linker.link(inputLibraries);
   return LinkResult(linker.linkingBundle);
 }
 
 class Linker {
-  final DeclaredVariables declaredVariables;
-
-  final Reference rootReference = Reference.root();
-  LinkedElementFactory elementFactory;
+  final LinkedElementFactory elementFactory;
 
   LinkedNodeBundleBuilder linkingBundle;
   LinkedBundleContext bundleContext;
@@ -52,16 +47,9 @@ class Linker {
   /// Libraries that are being linked.
   final Map<Uri, SourceLibraryBuilder> builders = {};
 
-  _AnalysisContextForLinking analysisContext;
-  TypeProvider typeProvider;
-  Dart2TypeSystem typeSystem;
-  InheritanceManager2 inheritance;
+  InheritanceManager2 inheritance; // TODO(scheglov) cache it
 
-  Linker(
-    AnalysisOptions analysisOptions,
-    SourceFactory sourceFactory,
-    this.declaredVariables,
-  ) {
+  Linker(this.elementFactory) {
     var dynamicRef = rootReference.getChild('dart:core').getChild('dynamic');
     dynamicRef.element = DynamicElementImpl.instance;
     var neverRef = rootReference.getChild('dart:core').getChild('Never');
@@ -69,34 +57,31 @@ class Linker {
 
     linkingBundleContext = LinkingBundleContext(dynamicRef);
 
-    analysisContext = _AnalysisContextForLinking(
-      analysisOptions,
-      sourceFactory,
-    );
-
-    elementFactory = LinkedElementFactory(
-      analysisContext,
-      _AnalysisSessionForLinking(),
-      rootReference,
-    );
-
     bundleContext = LinkedBundleContext.forAst(
       elementFactory,
       linkingBundleContext.references,
     );
   }
 
+  InternalAnalysisContext get analysisContext {
+    return elementFactory.analysisContext;
+  }
+
   FeatureSet get contextFeatures {
     return analysisContext.analysisOptions.contextFeatures;
   }
 
-  void link(List<LinkedNodeBundle> inputBundles,
-      List<LinkInputLibrary> inputLibraries) {
-    for (var input in inputBundles) {
-      var inputBundleContext = LinkedBundleContext(elementFactory, input);
-      elementFactory.addBundle(inputBundleContext);
-    }
+  DeclaredVariables get declaredVariables {
+    return analysisContext.declaredVariables;
+  }
 
+  Reference get rootReference => elementFactory.rootReference;
+
+  TypeProvider get typeProvider => analysisContext.typeProvider;
+
+  Dart2TypeSystem get typeSystem => analysisContext.typeSystem;
+
+  void link(List<LinkInputLibrary> inputLibraries) {
     for (var inputLibrary in inputLibraries) {
       SourceLibraryBuilder.build(this, inputLibrary);
     }
@@ -105,7 +90,14 @@ class Linker {
 
     _buildOutlines();
 
+    timerLinkingLinkingBundle.start();
     _createLinkingBundle();
+    timerLinkingLinkingBundle.stop();
+
+    timerLinkingRemoveBundle.start();
+    linkingBundleContext.clearIndexes();
+    elementFactory.removeBundle(bundleContext);
+    timerLinkingRemoveBundle.stop();
   }
 
   void _addSyntheticConstructors() {
@@ -209,7 +201,6 @@ class Linker {
             isSynthetic: unitContext.isSynthetic,
             uriStr: unitContext.uriStr,
             lineStarts: unit.lineInfo.lineStarts,
-            tokens: writer.tokensBuilder,
             node: unitLinkedNode,
           ),
         );
@@ -228,19 +219,17 @@ class Linker {
   }
 
   void _createTypeSystem() {
-    var coreRef = rootReference.getChild('dart:core');
-    var coreLib = elementFactory.elementOfReference(coreRef);
+    if (typeProvider != null) {
+      inheritance = InheritanceManager2(typeSystem);
+      return;
+    }
 
-    var asyncRef = rootReference.getChild('dart:async');
-    var asyncLib = elementFactory.elementOfReference(asyncRef);
+    var coreLib = elementFactory.libraryOfUri('dart:core');
+    var asyncLib = elementFactory.libraryOfUri('dart:async');
 
-    typeProvider = SummaryTypeProvider()
+    analysisContext.typeProvider = SummaryTypeProvider()
       ..initializeCore(coreLib)
       ..initializeAsync(asyncLib);
-    analysisContext.typeProvider = typeProvider;
-
-    typeSystem = Dart2TypeSystem(typeProvider);
-    analysisContext.typeSystem = typeSystem;
 
     inheritance = InheritanceManager2(typeSystem);
   }
@@ -306,33 +295,4 @@ class LinkResult {
   final LinkedNodeBundleBuilder bundle;
 
   LinkResult(this.bundle);
-}
-
-class _AnalysisContextForLinking implements InternalAnalysisContext {
-  @override
-  final AnalysisOptions analysisOptions;
-
-  @override
-  final SourceFactory sourceFactory;
-
-  @override
-  TypeProvider typeProvider;
-
-  @override
-  TypeSystem typeSystem;
-
-  _AnalysisContextForLinking(this.analysisOptions, this.sourceFactory);
-
-  @override
-  Namespace getPublicNamespace(LibraryElement library) {
-    // TODO(scheglov) Not sure if this method of AnalysisContext is useful.
-    var builder = new NamespaceBuilder();
-    return builder.createPublicNamespaceForLibrary(library);
-  }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _AnalysisSessionForLinking implements AnalysisSession {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

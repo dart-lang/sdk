@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 
 /// Accessor for reading AST lazily, or read data that is stored in IDL, but
@@ -516,6 +517,15 @@ class LazyDirective {
     return node.getProperty(_uriKey);
   }
 
+  static int getNameOffset(Directive node) {
+    var lazy = get(node);
+    if (lazy != null) {
+      return lazy.data.nameOffset;
+    } else {
+      return node.offset;
+    }
+  }
+
   static void readMetadata(AstBinaryReader reader, Directive node) {
     var lazy = get(node);
     if (lazy != null && !lazy._hasMetadata) {
@@ -787,7 +797,7 @@ class LazyFormalParameter {
   static bool hasDefaultValue(DefaultFormalParameter node) {
     var lazy = LazyFormalParameter.get(node);
     if (lazy != null) {
-      return lazy.data.defaultFormalParameter_defaultValue != null;
+      return AstBinaryFlags.hasInitializer(lazy.data.flags);
     } else {
       return node.defaultValue != null;
     }
@@ -1374,8 +1384,7 @@ class LazyMethodDeclaration {
   static bool isAbstract(MethodDeclaration node) {
     var lazy = get(node);
     if (lazy != null) {
-      return lazy.data.methodDeclaration_body.kind ==
-          LinkedNodeKind.emptyFunctionBody;
+      return AstBinaryFlags.isAbstract(lazy.data.flags);
     } else {
       return node.isAbstract;
     }
@@ -1802,7 +1811,7 @@ class LazyVariableDeclaration {
   static bool hasInitializer(VariableDeclaration node) {
     var lazy = get(node);
     if (lazy != null) {
-      return lazy.data.variableDeclaration_initializer != null;
+      return AstBinaryFlags.hasInitializer(lazy.data.flags);
     } else {
       return node.initializer != null;
     }

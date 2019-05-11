@@ -1910,6 +1910,8 @@ table LinkedNode {
 
   variantField_19:uint (id: 19);
 
+  variantField_28:UnlinkedTokenType (id: 28);
+
   variantField_27:bool (id: 27);
 
   variantField_9:LinkedNode (id: 9);
@@ -1924,7 +1926,7 @@ table LinkedNode {
 
   variantField_33:uint (id: 33);
 
-  variantField_28:[uint] (id: 28);
+  variantField_36:[string] (id: 36);
 
   variantField_29:LinkedNodeCommentType (id: 29);
 
@@ -1940,6 +1942,10 @@ table LinkedNode {
 
   variantField_25:LinkedNodeType (id: 25);
 
+  flags:uint (id: 39);
+
+  variantField_41:string (id: 41);
+
   variantField_30:string (id: 30);
 
   variantField_14:LinkedNode (id: 14);
@@ -1948,11 +1954,13 @@ table LinkedNode {
 
   kind:LinkedNodeKind (id: 0);
 
-  variantField_36:[string] (id: 36);
+  name:string (id: 38);
 
   variantField_20:string (id: 20);
 
   variantField_31:bool (id: 31);
+
+  variantField_40:UnlinkedTokenType (id: 40);
 
   variantField_35:TopLevelInferenceError (id: 35);
 

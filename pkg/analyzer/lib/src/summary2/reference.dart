@@ -98,4 +98,8 @@ class Reference {
   }
 
   String toString() => parent == null ? 'root' : '$parent::$name';
+
+  void removeChild(String name) {
+    _children.remove(name);
+  }
 }

@@ -10,13 +10,13 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/summary2/tokens_context.dart';
 
 /// The context of a unit - the context of the bundle, and the unit tokens.
 class LinkedUnitContext {
@@ -27,7 +27,6 @@ class LinkedUnitContext {
   final Reference reference;
   final bool isSynthetic;
   final LinkedNodeUnit data;
-  final TokensContext tokensContext;
 
   AstBinaryReader _astReader;
 
@@ -53,8 +52,7 @@ class LinkedUnitContext {
       this.reference,
       this.isSynthetic,
       this.data,
-      {CompilationUnit unit})
-      : tokensContext = data != null ? TokensContext(data.tokens) : null {
+      {CompilationUnit unit}) {
     _astReader = AstBinaryReader(this);
     _astReader.isLazy = unit == null;
 
@@ -69,8 +67,7 @@ class LinkedUnitContext {
       this.uriStr,
       this.reference,
       this.isSynthetic,
-      this.data,
-      this.tokensContext);
+      this.data);
 
   bool get hasPartOfDirective {
     for (var directive in unit_withDirectives.directives) {
@@ -83,6 +80,9 @@ class LinkedUnitContext {
 
   /// Return `true` if this unit is a part of a bundle that is being linked.
   bool get isLinking => bundleContext.isLinking;
+
+  TypeProvider get typeProvider =>
+      bundleContext.elementFactory.analysisContext.typeProvider;
 
   CompilationUnit get unit => _unit;
 
@@ -144,7 +144,11 @@ class LinkedUnitContext {
     } else if (node is ClassTypeAlias) {
       return LazyClassTypeAlias.getCodeLength(_astReader, node);
     } else if (node is CompilationUnit) {
-      return node.length;
+      if (data != null) {
+        return data.node.codeLength;
+      } else {
+        return node.length;
+      }
     } else if (node is ConstructorDeclaration) {
       return LazyConstructorDeclaration.getCodeLength(_astReader, node);
     } else if (node is EnumDeclaration) {
@@ -200,14 +204,6 @@ class LinkedUnitContext {
     throw UnimplementedError('${node.runtimeType}');
   }
 
-  String getConstructorDeclarationName(LinkedNode node) {
-    var name = node.constructorDeclaration_name;
-    if (name != null) {
-      return getSimpleName(name);
-    }
-    return '';
-  }
-
   List<ConstructorInitializer> getConstructorInitializers(
     ConstructorDeclaration node,
   ) {
@@ -244,8 +240,7 @@ class LinkedUnitContext {
   }
 
   int getDirectiveOffset(AstNode node) {
-    LazyDirective.readMetadata(_astReader, node);
-    return node.offset;
+    return LazyDirective.getNameOffset(node);
   }
 
   Comment getDocumentationComment(AstNode node) {
@@ -322,10 +317,6 @@ class LinkedUnitContext {
         }
       }
     }
-  }
-
-  String getFormalParameterName(LinkedNode node) {
-    return getSimpleName(node.normalFormalParameter_identifier);
   }
 
   List<FormalParameter> getFormalParameters(AstNode node) {
@@ -498,10 +489,6 @@ class LinkedUnitContext {
     return const <Annotation>[];
   }
 
-  String getMethodName(LinkedNode node) {
-    return getSimpleName(node.methodDeclaration_name);
-  }
-
   Iterable<MethodDeclaration> getMethods(AstNode node) sync* {
     if (node is ClassOrMixinDeclaration) {
       var members = _getClassOrMixinMembers(node);
@@ -582,18 +569,6 @@ class LinkedUnitContext {
     return LazyDirective.getSelectedUri(node);
   }
 
-  String getSimpleName(LinkedNode node) {
-    return getTokenLexeme(node.simpleIdentifier_token);
-  }
-
-  List<String> getSimpleNameList(List<LinkedNode> nodeList) {
-    return nodeList.map(getSimpleName).toList();
-  }
-
-  int getSimpleOffset(LinkedNode node) {
-    return getTokenOffset(node.simpleIdentifier_token);
-  }
-
   String getStringContent(LinkedNode node) {
     return node.simpleStringLiteral_value;
   }
@@ -608,14 +583,6 @@ class LinkedUnitContext {
     } else {
       throw StateError('${node.runtimeType}');
     }
-  }
-
-  String getTokenLexeme(int token) {
-    return tokensContext.lexeme(token);
-  }
-
-  int getTokenOffset(int token) {
-    return tokensContext.offset(token);
   }
 
   /// Return the actual type for the [node] - explicit or inferred.
@@ -681,14 +648,6 @@ class LinkedUnitContext {
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
-  }
-
-  String getUnitMemberName(LinkedNode node) {
-    return getSimpleName(node.namedCompilationUnitMember_name);
-  }
-
-  String getVariableName(LinkedNode node) {
-    return getSimpleName(node.variableDeclaration_name);
   }
 
   WithClause getWithClause(AstNode node) {
@@ -774,10 +733,6 @@ class LinkedUnitContext {
     }
   }
 
-  bool isAsyncKeyword(int token) {
-    return tokensContext.type(token) == UnlinkedTokenType.ASYNC;
-  }
-
   bool isConst(AstNode node) {
     if (node is FormalParameter) {
       return node.isConst;
@@ -787,14 +742,6 @@ class LinkedUnitContext {
       return parent.isConst;
     }
     throw UnimplementedError('${node.runtimeType}');
-  }
-
-  bool isConstKeyword(int token) {
-    return tokensContext.type(token) == UnlinkedTokenType.CONST;
-  }
-
-  bool isConstVariableList(LinkedNode node) {
-    return isConstKeyword(node.variableDeclarationList_keyword);
   }
 
   bool isExplicitlyCovariant(AstNode node) {
@@ -831,14 +778,6 @@ class LinkedUnitContext {
       return parent.isFinal;
     }
     throw UnimplementedError('${node.runtimeType}');
-  }
-
-  bool isFinalKeyword(int token) {
-    return tokensContext.type(token) == UnlinkedTokenType.FINAL;
-  }
-
-  bool isFinalVariableList(LinkedNode node) {
-    return isFinalKeyword(node.variableDeclarationList_keyword);
   }
 
   bool isFunction(LinkedNode node) {
@@ -883,10 +822,6 @@ class LinkedUnitContext {
     throw UnimplementedError('${node.runtimeType}');
   }
 
-  bool isLibraryKeyword(int token) {
-    return tokensContext.type(token) == UnlinkedTokenType.LIBRARY;
-  }
-
   bool isMethod(LinkedNode node) {
     return node.kind == LinkedNodeKind.methodDeclaration;
   }
@@ -915,10 +850,6 @@ class LinkedUnitContext {
       return parent2 is FieldDeclaration && parent2.isStatic;
     }
     throw UnimplementedError('${node.runtimeType}');
-  }
-
-  bool isSyncKeyword(int token) {
-    return tokensContext.type(token) == UnlinkedTokenType.SYNC;
   }
 
   Expression readInitializer(AstNode node) {
@@ -1032,7 +963,6 @@ class LinkedUnitContext {
       reference,
       isSynthetic,
       data,
-      TokensContext(data.tokens),
     );
     context._genericFunctionTypes.addAll(_genericFunctionTypes);
     var astReader = AstBinaryReader(context);

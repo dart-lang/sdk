@@ -95,7 +95,9 @@ class _Finder {
 
     if (node is TypeName) {
       var element = node.name.staticElement;
-      if (element is ElementImpl) {
+      if (element is ElementImpl &&
+          element.enclosingElement != null &&
+          element.linkedContext.isLinking) {
         var typeNode = element.linkedNode;
         if (typeNode == self) {
           hasSelfReference = true;
@@ -122,8 +124,8 @@ class _Finder {
             _typeParameterList(typeNode.typeParameters);
           }
         }
-        _argumentList(node.typeArguments);
       }
+      _argumentList(node.typeArguments);
     } else if (node is GenericFunctionType) {
       _typeParameterList(node.typeParameters);
       _formalParameterList(node.parameters);

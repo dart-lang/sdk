@@ -32,10 +32,16 @@ import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
-import 'package:analyzer/src/summary2/declaration_splicer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:pub_semver/pub_semver.dart';
+
+var timerLibraryAnalyzer = Stopwatch();
+var timerLibraryAnalyzerConst = Stopwatch();
+var timerLibraryAnalyzerFreshUnit = Stopwatch();
+var timerLibraryAnalyzerResolve = Stopwatch();
+var timerLibraryAnalyzerSplicer = Stopwatch();
+var timerLibraryAnalyzerVerify = Stopwatch();
 
 /**
  * Analyzer of a single library.
@@ -107,13 +113,15 @@ class LibraryAnalyzer {
    * Compute analysis results for all units of the library.
    */
   Map<FileState, UnitAnalysisResult> analyzeSync() {
+    timerLibraryAnalyzer.start();
     Map<FileState, CompilationUnit> units = {};
 
     // Parse all files.
+    timerLibraryAnalyzerFreshUnit.start();
     for (FileState file in _library.libraryFiles) {
       units[file] = _parse(file);
     }
-    // TODO(danrubel): Verify that all units have the same @dart override
+    timerLibraryAnalyzerFreshUnit.stop();
 
     // Resolve URIs in directives to corresponding sources.
     units.forEach((file, unit) {
@@ -128,17 +136,22 @@ class LibraryAnalyzer {
     }
     _libraryScope = new LibraryScope(_libraryElement);
 
+    timerLibraryAnalyzerResolve.start();
     _resolveDirectives(units);
 
     units.forEach((file, unit) {
       _resolveFile(file, unit);
       _computePendingMissingRequiredParameters(file, unit);
     });
+    timerLibraryAnalyzerResolve.stop();
 
+    timerLibraryAnalyzerConst.start();
     units.values.forEach(_findConstants);
     _clearConstantEvaluationResults();
     _computeConstants();
+    timerLibraryAnalyzerConst.stop();
 
+    timerLibraryAnalyzerVerify.start();
     PerformanceStatistics.errors.makeCurrentWhile(() {
       units.forEach((file, unit) {
         _computeVerifyErrors(file, unit);
@@ -176,6 +189,7 @@ class LibraryAnalyzer {
         }
       });
     }
+    timerLibraryAnalyzerVerify.stop();
 
     // Return full results.
     Map<FileState, UnitAnalysisResult> results = {};
@@ -184,6 +198,7 @@ class LibraryAnalyzer {
       errors = _filterIgnoredErrors(file, errors);
       results[file] = new UnitAnalysisResult(file, unit, errors);
     });
+    timerLibraryAnalyzer.stop();
     return results;
   }
 
@@ -628,11 +643,9 @@ class LibraryAnalyzer {
       }
     }
 
-    if (_elementFactory != null) {
-      new DeclarationSplicer(unitElement).splice(unit);
-    } else {
-      new DeclarationResolver().resolve(unit, unitElement);
-    }
+    timerLibraryAnalyzerSplicer.start();
+    new DeclarationResolver().resolve(unit, unitElement);
+    timerLibraryAnalyzerSplicer.stop();
 
     unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
         source, _typeProvider, errorListener,

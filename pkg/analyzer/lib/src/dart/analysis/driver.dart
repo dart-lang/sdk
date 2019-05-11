@@ -1622,7 +1622,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
-    if (_libraryContext == null || useSummary2) {
+    if (_libraryContext == null) {
       _libraryContext = new LibraryContext(
         session: currentSession,
         logger: _logger,
@@ -1635,6 +1635,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         targetLibrary: library,
         useSummary2: useSummary2,
       );
+    } else if (useSummary2) {
+      _libraryContext.load2(library);
     } else {
       _libraryContext.load(library);
     }

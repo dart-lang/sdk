@@ -38,6 +38,16 @@ class LinkingBundleContext {
 
   LinkingBundleContext(this.dynamicReference);
 
+  /// We need indexes for references during linking, but once we are done,
+  /// we must clear indexes to make references ready for linking a next bundle.
+  void clearIndexes() {
+    for (var reference in references) {
+      if (reference != null) {
+        reference.index = null;
+      }
+    }
+  }
+
   int idOfGenericFunctionType(GenericFunctionTypeElement element) {
     return _genericFunctionTypes[element];
   }

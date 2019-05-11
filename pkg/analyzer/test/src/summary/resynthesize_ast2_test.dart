@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -50,13 +51,24 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
       );
     }
 
-    var sdkLinkResult = link(
-      AnalysisOptionsImpl(),
-      sourceFactory,
-      declaredVariables,
-      [],
-      inputLibraries,
+    var rootReference = Reference.root();
+    var dartCoreRef = rootReference.getChild('dart:core');
+    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
+    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
+
+    var elementFactory = LinkedElementFactory(
+      RestrictedAnalysisContext(
+        SynchronousSession(
+          AnalysisOptionsImpl(),
+          declaredVariables,
+        ),
+        sourceFactory,
+      ),
+      _AnalysisSessionForLinking(),
+      rootReference,
     );
+
+    var sdkLinkResult = link(elementFactory, inputLibraries);
 
     var bytes = sdkLinkResult.bundle.toBuffer();
     return _sdkBundle = LinkedNodeBundle.fromBuffer(bytes);
@@ -70,15 +82,13 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     var inputLibraries = <LinkInputLibrary>[];
     _addNonDartLibraries(Set(), inputLibraries, source);
 
-    var linkResult = link(
-      AnalysisOptionsImpl()..contextFeatures = featureSet,
+    var analysisContext = RestrictedAnalysisContext(
+      SynchronousSession(
+        AnalysisOptionsImpl()..contextFeatures = featureSet,
+        declaredVariables,
+      ),
       sourceFactory,
-      declaredVariables,
-      [sdkBundle],
-      inputLibraries,
     );
-
-    var analysisContext = _FakeAnalysisContext(sourceFactory);
 
     var rootReference = Reference.root();
     rootReference.getChild('dart:core').getChild('dynamic').element =
@@ -88,26 +98,33 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
     var elementFactory = LinkedElementFactory(
       analysisContext,
-      null,
+      _AnalysisSessionForLinking(),
       rootReference,
     );
     elementFactory.addBundle(
       LinkedBundleContext(elementFactory, sdkBundle),
     );
+
+    var linkResult = link(
+      elementFactory,
+      inputLibraries,
+    );
+
     elementFactory.addBundle(
       LinkedBundleContext(elementFactory, linkResult.bundle),
     );
 
-    var dartCore = elementFactory.libraryOfUri('dart:core');
-    var dartAsync = elementFactory.libraryOfUri('dart:async');
-    var typeProvider = SummaryTypeProvider()
-      ..initializeCore(dartCore)
-      ..initializeAsync(dartAsync);
-    analysisContext.typeProvider = typeProvider;
-    analysisContext.typeSystem = Dart2TypeSystem(typeProvider);
+    if (analysisContext.typeProvider == null) {
+      var dartCore = elementFactory.libraryOfUri('dart:core');
+      var dartAsync = elementFactory.libraryOfUri('dart:async');
+      var typeProvider = SummaryTypeProvider()
+        ..initializeCore(dartCore)
+        ..initializeAsync(dartAsync);
+      analysisContext.typeProvider = typeProvider;
 
-    dartCore.createLoadLibraryFunction(typeProvider);
-    dartAsync.createLoadLibraryFunction(typeProvider);
+      dartCore.createLoadLibraryFunction(typeProvider);
+      dartAsync.createLoadLibraryFunction(typeProvider);
+    }
 
     return elementFactory.libraryOfUri('${source.uri}');
   }
@@ -199,17 +216,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   }
 }
 
-class _FakeAnalysisContext implements AnalysisContext {
-  final SourceFactory sourceFactory;
-  TypeProvider typeProvider;
-  Dart2TypeSystem typeSystem;
-
-  _FakeAnalysisContext(this.sourceFactory);
-
-  @override
-  AnalysisOptions get analysisOptions {
-    return AnalysisOptionsImpl();
-  }
-
+class _AnalysisSessionForLinking implements AnalysisSession {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

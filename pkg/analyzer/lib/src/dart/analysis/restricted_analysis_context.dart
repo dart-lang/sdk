@@ -43,4 +43,8 @@ class RestrictedAnalysisContext implements AnalysisContextImpl {
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }
+
+  void clearTypeProvider() {
+    synchronousSession.clearTypeProvider();
+  }
 }

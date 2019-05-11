@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -1875,23 +1874,18 @@ typedef T foo<T extends S Function<S>(S)>(T t);
   }
 
   test_genericFunctionTypedParameter() async {
-    // TODO(paulberry): remove when dartbug.com/28515 fixed.
-    if (AnalysisDriver.useSummary2) {
-      await assertNoErrorsInCode('''
-void g(T f<T>(T x)) {}
-''');
-    } else {
-      await assertErrorsInCode('''
+    // Once dartbug.com/28515 is fixed, this syntax should no longer generate an
+    // error.
+    await assertErrorsInCode('''
 void g(T f<T>(T x)) {}
 ''', [
-        // Due to dartbug.com/28515, some additional errors appear when using the
-        // new analysis driver.
-        error(StaticWarningCode.UNDEFINED_CLASS, 7, 1),
-        error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED, 7,
-            11),
-        error(StaticWarningCode.UNDEFINED_CLASS, 14, 1),
-      ]);
-    }
+      // Due to dartbug.com/28515, some additional errors appear when using the
+      // new analysis driver.
+      error(StaticWarningCode.UNDEFINED_CLASS, 7, 1),
+      error(
+          CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED, 7, 11),
+      error(StaticWarningCode.UNDEFINED_CLASS, 14, 1),
+    ]);
   }
 
   test_implementsDeferredClass() async {
