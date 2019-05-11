@@ -33,6 +33,10 @@ void main(List<String> args) async {
     ..addFlag('help', abbr: 'h', help: 'Display this message.')
     ..addFlag('kernel',
         abbr: 'k', help: 'Compile with the new kernel-based front end.')
+    ..addMultiOption('summary',
+        abbr: 's',
+        help: 'summary file(s) of imported libraries, optionally\n'
+            'with module import path: -s path.sum=js/import/path')
     ..addFlag('debug',
         abbr: 'd',
         help: 'Use current source instead of built SDK.',
@@ -46,8 +50,8 @@ void main(List<String> args) async {
         abbr: 'p',
         help: 'Run with the corresponding chrome/V8 debugging port open.',
         defaultsTo: '9222')
-    ..addOption('enable-experiment',
-        help: 'Run with specified experiments enabled.', defaultsTo: '')
+    ..addMultiOption('enable-experiment',
+        help: 'Run with specified experiments enabled.')
     ..addOption('binary', abbr: 'b', help: 'Runtime binary path.');
 
   var options = parser.parse(args);
@@ -69,7 +73,8 @@ void main(List<String> args) async {
   var debug = options['debug'] as bool;
   var kernel = options['kernel'] as bool;
   var binary = options['binary'] as String;
-  var experiment = options['enable-experiment'] as String;
+  var experiments = options['enable-experiment'] as List;
+  var summaries = options['summary'] as List;
   var port = int.parse(options['port'] as String);
 
   var dartBinary = Platform.resolvedExecutable;
@@ -147,8 +152,8 @@ void main(List<String> args) async {
     // TODO(nshahan) Cleanup when we settle on using or removing library-root.
     if (!kernel)
       '--library-root=$libRoot',
-    if (experiment.isNotEmpty)
-      '--enable-experiment=$experiment',
+    for (var summary in summaries) '--summary=$summary',
+    for (var experiment in experiments) '--enable-experiment=$experiment',
     '-o',
     '$libRoot/$basename.js',
     entry
