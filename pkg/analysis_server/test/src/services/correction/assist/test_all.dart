@@ -11,7 +11,6 @@ import 'convert_documentation_into_block_test.dart'
     as convert_documentation_into_block;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
-import 'convert_into_absolute_import_test.dart' as convert_into_absolute_import;
 import 'convert_into_async_body_test.dart' as convert_into_async_body;
 import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
@@ -34,6 +33,7 @@ import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_multiline_string_test.dart' as convert_to_multiline_string;
 import 'convert_to_normal_parameter_test.dart' as convert_to_normal_parameter;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
+import 'convert_to_package_import_test.dart' as convert_to_package_import;
 import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
 import 'convert_to_single_quoted_string_test.dart'
     as convert_to_single_quoted_string;
@@ -85,7 +85,6 @@ main() {
     convert_class_to_mixin.main();
     convert_documentation_into_block.main();
     convert_documentation_into_line.main();
-    convert_into_absolute_import.main();
     convert_into_async_body.main();
     convert_into_block_body.main();
     convert_into_expression_body.main();
@@ -106,6 +105,7 @@ main() {
     convert_to_multiline_string.main();
     convert_to_normal_parameter.main();
     convert_to_null_aware.main();
+    convert_to_package_import.main();
     convert_to_set_literal.main();
     convert_to_single_quoted_string.main();
     convert_to_spread.main();

@@ -104,7 +104,6 @@ class AssistProcessor {
     await _addProposal_convertMapConstructorToMapLiteral();
     await _addProposal_convertPartOfToUri();
     await _addProposal_convertSetConstructorToSetLiteral();
-    await _addProposal_convertToAbsoluteImport();
     await _addProposal_convertToAsyncFunctionBody();
     await _addProposal_convertToBlockFunctionBody();
     await _addProposal_convertToDoubleQuotedString();
@@ -119,6 +118,7 @@ class AssistProcessor {
     await _addProposal_convertToMultilineString();
     await _addProposal_convertToNormalParameter();
     await _addProposal_convertToNullAware();
+    await _addProposal_convertToPackageImport();
     await _addProposal_convertToSingleQuotedString();
     await _addProposal_encapsulateField();
     await _addProposal_exchangeOperands();
@@ -1229,33 +1229,6 @@ class AssistProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_SET_LITERAL);
   }
 
-  Future<void> _addProposal_convertToAbsoluteImport() async {
-    AstNode node = this.node;
-    if (node is StringLiteral) {
-      node = node.parent;
-    }
-    if (node is ImportDirective) {
-      ImportDirective importDirective = node;
-      if (Uri.parse(node.uriContent)?.scheme == 'package') {
-        // Don't offer to convert a 'package:' URI to itself.
-        return;
-      }
-      Uri importUri = node.uriSource?.uri;
-      if (importUri?.scheme != 'package') {
-        return;
-      }
-      DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (builder) {
-        builder.addSimpleReplacement(
-            range.node(importDirective.uri), "'$importUri'");
-      });
-      _addAssistFromBuilder(
-        changeBuilder,
-        DartAssistKind.CONVERT_INTO_ABSOLUTE_IMPORT,
-      );
-    }
-  }
-
   Future<void> _addProposal_convertToAsyncFunctionBody() async {
     FunctionBody body = getEnclosingFunctionBody();
     if (body == null ||
@@ -1946,6 +1919,48 @@ class AssistProcessor {
       });
       _addAssistFromBuilder(
           changeBuilder, DartAssistKind.CONVERT_TO_NULL_AWARE);
+    }
+  }
+
+  Future<void> _addProposal_convertToPackageImport() async {
+    var node = this.node;
+    if (node is StringLiteral) {
+      node = node.parent;
+    }
+    if (node is ImportDirective) {
+      ImportDirective importDirective = node;
+      var uriSource = importDirective.uriSource;
+
+      // Ignore if invalid URI.
+      if (uriSource == null) {
+        return;
+      }
+
+      var importUri = uriSource.uri;
+      if (importUri.scheme != 'package') {
+        return;
+      }
+
+      // Don't offer to convert a 'package:' URI to itself.
+      try {
+        if (Uri.parse(importDirective.uriContent).scheme == 'package') {
+          return;
+        }
+      } on FormatException {
+        return;
+      }
+
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (builder) {
+        builder.addSimpleReplacement(
+          range.node(importDirective.uri),
+          "'$importUri'",
+        );
+      });
+      _addAssistFromBuilder(
+        changeBuilder,
+        DartAssistKind.CONVERT_TO_PACKAGE_IMPORT,
+      );
     }
   }
 

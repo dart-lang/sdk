@@ -60,11 +60,6 @@ class DartAssistKind {
   static const CONVERT_INTO_FINAL_FIELD = const AssistKind(
       'dart.assist.convert.getterToFinalField', 30, "Convert to final field",
       associatedErrorCodes: <String>['prefer_final_fields']);
-  static const CONVERT_INTO_ABSOLUTE_IMPORT = const AssistKind(
-      'dart.assist.convert.relativeToAbsoluteImport',
-      30,
-      "Convert to 'package:' import",
-      associatedErrorCodes: <String>['avoid_relative_lib_imports']);
   static const CONVERT_INTO_FOR_INDEX = const AssistKind(
       'dart.assist.convert.forEachToForIndex', 30, "Convert to for-index loop");
   static const CONVERT_INTO_GENERIC_FUNCTION_SYNTAX = const AssistKind(
@@ -120,6 +115,11 @@ class DartAssistKind {
   static const CONVERT_TO_NULL_AWARE = const AssistKind(
       'dart.assist.convert.toNullAware', 30, "Convert to use '?.'",
       associatedErrorCodes: <String>['prefer_null_aware_operators']);
+  static const CONVERT_TO_PACKAGE_IMPORT = const AssistKind(
+      'dart.assist.convert.relativeToPackageImport',
+      30,
+      "Convert to 'package:' import",
+      associatedErrorCodes: <String>['avoid_relative_lib_imports']);
   static const CONVERT_TO_SET_LITERAL = const AssistKind(
       'dart.assist.convert.toSetLiteral', 30, "Convert to set literal",
       // todo (brianwilkerson): unify w/ fix

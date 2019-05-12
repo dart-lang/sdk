@@ -10,14 +10,14 @@ import 'assist_processor.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConvertIntoAbsoluteImportTest);
+    defineReflectiveTests(ConvertToPackageImportTest);
   });
 }
 
 @reflectiveTest
-class ConvertIntoAbsoluteImportTest extends AssistProcessorTest {
+class ConvertToPackageImportTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_INTO_ABSOLUTE_IMPORT;
+  AssistKind get kind => DartAssistKind.CONVERT_TO_PACKAGE_IMPORT;
 
   test_fileName_onImport() async {
     addSource('/home/test/lib/foo.dart', '');
@@ -40,6 +40,14 @@ import 'foo.dart';
     await assertHasAssistAt('foo.dart', '''
 import 'package:test/foo.dart';
 ''');
+  }
+
+  test_invalidUri() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+import ':[invalidUri]';
+''');
+    await assertNoAssistAt('invalid');
   }
 
   test_nonPackage_Uri() async {
