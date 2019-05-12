@@ -173,28 +173,6 @@ class SourceLibraryBuilder {
     }
   }
 
-  void addSyntheticConstructors() {
-    for (var reference in localScope.map.values) {
-      var node = reference.node;
-      if (node == null) continue;
-      if (node.kind != LinkedNodeKind.classDeclaration) continue;
-
-      // Skip the class if it already has a constructor.
-      if (node.classOrMixinDeclaration_members
-          .any((n) => n.kind == LinkedNodeKind.constructorDeclaration)) {
-        continue;
-      }
-
-      node.classOrMixinDeclaration_members.add(
-        LinkedNodeBuilder.constructorDeclaration(
-          constructorDeclaration_parameters:
-              LinkedNodeBuilder.formalParameterList(),
-          constructorDeclaration_body: LinkedNodeBuilder.emptyFunctionBody(),
-        )..isSynthetic = true,
-      );
-    }
-  }
-
   /// Return `true` if the export scope was modified.
   bool addToExportScope(String name, Reference reference) {
     if (name.startsWith('_')) return false;

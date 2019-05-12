@@ -369,8 +369,6 @@ enum LinkedNodeKind : byte {
 
   returnStatement,
 
-  scriptTag,
-
   setOrMapLiteral,
 
   showCombinator,
@@ -1894,8 +1892,6 @@ table LinkedNode {
 
   variantField_6:LinkedNode (id: 6);
 
-  variantField_15:uint (id: 15);
-
   variantField_7:LinkedNode (id: 7);
 
   variantField_17:uint (id: 17);
@@ -1904,11 +1900,7 @@ table LinkedNode {
 
   variantField_8:LinkedNode (id: 8);
 
-  variantField_16:uint (id: 16);
-
-  variantField_18:uint (id: 18);
-
-  variantField_19:uint (id: 19);
+  variantField_15:uint (id: 15);
 
   variantField_28:UnlinkedTokenType (id: 28);
 
@@ -1938,33 +1930,33 @@ table LinkedNode {
 
   variantField_21:double (id: 21);
 
-  variantField_37:bool (id: 37);
-
   variantField_25:LinkedNodeType (id: 25);
 
-  flags:uint (id: 39);
+  flags:uint (id: 18);
 
-  variantField_41:string (id: 41);
+  variantField_1:string (id: 1);
+
+  variantField_16:uint (id: 16);
 
   variantField_30:string (id: 30);
 
   variantField_14:LinkedNode (id: 14);
 
-  isSynthetic:bool (id: 1);
-
   kind:LinkedNodeKind (id: 0);
 
-  name:string (id: 38);
+  name:string (id: 37);
 
   variantField_20:string (id: 20);
 
   variantField_31:bool (id: 31);
 
-  variantField_40:UnlinkedTokenType (id: 40);
+  variantField_38:UnlinkedTokenType (id: 38);
 
   variantField_35:TopLevelInferenceError (id: 35);
 
   variantField_22:string (id: 22);
+
+  variantField_19:uint (id: 19);
 
   variantField_32:LinkedNodeVariablesDeclaration (id: 32);
 }

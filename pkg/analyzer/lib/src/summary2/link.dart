@@ -100,16 +100,9 @@ class Linker {
     timerLinkingRemoveBundle.stop();
   }
 
-  void _addSyntheticConstructors() {
-    for (var library in builders.values) {
-      library.addSyntheticConstructors();
-    }
-  }
-
   void _buildOutlines() {
     _resolveUriDirectives();
     _computeLibraryScopes();
-    _addSyntheticConstructors();
     _createTypeSystem();
     _resolveTypes();
     TypeAliasSelfReferenceFinder().perform(this);

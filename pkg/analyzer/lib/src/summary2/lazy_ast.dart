@@ -1003,7 +1003,7 @@ class LazyFunctionExpression {
   static bool isAsynchronous(FunctionExpression node) {
     var lazy = get(node);
     if (lazy != null) {
-      return lazy.data.executable_isAsynchronous;
+      return AstBinaryFlags.isAsync(lazy.data.flags);
     } else {
       return node.body.isAsynchronous;
     }
@@ -1012,7 +1012,7 @@ class LazyFunctionExpression {
   static bool isGenerator(FunctionExpression node) {
     var lazy = get(node);
     if (lazy != null) {
-      return lazy.data.executable_isGenerator;
+      return AstBinaryFlags.isGenerator(lazy.data.flags);
     } else {
       return node.body.isGenerator;
     }
@@ -1393,7 +1393,7 @@ class LazyMethodDeclaration {
   static bool isAsynchronous(MethodDeclaration node) {
     var lazy = get(node);
     if (lazy != null) {
-      return lazy.data.executable_isAsynchronous;
+      return AstBinaryFlags.isAsync(lazy.data.flags);
     } else {
       return node.body.isAsynchronous;
     }
@@ -1402,7 +1402,7 @@ class LazyMethodDeclaration {
   static bool isGenerator(MethodDeclaration node) {
     var lazy = get(node);
     if (lazy != null) {
-      return lazy.data.executable_isGenerator;
+      return AstBinaryFlags.isGenerator(lazy.data.flags);
     } else {
       return node.body.isGenerator;
     }
