@@ -33,7 +33,7 @@ class SourceLibraryBuilder {
   LinkedLibraryContext context;
 
   LibraryElementImpl element;
-  LibraryScope libraryScope;
+  LibraryScope scope;
 
   /// Local declarations.
   final Scope localScope = Scope.top();
@@ -212,7 +212,7 @@ class SourceLibraryBuilder {
 
   void buildElement() {
     element = linker.elementFactory.libraryOfUri('$uri');
-    libraryScope = LibraryScope(element);
+    scope = LibraryScope(element);
   }
 
   void buildInitialExportScope() {
@@ -249,7 +249,7 @@ class SourceLibraryBuilder {
 
   void resolveMetadata() {
     for (CompilationUnitElementImpl unit in element.units) {
-      var resolver = MetadataResolver(linker, element, unit);
+      var resolver = MetadataResolver(linker, element, scope, unit);
       unit.linkedNode.accept(resolver);
     }
   }
@@ -265,7 +265,7 @@ class SourceLibraryBuilder {
         element,
         unitReference,
         linker.contextFeatures.isEnabled(Feature.non_nullable),
-        libraryScope,
+        scope,
       );
       unitContext.unit.accept(resolver);
     }

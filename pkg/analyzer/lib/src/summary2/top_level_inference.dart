@@ -50,7 +50,7 @@ class ConstantInitializersResolver {
       _library = builder.element;
       for (var unitContext in builder.context.units) {
         for (var unitMember in unitContext.unit.declarations) {
-          _scope = builder.libraryScope;
+          _scope = builder.scope;
           if (unitMember is TopLevelVariableDeclaration) {
             _variableDeclarationList(unitMember.variables);
           } else if (unitMember is ClassOrMixinDeclaration) {
@@ -330,7 +330,7 @@ class _InitializerInference {
         unit.types.forEach(_addClassElementFields);
         unit.mixins.forEach(_addClassElementFields);
 
-        _scope = builder.libraryScope;
+        _scope = builder.scope;
         for (var element in unit.topLevelVariables) {
           _addNode(element);
         }
