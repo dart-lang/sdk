@@ -24,6 +24,12 @@ class NullabilityGraph {
     (_upstream[destinationNode] ??= []).add(sourceNode);
   }
 
+  void debugDump() {
+    for (var entry in _downstream.entries) {
+      print('${entry.key} -> ${entry.value.join(', ')}');
+    }
+  }
+
   /// Iterates through all nodes that are "downstream" of [node] (i.e. if
   /// [node] is nullable, then all the iterated nodes will either have to be
   /// nullable, or null checks will have to be added).

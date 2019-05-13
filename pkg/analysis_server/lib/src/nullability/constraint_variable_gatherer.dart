@@ -48,13 +48,16 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   /// Creates and stores a [DecoratedType] object corresponding to the given
   /// [type] AST, and returns it.
-  DecoratedType decorateType(TypeAnnotation type) {
+  DecoratedType decorateType(TypeAnnotation type, AstNode enclosingNode) {
     return type == null
         // TODO(danrubel): Return something other than this
         // to indicate that we should insert a type for the declaration
         // that is missing a type reference.
-        ? new DecoratedType(DynamicTypeImpl.instance,
-            NullabilityNode.forInferredDynamicType(_graph), _graph)
+        ? new DecoratedType(
+            DynamicTypeImpl.instance,
+            NullabilityNode.forInferredDynamicType(
+                _graph, enclosingNode.offset),
+            _graph)
         : type.accept(this);
   }
 
@@ -84,14 +87,14 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitFunctionDeclaration(FunctionDeclaration node) {
     _handleExecutableDeclaration(node.declaredElement, node.returnType,
-        node.functionExpression.parameters);
+        node.functionExpression.parameters, node);
     return null;
   }
 
   @override
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
     _handleExecutableDeclaration(
-        node.declaredElement, node.returnType, node.parameters);
+        node.declaredElement, node.returnType, node.parameters, node);
     return null;
   }
 
@@ -110,7 +113,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitSimpleFormalParameter(SimpleFormalParameter node) {
-    var type = decorateType(node.type);
+    var type = decorateType(node.type, node);
     var declaredElement = node.declaredElement;
     type.node.trackNonNullIntent(node.offset);
     _variables.recordDecoratedElementType(declaredElement, type);
@@ -158,9 +161,12 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitTypeName(TypeName node) => visitTypeAnnotation(node);
 
   /// Common handling of function and method declarations.
-  void _handleExecutableDeclaration(ExecutableElement declaredElement,
-      TypeAnnotation returnType, FormalParameterList parameters) {
-    var decoratedReturnType = decorateType(returnType);
+  void _handleExecutableDeclaration(
+      ExecutableElement declaredElement,
+      TypeAnnotation returnType,
+      FormalParameterList parameters,
+      AstNode enclosingNode) {
+    var decoratedReturnType = decorateType(returnType, enclosingNode);
     var previousFunctionType = _currentFunctionType;
     // TODO(paulberry): test that it's correct to use `null` for the nullability
     // of the function type

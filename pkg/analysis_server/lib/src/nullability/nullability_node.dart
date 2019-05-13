@@ -15,14 +15,17 @@ import 'package:meta/meta.dart';
 /// nullability inference graph is encoded into the wrapped constraint
 /// variables.  Over time this will be replaced by a first class representation
 /// of the nullability inference graph.
-class NullabilityNode {
+abstract class NullabilityNode {
   /// [NullabilityNode] used for types that are known a priori to be nullable
   /// (e.g. the type of the `null` literal).
-  static final always = NullabilityNode._(ConstraintVariable.always);
+  static final NullabilityNode always =
+      _NullabilityNodeSimple(ConstraintVariable.always, 'always');
 
   /// [NullabilityNode] used for types that are known a priori to be
   /// non-nullable (e.g. the type of an integer literal).
-  static final never = NullabilityNode._(null);
+  static final NullabilityNode never = _NullabilityNodeSimple(null, 'never');
+
+  static final _debugNamesInUse = Set<String>();
 
   /// [ConstraintVariable] whose value will be set to `true` if this type needs
   /// to be nullable.
@@ -35,13 +38,17 @@ class NullabilityNode {
 
   bool _isPossiblyOptional = false;
 
+  String _debugName;
+
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type is `dynamic` due to type inference.
   ///
   /// TODO(paulberry): this should go away; we should decorate the actual
   /// inferred type rather than assuming `dynamic`.
-  factory NullabilityNode.forInferredDynamicType(NullabilityGraph graph) {
-    var node = NullabilityNode._(TypeIsNullable(null));
+  factory NullabilityNode.forInferredDynamicType(
+      NullabilityGraph graph, int offset) {
+    var node = _NullabilityNodeSimple(
+        TypeIsNullable(null), 'inferredDynamic($offset)');
     graph.connect(NullabilityNode.always, node);
     return node;
   }
@@ -80,8 +87,11 @@ class NullabilityNode {
 
   /// Creates a [NullabilityNode] representing the nullability of a type
   /// annotation appearing explicitly in the user's program.
-  NullabilityNode.forTypeAnnotation(int endOffset, {@required bool always})
-      : this._(always ? ConstraintVariable.always : TypeIsNullable(endOffset));
+  factory NullabilityNode.forTypeAnnotation(int endOffset,
+          {@required bool always}) =>
+      _NullabilityNodeSimple(
+          always ? ConstraintVariable.always : TypeIsNullable(endOffset),
+          'type($endOffset)');
 
   NullabilityNode._(this._nullable);
 
@@ -103,6 +113,8 @@ class NullabilityNode {
   /// an exception being thrown in the case of a `null` value at runtime).
   ConstraintVariable get nonNullIntent => _nonNullIntent;
 
+  String get _debugPrefix;
+
   /// Records the fact that an invocation was made to a function with named
   /// parameters, and the named parameter associated with this node was not
   /// supplied.
@@ -116,6 +128,24 @@ class NullabilityNode {
   void recordNonNullIntent(
       Constraints constraints, List<NullabilityNode> guards) {
     _recordConstraints(constraints, guards, const [], nonNullIntent);
+  }
+
+  String toString() {
+    if (_debugName == null) {
+      var prefix = _debugPrefix;
+      if (_debugNamesInUse.add(prefix)) {
+        _debugName = prefix;
+      } else {
+        for (int i = 0;; i++) {
+          var name = '${prefix}_$i';
+          if (_debugNamesInUse.add(name)) {
+            _debugName = name;
+            break;
+          }
+        }
+      }
+    }
+    return _debugName;
   }
 
   /// Tracks that the possibility that this nullability node might demonstrate
@@ -223,6 +253,9 @@ class NullabilityNodeForLUB extends NullabilityNode {
     graph.connect(left, this);
     graph.connect(right, this);
   }
+
+  @override
+  String get _debugPrefix => 'LUB($left, $right)';
 }
 
 /// Derived class for nullability nodes that arise from type variable
@@ -246,4 +279,15 @@ class NullabilityNodeForSubstitution extends NullabilityNode {
       Constraints constraints, this.innerNode, this.outerNode)
       : super._(ConstraintVariable.or(
             constraints, innerNode?._nullable, outerNode._nullable));
+
+  @override
+  String get _debugPrefix => 'Substituted($innerNode, $outerNode)';
+}
+
+class _NullabilityNodeSimple extends NullabilityNode {
+  @override
+  final String _debugPrefix;
+
+  _NullabilityNodeSimple(ConstraintVariable nullable, this._debugPrefix)
+      : super._(nullable);
 }
