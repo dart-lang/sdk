@@ -126,9 +126,10 @@ abstract class NullabilityNode {
     }
   }
 
-  void recordNonNullIntent(
-      Constraints constraints, List<NullabilityNode> guards) {
+  void recordNonNullIntent(Constraints constraints,
+      List<NullabilityNode> guards, NullabilityGraph graph) {
     _recordConstraints(constraints, guards, const [], nonNullIntent);
+    graph.connect(this, NullabilityNode.never, unconditional: true);
   }
 
   String toString() {
@@ -186,7 +187,8 @@ abstract class NullabilityNode {
       NullabilityGraph graph,
       bool inConditionalControlFlow) {
     var additionalConditions = <ConstraintVariable>[];
-    graph.connect(sourceNode, destinationNode);
+    graph.connect(sourceNode, destinationNode,
+        unconditional: !inConditionalControlFlow);
     if (sourceNode._nullable != null) {
       additionalConditions.add(sourceNode._nullable);
       var destinationNonNullIntent = destinationNode.nonNullIntent;

@@ -146,7 +146,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       if (!_inConditionalControlFlow &&
           _conditionInfo.trueDemonstratesNonNullIntent != null) {
         _conditionInfo.trueDemonstratesNonNullIntent
-            ?.recordNonNullIntent(_constraints, _guards);
+            ?.recordNonNullIntent(_constraints, _guards, _graph);
       }
     }
     node.message?.accept(this);
