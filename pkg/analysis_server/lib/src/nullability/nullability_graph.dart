@@ -29,22 +29,6 @@ class NullabilityGraph {
 
   final _nonNullIntentNodes = Set<NullabilityNode>.identity();
 
-  /// Verifies that the conclusions reached by [propagate] match the conclusions
-  /// reached by the old nullability propagation algorithm (using constraint
-  /// variables).
-  void check() {
-    try {
-      var allNodes = _downstream.keys.toSet();
-      allNodes.addAll(_upstream.keys);
-      for (var node in allNodes) {
-        node.check();
-      }
-    } catch (_) {
-      debugDump();
-      rethrow;
-    }
-  }
-
   /// Records that [sourceNode] is immediately upstream from [destinationNode].
   void connect(NullabilityNode sourceNode, NullabilityNode destinationNode,
       {bool unconditional: false, List<NullabilityNode> guards: const []}) {

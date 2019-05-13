@@ -9,22 +9,11 @@ import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
 import 'package:analysis_server/src/nullability/nullability_graph.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
-import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
-
-/// Type of a [ConstraintVariable] representing the addition of a null check.
-class CheckExpression extends ConstraintVariable {
-  final int offset;
-
-  CheckExpression(Expression expression) : offset = expression.end;
-
-  @override
-  toString() => 'checkNotNull($offset)';
-}
 
 /// Records information about how a conditional expression or statement might
 /// need to be modified.
@@ -148,8 +137,6 @@ class NullabilityMigration {
 
   final Variables _variables;
 
-  final Solver _constraints;
-
   final NullabilityGraph _graph;
 
   /// Prepares to perform nullability migration.
@@ -162,16 +149,13 @@ class NullabilityMigration {
       {bool permissive: false,
       NullabilityMigrationAssumptions assumptions:
           const NullabilityMigrationAssumptions()})
-      : this._(permissive, assumptions, NullabilityGraph(), Solver());
+      : this._(permissive, assumptions, NullabilityGraph());
 
-  NullabilityMigration._(
-      this._permissive, this.assumptions, this._graph, this._constraints)
-      : _variables = Variables(_graph, _constraints);
+  NullabilityMigration._(this._permissive, this.assumptions, this._graph)
+      : _variables = Variables(_graph);
 
   Map<Source, List<PotentialModification>> finish() {
-    _constraints.applyHeuristics();
     _graph.propagate();
-    _graph.check();
     return _variables.getPotentialModifications();
   }
 
@@ -181,8 +165,8 @@ class NullabilityMigration {
   }
 
   void processInput(CompilationUnit unit, TypeProvider typeProvider) {
-    unit.accept(ConstraintGatherer(typeProvider, _variables, _constraints,
-        _graph, unit.declaredElement.source, _permissive, assumptions));
+    unit.accept(ConstraintGatherer(typeProvider, _variables, _graph,
+        unit.declaredElement.source, _permissive, assumptions));
   }
 }
 
@@ -278,10 +262,7 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final NullabilityGraph _graph;
 
-  @override
-  final Constraints constraints;
-
-  Variables(this._graph, this.constraints);
+  Variables(this._graph);
 
   @override
   DecoratedType decoratedElementType(Element element, {bool create: false}) =>

@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/nullability/nullability_graph.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
-import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -86,12 +85,11 @@ class DecoratedType {
   /// [undecoratedResult] is the result of the substitution, as determined by
   /// the normal type system.
   DecoratedType substitute(
-      Constraints constraints,
       NullabilityGraph graph,
       Map<TypeParameterElement, DecoratedType> substitution,
       DartType undecoratedResult) {
     if (substitution.isEmpty) return this;
-    return _substitute(constraints, graph, substitution, undecoratedResult);
+    return _substitute(graph, substitution, undecoratedResult);
   }
 
   @override
@@ -122,7 +120,6 @@ class DecoratedType {
 
   /// Internal implementation of [_substitute], used as a recursion target.
   DecoratedType _substitute(
-      Constraints constraints,
       NullabilityGraph graph,
       Map<TypeParameterElement, DecoratedType> substitution,
       DartType undecoratedResult) {
@@ -137,19 +134,17 @@ class DecoratedType {
             ? undecoratedResult.normalParameterTypes[i]
             : undecoratedResult
                 .optionalParameterTypes[i - numRequiredParameters];
-        newPositionalParameters.add(positionalParameters[i]._substitute(
-            constraints, graph, substitution, undecoratedParameterType));
+        newPositionalParameters.add(positionalParameters[i]
+            ._substitute(graph, substitution, undecoratedParameterType));
       }
       return DecoratedType(undecoratedResult, node, graph,
           returnType: returnType._substitute(
-              constraints, graph, substitution, undecoratedResult.returnType),
+              graph, substitution, undecoratedResult.returnType),
           positionalParameters: newPositionalParameters);
     } else if (type is TypeParameterType) {
       var inner = substitution[type.element];
-      return DecoratedType(
-          undecoratedResult,
-          NullabilityNode.forSubstitution(constraints, inner?.node, node),
-          graph);
+      return DecoratedType(undecoratedResult,
+          NullabilityNode.forSubstitution(inner?.node, node), graph);
     } else if (type is VoidType) {
       return this;
     }
@@ -177,26 +172,4 @@ class DecoratedTypeAnnotation extends DecoratedType
   @override
   Iterable<SourceEdit> get modifications =>
       isEmpty ? [] : [SourceEdit(_offset, 0, '?')];
-}
-
-/// Type of a [ConstraintVariable] representing the fact that a type is intended
-/// to be non-null.
-class NonNullIntent extends ConstraintVariable {
-  final int _offset;
-
-  NonNullIntent(this._offset);
-
-  @override
-  toString() => 'nonNullIntent($_offset)';
-}
-
-/// Type of a [ConstraintVariable] representing the fact that a type is
-/// nullable.
-class TypeIsNullable extends ConstraintVariable {
-  final int _offset;
-
-  TypeIsNullable(this._offset);
-
-  @override
-  toString() => 'nullable($_offset)';
 }

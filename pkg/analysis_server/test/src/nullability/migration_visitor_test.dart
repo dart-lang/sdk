@@ -10,7 +10,6 @@ import 'package:analysis_server/src/nullability/expression_checks.dart';
 import 'package:analysis_server/src/nullability/nullability_graph.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
-import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -42,32 +41,13 @@ class ConstraintGathererTest extends ConstraintsTestBase {
     expect(graph.getDownstreamNodes(sourceNode), contains(destinationNode));
   }
 
-  /// Checks that a constraint was recorded with a left hand side of
-  /// [conditions] and a right hand side of [consequence].
-  void assertConstraint(
-      Iterable<ConstraintVariable> conditions, ConstraintVariable consequence) {
-    expect(constraints._clauses,
-        contains(_Clause(conditions.toSet(), consequence)));
-  }
-
-  /// Checks that no constraint was recorded with a right hand side of
-  /// [consequence].
-  void assertNoConstraints(ConstraintVariable consequence) {
-    expect(
-        constraints._clauses,
-        isNot(contains(
-            predicate((_Clause clause) => clause.consequence == consequence))));
-  }
-
   void assertNonNullIntent(NullabilityNode node, bool expected) {
     if (expected) {
       expect(graph.getUnconditionalUpstreamNodes(NullabilityNode.never),
           contains(node));
-      assertConstraint([], node.nonNullIntent);
     } else {
       expect(graph.getUnconditionalUpstreamNodes(NullabilityNode.never),
           isNot(contains(node)));
-      assertNoConstraints(node.nonNullIntent);
     }
   }
 
@@ -122,10 +102,7 @@ class ConstraintGathererTest extends ConstraintsTestBase {
   test_always() async {
     await analyze('');
 
-    // No clause is needed for `always`; it is assigned the value `true` before
-    // solving begins.
-    assertNoConstraints(ConstraintVariable.always);
-    assert(ConstraintVariable.always.value, isTrue);
+    expect(NullabilityNode.always.isNullable, isTrue);
   }
 
   test_assert_demonstrates_non_null_intent() async {
@@ -445,7 +422,8 @@ void test(int/*2*/ i) {
     var int_2 = decoratedTypeAnnotation('int/*2*/');
     var i_3 = checkExpression('i/*3*/');
     assertNullCheck(i_3, int_2.node, contextNode: int_1.node);
-    assertConstraint([int_1.node.nonNullIntent], int_2.node.nonNullIntent);
+    expect(
+        graph.getUnconditionalUpstreamNodes(int_1.node), contains(int_2.node));
   }
 
   test_functionInvocation_parameter_named() async {
@@ -720,6 +698,12 @@ void test(C c) {
     assertNonNullIntent(decoratedTypeAnnotation('C c').node, true);
   }
 
+  test_never() async {
+    await analyze('');
+
+    expect(NullabilityNode.never.isNullable, isFalse);
+  }
+
   test_parenthesizedExpression() async {
     await analyze('''
 int f() {
@@ -801,8 +785,8 @@ abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
       {NullabilityMigrationAssumptions assumptions:
           const NullabilityMigrationAssumptions()}) async {
     var unit = await super.analyze(code);
-    unit.accept(ConstraintGatherer(typeProvider, _variables, constraints, graph,
-        testSource, false, assumptions));
+    unit.accept(ConstraintGatherer(
+        typeProvider, _variables, graph, testSource, false, assumptions));
     return unit;
   }
 }
@@ -903,7 +887,6 @@ void f(int i) {}
         same(decoratedType));
     expect(decoratedType.node, isNotNull);
     expect(decoratedType.node, isNot(NullabilityNode.never));
-    expect(decoratedType.node.nonNullIntent, isNotNull);
   }
 
   test_topLevelFunction_returnType_implicit_dynamic() async {
@@ -934,12 +917,9 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
 
   final NullabilityGraph graph;
 
-  final _Constraints constraints;
+  MigrationVisitorTestBase() : this._(NullabilityGraph());
 
-  MigrationVisitorTestBase() : this._(NullabilityGraph(), _Constraints());
-
-  MigrationVisitorTestBase._(this.graph, this.constraints)
-      : _variables = _Variables(graph, constraints);
+  MigrationVisitorTestBase._(this.graph) : _variables = _Variables(graph);
 
   TypeProvider get typeProvider => testAnalysisResult.typeProvider;
 
@@ -971,52 +951,6 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
   }
 }
 
-/// Mock representation of a constraint equation that is not connected to a
-/// constraint solver.  We use this to confirm that analysis produces the
-/// correct constraint equations.
-///
-/// [hashCode] and equality are implemented using [toString] for simplicity.
-class _Clause {
-  final Set<ConstraintVariable> conditions;
-  final ConstraintVariable consequence;
-
-  _Clause(this.conditions, this.consequence);
-
-  @override
-  int get hashCode => toString().hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      other is _Clause && toString() == other.toString();
-
-  @override
-  String toString() {
-    String lhs;
-    if (conditions.isNotEmpty) {
-      var sortedConditionStrings = conditions.map((v) => v.toString()).toList()
-        ..sort();
-      lhs = sortedConditionStrings.join(' & ') + ' => ';
-    } else {
-      lhs = '';
-    }
-    String rhs = consequence.toString();
-    return lhs + rhs;
-  }
-}
-
-/// Mock representation of a constraint solver that does not actually do any
-/// solving.  We use this to confirm that analysis produced the correct
-/// constraint equations.
-class _Constraints extends Constraints {
-  final _clauses = <_Clause>[];
-
-  @override
-  void record(
-      Iterable<ConstraintVariable> conditions, ConstraintVariable consequence) {
-    _clauses.add(_Clause(conditions.toSet(), consequence));
-  }
-}
-
 /// Mock representation of constraint variables.
 class _Variables extends Variables {
   final _conditionalDiscard = <AstNode, ConditionalDiscard>{};
@@ -1029,8 +963,7 @@ class _Variables extends Variables {
 
   final _possiblyOptional = <DefaultFormalParameter, NullabilityNode>{};
 
-  _Variables(NullabilityGraph graph, Constraints constraints)
-      : super(graph, constraints);
+  _Variables(NullabilityGraph graph) : super(graph);
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
   ExpressionChecks checkExpression(Expression expression) =>
