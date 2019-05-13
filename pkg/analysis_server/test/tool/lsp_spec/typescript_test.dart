@@ -125,7 +125,7 @@ export interface MyMessage {
 	/**
 	 * The method's params.
 	 */
-	params?: Array<any> | object;
+	params?: Array<any> | string;
 }
     ''';
       final List<AstNode> output = parseString(input);
@@ -143,7 +143,7 @@ export interface MyMessage {
       UnionType union = field.type;
       expect(union.types, hasLength(2));
       expect(union.types[0], isArrayOf(isSimpleType('any')));
-      expect(union.types[1], isSimpleType('object'));
+      expect(union.types[1], isSimpleType('string'));
     });
 
     test('parses an interface with a map into a MapType', () {
@@ -303,6 +303,23 @@ interface SomeInformation {
       expect(union.types, hasLength(2));
       expect(union.types[0], isSimpleType('string'));
       expect(union.types[1], isArrayOf(isSimpleType('number')));
+    });
+
+    test('parses an union including Object into a single type', () {
+      final String input = '''
+interface SomeInformation {
+	label: string | object;
+}
+    ''';
+      final List<AstNode> output = parseString(input);
+      expect(output, hasLength(1));
+      expect(output[0], const TypeMatcher<Interface>());
+      final Interface interface = output[0];
+      expect(interface.members, hasLength(1));
+      final Field field = interface.members.first;
+      expect(field, const TypeMatcher<Field>());
+      expect(field.name, equals('label'));
+      expect(field.type, isSimpleType('object'));
     });
   });
 }

@@ -63,7 +63,8 @@ abstract class SimpleEditCommandHandler
     } else {
       return error(
         ServerErrorCodes.ClientFailedToApplyEdit,
-        'Client failed to apply workspace edit for $commandName',
+        'Client failed to apply workspace edit for $commandName '
+        '(reason: ${editResponseResult.failureReason ?? 'Client did not provide a reason'})',
         workspaceEdit.toString(),
       );
     }

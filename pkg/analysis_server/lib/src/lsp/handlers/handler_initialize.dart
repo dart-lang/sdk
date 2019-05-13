@@ -120,8 +120,9 @@ class InitializeMessageHandler
             : Either2<bool, RenameOptions>.t1(true),
         null,
         null,
-        Either3<bool, FoldingRangeProviderOptions, dynamic>.t1(true),
+        true, // foldingRangeProvider
         new ExecuteCommandOptions(Commands.serverSupportedCommands),
+        null, // declarationProvider
         new ServerCapabilitiesWorkspace(
             new ServerCapabilitiesWorkspaceFolders(true, true)),
         null);

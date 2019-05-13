@@ -59,7 +59,7 @@ int minified(int x, int y) => min(x, y);
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).
         editParams = edit;
-        return new ApplyWorkspaceEditResponse(true);
+        return new ApplyWorkspaceEditResponse(true, null);
       },
     );
     // Successful edits return an empty success() response.
@@ -116,7 +116,7 @@ int minified(int x, int y) => min(x, y);
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).
         editParams = edit;
-        return new ApplyWorkspaceEditResponse(true);
+        return new ApplyWorkspaceEditResponse(true, null);
       },
     );
     // Successful edits return an empty success() response.
@@ -257,7 +257,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).
         editParams = edit;
-        return new ApplyWorkspaceEditResponse(true);
+        return new ApplyWorkspaceEditResponse(true, null);
       },
     );
     // Successful edits return an empty success() response.
@@ -307,7 +307,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).
         editParams = edit;
-        return new ApplyWorkspaceEditResponse(true);
+        return new ApplyWorkspaceEditResponse(true, null);
       },
     );
     // Successful edits return an empty success() response.
@@ -377,7 +377,8 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
       // Claim that we failed tpo apply the edits. This is what the client
       // would do if the edits provided were for an old version of the
       // document.
-      handler: (edit) => new ApplyWorkspaceEditResponse(false),
+      handler: (edit) =>
+          new ApplyWorkspaceEditResponse(false, 'Document changed'),
     );
 
     // Ensure the request returned an error (error repsonses are thrown by

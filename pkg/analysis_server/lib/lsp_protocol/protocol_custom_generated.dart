@@ -22,6 +22,9 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 const jsonEncoder = const JsonEncoder.withIndent('    ');
 
 class DartDiagnosticServer implements ToJsonable {
+  static const jsonHandler = const LspJsonHandler(
+      DartDiagnosticServer.canParse, DartDiagnosticServer.fromJson);
+
   DartDiagnosticServer(this.port) {
     if (port == null) {
       throw 'port is required but was not provided';
