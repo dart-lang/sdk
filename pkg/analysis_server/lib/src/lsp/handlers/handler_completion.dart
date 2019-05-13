@@ -49,6 +49,10 @@ class CompletionHandler
       CompletionParams.jsonHandler;
 
   Future<ErrorOr<List<CompletionItem>>> handle(CompletionParams params) async {
+    if (!isDartDocument(params.textDocument)) {
+      return success(const []);
+    }
+
     final completionCapabilities =
         server?.clientCapabilities?.textDocument?.completion;
 

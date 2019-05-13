@@ -406,6 +406,18 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
         throwsA(isResponseError(ServerErrorCodes.FileHasErrors)));
   }
 
+  test_nonDartFile() async {
+    await newFile(pubspecFilePath, content: simplePubspecContent);
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.Source]),
+    );
+
+    final codeActions =
+        await getCodeActions(pubspecFileUri.toString(), range: startOfDocRange);
+    expect(codeActions, isEmpty);
+  }
+
   test_unavailableWhenNotRequested() async {
     await newFile(mainFilePath);
     await initialize(

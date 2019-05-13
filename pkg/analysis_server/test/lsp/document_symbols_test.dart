@@ -104,4 +104,16 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     expect(method.kind, equals(SymbolKind.Method));
     expect(method.containerName, equals(myClass.name));
   }
+
+  test_nonDartFile() async {
+    newFile(pubspecFilePath, content: simplePubspecContent);
+    await initialize();
+
+    final result = await getDocumentSymbols(pubspecFileUri.toString());
+    final symbols = result.map(
+      (docsymbols) => throw 'Expected SymbolInformations, got DocumentSymbols',
+      (symbolInfos) => symbolInfos,
+    );
+    expect(symbols, isEmpty);
+  }
 }

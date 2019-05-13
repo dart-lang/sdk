@@ -25,6 +25,10 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
       TextDocumentPositionParams.jsonHandler;
 
   Future<ErrorOr<Hover>> handle(TextDocumentPositionParams params) async {
+    if (!isDartDocument(params.textDocument)) {
+      return success(null);
+    }
+
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);

@@ -49,6 +49,12 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
 
   Future<ErrorOr<Either2<List<DocumentSymbol>, List<SymbolInformation>>>>
       handle(DocumentSymbolParams params) async {
+    if (!isDartDocument(params.textDocument)) {
+      return success(
+        Either2<List<DocumentSymbol>, List<SymbolInformation>>.t2([]),
+      );
+    }
+
     final symbolCapabilities =
         server?.clientCapabilities?.textDocument?.documentSymbol;
 

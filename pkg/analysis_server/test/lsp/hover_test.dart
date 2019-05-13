@@ -107,6 +107,13 @@ print();
     expect(hover, isNull);
   }
 
+  test_nonDartFile() async {
+    await initialize();
+    await openFile(pubspecFileUri, simplePubspecContent);
+    final hover = await getHover(pubspecFileUri, startOfDocPos);
+    expect(hover, isNull);
+  }
+
   test_plainText_simple() async {
     final content = '''
     /// This is a string.

@@ -122,6 +122,15 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  test_nonDartFile() async {
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
+    await openFile(pubspecFileUri, simplePubspecContent);
+    final res = await getSignatureHelp(pubspecFileUri, startOfDocPos);
+    expect(res, isNull);
+  }
+
   test_params_multipleNamed() async {
     final content = '''
     /// Does foo.

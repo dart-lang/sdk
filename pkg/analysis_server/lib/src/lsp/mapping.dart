@@ -267,6 +267,9 @@ String getCompletionDetail(
   }
 }
 
+bool isDartDocument(lsp.TextDocumentIdentifier doc) =>
+    doc?.uri?.endsWith('.dart');
+
 lsp.Location navigationTargetToLocation(String targetFilePath,
     server.NavigationTarget target, server.LineInfo lineInfo) {
   if (lineInfo == null) {

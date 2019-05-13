@@ -34,6 +34,10 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
   Future<ErrorOr<List<Either2<Command, CodeAction>>>> handle(
       CodeActionParams params) async {
+    if (!isDartDocument(params.textDocument)) {
+      return success(const []);
+    }
+
     final capabilities = server?.clientCapabilities?.textDocument?.codeAction;
 
     final clientSupportsLiteralCodeActions =

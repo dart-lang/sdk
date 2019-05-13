@@ -93,4 +93,16 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     applyChanges(contents, fixAction.edit.changes);
     expect(contents[mainFilePath], equals(expectedContent));
   }
+
+  test_nonDartFile() async {
+    await newFile(pubspecFilePath, content: simplePubspecContent);
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions =
+        await getCodeActions(pubspecFileUri.toString(), range: startOfDocRange);
+    expect(codeActions, isEmpty);
+  }
 }

@@ -192,6 +192,14 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.detail, isNot(contains('deprecated')));
   }
 
+  test_nonDartFile() async {
+    newFile(pubspecFilePath, content: simplePubspecContent);
+    await initialize();
+
+    final res = await getCompletion(pubspecFileUri, startOfDocPos);
+    expect(res, isEmpty);
+  }
+
   test_plainText() async {
     final content = '''
     class MyClass {

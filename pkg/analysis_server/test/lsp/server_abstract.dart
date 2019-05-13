@@ -40,8 +40,11 @@ mixin LspAnalysisServerTestMixin
       new RegExp(allMarkers.map(RegExp.escape).join('|'));
 
   int _id = 0;
-  String projectFolderPath, mainFilePath;
-  Uri projectFolderUri, mainFileUri;
+  String projectFolderPath, mainFilePath, pubspecFilePath;
+  Uri projectFolderUri, mainFileUri, pubspecFileUri;
+  final String simplePubspecContent = 'name: my_project';
+  final startOfDocPos = new Position(0, 0);
+  final startOfDocRange = new Range(new Position(0, 0), new Position(0, 0));
 
   Stream<Message> get serverToClient;
 
@@ -786,6 +789,8 @@ abstract class AbstractLspAnalysisServerTest
     newFile(join(projectFolderPath, 'lib', 'file.dart'));
     mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
     mainFileUri = Uri.file(mainFilePath);
+    pubspecFilePath = join(projectFolderPath, 'pubspec.yaml');
+    pubspecFileUri = Uri.file(pubspecFilePath);
   }
 
   Future tearDown() async {
