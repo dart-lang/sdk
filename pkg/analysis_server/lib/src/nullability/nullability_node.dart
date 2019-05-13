@@ -119,10 +119,11 @@ abstract class NullabilityNode {
   /// Records the fact that an invocation was made to a function with named
   /// parameters, and the named parameter associated with this node was not
   /// supplied.
-  void recordNamedParameterNotSupplied(
-      Constraints constraints, List<NullabilityNode> guards) {
+  void recordNamedParameterNotSupplied(Constraints constraints,
+      List<NullabilityNode> guards, NullabilityGraph graph) {
     if (isPossiblyOptional) {
       _recordConstraints(constraints, guards, const [], _nullable);
+      graph.connect(NullabilityNode.always, this, guards: guards);
     }
   }
 
