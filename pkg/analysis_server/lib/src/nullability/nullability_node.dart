@@ -98,7 +98,8 @@ abstract class NullabilityNode {
 
   /// Gets a string that can be appended to a type name during debugging to help
   /// annotate the nullability of that type.
-  String get debugSuffix => _nullable == null ? '' : '?($_nullable)';
+  String get debugSuffix =>
+      this == always ? '?' : this == never ? '' : '?($this)';
 
   /// After constraint solving, this getter can be used to query whether the
   /// type associated with this node should be considered nullable.
@@ -199,7 +200,7 @@ abstract class NullabilityNode {
     var additionalConditions = <ConstraintVariable>[];
     graph.connect(sourceNode, destinationNode,
         guards: guards, unconditional: !inConditionalControlFlow);
-    if (sourceNode._nullable != null) {
+    if (sourceNode != NullabilityNode.never) {
       additionalConditions.add(sourceNode._nullable);
       var destinationNonNullIntent = destinationNode.nonNullIntent;
       // nullable_src => nullable_dst | check_expr
