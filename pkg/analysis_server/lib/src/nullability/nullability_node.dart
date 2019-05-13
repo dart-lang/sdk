@@ -29,8 +29,6 @@ abstract class NullabilityNode {
 
   String _debugName;
 
-  bool _isNullable;
-
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type is `dynamic` due to type inference.
   ///
@@ -77,8 +75,7 @@ abstract class NullabilityNode {
           {@required bool always}) =>
       _NullabilityNodeSimple('type($endOffset)');
 
-  NullabilityNode._({bool initiallyNullable: false})
-      : _isNullable = initiallyNullable;
+  NullabilityNode._();
 
   /// Gets a string that can be appended to a type name during debugging to help
   /// annotate the nullability of that type.
@@ -87,23 +84,13 @@ abstract class NullabilityNode {
 
   /// After nullability propagation, this getter can be used to query whether
   /// the type associated with this node should be considered nullable.
-  bool get isNullable => _isNullable;
+  bool get isNullable;
 
   /// Indicates whether this node is associated with a named parameter for which
   /// nullability migration needs to decide whether it is optional or required.
   bool get isPossiblyOptional => _isPossiblyOptional;
 
   String get _debugPrefix;
-
-  /// During constraint solving, this method marks the type as nullable, or does
-  /// nothing if the type was already nullable.
-  ///
-  /// Return value indicates whether a change was made.
-  bool becomeNullable() {
-    if (_isNullable) return false;
-    _isNullable = true;
-    return true;
-  }
 
   /// Records the fact that an invocation was made to a function with named
   /// parameters, and the named parameter associated with this node was not
@@ -168,7 +155,7 @@ abstract class NullabilityNode {
 
 /// Derived class for nullability nodes that arise from the least-upper-bound
 /// implied by a conditional expression.
-class NullabilityNodeForLUB extends NullabilityNode {
+class NullabilityNodeForLUB extends NullabilityNodeMutable {
   final NullabilityNode left;
 
   final NullabilityNode right;
@@ -186,7 +173,7 @@ class NullabilityNodeForLUB extends NullabilityNode {
 
 /// Derived class for nullability nodes that arise from type variable
 /// substitution.
-class NullabilityNodeForSubstitution extends NullabilityNode {
+class NullabilityNodeForSubstitution extends NullabilityNodeMutable {
   /// Nullability node representing the inner type of the substitution.
   ///
   /// For example, if this NullabilityNode arose from substituting `int*` for
@@ -207,21 +194,42 @@ class NullabilityNodeForSubstitution extends NullabilityNode {
   String get _debugPrefix => 'Substituted($innerNode, $outerNode)';
 }
 
-class _NullabilityNodeImmutable extends _NullabilityNodeSimple {
-  _NullabilityNodeImmutable(String debugPrefix, bool isNullable)
-      : super(debugPrefix, initiallyNullable: isNullable);
+/// Base class for nullability nodes whose state can be mutated safely.
+///
+/// Nearly all nullability nodes derive from this class; the only exceptions are
+/// the fixed nodes [NullabilityNode.always] and [NullabilityNode.never].
+abstract class NullabilityNodeMutable extends NullabilityNode {
+  bool _isNullable = false;
+
+  NullabilityNodeMutable._() : super._();
 
   @override
+  bool get isNullable => _isNullable;
+
+  /// During constraint solving, this method marks the type as nullable, or does
+  /// nothing if the type was already nullable.
+  ///
+  /// Return value indicates whether a change was made.
   bool becomeNullable() {
     if (_isNullable) return false;
-    throw new StateError('Tried to change the nullability of $this');
+    _isNullable = true;
+    return true;
   }
 }
 
-class _NullabilityNodeSimple extends NullabilityNode {
+class _NullabilityNodeImmutable extends NullabilityNode {
   @override
   final String _debugPrefix;
 
-  _NullabilityNodeSimple(this._debugPrefix, {bool initiallyNullable: false})
-      : super._(initiallyNullable: initiallyNullable);
+  @override
+  final bool isNullable;
+
+  _NullabilityNodeImmutable(this._debugPrefix, this.isNullable) : super._();
+}
+
+class _NullabilityNodeSimple extends NullabilityNodeMutable {
+  @override
+  final String _debugPrefix;
+
+  _NullabilityNodeSimple(this._debugPrefix) : super._();
 }

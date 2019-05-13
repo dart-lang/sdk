@@ -130,7 +130,7 @@ class NullabilityGraph {
             continue nextEdge;
           }
         }
-        if (node.becomeNullable()) {
+        if (node is NullabilityNodeMutable && node.becomeNullable()) {
           // Was not previously nullable, so we need to propagate.
           pendingEdges.addAll(_downstream[node] ?? const []);
           if (node is NullabilityNodeForSubstitution) {
