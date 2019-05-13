@@ -116,6 +116,15 @@ abstract class NullabilityNode {
 
   String get _debugPrefix;
 
+  /// Verifies that the nullability of this node matches [isNullable].
+  void check(bool isNullable) {
+    if (isNullable != this.isNullable) {
+      throw new StateError(
+          'For $this, new algorithm gives nullability $isNullable; '
+          'old algorithm gives ${this.isNullable}');
+    }
+  }
+
   /// Records the fact that an invocation was made to a function with named
   /// parameters, and the named parameter associated with this node was not
   /// supplied.

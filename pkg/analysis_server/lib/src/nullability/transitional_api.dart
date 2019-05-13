@@ -170,6 +170,8 @@ class NullabilityMigration {
 
   Map<Source, List<PotentialModification>> finish() {
     _constraints.applyHeuristics();
+    _graph.propagate();
+    _graph.check();
     return _variables.getPotentialModifications();
   }
 

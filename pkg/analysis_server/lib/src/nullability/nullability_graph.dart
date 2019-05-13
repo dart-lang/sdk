@@ -27,6 +27,26 @@ class NullabilityGraph {
   final _unconditionalUpstream =
       Map<NullabilityNode, List<NullabilityNode>>.identity();
 
+  final _nullableNodes = Set<NullabilityNode>.identity();
+
+  final _nonNullIntentNodes = Set<NullabilityNode>.identity();
+
+  /// Verifies that the conclusions reached by [propagate] match the conclusions
+  /// reached by the old nullability propagation algorithm (using constraint
+  /// variables).
+  void check() {
+    try {
+      var allNodes = _downstream.keys.toSet();
+      allNodes.addAll(_upstream.keys);
+      for (var node in allNodes) {
+        node.check(_nullableNodes.contains(node));
+      }
+    } catch (_) {
+      debugDump();
+      rethrow;
+    }
+  }
+
   /// Records that [sourceNode] is immediately upstream from [destinationNode].
   void connect(NullabilityNode sourceNode, NullabilityNode destinationNode,
       {bool unconditional: false, List<NullabilityNode> guards: const []}) {
@@ -55,7 +75,15 @@ class NullabilityGraph {
         var suffix = suffixes.isNotEmpty ? ' (${suffixes.join(', ')})' : '';
         return '${edge.destinationNode}$suffix';
       });
-      print('${entry.key} -> ${destinations.join(', ')}');
+      var suffixes = <String>[];
+      if (_nullableNodes.contains(entry.key)) {
+        suffixes.add('nullable');
+      }
+      if (_nonNullIntentNodes.contains(entry.key)) {
+        suffixes.add('non-null intent');
+      }
+      var suffix = suffixes.isNotEmpty ? ' (${suffixes.join(', ')})' : '';
+      print('${entry.key}$suffix -> ${destinations.join(', ')}');
     }
   }
 
@@ -80,10 +108,77 @@ class NullabilityGraph {
   /// Iterates through all nodes that are "upstream" of [node] (i.e. if
   /// any of the iterated nodes are nullable, then [node] will either have to be
   /// nullable, or null checks will have to be added).
-  //  ///
-  //  /// There is no guarantee of uniqueness of the iterated nodes.
+  ///
+  /// There is no guarantee of uniqueness of the iterated nodes.
   Iterable<NullabilityNode> getUpstreamNodes(NullabilityNode node) =>
       _upstream[node] ?? const [];
+
+  /// Determines the nullability of each node in the graph by propagating
+  /// nullability information from one node to another.
+  void propagate() {
+    _propagateUpstream();
+    _propagateDownstream();
+  }
+
+  /// Propagates nullability downstream.
+  void _propagateDownstream() {
+    var pendingEdges = [_NullabilityEdge(NullabilityNode.always, const [])];
+    var pendingSubstitutions = <NullabilityNodeForSubstitution>[];
+    while (true) {
+      nextEdge:
+      while (pendingEdges.isNotEmpty) {
+        var edge = pendingEdges.removeLast();
+        var node = edge.destinationNode;
+        if (_nonNullIntentNodes.contains(node)) {
+          // Non-null intent nodes are never made nullable; a null check will need
+          // to be added instead.
+          continue;
+        }
+        for (var source in edge.sources) {
+          if (!_nullableNodes.contains(source)) {
+            // Note all sources are nullable, so this edge doesn't apply yet.
+            continue nextEdge;
+          }
+        }
+        if (_nullableNodes.add(node)) {
+          // Was not previously nullable, so we need to propagate.
+          pendingEdges.addAll(_downstream[node] ?? const []);
+          if (node is NullabilityNodeForSubstitution) {
+            pendingSubstitutions.add(node);
+          }
+        }
+      }
+      if (pendingSubstitutions.isEmpty) break;
+      var node = pendingSubstitutions.removeLast();
+      if (_nullableNodes.contains(node.innerNode) ||
+          _nullableNodes.contains(node.outerNode)) {
+        // No further propagation is needed, since some other connection already
+        // propagated nullability to either the inner or outer node.
+        continue;
+      }
+      // Heuristically choose to propagate to the inner node since this seems
+      // to lead to better quality migrations.
+      pendingEdges.add(_NullabilityEdge(node.innerNode, const []));
+    }
+  }
+
+  /// Propagates non-null intent upstream along unconditional control flow
+  /// lines.
+  void _propagateUpstream() {
+    var pendingNodes = [NullabilityNode.never];
+    while (pendingNodes.isNotEmpty) {
+      var node = pendingNodes.removeLast();
+      if (node == NullabilityNode.always) {
+        // The "always" node cannot have non-null intent.
+        continue;
+      }
+      if (_nonNullIntentNodes.add(node)) {
+        // Was not previously in the set of non-null intent nodes, so we need to
+        // propagate.
+        pendingNodes.addAll(getUnconditionalUpstreamNodes(node));
+      }
+    }
+  }
 }
 
 /// Data structure to keep track of the relationship from one [NullabilityNode]
