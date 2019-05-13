@@ -178,7 +178,7 @@ void CompilerPass::Run(CompilerPassState* state) const {
       repeat = DoBody(state);
       thread->CheckForSafepoint();
 #if defined(DEBUG)
-      FlowGraphChecker(state->flow_graph).Check();
+      FlowGraphChecker(state->flow_graph).Check(name());
 #endif
     }
     PrintGraph(state, kTraceAfter, round);

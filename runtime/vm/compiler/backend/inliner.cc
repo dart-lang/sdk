@@ -101,7 +101,6 @@ DEFINE_FLAG(bool,
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
-DECLARE_FLAG(bool, verify_compiler);
 
 // Quick access to the current zone.
 #define Z (zone())
@@ -738,9 +737,6 @@ static void ReplaceParameterStubs(Zone* zone,
       }
     }
   }
-
-  // Check that inlining maintains use lists.
-  DEBUG_ASSERT(!FLAG_verify_compiler || caller_graph->VerifyUseLists());
 }
 
 class CallSiteInliner : public ValueObject {
@@ -1062,11 +1058,9 @@ class CallSiteInliner : public ValueObject {
             entry_kind == Code::EntryKind::kUnchecked);
         {
           callee_graph = builder.BuildGraph();
-
 #if defined(DEBUG)
-          FlowGraphChecker(callee_graph).Check();
+          FlowGraphChecker(callee_graph).Check("Builder (callee)");
 #endif
-
           CalleeGraphValidator::Validate(callee_graph);
         }
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
@@ -1149,7 +1143,9 @@ class CallSiteInliner : public ValueObject {
           // Compute SSA on the callee graph, catching bailouts.
           callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
                                    param_stubs);
-          DEBUG_ASSERT(callee_graph->VerifyUseLists());
+#if defined(DEBUG)
+          FlowGraphChecker(callee_graph).Check("SSA (callee)");
+#endif
         }
 
         if (FLAG_support_il_printer && trace_inlining() &&
@@ -4148,12 +4144,16 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
             FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                call->GetBlock()->try_index(), DeoptId::kNone);
         (*entry)->InheritDeoptTarget(Z, call);
-        *last = new (Z) ConstantInstr(type);
+        ConstantInstr* ctype = flow_graph->GetConstant(type);
+        // Create a synthetic (re)definition for return to flag insertion.
+        // TODO(ajcbik): avoid this mechanism altogether
+        RedefinitionInstr* redef =
+            new (Z) RedefinitionInstr(new (Z) Value(ctype));
         flow_graph->AppendTo(
-            *entry, *last,
+            *entry, redef,
             call->deopt_id() != DeoptId::kNone ? call->env() : NULL,
             FlowGraph::kValue);
-        *result = (*last)->AsDefinition();
+        *last = *result = redef;
         return true;
       }
       return false;

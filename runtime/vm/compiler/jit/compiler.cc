@@ -84,10 +84,6 @@ DEFINE_FLAG(bool,
             false,
             "Trace only optimizing compiler operations.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
-DEFINE_FLAG(bool,
-            verify_compiler,
-            false,
-            "Enable compiler verification assertions");
 
 DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);

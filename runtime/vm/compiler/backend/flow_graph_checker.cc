@@ -13,6 +13,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, trace_compiler);
+
 // Returns true if block is a predecessor of succ.
 static bool IsPred(BlockEntryInstr* block, BlockEntryInstr* succ) {
   for (intptr_t i = 0, n = succ->PredecessorCount(); i < n; ++i) {
@@ -44,15 +46,40 @@ static bool IsDirectlyDominated(BlockEntryInstr* block, BlockEntryInstr* dom) {
   return false;
 }
 
-// Returns true if instruction appears on def's use list.
-static bool IsInDefUseList(Definition* def, Instruction* instruction) {
-  for (Value* use = def->input_use_list(); use != nullptr;
-       use = use->next_use()) {
+// Returns true if instruction appears in use list.
+static bool IsInUseList(Value* use, Instruction* instruction) {
+  for (; use != nullptr; use = use->next_use()) {
     if (use->instruction() == instruction) {
       return true;
     }
   }
   return false;
+}
+
+// Returns true if definition dominates instruction. Note that this
+// helper is required to account for some situations that are not
+// accounted for in the IR methods that compute dominance.
+static bool DefDominatesUse(Definition* def, Instruction* instruction) {
+  if (instruction->IsPhi()) {
+    // A phi use is not necessarily dominated by a definition.
+    // Proper dominance relation on the input values of Phis is
+    // checked by the Phi visitor below.
+    return true;
+  } else if (def->IsMaterializeObject() || instruction->IsMaterializeObject()) {
+    // These instructions resides outside the IR.
+    return true;
+  } else if (auto entry =
+                 instruction->GetBlock()->AsBlockEntryWithInitialDefs()) {
+    // An initial definition in the same block.
+    // TODO(ajcbik): use an initial def too?
+    for (auto idef : *entry->initial_definitions()) {
+      if (idef == def) {
+        return true;
+      }
+    }
+  }
+  // Use the standard IR method for dominance.
+  return instruction->IsDominatedBy(def);
 }
 
 // Returns true if instruction forces control flow.
@@ -108,10 +135,6 @@ void FlowGraphChecker::VisitBlocks() {
     // Visit all instructions in this block.
     VisitInstructions(block);
   }
-
-  // Flow graph built-in verification.
-  // TODO(ajcbik): migrate actual code into checker too?
-  ASSERT(flow_graph_->VerifyUseLists());
 }
 
 void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
@@ -122,13 +145,39 @@ void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
   }
   // Give all visitors quick access.
   current_block_ = block;
+  // Visit initial definitions.
+  if (auto entry = block->AsBlockEntryWithInitialDefs()) {
+    GrowableArray<Definition*>* initial_defs = entry->initial_definitions();
+    for (intptr_t i = 0, n = initial_defs->length(); i < n; i++) {
+      Definition* def = (*initial_defs)[i];
+      ASSERT(def != nullptr);
+      ASSERT(def->IsConstant() || def->IsParameter() ||
+             def->IsSpecialParameter());
+      // TODO(dartbug.com/36895) fix this bail-out
+      // All null/optimized constants misbehave, parameters are moved
+      // around without updating block_field.
+      if (def->IsConstant() || def->GetBlock() != entry) {
+        continue;
+      }
+      // Make sure block lookup agrees.
+      ASSERT(def->GetBlock() == entry);
+      // Initial definitions are partially linked into graph.
+      ASSERT(def->next() == nullptr);
+      ASSERT(def->previous() == entry);
+      // Visit the initial definition as instruction.
+      VisitInstruction(def);
+    }
+  }
   // Visit phis in join.
-  if (auto join_entry = block->AsJoinEntry()) {
-    for (PhiIterator it(join_entry); !it.Done(); it.Advance()) {
+  if (auto entry = block->AsJoinEntry()) {
+    for (PhiIterator it(entry); !it.Done(); it.Advance()) {
       PhiInstr* phi = it.Current();
       // Make sure block lookup agrees.
-      ASSERT(phi->GetBlock() == join_entry);
-      // Visit phi as instruction.
+      ASSERT(phi->GetBlock() == entry);
+      // Phis are never linked into graph.
+      ASSERT(phi->next() == nullptr);
+      ASSERT(phi->previous() == nullptr);
+      // Visit the phi as instruction.
       VisitInstruction(phi);
     }
   }
@@ -147,9 +196,11 @@ void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
     prev = instruction;
     // Make sure control flow makes sense.
     ASSERT(IsControlFlow(instruction) == (instruction == last));
-    // Perform instruction specific checks.
+    ASSERT(!instruction->IsPhi());
+    // Visit the instruction.
     VisitInstruction(instruction);
   }
+  ASSERT(prev->next() == nullptr);
   ASSERT(prev == last);
   // Make sure loop information, when up-to-date, agrees.
   if (flow_graph_->loop_hierarchy_ != nullptr) {
@@ -161,29 +212,17 @@ void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
 }
 
 void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
-  // Make sure all inputs are properly defined by something that
-  // dominates the use that is not a Phi instruction (note that the
-  // proper dominance relation on the input values of Phis are checked
-  // by the Phi visitor below). Also verify some graph sanity.
+  ASSERT(!instruction->IsBlockEntry());
+  // Check all regular inputs.
   for (intptr_t i = 0, n = instruction->InputCount(); i < n; ++i) {
-    Definition* def = instruction->InputAt(i)->definition();
-    bool test_def = def->HasSSATemp();
-    if (def->IsPhi()) {
-      // Phis are never linked into graph.
-      ASSERT(def->next() == nullptr);
-      ASSERT(def->previous() == nullptr);
-    } else if (def->IsConstant() || def->IsParameter() ||
-               def->IsSpecialParameter()) {
-      test_def = false;
-    } else {
-      ASSERT(def->next() != nullptr);
-      ASSERT(def->previous() != nullptr);
-    }
-    if (test_def) {
-      ASSERT(IsInDefUseList(def, instruction));  // proper def-use
-      ASSERT(instruction->IsPhi() ||
-             instruction->IsMaterializeObject() ||  // does not have dominance
-             instruction->IsDominatedBy(def));
+    VisitUseDef(instruction, instruction->InputAt(i), i, /*is_env*/ false);
+  }
+  // Check all environment inputs.
+  if (instruction->env() != nullptr) {
+    intptr_t i = 0;
+    for (Environment::DeepIterator it(instruction->env()); !it.Done();
+         it.Advance()) {
+      VisitUseDef(instruction, it.CurrentValue(), i++, /*is_env*/ true);
     }
   }
   // Visit specific instructions (definitions and anything with Visit()).
@@ -194,52 +233,123 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
 }
 
 void FlowGraphChecker::VisitDefinition(Definition* def) {
-  // Make sure each outgoing use is dominated by this def, or is a
-  // Phi instruction (note that the proper dominance relation on
-  // the input values of Phis are checked by the Phi visitor below).
-  // Also verify some graph sanity.
+  // Used definitions must have an SSA name.
+  ASSERT(def->HasSSATemp() || def->input_use_list() == nullptr);
+  // Check all regular uses.
+  Value* prev = nullptr;
   for (Value* use = def->input_use_list(); use != nullptr;
        use = use->next_use()) {
-    ASSERT(use->definition() == def);  // proper use-def
-    Instruction* use_instr = use->instruction();
-    ASSERT(use_instr != nullptr);
-    if (use_instr->IsPhi()) {
-      ASSERT(use_instr->next() == nullptr);
-      ASSERT(use_instr->previous() == nullptr);
-      ASSERT(use_instr->GetBlock()->IsJoinEntry());
+    VisitDefUse(def, use, prev, /*is_env*/ false);
+    prev = use;
+  }
+  // Check all environment uses.
+  prev = nullptr;
+  for (Value* use = def->env_use_list(); use != nullptr;
+       use = use->next_use()) {
+    VisitDefUse(def, use, prev, /*is_env*/ true);
+    prev = use;
+  }
+}
+
+void FlowGraphChecker::VisitUseDef(Instruction* instruction,
+                                   Value* use,
+                                   intptr_t index,
+                                   bool is_env) {
+  ASSERT(use->instruction() == instruction);
+  ASSERT(use->use_index() == index);
+  // Get definition.
+  Definition* def = use->definition();
+  ASSERT(def != nullptr);
+  ASSERT(def != instruction || def->IsPhi() || def->IsMaterializeObject());
+  // Make sure each input is properly defined in the graph by something
+  // that dominates the input (note that the proper dominance relation
+  // on the input values of Phis is checked by the Phi visitor below).
+  bool test_def = def->HasSSATemp();
+  if (def->IsPhi()) {
+    ASSERT(def->GetBlock()->IsJoinEntry());
+    // Phis are never linked into graph.
+    ASSERT(def->next() == nullptr);
+    ASSERT(def->previous() == nullptr);
+  } else if (def->IsConstant() || def->IsParameter() ||
+             def->IsSpecialParameter()) {
+    test_def = false;  // TODO(dartbug.com/36895) fix this bail-out
+  } else {
+    if (is_env) return;  // TODO(dartbug.com/36893)
+    // Others are fully linked into graph.
+    ASSERT(def->next() != nullptr);
+    ASSERT(def->previous() != nullptr);
+  }
+  if (test_def) {
+    ASSERT(DefDominatesUse(def, instruction));
+    if (is_env) {
+      ASSERT(IsInUseList(def->env_use_list(), instruction));
     } else {
-      ASSERT(IsControlFlow(use_instr) || use_instr->next() != nullptr);
-      ASSERT(use_instr->previous() != nullptr);
-      ASSERT(use_instr->IsMaterializeObject() ||  // does not have dominance
-             use_instr->IsDominatedBy(def));
+      ASSERT(IsInUseList(def->input_use_list(), instruction));
     }
   }
 }
 
+void FlowGraphChecker::VisitDefUse(Definition* def,
+                                   Value* use,
+                                   Value* prev,
+                                   bool is_env) {
+  ASSERT(use->definition() == def);
+  ASSERT(use->previous_use() == prev);
+  // Get using instruction.
+  Instruction* instruction = use->instruction();
+  ASSERT(instruction != nullptr);
+  ASSERT(def != instruction || def->IsPhi() || def->IsMaterializeObject());
+  if (is_env) {
+    ASSERT(instruction->env()->ValueAtUseIndex(use->use_index()) == use);
+  } else {
+    ASSERT(instruction->InputAt(use->use_index()) == use);
+  }
+  // Make sure each use appears in the graph and is properly dominated
+  // by the defintion (note that the proper dominance relation on the
+  // input values of Phis is checked by the Phi visitor below).
+  if (instruction->IsPhi()) {
+    ASSERT(instruction->AsPhi()->is_alive());
+    ASSERT(instruction->GetBlock()->IsJoinEntry());
+    // Phis are never linked into graph.
+    ASSERT(instruction->next() == nullptr);
+    ASSERT(instruction->previous() == nullptr);
+  } else if (instruction->IsBlockEntry()) {
+    // BlockEntry instructions have environments attached to them but
+    // have no reliable way to verify if they are still in the graph.
+    ASSERT(is_env);
+  } else {
+    // Others are fully linked into graph.
+    ASSERT(IsControlFlow(instruction) || instruction->next() != nullptr);
+    ASSERT(instruction->previous() != nullptr);
+    ASSERT(is_env ||  // TODO(dartbug.com/36899)
+           DefDominatesUse(def, instruction));
+  }
+}
+
 void FlowGraphChecker::VisitConstant(ConstantInstr* constant) {
+  // Range check on smi.
   const Object& value = constant->value();
   if (value.IsSmi()) {
     const int64_t smi_value = Integer::Cast(value).AsInt64Value();
     ASSERT(kSmiMin <= smi_value);
     ASSERT(smi_value <= kSmiMax);
   }
-  // TODO(ajcbik): Is this a property we eventually want (all constants
-  // generated by utility that queries pool and put in the graph entry
-  // when seen first)? The inliner still creates some direct constants.
+  // Any constant involved in SSA should appear in the entry (making it more
+  // likely it was inserted by the utility that avoids duplication).
+  //
+  // TODO(dartbug.com/36894)
+  //
   // ASSERT(constant->GetBlock() == flow_graph_->graph_entry());
 }
 
 void FlowGraphChecker::VisitPhi(PhiInstr* phi) {
-  // Phis are never linked into graph.
-  ASSERT(phi->next() == nullptr);
-  ASSERT(phi->previous() == nullptr);
   // Make sure each incoming input value of a Phi is dominated
   // on the corresponding incoming edge, as defined by order.
   ASSERT(phi->InputCount() == current_block_->PredecessorCount());
   for (intptr_t i = 0, n = phi->InputCount(); i < n; ++i) {
     Definition* input_def = phi->InputAt(i)->definition();
     BlockEntryInstr* edge = current_block_->PredecessorAt(i);
-    ASSERT(input_def->IsConstant() ||  // some constants are in initial defs
+    ASSERT(input_def->IsConstant() ||  // TODO(dartbug.com/36894 and 36895)
            edge->last_instruction()->IsDominatedBy(input_def));
   }
 }
@@ -256,8 +366,15 @@ void FlowGraphChecker::VisitBranch(BranchInstr* branch) {
   ASSERT(branch->SuccessorCount() == 2);
 }
 
+void FlowGraphChecker::VisitRedefinition(RedefinitionInstr* def) {
+  ASSERT(def->value()->definition() != def);
+}
+
 // Main entry point of graph checker.
-void FlowGraphChecker::Check() {
+void FlowGraphChecker::Check(const char* pass_name) {
+  if (FLAG_trace_compiler) {
+    THR_Print("Running checker after %s\n", pass_name);
+  }
   ASSERT(flow_graph_ != nullptr);
   VisitBlocks();
 }

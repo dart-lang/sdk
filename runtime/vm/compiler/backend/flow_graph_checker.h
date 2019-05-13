@@ -35,7 +35,7 @@ class FlowGraphChecker : public FlowGraphVisitor {
         current_block_(nullptr) {}
 
   // Performs a sanity check on the flow graph.
-  void Check();
+  void Check(const char* pass_name);
 
  private:
   // Custom-made visitors.
@@ -43,6 +43,11 @@ class FlowGraphChecker : public FlowGraphVisitor {
   void VisitInstructions(BlockEntryInstr* block);
   void VisitInstruction(Instruction* instruction);
   void VisitDefinition(Definition* def);
+  void VisitUseDef(Instruction* instruction,
+                   Value* use,
+                   intptr_t index,
+                   bool is_env);
+  void VisitDefUse(Definition* def, Value* use, Value* prev, bool is_env);
 
   // Instruction visitors.
   void VisitConstant(ConstantInstr* constant) override;
@@ -50,6 +55,7 @@ class FlowGraphChecker : public FlowGraphVisitor {
   void VisitGoto(GotoInstr* jmp) override;
   void VisitIndirectGoto(IndirectGotoInstr* jmp) override;
   void VisitBranch(BranchInstr* branch) override;
+  void VisitRedefinition(RedefinitionInstr* def) override;
 
   FlowGraph* const flow_graph_;
   BlockEntryInstr* current_block_;
