@@ -61,8 +61,12 @@ class ConstraintGathererTest extends ConstraintsTestBase {
 
   void assertNonNullIntent(NullabilityNode node, bool expected) {
     if (expected) {
+      expect(graph.getUnconditionalUpstreamNodes(NullabilityNode.never),
+          contains(node));
       assertConstraint([], node.nonNullIntent);
     } else {
+      expect(graph.getUnconditionalUpstreamNodes(NullabilityNode.never),
+          isNot(contains(node)));
       assertNoConstraints(node.nonNullIntent);
     }
   }
