@@ -39,7 +39,7 @@ abstract class NullabilityNode {
   factory NullabilityNode.forInferredDynamicType(
       NullabilityGraph graph, int offset) {
     var node = _NullabilityNodeSimple('inferredDynamic($offset)');
-    graph.connect(NullabilityNode.always, node);
+    graph.connect(NullabilityNode.always, node, unconditional: true);
     return node;
   }
 

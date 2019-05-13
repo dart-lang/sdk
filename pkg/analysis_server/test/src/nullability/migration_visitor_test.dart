@@ -58,7 +58,7 @@ class ConstraintGathererTest extends ConstraintsTestBase {
     // upstream from it.
     if (node == NullabilityNode.never) return;
 
-    for (var upstreamNode in graph.getUpstreamNodes(node)) {
+    for (var upstreamNode in graph.getUpstreamNodesForTesting(node)) {
       expect(upstreamNode, NullabilityNode.never);
     }
   }
@@ -823,7 +823,7 @@ void f(x) {}
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
     expect(decoratedType.type.isDynamic, isTrue);
-    expect(graph.getUpstreamNodes(decoratedType.node),
+    expect(graph.getUpstreamNodesForTesting(decoratedType.node),
         contains(NullabilityNode.always));
   }
 
@@ -895,7 +895,7 @@ f() {}
 ''');
     var decoratedType = decoratedFunctionType('f').returnType;
     expect(decoratedType.type.isDynamic, isTrue);
-    expect(graph.getUpstreamNodes(decoratedType.node),
+    expect(graph.getUpstreamNodesForTesting(decoratedType.node),
         contains(NullabilityNode.always));
   }
 

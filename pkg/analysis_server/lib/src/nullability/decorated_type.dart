@@ -46,7 +46,9 @@ class DecoratedType {
     // the type is `dynamic`, verify that the node is directly downstream from
     // Nullability.always.
     assert(!type.isDynamic ||
-        graph.getUpstreamNodes(node).contains(NullabilityNode.always));
+        graph
+            .getUnconditionalUpstreamNodes(node)
+            .contains(NullabilityNode.always));
   }
 
   /// Creates a [DecoratedType] corresponding to the given [element], which is

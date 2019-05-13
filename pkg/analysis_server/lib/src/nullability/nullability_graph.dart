@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/nullability/nullability_node.dart';
+import 'package:meta/meta.dart';
 
 /// Data structure to keep track of the relationship between [NullabilityNode]
 /// objects.
@@ -13,11 +14,6 @@ class NullabilityGraph {
   /// corresponding value will either have to be nullable, or null checks will
   /// have to be added).
   final _downstream = Map<NullabilityNode, List<_NullabilityEdge>>.identity();
-
-  /// Map from a nullability node to those nodes that are "upstream" from it
-  /// (meaning that if a node in the value is nullable, then the corresponding
-  /// key node will have to be nullable, or null checks will have to be added).
-  final _upstream = Map<NullabilityNode, List<NullabilityNode>>.identity();
 
   /// Map from a nullability node to those nodes that are "upstream" from it
   /// via unconditional control flow (meaning that if a node in the value is
@@ -37,7 +33,6 @@ class NullabilityGraph {
     for (var source in sources) {
       (_downstream[source] ??= []).add(edge);
     }
-    (_upstream[destinationNode] ??= []).add(sourceNode);
     if (unconditional) {
       (_unconditionalUpstream[destinationNode] ??= []).add(sourceNode);
     }
@@ -92,8 +87,20 @@ class NullabilityGraph {
   /// nullable, or null checks will have to be added).
   ///
   /// There is no guarantee of uniqueness of the iterated nodes.
-  Iterable<NullabilityNode> getUpstreamNodes(NullabilityNode node) =>
-      _upstream[node] ?? const [];
+  ///
+  /// This method is inefficent since it has to search the entire graph, so it
+  /// is for testing only.
+  @visibleForTesting
+  Iterable<NullabilityNode> getUpstreamNodesForTesting(
+      NullabilityNode node) sync* {
+    for (var entry in _downstream.entries) {
+      for (var edge in entry.value) {
+        if (edge.destinationNode == node) {
+          yield entry.key;
+        }
+      }
+    }
+  }
 
   /// Determines the nullability of each node in the graph by propagating
   /// nullability information from one node to another.
