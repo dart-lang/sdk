@@ -9,7 +9,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:package_config/packages.dart';
-import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -266,7 +265,6 @@ class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
     newFile('/workspace/project/lib/file2.dart');
     var package = workspace
         .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
-    var file2Path = convertPath('/workspace/project/lib/file2.dart');
     var file2Source = InSummarySource(
         Uri.parse('package:project/file2.dart'), '' /* summaryPath */);
     expect(package.contains(file2Source), isTrue);
@@ -277,7 +275,6 @@ class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
     newFile('/workspace/project/lib/file2.dart');
     var package = workspace
         .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
-    var file2Path = convertPath('/workspace/project2/lib/file2.dart');
     var file2Source = InSummarySource(
         Uri.parse('package:project2/file2.dart'), '' /* summaryPath */);
     expect(package.contains(file2Source), isFalse);

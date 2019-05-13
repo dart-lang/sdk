@@ -257,6 +257,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 //      commentReference_identifier: identifier.accept(this),
 //      commentReference_newKeyword: _getToken(node.newKeyword),
 //    );
+    return null;
   }
 
   @override
