@@ -532,6 +532,8 @@ class Driver implements ServerStarter {
   ) {
     final serve_http = diagnosticServerPort != null;
 
+    linter.registerLintRules();
+
     _DiagnosticServerImpl diagnosticServer = new _DiagnosticServerImpl();
 
     final socketServer = new LspSocketServer(

@@ -30,8 +30,7 @@ const debugPrintCommunication = false;
 
 final beginningOfDocument = new Range(new Position(0, 0), new Position(0, 0));
 
-mixin LspAnalysisServerTestMixin
-    implements ResourceProviderMixin, ClientCapabilitiesHelperMixin {
+mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   static const positionMarker = '^';
   static const rangeMarkerStart = '[[';
   static const rangeMarkerEnd = ']]';
@@ -40,8 +39,8 @@ mixin LspAnalysisServerTestMixin
       new RegExp(allMarkers.map(RegExp.escape).join('|'));
 
   int _id = 0;
-  String projectFolderPath, mainFilePath, pubspecFilePath;
-  Uri projectFolderUri, mainFileUri, pubspecFileUri;
+  String projectFolderPath, mainFilePath, pubspecFilePath, analysisOptionsPath;
+  Uri projectFolderUri, mainFileUri, pubspecFileUri, analysisOptionsUri;
   final String simplePubspecContent = 'name: my_project';
   final startOfDocPos = new Position(0, 0);
   final startOfDocRange = new Range(new Position(0, 0), new Position(0, 0));
@@ -716,7 +715,13 @@ mixin LspAnalysisServerTestMixin
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
           message.method == Method.textDocument_publishDiagnostics) {
-        diagnosticParams = message.params;
+        // This helper method is used both in in-process tests where we'll get
+        // the real type back, and out-of-process integration tests where
+        // params is `Map<String, dynamic>` so for convenience just
+        // handle either here.
+        diagnosticParams = message.params is PublishDiagnosticsParams
+            ? message.params
+            : PublishDiagnosticsParams.fromJson(message.params);
 
         return diagnosticParams.uri == uri.toString();
       }
@@ -791,6 +796,8 @@ abstract class AbstractLspAnalysisServerTest
     mainFileUri = Uri.file(mainFilePath);
     pubspecFilePath = join(projectFolderPath, 'pubspec.yaml');
     pubspecFileUri = Uri.file(pubspecFilePath);
+    analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
+    analysisOptionsUri = Uri.file(analysisOptionsPath);
   }
 
   Future tearDown() async {
