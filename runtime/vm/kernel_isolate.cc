@@ -388,7 +388,7 @@ DEFINE_OPTION_HANDLER(KernelIsolate::AddExperimentalFlag,
 class KernelCompilationRequest : public ValueObject {
  public:
   KernelCompilationRequest()
-      : monitor_(new Monitor()),
+      : monitor_(),
         port_(Dart_NewNativePort("kernel-compilation-port",
                                  &HandleResponse,
                                  false)),
@@ -405,7 +405,6 @@ class KernelCompilationRequest : public ValueObject {
   ~KernelCompilationRequest() {
     UnregisterRequest(this);
     Dart_CloseNativePort(port_);
-    delete monitor_;
   }
 
   Dart_KernelCompilationResult SendAndWaitForResponse(
@@ -527,7 +526,7 @@ class KernelCompilationRequest : public ValueObject {
 
       // Wait for reply to arrive.
       VMTagScope tagScope(thread, VMTag::kLoadWaitTagId);
-      MonitorLocker ml(monitor_);
+      MonitorLocker ml(&monitor_);
       while (result_.status == Dart_KernelCompilationStatus_Unknown) {
         ml.Wait();
       }
@@ -715,7 +714,7 @@ class KernelCompilationRequest : public ValueObject {
 
     // Wait for reply to arrive.
     VMTagScope tagScope(Thread::Current(), VMTag::kLoadWaitTagId);
-    MonitorLocker ml(monitor_);
+    MonitorLocker ml(&monitor_);
     while (result_.status == Dart_KernelCompilationStatus_Unknown) {
       ml.Wait();
     }
@@ -756,7 +755,7 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject** response = message->value.as_array.values;
 
-    MonitorLocker ml(monitor_);
+    MonitorLocker ml(&monitor_);
 
     ASSERT(response[0]->type == Dart_CObject_kInt32);
     result_.status = static_cast<Dart_KernelCompilationStatus>(
@@ -822,7 +821,7 @@ class KernelCompilationRequest : public ValueObject {
   // Guarded by requests_monitor_ lock.
   static KernelCompilationRequest* requests_;
 
-  Monitor* monitor_;
+  Monitor monitor_;
   Dart_Port port_;
 
   // Linked list of active requests. Guarded by requests_monitor_ lock.

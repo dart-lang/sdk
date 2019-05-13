@@ -298,15 +298,15 @@ class PageSpace {
 
   int64_t UsedInWords() const { return usage_.used_in_words; }
   int64_t CapacityInWords() const {
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     return usage_.capacity_in_words;
   }
   void IncreaseCapacityInWords(intptr_t increase_in_words) {
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     IncreaseCapacityInWordsLocked(increase_in_words);
   }
   void IncreaseCapacityInWordsLocked(intptr_t increase_in_words) {
-    DEBUG_ASSERT(pages_lock_->IsOwnedByCurrentThread());
+    DEBUG_ASSERT(pages_lock_.IsOwnedByCurrentThread());
     usage_.capacity_in_words += increase_in_words;
     UpdateMaxCapacityLocked();
   }
@@ -316,7 +316,7 @@ class PageSpace {
 
   int64_t ExternalInWords() const { return usage_.external_in_words; }
   SpaceUsage GetCurrentUsage() const {
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     return usage_;
   }
 
@@ -399,7 +399,7 @@ class PageSpace {
                                is_protected, is_locked);
   }
 
-  Monitor* tasks_lock() const { return tasks_lock_; }
+  Monitor* tasks_lock() const { return &tasks_lock_; }
   intptr_t tasks() const { return tasks_; }
   void set_tasks(intptr_t val) {
     ASSERT(val >= 0);
@@ -495,7 +495,7 @@ class PageSpace {
   Heap* heap_;
 
   // Use ExclusivePageIterator for safe access to these.
-  Mutex* pages_lock_;
+  mutable Mutex pages_lock_;
   HeapPage* pages_;
   HeapPage* pages_tail_;
   HeapPage* exec_pages_;
@@ -517,7 +517,7 @@ class PageSpace {
   intptr_t allocated_black_in_words_;
 
   // Keep track of running MarkSweep tasks.
-  Monitor* tasks_lock_;
+  mutable Monitor tasks_lock_;
   intptr_t tasks_;
   intptr_t concurrent_marker_tasks_;
   Phase phase_;

@@ -884,29 +884,28 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       thread_registry_(new ThreadRegistry()),
       safepoint_handler_(new SafepointHandler(this)),
       random_(),
-      mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::mutex_"))),
-      symbols_mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::symbols_mutex_"))),
+      mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
+      symbols_mutex_(NOT_IN_PRODUCT("Isolate::symbols_mutex_")),
       type_canonicalization_mutex_(
-          new Mutex(NOT_IN_PRODUCT("Isolate::type_canonicalization_mutex_"))),
-      constant_canonicalization_mutex_(new Mutex(
-          NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_"))),
+          NOT_IN_PRODUCT("Isolate::type_canonicalization_mutex_")),
+      constant_canonicalization_mutex_(
+          NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_")),
       megamorphic_lookup_mutex_(
-          new Mutex(NOT_IN_PRODUCT("Isolate::megamorphic_lookup_mutex_"))),
+          NOT_IN_PRODUCT("Isolate::megamorphic_lookup_mutex_")),
       kernel_data_lib_cache_mutex_(
-          new Mutex(NOT_IN_PRODUCT("Isolate::kernel_data_lib_cache_mutex_"))),
+          NOT_IN_PRODUCT("Isolate::kernel_data_lib_cache_mutex_")),
       kernel_data_class_cache_mutex_(
-          new Mutex(NOT_IN_PRODUCT("Isolate::kernel_data_class_cache_mutex_"))),
+          NOT_IN_PRODUCT("Isolate::kernel_data_class_cache_mutex_")),
       kernel_constants_mutex_(
-          new Mutex(NOT_IN_PRODUCT("Isolate::kernel_constants_mutex_"))),
+          NOT_IN_PRODUCT("Isolate::kernel_constants_mutex_")),
       pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>()),
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
       reloaded_kernel_blobs_(GrowableObjectArray::null()),
-      field_list_mutex_(
-          new Mutex(NOT_IN_PRODUCT("Isolate::field_list_mutex_"))),
+      field_list_mutex_(NOT_IN_PRODUCT("Isolate::field_list_mutex_")),
       boxed_field_list_(GrowableObjectArray::null()),
-      spawn_count_monitor_(new Monitor()),
+      spawn_count_monitor_(),
       handler_info_cache_(),
       catch_entry_moves_cache_() {
   FlagsCopyFrom(api_flags);
@@ -971,22 +970,6 @@ Isolate::~Isolate() {
 #if defined(USING_SIMULATOR)
   delete simulator_;
 #endif
-  delete mutex_;
-  mutex_ = nullptr;  // Fail fast if interrupts are scheduled on a dead isolate.
-  delete symbols_mutex_;
-  symbols_mutex_ = nullptr;
-  delete type_canonicalization_mutex_;
-  type_canonicalization_mutex_ = nullptr;
-  delete constant_canonicalization_mutex_;
-  constant_canonicalization_mutex_ = nullptr;
-  delete megamorphic_lookup_mutex_;
-  megamorphic_lookup_mutex_ = nullptr;
-  delete kernel_constants_mutex_;
-  kernel_constants_mutex_ = nullptr;
-  delete kernel_data_lib_cache_mutex_;
-  kernel_data_lib_cache_mutex_ = nullptr;
-  delete kernel_data_class_cache_mutex_;
-  kernel_data_class_cache_mutex_ = nullptr;
   delete pending_deopts_;
   pending_deopts_ = nullptr;
   delete message_handler_;
@@ -995,10 +978,7 @@ Isolate::~Isolate() {
   ASSERT(deopt_context_ ==
          nullptr);  // No deopt in progress when isolate deleted.
   delete spawn_state_;
-  delete field_list_mutex_;
-  field_list_mutex_ = nullptr;
   ASSERT(spawn_count_ == 0);
-  delete spawn_count_monitor_;
   delete safepoint_handler_;
   delete thread_registry_;
 
@@ -1306,7 +1286,7 @@ void Isolate::DoneFinalizing() {
 const char* Isolate::MakeRunnable() {
   ASSERT(Isolate::Current() == nullptr);
 
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   // Check if we are in a valid state to make the isolate runnable.
   if (is_runnable() == true) {
     return "Isolate is already runnable";
@@ -2338,7 +2318,7 @@ void Isolate::AddDeoptimizingBoxedField(const Field& field) {
   ASSERT(!field.IsOriginal());
   // The enclosed code allocates objects and can potentially trigger a GC,
   // ensure that we account for safepoints when grabbing the lock.
-  SafepointMutexLocker ml(field_list_mutex_);
+  SafepointMutexLocker ml(&field_list_mutex_);
   if (boxed_field_list_ == GrowableObjectArray::null()) {
     boxed_field_list_ = GrowableObjectArray::New(Heap::kOld);
   }
@@ -2349,7 +2329,7 @@ void Isolate::AddDeoptimizingBoxedField(const Field& field) {
 
 RawField* Isolate::GetDeoptimizingBoxedField() {
   ASSERT(Thread::Current()->IsMutatorThread());
-  SafepointMutexLocker ml(field_list_mutex_);
+  SafepointMutexLocker ml(&field_list_mutex_);
   if (boxed_field_list_ == GrowableObjectArray::null()) {
     return Field::null();
   }
@@ -2792,19 +2772,19 @@ void Isolate::KillIfExists(Isolate* isolate, LibMsgId msg_id) {
 }
 
 void Isolate::IncrementSpawnCount() {
-  MonitorLocker ml(spawn_count_monitor_);
+  MonitorLocker ml(&spawn_count_monitor_);
   spawn_count_++;
 }
 
 void Isolate::DecrementSpawnCount() {
-  MonitorLocker ml(spawn_count_monitor_);
+  MonitorLocker ml(&spawn_count_monitor_);
   ASSERT(spawn_count_ > 0);
   spawn_count_--;
   ml.Notify();
 }
 
 void Isolate::WaitForOutstandingSpawns() {
-  MonitorLocker ml(spawn_count_monitor_);
+  MonitorLocker ml(&spawn_count_monitor_);
   while (spawn_count_ > 0) {
     ml.Wait();
   }

@@ -39,8 +39,8 @@ Heap::Heap(Isolate* isolate,
     : isolate_(isolate),
       new_space_(this, max_new_gen_semi_words, kNewObjectAlignmentOffset),
       old_space_(this, max_old_gen_words),
-      barrier_(new Monitor()),
-      barrier_done_(new Monitor()),
+      barrier_(),
+      barrier_done_(),
       read_only_(false),
       gc_new_space_in_progress_(false),
       gc_old_space_in_progress_(false) {
@@ -53,9 +53,6 @@ Heap::Heap(Isolate* isolate,
 }
 
 Heap::~Heap() {
-  delete barrier_;
-  delete barrier_done_;
-
   for (int sel = 0; sel < kNumWeakSelectors; sel++) {
     delete new_weak_tables_[sel];
     delete old_weak_tables_[sel];

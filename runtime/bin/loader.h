@@ -49,7 +49,7 @@ class Loader {
   Dart_Handle error_;
   // This monitor is used to protect the pending operations count and the
   // I/O result queue.
-  Monitor* monitor_;
+  Monitor monitor_;
 
   // The number of operations dispatched to the service isolate for loading.
   // Must be accessed with monitor_ held.

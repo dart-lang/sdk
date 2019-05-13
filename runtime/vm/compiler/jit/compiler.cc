@@ -1393,18 +1393,16 @@ class BackgroundCompilationQueue {
 
 BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
     : isolate_(isolate),
-      queue_monitor_(new Monitor()),
+      queue_monitor_(),
       function_queue_(new BackgroundCompilationQueue()),
-      done_monitor_(new Monitor()),
+      done_monitor_(),
       running_(false),
       done_(true),
       disabled_depth_(0) {}
 
 // Fields all deleted in ::Stop; here clear them.
 BackgroundCompiler::~BackgroundCompiler() {
-  delete queue_monitor_;
   delete function_queue_;
-  delete done_monitor_;
 }
 
 void BackgroundCompiler::Run() {
@@ -1420,7 +1418,7 @@ void BackgroundCompiler::Run() {
       HANDLESCOPE(thread);
       Function& function = Function::Handle(zone);
       {
-        MonitorLocker ml(queue_monitor_);
+        MonitorLocker ml(&queue_monitor_);
         function = function_queue()->PeekFunction();
       }
       while (running_ && !function.IsNull()) {
@@ -1437,7 +1435,7 @@ void BackgroundCompiler::Run() {
 
         QueueElement* qelem = NULL;
         {
-          MonitorLocker ml(queue_monitor_);
+          MonitorLocker ml(&queue_monitor_);
           if (function_queue()->IsEmpty()) {
             // We are shutting down, queue was cleared.
             function = Function::null();
@@ -1466,7 +1464,7 @@ void BackgroundCompiler::Run() {
     Thread::ExitIsolateAsHelper();
     {
       // Wait to be notified when the work queue is not empty.
-      MonitorLocker ml(queue_monitor_);
+      MonitorLocker ml(&queue_monitor_);
       while (function_queue()->IsEmpty() && running_) {
         ml.Wait();
       }
@@ -1475,7 +1473,7 @@ void BackgroundCompiler::Run() {
 
   {
     // Notify that the thread is done.
-    MonitorLocker ml_done(done_monitor_);
+    MonitorLocker ml_done(&done_monitor_);
     done_ = true;
     ml_done.Notify();
   }
@@ -1489,7 +1487,7 @@ void BackgroundCompiler::Compile(const Function& function) {
     isolate_->heap()->CollectMostGarbage();
   }
   {
-    MonitorLocker ml(queue_monitor_);
+    MonitorLocker ml(&queue_monitor_);
     ASSERT(running_);
     if (function_queue()->ContainsObj(function)) {
       return;
@@ -1523,7 +1521,7 @@ void BackgroundCompiler::Start() {
   ASSERT(thread->IsMutatorThread());
   ASSERT(!thread->IsAtSafepoint());
 
-  MonitorLocker ml(done_monitor_);
+  MonitorLocker ml(&done_monitor_);
   if (running_ || !done_) return;
   running_ = true;
   done_ = false;
@@ -1541,14 +1539,14 @@ void BackgroundCompiler::Stop() {
   ASSERT(!thread->IsAtSafepoint());
 
   {
-    MonitorLocker ml(queue_monitor_);
+    MonitorLocker ml(&queue_monitor_);
     running_ = false;
     function_queue_->Clear();
     ml.Notify();  // Stop waiting for the queue.
   }
 
   {
-    MonitorLocker ml_done(done_monitor_);
+    MonitorLocker ml_done(&done_monitor_);
     while (!done_) {
       ml_done.WaitWithSafepointCheck(thread);
     }

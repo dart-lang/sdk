@@ -655,7 +655,7 @@ class AllocationSampleBuffer : public SampleBuffer {
   void FreeAllocationSample(Sample* sample);
 
  private:
-  Mutex* mutex_;
+  Mutex mutex_;
   Sample* free_sample_list_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocationSampleBuffer);

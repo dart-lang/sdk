@@ -23,7 +23,7 @@ class JSONArray;
 class ThreadRegistry {
  public:
   ThreadRegistry()
-      : threads_lock_(new Monitor()),
+      : threads_lock_(),
         active_list_(NULL),
         free_list_(NULL),
         mutator_thread_(NULL) {}
@@ -50,7 +50,7 @@ class ThreadRegistry {
 
  private:
   Thread* active_list() const { return active_list_; }
-  Monitor* threads_lock() const { return threads_lock_; }
+  Monitor* threads_lock() const { return &threads_lock_; }
 
   Thread* GetFreeThreadLocked(Isolate* isolate, bool is_mutator);
   void ReturnThreadLocked(bool is_mutator, Thread* thread);
@@ -61,7 +61,7 @@ class ThreadRegistry {
 
   // This monitor protects the threads list for an isolate, it is used whenever
   // we need to iterate over threads (both active and free) in an isolate.
-  Monitor* threads_lock_;
+  mutable Monitor threads_lock_;
   Thread* active_list_;  // List of active threads in the isolate.
   Thread* free_list_;    // Free list of Thread objects that can be reused.
 

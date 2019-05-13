@@ -349,26 +349,22 @@ class Isolate : public BaseIsolate {
   IsolateSpawnState* spawn_state() const { return spawn_state_; }
   void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
 
-  Mutex* mutex() const { return mutex_; }
-  Mutex* symbols_mutex() const { return symbols_mutex_; }
-  Mutex* type_canonicalization_mutex() const {
-    return type_canonicalization_mutex_;
+  Mutex* mutex() { return &mutex_; }
+  Mutex* symbols_mutex() { return &symbols_mutex_; }
+  Mutex* type_canonicalization_mutex() { return &type_canonicalization_mutex_; }
+  Mutex* constant_canonicalization_mutex() {
+    return &constant_canonicalization_mutex_;
   }
-  Mutex* constant_canonicalization_mutex() const {
-    return constant_canonicalization_mutex_;
-  }
-  Mutex* megamorphic_lookup_mutex() const { return megamorphic_lookup_mutex_; }
+  Mutex* megamorphic_lookup_mutex() { return &megamorphic_lookup_mutex_; }
 
-  Mutex* kernel_data_lib_cache_mutex() const {
-    return kernel_data_lib_cache_mutex_;
-  }
-  Mutex* kernel_data_class_cache_mutex() const {
-    return kernel_data_class_cache_mutex_;
+  Mutex* kernel_data_lib_cache_mutex() { return &kernel_data_lib_cache_mutex_; }
+  Mutex* kernel_data_class_cache_mutex() {
+    return &kernel_data_class_cache_mutex_;
   }
 
   // Any access to constants arrays must be locked since mutator and
   // background compiler can access the arrays at the same time.
-  Mutex* kernel_constants_mutex() const { return kernel_constants_mutex_; }
+  Mutex* kernel_constants_mutex() { return &kernel_constants_mutex_; }
 
 #if !defined(PRODUCT)
   Debugger* debugger() const {
@@ -433,9 +429,6 @@ class Isolate : public BaseIsolate {
 
   Simulator* simulator() const { return simulator_; }
   void set_simulator(Simulator* value) { simulator_ = value; }
-
-  Monitor* spawn_count_monitor() const { return spawn_count_monitor_; }
-  intptr_t* spawn_count() { return &spawn_count_; }
 
   void IncrementSpawnCount();
   void DecrementSpawnCount();
@@ -1022,14 +1015,14 @@ class Isolate : public BaseIsolate {
   ApiState* api_state_ = nullptr;
   Random random_;
   Simulator* simulator_ = nullptr;
-  Mutex* mutex_;          // Protects compiler stats.
-  Mutex* symbols_mutex_;  // Protects concurrent access to the symbol table.
-  Mutex* type_canonicalization_mutex_;      // Protects type canonicalization.
-  Mutex* constant_canonicalization_mutex_;  // Protects const canonicalization.
-  Mutex* megamorphic_lookup_mutex_;  // Protects megamorphic table lookup.
-  Mutex* kernel_data_lib_cache_mutex_;
-  Mutex* kernel_data_class_cache_mutex_;
-  Mutex* kernel_constants_mutex_;
+  Mutex mutex_;          // Protects compiler stats.
+  Mutex symbols_mutex_;  // Protects concurrent access to the symbol table.
+  Mutex type_canonicalization_mutex_;      // Protects type canonicalization.
+  Mutex constant_canonicalization_mutex_;  // Protects const canonicalization.
+  Mutex megamorphic_lookup_mutex_;         // Protects megamorphic table lookup.
+  Mutex kernel_data_lib_cache_mutex_;
+  Mutex kernel_data_class_cache_mutex_;
+  Mutex kernel_constants_mutex_;
   MessageHandler* message_handler_ = nullptr;
   IsolateSpawnState* spawn_state_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
@@ -1057,13 +1050,13 @@ class Isolate : public BaseIsolate {
   intptr_t loading_invalidation_gen_ = kInvalidGen;
 
   // Protect access to boxed_field_list_.
-  Mutex* field_list_mutex_;
+  Mutex field_list_mutex_;
   // List of fields that became boxed and that trigger deoptimization.
   RawGrowableObjectArray* boxed_field_list_;
 
   // This guards spawn_count_. An isolate cannot complete shutdown and be
   // destroyed while there are child isolates in the midst of a spawn.
-  Monitor* spawn_count_monitor_;
+  Monitor spawn_count_monitor_;
   intptr_t spawn_count_ = 0;
 
   HandlerInfoCache handler_info_cache_;

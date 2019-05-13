@@ -337,7 +337,7 @@ class Thread : public ThreadState {
   }
 
   // Monitor corresponding to this thread.
-  Monitor* thread_lock() const { return thread_lock_; }
+  Monitor* thread_lock() const { return &thread_lock_; }
 
   // The reusable api local scope for this thread.
   ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
@@ -869,7 +869,7 @@ class Thread : public ThreadState {
 
   TaskKind task_kind_;
   TimelineStream* dart_stream_;
-  Monitor* thread_lock_;
+  mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;
   ApiLocalScope* api_top_scope_;
   int32_t no_callback_scope_depth_;
