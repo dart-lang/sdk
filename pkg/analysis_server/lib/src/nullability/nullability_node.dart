@@ -188,7 +188,7 @@ abstract class NullabilityNode {
       bool inConditionalControlFlow) {
     var additionalConditions = <ConstraintVariable>[];
     graph.connect(sourceNode, destinationNode,
-        unconditional: !inConditionalControlFlow);
+        guards: guards, unconditional: !inConditionalControlFlow);
     if (sourceNode._nullable != null) {
       additionalConditions.add(sourceNode._nullable);
       var destinationNonNullIntent = destinationNode.nonNullIntent;

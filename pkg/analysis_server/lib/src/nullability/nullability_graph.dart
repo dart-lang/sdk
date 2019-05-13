@@ -7,11 +7,12 @@ import 'package:analysis_server/src/nullability/nullability_node.dart';
 /// Data structure to keep track of the relationship between [NullabilityNode]
 /// objects.
 class NullabilityGraph {
-  /// Map from a nullability node to those nodes that are "downstream" from it
-  /// (meaning that if a key node is nullable, then all the nodes in the
+  /// Map from a nullability node to a list of [_NullabilityEdge] objects
+  /// describing the node's relationship to other nodes that are "downstream"
+  /// from it (meaning that if a key node is nullable, then all the nodes in the
   /// corresponding value will either have to be nullable, or null checks will
   /// have to be added).
-  final _downstream = Map<NullabilityNode, List<NullabilityNode>>.identity();
+  final _downstream = Map<NullabilityNode, List<_NullabilityEdge>>.identity();
 
   /// Map from a nullability node to those nodes that are "upstream" from it
   /// (meaning that if a node in the value is nullable, then the corresponding
@@ -28,8 +29,12 @@ class NullabilityGraph {
 
   /// Records that [sourceNode] is immediately upstream from [destinationNode].
   void connect(NullabilityNode sourceNode, NullabilityNode destinationNode,
-      {bool unconditional: false}) {
-    (_downstream[sourceNode] ??= []).add(destinationNode);
+      {bool unconditional: false, List<NullabilityNode> guards: const []}) {
+    var sources = [sourceNode]..addAll(guards);
+    var edge = _NullabilityEdge(destinationNode, sources);
+    for (var source in sources) {
+      (_downstream[source] ??= []).add(edge);
+    }
     (_upstream[destinationNode] ??= []).add(sourceNode);
     if (unconditional) {
       (_unconditionalUpstream[destinationNode] ??= []).add(sourceNode);
@@ -38,12 +43,19 @@ class NullabilityGraph {
 
   void debugDump() {
     for (var entry in _downstream.entries) {
-      print('${entry.key} -> ${entry.value.map((value) {
-        var suffix = getUnconditionalUpstreamNodes(value).contains(entry.key)
-            ? ' (unconditional)'
-            : '';
-        return '$value$suffix';
-      }).join(', ')}');
+      var destinations = entry.value
+          .where((edge) => edge.primarySource == entry.key)
+          .map((edge) {
+        var suffixes = <Object>[];
+        if (getUnconditionalUpstreamNodes(edge.destinationNode)
+            .contains(entry.key)) {
+          suffixes.add('unconditional');
+        }
+        suffixes.addAll(edge.guards);
+        var suffix = suffixes.isNotEmpty ? ' (${suffixes.join(', ')})' : '';
+        return '${edge.destinationNode}$suffix';
+      });
+      print('${entry.key} -> ${destinations.join(', ')}');
     }
   }
 
@@ -53,7 +65,9 @@ class NullabilityGraph {
   ///
   /// There is no guarantee of uniqueness of the iterated nodes.
   Iterable<NullabilityNode> getDownstreamNodes(NullabilityNode node) =>
-      _downstream[node] ?? const [];
+      (_downstream[node] ?? const [])
+          .where((edge) => edge.primarySource == node)
+          .map((edge) => edge.destinationNode);
 
   /// Iterates through all nodes that are "upstream" of [node] due to
   /// unconditional control flow.
@@ -70,4 +84,24 @@ class NullabilityGraph {
   //  /// There is no guarantee of uniqueness of the iterated nodes.
   Iterable<NullabilityNode> getUpstreamNodes(NullabilityNode node) =>
       _upstream[node] ?? const [];
+}
+
+/// Data structure to keep track of the relationship from one [NullabilityNode]
+/// object to another [NullabilityNode] that is "downstream" from it (meaning
+/// that if the former node is nullable, then the latter node will either have
+/// to be nullable, or null checks will have to be added).
+class _NullabilityEdge {
+  /// The node that is downstream.
+  final NullabilityNode destinationNode;
+
+  /// A set of source nodes.  By convention, the first node is the primary
+  /// source and the other nodes are "guards".  The destination node will only
+  /// need to be made nullable if all the source nodes are nullable.
+  final List<NullabilityNode> sources;
+
+  _NullabilityEdge(this.destinationNode, this.sources);
+
+  Iterable<NullabilityNode> get guards => sources.skip(1);
+
+  NullabilityNode get primarySource => sources.first;
 }
