@@ -27,8 +27,6 @@ class NullabilityGraph {
   final _unconditionalUpstream =
       Map<NullabilityNode, List<NullabilityNode>>.identity();
 
-  final _nullableNodes = Set<NullabilityNode>.identity();
-
   final _nonNullIntentNodes = Set<NullabilityNode>.identity();
 
   /// Verifies that the conclusions reached by [propagate] match the conclusions
@@ -39,7 +37,7 @@ class NullabilityGraph {
       var allNodes = _downstream.keys.toSet();
       allNodes.addAll(_upstream.keys);
       for (var node in allNodes) {
-        node.check(_nullableNodes.contains(node));
+        node.check();
       }
     } catch (_) {
       debugDump();
@@ -76,7 +74,7 @@ class NullabilityGraph {
         return '${edge.destinationNode}$suffix';
       });
       var suffixes = <String>[];
-      if (_nullableNodes.contains(entry.key)) {
+      if (entry.key.isNullable) {
         suffixes.add('nullable');
       }
       if (_nonNullIntentNodes.contains(entry.key)) {
@@ -122,7 +120,8 @@ class NullabilityGraph {
 
   /// Propagates nullability downstream.
   void _propagateDownstream() {
-    var pendingEdges = [_NullabilityEdge(NullabilityNode.always, const [])];
+    var pendingEdges = <_NullabilityEdge>[]
+      ..addAll(_downstream[NullabilityNode.always] ?? const []);
     var pendingSubstitutions = <NullabilityNodeForSubstitution>[];
     while (true) {
       nextEdge:
@@ -135,12 +134,12 @@ class NullabilityGraph {
           continue;
         }
         for (var source in edge.sources) {
-          if (!_nullableNodes.contains(source)) {
+          if (!source.isNullable) {
             // Note all sources are nullable, so this edge doesn't apply yet.
             continue nextEdge;
           }
         }
-        if (_nullableNodes.add(node)) {
+        if (node.becomeNullable()) {
           // Was not previously nullable, so we need to propagate.
           pendingEdges.addAll(_downstream[node] ?? const []);
           if (node is NullabilityNodeForSubstitution) {
@@ -150,8 +149,7 @@ class NullabilityGraph {
       }
       if (pendingSubstitutions.isEmpty) break;
       var node = pendingSubstitutions.removeLast();
-      if (_nullableNodes.contains(node.innerNode) ||
-          _nullableNodes.contains(node.outerNode)) {
+      if (node.innerNode.isNullable || node.outerNode.isNullable) {
         // No further propagation is needed, since some other connection already
         // propagated nullability to either the inner or outer node.
         continue;

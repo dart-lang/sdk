@@ -19,11 +19,12 @@ abstract class NullabilityNode {
   /// [NullabilityNode] used for types that are known a priori to be nullable
   /// (e.g. the type of the `null` literal).
   static final NullabilityNode always =
-      _NullabilityNodeSimple(ConstraintVariable.always, 'always');
+      _NullabilityNodeImmutable(ConstraintVariable.always, 'always', true);
 
   /// [NullabilityNode] used for types that are known a priori to be
   /// non-nullable (e.g. the type of an integer literal).
-  static final NullabilityNode never = _NullabilityNodeSimple(null, 'never');
+  static final NullabilityNode never =
+      _NullabilityNodeImmutable(null, 'never', false);
 
   static final _debugNamesInUse = Set<String>();
 
@@ -39,6 +40,8 @@ abstract class NullabilityNode {
   bool _isPossiblyOptional = false;
 
   String _debugName;
+
+  bool _isNullable;
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type is `dynamic` due to type inference.
@@ -94,16 +97,17 @@ abstract class NullabilityNode {
           always ? ConstraintVariable.always : TypeIsNullable(endOffset),
           'type($endOffset)');
 
-  NullabilityNode._(this._nullable);
+  NullabilityNode._(this._nullable, {bool initiallyNullable: false})
+      : _isNullable = initiallyNullable;
 
   /// Gets a string that can be appended to a type name during debugging to help
   /// annotate the nullability of that type.
   String get debugSuffix =>
       this == always ? '?' : this == never ? '' : '?($this)';
 
-  /// After constraint solving, this getter can be used to query whether the
-  /// type associated with this node should be considered nullable.
-  bool get isNullable => _nullable == null ? false : _nullable.value;
+  /// After nullability propagation, this getter can be used to query whether
+  /// the type associated with this node should be considered nullable.
+  bool get isNullable => _isNullable;
 
   /// Indicates whether this node is associated with a named parameter for which
   /// nullability migration needs to decide whether it is optional or required.
@@ -117,12 +121,26 @@ abstract class NullabilityNode {
 
   String get _debugPrefix;
 
-  /// Verifies that the nullability of this node matches [isNullable].
-  void check(bool isNullable) {
-    if (isNullable != this.isNullable) {
+  /// After constraint solving, this getter can be used to query whether the
+  /// type associated with this node should be considered nullable.
+  bool get _oldIsNullable => _nullable == null ? false : _nullable.value;
+
+  /// During constraint solving, this method marks the type as nullable, or does
+  /// nothing if the type was already nullable.
+  ///
+  /// Return value indicates whether a change was made.
+  bool becomeNullable() {
+    if (_isNullable) return false;
+    _isNullable = true;
+    return true;
+  }
+
+  /// Verifies that the old and new nullability propagation algorithms match.
+  void check() {
+    if (_oldIsNullable != this.isNullable) {
       throw new StateError(
           'For $this, new algorithm gives nullability $isNullable; '
-          'old algorithm gives ${this.isNullable}');
+          'old algorithm gives $_oldIsNullable');
     }
   }
 
@@ -298,10 +316,23 @@ class NullabilityNodeForSubstitution extends NullabilityNode {
   String get _debugPrefix => 'Substituted($innerNode, $outerNode)';
 }
 
+class _NullabilityNodeImmutable extends _NullabilityNodeSimple {
+  _NullabilityNodeImmutable(
+      ConstraintVariable nullable, String debugPrefix, bool isNullable)
+      : super(nullable, debugPrefix, initiallyNullable: isNullable);
+
+  @override
+  bool becomeNullable() {
+    if (_isNullable) return false;
+    throw new StateError('Tried to change the nullability of $this');
+  }
+}
+
 class _NullabilityNodeSimple extends NullabilityNode {
   @override
   final String _debugPrefix;
 
-  _NullabilityNodeSimple(ConstraintVariable nullable, this._debugPrefix)
-      : super._(nullable);
+  _NullabilityNodeSimple(ConstraintVariable nullable, this._debugPrefix,
+      {bool initiallyNullable: false})
+      : super._(nullable, initiallyNullable: initiallyNullable);
 }
