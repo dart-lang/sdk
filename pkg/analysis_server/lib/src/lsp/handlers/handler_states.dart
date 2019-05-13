@@ -141,7 +141,7 @@ class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
     if (message is! RequestMessage) {
       return success();
     }
-    return failure(ServerErrorCodes.ServerShuttingDown,
+    return failure(ErrorCodes.InvalidRequest,
         'Unable to handle ${message.method} after shutdown request');
   }
 }
