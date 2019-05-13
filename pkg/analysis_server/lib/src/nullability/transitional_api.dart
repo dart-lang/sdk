@@ -148,7 +148,7 @@ class NullabilityMigration {
 
   final Variables _variables;
 
-  final _constraints = Solver();
+  final Solver _constraints;
 
   final NullabilityGraph _graph;
 
@@ -162,10 +162,11 @@ class NullabilityMigration {
       {bool permissive: false,
       NullabilityMigrationAssumptions assumptions:
           const NullabilityMigrationAssumptions()})
-      : this._(permissive, assumptions, NullabilityGraph());
+      : this._(permissive, assumptions, NullabilityGraph(), Solver());
 
-  NullabilityMigration._(this._permissive, this.assumptions, this._graph)
-      : _variables = Variables(_graph);
+  NullabilityMigration._(
+      this._permissive, this.assumptions, this._graph, this._constraints)
+      : _variables = Variables(_graph, _constraints);
 
   Map<Source, List<PotentialModification>> finish() {
     _constraints.applyHeuristics();
@@ -275,7 +276,10 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final NullabilityGraph _graph;
 
-  Variables(this._graph);
+  @override
+  final Constraints constraints;
+
+  Variables(this._graph, this.constraints);
 
   @override
   DecoratedType decoratedElementType(Element element, {bool create: false}) =>

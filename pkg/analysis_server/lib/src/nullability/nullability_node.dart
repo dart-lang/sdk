@@ -46,9 +46,10 @@ abstract class NullabilityNode {
   /// TODO(paulberry): this should go away; we should decorate the actual
   /// inferred type rather than assuming `dynamic`.
   factory NullabilityNode.forInferredDynamicType(
-      NullabilityGraph graph, int offset) {
+      NullabilityGraph graph, Constraints constraints, int offset) {
     var node = _NullabilityNodeSimple(
         TypeIsNullable(null), 'inferredDynamic($offset)');
+    constraints.record([], node._nullable);
     graph.connect(NullabilityNode.always, node);
     return node;
   }

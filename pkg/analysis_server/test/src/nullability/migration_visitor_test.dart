@@ -29,9 +29,6 @@ main() {
 
 @reflectiveTest
 class ConstraintGathererTest extends ConstraintsTestBase {
-  @override
-  final _Constraints constraints = _Constraints();
-
   void assertConditional(
       NullabilityNode node, NullabilityNode left, NullabilityNode right) {
     var conditionalNode = node as NullabilityNodeForLUB;
@@ -793,8 +790,6 @@ Type f() {
 }
 
 abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
-  Constraints get constraints;
-
   /// Analyzes the given source code, producing constraint variables and
   /// constraints for it.
   @override
@@ -935,9 +930,12 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
 
   final NullabilityGraph graph;
 
-  MigrationVisitorTestBase() : this._(NullabilityGraph());
+  final _Constraints constraints;
 
-  MigrationVisitorTestBase._(this.graph) : _variables = _Variables(graph);
+  MigrationVisitorTestBase() : this._(NullabilityGraph(), _Constraints());
+
+  MigrationVisitorTestBase._(this.graph, this.constraints)
+      : _variables = _Variables(graph, constraints);
 
   TypeProvider get typeProvider => testAnalysisResult.typeProvider;
 
@@ -1027,7 +1025,8 @@ class _Variables extends Variables {
 
   final _possiblyOptional = <DefaultFormalParameter, NullabilityNode>{};
 
-  _Variables(NullabilityGraph graph) : super(graph);
+  _Variables(NullabilityGraph graph, Constraints constraints)
+      : super(graph, constraints);
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
   ExpressionChecks checkExpression(Expression expression) =>

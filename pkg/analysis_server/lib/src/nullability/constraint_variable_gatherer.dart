@@ -8,6 +8,7 @@ import 'package:analysis_server/src/nullability/expression_checks.dart';
 import 'package:analysis_server/src/nullability/nullability_graph.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
+import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -56,7 +57,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
         ? new DecoratedType(
             DynamicTypeImpl.instance,
             NullabilityNode.forInferredDynamicType(
-                _graph, enclosingNode.offset),
+                _graph, _variables.constraints, enclosingNode.offset),
             _graph)
         : type.accept(this);
   }
@@ -192,6 +193,10 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 /// ([ConstraintVariableGatherer], which finds all the variables that need to be
 /// constrained).
 abstract class VariableRecorder {
+  /// Gets the [Constraints] object currently in use.  Note: this will go away
+  /// when we stop using constraint variables for migration.
+  Constraints get constraints;
+
   /// Associates decorated type information with the given [element].
   void recordDecoratedElementType(Element element, DecoratedType type);
 
