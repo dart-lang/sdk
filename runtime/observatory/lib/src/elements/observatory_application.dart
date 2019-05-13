@@ -4,7 +4,6 @@
 
 library observatory_application_element;
 
-import 'dart:html';
 import 'package:observatory/app.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 

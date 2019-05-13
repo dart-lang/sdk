@@ -4,13 +4,13 @@
 
 library vm_connect_element;
 
-import 'dart:html';
 import 'dart:async';
-import 'dart:convert';
+import 'dart:html';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/helpers/tag.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
