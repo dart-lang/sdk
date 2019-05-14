@@ -738,7 +738,7 @@ class FileState {
     Scanner scanner = new Scanner(source, reader, errorListener)
       ..configureFeatures(featureSet);
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
-      return scanner.tokenize();
+      return scanner.tokenize(reportScannerErrors: false);
     });
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 

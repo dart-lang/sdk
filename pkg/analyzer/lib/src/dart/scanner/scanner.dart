@@ -138,6 +138,10 @@ class Scanner {
     lineStarts.add(offset - column + 1);
   }
 
+  /// The fasta parser handles error tokens produced by the scanner
+  /// but the old parser used by angular does not
+  /// and expects that scanner errors to be reported by this method.
+  /// Set [reportScannerErrors] `true` when using the old parser.
   Token tokenize({bool reportScannerErrors = true}) {
     fasta.ScannerResult result = fasta.scanString(_contents,
         configuration: _featureSet != null
