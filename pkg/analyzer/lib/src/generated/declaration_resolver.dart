@@ -27,9 +27,6 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   /// The compilation unit containing the AST nodes being visited.
   CompilationUnitElementImpl _enclosingUnit;
 
-  /// The type provider used to access the known types.
-  TypeProvider _typeProvider;
-
   /// The [ElementWalker] we are using to keep track of progress through the
   /// element model.
   ElementWalker _walker;
@@ -42,7 +39,6 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   /// not match each other.
   void resolve(CompilationUnit unit, CompilationUnitElement element) {
     _enclosingUnit = element;
-    _typeProvider = _enclosingUnit.context?.typeProvider;
     _walker = new ElementWalker.forCompilationUnit(element);
     unit.element = element;
     try {
