@@ -53,9 +53,10 @@ void main() async {
   x?.round(); //# 35: ok
   for(i in list) {}; //# 36: compile-time error
   await for(i in stream) {}; //# 37: compile-time error
+  assert(cond); //# 38: compile-time error
 }
 
 generator() sync* {
   Iterable? iter;
-  yield* iter; //# 38: compile-time error
+  yield* iter; //# 39: compile-time error
 }

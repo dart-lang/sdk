@@ -365,12 +365,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitAssertInitializer(AssertInitializer node) {
     _checkForNonBoolExpression(node);
+    _checkForNullableDereference(node.condition);
     super.visitAssertInitializer(node);
   }
 
   @override
   void visitAssertStatement(AssertStatement node) {
     _checkForNonBoolExpression(node);
+    _checkForNullableDereference(node.condition);
     super.visitAssertStatement(node);
   }
 
