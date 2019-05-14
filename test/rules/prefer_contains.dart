@@ -42,6 +42,8 @@ bool mixed = list.indexOf(1) + "a".indexOf("ab") > 0; //OK
 condition() {
   final int a = list.indexOf(1) > -1 ? 2 : 3; //LINT
   list..indexOf(1);
+  var next;
+  while ((next = list.indexOf('{')) != -1) {} //OK
 }
 
 bool le7 = [].indexOf(1) > 1; //OK

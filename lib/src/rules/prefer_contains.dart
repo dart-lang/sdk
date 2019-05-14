@@ -88,7 +88,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    AstNode indexOfAccess;
+    MethodInvocation indexOfAccess;
     InterfaceType type;
 
     final AstNode parent = node.parent;
@@ -107,6 +107,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       new InterfaceTypeDefinition('Iterable', 'dart.core'),
       new InterfaceTypeDefinition('String', 'dart.core'),
     ])) {
+      return;
+    }
+
+    if (indexOfAccess.parent is AssignmentExpression) {
+      // The result of `indexOf` is being assigned before being compared, so
+      // it's important. E.g.  `(next = list.indexOf('{')) != -1)`.
       return;
     }
 
