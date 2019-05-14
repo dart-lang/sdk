@@ -1153,7 +1153,7 @@ class TokenType {
       stringValue: null);
 
   static const TokenType IDENTIFIER = const TokenType(
-      'identifier', 'STRING_INT', NO_PRECEDENCE, IDENTIFIER_TOKEN,
+      'identifier', 'IDENTIFIER', NO_PRECEDENCE, IDENTIFIER_TOKEN,
       stringValue: null);
 
   static const TokenType INT = const TokenType(
