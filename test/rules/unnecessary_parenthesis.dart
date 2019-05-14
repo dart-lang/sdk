@@ -48,6 +48,13 @@ main() async {
   -(new List(3).length.abs().abs().abs()); // OK
   -(new List(3).length.sign.sign.sign); // OK
   !(const [7]).contains(42); // OK
+
+  // OK because some methods are defined on Type, but removing the parentheses
+  // would attempt to call a _static_ method on the target.
+  (String).hashCode;
+  (int).runtimeType;
+  (bool).noSuchMethod();
+  (double).toString();
 }
 
 m({p}) => null;

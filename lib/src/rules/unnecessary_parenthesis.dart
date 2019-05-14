@@ -48,6 +48,20 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     if (node.expression is SimpleIdentifier) {
+      var parent = node.parent;
+      if (parent is PropertyAccess) {
+        if (parent.propertyName.name == 'hashCode' ||
+            parent.propertyName.name == 'runtimeType') {
+          // Code like `(String).hashCode` is allowed.
+          return;
+        }
+      } else if (parent is MethodInvocation) {
+        if (parent.methodName.name == 'noSuchMethod' ||
+            parent.methodName.name == 'toString') {
+          // Code like `(String).noSuchMethod()` is allowed.
+          return;
+        }
+      }
       rule.reportLint(node);
       return;
     }
