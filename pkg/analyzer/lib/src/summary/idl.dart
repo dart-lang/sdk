@@ -1345,11 +1345,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(2, variant: LinkedNodeKind.implementsClause)
   List<LinkedNode> get implementsClause_interfaces;
 
-  @VariantId(15, variant: LinkedNodeKind.importDirective)
-  int get importDirective_prefixOffset;
-
   @VariantId(1, variant: LinkedNodeKind.importDirective)
   String get importDirective_prefix;
+
+  @VariantId(15, variant: LinkedNodeKind.importDirective)
+  int get importDirective_prefixOffset;
 
   @VariantId(15, variant: LinkedNodeKind.indexExpression)
   int get indexExpression_element;
@@ -1467,6 +1467,12 @@ abstract class LinkedNode extends base.SummaryClass {
   @Id(37)
   String get name;
 
+  @VariantId(6, variant: LinkedNodeKind.namedExpression)
+  LinkedNode get namedExpression_expression;
+
+  @VariantId(7, variant: LinkedNodeKind.namedExpression)
+  LinkedNode get namedExpression_name;
+
   @VariantId(16, variantList: [
     LinkedNodeKind.classDeclaration,
     LinkedNodeKind.classTypeAlias,
@@ -1488,12 +1494,6 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.variableDeclaration,
   ])
   int get nameOffset;
-
-  @VariantId(6, variant: LinkedNodeKind.namedExpression)
-  LinkedNode get namedExpression_expression;
-
-  @VariantId(7, variant: LinkedNodeKind.namedExpression)
-  LinkedNode get namedExpression_name;
 
   @VariantId(36, variantList: [
     LinkedNodeKind.hideCombinator,
@@ -2026,6 +2026,15 @@ abstract class LinkedNodeTypeTypeParameter extends base.SummaryClass {
 
 /// Information about a single library in a [LinkedNodeLibrary].
 abstract class LinkedNodeUnit extends base.SummaryClass {
+  /// All generic function types in the unit - in generic type aliases, or used
+  /// directly as type annotations.
+  ///
+  /// They are requested in two cases: when we are reading a node that contains
+  /// them (e.g. a return type of a method), or when we run over unresolved
+  /// AST in declaration resolver.
+  @Id(5)
+  List<LinkedNode> get genericFunctionTypes;
+
   @Id(3)
   bool get isSynthetic;
 

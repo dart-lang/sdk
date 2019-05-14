@@ -28,6 +28,9 @@ var timerAstBinaryWriterTypedef = Stopwatch();
 class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   final LinkingBundleContext _linkingContext;
 
+  /// The list stored [GenericFunctionType]s, as visited in depth-first order.
+  final List<LinkedNodeBuilder> genericFunctionTypes = [];
+
   /// This field is set temporary while visiting [FieldDeclaration] or
   /// [TopLevelVariableDeclaration] to store data shared among all variables
   /// in these declarations.
@@ -677,6 +680,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitGenericFunctionType(GenericFunctionType node) {
+    var id = LazyAst.getGenericFunctionTypeId(node);
+    assert(genericFunctionTypes.length == id);
+    genericFunctionTypes.add(null);
+
     var builder = LinkedNodeBuilder.genericFunctionType(
       genericFunctionType_formalParameters: node.parameters.accept(this),
       genericFunctionType_returnType: node.returnType?.accept(this),
@@ -688,10 +695,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     );
     _writeActualReturnType(builder, node);
 
-    var id = LazyAst.getGenericFunctionTypeId(node);
     builder.genericFunctionType_id = id;
+    genericFunctionTypes[id] = builder;
 
-    return builder;
+    return LinkedNodeBuilder.genericFunctionType(
+      genericFunctionType_id: id,
+    );
   }
 
   @override
@@ -699,8 +708,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     timerAstBinaryWriterTypedef.start();
     try {
       var builder = LinkedNodeBuilder.genericTypeAlias(
-        genericTypeAlias_functionType: node.functionType?.accept(this),
         genericTypeAlias_typeParameters: node.typeParameters?.accept(this),
+        genericTypeAlias_functionType: node.functionType?.accept(this),
         typeAlias_hasSelfReference:
             LazyGenericTypeAlias.getHasSelfReference(node),
       );
@@ -1407,10 +1416,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     return builder;
   }
 
-  LinkedNodeBuilder writeNode(AstNode node) {
+  LinkedNodeBuilder writeUnit(CompilationUnit unit) {
     timerAstBinaryWriter.start();
     try {
-      return node.accept(this);
+      return unit.accept(this);
     } finally {
       timerAstBinaryWriter.stop();
     }

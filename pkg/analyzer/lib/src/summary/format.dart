@@ -15257,11 +15257,26 @@ abstract class _LinkedNodeTypeTypeParameterMixin
 class LinkedNodeUnitBuilder extends Object
     with _LinkedNodeUnitMixin
     implements idl.LinkedNodeUnit {
+  List<LinkedNodeBuilder> _genericFunctionTypes;
   bool _isSynthetic;
   List<int> _lineStarts;
   LinkedNodeBuilder _node;
   UnlinkedTokensBuilder _tokens;
   String _uriStr;
+
+  @override
+  List<LinkedNodeBuilder> get genericFunctionTypes =>
+      _genericFunctionTypes ??= <LinkedNodeBuilder>[];
+
+  /// All generic function types in the unit - in generic type aliases, or used
+  /// directly as type annotations.
+  ///
+  /// They are requested in two cases: when we are reading a node that contains
+  /// them (e.g. a return type of a method), or when we run over unresolved
+  /// AST in declaration resolver.
+  set genericFunctionTypes(List<LinkedNodeBuilder> value) {
+    this._genericFunctionTypes = value;
+  }
 
   @override
   bool get isSynthetic => _isSynthetic ??= false;
@@ -15301,12 +15316,14 @@ class LinkedNodeUnitBuilder extends Object
   }
 
   LinkedNodeUnitBuilder(
-      {bool isSynthetic,
+      {List<LinkedNodeBuilder> genericFunctionTypes,
+      bool isSynthetic,
       List<int> lineStarts,
       LinkedNodeBuilder node,
       UnlinkedTokensBuilder tokens,
       String uriStr})
-      : _isSynthetic = isSynthetic,
+      : _genericFunctionTypes = genericFunctionTypes,
+        _isSynthetic = isSynthetic,
         _lineStarts = lineStarts,
         _node = node,
         _tokens = tokens,
@@ -15314,6 +15331,7 @@ class LinkedNodeUnitBuilder extends Object
 
   /// Flush [informative] data recursively.
   void flushInformative() {
+    _genericFunctionTypes?.forEach((b) => b.flushInformative());
     _lineStarts = null;
     _node?.flushInformative();
     _tokens?.flushInformative();
@@ -15327,13 +15345,26 @@ class LinkedNodeUnitBuilder extends Object
     signature.addBool(this._node != null);
     this._node?.collectApiSignature(signature);
     signature.addBool(this._isSynthetic == true);
+    if (this._genericFunctionTypes == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._genericFunctionTypes.length);
+      for (var x in this._genericFunctionTypes) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_genericFunctionTypes;
     fb.Offset offset_lineStarts;
     fb.Offset offset_node;
     fb.Offset offset_tokens;
     fb.Offset offset_uriStr;
+    if (!(_genericFunctionTypes == null || _genericFunctionTypes.isEmpty)) {
+      offset_genericFunctionTypes = fbBuilder.writeList(
+          _genericFunctionTypes.map((b) => b.finish(fbBuilder)).toList());
+    }
     if (!(_lineStarts == null || _lineStarts.isEmpty)) {
       offset_lineStarts = fbBuilder.writeListUint32(_lineStarts);
     }
@@ -15347,6 +15378,9 @@ class LinkedNodeUnitBuilder extends Object
       offset_uriStr = fbBuilder.writeString(_uriStr);
     }
     fbBuilder.startTable();
+    if (offset_genericFunctionTypes != null) {
+      fbBuilder.addOffset(5, offset_genericFunctionTypes);
+    }
     if (_isSynthetic == true) {
       fbBuilder.addBool(3, true);
     }
@@ -15382,11 +15416,20 @@ class _LinkedNodeUnitImpl extends Object
 
   _LinkedNodeUnitImpl(this._bc, this._bcOffset);
 
+  List<idl.LinkedNode> _genericFunctionTypes;
   bool _isSynthetic;
   List<int> _lineStarts;
   idl.LinkedNode _node;
   idl.UnlinkedTokens _tokens;
   String _uriStr;
+
+  @override
+  List<idl.LinkedNode> get genericFunctionTypes {
+    _genericFunctionTypes ??=
+        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
+            .vTableGet(_bc, _bcOffset, 5, const <idl.LinkedNode>[]);
+    return _genericFunctionTypes;
+  }
 
   @override
   bool get isSynthetic {
@@ -15425,6 +15468,9 @@ abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (genericFunctionTypes.isNotEmpty)
+      _result["genericFunctionTypes"] =
+          genericFunctionTypes.map((_value) => _value.toJson()).toList();
     if (isSynthetic != false) _result["isSynthetic"] = isSynthetic;
     if (lineStarts.isNotEmpty) _result["lineStarts"] = lineStarts;
     if (node != null) _result["node"] = node.toJson();
@@ -15435,6 +15481,7 @@ abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
 
   @override
   Map<String, Object> toMap() => {
+        "genericFunctionTypes": genericFunctionTypes,
         "isSynthetic": isSynthetic,
         "lineStarts": lineStarts,
         "node": node,

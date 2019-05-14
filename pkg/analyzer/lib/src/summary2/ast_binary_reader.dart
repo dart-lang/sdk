@@ -45,6 +45,21 @@ class AstBinaryReader {
 
   InterfaceType get _stringType => _unitContext.typeProvider.stringType;
 
+  /// This method is invoked by [LinkedUnitContext] to perform actual reading.
+  GenericFunctionType readGenericFunctionType(LinkedNode data) {
+    GenericFunctionTypeImpl node = astFactory.genericFunctionType(
+      _readNodeLazy(data.genericFunctionType_returnType),
+      _Tokens.FUNCTION,
+      _readNode(data.genericFunctionType_typeParameters),
+      _readNodeLazy(data.genericFunctionType_formalParameters),
+      question:
+          AstBinaryFlags.hasQuestion(data.flags) ? _Tokens.QUESTION : null,
+    );
+    node.type = _readType(data.genericFunctionType_type);
+    LazyGenericFunctionType.setData(node, data);
+    return node;
+  }
+
   AstNode readNode(LinkedNode data) {
     timerAstBinaryReader.start();
     try {
@@ -761,18 +776,8 @@ class AstBinaryReader {
   }
 
   GenericFunctionType _read_genericFunctionType(LinkedNode data) {
-    GenericFunctionTypeImpl node = astFactory.genericFunctionType(
-      _readNodeLazy(data.genericFunctionType_returnType),
-      _Tokens.FUNCTION,
-      _readNode(data.genericFunctionType_typeParameters),
-      _readNodeLazy(data.genericFunctionType_formalParameters),
-      question:
-          AstBinaryFlags.hasQuestion(data.flags) ? _Tokens.QUESTION : null,
-    );
-    node.type = _readType(data.genericFunctionType_type);
-    LazyGenericFunctionType.setData(node, data);
-    _unitContext.addGenericFunctionType(data.genericFunctionType_id, node);
-    return node;
+    var id = data.genericFunctionType_id;
+    return _unitContext.getGenericFunctionType(id);
   }
 
   GenericTypeAlias _read_genericTypeAlias(LinkedNode data) {

@@ -5313,7 +5313,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     if (type is ParameterizedType) {
-      var element = type.element;
+      var element = typeName.name.staticElement;
       // prepare type parameters
       List<TypeParameterElement> parameterElements;
       if (element is ClassElement) {

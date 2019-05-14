@@ -14,7 +14,6 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
-import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -30,18 +29,19 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 /// the type is set, otherwise we keep it empty, so we will attempt to infer
 /// it later).
 class ReferenceResolver extends ThrowingAstVisitor<void> {
-  final LinkingBundleContext linkingContext;
   final NodesToBuildType nodesToBuildType;
   final LinkedElementFactory elementFactory;
   final LibraryElement _libraryElement;
   final Reference unitReference;
   final bool nnbd;
 
+  /// The depth-first number of the next [GenericFunctionType] node.
+  int _nextGenericFunctionTypeId = 0;
+
   Reference reference;
   Scope scope;
 
   ReferenceResolver(
-    this.linkingContext,
     this.nodesToBuildType,
     this.elementFactory,
     this._libraryElement,
@@ -261,7 +261,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
     var outerReference = reference;
 
-    var id = linkingContext.nextGenericFunctionTypeId();
+    var id = _nextGenericFunctionTypeId++;
     LazyAst.setGenericFunctionTypeId(node, id);
 
     var containerRef = unitReference.getChild('@genericFunctionType');

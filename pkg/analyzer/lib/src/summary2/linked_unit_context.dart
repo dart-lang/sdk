@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -28,13 +27,14 @@ class LinkedUnitContext {
   final bool isSynthetic;
   final LinkedNodeUnit data;
 
+  /// This list is filled lazily with [GenericFunctionType] nodes as they
+  /// are requested by [getGenericFunctionType].
+  List<GenericFunctionType> _genericFunctionTypeNodeList;
+
   AstBinaryReader _astReader;
 
   CompilationUnit _unit;
   bool _hasDirectivesRead = false;
-
-  /// Mapping from identifiers to elements for generic function types.
-  final Map<int, GenericFunctionTypeElementImpl> _genericFunctionTypes = {};
 
   /// Mapping from identifiers to synthetic type parameters.
   ///
@@ -56,18 +56,15 @@ class LinkedUnitContext {
     _astReader = AstBinaryReader(this);
     _astReader.isLazy = unit == null;
 
+    if (data != null) {
+      _genericFunctionTypeNodeList = List<GenericFunctionType>(
+        data.genericFunctionTypes.length,
+      );
+    }
+
     _unit = unit;
     _hasDirectivesRead = _unit != null;
   }
-
-  LinkedUnitContext._(
-      this.bundleContext,
-      this.libraryContext,
-      this.indexInLibrary,
-      this.uriStr,
-      this.reference,
-      this.isSynthetic,
-      this.data);
 
   bool get hasPartOfDirective {
     for (var directive in unit_withDirectives.directives) {
@@ -104,31 +101,6 @@ class LinkedUnitContext {
       _hasDirectivesRead = true;
     }
     return _unit;
-  }
-
-  /// Every [GenericFunctionType] node has [GenericFunctionTypeElement], which
-  /// is created during reading of this node.
-  void addGenericFunctionType(int id, GenericFunctionTypeImpl node) {
-    if (this.reference == null) return;
-
-    LazyAst.setGenericFunctionTypeId(node, id);
-
-    var element = _genericFunctionTypes[id];
-    if (element == null) {
-      element = GenericFunctionTypeElementImpl.forLinkedNode(
-        this.reference.element,
-        null,
-        node,
-      );
-      _genericFunctionTypes[id] = element;
-    }
-
-    node.declaredElement = element;
-
-    var containerRef = this.reference.getChild('@genericFunctionType');
-    var reference = containerRef.getChild('$id');
-    reference.element = element;
-    element.reference = reference;
   }
 
   /// Return the [LibraryElement] referenced in the [node].
@@ -355,9 +327,30 @@ class LinkedUnitContext {
     }
   }
 
+  GenericFunctionTypeImpl getGenericFunctionType(int id) {
+    GenericFunctionTypeImpl node = _genericFunctionTypeNodeList[id];
+    if (node == null) {
+      var data = this.data.genericFunctionTypes[id];
+      node = _astReader.readGenericFunctionType(data);
+      LazyAst.setGenericFunctionTypeId(node, id);
+      _genericFunctionTypeNodeList[id] = node;
+
+      var containerRef = this.reference.getChild('@genericFunctionType');
+      var reference = containerRef.getChild('$id');
+      var element = GenericFunctionTypeElementImpl.forLinkedNode(
+        this.reference.element,
+        reference,
+        node,
+      );
+      node.declaredElement = element;
+    }
+    return node;
+  }
+
   Reference getGenericFunctionTypeReference(GenericFunctionType node) {
+    var containerRef = reference.getChild('@genericFunctionType');
     var id = LazyAst.getGenericFunctionTypeId(node);
-    return reference.getChild('@genericFunctionType').getChild('$id');
+    return containerRef.getChild('$id');
   }
 
   GenericFunctionType getGeneticTypeAliasFunction(GenericTypeAlias node) {
@@ -941,34 +934,6 @@ class LinkedUnitContext {
     }
   }
 
-  /// Read new resolved [CompilationUnit] from the [data], and in contrast to
-  /// reading AST for element model, read it eagerly. We can do this, because
-  /// the element model is fully accessible, so we don't need to worry about
-  /// potential forward references.
-  ///
-  /// The new instance of [CompilationUnit] is required because the client of
-  /// this method is going to modify the unit - merge parsed, not yet resolved
-  /// function bodies into it, and resolve them.
-  CompilationUnit readUnitEagerly() {
-    reference.element.accept(
-      _TypeParameterReader(),
-    );
-    _RecursiveTypeReader(this).read(unit);
-
-    var context = LinkedUnitContext._(
-      bundleContext,
-      libraryContext,
-      indexInLibrary,
-      uriStr,
-      reference,
-      isSynthetic,
-      data,
-    );
-    context._genericFunctionTypes.addAll(_genericFunctionTypes);
-    var astReader = AstBinaryReader(context);
-    return astReader.readNode(data.node);
-  }
-
   void setInheritsCovariant(AstNode node, bool value) {
     if (node is FormalParameter) {
       LazyAst.setInheritsCovariant(node, value);
@@ -1101,97 +1066,5 @@ class LinkedUnitContext {
       default:
         throw StateError('$data');
     }
-  }
-}
-
-/// Ensure that all [GenericFunctionType] and [TypeParameter] nodes are read,
-/// so their elements are created and set in [Reference]s.
-class _RecursiveTypeReader {
-  final LinkedUnitContext context;
-
-  _RecursiveTypeReader(this.context);
-
-  void read(AstNode node) {
-    if (node == null) {
-    } else if (node is ClassDeclaration) {
-      _readTypeParameters(node);
-      node.members.forEach(read);
-    } else if (node is ClassTypeAlias) {
-      _readTypeParameters(node);
-    } else if (node is CompilationUnit) {
-      for (var declaration in node.declarations) {
-        read(declaration);
-      }
-    } else if (node is ConstructorDeclaration) {
-      _readFormalParameters(node);
-    } else if (node is EnumDeclaration) {
-    } else if (node is FieldDeclaration) {
-      read(node.fields);
-    } else if (node is FunctionDeclaration) {
-      _readTypeParameters(node);
-      _readFormalParameters(node);
-      _readReturnType(node);
-    } else if (node is FunctionTypeAlias) {
-      _readTypeParameters(node);
-      _readFormalParameters(node);
-      _readReturnType(node);
-    } else if (node is GenericFunctionType) {
-      _readTypeParameters(node);
-      _readFormalParameters(node);
-      _readReturnType(node);
-    } else if (node is GenericTypeAlias) {
-      _readTypeParameters(node);
-      LazyGenericTypeAlias.readFunctionType(context._astReader, node);
-      read(node.functionType);
-    } else if (node is MethodDeclaration) {
-      _readTypeParameters(node);
-      _readFormalParameters(node);
-      _readReturnType(node);
-    } else if (node is MixinDeclaration) {
-      _readTypeParameters(node);
-      node.members.forEach(read);
-    } else if (node is TopLevelVariableDeclaration) {
-      read(node.variables);
-    } else if (node is TypeName) {
-      node.typeArguments?.arguments?.forEach(read);
-    } else if (node is VariableDeclarationList) {
-      LazyVariableDeclarationList.readTypeNode(context._astReader, node);
-      read(node.type);
-    } else {
-      throw StateError('${node.runtimeType}');
-    }
-  }
-
-  void _readFormalParameters(AstNode node) {
-    var formalParameters = context.getFormalParameters(node);
-    if (formalParameters == null) return;
-
-    for (var formalParameter in formalParameters) {
-      if (formalParameter is SimpleFormalParameter) {
-        read(formalParameter.type);
-      }
-    }
-  }
-
-  void _readReturnType(AstNode node) {
-    var returnType = context.getReturnTypeNode(node);
-    read(returnType);
-  }
-
-  void _readTypeParameters(AstNode node) {
-    var typeParameters = context.getTypeParameters2(node);
-    if (typeParameters == null) return;
-
-    for (var typeParameter in typeParameters.typeParameters) {
-      var bound = context.getTypeParameterBound(typeParameter);
-      read(bound);
-    }
-  }
-}
-
-class _TypeParameterReader extends RecursiveElementVisitor<void> {
-  @override
-  void visitTypeParameterElement(TypeParameterElement element) {
-    super.visitTypeParameterElement(element);
   }
 }

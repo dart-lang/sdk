@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -30,6 +31,10 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   /// The [ElementWalker] we are using to keep track of progress through the
   /// element model.
   ElementWalker _walker;
+
+  /// The number of [GenericFunctionType] nodes that we encountered so far.
+  /// We use it to request the corresponding resolved node.
+  int _nextGenericFunctionTypeId = 0;
 
   DeclarationResolver();
 
@@ -269,15 +274,21 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
     if (_walker.elementBuilder != null) {
       _walker.elementBuilder.visitGenericFunctionType(node);
     } else {
-      DartType type = node.type;
-      if (type != null) {
-        Element element = type.element;
-        if (element is GenericFunctionTypeElement) {
-          _setGenericFunctionType(node.returnType, element.returnType);
-          _walk(new ElementWalker.forGenericFunctionType(element), () {
-            super.visitGenericFunctionType(node);
-          });
-        }
+      Element element;
+      if (AnalysisDriver.useSummary2) {
+        var id = _nextGenericFunctionTypeId++;
+        var context = _enclosingUnit.linkedContext;
+        var linkedNode = context.getGenericFunctionType(id);
+        element = linkedNode.declaredElement;
+        (node as GenericFunctionTypeImpl).declaredElement = element;
+      } else {
+        element = node.type?.element;
+      }
+      if (element is GenericFunctionTypeElement) {
+        _setGenericFunctionType(node.returnType, element.returnType);
+        _walk(new ElementWalker.forGenericFunctionType(element), () {
+          super.visitGenericFunctionType(node);
+        });
       }
     }
   }

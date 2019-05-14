@@ -237,7 +237,6 @@ class SourceLibraryBuilder {
       var unitRef = reference.getChild('@unit');
       var unitReference = unitRef.getChild(unitContext.uriStr);
       var resolver = ReferenceResolver(
-        linker.linkingBundleContext,
         nodesToBuildType,
         linker.elementFactory,
         element,

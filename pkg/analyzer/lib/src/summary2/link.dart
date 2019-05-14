@@ -188,13 +188,14 @@ class Linker {
         var unit = unitContext.unit;
 
         var writer = AstBinaryWriter(linkingBundleContext);
-        var unitLinkedNode = writer.writeNode(unit);
+        var unitLinkedNode = writer.writeUnit(unit);
         builder.node.units.add(
           LinkedNodeUnitBuilder(
             isSynthetic: unitContext.isSynthetic,
             uriStr: unitContext.uriStr,
             lineStarts: unit.lineInfo.lineStarts,
             node: unitLinkedNode,
+            genericFunctionTypes: writer.genericFunctionTypes,
           ),
         );
       }
