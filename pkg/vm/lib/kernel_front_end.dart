@@ -614,6 +614,10 @@ Future<Uri> convertToPackageUri(
   }
   // file:///a/b/x/y/main.dart -> package:x.y/main.dart
   for (var line in packages) {
+    if (line.isEmpty || line.startsWith("#")) {
+      continue;
+    }
+
     final colon = line.indexOf(':');
     if (colon == -1) {
       continue;
