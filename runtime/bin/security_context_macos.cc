@@ -38,7 +38,17 @@ class ScopedCFType {
   T* ptr() { return &obj_; }
   const T get() const { return obj_; }
 
+  DART_WARN_UNUSED_RESULT T release() {
+    T temp = obj_;
+    obj_ = NULL;
+    return temp;
+  }
+
   void set(T obj) { obj_ = obj; }
+
+  bool operator==(T other) { return other == get(); }
+
+  bool operator!=(T other) { return other != get(); }
 
  private:
   T obj_;
@@ -46,6 +56,20 @@ class ScopedCFType {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ScopedCFType);
 };
+
+static void releaseObjects(const void* val, void* context) {
+  CFRelease(val);
+}
+
+template <>
+ScopedCFType<CFMutableArrayRef>::~ScopedCFType() {
+  if (obj_ != NULL) {
+    CFIndex count = 0;
+    CFArrayApplyFunction(obj_, CFRangeMake(0, CFArrayGetCount(obj_)),
+                         releaseObjects, &count);
+    CFRelease(obj_);
+  }
+}
 
 typedef ScopedCFType<CFMutableArrayRef> ScopedCFMutableArrayRef;
 typedef ScopedCFType<CFDataRef> ScopedCFDataRef;
@@ -60,10 +84,10 @@ static SecCertificateRef CreateSecCertificateFromX509(X509* cert) {
   }
   int length = i2d_X509(cert, NULL);
   if (length < 0) {
-    return 0;
+    return NULL;
   }
-  auto deb_cert = std::unique_ptr<unsigned char[]>(new unsigned char[length]);
-  unsigned char* temp = deb_cert.get();
+  auto deb_cert = std::make_unique<unsigned char[]>(length);
+  auto temp = deb_cert.get();
   if (i2d_X509(cert, &temp) != length) {
     return NULL;
   }
@@ -72,12 +96,7 @@ static SecCertificateRef CreateSecCertificateFromX509(X509* cert) {
   // Implementation here:
   // https://opensource.apple.com/source/libsecurity_keychain/libsecurity_keychain-55050.2/lib/SecCertificate.cpp.auto.html
   ScopedCFDataRef cert_buf(CFDataCreate(NULL, deb_cert.get(), length));
-  SecCertificateRef auth_cert =
-      SecCertificateCreateWithData(NULL, cert_buf.get());
-  if (auth_cert == NULL) {
-    return NULL;
-  }
-  return auth_cert;
+  return SecCertificateCreateWithData(NULL, cert_buf.get());
 }
 
 static int CertificateVerificationCallback(X509_STORE_CTX* ctx, void* arg) {
@@ -93,11 +112,11 @@ static int CertificateVerificationCallback(X509_STORE_CTX* ctx, void* arg) {
     cert_chain.set(CFArrayCreateMutable(NULL, num_certs, NULL));
     X509* ca;
     while ((ca = sk_X509_shift(user_provided_certs)) != NULL) {
-      SecCertificateRef cert = CreateSecCertificateFromX509(ca);
+      ScopedSecCertificateRef cert(CreateSecCertificateFromX509(ca));
       if (cert == NULL) {
         return ctx->verify_cb(0, ctx);
       }
-      CFArrayAppendValue(cert_chain.get(), cert);
+      CFArrayAppendValue(cert_chain.get(), cert.release());
       ++current_cert;
 
       if (current_cert == num_certs) {
@@ -115,11 +134,11 @@ static int CertificateVerificationCallback(X509_STORE_CTX* ctx, void* arg) {
   if (store->objs != NULL) {
     for (uintptr_t i = 0; i < sk_X509_OBJECT_num(store->objs); ++i) {
       X509* ca = sk_X509_OBJECT_value(store->objs, i)->data.x509;
-      SecCertificateRef cert = CreateSecCertificateFromX509(ca);
+      ScopedSecCertificateRef cert(CreateSecCertificateFromX509(ca));
       if (cert == NULL) {
         return ctx->verify_cb(0, ctx);
       }
-      CFArrayAppendValue(trusted_certs.get(), cert);
+      CFArrayAppendValue(trusted_certs.get(), cert.release());
     }
   }
 
