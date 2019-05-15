@@ -59,7 +59,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/declaration | | | | |
 | textDocument/definition | ✅ | ✅ | ✅ | ✅ |
 | textDocument/typeDefinition | | | | |
-| textDocument/implementation | | | | |
+| textDocument/implementation | ✅ | ✅ | ✅ | ✅ |
 | textDocument/references | ✅ | ✅ | ✅ | ✅ |
 | textDocument/documentHighlight | ✅ | ✅ | ✅ | ✅ |
 | textDocument/documentSymbol | ✅ | ✅ | ✅ | ✅ |

@@ -19,6 +19,7 @@ import 'file_modification_test.dart' as file_modification;
 import 'folding_test.dart' as folding;
 import 'format_test.dart' as format;
 import 'hover_test.dart' as hover;
+import 'implementation_test.dart' as implementation;
 import 'initialization_test.dart' as initialization;
 import 'priority_files_test.dart' as priority_files;
 import 'references_test.dart' as references;
@@ -44,6 +45,7 @@ main() {
     format.main();
     lsp_packet_transformer.main();
     hover.main();
+    implementation.main();
     initialization.main();
     priority_files.main();
     references.main();

@@ -435,6 +435,21 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo<Hover>(request);
   }
 
+  Future<List<Location>> getImplementations(
+    Uri uri,
+    Position pos, {
+    includeDeclarations = false,
+  }) {
+    final request = makeRequest(
+      Method.textDocument_implementation,
+      new TextDocumentPositionParams(
+        new TextDocumentIdentifier(uri.toString()),
+        pos,
+      ),
+    );
+    return expectSuccessfulResponseTo<List<Location>>(request);
+  }
+
   Future<List<Location>> getReferences(
     Uri uri,
     Position pos, {

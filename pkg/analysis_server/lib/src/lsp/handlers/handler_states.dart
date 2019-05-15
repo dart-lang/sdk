@@ -19,6 +19,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_folding.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_format_on_type.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_formatting.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_hover.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_implementation.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialize.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialized.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_references.dart';
@@ -69,6 +70,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(new SignatureHelpHandler(server));
     registerHandler(new DefinitionHandler(server));
     registerHandler(new ReferencesHandler(server));
+    registerHandler(new ImplementationHandler(server));
     registerHandler(new FormattingHandler(server));
     registerHandler(new FormatOnTypeHandler(server));
     registerHandler(new DocumentHighlightsHandler(server));

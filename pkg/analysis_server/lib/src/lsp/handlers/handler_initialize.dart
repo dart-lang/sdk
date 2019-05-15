@@ -99,7 +99,7 @@ class InitializeMessageHandler
         ),
         true, // definitionProvider
         null,
-        null,
+        true, // implementationProvider
         true, // referencesProvider
         true, // documentHighlightProvider
         true, // documentSymbolProvider
