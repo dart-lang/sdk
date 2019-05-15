@@ -86,8 +86,10 @@ static SecCertificateRef CreateSecCertificateFromX509(X509* cert) {
   if (length < 0) {
     return NULL;
   }
-  auto deb_cert = std::make_unique<unsigned char[]>(length);
-  auto temp = deb_cert.get();
+  // This can be `std::make_unique<unsigned char[]>(length)` in C++14
+  // But the Mac toolchain is still using C++11.
+  auto deb_cert = std::unique_ptr<unsigned char[]>(new unsigned char[length]);
+  unsigned char* temp = deb_cert.get();
   if (i2d_X509(cert, &temp) != length) {
     return NULL;
   }
