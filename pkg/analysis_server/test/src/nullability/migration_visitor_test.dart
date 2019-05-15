@@ -37,7 +37,8 @@ class ConstraintGathererTest extends ConstraintsTestBase {
   /// Checks that there is a connection from [sourceNode] to [destinationNode].
   void assertConnection(
       NullabilityNode sourceNode, NullabilityNode destinationNode) {
-    expect(graph.getDownstreamNodes(sourceNode), contains(destinationNode));
+    expect(graph.getDownstreamNodes(sourceNode).toList(),
+        contains(destinationNode));
   }
 
   void assertNonNullIntent(NullabilityNode node, bool expected) {
