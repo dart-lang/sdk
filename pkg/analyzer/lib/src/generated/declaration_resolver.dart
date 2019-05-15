@@ -275,7 +275,7 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
       _walker.elementBuilder.visitGenericFunctionType(node);
     } else {
       Element element;
-      if (AnalysisDriver.useSummary2) {
+      if (AnalysisDriver.useSummary2 && _enclosingUnit.linkedContext != null) {
         var id = _nextGenericFunctionTypeId++;
         var context = _enclosingUnit.linkedContext;
         var linkedNode = context.getGenericFunctionType(id);
