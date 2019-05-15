@@ -2,6 +2,8 @@
 * Deprecated the `isNonNullableUnit` parameter of the `TypeResolverVisitor`
   constructor.  TypeResolverVisitor should now be configured using the
   `featureSet` parameter.
+* Refined the return type of the getter `TypeParameter.declaredElement`.  It is
+  always guaranteed to return a `TypeParameterElement`.
 
 ## 0.36.3
 * Deprecated `AstFactory.compilationUnit`.  In a future analyzer release, this

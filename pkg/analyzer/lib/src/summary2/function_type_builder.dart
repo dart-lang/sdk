@@ -45,7 +45,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   ) {
     return FunctionTypeBuilder(
       node.typeParameters?.typeParameters
-              ?.map((n) => n.declaredElement as TypeParameterElement)
+              ?.map((n) => n.declaredElement)
               ?.toList() ??
           [],
       node.parameters.parameters.map((n) {
