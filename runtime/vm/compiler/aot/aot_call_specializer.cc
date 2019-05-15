@@ -1145,8 +1145,10 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
     InsertBefore(call, invoke_call->PushArgumentAt(i), NULL,
                  FlowGraph::kEffect);
   }
-  // Remove original PushArguments from the graph.
+  // Replace original PushArguments in the graph (mainly env uses).
+  ASSERT(call->ArgumentCount() == invoke_call->ArgumentCount());
   for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+    call->PushArgumentAt(i)->ReplaceUsesWith(invoke_call->PushArgumentAt(i));
     call->PushArgumentAt(i)->RemoveFromGraph();
   }
 

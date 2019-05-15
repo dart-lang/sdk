@@ -3549,6 +3549,7 @@ void TryCatchAnalyzer::Optimize() {
             new (flow_graph_->zone()) ConstantInstr(orig->value());
         copy->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
         old->ReplaceUsesWith(copy);
+        copy->set_previous(old->previous());  // partial link
         (*idefs)[j] = copy;
       }
     }

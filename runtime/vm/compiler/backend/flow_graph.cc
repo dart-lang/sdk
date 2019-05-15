@@ -153,6 +153,9 @@ void FlowGraph::AddToGraphInitialDefinitions(Definition* defn) {
 void FlowGraph::AddToInitialDefinitions(BlockEntryWithInitialDefs* entry,
                                         Definition* defn) {
   defn->set_previous(entry);
+  if (auto par = defn->AsParameter()) {
+    par->set_block(entry);  // set cached block
+  }
   entry->initial_definitions()->Add(defn);
 }
 

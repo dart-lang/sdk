@@ -15,6 +15,20 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_compiler);
 
+DEFINE_FLAG(int,
+            verify_definitions_threshold,
+            250,
+            "Definition count threshold for extensive instruction checks");
+
+// Returns true for the "optimized out" and "null" constant.
+static bool IsSpecialConstant(Definition* def) {
+  if (auto c = def->AsConstant()) {
+    return c->value().raw() == Symbols::OptimizedOut().raw() ||
+           c->value().raw() == Object::ZoneHandle().raw();
+  }
+  return false;
+}
+
 // Returns true if block is a predecessor of succ.
 static bool IsPred(BlockEntryInstr* block, BlockEntryInstr* succ) {
   for (intptr_t i = 0, n = succ->PredecessorCount(); i < n; ++i) {
@@ -66,7 +80,7 @@ static bool DefDominatesUse(Definition* def, Instruction* instruction) {
     // checked by the Phi visitor below.
     return true;
   } else if (def->IsMaterializeObject() || instruction->IsMaterializeObject()) {
-    // These instructions resides outside the IR.
+    // These instructions reside outside the IR.
     return true;
   } else if (auto entry =
                  instruction->GetBlock()->AsBlockEntryWithInitialDefs()) {
@@ -140,25 +154,20 @@ void FlowGraphChecker::VisitBlocks() {
 void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
   // To avoid excessive runtimes, skip the instructions check if there
   // are many definitions (as happens in e.g. an initialization block).
-  if (flow_graph_->current_ssa_temp_index() > 10000) {
+  if (flow_graph_->current_ssa_temp_index() >
+      FLAG_verify_definitions_threshold) {
     return;
   }
   // Give all visitors quick access.
   current_block_ = block;
   // Visit initial definitions.
   if (auto entry = block->AsBlockEntryWithInitialDefs()) {
-    GrowableArray<Definition*>* initial_defs = entry->initial_definitions();
-    for (intptr_t i = 0, n = initial_defs->length(); i < n; i++) {
-      Definition* def = (*initial_defs)[i];
+    for (auto def : *entry->initial_definitions()) {
       ASSERT(def != nullptr);
       ASSERT(def->IsConstant() || def->IsParameter() ||
              def->IsSpecialParameter());
-      // TODO(dartbug.com/36895) fix this bail-out
-      // All null/optimized constants misbehave, parameters are moved
-      // around without updating block_field.
-      if (def->IsConstant() || def->GetBlock() != entry) {
-        continue;
-      }
+      // Special constants reside outside the IR.
+      if (IsSpecialConstant(def)) continue;
       // Make sure block lookup agrees.
       ASSERT(def->GetBlock() == entry);
       // Initial definitions are partially linked into graph.
@@ -218,12 +227,10 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
     VisitUseDef(instruction, instruction->InputAt(i), i, /*is_env*/ false);
   }
   // Check all environment inputs.
-  if (instruction->env() != nullptr) {
-    intptr_t i = 0;
-    for (Environment::DeepIterator it(instruction->env()); !it.Done();
-         it.Advance()) {
-      VisitUseDef(instruction, it.CurrentValue(), i++, /*is_env*/ true);
-    }
+  intptr_t i = 0;
+  for (Environment::DeepIterator it(instruction->env()); !it.Done();
+       it.Advance()) {
+    VisitUseDef(instruction, it.CurrentValue(), i++, /*is_env*/ true);
   }
   // Visit specific instructions (definitions and anything with Visit()).
   if (auto def = instruction->AsDefinition()) {
@@ -272,15 +279,17 @@ void FlowGraphChecker::VisitUseDef(Instruction* instruction,
     ASSERT(def->previous() == nullptr);
   } else if (def->IsConstant() || def->IsParameter() ||
              def->IsSpecialParameter()) {
-    test_def = false;  // TODO(dartbug.com/36895) fix this bail-out
+    // Initial definitions are partially linked into graph, but some
+    // constants are fully linked into graph (so no next() assert).
+    ASSERT(def->previous() != nullptr);
   } else {
-    if (is_env) return;  // TODO(dartbug.com/36893)
     // Others are fully linked into graph.
     ASSERT(def->next() != nullptr);
     ASSERT(def->previous() != nullptr);
   }
   if (test_def) {
-    ASSERT(DefDominatesUse(def, instruction));
+    ASSERT(is_env ||  // TODO(dartbug.com/36899)
+           DefDominatesUse(def, instruction));
     if (is_env) {
       ASSERT(IsInUseList(def->env_use_list(), instruction));
     } else {
@@ -343,14 +352,13 @@ void FlowGraphChecker::VisitConstant(ConstantInstr* constant) {
 }
 
 void FlowGraphChecker::VisitPhi(PhiInstr* phi) {
-  // Make sure each incoming input value of a Phi is dominated
-  // on the corresponding incoming edge, as defined by order.
+  // Make sure the definition of each input value of a Phi dominates
+  // the corresponding incoming edge, as defined by order.
   ASSERT(phi->InputCount() == current_block_->PredecessorCount());
   for (intptr_t i = 0, n = phi->InputCount(); i < n; ++i) {
-    Definition* input_def = phi->InputAt(i)->definition();
+    Definition* def = phi->InputAt(i)->definition();
     BlockEntryInstr* edge = current_block_->PredecessorAt(i);
-    ASSERT(input_def->IsConstant() ||  // TODO(dartbug.com/36894 and 36895)
-           edge->last_instruction()->IsDominatedBy(input_def));
+    ASSERT(DefDominatesUse(def, edge->last_instruction()));
   }
 }
 

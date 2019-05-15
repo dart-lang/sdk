@@ -2160,6 +2160,7 @@ class ParameterInstr : public Definition {
 
   // Get the block entry for that instruction.
   virtual BlockEntryInstr* GetBlock() { return block_; }
+  void set_block(BlockEntryInstr* block) { block_ = block; }
 
   intptr_t InputCount() const { return 0; }
   Value* InputAt(intptr_t i) const {
