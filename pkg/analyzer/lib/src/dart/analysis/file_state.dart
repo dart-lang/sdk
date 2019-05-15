@@ -463,7 +463,7 @@ class FileState {
     counterFileStateRefresh++;
 
     if (_fsState.useSummary2) {
-      return _refresh2();
+      return _refresh2(allowCached: allowCached);
     }
 
     var timerWasRunning = timerFileStateRefresh.isRunning;
@@ -759,7 +759,7 @@ class FileState {
     return unit;
   }
 
-  bool _refresh2() {
+  bool _refresh2({bool allowCached: false}) {
     var timerWasRunning = timerFileStateRefresh.isRunning;
     if (!timerWasRunning) {
       timerFileStateRefresh.start();
@@ -768,7 +768,7 @@ class FileState {
     _invalidateCurrentUnresolvedData();
 
     {
-      var rawFileState = _fsState._fileContentCache.get(path, false);
+      var rawFileState = _fsState._fileContentCache.get(path, allowCached);
       _content = rawFileState.content;
       _exists = rawFileState.exists;
       _contentHash = rawFileState.contentHash;
