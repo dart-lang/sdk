@@ -262,6 +262,37 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  test_dartDocMacro() async {
+    final content = '''
+    /// {@template template_name}
+    /// This is shared content.
+    /// {@endtemplate}
+    const String bar = null;
+
+    /// {@macro template_name}
+    foo(String s, int i) {
+      foo(^);
+    }
+    ''';
+    final expectedLabel = 'foo(String s, int i)';
+    final expectedDoc = 'This is shared content.';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        new ParameterInformation('String s', null),
+        new ParameterInformation('int i', null),
+      ],
+      expectedFormat: null,
+    );
+  }
+
   test_unopenFile() async {
     final content = '''
     /// Does foo.

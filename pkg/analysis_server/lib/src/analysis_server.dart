@@ -54,7 +54,6 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -146,12 +145,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   ResolverProvider packageResolverProvider;
 
   PerformanceLog _analysisPerformanceLogger;
-
-  ByteStore byteStore;
-  nd.AnalysisDriverScheduler analysisDriverScheduler;
-
-  DeclarationsTracker declarationsTracker;
-  DeclarationsTrackerData declarationsTrackerData;
 
   /// The controller for [onAnalysisSetChanged].
   final StreamController _onAnalysisSetChangedController =
@@ -374,13 +367,6 @@ class AnalysisServer extends AbstractAnalysisServer {
         resourceProvider.pathContext.normalize(path) == path;
   }
 
-  /// Notify the declarations tracker that the file with the given [path] was
-  /// changed - added, updated, or removed.  Schedule processing of the file.
-  void notifyDeclarationsTracker(String path) {
-    declarationsTracker.changeFile(path);
-    analysisDriverScheduler.notify(null);
-  }
-
   /// Read all files, resolve all URIs, and perform required analysis in
   /// all current analysis drivers.
   void reanalyze() {
@@ -509,7 +495,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       throw new RequestFailure(
           new Response.unsupportedFeature(requestId, e.message));
     }
-    _addContextsToDeclarationsTracker();
+    addContextsToDeclarationsTracker();
   }
 
   /// Implementation for `analysis.setSubscriptions`.
@@ -689,13 +675,6 @@ class AnalysisServer extends AbstractAnalysisServer {
 //    optionUpdaters.forEach((OptionUpdater optionUpdater) {
 //      optionUpdater(defaultContextOptions);
 //    });
-  }
-
-  void _addContextsToDeclarationsTracker() {
-    for (var driver in driverMap.values) {
-      declarationsTracker.addContext(driver.analysisContext);
-      driver.resetUriResolution();
-    }
   }
 
   /// Return the path to the location of the byte store on disk, or `null` if
