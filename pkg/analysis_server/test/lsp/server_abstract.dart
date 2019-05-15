@@ -730,6 +730,31 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return diagnosticParams.diagnostics;
   }
 
+  Future<AnalyzerStatusParams> waitForAnalysisStart() =>
+      waitForAnalysisStatus(true);
+
+  Future<AnalyzerStatusParams> waitForAnalysisComplete() =>
+      waitForAnalysisStatus(false);
+
+  Future<AnalyzerStatusParams> waitForAnalysisStatus(bool analyzing) async {
+    AnalyzerStatusParams params;
+    await serverToClient.firstWhere((message) {
+      if (message is NotificationMessage &&
+          message.method == CustomMethods.AnalyzerStatus) {
+        // This helper method is used both in in-process tests where we'll get
+        // the real type back, and out-of-process integration tests where
+        // params is `Map<String, dynamic>` so for convenience just
+        // handle either here.
+        params = message.params is AnalyzerStatusParams
+            ? message.params
+            : AnalyzerStatusParams.fromJson(message.params);
+        return params.isAnalyzing == analyzing;
+      }
+      return false;
+    });
+    return params;
+  }
+
   /// Removes markers like `[[` and `]]` and `^` that are used for marking
   /// positions/ranges in strings to avoid hard-coding positions in tests.
   String withoutMarkers(String contents) =>

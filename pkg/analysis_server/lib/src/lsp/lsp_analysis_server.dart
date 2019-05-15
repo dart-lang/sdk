@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io' as io;
 
+import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
@@ -169,6 +170,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     byteStore = createByteStore(resourceProvider);
     analysisDriverScheduler =
         new nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
+    analysisDriverScheduler.status.listen(sendStatusNotification);
     analysisDriverScheduler.start();
 
     contextManager = new ContextManagerImpl(
@@ -427,6 +429,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       exception,
       stackTrace is StackTrace ? stackTrace : null,
       false,
+    ));
+  }
+
+  /// Send status notification to the client. The state of analysis is given by
+  /// the [status] information.
+  void sendStatusNotification(nd.AnalysisStatus status) {
+    channel.sendNotification(new NotificationMessage(
+      CustomMethods.AnalyzerStatus,
+      new AnalyzerStatusParams(status.isAnalyzing),
+      jsonRpcVersion,
     ));
   }
 

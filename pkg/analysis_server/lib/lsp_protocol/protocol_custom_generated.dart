@@ -21,6 +21,54 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 
 const jsonEncoder = const JsonEncoder.withIndent('    ');
 
+class AnalyzerStatusParams implements ToJsonable {
+  static const jsonHandler = const LspJsonHandler(
+      AnalyzerStatusParams.canParse, AnalyzerStatusParams.fromJson);
+
+  AnalyzerStatusParams(this.isAnalyzing) {
+    if (isAnalyzing == null) {
+      throw 'isAnalyzing is required but was not provided';
+    }
+  }
+  static AnalyzerStatusParams fromJson(Map<String, dynamic> json) {
+    final isAnalyzing = json['isAnalyzing'];
+    return new AnalyzerStatusParams(isAnalyzing);
+  }
+
+  final bool isAnalyzing;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    __result['isAnalyzing'] =
+        isAnalyzing ?? (throw 'isAnalyzing is required but was not set');
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('isAnalyzing') &&
+        obj['isAnalyzing'] is bool;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalyzerStatusParams) {
+      return isAnalyzing == other.isAnalyzing && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, isAnalyzing.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
 class DartDiagnosticServer implements ToJsonable {
   static const jsonHandler = const LspJsonHandler(
       DartDiagnosticServer.canParse, DartDiagnosticServer.fromJson);

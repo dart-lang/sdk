@@ -83,6 +83,7 @@ Future writeCustomClasses(ArgResults args, String outFolder) async {
 
   final List<AstNode> customTypes = [
     interface('DartDiagnosticServer', [field('port', type: 'number')]),
+    interface('AnalyzerStatusParams', [field('isAnalyzing', type: 'boolean')]),
   ];
 
   final String output = generateDartForTypes(customTypes);

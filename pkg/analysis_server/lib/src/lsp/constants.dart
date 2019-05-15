@@ -59,4 +59,5 @@ abstract class ServerErrorCodes {
 
 abstract class CustomMethods {
   static const DiagnosticServer = const Method('dart/diagnosticServer');
+  static const AnalyzerStatus = const Method(r'$/analyzerStatus');
 }
