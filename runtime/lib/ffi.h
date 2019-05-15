@@ -9,11 +9,11 @@
 
 #include <platform/globals.h>
 
-#include "runtime/vm/class_id.h"
-#include "runtime/vm/compiler/backend/locations.h"
-#include "runtime/vm/compiler/ffi.h"
-#include "runtime/vm/object.h"
-#include "runtime/vm/raw_object.h"
+#include "vm/class_id.h"
+#include "vm/compiler/backend/locations.h"
+#include "vm/compiler/ffi.h"
+#include "vm/object.h"
+#include "vm/raw_object.h"
 
 namespace dart {
 
