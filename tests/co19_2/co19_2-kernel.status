@@ -1174,7 +1174,7 @@ LibTest/typed_data/Uint8ClampedList/last_A01_t02: RuntimeError
 LibTest/typed_data/Uint8List/first_A01_t02: RuntimeError
 LibTest/typed_data/Uint8List/last_A01_t02: RuntimeError
 
-[ $strong && ($compiler == dartk || $compiler == dartkb) ]
+[ $compiler == dartk || $compiler == dartkb ]
 Language/Expressions/Additive_Expressions/syntax_t01: RuntimeError
 Language/Expressions/Assignment/null_aware_assignment_static_type_t01: RuntimeError
 Language/Expressions/Function_Invocation/async_generator_invokation_t08: Fail

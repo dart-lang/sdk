@@ -35,12 +35,28 @@ io/web_socket_protocol_processor_test: CompileTimeError
 io/zlib_test: RuntimeError
 
 [ $compiler == dartkb ]
+io/dart_std_io_pipe_test: Pass, Timeout # Please triage
+io/platform_resolved_executable_test/00: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
+io/platform_resolved_executable_test/01: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
+io/platform_resolved_executable_test/02: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
 io/platform_resolved_executable_test/03: RuntimeError
 io/platform_resolved_executable_test/04: RuntimeError
+io/platform_resolved_executable_test/05: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
+io/platform_test: RuntimeError # Platform.script points to dill file.
+io/test_extension_fail_test: RuntimeError # Platform.script points to dill file.
+io/test_extension_test: RuntimeError # Platform.script points to dill file.
+no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_lazy_dispatchers
 
 [ $compiler == dartkp ]
 io/arguments_test: Fail # Test harness passes runtime arguments to the compiler
 io/test_runner_test: SkipByDesign # Is not relevant for AOT.
+
+[ $compiler == fasta ]
+io/http_cookie_date_test: CompileTimeError
+io/http_headers_test: CompileTimeError
+io/http_parser_test: CompileTimeError
+io/secure_socket_argument_test: CompileTimeError
+io/web_socket_protocol_processor_test: CompileTimeError
 
 [ $system == android ]
 entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".
@@ -48,6 +64,7 @@ entrypoints_verification_test: Skip # Requires shared objects which the test scr
 [ $fasta ]
 deferred_transitive_import_error_test: CompileTimeError
 package/package1_test: CompileTimeError
+package/package_isolate_test: CompileTimeError
 package/package_test: CompileTimeError
 package/scenarios/invalid/invalid_utf8_test: CompileTimeError
 package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
@@ -56,10 +73,10 @@ package/scenarios/invalid/same_package_twice_test: CompileTimeError
 [ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
 io/file_lock_test: SkipSlow # Timeout
 
-[ $arch == ia32 && $compiler == dartk && $strong ]
+[ $arch == ia32 && $compiler == dartk ]
 io/dart_std_io_pipe_test: Timeout, Pass # Issue 34723
 
-[ $arch == simarm64 && $strong && ($compiler == dartk || $compiler == dartkb) ]
+[ $arch == simarm64 && ($compiler == dartk || $compiler == dartkb) ]
 io/http_bind_test: Pass, Slow
 
 [ $arch == x64 && $builder_tag == asan && $compiler == dartk ]
@@ -71,19 +88,7 @@ io/test_extension_fail_test: Fail # Memory leak (issue 34724)
 [ $builder_tag == optimization_counter_threshold && ($compiler == dartk || $compiler == dartkb) ]
 map_insert_remove_oom_test: Skip # Heap limit too low.
 
-# The failures below still need to be investigated and possibly fixed, or marked as skipped.
-[ $compiler == dartkb && $strong ]
-io/dart_std_io_pipe_test: Pass, Timeout # Please triage
-io/platform_resolved_executable_test/00: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
-io/platform_resolved_executable_test/01: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
-io/platform_resolved_executable_test/02: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
-io/platform_resolved_executable_test/05: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
-io/platform_test: RuntimeError # Platform.script points to dill file.
-io/test_extension_fail_test: RuntimeError # Platform.script points to dill file.
-io/test_extension_test: RuntimeError # Platform.script points to dill file.
-no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_lazy_dispatchers
-
-[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
+[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled ]
 io/raw_socket_test: Crash
 io/skipping_dart2js_compilations_test: Crash
 io/socket_exception_test: Pass, Crash
@@ -92,14 +97,10 @@ io/socket_info_ipv4_test: Pass, Crash
 io/socket_info_ipv6_test: Pass, Crash
 io/socket_port_test: Pass, Crash
 
-[ $compiler == dartkp && $mode == product && $runtime == dart_precompiled && $strong ]
+[ $compiler == dartkp && $mode == product && $runtime == dart_precompiled ]
 io/compile_all_test: Pass
 
-# ===== dartkp + dart_precompiled status lines =====
-[ $compiler == dartkp && $runtime == dart_precompiled && $system != windows && $strong ]
-io/namespace_test: RuntimeError
-
-[ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
+[ $compiler == dartkp && $runtime == dart_precompiled ]
 io/compile_all_test: Skip # We do not support --compile-all for precompilation
 io/file_fuzz_test: RuntimeError, Pass
 io/http_client_connect_test: Skip # Flaky.
@@ -131,20 +132,14 @@ no_support_debugger_test: Skip # kernel-service snapshot not compatible with fla
 regress_29350_test: MissingCompileTimeError
 regress_29350_test/none: Pass # Issue 31537
 
+# ===== dartkp + dart_precompiled status lines =====
+[ $compiler == dartkp && $runtime == dart_precompiled && $system != windows ]
+io/namespace_test: RuntimeError
+
 [ $compiler == dartkp && $system == android ]
 io/http_close_test: Timeout # Issue 28380
 
-[ $compiler == dartkp && !$strong ]
-*: SkipByDesign
-
-[ $compiler == fasta && $strong ]
-io/http_cookie_date_test: CompileTimeError
-io/http_headers_test: CompileTimeError
-io/http_parser_test: CompileTimeError
-io/secure_socket_argument_test: CompileTimeError
-io/web_socket_protocol_processor_test: CompileTimeError
-
-[ $mode == debug && $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
+[ $mode == debug && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 io/file_lock_test: Slow, Pass
 io/raw_socket_test: Crash
 io/socket_exception_test: Pass, Crash
@@ -156,7 +151,7 @@ io/socket_port_test: Pass, Crash
 [ $mode == debug && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
 io/web_socket_ping_test: Crash, Pass
 
-[ $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
+[ $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 io/http_client_request_test: Pass, Timeout
 io/secure_builtin_roots_test: Pass, Timeout
 io/socket_finalizer_test: Pass, Timeout
@@ -164,22 +159,14 @@ no_support_debugger_test: Skip # kernel-service snapshot not compatible with fla
 regress_29350_test: MissingCompileTimeError
 regress_29350_test/none: Pass # Issue 31537
 
-[ $system == windows && $strong && ($compiler == dartk || $compiler == dartkb) ]
-io/compile_all_test: Pass, Fail # Possibly related to issue 32373
-map_insert_remove_oom_test: Skip # Heap limit too low.
-
 [ $system == windows && ($compiler == dartk || $compiler == dartkb) ]
+io/compile_all_test: Pass, Fail # Possibly related to issue 32373
 io/dart_std_io_pipe_test: Pass, Slow
 io/secure_builtin_roots_test: Skip # Issues 32137 and 32138.
 io/test_extension_fail_test: RuntimeError, Pass # Issue 32137.
 io/test_extension_test: RuntimeError, Pass # Issue 32137.
 io/wait_for_event_isolate_test: Skip # Issues 32137 and 32138.
-
-[ $fasta && $strong ]
-package/package_isolate_test: CompileTimeError
-
-[ $fasta && !$strong ]
-regress_29350_test/none: MissingCompileTimeError
+map_insert_remove_oom_test: Skip # Heap limit too low.
 
 [ $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
 io/http_no_reason_phrase_test: Pass, Crash
@@ -192,7 +179,7 @@ io/echo_server_stream_test: Pass, Slow
 # Enabling of dartk for sim{arm,arm64,dbc64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
-[ $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
+[ ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
 fragmentation_test: Timeout, Pass
 io/dart_std_io_pipe_test: Timeout, Pass
 io/directory_list_sync_test: Timeout, Pass # Please triage.
@@ -203,13 +190,6 @@ io/process_sync_test: Timeout, Pass
 io/test_extension_fail_test: RuntimeError # Platform.script points to dill file.
 io/test_extension_test: RuntimeError # Platform.script points to dill file.
 map_insert_remove_oom_test: Skip # Heap limit too low.
-
-# ===== Skip dartk and darkp in !$strong mode ====
-[ !$strong && ($compiler == dartk || $compiler == dartkb) ]
-*: SkipByDesign
-
-[ !$strong && ($compiler == dartk || $compiler == dartkb || $compiler == dartkp || $runtime == dart_precompiled || $runtime == vm) ]
-*: SkipByDesign # standalone_2 is only supported in strong mode.
 
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
 io/addlatexhash_test: Skip # Timeout
@@ -227,7 +207,6 @@ io/socket_close_test: Skip # Timeout
 io/socket_many_connections_test: Skip # Timeout
 io/web_socket_compression_test: Skip # Timeout
 io/web_socket_test: Skip # Timeout
-
 
 [ $compiler != dartk && $compiler != dartkb && $compiler != dartkp || $compiler == dartkp && $system == windows ]
 entrypoints_verification_test: SkipByDesign # Requires VM to run. Cannot run in precompiled Windows because the DLL is linked against dart.exe instead of dart_precompiled_runtime.exe.
