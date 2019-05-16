@@ -551,9 +551,9 @@ class ContextsPage extends DiagnosticPageWithNav {
     }
 
     h3('Dartdoc template info');
-    DartdocDirectiveInfo info = (server as AnalysisServer).declarationsTracker
-        ?.getContext(driver.analysisContext)
-        ?.dartdocDirectiveInfo ??
+    DartdocDirectiveInfo info = server.declarationsTracker
+            ?.getContext(driver.analysisContext)
+            ?.dartdocDirectiveInfo ??
         new DartdocDirectiveInfo();
     writeMap(info.templateMap);
   }
