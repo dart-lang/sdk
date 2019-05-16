@@ -100,6 +100,7 @@ import 'package:linter/src/rules/prefer_foreach.dart';
 import 'package:linter/src/rules/prefer_function_declarations_over_variables.dart';
 import 'package:linter/src/rules/prefer_generic_function_type_aliases.dart';
 import 'package:linter/src/rules/prefer_if_elements_to_conditional_expressions.dart';
+import 'package:linter/src/rules/prefer_if_null_operators.dart';
 import 'package:linter/src/rules/prefer_initializing_formals.dart';
 import 'package:linter/src/rules/prefer_inlined_adds.dart';
 import 'package:linter/src/rules/prefer_int_literals.dart';
@@ -250,6 +251,7 @@ void registerLintRules() {
     ..register(new PreferFunctionDeclarationsOverVariables())
     ..register(new PreferGenericFunctionTypeAliases())
     ..register(new PreferIfElementsToConditionalExpressions())
+    ..register(new PreferIfNullOperators())
     ..register(new PreferInitializingFormals())
     ..register(new PreferInlinedAdds())
     ..register(new PreferIntLiterals())
