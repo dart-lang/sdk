@@ -292,9 +292,13 @@ class _HttpClientResponse extends _HttpInboundMessage
   // The HttpClientRequest of this response.
   final _HttpClientRequest _httpRequest;
 
+  // Whether this response is configured to auto uncompress.
+  final bool autoUncompress;
+
   _HttpClientResponse(
       _HttpIncoming _incoming, this._httpRequest, this._httpClient)
-      : super(_incoming) {
+      : autoUncompress = _httpClient.autoUncompress,
+        super(_incoming) {
     // Set uri for potential exceptions.
     _incoming.uri = _httpRequest.uri;
   }
@@ -377,7 +381,7 @@ class _HttpClientResponse extends _HttpInboundMessage
       return new Stream<List<int>>.empty().listen(null, onDone: onDone);
     }
     Stream<List<int>> stream = _incoming;
-    if (_httpClient.autoUncompress &&
+    if (autoUncompress &&
         headers.value(HttpHeaders.contentEncodingHeader) == "gzip") {
       stream = stream.transform(gzip.decoder);
     }
