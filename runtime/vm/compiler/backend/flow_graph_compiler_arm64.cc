@@ -837,20 +837,11 @@ void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
 
 void FlowGraphCompiler::EmitFrameEntry() {
   const Function& function = parsed_function().function();
-  Register new_pp = kNoRegister;
   if (CanOptimizeFunction() && function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {
     __ Comment("Invocation Count Check");
     const Register function_reg = R6;
-    new_pp = R13;
-    if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
-      // The pool pointer is not setup before entering the Dart frame.
-      // Temporarily setup pool pointer for this dart function.
-      __ LoadPoolPointer(new_pp);
-    }
-
-    // Load function object using the callee's pool pointer.
-    __ LoadFunctionFromCalleePool(function_reg, function, new_pp);
+    __ ldr(function_reg, FieldAddress(CODE_REG, Code::owner_offset()));
 
     __ LoadFieldFromOffset(R7, function_reg, Function::usage_counter_offset(),
                            kWord);
@@ -865,17 +856,18 @@ void FlowGraphCompiler::EmitFrameEntry() {
     ASSERT(function_reg == R6);
     Label dont_optimize;
     __ b(&dont_optimize, LT);
-    __ Branch(StubCode::OptimizeFunction(), new_pp);
+    __ ldr(TMP, Address(THR, Thread::optimize_entry_offset()));
+    __ br(TMP);
     __ Bind(&dont_optimize);
   }
   __ Comment("Enter frame");
   if (flow_graph().IsCompiledForOsr()) {
     const intptr_t extra_slots = ExtraStackSlotsOnOsrEntry();
     ASSERT(extra_slots >= 0);
-    __ EnterOsrFrame(extra_slots * kWordSize, new_pp);
+    __ EnterOsrFrame(extra_slots * kWordSize);
   } else {
     ASSERT(StackSize() >= 0);
-    __ EnterDartFrame(StackSize() * kWordSize, new_pp);
+    __ EnterDartFrame(StackSize() * kWordSize);
   }
 }
 

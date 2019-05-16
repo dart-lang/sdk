@@ -670,6 +670,49 @@ ASSEMBLER_TEST_RUN(Testb3, test) {
       "ret\n");
 }
 
+struct JumpAddress {
+  uword filler1;
+  uword filler2;
+  uword filler3;
+  uword filler4;
+  uword filler5;
+  uword target;
+  uword filler6;
+  uword filler7;
+  uword filler8;
+};
+static JumpAddress jump_address;
+static uword jump_address_offset;
+
+ASSEMBLER_TEST_GENERATE(JumpAddress, assembler) {
+  __ jmp(Address(CallingConventions::kArg1Reg, OFFSET_OF(JumpAddress, target)));
+  __ int3();
+  __ int3();
+  __ int3();
+  __ int3();
+  __ int3();
+  jump_address_offset = __ CodeSize();
+  __ movl(RAX, Immediate(42));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(JumpAddress, test) {
+  memset(&jump_address, 0, sizeof(jump_address));
+  jump_address.target = test->entry() + jump_address_offset;
+
+  typedef int (*TestCode)(void*);
+  EXPECT_EQ(42, reinterpret_cast<TestCode>(test->entry())(&jump_address));
+  EXPECT_DISASSEMBLY_NOT_WINDOWS(
+      "jmp [rdi+0x28]\n"
+      "int3\n"
+      "int3\n"
+      "int3\n"
+      "int3\n"
+      "int3\n"
+      "movl rax,0x2a\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Increment, assembler) {
   __ movq(RAX, Immediate(0));
   __ pushq(RAX);

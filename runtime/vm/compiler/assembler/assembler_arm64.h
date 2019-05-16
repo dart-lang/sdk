@@ -1485,9 +1485,6 @@ class Assembler : public AssemblerBase {
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
                        ObjectPoolBuilderEntry::Patchability patchable);
-  void LoadFunctionFromCalleePool(Register dst,
-                                  const Function& function,
-                                  Register new_pp);
   void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj);
   void LoadUniqueObject(Register dst, const Object& obj);
@@ -1537,7 +1534,7 @@ class Assembler : public AssemblerBase {
   void RestoreCodePointer();
 
   void EnterDartFrame(intptr_t frame_size, Register new_pp = kNoRegister);
-  void EnterOsrFrame(intptr_t extra_size, Register new_pp);
+  void EnterOsrFrame(intptr_t extra_size, Register new_pp = kNoRegister);
   void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
 
   void EnterCallRuntimeFrame(intptr_t frame_size);

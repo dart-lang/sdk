@@ -359,8 +359,7 @@ void StubCodeCompiler::GenerateCallStaticFunctionStub(Assembler* assembler) {
   // Remove the stub frame as we are about to jump to the dart function.
   __ LeaveFrame();
 
-  __ movl(ECX, FieldAddress(EAX, target::Code::entry_point_offset()));
-  __ jmp(ECX);
+  __ jmp(FieldAddress(EAX, target::Code::entry_point_offset()));
 }
 
 // Called from a static call only when an invalid code has been entered
@@ -666,8 +665,7 @@ void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
     __ Bind(&call_target_function);
   }
 
-  __ movl(EBX, FieldAddress(EAX, target::Function::entry_point_offset()));
-  __ jmp(EBX);
+  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
 }
 
 // Called for inline allocation of arrays.
@@ -1779,8 +1777,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ Bind(&call_target_function);
   __ Comment("Call target");
   // EAX: Target function.
-  __ movl(EBX, FieldAddress(EAX, target::Function::entry_point_offset()));
-  __ jmp(EBX);
+  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
 
 #if !defined(PRODUCT)
   if (optimized == kUnoptimized) {
@@ -1942,8 +1939,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
 
   // Get function and call it, if possible.
   __ movl(EAX, Address(EBX, target_offset));
-  __ movl(EBX, FieldAddress(EAX, target::Function::entry_point_offset()));
-  __ jmp(EBX);
+  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
 
 #if !defined(PRODUCT)
   __ Bind(&stepping);
@@ -1990,8 +1986,7 @@ void StubCodeCompiler::GenerateLazyCompileStub(Assembler* assembler) {
 
   // When using the interpreter, the function's code may now point to the
   // InterpretCall stub. Make sure EAX, ECX, and EDX are preserved.
-  __ movl(EBX, FieldAddress(EAX, target::Function::entry_point_offset()));
-  __ jmp(EBX);
+  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
 }
 
 // Stub for interpreting a function call.
@@ -2075,8 +2070,7 @@ void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ popl(EBX);  // Restore receiver.
   __ LeaveFrame();
   // Jump to original stub.
-  __ movl(EAX, FieldAddress(EAX, target::Code::entry_point_offset()));
-  __ jmp(EAX);
+  __ jmp(FieldAddress(EAX, target::Code::entry_point_offset()));
 #endif  // defined(PRODUCT)
 }
 
@@ -2092,8 +2086,7 @@ void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ popl(EAX);  // Code of the original stub
   __ LeaveFrame();
   // Jump to original stub.
-  __ movl(EAX, FieldAddress(EAX, target::Code::entry_point_offset()));
-  __ jmp(EAX);
+  __ jmp(FieldAddress(EAX, target::Code::entry_point_offset()));
 #endif  // defined(PRODUCT)
 }
 
@@ -2411,6 +2404,7 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
 // EBX: function to be reoptimized.
 // EDX: argument descriptor (preserved).
 void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
+  __ movl(CODE_REG, Address(THR, Thread::optimize_stub_offset()));
   __ EnterStubFrame();
   __ pushl(EDX);
   __ pushl(Immediate(0));  // Setup space on stack for return value.
@@ -2421,8 +2415,7 @@ void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ popl(EDX);  // Restore argument descriptor.
   __ LeaveFrame();
   __ movl(CODE_REG, FieldAddress(EAX, target::Function::code_offset()));
-  __ movl(EAX, FieldAddress(EAX, target::Function::entry_point_offset()));
-  __ jmp(EAX);
+  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
   __ int3();
 }
 
@@ -2583,8 +2576,7 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ movl(EDX,
           FieldAddress(
               ECX, target::MegamorphicCache::arguments_descriptor_offset()));
-  __ movl(EBX, FieldAddress(EAX, target::Function::entry_point_offset()));
-  __ jmp(EBX);
+  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
 
   __ Bind(&probe_failed);
   // Probe failed, check if it is a miss.

@@ -1616,14 +1616,6 @@ void Assembler::LoadUniqueObject(Register rd,
   LoadObjectHelper(rd, object, cond, /* is_unique = */ true, PP);
 }
 
-void Assembler::LoadFunctionFromCalleePool(Register dst,
-                                           const Function& function,
-                                           Register new_pp) {
-  const int32_t offset = ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(function)));
-  LoadWordFromPoolOffset(dst, offset - kHeapObjectTag, new_pp, AL);
-}
-
 void Assembler::LoadNativeEntry(Register rd,
                                 const ExternalLabel* label,
                                 ObjectPoolBuilderEntry::Patchability patchable,

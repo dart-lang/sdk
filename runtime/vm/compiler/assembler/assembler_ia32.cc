@@ -1667,6 +1667,12 @@ void Assembler::jmp(Register reg) {
   EmitRegisterOperand(4, reg);
 }
 
+void Assembler::jmp(const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xFF);
+  EmitOperand(4, address);
+}
+
 void Assembler::jmp(Label* label, bool near) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (label->IsBound()) {

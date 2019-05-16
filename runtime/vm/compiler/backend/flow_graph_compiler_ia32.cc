@@ -775,7 +775,10 @@ void FlowGraphCompiler::EmitFrameEntry() {
     __ cmpl(FieldAddress(function_reg, Function::usage_counter_offset()),
             Immediate(GetOptimizationThreshold()));
     ASSERT(function_reg == EBX);
-    __ J(GREATER_EQUAL, StubCode::OptimizeFunction());
+    Label dont_optimize;
+    __ j(LESS, &dont_optimize, Assembler::kNearJump);
+    __ jmp(Address(THR, Thread::optimize_entry_offset()));
+    __ Bind(&dont_optimize);
   }
   __ Comment("Enter frame");
   if (flow_graph().IsCompiledForOsr()) {

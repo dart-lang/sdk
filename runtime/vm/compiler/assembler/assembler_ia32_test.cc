@@ -326,6 +326,51 @@ ASSEMBLER_TEST_RUN(Testb, test) {
       "ret\n");
 }
 
+struct JumpAddress {
+  uword filler1;
+  uword filler2;
+  uword filler3;
+  uword filler4;
+  uword filler5;
+  uword target;
+  uword filler6;
+  uword filler7;
+  uword filler8;
+};
+static JumpAddress jump_address;
+static uword jump_address_offset;
+
+ASSEMBLER_TEST_GENERATE(JumpAddress, assembler) {
+  __ movl(EAX, Address(ESP, 4));
+  __ jmp(Address(EAX, OFFSET_OF(JumpAddress, target)));
+  __ int3();
+  __ int3();
+  __ int3();
+  __ int3();
+  __ int3();
+  jump_address_offset = __ CodeSize();
+  __ movl(EAX, Immediate(42));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(JumpAddress, test) {
+  memset(&jump_address, 0, sizeof(jump_address));
+  jump_address.target = test->entry() + jump_address_offset;
+
+  typedef int (*TestCode)(void*);
+  EXPECT_EQ(42, reinterpret_cast<TestCode>(test->entry())(&jump_address));
+  EXPECT_DISASSEMBLY(
+      "mov eax,[esp+0x4]\n"
+      "jmp [eax+0x14]\n"
+      "int3\n"
+      "int3\n"
+      "int3\n"
+      "int3\n"
+      "int3\n"
+      "mov eax,0x2a\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Increment, assembler) {
   __ movl(EAX, Immediate(0));
   __ pushl(EAX);

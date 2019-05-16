@@ -5218,6 +5218,8 @@ class Code : public Object {
     StorePointer(&raw_ptr()->owner_, owner.raw());
   }
 
+  static intptr_t owner_offset() { return OFFSET_OF(RawCode, owner_); }
+
   // We would have a VisitPointers function here to traverse all the
   // embedded objects in the instructions using pointer_offsets.
 

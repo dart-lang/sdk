@@ -996,7 +996,7 @@ void Assembler::JmpPatchable(const Code& target, Register pp) {
   const intptr_t idx = object_pool_builder().AddObject(
       ToObject(target), ObjectPoolBuilderEntry::kPatchable);
   const int32_t offset = target::ObjectPool::element_offset(idx);
-  movq(CODE_REG, Address::AddressBaseImm32(pp, offset - kHeapObjectTag));
+  movq(CODE_REG, Address(pp, offset - kHeapObjectTag));
   movq(TMP, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   jmp(TMP);
 }
@@ -1007,8 +1007,7 @@ void Assembler::Jmp(const Code& target, Register pp) {
       ToObject(target), ObjectPoolBuilderEntry::kNotPatchable);
   const int32_t offset = target::ObjectPool::element_offset(idx);
   movq(CODE_REG, FieldAddress(pp, offset));
-  movq(TMP, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  jmp(TMP);
+  jmp(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
 }
 
 void Assembler::CompareRegisters(Register a, Register b) {
@@ -1194,17 +1193,6 @@ void Assembler::LoadObjectHelper(Register dst,
     ASSERT(target::IsSmi(object));
     LoadImmediate(dst, Immediate(target::ToRawSmi(object)));
   }
-}
-
-void Assembler::LoadFunctionFromCalleePool(Register dst,
-                                           const Function& function,
-                                           Register new_pp) {
-  ASSERT(!constant_pool_allowed());
-  ASSERT(new_pp != PP);
-  const intptr_t idx = object_pool_builder().FindObject(
-      ToObject(function), ObjectPoolBuilderEntry::kNotPatchable);
-  const int32_t offset = target::ObjectPool::element_offset(idx);
-  movq(dst, Address::AddressBaseImm32(new_pp, offset - kHeapObjectTag));
 }
 
 void Assembler::LoadObject(Register dst, const Object& object) {

@@ -549,6 +549,7 @@ class Assembler : public AssemblerBase {
   void j(Condition condition, const ExternalLabel* label);
 
   void jmp(Register reg);
+  void jmp(const Address& address);
   void jmp(Label* label, bool near = kFarJump);
   void jmp(const ExternalLabel* label);
 

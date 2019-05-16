@@ -495,17 +495,6 @@ void Assembler::LoadObjectHelper(Register dst,
   }
 }
 
-void Assembler::LoadFunctionFromCalleePool(Register dst,
-                                           const Function& function,
-                                           Register new_pp) {
-  ASSERT(!constant_pool_allowed());
-  ASSERT(new_pp != PP);
-  const int32_t offset = ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(function)));
-  ASSERT(Address::CanHoldOffset(offset));
-  ldr(dst, Address(new_pp, offset));
-}
-
 void Assembler::LoadObject(Register dst, const Object& object) {
   LoadObjectHelper(dst, object, false);
 }

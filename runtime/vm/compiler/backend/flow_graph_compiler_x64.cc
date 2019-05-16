@@ -858,18 +858,12 @@ void FlowGraphCompiler::EmitFrameEntry() {
     ASSERT(extra_slots >= 0);
     __ EnterOsrFrame(extra_slots * kWordSize);
   } else {
-    const Register new_pp = R13;
-    if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
-      __ LoadPoolPointer(new_pp);
-    }
-
     const Function& function = parsed_function().function();
     if (CanOptimizeFunction() && function.IsOptimizable() &&
         (!is_optimizing() || may_reoptimize())) {
       __ Comment("Invocation Count Check");
       const Register function_reg = RDI;
-      // Load function object using the callee's pool pointer.
-      __ LoadFunctionFromCalleePool(function_reg, function, new_pp);
+      __ movq(function_reg, FieldAddress(CODE_REG, Code::owner_offset()));
 
       // Reoptimization of an optimized function is triggered by counting in
       // IC stubs, but not at the entry of the function.
@@ -879,11 +873,14 @@ void FlowGraphCompiler::EmitFrameEntry() {
       __ cmpl(FieldAddress(function_reg, Function::usage_counter_offset()),
               Immediate(GetOptimizationThreshold()));
       ASSERT(function_reg == RDI);
-      __ J(GREATER_EQUAL, StubCode::OptimizeFunction(), new_pp);
+      Label dont_optimize;
+      __ j(LESS, &dont_optimize, Assembler::kNearJump);
+      __ jmp(Address(THR, Thread::optimize_entry_offset()));
+      __ Bind(&dont_optimize);
     }
     ASSERT(StackSize() >= 0);
     __ Comment("Enter frame");
-    __ EnterDartFrame(StackSize() * kWordSize, new_pp);
+    __ EnterDartFrame(StackSize() * kWordSize);
   }
 }
 

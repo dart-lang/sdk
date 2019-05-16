@@ -2206,8 +2206,7 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ xorl(ECX, ECX);
 
   // Tail-call the function.
-  __ movl(EDI, FieldAddress(EAX, target::Function::entry_point_offset()));
-  __ jmp(EDI);
+  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
 }
 
 // On stack: user tag (+1), return-address (+0).
