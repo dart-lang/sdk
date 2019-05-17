@@ -15,7 +15,7 @@ import 'scanner/string_scanner.dart' show StringScanner;
 
 import 'scanner/utf8_bytes_scanner.dart' show Utf8BytesScanner;
 
-import 'scanner/recover.dart' show defaultRecoveryStrategy;
+import 'scanner/recover.dart' show scannerRecovery;
 
 export 'scanner/abstract_scanner.dart'
     show LanguageVersionChanged, ScannerConfiguration;
@@ -68,12 +68,10 @@ class ScannerResult {
 }
 
 /// Scan/tokenize the given UTF8 [bytes].
-/// If [recover] is null, then the [defaultRecoveryStrategy] is used.
 ScannerResult scan(List<int> bytes,
     {ScannerConfiguration configuration,
     bool includeComments: false,
-    LanguageVersionChanged languageVersionChanged,
-    Recover recover}) {
+    LanguageVersionChanged languageVersionChanged}) {
   if (bytes.last != 0) {
     throw new ArgumentError("[bytes]: the last byte must be null.");
   }
@@ -81,31 +79,28 @@ ScannerResult scan(List<int> bytes,
       configuration: configuration,
       includeComments: includeComments,
       languageVersionChanged: languageVersionChanged);
-  return _tokenizeAndRecover(scanner, recover, bytes: bytes);
+  return _tokenizeAndRecover(scanner, bytes: bytes);
 }
 
 /// Scan/tokenize the given [source].
-/// If [recover] is null, then the [defaultRecoveryStrategy] is used.
 ScannerResult scanString(String source,
     {ScannerConfiguration configuration,
     bool includeComments: false,
-    LanguageVersionChanged languageVersionChanged,
-    Recover recover}) {
+    LanguageVersionChanged languageVersionChanged}) {
   assert(source != null, 'source must not be null');
   StringScanner scanner = new StringScanner(source,
       configuration: configuration,
       includeComments: includeComments,
       languageVersionChanged: languageVersionChanged);
-  return _tokenizeAndRecover(scanner, recover, source: source);
+  return _tokenizeAndRecover(scanner, source: source);
 }
 
-ScannerResult _tokenizeAndRecover(Scanner scanner, Recover recover,
+ScannerResult _tokenizeAndRecover(Scanner scanner,
     {List<int> bytes, String source}) {
   Token tokens = scanner.tokenize();
   if (scanner.hasErrors) {
     if (bytes == null) bytes = utf8.encode(source);
-    recover ??= defaultRecoveryStrategy;
-    tokens = recover(bytes, tokens, scanner.lineStarts);
+    tokens = scannerRecovery(bytes, tokens, scanner.lineStarts);
   }
   return new ScannerResult(tokens, scanner.lineStarts, scanner.hasErrors);
 }
