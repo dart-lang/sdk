@@ -33,6 +33,9 @@ class EnableString {
   /// String to enable the experiment "control-flow-collections"
   static const String control_flow_collections = 'control-flow-collections';
 
+  /// String to enable the experiment "extension-methods"
+  static const String extension_methods = 'extension-methods';
+
   /// String to enable the experiment "non-nullable"
   static const String non_nullable = 'non-nullable';
 
@@ -98,15 +101,22 @@ class ExperimentalFeatures {
       IsExpired.triple_shift,
       'Triple-shift operator');
 
-  static const bogus_disabled = const ExperimentalFeature(
+  static const extension_methods = const ExperimentalFeature(
       6,
+      EnableString.extension_methods,
+      IsEnabledByDefault.extension_methods,
+      IsExpired.extension_methods,
+      'Extension Methods');
+
+  static const bogus_disabled = const ExperimentalFeature(
+      7,
       EnableString.bogus_disabled,
       IsEnabledByDefault.bogus_disabled,
       IsExpired.bogus_disabled,
       null);
 
   static const bogus_enabled = const ExperimentalFeature(
-      7,
+      8,
       EnableString.bogus_enabled,
       IsEnabledByDefault.bogus_enabled,
       IsExpired.bogus_enabled,
@@ -121,11 +131,12 @@ class ExperimentStatus implements FeatureSet {
   static const knownFeatures = <String, ExperimentalFeature>{
     EnableString.constant_update_2018:
         ExperimentalFeatures.constant_update_2018,
-    EnableString.non_nullable: ExperimentalFeatures.non_nullable,
     EnableString.control_flow_collections:
         ExperimentalFeatures.control_flow_collections,
-    EnableString.spread_collections: ExperimentalFeatures.spread_collections,
+    EnableString.extension_methods: ExperimentalFeatures.extension_methods,
+    EnableString.non_nullable: ExperimentalFeatures.non_nullable,
     EnableString.set_literals: ExperimentalFeatures.set_literals,
+    EnableString.spread_collections: ExperimentalFeatures.spread_collections,
     EnableString.triple_shift: ExperimentalFeatures.triple_shift,
     EnableString.bogus_disabled: ExperimentalFeatures.bogus_disabled,
     EnableString.bogus_enabled: ExperimentalFeatures.bogus_enabled,
@@ -138,6 +149,7 @@ class ExperimentStatus implements FeatureSet {
   ExperimentStatus(
       {bool constant_update_2018,
       bool control_flow_collections,
+      bool extension_methods,
       bool non_nullable,
       bool set_literals,
       bool spread_collections,
@@ -149,6 +161,7 @@ class ExperimentStatus implements FeatureSet {
           true, // spread-collections
           true, // set-literals
           triple_shift ?? IsEnabledByDefault.triple_shift,
+          extension_methods ?? IsEnabledByDefault.extension_methods,
           false, // bogus-disabled
           true, // bogus-enabled
         ];
@@ -187,6 +200,10 @@ class ExperimentStatus implements FeatureSet {
   /// Current state for the flag "control_flow_collections"
   bool get control_flow_collections =>
       isEnabled(ExperimentalFeatures.control_flow_collections);
+
+  /// Current state for the flag "extension_methods"
+  bool get extension_methods =>
+      isEnabled(ExperimentalFeatures.extension_methods);
 
   @override
   int get hashCode {
@@ -248,6 +265,9 @@ class IsEnabledByDefault {
   /// Default state of the experiment "control-flow-collections"
   static const bool control_flow_collections = true;
 
+  /// Default state of the experiment "extension-methods"
+  static const bool extension_methods = false;
+
   /// Default state of the experiment "non-nullable"
   static const bool non_nullable = false;
 
@@ -276,6 +296,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "control-flow-collections"
   static const bool control_flow_collections = true;
+
+  /// Expiration status of the experiment "extension-methods"
+  static const bool extension_methods = false;
 
   /// Expiration status of the experiment "non-nullable"
   static const bool non_nullable = false;
