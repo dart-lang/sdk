@@ -168,7 +168,7 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
     if (H.thread()->IsMutatorThread()) {
       field.RecordStore(Object::null_object());
     } else {
-      ASSERT(field.is_nullable());
+      ASSERT(field.is_nullable(/* silence_assert = */ true));
     }
     return Fragment();
   }

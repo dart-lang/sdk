@@ -3452,7 +3452,18 @@ class Field : public Object {
   // Internally we is_nullable_ field contains either kNullCid (nullable) or
   // kInvalidCid (non-nullable) instead of boolean. This is done to simplify
   // guarding sequence in the generated code.
-  bool is_nullable() const { return raw_ptr()->is_nullable_ == kNullCid; }
+  bool is_nullable(bool silence_assert = false) const {
+#if defined(DEBUG)
+    if (!silence_assert) {
+      // Same assert as guarded_cid(), because is_nullable() also needs to be
+      // consistent for the background compiler.
+      Thread* thread = Thread::Current();
+      ASSERT(!IsOriginal() || is_static() || thread->IsMutatorThread() ||
+             thread->IsAtSafepoint());
+    }
+#endif
+    return raw_ptr()->is_nullable_ == kNullCid;
+  }
   void set_is_nullable(bool val) const {
     ASSERT(Thread::Current()->IsMutatorThread());
     StoreNonPointer(&raw_ptr()->is_nullable_, val ? kNullCid : kIllegalCid);
