@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Prefer using null aware operators.';
@@ -71,28 +70,26 @@ class _Visitor extends SimpleAstVisitor {
         expression = condition.rightOperand;
       } else if (condition.rightOperand is NullLiteral) {
         expression = condition.leftOperand;
+      } else {
+        return;
       }
 
-      // lint only if local variable is the subject to avoid side effects
-      if (expression is SimpleIdentifier &&
-          expression.staticElement is LocalVariableElement) {
-        Expression exp = condition.operator.type == TokenType.EQ_EQ
-            ? node.elseExpression
-            : node.thenExpression;
-        while (exp is PrefixedIdentifier ||
-            exp is MethodInvocation ||
-            exp is PropertyAccess) {
-          if (exp is PrefixedIdentifier) {
-            exp = (exp as PrefixedIdentifier).prefix;
-          } else if (exp is MethodInvocation) {
-            exp = (exp as MethodInvocation).target;
-          } else if (exp is PropertyAccess) {
-            exp = (exp as PropertyAccess).target;
-          }
+      Expression exp = condition.operator.type == TokenType.EQ_EQ
+          ? node.elseExpression
+          : node.thenExpression;
+      while (exp is PrefixedIdentifier ||
+          exp is MethodInvocation ||
+          exp is PropertyAccess) {
+        if (exp is PrefixedIdentifier) {
+          exp = (exp as PrefixedIdentifier).prefix;
+        } else if (exp is MethodInvocation) {
+          exp = (exp as MethodInvocation).target;
+        } else if (exp is PropertyAccess) {
+          exp = (exp as PropertyAccess).target;
         }
-        if (exp is SimpleIdentifier &&
-            exp.staticElement == expression.staticElement) {
+        if (exp.toString() == expression.toString()) {
           rule.reportLint(node);
+          return;
         }
       }
     }
