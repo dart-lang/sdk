@@ -28,13 +28,14 @@ main() {
 @reflectiveTest
 class ScannerTest_Replacement extends ScannerTestBase {
   @override
-  analyzer.Token scanWithListener(String source, ErrorListener listener) {
+  analyzer.Token scanWithListener(String source, ErrorListener listener,
+      {fasta.ScannerConfiguration configuration}) {
     // Process the source similar to
     // pkg/analyzer/lib/src/dart/scanner/scanner.dart
     // to simulate replacing the analyzer scanner
 
-    fasta.ScannerResult result =
-        fasta.scanString(source, includeComments: true);
+    fasta.ScannerResult result = fasta.scanString(source,
+        configuration: configuration, includeComments: true);
 
     fasta.Token tokens = result.tokens;
     assertValidTokenStream(tokens, errorsFirst: true);

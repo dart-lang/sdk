@@ -91,6 +91,7 @@ class Foo {
       Keyword.DEFERRED,
       Keyword.DYNAMIC,
       Keyword.EXPORT,
+      Keyword.EXTENSION,
       Keyword.EXTERNAL,
       Keyword.FACTORY,
       Keyword.GET,
@@ -142,6 +143,7 @@ class Foo {
       Keyword.CLASS,
       Keyword.ENUM,
       Keyword.EXPORT,
+      //Keyword.EXTENSION, <-- when "extension methods" is enabled by default
       Keyword.IMPORT,
       Keyword.LIBRARY,
       Keyword.MIXIN,

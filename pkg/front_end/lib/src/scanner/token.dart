@@ -173,6 +173,9 @@ class Keyword extends TokenType {
 
   static const Keyword EXTENDS = const Keyword("extends", "EXTENDS");
 
+  static const Keyword EXTENSION = const Keyword("extension", "EXTENSION",
+      isBuiltIn: true, isTopLevelKeyword: true);
+
   static const Keyword EXTERNAL =
       const Keyword("external", "EXTERNAL", isBuiltIn: true, isModifier: true);
 
@@ -303,6 +306,7 @@ class Keyword extends TokenType {
     ENUM,
     EXPORT,
     EXTENDS,
+    EXTENSION,
     EXTERNAL,
     FACTORY,
     FALSE,
