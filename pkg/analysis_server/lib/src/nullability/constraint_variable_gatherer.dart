@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /// Visitor that gathers constraint variables for nullability migration from
@@ -42,8 +43,10 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   final NullabilityGraph _graph;
 
+  final TypeProvider _typeProvider;
+
   ConstraintVariableGatherer(this._variables, this._source, this._permissive,
-      this.assumptions, this._graph);
+      this.assumptions, this._graph, this._typeProvider);
 
   /// Creates and stores a [DecoratedType] object corresponding to the given
   /// [type] AST, and returns it.
@@ -158,6 +161,18 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitTypeName(TypeName node) => visitTypeAnnotation(node);
 
+  @override
+  DecoratedType visitTypeParameter(TypeParameter node) {
+    var element = node.declaredElement;
+    var decoratedBound = node.bound?.accept(this) ??
+        DecoratedType(
+            element.bound ?? _typeProvider.objectType,
+            NullabilityNode.forInferredDynamicType(_graph, node.offset),
+            _graph);
+    _variables.recordDecoratedElementType(element, decoratedBound);
+    return null;
+  }
+
   /// Common handling of function and method declarations.
   void _handleExecutableDeclaration(
       ExecutableElement declaredElement,
@@ -218,6 +233,10 @@ abstract class VariableRepository {
   /// If [create] is `true`, and no decorated type is found for the given
   /// element, one is synthesized using [DecoratedType.forElement].
   DecoratedType decoratedElementType(Element element, {bool create: false});
+
+  /// Gets the [DecoratedType] associated with the given [typeAnnotation].
+  DecoratedType decoratedTypeAnnotation(
+      Source source, TypeAnnotation typeAnnotation);
 
   /// Records conditional discard information for the given AST node (which is
   /// an `if` statement or a conditional (`?:`) expression).

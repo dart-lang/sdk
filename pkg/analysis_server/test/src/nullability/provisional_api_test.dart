@@ -762,6 +762,34 @@ int? g() => f();
         {path1: file1, path2: file2}, {path1: expected1, path2: expected2});
   }
 
+  test_type_argument_flows_to_bound() async {
+    // The inference of C<int?> forces class C to be declared as
+    // C<T extends Object?>.
+    var content = '''
+class C<T extends Object> {
+  void m(T t);
+}
+class D<T extends Object> {
+  void m(T t);
+}
+f(C<int> c, D<int> d) {
+  c.m(null);
+}
+''';
+    var expected = '''
+class C<T extends Object?> {
+  void m(T t);
+}
+class D<T extends Object> {
+  void m(T t);
+}
+f(C<int?> c, D<int> d) {
+  c.m(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_unconditional_assert_statement_implies_non_null_intent() async {
     var content = '''
 void f(int i) {

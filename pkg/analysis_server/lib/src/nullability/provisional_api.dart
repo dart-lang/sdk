@@ -94,7 +94,7 @@ class NullabilityMigration {
   }
 
   void prepareInput(ResolvedUnitResult result) {
-    _analyzerMigration.prepareInput(result.unit);
+    _analyzerMigration.prepareInput(result.unit, result.typeProvider);
   }
 
   void processInput(ResolvedUnitResult result) {

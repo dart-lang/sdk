@@ -158,9 +158,14 @@ class NullabilityMigration {
     return _variables.getPotentialModifications();
   }
 
-  void prepareInput(CompilationUnit unit) {
-    unit.accept(ConstraintVariableGatherer(_variables,
-        unit.declaredElement.source, _permissive, assumptions, _graph));
+  void prepareInput(CompilationUnit unit, TypeProvider typeProvider) {
+    unit.accept(ConstraintVariableGatherer(
+        _variables,
+        unit.declaredElement.source,
+        _permissive,
+        assumptions,
+        _graph,
+        typeProvider));
   }
 
   void processInput(CompilationUnit unit, TypeProvider typeProvider) {
@@ -257,6 +262,9 @@ abstract class PotentialModification {
 class Variables implements VariableRecorder, VariableRepository {
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
+  final _decoratedTypeAnnotations =
+      <Source, Map<int, DecoratedTypeAnnotation>>{};
+
   final _potentialModifications = <Source, List<PotentialModification>>{};
 
   final NullabilityGraph _graph;
@@ -268,6 +276,13 @@ class Variables implements VariableRecorder, VariableRepository {
       _decoratedElementTypes[element] ??= create
           ? DecoratedType.forElement(element, _graph)
           : throw StateError('No element found');
+
+  @override
+  DecoratedType decoratedTypeAnnotation(
+      Source source, TypeAnnotation typeAnnotation) {
+    return _decoratedTypeAnnotations[source]
+        [_uniqueOffsetForTypeAnnotation(typeAnnotation)];
+  }
 
   Map<Source, List<PotentialModification>> getPotentialModifications() =>
       _potentialModifications;
@@ -288,6 +303,8 @@ class Variables implements VariableRecorder, VariableRepository {
   void recordDecoratedTypeAnnotation(
       Source source, TypeAnnotation node, DecoratedTypeAnnotation type) {
     _addPotentialModification(source, type);
+    (_decoratedTypeAnnotations[source] ??=
+        {})[_uniqueOffsetForTypeAnnotation(node)] = type;
   }
 
   @override
@@ -354,6 +371,11 @@ class Variables implements VariableRecorder, VariableRepository {
       Source source, PotentialModification potentialModification) {
     (_potentialModifications[source] ??= []).add(potentialModification);
   }
+
+  int _uniqueOffsetForTypeAnnotation(TypeAnnotation typeAnnotation) =>
+      typeAnnotation is GenericFunctionType
+          ? typeAnnotation.functionKeyword.offset
+          : typeAnnotation.offset;
 }
 
 /// Helper object used by [ConditionalModification] to keep track of AST nodes

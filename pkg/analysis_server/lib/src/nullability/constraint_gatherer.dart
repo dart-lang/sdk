@@ -415,6 +415,23 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitTypeName(TypeName typeName) {
+    var typeArguments = typeName.typeArguments?.arguments;
+    var element = typeName.name.staticElement;
+    if (typeArguments != null) {
+      for (int i = 0; i < typeArguments.length; i++) {
+        DecoratedType bound;
+        if (element is TypeParameterizedElement) {
+          bound = _variables.decoratedElementType(element.typeParameters[i],
+              create: true);
+        } else {
+          throw new UnimplementedError('TODO(paulberry)');
+        }
+        _checkAssignment(
+            bound,
+            _variables.decoratedTypeAnnotation(_source, typeArguments[i]),
+            null);
+      }
+    }
     return DecoratedType(typeName.type, NullabilityNode.never, _graph);
   }
 

@@ -767,6 +767,15 @@ int f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
 
+  test_type_argument_explicit_bound() async {
+    await analyze('''
+class C<T extends Object> {}
+void f(C<int> c) {}
+''');
+    assertConnection(decoratedTypeAnnotation('int>').node,
+        decoratedTypeAnnotation('Object>').node);
+  }
+
   test_typeName() async {
     await analyze('''
 Type f() {
@@ -798,6 +807,9 @@ class ConstraintVariableGathererTest extends MigrationVisitorTestBase {
   DecoratedType decoratedFunctionType(String search) =>
       _variables.decoratedElementType(
           findNode.functionDeclaration(search).declaredElement);
+
+  DecoratedType decoratedTypeParameterBound(String search) => _variables
+      .decoratedElementType(findNode.typeParameter(search).declaredElement);
 
   test_interfaceType_typeParameter() async {
     await analyze('''
@@ -908,6 +920,29 @@ int f() => 0;
     expect(decoratedType.node, isNotNull);
     expect(decoratedType.node, isNot(NullabilityNode.never));
   }
+
+  test_type_parameter_explicit_bound() async {
+    await analyze('''
+class C<T extends Object> {}
+''');
+    var bound = decoratedTypeParameterBound('T');
+    expect(decoratedTypeAnnotation('Object'), same(bound));
+    expect(bound.node, isNot(NullabilityNode.always));
+    expect(bound.type, typeProvider.objectType);
+  }
+
+  test_type_parameter_implicit_bound() async {
+    // The implicit bound of `T` is automatically `Object?`.  TODO(paulberry):
+    // consider making it possible for type inference to infer an explicit bound
+    // of `Object`.
+    await analyze('''
+class C<T> {}
+''');
+    var bound = decoratedTypeParameterBound('T');
+    expect(graph.getUnconditionalUpstreamNodes(bound.node),
+        contains(NullabilityNode.always));
+    expect(bound.type, same(typeProvider.objectType));
+  }
 }
 
 class MigrationVisitorTestBase extends AbstractSingleUnitTest {
@@ -928,7 +963,7 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
           const NullabilityMigrationAssumptions()}) async {
     await resolveTestUnit(code);
     testUnit.accept(ConstraintVariableGatherer(
-        _variables, testSource, false, assumptions, graph));
+        _variables, testSource, false, assumptions, graph, typeProvider));
     findNode = FindNode(code, testUnit);
     return testUnit;
   }
@@ -936,7 +971,8 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
   /// Gets the [DecoratedType] associated with the type annotation whose text
   /// is [text].
   DecoratedType decoratedTypeAnnotation(String text) {
-    return _variables.decoratedTypeAnnotation(findNode.typeAnnotation(text));
+    return _variables.decoratedTypeAnnotation(
+        testSource, findNode.typeAnnotation(text));
   }
 
   NullabilityNode possiblyOptionalParameter(String text) {
@@ -957,8 +993,6 @@ class _Variables extends Variables {
 
   final _decoratedExpressionTypes = <Expression, DecoratedType>{};
 
-  final _decoratedTypeAnnotations = <TypeAnnotation, DecoratedType>{};
-
   final _expressionChecks = <Expression, ExpressionChecks>{};
 
   final _possiblyOptional = <DefaultFormalParameter, NullabilityNode>{};
@@ -977,10 +1011,6 @@ class _Variables extends Variables {
   DecoratedType decoratedExpressionType(Expression expression) =>
       _decoratedExpressionTypes[_normalizeExpression(expression)];
 
-  /// Gets the [DecoratedType] associated with the given [typeAnnotation].
-  DecoratedType decoratedTypeAnnotation(TypeAnnotation typeAnnotation) =>
-      _decoratedTypeAnnotations[typeAnnotation];
-
   /// Gets the [NullabilityNode] associated with the possibility that
   /// [parameter] may be optional.
   NullabilityNode possiblyOptionalParameter(DefaultFormalParameter parameter) =>
@@ -996,12 +1026,6 @@ class _Variables extends Variables {
   void recordDecoratedExpressionType(Expression node, DecoratedType type) {
     super.recordDecoratedExpressionType(node, type);
     _decoratedExpressionTypes[_normalizeExpression(node)] = type;
-  }
-
-  void recordDecoratedTypeAnnotation(
-      Source source, TypeAnnotation node, DecoratedType type) {
-    super.recordDecoratedTypeAnnotation(source, node, type);
-    _decoratedTypeAnnotations[node] = type;
   }
 
   @override
