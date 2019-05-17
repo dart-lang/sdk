@@ -12,7 +12,6 @@ js
   (no dependencies)
   lib/js.dart
   lib/js_util.dart
-  lib/src/
   lib/src/varargs.dart
 
 main

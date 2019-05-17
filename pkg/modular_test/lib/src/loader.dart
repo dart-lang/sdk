@@ -111,7 +111,10 @@ Future<List<Uri>> _listModuleSources(Uri root) async {
   Directory folder = Directory.fromUri(root);
   int baseUriPrefixLength = folder.parent.uri.path.length;
   await for (var file in folder.list(recursive: true)) {
-    sources.add(Uri.parse(file.uri.path.substring(baseUriPrefixLength)));
+    var path = file.uri.path;
+    if (path.endsWith('.dart')) {
+      sources.add(Uri.parse(path.substring(baseUriPrefixLength)));
+    }
   }
   return sources..sort((a, b) => a.path.compareTo(b.path));
 }

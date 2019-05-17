@@ -15,6 +15,8 @@ class ModularTest {
 
   ModularTest(this.modules, this.mainModule)
       : assert(mainModule != null && modules.length > 0);
+
+  String debugString() => modules.map((m) => m.debugString()).join('\n');
 }
 
 /// A single module in a modular test.
@@ -60,6 +62,17 @@ class Module {
 
   @override
   String toString() => '[module $name]';
+
+  String debugString() {
+    var buffer = new StringBuffer();
+    buffer.write('   ');
+    buffer.write(name);
+    buffer.write(': ');
+    buffer.write(isPackage ? 'package' : '(not package)');
+    buffer.write(', deps: {${dependencies.map((d) => d.name).join(", ")}}');
+    buffer.write(', sources: {${sources.map((u) => "$u").join(', ')}}');
+    return '$buffer';
+  }
 }
 
 final RegExp _validModuleName = new RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*$');
