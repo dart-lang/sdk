@@ -18,8 +18,8 @@ c
 d
   is package? no
   (no dependencies)
-  d.dart
-  e.dart
+  d/d.dart
+  d/e.dart
 
 main
   **main module**

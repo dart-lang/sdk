@@ -3,9 +3,9 @@
 expect
   is package? yes
   dependencies: meta
-  expect.dart
-  matchers_lite.dart
-  minitest.dart
+  lib/expect.dart
+  lib/matchers_lite.dart
+  lib/minitest.dart
 
 main
   **main module**
@@ -16,5 +16,5 @@ main
 meta
   is package? yes
   (no dependencies)
-  dart2js.dart
-  meta.dart
+  lib/dart2js.dart
+  lib/meta.dart

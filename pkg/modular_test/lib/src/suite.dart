@@ -41,11 +41,18 @@ class Module {
   /// package name matches the module name.
   bool isPackage;
 
+  /// When [isPackage], the base where all package URIs are resolved against.
+  /// Stored as a relative [Uri] from [rootUri].
+  final Uri packageBase;
+
   /// Whether this is the main entry module of a test.
   bool isMain;
 
   Module(this.name, this.dependencies, this.rootUri, this.sources,
-      {this.mainSource, this.isPackage: false, this.isMain: false}) {
+      {this.mainSource,
+      this.isPackage: false,
+      this.isMain: false,
+      this.packageBase}) {
     if (!_validModuleName.hasMatch(name)) {
       throw ArgumentError("invalid module name: $name");
     }

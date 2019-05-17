@@ -60,7 +60,9 @@ Future<ModularTest> loadTest(Uri uri) async {
         var relativeUri = Uri.parse(fileName);
         var isMain = moduleName == 'main';
         var module = Module(moduleName, [], testUri, [relativeUri],
-            mainSource: isMain ? relativeUri : null, isMain: isMain);
+            mainSource: isMain ? relativeUri : null,
+            isMain: isMain,
+            packageBase: Uri.parse('.'));
         if (isMain) mainModule = module;
         modules[moduleName] = module;
       } else if (fileName == '.packages') {
@@ -82,7 +84,8 @@ Future<ModularTest> loadTest(Uri uri) async {
         return _moduleConflict(moduleName, modules[moduleName], testUri);
       }
       var sources = await _listModuleSources(entryUri);
-      modules[moduleName] = Module(moduleName, [], entryUri, sources);
+      modules[moduleName] = Module(moduleName, [], testUri, sources,
+          packageBase: Uri.parse('$moduleName/'));
     }
   }
   if (spec == null) {
@@ -106,8 +109,9 @@ Future<ModularTest> loadTest(Uri uri) async {
 Future<List<Uri>> _listModuleSources(Uri root) async {
   List<Uri> sources = [];
   Directory folder = Directory.fromUri(root);
+  int baseUriPrefixLength = folder.parent.uri.path.length;
   await for (var file in folder.list(recursive: true)) {
-    sources.add(Uri.parse(file.uri.path.substring(root.path.length)));
+    sources.add(Uri.parse(file.uri.path.substring(baseUriPrefixLength)));
   }
   return sources..sort((a, b) => a.path.compareTo(b.path));
 }
@@ -156,12 +160,13 @@ Future<void> _addModulePerPackage(
       module.isPackage = true;
     } else {
       var packageLibUri = packages[packageName];
+      var rootUri = Directory.fromUri(packageLibUri).parent.uri;
       var sources = await _listModuleSources(packageLibUri);
       // TODO(sigmund): validate that we don't use a different alias for a
       // module that is part of the test (package name and module name should
       // match).
-      modules[packageName] =
-          Module(packageName, [], packageLibUri, sources, isPackage: true);
+      modules[packageName] = Module(packageName, [], rootUri, sources,
+          isPackage: true, packageBase: Uri.parse('lib/'));
     }
   }
 }
@@ -214,7 +219,8 @@ _moduleConflict(String name, Module existing, Uri root) {
   var isFile = name.endsWith('.dart');
   var entryType = isFile ? 'file' : 'folder';
 
-  var existingIsFile = existing.rootUri == root;
+  var existingIsFile =
+      existing.packageBase.path == './' && existing.sources.length == 1;
   var existingEntryType = existingIsFile ? 'file' : 'folder';
 
   var existingName = existingIsFile
