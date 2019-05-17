@@ -437,7 +437,8 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    if (node.parent.parent is FunctionTypedFormalParameter) {
+    if (node.parent.parent is FunctionTypedFormalParameter &&
+        !AnalysisDriver.useSummary2) {
       // Work around dartbug.com/28515.
       // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
       var element = new TypeParameterElementImpl.forNode(node.name);
