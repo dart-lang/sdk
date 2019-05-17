@@ -1528,14 +1528,14 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
         new CompilationUnitElementImpl();
     definingCompilationUnit.librarySource =
         definingCompilationUnit.source = source;
-    LibraryElementImpl definingLibrary =
-        new LibraryElementImpl.forNode(context, null, null);
+    var featureSet = FeatureSet.forTesting();
+    LibraryElementImpl definingLibrary = new LibraryElementImpl.forNode(
+        context, null, null, featureSet.isEnabled(Feature.non_nullable));
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
     _typeProvider = context.typeProvider;
     _visitor = new ResolverVisitor(
         inheritance, definingLibrary, source, _typeProvider, _listener,
-        featureSet: FeatureSet.forTesting(),
-        nameScope: new LibraryScope(definingLibrary));
+        featureSet: featureSet, nameScope: new LibraryScope(definingLibrary));
     return _visitor.typeAnalyzer;
   }
 

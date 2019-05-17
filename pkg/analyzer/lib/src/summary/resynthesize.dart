@@ -353,7 +353,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
       Source librarySource = _getSource(uri);
       if (serializedLibrary == null) {
         LibraryElementImpl libraryElement =
-            new LibraryElementImpl(context, session, '', -1, 0);
+            new LibraryElementImpl(context, session, '', -1, 0, true);
         libraryElement.isSynthetic = true;
         CompilationUnitElementImpl unitElement =
             new CompilationUnitElementImpl();

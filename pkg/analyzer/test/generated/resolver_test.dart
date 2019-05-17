@@ -397,10 +397,10 @@ class NonNullableTypeProviderTest extends EngineTestCase {
     asyncUnit.source = new TestSource('dart:async');
     asyncUnit.librarySource = asyncUnit.source;
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        null, null, AstTestFactory.libraryIdentifier2(["dart.core"]));
+        null, null, AstTestFactory.libraryIdentifier2(["dart.core"]), true);
     coreLibrary.definingCompilationUnit = coreUnit;
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        null, null, AstTestFactory.libraryIdentifier2(["dart.async"]));
+        null, null, AstTestFactory.libraryIdentifier2(["dart.async"]), true);
     asyncLibrary.definingCompilationUnit = asyncUnit;
     //
     // Create a type provider and ensure that it can return the expected types.
@@ -1190,10 +1190,10 @@ class TypeProviderImplTest extends EngineTestCase {
     asyncUnit.source = new TestSource('dart:async');
     asyncUnit.librarySource = asyncUnit.source;
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        null, null, AstTestFactory.libraryIdentifier2(["dart.core"]));
+        null, null, AstTestFactory.libraryIdentifier2(["dart.core"]), true);
     coreLibrary.definingCompilationUnit = coreUnit;
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        null, null, AstTestFactory.libraryIdentifier2(["dart.async"]));
+        null, null, AstTestFactory.libraryIdentifier2(["dart.async"]), true);
     asyncLibrary.definingCompilationUnit = asyncUnit;
     //
     // Create a type provider and ensure that it can return the expected types.
@@ -1293,14 +1293,17 @@ class TypeResolverVisitorTest extends ParserTestCase
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
         resourceProvider: resourceProvider);
     Source librarySource = new FileSource(getFile("/lib.dart"));
-    LibraryElementImpl element = new LibraryElementImpl.forNode(
-        context, null, AstTestFactory.libraryIdentifier2(["lib"]));
-    element.definingCompilationUnit = new CompilationUnitElementImpl();
-    _typeProvider = new TestTypeProvider();
-    libraryScope = new LibraryScope(element);
     // TODO(paulberry): make it possible to override the feature set so we can
     // test NNBD features.
     var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
+    LibraryElementImpl element = new LibraryElementImpl.forNode(
+        context,
+        null,
+        AstTestFactory.libraryIdentifier2(["lib"]),
+        featureSet.isEnabled(Feature.non_nullable));
+    element.definingCompilationUnit = new CompilationUnitElementImpl();
+    _typeProvider = new TestTypeProvider();
+    libraryScope = new LibraryScope(element);
     _visitor = new TypeResolverVisitor(
         element, librarySource, _typeProvider, _listener,
         featureSet: featureSet,
@@ -1335,12 +1338,13 @@ A V = new A();
       InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
       var source = getFile('/test.dart').createSource();
-      var libraryElement = new LibraryElementImpl.forNode(context, null, null)
-        ..definingCompilationUnit = unitElement;
-      var libraryScope = new LibraryScope(libraryElement);
       // TODO(paulberry): make it possible to override the feature set so we can
       // test NNBD features.
       var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
+      var libraryElement = new LibraryElementImpl.forNode(
+          context, null, null, featureSet.isEnabled(Feature.non_nullable))
+        ..definingCompilationUnit = unitElement;
+      var libraryScope = new LibraryScope(libraryElement);
       var visitor = new TypeResolverVisitor(
           libraryElement, source, _typeProvider, _listener,
           featureSet: featureSet,
@@ -2211,12 +2215,13 @@ A v = new A();
       InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
       var source = getFile('/test.dart').createSource();
-      var libraryElement = new LibraryElementImpl.forNode(context, null, null)
-        ..definingCompilationUnit = unitElement;
-      libraryScope = new LibraryScope(libraryElement);
       // TODO(paulberry): make it possible to override the feature set so we can
       // test NNBD features.
       var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
+      var libraryElement = new LibraryElementImpl.forNode(
+          context, null, null, featureSet.isEnabled(Feature.non_nullable))
+        ..definingCompilationUnit = unitElement;
+      libraryScope = new LibraryScope(libraryElement);
       visitor = new TypeResolverVisitor(
           libraryElement, source, _typeProvider, _listener,
           featureSet: featureSet,

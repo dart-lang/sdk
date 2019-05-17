@@ -15263,6 +15263,7 @@ class LinkedNodeUnitBuilder extends Object
   LinkedNodeBuilder _node;
   UnlinkedTokensBuilder _tokens;
   String _uriStr;
+  bool _isNNBD;
 
   @override
   List<LinkedNodeBuilder> get genericFunctionTypes =>
@@ -15315,19 +15316,28 @@ class LinkedNodeUnitBuilder extends Object
     this._uriStr = value;
   }
 
+  @override
+  bool get isNNBD => _isNNBD ??= false;
+
+  set isNNBD(bool value) {
+    this._isNNBD = value;
+  }
+
   LinkedNodeUnitBuilder(
       {List<LinkedNodeBuilder> genericFunctionTypes,
       bool isSynthetic,
       List<int> lineStarts,
       LinkedNodeBuilder node,
       UnlinkedTokensBuilder tokens,
-      String uriStr})
+      String uriStr,
+      bool isNNBD})
       : _genericFunctionTypes = genericFunctionTypes,
         _isSynthetic = isSynthetic,
         _lineStarts = lineStarts,
         _node = node,
         _tokens = tokens,
-        _uriStr = uriStr;
+        _uriStr = uriStr,
+        _isNNBD = isNNBD;
 
   /// Flush [informative] data recursively.
   void flushInformative() {
@@ -15353,6 +15363,7 @@ class LinkedNodeUnitBuilder extends Object
         x?.collectApiSignature(signature);
       }
     }
+    signature.addBool(this._isNNBD == true);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -15396,6 +15407,9 @@ class LinkedNodeUnitBuilder extends Object
     if (offset_uriStr != null) {
       fbBuilder.addOffset(0, offset_uriStr);
     }
+    if (_isNNBD == true) {
+      fbBuilder.addBool(6, true);
+    }
     return fbBuilder.endTable();
   }
 }
@@ -15422,6 +15436,7 @@ class _LinkedNodeUnitImpl extends Object
   idl.LinkedNode _node;
   idl.UnlinkedTokens _tokens;
   String _uriStr;
+  bool _isNNBD;
 
   @override
   List<idl.LinkedNode> get genericFunctionTypes {
@@ -15462,6 +15477,12 @@ class _LinkedNodeUnitImpl extends Object
     _uriStr ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _uriStr;
   }
+
+  @override
+  bool get isNNBD {
+    _isNNBD ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
+    return _isNNBD;
+  }
 }
 
 abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
@@ -15476,6 +15497,7 @@ abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
     if (node != null) _result["node"] = node.toJson();
     if (tokens != null) _result["tokens"] = tokens.toJson();
     if (uriStr != '') _result["uriStr"] = uriStr;
+    if (isNNBD != false) _result["isNNBD"] = isNNBD;
     return _result;
   }
 
@@ -15487,6 +15509,7 @@ abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
         "node": node,
         "tokens": tokens,
         "uriStr": uriStr,
+        "isNNBD": isNNBD,
       };
 
   @override

@@ -1299,6 +1299,8 @@ abstract class LibraryElement implements Element {
   /// included using the `part` directive.
   List<CompilationUnitElement> get units;
 
+  bool get isNonNullableByDefault;
+
   /// Return a list containing all of the imports that share the given [prefix],
   /// or an empty array if there are no such imports.
   List<ImportElement> getImportsWithPrefix(PrefixElement prefix);

@@ -6250,6 +6250,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// The context of the defining unit.
   final LinkedUnitContext linkedContext;
 
+  @override
+  final bool isNonNullableByDefault;
+
   /// The compilation unit that defines this library.
   CompilationUnitElement _definingCompilationUnit;
 
@@ -6300,8 +6303,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
-  LibraryElementImpl(
-      this.context, this.session, String name, int offset, this.nameLength)
+  LibraryElementImpl(this.context, this.session, String name, int offset,
+      this.nameLength, this.isNonNullableByDefault)
       : resynthesizerContext = null,
         unlinkedDefiningUnit = null,
         linkedContext = null,
@@ -6318,6 +6321,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       CompilationUnit linkedNode)
       : resynthesizerContext = null,
         unlinkedDefiningUnit = null,
+        isNonNullableByDefault = linkedContext.isNNBD,
         super.forLinkedNode(null, reference, linkedNode) {
     _name = name;
     _nameOffset = offset;
@@ -6329,7 +6333,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name].
-  LibraryElementImpl.forNode(this.context, this.session, LibraryIdentifier name)
+  LibraryElementImpl.forNode(this.context, this.session, LibraryIdentifier name,
+      this.isNonNullableByDefault)
       : nameLength = name != null ? name.length : 0,
         resynthesizerContext = null,
         unlinkedDefiningUnit = null,
@@ -6346,6 +6351,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       this.resynthesizerContext,
       this.unlinkedDefiningUnit)
       : linkedContext = null,
+        isNonNullableByDefault = unlinkedDefiningUnit.isNNBD,
         super.forSerialized(null) {
     _name = name;
     _nameOffset = offset;
@@ -9566,7 +9572,10 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   TypeParameterType get type {
-    return _type ??= new TypeParameterTypeImpl(this);
+    return _type ??= new TypeParameterTypeImpl(this,
+        nullabilitySuffix: library.isNonNullableByDefault
+            ? NullabilitySuffix.none
+            : NullabilitySuffix.star);
   }
 
   void set type(TypeParameterType type) {

@@ -894,6 +894,9 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
   LibraryElement get actualElement => super.actualElement as LibraryElement;
 
   @override
+  bool get isNonNullableByDefault => actualElement.isNonNullableByDefault;
+
+  @override
   CompilationUnitElement get definingCompilationUnit =>
       actualElement.definingCompilationUnit;
 

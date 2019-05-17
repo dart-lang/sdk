@@ -195,6 +195,7 @@ class Linker {
             uriStr: unitContext.uriStr,
             lineStarts: unit.lineInfo.lineStarts,
             node: unitLinkedNode,
+            isNNBD: unit.featureSet.isEnabled(Feature.non_nullable),
             genericFunctionTypes: writer.genericFunctionTypes,
           ),
         );

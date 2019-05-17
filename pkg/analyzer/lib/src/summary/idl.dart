@@ -2051,6 +2051,9 @@ abstract class LinkedNodeUnit extends base.SummaryClass {
 
   @Id(0)
   String get uriStr;
+
+  @Id(6)
+  bool get isNNBD;
 }
 
 /// Information about a top-level declaration, or a field declaration that

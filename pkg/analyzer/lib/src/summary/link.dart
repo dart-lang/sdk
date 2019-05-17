@@ -3605,6 +3605,9 @@ abstract class LibraryElementForLink<
   }
 
   @override
+  bool get isNonNullableByDefault => _unlinkedDefiningUnit.isNNBD;
+
+  @override
   ContextForLink get context => _linker.context;
 
   @override

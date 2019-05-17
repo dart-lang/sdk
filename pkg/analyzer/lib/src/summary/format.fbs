@@ -2054,6 +2054,8 @@ table LinkedNodeUnit {
   tokens:UnlinkedTokens (id: 1);
 
   uriStr:string (id: 0);
+
+  isNNBD:bool (id: 6);
 }
 
 /// Information about a top-level declaration, or a field declaration that

@@ -7031,6 +7031,26 @@ class B extends A {
     }
   }
 
+  test_compilationUnit_nnbd_disabled_via_dart_directive() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+// @dart=2.2
+''');
+    expect(library.isNonNullableByDefault, isFalse);
+  }
+
+  test_compilationUnit_nnbd_disabled_via_feature_set() async {
+    featureSet = disableNnbd;
+    var library = await checkLibrary('');
+    expect(library.isNonNullableByDefault, isFalse);
+  }
+
+  test_compilationUnit_nnbd_enabled() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('');
+    expect(library.isNonNullableByDefault, isTrue);
+  }
+
   test_inferredType_implicitCreation() async {
     var library = await checkLibrary(r'''
 class A {

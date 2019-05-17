@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -77,6 +78,11 @@ class LinkedUnitContext {
 
   /// Return `true` if this unit is a part of a bundle that is being linked.
   bool get isLinking => bundleContext.isLinking;
+
+  bool get isNNBD {
+    if (data != null) return data.isNNBD;
+    return _unit.featureSet.isEnabled(Feature.non_nullable);
+  }
 
   TypeProvider get typeProvider =>
       bundleContext.elementFactory.analysisContext.typeProvider;
