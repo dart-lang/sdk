@@ -409,11 +409,6 @@ class FlowGraphCompiler : public ValueObject {
     return block_order_;
   }
 
-  // If 'ForcedOptimization()' returns 'true', we are compiling in optimized
-  // mode for a function which cannot deoptimize. Certain optimizations, e.g.
-  // speculative optimizations and call patching are disabled.
-  bool ForcedOptimization() const { return function().ForceOptimize(); }
-
   const FlowGraph& flow_graph() const { return flow_graph_; }
 
   BlockEntryInstr* current_block() const { return current_block_; }

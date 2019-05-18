@@ -2005,20 +2005,6 @@ class Function : public Object {
   // Can only be used on FFI trampolines.
   RawFunction* FfiCSignature() const;
 
-  // Can only be called on FFI trampolines.
-  // -1 for Dart -> native calls.
-  int32_t FfiCallbackId() const;
-
-  // Can only be called on FFI trampolines.
-  void SetFfiCallbackId(int32_t value) const;
-
-  // Can only be called on FFI trampolines.
-  // Null for Dart -> native calls.
-  RawFunction* FfiCallbackTarget() const;
-
-  // Can only be called on FFI trampolines.
-  void SetFfiCallbackTarget(const Function& target) const;
-
   // Return a new function with instantiated result and parameter types.
   RawFunction* InstantiateSignatureFrom(
       const TypeArguments& instantiator_type_arguments,
@@ -3148,12 +3134,6 @@ class FfiTrampolineData : public Object {
 
   RawFunction* c_signature() const { return raw_ptr()->c_signature_; }
   void set_c_signature(const Function& value) const;
-
-  RawFunction* callback_target() const { return raw_ptr()->callback_target_; }
-  void set_callback_target(const Function& value) const;
-
-  int32_t callback_id() const { return raw_ptr()->callback_id_; }
-  void set_callback_id(int32_t value) const;
 
   static RawFfiTrampolineData* New();
 
@@ -5025,7 +5005,7 @@ class Code : public Object {
     return ContainsInstructionAt(raw(), addr);
   }
 
-  static bool ContainsInstructionAt(const RawCode* code, uword addr) {
+  static bool ContainsInstructionAt(RawCode* code, uword addr) {
     return Instructions::ContainsPc(code->ptr()->instructions_, addr);
   }
 
@@ -8291,14 +8271,6 @@ class GrowableObjectArray : public Instance {
                                      Heap::Space space = Heap::kNew);
   static RawGrowableObjectArray* New(const Array& array,
                                      Heap::Space space = Heap::kNew);
-
-  static RawSmi* NoSafepointLength(const RawGrowableObjectArray* array) {
-    return array->ptr()->length_;
-  }
-
-  static RawArray* NoSafepointData(const RawGrowableObjectArray* array) {
-    return array->ptr()->data_;
-  }
 
  private:
   RawArray* DataArray() const { return data()->ptr(); }

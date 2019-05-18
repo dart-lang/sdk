@@ -2085,10 +2085,9 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 }
 
 void Assembler::TransitionGeneratedToNative(Register destination_address,
-                                            Register new_exit_frame,
                                             Register scratch) {
   // Save exit frame information to enable stack walking.
-  movl(Address(THR, Thread::top_exit_frame_info_offset()), new_exit_frame);
+  movl(Address(THR, Thread::top_exit_frame_info_offset()), FPREG);
 
   // Mark that the thread is executing native code.
   movl(VMTagAddress(), destination_address);

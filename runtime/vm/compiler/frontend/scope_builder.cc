@@ -390,17 +390,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
                                             : Object::dynamic_type().raw()));
         scope_->InsertParameterAt(i, variable);
       }
-      // Callbacks need try/catch variables.
-      if (function.IsFfiTrampoline() &&
-          function.FfiCallbackTarget() != Function::null()) {
-        ++depth_.try_;
-        AddTryVariables();
-        --depth_.try_;
-        ++depth_.catch_;
-        AddCatchVariables();
-        FinalizeCatchVariables();
-        --depth_.catch_;
-      }
       break;
     case RawFunction::kSignatureFunction:
     case RawFunction::kIrregexpFunction:

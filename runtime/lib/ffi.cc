@@ -9,7 +9,6 @@
 #include "vm/class_finalizer.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/ffi.h"
-#include "vm/compiler/jit/compiler.h"
 #include "vm/exceptions.h"
 #include "vm/log.h"
 #include "vm/native_arguments.h"
@@ -547,68 +546,53 @@ DEFINE_NATIVE_ENTRY(Ffi_asFunction, 1, 1) {
   return raw_closure;
 }
 
-// Generates assembly to trampoline from native code into Dart.
-static uword CompileNativeCallback(const Function& c_signature,
-                                   const Function& dart_target) {
+// Generates assembly to trampoline from C++ back into Dart.
+static void* GenerateFfiInverseTrampoline(const Function& signature,
+                                          void* dart_entry_point) {
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
   UNREACHABLE();
 #elif !defined(TARGET_ARCH_X64)
   // https://github.com/dart-lang/sdk/issues/35774
-  // FFI is supported, but callbacks are not.
-  Exceptions::ThrowUnsupportedError(
-      "FFI callbacks are currently supported on 64-bit Intel only.");
+  UNREACHABLE();
+#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS) &&                \
+    !defined(TARGET_OS_WINDOWS)
+  // https://github.com/dart-lang/sdk/issues/35760 Arm32 && Android
+  // https://github.com/dart-lang/sdk/issues/35772 Arm64
+  // https://github.com/dart-lang/sdk/issues/35773 DBC
+  UNREACHABLE();
 #else
-  Thread* const thread = Thread::Current();
-  const int32_t callback_id = thread->AllocateFfiCallbackId();
 
-  // Create a new Function named 'FfiCallback' and stick it in the 'dart:ffi'
-  // library. Note that these functions will never be invoked by Dart, so it
-  // doesn't matter that they all have the same name.
-  Zone* const Z = thread->zone();
-  const String& name =
-      String::ZoneHandle(Symbols::New(Thread::Current(), "FfiCallback"));
-  const Library& lib = Library::Handle(Library::FfiLibrary());
-  const Class& owner_class = Class::Handle(lib.toplevel_class());
-  const Function& function =
-      Function::Handle(Z, Function::New(name, RawFunction::kFfiTrampoline,
-                                        /*is_static=*/true,
-                                        /*is_const=*/false,
-                                        /*is_abstract=*/false,
-                                        /*is_external=*/false,
-                                        /*is_native=*/false, owner_class,
-                                        TokenPosition::kMinSource));
-  function.set_is_debuggable(false);
-
-  // Set callback-specific fields which the flow-graph builder needs to generate
-  // the body.
-  function.SetFfiCSignature(c_signature);
-  function.SetFfiCallbackId(callback_id);
-  function.SetFfiCallbackTarget(dart_target);
-
-  // We compile the callback immediately because we need to return a pointer to
-  // the entry-point. Native calls do not use patching like Dart calls, so we
-  // cannot compile it lazily.
-  const Object& result =
-      Object::Handle(Z, Compiler::CompileOptimizedFunction(thread, function));
-  if (result.IsError()) {
-    Exceptions::PropagateError(Error::Cast(result));
-  }
-  ASSERT(result.IsCode());
-  const Code& code = Code::Cast(result);
-
-  thread->SetFfiCallbackCode(callback_id, code);
-
-  return code.EntryPoint();
+  // TODO(dacoharkes): Implement this.
+  // https://github.com/dart-lang/sdk/issues/35761
+  // Look at StubCode::GenerateInvokeDartCodeStub.
+  UNREACHABLE();
 #endif
 }
 
+// TODO(dacoharkes): Implement this feature.
+// https://github.com/dart-lang/sdk/issues/35761
+// For now, it always returns Pointer with address 0.
 DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 1) {
   GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Closure, closure, arguments->NativeArgAt(0));
 
-  const Function& native_signature =
-      Function::Handle(((Type&)type_arg).signature());
+  Function& c_signature = Function::Handle(((Type&)type_arg).signature());
+
   Function& func = Function::Handle(closure.function());
+  Code& code = Code::Handle(func.EnsureHasCode());
+  void* entryPoint = reinterpret_cast<void*>(code.EntryPoint());
+
+  THR_Print("Ffi_fromFunction: %s\n", type_arg.ToCString());
+  THR_Print("Ffi_fromFunction: %s\n", c_signature.ToCString());
+  THR_Print("Ffi_fromFunction: %s\n", closure.ToCString());
+  THR_Print("Ffi_fromFunction: %s\n", func.ToCString());
+  THR_Print("Ffi_fromFunction: %s\n", code.ToCString());
+  THR_Print("Ffi_fromFunction: %p\n", entryPoint);
+  THR_Print("Ffi_fromFunction: %" Pd "\n", code.Size());
+
+  intptr_t address = reinterpret_cast<intptr_t>(
+      GenerateFfiInverseTrampoline(c_signature, entryPoint));
+
   TypeArguments& type_args = TypeArguments::Handle(zone);
   type_args = TypeArguments::New(1);
   type_args.SetTypeAt(Pointer::kNativeTypeArgPos, type_arg);
@@ -624,19 +608,9 @@ DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 1) {
       ClassFinalizer::FinalizeType(Class::Handle(), native_function_type);
   native_function_type ^= native_function_type.Canonicalize();
 
-  // The FE verifies that the target of a 'fromFunction' is a static method, so
-  // the value we see here must be a static tearoff. See ffi_use_sites.dart for
-  // details.
-  //
-  // TODO(36748): Define hot-reload semantics of native callbacks. We may need
-  // to look up the target by name.
-  ASSERT(func.IsImplicitClosureFunction());
-  func = func.parent_function();
-  ASSERT(func.is_static());
+  address = 0;  // https://github.com/dart-lang/sdk/issues/35761
 
-  const uword address = CompileNativeCallback(native_signature, func);
-
-  const Pointer& result = Pointer::Handle(Pointer::New(
+  Pointer& result = Pointer::Handle(Pointer::New(
       native_function_type, Integer::Handle(zone, Integer::New(address))));
 
   return result.raw();
@@ -708,7 +682,7 @@ uint64_t* FfiMarshalledArguments::New(
     } else if (loc.IsFpuRegister()) {
       descr.SetFpuRegister(loc.fpu_reg(), arg_value);
     } else {
-      ASSERT(loc.IsStackSlot() || loc.IsDoubleStackSlot());
+      ASSERT(loc.IsStackSlot());
       ASSERT(loc.stack_index() < num_stack_slots);
       descr.SetStackSlotValue(loc.stack_index(), arg_value);
     }

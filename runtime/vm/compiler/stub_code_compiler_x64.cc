@@ -204,13 +204,8 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers.cpu_registers(),
                    all_registers.fpu_registers());
-
-  __ EnterFrame(0);
-  __ ReserveAlignedFrameSpace(0);
   __ movq(RAX, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
   __ CallCFunction(RAX);
-  __ LeaveFrame();
-
   __ PopRegisters(all_registers.cpu_registers(), all_registers.fpu_registers());
   __ ret();
 }
@@ -220,28 +215,9 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers.cpu_registers(),
                    all_registers.fpu_registers());
-
-  __ EnterFrame(0);
-  __ ReserveAlignedFrameSpace(0);
   __ movq(RAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ CallCFunction(RAX);
-  __ LeaveFrame();
-
   __ PopRegisters(all_registers.cpu_registers(), all_registers.fpu_registers());
-  __ ret();
-}
-
-void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
-  // SP points to return address, which needs to be the second argument to
-  // VerifyCallbackIsolate.
-  __ movq(CallingConventions::kArg2Reg, Address(SPREG, 0));
-
-  __ EnterFrame(0);
-  __ ReserveAlignedFrameSpace(0);
-  __ movq(RAX,
-          Address(THR, kVerifyCallbackIsolateRuntimeEntry.OffsetFromThread()));
-  __ CallCFunction(RAX);
-  __ LeaveFrame();
   __ ret();
 }
 
@@ -1110,8 +1086,19 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ pushq(RAX);
 
   // The constant target::frame_layout.exit_link_slot_from_entry_fp must be kept
-  // in sync with the code above.
-  __ EmitEntryFrameVerification();
+  // in sync with the code below.
+#if defined(DEBUG)
+  {
+    Label ok;
+    __ leaq(RAX,
+            Address(RBP, target::frame_layout.exit_link_slot_from_entry_fp *
+                             target::kWordSize));
+    __ cmpq(RAX, RSP);
+    __ j(EQUAL, &ok);
+    __ Stop("target::frame_layout.exit_link_slot_from_entry_fp mismatch");
+    __ Bind(&ok);
+  }
+#endif
 
   __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));

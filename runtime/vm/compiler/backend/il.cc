@@ -27,7 +27,6 @@
 #include "vm/regexp_assembler_ir.h"
 #include "vm/resolver.h"
 #include "vm/scopes.h"
-#include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/type_testing_stubs.h"
@@ -3826,9 +3825,7 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ nop();
   }
 #endif
-  if (tag() == Instruction::kFunctionEntry) {
-    __ Bind(compiler->GetJumpLabel(this));
-  }
+  __ Bind(compiler->GetJumpLabel(this));
 
 // In the AOT compiler we want to reduce code size, so generate no
 // fall-through code in [FlowGraphCompiler::CompileGraph()].
@@ -3883,21 +3880,6 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
 }
-
-LocationSummary* NativeEntryInstr::MakeLocationSummary(Zone* zone,
-                                                       bool optimizing) const {
-  UNREACHABLE();
-}
-
-#if !defined(TARGET_ARCH_X64)
-void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
-}
-
-void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
-}
-#endif
 
 LocationSummary* OsrEntryInstr::MakeLocationSummary(Zone* zone,
                                                     bool optimizing) const {
@@ -4002,43 +3984,6 @@ LocationSummary* ParameterInstr::MakeLocationSummary(Zone* zone,
 
 void ParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
-}
-
-void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-#if !defined(TARGET_ARCH_DBC)
-  // The native entry frame has size -kExitLinkSlotFromFp. In order to access
-  // the top of stack from above the entry frame, we add a constant to account
-  // for the the two frame pointers and return address of the entry frame.
-  constexpr intptr_t kEntryFramePadding = 3;
-  FrameRebase rebase(/*old_base=*/SPREG, /*new_base=*/FPREG,
-                     -kExitLinkSlotFromEntryFp + kEntryFramePadding);
-  const Location dst = locs()->out(0);
-  const Location src = rebase.Rebase(loc_);
-  NoTemporaryAllocator no_temp;
-  compiler->EmitMove(dst, src, &no_temp);
-#else
-  UNREACHABLE();
-#endif
-}
-
-LocationSummary* NativeParameterInstr::MakeLocationSummary(Zone* zone,
-                                                           bool opt) const {
-#if !defined(TARGET_ARCH_DBC)
-  ASSERT(opt);
-  Location input = Location::Any();
-  if (representation() == kUnboxedInt64 && compiler::target::kWordSize < 8) {
-    input = Location::Pair(Location::RequiresRegister(),
-                           Location::RequiresFpuRegister());
-  } else {
-    input = RegisterKindForResult() == Location::kRegister
-                ? Location::RequiresRegister()
-                : Location::RequiresFpuRegister();
-  }
-  return LocationSummary::Make(zone, /*num_inputs=*/0, input,
-                               LocationSummary::kNoCall);
-#else
-  UNREACHABLE();
-#endif
 }
 
 bool ParallelMoveInstr::IsRedundant() const {
@@ -5429,16 +5374,6 @@ Location FfiCallInstr::UnallocateStackSlots(Location in, bool is_atomic) {
   }
 }
 
-LocationSummary* NativeReturnInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, result_location_);
-  return locs;
-}
-
 #undef Z
 
 #else
@@ -5459,11 +5394,6 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                           compiler::ffi::ResultHostRepresentation(signature_)));
 
   return summary;
-}
-
-LocationSummary* NativeReturnInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
-  UNREACHABLE();
 }
 
 #endif  // !defined(TARGET_ARCH_DBC)

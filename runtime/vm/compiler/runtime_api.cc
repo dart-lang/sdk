@@ -500,7 +500,6 @@ word Array::header_size() {
   V(Thread, top_resource_offset)                                               \
   V(Thread, vm_tag_offset)                                                     \
   V(Thread, safepoint_state_offset)                                            \
-  V(Thread, callback_code_offset)                                              \
   V(TimelineStream, enabled_offset)                                            \
   V(TwoByteString, data_offset)                                                \
   V(Type, arguments_offset)                                                    \
@@ -582,10 +581,6 @@ word Thread::write_barrier_entry_point_offset() {
 
 word Thread::array_write_barrier_entry_point_offset() {
   return dart::Thread::array_write_barrier_entry_point_offset();
-}
-
-word Thread::verify_callback_isolate_entry_point_offset() {
-  return dart::Thread::verify_callback_entry_offset();
 }
 #endif  // !defined(TARGET_ARCH_DBC)
 

@@ -164,10 +164,9 @@ void Assembler::setcc(Condition condition, ByteRegister dst) {
   EmitUint8(0xC0 + (dst & 0x07));
 }
 
-void Assembler::TransitionGeneratedToNative(Register destination_address,
-                                            Register new_exit_frame) {
+void Assembler::TransitionGeneratedToNative(Register destination_address) {
   // Save exit frame information to enable stack walking.
-  movq(Address(THR, Thread::top_exit_frame_info_offset()), new_exit_frame);
+  movq(Address(THR, Thread::top_exit_frame_info_offset()), FPREG);
 
   movq(Assembler::VMTagAddress(), destination_address);
   movq(Address(THR, compiler::target::Thread::execution_state_offset()),
@@ -1516,18 +1515,6 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   if (OS::ActivationFrameAlignment() > 1) {
     andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
-}
-
-void Assembler::EmitEntryFrameVerification() {
-#if defined(DEBUG)
-  Label ok;
-  leaq(RAX, Address(RBP, target::frame_layout.exit_link_slot_from_entry_fp *
-                             target::kWordSize));
-  cmpq(RAX, RSP);
-  j(EQUAL, &ok);
-  Stop("target::frame_layout.exit_link_slot_from_entry_fp mismatch");
-  Bind(&ok);
-#endif
 }
 
 void Assembler::PushRegisters(intptr_t cpu_register_set,

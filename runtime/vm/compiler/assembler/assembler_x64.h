@@ -306,8 +306,7 @@ class Assembler : public AssemblerBase {
 
   void setcc(Condition condition, ByteRegister dst);
 
-  void TransitionGeneratedToNative(Register destination_address,
-                                   Register new_exit_frame);
+  void TransitionGeneratedToNative(Register destination_address);
   void TransitionNativeToGenerated();
 
 // Register-register, register-address and address-register instructions.
@@ -777,13 +776,6 @@ class Assembler : public AssemblerBase {
   void EnterFrame(intptr_t frame_space);
   void LeaveFrame();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
-
-  // In debug mode, generates code to verify that:
-  //   FP + kExitLinkSlotFromFp == SP
-  //
-  // Triggers breakpoint otherwise.
-  // Clobbers RAX.
-  void EmitEntryFrameVerification();
 
   // Create a frame for calling into runtime that preserves all volatile
   // registers.  Frame's RSP is guaranteed to be correctly aligned and

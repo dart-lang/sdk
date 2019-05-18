@@ -77,8 +77,7 @@ namespace dart {
   V(OneArgCheckInlineCacheWithExactnessCheck)                                  \
   V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)                         \
   V(EnterSafepoint)                                                            \
-  V(ExitSafepoint)                                                             \
-  V(VerifyCallback)
+  V(ExitSafepoint)
 
 #else
 #define VM_STUB_CODE_LIST(V)                                                   \

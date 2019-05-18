@@ -9,8 +9,6 @@
 #include "platform/globals.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/runtime_api.h"
-#include "vm/growable_array.h"
-#include "vm/stack_frame.h"
 
 namespace dart {
 
@@ -184,7 +182,7 @@ template <class CallingConventions,
           class Location,
           class Register,
           class FpuRegister>
-class ArgumentAllocator : public ValueObject {
+class ArgumentFrameState : public ValueObject {
  public:
   Location AllocateArgument(Representation rep) {
     switch (rep) {
@@ -209,13 +207,9 @@ class ArgumentAllocator : public ValueObject {
     }
 
     // Argument must be spilled.
-    if (rep == kUnboxedInt64 && compiler::target::kWordSize == 4) {
+    if ((rep == kUnboxedInt64 || rep == kUnboxedDouble) &&
+        compiler::target::kWordSize == 4) {
       return AllocateAlignedStackSlots(rep);
-    } else if (rep == kUnboxedDouble) {
-      // By convention, we always use DoubleStackSlot for doubles, even on
-      // 64-bit systems.
-      ASSERT(!CallingConventions::kAlignArguments);
-      return AllocateDoubleStackSlot();
     } else {
       return AllocateStackSlot();
     }
@@ -225,13 +219,6 @@ class ArgumentAllocator : public ValueObject {
   Location AllocateStackSlot() {
     return Location::StackSlot(stack_height_in_slots++,
                                CallingConventions::kStackPointerRegister);
-  }
-
-  Location AllocateDoubleStackSlot() {
-    const Location result = Location::DoubleStackSlot(
-        stack_height_in_slots, CallingConventions::kStackPointerRegister);
-    stack_height_in_slots += 8 / compiler::target::kWordSize;
-    return result;
   }
 
   // Allocates a pair of stack slots where the first stack slot is aligned to an
@@ -300,68 +287,6 @@ class ArgumentAllocator : public ValueObject {
   intptr_t stack_height_in_slots = 0;
 };
 
-ZoneGrowableArray<Location>*
-CallbackArgumentTranslator::TranslateArgumentLocations(
-    const ZoneGrowableArray<Location>& arg_locs) {
-  auto& pushed_locs = *(new ZoneGrowableArray<Location>(arg_locs.length()));
-
-  CallbackArgumentTranslator translator;
-  for (intptr_t i = 0, n = arg_locs.length(); i < n; i++) {
-    translator.AllocateArgument(arg_locs[i]);
-  }
-  for (intptr_t i = 0, n = arg_locs.length(); i < n; ++i) {
-    pushed_locs.Add(translator.TranslateArgument(arg_locs[i]));
-  }
-
-  return &pushed_locs;
-}
-
-void CallbackArgumentTranslator::AllocateArgument(Location arg) {
-  if (arg.IsPairLocation()) {
-    AllocateArgument(arg.Component(0));
-    AllocateArgument(arg.Component(1));
-    return;
-  }
-  if (arg.HasStackIndex()) return;
-  ASSERT(arg.IsRegister() || arg.IsFpuRegister());
-  if (arg.IsRegister()) {
-    argument_slots_required_++;
-  } else {
-    argument_slots_required_ += 8 / compiler::target::kWordSize;
-  }
-}
-
-Location CallbackArgumentTranslator::TranslateArgument(Location arg) {
-  if (arg.IsPairLocation()) {
-    const Location low = TranslateArgument(arg.Component(0));
-    const Location high = TranslateArgument(arg.Component(1));
-    return Location::Pair(low, high);
-  }
-
-  if (arg.HasStackIndex()) {
-    // Add extra slots after the saved arguments for the return address and
-    // frame pointer of the dummy arguments frame, which will be between the
-    // saved argument registers and stack arguments. Also add slots for the
-    // shadow space if present (factored into
-    // kCallbackSlotsBeforeSavedArguments).
-    FrameRebase rebase(
-        /*old_base=*/SPREG, /*new_base=*/SPREG,
-        /*stack_delta=*/argument_slots_required_ +
-            kCallbackSlotsBeforeSavedArguments);
-    return rebase.Rebase(arg);
-  }
-
-  if (arg.IsRegister()) {
-    return Location::StackSlot(argument_slots_used_++, SPREG);
-  }
-
-  ASSERT(arg.IsFpuRegister());
-  const Location result =
-      Location::DoubleStackSlot(argument_slots_used_, SPREG);
-  argument_slots_used_ += 8 / compiler::target::kWordSize;
-  return result;
-}
-
 // Takes a list of argument representations, and converts it to a list of
 // argument locations based on calling convention.
 template <class CallingConventions,
@@ -374,7 +299,7 @@ ZoneGrowableArray<Location>* ArgumentLocationsBase(
   auto result = new ZoneGrowableArray<Location>(num_arguments);
 
   // Loop through all arguments and assign a register or a stack location.
-  ArgumentAllocator<CallingConventions, Location, Register, FpuRegister>
+  ArgumentFrameState<CallingConventions, Location, Register, FpuRegister>
       frame_state;
   for (intptr_t i = 0; i < num_arguments; i++) {
     Representation rep = arg_reps[i];

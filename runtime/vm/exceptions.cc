@@ -995,12 +995,6 @@ void Exceptions::ThrowRangeError(const char* argument_name,
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
-void Exceptions::ThrowUnsupportedError(const char* msg) {
-  const Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0, String::Handle(String::New(msg)));
-  Exceptions::ThrowByType(Exceptions::kUnsupported, args);
-}
-
 void Exceptions::ThrowRangeErrorMsg(const char* msg) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, String::Handle(String::New(msg)));

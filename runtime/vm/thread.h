@@ -168,8 +168,8 @@ class Zone;
   V(uword, monomorphic_miss_entry_, StubCode::MonomorphicMiss().EntryPoint(),  \
     0)                                                                         \
   V(uword, optimize_entry_, StubCode::OptimizeFunction().EntryPoint(), 0)      \
-  V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)          \
-  V(uword, verify_callback_entry_, StubCode::VerifyCallback().EntryPoint(), 0)
+  V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)
+
 #endif
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
@@ -313,10 +313,6 @@ class Thread : public ThreadState {
 
   static intptr_t safepoint_state_offset() {
     return OFFSET_OF(Thread, safepoint_state_);
-  }
-
-  static intptr_t callback_code_offset() {
-    return OFFSET_OF(Thread, ffi_callback_code_);
   }
 
   TaskKind task_kind() const { return task_kind_; }
@@ -772,13 +768,6 @@ class Thread : public ThreadState {
     }
   }
 
-  int32_t AllocateFfiCallbackId();
-  void SetFfiCallbackCode(int32_t callback_id, const Code& code);
-
-  // Ensure that 'entry' points within the code of the callback identified by
-  // 'callback_id'. Aborts otherwise.
-  void VerifyCallbackIsolate(int32_t callback_id, uword entry);
-
   Thread* next() const { return next_; }
 
   // Visit all object pointers.
@@ -872,7 +861,6 @@ class Thread : public ThreadState {
   uword resume_pc_;
   uword execution_state_;
   uword safepoint_state_;
-  RawGrowableObjectArray* ffi_callback_code_;
 
   // ---- End accessed from generated code. ----
 

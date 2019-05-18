@@ -26,7 +26,6 @@
 #include "vm/service_isolate.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
-#include "vm/thread.h"
 #include "vm/thread_registry.h"
 #include "vm/type_testing_stubs.h"
 
@@ -2765,30 +2764,5 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
   thread->ExitSafepoint();
 }
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepoint, 0, false, &DFLRT_ExitSafepoint);
-
-// Not registered as a runtime entry because we can't use Thread to look it up.
-extern "C" Thread* DLRT_GetThreadForNativeCallback() {
-  Thread* const thread = Thread::Current();
-  if (thread == nullptr) {
-    FATAL("Cannot invoke native callback outside an isolate.");
-  }
-  if (thread->no_callback_scope_depth() != 0) {
-    FATAL("Cannot invoke native callback when API callbacks are prohibited.");
-  }
-  if (!thread->IsMutatorThread()) {
-    FATAL("Native callbacks must be invoked on the mutator thread.");
-  }
-  return thread;
-}
-
-extern "C" void DLRT_VerifyCallbackIsolate(int32_t callback_id,
-                                           uword return_address) {
-  Thread::Current()->VerifyCallbackIsolate(callback_id, return_address);
-}
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    VerifyCallbackIsolate,
-    1,
-    false /* is_float */,
-    reinterpret_cast<RuntimeFunction>(&DLRT_VerifyCallbackIsolate));
 
 }  // namespace dart

@@ -84,7 +84,6 @@ class Exceptions : AllStatic {
                                             intptr_t expected_from,
                                             intptr_t expected_to);
   DART_NORETURN static void ThrowRangeErrorMsg(const char* msg);
-  DART_NORETURN static void ThrowUnsupportedError(const char* msg);
   DART_NORETURN static void ThrowCompileTimeError(const LanguageError& error);
 
   // Returns a RawInstance if the exception is successfully created,
