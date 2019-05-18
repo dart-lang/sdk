@@ -2432,6 +2432,26 @@ void f/*codeOffset=14, codeLength=24*/<U/*codeOffset=21, codeLength=13*/ extends
         withConstElements: false);
   }
 
+  test_compilationUnit_nnbd_disabled_via_dart_directive() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+// @dart=2.2
+''');
+    expect(library.isNonNullableByDefault, isFalse);
+  }
+
+  test_compilationUnit_nnbd_disabled_via_feature_set() async {
+    featureSet = disableNnbd;
+    var library = await checkLibrary('');
+    expect(library.isNonNullableByDefault, isFalse);
+  }
+
+  test_compilationUnit_nnbd_enabled() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('');
+    expect(library.isNonNullableByDefault, isTrue);
+  }
+
   test_const_classField() async {
     var library = await checkLibrary(r'''
 class C {
@@ -7085,26 +7105,6 @@ class B extends A {
     if (streamElement is ClassElement) {
       expect(streamElement.source, isNot(streamElement.library.source));
     }
-  }
-
-  test_compilationUnit_nnbd_disabled_via_dart_directive() async {
-    featureSet = enableNnbd;
-    var library = await checkLibrary('''
-// @dart=2.2
-''');
-    expect(library.isNonNullableByDefault, isFalse);
-  }
-
-  test_compilationUnit_nnbd_disabled_via_feature_set() async {
-    featureSet = disableNnbd;
-    var library = await checkLibrary('');
-    expect(library.isNonNullableByDefault, isFalse);
-  }
-
-  test_compilationUnit_nnbd_enabled() async {
-    featureSet = enableNnbd;
-    var library = await checkLibrary('');
-    expect(library.isNonNullableByDefault, isTrue);
   }
 
   test_inferredType_implicitCreation() async {
