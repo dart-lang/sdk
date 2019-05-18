@@ -572,6 +572,7 @@ class Thread : public AllStatic {
   static word write_barrier_wrappers_thread_offset(intptr_t regno);
   static word array_write_barrier_entry_point_offset();
   static word write_barrier_entry_point_offset();
+  static word verify_callback_isolate_entry_point_offset();
   static word vm_tag_offset();
   static uword vm_tag_compiled_id();
 
@@ -582,6 +583,8 @@ class Thread : public AllStatic {
   static word execution_state_offset();
   static uword native_execution_state();
   static uword generated_execution_state();
+
+  static word callback_code_offset();
 
 #if !defined(TARGET_ARCH_DBC)
   static word write_barrier_code_offset();

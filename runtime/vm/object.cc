@@ -6065,6 +6065,34 @@ RawFunction* Function::FfiCSignature() const {
   return FfiTrampolineData::Cast(obj).c_signature();
 }
 
+int32_t Function::FfiCallbackId() const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  return FfiTrampolineData::Cast(obj).callback_id();
+}
+
+void Function::SetFfiCallbackId(int32_t value) const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  FfiTrampolineData::Cast(obj).set_callback_id(value);
+}
+
+RawFunction* Function::FfiCallbackTarget() const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  return FfiTrampolineData::Cast(obj).callback_target();
+}
+
+void Function::SetFfiCallbackTarget(const Function& target) const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  FfiTrampolineData::Cast(obj).set_callback_target(target);
+}
+
 RawType* Function::SignatureType() const {
   Type& type = Type::Handle(ExistingSignatureType());
   if (type.IsNull()) {
@@ -8218,12 +8246,22 @@ void FfiTrampolineData::set_c_signature(const Function& value) const {
   StorePointer(&raw_ptr()->c_signature_, value.raw());
 }
 
+void FfiTrampolineData::set_callback_target(const Function& value) const {
+  StorePointer(&raw_ptr()->callback_target_, value.raw());
+}
+
+void FfiTrampolineData::set_callback_id(int32_t callback_id) const {
+  StoreNonPointer(&raw_ptr()->callback_id_, callback_id);
+}
+
 RawFfiTrampolineData* FfiTrampolineData::New() {
   ASSERT(Object::ffi_trampoline_data_class() != Class::null());
   RawObject* raw =
       Object::Allocate(FfiTrampolineData::kClassId,
                        FfiTrampolineData::InstanceSize(), Heap::kOld);
-  return reinterpret_cast<RawFfiTrampolineData*>(raw);
+  RawFfiTrampolineData* data = reinterpret_cast<RawFfiTrampolineData*>(raw);
+  data->ptr()->callback_id_ = -1;
+  return data;
 }
 
 const char* FfiTrampolineData::ToCString() const {

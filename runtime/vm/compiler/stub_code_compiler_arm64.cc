@@ -235,6 +235,10 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
+  __ Breakpoint();
+}
+
 // R1: The extracted method.
 // R4: The type_arguments_field_offset (or 0)
 void StubCodeCompiler::GenerateBuildMethodExtractorStub(

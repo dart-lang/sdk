@@ -142,6 +142,10 @@ void ConstantPropagator::VisitFunctionEntry(FunctionEntryInstr* block) {
   }
 }
 
+void ConstantPropagator::VisitNativeEntry(NativeEntryInstr* block) {
+  VisitFunctionEntry(block);
+}
+
 void ConstantPropagator::VisitOsrEntry(OsrEntryInstr* block) {
   for (auto def : *block->initial_definitions()) {
     def->Accept(this);
@@ -189,6 +193,10 @@ void ConstantPropagator::VisitParallelMove(ParallelMoveInstr* instr) {
 // reachable.  Conditional successors are reachable depending on the
 // constant value of the condition.
 void ConstantPropagator::VisitReturn(ReturnInstr* instr) {
+  // Nothing to do.
+}
+
+void ConstantPropagator::VisitNativeReturn(NativeReturnInstr* instr) {
   // Nothing to do.
 }
 
@@ -362,6 +370,10 @@ void ConstantPropagator::VisitCheckNull(CheckNullInstr* instr) {
 }
 
 void ConstantPropagator::VisitParameter(ParameterInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitNativeParameter(NativeParameterInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

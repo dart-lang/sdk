@@ -649,6 +649,7 @@ class Assembler : public AssemblerBase {
   // Require a temporary register 'tmp'.
   // Clobber all non-CPU registers (e.g. XMM registers and the "FPU stack").
   void TransitionGeneratedToNative(Register destination_address,
+                                   Register new_exit_frame,
                                    Register scratch);
   void TransitionNativeToGenerated(Register scratch);
 

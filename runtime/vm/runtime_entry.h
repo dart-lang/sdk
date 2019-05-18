@@ -145,6 +145,9 @@ class RuntimeEntry : public BaseRuntimeEntry {
 RUNTIME_ENTRY_LIST(DECLARE_RUNTIME_ENTRY)
 LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
 
+// Expected to be called inside a safepoint.
+extern "C" Thread* DLRT_GetThreadForNativeCallback();
+
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 
 void DeoptimizeAt(const Code& optimized_code, StackFrame* frame);
