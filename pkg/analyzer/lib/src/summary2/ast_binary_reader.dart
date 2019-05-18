@@ -45,18 +45,64 @@ class AstBinaryReader {
 
   InterfaceType get _stringType => _unitContext.typeProvider.stringType;
 
-  /// This method is invoked by [LinkedUnitContext] to perform actual reading.
-  GenericFunctionType readGenericFunctionType(LinkedNode data) {
+  /// This method is invoked by [LinkedUnitContext] to finish reading.
+  void readGenericFunctionTypeFinish(
+    LinkedNode data,
+    GenericFunctionType node,
+  ) {
+    var typeParameterListData = data.genericFunctionType_typeParameters;
+    if (typeParameterListData != null) {
+      var dataList = typeParameterListData.typeParameterList_typeParameters;
+      var typeParameters = node.typeParameters.typeParameters;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        var node = typeParameters[i];
+        node.bound = _readNode(data.typeParameter_bound);
+      }
+    }
+    node.returnType = readNode(data.genericFunctionType_returnType);
+    node.parameters = _readNode(data.genericFunctionType_formalParameters);
+  }
+
+  /// This method is invoked by [LinkedUnitContext] to perform shallow reading.
+  ///
+  /// It reads [TypeParameter] names, and creates [GenericFunctionType] node,
+  /// so that [LinkedUnitContext] can create elements for these nodes.
+  ///
+  /// But we cannot read the return type and formal parameters yet, until the
+  /// corresponding elements are created.
+  GenericFunctionType readGenericFunctionTypeShallow(LinkedNode data) {
+    TypeParameterList typeParameterList;
+    var typeParameterListData = data.genericFunctionType_typeParameters;
+    if (typeParameterListData != null) {
+      var dataList = typeParameterListData.typeParameterList_typeParameters;
+      var typeParameters = List<TypeParameter>(dataList.length);
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        typeParameters[i] = astFactory.typeParameter(
+          _readNode(data.annotatedNode_comment),
+          _readNodeList(data.annotatedNode_metadata),
+          _declaredIdentifier(data),
+          data.typeParameter_bound != null ? _Tokens.EXTENDS : null,
+          null,
+        );
+      }
+      typeParameterList = astFactory.typeParameterList(
+        _Tokens.LT,
+        typeParameters,
+        _Tokens.GT,
+      );
+    }
+
     GenericFunctionTypeImpl node = astFactory.genericFunctionType(
-      _readNodeLazy(data.genericFunctionType_returnType),
+      null,
       _Tokens.FUNCTION,
-      _readNode(data.genericFunctionType_typeParameters),
-      _readNodeLazy(data.genericFunctionType_formalParameters),
+      typeParameterList,
+      null,
       question:
           AstBinaryFlags.hasQuestion(data.flags) ? _Tokens.QUESTION : null,
     );
     node.type = _readType(data.genericFunctionType_type);
-    LazyGenericFunctionType.setData(node, data);
     return node;
   }
 

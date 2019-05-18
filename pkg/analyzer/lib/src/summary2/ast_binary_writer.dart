@@ -36,6 +36,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   /// in these declarations.
   LinkedNodeVariablesDeclarationBuilder _variablesDeclaration;
 
+  /// Is `true` if the current [ClassDeclaration] has a const constructor,
+  /// so initializers of final fields should be written.
+  bool _hasConstConstructor = false;
+
   AstBinaryWriter(this._linkingContext);
 
   @override
@@ -193,6 +197,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   LinkedNodeBuilder visitClassDeclaration(ClassDeclaration node) {
     try {
       timerAstBinaryWriterClass.start();
+
+      _hasConstConstructor = false;
+      for (var member in node.members) {
+        if (member is ConstructorDeclaration && member.constKeyword != null) {
+          _hasConstConstructor = true;
+          break;
+        }
+      }
+
       var builder = LinkedNodeBuilder.classDeclaration(
         classDeclaration_extendsClause: node.extendsClause?.accept(this),
         classDeclaration_nativeClause: node.nativeClause?.accept(this),
@@ -593,9 +606,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitFunctionDeclaration(FunctionDeclaration node) {
     var builder = LinkedNodeBuilder.functionDeclaration(
+      functionDeclaration_returnType: node.returnType?.accept(this),
       functionDeclaration_functionExpression:
           node.functionExpression?.accept(this),
-      functionDeclaration_returnType: node.returnType?.accept(this),
     );
     builder.flags = AstBinaryFlags.encode(
       isExternal: node.externalKeyword != null,
@@ -681,6 +694,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitGenericFunctionType(GenericFunctionType node) {
     var id = LazyAst.getGenericFunctionTypeId(node);
+    assert(id != null);
     assert(genericFunctionTypes.length == id);
     genericFunctionTypes.add(null);
 
@@ -1336,9 +1350,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitVariableDeclaration(VariableDeclaration node) {
     var initializer = node.initializer;
-    VariableDeclarationList declarationList = node.parent;
-    if (declarationList.parent is TopLevelVariableDeclaration) {
+    var declarationList = node.parent as VariableDeclarationList;
+    var declaration = declarationList.parent;
+    if (declaration is TopLevelVariableDeclaration) {
       if (!declarationList.isConst) {
+        initializer = null;
+      }
+    } else if (declaration is FieldDeclaration) {
+      if (!(declarationList.isConst ||
+          !declaration.isStatic &&
+              declarationList.isFinal &&
+              _hasConstConstructor)) {
         initializer = null;
       }
     }

@@ -513,10 +513,6 @@ class LazyDirective {
     return node.getProperty(_key);
   }
 
-  static String getSelectedUri(UriBasedDirective node) {
-    return node.getProperty(_uriKey);
-  }
-
   static int getNameOffset(Directive node) {
     var lazy = get(node);
     if (lazy != null) {
@@ -524,6 +520,10 @@ class LazyDirective {
     } else {
       return node.offset;
     }
+  }
+
+  static String getSelectedUri(UriBasedDirective node) {
+    return node.getProperty(_uriKey);
   }
 
   static void readMetadata(AstBinaryReader reader, Directive node) {
@@ -1169,67 +1169,6 @@ class LazyFunctionTypeAlias {
 
   static void setHasSelfReference(FunctionTypeAlias node, bool value) {
     node.setProperty(_hasSelfReferenceKey, value);
-  }
-}
-
-class LazyGenericFunctionType {
-  static const _key = 'lazyAst';
-
-  final LinkedNode data;
-
-  bool _hasFormalParameters = false;
-  bool _hasReturnType = false;
-  bool _hasReturnTypeNode = false;
-
-  LazyGenericFunctionType(this.data);
-
-  static LazyGenericFunctionType get(GenericFunctionType node) {
-    return node.getProperty(_key);
-  }
-
-  static DartType getReturnType(
-    AstBinaryReader reader,
-    GenericFunctionType node,
-  ) {
-    if (reader.isLazy) {
-      var lazy = get(node);
-      if (!lazy._hasReturnType) {
-        var type = reader.readType(lazy.data.actualReturnType);
-        LazyAst.setReturnType(node, type);
-        lazy._hasReturnType = true;
-      }
-    }
-    return LazyAst.getReturnType(node);
-  }
-
-  static void readFormalParameters(
-    AstBinaryReader reader,
-    GenericFunctionType node,
-  ) {
-    var lazy = get(node);
-    if (lazy != null && !lazy._hasFormalParameters) {
-      node.parameters = reader.readNode(
-        lazy.data.genericFunctionType_formalParameters,
-      );
-      lazy._hasFormalParameters = true;
-    }
-  }
-
-  static void readReturnTypeNode(
-    AstBinaryReader reader,
-    GenericFunctionType node,
-  ) {
-    var lazy = get(node);
-    if (lazy != null && !lazy._hasReturnTypeNode) {
-      node.returnType = reader.readNode(
-        lazy.data.genericFunctionType_returnType,
-      );
-      lazy._hasReturnTypeNode = true;
-    }
-  }
-
-  static void setData(GenericFunctionType node, LinkedNode data) {
-    node.setProperty(_key, LazyGenericFunctionType(data));
   }
 }
 

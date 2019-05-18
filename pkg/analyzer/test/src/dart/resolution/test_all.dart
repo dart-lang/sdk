@@ -17,6 +17,7 @@ import 'for_element_test.dart' as for_element;
 import 'for_in_test.dart' as for_in;
 import 'function_expression_invocation_test.dart'
     as function_expression_invocation;
+import 'generic_function_type_test.dart' as generic_function_type;
 import 'generic_type_alias_test.dart' as generic_type_alias;
 import 'import_prefix_test.dart' as import_prefix;
 import 'instance_creation_test.dart' as instance_creation;
@@ -47,6 +48,7 @@ main() {
     for_element.main();
     for_in.main();
     function_expression_invocation.main();
+    generic_function_type.main();
     generic_type_alias.main();
     import_prefix.main();
     instance_creation.main();

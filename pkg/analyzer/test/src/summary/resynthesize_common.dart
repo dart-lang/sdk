@@ -5756,6 +5756,60 @@ class C {
 ''');
   }
 
+  test_field_final_hasInitializer_hasConstConstructor() async {
+    var library = await checkLibrary('''
+class C {
+  final x = 42;
+  const C();
+}
+''');
+    checkElementText(library, r'''
+class C {
+  final int x = 42;
+  const C();
+}
+''');
+  }
+
+  test_field_final_hasInitializer_hasConstConstructor_genericFunctionType() async {
+    var library = await checkLibrary('''
+class A<T> {
+  const A();
+}
+class B {
+  final f = const A<int Function(double a)>();
+  const B();
+}
+''');
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class A<T> {
+  const A();
+}
+class B {
+  final A<int Function(double)> f = const
+        A/*location: test.dart;A*/<
+        int/*location: dart:core;int*/ Function(
+        double/*location: dart:core;double*/ a)>();
+  const B();
+}
+''');
+    }
+  }
+
+  test_field_final_hasInitializer_noConstConstructor() async {
+    var library = await checkLibrary('''
+class C {
+  final x = 42;
+}
+''');
+    checkElementText(library, r'''
+class C {
+  final int x;
+}
+''');
+  }
+
   test_field_formal_param_inferred_type_implicit() async {
     var library = await checkLibrary('class C extends D { var v; C(this.v); }'
         ' abstract class D { int get v; }');

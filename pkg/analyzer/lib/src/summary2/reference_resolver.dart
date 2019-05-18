@@ -41,6 +41,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   Reference reference;
   Scope scope;
 
+  /// Is `true` if the current [ClassDeclaration] has a const constructor.
+  bool _hasConstConstructor = false;
+
   ReferenceResolver(
     this.nodesToBuildType,
     this.elementFactory,
@@ -67,6 +70,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = new TypeParameterScope(scope, element);
     scope = new ClassScope(scope, element);
     LinkingNodeContext(node, scope);
+
+    _hasConstConstructor = false;
+    for (var member in node.members) {
+      if (member is ConstructorDeclaration && member.constKeyword != null) {
+        _hasConstConstructor = true;
+        break;
+      }
+    }
 
     node.typeParameters?.accept(this);
     node.extendsClause?.accept(this);
@@ -153,6 +164,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     node.fields.accept(this);
+
+    if (node.fields.isConst ||
+        !node.isStatic && node.fields.isFinal && _hasConstConstructor) {
+      var visitor = _SetGenericFunctionTypeIdVisitor(this);
+      node.fields.variables.accept(visitor);
+    }
   }
 
   @override
@@ -389,6 +406,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     node.variables.accept(this);
+    if (node.variables.isConst) {
+      var visitor = _SetGenericFunctionTypeIdVisitor(this);
+      node.variables.variables.accept(visitor);
+    }
   }
 
   @override
@@ -485,5 +506,22 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     } else {
       return NullabilitySuffix.star;
     }
+  }
+}
+
+/// For consistency we set identifiers for [GenericFunctionType]s in constant
+/// variable initializers, and instance final fields of classes with constant
+/// constructors.
+class _SetGenericFunctionTypeIdVisitor extends RecursiveAstVisitor<void> {
+  final ReferenceResolver resolver;
+
+  _SetGenericFunctionTypeIdVisitor(this.resolver);
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    var id = resolver._nextGenericFunctionTypeId++;
+    LazyAst.setGenericFunctionTypeId(node, id);
+
+    super.visitGenericFunctionType(node);
   }
 }

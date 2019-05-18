@@ -572,6 +572,17 @@ class _ElementWriter {
       }
     } else if (e is DoubleLiteral) {
       buffer.write(e.value);
+    } else if (e is GenericFunctionType) {
+      if (e.returnType != null) {
+        writeNode(e.returnType);
+        buffer.write(' ');
+      }
+      buffer.write('Function');
+      if (e.typeParameters != null) {
+        writeList('<', '>', e.typeParameters.typeParameters, ', ', writeNode);
+      }
+      writeList('(', ')', e.parameters.parameters, ', ', writeNode,
+          includeEmpty: true);
     } else if (e is InstanceCreationExpression) {
       if (e.keyword != null) {
         buffer.write(e.keyword.lexeme);
@@ -661,6 +672,12 @@ class _ElementWriter {
       }
       writeList('(', ')', e.argumentList.arguments, ', ', writeNode,
           includeEmpty: true);
+    } else if (e is SimpleFormalParameter) {
+      writeNode(e.type);
+      if (e.identifier != null) {
+        buffer.write(' ');
+        buffer.write(e.identifier.name);
+      }
     } else if (e is SimpleIdentifier) {
       if (withConstElements) {
         buffer.writeln();

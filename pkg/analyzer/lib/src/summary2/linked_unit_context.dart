@@ -323,7 +323,6 @@ class LinkedUnitContext {
       LazyFunctionTypeAlias.readFormalParameters(_astReader, node);
       return node.parameters.parameters;
     } else if (node is GenericFunctionType) {
-      LazyGenericFunctionType.readFormalParameters(_astReader, node);
       return node.parameters.parameters;
     } else if (node is MethodDeclaration) {
       LazyMethodDeclaration.readFormalParameters(_astReader, node);
@@ -337,7 +336,7 @@ class LinkedUnitContext {
     GenericFunctionTypeImpl node = _genericFunctionTypeNodeList[id];
     if (node == null) {
       var data = this.data.genericFunctionTypes[id];
-      node = _astReader.readGenericFunctionType(data);
+      node = _astReader.readGenericFunctionTypeShallow(data);
       LazyAst.setGenericFunctionTypeId(node, id);
       _genericFunctionTypeNodeList[id] = node;
 
@@ -349,6 +348,8 @@ class LinkedUnitContext {
         node,
       );
       node.declaredElement = element;
+
+      _astReader.readGenericFunctionTypeFinish(data, node);
     }
     return node;
   }
@@ -538,7 +539,7 @@ class LinkedUnitContext {
     } else if (node is FunctionTypeAlias) {
       return LazyFunctionTypeAlias.getReturnType(_astReader, node);
     } else if (node is GenericFunctionType) {
-      return LazyGenericFunctionType.getReturnType(_astReader, node);
+      return node.returnType?.type ?? DynamicTypeImpl.instance;
     } else if (node is MethodDeclaration) {
       return LazyMethodDeclaration.getReturnType(_astReader, node);
     } else {
@@ -551,7 +552,6 @@ class LinkedUnitContext {
       LazyFunctionTypeAlias.readReturnTypeNode(_astReader, node);
       return node.returnType;
     } else if (node is GenericFunctionType) {
-      LazyGenericFunctionType.readReturnTypeNode(_astReader, node);
       return node.returnType;
     } else if (node is FunctionDeclaration) {
       LazyFunctionDeclaration.readReturnTypeNode(_astReader, node);
