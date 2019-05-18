@@ -8,9 +8,11 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
@@ -9436,6 +9438,40 @@ p.C v;
     checkElementText(library, r'''
 dynamic v;
 ''');
+  }
+
+  test_type_param_generic_function_type_nullability_legacy() async {
+    featureSet = disableNnbd;
+    var library = await checkLibrary('''
+T f<T>(T t) {}
+var g = f;
+''');
+    checkElementText(library, '''
+T Function<T>(T) g;
+T f<T>(T t) {}
+''');
+    var g = library.definingCompilationUnit.topLevelVariables[0];
+    var t = (g.type as FunctionType).typeFormals[0];
+    // TypeParameterElement.type has a nullability suffix of `star` regardless
+    // of whether it appears in a migrated library.
+    expect((t.type as TypeImpl).nullabilitySuffix, NullabilitySuffix.star);
+  }
+
+  test_type_param_generic_function_type_nullability_migrated() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+T f<T>(T t) {}
+var g = f;
+''');
+    checkElementText(library, '''
+T Function<T>(T) g;
+T f<T>(T t) {}
+''');
+    var g = library.definingCompilationUnit.topLevelVariables[0];
+    var t = (g.type as FunctionType).typeFormals[0];
+    // TypeParameterElement.type has a nullability suffix of `star` regardless
+    // of whether it appears in a migrated library.
+    expect((t.type as TypeImpl).nullabilitySuffix, NullabilitySuffix.star);
   }
 
   test_type_param_ref_nullability_none() async {

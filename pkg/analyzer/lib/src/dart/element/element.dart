@@ -9572,10 +9572,11 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   TypeParameterType get type {
-    return _type ??= new TypeParameterTypeImpl(this,
-        nullabilitySuffix: library.isNonNullableByDefault
-            ? NullabilitySuffix.none
-            : NullabilitySuffix.star);
+    // Note: TypeParameterElement.type has nullability suffix `star` regardless
+    // of whether it appears in a migrated library.  This is because for type
+    // parameters of synthetic function types, the ancestor chain is broken and
+    // we can't find the enclosing library to tell whether it is migrated.
+    return _type ??= new TypeParameterTypeImpl(this);
   }
 
   void set type(TypeParameterType type) {
