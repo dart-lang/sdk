@@ -78,8 +78,6 @@ class BoolState extends InstanceState {
         return UNKNOWN_VALUE;
       }
       return BoolState.from(identical(value, rightValue));
-    } else if (rightOperand is DynamicState) {
-      return UNKNOWN_VALUE;
     }
     return FALSE_STATE;
   }
@@ -229,8 +227,6 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.intType, result);
     } else if (result is DoubleState) {
       return new DartObjectImpl(typeProvider.doubleType, result);
-    } else if (result is NumState) {
-      return new DartObjectImpl(typeProvider.numType, result);
     } else if (result is StringState) {
       return new DartObjectImpl(typeProvider.stringType, result);
     }
@@ -297,8 +293,6 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.intType, result);
     } else if (result is DoubleState) {
       return new DartObjectImpl(typeProvider.doubleType, result);
-    } else if (result is NumState) {
-      return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
     throw new StateError("divide returned a ${result.runtimeType}");
@@ -579,8 +573,6 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.intType, result);
     } else if (result is DoubleState) {
       return new DartObjectImpl(typeProvider.doubleType, result);
-    } else if (result is NumState) {
-      return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
     throw new StateError("minus returned a ${result.runtimeType}");
@@ -597,8 +589,6 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.intType, result);
     } else if (result is DoubleState) {
       return new DartObjectImpl(typeProvider.doubleType, result);
-    } else if (result is NumState) {
-      return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
     throw new StateError("negated returned a ${result.runtimeType}");
@@ -641,8 +631,6 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.intType, result);
     } else if (result is DoubleState) {
       return new DartObjectImpl(typeProvider.doubleType, result);
-    } else if (result is NumState) {
-      return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
     throw new StateError("remainder returned a ${result.runtimeType}");
@@ -690,8 +678,6 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.intType, result);
     } else if (result is DoubleState) {
       return new DartObjectImpl(typeProvider.doubleType, result);
-    } else if (result is NumState) {
-      return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
     throw new StateError("times returned a ${result.runtimeType}");
@@ -813,9 +799,6 @@ class DoubleState extends NumState {
   int get hashCode => value == null ? 0 : value.hashCode;
 
   @override
-  bool get isBoolNumStringOrNull => true;
-
-  @override
   bool get isUnknown => value == null;
 
   @override
@@ -843,8 +826,6 @@ class DoubleState extends NumState {
         return UNKNOWN_VALUE;
       }
       return new DoubleState(value + rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -876,17 +857,9 @@ class DoubleState extends NumState {
         return UNKNOWN_VALUE;
       }
       return new DoubleState(value / rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
-  }
-
-  @override
-  BoolState equalEqual(InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -907,8 +880,6 @@ class DoubleState extends NumState {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value > rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return BoolState.UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -932,8 +903,6 @@ class DoubleState extends NumState {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value >= rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return BoolState.UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -959,8 +928,6 @@ class DoubleState extends NumState {
       }
       double result = value / rightValue;
       return new IntState(result.toInt());
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return IntState.UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -983,8 +950,6 @@ class DoubleState extends NumState {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value == rightValue.toDouble());
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return BoolState.UNKNOWN_VALUE;
     }
     return BoolState.FALSE_STATE;
   }
@@ -1012,8 +977,6 @@ class DoubleState extends NumState {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value < rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return BoolState.UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -1037,8 +1000,6 @@ class DoubleState extends NumState {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value <= rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return BoolState.UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -1062,8 +1023,6 @@ class DoubleState extends NumState {
         return UNKNOWN_VALUE;
       }
       return new DoubleState(value - rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -1095,8 +1054,6 @@ class DoubleState extends NumState {
         return UNKNOWN_VALUE;
       }
       return new DoubleState(value % rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -1120,8 +1077,6 @@ class DoubleState extends NumState {
         return UNKNOWN_VALUE;
       }
       return new DoubleState(value * rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -1129,173 +1084,6 @@ class DoubleState extends NumState {
 
   @override
   String toString() => value == null ? "-unknown-" : value.toString();
-}
-
-/// The state of an object representing a Dart object for which there is no type
-/// information.
-class DynamicState extends InstanceState {
-  /// The unique instance of this class.
-  static DynamicState DYNAMIC_STATE = new DynamicState();
-
-  @override
-  bool get isBool => true;
-
-  @override
-  bool get isBoolNumStringOrNull => true;
-
-  @override
-  String get typeName => "dynamic";
-
-  @override
-  NumState add(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return _unknownNum(rightOperand);
-  }
-
-  @override
-  IntState bitAnd(InstanceState rightOperand) {
-    assertIntOrNull(rightOperand);
-    return IntState.UNKNOWN_VALUE;
-  }
-
-  @override
-  IntState bitNot() => IntState.UNKNOWN_VALUE;
-
-  @override
-  IntState bitOr(InstanceState rightOperand) {
-    assertIntOrNull(rightOperand);
-    return IntState.UNKNOWN_VALUE;
-  }
-
-  @override
-  IntState bitXor(InstanceState rightOperand) {
-    assertIntOrNull(rightOperand);
-    return IntState.UNKNOWN_VALUE;
-  }
-
-  @override
-  StringState concatenate(InstanceState rightOperand) {
-    assertString(rightOperand);
-    return StringState.UNKNOWN_VALUE;
-  }
-
-  @override
-  BoolState convertToBool() => BoolState.UNKNOWN_VALUE;
-
-  @override
-  StringState convertToString() => StringState.UNKNOWN_VALUE;
-
-  @override
-  NumState divide(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return _unknownNum(rightOperand);
-  }
-
-  @override
-  BoolState equalEqual(InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  BoolState greaterThan(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  BoolState greaterThanOrEqual(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  IntState integerDivide(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return IntState.UNKNOWN_VALUE;
-  }
-
-  @override
-  BoolState isIdentical(InstanceState rightOperand) {
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  BoolState lazyAnd(InstanceState rightOperandComputer()) {
-    assertBool(rightOperandComputer());
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  BoolState lazyOr(InstanceState rightOperandComputer()) {
-    InstanceState rightOperand = rightOperandComputer();
-    assertBool(rightOperand);
-    return rightOperand.convertToBool();
-  }
-
-  @override
-  BoolState lessThan(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  BoolState lessThanOrEqual(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  BoolState logicalNot() => BoolState.UNKNOWN_VALUE;
-
-  @override
-  NumState minus(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return _unknownNum(rightOperand);
-  }
-
-  @override
-  NumState negated() => NumState.UNKNOWN_VALUE;
-
-  @override
-  NumState remainder(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return _unknownNum(rightOperand);
-  }
-
-  @override
-  IntState shiftLeft(InstanceState rightOperand) {
-    assertIntOrNull(rightOperand);
-    return IntState.UNKNOWN_VALUE;
-  }
-
-  @override
-  IntState shiftRight(InstanceState rightOperand) {
-    assertIntOrNull(rightOperand);
-    return IntState.UNKNOWN_VALUE;
-  }
-
-  @override
-  NumState times(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return _unknownNum(rightOperand);
-  }
-
-  /// Return an object representing an unknown numeric value whose type is based
-  /// on the type of the [rightOperand].
-  NumState _unknownNum(InstanceState rightOperand) {
-    if (rightOperand is IntState) {
-      return IntState.UNKNOWN_VALUE;
-    } else if (rightOperand is DoubleState) {
-      return DoubleState.UNKNOWN_VALUE;
-    }
-    return NumState.UNKNOWN_VALUE;
-  }
 }
 
 /// Exception that would be thrown during the evaluation of Dart code.
@@ -1350,8 +1138,6 @@ class FunctionState extends InstanceState {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(_element == rightElement);
-    } else if (rightOperand is DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
     }
     return BoolState.FALSE_STATE;
   }
@@ -1435,9 +1221,6 @@ class GenericState extends InstanceState {
 
   @override
   BoolState isIdentical(InstanceState rightOperand) {
-    if (rightOperand is DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
-    }
     return BoolState.from(this == rightOperand);
   }
 
@@ -1508,7 +1291,7 @@ abstract class InstanceState {
 
   /// Throw an exception if the given [state] does not represent a boolean value.
   void assertBool(InstanceState state) {
-    if (!(state is BoolState || state is DynamicState)) {
+    if (state is! BoolState) {
       throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     }
   }
@@ -1517,12 +1300,9 @@ abstract class InstanceState {
   /// numeric, string or null value.
   void assertBoolNumStringOrNull(InstanceState state) {
     if (!(state is BoolState ||
-        state is DoubleState ||
-        state is IntState ||
         state is NumState ||
         state is StringState ||
-        state is NullState ||
-        state is DynamicState)) {
+        state is NullState)) {
       throw new EvaluationException(
           CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
     }
@@ -1531,10 +1311,7 @@ abstract class InstanceState {
   /// Throw an exception if the given [state] does not represent an integer or
   /// null value.
   void assertIntOrNull(InstanceState state) {
-    if (!(state is IntState ||
-        state is NumState ||
-        state is NullState ||
-        state is DynamicState)) {
+    if (!(state is IntState || state is NullState)) {
       throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_INT);
     }
   }
@@ -1542,18 +1319,14 @@ abstract class InstanceState {
   /// Throw an exception if the given [state] does not represent a boolean,
   /// numeric, string or null value.
   void assertNumOrNull(InstanceState state) {
-    if (!(state is DoubleState ||
-        state is IntState ||
-        state is NumState ||
-        state is NullState ||
-        state is DynamicState)) {
+    if (!(state is NumState || state is NullState)) {
       throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM);
     }
   }
 
   /// Throw an exception if the given [state] does not represent a String value.
   void assertString(InstanceState state) {
-    if (!(state is StringState || state is DynamicState)) {
+    if (state is! StringState) {
       throw new EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     }
   }
@@ -1913,9 +1686,6 @@ class IntState extends NumState {
   int get hashCode => value == null ? 0 : value.hashCode;
 
   @override
-  bool get isBoolNumStringOrNull => true;
-
-  @override
   bool get isInt => true;
 
   @override
@@ -1949,8 +1719,6 @@ class IntState extends NumState {
         return DoubleState.UNKNOWN_VALUE;
       }
       return new DoubleState(value.toDouble() + rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -1968,8 +1736,6 @@ class IntState extends NumState {
         return UNKNOWN_VALUE;
       }
       return new IntState(value & rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -1995,8 +1761,6 @@ class IntState extends NumState {
         return UNKNOWN_VALUE;
       }
       return new IntState(value | rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2014,8 +1778,6 @@ class IntState extends NumState {
         return UNKNOWN_VALUE;
       }
       return new IntState(value ^ rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2048,17 +1810,9 @@ class IntState extends NumState {
         return DoubleState.UNKNOWN_VALUE;
       }
       return new DoubleState(value.toDouble() / rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return DoubleState.UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
-  }
-
-  @override
-  BoolState equalEqual(InstanceState rightOperand) {
-    assertBoolNumStringOrNull(rightOperand);
-    return isIdentical(rightOperand);
   }
 
   @override
@@ -2079,8 +1833,6 @@ class IntState extends NumState {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value.toDouble() > rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return BoolState.UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2104,8 +1856,6 @@ class IntState extends NumState {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value.toDouble() >= rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return BoolState.UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2133,8 +1883,6 @@ class IntState extends NumState {
       }
       double result = value.toDouble() / rightValue;
       return new IntState(result.toInt());
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2157,8 +1905,6 @@ class IntState extends NumState {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(rightValue == value.toDouble());
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return BoolState.UNKNOWN_VALUE;
     }
     return BoolState.FALSE_STATE;
   }
@@ -2186,8 +1932,6 @@ class IntState extends NumState {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value.toDouble() < rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return BoolState.UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2211,8 +1955,6 @@ class IntState extends NumState {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value.toDouble() <= rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return BoolState.UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2244,8 +1986,6 @@ class IntState extends NumState {
         }
         return new IntState(value ~/ divisor);
       }
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2272,8 +2012,6 @@ class IntState extends NumState {
         return DoubleState.UNKNOWN_VALUE;
       }
       return new DoubleState(value.toDouble() - rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2310,8 +2048,6 @@ class IntState extends NumState {
         return DoubleState.UNKNOWN_VALUE;
       }
       return new DoubleState(value.toDouble() % rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2333,8 +2069,6 @@ class IntState extends NumState {
       if (rightValue >= 0) {
         return new IntState(value << rightValue);
       }
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2356,8 +2090,6 @@ class IntState extends NumState {
       if (rightValue >= 0) {
         return new IntState(value >> rightValue);
       }
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2384,8 +2116,6 @@ class IntState extends NumState {
         return DoubleState.UNKNOWN_VALUE;
       }
       return new DoubleState(value.toDouble() * rightValue);
-    } else if (rightOperand is DynamicState || rightOperand is NumState) {
-      return UNKNOWN_VALUE;
     }
     throw new EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -2448,9 +2178,6 @@ class ListState extends InstanceState {
 
   @override
   BoolState isIdentical(InstanceState rightOperand) {
-    if (rightOperand is DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
-    }
     return BoolState.from(this == rightOperand);
   }
 
@@ -2531,9 +2258,6 @@ class MapState extends InstanceState {
 
   @override
   BoolState isIdentical(InstanceState rightOperand) {
-    if (rightOperand is DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
-    }
     return BoolState.from(this == rightOperand);
   }
 
@@ -2599,9 +2323,6 @@ class NullState extends InstanceState {
 
   @override
   BoolState isIdentical(InstanceState rightOperand) {
-    if (rightOperand is DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
-    }
     return BoolState.from(rightOperand is NullState);
   }
 
@@ -2620,121 +2341,16 @@ class NullState extends InstanceState {
   String toString() => "null";
 }
 
-/// The state of an object representing a number of an unknown type (a 'num').
-class NumState extends InstanceState {
-  /// A state that can be used to represent a number whose value is not known.
-  static NumState UNKNOWN_VALUE = new NumState();
-
-  @override
-  int get hashCode => 7;
-
+/// The state of an object representing a number.
+abstract class NumState extends InstanceState {
   @override
   bool get isBoolNumStringOrNull => true;
 
   @override
-  bool get isUnknown => identical(this, UNKNOWN_VALUE);
-
-  @override
-  String get typeName => "num";
-
-  @override
-  bool operator ==(Object object) => object is NumState;
-
-  @override
-  NumState add(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return UNKNOWN_VALUE;
-  }
-
-  @override
-  StringState convertToString() => StringState.UNKNOWN_VALUE;
-
-  @override
-  NumState divide(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return DoubleState.UNKNOWN_VALUE;
-  }
-
-  @override
   BoolState equalEqual(InstanceState rightOperand) {
     assertBoolNumStringOrNull(rightOperand);
-    return BoolState.UNKNOWN_VALUE;
+    return isIdentical(rightOperand);
   }
-
-  @override
-  BoolState greaterThan(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  BoolState greaterThanOrEqual(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  IntState integerDivide(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    if (rightOperand is IntState) {
-      int rightValue = rightOperand.value;
-      if (rightValue == null) {
-        return IntState.UNKNOWN_VALUE;
-      } else if (rightValue == 0) {
-        throw new EvaluationException(
-            CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
-      }
-    } else if (rightOperand is DynamicState) {
-      return IntState.UNKNOWN_VALUE;
-    }
-    return IntState.UNKNOWN_VALUE;
-  }
-
-  @override
-  BoolState isIdentical(InstanceState rightOperand) {
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  BoolState lazyEqualEqual(InstanceState rightOperand) {
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  BoolState lessThan(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  BoolState lessThanOrEqual(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return BoolState.UNKNOWN_VALUE;
-  }
-
-  @override
-  NumState minus(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return UNKNOWN_VALUE;
-  }
-
-  @override
-  NumState negated() => UNKNOWN_VALUE;
-
-  @override
-  NumState remainder(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return UNKNOWN_VALUE;
-  }
-
-  @override
-  NumState times(InstanceState rightOperand) {
-    assertNumOrNull(rightOperand);
-    return UNKNOWN_VALUE;
-  }
-
-  @override
-  String toString() => "-unknown-";
 }
 
 /// The state of an object representing a set.
@@ -2790,9 +2406,6 @@ class SetState extends InstanceState {
 
   @override
   BoolState isIdentical(InstanceState rightOperand) {
-    if (rightOperand is DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
-    }
     return BoolState.from(this == rightOperand);
   }
 
@@ -2857,8 +2470,6 @@ class StringState extends InstanceState {
         return UNKNOWN_VALUE;
       }
       return new StringState("$value$rightValue");
-    } else if (rightOperand is DynamicState) {
-      return UNKNOWN_VALUE;
     }
     return super.concatenate(rightOperand);
   }
@@ -2883,8 +2494,6 @@ class StringState extends InstanceState {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value == rightValue);
-    } else if (rightOperand is DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
     }
     return BoolState.FALSE_STATE;
   }
@@ -2949,8 +2558,6 @@ class SymbolState extends InstanceState {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(value == rightValue);
-    } else if (rightOperand is DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
     }
     return BoolState.FALSE_STATE;
   }
@@ -3007,8 +2614,6 @@ class TypeState extends InstanceState {
         return BoolState.UNKNOWN_VALUE;
       }
       return BoolState.from(_type == rightType);
-    } else if (rightOperand is DynamicState) {
-      return BoolState.UNKNOWN_VALUE;
     }
     return BoolState.FALSE_STATE;
   }

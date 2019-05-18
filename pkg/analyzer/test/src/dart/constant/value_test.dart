@@ -595,10 +595,6 @@ class DartObjectImplTest extends EngineTestCase {
     expect(_doubleValue(null).hasKnownValue, isFalse);
   }
 
-  void test_hasKnownValue_dynamic() {
-    expect(_dynamicValue().hasKnownValue, isTrue);
-  }
-
   void test_hasKnownValue_int_known() {
     expect(_intValue(23).hasKnownValue, isTrue);
   }
@@ -611,26 +607,12 @@ class DartObjectImplTest extends EngineTestCase {
     expect(_listValue().hasKnownValue, isTrue);
   }
 
-  void test_hasKnownValue_list_invalidElement() {
-    expect(_listValue([_dynamicValue()]).hasKnownValue, isTrue);
-  }
-
   void test_hasKnownValue_list_valid() {
     expect(_listValue([_intValue(23)]).hasKnownValue, isTrue);
   }
 
   void test_hasKnownValue_map_empty() {
     expect(_mapValue().hasKnownValue, isTrue);
-  }
-
-  void test_hasKnownValue_map_invalidKey() {
-    expect(_mapValue([_dynamicValue(), _stringValue("value")]).hasKnownValue,
-        isTrue);
-  }
-
-  void test_hasKnownValue_map_invalidValue() {
-    expect(_mapValue([_stringValue("key"), _dynamicValue()]).hasKnownValue,
-        isTrue);
   }
 
   void test_hasKnownValue_map_valid() {
@@ -641,10 +623,6 @@ class DartObjectImplTest extends EngineTestCase {
 
   void test_hasKnownValue_null() {
     expect(_nullValue().hasKnownValue, isTrue);
-  }
-
-  void test_hasKnownValue_num() {
-    expect(_numValue().hasKnownValue, isFalse);
   }
 
   void test_hasKnownValue_string_known() {
@@ -801,10 +779,6 @@ class DartObjectImplTest extends EngineTestCase {
     expect(_doubleValue(null).isBoolNumStringOrNull, isTrue);
   }
 
-  void test_isBoolNumStringOrNull_dynamic() {
-    expect(_dynamicValue().isBoolNumStringOrNull, isTrue);
-  }
-
   void test_isBoolNumStringOrNull_int_known() {
     expect(_intValue(23).isBoolNumStringOrNull, isTrue);
   }
@@ -819,10 +793,6 @@ class DartObjectImplTest extends EngineTestCase {
 
   void test_isBoolNumStringOrNull_null() {
     expect(_nullValue().isBoolNumStringOrNull, isTrue);
-  }
-
-  void test_isBoolNumStringOrNull_num() {
-    expect(_numValue().isBoolNumStringOrNull, isTrue);
   }
 
   void test_isBoolNumStringOrNull_string_known() {
@@ -1944,11 +1914,6 @@ class DartObjectImplTest extends EngineTestCase {
     }
   }
 
-  DartObjectImpl _dynamicValue() {
-    return new DartObjectImpl(
-        _typeProvider.nullType, DynamicState.DYNAMIC_STATE);
-  }
-
   DartObjectImpl _intValue(int value) {
     if (value == null) {
       return new DartObjectImpl(_typeProvider.intType, IntState.UNKNOWN_VALUE);
@@ -1975,10 +1940,6 @@ class DartObjectImplTest extends EngineTestCase {
 
   DartObjectImpl _nullValue() {
     return new DartObjectImpl(_typeProvider.nullType, NullState.NULL_STATE);
-  }
-
-  DartObjectImpl _numValue() {
-    return new DartObjectImpl(_typeProvider.nullType, NumState.UNKNOWN_VALUE);
   }
 
   DartObjectImpl _setValue([Set<DartObjectImpl> elements]) {
