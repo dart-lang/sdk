@@ -1442,19 +1442,21 @@ void Assembler::MonomorphicCheckedEntry() {
   bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);
 
+  const intptr_t start = CodeSize();
+
   Label immediate, miss;
   Bind(&miss);
   ldr(IP0, Address(THR, Thread::monomorphic_miss_entry_offset()));
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() == Instructions::kPolymorphicEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffset);
   LoadClassIdMayBeSmi(IP0, R0);
   cmp(R5, Operand(IP0, LSL, 1));
   b(&miss, NE);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() == Instructions::kMonomorphicEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffset);
 
   set_use_far_branches(saved_use_far_branches);
 }

@@ -418,6 +418,15 @@ class FlowGraphCompiler : public ValueObject {
   bool CanOSRFunction() const;
   bool is_optimizing() const { return is_optimizing_; }
 
+  // The function was fully intrinsified, so the body is unreachable.
+  //
+  // We still need to compile the body in unoptimized mode because the
+  // 'ICData's are added to the function's 'ic_data_array_' when instance
+  // calls are compiled.
+  bool skip_body_compilation() const {
+    return fully_intrinsified_ && is_optimizing();
+  }
+
   void EnterIntrinsicMode();
   void ExitIntrinsicMode();
   bool intrinsic_mode() const { return intrinsic_mode_; }

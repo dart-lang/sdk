@@ -321,16 +321,6 @@ void FlowGraphCompiler::CompactBlocks() {
 }
 
 intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
-// On ARM64 we cannot use the position of the label bound in the
-// FunctionEntryInstr, because `FunctionEntryInstr::EmitNativeCode` does not
-// emit the monomorphic entry and frame entry (instead on ARM64 this is done
-// in FlowGraphCompiler::CompileGraph()).
-//
-// See http://dartbug.com/34162
-#if defined(TARGET_ARCH_ARM64)
-  return 0;
-#endif
-
   BlockEntryInstr* entry = flow_graph().graph_entry()->unchecked_entry();
   if (entry == nullptr) {
     entry = flow_graph().graph_entry()->normal_entry();
@@ -529,6 +519,13 @@ void FlowGraphCompiler::VisitBlocks() {
     flow_graph().ComputeLoops();
   }
 
+  // In precompiled mode, we require the function entry to come first (after the
+  // graph entry), since the polymorphic check is performed in the function
+  // entry (see Instructions::EntryPoint).
+  if (FLAG_precompiled_mode) {
+    ASSERT(block_order()[1] == flow_graph().graph_entry()->normal_entry());
+  }
+
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
     BlockEntryInstr* entry = block_order()[i];
@@ -561,9 +558,7 @@ void FlowGraphCompiler::VisitBlocks() {
     pending_deoptimization_env_ = NULL;
     EndCodeSourceRange(entry->token_pos());
 
-    // The function was fully intrinsified, so there's no need to generate any
-    // more code.
-    if (fully_intrinsified_) {
+    if (skip_body_compilation()) {
       ASSERT(entry == flow_graph().graph_entry()->normal_entry());
       break;
     }

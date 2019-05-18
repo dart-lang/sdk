@@ -3831,7 +3831,7 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 // fall-through code in [FlowGraphCompiler::CompileGraph()].
 // (As opposed to here where we don't check for the return value of
 // [Intrinsify]).
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
+#if defined(DART_SUPPORT_PRECOMPILATION)
   if (FLAG_precompiled_mode) {
     const Function& function = compiler->parsed_function().function();
     if (function.IsDynamicFunction()) {
@@ -3840,12 +3840,21 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
     }
   }
-  // NOTE: Because in X64/ARM mode the graph can have multiple entrypoints, we
-  // generate several times the same intrinsification & frame setup. That's why
-  // we cannot rely on the constant pool being `false` when we come in here.
+#endif
+
+  // NOTE: Because of the presence of multiple entry-points, we generate several
+  // times the same intrinsification & frame setup. That's why we cannot rely on
+  // the constant pool being `false` when we come in here.
+#if defined(TARGET_USES_OBJECT_POOL)
   __ set_constant_pool_allowed(false);
-  if (compiler->TryIntrinsify()) return;
+#endif
+
+  if (compiler->TryIntrinsify() && compiler->skip_body_compilation()) {
+    return;
+  }
   compiler->EmitPrologue();
+
+#if defined(TARGET_USES_OBJECT_POOL)
   ASSERT(__ constant_pool_allowed());
 #endif
 
@@ -3883,13 +3892,16 @@ void OsrEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(compiler->is_optimizing());
   __ Bind(compiler->GetJumpLabel(this));
 
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
-  // NOTE: Because in JIT X64/ARM mode the graph can have multiple
-  // entrypoints, so we generate several times the same intrinsification &
-  // frame setup.  That's why we cannot rely on the constant pool being
-  // `false` when we come in here.
+  // NOTE: Because the graph can have multiple entrypoints, we generate several
+  // times the same intrinsification & frame setup. That's why we cannot rely on
+  // the constant pool being `false` when we come in here.
+#if defined(TARGET_USES_OBJECT_POOL)
   __ set_constant_pool_allowed(false);
+#endif
+
   compiler->EmitPrologue();
+
+#if defined(TARGET_USES_OBJECT_POOL)
   ASSERT(__ constant_pool_allowed());
 #endif
 

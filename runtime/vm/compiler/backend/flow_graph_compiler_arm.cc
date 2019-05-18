@@ -934,7 +934,7 @@ void FlowGraphCompiler::CompileGraph() {
 
   __ bkpt(0);
 
-  if (!fully_intrinsified_) {
+  if (!skip_body_compilation()) {
     ASSERT(assembler()->constant_pool_allowed());
     GenerateDeferredCode();
   }

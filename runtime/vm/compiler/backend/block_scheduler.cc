@@ -274,20 +274,20 @@ void BlockScheduler::ReorderBlocksAOT() const {
     }
   }
 
-  // Emit code in reverse postorder but move any throwing blocks to the very
-  // end.
+  // Emit code in reverse postorder but move any throwing blocks (except the
+  // function entry, which needs to come first) to the very end.
   auto& codegen_order = *flow_graph()->CodegenBlockOrder(true);
   for (intptr_t i = 0; i < block_count; ++i) {
     auto block = reverse_postorder[i];
     const intptr_t preorder_nr = block->preorder_number();
-    if (!is_terminating[preorder_nr]) {
+    if (!is_terminating[preorder_nr] || block->IsFunctionEntry()) {
       codegen_order.Add(block);
     }
   }
   for (intptr_t i = 0; i < block_count; ++i) {
     auto block = reverse_postorder[i];
     const intptr_t preorder_nr = block->preorder_number();
-    if (is_terminating[preorder_nr]) {
+    if (is_terminating[preorder_nr] && !block->IsFunctionEntry()) {
       codegen_order.Add(block);
     }
   }

@@ -791,14 +791,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
   }
 }
 
-void FlowGraphCompiler::CompileGraph() {
-  InitCompiler();
-
-  if (TryIntrinsify()) {
-    // Skip regular code generation.
-    return;
-  }
-
+void FlowGraphCompiler::EmitPrologue() {
   EmitFrameEntry();
 
   // In unoptimized code, initialize (non-argument) stack allocated slots.
@@ -826,11 +819,18 @@ void FlowGraphCompiler::CompileGraph() {
   }
 
   EndCodeSourceRange(TokenPosition::kDartCodePrologue);
+}
+
+void FlowGraphCompiler::CompileGraph() {
+  InitCompiler();
+
   ASSERT(!block_order().is_empty());
   VisitBlocks();
 
-  __ int3();
-  GenerateDeferredCode();
+  if (!skip_body_compilation()) {
+    __ int3();
+    GenerateDeferredCode();
+  }
 }
 
 void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,

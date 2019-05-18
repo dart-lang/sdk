@@ -871,34 +871,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
   }
 }
 
-// Input parameters:
-//   LR: return address.
-//   SP: address of last argument.
-//   FP: caller's frame pointer.
-//   PP: caller's pool pointer.
-//   R4: arguments descriptor array.
-void FlowGraphCompiler::CompileGraph() {
-  InitCompiler();
-
-  if (FLAG_precompiled_mode) {
-    const Function& function = parsed_function().function();
-    if (function.IsDynamicFunction()) {
-      SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
-      __ MonomorphicCheckedEntry();
-      SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
-    }
-  }
-
-  // For JIT we have multiple entrypoints functionality which moved the
-  // intrinsification as well as the setup of the frame to the
-  // [TargetEntryInstr::EmitNativeCode].
-  //
-  // Though this has not been implemented on ARM64, which is why this code here
-  // is outside the "ifdef DART_PRECOMPILER".
-  if (TryIntrinsify()) {
-    // Skip regular code generation.
-    return;
-  }
+void FlowGraphCompiler::EmitPrologue() {
   EmitFrameEntry();
   ASSERT(assembler()->constant_pool_allowed());
 
@@ -925,11 +898,32 @@ void FlowGraphCompiler::CompileGraph() {
   }
 
   EndCodeSourceRange(TokenPosition::kDartCodePrologue);
+}
+
+// Input parameters:
+//   LR: return address.
+//   SP: address of last argument.
+//   FP: caller's frame pointer.
+//   PP: caller's pool pointer.
+//   R4: arguments descriptor array.
+void FlowGraphCompiler::CompileGraph() {
+  InitCompiler();
+
+  // For JIT we have multiple entrypoints functionality which moved the frame
+  // setup into the [TargetEntryInstr] (which will set the constant pool
+  // allowed bit to true).  Despite this we still have to set the
+  // constant pool allowed bit to true here as well, because we can generate
+  // code for [CatchEntryInstr]s, which need the pool.
+  __ set_constant_pool_allowed(true);
+
   VisitBlocks();
 
   __ brk(0);
-  ASSERT(assembler()->constant_pool_allowed());
-  GenerateDeferredCode();
+
+  if (!skip_body_compilation()) {
+    ASSERT(assembler()->constant_pool_allowed());
+    GenerateDeferredCode();
+  }
 }
 
 void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
