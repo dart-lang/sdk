@@ -6065,6 +6065,22 @@ external dynamic f() {}
 ''');
   }
 
+  test_function_hasImplicitReturnType_false() async {
+    var library = await checkLibrary('''
+int f() => 0;
+''');
+    var f = library.definingCompilationUnit.functions.single;
+    expect(f.hasImplicitReturnType, isFalse);
+  }
+
+  test_function_hasImplicitReturnType_true() async {
+    var library = await checkLibrary('''
+f() => 0;
+''');
+    var f = library.definingCompilationUnit.functions.single;
+    expect(f.hasImplicitReturnType, isTrue);
+  }
+
   test_function_parameter_final() async {
     var library = await checkLibrary('f(final x) {}');
     checkElementText(library, r'''
@@ -8469,6 +8485,28 @@ class C {
   dynamic f() {}
 }
 ''');
+  }
+
+  test_method_hasImplicitReturnType_false() async {
+    var library = await checkLibrary('''
+class C {
+  int m() => 0;
+}
+''');
+    var c = library.definingCompilationUnit.types.single;
+    var m = c.methods.single;
+    expect(m.hasImplicitReturnType, isFalse);
+  }
+
+  test_method_hasImplicitReturnType_true() async {
+    var library = await checkLibrary('''
+class C {
+  m() => 0;
+}
+''');
+    var c = library.definingCompilationUnit.types.single;
+    var m = c.methods.single;
+    expect(m.hasImplicitReturnType, isTrue);
   }
 
   test_method_inferred_type_nonStatic_implicit_param() async {
