@@ -2183,6 +2183,10 @@ abstract class PackageBundle extends base.SummaryClass {
   @deprecated
   String get apiSignature;
 
+  /// The version 2 of the summary.
+  @Id(9)
+  LinkedNodeBundle get bundle2;
+
   /// Information about the packages this package depends on, if known.
   @Id(8)
   @informative

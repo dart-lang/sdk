@@ -16242,6 +16242,7 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
 class PackageBundleBuilder extends Object
     with _PackageBundleMixin
     implements idl.PackageBundle {
+  LinkedNodeBundleBuilder _bundle2;
   List<LinkedLibraryBuilder> _linkedLibraries;
   List<String> _linkedLibraryUris;
   int _majorVersion;
@@ -16252,6 +16253,14 @@ class PackageBundleBuilder extends Object
   @override
   Null get apiSignature =>
       throw new UnimplementedError('attempt to access deprecated field');
+
+  @override
+  LinkedNodeBundleBuilder get bundle2 => _bundle2;
+
+  /// The version 2 of the summary.
+  set bundle2(LinkedNodeBundleBuilder value) {
+    this._bundle2 = value;
+  }
 
   @override
   Null get dependencies =>
@@ -16317,13 +16326,15 @@ class PackageBundleBuilder extends Object
   }
 
   PackageBundleBuilder(
-      {List<LinkedLibraryBuilder> linkedLibraries,
+      {LinkedNodeBundleBuilder bundle2,
+      List<LinkedLibraryBuilder> linkedLibraries,
       List<String> linkedLibraryUris,
       int majorVersion,
       int minorVersion,
       List<UnlinkedUnitBuilder> unlinkedUnits,
       List<String> unlinkedUnitUris})
-      : _linkedLibraries = linkedLibraries,
+      : _bundle2 = bundle2,
+        _linkedLibraries = linkedLibraries,
         _linkedLibraryUris = linkedLibraryUris,
         _majorVersion = majorVersion,
         _minorVersion = minorVersion,
@@ -16332,6 +16343,7 @@ class PackageBundleBuilder extends Object
 
   /// Flush [informative] data recursively.
   void flushInformative() {
+    _bundle2?.flushInformative();
     _linkedLibraries?.forEach((b) => b.flushInformative());
     _unlinkedUnits?.forEach((b) => b.flushInformative());
   }
@@ -16372,6 +16384,8 @@ class PackageBundleBuilder extends Object
     }
     signature.addInt(this._majorVersion ?? 0);
     signature.addInt(this._minorVersion ?? 0);
+    signature.addBool(this._bundle2 != null);
+    this._bundle2?.collectApiSignature(signature);
   }
 
   List<int> toBuffer() {
@@ -16380,10 +16394,14 @@ class PackageBundleBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_bundle2;
     fb.Offset offset_linkedLibraries;
     fb.Offset offset_linkedLibraryUris;
     fb.Offset offset_unlinkedUnits;
     fb.Offset offset_unlinkedUnitUris;
+    if (_bundle2 != null) {
+      offset_bundle2 = _bundle2.finish(fbBuilder);
+    }
     if (!(_linkedLibraries == null || _linkedLibraries.isEmpty)) {
       offset_linkedLibraries = fbBuilder
           .writeList(_linkedLibraries.map((b) => b.finish(fbBuilder)).toList());
@@ -16401,6 +16419,9 @@ class PackageBundleBuilder extends Object
           _unlinkedUnitUris.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
+    if (offset_bundle2 != null) {
+      fbBuilder.addOffset(9, offset_bundle2);
+    }
     if (offset_linkedLibraries != null) {
       fbBuilder.addOffset(0, offset_linkedLibraries);
     }
@@ -16444,6 +16465,7 @@ class _PackageBundleImpl extends Object
 
   _PackageBundleImpl(this._bc, this._bcOffset);
 
+  idl.LinkedNodeBundle _bundle2;
   List<idl.LinkedLibrary> _linkedLibraries;
   List<String> _linkedLibraryUris;
   int _majorVersion;
@@ -16454,6 +16476,13 @@ class _PackageBundleImpl extends Object
   @override
   Null get apiSignature =>
       throw new UnimplementedError('attempt to access deprecated field');
+
+  @override
+  idl.LinkedNodeBundle get bundle2 {
+    _bundle2 ??=
+        const _LinkedNodeBundleReader().vTableGet(_bc, _bcOffset, 9, null);
+    return _bundle2;
+  }
 
   @override
   Null get dependencies =>
@@ -16510,6 +16539,7 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (bundle2 != null) _result["bundle2"] = bundle2.toJson();
     if (linkedLibraries.isNotEmpty)
       _result["linkedLibraries"] =
           linkedLibraries.map((_value) => _value.toJson()).toList();
@@ -16527,6 +16557,7 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
 
   @override
   Map<String, Object> toMap() => {
+        "bundle2": bundle2,
         "linkedLibraries": linkedLibraries,
         "linkedLibraryUris": linkedLibraryUris,
         "majorVersion": majorVersion,

@@ -2160,6 +2160,9 @@ table PackageBundle {
   /// package may have changed.
   apiSignature:string (id: 7, deprecated);
 
+  /// The version 2 of the summary.
+  bundle2:LinkedNodeBundle (id: 9);
+
   /// Information about the packages this package depends on, if known.
   dependencies:[PackageDependencyInfo] (id: 8, deprecated);
 
