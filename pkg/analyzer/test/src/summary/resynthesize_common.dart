@@ -5610,6 +5610,25 @@ Exports:
         withExportScope: true);
   }
 
+  test_export_show_getter_setter() async {
+    addLibrarySource('/a.dart', '''
+get f => null;
+void set f(value) {}
+''');
+    var library = await checkLibrary('export "a.dart" show f;');
+    checkElementText(
+        library,
+        r'''
+export 'a.dart' show f;
+
+--------------------
+Exports:
+  f: a.dart;f?
+  f=: a.dart;f=
+''',
+        withExportScope: true);
+  }
+
   test_export_typedef() async {
     addLibrarySource('/a.dart', 'typedef F();');
     var library = await checkLibrary('export "a.dart";');

@@ -74,7 +74,12 @@ class SourceLibraryBuilder {
         } else {
           var references = linker.elementFactory.exportsOfLibrary('$uri');
           for (var reference in references) {
-            export.addToExportScope(reference.name, reference);
+            var name = reference.name;
+            if (reference.isSetter) {
+              export.addToExportScope('$name=', reference);
+            } else {
+              export.addToExportScope(name, reference);
+            }
           }
         }
       }

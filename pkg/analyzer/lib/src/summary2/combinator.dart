@@ -8,9 +8,16 @@ class Combinator {
 
   Combinator(this.isShow, this.names);
 
-  Combinator.show(Iterable<String> names) : this(true, names.toSet());
-
   Combinator.hide(Iterable<String> names) : this(false, names.toSet());
 
+  Combinator.show(Iterable<String> names) : this(true, names.toSet());
+
   bool get isHide => !isShow;
+
+  bool matches(String name) {
+    if (name.endsWith('=')) {
+      name = name.substring(0, name.length - 1);
+    }
+    return names.contains(name);
+  }
 }
