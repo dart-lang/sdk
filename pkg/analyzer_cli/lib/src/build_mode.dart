@@ -79,8 +79,6 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
    */
   Future<void> analyze(
       CommandLineOptions options, Map<String, WorkerInput> inputs) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var packageBundleProvider =
         new WorkerPackageBundleProvider(packageBundleCache, inputs);
     var buildMode = new BuildMode(
@@ -99,11 +97,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
    */
   @override
   Future<WorkResponse> performRequest(WorkRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     return logger.runAsync('Perform request', () async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       errorBuffer.clear();
       outBuffer.clear();
       try {
@@ -148,8 +142,6 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
    */
   @override
   Future<void> run() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     errorSink = errorBuffer;
     outSink = outBuffer;
     exitHandler = (int exitCode) {
@@ -213,11 +205,7 @@ class BuildMode with HasContextMixin {
    * Perform package analysis according to the given [options].
    */
   Future<ErrorSeverity> analyze() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     return await logger.runAsync('Analyze', () async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       // Write initial progress message.
       if (!options.machineFormat) {
         outSink.writeln("Analyzing ${options.sourceFiles.join(', ')}...");
@@ -266,12 +254,8 @@ class BuildMode with HasContextMixin {
       assembler = new PackageBundleAssembler();
       if (_shouldOutputSummary) {
         await logger.runAsync('Build and write output summary', () async {
-          // TODO(brianwilkerson) Determine whether this await is necessary.
-          await null;
           // Prepare all unlinked units.
           await logger.runAsync('Prepare unlinked units', () async {
-            // TODO(brianwilkerson) Determine whether this await is necessary.
-            await null;
             for (var src in explicitSources) {
               await _prepareUnlinkedUnit('${src.uri}');
             }
@@ -368,8 +352,6 @@ class BuildMode with HasContextMixin {
   }
 
   Future<ErrorSeverity> _computeMaxSeverity() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     ErrorSeverity maxSeverity = ErrorSeverity.NONE;
     if (!options.buildSuppressExitCode) {
       for (Source source in explicitSources) {
@@ -507,8 +489,6 @@ class BuildMode with HasContextMixin {
    * Otherwise compute it and store into the [uriToUnit] and [assembler].
    */
   Future<void> _prepareUnlinkedUnit(String absoluteUri) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     // Maybe an input package contains the source.
     if (summaryDataStore.unlinkedMap[absoluteUri] != null) {
       return;
@@ -532,11 +512,7 @@ class BuildMode with HasContextMixin {
    * is sent to a new file at that path.
    */
   Future<void> _printErrors({String outputPath}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     await logger.runAsync('Compute and print analysis errors', () async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       StringBuffer buffer = new StringBuffer();
       var severityProcessor = (AnalysisError error) =>
           determineProcessedSeverity(error, options, analysisOptions);
@@ -650,6 +626,29 @@ abstract class PackageBundleProvider {
 }
 
 /**
+ * Wrapper for [InSummaryUriResolver] that tracks accesses to summaries.
+ */
+class TrackingInSummaryUriResolver extends UriResolver {
+  // May be null.
+  final DependencyTracker dependencyTracker;
+  final InSummaryUriResolver inSummaryUriResolver;
+
+  TrackingInSummaryUriResolver(
+      this.inSummaryUriResolver, this.dependencyTracker);
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    var source = inSummaryUriResolver.resolveAbsolute(uri, actualUri);
+    if (dependencyTracker != null &&
+        source != null &&
+        source is InSummarySource) {
+      dependencyTracker.record(source.summaryPath);
+    }
+    return source;
+  }
+}
+
+/**
  * Worker input.
  *
  * Bazel does not specify the format of the digest, so we cannot assume that
@@ -742,28 +741,5 @@ class WorkerPackageBundleProvider implements PackageBundleProvider {
   @override
   PackageBundle get(String path) {
     return cache.get(inputs, path);
-  }
-}
-
-/**
- * Wrapper for [InSummaryUriResolver] that tracks accesses to summaries.
- */
-class TrackingInSummaryUriResolver extends UriResolver {
-  // May be null.
-  final DependencyTracker dependencyTracker;
-  final InSummaryUriResolver inSummaryUriResolver;
-
-  TrackingInSummaryUriResolver(
-      this.inSummaryUriResolver, this.dependencyTracker);
-
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    var source = inSummaryUriResolver.resolveAbsolute(uri, actualUri);
-    if (dependencyTracker != null &&
-        source != null &&
-        source is InSummarySource) {
-      dependencyTracker.record(source.summaryPath);
-    }
-    return source;
   }
 }
