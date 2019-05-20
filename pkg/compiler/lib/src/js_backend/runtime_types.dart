@@ -686,6 +686,9 @@ abstract class RuntimeTypesEncoder {
       [ShouldEncodeTypedefCallback shouldEncodeTypedef]);
 
   jsAst.Expression getJsInteropTypeArguments(int count);
+
+  /// Fixed strings used for runtime types encoding.
+  RuntimeTypeTags get rtiTags;
 }
 
 /// Common functionality for [_RuntimeTypesNeedBuilder] and [_RuntimeTypes].
@@ -2201,8 +2204,10 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
   final CommonElements commonElements;
   final TypeRepresentationGenerator _representationGenerator;
   final RuntimeTypesNeed _rtiNeed;
+  @override
+  final RuntimeTypeTags rtiTags;
 
-  RuntimeTypesEncoderImpl(RuntimeTypeTags rtiTags, NativeBasicData nativeData,
+  RuntimeTypesEncoderImpl(this.rtiTags, NativeBasicData nativeData,
       this._elementEnvironment, this.commonElements, this._rtiNeed)
       : _representationGenerator =
             new TypeRepresentationGenerator(rtiTags, nativeData);

@@ -11,9 +11,9 @@ import '../constants/values.dart';
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
-import '../js_backend/js_backend.dart'
-    show CodegenInputs, JavaScriptBackend, Namer;
+import '../js_backend/backend.dart' show CodegenInputs, JavaScriptBackend;
 import '../js_backend/inferred_data.dart';
+import '../js_backend/namer.dart' show Namer;
 import '../universe/codegen_world_builder.dart';
 import '../world.dart' show JClosedWorld;
 import 'program_builder/program_builder.dart';
@@ -76,7 +76,8 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   /// Creates the [Emitter] for this task.
-  void createEmitter(Namer namer, JClosedWorld closedWorld) {
+  void createEmitter(
+      Namer namer, CodegenInputs codegen, JClosedWorld closedWorld) {
     measure(() {
       _nativeEmitter =
           new NativeEmitter(this, closedWorld, _backend.nativeCodegenEnqueuer);
@@ -87,7 +88,7 @@ class CodeEmitterTask extends CompilerTask {
           _compiler.dumpInfoTask,
           namer,
           closedWorld,
-          _backend.rtiEncoder,
+          codegen.rtiEncoder,
           _backend.sourceInformationStrategy,
           this,
           _generateSourceMap);
@@ -95,7 +96,7 @@ class CodeEmitterTask extends CompilerTask {
           _compiler.options,
           _compiler.reporter,
           _emitter,
-          _backend.rtiEncoder,
+          codegen.rtiEncoder,
           closedWorld.elementEnvironment);
       typeTestRegistry = new TypeTestRegistry(
           _compiler.options, closedWorld.elementEnvironment);

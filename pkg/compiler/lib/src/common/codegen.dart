@@ -11,6 +11,8 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
 import '../js/js.dart' as js;
+import '../js_backend/namer.dart' show Namer;
+import '../js_emitter/code_emitter_task.dart' show Emitter;
 import '../native/behavior.dart';
 import '../universe/feature.dart';
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
@@ -250,6 +252,103 @@ class CodegenResult {
 
   CodegenResult(
       this.code, this.impact, this.modularNames, this.modularExpressions);
+  void applyModularState(Namer namer, Emitter emitter) {
+    for (ModularName name in modularNames) {
+      switch (name.kind) {
+        case ModularNameKind.rtiField:
+          name.value = namer.rtiFieldJsName;
+          break;
+        case ModularNameKind.runtimeTypeName:
+          name.value = namer.runtimeTypeName(name.data);
+          break;
+        case ModularNameKind.className:
+          name.value = namer.className(name.data);
+          break;
+        case ModularNameKind.aliasedSuperMember:
+          name.value = namer.aliasedSuperMemberPropertyName(name.data);
+          break;
+        case ModularNameKind.staticClosure:
+          name.value = namer.staticClosureName(name.data);
+          break;
+        case ModularNameKind.methodProperty:
+          name.value = namer.methodPropertyName(name.data);
+          break;
+        case ModularNameKind.operatorIs:
+          name.value = namer.operatorIs(name.data);
+          break;
+        case ModularNameKind.operatorIsType:
+          name.value = namer.operatorIsType(name.data);
+          break;
+        case ModularNameKind.substitution:
+          name.value = namer.substitutionName(name.data);
+          break;
+        case ModularNameKind.instanceMethod:
+          name.value = namer.instanceMethodName(name.data);
+          break;
+        case ModularNameKind.instanceField:
+          name.value = namer.instanceFieldPropertyName(name.data);
+          break;
+        case ModularNameKind.invocation:
+          name.value = namer.invocationName(name.data);
+          break;
+        case ModularNameKind.lazyInitializer:
+          name.value = namer.lazyInitializerName(name.data);
+          break;
+        case ModularNameKind.globalPropertyNameForClass:
+          name.value = namer.globalPropertyNameForClass(name.data);
+          break;
+        case ModularNameKind.globalPropertyNameForType:
+          name.value = namer.globalPropertyNameForType(name.data);
+          break;
+        case ModularNameKind.globalPropertyNameForMember:
+          name.value = namer.globalPropertyNameForMember(name.data);
+          break;
+        case ModularNameKind.nameForGetInterceptor:
+          name.value = namer.nameForGetInterceptor(name.set);
+          break;
+        case ModularNameKind.nameForGetOneShotInterceptor:
+          name.value = namer.nameForGetOneShotInterceptor(name.data, name.set);
+          break;
+        case ModularNameKind.asName:
+          name.value = namer.asName(name.data);
+          break;
+      }
+    }
+    for (ModularExpression expression in modularExpressions) {
+      switch (expression.kind) {
+        case ModularExpressionKind.globalObjectForLibrary:
+          expression.value = namer
+              .readGlobalObjectForLibrary(expression.data)
+              .withSourceInformation(expression.sourceInformation);
+          break;
+        case ModularExpressionKind.globalObjectForClass:
+          expression.value = namer
+              .readGlobalObjectForClass(expression.data)
+              .withSourceInformation(expression.sourceInformation);
+          break;
+        case ModularExpressionKind.globalObjectForType:
+          expression.value = namer
+              .readGlobalObjectForType(expression.data)
+              .withSourceInformation(expression.sourceInformation);
+          break;
+        case ModularExpressionKind.globalObjectForMember:
+          expression.value = namer
+              .readGlobalObjectForMember(expression.data)
+              .withSourceInformation(expression.sourceInformation);
+          break;
+        case ModularExpressionKind.constant:
+          expression.value = emitter
+              .constantReference(expression.data)
+              .withSourceInformation(expression.sourceInformation);
+          break;
+        case ModularExpressionKind.embeddedGlobalAccess:
+          expression.value = emitter
+              .generateEmbeddedGlobalAccess(expression.data)
+              .withSourceInformation(expression.sourceInformation);
+          break;
+      }
+    }
+  }
 
   @override
   String toString() {

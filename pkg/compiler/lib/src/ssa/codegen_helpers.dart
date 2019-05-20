@@ -5,7 +5,8 @@
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
-import '../js_backend/js_backend.dart';
+import '../js_backend/js_backend.dart'
+    show SuperMemberData, SyntheticConstantKind;
 import '../js_backend/interceptor_data.dart';
 import '../options.dart';
 import '../universe/selector.dart' show Selector;

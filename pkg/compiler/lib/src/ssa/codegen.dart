@@ -21,7 +21,7 @@ import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/interceptor_data.dart';
-import '../js_backend/backend.dart';
+import '../js_backend/backend.dart' show CodegenInputs, SuperMemberData;
 import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart' show ModularNamer;
@@ -83,12 +83,15 @@ class SsaCodeGeneratorTask extends CompilerTask {
       HGraph graph,
       CodegenInputs codegen,
       JClosedWorld closedWorld,
-      CodegenRegistry registry) {
+      CodegenRegistry registry,
+      ModularNamer namer,
+      ModularEmitter emitter) {
     if (member.isField) {
       return generateLazyInitializer(
-          member, graph, codegen, closedWorld, registry);
+          member, graph, codegen, closedWorld, registry, namer, emitter);
     } else {
-      return generateMethod(member, graph, codegen, closedWorld, registry);
+      return generateMethod(
+          member, graph, codegen, closedWorld, registry, namer, emitter);
     }
   }
 
@@ -97,7 +100,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
       HGraph graph,
       CodegenInputs codegen,
       JClosedWorld closedWorld,
-      CodegenRegistry registry) {
+      CodegenRegistry registry,
+      ModularNamer namer,
+      ModularEmitter emitter) {
     return measure(() {
       codegen.tracer.traceGraph("codegen", graph);
       SourceInformation sourceInformation = sourceInformationStrategy
@@ -106,12 +111,12 @@ class SsaCodeGeneratorTask extends CompilerTask {
       SsaCodeGenerator codeGenerator = new SsaCodeGenerator(
           this,
           _options,
-          codegen.emitter,
+          emitter,
           codegen.checkedModeHelpers,
           codegen.oneShotInterceptorData,
           codegen.rtiSubstitutions,
           codegen.rtiEncoder,
-          codegen.namer,
+          namer,
           codegen.superMemberData,
           codegen.tracer,
           closedWorld,
@@ -127,7 +132,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
       HGraph graph,
       CodegenInputs codegen,
       JClosedWorld closedWorld,
-      CodegenRegistry registry) {
+      CodegenRegistry registry,
+      ModularNamer namer,
+      ModularEmitter emitter) {
     return measure(() {
       if (method.asyncMarker != AsyncMarker.SYNC) {
         registry.registerAsyncMarker(method.asyncMarker);
@@ -135,12 +142,12 @@ class SsaCodeGeneratorTask extends CompilerTask {
       SsaCodeGenerator codeGenerator = new SsaCodeGenerator(
           this,
           _options,
-          codegen.emitter,
+          emitter,
           codegen.checkedModeHelpers,
           codegen.oneShotInterceptorData,
           codegen.rtiSubstitutions,
           codegen.rtiEncoder,
-          codegen.namer,
+          namer,
           codegen.superMemberData,
           codegen.tracer,
           closedWorld,

@@ -21,7 +21,7 @@ import '../inferrer/types.dart';
 import '../io/source_information.dart' show SourceInformationStrategy;
 import '../js/js.dart' as jsAst;
 import '../js_model/elements.dart';
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask, ModularEmitter;
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../kernel/dart2js_target.dart';
 import '../native/enqueue.dart';
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
@@ -53,14 +53,11 @@ import 'resolution_listener.dart';
 import 'runtime_types.dart';
 
 abstract class FunctionCompiler {
-  void onCodegenStart(CodegenInputs codegen);
+  void initialize(
+      GlobalTypeInferenceResults globalInferenceResults, CodegenInputs codegen);
 
   /// Generates JavaScript code for [member].
-  CodegenResult compile(
-      MemberEntity member,
-      CodegenInputs codegen,
-      JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults);
+  CodegenResult compile(MemberEntity member);
 
   Iterable get tasks;
 }
@@ -326,8 +323,6 @@ class JavaScriptBackend {
 
   RuntimeTypesChecksBuilder _rtiChecksBuilder;
 
-  RuntimeTypesEncoder _rtiEncoder;
-
   /// True if the html library has been loaded.
   bool htmlLibraryIsLoaded = false;
 
@@ -418,25 +413,6 @@ class JavaScriptBackend {
   }
 
   RuntimeTypesChecksBuilder get rtiChecksBuilderForTesting => _rtiChecksBuilder;
-
-  RuntimeTypesEncoder get rtiEncoder {
-    assert(
-        _rtiEncoder != null,
-        failedAt(NO_LOCATION_SPANNABLE,
-            "RuntimeTypesEncoder has not been created."));
-    return _rtiEncoder;
-  }
-
-  Namer determineNamer(JClosedWorld closedWorld, RuntimeTypeTags rtiTags) {
-    FixedNames fixedNames = compiler.options.enableMinification
-        ? const MinifiedFixedNames()
-        : const FixedNames();
-    return compiler.options.enableMinification
-        ? compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(closedWorld, rtiTags, fixedNames)
-            : new MinifyNamer(closedWorld, rtiTags, fixedNames)
-        : new Namer(closedWorld, rtiTags, fixedNames);
-  }
 
   void validateInterceptorImplementsAllObjectMethods(
       ClassEntity interceptorClass) {
@@ -580,8 +556,7 @@ class JavaScriptBackend {
             closedWorld.nativeData,
             closedWorld,
             compiler.abstractValueStrategy.createSelectorStrategy()),
-        compiler.backendStrategy.createCodegenWorkItemBuilder(
-            closedWorld, globalInferenceResults, codegen),
+        compiler.backendStrategy.createCodegenWorkItemBuilder(),
         new CodegenEnqueuerListener(
             elementEnvironment,
             commonElements,
@@ -594,20 +569,9 @@ class JavaScriptBackend {
 
   Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
 
-  WorldImpact generateCode(
-      WorkItem work,
-      JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults,
-      CodegenInputs codegen) {
+  WorldImpact generateCode(WorkItem work) {
     MemberEntity member = work.element;
-    if (member.isConstructor &&
-        member.enclosingClass == closedWorld.commonElements.jsNullClass) {
-      // Work around a problem compiling JSNull's constructor.
-      return const WorldImpact();
-    }
-
-    CodegenResult result = functionCompiler.compile(
-        member, codegen, closedWorld, globalInferenceResults);
+    CodegenResult result = functionCompiler.compile(member);
     if (result.code != null) {
       generatedCode[member] = result.code;
     }
@@ -618,6 +582,7 @@ class JavaScriptBackend {
     WorldImpact worldImpact =
         _codegenImpactTransformer.transformCodegenImpact(result.impact);
     compiler.dumpInfoTask.registerImpact(member, worldImpact);
+    result.applyModularState(_namer, emitterTask.emitter);
     return worldImpact;
   }
 
@@ -658,34 +623,28 @@ class JavaScriptBackend {
     }
   }
 
-  /// Called when the compiler starts running the codegen enqueuer. The
-  /// [WorldImpact] of enabled backend features is returned.
-  CodegenInputs onCodegenStart(JClosedWorld closedWorld) {
+  /// Called when the compiler starts running the codegen.
+  ///
+  /// Returns the [CodegenInputs] objects with the needed data.
+  CodegenInputs onCodegenStart(
+      GlobalTypeInferenceResults globalTypeInferenceResults) {
+    JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
     RuntimeTypeTags rtiTags = const RuntimeTypeTags();
+    FixedNames fixedNames = compiler.options.enableMinification
+        ? const MinifiedFixedNames()
+        : const FixedNames();
+
     OneShotInterceptorData oneShotInterceptorData = new OneShotInterceptorData(
         closedWorld.interceptorData,
         closedWorld.commonElements,
         closedWorld.nativeData);
     Tracer tracer = new Tracer(closedWorld, compiler.outputProvider);
-    _rtiEncoder = new RuntimeTypesEncoderImpl(
+    RuntimeTypesEncoder rtiEncoder = new RuntimeTypesEncoderImpl(
         rtiTags,
         closedWorld.nativeData,
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
         closedWorld.rtiNeed);
-    _nativeCodegenEnqueuer = new NativeCodegenEnqueuer(
-        compiler.options,
-        closedWorld.elementEnvironment,
-        closedWorld.commonElements,
-        closedWorld.dartTypes,
-        emitterTask,
-        closedWorld.liveNativeClasses,
-        closedWorld.nativeData);
-    _namer = determineNamer(closedWorld, rtiTags);
-    emitterTask.createEmitter(_namer, closedWorld);
-    // TODO(johnniwinther): Share the impact object created in
-    // createCodegenEnqueuer.
-    BackendImpacts impacts = new BackendImpacts(closedWorld.commonElements);
     RuntimeTypesSubstitutions rtiSubstitutions;
     if (compiler.options.disableRtiOptimization) {
       rtiSubstitutions = new TrivialRuntimeTypesSubstitutions(closedWorld);
@@ -697,6 +656,38 @@ class JavaScriptBackend {
       rtiSubstitutions = runtimeTypesImpl;
     }
 
+    CodegenInputs codegen = new CodegenInputsImpl(oneShotInterceptorData,
+        rtiSubstitutions, rtiEncoder, tracer, rtiTags, fixedNames);
+
+    functionCompiler.initialize(globalTypeInferenceResults, codegen);
+    return codegen;
+  }
+
+  /// Called before the compiler starts running the codegen enqueuer.
+  void onCodegenEnqueuerStart(
+      GlobalTypeInferenceResults globalTypeInferenceResults,
+      CodegenInputs codegen) {
+    JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
+    RuntimeTypeTags rtiTags = codegen.rtiTags;
+    FixedNames fixedNames = codegen.fixedNames;
+    _namer = compiler.options.enableMinification
+        ? compiler.options.useFrequencyNamer
+            ? new FrequencyBasedNamer(closedWorld, rtiTags, fixedNames)
+            : new MinifyNamer(closedWorld, rtiTags, fixedNames)
+        : new Namer(closedWorld, rtiTags, fixedNames);
+    _nativeCodegenEnqueuer = new NativeCodegenEnqueuer(
+        compiler.options,
+        closedWorld.elementEnvironment,
+        closedWorld.commonElements,
+        closedWorld.dartTypes,
+        emitterTask,
+        closedWorld.liveNativeClasses,
+        closedWorld.nativeData);
+    emitterTask.createEmitter(_namer, codegen, closedWorld);
+    // TODO(johnniwinther): Share the impact object created in
+    // createCodegenEnqueuer.
+    BackendImpacts impacts = new BackendImpacts(closedWorld.commonElements);
+
     _codegenImpactTransformer = new CodegenImpactTransformer(
         compiler.options,
         closedWorld.elementEnvironment,
@@ -707,15 +698,9 @@ class JavaScriptBackend {
         closedWorld.rtiNeed,
         nativeCodegenEnqueuer,
         _namer,
-        oneShotInterceptorData,
+        codegen.oneShotInterceptorData,
         rtiChecksBuilder,
         emitterTask.nativeEmitter);
-
-    CodegenInputs codegen = new CodegenInputsImpl(emitterTask.emitter,
-        oneShotInterceptorData, rtiSubstitutions, rtiEncoder, _namer, tracer);
-
-    functionCompiler.onCodegenStart(codegen);
-    return codegen;
   }
 
   /// Called when code generation has been completed.
@@ -801,20 +786,17 @@ class SuperMemberData {
 
 /// Interface for resources only used during code generation.
 abstract class CodegenInputs {
-  ModularEmitter get emitter;
   CheckedModeHelpers get checkedModeHelpers;
   OneShotInterceptorData get oneShotInterceptorData;
   RuntimeTypesSubstitutions get rtiSubstitutions;
   RuntimeTypesEncoder get rtiEncoder;
-  ModularNamer get namer;
   SuperMemberData get superMemberData;
   Tracer get tracer;
+  RuntimeTypeTags get rtiTags;
+  FixedNames get fixedNames;
 }
 
 class CodegenInputsImpl implements CodegenInputs {
-  @override
-  final ModularEmitter emitter;
-
   @override
   final CheckedModeHelpers checkedModeHelpers = new CheckedModeHelpers();
 
@@ -828,14 +810,17 @@ class CodegenInputsImpl implements CodegenInputs {
   final RuntimeTypesEncoder rtiEncoder;
 
   @override
-  final ModularNamer namer;
-
-  @override
   final SuperMemberData superMemberData = new SuperMemberData();
 
   @override
   final Tracer tracer;
 
-  CodegenInputsImpl(this.emitter, this.oneShotInterceptorData,
-      this.rtiSubstitutions, this.rtiEncoder, this.namer, this.tracer);
+  @override
+  final RuntimeTypeTags rtiTags;
+
+  @override
+  final FixedNames fixedNames;
+
+  CodegenInputsImpl(this.oneShotInterceptorData, this.rtiSubstitutions,
+      this.rtiEncoder, this.tracer, this.rtiTags, this.fixedNames);
 }
