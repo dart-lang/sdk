@@ -793,7 +793,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall1(Thread* thread,
   intptr_t i;
   for (i = 0; i < (length - (kCheckedArgs + 2)); i += (kCheckedArgs + 2)) {
     if (cache->data()[i + 0] == receiver_cid) {
-      top[0] = cache->data()[i + kCheckedArgs];
+      top[0] = cache->data()[i + ICData::TargetIndexFor(kCheckedArgs)];
       found = true;
       break;
     }
@@ -841,7 +841,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
   for (i = 0; i < (length - (kCheckedArgs + 2)); i += (kCheckedArgs + 2)) {
     if ((cache->data()[i + 0] == receiver_cid) &&
         (cache->data()[i + 1] == arg0_cid)) {
-      top[0] = cache->data()[i + kCheckedArgs];
+      top[0] = cache->data()[i + ICData::TargetIndexFor(kCheckedArgs)];
       found = true;
       break;
     }

@@ -2036,7 +2036,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   const intptr_t count_offset =
       target::ICData::CountIndexFor(num_args) * target::kWordSize;
   const intptr_t exactness_offset =
-      target::ICData::ExactnessOffsetFor(num_args) * target::kWordSize;
+      target::ICData::ExactnessIndexFor(num_args) * target::kWordSize;
 
   __ Bind(&loop);
   for (int unroll = optimize ? 4 : 2; unroll >= 0; unroll--) {

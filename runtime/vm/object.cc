@@ -13474,7 +13474,8 @@ void ICData::ClearAndSetStaticTarget(const Function& func) const {
   }
   // The final entry is always the sentinel.
   ASSERT(IsSentinelAt(len - 1));
-  if (NumArgsTested() == 0) {
+  const intptr_t num_args_tested = NumArgsTested();
+  if (num_args_tested == 0) {
     // No type feedback is being collected.
     const Array& data = Array::Handle(entries());
     // Static calls with no argument checks hold only one target and the
@@ -13483,11 +13484,11 @@ void ICData::ClearAndSetStaticTarget(const Function& func) const {
     // Static calls with no argument checks only need two words.
     ASSERT(TestEntryLength() == 2);
     // Set the target.
-    data.SetAt(0, func);
+    data.SetAt(TargetIndexFor(num_args_tested), func);
     // Set count to 0 as this is called during compilation, before the
     // call has been executed.
     const Smi& value = Smi::Handle(Smi::New(0));
-    data.SetAt(1, value);
+    data.SetAt(CountIndexFor(num_args_tested), value);
   } else {
     // Type feedback on arguments is being collected.
     const Array& data = Array::Handle(entries());
@@ -13501,9 +13502,9 @@ void ICData::ClearAndSetStaticTarget(const Function& func) const {
     for (intptr_t i = 0; i < NumArgsTested(); i++) {
       data.SetAt(i, object_cid);
     }
-    data.SetAt(NumArgsTested(), func);
+    data.SetAt(TargetIndexFor(num_args_tested), func);
     const Smi& value = Smi::Handle(Smi::New(0));
-    data.SetAt(NumArgsTested() + 1, value);
+    data.SetAt(CountIndexFor(num_args_tested), value);
   }
 }
 
@@ -13573,11 +13574,11 @@ void ICData::AddTarget(const Function& target) const {
   WriteSentinel(data, TestEntryLength());
   intptr_t data_pos = old_num * TestEntryLength();
   ASSERT(!target.IsNull());
-  data.SetAt(data_pos++, target);
+  data.SetAt(data_pos + TargetIndexFor(NumArgsTested()), target);
   // Set count to 0 as this is called during compilation, before the
   // call has been executed.
   const Smi& value = Smi::Handle(Smi::New(0));
-  data.SetAt(data_pos, value);
+  data.SetAt(data_pos + CountIndexFor(NumArgsTested()), value);
   // Multithreaded access to ICData requires setting of array to be the last
   // operation.
   set_entries(data);
@@ -13608,7 +13609,8 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   ASSERT((target.name() == target_name()) || ValidateInterceptor(target));
   DEBUG_ASSERT(!HasCheck(class_ids));
   ASSERT(NumArgsTested() > 1);  // Otherwise use 'AddReceiverCheck'.
-  ASSERT(class_ids.length() == NumArgsTested());
+  const intptr_t num_args_tested = NumArgsTested();
+  ASSERT(class_ids.length() == num_args_tested);
   const intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(entries());
   // ICData of static calls with NumArgsTested() > 0 have initially a
@@ -13616,14 +13618,14 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   // overwritten by first real type feedback data.
   if (old_num == 1) {
     bool has_dummy_entry = true;
-    for (intptr_t i = 0; i < NumArgsTested(); i++) {
+    for (intptr_t i = 0; i < num_args_tested; i++) {
       if (Smi::Value(Smi::RawCast(data.At(i))) != kObjectCid) {
         has_dummy_entry = false;
         break;
       }
     }
     if (has_dummy_entry) {
-      ASSERT(target.raw() == data.At(NumArgsTested()));
+      ASSERT(target.raw() == data.At(TargetIndexFor(num_args_tested)));
       // Replace dummy entry.
       Smi& value = Smi::Handle();
       for (intptr_t i = 0; i < NumArgsTested(); i++) {
@@ -13643,12 +13645,12 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
     // kIllegalCid is used as terminating value, do not add it.
     ASSERT(class_ids[i] != kIllegalCid);
     value = Smi::New(class_ids[i]);
-    data.SetAt(data_pos++, value);
+    data.SetAt(data_pos + i, value);
   }
   ASSERT(!target.IsNull());
-  data.SetAt(data_pos++, target);
+  data.SetAt(data_pos + TargetIndexFor(num_args_tested), target);
   value = Smi::New(count);
-  data.SetAt(data_pos++, value);
+  data.SetAt(data_pos + CountIndexFor(num_args_tested), value);
   // Multithreaded access to ICData requires setting of array to be the last
   // operation.
   set_entries(data);
@@ -13697,7 +13699,8 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   ASSERT(!HasCheck(class_ids));
 #endif  // DEBUG
   ASSERT(!target.IsNull());
-  ASSERT(NumArgsTested() == 1);  // Otherwise use 'AddCheck'.
+  const intptr_t kNumArgsTested = 1;
+  ASSERT(NumArgsTested() == kNumArgsTested);  // Otherwise use 'AddCheck'.
   ASSERT(receiver_class_id != kIllegalCid);
 
   intptr_t index = -1;
@@ -13714,10 +13717,12 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   }
   data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
   if (Isolate::Current()->compilation_allowed()) {
-    data.SetAt(data_pos + 1, target);
-    data.SetAt(data_pos + 2, Smi::Handle(Smi::New(count)));
+    data.SetAt(data_pos + TargetIndexFor(kNumArgsTested), target);
+    data.SetAt(data_pos + CountIndexFor(kNumArgsTested),
+               Smi::Handle(Smi::New(count)));
     if (is_tracking_exactness()) {
-      data.SetAt(data_pos + 3, Smi::Handle(Smi::New(exactness.Encode())));
+      data.SetAt(data_pos + ExactnessIndexFor(kNumArgsTested),
+                 Smi::Handle(Smi::New(exactness.Encode())));
     }
   } else {
     // Precompilation only, after all functions have been compiled.
@@ -13725,8 +13730,8 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
     const Code& code = Code::Handle(target.CurrentCode());
     const Smi& entry_point =
         Smi::Handle(Smi::FromAlignedAddress(code.EntryPoint()));
-    data.SetAt(data_pos + 1, code);
-    data.SetAt(data_pos + 2, entry_point);
+    data.SetAt(data_pos + CodeIndexFor(kNumArgsTested), code);
+    data.SetAt(data_pos + EntryPointIndexFor(kNumArgsTested), entry_point);
   }
   // Multithreaded access to ICData requires setting of array to be the last
   // operation.
@@ -13738,9 +13743,10 @@ StaticTypeExactnessState ICData::GetExactnessAt(intptr_t index) const {
     return StaticTypeExactnessState::NotTracking();
   }
   const Array& data = Array::Handle(entries());
-  intptr_t data_pos = index * TestEntryLength();
+  intptr_t data_pos =
+      index * TestEntryLength() + ExactnessIndexFor(NumArgsTested());
   return StaticTypeExactnessState::Decode(
-      Smi::Value(Smi::RawCast(data.At(data_pos + NumArgsTested() + 2))));
+      Smi::Value(Smi::RawCast(data.At(data_pos))));
 }
 
 void ICData::GetCheckAt(intptr_t index,
@@ -13753,9 +13759,9 @@ void ICData::GetCheckAt(intptr_t index,
   const Array& data = Array::Handle(entries());
   intptr_t data_pos = index * TestEntryLength();
   for (intptr_t i = 0; i < NumArgsTested(); i++) {
-    class_ids->Add(Smi::Value(Smi::RawCast(data.At(data_pos++))));
+    class_ids->Add(Smi::Value(Smi::RawCast(data.At(data_pos + i))));
   }
-  (*target) ^= data.At(data_pos++);
+  (*target) ^= data.At(data_pos + TargetIndexFor(NumArgsTested()));
 }
 
 bool ICData::IsSentinelAt(intptr_t index) const {
@@ -13794,7 +13800,7 @@ void ICData::GetOneClassCheckAt(intptr_t index,
   const Array& data = Array::Handle(entries());
   const intptr_t data_pos = index * TestEntryLength();
   *class_id = Smi::Value(Smi::RawCast(data.At(data_pos)));
-  *target ^= data.At(data_pos + 1);
+  *target ^= data.At(data_pos + TargetIndexFor(NumArgsTested()));
 }
 
 intptr_t ICData::GetCidAt(intptr_t index) const {
@@ -13821,7 +13827,8 @@ intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
 
 RawFunction* ICData::GetTargetAt(intptr_t index) const {
   ASSERT(Isolate::Current()->compilation_allowed());
-  const intptr_t data_pos = index * TestEntryLength() + NumArgsTested();
+  const intptr_t data_pos =
+      index * TestEntryLength() + TargetIndexFor(NumArgsTested());
   ASSERT(Object::Handle(Array::Handle(entries()).At(data_pos)).IsFunction());
 
   NoSafepointScope no_safepoint;
@@ -13830,7 +13837,8 @@ RawFunction* ICData::GetTargetAt(intptr_t index) const {
 }
 
 RawObject* ICData::GetTargetOrCodeAt(intptr_t index) const {
-  const intptr_t data_pos = index * TestEntryLength() + NumArgsTested();
+  const intptr_t data_pos =
+      index * TestEntryLength() + TargetIndexFor(NumArgsTested());
 
   NoSafepointScope no_safepoint;
   RawArray* raw_data = entries();
@@ -13894,18 +13902,6 @@ void ICData::SetEntryPointAt(intptr_t index, const Smi& value) const {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id,
-                                                 intptr_t* count_return) const {
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    if (GetReceiverClassIdAt(i) == class_id) {
-      *count_return = GetCountAt(i);
-      return GetTargetAt(i);
-    }
-  }
-  return Function::null();
-}
-
 RawICData* ICData::AsUnaryClassChecksForCid(intptr_t cid,
                                             const Function& target) const {
   ASSERT(!IsNull());

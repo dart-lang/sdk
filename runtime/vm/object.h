@@ -1775,8 +1775,6 @@ class ICData : public Object {
   intptr_t GetClassIdAt(intptr_t index, intptr_t arg_nr) const;
 
   RawFunction* GetTargetAt(intptr_t index) const;
-  RawFunction* GetTargetForReceiverClassId(intptr_t class_id,
-                                           intptr_t* count_return) const;
 
   RawObject* GetTargetOrCodeAt(intptr_t index) const;
   void SetCodeAt(intptr_t index, const Code& value) const;
@@ -1829,16 +1827,13 @@ class ICData : public Object {
   static intptr_t TestEntryLengthFor(intptr_t num_args,
                                      bool tracking_exactness);
 
-  static intptr_t TargetIndexFor(intptr_t num_args) { return num_args; }
-  static intptr_t CodeIndexFor(intptr_t num_args) { return num_args; }
+  static intptr_t CountIndexFor(intptr_t num_args) { return num_args; }
+  static intptr_t EntryPointIndexFor(intptr_t num_args) { return num_args; }
 
-  static intptr_t CountIndexFor(intptr_t num_args) { return (num_args + 1); }
-  static intptr_t EntryPointIndexFor(intptr_t num_args) {
-    return (num_args + 1);
-  }
-  static intptr_t ExactnessOffsetFor(intptr_t num_args) {
-    return (num_args + 2);
-  }
+  static intptr_t TargetIndexFor(intptr_t num_args) { return num_args + 1; }
+  static intptr_t CodeIndexFor(intptr_t num_args) { return num_args + 1; }
+
+  static intptr_t ExactnessIndexFor(intptr_t num_args) { return num_args + 2; }
 
   bool IsUsedAt(intptr_t i) const;
 
