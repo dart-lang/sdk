@@ -64,10 +64,19 @@ class IOPipelineTestStrategy implements PipelineTestStrategy<IOModularStep> {
       LinkStep(action, inputId, depId, resultId, requestDependenciesData);
 
   @override
+  IOModularStep createMainOnlyStep(
+          {String Function(String, List<String>) action,
+          DataId inputId,
+          DataId depId,
+          DataId resultId,
+          bool requestDependenciesData: true}) =>
+      MainOnlyStep(action, inputId, depId, resultId, requestDependenciesData);
+
+  @override
   String getResult(covariant IOPipeline pipeline, Module m, DataId dataId) {
     var folderUri = pipeline.tmpFoldersForTesting[dataId];
-    return File.fromUri(folderUri.resolve("${m.name}.${dataId.name}"))
-        .readAsStringSync();
+    var file = File.fromUri(folderUri.resolve("${m.name}.${dataId.name}"));
+    return file.existsSync() ? file.readAsStringSync() : null;
   }
 
   @override
@@ -147,6 +156,34 @@ class LinkStep implements IOModularStep {
       Module module, Uri root, ModuleDataToRelativeUri toUri) async {
     List<String> depsData = [];
     for (var dependency in module.dependencies) {
+      var depData = await _readHelper(dependency, root, depId, toUri);
+      depsData.add(depData);
+    }
+    var inputData = await _readHelper(module, root, inputId, toUri);
+    await File.fromUri(root.resolveUri(toUri(module, resultId)))
+        .writeAsString(action(inputData, depsData));
+  }
+}
+
+class MainOnlyStep implements IOModularStep {
+  bool get needsSources => false;
+  final List<DataId> dependencyDataNeeded;
+  List<DataId> get moduleDataNeeded => [inputId];
+  final String Function(String, List<String>) action;
+  final DataId inputId;
+  final DataId depId;
+  final DataId resultId;
+  bool get onlyOnMain => true;
+
+  MainOnlyStep(this.action, this.inputId, this.depId, this.resultId,
+      bool requestDependencies)
+      : dependencyDataNeeded = requestDependencies ? [depId] : [];
+
+  @override
+  Future<void> execute(
+      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+    List<String> depsData = [];
+    for (var dependency in computeTransitiveDependencies(module)) {
       var depData = await _readHelper(dependency, root, depId, toUri);
       depsData.add(depData);
     }

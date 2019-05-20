@@ -76,3 +76,14 @@ class Module {
 }
 
 final RegExp _validModuleName = new RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*$');
+
+/// Helper to compute transitive dependencies from [module].
+Set<Module> computeTransitiveDependencies(Module module) {
+  Set<Module> deps = {};
+  helper(Module m) {
+    if (deps.add(m)) m.dependencies.forEach(helper);
+  }
+
+  module.dependencies.forEach(helper);
+  return deps;
+}
