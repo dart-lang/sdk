@@ -432,7 +432,7 @@ Call propertyCall(
 }
 
 class MiniJsParserError {
-  MiniJsParserError(this.parser, this.message) {}
+  MiniJsParserError(this.parser, this.message);
 
   final MiniJsParser parser;
   final String message;
@@ -492,7 +492,7 @@ class MiniJsParser {
   }
 
   int lastCategory = NONE;
-  String lastToken = null;
+  String lastToken;
   int lastPosition = 0;
   int position = 0;
   bool skippedNewline = false; // skipped newline in last getToken?
@@ -1551,12 +1551,12 @@ class MiniJsParser {
     //     for (let variable of Expression) Statement
     //
     Statement finishFor(Expression init) {
-      Expression condition = null;
+      Expression condition;
       if (!acceptCategory(SEMICOLON)) {
         condition = parseExpression();
         expectCategory(SEMICOLON);
       }
-      Expression update = null;
+      Expression update;
       if (!acceptCategory(RPAREN)) {
         update = parseExpression();
         expectCategory(RPAREN);
@@ -1614,9 +1614,9 @@ class MiniJsParser {
   Statement parseTry() {
     expectCategory(LBRACE);
     Block body = parseBlock();
-    Catch catchPart = null;
+    Catch catchPart;
     if (acceptString('catch')) catchPart = parseCatch();
-    Block finallyPart = null;
+    Block finallyPart;
     if (acceptString('finally')) {
       expectCategory(LBRACE);
       finallyPart = parseBlock();
@@ -1627,7 +1627,7 @@ class MiniJsParser {
   }
 
   SwitchCase parseSwitchClause() {
-    Expression expression = null;
+    Expression expression;
     if (acceptString('case')) {
       expression = parseExpression();
       expectCategory(COLON);
@@ -1690,7 +1690,7 @@ class MiniJsParser {
 
   ClassExpression parseClass() {
     Identifier name = parseIdentifier();
-    Expression heritage = null;
+    Expression heritage;
     if (acceptString('extends')) {
       heritage = parseConditional();
     }
@@ -1719,7 +1719,7 @@ class MiniJsParser {
 
     bool isGetter = lastToken == 'get';
     bool isSetter = lastToken == 'set';
-    Expression name = null;
+    Expression name;
     if (isGetter || isSetter) {
       var token = lastToken;
       getToken();

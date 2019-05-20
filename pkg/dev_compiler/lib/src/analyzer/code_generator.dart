@@ -3448,7 +3448,7 @@ class CodeGenerator extends Object
       return _emitSetSimpleIdentifier(left, right);
     }
 
-    Expression target = null;
+    Expression target;
     SimpleIdentifier id;
     if (left is PropertyAccess) {
       if (left.operator.lexeme == '?.') {
@@ -4776,7 +4776,9 @@ class CodeGenerator extends Object
 
   AstNode _parentOperation(AstNode node) {
     node = node.parent;
-    while (node is ParenthesizedExpression) node = node.parent;
+    while (node is ParenthesizedExpression) {
+      node = node.parent;
+    }
     return node;
   }
 
@@ -6258,7 +6260,7 @@ class CodeGenerator extends Object
     }
     var type = functionType.returnType;
 
-    InterfaceType expectedType = null;
+    InterfaceType expectedType;
     if (element.isAsynchronous) {
       if (element.isGenerator) {
         // Stream<T> -> T
@@ -6443,9 +6445,9 @@ class CodeGenerator extends Object
 
   JS.For _emitFor(ForParts forParts, JS.Statement body) {
     JS.Expression init;
-    if (forParts is ForPartsWithExpression)
+    if (forParts is ForPartsWithExpression) {
       init = _visitExpression(forParts.initialization);
-    else if (forParts is ForPartsWithDeclarations) {
+    } else if (forParts is ForPartsWithDeclarations) {
       init = visitVariableDeclarationList(forParts.variables);
     } else {
       throw new StateError('Unrecognized for loop parts');

@@ -392,7 +392,7 @@ class StringEditBuffer {
   /// Creates a new transaction.
   StringEditBuffer(this.original);
 
-  bool get hasEdits => _edits.length > 0;
+  bool get hasEdits => _edits.isNotEmpty;
 
   /// Edit the original text, replacing text on the range [begin] and
   /// exclusive [end] with the [replacement] string.
@@ -419,7 +419,7 @@ class StringEditBuffer {
   @override
   String toString() {
     var sb = StringBuffer();
-    if (_edits.length == 0) return original;
+    if (_edits.isEmpty) return original;
 
     // Sort edits by start location.
     _edits.sort();

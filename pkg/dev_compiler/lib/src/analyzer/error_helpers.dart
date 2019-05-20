@@ -34,7 +34,9 @@ class ErrorCollector {
   }
 
   void addAll(LineInfo lineInfo, Iterable<AnalysisError> errors) {
-    for (var e in errors) add(lineInfo, e);
+    for (var e in errors) {
+      add(lineInfo, e);
+    }
   }
 
   ErrorSeverity _errorSeverity(AnalysisError error) {

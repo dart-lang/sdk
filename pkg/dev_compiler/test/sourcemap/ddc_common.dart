@@ -103,8 +103,9 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
     if (result.startsWith("Object.")) result = result.substring(7);
     String inputName =
         INPUT_FILE_NAME.substring(0, INPUT_FILE_NAME.indexOf(".") + 1);
-    if (result.startsWith(inputName))
+    if (result.startsWith(inputName)) {
       result = result.substring(inputName.length);
+    }
     return result;
   }
 }

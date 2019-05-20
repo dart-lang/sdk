@@ -208,7 +208,9 @@ class MetaLet extends Expression {
     var node = Block(statements);
     node.accept(counter);
     // Also count the init expressions.
-    for (var init in variables.values) init.accept(counter);
+    for (var init in variables.values) {
+      init.accept(counter);
+    }
 
     var initializers = <VariableInitialization>[];
     var substitutions = <MetaLetVariable, Expression>{};

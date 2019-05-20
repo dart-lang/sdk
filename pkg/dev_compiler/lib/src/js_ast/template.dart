@@ -213,7 +213,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     for (var instantiator in makers) {
       var result = instantiator(args);
       if (result is Iterable) {
-        for (var e in result) exprs.add(e as T);
+        for (var e in result) {
+          exprs.add(e as T);
+        }
       } else {
         exprs.add(result as T);
       }
@@ -339,7 +341,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       var node = instantiator(arguments);
       if (node is EmptyStatement) continue;
       if (node is Iterable) {
-        for (var n in node) statements.add(n as Statement);
+        for (var n in node) {
+          statements.add(n as Statement);
+        }
       } else if (node is Block && !node.isScope) {
         statements.addAll(node.statements);
       } else {

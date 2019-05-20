@@ -361,7 +361,9 @@ class Program extends Node {
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitProgram(this);
   @override
   void visitChildren(NodeVisitor visitor) {
-    for (ModuleItem statement in body) statement.accept(visitor);
+    for (ModuleItem statement in body) {
+      statement.accept(visitor);
+    }
   }
 
   @override
@@ -371,7 +373,7 @@ class Program extends Node {
 abstract class Statement extends ModuleItem {
   static Statement from(List<Statement> statements) {
     // TODO(jmesserly): empty block singleton? Should this use empty statement?
-    if (statements.length == 0) return Block([]);
+    if (statements.isEmpty) return Block([]);
     if (statements.length == 1) return statements[0];
     return Block(statements);
   }
@@ -441,7 +443,9 @@ class Block extends Statement {
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitBlock(this);
   @override
   void visitChildren(NodeVisitor visitor) {
-    for (Statement statement in statements) statement.accept(visitor);
+    for (Statement statement in statements) {
+      statement.accept(visitor);
+    }
   }
 
   @override
@@ -646,7 +650,7 @@ class Break extends Statement {
 class Return extends Statement {
   final Expression value; // Can be null.
 
-  Return([this.value = null]);
+  Return([this.value]);
 
   @override
   bool get alwaysReturns => true;
@@ -758,7 +762,9 @@ class Switch extends Statement {
   @override
   void visitChildren(NodeVisitor visitor) {
     key.accept(visitor);
-    for (var clause in cases) clause.accept(visitor);
+    for (var clause in cases) {
+      clause.accept(visitor);
+    }
   }
 
   @override
@@ -863,7 +869,7 @@ abstract class Expression extends Node {
   Expression();
 
   factory Expression.binary(List<Expression> exprs, String op) {
-    Expression comma = null;
+    Expression comma;
     for (var node in exprs) {
       comma = (comma == null) ? node : Binary(op, comma, node);
     }
@@ -904,7 +910,9 @@ class LiteralExpression extends Expression {
   @override
   void visitChildren(NodeVisitor visitor) {
     if (inputs != null) {
-      for (Expression expr in inputs) expr.accept(visitor);
+      for (Expression expr in inputs) {
+        expr.accept(visitor);
+      }
     }
   }
 
@@ -936,7 +944,9 @@ class VariableDeclarationList extends Expression {
   /// Analogous to the predicate [Statement.shadows].
   bool shadows(Set<String> names) {
     if (keyword == 'var') return false;
-    for (var d in declarations) if (d.declaration.shadows(names)) return true;
+    for (var d in declarations) {
+      if (d.declaration.shadows(names)) return true;
+    }
     return false;
   }
 
@@ -1073,13 +1083,17 @@ abstract class BindingPattern extends Expression implements VariableBinding {
 
   @override
   bool shadows(Set<String> names) {
-    for (var v in variables) if (v.shadows(names)) return true;
+    for (var v in variables) {
+      if (v.shadows(names)) return true;
+    }
     return false;
   }
 
   @override
   void visitChildren(NodeVisitor visitor) {
-    for (DestructuredVariable v in variables) v.accept(visitor);
+    for (DestructuredVariable v in variables) {
+      v.accept(visitor);
+    }
   }
 }
 
@@ -1164,7 +1178,9 @@ class Call extends Expression {
   @override
   void visitChildren(NodeVisitor visitor) {
     target.accept(visitor);
-    for (Expression arg in arguments) arg.accept(visitor);
+    for (Expression arg in arguments) {
+      arg.accept(visitor);
+    }
   }
 
   @override
@@ -1482,7 +1498,9 @@ class Fun extends FunctionExpression {
 
   @override
   void visitChildren(NodeVisitor visitor) {
-    for (Parameter param in params) param.accept(visitor);
+    for (Parameter param in params) {
+      param.accept(visitor);
+    }
     body.accept(visitor);
   }
 
@@ -1507,7 +1525,9 @@ class ArrowFun extends FunctionExpression {
 
   @override
   void visitChildren(NodeVisitor visitor) {
-    for (Parameter param in params) param.accept(visitor);
+    for (Parameter param in params) {
+      param.accept(visitor);
+    }
     body.accept(visitor);
   }
 
@@ -1657,7 +1677,9 @@ class ArrayInitializer extends Expression {
 
   @override
   void visitChildren(NodeVisitor visitor) {
-    for (Expression element in elements) element.accept(visitor);
+    for (Expression element in elements) {
+      element.accept(visitor);
+    }
   }
 
   @override
@@ -1700,7 +1722,9 @@ class ObjectInitializer extends Expression {
 
   @override
   void visitChildren(NodeVisitor visitor) {
-    for (Property init in properties) init.accept(visitor);
+    for (Property init in properties) {
+      init.accept(visitor);
+    }
   }
 
   @override
@@ -1857,7 +1881,9 @@ class ClassExpression extends Expression {
   void visitChildren(NodeVisitor visitor) {
     name.accept(visitor);
     if (heritage != null) heritage.accept(visitor);
-    for (Method element in methods) element.accept(visitor);
+    for (Method element in methods) {
+      element.accept(visitor);
+    }
   }
 
   @override
@@ -1880,7 +1906,7 @@ class Method extends Node implements Property {
 
   Method(this.name, this.function,
       {this.isGetter = false, this.isSetter = false, this.isStatic = false}) {
-    assert(!isGetter || function.params.length == 0);
+    assert(!isGetter || function.params.isEmpty);
     assert(!isSetter || function.params.length == 1);
     assert(!isGetter && !isSetter || !function.isGenerator);
   }
@@ -2207,7 +2233,9 @@ class ImportDeclaration extends ModuleItem {
   @override
   void visitChildren(NodeVisitor visitor) {
     if (namedImports != null) {
-      for (NameSpecifier name in namedImports) name.accept(visitor);
+      for (NameSpecifier name in namedImports) {
+        name.accept(visitor);
+      }
     }
     from.accept(visitor);
   }
@@ -2286,7 +2314,9 @@ class ExportClause extends Node {
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitExportClause(this);
   @override
   void visitChildren(NodeVisitor visitor) {
-    for (NameSpecifier name in exports) name.accept(visitor);
+    for (NameSpecifier name in exports) {
+      name.accept(visitor);
+    }
     if (from != null) from.accept(visitor);
   }
 
@@ -2327,7 +2357,9 @@ class Module extends Node {
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitModule(this);
   @override
   void visitChildren(NodeVisitor visitor) {
-    for (ModuleItem item in body) item.accept(visitor);
+    for (ModuleItem item in body) {
+      item.accept(visitor);
+    }
   }
 
   @override

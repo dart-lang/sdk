@@ -130,7 +130,7 @@ class Printer implements NodeVisitor {
     if (!shouldCompressOutput) out(" ");
   }
 
-  String lastAddedString = null;
+  String lastAddedString;
   int get lastCharCode {
     if (lastAddedString == null) return 0;
     assert(lastAddedString.length != "");
@@ -556,7 +556,7 @@ class Printer implements NodeVisitor {
           newInForInit: false, newAtStatementBegin: false);
       outLn(":");
     }
-    if (!node.body.statements.isEmpty) {
+    if (node.body.statements.isNotEmpty) {
       blockOut(node.body, true, true);
     }
   }
@@ -1497,7 +1497,9 @@ class VarCollector extends BaseVisitor {
   void visitClassExpression(ClassExpression node) {
     // Note that we don't bother collecting the name of the class.
     if (node.heritage != null) node.heritage.accept(this);
-    for (Method method in node.methods) method.accept(this);
+    for (Method method in node.methods) {
+      method.accept(this);
+    }
   }
 
   @override
@@ -1801,6 +1803,8 @@ abstract class VariableDeclarationVisitor extends BaseVisitor<void> {
   visitClassExpression(ClassExpression node) {
     declare(node.name);
     if (node.heritage != null) node.heritage.accept(this);
-    for (Method element in node.methods) element.accept(this);
+    for (Method element in node.methods) {
+      element.accept(this);
+    }
   }
 }

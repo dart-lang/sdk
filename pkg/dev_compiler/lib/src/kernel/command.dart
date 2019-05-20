@@ -35,7 +35,7 @@ const _binaryName = 'dartdevc -k';
 /// Returns `true` if the program compiled without any fatal errors.
 Future<CompilerResult> compile(List<String> args,
     {fe.InitializedCompilerState compilerState,
-    bool useIncrementalCompiler: false}) async {
+    bool useIncrementalCompiler = false}) async {
   try {
     return await _compile(args,
         compilerState: compilerState,
@@ -66,7 +66,7 @@ String _usageMessage(ArgParser ddcArgParser) =>
 
 Future<CompilerResult> _compile(List<String> args,
     {fe.InitializedCompilerState compilerState,
-    bool useIncrementalCompiler: false}) async {
+    bool useIncrementalCompiler = false}) async {
   // TODO(jmesserly): refactor options to share code with dartdevc CLI.
   var argParser = ArgParser(allowTrailingOptions: true)
     ..addFlag('help',

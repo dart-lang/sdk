@@ -176,7 +176,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
   _markUsed(Identifier node, Object id, _FunctionScope declScope) {
     // If it needs rename, we can't add it to the used name set yet, instead we
     // will record all scopes it is visible in.
-    Set<_FunctionScope> usedIn = null;
+    Set<_FunctionScope> usedIn;
     var rename = declScope != globalScope && needsRename(node);
     if (rename) {
       usedIn = pendingRenames.putIfAbsent(id, () => HashSet());
