@@ -37,8 +37,17 @@ enum DynamicUseKind {
 /// object on which the property is accessed.
 class DynamicUse {
   final Selector selector;
+  final Object receiverConstraint;
+  final List<DartType> _typeArguments;
 
-  DynamicUse(this.selector);
+  DynamicUse(this.selector, this.receiverConstraint, this._typeArguments) {
+    assert(
+        selector.callStructure.typeArgumentCount ==
+            (_typeArguments?.length ?? 0),
+        "Type argument count mismatch. Selector has "
+        "${selector.callStructure.typeArgumentCount} but "
+        "${_typeArguments?.length ?? 0} were passed.");
+  }
 
   /// Short textual representation use for testing.
   String get shortText {
@@ -71,8 +80,6 @@ class DynamicUse {
     return sb.toString();
   }
 
-  Object get receiverConstraint => null;
-
   DynamicUseKind get kind {
     if (selector.isGetter) {
       return DynamicUseKind.GET;
@@ -83,7 +90,7 @@ class DynamicUse {
     }
   }
 
-  List<DartType> get typeArguments => const <DartType>[];
+  List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
 
   @override
   int get hashCode => Hashing.listHash(
@@ -99,48 +106,7 @@ class DynamicUse {
   }
 
   @override
-  String toString() => '$selector,$receiverConstraint';
-}
-
-class GenericDynamicUse extends DynamicUse {
-  final List<DartType> _typeArguments;
-
-  GenericDynamicUse(Selector selector, [this._typeArguments])
-      : super(selector) {
-    assert(
-        selector.callStructure.typeArgumentCount ==
-            (_typeArguments?.length ?? 0),
-        "Type argument count mismatch. Selector has "
-        "${selector.callStructure.typeArgumentCount} but "
-        "${typeArguments?.length ?? 0} were passed.");
-  }
-
-  @override
-  List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
-}
-
-/// A dynamic use with a receiver constraint.
-///
-/// This is used in the codegen phase where receivers are constrained to a
-/// type mask or similar.
-class ConstrainedDynamicUse extends DynamicUse {
-  @override
-  final Object receiverConstraint;
-  final List<DartType> _typeArguments;
-
-  ConstrainedDynamicUse(
-      Selector selector, this.receiverConstraint, this._typeArguments)
-      : super(selector) {
-    assert(
-        selector.callStructure.typeArgumentCount ==
-            (_typeArguments?.length ?? 0),
-        "Type argument count mismatch. Selector has "
-        "${selector.callStructure.typeArgumentCount} but "
-        "${_typeArguments?.length ?? 0} were passed.");
-  }
-
-  @override
-  List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
+  String toString() => '$selector,$receiverConstraint,$typeArguments';
 }
 
 enum StaticUseKind {
@@ -178,23 +144,35 @@ class StaticUse {
   final CallStructure callStructure;
   final ImportEntity deferredImport;
   final ConstantValue constant;
+  final List<DartType> typeArguments;
 
   StaticUse.internal(Entity element, this.kind,
       {this.type,
       this.callStructure,
       this.deferredImport,
-      typeArgumentsHash: 0,
+      this.typeArguments,
       this.constant})
       : this.element = element,
         this.hashCode = Hashing.listHash([
           element,
           kind,
           type,
-          typeArgumentsHash,
+          Hashing.listHash(typeArguments),
           callStructure,
           deferredImport,
           constant
         ]);
+
+  bool _checkGenericInvariants() {
+    assert(
+        (callStructure?.typeArgumentCount ?? 0) == (typeArguments?.length ?? 0),
+        failedAt(
+            element,
+            "Type argument count mismatch. Call structure has "
+            "${callStructure?.typeArgumentCount ?? 0} but "
+            "${typeArguments?.length ?? 0} were passed in $this."));
+    return true;
+  }
 
   /// Short textual representation use for testing.
   String get shortText {
@@ -252,8 +230,6 @@ class StaticUse {
     return sb.toString();
   }
 
-  List<DartType> get typeArguments => null;
-
   /// Invocation of a static or top-level [element] with the given
   /// [callStructure].
   factory StaticUse.staticInvoke(
@@ -272,8 +248,13 @@ class StaticUse {
         failedAt(element,
             "Not CallStructure for static invocation of element $element."));
 
-    return new GenericStaticUse(element, StaticUseKind.STATIC_INVOKE,
-        callStructure, typeArguments, deferredImport);
+    StaticUse staticUse = new StaticUse.internal(
+        element, StaticUseKind.STATIC_INVOKE,
+        callStructure: callStructure,
+        typeArguments: typeArguments,
+        deferredImport: deferredImport);
+    assert(staticUse._checkGenericInvariants());
+    return staticUse;
   }
 
   /// Closurization of a static or top-level function [element].
@@ -351,8 +332,11 @@ class StaticUse {
         callStructure != null,
         failedAt(element,
             "Not CallStructure for super invocation of element $element."));
-    return new GenericStaticUse(
-        element, StaticUseKind.SUPER_INVOKE, callStructure, typeArguments);
+    StaticUse staticUse = new StaticUse.internal(
+        element, StaticUseKind.SUPER_INVOKE,
+        callStructure: callStructure, typeArguments: typeArguments);
+    assert(staticUse._checkGenericInvariants());
+    return staticUse;
   }
 
   /// Read access of a super field or getter [element].
@@ -449,8 +433,11 @@ class StaticUse {
             "Direct invoke element $element must be an instance member."));
     assert(element.isFunction,
         failedAt(element, "Direct invoke element $element must be a method."));
-    return new GenericStaticUse(
-        element, StaticUseKind.DIRECT_INVOKE, callStructure, typeArguments);
+    StaticUse staticUse = new StaticUse.internal(
+        element, StaticUseKind.DIRECT_INVOKE,
+        callStructure: callStructure, typeArguments: typeArguments);
+    assert(staticUse._checkGenericInvariants());
+    return staticUse;
   }
 
   /// Direct read access of a field or getter [element].
@@ -584,8 +571,11 @@ class StaticUse {
   /// [callStructure] and [typeArguments].
   factory StaticUse.closureCall(Local element, CallStructure callStructure,
       List<DartType> typeArguments) {
-    return new GenericStaticUse(
-        element, StaticUseKind.CLOSURE_CALL, callStructure, typeArguments);
+    StaticUse staticUse = new StaticUse.internal(
+        element, StaticUseKind.CLOSURE_CALL,
+        callStructure: callStructure, typeArguments: typeArguments);
+    assert(staticUse._checkGenericInvariants());
+    return staticUse;
   }
 
   /// Read of a call [method] on a closureClass.
@@ -610,7 +600,8 @@ class StaticUse {
   /// Inlining of [element].
   factory StaticUse.methodInlining(
       FunctionEntity element, List<DartType> typeArguments) {
-    return new GenericStaticUse.methodInlining(element, typeArguments);
+    return new StaticUse.internal(element, StaticUseKind.INLINING,
+        typeArguments: typeArguments);
   }
 
   @override
@@ -629,31 +620,6 @@ class StaticUse {
   @override
   String toString() =>
       'StaticUse($element,$kind,$type,$typeArguments,$callStructure)';
-}
-
-class GenericStaticUse extends StaticUse {
-  @override
-  final List<DartType> typeArguments;
-
-  GenericStaticUse(Entity entity, StaticUseKind kind,
-      CallStructure callStructure, this.typeArguments,
-      [ImportEntity deferredImport])
-      : super.internal(entity, kind,
-            callStructure: callStructure,
-            deferredImport: deferredImport,
-            typeArgumentsHash: Hashing.listHash(typeArguments)) {
-    assert(
-        (callStructure?.typeArgumentCount ?? 0) == (typeArguments?.length ?? 0),
-        failedAt(
-            element,
-            "Type argument count mismatch. Call structure has "
-            "${callStructure?.typeArgumentCount ?? 0} but "
-            "${typeArguments?.length ?? 0} were passed in $this."));
-  }
-
-  GenericStaticUse.methodInlining(FunctionEntity entity, this.typeArguments)
-      : super.internal(entity, StaticUseKind.INLINING,
-            typeArgumentsHash: Hashing.listHash(typeArguments));
 }
 
 enum TypeUseKind {
