@@ -140,12 +140,12 @@ CompilerAnalysisDriver _compile(
   if (outPaths.isEmpty) {
     throw UsageException(
         'Please specify the output file location. For example:\n'
-        '    -o PATH/TO/OUTPUT_FILE.js',
+            '    -o PATH/TO/OUTPUT_FILE.js',
         '');
   } else if (outPaths.length != moduleFormats.length) {
     throw UsageException(
         'Number of output files (${outPaths.length}) must match '
-        'number of module formats (${moduleFormats.length}).',
+            'number of module formats (${moduleFormats.length}).',
         '');
   }
 

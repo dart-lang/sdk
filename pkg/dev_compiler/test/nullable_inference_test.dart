@@ -338,7 +338,7 @@ void main() {
           // arithmetic operation results on `i` are themselves not null, even
           // though `i` is nullable.
           '0, i.{dart.core::num::<}(10), 10, i = i.{dart.core::num::+}(1), '
-          'i.{dart.core::num::+}(1), 1, i.{dart.core::num::>=}(10), 10');
+              'i.{dart.core::num::+}(1), 1, i.{dart.core::num::>=}(10), 10');
     });
     test('for-in', () async {
       await expectNotNull('''main() {
@@ -429,7 +429,7 @@ void main() {
       test('parameters', () async {
         await expectNotNull(
             '$imports f(@notNull x, [@notNull y, @notNull z = 42]) '
-            '{ x; y; z; }',
+                '{ x; y; z; }',
             '42, x, y, z');
       });
       test('named parameters', () async {
@@ -456,7 +456,7 @@ void main() {
     test('method', () async {
       await expectNotNull(
           'library b; $imports class C { @notNull m() {} } '
-          'main() { var c = new C(); c.m(); }',
+              'main() { var c = new C(); c.m(); }',
           'new b::C::•(), c.{b::C::m}(), c');
     });
   });

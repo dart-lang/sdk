@@ -58,7 +58,7 @@ List<ModuleFormat> parseModuleFormatOption(ArgResults args) {
         default:
           throw UsageException(
               'Format $format cannot be combined with '
-              'single-out-file. Only amd and legacy modes are supported.',
+                  'single-out-file. Only amd and legacy modes are supported.',
               '');
       }
     }

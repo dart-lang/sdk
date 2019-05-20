@@ -94,12 +94,12 @@ class JSSyntaxRegExp implements RegExp {
     var regexp = JS(
         '',
         '(function() {'
-        'try {'
-        'return new RegExp(#, # + # + # + # + #);'
-        '} catch (e) {'
-        'return e;'
-        '}'
-        '})()',
+            'try {'
+            'return new RegExp(#, # + # + # + # + #);'
+            '} catch (e) {'
+            'return e;'
+            '}'
+            '})()',
         source,
         m,
         i,

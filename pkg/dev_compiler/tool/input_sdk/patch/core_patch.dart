@@ -720,8 +720,8 @@ class _Uri {
   static final bool _isWindowsCached = JS(
       'bool',
       'typeof process != "undefined" && '
-      'Object.prototype.toString.call(process) == "[object process]" && '
-      'process.platform == "win32"');
+          'Object.prototype.toString.call(process) == "[object process]" && '
+          'process.platform == "win32"');
 
   // Matches a String that _uriEncodes to itself regardless of the kind of
   // component.  This corresponds to [_unreservedTable], i.e. characters that

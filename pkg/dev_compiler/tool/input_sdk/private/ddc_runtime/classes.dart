@@ -61,7 +61,7 @@ void _copyMember(to, from, name) {
       var obj = JS(
           '',
           '#.set = { __proto__: #.__proto__, '
-          'set [#](x) { return super[#] = x; } }',
+              'set [#](x) { return super[#] = x; } }',
           desc,
           to,
           name,
@@ -73,7 +73,7 @@ void _copyMember(to, from, name) {
       var obj = JS(
           '',
           '#.get = { __proto__: #.__proto__, '
-          'get [#]() { return super[#]; } }',
+              'get [#]() { return super[#]; } }',
           desc,
           to,
           name,
