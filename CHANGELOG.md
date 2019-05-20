@@ -1,3 +1,10 @@
+# 0.1.89
+
+* broadened `prefer_null_aware_operators` to work beyond local variables
+* new lint: `prefer_if_null_operators`
+* fixed `prefer_contains` false positives
+* fixed `unnecessary_parenthesis` false positives
+
 # 0.1.88
 
 * fixed `prefer_asserts_in_initializer_lists` false positives
