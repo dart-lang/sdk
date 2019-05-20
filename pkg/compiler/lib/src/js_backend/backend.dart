@@ -663,7 +663,9 @@ class JavaScriptBackend {
   CodegenInputs onCodegenStart(JClosedWorld closedWorld) {
     RuntimeTypeTags rtiTags = const RuntimeTypeTags();
     OneShotInterceptorData oneShotInterceptorData = new OneShotInterceptorData(
-        closedWorld.interceptorData, closedWorld.commonElements);
+        closedWorld.interceptorData,
+        closedWorld.commonElements,
+        closedWorld.nativeData);
     Tracer tracer = new Tracer(closedWorld, compiler.outputProvider);
     _rtiEncoder = new RuntimeTypesEncoderImpl(
         rtiTags,

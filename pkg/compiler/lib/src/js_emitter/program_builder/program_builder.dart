@@ -345,7 +345,6 @@ class ProgramBuilder {
         _task.emitter,
         _nativeCodegenEnqueuer,
         _namer,
-        _oneShotInterceptorData,
         _customElementsCodegenAnalysis,
         _codegenWorld,
         _closedWorld);
@@ -1002,11 +1001,10 @@ class ProgramBuilder {
   // We must evaluate these classes eagerly so that the prototype is
   // accessible.
   void _markEagerInterceptorClasses() {
-    Iterable<js.Name> names =
-        _oneShotInterceptorData.specializedGetInterceptorNames;
-    for (js.Name name in names) {
-      for (ClassEntity element
-          in _oneShotInterceptorData.getSpecializedGetInterceptorsFor(name)) {
+    Iterable<SpecializedGetInterceptor> interceptors =
+        _oneShotInterceptorData.specializedGetInterceptors;
+    for (SpecializedGetInterceptor interceptor in interceptors) {
+      for (ClassEntity element in interceptor.classes) {
         Class cls = _classes[element];
         if (cls != null) cls.isEager = true;
       }
@@ -1020,7 +1018,6 @@ class ProgramBuilder {
         _task.emitter,
         _nativeCodegenEnqueuer,
         _namer,
-        _oneShotInterceptorData,
         _customElementsCodegenAnalysis,
         _codegenWorld,
         _closedWorld);
@@ -1030,13 +1027,23 @@ class ProgramBuilder {
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
-
-    Iterable<js.Name> names =
-        _oneShotInterceptorData.specializedGetInterceptorNames;
+    List<js.Name> names = [];
+    Map<js.Name, SpecializedGetInterceptor> interceptorMap = {};
+    for (SpecializedGetInterceptor interceptor
+        in _oneShotInterceptorData.specializedGetInterceptors) {
+      js.Name name = _namer.nameForGetInterceptor(interceptor.classes);
+      names.add(name);
+      assert(
+          !interceptorMap.containsKey(name),
+          "Duplicate specialized get interceptor for $name: Existing: "
+          "${interceptorMap[name]}, new ${interceptor}.");
+      interceptorMap[name] = interceptor;
+    }
+    names.sort();
     return names.map((js.Name name) {
-      Set<ClassEntity> classes =
-          _oneShotInterceptorData.getSpecializedGetInterceptorsFor(name);
-      js.Expression code = stubGenerator.generateGetInterceptorMethod(classes);
+      SpecializedGetInterceptor interceptor = interceptorMap[name];
+      js.Expression code =
+          stubGenerator.generateGetInterceptorMethod(interceptor);
       return new StaticStubMethod(name, holder, code);
     });
   }
@@ -1116,7 +1123,6 @@ class ProgramBuilder {
         _task.emitter,
         _nativeCodegenEnqueuer,
         _namer,
-        _oneShotInterceptorData,
         _customElementsCodegenAnalysis,
         _codegenWorld,
         _closedWorld);
@@ -1126,10 +1132,24 @@ class ProgramBuilder {
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
-
-    List<js.Name> names = _oneShotInterceptorData.oneShotInterceptorNames;
+    List<js.Name> names = [];
+    Map<js.Name, OneShotInterceptor> interceptorMap = {};
+    for (OneShotInterceptor interceptor
+        in _oneShotInterceptorData.oneShotInterceptors) {
+      js.Name name = _namer.nameForGetOneShotInterceptor(
+          interceptor.selector, interceptor.classes);
+      names.add(name);
+      assert(
+          !interceptorMap.containsKey(name),
+          "Duplicate specialized get interceptor for $name: Existing: "
+          "${interceptorMap[name]}, new ${interceptor}.");
+      interceptorMap[name] = interceptor;
+    }
+    names.sort();
     return names.map((js.Name name) {
-      js.Expression code = stubGenerator.generateOneShotInterceptor(name);
+      OneShotInterceptor interceptor = interceptorMap[name];
+      js.Expression code =
+          stubGenerator.generateOneShotInterceptor(interceptor);
       return new StaticStubMethod(name, holder, code);
     });
   }

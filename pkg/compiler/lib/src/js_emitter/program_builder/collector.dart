@@ -85,10 +85,9 @@ class Collector {
     // Go over specialized interceptors and then constants to know which
     // interceptors are needed.
     Set<ClassEntity> needed = new Set<ClassEntity>();
-    for (js.Name name
-        in _oneShotInterceptorData.specializedGetInterceptorNames) {
-      needed.addAll(
-          _oneShotInterceptorData.getSpecializedGetInterceptorsFor(name));
+    for (SpecializedGetInterceptor interceptor
+        in _oneShotInterceptorData.specializedGetInterceptors) {
+      needed.addAll(interceptor.classes);
     }
 
     // Add interceptors referenced by constants.

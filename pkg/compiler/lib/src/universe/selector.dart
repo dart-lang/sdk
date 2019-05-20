@@ -315,6 +315,15 @@ class Selector {
     return 'Selector($kind, $name, ${callStructure.structureToString()})';
   }
 
+  /// Returns the normalized version of this selector.
+  ///
+  /// A selector is normalized if its call structure is normalized.
+  // TODO(johnniwinther): Use normalized selectors as much as possible,
+  // especially where selectors are used in sets or as keys in maps.
+  Selector toNormalized() => callStructure.isNormalized
+      ? this
+      : new Selector(kind, memberName, callStructure.toNormalized());
+
   Selector toCallSelector() => new Selector.callClosureFrom(this);
 
   /// Returns the non-generic [Selector] corresponding to this selector.
