@@ -41,14 +41,12 @@
 
 #### Linter
 
-The Linter was updated to `0.1.88`, which includes the following changes:
+The Linter was updated to `0.1.89`, which includes the following changes:
 
-*   Fixed `prefer_asserts_in_initializer_lists` false positives
-*   Fixed `curly_braces_in_flow_control_structures` to handle more cases
-*   Added new lint: `prefer_double_quotes`
-*   Added new lint: `sort_child_properties_last`
-*   Fixed `type_annotate_public_apis` false positive for `static const` initializers
-
+* broadened `prefer_null_aware_operators` to work beyond local variables
+* new lint: `prefer_if_null_operators`
+* fixed `prefer_contains` false positives
+* fixed `unnecessary_parenthesis` false positives
 
 ## 2.3.0
 
