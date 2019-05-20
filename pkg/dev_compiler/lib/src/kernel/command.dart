@@ -11,6 +11,7 @@ import 'package:build_integration/file_system/multi_root.dart';
 import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/kernel.dart' hide MapEntry;
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:path/path.dart' as path;
@@ -226,7 +227,8 @@ Future<CompilerResult> _compile(List<String> args,
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
         summaryModules.keys.toList(),
-        DevCompilerTarget(trackWidgetCreation: trackWidgetCreation),
+        DevCompilerTarget(
+            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
         experiments: experiments);
   } else {
@@ -238,7 +240,8 @@ Future<CompilerResult> _compile(List<String> args,
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
         summaryModules.keys.toList(),
-        DevCompilerTarget(trackWidgetCreation: trackWidgetCreation),
+        DevCompilerTarget(
+            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
         experiments: experiments);
     incrementalCompiler = compilerState.incrementalCompiler;

@@ -113,6 +113,9 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
           'improved speed.',
       defaultsTo: false,
       hide: true)
+  ..addFlag('track-widget-creation',
+      help: 'Run a kernel transformer to track creation locations for widgets.',
+      defaultsTo: false)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, eg set-literals.',
       hide: true);
@@ -319,7 +322,10 @@ class FrontendCompiler implements CompilerInterface {
       return false;
     }
 
-    compilerOptions.target = createFrontEndTarget(options['target']);
+    compilerOptions.target = createFrontEndTarget(
+      options['target'],
+      trackWidgetCreation: options['track-widget-creation'],
+    );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');
       return false;

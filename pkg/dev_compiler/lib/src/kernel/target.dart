@@ -14,9 +14,9 @@ import 'kernel_helpers.dart';
 
 /// A kernel [Target] to configure the Dart Front End for dartdevc.
 class DevCompilerTarget extends Target {
-  DevCompilerTarget({this.trackWidgetCreation = false});
+  DevCompilerTarget(this.flags);
 
-  final bool trackWidgetCreation;
+  final TargetFlags flags;
 
   ClassHierarchy hierarchy;
 
@@ -103,7 +103,7 @@ class DevCompilerTarget extends Target {
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
-    if (trackWidgetCreation) {
+    if (flags.trackWidgetCreation) {
       WidgetCreatorTracker().transform(component, libraries);
     }
   }

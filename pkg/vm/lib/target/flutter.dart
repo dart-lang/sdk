@@ -10,10 +10,7 @@ import 'package:kernel/transformations/track_widget_constructor_locations.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
 
 class FlutterTarget extends VmTarget {
-  FlutterTarget(TargetFlags flags, {this.trackWidgetCreation = false})
-      : super(flags);
-
-  final bool trackWidgetCreation;
+  FlutterTarget(TargetFlags flags) : super(flags);
 
   @override
   String get name => 'flutter';
@@ -55,7 +52,7 @@ class FlutterTarget extends VmTarget {
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
-    if (trackWidgetCreation) {
+    if (flags.trackWidgetCreation) {
       new WidgetCreatorTracker().transform(component, libraries);
     }
   }

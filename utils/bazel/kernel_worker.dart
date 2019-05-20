@@ -128,7 +128,7 @@ final summaryArgsParser = new ArgParser()
   ..addOption('output')
   ..addFlag('reuse-compiler-result', defaultsTo: false)
   ..addFlag('use-incremental-compiler', defaultsTo: false)
-  ..addFlag('track-kernel-creation', defaultsTo: false);
+  ..addFlag('track-widget-creation', defaultsTo: false);
 
 class ComputeKernelResult {
   final bool succeeded;
@@ -172,13 +172,13 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   var excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
 
   var summaryOnly = parsedArgs['summary-only'] as bool;
-  var trackKernelCreation = parsedArgs['track-kernel-creation'] as bool;
+  var trackWidgetCreation = parsedArgs['track-widget-creation'] as bool;
 
   // TODO(sigmund,jakemac): make target mandatory. We allow null to be backwards
   // compatible while we migrate existing clients of this tool.
   var targetName =
       (parsedArgs['target'] as String) ?? (summaryOnly ? 'ddc' : 'vm');
-  var targetFlags = new TargetFlags();
+  var targetFlags = new TargetFlags(trackWidgetCreation: trackWidgetCreation);
   Target target;
   switch (targetName) {
     case 'vm':
@@ -188,8 +188,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       }
       break;
     case 'flutter':
-      target = new FlutterTarget(targetFlags,
-          trackWidgetCreation: trackKernelCreation);
+      target = new FlutterTarget(targetFlags);
       if (summaryOnly) {
         throw new ArgumentError(
             'error: --summary-only not supported for the flutter target');
@@ -212,8 +211,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     case 'ddc':
       // TODO(jakemac):If `generateKernel` changes to return a summary
       // component, process the component instead.
-      target = new DevCompilerSummaryTarget(sources, excludeNonSources,
-          trackWidgetCreation: trackKernelCreation);
+      target =
+          new DevCompilerSummaryTarget(sources, excludeNonSources, targetFlags);
       if (!summaryOnly) {
         out.writeln('error: --no-summary-only not supported for the '
             'ddc target');
@@ -332,9 +331,9 @@ class DevCompilerSummaryTarget extends DevCompilerTarget {
   final List<Uri> sources;
   final bool excludeNonSources;
 
-  DevCompilerSummaryTarget(this.sources, this.excludeNonSources,
-      {trackWidgetCreation = false})
-      : super(trackWidgetCreation: trackWidgetCreation);
+  DevCompilerSummaryTarget(
+      this.sources, this.excludeNonSources, TargetFlags targetFlags)
+      : super(targetFlags);
 
   @override
   void performOutlineTransformations(Component component) {

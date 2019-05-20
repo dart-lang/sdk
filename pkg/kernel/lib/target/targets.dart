@@ -11,8 +11,9 @@ final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
   final bool legacyMode;
+  final bool trackWidgetCreation;
 
-  TargetFlags({this.legacyMode: false});
+  TargetFlags({this.legacyMode = false, this.trackWidgetCreation = false});
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);

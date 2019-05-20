@@ -534,11 +534,13 @@ bool parseCommandLineDefines(
 }
 
 /// Create front-end target with given name.
-Target createFrontEndTarget(String targetName) {
+Target createFrontEndTarget(String targetName,
+    {bool trackWidgetCreation = false}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
-  final TargetFlags targetFlags = new TargetFlags();
+  final TargetFlags targetFlags =
+      new TargetFlags(trackWidgetCreation: trackWidgetCreation);
   return getTarget(targetName, targetFlags);
 }
 

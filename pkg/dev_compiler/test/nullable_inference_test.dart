@@ -8,6 +8,7 @@ import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:test/test.dart';
 
 import 'package:dev_compiler/src/kernel/command.dart';
@@ -575,8 +576,8 @@ const nullCheck = const _NullCheck();
   var mainUri = Uri.file('/memory/test.dart');
   _fileSystem.entityForUri(mainUri).writeAsStringSync(code);
   var oldCompilerState = _compilerState;
-  _compilerState = await fe.initializeCompiler(
-      oldCompilerState, sdkUri, packagesUri, null, [], DevCompilerTarget(),
+  _compilerState = await fe.initializeCompiler(oldCompilerState, sdkUri,
+      packagesUri, null, [], DevCompilerTarget(TargetFlags()),
       fileSystem: _fileSystem, experiments: const {});
   if (!identical(oldCompilerState, _compilerState)) inference = null;
   fe.DdcResult result =

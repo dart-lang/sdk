@@ -16,6 +16,7 @@ import 'package:dev_compiler/src/kernel/compiler.dart';
 import 'package:front_end/src/api_unstable/ddc.dart'
     show CompilerOptions, kernelForComponent;
 import 'package:kernel/kernel.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as path;
 
 Future main(List<String> args) async {
@@ -38,7 +39,7 @@ Future main(List<String> args) async {
 
   var librarySpecPath = parserOptions['libraries'] as String;
 
-  var target = DevCompilerTarget();
+  var target = DevCompilerTarget(TargetFlags());
   var options = CompilerOptions()
     ..compileSdk = true
     // TODO(sigmund): remove this unnecessary option when possible.
