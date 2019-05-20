@@ -10,9 +10,10 @@ import 'package:yaml/yaml.dart';
 import 'crawl.dart';
 
 main() async {
+// TODO(pq): make dynamic or update tests to ensure this stays in sync.
 // Uncomment to (re)generate since/linter.yaml contents.
 //  for (var lint in registeredLints) {
-//    var since = await findSinceLinter(lint);
+//    var since = await findSinceLinter(lint.name);
 //    if (since != null) {
 //      print('${lint.name}: $since');
 //    }
