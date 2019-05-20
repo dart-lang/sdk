@@ -300,7 +300,15 @@ class Random {
   static const _MockSdkLibrary LIB_HTML = const _MockSdkLibrary(
       'dart:html', '/lib/html/dartium/html_dartium.dart', '''
 library dart.html;
+export 'dart:_dom_html';
 class HtmlElement {}
+''');
+  static const _MockSdkLibrary LIB_DOM_HTML = const _MockSdkLibrary(
+      'dart:_dom_html', '/lib/html/dartium/dom_html_dartium.dart', '''
+library dart.dom.html;
+class  ScriptElement {
+  String src;
+}
 ''');
 
   static const List<SdkLibrary> LIBRARIES = const [
@@ -311,6 +319,7 @@ class HtmlElement {}
     LIB_IO,
     LIB_MATH,
     LIB_HTML,
+    LIB_DOM_HTML,
   ];
 
   /// The cached linked bundle of the SDK.
@@ -423,6 +432,7 @@ class HtmlElement {}
     const Map<String, String> uriToPath = const {
       'dart:core': '/lib/core/core.dart',
       'dart:html': '/lib/html/dartium/html_dartium.dart',
+      'dart:_dom_html': '/lib/html/dartium/dom_html_dartium.dart',
       'dart:async': '/lib/async/async.dart',
       'dart:async/stream.dart': '/lib/async/stream.dart',
       'dart:collection': '/lib/collection/collection.dart',

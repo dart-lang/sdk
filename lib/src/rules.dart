@@ -142,6 +142,7 @@ import 'package:linter/src/rules/unnecessary_parenthesis.dart';
 import 'package:linter/src/rules/unnecessary_statements.dart';
 import 'package:linter/src/rules/unnecessary_this.dart';
 import 'package:linter/src/rules/unrelated_type_equality_checks.dart';
+import 'package:linter/src/rules/unsafe_html.dart';
 import 'package:linter/src/rules/use_full_hex_values_for_flutter_colors.dart';
 import 'package:linter/src/rules/use_function_type_syntax_for_parameters.dart';
 import 'package:linter/src/rules/use_rethrow_when_possible.dart';
@@ -295,6 +296,7 @@ void registerLintRules() {
     ..register(new UnnecessaryStatements())
     ..register(new UnnecessaryThis())
     ..register(new UnrelatedTypeEqualityChecks())
+    ..register(new UnsafeHtml())
     ..register(new UseFullHexValuesForFlutterColors())
     ..register(new UseFunctionTypeSyntaxForParameters())
     ..register(new UseRethrowWhenPossible())
