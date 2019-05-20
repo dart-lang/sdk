@@ -1637,7 +1637,7 @@
         {
           "name": "analyze pkg/dev_compiler",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": ["--fatal-warnings", "pkg/dev_compiler"]
+          "arguments": ["--fatal-warnings", "--fatal-lints", "pkg/dev_compiler"]
         },
         {
           "name": "analyze pkg/expect",
