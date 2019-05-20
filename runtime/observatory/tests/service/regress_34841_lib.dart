@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Foo {
+  String baz() => StackTrace.current.toString();
   final String foo = () {
     return StackTrace.current.toString();
   }();

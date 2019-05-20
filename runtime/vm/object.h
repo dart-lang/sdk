@@ -2762,7 +2762,8 @@ class Function : public Object {
   static RawFunction* NewClosureFunctionWithKind(RawFunction::Kind kind,
                                                  const String& name,
                                                  const Function& parent,
-                                                 TokenPosition token_pos);
+                                                 TokenPosition token_pos,
+                                                 const Object& owner);
 
   // Allocates a new Function object representing a closure function.
   static RawFunction* NewClosureFunction(const String& name,

@@ -7277,20 +7277,19 @@ RawFunction* Function::New(const String& name,
 RawFunction* Function::NewClosureFunctionWithKind(RawFunction::Kind kind,
                                                   const String& name,
                                                   const Function& parent,
-                                                  TokenPosition token_pos) {
+                                                  TokenPosition token_pos,
+                                                  const Object& owner) {
   ASSERT((kind == RawFunction::kClosureFunction) ||
          (kind == RawFunction::kImplicitClosureFunction));
   ASSERT(!parent.IsNull());
-  // Use the owner defining the parent function and not the class containing it.
-  const Object& parent_owner = Object::Handle(parent.raw_ptr()->owner_);
-  ASSERT(!parent_owner.IsNull());
+  ASSERT(!owner.IsNull());
   const Function& result = Function::Handle(
       Function::New(name, kind,
                     /* is_static = */ parent.is_static(),
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     /* is_external = */ false,
-                    /* is_native = */ false, parent_owner, token_pos));
+                    /* is_native = */ false, owner, token_pos));
   result.set_parent_function(parent);
   return result.raw();
 }
@@ -7298,15 +7297,19 @@ RawFunction* Function::NewClosureFunctionWithKind(RawFunction::Kind kind,
 RawFunction* Function::NewClosureFunction(const String& name,
                                           const Function& parent,
                                           TokenPosition token_pos) {
+  // Use the owner defining the parent function and not the class containing it.
+  const Object& parent_owner = Object::Handle(parent.RawOwner());
   return NewClosureFunctionWithKind(RawFunction::kClosureFunction, name, parent,
-                                    token_pos);
+                                    token_pos, parent_owner);
 }
 
 RawFunction* Function::NewImplicitClosureFunction(const String& name,
                                                   const Function& parent,
                                                   TokenPosition token_pos) {
+  // Use the owner defining the parent function and not the class containing it.
+  const Object& parent_owner = Object::Handle(parent.RawOwner());
   return NewClosureFunctionWithKind(RawFunction::kImplicitClosureFunction, name,
-                                    parent, token_pos);
+                                    parent, token_pos, parent_owner);
 }
 
 RawFunction* Function::NewSignatureFunction(const Object& owner,
@@ -7717,19 +7720,19 @@ RawScript* Function::script() const {
       return script.raw();
     }
   }
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsPatchClass()) {
+    return PatchClass::Cast(obj).script();
+  }
   if (IsClosureFunction()) {
     return Function::Handle(parent_function()).script();
   }
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
   if (obj.IsNull()) {
     ASSERT(IsSignatureFunction());
     return Script::null();
   }
-  if (obj.IsClass()) {
-    return Class::Cast(obj).script();
-  }
-  ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).script();
+  ASSERT(obj.IsClass());
+  return Class::Cast(obj).script();
 }
 
 RawExternalTypedData* Function::KernelData() const {

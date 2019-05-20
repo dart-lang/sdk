@@ -175,7 +175,11 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
 
   Fragment instructions;
   instructions += LoadLocal(parsed_function()->receiver_var());
+  // All closures created inside BuildExpression will have
+  // field.RawOwner() as its owner.
+  closure_owner_ = field.RawOwner();
   instructions += BuildExpression();
+  closure_owner_ = Object::null();
   instructions += flow_graph_builder_->StoreInstanceFieldGuarded(field, true);
   return instructions;
 }
@@ -4902,8 +4906,14 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         name = &Symbols::AnonymousClosure();
       }
       // NOTE: This is not TokenPosition in the general sense!
-      function = Function::NewClosureFunction(
-          *name, parsed_function()->function(), position);
+      if (!closure_owner_.IsNull()) {
+        function = Function::NewClosureFunctionWithKind(
+            RawFunction::kClosureFunction, *name, parsed_function()->function(),
+            position, closure_owner_);
+      } else {
+        function = Function::NewClosureFunction(
+            *name, parsed_function()->function(), position);
+      }
 
       function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
                                  FunctionNodeHelper::kSync);
