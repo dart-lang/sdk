@@ -10,7 +10,6 @@ import 'package:yaml/yaml.dart';
 import 'crawl.dart';
 
 main() async {
-// TODO(pq): make dynamic or update tests to ensure this stays in sync.
 // Uncomment to (re)generate since/linter.yaml contents.
 //  for (var lint in registeredLints) {
 //    var since = await findSinceLinter(lint.name);
@@ -44,6 +43,14 @@ Future<Map<String, SinceInfo>> _getSinceInfo() async {
   var sinceMap = <String, SinceInfo>{};
   for (var lint in registeredLints.map((l) => l.name)) {
     var linterVersion = linterVersionCache[lint];
+    if (linterVersion == null) {
+      linterVersion = await findSinceLinter(lint);
+      if (linterVersion != null) {
+        print('fetched...');
+        print('$lint : $linterVersion');
+        print('(consider caching in tool/since/linter.yaml)');
+      }
+    }
     sinceMap[lint] = new SinceInfo(
         sinceLinter: linterVersion ?? await findSinceLinter(lint),
         sinceDartSdk: await _sinceSdkForLinter(linterVersion));
@@ -68,7 +75,7 @@ Future<Map<String, String>> get dartSdkMap async {
         _dartSdkMap[sdk] = linterVersion;
         print('fetched...');
         print('$sdk : $linterVersion');
-        print('(consider caching in tool/dart_sdk.yaml)');
+        print('(consider caching in tool/since/dart_sdk.yaml)');
       }
     }
   }
