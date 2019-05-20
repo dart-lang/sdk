@@ -43,7 +43,8 @@ Future<void> _runTest(Uri uri, Uri baseDir) async {
   if (_options.verbose) print(test.debugString());
   var pipeline = new IOPipeline([
     SourceToDillStep(),
-    CompileFromDillStep(),
+    GlobalAnalysisStep(),
+    Dart2jsBackendStep(),
     RunD8(),
   ]);
 
@@ -51,6 +52,8 @@ Future<void> _runTest(Uri uri, Uri baseDir) async {
 }
 
 const dillId = const DataId("dill");
+const updatedDillId = const DataId("udill");
+const globalDataId = const DataId("gdata");
 const jsId = const DataId("js");
 const txtId = const DataId("txt");
 
@@ -152,11 +155,11 @@ class SourceToDillStep implements IOModularStep {
   }
 }
 
-// Step that invokes dart2js on the main module by providing the .dill files of
-// all transitive modules as inputs.
-class CompileFromDillStep implements IOModularStep {
+// Step that invokes the dart2js global analysis on the main module by providing
+// the .dill files of all transitive modules as inputs.
+class GlobalAnalysisStep implements IOModularStep {
   @override
-  List<DataId> get resultData => const [jsId];
+  List<DataId> get resultData => const [globalDataId, updatedDillId];
 
   @override
   bool get needsSources => false;
@@ -173,7 +176,7 @@ class CompileFromDillStep implements IOModularStep {
   @override
   Future<void> execute(
       Module module, Uri root, ModuleDataToRelativeUri toUri) async {
-    if (_options.verbose) print("step: dart2js on $module");
+    if (_options.verbose) print("step: dart2js global analysis on $module");
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
     Iterable<String> dillDependencies =
         transitiveDependencies.map((m) => '${toUri(m, dillId)}');
@@ -183,6 +186,44 @@ class CompileFromDillStep implements IOModularStep {
       'package:compiler/src/dart2js.dart',
       '${toUri(module, dillId)}',
       '--dill-dependencies=${dillDependencies.join(',')}',
+      '--write-data=${toUri(module, globalDataId)}',
+      '--out=${toUri(module, updatedDillId)}',
+    ];
+    var result =
+        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
+
+    _checkExitCode(result, this, module);
+  }
+}
+
+// Step that invokes the dart2js backend on the main module given the results of
+// the global analysis step.
+class Dart2jsBackendStep implements IOModularStep {
+  @override
+  List<DataId> get resultData => const [jsId];
+
+  @override
+  bool get needsSources => false;
+
+  @override
+  List<DataId> get dependencyDataNeeded => const [];
+
+  @override
+  List<DataId> get moduleDataNeeded => const [updatedDillId, globalDataId];
+
+  @override
+  bool get onlyOnMain => true;
+
+  @override
+  Future<void> execute(
+      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+    if (_options.verbose) print("step: dart2js backend on $module");
+    var sdkRoot = Platform.script.resolve("../../../../");
+    List<String> args = [
+      '--packages=${sdkRoot.toFilePath()}/.packages',
+      'package:compiler/src/dart2js.dart',
+      '${toUri(module, updatedDillId)}',
+      '--read-data=${toUri(module, globalDataId)}',
       '--out=${toUri(module, jsId)}',
     ];
     var result =
