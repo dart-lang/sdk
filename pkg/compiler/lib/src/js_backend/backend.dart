@@ -428,11 +428,14 @@ class JavaScriptBackend {
   }
 
   Namer determineNamer(JClosedWorld closedWorld, RuntimeTypeTags rtiTags) {
+    FixedNames fixedNames = compiler.options.enableMinification
+        ? const MinifiedFixedNames()
+        : const FixedNames();
     return compiler.options.enableMinification
         ? compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(closedWorld, rtiTags)
-            : new MinifyNamer(closedWorld, rtiTags)
-        : new Namer(closedWorld, rtiTags);
+            ? new FrequencyBasedNamer(closedWorld, rtiTags, fixedNames)
+            : new MinifyNamer(closedWorld, rtiTags, fixedNames)
+        : new Namer(closedWorld, rtiTags, fixedNames);
   }
 
   void validateInterceptorImplementsAllObjectMethods(

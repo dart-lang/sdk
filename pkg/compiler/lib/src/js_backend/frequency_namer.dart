@@ -23,32 +23,15 @@ class FrequencyBasedNamer extends Namer
   bool get shouldMinify => true;
 
   @override
-  final String getterPrefix = 'g';
-  @override
-  final String setterPrefix = 's';
-  @override
-  final String callPrefix = ''; // this will create function names $<n>
-  @override
-  String get operatorIsPrefix => r'$i';
-  @override
-  String get operatorAsPrefix => r'$a';
-  @override
-  String get callCatchAllName => r'$C';
-  @override
-  String get requiredParameterField => r'$R';
-  @override
-  String get defaultValuesField => r'$D';
-  @override
-  String get operatorSignature => r'$S';
-  @override
   String get genericInstantiationPrefix => r'$I';
 
   @override
   jsAst.Name get staticsPropertyName =>
       _staticsPropertyName ??= getFreshName(instanceScope, 'static');
 
-  FrequencyBasedNamer(JClosedWorld closedWorld, RuntimeTypeTags rtiTags)
-      : super(closedWorld, rtiTags) {
+  FrequencyBasedNamer(
+      JClosedWorld closedWorld, RuntimeTypeTags rtiTags, FixedNames fixedNames)
+      : super(closedWorld, rtiTags, fixedNames) {
     fieldRegistry = new _FieldNamingRegistry(this);
   }
 

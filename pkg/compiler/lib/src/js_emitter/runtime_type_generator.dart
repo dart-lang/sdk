@@ -173,7 +173,7 @@ class RuntimeTypeGenerator {
         }
         if (encoding != null) {
           jsAst.Name operatorSignature =
-              _namer.asName(_namer.operatorSignature);
+              _namer.asName(_namer.fixedNames.operatorSignature);
           result.addSignature(classElement, operatorSignature, encoding);
         }
       }
@@ -203,7 +203,8 @@ class RuntimeTypeGenerator {
         jsAst.Expression thisAccess = new jsAst.This();
         jsAst.Expression encoding = _rtiEncoder.getSignatureEncoding(
             _namer, emitterTask.emitter, type, thisAccess);
-        jsAst.Name operatorSignature = _namer.asName(_namer.operatorSignature);
+        jsAst.Name operatorSignature =
+            _namer.asName(_namer.fixedNames.operatorSignature);
         result.addSignature(classElement, operatorSignature, encoding);
       }
     }

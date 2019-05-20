@@ -4,8 +4,6 @@
 
 library dart2js.js_emitter.code_emitter_task;
 
-import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
-
 import '../common.dart';
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
@@ -183,6 +181,9 @@ abstract class ModularEmitter {
 
   /// Returns the JS code for accessing the given [constant].
   jsAst.Expression constantReference(ConstantValue constant);
+
+  /// Returns the JS code for accessing the global property [global].
+  String generateEmbeddedGlobalAccessString(String global);
 }
 
 /// Interface for the emitter that is used during the emission phase on the
@@ -207,9 +208,6 @@ abstract class Emitter implements ModularEmitter {
 
   int compareConstants(ConstantValue a, ConstantValue b);
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);
-
-  /// Returns the JS template for the given [builtin].
-  jsAst.Template templateForBuiltin(JsBuiltin builtin);
 
   /// Returns the size of the code generated for a given output [unit].
   int generatedSize(OutputUnit unit);

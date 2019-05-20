@@ -4,19 +4,18 @@
 
 library dart2js.js_emitter.startup_emitter;
 
-import 'package:js_runtime/shared/embedded_names.dart'
-    show JsBuiltin, METADATA, TYPES;
-
 import '../../../compiler_new.dart';
 import '../../common.dart';
+import '../../common/codegen.dart';
 import '../../common/tasks.dart';
-import '../../constants/values.dart' show ConstantValue;
+import '../../constants/values.dart';
 import '../../deferred_load.dart' show OutputUnit;
 import '../../dump_info.dart';
 import '../../elements/entities.dart';
 import '../../io/source_information.dart';
 import '../../js/js.dart' as js;
-import '../../js_backend/js_backend.dart' show ModularNamer, Namer;
+import '../../js_backend/constant_emitter.dart';
+import '../../js_backend/namer.dart';
 import '../../js_backend/runtime_types.dart';
 import '../../options.dart';
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
@@ -26,10 +25,10 @@ import '../model.dart';
 import '../program_builder/program_builder.dart' show ProgramBuilder;
 import 'model_emitter.dart';
 
-class ModularEmitterImpl implements ModularEmitter {
+abstract class ModularEmitterBase implements ModularEmitter {
   final ModularNamer _namer;
 
-  ModularEmitterImpl(this._namer);
+  ModularEmitterBase(this._namer);
 
   js.PropertyAccess globalPropertyAccessForClass(ClassEntity element) {
     js.Name name = _namer.globalPropertyNameForClass(element);
@@ -95,17 +94,47 @@ class ModularEmitterImpl implements ModularEmitter {
   }
 
   @override
+  String generateEmbeddedGlobalAccessString(String global) {
+    // TODO(floitsch): don't use 'init' as global embedder storage.
+    return 'init.$global';
+  }
+}
+
+class ModularEmitterImpl extends ModularEmitterBase {
+  final CodegenRegistry _registry;
+  final ModularConstantEmitter _constantEmitter;
+
+  ModularEmitterImpl(
+      ModularNamer namer, this._registry, CompilerOptions options)
+      : _constantEmitter = new ModularConstantEmitter(options),
+        super(namer);
+
+  @override
   js.Expression constantReference(ConstantValue constant) {
-    throw new UnimplementedError("ModularEmitter.constantReference");
+    if (constant.isFunction) {
+      FunctionConstantValue function = constant;
+      return staticClosureAccess(function.element);
+    }
+    js.Expression expression = _constantEmitter.generate(constant);
+    if (expression != null) {
+      return expression;
+    }
+    expression =
+        new ModularExpression(ModularExpressionKind.constant, constant);
+    _registry.registerModularExpression(expression);
+    return expression;
   }
 
   @override
   js.Expression generateEmbeddedGlobalAccess(String global) {
-    throw new UnimplementedError("ModularEmitter.generateEmbeddedGlobalAccess");
+    js.Expression expression = new ModularExpression(
+        ModularExpressionKind.embeddedGlobalAccess, global);
+    _registry.registerModularExpression(expression);
+    return expression;
   }
 }
 
-class EmitterImpl extends ModularEmitterImpl implements Emitter {
+class EmitterImpl extends ModularEmitterBase implements Emitter {
   final DiagnosticReporter _reporter;
   final JClosedWorld _closedWorld;
   final RuntimeTypesEncoder _rtiEncoder;
@@ -174,7 +203,7 @@ class EmitterImpl extends ModularEmitterImpl implements Emitter {
 
   @override
   js.Expression generateEmbeddedGlobalAccess(String global) {
-    return _emitter.generateEmbeddedGlobalAccess(global);
+    return js.js(generateEmbeddedGlobalAccessString(global));
   }
 
   @override
@@ -186,63 +215,6 @@ class EmitterImpl extends ModularEmitterImpl implements Emitter {
   @override
   js.Expression interceptorPrototypeAccess(ClassEntity e) {
     return js.js('#.prototype', interceptorClassAccess(e));
-  }
-
-  @override
-  js.Template templateForBuiltin(JsBuiltin builtin) {
-    switch (builtin) {
-      case JsBuiltin.dartObjectConstructor:
-        ClassEntity objectClass = _closedWorld.commonElements.objectClass;
-        return js.js.expressionTemplateYielding(typeAccess(objectClass));
-
-      case JsBuiltin.isCheckPropertyToJsConstructorName:
-        int isPrefixLength = _namer.operatorIsPrefix.length;
-        return js.js.expressionTemplateFor('#.substring($isPrefixLength)');
-
-      case JsBuiltin.isFunctionType:
-        return _rtiEncoder.templateForIsFunctionType;
-
-      case JsBuiltin.isFutureOrType:
-        return _rtiEncoder.templateForIsFutureOrType;
-
-      case JsBuiltin.isVoidType:
-        return _rtiEncoder.templateForIsVoidType;
-
-      case JsBuiltin.isDynamicType:
-        return _rtiEncoder.templateForIsDynamicType;
-
-      case JsBuiltin.isJsInteropTypeArgument:
-        return _rtiEncoder.templateForIsJsInteropTypeArgument;
-
-      case JsBuiltin.rawRtiToJsConstructorName:
-        return js.js.expressionTemplateFor("#.name");
-
-      case JsBuiltin.rawRuntimeType:
-        return js.js.expressionTemplateFor("#.constructor");
-
-      case JsBuiltin.isSubtype:
-        // TODO(floitsch): move this closer to where is-check properties are
-        // built.
-        String isPrefix = _namer.operatorIsPrefix;
-        return js.js.expressionTemplateFor("('$isPrefix' + #) in #.prototype");
-
-      case JsBuiltin.isGivenTypeRti:
-        return js.js.expressionTemplateFor('#.name === #');
-
-      case JsBuiltin.getMetadata:
-        String metadataAccess =
-            _emitter.generateEmbeddedGlobalAccessString(METADATA);
-        return js.js.expressionTemplateFor("$metadataAccess[#]");
-
-      case JsBuiltin.getType:
-        String typesAccess = _emitter.generateEmbeddedGlobalAccessString(TYPES);
-        return js.js.expressionTemplateFor("$typesAccess[#]");
-
-      default:
-        _reporter.internalError(
-            NO_LOCATION_SPANNABLE, "Unhandled Builtin: $builtin");
-        return null;
-    }
   }
 
   @override

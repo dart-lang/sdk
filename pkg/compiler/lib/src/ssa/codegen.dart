@@ -633,14 +633,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           op == '^' ||
           op == '&' ||
           op == '|') {
-        if (binary.left is js.VariableUse &&
-            (binary.left as js.VariableUse).name == variableName) {
+        js.Expression left = binary.left;
+        if (left is js.VariableUse && left.name == variableName) {
           // We know now, that we can shorten x = x + y into x += y.
           // Also check for the shortcut where y equals 1: x++ and x--.
+          js.Expression right = binary.right;
           if ((op == '+' || op == '-') &&
-              binary.right is js.LiteralNumber &&
-              (binary.right as js.LiteralNumber).value == "1") {
-            return new js.Prefix(op == '+' ? '++' : '--', binary.left);
+              right is js.LiteralNumber &&
+              right.value == "1") {
+            return new js.Prefix(op == '+' ? '++' : '--', left);
           }
           return new js.Assignment.compound(binary.left, op, binary.right);
         }
@@ -1821,7 +1822,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(node.inputs.length == 1);
       _registry.registerSpecializedGetInterceptor(node.interceptedClasses);
       js.Name name = _namer.nameForGetInterceptor(node.interceptedClasses);
-      js.VariableUse isolate = _namer
+      js.Expression isolate = _namer
           .readGlobalObjectForLibrary(_commonElements.interceptorsLibrary);
       use(node.receiver);
       List<js.Expression> arguments = <js.Expression>[pop()];
@@ -1913,7 +1914,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   @override
   void visitOneShotInterceptor(HOneShotInterceptor node) {
     List<js.Expression> arguments = visitArguments(node.inputs);
-    js.VariableUse isolate =
+    js.Expression isolate =
         _namer.readGlobalObjectForLibrary(_commonElements.interceptorsLibrary);
     Selector selector = node.selector;
     js.Name methodName = _oneShotInterceptorData.registerOneShotInterceptor(

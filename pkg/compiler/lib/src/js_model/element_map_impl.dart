@@ -4,7 +4,6 @@
 
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link, LinkBuilder;
 
-import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -36,11 +35,8 @@ import '../ir/static_type_base.dart';
 import '../ir/static_type_cache.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
-import '../js/js.dart' as js;
 import '../js_backend/annotations.dart';
-import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
-import '../js_emitter/code_emitter_task.dart';
 import '../kernel/element_map_impl.dart';
 import '../kernel/env.dart';
 import '../kernel/kelements.dart';
@@ -1419,29 +1415,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   @override
-  js.Name getNameForJsGetName(ConstantValue constant, Namer namer) {
-    int index = extractEnumIndexFromConstantValue(
-        constant, commonElements.jsGetNameEnum);
-    if (index == null) return null;
-    return namer.getNameForJsGetName(
-        CURRENT_ELEMENT_SPANNABLE, JsGetName.values[index]);
-  }
-
-  int extractEnumIndexFromConstantValue(
-      ConstantValue constant, ClassEntity classElement) {
-    if (constant is ConstructedConstantValue) {
-      if (constant.type.element == classElement) {
-        assert(constant.fields.length == 1 || constant.fields.length == 2);
-        ConstantValue indexConstant = constant.fields.values.first;
-        if (indexConstant is IntConstantValue) {
-          return indexConstant.intValue.toInt();
-        }
-      }
-    }
-    return null;
-  }
-
-  @override
   ConstantValue getConstantValue(ir.Expression node,
       {bool requireConstant: true, bool implicitNull: false}) {
     if (node is ir.ConstantExpression) {
@@ -2108,14 +2081,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       }
     }
     return generatorBody;
-  }
-
-  @override
-  js.Template getJsBuiltinTemplate(ConstantValue constant, Emitter emitter) {
-    int index = extractEnumIndexFromConstantValue(
-        constant, commonElements.jsBuiltinEnum);
-    if (index == null) return null;
-    return emitter.templateForBuiltin(JsBuiltin.values[index]);
   }
 }
 

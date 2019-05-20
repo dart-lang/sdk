@@ -116,15 +116,6 @@ class ModelEmitter {
     return js.js('makeConstList(#)', [array]);
   }
 
-  js.Expression generateEmbeddedGlobalAccess(String global) {
-    return js.js(generateEmbeddedGlobalAccessString(global));
-  }
-
-  String generateEmbeddedGlobalAccessString(String global) {
-    // TODO(floitsch): don't use 'init' as global embedder storage.
-    return 'init.$global';
-  }
-
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
     if (constant.isFunction) return true; // Already emitted.
     if (constant.isPrimitive) return true; // Inlined.

@@ -27,6 +27,7 @@ import '../js_backend/backend.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
+import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../kernel/kernel_strategy.dart';
 import '../native/behavior.dart';
@@ -110,6 +111,7 @@ class JsBackendStrategy implements BackendStrategy {
         codegen.namer,
         codegen.emitter,
         codegen.tracer,
+        codegen.rtiEncoder,
         sourceInformationStrategy);
   }
 
@@ -188,6 +190,7 @@ class KernelSsaBuilder implements SsaBuilder {
   final ModularNamer _namer;
   final ModularEmitter _emitter;
   final Tracer _tracer;
+  final RuntimeTypesEncoder _rtiEncoder;
   final SourceInformationStrategy _sourceInformationStrategy;
 
   // TODO(johnniwinther,sra): Inlining decisions should not be based on the
@@ -203,6 +206,7 @@ class KernelSsaBuilder implements SsaBuilder {
       this._namer,
       this._emitter,
       this._tracer,
+      this._rtiEncoder,
       this._sourceInformationStrategy);
 
   @override
@@ -223,6 +227,7 @@ class KernelSsaBuilder implements SsaBuilder {
           _namer,
           _emitter,
           _tracer,
+          _rtiEncoder,
           _sourceInformationStrategy,
           _inlineCache);
       return builder.build();

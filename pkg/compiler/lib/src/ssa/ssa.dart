@@ -63,7 +63,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
     HGraph graph =
         _builder.build(member, closedWorld, globalInferenceResults, registry);
     if (graph == null) {
-      return new CodegenResult(null, registry.worldImpact);
+      return registry.close(null);
     }
     optimizer.optimize(
         member, graph, codegen, closedWorld, globalInferenceResults, registry);
@@ -88,7 +88,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
           sourceInformationStrategy.buildSourceMappedMarker());
     }
 
-    return new CodegenResult(result, registry.worldImpact);
+    return registry.close(result);
   }
 
   js.Expression _rewriteAsync(

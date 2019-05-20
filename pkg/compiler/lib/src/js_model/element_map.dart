@@ -15,9 +15,6 @@ import '../inferrer/abstract_value_domain.dart';
 import '../ir/closure.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
-import '../js/js.dart' as js;
-import '../js_backend/namer.dart';
-import '../js_emitter/code_emitter_task.dart';
 import '../js_model/closure.dart' show JRecordField;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
@@ -104,9 +101,6 @@ abstract class JsToElementMap {
   NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node);
 
-  /// Returns the [js.Name] for the `JsGetName` [constant] value.
-  js.Name getNameForJsGetName(ConstantValue constant, Namer namer);
-
   /// Computes the [ConstantValue] for the constant [expression].
   // TODO(johnniwinther): Move to [KernelToElementMapForBuilding]. This is only
   // used in impact builder for symbol constants.
@@ -139,9 +133,6 @@ abstract class JsToElementMap {
 
   /// Returns the [LibraryEntity] corresponding to the library [node].
   LibraryEntity getLibrary(ir.Library node);
-
-  /// Returns the [js.Template] for the `JsBuiltin` [constant] value.
-  js.Template getJsBuiltinTemplate(ConstantValue constant, Emitter emitter);
 
   /// Returns a [Spannable] for a message pointing to the IR [node] in the
   /// context of [member].
