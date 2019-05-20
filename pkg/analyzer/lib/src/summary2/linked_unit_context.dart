@@ -92,7 +92,12 @@ class LinkedUnitContext {
   CompilationUnit get unit_withDeclarations {
     if (_unit == null) {
       _unit = _astReader.readNode(data.node);
-      _unit.lineInfo = LineInfo(data.lineStarts);
+
+      var lineStarts = data.lineStarts;
+      if (lineStarts.isEmpty) {
+        lineStarts = [0];
+      }
+      _unit.lineInfo = LineInfo(lineStarts);
     }
     return _unit;
   }
