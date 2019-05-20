@@ -410,6 +410,14 @@ abstract class Stream<T> {
    * The [convert] function is called once per data event per listener.
    * If a broadcast stream is listened to more than once, each subscription
    * will individually call [convert] on each data event.
+   *
+   * Unlike [transform], this method does not treat the stream as
+   * chunks of a single value. Instead each event is converted independently
+   * of the previous and following events, which may not always be correct.
+   * For example, UTF-8 encoding, or decoding, will give wrong results
+   * if a surrogate pair, or a multibyte UTF-8 encoding, is split into
+   * separate events, and those events are attempted encoded or decoded
+   * independently.
    */
   Stream<S> map<S>(S convert(T event)) {
     return new _MapStream<T, S>(this, convert);
@@ -633,6 +641,16 @@ abstract class Stream<T> {
    * Whether the returned stream is a broadcast stream or not,
    * and which elements it will contain,
    * is entirely up to the transformation.
+   *
+   * This method should always be used for transformations which treat
+   * the entire stream as representing a single value
+   * which has perhaps been split into several parts for transport,
+   * like a file being read from disk or being fetched over a network.
+   * The transformation will then produce a new stream which
+   * transforms the stream's value incrementally (perhaps using
+   * [Converter.startChunkedConversion]). The resulting stream
+   * may again be chunks of the result, but does not have to
+   * correspond to specific events from the source string.
    */
   Stream<S> transform<S>(StreamTransformer<T, S> streamTransformer) {
     return streamTransformer.bind(this);
@@ -1891,6 +1909,14 @@ abstract class StreamTransformer<S, T> {
    * when a transformed stream is listened to. At that time, the callback
    * receives the input stream (the one passed to [bind]) and a
    * boolean flag `cancelOnError` to create a [StreamSubscription].
+   *
+   * If the transformed stream is a broadcast stream, so is the stream
+   * returned by the [StreamTransformer.bind] method by this transformer.
+   *
+   * If the transformed stream is listened to multiple times, the [onListen]
+   * callback is called again for each new [Stream.listen] call.
+   * This happens whether the stream is a broadcast stream or not,
+   * but the call will usually fail for non-broadcast streams.
    *
    * The [onListen] callback does *not* receive the handlers that were passed
    * to [Stream.listen]. These are automatically set after the call to the

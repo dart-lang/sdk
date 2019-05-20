@@ -320,6 +320,8 @@ class _BoundSubscriptionStream<S, T> extends Stream<T> {
   final _SubscriptionTransformer<S, T> _onListen;
   final Stream<S> _stream;
 
+  bool get isBroadcast => _stream.isBroadcast;
+
   _BoundSubscriptionStream(this._stream, this._onListen);
 
   StreamSubscription<T> listen(void onData(T event),
