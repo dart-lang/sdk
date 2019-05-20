@@ -314,6 +314,15 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
+  ImportEntity readImportOrNull() {
+    bool hasClass = readBool();
+    if (hasClass) {
+      return readImport();
+    }
+    return null;
+  }
+
+  @override
   List<ImportEntity> readImports({bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
@@ -365,6 +374,15 @@ abstract class DataSourceMixin implements DataSource {
   @override
   ir.LibraryDependency readLibraryDependencyNodeOrNull() {
     return readValueOrNull(readLibraryDependencyNode);
+  }
+
+  @override
+  js.Node readJsNodeOrNull() {
+    bool hasValue = readBool();
+    if (hasValue) {
+      return readJsNode();
+    }
+    return null;
   }
 }
 
@@ -693,6 +711,14 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
+  void writeImportOrNull(ImportEntity value) {
+    writeBool(value != null);
+    if (value != null) {
+      writeImport(value);
+    }
+  }
+
+  @override
   void writeImports(Iterable<ImportEntity> values, {bool allowNull: false}) {
     if (values == null) {
       assert(allowNull);
@@ -750,5 +776,13 @@ abstract class DataSinkMixin implements DataSink {
   @override
   void writeLibraryDependencyNodeOrNull(ir.LibraryDependency value) {
     writeValueOrNull(value, writeLibraryDependencyNode);
+  }
+
+  @override
+  void writeJsNodeOrNull(js.Node value) {
+    writeBool(value != null);
+    if (value != null) {
+      writeJsNode(value);
+    }
   }
 }

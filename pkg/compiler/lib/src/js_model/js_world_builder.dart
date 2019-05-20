@@ -846,7 +846,10 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   @override
   ConstantValue visitString(StringConstantValue constant, _) => constant;
   @override
-  ConstantValue visitSynthetic(SyntheticConstantValue constant, _) => constant;
+  ConstantValue visitAbstractValue(AbstractValueConstantValue constant, _) =>
+      constant;
+  @override
+  ConstantValue visitJsName(JsNameConstantValue constant, _) => constant;
   @override
   ConstantValue visitNonConstant(NonConstantValue constant, _) => constant;
 

@@ -10,6 +10,7 @@ library compiler.universe.feature;
 
 import '../elements/types.dart';
 import '../ir/runtime_type_analysis.dart';
+import '../serialization/serialization.dart';
 import '../util/util.dart';
 
 /// A language feature that may be seen in the program.
@@ -236,6 +237,8 @@ class RuntimeTypeUse {
 /// A generic instantiation of an expression of type [functionType] with the
 /// given [typeArguments].
 class GenericInstantiation {
+  static const String tag = 'generic-instantiation';
+
   /// The static type of the instantiated expression.
   final DartType functionType;
 
@@ -243,6 +246,21 @@ class GenericInstantiation {
   final List<DartType> typeArguments;
 
   GenericInstantiation(this.functionType, this.typeArguments);
+
+  factory GenericInstantiation.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    DartType functionType = source.readDartType();
+    List<DartType> typeArguments = source.readDartTypes();
+    source.end(tag);
+    return new GenericInstantiation(functionType, typeArguments);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeDartType(functionType);
+    sink.writeDartTypes(typeArguments);
+    sink.end(tag);
+  }
 
   /// Short textual representation use for testing.
   String get shortText => '<${typeArguments.join(',')}>';

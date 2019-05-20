@@ -6,7 +6,7 @@ library js_backend.backend;
 
 import '../common.dart';
 import '../common/backend_api.dart' show ImpactTransformer;
-import '../common/codegen.dart' show CodegenResult;
+import '../common/codegen.dart';
 import '../common/names.dart' show Uris;
 import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart';
@@ -24,6 +24,7 @@ import '../js_model/elements.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../kernel/dart2js_target.dart';
 import '../native/enqueue.dart';
+import '../serialization/serialization.dart';
 import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tracer.dart';
 import '../universe/class_hierarchy.dart'
@@ -280,13 +281,6 @@ class FunctionInlineCache {
     assert(checkFunction(element), failedAt(element));
     return _tryInlineFunctions.contains(element);
   }
-}
-
-enum SyntheticConstantKind {
-  DUMMY_INTERCEPTOR,
-  EMPTY_VALUE,
-  TYPEVARIABLE_REFERENCE, // Reference to a type in reflection data.
-  NAME
 }
 
 class JavaScriptBackend {
@@ -556,7 +550,7 @@ class JavaScriptBackend {
             closedWorld.nativeData,
             closedWorld,
             compiler.abstractValueStrategy.createSelectorStrategy()),
-        compiler.backendStrategy.createCodegenWorkItemBuilder(),
+        compiler.backendStrategy.createCodegenWorkItemBuilder(closedWorld),
         new CodegenEnqueuerListener(
             elementEnvironment,
             commonElements,
@@ -569,9 +563,26 @@ class JavaScriptBackend {
 
   Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
 
-  WorldImpact generateCode(WorkItem work) {
+  WorldImpact generateCode(WorkItem work, JClosedWorld closedWorld,
+      EntityLookup entityLookup, ComponentLookup componentLookup) {
     MemberEntity member = work.element;
     CodegenResult result = functionCompiler.compile(member);
+    if (compiler.options.testMode) {
+      bool useDataKinds = true;
+      List<Object> data = [];
+      DataSink sink = new ObjectSink(data, useDataKinds: useDataKinds);
+      sink.registerCodegenWriter(new CodegenWriterImpl(closedWorld));
+      result.writeToDataSink(sink);
+      DataSource source = new ObjectSource(data, useDataKinds: useDataKinds);
+      List<ModularName> modularNames = [];
+      List<ModularExpression> modularExpression = [];
+      source.registerCodegenReader(
+          new CodegenReaderImpl(closedWorld, modularNames, modularExpression));
+      source.registerEntityLookup(entityLookup);
+      source.registerComponentLookup(componentLookup);
+      result = CodegenResult.readFromDataSource(
+          source, modularNames, modularExpression);
+    }
     if (result.code != null) {
       generatedCode[member] = result.code;
     }
@@ -583,6 +594,7 @@ class JavaScriptBackend {
         _codegenImpactTransformer.transformCodegenImpact(result.impact);
     compiler.dumpInfoTask.registerImpact(member, worldImpact);
     result.applyModularState(_namer, emitterTask.emitter);
+    //print('$member:$result');
     return worldImpact;
   }
 

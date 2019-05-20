@@ -4947,16 +4947,16 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     var arguments = <HInstruction>[];
     node.expression.accept(this);
     arguments.add(pop());
-    // TODO(johnniwinther): Use the static type of the expression.
+    StaticType expressionType = _getStaticType(node.expression);
     bool typeArgumentsNeeded = _rtiNeed.instantiationNeedsTypeArguments(
-        null, node.typeArguments.length);
+        expressionType.type, node.typeArguments.length);
     List<DartType> typeArguments = node.typeArguments
         .map((type) => typeArgumentsNeeded
             ? _elementMap.getDartType(type)
             : _commonElements.dynamicType)
         .toList();
     registry.registerGenericInstantiation(
-        new GenericInstantiation(null, typeArguments));
+        new GenericInstantiation(expressionType.type, typeArguments));
     // TODO(johnniwinther): Can we avoid creating the instantiation object?
     for (DartType type in typeArguments) {
       HInstruction instruction =

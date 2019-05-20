@@ -1448,7 +1448,7 @@ class Fun extends Expression {
   final Block body;
   final AsyncModifier asyncModifier;
 
-  Fun(this.params, this.body, {this.asyncModifier: const AsyncModifier.sync()});
+  Fun(this.params, this.body, {this.asyncModifier: AsyncModifier.sync});
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitFun(this);
 
@@ -1471,27 +1471,26 @@ class Fun extends Expression {
 }
 
 class AsyncModifier {
+  final int index;
   final bool isAsync;
   final bool isYielding;
   final String description;
 
-  const AsyncModifier.sync()
-      : isAsync = false,
-        isYielding = false,
-        description = "sync";
-  const AsyncModifier.async()
-      : isAsync = true,
-        isYielding = false,
-        description = "async";
-  const AsyncModifier.asyncStar()
-      : isAsync = true,
-        isYielding = true,
-        description = "async*";
-  const AsyncModifier.syncStar()
-      : isAsync = false,
-        isYielding = true,
-        description = "sync*";
-  toString() => description;
+  const AsyncModifier(this.index, this.description,
+      {this.isAsync, this.isYielding});
+
+  static const AsyncModifier sync =
+      const AsyncModifier(0, "sync", isAsync: false, isYielding: false);
+  static const AsyncModifier async =
+      const AsyncModifier(1, "async", isAsync: true, isYielding: false);
+  static const AsyncModifier asyncStar =
+      const AsyncModifier(2, "async*", isAsync: true, isYielding: true);
+  static const AsyncModifier syncStar =
+      const AsyncModifier(3, "sync*", isAsync: false, isYielding: true);
+
+  static const List<AsyncModifier> values = [sync, async, asyncStar, syncStar];
+
+  String toString() => description;
 }
 
 class PropertyAccess extends Expression {

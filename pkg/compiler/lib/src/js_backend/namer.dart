@@ -34,7 +34,6 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
 import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
-import 'backend.dart';
 import 'native_data.dart';
 
 part 'field_naming_mixin.dart';
@@ -1885,21 +1884,13 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
-  void visitSynthetic(SyntheticConstantValue constant, [_]) {
-    switch (constant.valueKind) {
-      case SyntheticConstantKind.DUMMY_INTERCEPTOR:
-        add('dummy_receiver');
-        break;
-      case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
-        // Omit. These are opaque deferred indexes with nothing helpful to add.
-        break;
-      case SyntheticConstantKind.NAME:
-        add('name');
-        break;
-      default:
-        failedAt(
-            CURRENT_ELEMENT_SPANNABLE, "Unexpected SyntheticConstantValue");
-    }
+  void visitAbstractValue(AbstractValueConstantValue constant, [_]) {
+    add('dummy_receiver');
+  }
+
+  @override
+  void visitJsName(JsNameConstantValue constant, [_]) {
+    add('name');
   }
 
   @override
@@ -2021,19 +2012,19 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   }
 
   @override
-  int visitSynthetic(SyntheticConstantValue constant, [_]) {
-    switch (constant.valueKind) {
-      case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
-        // These contain a deferred opaque index into metadata. There is nothing
-        // we can access that is stable between compiles.  Luckily, since they
-        // resolve to integer indexes, they're always part of a larger constant.
-        return 0;
-      default:
-        throw failedAt(
-            NO_LOCATION_SPANNABLE,
-            'SyntheticConstantValue should never be named and '
-            'never be subconstant');
-    }
+  int visitAbstractValue(AbstractValueConstantValue constant, [_]) {
+    throw failedAt(
+        NO_LOCATION_SPANNABLE,
+        'AbstractValueConstantValue should never be named and '
+        'never be subconstant');
+  }
+
+  @override
+  int visitJsName(JsNameConstantValue constant, [_]) {
+    throw failedAt(
+        NO_LOCATION_SPANNABLE,
+        'JsNameConstantValue should never be named and '
+        'never be subconstant');
   }
 
   @override
@@ -2433,7 +2424,7 @@ abstract class ModularNamer {
   /// Returns the name for the async body of the method with the [original]
   /// name.
   jsAst.Name deriveAsyncBodyName(jsAst.Name original) {
-    return new _AsyncName(_literalAsyncPrefix, original);
+    return new AsyncName(_literalAsyncPrefix, original);
   }
 
   /// Returns the label name for [label] used as a break target.

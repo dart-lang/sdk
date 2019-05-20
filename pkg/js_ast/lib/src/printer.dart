@@ -620,17 +620,17 @@ class Printer implements NodeVisitor {
     }
     out(")");
     switch (fun.asyncModifier) {
-      case const AsyncModifier.sync():
+      case AsyncModifier.sync:
         break;
-      case const AsyncModifier.async():
+      case AsyncModifier.async:
         out(' ', isWhitespace: true);
         out('async');
         break;
-      case const AsyncModifier.syncStar():
+      case AsyncModifier.syncStar:
         out(' ', isWhitespace: true);
         out('sync*');
         break;
-      case const AsyncModifier.asyncStar():
+      case AsyncModifier.asyncStar:
         out(' ', isWhitespace: true);
         out('async*');
         break;

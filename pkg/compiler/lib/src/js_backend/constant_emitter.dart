@@ -15,7 +15,6 @@ import '../js_backend/field_analysis.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
 import 'field_analysis.dart' show JFieldAnalysis;
-import 'js_backend.dart';
 import 'runtime_types.dart';
 
 typedef jsAst.Expression _ConstantReferenceGenerator(ConstantValue constant);
@@ -145,18 +144,14 @@ class ModularConstantEmitter
   }
 
   @override
-  jsAst.Expression visitSynthetic(SyntheticConstantValue constant, [_]) {
-    switch (constant.valueKind) {
-      case SyntheticConstantKind.DUMMY_INTERCEPTOR:
-      case SyntheticConstantKind.EMPTY_VALUE:
-        return new jsAst.LiteralNumber('0');
-      case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
-      case SyntheticConstantKind.NAME:
-        return constant.payload;
-      default:
-        throw failedAt(NO_LOCATION_SPANNABLE,
-            "Unexpected DummyConstantKind ${constant.kind}");
-    }
+  jsAst.Expression visitAbstractValue(AbstractValueConstantValue constant,
+      [_]) {
+    return new jsAst.LiteralNumber('0');
+  }
+
+  @override
+  jsAst.Expression visitJsName(JsNameConstantValue constant, [_]) {
+    return constant.name;
   }
 
   @override

@@ -34,6 +34,8 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 
   Map<Type, IndexedSink> _generalCaches = {};
 
+  CodegenWriter _codegenWriter;
+
   AbstractDataSink({this.useDataKinds: false}) {
     _dartTypeWriter = new DartTypeWriter(this);
     _dartTypeNodeWriter = new DartTypeNodeWriter(this);
@@ -439,12 +441,23 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
         break;
       case ConstantValueKind.NON_CONSTANT:
         break;
-      case ConstantValueKind.DEFERRED_GLOBAL:
       case ConstantValueKind.INTERCEPTOR:
-      case ConstantValueKind.SYNTHETIC:
-        // These are only created in the SSA graph builder.
-        throw new UnsupportedError(
-            "Unsupported constant value kind ${value.kind}.");
+        InterceptorConstantValue constant = value;
+        writeClass(constant.cls);
+        break;
+      case ConstantValueKind.DEFERRED_GLOBAL:
+        DeferredGlobalConstantValue constant = value;
+        writeConstant(constant.referenced);
+        writeOutputUnitReference(constant.unit);
+        break;
+      case ConstantValueKind.ABSTRACT_VALUE:
+        AbstractValueConstantValue constant = value;
+        writeAbstractValue(constant.abstractValue);
+        break;
+      case ConstantValueKind.JS_NAME:
+        JsNameConstantValue constant = value;
+        writeJsNode(constant.name);
+        break;
     }
   }
 
@@ -472,6 +485,36 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     _writeUri(value.uri);
     _writeUri(value.enclosingLibraryUri);
     _writeBool(value.isDeferred);
+  }
+
+  @override
+  void registerCodegenWriter(CodegenWriter writer) {
+    assert(writer != null);
+    assert(_codegenWriter == null);
+    _codegenWriter = writer;
+  }
+
+  @override
+  void writeOutputUnitReference(OutputUnit value) {
+    assert(
+        _codegenWriter != null,
+        "Can not serialize an OutputUnit reference "
+        "without a registered codegen writer.");
+    _codegenWriter.writeOutputUnitReference(this, value);
+  }
+
+  @override
+  void writeAbstractValue(AbstractValue value) {
+    assert(_codegenWriter != null,
+        "Can not serialize an AbstractValue without a registered codegen writer.");
+    _codegenWriter.writeAbstractValue(this, value);
+  }
+
+  @override
+  void writeJsNode(js.Node value) {
+    assert(_codegenWriter != null,
+        "Can not serialize a JS ndoe without a registered codegen writer.");
+    _codegenWriter.writeJsNode(this, value);
   }
 
   /// Actual serialization of a section begin tag, implemented by subclasses.

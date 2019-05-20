@@ -8,7 +8,6 @@ import '../constants/values.dart';
 import '../elements/entities.dart'
     show ClassEntity, FieldEntity, MemberEntity, TypedefEntity;
 import '../elements/types.dart';
-import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 import 'sorter.dart' show Sorter;
 
 /// A canonical but arbitrary ordering of constants. The ordering is 'stable'
@@ -169,32 +168,16 @@ class _ConstantOrdering
   }
 
   @override
-  int visitSynthetic(SyntheticConstantValue a, SyntheticConstantValue b) {
-    // [SyntheticConstantValue]s have abstract fields that are set only by
-    // convention.  Lucky for us, they do not occur as top level constant, only
-    // as elements of a few constants.  If this becomes a source of instability,
-    // we will need to add a total ordering on JavaScript ASTs including
-    // deferred elements.
-    SyntheticConstantKind aKind = a.valueKind;
-    SyntheticConstantKind bKind = b.valueKind;
-    int r = aKind.index - bKind.index;
-    if (r != 0) return r;
-    switch (aKind) {
-      case SyntheticConstantKind.DUMMY_INTERCEPTOR:
-      case SyntheticConstantKind.EMPTY_VALUE:
-        // Never emitted.
-        return 0;
+  int visitAbstractValue(
+      AbstractValueConstantValue a, AbstractValueConstantValue b) {
+    // Never emitted.
+    return 0;
+  }
 
-      case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
-        // An opaque deferred JS AST reference to a type in reflection data.
-        return 0;
-      case SyntheticConstantKind.NAME:
-        // An opaque deferred JS AST reference to a name.
-        return 0;
-      default:
-        // Should not happen.
-        throw 'unexpected SyntheticConstantKind $aKind';
-    }
+  @override
+  int visitJsName(JsNameConstantValue a, JsNameConstantValue b) {
+    // An opaque deferred JS AST reference to a name.
+    return 0;
   }
 
   @override
@@ -229,10 +212,11 @@ class _KindVisitor implements ConstantValueVisitor<int, Null> {
   static const int CONSTRUCTED = 10;
   static const int TYPE = 11;
   static const int INTERCEPTOR = 12;
-  static const int SYNTHETIC = 13;
-  static const int DEFERRED_GLOBAL = 14;
-  static const int NONCONSTANT = 15;
-  static const int INSTANTIATION = 16;
+  static const int ABSTRACT_VALUE = 13;
+  static const int JS_NAME = 14;
+  static const int DEFERRED_GLOBAL = 15;
+  static const int NONCONSTANT = 16;
+  static const int INSTANTIATION = 17;
 
   static int kind(ConstantValue constant) =>
       constant.accept(const _KindVisitor(), null);
@@ -264,7 +248,9 @@ class _KindVisitor implements ConstantValueVisitor<int, Null> {
   @override
   int visitInterceptor(InterceptorConstantValue a, _) => INTERCEPTOR;
   @override
-  int visitSynthetic(SyntheticConstantValue a, _) => SYNTHETIC;
+  int visitAbstractValue(AbstractValueConstantValue a, _) => ABSTRACT_VALUE;
+  @override
+  int visitJsName(JsNameConstantValue a, _) => JS_NAME;
   @override
   int visitDeferredGlobal(DeferredGlobalConstantValue a, _) => DEFERRED_GLOBAL;
   @override

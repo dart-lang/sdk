@@ -2584,3 +2584,35 @@ class _EntityLookup implements EntityLookup {
     return typeVariable;
   }
 }
+
+/// [EntityLookup] implementation for an fully built [JsKernelToElementMap].
+class ClosedEntityLookup implements EntityLookup {
+  final JsKernelToElementMap _elementMap;
+
+  ClosedEntityLookup(this._elementMap);
+
+  @override
+  IndexedTypeVariable getTypeVariableByIndex(int index) {
+    return _elementMap.typeVariables.getEntity(index);
+  }
+
+  @override
+  IndexedMember getMemberByIndex(int index) {
+    return _elementMap.members.getEntity(index);
+  }
+
+  @override
+  IndexedTypedef getTypedefByIndex(int index) {
+    return _elementMap.typedefs.getEntity(index);
+  }
+
+  @override
+  IndexedClass getClassByIndex(int index) {
+    return _elementMap.classes.getEntity(index);
+  }
+
+  @override
+  IndexedLibrary getLibraryByIndex(int index) {
+    return _elementMap.libraries.getEntity(index);
+  }
+}

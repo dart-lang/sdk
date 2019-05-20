@@ -15,7 +15,7 @@ import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
-import '../js_backend/backend.dart' show CodegenInputs, SyntheticConstantKind;
+import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_backend/runtime_types.dart';
 import '../native/behavior.dart';
@@ -1955,8 +1955,8 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   HInstruction get zapInstruction {
     if (zapInstructionCache == null) {
       // A constant with no type does not pollute types at phi nodes.
-      ConstantValue constant = new SyntheticConstantValue(
-          SyntheticConstantKind.EMPTY_VALUE, _abstractValueDomain.emptyType);
+      ConstantValue constant =
+          new AbstractValueConstantValue(_abstractValueDomain.emptyType);
       zapInstructionCache = analyzer.graph.addConstant(constant, closedWorld);
     }
     return zapInstructionCache;

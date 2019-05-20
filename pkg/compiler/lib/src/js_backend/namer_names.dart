@@ -118,11 +118,11 @@ class SetterName extends _PrefixedName {
   SetterName(jsAst.Name prefix, jsAst.Name base) : super(prefix, base);
 }
 
-class _AsyncName extends _PrefixedName {
+class AsyncName extends _PrefixedName {
   @override
   int get _kind => _NamerNameKinds.Async.index;
 
-  _AsyncName(jsAst.Name prefix, jsAst.Name base) : super(prefix, base);
+  AsyncName(jsAst.Name prefix, jsAst.Name base) : super(prefix, base);
 
   @override
   bool get allowRename => true;

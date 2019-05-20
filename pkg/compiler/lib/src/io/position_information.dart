@@ -11,12 +11,15 @@ import '../common.dart';
 import '../js/js.dart' as js;
 import '../js/js_debug.dart';
 import '../js/js_source_mapping.dart';
+import '../serialization/serialization.dart';
 import 'code_output.dart' show BufferedCodeOutput;
 import 'source_information.dart';
 
 /// [SourceInformation] that consists of an offset position into the source
 /// code.
 class PositionSourceInformation extends SourceInformation {
+  static const String tag = 'source-information';
+
   @override
   final SourceLocation startPosition;
 
@@ -28,6 +31,28 @@ class PositionSourceInformation extends SourceInformation {
 
   PositionSourceInformation(
       this.startPosition, this.innerPosition, this.inliningContext);
+
+  factory PositionSourceInformation.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    SourceLocation startPosition = SourceLocation.readFromDataSource(source);
+    SourceLocation innerPosition = SourceLocation.readFromDataSource(source);
+    List<FrameContext> inliningContext = source.readList(
+        () => FrameContext.readFromDataSource(source),
+        emptyAsNull: true);
+    source.end(tag);
+    return new PositionSourceInformation(
+        startPosition, innerPosition, inliningContext);
+  }
+
+  void writeToDataSinkInternal(DataSink sink) {
+    sink.begin(tag);
+    SourceLocation.writeToDataSink(sink, startPosition);
+    SourceLocation.writeToDataSink(sink, innerPosition);
+    sink.writeList(inliningContext,
+        (FrameContext context) => context.writeToDataSink(sink),
+        allowNull: true);
+    sink.end(tag);
+  }
 
   @override
   List<SourceLocation> get sourceLocations {

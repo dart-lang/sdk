@@ -31,6 +31,7 @@ import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../kernel/kernel_strategy.dart';
 import '../native/behavior.dart';
 import '../options.dart';
+import '../serialization/serialization.dart';
 import '../ssa/builder_kernel.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
@@ -110,8 +111,17 @@ class JsBackendStrategy implements BackendStrategy {
   }
 
   @override
-  WorkItemBuilder createCodegenWorkItemBuilder() {
-    return new KernelCodegenWorkItemBuilder(_compiler.backend);
+  WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld) {
+    assert(_elementMap != null,
+        "JsBackendStrategy.elementMap has not been created yet.");
+    return new KernelCodegenWorkItemBuilder(
+        _compiler.backend,
+        closedWorld,
+        new ClosedEntityLookup(_elementMap),
+        // TODO(johnniwinther): Avoid the need for a [ComponentLookup]. This
+        // is caused by some type masks holding a kernel node for using in
+        // tracing.
+        new ComponentLookup(_elementMap.programEnv.mainComponent));
   }
 
   @override
@@ -137,26 +147,36 @@ class JsBackendStrategy implements BackendStrategy {
 
 class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
   final JavaScriptBackend _backend;
+  final JClosedWorld _closedWorld;
+  final EntityLookup _entityLookup;
+  final ComponentLookup _componentLookup;
 
-  KernelCodegenWorkItemBuilder(this._backend);
+  KernelCodegenWorkItemBuilder(this._backend, this._closedWorld,
+      this._entityLookup, this._componentLookup);
 
   @override
   WorkItem createWorkItem(MemberEntity entity) {
     if (entity.isAbstract) return null;
-    return new KernelCodegenWorkItem(_backend, entity);
+    return new KernelCodegenWorkItem(
+        _backend, _closedWorld, _entityLookup, _componentLookup, entity);
   }
 }
 
 class KernelCodegenWorkItem extends WorkItem {
   final JavaScriptBackend _backend;
+  final JClosedWorld _closedWorld;
+  final EntityLookup _entityLookup;
+  final ComponentLookup _componentLookup;
   @override
   final MemberEntity element;
 
-  KernelCodegenWorkItem(this._backend, this.element);
+  KernelCodegenWorkItem(this._backend, this._closedWorld, this._entityLookup,
+      this._componentLookup, this.element);
 
   @override
   WorldImpact run() {
-    return _backend.generateCode(this);
+    return _backend.generateCode(
+        this, _closedWorld, _entityLookup, _componentLookup);
   }
 }
 

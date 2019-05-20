@@ -38,7 +38,7 @@ abstract class BackendStrategy {
       SelectorConstraintsStrategy selectorConstraintsStrategy);
 
   /// Creates the [WorkItemBuilder] used by the codegen enqueuer.
-  WorkItemBuilder createCodegenWorkItemBuilder();
+  WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld);
 
   /// Creates the [SsaBuilder] used for the element model.
   SsaBuilder createSsaBuilder(

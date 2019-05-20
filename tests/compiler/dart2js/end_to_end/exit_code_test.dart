@@ -22,8 +22,10 @@ import 'package:compiler/src/apiimpl.dart' as apiimpl;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/null_compiler_output.dart';
+import 'package:compiler/src/serialization/serialization.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/universe/world_impact.dart';
+import 'package:compiler/src/world.dart';
 import 'diagnostic_reporter_helper.dart';
 
 class TestCompiler extends apiimpl.CompilerImpl {
@@ -108,9 +110,10 @@ class TestBackend extends JavaScriptBackend {
             useNewSourceInfo: compiler.options.useNewSourceInfo);
 
   @override
-  WorldImpact generateCode(WorkItem work) {
+  WorldImpact generateCode(WorkItem work, JClosedWorld closedWorld,
+      EntityLookup entityLookup, ComponentLookup componentLookup) {
     compiler.test('Compiler.codegen');
-    return super.generateCode(work);
+    return super.generateCode(work, closedWorld, entityLookup, componentLookup);
   }
 }
 

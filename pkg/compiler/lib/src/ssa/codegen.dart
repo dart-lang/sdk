@@ -67,13 +67,13 @@ class SsaCodeGeneratorTask extends CompilerTask {
     if (needsAsyncRewrite) {
       return finish(element.asyncMarker.isAsync
           ? (element.asyncMarker.isYielding
-              ? const js.AsyncModifier.asyncStar()
-              : const js.AsyncModifier.async())
+              ? js.AsyncModifier.asyncStar
+              : js.AsyncModifier.async)
           : (element.asyncMarker.isYielding
-              ? const js.AsyncModifier.syncStar()
-              : const js.AsyncModifier.sync()));
+              ? js.AsyncModifier.syncStar
+              : js.AsyncModifier.sync));
     } else {
-      return finish(const js.AsyncModifier.sync());
+      return finish(js.AsyncModifier.sync);
     }
   }
 
