@@ -25,19 +25,19 @@ class ModularStep {
   /// This can be data produced on a previous stage of the pipeline
   /// or produced by this same step when it was run on a dependency.
   ///
-  /// If this list includes [resultId], then the modular-step has to be run on
-  /// dependencies before it is run on a module. Otherwise, it could be run in
-  /// parallel.
+  /// If this list includes any data from [resultData], then the modular-step
+  /// has to be run on dependencies before it is run on a module. Otherwise, it
+  /// could be run in parallel.
   final List<DataId> dependencyDataNeeded;
 
   /// Data that this step needs to read about the module itself.
   ///
   /// This is meant to be data produced in earlier stages of the modular
-  /// pipeline. It is an error to include [resultId] in this list.
+  /// pipeline. It is an error to include any id from [resultData] in this list.
   final List<DataId> moduleDataNeeded;
 
   /// Data that this step produces.
-  final DataId resultId;
+  final List<DataId> resultData;
 
   /// Whether this step is only executed on the main module.
   final bool onlyOnMain;
@@ -46,7 +46,7 @@ class ModularStep {
       {this.needsSources: true,
       this.dependencyDataNeeded: const [],
       this.moduleDataNeeded: const [],
-      this.resultId,
+      this.resultData,
       this.onlyOnMain: false});
 }
 
@@ -74,30 +74,35 @@ abstract class Pipeline<S extends ModularStep> {
     // or by the same step on a dependency.
     Map<DataId, S> previousKinds = {};
     for (var step in steps) {
-      var resultKind = step.resultId;
-      if (previousKinds.containsKey(resultKind)) {
-        _validationError("Cannot produce the same data on two modular steps."
-            " '$resultKind' was previously produced by "
-            "'${previousKinds[resultKind].runtimeType}' but "
-            "'${step.runtimeType}' also produces the same data.");
+      if (step.resultData == null || step.resultData.isEmpty) {
+        _validationError(
+            "'${step.runtimeType}' needs to declare what data it produces.");
       }
-      previousKinds[resultKind] = step;
-      for (var dataId in step.dependencyDataNeeded) {
-        if (!previousKinds.containsKey(dataId)) {
-          _validationError(
-              "Step '${step.runtimeType}' needs data '${dataId}', but the data"
-              " is not produced by this or a preceding step.");
+      for (var resultKind in step.resultData) {
+        if (previousKinds.containsKey(resultKind)) {
+          _validationError("Cannot produce the same data on two modular steps."
+              " '$resultKind' was previously produced by "
+              "'${previousKinds[resultKind].runtimeType}' but "
+              "'${step.runtimeType}' also produces the same data.");
         }
-      }
-      for (var dataId in step.moduleDataNeeded) {
-        if (!previousKinds.containsKey(dataId)) {
-          _validationError(
-              "Step '${step.runtimeType}' needs data '${dataId}', but the data"
-              " is not produced by a preceding step.");
+        previousKinds[resultKind] = step;
+        for (var dataId in step.dependencyDataNeeded) {
+          if (!previousKinds.containsKey(dataId)) {
+            _validationError(
+                "Step '${step.runtimeType}' needs data '${dataId}', but the "
+                "data is not produced by this or a preceding step.");
+          }
         }
-        if (dataId == resultKind) {
-          _validationError(
-              "Circular dependency on '$dataId' in step '${step.runtimeType}'");
+        for (var dataId in step.moduleDataNeeded) {
+          if (!previousKinds.containsKey(dataId)) {
+            _validationError(
+                "Step '${step.runtimeType}' needs data '${dataId}', but the "
+                "data is not produced by a preceding step.");
+          }
+          if (dataId == resultKind) {
+            _validationError("Circular dependency on '$dataId' "
+                "in step '${step.runtimeType}'");
+          }
         }
       }
     }
@@ -147,7 +152,7 @@ abstract class Pipeline<S extends ModularStep> {
       }
     }
     await runStep(step, module, visibleData);
-    (computedData[module] ??= {}).add(step.resultId);
+    (computedData[module] ??= {}).addAll(step.resultData);
   }
 
   Future<void> runStep(

@@ -53,40 +53,47 @@ class IOPipeline extends Pipeline<IOModularStep> {
   @override
   Future<void> runStep(IOModularStep step, Module module,
       Map<Module, Set<DataId>> visibleData) async {
-    var folder =
-        await Directory.systemTemp.createTemp('modular_test_${step.resultId}-');
-    _tmpFolders[step.resultId] ??= (await Directory.systemTemp
-            .createTemp('modular_test_${step.resultId}_res-'))
-        .uri;
+    // Since data ids are unique throughout the pipeline, we use the first
+    // result data id as a hint for the name of the temporary folder of a step.
+    var stepFolder;
+    for (var dataId in step.resultData) {
+      stepFolder ??=
+          await Directory.systemTemp.createTemp('modular_test_${dataId}-');
+      _tmpFolders[dataId] ??=
+          (await Directory.systemTemp.createTemp('modular_test_${dataId}_res-'))
+              .uri;
+    }
     for (var module in visibleData.keys) {
       for (var dataId in visibleData[module]) {
         var filename = "${module.name}.${dataId.name}";
         var assetUri = _tmpFolders[dataId].resolve(filename);
         await File.fromUri(assetUri)
-            .copy(folder.uri.resolve(filename).toFilePath());
+            .copy(stepFolder.uri.resolve(filename).toFilePath());
       }
     }
     if (step.needsSources) {
       for (var uri in module.sources) {
         var originalUri = module.rootUri.resolveUri(uri);
-        var copyUri = folder.uri.resolveUri(uri);
+        var copyUri = stepFolder.uri.resolveUri(uri);
         await File.fromUri(copyUri).create(recursive: true);
         await File.fromUri(originalUri).copy(copyUri.toFilePath());
       }
     }
 
-    await step.execute(module, folder.uri,
+    await step.execute(module, stepFolder.uri,
         (Module m, DataId id) => Uri.parse("${m.name}.${id.name}"));
 
-    var outputFile = File.fromUri(
-        folder.uri.resolve("${module.name}.${step.resultId.name}"));
-    if (!await outputFile.exists()) {
-      throw StateError(
-          "Step '${step.runtimeType}' didn't produce an output file");
+    for (var dataId in step.resultData) {
+      var outputFile =
+          File.fromUri(stepFolder.uri.resolve("${module.name}.${dataId.name}"));
+      if (!await outputFile.exists()) {
+        throw StateError(
+            "Step '${step.runtimeType}' didn't produce an output file");
+      }
+      await outputFile.copy(_tmpFolders[dataId]
+          .resolve("${module.name}.${dataId.name}")
+          .toFilePath());
     }
-    await outputFile.copy(_tmpFolders[step.resultId]
-        .resolve("${module.name}.${step.resultId.name}")
-        .toFilePath());
-    await folder.delete(recursive: true);
+    await stepFolder.delete(recursive: true);
   }
 }

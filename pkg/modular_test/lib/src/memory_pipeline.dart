@@ -13,8 +13,8 @@ typedef ModuleDataProvider = Object Function(Module, DataId);
 typedef SourceProvider = String Function(Uri);
 
 abstract class MemoryModularStep extends ModularStep {
-  Future<Object> execute(Module module, SourceProvider sourceProvider,
-      ModuleDataProvider dataProvider);
+  Future<Map<DataId, Object>> execute(Module module,
+      SourceProvider sourceProvider, ModuleDataProvider dataProvider);
 }
 
 class MemoryPipeline extends Pipeline<MemoryModularStep> {
@@ -55,8 +55,12 @@ class MemoryPipeline extends Pipeline<MemoryModularStep> {
         inputSources[uri] = _sources[uri];
       });
     }
-    Object result = await step.execute(module, (Uri uri) => inputSources[uri],
+    Map<DataId, Object> result = await step.execute(
+        module,
+        (Uri uri) => inputSources[uri],
         (Module m, DataId id) => inputData[m][id]);
-    (_results[module] ??= {})[step.resultId] = result;
+    for (var dataId in step.resultData) {
+      (_results[module] ??= {})[dataId] = result[dataId];
+    }
   }
 }

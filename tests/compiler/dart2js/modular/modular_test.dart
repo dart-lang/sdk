@@ -52,11 +52,12 @@ Future<void> _runTest(Uri uri, Uri baseDir) async {
 
 const dillId = const DataId("dill");
 const jsId = const DataId("js");
+const txtId = const DataId("txt");
 
 // Step that compiles sources in a module to a .dill file.
 class SourceToDillStep implements IOModularStep {
   @override
-  DataId get resultId => dillId;
+  List<DataId> get resultData => const [dillId];
 
   @override
   bool get needsSources => true;
@@ -155,7 +156,7 @@ class SourceToDillStep implements IOModularStep {
 // all transitive modules as inputs.
 class CompileFromDillStep implements IOModularStep {
   @override
-  DataId get resultId => jsId;
+  List<DataId> get resultData => const [jsId];
 
   @override
   bool get needsSources => false;
@@ -182,7 +183,7 @@ class CompileFromDillStep implements IOModularStep {
       'package:compiler/src/dart2js.dart',
       '${toUri(module, dillId)}',
       '--dill-dependencies=${dillDependencies.join(',')}',
-      '--out=${toUri(module, resultId)}',
+      '--out=${toUri(module, jsId)}',
     ];
     var result =
         await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
@@ -194,7 +195,7 @@ class CompileFromDillStep implements IOModularStep {
 /// Step that runs the output of dart2js in d8 and saves the output.
 class RunD8 implements IOModularStep {
   @override
-  DataId get resultId => const DataId("txt");
+  List<DataId> get resultData => const [txtId];
 
   @override
   bool get needsSources => false;
@@ -224,7 +225,7 @@ class RunD8 implements IOModularStep {
 
     _checkExitCode(result, this, module);
 
-    await File.fromUri(root.resolveUri(toUri(module, resultId)))
+    await File.fromUri(root.resolveUri(toUri(module, txtId)))
         .writeAsString(result.stdout);
   }
 }

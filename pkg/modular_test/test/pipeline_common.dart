@@ -70,6 +70,15 @@ abstract class PipelineTestStrategy<S extends ModularStep> {
       DataId resultId,
       bool requestDependenciesData: true});
 
+  /// Create a step that applies [action1] and [action2] on the module [inputId]
+  /// data, and emits two results with the given [result1Id] and [result2Id].
+  S createTwoOutputStep(
+      {String Function(String) action1,
+      String Function(String) action2,
+      DataId inputId,
+      DataId result1Id,
+      DataId result2Id});
+
   /// Return the result data produced by a modular step.
   String getResult(Pipeline<S> pipeline, Module m, DataId dataId);
 
@@ -104,7 +113,7 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
         testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
     var pipeline = await testStrategy.createPipeline(sources, <S>[concatStep]);
     await pipeline.run(singleModuleInput);
-    expect(testStrategy.getResult(pipeline, m1, concatStep.resultId),
+    expect(testStrategy.getResult(pipeline, m1, _concatId),
         "a1.dart: A1\na2.dart: A2\n");
     await testStrategy.cleanup(pipeline);
   });
@@ -114,7 +123,7 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
         action: _concat, resultId: _concatId, requestSources: false);
     var pipeline = await testStrategy.createPipeline(sources, <S>[concatStep]);
     await pipeline.run(singleModuleInput);
-    expect(testStrategy.getResult(pipeline, m1, concatStep.resultId),
+    expect(testStrategy.getResult(pipeline, m1, _concatId),
         "a1.dart: null\na2.dart: null\n");
     await testStrategy.cleanup(pipeline);
   });
@@ -124,9 +133,9 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
         testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
     var pipeline = await testStrategy.createPipeline(sources, <S>[concatStep]);
     await pipeline.run(twoModuleInput);
-    expect(testStrategy.getResult(pipeline, m1, concatStep.resultId),
+    expect(testStrategy.getResult(pipeline, m1, _concatId),
         "a1.dart: A1\na2.dart: A2\n");
-    expect(testStrategy.getResult(pipeline, m2, concatStep.resultId),
+    expect(testStrategy.getResult(pipeline, m2, _concatId),
         "b/b1.dart: B1\nb/b2.dart: B2\n");
     await testStrategy.cleanup(pipeline);
   });
@@ -139,9 +148,9 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
     var pipeline = await testStrategy
         .createPipeline(sources, <S>[concatStep, lowercaseStep]);
     await pipeline.run(twoModuleInput);
-    expect(testStrategy.getResult(pipeline, m1, lowercaseStep.resultId),
+    expect(testStrategy.getResult(pipeline, m1, _lowercaseId),
         "a1.dart: a1\na2.dart: a2\n");
-    expect(testStrategy.getResult(pipeline, m2, lowercaseStep.resultId),
+    expect(testStrategy.getResult(pipeline, m2, _lowercaseId),
         "b/b1.dart: b1\nb/b2.dart: b2\n");
     await testStrategy.cleanup(pipeline);
   });
@@ -157,10 +166,29 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
     var pipeline = await testStrategy
         .createPipeline(sources, <S>[concatStep, lowercaseStep]);
     await pipeline.run(twoModuleInput);
-    expect(testStrategy.getResult(pipeline, m1, lowercaseStep.resultId),
+    expect(testStrategy.getResult(pipeline, m1, _lowercaseId),
         "data for [module a] was null");
-    expect(testStrategy.getResult(pipeline, m2, lowercaseStep.resultId),
+    expect(testStrategy.getResult(pipeline, m2, _lowercaseId),
         "data for [module b] was null");
+    await testStrategy.cleanup(pipeline);
+  });
+
+  test('all outputs of a step are created together', () async {
+    var concatStep =
+        testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
+    var twoOutputStep = testStrategy.createTwoOutputStep(
+        action1: _lowercase,
+        action2: _uppercase,
+        inputId: _concatId,
+        result1Id: _lowercaseId,
+        result2Id: _uppercaseId);
+    var pipeline = await testStrategy
+        .createPipeline(sources, <S>[concatStep, twoOutputStep]);
+    await pipeline.run(twoModuleInput);
+    expect(testStrategy.getResult(pipeline, m2, _lowercaseId),
+        "b/b1.dart: b1\nb/b2.dart: b2\n");
+    expect(testStrategy.getResult(pipeline, m2, _uppercaseId),
+        "B/B1.DART: B1\nB/B2.DART: B2\n");
     await testStrategy.cleanup(pipeline);
   });
 
@@ -177,9 +205,8 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
     var pipeline = await testStrategy.createPipeline(
         sources, <S>[concatStep, lowercaseStep, replaceJoinStep]);
     await pipeline.run(twoModuleInput);
-    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
-        "a1 a1\na2 a2\n");
-    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
+    expect(testStrategy.getResult(pipeline, m1, _joinId), "a1 a1\na2 a2\n");
+    expect(testStrategy.getResult(pipeline, m2, _joinId),
         "a1 a1\na2 a2\n\nb/b1 b1\nb/b2 b2\n");
     await testStrategy.cleanup(pipeline);
   });
@@ -199,9 +226,8 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
     var pipeline = await testStrategy.createPipeline(
         sources, <S>[concatStep, lowercaseStep, replaceJoinStep]);
     await pipeline.run(twoModuleInput);
-    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
-        "a1 a1\na2 a2\n");
-    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
+    expect(testStrategy.getResult(pipeline, m1, _joinId), "a1 a1\na2 a2\n");
+    expect(testStrategy.getResult(pipeline, m2, _joinId),
         "null\nb/b1 b1\nb/b2 b2\n");
     await testStrategy.cleanup(pipeline);
   });
@@ -219,9 +245,8 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
     var pipeline = await testStrategy.createPipeline(
         sources, <S>[concatStep, lowercaseStep, replaceJoinStep]);
     await pipeline.run(twoModuleInput);
-    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
-        "a1 a1\na2 a2\n");
-    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
+    expect(testStrategy.getResult(pipeline, m1, _joinId), "a1 a1\na2 a2\n");
+    expect(testStrategy.getResult(pipeline, m2, _joinId),
         "a1.dart: a1\na2.dart: a2\n\nb/b1 b1\nb/b2 b2\n");
     await testStrategy.cleanup(pipeline);
   });
@@ -241,9 +266,8 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
     var pipeline = await testStrategy.createPipeline(
         sources, <S>[concatStep, lowercaseStep, replaceJoinStep]);
     await pipeline.run(twoModuleInput);
-    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
-        "a1 a1\na2 a2\n");
-    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
+    expect(testStrategy.getResult(pipeline, m1, _joinId), "a1 a1\na2 a2\n");
+    expect(testStrategy.getResult(pipeline, m2, _joinId),
         "null\nb/b1 b1\nb/b2 b2\n");
     await testStrategy.cleanup(pipeline);
   });
@@ -290,6 +314,7 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
 
 DataId _concatId = const DataId("concat");
 DataId _lowercaseId = const DataId("lowercase");
+DataId _uppercaseId = const DataId("uppercase");
 DataId _joinId = const DataId("join");
 
 String _concat(Map<Uri, String> sources) {
@@ -301,6 +326,7 @@ String _concat(Map<Uri, String> sources) {
 }
 
 String _lowercase(String contents) => contents.toLowerCase();
+String _uppercase(String contents) => contents.toUpperCase();
 
 String _replaceAndJoin(String moduleData, List<String> depContents) {
   var buffer = new StringBuffer();

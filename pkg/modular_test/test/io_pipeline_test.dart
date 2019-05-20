@@ -73,6 +73,15 @@ class IOPipelineTestStrategy implements PipelineTestStrategy<IOModularStep> {
       MainOnlyStep(action, inputId, depId, resultId, requestDependenciesData);
 
   @override
+  IOModularStep createTwoOutputStep(
+          {String Function(String) action1,
+          String Function(String) action2,
+          DataId inputId,
+          DataId result1Id,
+          DataId result2Id}) =>
+      TwoOutputStep(action1, action2, inputId, result1Id, result2Id);
+
+  @override
   String getResult(covariant IOPipeline pipeline, Module m, DataId dataId) {
     var folderUri = pipeline.tmpFoldersForTesting[dataId];
     var file = File.fromUri(folderUri.resolve("${m.name}.${dataId.name}"));
@@ -95,6 +104,7 @@ class SourceOnlyStep implements IOModularStep {
   final bool needsSources;
   List<DataId> get dependencyDataNeeded => const [];
   List<DataId> get moduleDataNeeded => const [];
+  List<DataId> get resultData => [resultId];
   bool get onlyOnMain => false;
 
   SourceOnlyStep(this.action, this.resultId, this.needsSources);
@@ -119,6 +129,7 @@ class ModuleDataStep implements IOModularStep {
   bool get needsSources => false;
   List<DataId> get dependencyDataNeeded => const [];
   final List<DataId> moduleDataNeeded;
+  List<DataId> get resultData => [resultId];
   final DataId resultId;
   final DataId inputId;
   bool get onlyOnMain => false;
@@ -137,10 +148,41 @@ class ModuleDataStep implements IOModularStep {
   }
 }
 
+class TwoOutputStep implements IOModularStep {
+  final String Function(String) action1;
+  final String Function(String) action2;
+  bool get needsSources => false;
+  List<DataId> get dependencyDataNeeded => const [];
+  List<DataId> get moduleDataNeeded => [inputId];
+  List<DataId> get resultData => [result1Id, result2Id];
+  final DataId result1Id;
+  final DataId result2Id;
+  final DataId inputId;
+  bool get onlyOnMain => false;
+
+  TwoOutputStep(
+      this.action1, this.action2, this.inputId, this.result1Id, this.result2Id);
+
+  @override
+  Future<void> execute(
+      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+    var inputData = await _readHelper(module, root, inputId, toUri);
+    var result1 =
+        inputData == null ? "data for $module was null" : action1(inputData);
+    var result2 =
+        inputData == null ? "data for $module was null" : action2(inputData);
+    await File.fromUri(root.resolveUri(toUri(module, result1Id)))
+        .writeAsString(result1);
+    await File.fromUri(root.resolveUri(toUri(module, result2Id)))
+        .writeAsString(result2);
+  }
+}
+
 class LinkStep implements IOModularStep {
   bool get needsSources => false;
   final List<DataId> dependencyDataNeeded;
   List<DataId> get moduleDataNeeded => [inputId];
+  List<DataId> get resultData => [resultId];
   final String Function(String, List<String>) action;
   final DataId inputId;
   final DataId depId;
@@ -169,6 +211,7 @@ class MainOnlyStep implements IOModularStep {
   bool get needsSources => false;
   final List<DataId> dependencyDataNeeded;
   List<DataId> get moduleDataNeeded => [inputId];
+  List<DataId> get resultData => [resultId];
   final String Function(String, List<String>) action;
   final DataId inputId;
   final DataId depId;
