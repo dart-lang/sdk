@@ -59,8 +59,10 @@ typedef CompileModule(String imports, String body, String libraryName,
 
 /// The command for invoking the modular compiler.
 class WebCompileCommand extends Command {
+  @override
   get name => 'compile';
 
+  @override
   get description => 'Compile a set of Dart files into a JavaScript module.';
   final MessageHandler messageHandler;
 
@@ -306,5 +308,6 @@ class WebCompileCommand extends Command {
 
 /// Thrown when the input source code has errors.
 class CompileErrorException implements Exception {
+  @override
   toString() => '\nPlease fix all errors before compiling (warnings are okay).';
 }

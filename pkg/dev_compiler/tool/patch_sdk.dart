@@ -416,6 +416,7 @@ class StringEditBuffer {
   ///
   /// Throws [UnsupportedError] if the edits were overlapping. If no edits were
   /// made, the original string will be returned.
+  @override
   String toString() {
     var sb = StringBuffer();
     if (_edits.length == 0) return original;
@@ -462,8 +463,10 @@ class _StringEdit implements Comparable<_StringEdit> {
 
   int get length => end - begin;
 
+  @override
   String toString() => '(Edit @ $begin,$end: "$replace")';
 
+  @override
   int compareTo(_StringEdit other) {
     int diff = begin - other.begin;
     if (diff != 0) return diff;

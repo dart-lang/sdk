@@ -20,12 +20,16 @@ class DevCompilerTarget extends Target {
 
   ClassHierarchy hierarchy;
 
+  @override
   bool get legacyMode => false;
 
+  @override
   bool get enableSuperMixins => true;
 
+  @override
   String get name => 'dartdevc';
 
+  @override
   List<String> get extraRequiredLibraries => const [
         'dart:_runtime',
         'dart:_debugger',

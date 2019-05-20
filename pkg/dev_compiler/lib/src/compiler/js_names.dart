@@ -29,7 +29,9 @@ class TemporaryId extends Identifier {
   //
   // However we may need to fix this if we want hover to work well for things
   // like library prefixes and field-initializing formals.
+  @override
   get sourceInformation => null;
+  @override
   set sourceInformation(Object obj) {}
 
   TemporaryId(String name) : super(name);
@@ -60,10 +62,13 @@ class MaybeQualifiedId extends Expression {
     }
   }
 
+  @override
   int get precedenceLevel => _expr.precedenceLevel;
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => _expr.accept(visitor);
 
+  @override
   void visitChildren(NodeVisitor visitor) => _expr.visitChildren(visitor);
 }
 
@@ -83,16 +88,19 @@ class TemporaryNamer extends LocalNamer {
 
   TemporaryNamer(Node node) : scope = _RenameVisitor.build(node).rootScope;
 
+  @override
   String getName(Identifier node) {
     var rename = scope.renames[identifierKey(node)];
     if (rename != null) return rename;
     return node.name;
   }
 
+  @override
   void enterScope(Node node) {
     scope = scope.childScopes[node];
   }
 
+  @override
   void leaveScope() {
     scope = scope.parent;
   }
@@ -138,6 +146,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     _finishNames();
   }
 
+  @override
   declare(Identifier node) {
     var id = identifierKey(node);
     var notAlreadyDeclared = scope.declared.add(id);
@@ -147,6 +156,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     _markUsed(node, id, scope);
   }
 
+  @override
   visitIdentifier(Identifier node) {
     var id = identifierKey(node);
 
@@ -180,11 +190,13 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     }
   }
 
+  @override
   visitFunctionExpression(FunctionExpression node) {
     // Visit nested functions after all identifiers are declared.
     scope.childScopes[node] = _FunctionScope(scope);
   }
 
+  @override
   visitClassExpression(ClassExpression node) {
     scope.childScopes[node] = _FunctionScope(scope);
   }

@@ -12,10 +12,12 @@ Future<ChainContext> createContext(
 
 class StackTraceContext extends ChainContextWithCleanupHelper
     implements WithCompilerState {
+  @override
   fe.InitializedCompilerState compilerState;
 
   List<Step> _steps;
 
+  @override
   List<Step> get steps {
     return _steps ??= <Step>[
       const Setup(),

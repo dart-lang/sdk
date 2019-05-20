@@ -585,10 +585,12 @@ class _IdentifierFinder extends JS.BaseVisitor<void> {
 
   static final instance = _IdentifierFinder();
 
+  @override
   visitIdentifier(node) {
     if (node.name == nameToFind) found = true;
   }
 
+  @override
   visitNode(node) {
     if (!found) super.visitNode(node);
   }

@@ -120,12 +120,19 @@ class _ConstantVisitor extends ExpressionVisitor<bool> {
 
   bool isConstant(Expression e) => e.accept(this);
 
+  @override
   defaultExpression(node) => false;
+  @override
   defaultBasicLiteral(node) => true;
+  @override
   visitTypeLiteral(node) => true; // TODO(jmesserly): deferred libraries?
+  @override
   visitSymbolLiteral(node) => true;
+  @override
   visitListLiteral(node) => node.isConst;
+  @override
   visitMapLiteral(node) => node.isConst;
+  @override
   visitStaticInvocation(node) {
     return node.isConst ||
         node.target == coreTypes.identicalProcedure &&
@@ -135,27 +142,34 @@ class _ConstantVisitor extends ExpressionVisitor<bool> {
             node.arguments.named.every((n) => isConstant(n.value));
   }
 
+  @override
   visitDirectMethodInvocation(node) {
     return node.receiver is BasicLiteral &&
         isOperatorMethodName(node.name.name) &&
         node.arguments.positional.every((p) => p is BasicLiteral);
   }
 
+  @override
   visitMethodInvocation(node) {
     return node.receiver is BasicLiteral &&
         isOperatorMethodName(node.name.name) &&
         node.arguments.positional.every((p) => p is BasicLiteral);
   }
 
+  @override
   visitConstructorInvocation(node) => node.isConst;
+  @override
   visitStringConcatenation(node) =>
       node.expressions.every((e) => e is BasicLiteral);
+  @override
   visitStaticGet(node) {
     var target = node.target;
     return target is Procedure || target is Field && target.isConst;
   }
 
+  @override
   visitVariableGet(node) => node.variable.isConst;
+  @override
   visitNot(node) {
     var operand = node.operand;
     return operand is BoolLiteral ||
@@ -164,13 +178,16 @@ class _ConstantVisitor extends ExpressionVisitor<bool> {
         operand is MethodInvocation && visitMethodInvocation(operand);
   }
 
+  @override
   visitLogicalExpression(node) =>
       node.left is BoolLiteral && node.right is BoolLiteral;
+  @override
   visitConditionalExpression(node) =>
       node.condition is BoolLiteral &&
       node.then is BoolLiteral &&
       node.otherwise is BoolLiteral;
 
+  @override
   visitLet(Let node) {
     var init = node.variable.initializer;
     return (init == null || isConstant(init)) && isConstant(node.body);

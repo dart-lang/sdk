@@ -20,6 +20,7 @@ final String repoDirectory = path.dirname(testDirectory);
 class _TestUtils {}
 
 class TestUriResolver extends ResourceUriResolver {
+  @override
   final MemoryResourceProvider provider;
   TestUriResolver(this.provider) : super(provider);
 

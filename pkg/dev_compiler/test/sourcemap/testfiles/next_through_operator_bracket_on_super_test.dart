@@ -14,6 +14,7 @@ class Class2 {
 }
 
 class Class3 extends Class2 {
+  @override
   code() {
     /*bl*/ /*sl:1*/ super[42];
     /*sl:2*/ return super[42];

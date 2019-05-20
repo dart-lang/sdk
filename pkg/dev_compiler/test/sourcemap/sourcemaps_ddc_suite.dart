@@ -21,6 +21,7 @@ class SourceMapContext extends ChainContextWithCleanupHelper {
 
   List<Step> _steps;
 
+  @override
   List<Step> get steps => _steps ??= <Step>[
         const Setup(),
         Compile(DevCompilerRunner(environment.containsKey("debug"))),
@@ -28,6 +29,7 @@ class SourceMapContext extends ChainContextWithCleanupHelper {
         CheckSteps(environment.containsKey("debug")),
       ];
 
+  @override
   bool debugging() => environment.containsKey("debug");
 }
 
@@ -36,6 +38,7 @@ class DevCompilerRunner implements CompilerRunner {
 
   const DevCompilerRunner([this.debugging = false]);
 
+  @override
   Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperFile) async {
     Uri outDir = outputFile.resolve(".");
     String outputFilename = outputFile.pathSegments.last;

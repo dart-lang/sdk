@@ -208,11 +208,13 @@ String _getVersion() {
 
 /// Thrown when the input source code has errors.
 class CompileErrorException implements Exception {
+  @override
   toString() => '\nPlease fix all errors before compiling (warnings are okay).';
 }
 
 /// Thrown when force compilation failed (probably due to static errors).
 class ForceCompileErrorException extends CompileErrorException {
+  @override
   toString() =>
       '\nForce-compilation not successful. Please check static errors.';
 }

@@ -7,3 +7,7 @@ analyzer:
     - test/samples/**
     - test/transformer/hello_app/**
     - tool/input_sdk/**
+
+linter:
+  rules:
+    - annotate_overrides

@@ -83,6 +83,7 @@ class CodeGenerator extends Object
   /// Errors that were produced during compilation, if any.
   final ErrorCollector errors;
 
+  @override
   JSTypeRep jsTypeRep;
 
   /// The list of dart:_runtime SDK functions; these are assumed by other code
@@ -112,6 +113,7 @@ class CodeGenerator extends Object
   /// The  type provider from the current Analysis [context].
   final TypeProvider types;
 
+  @override
   final LibraryElement coreLibrary;
   final LibraryElement dartJSLibrary;
 
@@ -183,6 +185,7 @@ class CodeGenerator extends Object
 
   /// Information about virtual fields for all libraries in the current build
   /// unit.
+  @override
   final virtualFields = VirtualFieldModel();
 
   final _usedCovariantPrivateMembers = HashSet<ExecutableElement>();
@@ -234,6 +237,7 @@ class CodeGenerator extends Object
     jsTypeRep = JSTypeRep(rules, driver);
   }
 
+  @override
   LibraryElement get currentLibrary => _currentElement.library;
 
   @override
@@ -6218,6 +6222,7 @@ class CodeGenerator extends Object
 
   /// Return true if this is one of the methods/properties on all Dart Objects
   /// (toString, hashCode, noSuchMethod, runtimeType, ==).
+  @override
   bool isObjectMember(String name) {
     // We could look these up on Object, but we have hard coded runtime helpers
     // so it's not really providing any benefit.
@@ -6687,8 +6692,10 @@ class TemporaryVariableElement extends LocalVariableElementImpl {
         : enclosingElement;
   }
 
+  @override
   int get hashCode => identityHashCode(this);
 
+  @override
   bool operator ==(Object other) => identical(this, other);
 }
 
