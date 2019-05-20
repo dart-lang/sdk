@@ -369,6 +369,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo<List<CompletionItem>>(request);
   }
 
+  Future<CompletionItem> resolveCompletion(CompletionItem item) {
+    final request = makeRequest(
+      Method.completionItem_resolve,
+      item,
+    );
+    return expectSuccessfulResponseTo<CompletionItem>(request);
+  }
+
   Future<List<Location>> getDefinition(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_definition,
