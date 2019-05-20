@@ -1498,11 +1498,11 @@ RedefinitionInstr* FlowGraph::EnsureRedefinition(Instruction* prev,
                                                  Definition* original,
                                                  CompileType compile_type) {
   RedefinitionInstr* first = prev->next()->AsRedefinition();
-  if (first != NULL && (first->constrained_type() != NULL)) {
+  if (first != nullptr && (first->constrained_type() != nullptr)) {
     if ((first->value()->definition() == original) &&
         first->constrained_type()->IsEqualTo(&compile_type)) {
       // Already redefined. Do nothing.
-      return NULL;
+      return nullptr;
     }
   }
   RedefinitionInstr* redef = new RedefinitionInstr(new Value(original));
@@ -1513,8 +1513,17 @@ RedefinitionInstr* FlowGraph::EnsureRedefinition(Instruction* prev,
     redef->set_constrained_type(new CompileType(compile_type));
   }
 
-  InsertAfter(prev, redef, NULL, FlowGraph::kValue);
+  InsertAfter(prev, redef, nullptr, FlowGraph::kValue);
   RenameDominatedUses(original, redef, redef);
+
+  if (redef->input_use_list() == nullptr) {
+    // There are no dominated uses, so the newly added Redefinition is useless.
+    // Remove Redefinition to avoid interfering with
+    // BranchSimplifier::Simplify which needs empty blocks.
+    redef->RemoveFromGraph();
+    return nullptr;
+  }
+
   return redef;
 }
 
