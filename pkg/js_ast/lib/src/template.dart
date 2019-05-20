@@ -236,7 +236,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
       var value = arguments[nameOrPosition];
-      if (value is Literal) return value;
+      if (value is Literal || value is DeferredExpression) return value;
       error('Interpolated value #$nameOrPosition is not a Literal: $value');
     };
   }

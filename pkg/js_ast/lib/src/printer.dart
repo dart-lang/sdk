@@ -12,7 +12,7 @@ class JavaScriptPrintingOptions {
   final bool preferSemicolonToNewlineInMinifiedOutput;
   final Renamer renamerForNames;
 
-  JavaScriptPrintingOptions(
+  const JavaScriptPrintingOptions(
       {this.shouldCompressOutput: false,
       this.minifyLocalVariables: false,
       this.preferSemicolonToNewlineInMinifiedOutput: false,
@@ -223,6 +223,9 @@ class Printer implements NodeVisitor {
 
   void startNode(Node node) {
     currentNode = new EnterExitNode(currentNode, node);
+    if (node is DeferredExpression) {
+      startNode(node.value);
+    }
   }
 
   void enterNode() {
@@ -230,6 +233,9 @@ class Printer implements NodeVisitor {
   }
 
   void endNode(Node node) {
+    if (node is DeferredExpression) {
+      endNode(node.value);
+    }
     assert(currentNode.node == node);
     currentNode = currentNode.exitNode(context, _charCount);
   }
@@ -715,7 +721,7 @@ class Printer implements NodeVisitor {
 
   static bool _isSmallInitialization(Node node) {
     if (node is VariableInitialization) {
-      Node value = node.value;
+      Node value = undefer(node.value);
       if (value == null) return true;
       if (value is This) return true;
       if (value is LiteralNull) return true;
@@ -723,17 +729,79 @@ class Printer implements NodeVisitor {
       if (value is LiteralString && value.value.length <= 8) return true;
       if (value is ObjectInitializer && value.properties.isEmpty) return true;
       if (value is ArrayInitializer && value.elements.isEmpty) return true;
+      if (value is Name && value.name.length <= 8) return true;
     }
     return false;
   }
 
+  void _outputIncDec(String op, Expression variable, [Expression alias]) {
+    if (op == '+') {
+      if (lastCharCode == charCodes.$PLUS) out(" ", isWhitespace: true);
+      out('++');
+    } else {
+      if (lastCharCode == charCodes.$MINUS) out(" ", isWhitespace: true);
+      out('--');
+    }
+    if (alias != null) startNode(alias);
+    visitNestedExpression(variable, UNARY,
+        newInForInit: inForInit, newAtStatementBegin: false);
+    if (alias != null) endNode(alias);
+  }
+
   @override
   visitAssignment(Assignment assignment) {
+    /// To print assignments like `a = a + 1` and `a = a + b` compactly as
+    /// `++a` and `a += b` in the face of [DeferredExpression]s we detect the
+    /// pattern of the undeferred assignment.
+    String op = assignment.op;
+    Node leftHandSide = undefer(assignment.leftHandSide);
+    Node rightHandSide = undefer(assignment.value);
+    if ((op == '+' || op == '-') &&
+        leftHandSide is VariableUse &&
+        rightHandSide is LiteralNumber &&
+        rightHandSide.value == "1") {
+      // Output 'a += 1' as '++a' and 'a -= 1' as '--a'.
+      _outputIncDec(op, assignment.leftHandSide);
+      return;
+    } else if (leftHandSide is VariableUse && rightHandSide is Binary) {
+      Node rLeft = undefer(rightHandSide.left);
+      Node rRight = undefer(rightHandSide.right);
+      String op = rightHandSide.op;
+      if (op == '+' ||
+          op == '-' ||
+          op == '/' ||
+          op == '*' ||
+          op == '%' ||
+          op == '^' ||
+          op == '&' ||
+          op == '|') {
+        if (rLeft is VariableUse && rLeft.name == leftHandSide.name) {
+          // Output 'a = a + 1' as '++a' and 'a = a - 1' as '--a'.
+          if ((op == '+' || op == '-') &&
+              rRight is LiteralNumber &&
+              rRight.value == "1") {
+            _outputIncDec(op, assignment.leftHandSide, rightHandSide.left);
+            return;
+          }
+          // Output 'a = a + b' as 'a += b'.
+          startNode(rightHandSide.left);
+          visitNestedExpression(assignment.leftHandSide, CALL,
+              newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
+          endNode(rightHandSide.left);
+          spaceOut();
+          out(op);
+          out("=");
+          spaceOut();
+          visitNestedExpression(rRight, ASSIGNMENT,
+              newInForInit: inForInit, newAtStatementBegin: false);
+          return;
+        }
+      }
+    }
     visitNestedExpression(assignment.leftHandSide, CALL,
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
     if (assignment.value != null) {
       spaceOut();
-      String op = assignment.op;
       if (op != null) out(op);
       out("=");
       spaceOut();
@@ -972,34 +1040,33 @@ class Printer implements NodeVisitor {
   void visitAccess(PropertyAccess access) {
     visitNestedExpression(access.receiver, CALL,
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
-    Node selector = access.selector;
+    Node selector = undefer(access.selector);
     if (selector is LiteralString) {
-      LiteralString selectorString = selector;
-      String fieldWithQuotes = selectorString.value;
+      String fieldWithQuotes = selector.value;
       if (isValidJavaScriptId(fieldWithQuotes)) {
         if (access.receiver is LiteralNumber &&
             lastCharCode != charCodes.$CLOSE_PAREN) {
           out(" ", isWhitespace: true);
         }
         out(".");
-        startNode(selector);
+        startNode(access.selector);
         out(fieldWithQuotes.substring(1, fieldWithQuotes.length - 1));
-        endNode(selector);
+        endNode(access.selector);
         return;
       }
     } else if (selector is Name) {
-      if (access.receiver is LiteralNumber &&
-          lastCharCode != charCodes.$CLOSE_PAREN) {
+      Node receiver = undefer(access.receiver);
+      if (receiver is LiteralNumber && lastCharCode != charCodes.$CLOSE_PAREN) {
         out(" ", isWhitespace: true);
       }
       out(".");
-      startNode(selector);
+      startNode(access.selector);
       selector.accept(this);
-      endNode(selector);
+      endNode(access.selector);
       return;
     }
     out("[");
-    visitNestedExpression(selector, EXPRESSION,
+    visitNestedExpression(access.selector, EXPRESSION,
         newInForInit: false, newAtStatementBegin: false);
     out("]");
   }
@@ -1156,18 +1223,18 @@ class Printer implements NodeVisitor {
   @override
   void visitProperty(Property node) {
     startNode(node.name);
-    if (node.name is LiteralString) {
-      LiteralString nameString = node.name;
-      String name = nameString.value;
-      if (isValidJavaScriptId(name)) {
-        out(name.substring(1, name.length - 1));
+    Node name = undefer(node.name);
+    if (name is LiteralString) {
+      String text = name.value;
+      if (isValidJavaScriptId(text)) {
+        out(text.substring(1, text.length - 1));
       } else {
-        out(name);
+        out(text);
       }
-    } else if (node.name is Name) {
+    } else if (name is Name) {
       node.name.accept(this);
     } else {
-      assert(node.name is LiteralNumber);
+      assert(name is LiteralNumber);
       LiteralNumber nameNumber = node.name;
       out(nameNumber.value);
     }

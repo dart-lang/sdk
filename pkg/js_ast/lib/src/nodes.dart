@@ -981,7 +981,7 @@ abstract class Declaration implements VariableReference {}
 /// In particular, there is no guarantee that implementations of [compareTo]
 /// will implement some form of lexicographic ordering like [String.compareTo].
 abstract class Name extends Literal
-    implements Declaration, Parameter, Comparable {
+    implements Declaration, Parameter, Comparable<Name> {
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitName(this);
 
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
@@ -1750,10 +1750,11 @@ class ObjectInitializer extends Expression {
 }
 
 class Property extends Node {
-  final Literal name;
+  final Expression name;
   final Expression value;
 
-  Property(this.name, this.value);
+  Property(this.name, this.value)
+      : assert(name is Literal || name is DeferredExpression);
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitProperty(this);
 
@@ -1986,4 +1987,10 @@ class Comment extends Statement {
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
+}
+
+/// Returns the value of [node] if it is a [DeferredExpression]. Otherwise
+/// returns the [node] itself.
+Node undefer(Node node) {
+  return node is DeferredExpression ? undefer(node.value) : node;
 }

@@ -647,18 +647,18 @@ class CallPosition {
   /// (@ marks the current JavaScript position and ^ point to the mapped Dart
   /// code position.)
   static CallPosition getSemanticPositionForCall(js.Call node) {
-    if (node.target is js.PropertyAccess) {
-      js.PropertyAccess access = node.target;
+    js.Expression access = js.undefer(node.target);
+    if (access is js.PropertyAccess) {
       js.Node target = access;
       bool pureAccess = false;
       while (target is js.PropertyAccess) {
         js.PropertyAccess targetAccess = target;
-        if (targetAccess.receiver is js.VariableUse ||
-            targetAccess.receiver is js.This) {
+        js.Node receiver = js.undefer(targetAccess.receiver);
+        if (receiver is js.VariableUse || receiver is js.This) {
           pureAccess = true;
           break;
         } else {
-          target = targetAccess.receiver;
+          target = receiver;
         }
       }
       if (pureAccess) {
@@ -672,19 +672,19 @@ class CallPosition {
         return new CallPosition(
             access.selector, CodePositionKind.START, SourcePositionKind.INNER);
       }
-    } else if (node.target is js.VariableUse || node.target is js.This) {
+    } else if (access is js.VariableUse || access is js.This) {
       // m()   this()
       // ^     ^
       return new CallPosition(
           node, CodePositionKind.START, SourcePositionKind.START);
-    } else if (node.target is js.Fun ||
-        node.target is js.New ||
-        node.target is js.NamedFunction) {
+    } else if (access is js.Fun ||
+        access is js.New ||
+        access is js.NamedFunction) {
       // function(){}()  new Function("...")()   function foo(){}()
       //             ^                      ^                    ^
       return new CallPosition(
           node.target, CodePositionKind.END, SourcePositionKind.INNER);
-    } else if (node.target is js.Binary || node.target is js.Call) {
+    } else if (access is js.Binary || access is js.Call) {
       // (0,a)()   m()()
       //      ^       ^
       return new CallPosition(
@@ -1269,6 +1269,11 @@ class JavaScriptTracer extends js.BaseVisitor {
     statementOffset = getSyntaxOffset(node);
     visit(node.body);
     statementOffset = null;
+  }
+
+  @override
+  visitDeferredExpression(js.DeferredExpression node) {
+    visit(node.value);
   }
 
   Offset getOffsetForNode(js.Node node, int codeOffset) {
