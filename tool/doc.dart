@@ -81,9 +81,20 @@ String get enumerateStyleRules => rules
     .map((r) => '${toDescription(r)}')
     .join('\n\n');
 
+Future<String> get pedanticLatestVersion async {
+  var url =
+      'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.yaml';
+  var client = new http.Client();
+  var req = await client.get(url);
+  var parts = req.body.split('package:pedantic/analysis_options.');
+  return parts[1].split('.yaml')[0];
+}
+
 Future<void> fetchBadgeInfo() async {
+  var latestPedantic = await pedanticLatestVersion;
+
   var pedantic = await fetchConfig(
-      'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.yaml');
+      'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.$latestPedantic.yaml');
   for (var ruleConfig in pedantic.ruleConfigs) {
     pedanticRules.add(ruleConfig.name);
   }
