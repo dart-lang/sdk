@@ -224,7 +224,6 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(updated, contains('a.abcdefghij'));
   }
 
-  @failingTest
   test_suggestionSets() async {
     newFile(
       join(projectFolderPath, 'other_file.dart'),
@@ -280,7 +279,6 @@ main() {
     '''));
   }
 
-  @failingTest
   test_suggestionSets_insertsIntoPartFiles() async {
     // File we'll be adding an import for.
     newFile(

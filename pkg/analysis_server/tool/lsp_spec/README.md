@@ -19,6 +19,7 @@ Note: In LSP the client makes the first request so there is no obvious confirmat
 ## Initialization Options
 
 - `onlyAnalyzeProjectsWithOpenFiles`: When set to `true`, analysis will only be performed for projects that have open files rather than the root workspace folder. Defaults to `false`.
+- `suggestFromUnimportedLibraries`: When set to `false`, completion will not include synbols that are not already imported into the current file. Defaults to `true`, though the client must additionally support `workspace/applyEdit` for these completions to be included.
 
 ## Method Status
 
