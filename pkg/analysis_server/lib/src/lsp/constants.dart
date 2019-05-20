@@ -9,9 +9,14 @@ abstract class Commands {
   /// A list of all commands IDs that can be sent to the client to inform which
   /// commands should be sent to the server for execution (as opposed to being
   /// executed in the local plugin).
-  static const serverSupportedCommands = [sortMembers, organizeImports];
+  static const serverSupportedCommands = [
+    sortMembers,
+    organizeImports,
+    sendWorkspaceEdit,
+  ];
   static const sortMembers = 'edit.sortMembers';
   static const organizeImports = 'edit.organizeImports';
+  static const sendWorkspaceEdit = 'edit.sendWorkspaceEdit';
 }
 
 /// CodeActionKinds supported by the server that are not declared in the LSP spec.

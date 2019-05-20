@@ -41,7 +41,11 @@ final defaultSupportedCompletionKinds = new HashSet<CompletionItemKind>.of([
 
 class CompletionHandler
     extends MessageHandler<CompletionParams, List<CompletionItem>> {
-  CompletionHandler(LspAnalysisServer server) : super(server);
+  final bool suggestFromUnimportedLibraries;
+  CompletionHandler(
+      LspAnalysisServer server, this.suggestFromUnimportedLibraries)
+      : super(server);
+
   Method get handlesMessage => Method.textDocument_completion;
 
   @override
@@ -62,6 +66,9 @@ class CompletionHandler
                 completionCapabilities.completionItemKind.valueSet)
             : defaultSupportedCompletionKinds;
 
+    final includeSuggestionSets = suggestFromUnimportedLibraries &&
+        server?.clientCapabilities?.workspace?.applyEdit == true;
+
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
@@ -69,6 +76,7 @@ class CompletionHandler
     return offset.mapResult((offset) => _getItems(
           completionCapabilities,
           clientSupportedCompletionKinds,
+          includeSuggestionSets,
           unit.result,
           offset,
         ));
@@ -77,6 +85,7 @@ class CompletionHandler
   Future<ErrorOr<List<CompletionItem>>> _getItems(
     TextDocumentClientCapabilitiesCompletion completionCapabilities,
     HashSet<CompletionItemKind> clientSupportedCompletionKinds,
+    bool includeSuggestionSets,
     ResolvedUnitResult unit,
     int offset,
   ) async {
@@ -90,14 +99,11 @@ class CompletionHandler
 
     try {
       CompletionContributor contributor = new DartCompletionManager();
-      final items = await contributor.computeSuggestions(completionRequest);
 
-      performance.notificationCount = 1;
-      performance.suggestionCountFirst = items.length;
-      performance.suggestionCountLast = items.length;
-      performance.complete();
+      final suggestions =
+          await contributor.computeSuggestions(completionRequest);
 
-      return success(items
+      final results = suggestions
           .map((item) => toCompletionItem(
                 completionCapabilities,
                 clientSupportedCompletionKinds,
@@ -106,7 +112,14 @@ class CompletionHandler
                 completionRequest.replacementOffset,
                 completionRequest.replacementLength,
               ))
-          .toList());
+          .toList();
+
+      performance.notificationCount = 1;
+      performance.suggestionCountFirst = results.length;
+      performance.suggestionCountLast = results.length;
+      performance.complete();
+
+      return success(results);
     } on AbortCompletion {
       return success([]);
     }

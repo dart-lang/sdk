@@ -10,6 +10,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_diagnostic_server.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_completion_resolve.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_definition.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_highlights.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_symbols.dart';
@@ -51,6 +52,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
   InitializedStateMessageHandler(
     LspAnalysisServer server,
     bool onlyAnalyzeProjectsWithOpenFiles,
+    bool suggestFromUnimportedLibraries,
   ) : super(server) {
     reject(Method.initialize, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
@@ -66,7 +68,9 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
       new TextDocumentCloseHandler(server, onlyAnalyzeProjectsWithOpenFiles),
     );
     registerHandler(new HoverHandler(server));
-    registerHandler(new CompletionHandler(server));
+    registerHandler(
+        new CompletionHandler(server, suggestFromUnimportedLibraries));
+    registerHandler(new CompletionResolveHandler(server));
     registerHandler(new SignatureHelpHandler(server));
     registerHandler(new DefinitionHandler(server));
     registerHandler(new ReferencesHandler(server));
@@ -89,15 +93,22 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
 }
 
 class InitializingStateMessageHandler extends ServerStateMessageHandler {
-  InitializingStateMessageHandler(LspAnalysisServer server,
-      List<String> openWorkspacePaths, bool onlyAnalyzeProjectsWithOpenFiles)
-      : super(server) {
+  InitializingStateMessageHandler(
+    LspAnalysisServer server,
+    List<String> openWorkspacePaths,
+    bool onlyAnalyzeProjectsWithOpenFiles,
+    bool suggestFromUnimportedLibraries,
+  ) : super(server) {
     reject(Method.initialize, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
     registerHandler(new ShutdownMessageHandler(server));
     registerHandler(new ExitMessageHandler(server));
     registerHandler(new IntializedMessageHandler(
-        server, openWorkspacePaths, onlyAnalyzeProjectsWithOpenFiles));
+      server,
+      openWorkspacePaths,
+      onlyAnalyzeProjectsWithOpenFiles,
+      suggestFromUnimportedLibraries,
+    ));
   }
 
   @override

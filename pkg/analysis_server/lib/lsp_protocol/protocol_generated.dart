@@ -14,6 +14,7 @@
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
+import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;
@@ -1510,7 +1511,9 @@ class CompletionItem implements ToJsonable {
         json['commitCharacters']?.map((item) => item)?.cast<String>()?.toList();
     final command =
         json['command'] != null ? Command.fromJson(json['command']) : null;
-    final data = json['data'];
+    final data = json['data'] != null
+        ? CompletionItemResolutionInfo.fromJson(json['data'])
+        : null;
     return new CompletionItem(
         label,
         kind,
@@ -1551,7 +1554,7 @@ class CompletionItem implements ToJsonable {
 
   /// A data entry field that is preserved on a completion item between a
   /// completion and a completion resolve request.
-  final dynamic data;
+  final CompletionItemResolutionInfo data;
 
   /// Indicates if this item is deprecated.
   final bool deprecated;
@@ -1684,7 +1687,8 @@ class CompletionItem implements ToJsonable {
             (obj['commitCharacters'] is List &&
                 (obj['commitCharacters'].every((item) => item is String)))) &&
         (obj['command'] == null || Command.canParse(obj['command'])) &&
-        (obj['data'] == null || true);
+        (obj['data'] == null ||
+            CompletionItemResolutionInfo.canParse(obj['data']));
   }
 
   @override
