@@ -92,7 +92,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       assist.change.message,
       CodeActionKind.Refactor,
       const [],
-      createWorkspaceEdit(server, assist.change),
+      createWorkspaceEdit(server, assist.change.edits),
       null,
     ));
   }
@@ -107,7 +107,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       fix.change.message,
       CodeActionKind.QuickFix,
       [diagnostic],
-      createWorkspaceEdit(server, fix.change),
+      createWorkspaceEdit(server, fix.change.edits),
       null,
     ));
   }

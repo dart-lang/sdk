@@ -40,8 +40,8 @@ main(List<String> arguments) async {
   final String outFolder = path.join(packageFolder, 'lib', 'lsp_protocol');
   new Directory(outFolder).createSync();
 
-  await writeSpecClasses(args, outFolder);
   await writeCustomClasses(args, outFolder);
+  await writeSpecClasses(args, outFolder);
 }
 
 Future writeSpecClasses(ArgResults args, String outFolder) async {
@@ -66,8 +66,8 @@ Future writeSpecClasses(ArgResults args, String outFolder) async {
 
   final String output = generateDartForTypes(types);
 
-  new File(path.join(outFolder, 'protocol_generated.dart'))
-      .writeAsStringSync(generatedFileHeader(2018) + output);
+  new File(path.join(outFolder, 'protocol_generated.dart')).writeAsStringSync(
+      generatedFileHeader(2018, importCustom: true) + output);
 }
 
 /// Writes classes used by Dart's custom LSP methods.
@@ -118,7 +118,7 @@ Namespace extractMethodsEnum(String spec) {
       comment, new Token.identifier('Method'), methodConstants);
 }
 
-String generatedFileHeader(int year) => '''
+String generatedFileHeader(int year, {bool importCustom = false}) => '''
 // Copyright (c) $year, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -135,6 +135,7 @@ String generatedFileHeader(int year) => '''
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
+${importCustom ? "import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';" : ''}
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;

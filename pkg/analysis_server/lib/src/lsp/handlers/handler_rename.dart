@@ -137,7 +137,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
             'Document was modified while rename was being computed', null);
       }
 
-      final workspaceEdit = createWorkspaceEdit(server, change);
+      final workspaceEdit = createWorkspaceEdit(server, change.edits);
       return success(workspaceEdit);
     });
   }

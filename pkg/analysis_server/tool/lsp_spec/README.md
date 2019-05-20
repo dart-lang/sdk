@@ -16,6 +16,10 @@ dart pkg/analysis_server/bin/server.dart --lsp
 
 Note: In LSP the client makes the first request so there is no obvious confirmation that the server is working correctly until the client sends an `initialize` request. Unlike standard JSON RPC, [LSP requires that headers are sent](https://microsoft.github.io/language-server-protocol/specification).
 
+## Initialization Options
+
+- `onlyAnalyzeProjectsWithOpenFiles`: When set to `true`, analysis will only be performed for projects that have open files rather than the root workspace folder. Defaults to `false`.
+
 ## Method Status
 
 Below is a list of LSP methods and their implementation status.

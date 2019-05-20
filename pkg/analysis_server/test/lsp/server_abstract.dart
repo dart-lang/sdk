@@ -983,4 +983,10 @@ mixin ClientCapabilitiesHelperMixin {
       'workspaceEdit': {'documentChanges': true}
     });
   }
+
+  WorkspaceClientCapabilities withApplyEditSupport(
+    WorkspaceClientCapabilities source,
+  ) {
+    return extendWorkspaceCapabilities(source, {'applyEdit': true});
+  }
 }

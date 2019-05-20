@@ -1,8 +1,16 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:collection';
 
+import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
+    as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart'
     show ResponseError;
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_special.dart'
     show ErrorOr, Either2, Either4;
@@ -38,10 +46,10 @@ lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
 /// it's important to call this immediately after computing edits to ensure
 /// the document is not modified before the version number is read.
 lsp.WorkspaceEdit createWorkspaceEdit(
-    lsp.LspAnalysisServer server, server.SourceChange change) {
+    lsp.LspAnalysisServer server, List<server.SourceFileEdit> edits) {
   return toWorkspaceEdit(
       server.clientCapabilities?.workspace,
-      change.edits
+      edits
           .map((e) => new FileEditInformation(
               server.getVersionedDocumentIdentifier(e.file),
               server.getLineInfo(e.file),
@@ -102,6 +110,7 @@ lsp.CompletionItemKind elementKindToCompletionItemKind(
     switch (kind) {
       case server.ElementKind.CLASS:
       case server.ElementKind.CLASS_TYPE_ALIAS:
+      case server.ElementKind.MIXIN:
         return const [lsp.CompletionItemKind.Class];
       case server.ElementKind.COMPILATION_UNIT:
         return const [lsp.CompletionItemKind.Module];
