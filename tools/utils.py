@@ -340,8 +340,8 @@ def GetShortVersion():
       version.prerelease_patch))
 
 
-def GetSemanticSDKVersion(no_git_hash=False):
-  version = ReadVersionFile()
+def GetSemanticSDKVersion(no_git_hash=False, version_file=None):
+  version = ReadVersionFile(version_file)
   if not version:
     return None
 
@@ -356,8 +356,8 @@ def GetSemanticSDKVersion(no_git_hash=False):
   return '%s.%s.%s%s' % (version.major, version.minor, version.patch, postfix)
 
 
-def GetVersion(no_git_hash=False):
-  return GetSemanticSDKVersion(no_git_hash)
+def GetVersion(no_git_hash=False, version_file=None):
+  return GetSemanticSDKVersion(no_git_hash, version_file)
 
 
 # The editor used to produce the VERSION file put on gcs. We now produce this
