@@ -4,8 +4,7 @@
 
 part of 'constant_evaluator.dart';
 
-abstract class _ListOrSetConstantBuilder<L extends Expression,
-    C extends Constant> {
+abstract class _ListOrSetConstantBuilder<L extends Expression> {
   final ConstantEvaluator evaluator;
   final Expression original;
   final DartType elementType;
@@ -18,97 +17,26 @@ abstract class _ListOrSetConstantBuilder<L extends Expression,
 
   L makeLiteral(List<Expression> elements);
 
-  C makeConstant(List<Constant> elements);
-
-  Message get messageForIteration;
-
-  _ListOrSetConstantBuilder<L, C> newTempBuilder();
-
-  /// Add an element (which is possibly a spread or an if element) to the
-  /// constant list being built by this builder.
+  /// Add an element to the constant list being built by this builder.
   void add(Expression element) {
-    if (element is SpreadElement) {
-      addSpread(element.expression, isNullAware: element.isNullAware);
-    } else if (element is IfElement) {
-      Constant condition = evaluator._evaluateSubexpression(element.condition);
-      if (evaluator.shouldBeUnevaluated) {
-        // Unevaluated if
-        evaluator.enterLazy();
-        Constant then = (newTempBuilder()..add(element.then)).build();
-        Constant otherwise;
-        if (element.otherwise != null) {
-          otherwise = (newTempBuilder()..add(element.otherwise)).build();
-        } else {
-          otherwise = makeConstant([]);
-        }
-        evaluator.leaveLazy();
-        parts.add(evaluator.unevaluated(
-            element.condition,
-            new ConditionalExpression(
-                evaluator.extract(condition),
-                evaluator.extract(then),
-                evaluator.extract(otherwise),
-                const DynamicType())));
-      } else {
-        // Fully evaluated if
-        if (condition == evaluator.trueConstant) {
-          add(element.then);
-        } else if (condition == evaluator.falseConstant) {
-          if (element.otherwise != null) {
-            add(element.otherwise);
-          }
-        } else if (condition == evaluator.nullConstant) {
-          evaluator.report(element.condition, messageConstEvalNullValue);
-        } else {
-          evaluator.report(
-              element.condition,
-              templateConstEvalInvalidType.withArguments(
-                  condition,
-                  evaluator.typeEnvironment.boolType,
-                  condition.getType(evaluator.typeEnvironment)));
-        }
-      }
-    } else if (element is ForElement || element is ForInElement) {
-      // For or for-in
-      evaluator.report(element, messageForIteration);
+    Constant constant = evaluator._evaluateSubexpression(element);
+    if (evaluator.shouldBeUnevaluated) {
+      parts.add(evaluator.unevaluated(
+          element, makeLiteral([evaluator.extract(constant)])));
     } else {
-      // Ordinary expression element
-      Constant constant = evaluator._evaluateSubexpression(element);
-      if (evaluator.shouldBeUnevaluated) {
-        parts.add(evaluator.unevaluated(
-            element, makeLiteral([evaluator.extract(constant)])));
-      } else {
-        addConstant(constant, element);
-      }
+      addConstant(constant, element);
     }
   }
 
-  void addSpread(Expression spreadExpression, {bool isNullAware}) {
+  void addSpread(Expression spreadExpression) {
     Constant spread =
         evaluator.unlower(evaluator._evaluateSubexpression(spreadExpression));
     if (evaluator.shouldBeUnevaluated) {
       // Unevaluated spread
-      if (isNullAware) {
-        VariableDeclaration temp = new VariableDeclaration(null,
-            initializer: evaluator.extract(spread));
-        parts.add(evaluator.unevaluated(
-            spreadExpression,
-            new Let(
-                temp,
-                new ConditionalExpression(
-                    new MethodInvocation(new VariableGet(temp), new Name('=='),
-                        new Arguments([new NullLiteral()])),
-                    new ListLiteral([], isConst: true),
-                    new VariableGet(temp),
-                    const DynamicType()))));
-      } else {
-        parts.add(spread);
-      }
+      parts.add(spread);
     } else if (spread == evaluator.nullConstant) {
       // Null spread
-      if (!isNullAware) {
-        evaluator.report(spreadExpression, messageConstEvalNullValue);
-      }
+      evaluator.report(spreadExpression, messageConstEvalNullValue);
     } else {
       // Fully evaluated spread
       List<Constant> entries;
@@ -132,8 +60,7 @@ abstract class _ListOrSetConstantBuilder<L extends Expression,
   Constant build();
 }
 
-class ListConstantBuilder
-    extends _ListOrSetConstantBuilder<ListLiteral, ListConstant> {
+class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
   ListConstantBuilder(
       Expression original, DartType elementType, ConstantEvaluator evaluator)
       : super(original, elementType, evaluator);
@@ -141,17 +68,6 @@ class ListConstantBuilder
   @override
   ListLiteral makeLiteral(List<Expression> elements) =>
       new ListLiteral(elements, isConst: true);
-
-  @override
-  ListConstant makeConstant(List<Constant> elements) =>
-      new ListConstant(const DynamicType(), elements);
-
-  @override
-  Message get messageForIteration => messageConstEvalIterationInConstList;
-
-  @override
-  ListConstantBuilder newTempBuilder() =>
-      new ListConstantBuilder(original, const DynamicType(), evaluator);
 
   @override
   void addConstant(Constant constant, TreeNode context) {
@@ -186,8 +102,7 @@ class ListConstantBuilder
   }
 }
 
-class SetConstantBuilder
-    extends _ListOrSetConstantBuilder<SetLiteral, SetConstant> {
+class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
   final Set<Constant> seen = new Set<Constant>.identity();
 
   SetConstantBuilder(
@@ -197,17 +112,6 @@ class SetConstantBuilder
   @override
   SetLiteral makeLiteral(List<Expression> elements) =>
       new SetLiteral(elements, isConst: true);
-
-  @override
-  SetConstant makeConstant(List<Constant> elements) =>
-      new SetConstant(const DynamicType(), elements);
-
-  @override
-  Message get messageForIteration => messageConstEvalIterationInConstSet;
-
-  @override
-  SetConstantBuilder newTempBuilder() =>
-      new SetConstantBuilder(original, const DynamicType(), evaluator);
 
   @override
   void addConstant(Constant constant, TreeNode context) {
@@ -286,99 +190,30 @@ class MapConstantBuilder {
   MapConstantBuilder(
       this.original, this.keyType, this.valueType, this.evaluator);
 
-  MapConstantBuilder newTempBuilder() => new MapConstantBuilder(
-      original, const DynamicType(), const DynamicType(), evaluator);
-
-  /// Add a map entry (which is possibly a spread or an if map entry) to the
-  /// constant map being built by this builder
+  /// Add a map entry to the constant map being built by this builder
   void add(MapEntry element) {
-    if (element is SpreadMapEntry) {
-      addSpread(element.expression, isNullAware: element.isNullAware);
-    } else if (element is IfMapEntry) {
-      Constant condition = evaluator._evaluateSubexpression(element.condition);
-      if (evaluator.shouldBeUnevaluated) {
-        // Unevaluated if
-        evaluator.enterLazy();
-        Constant then = (newTempBuilder()..add(element.then)).build();
-        Constant otherwise;
-        if (element.otherwise != null) {
-          otherwise = (newTempBuilder()..add(element.otherwise)).build();
-        } else {
-          otherwise =
-              new MapConstant(const DynamicType(), const DynamicType(), []);
-        }
-        evaluator.leaveLazy();
-        parts.add(evaluator.unevaluated(
-            element.condition,
-            new ConditionalExpression(
-                evaluator.extract(condition),
-                evaluator.extract(then),
-                evaluator.extract(otherwise),
-                const DynamicType())));
-      } else {
-        // Fully evaluated if
-        if (condition == evaluator.trueConstant) {
-          add(element.then);
-        } else if (condition == evaluator.falseConstant) {
-          if (element.otherwise != null) {
-            add(element.otherwise);
-          }
-        } else if (condition == evaluator.nullConstant) {
-          evaluator.report(element.condition, messageConstEvalNullValue);
-        } else {
-          evaluator.report(
-              element.condition,
-              templateConstEvalInvalidType.withArguments(
-                  condition,
-                  evaluator.typeEnvironment.boolType,
-                  condition.getType(evaluator.typeEnvironment)));
-        }
-      }
-    } else if (element is ForMapEntry || element is ForInMapEntry) {
-      // For or for-in
-      evaluator.report(element, messageConstEvalIterationInConstMap);
+    Constant key = evaluator._evaluateSubexpression(element.key);
+    Constant value = evaluator._evaluateSubexpression(element.value);
+    if (evaluator.shouldBeUnevaluated) {
+      parts.add(evaluator.unevaluated(
+          element.key,
+          new MapLiteral(
+              [new MapEntry(evaluator.extract(key), evaluator.extract(value))],
+              isConst: true)));
     } else {
-      // Ordinary map entry
-      Constant key = evaluator._evaluateSubexpression(element.key);
-      Constant value = evaluator._evaluateSubexpression(element.value);
-      if (evaluator.shouldBeUnevaluated) {
-        parts.add(evaluator.unevaluated(
-            element.key,
-            new MapLiteral([
-              new MapEntry(evaluator.extract(key), evaluator.extract(value))
-            ], isConst: true)));
-      } else {
-        addConstant(key, value, element.key, element.value);
-      }
+      addConstant(key, value, element.key, element.value);
     }
   }
 
-  void addSpread(Expression spreadExpression, {bool isNullAware}) {
+  void addSpread(Expression spreadExpression) {
     Constant spread =
         evaluator.unlower(evaluator._evaluateSubexpression(spreadExpression));
     if (evaluator.shouldBeUnevaluated) {
       // Unevaluated spread
-      if (isNullAware) {
-        VariableDeclaration temp = new VariableDeclaration(null,
-            initializer: evaluator.extract(spread));
-        parts.add(evaluator.unevaluated(
-            spreadExpression,
-            new Let(
-                temp,
-                new ConditionalExpression(
-                    new MethodInvocation(new VariableGet(temp), new Name('=='),
-                        new Arguments([new NullLiteral()])),
-                    new MapLiteral([], isConst: true),
-                    new VariableGet(temp),
-                    const DynamicType()))));
-      } else {
-        parts.add(spread);
-      }
+      parts.add(spread);
     } else if (spread == evaluator.nullConstant) {
       // Null spread
-      if (!isNullAware) {
-        evaluator.report(spreadExpression, messageConstEvalNullValue);
-      }
+      evaluator.report(spreadExpression, messageConstEvalNullValue);
     } else {
       // Fully evaluated spread
       if (spread is MapConstant) {
