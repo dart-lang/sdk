@@ -359,8 +359,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     LinkingNodeContext(node, scope);
 
     node.returnType?.accept(this);
-    node.parameters?.accept(this);
     node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;

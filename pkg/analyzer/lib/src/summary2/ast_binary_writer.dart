@@ -636,9 +636,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       bodyToStore = null;
     }
     var builder = LinkedNodeBuilder.functionExpression(
-      functionExpression_body: bodyToStore?.accept(this),
-      functionExpression_formalParameters: node.parameters?.accept(this),
       functionExpression_typeParameters: node.typeParameters?.accept(this),
+      functionExpression_formalParameters: node.parameters?.accept(this),
+      functionExpression_body: bodyToStore?.accept(this),
     );
     builder.flags = AstBinaryFlags.encode(
       isAsync: node.body?.isAsynchronous ?? false,
@@ -699,10 +699,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     genericFunctionTypes.add(null);
 
     var builder = LinkedNodeBuilder.genericFunctionType(
-      genericFunctionType_formalParameters: node.parameters.accept(this),
       genericFunctionType_returnType: node.returnType?.accept(this),
-      genericFunctionType_type: _writeType(node.type),
       genericFunctionType_typeParameters: node.typeParameters?.accept(this),
+      genericFunctionType_formalParameters: node.parameters.accept(this),
+      genericFunctionType_type: _writeType(node.type),
     );
     builder.flags = AstBinaryFlags.encode(
       hasQuestion: node.question != null,
@@ -917,9 +917,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitMethodDeclaration(MethodDeclaration node) {
     var builder = LinkedNodeBuilder.methodDeclaration(
-      methodDeclaration_formalParameters: node.parameters?.accept(this),
       methodDeclaration_returnType: node.returnType?.accept(this),
       methodDeclaration_typeParameters: node.typeParameters?.accept(this),
+      methodDeclaration_formalParameters: node.parameters?.accept(this),
     );
     builder
       ..name = node.name.name

@@ -46,4 +46,73 @@ const x = const A<bool Function()>();
 int Function(int a) y;
 ''');
   }
+
+  /// Test that when multiple [GenericFunctionType]s are used in a
+  /// [FunctionDeclaration], all of them are resolved correctly.
+  test_typeAnnotation_function() async {
+    await assertNoErrorsInCode('''
+void Function() f<T extends bool Function()>(int Function() a) {
+  return null;
+}
+
+double Function() x;
+''');
+    assertType(
+      findNode.genericFunctionType('void Function()'),
+      '() → void',
+    );
+    assertType(
+      findNode.genericFunctionType('bool Function()'),
+      '() → bool',
+    );
+    assertType(
+      findNode.genericFunctionType('int Function()'),
+      '() → int',
+    );
+    assertType(
+      findNode.genericFunctionType('double Function()'),
+      '() → double',
+    );
+  }
+
+  /// Test that when multiple [GenericFunctionType]s are used in a
+  /// [GenericFunctionType], all of them are resolved correctly.
+  test_typeAnnotation_genericFunctionType() async {
+    await assertNoErrorsInCode('''
+void f(
+  void Function() a,
+  bool Function() Function(int Function()) b,
+) {}
+''');
+  }
+
+  /// Test that when multiple [GenericFunctionType]s are used in a
+  /// [FunctionDeclaration], all of them are resolved correctly.
+  test_typeAnnotation_method() async {
+    await assertNoErrorsInCode('''
+class C {
+  void Function() m<T extends bool Function()>(int Function() a) {
+    return null;
+  }
+}
+
+double Function() x;
+''');
+    assertType(
+      findNode.genericFunctionType('void Function()'),
+      '() → void',
+    );
+    assertType(
+      findNode.genericFunctionType('bool Function()'),
+      '() → bool',
+    );
+    assertType(
+      findNode.genericFunctionType('int Function()'),
+      '() → int',
+    );
+    assertType(
+      findNode.genericFunctionType('double Function()'),
+      '() → double',
+    );
+  }
 }
