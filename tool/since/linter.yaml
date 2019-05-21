@@ -137,6 +137,7 @@ unnecessary_parenthesis: 0.1.44
 unnecessary_statements: 0.1.36
 unnecessary_this: 0.1.30
 unrelated_type_equality_checks: 0.1.16
+unsafe_html : 0.1.90
 use_full_hex_values_for_flutter_colors: 0.1.80
 use_function_type_syntax_for_parameters: 0.1.72
 use_rethrow_when_possible: 0.1.31
