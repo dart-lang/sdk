@@ -1,3 +1,16 @@
+## 2.3.1 - 2019-05-21
+
+This is a patch version release with bug fixes.
+
+### Tools
+
+#### dart2js
+
+* Fixed a bug that caused the compiler to crash when it compiled UI-as-code
+  features within fields (Issue [36864][]).
+
+[36864]: https://github.com/dart-lang/sdk/issues/36864
+
 ## 2.3.0 - 2019-05-08
 
 The focus in this release is on the new "UI-as-code" language features which
