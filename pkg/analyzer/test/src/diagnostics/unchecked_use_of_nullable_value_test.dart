@@ -48,6 +48,24 @@ m() {
 ''');
   }
 
+  test_assert_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+m() {
+  bool x = true;
+  assert(x);
+}
+''');
+  }
+
+  test_assert_nullable() async {
+    await assertErrorCodesInCode(r'''
+m() {
+  bool? x;
+  assert(x);
+}
+''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+  }
+
   test_await_nonNullable() async {
     await assertNoErrorsInCode(r'''
 m() async {
