@@ -172,10 +172,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     analysisDriverScheduler.status.listen(sendStatusNotification);
     analysisDriverScheduler.start();
 
-    declarationsTracker = DeclarationsTracker(byteStore, resourceProvider);
-    declarationsTrackerData = DeclarationsTrackerData(declarationsTracker);
-    analysisDriverScheduler.outOfBandWorker =
-        CompletionLibrariesWorker(declarationsTracker);
+    if (options.featureSet.completion) {
+      declarationsTracker = DeclarationsTracker(byteStore, resourceProvider);
+      declarationsTrackerData = DeclarationsTrackerData(declarationsTracker);
+      analysisDriverScheduler.outOfBandWorker =
+          CompletionLibrariesWorker(declarationsTracker);
+    }
 
     contextManager = new ContextManagerImpl(
         resourceProvider,
@@ -447,7 +449,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   void setAnalysisRoots(List<String> includedPaths) {
-    declarationsTracker.discardContexts();
+    declarationsTracker?.discardContexts();
     final uniquePaths = HashSet<String>.of(includedPaths ?? const []);
     contextManager.setRoots(uniquePaths.toList(), [], {});
     addContextsToDeclarationsTracker();

@@ -264,6 +264,14 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
   @override
   Response handleRequest(Request request) {
+    if (!server.options.featureSet.completion) {
+      return Response.invalidParameter(
+        request,
+        'request',
+        'The completion feature is not enabled',
+      );
+    }
+
     return runZoned(() {
       String requestName = request.method;
 
@@ -335,8 +343,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
    * Process a `completion.getSuggestions` request.
    */
   Future<void> processRequest(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     performance = new CompletionPerformance();
 
     // extract and validate params
