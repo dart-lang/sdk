@@ -3,4 +3,4 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # Sources list to keep vm/BUILD.gn generate_core_libraries happy.
-profiler_runtime_sources = [ "empty_source.dart" ]
+profiler_runtime_dart_files = [ "empty_source.dart" ]

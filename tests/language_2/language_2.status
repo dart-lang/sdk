@@ -67,7 +67,7 @@ partial_instantiation_static_bounds_check_test/03: MissingCompileTimeError # Iss
 [ $compiler != app_jitk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $mode == debug && $runtime == vm ]
 built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
 
-[ $compiler != compare_analyzer_cfe && $compiler != dart2js && $compiler != spec_parser && !$fasta && $strong ]
+[ $compiler != compare_analyzer_cfe && $compiler != dart2js && $compiler != spec_parser && !$fasta ]
 compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
@@ -92,140 +92,6 @@ implicit_creation/implicit_const_not_default_values_test/e9: MissingCompileTimeE
 
 [ $compiler != dart2js && $compiler != dartdevc && !$checked ]
 function_type/*: Skip # Needs checked mode.
-
-[ $compiler != dart2js && !$fasta && !$strong ]
-implicit_creation/implicit_new_constructor_generic_test: Fail # No support for implicit creation.
-implicit_creation/implicit_new_constructor_test: Fail # No support for implicit creation.
-implicit_creation/implicit_new_prefix_constructor_generic_test: Fail # No support for implicit creation.
-implicit_creation/implicit_new_prefix_constructor_test: Fail # No support for implicit creation.
-
-[ $compiler != spec_parser && $runtime != none && !$checked && !$strong ]
-closure_type_test: RuntimeError
-map_literal1_test/01: MissingCompileTimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/02: RuntimeError # Requires type check.
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/05: RuntimeError # Issue #31426
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/06: RuntimeError # Issue #31426
-
-[ $compiler != spec_parser && !$strong ]
-class_literal_static_test: MissingCompileTimeError # Requires strong mode
-class_literal_static_test/none: Pass
-class_override_test: MissingCompileTimeError # Requires strong mode
-closure_internals_test/01: MissingCompileTimeError # Requires strong mode
-closure_internals_test/02: MissingCompileTimeError # Requires strong mode
-closure_internals_test/03: MissingCompileTimeError # Requires strong mode
-compile_time_constant_k_test/01: MissingCompileTimeError # Requires strong mode
-compile_time_constant_k_test/02: MissingCompileTimeError # Requires strong mode
-compile_time_constant_k_test/03: MissingCompileTimeError # Requires strong mode
-compile_time_constant_static2_test: Skip # Requires strong mode
-compile_time_constant_static3_test: Skip # Requires strong mode
-compile_time_constant_static4_test: Skip # Requires strong mode
-compile_time_constant_static5_test: Skip # Requires strong mode
-compile_time_constant_static_test: Skip # Requires strong mode
-crash_6725_test/01: MissingCompileTimeError # Requires strong mode
-deferred_super_dependency_test/01: MissingCompileTimeError # Requires strong mode
-double_to_string_as_exponential2_test/*: MissingCompileTimeError
-double_to_string_as_exponential2_test/none: Pass
-double_to_string_as_fixed2_test/*: MissingCompileTimeError
-double_to_string_as_fixed2_test/none: Pass
-double_to_string_as_precision2_test/*: MissingCompileTimeError
-double_to_string_as_precision2_test/none: Pass
-initializing_formal_type_annotation_test/01: MissingCompileTimeError # Requires strong mode
-initializing_formal_type_annotation_test/02: MissingCompileTimeError # Requires strong mode
-is_malformed_type_test/94: MissingCompileTimeError # Requires strong mode
-is_malformed_type_test/95: MissingCompileTimeError # Requires strong mode
-is_malformed_type_test/96: MissingCompileTimeError # Requires strong mode
-is_malformed_type_test/97: MissingCompileTimeError # Requires strong mode
-is_malformed_type_test/98: MissingCompileTimeError # Requires strong mode
-is_malformed_type_test/99: MissingCompileTimeError # Requires strong mode
-is_not_class2_test/01: MissingCompileTimeError # Requires strong mode
-is_not_class2_test/none: Skip # No interesting functionality in this configuration.
-isnot_malformed_type_test/01: MissingCompileTimeError
-issue11724_test/01: MissingCompileTimeError
-issue1363_test/01: MissingCompileTimeError # Requires strong mode
-issue15606_test/01: MissingCompileTimeError # Requires strong mode
-issue18628_1_test/01: MissingCompileTimeError # Requires strong mode
-issue18628_2_test/01: MissingCompileTimeError # Requires strong mode
-known_identifier_prefix_error_test/*: MissingCompileTimeError # Requires strong mode
-known_identifier_prefix_error_test/none: Pass
-map_literal3_test/01: MissingCompileTimeError
-map_literal3_test/02: MissingCompileTimeError
-map_literal3_test/03: MissingCompileTimeError
-map_literal3_test/04: MissingCompileTimeError
-map_literal4_test/01: MissingCompileTimeError
-map_literal4_test/02: MissingCompileTimeError
-map_literal4_test/03: MissingCompileTimeError
-map_literal4_test/04: MissingCompileTimeError
-map_literal4_test/05: MissingCompileTimeError
-map_literal4_test/06: MissingCompileTimeError
-nosuchmethod_forwarding/nosuchmethod_forwarding_test/03: MissingCompileTimeError # Issue #31426
-number_identifier_test/05: MissingCompileTimeError
-number_identifier_test/08: MissingCompileTimeError
-number_identifier_test/09: MissingCompileTimeError
-on_catch_malformed_type_test: MissingCompileTimeError
-operator5_test: MissingCompileTimeError
-operator_equals_test: MissingCompileTimeError
-optimized_constant_array_string_access_test: MissingCompileTimeError
-redirecting_factory_default_values_test/03: MissingCompileTimeError
-redirecting_factory_incompatible_signature_test/01: MissingCompileTimeError
-redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
-redirecting_factory_malbounded_test/01: MissingCompileTimeError
-type_literal_prefix_call_test/00: MissingCompileTimeError
-type_parameter_test/*: MissingCompileTimeError
-type_parameter_test/none: Pass
-type_promotion_assign_test/*: MissingCompileTimeError
-type_promotion_assign_test/none: Pass
-type_promotion_closure_test/*: MissingCompileTimeError
-type_promotion_closure_test/05: Pass
-type_promotion_closure_test/08: Pass
-type_promotion_closure_test/none: Pass
-type_promotion_local_test/*: MissingCompileTimeError
-type_promotion_local_test/none: Pass
-type_promotion_logical_and_test/01: MissingCompileTimeError
-type_promotion_logical_and_test/02: MissingCompileTimeError
-type_promotion_logical_and_test/03: MissingCompileTimeError
-type_promotion_more_specific_test/02: MissingCompileTimeError
-type_promotion_more_specific_test/06: MissingCompileTimeError
-type_promotion_more_specific_test/07: MissingCompileTimeError
-type_promotion_more_specific_test/09: MissingCompileTimeError
-type_promotion_more_specific_test/10: MissingCompileTimeError
-type_promotion_more_specific_test/11: MissingCompileTimeError
-type_promotion_multiple_test/*: MissingCompileTimeError
-type_promotion_multiple_test/none: Pass
-vm/type_vm_test/01: MissingCompileTimeError
-vm/type_vm_test/02: MissingCompileTimeError
-vm/type_vm_test/03: MissingCompileTimeError
-vm/type_vm_test/04: MissingCompileTimeError
-vm/type_vm_test/05: MissingCompileTimeError
-vm/type_vm_test/06: MissingCompileTimeError
-vm/type_vm_test/08: MissingCompileTimeError
-vm/type_vm_test/09: MissingCompileTimeError
-vm/type_vm_test/10: MissingCompileTimeError
-vm/type_vm_test/11: MissingCompileTimeError
-vm/type_vm_test/12: MissingCompileTimeError
-vm/type_vm_test/13: MissingCompileTimeError
-vm/type_vm_test/14: MissingCompileTimeError
-vm/type_vm_test/15: MissingCompileTimeError
-vm/type_vm_test/16: MissingCompileTimeError
-vm/type_vm_test/22: MissingCompileTimeError
-vm/type_vm_test/24: MissingCompileTimeError
-vm/type_vm_test/25: MissingCompileTimeError
-vm/type_vm_test/26: MissingCompileTimeError
-vm/type_vm_test/27: MissingCompileTimeError
-void/return_future_future_or_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/void_block_return_test/00: MissingCompileTimeError # Requires strong mode
-void/void_type_callbacks_test: Skip # Requires strong mode
-void/void_type_function_types_test: Skip # Requires strong mode
-void/void_type_override_test: Skip # Requires strong mode
-void/void_type_usage_test: Skip # Requires strong mode
-wrong_number_type_arguments_test/*: MissingCompileTimeError # Requires strong mode
-wrong_number_type_arguments_test/none: Pass
-
-[ $runtime != none && !$strong ]
-map_literal11_test/none: MissingRuntimeError
-map_literal7_test: RuntimeError # Requires strong mode
-
-[ $checked && !$strong ]
-type_parameter_test/05: Pass
 
 [ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # Deprecating all Dart1 modes of execution

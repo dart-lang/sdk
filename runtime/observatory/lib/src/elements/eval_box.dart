@@ -12,7 +12,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 
-class EvalBoxElement extends HtmlElement implements Renderable {
+class EvalBoxElement extends CustomElement implements Renderable {
   static const tag = const Tag<EvalBoxElement>('eval-box',
       dependencies: const [InstanceRefElement.tag]);
 
@@ -43,7 +43,7 @@ class EvalBoxElement extends HtmlElement implements Renderable {
     assert(eval != null);
     assert(multiline != null);
     assert(quickExpressions != null);
-    EvalBoxElement e = document.createElement(tag.name);
+    EvalBoxElement e = new EvalBoxElement.created();
     e._r = new RenderingScheduler<EvalBoxElement>(e, queue: queue);
     e._isolate = isolate;
     e._context = context;
@@ -54,7 +54,7 @@ class EvalBoxElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  EvalBoxElement.created() : super.created();
+  EvalBoxElement.created() : super.created(tag);
 
   @override
   void attached() {

@@ -14,7 +14,7 @@ class SampleBufferControlChangedElement {
   SampleBufferControlChangedElement(this.element);
 }
 
-class SampleBufferControlElement extends HtmlElement implements Renderable {
+class SampleBufferControlElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<SampleBufferControlElement>('sample-buffer-control');
 
@@ -57,7 +57,7 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
     assert(progressStream != null);
     assert(selectedTag != null);
     assert(showTag != null);
-    SampleBufferControlElement e = document.createElement(tag.name);
+    SampleBufferControlElement e = new SampleBufferControlElement.created();
     e._r = new RenderingScheduler<SampleBufferControlElement>(e, queue: queue);
     e._vm = vm;
     e._progress = progress;
@@ -67,7 +67,7 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  SampleBufferControlElement.created() : super.created();
+  SampleBufferControlElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -220,7 +220,11 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
   List<Element> _createTagSelect() {
     var values = M.SampleProfileTag.values;
     if (!_profileVM) {
-      values = const [M.SampleProfileTag.userOnly, M.SampleProfileTag.vmOnly, M.SampleProfileTag.none];
+      values = const [
+        M.SampleProfileTag.userOnly,
+        M.SampleProfileTag.vmOnly,
+        M.SampleProfileTag.none
+      ];
     }
     var s;
     return [

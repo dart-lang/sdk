@@ -11,14 +11,14 @@ main() {
 
 effectivelyFinalList() {
   dynamic c = [];
-  /*List<dynamic>*/ c. /*invoke: void*/ add(null);
-  /*List<dynamic>*/ c.length /*invoke: int*/ + 1;
+  /*List<dynamic>*/ c. /*invoke: [List<dynamic>]->void*/ add(null);
+  /*List<dynamic>*/ c.length /*invoke: [int]->int*/ + 1;
 }
 
 notEffectivelyFinalList() {
   dynamic c = [];
-  /*dynamic*/ c. /*invoke: dynamic*/ add(null);
-  /*dynamic*/ c.length /*invoke: dynamic*/ + 1;
+  /*dynamic*/ c. /*invoke: [dynamic]->dynamic*/ add(null);
+  /*dynamic*/ c.length /*invoke: [dynamic]->dynamic*/ + 1;
   c = null;
 }
 
@@ -26,9 +26,9 @@ num _method1() => null;
 
 effectivelyFinalPromoted() {
   dynamic c = _method1();
-  /*num*/ c /*invoke: num*/ + 0;
+  /*num*/ c /*invoke: [num]->num*/ + 0;
   if (/*num*/ c is int) {
-    /*int*/ c /*invoke: int*/ + 1;
+    /*int*/ c /*invoke: [int]->int*/ + 1;
   }
 }
 
@@ -36,8 +36,8 @@ String _method2() => null;
 
 effectivelyFinalPromotedInvalid() {
   dynamic c = _method2();
-  /*String*/ c /*invoke: String*/ + '';
+  /*String*/ c /*invoke: [String]->String*/ + '';
   if (/*String*/ c is int) {
-    /*int*/ c /*invoke: int*/ + 1;
+    /*int*/ c /*invoke: [int]->int*/ + 1;
   }
 }

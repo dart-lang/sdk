@@ -170,6 +170,11 @@ namespace dart {
 //    Invoke native function at pool[ArgB] with argc_tag at pool[ArgC] using
 //    wrapper at pool[ArgA].
 //
+//  - FfiCall ArgD
+//
+//    Invoke foreign function with unboxed arguments using the signature
+//    descriptor PP[D].
+//
 //  - PushPolymorphicInstanceCall ArgC, D
 //
 //    Skips 2*D + 1 instructions and pushes a function object onto the stack
@@ -801,6 +806,7 @@ namespace dart {
   V(PushPolymorphicInstanceCall,         A_D, num, num, ___) \
   V(PushPolymorphicInstanceCallByRange,  A_D, num, num, ___) \
   V(NativeCall,                        A_B_C, num, num, num) \
+  V(FfiCall,                               D, lit, ___, ___) \
   V(OneByteStringFromCharCode,           A_X, reg, xeg, ___) \
   V(StringToCharCode,                    A_X, reg, xeg, ___) \
   V(AddTOS,                                0, ___, ___, ___) \

@@ -7,10 +7,8 @@ import 'package:analysis_server/src/nullability/constraint_gatherer.dart';
 import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
-import 'package:analysis_server/src/nullability/nullability_graph.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
-import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -29,62 +27,38 @@ main() {
 
 @reflectiveTest
 class ConstraintGathererTest extends ConstraintsTestBase {
-  @override
-  final _Constraints constraints = _Constraints();
-
-  @override
-  final graph = NullabilityGraph();
-
   void assertConditional(
       NullabilityNode node, NullabilityNode left, NullabilityNode right) {
     var conditionalNode = node as NullabilityNodeForLUB;
     expect(conditionalNode.left, same(left));
     expect(conditionalNode.right, same(right));
-    if (left.isNeverNullable) {
-      if (right.isNeverNullable) {
-        expect(conditionalNode.isNeverNullable, true);
-      } else {
-        expect(conditionalNode.nullable, same(right.nullable));
-      }
-    } else {
-      if (right.isNeverNullable) {
-        expect(conditionalNode.nullable, same(left.nullable));
-      } else {
-        assertConstraint([left.nullable], conditionalNode.nullable);
-        assertConstraint([right.nullable], conditionalNode.nullable);
-      }
-    }
   }
 
-  /// Checks that a constraint was recorded with a left hand side of
-  /// [conditions] and a right hand side of [consequence].
-  void assertConstraint(
-      Iterable<ConstraintVariable> conditions, ConstraintVariable consequence) {
-    expect(constraints._clauses,
-        contains(_Clause(conditions.toSet(), consequence)));
-  }
-
-  /// Checks that no constraint was recorded with a right hand side of
-  /// [consequence].
-  void assertNoConstraints(ConstraintVariable consequence) {
-    expect(
-        constraints._clauses,
-        isNot(contains(
-            predicate((_Clause clause) => clause.consequence == consequence))));
+  /// Checks that there is a connection from [sourceNode] to [destinationNode].
+  void assertConnection(
+      NullabilityNode sourceNode, NullabilityNode destinationNode) {
+    expect(graph.getDownstreamNodes(sourceNode).toList(),
+        contains(destinationNode));
   }
 
   void assertNonNullIntent(NullabilityNode node, bool expected) {
     if (expected) {
-      assertConstraint([], node.nonNullIntent);
+      expect(graph.getUnconditionalUpstreamNodes(NullabilityNode.never),
+          contains(node));
     } else {
-      assertNoConstraints(node.nonNullIntent);
+      expect(graph.getUnconditionalUpstreamNodes(NullabilityNode.never),
+          isNot(contains(node)));
     }
   }
 
   /// Checks that there are no nullability nodes upstream from [node] that could
   /// cause it to become nullable.
   void assertNoUpstreamNullability(NullabilityNode node) {
-    for (var upstreamNode in graph.getUpstreamNodes(node)) {
+    // NullabilityNode.never can never become nullable, even if it has nodes
+    // upstream from it.
+    if (node == NullabilityNode.never) return;
+
+    for (var upstreamNode in graph.getUpstreamNodesForTesting(node)) {
       expect(upstreamNode, NullabilityNode.never);
     }
   }
@@ -128,10 +102,7 @@ class ConstraintGathererTest extends ConstraintsTestBase {
   test_always() async {
     await analyze('');
 
-    // No clause is needed for `always`; it is assigned the value `true` before
-    // solving begins.
-    assertNoConstraints(ConstraintVariable.always);
-    assert(ConstraintVariable.always.value, isTrue);
+    expect(NullabilityNode.always.isNullable, isTrue);
   }
 
   test_assert_demonstrates_non_null_intent() async {
@@ -264,7 +235,7 @@ int f(bool b, int i) {
     var nullable_conditional =
         decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
     var nullable_throw = nullable_conditional.left;
-    expect(nullable_throw.isNeverNullable, true);
+    assertNoUpstreamNullability(nullable_throw);
     assertConditional(nullable_conditional, nullable_throw, nullable_i);
   }
 
@@ -275,8 +246,9 @@ int f(bool b, int i) {
 }
 ''');
 
+    var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
-    expect(nullable_conditional.isAlwaysNullable, true);
+    assertConditional(nullable_conditional, NullabilityNode.always, nullable_i);
   }
 
   test_conditionalExpression_right_non_null() async {
@@ -290,7 +262,7 @@ int f(bool b, int i) {
     var nullable_conditional =
         decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
     var nullable_throw = nullable_conditional.right;
-    expect(nullable_throw.isNeverNullable, true);
+    assertNoUpstreamNullability(nullable_throw);
     assertConditional(nullable_conditional, nullable_i, nullable_throw);
   }
 
@@ -301,8 +273,9 @@ int f(bool b, int i) {
 }
 ''');
 
+    var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
-    expect(nullable_conditional.isAlwaysNullable, true);
+    assertConditional(nullable_conditional, nullable_i, NullabilityNode.always);
   }
 
   test_functionDeclaration_expression_body() async {
@@ -328,8 +301,8 @@ void f({int i = 1}) {}
 void f({int i = null}) {}
 ''');
 
-    assertConstraint([ConstraintVariable.always],
-        decoratedTypeAnnotation('int').node.nullable);
+    assertConnection(
+        NullabilityNode.always, decoratedTypeAnnotation('int').node);
   }
 
   test_functionDeclaration_parameter_named_no_default_assume_nullable() async {
@@ -340,8 +313,8 @@ void f({int i}) {}
             namedNoDefaultParameterHeuristic:
                 NamedNoDefaultParameterHeuristic.assumeNullable));
 
-    assertConstraint([ConstraintVariable.always],
-        decoratedTypeAnnotation('int').node.nullable);
+    assertConnection(
+        NullabilityNode.always, decoratedTypeAnnotation('int').node);
   }
 
   test_functionDeclaration_parameter_named_no_default_assume_required() async {
@@ -394,8 +367,8 @@ void f([int i = 1]) {}
 void f([int i = null]) {}
 ''');
 
-    assertConstraint([ConstraintVariable.always],
-        decoratedTypeAnnotation('int').node.nullable);
+    assertConnection(
+        NullabilityNode.always, decoratedTypeAnnotation('int').node);
   }
 
   test_functionDeclaration_parameter_positionalOptional_no_default() async {
@@ -403,8 +376,8 @@ void f([int i = null]) {}
 void f([int i]) {}
 ''');
 
-    assertConstraint([ConstraintVariable.always],
-        decoratedTypeAnnotation('int').node.nullable);
+    assertConnection(
+        NullabilityNode.always, decoratedTypeAnnotation('int').node);
   }
 
   test_functionDeclaration_parameter_positionalOptional_no_default_assume_required() async {
@@ -417,8 +390,8 @@ void f([int i]) {}
             namedNoDefaultParameterHeuristic:
                 NamedNoDefaultParameterHeuristic.assumeRequired));
 
-    assertConstraint([ConstraintVariable.always],
-        decoratedTypeAnnotation('int').node.nullable);
+    assertConnection(
+        NullabilityNode.always, decoratedTypeAnnotation('int').node);
   }
 
   test_functionDeclaration_resets_unconditional_control_flow() async {
@@ -449,7 +422,8 @@ void test(int/*2*/ i) {
     var int_2 = decoratedTypeAnnotation('int/*2*/');
     var i_3 = checkExpression('i/*3*/');
     assertNullCheck(i_3, int_2.node, contextNode: int_1.node);
-    assertConstraint([int_1.node.nonNullIntent], int_2.node.nonNullIntent);
+    expect(
+        graph.getUnconditionalUpstreamNodes(int_1.node), contains(int_2.node));
   }
 
   test_functionInvocation_parameter_named() async {
@@ -473,7 +447,7 @@ void g() {
 }
 ''');
     var optional_i = possiblyOptionalParameter('int i');
-    assertConstraint([], optional_i.nullable);
+    assertConnection(NullabilityNode.always, optional_i);
   }
 
   test_functionInvocation_parameter_named_missing_required() async {
@@ -675,8 +649,8 @@ void g(C<int/*3*/>/*4*/ c) {
 }
 ''');
 
-    assertConstraint([decoratedTypeAnnotation('int/*3*/').node.nullable],
-        decoratedTypeAnnotation('int/*1*/').node.nullable);
+    assertConnection(decoratedTypeAnnotation('int/*3*/').node,
+        decoratedTypeAnnotation('int/*1*/').node);
     assertNullCheck(checkExpression('c/*check*/'),
         decoratedTypeAnnotation('C<int/*3*/>/*4*/').node,
         contextNode: decoratedTypeAnnotation('C<int/*1*/>/*2*/').node);
@@ -724,6 +698,12 @@ void test(C c) {
     assertNonNullIntent(decoratedTypeAnnotation('C c').node, true);
   }
 
+  test_never() async {
+    await analyze('');
+
+    expect(NullabilityNode.never.isNullable, isFalse);
+  }
+
   test_parenthesizedExpression() async {
     await analyze('''
 int f() {
@@ -743,8 +723,8 @@ int f() {
 }
 ''');
 
-    assertConstraint([ConstraintVariable.always],
-        decoratedTypeAnnotation('int').node.nullable);
+    assertConnection(
+        NullabilityNode.always, decoratedTypeAnnotation('int').node);
   }
 
   test_return_null() async {
@@ -787,6 +767,15 @@ int f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
 
+  test_type_argument_explicit_bound() async {
+    await analyze('''
+class C<T extends Object> {}
+void f(C<int> c) {}
+''');
+    assertConnection(decoratedTypeAnnotation('int>').node,
+        decoratedTypeAnnotation('Object>').node);
+  }
+
   test_typeName() async {
     await analyze('''
 Type f() {
@@ -798,10 +787,6 @@ Type f() {
 }
 
 abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
-  Constraints get constraints;
-
-  NullabilityGraph get graph;
-
   /// Analyzes the given source code, producing constraint variables and
   /// constraints for it.
   @override
@@ -809,8 +794,8 @@ abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
       {NullabilityMigrationAssumptions assumptions:
           const NullabilityMigrationAssumptions()}) async {
     var unit = await super.analyze(code);
-    unit.accept(ConstraintGatherer(typeProvider, _variables, constraints, graph,
-        testSource, false, assumptions));
+    unit.accept(ConstraintGatherer(
+        typeProvider, _variables, graph, testSource, false, assumptions));
     return unit;
   }
 }
@@ -823,18 +808,8 @@ class ConstraintVariableGathererTest extends MigrationVisitorTestBase {
       _variables.decoratedElementType(
           findNode.functionDeclaration(search).declaredElement);
 
-  @failingTest
-  test_interfaceType_nullable() async {
-    // The tests are now being run without enabling nnbd, which causes the '?'
-    // to be reported as an error.
-    await analyze('''
-void f(int? x) {}
-''');
-    var decoratedType = decoratedTypeAnnotation('int?');
-    expect(decoratedFunctionType('f').positionalParameters[0],
-        same(decoratedType));
-    expect(decoratedType.node.nullable, same(ConstraintVariable.always));
-  }
+  DecoratedType decoratedTypeParameterBound(String search) => _variables
+      .decoratedElementType(findNode.typeParameter(search).declaredElement);
 
   test_interfaceType_typeParameter() async {
     await analyze('''
@@ -843,10 +818,12 @@ void f(List<int> x) {}
     var decoratedListType = decoratedTypeAnnotation('List<int>');
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedListType));
-    expect(decoratedListType.node.nullable, isNotNull);
+    expect(decoratedListType.node, isNotNull);
+    expect(decoratedListType.node, isNot(NullabilityNode.never));
     var decoratedIntType = decoratedTypeAnnotation('int');
     expect(decoratedListType.typeArguments[0], same(decoratedIntType));
-    expect(decoratedIntType.node.nullable, isNotNull);
+    expect(decoratedIntType.node, isNotNull);
+    expect(decoratedIntType.node, isNot(NullabilityNode.never));
   }
 
   test_topLevelFunction_parameterType_implicit_dynamic() async {
@@ -858,7 +835,8 @@ void f(x) {}
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
     expect(decoratedType.type.isDynamic, isTrue);
-    expect(decoratedType.node.nullable, same(ConstraintVariable.always));
+    expect(graph.getUpstreamNodesForTesting(decoratedType.node),
+        contains(NullabilityNode.always));
   }
 
   test_topLevelFunction_parameterType_named_no_default() async {
@@ -868,8 +846,9 @@ void f({String s}) {}
     var decoratedType = decoratedTypeAnnotation('String');
     var functionType = decoratedFunctionType('f');
     expect(functionType.namedParameters['s'], same(decoratedType));
-    expect(decoratedType.node.nullable, isNotNull);
-    expect(decoratedType.node.nullable, isNot(same(ConstraintVariable.always)));
+    expect(decoratedType.node, isNotNull);
+    expect(decoratedType.node, isNot(NullabilityNode.never));
+    expect(decoratedType.node, isNot(NullabilityNode.always));
     expect(functionType.namedParameters['s'].node.isPossiblyOptional, true);
   }
 
@@ -882,8 +861,9 @@ void f({@required String s}) {}
     var decoratedType = decoratedTypeAnnotation('String');
     var functionType = decoratedFunctionType('f');
     expect(functionType.namedParameters['s'], same(decoratedType));
-    expect(decoratedType.node.nullable, isNotNull);
-    expect(decoratedType.node.nullable, isNot(same(ConstraintVariable.always)));
+    expect(decoratedType.node, isNotNull);
+    expect(decoratedType.node, isNot(NullabilityNode.never));
+    expect(decoratedType.node, isNot(NullabilityNode.always));
     expect(functionType.namedParameters['s'].node.isPossiblyOptional, false);
   }
 
@@ -894,7 +874,8 @@ void f({String s: 'x'}) {}
     var decoratedType = decoratedTypeAnnotation('String');
     var functionType = decoratedFunctionType('f');
     expect(functionType.namedParameters['s'], same(decoratedType));
-    expect(decoratedType.node.nullable, isNotNull);
+    expect(decoratedType.node, isNotNull);
+    expect(decoratedType.node, isNot(NullabilityNode.never));
     expect(functionType.namedParameters['s'].node.isPossiblyOptional, false);
   }
 
@@ -905,7 +886,8 @@ void f([int i]) {}
     var decoratedType = decoratedTypeAnnotation('int');
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
-    expect(decoratedType.node.nullable, isNotNull);
+    expect(decoratedType.node, isNotNull);
+    expect(decoratedType.node, isNot(NullabilityNode.never));
   }
 
   test_topLevelFunction_parameterType_simple() async {
@@ -915,8 +897,8 @@ void f(int i) {}
     var decoratedType = decoratedTypeAnnotation('int');
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
-    expect(decoratedType.node.nullable, isNotNull);
-    expect(decoratedType.node.nonNullIntent, isNotNull);
+    expect(decoratedType.node, isNotNull);
+    expect(decoratedType.node, isNot(NullabilityNode.never));
   }
 
   test_topLevelFunction_returnType_implicit_dynamic() async {
@@ -925,7 +907,8 @@ f() {}
 ''');
     var decoratedType = decoratedFunctionType('f').returnType;
     expect(decoratedType.type.isDynamic, isTrue);
-    expect(decoratedType.node.nullable, same(ConstraintVariable.always));
+    expect(graph.getUpstreamNodesForTesting(decoratedType.node),
+        contains(NullabilityNode.always));
   }
 
   test_topLevelFunction_returnType_simple() async {
@@ -934,14 +917,44 @@ int f() => 0;
 ''');
     var decoratedType = decoratedTypeAnnotation('int');
     expect(decoratedFunctionType('f').returnType, same(decoratedType));
-    expect(decoratedType.node.nullable, isNotNull);
+    expect(decoratedType.node, isNotNull);
+    expect(decoratedType.node, isNot(NullabilityNode.never));
+  }
+
+  test_type_parameter_explicit_bound() async {
+    await analyze('''
+class C<T extends Object> {}
+''');
+    var bound = decoratedTypeParameterBound('T');
+    expect(decoratedTypeAnnotation('Object'), same(bound));
+    expect(bound.node, isNot(NullabilityNode.always));
+    expect(bound.type, typeProvider.objectType);
+  }
+
+  test_type_parameter_implicit_bound() async {
+    // The implicit bound of `T` is automatically `Object?`.  TODO(paulberry):
+    // consider making it possible for type inference to infer an explicit bound
+    // of `Object`.
+    await analyze('''
+class C<T> {}
+''');
+    var bound = decoratedTypeParameterBound('T');
+    expect(graph.getUnconditionalUpstreamNodes(bound.node),
+        contains(NullabilityNode.always));
+    expect(bound.type, same(typeProvider.objectType));
   }
 }
 
 class MigrationVisitorTestBase extends AbstractSingleUnitTest {
-  final _variables = _Variables();
+  final _Variables _variables;
 
   FindNode findNode;
+
+  final NullabilityGraph graph;
+
+  MigrationVisitorTestBase() : this._(NullabilityGraph());
+
+  MigrationVisitorTestBase._(this.graph) : _variables = _Variables(graph);
 
   TypeProvider get typeProvider => testAnalysisResult.typeProvider;
 
@@ -949,8 +962,8 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
       {NullabilityMigrationAssumptions assumptions:
           const NullabilityMigrationAssumptions()}) async {
     await resolveTestUnit(code);
-    testUnit.accept(
-        ConstraintVariableGatherer(_variables, testSource, false, assumptions));
+    testUnit.accept(ConstraintVariableGatherer(
+        _variables, testSource, false, assumptions, graph, typeProvider));
     findNode = FindNode(code, testUnit);
     return testUnit;
   }
@@ -958,7 +971,8 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
   /// Gets the [DecoratedType] associated with the type annotation whose text
   /// is [text].
   DecoratedType decoratedTypeAnnotation(String text) {
-    return _variables.decoratedTypeAnnotation(findNode.typeAnnotation(text));
+    return _variables.decoratedTypeAnnotation(
+        testSource, findNode.typeAnnotation(text));
   }
 
   NullabilityNode possiblyOptionalParameter(String text) {
@@ -973,63 +987,17 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
   }
 }
 
-/// Mock representation of a constraint equation that is not connected to a
-/// constraint solver.  We use this to confirm that analysis produces the
-/// correct constraint equations.
-///
-/// [hashCode] and equality are implemented using [toString] for simplicity.
-class _Clause {
-  final Set<ConstraintVariable> conditions;
-  final ConstraintVariable consequence;
-
-  _Clause(this.conditions, this.consequence);
-
-  @override
-  int get hashCode => toString().hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      other is _Clause && toString() == other.toString();
-
-  @override
-  String toString() {
-    String lhs;
-    if (conditions.isNotEmpty) {
-      var sortedConditionStrings = conditions.map((v) => v.toString()).toList()
-        ..sort();
-      lhs = sortedConditionStrings.join(' & ') + ' => ';
-    } else {
-      lhs = '';
-    }
-    String rhs = consequence.toString();
-    return lhs + rhs;
-  }
-}
-
-/// Mock representation of a constraint solver that does not actually do any
-/// solving.  We use this to confirm that analysis produced the correct
-/// constraint equations.
-class _Constraints extends Constraints {
-  final _clauses = <_Clause>[];
-
-  @override
-  void record(
-      Iterable<ConstraintVariable> conditions, ConstraintVariable consequence) {
-    _clauses.add(_Clause(conditions.toSet(), consequence));
-  }
-}
-
 /// Mock representation of constraint variables.
 class _Variables extends Variables {
   final _conditionalDiscard = <AstNode, ConditionalDiscard>{};
 
   final _decoratedExpressionTypes = <Expression, DecoratedType>{};
 
-  final _decoratedTypeAnnotations = <TypeAnnotation, DecoratedType>{};
-
   final _expressionChecks = <Expression, ExpressionChecks>{};
 
   final _possiblyOptional = <DefaultFormalParameter, NullabilityNode>{};
+
+  _Variables(NullabilityGraph graph) : super(graph);
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
   ExpressionChecks checkExpression(Expression expression) =>
@@ -1042,10 +1010,6 @@ class _Variables extends Variables {
   /// Gets the [DecoratedType] associated with the given [expression].
   DecoratedType decoratedExpressionType(Expression expression) =>
       _decoratedExpressionTypes[_normalizeExpression(expression)];
-
-  /// Gets the [DecoratedType] associated with the given [typeAnnotation].
-  DecoratedType decoratedTypeAnnotation(TypeAnnotation typeAnnotation) =>
-      _decoratedTypeAnnotations[typeAnnotation];
 
   /// Gets the [NullabilityNode] associated with the possibility that
   /// [parameter] may be optional.
@@ -1062,12 +1026,6 @@ class _Variables extends Variables {
   void recordDecoratedExpressionType(Expression node, DecoratedType type) {
     super.recordDecoratedExpressionType(node, type);
     _decoratedExpressionTypes[_normalizeExpression(node)] = type;
-  }
-
-  void recordDecoratedTypeAnnotation(
-      Source source, TypeAnnotation node, DecoratedType type) {
-    super.recordDecoratedTypeAnnotation(source, node, type);
-    _decoratedTypeAnnotations[node] = type;
   }
 
   @override

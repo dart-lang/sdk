@@ -55,6 +55,7 @@ String getImprovedType(String interfaceName, String fieldName) {
     },
     "CompletionItem": {
       "kind": "CompletionItemKind",
+      "data": "CompletionItemResolutionInfo",
     },
     "DocumentHighlight": {
       "kind": "DocumentHighlightKind",

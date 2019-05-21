@@ -63,7 +63,9 @@ class BottomTypeImpl extends TypeImpl {
   /**
    * Prevent the creation of instances of this class.
    */
-  BottomTypeImpl._() : super(null, "<bottom>");
+  BottomTypeImpl._() : super(new NeverElementImpl(), "Never") {
+    (element as NeverElementImpl).type = this;
+  }
 
   @override
   int get hashCode => 0;
@@ -2919,6 +2921,9 @@ abstract class TypeImpl implements DartType {
 
   /**
    * Return the same type, but with the given [nullabilitySuffix].
+   *
+   * If the nullability of `this` already matches [nullabilitySuffix], `this`
+   * is returned.
    */
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix);
 

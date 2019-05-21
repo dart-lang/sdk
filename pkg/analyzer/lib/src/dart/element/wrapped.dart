@@ -426,6 +426,9 @@ class WrappedLibraryElement implements LibraryElement {
   AnalysisContext get context => wrappedLib.context;
 
   @override
+  bool get isNonNullableByDefault => wrappedLib.isNonNullableByDefault;
+
+  @override
   CompilationUnitElement get definingCompilationUnit =>
       wrappedLib.definingCompilationUnit;
 

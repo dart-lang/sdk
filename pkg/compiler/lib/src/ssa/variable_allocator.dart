@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../js_backend/js_backend.dart';
+import '../js_backend/namer.dart' show ModularNamer;
 import 'codegen.dart' show CodegenPhase;
 import 'nodes.dart';
 
@@ -450,7 +450,7 @@ class VariableNames {
 /// Allocates variable names for instructions, making sure they don't collide.
 class VariableNamer {
   final VariableNames names;
-  final Namer _namer;
+  final ModularNamer _namer;
   final Set<String> usedNames;
   final List<String> freeTemporaryNames;
   int temporaryIndex = 0;
@@ -570,7 +570,7 @@ class VariableNamer {
 /// instruction, and allocates a name to the instruction. For each phi,
 /// it adds a copy to the CopyHandler of the corresponding predecessor.
 class SsaVariableAllocator extends HBaseVisitor with CodegenPhase {
-  final Namer _namer;
+  final ModularNamer _namer;
   final Map<HBasicBlock, LiveEnvironment> liveInstructions;
   final Map<HInstruction, LiveInterval> liveIntervals;
   final Set<HInstruction> generateAtUseSite;

@@ -16,15 +16,15 @@ import 'dart:math';
 ```
 
 You can install more libraries using the
-[pub package manager](https://www.dartlang.org/tools/pub).
+[pub package manager](https://dart.dev/guides/packages).
   
 The main site for learning and using Dart is
-[www.dartlang.org](https://www.dartlang.org). Check out these pages:
+[dart.dev](https://dart.dev). Check out these pages:
   
-  * [Get started](https://www.dartlang.org/guides/get-started)
-  * [Language tour](https://www.dartlang.org/guides/language/language-tour)
-  * [Library tour](https://www.dartlang.org/guides/libraries/library-tour)
-  * [Sample code](https://www.dartlang.org/samples)
+  * [Platforms](https://dart.dev/platforms)
+  * [Language tour](https://dart.dev/guides/language/language-tour)
+  * [Library tour](https://dart.dev/guides/libraries/library-tour)
+  * [Sample code](https://dart.dev/samples)
   
 This API reference is automatically generated from source code in the [Dart
 SDK project](https://github.com/dart-lang/sdk).

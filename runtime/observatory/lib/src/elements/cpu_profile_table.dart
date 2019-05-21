@@ -29,7 +29,7 @@ enum _SortingField { exclusive, inclusive, caller, callee, method }
 
 enum _SortingDirection { ascending, descending }
 
-class CpuProfileTableElement extends HtmlElement implements Renderable {
+class CpuProfileTableElement extends CustomElement implements Renderable {
   static const tag = const Tag<CpuProfileTableElement>('cpu-profile-table',
       dependencies: const [
         FunctionRefElement.tag,
@@ -84,7 +84,7 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
     assert(events != null);
     assert(notifications != null);
     assert(profiles != null);
-    CpuProfileTableElement e = document.createElement(tag.name);
+    CpuProfileTableElement e = new CpuProfileTableElement.created();
     e._r = new RenderingScheduler<CpuProfileTableElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
@@ -94,7 +94,7 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  CpuProfileTableElement.created() : super.created();
+  CpuProfileTableElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -113,14 +113,16 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
   void render() {
     var content = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('cpu profile (table)'),
-        new NavRefreshElement(queue: _r.queue)..onRefresh.listen(_refresh),
-        new NavRefreshElement(label: 'Clear', queue: _r.queue)
-          ..onRefresh.listen(_clearCpuProfile),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(queue: _r.queue)..onRefresh.listen(_refresh))
+            .element,
+        (new NavRefreshElement(label: 'Clear', queue: _r.queue)
+              ..onRefresh.listen(_clearCpuProfile))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
     ];
     if (_progress == null) {
@@ -128,7 +130,8 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
       return;
     }
     content.add(new SampleBufferControlElement(_vm, _progress, _progressStream,
-        showTag: false, queue: _r.queue));
+            showTag: false, queue: _r.queue)
+        .element);
     if (_progress.status == M.SampleProfileLoadingStatus.loaded) {
       content.add(new BRElement());
       content.addAll(_createTables());
@@ -177,24 +180,25 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
         ..children = <Element>[
           new DivElement()
             ..classes = ['profile-trees-all']
-            ..children = <Element>[_functions],
+            ..children = <Element>[_functions.element],
           new DivElement()
             ..classes = ['profile-trees-current']
             ..children = <Element>[
               new DivElement()
                 ..classes = ['profile-trees-caller']
-                ..children = <Element>[_callers],
+                ..children = <Element>[_callers.element],
               new DivElement()
                 ..classes = ['profile-trees-selected']
                 ..children = _selected == null
                     ? [new SpanElement()..text = 'No element selected']
                     : [
                         new FunctionRefElement(_isolate, _selected.function,
-                            queue: _r.queue)
+                                queue: _r.queue)
+                            .element
                       ],
               new DivElement()
                 ..classes = ['profile-trees-callee']
-                ..children = <Element>[_callees]
+                ..children = <Element>[_callees.element]
             ]
         ]
     ];
@@ -370,37 +374,39 @@ class CpuProfileTableElement extends HtmlElement implements Renderable {
   List<Element> _createTree() {
     CpuProfileVirtualTreeElement tree;
     return [
-      new StackTraceTreeConfigElement(
-          showMode: false,
-          showDirection: false,
-          mode: ProfileTreeMode.function,
-          direction: M.ProfileTreeDirection.exclusive,
-          filter: _filter,
-          queue: _r.queue)
-        ..onFilterChange.listen((e) {
-          _filter = e.element.filter.trim();
-          tree.filters = _filter.isNotEmpty
-              ? [
-                  _filterTree,
-                  (node) {
-                    return node.name.contains(_filter);
-                  }
-                ]
-              : [_filterTree];
-        }),
+      (new StackTraceTreeConfigElement(
+              showMode: false,
+              showDirection: false,
+              mode: ProfileTreeMode.function,
+              direction: M.ProfileTreeDirection.exclusive,
+              filter: _filter,
+              queue: _r.queue)
+            ..onFilterChange.listen((e) {
+              _filter = e.element.filter.trim();
+              tree.filters = _filter.isNotEmpty
+                  ? [
+                      _filterTree,
+                      (node) {
+                        return node.name.contains(_filter);
+                      }
+                    ]
+                  : [_filterTree];
+            }))
+          .element,
       new BRElement(),
-      tree = new CpuProfileVirtualTreeElement(_isolate, _progress.profile,
-          mode: ProfileTreeMode.function,
-          direction: M.ProfileTreeDirection.exclusive,
-          queue: _r.queue)
-        ..filters = _filter.isNotEmpty
-            ? [
-                _filterTree,
-                (node) {
-                  return node.name.contains(_filter);
-                }
-              ]
-            : [_filterTree]
+      (tree = new CpuProfileVirtualTreeElement(_isolate, _progress.profile,
+              mode: ProfileTreeMode.function,
+              direction: M.ProfileTreeDirection.exclusive,
+              queue: _r.queue)
+            ..filters = _filter.isNotEmpty
+                ? [
+                    _filterTree,
+                    (node) {
+                      return node.name.contains(_filter);
+                    }
+                  ]
+                : [_filterTree])
+          .element
     ];
   }
 

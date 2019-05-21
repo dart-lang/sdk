@@ -837,20 +837,11 @@ void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
 
 void FlowGraphCompiler::EmitFrameEntry() {
   const Function& function = parsed_function().function();
-  Register new_pp = kNoRegister;
   if (CanOptimizeFunction() && function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {
     __ Comment("Invocation Count Check");
     const Register function_reg = R6;
-    new_pp = R13;
-    if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
-      // The pool pointer is not setup before entering the Dart frame.
-      // Temporarily setup pool pointer for this dart function.
-      __ LoadPoolPointer(new_pp);
-    }
-
-    // Load function object using the callee's pool pointer.
-    __ LoadFunctionFromCalleePool(function_reg, function, new_pp);
+    __ ldr(function_reg, FieldAddress(CODE_REG, Code::owner_offset()));
 
     __ LoadFieldFromOffset(R7, function_reg, Function::usage_counter_offset(),
                            kWord);
@@ -865,48 +856,22 @@ void FlowGraphCompiler::EmitFrameEntry() {
     ASSERT(function_reg == R6);
     Label dont_optimize;
     __ b(&dont_optimize, LT);
-    __ Branch(StubCode::OptimizeFunction(), new_pp);
+    __ ldr(TMP, Address(THR, Thread::optimize_entry_offset()));
+    __ br(TMP);
     __ Bind(&dont_optimize);
   }
   __ Comment("Enter frame");
   if (flow_graph().IsCompiledForOsr()) {
     const intptr_t extra_slots = ExtraStackSlotsOnOsrEntry();
     ASSERT(extra_slots >= 0);
-    __ EnterOsrFrame(extra_slots * kWordSize, new_pp);
+    __ EnterOsrFrame(extra_slots * kWordSize);
   } else {
     ASSERT(StackSize() >= 0);
-    __ EnterDartFrame(StackSize() * kWordSize, new_pp);
+    __ EnterDartFrame(StackSize() * kWordSize);
   }
 }
 
-// Input parameters:
-//   LR: return address.
-//   SP: address of last argument.
-//   FP: caller's frame pointer.
-//   PP: caller's pool pointer.
-//   R4: arguments descriptor array.
-void FlowGraphCompiler::CompileGraph() {
-  InitCompiler();
-
-  if (FLAG_precompiled_mode) {
-    const Function& function = parsed_function().function();
-    if (function.IsDynamicFunction()) {
-      SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
-      __ MonomorphicCheckedEntry();
-      SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
-    }
-  }
-
-  // For JIT we have multiple entrypoints functionality which moved the
-  // intrinsification as well as the setup of the frame to the
-  // [TargetEntryInstr::EmitNativeCode].
-  //
-  // Though this has not been implemented on ARM64, which is why this code here
-  // is outside the "ifdef DART_PRECOMPILER".
-  if (TryIntrinsify()) {
-    // Skip regular code generation.
-    return;
-  }
+void FlowGraphCompiler::EmitPrologue() {
   EmitFrameEntry();
   ASSERT(assembler()->constant_pool_allowed());
 
@@ -933,11 +898,32 @@ void FlowGraphCompiler::CompileGraph() {
   }
 
   EndCodeSourceRange(TokenPosition::kDartCodePrologue);
+}
+
+// Input parameters:
+//   LR: return address.
+//   SP: address of last argument.
+//   FP: caller's frame pointer.
+//   PP: caller's pool pointer.
+//   R4: arguments descriptor array.
+void FlowGraphCompiler::CompileGraph() {
+  InitCompiler();
+
+  // For JIT we have multiple entrypoints functionality which moved the frame
+  // setup into the [TargetEntryInstr] (which will set the constant pool
+  // allowed bit to true).  Despite this we still have to set the
+  // constant pool allowed bit to true here as well, because we can generate
+  // code for [CatchEntryInstr]s, which need the pool.
+  __ set_constant_pool_allowed(true);
+
   VisitBlocks();
 
   __ brk(0);
-  ASSERT(assembler()->constant_pool_allowed());
-  GenerateDeferredCode();
+
+  if (!skip_body_compilation()) {
+    ASSERT(assembler()->constant_pool_allowed());
+    GenerateDeferredCode();
+  }
 }
 
 void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
@@ -1054,7 +1040,8 @@ void FlowGraphCompiler::EmitInstanceCall(const Code& stub,
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
   __ LoadFromOffset(R0, SP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
   __ LoadUniqueObject(R5, ic_data);
-  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs);
+  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs,
+                   Code::EntryKind::kMonomorphic);
   __ Drop(ic_data.CountWithTypeArgs());
 }
 

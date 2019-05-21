@@ -26,7 +26,7 @@ Bytecode {
   PushInt              0
   PushInt              0
   PushNull
-  DirectCall           3, CP#0
+  DirectCall           CP#0, 3
   Drop1
 L1:
   PushNull
@@ -48,14 +48,14 @@ Bytecode {
   CheckStack           0
   JumpIfNoAsserts      L1
   Push                 FP[-6]
-  DynamicCall          1, CP#1
+  DynamicCall          CP#1, 1
   AssertBoolean        0
   JumpIfTrue           L1
   PushInt              0
   PushInt              0
   Push                 FP[-5]
-  DynamicCall          1, CP#2
-  DirectCall           3, CP#3
+  DynamicCall          CP#2, 1
+  DirectCall           CP#3, 3
   Drop1
 L1:
   PushNull

@@ -20,7 +20,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   PushConstant         CP#0
-  DirectCall           1, CP#1
+  DirectCall           CP#1, 1
   Drop1
   PushNull
   ReturnTOS

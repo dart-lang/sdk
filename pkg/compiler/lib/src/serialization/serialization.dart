@@ -11,12 +11,15 @@ import 'package:kernel/binary/ast_to_binary.dart' as ir;
 import '../closure.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
+import '../deferred_load.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/types.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../ir/constants.dart';
 import '../ir/static_type_base.dart';
+import '../js/js.dart' as js;
 import '../js_model/closure.dart';
 import '../js_model/locals.dart';
 
@@ -357,6 +360,9 @@ abstract class DataSink {
   /// Writes the import [value] to this data sink.
   void writeImport(ImportEntity value);
 
+  /// Writes the potentially `null` import [value] to this data sink.
+  void writeImportOrNull(ImportEntity value);
+
   /// Writes import [values] to this data sink. If [allowNull] is `true`,
   /// [values] is allowed to be `null`.
   ///
@@ -372,6 +378,30 @@ abstract class DataSink {
   /// [DataSource.readImportMap].
   void writeImportMap<V>(Map<ImportEntity, V> map, void f(V value),
       {bool allowNull: false});
+
+  /// Writes an abstract [value] to this data sink.
+  ///
+  /// This feature is only available a [CodegenWriter] has been registered.
+  void writeAbstractValue(AbstractValue value);
+
+  /// Writes a reference to the output unit [value] to this data sink.
+  ///
+  /// This feature is only available a [CodegenWriter] has been registered.
+  void writeOutputUnitReference(OutputUnit value);
+
+  /// Writes a js node [value] to this data sink.
+  ///
+  /// This feature is only available a [CodegenWriter] has been registered.
+  void writeJsNode(js.Node value);
+
+  /// Writes a potentially `null` js node [value] to this data sink.
+  ///
+  /// This feature is only available a [CodegenWriter] has been registered.
+  void writeJsNodeOrNull(js.Node value);
+
+  /// Register a [CodegenWriter] with this data sink to support serialization
+  /// of codegen only data.
+  void registerCodegenWriter(CodegenWriter writer);
 }
 
 /// Interface for deserialization.
@@ -399,6 +429,10 @@ abstract class DataSource {
   /// Registers a [LocalLookup] object with this data source to support
   /// deserialization of references to locals.
   void registerLocalLookup(LocalLookup localLookup);
+
+  /// Registers a [CodegenReader] with this data source to support
+  /// deserialization of codegen only data.
+  void registerCodegenReader(CodegenReader read);
 
   /// Reads a reference to an [E] value from this data source. If the value has
   /// not yet been deserialized, [f] is called to deserialize the value itself.
@@ -680,6 +714,9 @@ abstract class DataSource {
   /// Reads a import from this data source.
   ImportEntity readImport();
 
+  /// Reads a potentially `null` import from this data source.
+  ImportEntity readImportOrNull();
+
   /// Reads a list of imports from this data source. If [emptyAsNull] is
   /// `true`, `null` is returned instead of an empty list.
   ///
@@ -694,6 +731,26 @@ abstract class DataSource {
   /// This is a convenience method to be used together with
   /// [DataSink.writeImportMap].
   Map<ImportEntity, V> readImportMap<V>(V f(), {bool emptyAsNull: false});
+
+  /// Reads an [AbstractValue] from this data source.
+  ///
+  /// This feature is only available a [CodegenReader] has been registered.
+  AbstractValue readAbstractValue();
+
+  /// Reads a reference to an [OutputUnit] from this data source.
+  ///
+  /// This feature is only available a [CodegenReader] has been registered.
+  OutputUnit readOutputUnitReference();
+
+  /// Reads a [js.Node] value from this data source.
+  ///
+  /// This feature is only available a [CodegenReader] has been registered.
+  js.Node readJsNode();
+
+  /// Reads a potentially `null` [js.Node] value from this data source.
+  ///
+  /// This feature is only available a [CodegenReader] has been registered.
+  js.Node readJsNodeOrNull();
 }
 
 /// Interface used for looking up entities by index during deserialization.
@@ -717,4 +774,18 @@ abstract class EntityLookup {
 /// Interface used for looking up locals by index during deserialization.
 abstract class LocalLookup {
   Local getLocalByIndex(MemberEntity memberContext, int index);
+}
+
+/// Interface used for reading codegen only data during deserialization.
+abstract class CodegenReader {
+  AbstractValue readAbstractValue(DataSource source);
+  OutputUnit readOutputUnitReference(DataSource source);
+  js.Node readJsNode(DataSource source);
+}
+
+/// Interface used for writing codegen only data during serialization.
+abstract class CodegenWriter {
+  void writeAbstractValue(DataSink sink, AbstractValue value);
+  void writeOutputUnitReference(DataSink sink, OutputUnit value);
+  void writeJsNode(DataSink sink, js.Node node);
 }

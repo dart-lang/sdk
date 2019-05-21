@@ -39,7 +39,7 @@ SafepointOperationScope::~SafepointOperationScope() {
 
 SafepointHandler::SafepointHandler(Isolate* isolate)
     : isolate_(isolate),
-      safepoint_lock_(new Monitor()),
+      safepoint_lock_(),
       number_threads_not_at_safepoint_(0),
       safepoint_operation_count_(0),
       owner_(NULL) {}
@@ -47,8 +47,6 @@ SafepointHandler::SafepointHandler(Isolate* isolate)
 SafepointHandler::~SafepointHandler() {
   ASSERT(owner_ == NULL);
   ASSERT(safepoint_operation_count_ == 0);
-  delete safepoint_lock_;
-  safepoint_lock_ = NULL;
   isolate_ = NULL;
 }
 
@@ -96,7 +94,7 @@ void SafepointHandler::SafepointThreads(Thread* T) {
               ASSERT(T->isolate() != NULL);
               current->ScheduleInterruptsLocked(Thread::kVMInterrupt);
             }
-            MonitorLocker sl(safepoint_lock_);
+            MonitorLocker sl(&safepoint_lock_);
             ++number_threads_not_at_safepoint_;
           }
         }
@@ -106,7 +104,7 @@ void SafepointHandler::SafepointThreads(Thread* T) {
   }
   // Now wait for all threads that are not already at a safepoint to check-in.
   {
-    MonitorLocker sl(safepoint_lock_);
+    MonitorLocker sl(&safepoint_lock_);
     intptr_t num_attempts = 0;
     while (number_threads_not_at_safepoint_ > 0) {
       Monitor::WaitResult retval = sl.Wait(1000);
@@ -161,7 +159,7 @@ void SafepointHandler::EnterSafepointUsingLock(Thread* T) {
   MonitorLocker tl(T->thread_lock());
   T->SetAtSafepoint(true);
   if (T->IsSafepointRequested()) {
-    MonitorLocker sl(safepoint_lock_);
+    MonitorLocker sl(&safepoint_lock_);
     ASSERT(number_threads_not_at_safepoint_ > 0);
     number_threads_not_at_safepoint_ -= 1;
     sl.Notify();
@@ -185,7 +183,7 @@ void SafepointHandler::BlockForSafepoint(Thread* T) {
   if (T->IsSafepointRequested()) {
     T->SetAtSafepoint(true);
     {
-      MonitorLocker sl(safepoint_lock_);
+      MonitorLocker sl(&safepoint_lock_);
       ASSERT(number_threads_not_at_safepoint_ > 0);
       number_threads_not_at_safepoint_ -= 1;
       sl.Notify();

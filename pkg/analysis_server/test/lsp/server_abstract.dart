@@ -30,8 +30,7 @@ const debugPrintCommunication = false;
 
 final beginningOfDocument = new Range(new Position(0, 0), new Position(0, 0));
 
-mixin LspAnalysisServerTestMixin
-    implements ResourceProviderMixin, ClientCapabilitiesHelperMixin {
+mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   static const positionMarker = '^';
   static const rangeMarkerStart = '[[';
   static const rangeMarkerEnd = ']]';
@@ -40,8 +39,11 @@ mixin LspAnalysisServerTestMixin
       new RegExp(allMarkers.map(RegExp.escape).join('|'));
 
   int _id = 0;
-  String projectFolderPath, mainFilePath;
-  Uri projectFolderUri, mainFileUri;
+  String projectFolderPath, mainFilePath, pubspecFilePath, analysisOptionsPath;
+  Uri projectFolderUri, mainFileUri, pubspecFileUri, analysisOptionsUri;
+  final String simplePubspecContent = 'name: my_project';
+  final startOfDocPos = new Position(0, 0);
+  final startOfDocRange = new Range(new Position(0, 0), new Position(0, 0));
 
   Stream<Message> get serverToClient;
 
@@ -367,6 +369,14 @@ mixin LspAnalysisServerTestMixin
     return expectSuccessfulResponseTo<List<CompletionItem>>(request);
   }
 
+  Future<CompletionItem> resolveCompletion(CompletionItem item) {
+    final request = makeRequest(
+      Method.completionItem_resolve,
+      item,
+    );
+    return expectSuccessfulResponseTo<CompletionItem>(request);
+  }
+
   Future<List<Location>> getDefinition(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_definition,
@@ -431,6 +441,21 @@ mixin LspAnalysisServerTestMixin
           new TextDocumentIdentifier(uri.toString()), pos),
     );
     return expectSuccessfulResponseTo<Hover>(request);
+  }
+
+  Future<List<Location>> getImplementations(
+    Uri uri,
+    Position pos, {
+    includeDeclarations = false,
+  }) {
+    final request = makeRequest(
+      Method.textDocument_implementation,
+      new TextDocumentPositionParams(
+        new TextDocumentIdentifier(uri.toString()),
+        pos,
+      ),
+    );
+    return expectSuccessfulResponseTo<List<Location>>(request);
   }
 
   Future<List<Location>> getReferences(
@@ -713,13 +738,44 @@ mixin LspAnalysisServerTestMixin
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
           message.method == Method.textDocument_publishDiagnostics) {
-        diagnosticParams = message.params;
+        // This helper method is used both in in-process tests where we'll get
+        // the real type back, and out-of-process integration tests where
+        // params is `Map<String, dynamic>` so for convenience just
+        // handle either here.
+        diagnosticParams = message.params is PublishDiagnosticsParams
+            ? message.params
+            : PublishDiagnosticsParams.fromJson(message.params);
 
         return diagnosticParams.uri == uri.toString();
       }
       return false;
     });
     return diagnosticParams.diagnostics;
+  }
+
+  Future<AnalyzerStatusParams> waitForAnalysisStart() =>
+      waitForAnalysisStatus(true);
+
+  Future<AnalyzerStatusParams> waitForAnalysisComplete() =>
+      waitForAnalysisStatus(false);
+
+  Future<AnalyzerStatusParams> waitForAnalysisStatus(bool analyzing) async {
+    AnalyzerStatusParams params;
+    await serverToClient.firstWhere((message) {
+      if (message is NotificationMessage &&
+          message.method == CustomMethods.AnalyzerStatus) {
+        // This helper method is used both in in-process tests where we'll get
+        // the real type back, and out-of-process integration tests where
+        // params is `Map<String, dynamic>` so for convenience just
+        // handle either here.
+        params = message.params is AnalyzerStatusParams
+            ? message.params
+            : AnalyzerStatusParams.fromJson(message.params);
+        return params.isAnalyzing == analyzing;
+      }
+      return false;
+    });
+    return params;
   }
 
   /// Removes markers like `[[` and `]]` and `^` that are used for marking
@@ -786,6 +842,10 @@ abstract class AbstractLspAnalysisServerTest
     newFile(join(projectFolderPath, 'lib', 'file.dart'));
     mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
     mainFileUri = Uri.file(mainFilePath);
+    pubspecFilePath = join(projectFolderPath, 'pubspec.yaml');
+    pubspecFileUri = Uri.file(pubspecFilePath);
+    analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
+    analysisOptionsUri = Uri.file(analysisOptionsPath);
   }
 
   Future tearDown() async {
@@ -930,5 +990,11 @@ mixin ClientCapabilitiesHelperMixin {
     return extendWorkspaceCapabilities(source, {
       'workspaceEdit': {'documentChanges': true}
     });
+  }
+
+  WorkspaceClientCapabilities withApplyEditSupport(
+    WorkspaceClientCapabilities source,
+  ) {
+    return extendWorkspaceCapabilities(source, {'applyEdit': true});
   }
 }

@@ -71,19 +71,19 @@ class StatementPointer extends Pointer<Void> {}
 Strings in C are pointers to character arrays.
 
 ```dart
-class CString extends Pointer<Int8> {}
+class CString extends Pointer<Uint8> {}
 ```
 
 Pointers to C integers, floats, an doubles can be read from and written through to `dart:ffi`.
 However, before we can write to C memory from dart, we need to `allocate` some memory.
 
 ```dart
-Pointer<Int8> p = allocate(); // Infers type argument allocate<Int8>(), and allocates 1 byte.
-p.store(123);                 // Stores a Dart int into this C int8.
-int v = p.load();             // Infers type argument p.load<int>(), and loads a value from C memory.
+Pointer<Uint8> p = allocate(); // Infers type argument allocate<Uint8>(), and allocates 1 byte.
+p.store(123);                  // Stores a Dart int into this C int8.
+int v = p.load();              // Infers type argument p.load<int>(), and loads a value from C memory.
 ```
 
-Note that you can only load a Dart `int` from a C `Int8`.
+Note that you can only load a Dart `int` from a C `Uint8`.
 Trying to load a Dart `double` will result in a runtime exception.
 
 We've almost modeled C Strings.

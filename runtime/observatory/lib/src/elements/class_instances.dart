@@ -15,7 +15,7 @@ import 'package:observatory/src/elements/strongly_reachable_instances.dart';
 import 'package:observatory/src/elements/top_retaining_instances.dart';
 import 'package:observatory/utils.dart';
 
-class ClassInstancesElement extends HtmlElement implements Renderable {
+class ClassInstancesElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<ClassInstancesElement>('class-instances', dependencies: const [
     ClassRefElement.tag,
@@ -59,7 +59,7 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
     assert(stronglyReachableInstances != null);
     assert(topRetainingInstances != null);
     assert(objects != null);
-    ClassInstancesElement e = document.createElement(tag.name);
+    ClassInstancesElement e = new ClassInstancesElement.created();
     e._r = new RenderingScheduler<ClassInstancesElement>(e, queue: queue);
     e._isolate = isolate;
     e._cls = cls;
@@ -71,7 +71,7 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  ClassInstancesElement.created() : super.created();
+  ClassInstancesElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -100,8 +100,8 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
             queue: _r.queue);
     final instanceCount =
         _cls.newSpace.current.instances + _cls.oldSpace.current.instances;
-    final size = Utils
-        .formatSize(_cls.newSpace.current.bytes + _cls.oldSpace.current.bytes);
+    final size = Utils.formatSize(
+        _cls.newSpace.current.bytes + _cls.oldSpace.current.bytes);
     children = <Element>[
       new DivElement()
         ..classes = ['memberList']
@@ -124,7 +124,7 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
                 ..text = 'strongly reachable ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = <Element>[_strong]
+                ..children = <Element>[_strong.element]
             ],
           new DivElement()
             ..classes = ['memberItem']
@@ -158,7 +158,7 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
                 ..text = 'toplist by retained memory ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = <Element>[_topRetainig]
+                ..children = <Element>[_topRetainig.element]
             ]
         ]
     ];
@@ -168,12 +168,13 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
     final content = <Element>[];
     if (_reachableSize != null) {
       if (_reachableSize.isSentinel) {
-        content.add(new SentinelValueElement(_reachableSize.asSentinel,
-            queue: _r.queue));
+        content.add(
+            new SentinelValueElement(_reachableSize.asSentinel, queue: _r.queue)
+                .element);
       } else {
         content.add(new SpanElement()
-          ..text = Utils
-              .formatSize(int.parse(_reachableSize.asValue.valueAsString)));
+          ..text = Utils.formatSize(
+              int.parse(_reachableSize.asValue.valueAsString)));
       }
     } else {
       content.add(new SpanElement()..text = '...');
@@ -196,8 +197,9 @@ class ClassInstancesElement extends HtmlElement implements Renderable {
     final content = <Element>[];
     if (_retainedSize != null) {
       if (_retainedSize.isSentinel) {
-        content.add(new SentinelValueElement(_retainedSize.asSentinel,
-            queue: _r.queue));
+        content.add(
+            new SentinelValueElement(_retainedSize.asSentinel, queue: _r.queue)
+                .element);
       } else {
         content.add(new SpanElement()
           ..text =

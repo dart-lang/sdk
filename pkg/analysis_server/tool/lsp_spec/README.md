@@ -16,7 +16,12 @@ dart pkg/analysis_server/bin/server.dart --lsp
 
 Note: In LSP the client makes the first request so there is no obvious confirmation that the server is working correctly until the client sends an `initialize` request. Unlike standard JSON RPC, [LSP requires that headers are sent](https://microsoft.github.io/language-server-protocol/specification).
 
-## Message Status
+## Initialization Options
+
+- `onlyAnalyzeProjectsWithOpenFiles`: When set to `true`, analysis will only be performed for projects that have open files rather than the root workspace folder. Defaults to `false`.
+- `suggestFromUnimportedLibraries`: When set to `false`, completion will not include synbols that are not already imported into the current file. Defaults to `true`, though the client must additionally support `workspace/applyEdit` for these completions to be included.
+
+## Method Status
 
 Below is a list of LSP methods and their implementation status.
 
@@ -59,7 +64,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/declaration | | | | |
 | textDocument/definition | ✅ | ✅ | ✅ | ✅ |
 | textDocument/typeDefinition | | | | |
-| textDocument/implementation | | | | |
+| textDocument/implementation | ✅ | ✅ | ✅ | ✅ |
 | textDocument/references | ✅ | ✅ | ✅ | ✅ |
 | textDocument/documentHighlight | ✅ | ✅ | ✅ | ✅ |
 | textDocument/documentSymbol | ✅ | ✅ | ✅ | ✅ |
@@ -81,4 +86,21 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/prepareRename | | | | |
 | textDocument/foldingRange | ✅ | ✅ | ✅ | ✅ |
 
+## Custom Methods
 
+The following custom methods are also provided by the Dart LSP server:
+
+### dart/diagnosticServer Method
+
+Direction: Client -> Server
+Params: None
+Returns: `{ port: number }`
+
+Starts the analzyer diagnostics server (if not already running) and returns the port number it's listening on.
+
+### $/analyzerStatus Notification
+
+Direction: Server -> Client
+Params: `{ isAnalyzing: boolean }`
+
+Notifies the client when analysis starts/completes.

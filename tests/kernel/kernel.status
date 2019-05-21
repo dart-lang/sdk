@@ -23,11 +23,5 @@ unsorted/super_mixin_test: CompileTimeError
 [ $compiler == dart2js && $host_checked ]
 unsorted/super_mixin_test: Crash
 
-[ $compiler == dart2js && !$strong ]
-unsorted/types_test: RuntimeError
-
-[ $compiler != dartk && $compiler != dartkb && $compiler != dartkp && !$strong ]
-unsorted/invocation_errors_test/00: MissingCompileTimeError # This test has been tuned for dart 2.
-
 [ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # Deprecating all Dart1 modes of execution

@@ -5,6 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/lsp/lsp_packet_transformer_test.dart' as lsp_packet_transformer;
+import 'analyzer_status_test.dart' as analyzer_status;
 import 'change_workspace_folders_test.dart' as change_workspace_folders;
 import 'code_actions_assists_test.dart' as code_actions_assists;
 import 'code_actions_fixes_test.dart' as code_actions_fixes;
@@ -18,7 +19,9 @@ import 'file_modification_test.dart' as file_modification;
 import 'folding_test.dart' as folding;
 import 'format_test.dart' as format;
 import 'hover_test.dart' as hover;
+import 'implementation_test.dart' as implementation;
 import 'initialization_test.dart' as initialization;
+import 'mapping_test.dart' as mapping;
 import 'priority_files_test.dart' as priority_files;
 import 'references_test.dart' as references;
 import 'rename_test.dart' as rename;
@@ -28,6 +31,7 @@ import 'workspace_symbols_test.dart' as workspace_symbols;
 
 main() {
   defineReflectiveSuite(() {
+    analyzer_status.main();
     change_workspace_folders.main();
     code_actions_assists.main();
     code_actions_fixes.main();
@@ -40,9 +44,11 @@ main() {
     file_modification.main();
     folding.main();
     format.main();
-    lsp_packet_transformer.main();
     hover.main();
+    implementation.main();
     initialization.main();
+    lsp_packet_transformer.main();
+    mapping.main();
     priority_files.main();
     references.main();
     rename.main();

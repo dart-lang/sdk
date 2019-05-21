@@ -11,7 +11,7 @@ import 'bytecode_serialization.dart' show BufferedWriter, BufferedReader;
 In kernel binary, try blocks are encoded in the following way
 (using notation from pkg/kernel/binary.md):
 
-// Offset of a bytecode instruction, in DBC words.
+// Offset of a bytecode instruction.
 type BytecodeOffset = UInt;
 
 type TryBlock {

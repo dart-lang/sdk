@@ -4,10 +4,8 @@
 
 library types.constants;
 
-import '../../common.dart';
 import '../../constants/constant_system.dart' as constant_system;
 import '../../constants/values.dart';
-import '../../js_backend/js_backend.dart' show SyntheticConstantKind;
 import '../../world.dart' show JClosedWorld;
 import 'masks.dart';
 
@@ -50,21 +48,14 @@ class ConstantValueTypeMasks
   }
 
   @override
-  TypeMask visitSynthetic(
-      SyntheticConstantValue constant, JClosedWorld closedWorld) {
-    switch (constant.valueKind) {
-      case SyntheticConstantKind.DUMMY_INTERCEPTOR:
-        return constant.payload;
-      case SyntheticConstantKind.EMPTY_VALUE:
-        return constant.payload;
-      case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
-        return closedWorld.abstractValueDomain.intType;
-      case SyntheticConstantKind.NAME:
-        return closedWorld.abstractValueDomain.stringType;
-      default:
-        throw failedAt(CURRENT_ELEMENT_SPANNABLE,
-            "Unexpected DummyConstantKind: ${constant.toStructuredText()}.");
-    }
+  TypeMask visitAbstractValue(
+      AbstractValueConstantValue constant, JClosedWorld closedWorld) {
+    return constant.abstractValue;
+  }
+
+  @override
+  TypeMask visitJsName(JsNameConstantValue constant, JClosedWorld closedWorld) {
+    return closedWorld.abstractValueDomain.stringType;
   }
 
   @override

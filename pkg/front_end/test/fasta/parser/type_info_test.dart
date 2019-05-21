@@ -30,12 +30,10 @@ main() {
   });
 }
 
-ScannerResult scanString(String source,
-        {bool includeComments: false, Recover recover}) =>
+ScannerResult scanString(String source, {bool includeComments: false}) =>
     scanner.scanString(source,
         configuration: const ScannerConfiguration(enableTripleShift: true),
-        includeComments: includeComments,
-        recover: recover);
+        includeComments: includeComments);
 
 @reflectiveTest
 class NoTypeInfoTest {

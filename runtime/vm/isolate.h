@@ -16,6 +16,7 @@
 #include "platform/atomic.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
+#include "vm/constants_kbc.h"
 #include "vm/exceptions.h"
 #include "vm/fixed_cache.h"
 #include "vm/growable_array.h"
@@ -348,26 +349,22 @@ class Isolate : public BaseIsolate {
   IsolateSpawnState* spawn_state() const { return spawn_state_; }
   void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
 
-  Mutex* mutex() const { return mutex_; }
-  Mutex* symbols_mutex() const { return symbols_mutex_; }
-  Mutex* type_canonicalization_mutex() const {
-    return type_canonicalization_mutex_;
+  Mutex* mutex() { return &mutex_; }
+  Mutex* symbols_mutex() { return &symbols_mutex_; }
+  Mutex* type_canonicalization_mutex() { return &type_canonicalization_mutex_; }
+  Mutex* constant_canonicalization_mutex() {
+    return &constant_canonicalization_mutex_;
   }
-  Mutex* constant_canonicalization_mutex() const {
-    return constant_canonicalization_mutex_;
-  }
-  Mutex* megamorphic_lookup_mutex() const { return megamorphic_lookup_mutex_; }
+  Mutex* megamorphic_lookup_mutex() { return &megamorphic_lookup_mutex_; }
 
-  Mutex* kernel_data_lib_cache_mutex() const {
-    return kernel_data_lib_cache_mutex_;
-  }
-  Mutex* kernel_data_class_cache_mutex() const {
-    return kernel_data_class_cache_mutex_;
+  Mutex* kernel_data_lib_cache_mutex() { return &kernel_data_lib_cache_mutex_; }
+  Mutex* kernel_data_class_cache_mutex() {
+    return &kernel_data_class_cache_mutex_;
   }
 
   // Any access to constants arrays must be locked since mutator and
   // background compiler can access the arrays at the same time.
-  Mutex* kernel_constants_mutex() const { return kernel_constants_mutex_; }
+  Mutex* kernel_constants_mutex() { return &kernel_constants_mutex_; }
 
 #if !defined(PRODUCT)
   Debugger* debugger() const {
@@ -433,10 +430,8 @@ class Isolate : public BaseIsolate {
   Simulator* simulator() const { return simulator_; }
   void set_simulator(Simulator* value) { simulator_ = value; }
 
-  Monitor* spawn_count_monitor() const { return spawn_count_monitor_; }
-  intptr_t* spawn_count() { return &spawn_count_; }
-
   void IncrementSpawnCount();
+  void DecrementSpawnCount();
   void WaitForOutstandingSpawns();
 
   static void SetCreateCallback(Dart_IsolateCreateCallback cb) {
@@ -783,6 +778,23 @@ class Isolate : public BaseIsolate {
     return !unsafe_trust_strong_mode_types();
   }
 
+  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
+                "Cleanup support for old bytecode format versions");
+  bool is_using_old_bytecode_instructions() const {
+    return UsingOldBytecodeInstructionsBit::decode(isolate_flags_);
+  }
+  void set_is_using_old_bytecode_instructions(bool value) {
+    isolate_flags_ =
+        UsingOldBytecodeInstructionsBit::update(value, isolate_flags_);
+  }
+  bool is_using_new_bytecode_instructions() const {
+    return UsingNewBytecodeInstructionsBit::decode(isolate_flags_);
+  }
+  void set_is_using_new_bytecode_instructions(bool value) {
+    isolate_flags_ =
+        UsingNewBytecodeInstructionsBit::update(value, isolate_flags_);
+  }
+
   static void KillAllIsolates(LibMsgId msg_id);
   static void KillIfExists(Isolate* isolate, LibMsgId msg_id);
 
@@ -907,7 +919,13 @@ class Isolate : public BaseIsolate {
   V(Obfuscate)                                                                 \
   V(CompactionInProgress)                                                      \
   V(ShouldLoadVmService)                                                       \
-  V(UnsafeTrustStrongModeTypes)
+  V(UnsafeTrustStrongModeTypes)                                                \
+  V(UsingOldBytecodeInstructions)                                              \
+  V(UsingNewBytecodeInstructions)
+
+  static_assert(
+      KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
+      "Cleanup UsingOldBytecodeInstructions and UsingNewBytecodeInstructions");
 
   // Isolate specific flags.
   enum FlagBits {
@@ -997,14 +1015,14 @@ class Isolate : public BaseIsolate {
   ApiState* api_state_ = nullptr;
   Random random_;
   Simulator* simulator_ = nullptr;
-  Mutex* mutex_;          // Protects compiler stats.
-  Mutex* symbols_mutex_;  // Protects concurrent access to the symbol table.
-  Mutex* type_canonicalization_mutex_;      // Protects type canonicalization.
-  Mutex* constant_canonicalization_mutex_;  // Protects const canonicalization.
-  Mutex* megamorphic_lookup_mutex_;  // Protects megamorphic table lookup.
-  Mutex* kernel_data_lib_cache_mutex_;
-  Mutex* kernel_data_class_cache_mutex_;
-  Mutex* kernel_constants_mutex_;
+  Mutex mutex_;          // Protects compiler stats.
+  Mutex symbols_mutex_;  // Protects concurrent access to the symbol table.
+  Mutex type_canonicalization_mutex_;      // Protects type canonicalization.
+  Mutex constant_canonicalization_mutex_;  // Protects const canonicalization.
+  Mutex megamorphic_lookup_mutex_;         // Protects megamorphic table lookup.
+  Mutex kernel_data_lib_cache_mutex_;
+  Mutex kernel_data_class_cache_mutex_;
+  Mutex kernel_constants_mutex_;
   MessageHandler* message_handler_ = nullptr;
   IsolateSpawnState* spawn_state_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
@@ -1032,13 +1050,13 @@ class Isolate : public BaseIsolate {
   intptr_t loading_invalidation_gen_ = kInvalidGen;
 
   // Protect access to boxed_field_list_.
-  Mutex* field_list_mutex_;
+  Mutex field_list_mutex_;
   // List of fields that became boxed and that trigger deoptimization.
   RawGrowableObjectArray* boxed_field_list_;
 
   // This guards spawn_count_. An isolate cannot complete shutdown and be
   // destroyed while there are child isolates in the midst of a spawn.
-  Monitor* spawn_count_monitor_;
+  Monitor spawn_count_monitor_;
   intptr_t spawn_count_ = 0;
 
   HandlerInfoCache handler_info_cache_;
@@ -1130,13 +1148,9 @@ class IsolateSpawnState {
  public:
   IsolateSpawnState(Dart_Port parent_port,
                     Dart_Port origin_id,
-                    void* init_data,
                     const char* script_url,
                     const Function& func,
                     SerializedObjectBuffer* message_buffer,
-                    Monitor* spawn_count_monitor,
-                    intptr_t* spawn_count,
-                    const char* package_root,
                     const char* package_config,
                     bool paused,
                     bool errorsAreFatal,
@@ -1144,14 +1158,10 @@ class IsolateSpawnState {
                     Dart_Port onError,
                     const char* debug_name);
   IsolateSpawnState(Dart_Port parent_port,
-                    void* init_data,
                     const char* script_url,
-                    const char* package_root,
                     const char* package_config,
                     SerializedObjectBuffer* args_buffer,
                     SerializedObjectBuffer* message_buffer,
-                    Monitor* spawn_count_monitor,
-                    intptr_t* spawn_count,
                     bool paused,
                     bool errorsAreFatal,
                     Dart_Port onExit,
@@ -1164,11 +1174,9 @@ class IsolateSpawnState {
 
   Dart_Port parent_port() const { return parent_port_; }
   Dart_Port origin_id() const { return origin_id_; }
-  void* init_data() const { return init_data_; }
   Dart_Port on_exit_port() const { return on_exit_port_; }
   Dart_Port on_error_port() const { return on_error_port_; }
   const char* script_url() const { return script_url_; }
-  const char* package_root() const { return package_root_; }
   const char* package_config() const { return package_config_; }
   const char* library_url() const { return library_url_; }
   const char* class_name() const { return class_name_; }
@@ -1183,17 +1191,13 @@ class IsolateSpawnState {
   RawInstance* BuildArgs(Thread* thread);
   RawInstance* BuildMessage(Thread* thread);
 
-  void DecrementSpawnCount();
-
  private:
   Isolate* isolate_;
   Dart_Port parent_port_;
   Dart_Port origin_id_;
-  void* init_data_;
   Dart_Port on_exit_port_;
   Dart_Port on_error_port_;
   const char* script_url_;
-  const char* package_root_;
   const char* package_config_;
   const char* library_url_;
   const char* class_name_;
@@ -1201,11 +1205,6 @@ class IsolateSpawnState {
   const char* debug_name_;
   std::unique_ptr<Message> serialized_args_;
   std::unique_ptr<Message> serialized_message_;
-
-  // This counter tracks the number of outstanding calls to spawn by the parent
-  // isolate.
-  Monitor* spawn_count_monitor_;
-  intptr_t* spawn_count_;
 
   Dart_IsolateFlags isolate_flags_;
   bool paused_;

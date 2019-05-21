@@ -138,7 +138,11 @@ class Scanner {
     lineStarts.add(offset - column + 1);
   }
 
-  Token tokenize() {
+  /// The fasta parser handles error tokens produced by the scanner
+  /// but the old parser used by angular does not
+  /// and expects that scanner errors to be reported by this method.
+  /// Set [reportScannerErrors] `true` when using the old parser.
+  Token tokenize({bool reportScannerErrors = true}) {
     fasta.ScannerResult result = fasta.scanString(_contents,
         configuration: _featureSet != null
             ? buildConfig(_featureSet)
@@ -156,12 +160,19 @@ class Scanner {
 
     lineStarts.addAll(result.lineStarts);
     fasta.Token token = result.tokens;
-    // The default recovery strategy used by scanString
-    // places all error tokens at the head of the stream.
-    while (token.type == TokenType.BAD_INPUT) {
-      translateErrorToken(token, reportError);
-      token = token.next;
+
+    // The fasta parser handles error tokens produced by the scanner
+    // but the old parser used by angular does not
+    // and expects that scanner errors to be reported here
+    if (reportScannerErrors) {
+      // The default recovery strategy used by scanString
+      // places all error tokens at the head of the stream.
+      while (token.type == TokenType.BAD_INPUT) {
+        translateErrorToken(token, reportError);
+        token = token.next;
+      }
     }
+
     firstToken = token;
     // Update all token offsets based upon the reader's starting offset
     if (_readerOffset != -1) {
@@ -188,6 +199,8 @@ class Scanner {
       featureSet == null
           ? fasta.ScannerConfiguration()
           : fasta.ScannerConfiguration(
+              enableExtensionMethods:
+                  featureSet.isEnabled(Feature.extension_methods),
               enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
               enableNonNullable: featureSet.isEnabled(Feature.non_nullable));
 }

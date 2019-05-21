@@ -775,7 +775,10 @@ void FlowGraphCompiler::EmitFrameEntry() {
     __ cmpl(FieldAddress(function_reg, Function::usage_counter_offset()),
             Immediate(GetOptimizationThreshold()));
     ASSERT(function_reg == EBX);
-    __ J(GREATER_EQUAL, StubCode::OptimizeFunction());
+    Label dont_optimize;
+    __ j(LESS, &dont_optimize, Assembler::kNearJump);
+    __ jmp(Address(THR, Thread::optimize_entry_offset()));
+    __ Bind(&dont_optimize);
   }
   __ Comment("Enter frame");
   if (flow_graph().IsCompiledForOsr()) {
@@ -788,14 +791,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
   }
 }
 
-void FlowGraphCompiler::CompileGraph() {
-  InitCompiler();
-
-  if (TryIntrinsify()) {
-    // Skip regular code generation.
-    return;
-  }
-
+void FlowGraphCompiler::EmitPrologue() {
   EmitFrameEntry();
 
   // In unoptimized code, initialize (non-argument) stack allocated slots.
@@ -823,11 +819,18 @@ void FlowGraphCompiler::CompileGraph() {
   }
 
   EndCodeSourceRange(TokenPosition::kDartCodePrologue);
+}
+
+void FlowGraphCompiler::CompileGraph() {
+  InitCompiler();
+
   ASSERT(!block_order().is_empty());
   VisitBlocks();
 
-  __ int3();
-  GenerateDeferredCode();
+  if (!skip_body_compilation()) {
+    __ int3();
+    GenerateDeferredCode();
+  }
 }
 
 void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
@@ -928,7 +931,8 @@ void FlowGraphCompiler::EmitInstanceCall(const Code& stub,
   // Load receiver into EBX.
   __ movl(EBX, Address(ESP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
   __ LoadObject(ECX, ic_data);
-  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs);
+  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs,
+                   Code::EntryKind::kMonomorphic);
   __ Drop(ic_data.CountWithTypeArgs());
 }
 
@@ -951,7 +955,6 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ movl(EBX, Address(ESP, (args_desc.Count() - 1) * kWordSize));
   __ LoadObject(ECX, cache);
   __ call(Address(THR, Thread::megamorphic_call_checked_entry_offset()));
-  __ call(EBX);
 
   AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone, token_pos);
   RecordSafepoint(locs, slow_path_argument_count);

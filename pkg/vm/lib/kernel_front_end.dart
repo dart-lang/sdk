@@ -264,6 +264,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       outputFileName,
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
+      enableAsserts: enableAsserts,
       emitBytecodeSourcePositions: emitBytecodeSourcePositions,
       emitBytecodeAnnotations: emitBytecodeAnnotations,
       dropAST: dropAST,
@@ -317,6 +318,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
     await runWithFrontEndCompilerContext(source, options, component, () {
       generateBytecode(component,
+          enableAsserts: enableAsserts,
           emitSourcePositions: emitBytecodeSourcePositions,
           emitAnnotations: emitBytecodeAnnotations,
           useFutureBytecodeFormat: useFutureBytecodeFormat,
@@ -532,11 +534,13 @@ bool parseCommandLineDefines(
 }
 
 /// Create front-end target with given name.
-Target createFrontEndTarget(String targetName) {
+Target createFrontEndTarget(String targetName,
+    {bool trackWidgetCreation = false}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
-  final TargetFlags targetFlags = new TargetFlags();
+  final TargetFlags targetFlags =
+      new TargetFlags(trackWidgetCreation: trackWidgetCreation);
   return getTarget(targetName, targetFlags);
 }
 
@@ -612,6 +616,10 @@ Future<Uri> convertToPackageUri(
   }
   // file:///a/b/x/y/main.dart -> package:x.y/main.dart
   for (var line in packages) {
+    if (line.isEmpty || line.startsWith("#")) {
+      continue;
+    }
+
     final colon = line.indexOf(':');
     if (colon == -1) {
       continue;
@@ -646,6 +654,7 @@ Future writeOutputSplitByPackages(
   String outputFileName, {
   Map<String, String> environmentDefines,
   bool genBytecode: false,
+  bool enableAsserts: true,
   bool emitBytecodeSourcePositions: false,
   bool emitBytecodeAnnotations: false,
   bool dropAST: false,
@@ -707,6 +716,7 @@ Future writeOutputSplitByPackages(
         generateBytecode(component,
             libraries: libraries,
             hierarchy: hierarchy,
+            enableAsserts: enableAsserts,
             emitSourcePositions: emitBytecodeSourcePositions,
             emitAnnotations: emitBytecodeAnnotations,
             useFutureBytecodeFormat: useFutureBytecodeFormat,

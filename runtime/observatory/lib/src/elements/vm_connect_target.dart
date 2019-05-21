@@ -14,7 +14,7 @@ class TargetEvent {
   TargetEvent(this.target);
 }
 
-class VMConnectTargetElement extends HtmlElement implements Renderable {
+class VMConnectTargetElement extends CustomElement implements Renderable {
   static const tag = const Tag<VMConnectTargetElement>('vm-connect-target');
 
   RenderingScheduler<VMConnectTargetElement> _r;
@@ -38,14 +38,14 @@ class VMConnectTargetElement extends HtmlElement implements Renderable {
       {bool current: false, RenderingQueue queue}) {
     assert(target != null);
     assert(current != null);
-    VMConnectTargetElement e = document.createElement(tag.name);
+    VMConnectTargetElement e = new VMConnectTargetElement.created();
     e._r = new RenderingScheduler<VMConnectTargetElement>(e, queue: queue);
     e._target = target;
     e._current = current;
     return e;
   }
 
-  VMConnectTargetElement.created() : super.created();
+  VMConnectTargetElement.created() : super.created(tag);
 
   @override
   void attached() {

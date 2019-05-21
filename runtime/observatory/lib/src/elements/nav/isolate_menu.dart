@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 
-class NavIsolateMenuElement extends HtmlElement implements Renderable {
+class NavIsolateMenuElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavIsolateMenuElement>('nav-isolate-menu',
       dependencies: const [NavMenuItemElement.tag]);
 
@@ -36,14 +36,14 @@ class NavIsolateMenuElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(events != null);
-    NavIsolateMenuElement e = document.createElement(tag.name);
+    NavIsolateMenuElement e = new NavIsolateMenuElement.created();
     e._r = new RenderingScheduler<NavIsolateMenuElement>(e, queue: queue);
     e._isolate = isolate;
     e._events = events;
     return e;
   }
 
-  NavIsolateMenuElement.created() : super.created();
+  NavIsolateMenuElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -70,27 +70,38 @@ class NavIsolateMenuElement extends HtmlElement implements Renderable {
   void render() {
     final content = <Element>[
       new NavMenuItemElement('debugger',
-          queue: _r.queue, link: Uris.debugger(isolate)),
+              queue: _r.queue, link: Uris.debugger(isolate))
+          .element,
       new NavMenuItemElement('class hierarchy',
-          queue: _r.queue, link: Uris.classTree(isolate)),
+              queue: _r.queue, link: Uris.classTree(isolate))
+          .element,
       new NavMenuItemElement('cpu profile',
-          queue: _r.queue, link: Uris.cpuProfiler(isolate)),
+              queue: _r.queue, link: Uris.cpuProfiler(isolate))
+          .element,
       new NavMenuItemElement('cpu profile (table)',
-          queue: _r.queue, link: Uris.cpuProfilerTable(isolate)),
+              queue: _r.queue, link: Uris.cpuProfilerTable(isolate))
+          .element,
       new NavMenuItemElement('allocation profile',
-          queue: _r.queue, link: Uris.allocationProfiler(isolate)),
+              queue: _r.queue, link: Uris.allocationProfiler(isolate))
+          .element,
       new NavMenuItemElement('heap snapshot',
-          queue: _r.queue, link: Uris.heapSnapshot(isolate)),
+              queue: _r.queue, link: Uris.heapSnapshot(isolate))
+          .element,
       new NavMenuItemElement('heap map',
-          queue: _r.queue, link: Uris.heapMap(isolate)),
+              queue: _r.queue, link: Uris.heapMap(isolate))
+          .element,
       new NavMenuItemElement('metrics',
-          queue: _r.queue, link: Uris.metrics(isolate)),
+              queue: _r.queue, link: Uris.metrics(isolate))
+          .element,
       new NavMenuItemElement('persistent handles',
-          queue: _r.queue, link: Uris.persistentHandles(isolate)),
+              queue: _r.queue, link: Uris.persistentHandles(isolate))
+          .element,
       new NavMenuItemElement('ports',
-          queue: _r.queue, link: Uris.ports(isolate)),
+              queue: _r.queue, link: Uris.ports(isolate))
+          .element,
       new NavMenuItemElement('logging',
-          queue: _r.queue, link: Uris.logging(isolate)),
+              queue: _r.queue, link: Uris.logging(isolate))
+          .element,
     ]..addAll(_content);
     children = <Element>[
       navMenu(isolate.name, content: content, link: Uris.inspect(isolate))

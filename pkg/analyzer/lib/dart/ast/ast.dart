@@ -5143,6 +5143,9 @@ abstract class TypeParameter implements Declaration {
   /// Set the upper bound for legal arguments to the given [type].
   void set bound(TypeAnnotation type);
 
+  @override
+  TypeParameterElement get declaredElement;
+
   /// Return the token representing the 'extends' keyword, or `null` if there is
   /// no explicit upper bound.
   Token get extendsKeyword;

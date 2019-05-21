@@ -121,6 +121,19 @@ main() {
     expect(otherFileResult.errors, isEmpty);
   }
 
+  test_fromEnvironment_assertInitializer() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A(int x) : assert(x > 5);
+}
+
+main() {
+  var c = const A(int.fromEnvironment('x'));
+  print(c);
+}
+''');
+  }
+
   test_ifElement_false_thenNotEvaluated() async {
     await assertErrorsInCode(
         '''
@@ -211,6 +224,18 @@ const c = const T.eq(1, const Object());
 class T {
   final Object value;
   const T.eq(Object o1, Object o2) : value = o1 == o2;
+}
+''');
+  }
+
+  test_fromEnvironment_ifElement() async {
+    await assertNoErrorsInCode('''
+const b = bool.fromEnvironment('foo');
+
+main() {
+  const l1 = [1, 2, 3];
+  const l2 = [if (b) ...l1];
+  print(l2);
 }
 ''');
   }

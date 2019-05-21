@@ -119,7 +119,7 @@ class TokenCounter extends BaseVisitor {
 }
 
 abstract class ReferenceCountedAstNode implements Node {
-  markSeen(TokenCounter visitor);
+  void markSeen(TokenCounter visitor);
 }
 
 /// Represents the LiteralString resulting from unparsing [expression]. The

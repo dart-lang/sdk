@@ -146,6 +146,17 @@ compiler_sources = [
   "stub_code_compiler_x64.cc",
 ]
 
+# The most common way to include assembly files in C projects is to have
+# separate assembly files per architecture and operating system (for example
+# boringssl).
+#
+# Not that this diverges from our convention to build every file on every OS
+# but have ifdef guards which make the files empty on some configurations.
+if (is_linux || is_mac) {
+  # MASM on Windows does not support c preproccesor style flags.
+  compiler_sources += [ "ffi_dbc_trampoline_x64_linux_mac.S" ]
+}
+
 compiler_sources_tests = [
   "assembler/assembler_arm64_test.cc",
   "assembler/assembler_arm_test.cc",

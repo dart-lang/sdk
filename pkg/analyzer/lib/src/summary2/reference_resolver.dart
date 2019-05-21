@@ -14,7 +14,6 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
-import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -30,18 +29,22 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 /// the type is set, otherwise we keep it empty, so we will attempt to infer
 /// it later).
 class ReferenceResolver extends ThrowingAstVisitor<void> {
-  final LinkingBundleContext linkingContext;
   final NodesToBuildType nodesToBuildType;
   final LinkedElementFactory elementFactory;
   final LibraryElement _libraryElement;
   final Reference unitReference;
   final bool nnbd;
 
+  /// The depth-first number of the next [GenericFunctionType] node.
+  int _nextGenericFunctionTypeId = 0;
+
   Reference reference;
   Scope scope;
 
+  /// Is `true` if the current [ClassDeclaration] has a const constructor.
+  bool _hasConstConstructor = false;
+
   ReferenceResolver(
-    this.linkingContext,
     this.nodesToBuildType,
     this.elementFactory,
     this._libraryElement,
@@ -67,6 +70,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = new TypeParameterScope(scope, element);
     scope = new ClassScope(scope, element);
     LinkingNodeContext(node, scope);
+
+    _hasConstConstructor = false;
+    for (var member in node.members) {
+      if (member is ConstructorDeclaration && member.constKeyword != null) {
+        _hasConstConstructor = true;
+        break;
+      }
+    }
 
     node.typeParameters?.accept(this);
     node.extendsClause?.accept(this);
@@ -153,6 +164,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     node.fields.accept(this);
+
+    if (node.fields.isConst ||
+        !node.isStatic && node.fields.isFinal && _hasConstConstructor) {
+      var visitor = _SetGenericFunctionTypeIdVisitor(this);
+      node.fields.variables.accept(visitor);
+    }
   }
 
   @override
@@ -261,7 +278,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
     var outerReference = reference;
 
-    var id = linkingContext.nextGenericFunctionTypeId();
+    var id = _nextGenericFunctionTypeId++;
     LazyAst.setGenericFunctionTypeId(node, id);
 
     var containerRef = unitReference.getChild('@genericFunctionType');
@@ -389,6 +406,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     node.variables.accept(this);
+    if (node.variables.isConst) {
+      var visitor = _SetGenericFunctionTypeIdVisitor(this);
+      node.variables.variables.accept(visitor);
+    }
   }
 
   @override
@@ -485,5 +506,22 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     } else {
       return NullabilitySuffix.star;
     }
+  }
+}
+
+/// For consistency we set identifiers for [GenericFunctionType]s in constant
+/// variable initializers, and instance final fields of classes with constant
+/// constructors.
+class _SetGenericFunctionTypeIdVisitor extends RecursiveAstVisitor<void> {
+  final ReferenceResolver resolver;
+
+  _SetGenericFunctionTypeIdVisitor(this.resolver);
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    var id = resolver._nextGenericFunctionTypeId++;
+    LazyAst.setGenericFunctionTypeId(node, id);
+
+    super.visitGenericFunctionType(node);
   }
 }

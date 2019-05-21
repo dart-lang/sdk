@@ -7,24 +7,12 @@ import 'package:analysis_server/src/nullability/constraint_gatherer.dart';
 import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
-import 'package:analysis_server/src/nullability/nullability_graph.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
-import 'package:analysis_server/src/nullability/unit_propagation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
-
-/// Type of a [ConstraintVariable] representing the addition of a null check.
-class CheckExpression extends ConstraintVariable {
-  final int offset;
-
-  CheckExpression(Expression expression) : offset = expression.end;
-
-  @override
-  toString() => 'checkNotNull($offset)';
-}
 
 /// Records information about how a conditional expression or statement might
 /// need to be modified.
@@ -146,11 +134,9 @@ class NullabilityMigration {
 
   final NullabilityMigrationAssumptions assumptions;
 
-  final _variables = Variables();
+  final Variables _variables;
 
-  final _constraints = Solver();
-
-  final _graph = NullabilityGraph();
+  final NullabilityGraph _graph;
 
   /// Prepares to perform nullability migration.
   ///
@@ -160,22 +146,31 @@ class NullabilityMigration {
   /// is fully implemented.
   NullabilityMigration(
       {bool permissive: false,
-      this.assumptions: const NullabilityMigrationAssumptions()})
-      : _permissive = permissive;
+      NullabilityMigrationAssumptions assumptions:
+          const NullabilityMigrationAssumptions()})
+      : this._(permissive, assumptions, NullabilityGraph());
+
+  NullabilityMigration._(this._permissive, this.assumptions, this._graph)
+      : _variables = Variables(_graph);
 
   Map<Source, List<PotentialModification>> finish() {
-    _constraints.applyHeuristics();
+    _graph.propagate();
     return _variables.getPotentialModifications();
   }
 
-  void prepareInput(CompilationUnit unit) {
+  void prepareInput(CompilationUnit unit, TypeProvider typeProvider) {
     unit.accept(ConstraintVariableGatherer(
-        _variables, unit.declaredElement.source, _permissive, assumptions));
+        _variables,
+        unit.declaredElement.source,
+        _permissive,
+        assumptions,
+        _graph,
+        typeProvider));
   }
 
   void processInput(CompilationUnit unit, TypeProvider typeProvider) {
-    unit.accept(ConstraintGatherer(typeProvider, _variables, _constraints,
-        _graph, unit.declaredElement.source, _permissive, assumptions));
+    unit.accept(ConstraintGatherer(typeProvider, _variables, _graph,
+        unit.declaredElement.source, _permissive, assumptions));
   }
 }
 
@@ -267,13 +262,27 @@ abstract class PotentialModification {
 class Variables implements VariableRecorder, VariableRepository {
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
+  final _decoratedTypeAnnotations =
+      <Source, Map<int, DecoratedTypeAnnotation>>{};
+
   final _potentialModifications = <Source, List<PotentialModification>>{};
+
+  final NullabilityGraph _graph;
+
+  Variables(this._graph);
 
   @override
   DecoratedType decoratedElementType(Element element, {bool create: false}) =>
       _decoratedElementTypes[element] ??= create
-          ? DecoratedType.forElement(element)
+          ? DecoratedType.forElement(element, _graph)
           : throw StateError('No element found');
+
+  @override
+  DecoratedType decoratedTypeAnnotation(
+      Source source, TypeAnnotation typeAnnotation) {
+    return _decoratedTypeAnnotations[source]
+        [_uniqueOffsetForTypeAnnotation(typeAnnotation)];
+  }
 
   Map<Source, List<PotentialModification>> getPotentialModifications() =>
       _potentialModifications;
@@ -294,6 +303,8 @@ class Variables implements VariableRecorder, VariableRepository {
   void recordDecoratedTypeAnnotation(
       Source source, TypeAnnotation node, DecoratedTypeAnnotation type) {
     _addPotentialModification(source, type);
+    (_decoratedTypeAnnotations[source] ??=
+        {})[_uniqueOffsetForTypeAnnotation(node)] = type;
   }
 
   @override
@@ -360,6 +371,11 @@ class Variables implements VariableRecorder, VariableRepository {
       Source source, PotentialModification potentialModification) {
     (_potentialModifications[source] ??= []).add(potentialModification);
   }
+
+  int _uniqueOffsetForTypeAnnotation(TypeAnnotation typeAnnotation) =>
+      typeAnnotation is GenericFunctionType
+          ? typeAnnotation.functionKeyword.offset
+          : typeAnnotation.offset;
 }
 
 /// Helper object used by [ConditionalModification] to keep track of AST nodes

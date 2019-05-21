@@ -572,10 +572,10 @@ class FragmentEmitter {
   final CompilerOptions _options;
   final DumpInfoTask _dumpInfoTask;
   final Namer _namer;
+  final Emitter _emitter;
   final ConstantEmitter _constantEmitter;
   final ModelEmitter _modelEmitter;
   final JClosedWorld _closedWorld;
-  final CodegenInputs _codegen;
   final CodegenWorld _codegenWorld;
 
   js.Name _call0Name, _call1Name, _call2Name;
@@ -590,14 +590,14 @@ class FragmentEmitter {
       this._options,
       this._dumpInfoTask,
       this._namer,
+      this._emitter,
       this._constantEmitter,
       this._modelEmitter,
       this._closedWorld,
-      this._codegen,
       this._codegenWorld);
 
   js.Expression generateEmbeddedGlobalAccess(String global) =>
-      _modelEmitter.generateEmbeddedGlobalAccess(global);
+      _emitter.generateEmbeddedGlobalAccess(global);
 
   js.Expression generateConstantReference(ConstantValue value) =>
       _modelEmitter.generateConstantReference(value);
@@ -629,11 +629,11 @@ class FragmentEmitter {
       // TODO(29455): 'hunkHelpers' displaces other names, so don't minify it.
       'hunkHelpers': js.VariableDeclaration('hunkHelpers', allowRename: false),
       'directAccessTestExpression': js.js(directAccessTestExpression),
-      'cyclicThrow': _codegen.emitter
+      'cyclicThrow': _emitter
           .staticFunctionAccess(_closedWorld.commonElements.cyclicThrowHelper),
-      'operatorIsPrefix': js.string(_namer.operatorIsPrefix),
+      'operatorIsPrefix': js.string(_namer.fixedNames.operatorIsPrefix),
       'tearOffCode': new js.Block(buildTearOffCode(
-          _options, _codegen.emitter, _namer, _closedWorld.commonElements)),
+          _options, _emitter, _namer, _closedWorld.commonElements)),
       'embeddedTypes': generateEmbeddedGlobalAccess(TYPES),
       'embeddedInterceptorTags':
           generateEmbeddedGlobalAccess(INTERCEPTORS_BY_TAG),
@@ -645,10 +645,10 @@ class FragmentEmitter {
       'staticState': js.js('#', _namer.staticStateHolder),
       'constantHolderReference': buildConstantHolderReference(program),
       'holders': holderCode.statements,
-      'callName': js.string(_namer.callNameField),
+      'callName': js.string(_namer.fixedNames.callNameField),
       'stubName': js.string(_namer.stubNameField),
-      'argumentCount': js.string(_namer.requiredParameterField),
-      'defaultArgumentValues': js.string(_namer.defaultValuesField),
+      'argumentCount': js.string(_namer.fixedNames.requiredParameterField),
+      'defaultArgumentValues': js.string(_namer.fixedNames.defaultValuesField),
       'deferredGlobal': ModelEmitter.deferredInitializersGlobal,
       'hasSoftDeferredClasses': program.hasSoftDeferredClasses,
       'softId': js.string(softDeferredId),
@@ -817,8 +817,8 @@ class FragmentEmitter {
     for (Library library in fragment.libraries) {
       for (StaticMethod method in library.statics) {
         assert(!method.holder.isStaticStateHolder);
-        var staticMethod = emitStaticMethod(method);
-        staticMethod.forEach((key, value) {
+        Map<js.Name, js.Expression> propertyMap = emitStaticMethod(method);
+        propertyMap.forEach((js.Name key, js.Expression value) {
           var property = new js.Property(js.quoteName(key), value);
           holderCode[method.holder].add(property);
           registerEntityAst(method.element, property, library: library.element);
@@ -826,7 +826,7 @@ class FragmentEmitter {
       }
       for (Class cls in library.classes) {
         assert(!cls.holder.isStaticStateHolder);
-        var constructor = emitConstructor(cls);
+        js.Expression constructor = emitConstructor(cls);
         var property = new js.Property(js.quoteName(cls.name), constructor);
         registerEntityAst(cls.element, property, library: library.element);
         holderCode[cls.holder].add(property);
@@ -1072,14 +1072,15 @@ class FragmentEmitter {
       // prototype for common values.
 
       // Closures taking exactly one argument are common.
+      properties.add(js.Property(js.string(_namer.fixedNames.callCatchAllName),
+          js.quoteName(call1Name)));
       properties.add(js.Property(
-          js.string(_namer.callCatchAllName), js.quoteName(call1Name)));
-      properties.add(
-          js.Property(js.string(_namer.requiredParameterField), js.number(1)));
+          js.string(_namer.fixedNames.requiredParameterField), js.number(1)));
 
       // Most closures have no optional arguments.
       properties.add(js.Property(
-          js.string(_namer.defaultValuesField), new js.LiteralNull()));
+          js.string(_namer.fixedNames.defaultValuesField),
+          new js.LiteralNull()));
     }
 
     return new js.ObjectInitializer(properties);
@@ -1189,12 +1190,12 @@ class FragmentEmitter {
           js.Name applyName = method.applyIndex == 0
               ? method.name
               : method.parameterStubs[method.applyIndex - 1].name;
-          properties[js.string(_namer.callCatchAllName)] =
+          properties[js.string(_namer.fixedNames.callCatchAllName)] =
               js.quoteName(applyName);
         }
         // Common case of '1' is stored on the Closure class.
         if (method.requiredParameterCount != 1 || forceAdd) {
-          properties[js.string(_namer.requiredParameterField)] =
+          properties[js.string(_namer.fixedNames.requiredParameterField)] =
               js.number(method.requiredParameterCount);
         }
 
@@ -1203,7 +1204,8 @@ class FragmentEmitter {
         // Default values property of `null` is stored on the common JS
         // superclass.
         if (defaultValues is! js.LiteralNull || forceAdd) {
-          properties[js.string(_namer.defaultValuesField)] = defaultValues;
+          properties[js.string(_namer.fixedNames.defaultValuesField)] =
+              defaultValues;
         }
       }
     }

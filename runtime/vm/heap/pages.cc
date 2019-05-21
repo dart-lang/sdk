@@ -225,7 +225,7 @@ static const intptr_t kConservativeInitialMarkSpeed = 20;
 PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
     : freelist_(),
       heap_(heap),
-      pages_lock_(new Mutex()),
+      pages_lock_(),
       pages_(NULL),
       pages_tail_(NULL),
       exec_pages_(NULL),
@@ -237,7 +237,7 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       max_capacity_in_words_(max_capacity_in_words),
       usage_(),
       allocated_black_in_words_(0),
-      tasks_lock_(new Monitor()),
+      tasks_lock_(),
       tasks_(0),
       concurrent_marker_tasks_(0),
       phase_(kDone),
@@ -269,8 +269,6 @@ PageSpace::~PageSpace() {
   FreePages(exec_pages_);
   FreePages(large_pages_);
   FreePages(image_pages_);
-  delete pages_lock_;
-  delete tasks_lock_;
   ASSERT(marker_ == NULL);
 }
 
@@ -282,7 +280,7 @@ intptr_t PageSpace::LargePageSizeInWordsFor(intptr_t size) {
 
 HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
   {
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     if (!CanIncreaseCapacityInWordsLocked(kPageSizeInWords)) {
       return NULL;
     }
@@ -300,7 +298,7 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
     return NULL;
   }
 
-  MutexLocker ml(pages_lock_);
+  MutexLocker ml(&pages_lock_);
   if (link) {
     if (!is_exec) {
       if (pages_ == NULL) {
@@ -336,7 +334,7 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
 HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
   const intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
   {
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     if (!CanIncreaseCapacityInWordsLocked(page_size_in_words)) {
       return NULL;
     }
@@ -379,7 +377,7 @@ void PageSpace::TruncateLargePage(HeapPage* page,
 void PageSpace::FreePage(HeapPage* page, HeapPage* previous_page) {
   bool is_exec = (page->type() == HeapPage::kExecutable);
   {
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     IncreaseCapacityInWordsLocked(-(page->memory_->size() >> kWordSizeLog2));
     if (!is_exec) {
       // Remove the page from the list of data pages.
@@ -553,7 +551,7 @@ void PageSpace::FreeExternal(intptr_t size) {
 class ExclusivePageIterator : ValueObject {
  public:
   explicit ExclusivePageIterator(const PageSpace* space)
-      : space_(space), ml_(space->pages_lock_) {
+      : space_(space), ml_(&space->pages_lock_) {
     space_->MakeIterable();
     list_ = kRegular;
     page_ = space_->pages_;
@@ -605,7 +603,7 @@ class ExclusivePageIterator : ValueObject {
 class ExclusiveCodePageIterator : ValueObject {
  public:
   explicit ExclusiveCodePageIterator(const PageSpace* space)
-      : space_(space), ml_(space->pages_lock_) {
+      : space_(space), ml_(&space->pages_lock_) {
     space_->MakeIterable();
     page_ = space_->exec_pages_;
   }
@@ -627,7 +625,7 @@ class ExclusiveCodePageIterator : ValueObject {
 class ExclusiveLargePageIterator : ValueObject {
  public:
   explicit ExclusiveLargePageIterator(const PageSpace* space)
-      : space_(space), ml_(space->pages_lock_) {
+      : space_(space), ml_(&space->pages_lock_) {
     space_->MakeIterable();
     page_ = space_->large_pages_;
   }
@@ -884,7 +882,7 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
     // {"object_start": "0x...", "objects": [size, class id, size, ...]}
     // TODO(19445): Use ExclusivePageIterator once HeapMap supports large pages.
     HeapIterationScope iteration(Thread::Current());
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     MakeIterable();
     JSONArray all_pages(&heap_map, "pages");
     for (HeapPage* page = pages_; page != NULL; page = page->next()) {
@@ -909,7 +907,7 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
 
 void PageSpace::WriteProtectCode(bool read_only) {
   if (FLAG_write_protect_code) {
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     NoSafepointScope no_safepoint;
     // No need to go through all of the data pages first.
     HeapPage* page = exec_pages_;
@@ -1236,7 +1234,7 @@ void PageSpace::ConcurrentSweep(Isolate* isolate) {
 void PageSpace::Compact(Thread* thread) {
   thread->isolate()->set_compaction_in_progress(true);
   GCCompactor compactor(thread, heap_);
-  compactor.Compact(pages_, &freelist_[HeapPage::kData], pages_lock_);
+  compactor.Compact(pages_, &freelist_[HeapPage::kData], &pages_lock_);
   thread->isolate()->set_compaction_in_progress(false);
 
   if (FLAG_verify_after_gc) {
@@ -1330,7 +1328,7 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
     page->type_ = HeapPage::kData;
   }
 
-  MutexLocker ml(pages_lock_);
+  MutexLocker ml(&pages_lock_);
   page->next_ = image_pages_;
   image_pages_ = page;
 }

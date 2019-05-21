@@ -14,7 +14,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/utils.dart';
 
-class MemorySnapshotElement extends HtmlElement implements Renderable {
+class MemorySnapshotElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<MemorySnapshotElement>('memory-snapshot', dependencies: const [
     ClassRefElement.tag,
@@ -42,7 +42,7 @@ class MemorySnapshotElement extends HtmlElement implements Renderable {
     assert(editor != null);
     assert(snapshots != null);
     assert(objects != null);
-    MemorySnapshotElement e = document.createElement(tag.name);
+    MemorySnapshotElement e = new MemorySnapshotElement.created();
     e._r = new RenderingScheduler<MemorySnapshotElement>(e, queue: queue);
     e._isolate = isolate;
     e._editor = editor;
@@ -51,7 +51,7 @@ class MemorySnapshotElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  MemorySnapshotElement.created() : super.created();
+  MemorySnapshotElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -161,7 +161,7 @@ class MemorySnapshotElement extends HtmlElement implements Renderable {
         ..classes = ['content-centered-big', 'explanation']
         ..text = text
         ..title = text,
-      _tree
+      _tree.element
     ];
   }
 

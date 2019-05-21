@@ -9,7 +9,7 @@
 library spawn_tests;
 
 import 'dart:isolate';
-import 'package:expect/async_minitest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 /* Dummy import so multi-test copies the file.
 import 'spawn_uri_child_isolate.dart';

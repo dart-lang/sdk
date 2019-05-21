@@ -21,7 +21,7 @@ class KernelInvalidTypeBuilder
   final bool suppressMessage;
 
   KernelInvalidTypeBuilder(String name, this.message,
-      {this.context, this.suppressMessage: false})
+      {this.context, this.suppressMessage: true})
       : super(name, message.charOffset, message.uri);
 
   @override

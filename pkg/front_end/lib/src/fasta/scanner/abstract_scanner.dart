@@ -51,14 +51,17 @@ abstract class AbstractScanner implements Scanner {
   /// based upon the specified language version.
   final LanguageVersionChanged languageVersionChanged;
 
-  /// Experimental flag for enabling scanning of `>>>`.
-  /// See https://github.com/dart-lang/language/issues/61
-  /// and https://github.com/dart-lang/language/issues/60
-  bool _enableTripleShift = false;
+  /// Experimental flag for enabling scanning of the `extension` token.
+  bool _enableExtensionMethods = false;
 
   /// Experimental flag for enabling scanning of NNBD tokens
   /// such as 'required' and 'late'.
   bool _enableNonNullable = false;
+
+  /// Experimental flag for enabling scanning of `>>>`.
+  /// See https://github.com/dart-lang/language/issues/61
+  /// and https://github.com/dart-lang/language/issues/60
+  bool _enableTripleShift = false;
 
   /**
    * The string offset for the next token that will be created.
@@ -108,6 +111,7 @@ abstract class AbstractScanner implements Scanner {
   @override
   set configuration(ScannerConfiguration config) {
     if (config != null) {
+      _enableExtensionMethods = config.enableExtensionMethods;
       _enableNonNullable = config.enableNonNullable;
       _enableTripleShift = config.enableTripleShift;
     }
@@ -1135,6 +1139,9 @@ abstract class AbstractScanner implements Scanner {
     if (state == null || state.keyword == null) {
       return tokenizeIdentifier(next, start, allowDollar);
     }
+    if (!_enableExtensionMethods && state.keyword == Keyword.EXTENSION) {
+      return tokenizeIdentifier(next, start, allowDollar);
+    }
     if (!_enableNonNullable &&
         (state.keyword == Keyword.LATE || state.keyword == Keyword.REQUIRED)) {
       return tokenizeIdentifier(next, start, allowDollar);
@@ -1533,6 +1540,9 @@ class ScannerConfiguration {
   static const classic = ScannerConfiguration();
   static const nonNullable = ScannerConfiguration(enableNonNullable: true);
 
+  /// Experimental flag for enabling scanning of the `extension` keyword.
+  final bool enableExtensionMethods;
+
   /// Experimental flag for enabling scanning of NNBD tokens
   /// such as 'required' and 'late'
   final bool enableNonNullable;
@@ -1543,8 +1553,10 @@ class ScannerConfiguration {
   final bool enableTripleShift;
 
   const ScannerConfiguration({
-    bool enableTripleShift,
+    bool enableExtensionMethods,
     bool enableNonNullable,
-  })  : this.enableTripleShift = enableTripleShift ?? false,
-        this.enableNonNullable = enableNonNullable ?? false;
+    bool enableTripleShift,
+  })  : this.enableExtensionMethods = enableExtensionMethods ?? false,
+        this.enableNonNullable = enableNonNullable ?? false,
+        this.enableTripleShift = enableTripleShift ?? false;
 }

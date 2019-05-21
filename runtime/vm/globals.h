@@ -161,6 +161,17 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 
 #endif  // !defined(HOST_OS_WINDOWS))
 
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_X64)
+#define TARGET_USES_OBJECT_POOL 1
+#endif
+
+#if defined(DART_PRECOMPILER) &&                                               \
+    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM) ||                   \
+     defined(TARGET_ARCH_ARM64))
+#define DART_SUPPORT_PRECOMPILATION 1
+#endif
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_GLOBALS_H_

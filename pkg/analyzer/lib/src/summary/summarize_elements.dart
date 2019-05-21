@@ -35,6 +35,8 @@ class PackageBundleAssembler {
   final Map<String, UnlinkedUnitBuilder> _unlinkedUnitMap =
       <String, UnlinkedUnitBuilder>{};
 
+  LinkedNodeBundleBuilder _bundle2;
+
   void addLinkedLibrary(String uri, LinkedLibraryBuilder library) {
     _linkedLibraries.add(library);
     _linkedLibraryUris.add(uri);
@@ -60,6 +62,14 @@ class PackageBundleAssembler {
         unlinkedUnitUris: _unlinkedUnitUris,
         unlinkedUnits: _unlinkedUnits,
         majorVersion: currentMajorVersion,
-        minorVersion: currentMinorVersion);
+        minorVersion: currentMinorVersion,
+        bundle2: _bundle2);
+  }
+
+  void setBundle2(LinkedNodeBundleBuilder bundle2) {
+    if (this._bundle2 != null) {
+      throw StateError('Bundle2 may be set only once.');
+    }
+    _bundle2 = bundle2;
   }
 }

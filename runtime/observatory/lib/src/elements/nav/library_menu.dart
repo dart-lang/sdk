@@ -10,7 +10,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class NavLibraryMenuElement extends HtmlElement implements Renderable {
+class NavLibraryMenuElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavLibraryMenuElement>('nav-library-menu');
 
   RenderingScheduler _r;
@@ -34,14 +34,14 @@ class NavLibraryMenuElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(library != null);
-    NavLibraryMenuElement e = document.createElement(tag.name);
+    NavLibraryMenuElement e = new NavLibraryMenuElement.created();
     e._r = new RenderingScheduler<NavLibraryMenuElement>(e, queue: queue);
     e._isolate = isolate;
     e._library = library;
     return e;
   }
 
-  NavLibraryMenuElement.created() : super.created();
+  NavLibraryMenuElement.created() : super.created(tag);
 
   @override
   void attached() {

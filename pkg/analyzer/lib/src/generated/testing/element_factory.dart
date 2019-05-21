@@ -412,12 +412,12 @@ class ElementFactory {
     return spec;
   }
 
-  static LibraryElementImpl library(
-      AnalysisContext context, String libraryName) {
+  static LibraryElementImpl library(AnalysisContext context, String libraryName,
+      {bool isNonNullableByDefault: true}) {
     String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
-    LibraryElementImpl library = new LibraryElementImpl(
-        context, null, libraryName, 0, libraryName.length);
+    LibraryElementImpl library = new LibraryElementImpl(context, null,
+        libraryName, 0, libraryName.length, isNonNullableByDefault);
     library.definingCompilationUnit = unit;
     return library;
   }

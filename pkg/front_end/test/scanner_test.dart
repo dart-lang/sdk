@@ -4,7 +4,7 @@
 
 import 'package:front_end/src/base/errors.dart';
 import 'package:front_end/src/fasta/scanner/abstract_scanner.dart'
-    show AbstractScanner;
+    show AbstractScanner, ScannerConfiguration;
 import 'package:front_end/src/scanner/errors.dart';
 import 'package:front_end/src/scanner/reader.dart';
 import 'package:front_end/src/scanner/token.dart';
@@ -79,7 +79,8 @@ class ErrorListener {
 }
 
 abstract class ScannerTestBase {
-  Token scanWithListener(String source, ErrorListener listener);
+  Token scanWithListener(String source, ErrorListener listener,
+      {ScannerConfiguration configuration});
 
   void test_ampersand() {
     _assertToken(TokenType.AMPERSAND, "&");
@@ -442,6 +443,16 @@ abstract class ScannerTestBase {
     _assertKeywordToken("extends");
   }
 
+  void test_keyword_extension() {
+    _assertKeywordToken("extension",
+        configuration: ScannerConfiguration(enableExtensionMethods: true));
+  }
+
+  void test_keyword_extension_old() {
+    _assertNotKeywordToken("extension",
+        configuration: ScannerConfiguration(enableExtensionMethods: false));
+  }
+
   void test_keyword_factory() {
     _assertKeywordToken("factory");
   }
@@ -494,6 +505,16 @@ abstract class ScannerTestBase {
     _assertKeywordToken("is");
   }
 
+  void test_keyword_late() {
+    _assertKeywordToken("late",
+        configuration: ScannerConfiguration(enableNonNullable: true));
+  }
+
+  void test_keyword_late_old() {
+    _assertNotKeywordToken("late",
+        configuration: ScannerConfiguration(enableNonNullable: false));
+  }
+
   void test_keyword_library() {
     _assertKeywordToken("library");
   }
@@ -532,6 +553,16 @@ abstract class ScannerTestBase {
 
   void test_keyword_patch() {
     _assertKeywordToken("patch");
+  }
+
+  void test_keyword_required() {
+    _assertKeywordToken("required",
+        configuration: ScannerConfiguration(enableNonNullable: true));
+  }
+
+  void test_keyword_required_disabled() {
+    _assertNotKeywordToken("required",
+        configuration: ScannerConfiguration(enableNonNullable: false));
   }
 
   void test_keyword_rethrow() {
@@ -1298,8 +1329,9 @@ abstract class ScannerTestBase {
    * Assert that when scanned the given [source] contains a single keyword token
    * with the same lexeme as the original source.
    */
-  void _assertKeywordToken(String source) {
-    Token token = _scan(source);
+  void _assertKeywordToken(String source,
+      {ScannerConfiguration configuration}) {
+    Token token = _scan(source, configuration: configuration);
     expect(token, isNotNull);
     expect(token.type.isKeyword, true);
     expect(token.offset, 0);
@@ -1308,7 +1340,7 @@ abstract class ScannerTestBase {
     Object value = token.value();
     expect(value is Keyword, isTrue);
     expect((value as Keyword).lexeme, source);
-    token = _scan(" $source ");
+    token = _scan(" $source ", configuration: configuration);
     expect(token, isNotNull);
     expect(token.type.isKeyword, true);
     expect(token.offset, 1);
@@ -1317,6 +1349,27 @@ abstract class ScannerTestBase {
     value = token.value();
     expect(value is Keyword, isTrue);
     expect((value as Keyword).lexeme, source);
+    expect(token.next.type, TokenType.EOF);
+  }
+
+  /**
+   * Assert that when scanned the given [source] contains a single identifier token
+   * with the same lexeme as the original source.
+   */
+  void _assertNotKeywordToken(String source,
+      {ScannerConfiguration configuration}) {
+    Token token = _scan(source, configuration: configuration);
+    expect(token, isNotNull);
+    expect(token.type.isKeyword, false);
+    expect(token.offset, 0);
+    expect(token.length, source.length);
+    expect(token.lexeme, source);
+    token = _scan(" $source ", configuration: configuration);
+    expect(token, isNotNull);
+    expect(token.type.isKeyword, false);
+    expect(token.offset, 1);
+    expect(token.length, source.length);
+    expect(token.lexeme, source);
     expect(token.next.type, TokenType.EOF);
   }
 
@@ -1399,9 +1452,11 @@ abstract class ScannerTestBase {
     expect(token.type, TokenType.EOF);
   }
 
-  Token _scan(String source, {bool ignoreErrors: false}) {
+  Token _scan(String source,
+      {ScannerConfiguration configuration, bool ignoreErrors: false}) {
     ErrorListener listener = new ErrorListener();
-    Token token = scanWithListener(source, listener);
+    Token token =
+        scanWithListener(source, listener, configuration: configuration);
     if (!ignoreErrors) {
       listener.assertNoErrors();
     }

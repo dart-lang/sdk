@@ -231,37 +231,6 @@ void test(C<int> c) {
     await _checkSingleFileChanges(content, expected);
   }
 
-  test_data_flow_generic_inward_hint() async {
-    var content = '''
-class C<T> {
-  void f(T? t) {}
-}
-void g(C<int> c, int i) {
-  c.f(i);
-}
-void test(C<int> c) {
-  g(c, null);
-}
-''';
-
-    // The user may override the behavior shown in test_data_flow_generic_inward
-    // by explicitly marking f's use of T as nullable.  Since this makes g's
-    // call to f valid regardless of the type of c, c's type will remain
-    // C<int>.
-    var expected = '''
-class C<T> {
-  void f(T? t) {}
-}
-void g(C<int> c, int? i) {
-  c.f(i);
-}
-void test(C<int> c) {
-  g(c, null);
-}
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
   test_data_flow_inward() async {
     var content = '''
 int f(int i) => 0;
@@ -791,6 +760,34 @@ int? g() => f();
 ''';
     await _checkMultipleFileChanges(
         {path1: file1, path2: file2}, {path1: expected1, path2: expected2});
+  }
+
+  test_type_argument_flows_to_bound() async {
+    // The inference of C<int?> forces class C to be declared as
+    // C<T extends Object?>.
+    var content = '''
+class C<T extends Object> {
+  void m(T t);
+}
+class D<T extends Object> {
+  void m(T t);
+}
+f(C<int> c, D<int> d) {
+  c.m(null);
+}
+''';
+    var expected = '''
+class C<T extends Object?> {
+  void m(T t);
+}
+class D<T extends Object> {
+  void m(T t);
+}
+f(C<int?> c, D<int> d) {
+  c.m(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_unconditional_assert_statement_implies_non_null_intent() async {

@@ -2057,9 +2057,6 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   /// has not yet been performed.
   LocalVariableInfo localVariableInfo = new LocalVariableInfo();
 
-  /// Is `true` if this unit has been parsed as non-nullable.
-  final bool isNonNullable;
-
   @override
   final FeatureSet featureSet;
 
@@ -2074,9 +2071,7 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
       List<Directive> directives,
       List<CompilationUnitMember> declarations,
       this.endToken,
-      this.featureSet)
-      : this.isNonNullable =
-            featureSet?.isEnabled(Feature.non_nullable) ?? false {
+      this.featureSet) {
     _scriptTag = _becomeParentOf(scriptTag);
     _directives = new NodeListImpl<Directive>(this, directives);
     _declarations = new NodeListImpl<CompilationUnitMember>(this, declarations);

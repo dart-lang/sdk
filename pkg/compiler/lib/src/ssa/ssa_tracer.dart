@@ -7,7 +7,7 @@ library ssa.tracer;
 import '../../compiler_new.dart' show OutputSink;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../inferrer/abstract_value_domain.dart';
-import '../js_backend/namer.dart' show Namer;
+import '../js_backend/namer.dart' show suffixForGetInterceptor;
 import '../tracer.dart';
 import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
@@ -17,11 +17,10 @@ import 'nodes.dart';
 /// to enable it.
 class HTracer extends HGraphVisitor with TracerUtil {
   final JClosedWorld closedWorld;
-  final Namer namer;
   @override
   final OutputSink output;
 
-  HTracer(this.output, this.closedWorld, this.namer);
+  HTracer(this.output, this.closedWorld);
 
   void traceGraph(String name, HGraph graph) {
     DEBUG_MODE = true;
@@ -76,7 +75,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
   @override
   void visitBasicBlock(HBasicBlock block) {
     HInstructionStringifier stringifier =
-        new HInstructionStringifier(block, closedWorld, namer);
+        new HInstructionStringifier(block, closedWorld);
     assert(block.id != null);
     tag("block", () {
       printProperty("name", "B${block.id}");
@@ -114,10 +113,9 @@ class HTracer extends HGraphVisitor with TracerUtil {
 
 class HInstructionStringifier implements HVisitor<String> {
   final JClosedWorld closedWorld;
-  final Namer namer;
   final HBasicBlock currentBlock;
 
-  HInstructionStringifier(this.currentBlock, this.closedWorld, this.namer);
+  HInstructionStringifier(this.currentBlock, this.closedWorld);
 
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
@@ -356,8 +354,9 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitInterceptor(HInterceptor node) {
     String value = temporaryId(node.inputs[0]);
     if (node.interceptedClasses != null) {
-      String cls = namer.suffixForGetInterceptor(node.interceptedClasses);
-      return "Interceptor ($cls): $value";
+      String cls = suffixForGetInterceptor(closedWorld.commonElements,
+          closedWorld.nativeData, node.interceptedClasses);
+      return "Interceptor (${cls}): $value";
     }
     return "Interceptor: $value";
   }

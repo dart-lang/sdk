@@ -15,7 +15,6 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
-import '../js_backend/js_backend.dart';
 import '../native/behavior.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
@@ -313,9 +312,7 @@ class HGraph {
 
   HConstant addConstantStringFromName(js.Name name, JClosedWorld closedWorld) {
     return addConstant(
-        new SyntheticConstantValue(
-            SyntheticConstantKind.NAME, js.quoteName(name)),
-        closedWorld);
+        new JsNameConstantValue(js.quoteName(name)), closedWorld);
   }
 
   HConstant addConstantBool(bool value, JClosedWorld closedWorld) {
@@ -330,7 +327,7 @@ class HGraph {
     // A constant with an empty type used as the HInstruction of an expression
     // in an unreachable context.
     return addConstant(
-        new SyntheticConstantValue(SyntheticConstantKind.EMPTY_VALUE,
+        new AbstractValueConstantValue(
             closedWorld.abstractValueDomain.emptyType),
         closedWorld);
   }

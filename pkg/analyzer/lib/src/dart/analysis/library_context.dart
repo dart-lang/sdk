@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -29,6 +30,14 @@ import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:meta/meta.dart';
+
+var counterInputLibrariesFiles = 0;
+var counterLinkedLibraries = 0;
+var counterLoadedLibraries = 0;
+var timerBundleToBytes = Stopwatch();
+var timerInputLibraries = Stopwatch();
+var timerLinking = Stopwatch();
+var timerLoad2 = Stopwatch();
 
 /**
  * Context information necessary to analyze one or more libraries within an
@@ -54,6 +63,8 @@ class LibraryContext {
   LinkedElementFactory elementFactory;
   InheritanceManager2 inheritanceManager;
 
+  var loadedBundles = Set<LibraryCycle>.identity();
+
   LibraryContext({
     @required AnalysisSession session,
     @required PerformanceLog logger,
@@ -72,13 +83,15 @@ class LibraryContext {
       store.addStore(externalSummaries);
     }
 
+    var synchronousSession =
+        SynchronousSession(analysisOptions, declaredVariables);
     analysisContext = new RestrictedAnalysisContext(
-      analysisOptions,
-      declaredVariables,
+      synchronousSession,
       sourceFactory,
     );
 
     if (useSummary2) {
+      _createElementFactory();
       load2(targetLibrary);
     } else {
       // Fill the store with summaries required for the initial library.
@@ -142,6 +155,8 @@ class LibraryContext {
       return;
     }
 
+    timerLoad2.start();
+
     var libraries = <String, FileState>{};
     void appendLibraryFiles(FileState library) {
       // Stop if this library is already a part of the context.
@@ -189,8 +204,10 @@ class LibraryContext {
       }
       int numOfLoaded = libraries.length - libraryUrisToLink.length;
       logger.writeln('Loaded $numOfLoaded linked bundles.');
+      counterLoadedLibraries += numOfLoaded;
     });
 
+    timerLinking.start();
     var linkedLibraries = <String, LinkedLibraryBuilder>{};
     logger.run('Link libraries', () {
       linkedLibraries = link(libraryUrisToLink, (String uri) {
@@ -202,26 +219,35 @@ class LibraryContext {
       }, DeclaredVariables(), analysisContext.analysisOptions);
       logger.writeln('Linked ${linkedLibraries.length} libraries.');
     });
+    timerLinking.stop();
+    counterLinkedLibraries += linkedLibraries.length;
 
     // Store freshly linked libraries into the byte store.
     // Append them to the context.
+    timerBundleToBytes.start();
     for (String uri in linkedLibraries.keys) {
+      counterLoadedLibraries++;
       FileState library = libraries[uri];
       String key = library.transitiveSignatureLinked;
 
+      timerBundleToBytes.start();
       LinkedLibraryBuilder linkedBuilder = linkedLibraries[uri];
       List<int> bytes = linkedBuilder.toBuffer();
+      timerBundleToBytes.stop();
       byteStore.put(key, bytes);
+      counterUnlinkedLinkedBytes += bytes.length;
 
       LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
       store.addLinkedLibrary(uri, linked);
       _linkedDataInBytes += bytes.length;
     }
+    timerBundleToBytes.stop();
+    timerLoad2.stop();
   }
 
   /// Load data required to access elements of the given [targetLibrary].
   void load2(FileState targetLibrary) {
-    var loadedBundles = Set<LibraryCycle>.identity();
+    timerLoad2.start();
     var inputBundles = <LinkedNodeBundle>[];
 
     void loadBundle(LibraryCycle cycle) {
@@ -235,17 +261,20 @@ class LibraryContext {
         var bytes = byteStore.get(key);
 
         if (bytes == null) {
+          timerInputLibraries.start();
           var inputLibraries = <link2.LinkInputLibrary>[];
           logger.run('Prepare input libraries', () {
             for (var libraryFile in cycle.libraries) {
+              counterInputLibrariesFiles++;
               var librarySource = libraryFile.source;
               if (librarySource == null) continue;
 
               var inputUnits = <link2.LinkInputUnit>[];
               for (var file in libraryFile.libraryFiles) {
                 var isSynthetic = !file.exists;
+                var unit = file.takeUnitForLinking();
                 inputUnits.add(
-                  link2.LinkInputUnit(file.source, isSynthetic, file.parse()),
+                  link2.LinkInputUnit(file.source, isSynthetic, unit),
                 );
               }
 
@@ -255,29 +284,48 @@ class LibraryContext {
             }
             logger.writeln('Prepared ${inputLibraries.length} libraries.');
           });
+          timerInputLibraries.stop();
 
+          timerLinking.start();
           link2.LinkResult linkResult;
           logger.run('Link libraries', () {
-            linkResult = link2.link(
-              analysisContext.analysisOptions,
-              analysisContext.sourceFactory,
-              analysisContext.declaredVariables,
-              inputBundles,
-              inputLibraries,
-            );
+            linkResult = link2.link(elementFactory, inputLibraries);
             logger.writeln('Linked ${inputLibraries.length} libraries.');
           });
+          timerLinking.stop();
+          counterLinkedLibraries += linkResult.bundle.libraries.length;
 
+          timerBundleToBytes.start();
           bytes = linkResult.bundle.toBuffer();
+          timerBundleToBytes.stop();
           byteStore.put(key, bytes);
           logger.writeln('Stored ${bytes.length} bytes.');
+          counterUnlinkedLinkedBytes += bytes.length;
         } else {
+          // TODO(scheglov) Take / clear parsed units in files.
           logger.writeln('Loaded ${bytes.length} bytes.');
         }
 
-        inputBundles.add(
-          LinkedNodeBundle.fromBuffer(bytes),
+        // We are about to load dart:core, but if we have just linked it, the
+        // linker might have set the type provider. So, clear it, and recreate
+        // the element factory - it is empty anyway.
+        var hasDartCoreBeforeBundle = elementFactory.hasDartCore;
+        if (!hasDartCoreBeforeBundle) {
+          analysisContext.clearTypeProvider();
+          _createElementFactory();
+        }
+
+        var bundle = LinkedNodeBundle.fromBuffer(bytes);
+        inputBundles.add(bundle);
+        elementFactory.addBundle(
+          LinkedBundleContext(elementFactory, bundle),
         );
+        counterLoadedLibraries += bundle.libraries.length;
+
+        // If the first bundle, with dart:core, create the type provider.
+        if (!hasDartCoreBeforeBundle && elementFactory.hasDartCore) {
+          _createElementFactoryTypeProvider();
+        }
       });
     }
 
@@ -286,31 +334,7 @@ class LibraryContext {
       loadBundle(libraryCycle);
     });
 
-    var rootReference = Reference.root();
-    rootReference.getChild('dart:core').getChild('dynamic').element =
-        DynamicElementImpl.instance;
-
-    elementFactory = LinkedElementFactory(
-      analysisContext,
-      analysisSession,
-      rootReference,
-    );
-
-    for (var bundle in inputBundles) {
-      elementFactory.addBundle(
-        LinkedBundleContext(elementFactory, bundle),
-      );
-    }
-
-    var dartCore = elementFactory.libraryOfUri('dart:core');
-    var dartAsync = elementFactory.libraryOfUri('dart:async');
-    var typeProvider = SummaryTypeProvider()
-      ..initializeCore(dartCore)
-      ..initializeAsync(dartAsync);
-    analysisContext.typeProvider = typeProvider;
-
-    dartCore.createLoadLibraryFunction(typeProvider);
-    dartAsync.createLoadLibraryFunction(typeProvider);
+    timerLoad2.stop();
   }
 
   /// Return `true` if this context grew too large, and should be recreated.
@@ -320,5 +344,29 @@ class LibraryContext {
   /// simplest way to get rid of the garbage is to throw away everything.
   bool pack() {
     return _linkedDataInBytes > _maxLinkedDataInBytes;
+  }
+
+  void _createElementFactory() {
+    elementFactory = LinkedElementFactory(
+      analysisContext,
+      analysisSession,
+      Reference.root(),
+    );
+
+    var dartCoreRef = elementFactory.rootReference.getChild('dart:core');
+    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
+    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
+  }
+
+  void _createElementFactoryTypeProvider() {
+    var dartCore = elementFactory.libraryOfUri('dart:core');
+    var dartAsync = elementFactory.libraryOfUri('dart:async');
+    var typeProvider = SummaryTypeProvider()
+      ..initializeCore(dartCore)
+      ..initializeAsync(dartAsync);
+    analysisContext.typeProvider = typeProvider;
+
+    dartCore.createLoadLibraryFunction(typeProvider);
+    dartAsync.createLoadLibraryFunction(typeProvider);
   }
 }

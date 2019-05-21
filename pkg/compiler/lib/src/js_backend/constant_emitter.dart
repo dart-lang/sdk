@@ -15,47 +15,19 @@ import '../js_backend/field_analysis.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
 import 'field_analysis.dart' show JFieldAnalysis;
-import 'js_backend.dart';
 import 'runtime_types.dart';
 
 typedef jsAst.Expression _ConstantReferenceGenerator(ConstantValue constant);
 
 typedef jsAst.Expression _ConstantListGenerator(jsAst.Expression array);
 
-/// Generates the JavaScript expressions for constants.
-///
-/// It uses a given [_constantReferenceGenerator] to reference nested constants
-/// (if there are some). It is hence up to that function to decide which
-/// constants should be inlined or not.
-class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
-  // Matches blank lines, comment lines and trailing comments that can't be part
-  // of a string.
-  static final RegExp COMMENT_RE =
-      new RegExp(r'''^ *(//.*)?\n|  *//[^''"\n]*$''', multiLine: true);
-
+/// Visitor that creates [jsAst.Expression]s for constants that are inlined
+/// and therefore can be created during modular code generation.
+class ModularConstantEmitter
+    implements ConstantValueVisitor<jsAst.Expression, Null> {
   final CompilerOptions _options;
-  final JCommonElements _commonElements;
-  final JElementEnvironment _elementEnvironment;
-  final RuntimeTypesNeed _rtiNeed;
-  final RuntimeTypesEncoder _rtiEncoder;
-  final JFieldAnalysis _fieldAnalysis;
-  final Emitter _emitter;
-  final _ConstantReferenceGenerator _constantReferenceGenerator;
-  final _ConstantListGenerator _makeConstantList;
 
-  /// The given [_constantReferenceGenerator] function must, when invoked with a
-  /// constant, either return a reference or return its literal expression if it
-  /// can be inlined.
-  ConstantEmitter(
-      this._options,
-      this._commonElements,
-      this._elementEnvironment,
-      this._rtiNeed,
-      this._rtiEncoder,
-      this._fieldAnalysis,
-      this._emitter,
-      this._constantReferenceGenerator,
-      this._makeConstantList);
+  ModularConstantEmitter(this._options);
 
   /// Constructs a literal expression that evaluates to the constant. Uses a
   /// canonical name unless the constant can be emitted multiple times (as for
@@ -170,6 +142,83 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   jsAst.Expression visitString(StringConstantValue constant, [_]) {
     return js.escapedString(constant.stringValue, ascii: true);
   }
+
+  @override
+  jsAst.Expression visitAbstractValue(AbstractValueConstantValue constant,
+      [_]) {
+    return new jsAst.LiteralNumber('0');
+  }
+
+  @override
+  jsAst.Expression visitJsName(JsNameConstantValue constant, [_]) {
+    return constant.name;
+  }
+
+  @override
+  jsAst.Expression visitInstantiation(InstantiationConstantValue constant,
+          [_]) =>
+      null;
+
+  @override
+  jsAst.Expression visitDeferredGlobal(DeferredGlobalConstantValue constant,
+          [_]) =>
+      null;
+
+  @override
+  jsAst.Expression visitInterceptor(InterceptorConstantValue constant, [_]) =>
+      null;
+
+  @override
+  jsAst.Expression visitType(TypeConstantValue constant, [_]) => null;
+
+  @override
+  jsAst.Expression visitConstructed(ConstructedConstantValue constant, [_]) =>
+      null;
+
+  @override
+  jsAst.Expression visitMap(MapConstantValue constant, [_]) => null;
+
+  @override
+  jsAst.Expression visitSet(SetConstantValue constant, [_]) => null;
+
+  @override
+  jsAst.Expression visitList(ListConstantValue constant, [_]) => null;
+}
+
+/// Generates the JavaScript expressions for constants.
+///
+/// It uses a given [_constantReferenceGenerator] to reference nested constants
+/// (if there are some). It is hence up to that function to decide which
+/// constants should be inlined or not.
+class ConstantEmitter extends ModularConstantEmitter {
+  // Matches blank lines, comment lines and trailing comments that can't be part
+  // of a string.
+  static final RegExp COMMENT_RE =
+      new RegExp(r'''^ *(//.*)?\n|  *//[^''"\n]*$''', multiLine: true);
+
+  final JCommonElements _commonElements;
+  final JElementEnvironment _elementEnvironment;
+  final RuntimeTypesNeed _rtiNeed;
+  final RuntimeTypesEncoder _rtiEncoder;
+  final JFieldAnalysis _fieldAnalysis;
+  final Emitter _emitter;
+  final _ConstantReferenceGenerator _constantReferenceGenerator;
+  final _ConstantListGenerator _makeConstantList;
+
+  /// The given [_constantReferenceGenerator] function must, when invoked with a
+  /// constant, either return a reference or return its literal expression if it
+  /// can be inlined.
+  ConstantEmitter(
+      CompilerOptions options,
+      this._commonElements,
+      this._elementEnvironment,
+      this._rtiNeed,
+      this._rtiEncoder,
+      this._fieldAnalysis,
+      this._emitter,
+      this._constantReferenceGenerator,
+      this._makeConstantList)
+      : super(options);
 
   @override
   jsAst.Expression visitList(ListConstantValue constant, [_]) {
@@ -319,21 +368,6 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   jsAst.Expression visitInterceptor(InterceptorConstantValue constant, [_]) {
     ClassEntity interceptorClass = constant.cls;
     return _emitter.interceptorPrototypeAccess(interceptorClass);
-  }
-
-  @override
-  jsAst.Expression visitSynthetic(SyntheticConstantValue constant, [_]) {
-    switch (constant.valueKind) {
-      case SyntheticConstantKind.DUMMY_INTERCEPTOR:
-      case SyntheticConstantKind.EMPTY_VALUE:
-        return new jsAst.LiteralNumber('0');
-      case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
-      case SyntheticConstantKind.NAME:
-        return constant.payload;
-      default:
-        throw failedAt(NO_LOCATION_SPANNABLE,
-            "Unexpected DummyConstantKind ${constant.kind}");
-    }
   }
 
   @override

@@ -159,7 +159,7 @@ class ExceptionHandlerFinder : public StackResource {
   // Iterate through the stack frames and try to find a frame with an
   // exception handler. Once found, set the pc, sp and fp so that execution
   // can continue in that frame. Sets 'needs_stacktrace' if there is no
-  // cath-all handler or if a stack-trace is specified in the catch.
+  // catch-all handler or if a stack-trace is specified in the catch.
   bool Find() {
     StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
@@ -670,6 +670,15 @@ static void ThrowExceptionHelper(Thread* thread,
   DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
+#if !defined(PRODUCT)
+  // Do not notify debugger on stack overflow and out of memory exceptions.
+  // The VM would crash when the debugger calls back into the VM to
+  // get values of variables.
+  if (incoming_exception.raw() != isolate->object_store()->out_of_memory() &&
+      incoming_exception.raw() != isolate->object_store()->stack_overflow()) {
+    isolate->debugger()->PauseException(incoming_exception);
+  }
+#endif
   bool use_preallocated_stacktrace = false;
   Instance& exception = Instance::Handle(zone, incoming_exception.raw());
   if (exception.IsNull()) {
@@ -880,16 +889,6 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
 }
 
 void Exceptions::Throw(Thread* thread, const Instance& exception) {
-  // Do not notify debugger on stack overflow and out of memory exceptions.
-  // The VM would crash when the debugger calls back into the VM to
-  // get values of variables.
-#if !defined(PRODUCT)
-  Isolate* isolate = thread->isolate();
-  if (exception.raw() != isolate->object_store()->out_of_memory() &&
-      exception.raw() != isolate->object_store()->stack_overflow()) {
-    isolate->debugger()->PauseException(exception);
-  }
-#endif
   // Null object is a valid exception object.
   ThrowExceptionHelper(thread, exception, StackTrace::Handle(thread->zone()),
                        false);

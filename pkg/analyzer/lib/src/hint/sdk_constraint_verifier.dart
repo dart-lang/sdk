@@ -81,6 +81,12 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   bool get checkFutureAndStream => _checkFutureAndStream ??=
       !before_2_1_0.intersect(_versionConstraint).isEmpty;
 
+  /// Return `true` if references to the non-nullable features need to be
+  /// checked.
+  // TODO(brianwilkerson) Implement this as a version check when a version has
+  //  been selected.
+  bool get checkNnbd => true;
+
   /// Return `true` if references to set literals need to be checked.
   bool get checkSetLiterals =>
       _checkSetLiterals ??= !before_2_2_0.intersect(_versionConstraint).isEmpty;
@@ -214,6 +220,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       }
       _errorReporter.reportErrorForNode(
           HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, node, [element.name]);
+    } else if (checkNnbd && element == _typeProvider.neverType.element) {
+      _errorReporter.reportErrorForNode(HintCode.SDK_VERSION_NEVER, node);
     }
   }
 

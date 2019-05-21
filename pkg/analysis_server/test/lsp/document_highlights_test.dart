@@ -29,6 +29,17 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
     }
     ''');
 
+  test_nonDartFile() async {
+    await initialize();
+    await openFile(pubspecFileUri, simplePubspecContent);
+
+    final highlights =
+        await getDocumentHighlights(pubspecFileUri, startOfDocPos);
+
+    // Non-Dart files should return empty results, not errors.
+    expect(highlights, isEmpty);
+  }
+
   test_noResult() => _testMarkedContent('''
     main() {
       // This one is in a ^ comment!

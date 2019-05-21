@@ -24,6 +24,7 @@ import 'package:kernel/ast.dart'
 import '../fasta_codes.dart'
     show
         Message,
+        noLength,
         templateDuplicatedDeclaration,
         templateTypeNotFound,
         templateUnspecified;
@@ -160,11 +161,10 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     // mapping `k` to `d` is added to the exported namespace of `L` unless a
     // top-level declaration with the name `k` exists in `L`.
     if (builder.parent == this) return builder;
+    Message message = templateDuplicatedDeclaration.withArguments(name);
+    addProblem(message, charOffset, name.length, fileUri);
     return new KernelInvalidTypeBuilder(
-        name,
-        templateDuplicatedDeclaration
-            .withArguments(name)
-            .withLocation(fileUri, charOffset, name.length));
+        name, message.withLocation(fileUri, charOffset, name.length));
   }
 
   @override
@@ -187,6 +187,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
           Message message = messageText == null
               ? templateTypeNotFound.withArguments(name)
               : templateUnspecified.withArguments(messageText);
+          addProblem(message, -1, noLength, null);
           declaration =
               new KernelInvalidTypeBuilder(name, message.withoutLocation());
       }

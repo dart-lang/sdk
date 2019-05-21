@@ -20,6 +20,9 @@ abstract class Feature {
   static const control_flow_collections =
       ExperimentalFeatures.control_flow_collections;
 
+  /// Feature information for extension methods.
+  static const extension_methods = ExperimentalFeatures.extension_methods;
+
   /// Feature information for spread collections.
   static const spread_collections = ExperimentalFeatures.spread_collections;
 

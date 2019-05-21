@@ -466,7 +466,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     Selector selector = new Selector.callClosure(
         0, const <String>[], thisType.typeArguments.length);
     impactBuilder.registerDynamicUse(
-        new ConstrainedDynamicUse(selector, null, thisType.typeArguments));
+        new DynamicUse(selector, null, thisType.typeArguments));
   }
 
   @override
@@ -564,8 +564,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     // TODO(johnniwinther): Yet, alas, we need the dynamic use for now. Remove
     // this when kernel adds an `isFunctionCall` flag to
     // [ir.MethodInvocation].
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
-        callStructure.callSelector, null, dartTypeArguments));
+    impactBuilder.registerDynamicUse(
+        new DynamicUse(callStructure.callSelector, null, dartTypeArguments));
   }
 
   @override
@@ -579,7 +579,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     Selector selector = elementMap.getInvocationSelector(
         name, positionalArguments, namedArguments, typeArguments.length);
     List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(selector,
+    impactBuilder.registerDynamicUse(new DynamicUse(selector,
         _computeReceiverConstraint(receiverType, relation), dartTypeArguments));
   }
 
@@ -594,7 +594,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         namedArguments,
         typeArguments.length);
     List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+    impactBuilder.registerDynamicUse(new DynamicUse(
         callStructure.callSelector,
         _computeReceiverConstraint(receiverType, ClassRelation.subtype),
         dartTypeArguments));
@@ -609,7 +609,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       List<String> namedArguments,
       List<ir.DartType> typeArguments) {
     List<DartType> dartTypeArguments = _getTypeArguments(typeArguments);
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+    impactBuilder.registerDynamicUse(new DynamicUse(
         elementMap.getInvocationSelector(target.name, positionalArguments,
             namedArguments, typeArguments.length),
         _computeReceiverConstraint(receiverType, relation),
@@ -619,7 +619,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerDynamicGet(
       ir.DartType receiverType, ClassRelation relation, ir.Name name) {
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+    impactBuilder.registerDynamicUse(new DynamicUse(
         new Selector.getter(elementMap.getName(name)),
         _computeReceiverConstraint(receiverType, relation),
         const <DartType>[]));
@@ -628,7 +628,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerInstanceGet(
       ir.DartType receiverType, ClassRelation relation, ir.Member target) {
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+    impactBuilder.registerDynamicUse(new DynamicUse(
         new Selector.getter(elementMap.getName(target.name)),
         _computeReceiverConstraint(receiverType, relation),
         const <DartType>[]));
@@ -637,7 +637,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerDynamicSet(
       ir.DartType receiverType, ClassRelation relation, ir.Name name) {
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+    impactBuilder.registerDynamicUse(new DynamicUse(
         new Selector.setter(elementMap.getName(name)),
         _computeReceiverConstraint(receiverType, relation),
         const <DartType>[]));
@@ -646,7 +646,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   @override
   void registerInstanceSet(
       ir.DartType receiverType, ClassRelation relation, ir.Member target) {
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+    impactBuilder.registerDynamicUse(new DynamicUse(
         new Selector.setter(elementMap.getName(target.name)),
         _computeReceiverConstraint(receiverType, relation),
         const <DartType>[]));
@@ -744,12 +744,12 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     Object receiverConstraint =
         _computeReceiverConstraint(iteratorType, iteratorClassRelation);
     impactBuilder.registerFeature(Feature.SYNC_FOR_IN);
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
-        Selectors.iterator, receiverConstraint, const []));
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
-        Selectors.current, receiverConstraint, const []));
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
-        Selectors.moveNext, receiverConstraint, const []));
+    impactBuilder.registerDynamicUse(
+        new DynamicUse(Selectors.iterator, receiverConstraint, const []));
+    impactBuilder.registerDynamicUse(
+        new DynamicUse(Selectors.current, receiverConstraint, const []));
+    impactBuilder.registerDynamicUse(
+        new DynamicUse(Selectors.moveNext, receiverConstraint, const []));
   }
 
   @override
@@ -758,12 +758,12 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     Object receiverConstraint =
         _computeReceiverConstraint(iteratorType, iteratorClassRelation);
     impactBuilder.registerFeature(Feature.ASYNC_FOR_IN);
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
-        Selectors.cancel, receiverConstraint, const []));
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
-        Selectors.current, receiverConstraint, const []));
-    impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
-        Selectors.moveNext, receiverConstraint, const []));
+    impactBuilder.registerDynamicUse(
+        new DynamicUse(Selectors.cancel, receiverConstraint, const []));
+    impactBuilder.registerDynamicUse(
+        new DynamicUse(Selectors.current, receiverConstraint, const []));
+    impactBuilder.registerDynamicUse(
+        new DynamicUse(Selectors.moveNext, receiverConstraint, const []));
   }
 
   @override

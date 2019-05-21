@@ -9,12 +9,14 @@ import 'js_ast.dart';
 class NodeEnd {
   final SourceLocation end;
   NodeEnd(this.end);
+  @override
   toString() => '#<NodeEnd $end>';
 }
 
 class NodeSpan {
   final SourceLocation start, end;
   NodeSpan(this.start, this.end);
+  @override
   toString() => '#<NodeSpan $start to $end>';
 }
 
@@ -22,6 +24,7 @@ class HoverComment {
   final SourceLocation start, end;
   final Expression expression;
   HoverComment(this.expression, this.start, this.end);
+  @override
   toString() => '#<HoverComment `$expression` @ $start to $end>';
 }
 

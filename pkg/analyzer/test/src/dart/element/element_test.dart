@@ -3559,7 +3559,7 @@ class LibraryElementImplTest extends EngineTestCase {
   void test_creation() {
     expect(
         new LibraryElementImpl.forNode(createAnalysisContext(), null,
-            AstTestFactory.libraryIdentifier2(["l"])),
+            AstTestFactory.libraryIdentifier2(["l"]), true),
         isNotNull);
   }
 
@@ -3646,7 +3646,7 @@ class LibraryElementImplTest extends EngineTestCase {
   void test_setImports() {
     AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library = new LibraryElementImpl.forNode(
-        context, null, AstTestFactory.libraryIdentifier2(["l1"]));
+        context, null, AstTestFactory.libraryIdentifier2(["l1"]), true);
     List<ImportElementImpl> expectedImports = [
       ElementFactory.importFor(ElementFactory.library(context, "l2"), null),
       ElementFactory.importFor(ElementFactory.library(context, "l3"), null)

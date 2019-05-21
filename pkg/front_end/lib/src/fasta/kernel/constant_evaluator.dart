@@ -39,9 +39,6 @@ import '../fasta_codes.dart'
         messageConstEvalCircularity,
         messageConstEvalContext,
         messageConstEvalFailedAssertion,
-        messageConstEvalIterationInConstList,
-        messageConstEvalIterationInConstSet,
-        messageConstEvalIterationInConstMap,
         messageConstEvalNotListOrSetInSpread,
         messageConstEvalNotMapInSpread,
         messageConstEvalNullValue,
@@ -66,17 +63,6 @@ import '../fasta_codes.dart'
         templateConstEvalNonConstantLiteral,
         templateConstEvalNonConstantVariableGet,
         templateConstEvalZeroDivisor;
-
-import 'collections.dart'
-    show
-        ForElement,
-        ForInElement,
-        IfElement,
-        SpreadElement,
-        ForMapEntry,
-        ForInMapEntry,
-        IfMapEntry,
-        SpreadMapEntry;
 
 part 'constant_collection_builders.dart';
 
@@ -397,6 +383,10 @@ class ConstantsTransformer extends Transformer {
     return super.visitListLiteral(node);
   }
 
+  visitListConcatenation(ListConcatenation node) {
+    return evaluateAndTransformWithContext(node, node);
+  }
+
   visitSetLiteral(SetLiteral node) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
@@ -404,11 +394,19 @@ class ConstantsTransformer extends Transformer {
     return super.visitSetLiteral(node);
   }
 
+  visitSetConcatenation(SetConcatenation node) {
+    return evaluateAndTransformWithContext(node, node);
+  }
+
   visitMapLiteral(MapLiteral node) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
     }
     return super.visitMapLiteral(node);
+  }
+
+  visitMapConcatenation(MapConcatenation node) {
+    return evaluateAndTransformWithContext(node, node);
   }
 
   visitConstructorInvocation(ConstructorInvocation node) {
@@ -784,7 +782,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     final ListConstantBuilder builder =
         new ListConstantBuilder(node, node.typeArgument, this);
     for (Expression list in node.lists) {
-      builder.addSpread(list, isNullAware: false);
+      builder.addSpread(list);
     }
     return builder.build();
   }
@@ -806,7 +804,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     final SetConstantBuilder builder =
         new SetConstantBuilder(node, node.typeArgument, this);
     for (Expression set_ in node.sets) {
-      builder.addSpread(set_, isNullAware: false);
+      builder.addSpread(set_);
     }
     return builder.build();
   }
@@ -828,7 +826,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     final MapConstantBuilder builder =
         new MapConstantBuilder(node, node.keyType, node.valueType, this);
     for (Expression map in node.maps) {
-      builder.addSpread(map, isNullAware: false);
+      builder.addSpread(map);
     }
     return builder.build();
   }
@@ -1499,7 +1497,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               extract(otherwise), node.staticType));
     } else {
       return report(
-          node,
+          node.condition,
           templateConstEvalInvalidType.withArguments(condition,
               typeEnvironment.boolType, condition.getType(typeEnvironment)));
     }

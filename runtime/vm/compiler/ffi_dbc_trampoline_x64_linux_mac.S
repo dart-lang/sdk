@@ -1,0 +1,63 @@
+#if defined(_M_X64) || defined(__x86_64__) /* HOST_ARCH_X64 */
+
+.intel_syntax noprefix
+.text
+
+#if defined(__linux__) || defined(__FreeBSD__) /* HOST_OS_LINUX */
+.globl FfiTrampolineCall
+.type FfiTrampolineCall, @function
+FfiTrampolineCall:
+#else /* HOST_OS_MACOS */
+.globl _FfiTrampolineCall
+_FfiTrampolineCall:
+#endif
+
+push  rbx
+mov   rbx,  rdi        /* Save argument in scratch register. */
+
+/* Copy stack arguments. */
+mov   rax,  [rbx+0x78] /* Load number of stack arguments. */
+cmp   rax,  0x0        /* Check if number of stack arguments is 0. */
+jz    2f               /* Skip loop if no stack arguments. */
+add   rbx,  0x78       /* Offset RBX to point to stack arguments */
+1:                     /* Copy stack arguments loop. */
+push  [rbx+0x8*rax]    /* Push stack argument. */
+sub   rax,  0x1        /* Decrement stack argument iterator. */
+cmp   rax,  0x0        /* Compare iterator with 0 */
+jnz   1b               /* Loop while iterator is not 0 */
+sub   rbx,  0x78       /* Restore RBX to original value. */
+2:                     /* End stack arguments loop. */
+
+/* Copy registers and fpu registers. */
+mov   rdi,  [rbx+0x8]  /* kArg1Reg */
+mov   rsi,  [rbx+0x10] /* kArg2Reg */
+mov   rdx,  [rbx+0x18] /* kArg3Reg */
+mov   rcx,  [rbx+0x20] /* kArg4Reg */
+mov   r8,   [rbx+0x28] /* kArg5Reg */
+mov   r9,   [rbx+0x30] /* kArg6Reg */
+movsd xmm0, [rbx+0x38]
+movsd xmm1, [rbx+0x40]
+movsd xmm2, [rbx+0x48]
+movsd xmm3, [rbx+0x50]
+movsd xmm4, [rbx+0x58]
+movsd xmm5, [rbx+0x60]
+movsd xmm6, [rbx+0x68]
+movsd xmm7, [rbx+0x70]
+
+/* Do call. */
+mov   rax,  [rbx] /* function address */
+call  rax         /* Call the function. */
+
+/* Copy results back. */
+mov   [rbx],   rax  /* Move integer result in kOffsetIntResult */
+movsd [rbx+8], xmm0 /* Move double result in kOffsetDoubleResult */
+
+/* Clean up stack arguments. */
+mov   rax,  [rbx+0x78] /* Load number of stack arguments. */
+imul  rax,  0x8        /* Multiply by stack argument size. */
+add   rsp,  rax        /* Clean up the stack. */
+
+pop   rbx
+ret
+
+#endif /* HOST_ARCH_X64 */

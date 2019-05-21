@@ -31,65 +31,6 @@ application_snapshot("generate_dartanalyzer_snapshot") {
   name = "dartanalyzer"
 }
 
-if (current_os == "linux") {
-  prebuilt_dart_action("dart_analyzer_dill") {
-    deps = [
-      "../../runtime/vm:vm_platform",
-      "../../runtime/vm:kernel_platform_files($dart_host_toolchain)",
-    ]
-    dart_analyzer_script = "../../pkg/vm/bin/kernel_service.dart"
-    gen_kernel_script = "../../pkg/vm/bin/gen_kernel.dart"
-
-    inputs = [
-      gen_kernel_script,
-      dart_analyzer_script,
-      "$root_out_dir/vm_platform_strong.dill",
-    ]
-    output = "$root_gen_dir/dart_analyzer.dill"
-    outputs = [
-      output,
-    ]
-
-    depfile = "$root_gen_dir/dart_analyzer_dill.d"
-    abs_depfile = rebase_path(depfile)
-    rebased_output = rebase_path(output, root_out_dir)
-    vm_args = [
-      "--depfile=$abs_depfile",
-      "--depfile_output_filename=$rebased_output",
-    ]
-
-    script = gen_kernel_script
-
-    args = [
-      "--packages=" + rebase_path("../../.packages"),
-      "--platform=" + rebase_path("$root_out_dir/vm_platform_strong.dill"),
-      "--aot",
-      "--no-embed-sources",
-      "--output=" + rebase_path("$root_gen_dir/dart_analyzer.dill"),
-      rebase_path(dart_analyzer_script),
-    ]
-  }
-
-  aot_assembly("dartanalyzer_aot_assembly") {
-    main_dart = "$root_gen_dir/dart_analyzer.dill"
-    name = "dartanalyzer"
-    deps = [
-      ":dart_analyzer_dill"
-    ]
-  }
-
-  # This target is for Goma. It should not be used in the SDK.
-  executable("dartanalyzer_aot") {
-    deps = [
-      "../../runtime/bin:dart_precompiled_runtime_for_linking",
-      ":dartanalyzer_aot_assembly",
-    ]
-    sources = [
-      "$root_gen_dir/dartanalyzer.dart.S"
-    ]
-  }
-}
-
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
                             [
                               "absolute",

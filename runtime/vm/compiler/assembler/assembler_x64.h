@@ -696,9 +696,6 @@ class Assembler : public AssemblerBase {
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
                        ObjectPoolBuilderEntry::Patchability patchable);
-  void LoadFunctionFromCalleePool(Register dst,
-                                  const Function& function,
-                                  Register new_pp);
   void JmpPatchable(const Code& code, Register pp);
   void Jmp(const Code& code, Register pp = PP);
   void J(Condition condition, const Code& code, Register pp);
@@ -856,7 +853,7 @@ class Assembler : public AssemblerBase {
   //   ...
   //   pushq r15
   //   .....
-  void EnterDartFrame(intptr_t frame_size, Register new_pp);
+  void EnterDartFrame(intptr_t frame_size, Register new_pp = kNoRegister);
   void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
 
   // Set up a Dart frame for a function compiled for on-stack replacement.

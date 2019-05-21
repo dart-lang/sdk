@@ -1775,8 +1775,6 @@ class ICData : public Object {
   intptr_t GetClassIdAt(intptr_t index, intptr_t arg_nr) const;
 
   RawFunction* GetTargetAt(intptr_t index) const;
-  RawFunction* GetTargetForReceiverClassId(intptr_t class_id,
-                                           intptr_t* count_return) const;
 
   RawObject* GetTargetOrCodeAt(intptr_t index) const;
   void SetCodeAt(intptr_t index, const Code& value) const;
@@ -1829,16 +1827,13 @@ class ICData : public Object {
   static intptr_t TestEntryLengthFor(intptr_t num_args,
                                      bool tracking_exactness);
 
-  static intptr_t TargetIndexFor(intptr_t num_args) { return num_args; }
-  static intptr_t CodeIndexFor(intptr_t num_args) { return num_args; }
+  static intptr_t CountIndexFor(intptr_t num_args) { return num_args; }
+  static intptr_t EntryPointIndexFor(intptr_t num_args) { return num_args; }
 
-  static intptr_t CountIndexFor(intptr_t num_args) { return (num_args + 1); }
-  static intptr_t EntryPointIndexFor(intptr_t num_args) {
-    return (num_args + 1);
-  }
-  static intptr_t ExactnessOffsetFor(intptr_t num_args) {
-    return (num_args + 2);
-  }
+  static intptr_t TargetIndexFor(intptr_t num_args) { return num_args + 1; }
+  static intptr_t CodeIndexFor(intptr_t num_args) { return num_args + 1; }
+
+  static intptr_t ExactnessIndexFor(intptr_t num_args) { return num_args + 2; }
 
   bool IsUsedAt(intptr_t i) const;
 
@@ -2762,7 +2757,8 @@ class Function : public Object {
   static RawFunction* NewClosureFunctionWithKind(RawFunction::Kind kind,
                                                  const String& name,
                                                  const Function& parent,
-                                                 TokenPosition token_pos);
+                                                 TokenPosition token_pos,
+                                                 const Object& owner);
 
   // Allocates a new Function object representing a closure function.
   static RawFunction* NewClosureFunction(const String& name,
@@ -3452,7 +3448,18 @@ class Field : public Object {
   // Internally we is_nullable_ field contains either kNullCid (nullable) or
   // kInvalidCid (non-nullable) instead of boolean. This is done to simplify
   // guarding sequence in the generated code.
-  bool is_nullable() const { return raw_ptr()->is_nullable_ == kNullCid; }
+  bool is_nullable(bool silence_assert = false) const {
+#if defined(DEBUG)
+    if (!silence_assert) {
+      // Same assert as guarded_cid(), because is_nullable() also needs to be
+      // consistent for the background compiler.
+      Thread* thread = Thread::Current();
+      ASSERT(!IsOriginal() || is_static() || thread->IsMutatorThread() ||
+             thread->IsAtSafepoint());
+    }
+#endif
+    return raw_ptr()->is_nullable_ == kNullCid;
+  }
   void set_is_nullable(bool val) const {
     ASSERT(Thread::Current()->IsMutatorThread());
     StoreNonPointer(&raw_ptr()->is_nullable_, val ? kNullCid : kIllegalCid);
@@ -3905,12 +3912,16 @@ class Library : public Object {
   // If successful returns `true`. If an error happens during constant
   // evaluation, returns `false.
   //
+  // If [only_core] is true, then the annotations on the object will only
+  // be inspected if it is part of a core library.
+  //
   // WARNING: If the isolate received an [UnwindError] this function will not
   // return and rather unwinds until the enclosing setjmp() handler.
-  bool FindPragma(Thread* T,
-                  const Object& object,
-                  const String& pragma_name,
-                  Object* options) const;
+  static bool FindPragma(Thread* T,
+                         bool only_core,
+                         const Object& object,
+                         const String& pragma_name,
+                         Object* options);
 
   RawClass* toplevel_class() const { return raw_ptr()->toplevel_class_; }
   void set_toplevel_class(const Class& value) const;
@@ -4027,8 +4038,13 @@ class Library : public Object {
 #endif  // defined(DART_NO_SNAPSHOT).
 
   static bool IsPrivate(const String& name);
+
   // Construct the full name of a corelib member.
   static const String& PrivateCoreLibName(const String& member);
+
+  // Returns true if [name] matches full name of corelib [member].
+  static bool IsPrivateCoreLibName(const String& name, const String& member);
+
   // Lookup class in the core lib which also contains various VM
   // helper methods and classes. Allow look up of private classes.
   static RawClass* LookupCoreClass(const String& class_name);
@@ -5209,6 +5225,8 @@ class Code : public Object {
     StorePointer(&raw_ptr()->owner_, owner.raw());
   }
 
+  static intptr_t owner_offset() { return OFFSET_OF(RawCode, owner_); }
+
   // We would have a VisitPointers function here to traverse all the
   // embedded objects in the instructions using pointer_offsets.
 
@@ -5495,8 +5513,6 @@ class Bytecode : public Object {
 
  private:
   void set_instructions(uword instructions) const {
-    // The interpreter requires the instructions to be aligned.
-    ASSERT(Utils::IsAligned(instructions, sizeof(uint32_t)));
     StoreNonPointer(&raw_ptr()->instructions_, instructions);
   }
   void set_instructions_size(intptr_t size) const {

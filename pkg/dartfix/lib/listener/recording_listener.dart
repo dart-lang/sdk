@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server_client/server.dart';
 import 'package:analysis_server_client/listener/server_listener.dart';
+import 'package:analysis_server_client/server.dart';
 import 'package:dartfix/listener/bad_message_listener.dart';
 import 'package:dartfix/listener/timed_listener.dart';
 

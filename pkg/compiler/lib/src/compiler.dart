@@ -233,7 +233,7 @@ abstract class Compiler {
         performGlobalTypeInference(results.closedWorld);
         return;
       }
-      generateJavaScriptCode(results);
+      emitJavaScriptCode(results);
     } else {
       KernelResult result = await kernelLoader.load(uri);
       reporter.log("Kernel load complete");
@@ -355,19 +355,19 @@ abstract class Compiler {
         mainFunction, closedWorld, inferredDataBuilder);
   }
 
-  void generateJavaScriptCode(
-      GlobalTypeInferenceResults globalInferenceResults) {
+  void emitJavaScriptCode(GlobalTypeInferenceResults globalInferenceResults) {
     JClosedWorld closedWorld = globalInferenceResults.closedWorld;
     backendStrategy.registerJClosedWorld(closedWorld);
-    FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
     if (options.showInternalProgress) reporter.log('Compiling...');
     phase = PHASE_COMPILING;
 
-    CodegenInputs codegen = backend.onCodegenStart(closedWorld);
+    CodegenInputs codegen = backend.onCodegenStart(globalInferenceResults);
+    backend.onCodegenEnqueuerStart(globalInferenceResults, codegen);
     Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(
         closedWorld, globalInferenceResults, codegen);
     _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
 
+    FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
     processQueue(closedWorld.elementEnvironment, codegenEnqueuer, mainFunction,
         onProgress: showCodegenProgress);
     codegenEnqueuer.logSummary(reporter.log);
@@ -416,7 +416,7 @@ abstract class Compiler {
               worldData);
         }
         if (stopAfterTypeInference) return;
-        generateJavaScriptCode(globalInferenceResults);
+        emitJavaScriptCode(globalInferenceResults);
       }
     });
   }

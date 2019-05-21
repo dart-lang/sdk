@@ -628,6 +628,13 @@ class HintCode extends ErrorCode {
       correction: "Try updating the SDK constraints.");
 
   /**
+   * The type Never is being used in code that is expected to run on versions of
+   * the SDK that did not support it.
+   */
+  static const HintCode SDK_VERSION_NEVER = const HintCode(
+      'SDK_VERSION_NEVER', "The type Never is not yet supported.");
+
+  /**
    * The for, if or spread element is being used in code that is expected to run
    * on versions of the SDK that did not support them.
    */

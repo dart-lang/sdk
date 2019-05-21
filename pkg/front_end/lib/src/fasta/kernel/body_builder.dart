@@ -2336,8 +2336,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       return;
     }
 
-    if (constantContext != ConstantContext.none &&
-        !library.loader.target.enableConstantUpdate2018) {
+    if (constantContext != ConstantContext.none) {
       handleRecoverableError(
           fasta.templateCantUseControlFlowOrSpreadAsConstant
               .withArguments(forToken),
@@ -2710,14 +2709,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         String name = getNodeName(prefix);
         String displayName = debugName(name, suffix.lexeme);
         int offset = offsetForToken(beginToken);
+        Message message = fasta.templateNotAType.withArguments(displayName);
+        library.addProblem(
+            message, offset, lengthOfSpan(beginToken, suffix), uri);
         push(new UnresolvedType<KernelTypeBuilder>(
             new KernelNamedTypeBuilder(name, null)
               ..bind(new KernelInvalidTypeBuilder(
                   name,
-                  fasta.templateNotAType
-                      .withArguments(displayName)
-                      .withLocation(
-                          uri, offset, lengthOfSpan(beginToken, suffix)))),
+                  message.withLocation(
+                      uri, offset, lengthOfSpan(beginToken, suffix)))),
             offset,
             uri));
         return;
@@ -2736,6 +2736,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else if (name is ProblemBuilder) {
       // TODO(ahe): Arguments could be passed here.
+      library.addProblem(
+          name.message, name.charOffset, name.name.length, name.fileUri);
       result = new KernelNamedTypeBuilder(name.name, null)
         ..bind(new KernelInvalidTypeBuilder(
             name.name,
@@ -4185,8 +4187,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       return;
     }
 
-    if (constantContext != ConstantContext.none &&
-        !library.loader.target.enableConstantUpdate2018) {
+    if (constantContext != ConstantContext.none) {
       handleRecoverableError(
           fasta.templateCantUseControlFlowOrSpreadAsConstant
               .withArguments(forToken),
@@ -5127,19 +5128,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (builder is KernelNamedTypeBuilder &&
         builder.declaration.isTypeVariable) {
       TypeParameter typeParameter = builder.declaration.target;
-      bool isConstant = constantContext != ConstantContext.none;
       LocatedMessage message;
-      bool suppressMessage = false;
       if (!isInstanceContext && typeParameter.parent is Class) {
         message = fasta.messageTypeVariableInStaticContext.withLocation(
             unresolved.fileUri,
             unresolved.charOffset,
             typeParameter.name.length);
-        if (!nonInstanceAccessIsError && !isConstant && legacyMode) {
-          // This is a warning in legacy mode.
-          addProblem(message.messageObject, message.charOffset, message.length);
-          suppressMessage = true;
-        }
       } else if (constantContext == ConstantContext.inferred) {
         message = fasta.messageTypeVariableInConstantContext.withLocation(
             unresolved.fileUri,
@@ -5148,10 +5142,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         return unresolved;
       }
+      addProblem(message.messageObject, message.charOffset, message.length);
       return new UnresolvedType<KernelTypeBuilder>(
           new KernelNamedTypeBuilder(typeParameter.name, null)
-            ..bind(new KernelInvalidTypeBuilder(typeParameter.name, message,
-                suppressMessage: suppressMessage)),
+            ..bind(new KernelInvalidTypeBuilder(typeParameter.name, message)),
           unresolved.charOffset,
           unresolved.fileUri);
     }

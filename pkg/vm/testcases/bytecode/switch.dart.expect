@@ -25,15 +25,15 @@ Bytecode {
   PopLocal             r1
   Push                 r1
   PushInt              1
-  InterfaceCall        2, CP#0
+  InterfaceCall        CP#0, 2
   JumpIfTrue           L1
   Push                 r1
   PushInt              2
-  InterfaceCall        2, CP#0
+  InterfaceCall        CP#0, 2
   JumpIfTrue           L2
   Push                 r1
   PushInt              3
-  InterfaceCall        2, CP#0
+  InterfaceCall        CP#0, 2
   JumpIfTrue           L3
   Jump                 L4
 L1:
@@ -72,27 +72,27 @@ Bytecode {
   PopLocal             r1
   Push                 r1
   PushInt              1
-  InterfaceCall        2, CP#0
+  InterfaceCall        CP#0, 2
   JumpIfTrue           L1
   Push                 r1
   PushInt              2
-  InterfaceCall        2, CP#0
+  InterfaceCall        CP#0, 2
   JumpIfTrue           L1
   Push                 r1
   PushInt              3
-  InterfaceCall        2, CP#0
+  InterfaceCall        CP#0, 2
   JumpIfTrue           L1
   Push                 r1
   PushInt              4
-  InterfaceCall        2, CP#0
+  InterfaceCall        CP#0, 2
   JumpIfTrue           L2
   Push                 r1
   PushInt              5
-  InterfaceCall        2, CP#0
+  InterfaceCall        CP#0, 2
   JumpIfTrue           L2
   Push                 r1
   PushInt              6
-  InterfaceCall        2, CP#0
+  InterfaceCall        CP#0, 2
   JumpIfTrue           L2
   Jump                 L3
 L1:
@@ -130,27 +130,27 @@ Bytecode {
   PopLocal             r1
   Push                 r1
   PushInt              1
-  InterfaceCall        2, CP#0
+  InterfaceCall        CP#0, 2
   JumpIfTrue           L1
   Push                 r1
   PushInt              2
-  InterfaceCall        2, CP#0
+  InterfaceCall        CP#0, 2
   JumpIfTrue           L1
   Push                 r1
   PushInt              3
-  InterfaceCall        2, CP#0
+  InterfaceCall        CP#0, 2
   JumpIfTrue           L1
   Push                 r1
   PushInt              4
-  InterfaceCall        2, CP#0
+  InterfaceCall        CP#0, 2
   JumpIfTrue           L2
   Push                 r1
   PushInt              5
-  InterfaceCall        2, CP#0
+  InterfaceCall        CP#0, 2
   JumpIfTrue           L2
   Push                 r1
   PushInt              6
-  InterfaceCall        2, CP#0
+  InterfaceCall        CP#0, 2
   JumpIfTrue           L2
   Jump                 L3
 L1:

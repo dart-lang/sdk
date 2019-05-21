@@ -187,7 +187,10 @@ EntityRefBuilder _createLinkedType(
     CompilationUnitElementInBuildUnit compilationUnit,
     TypeParameterSerializationContext typeParameterContext,
     {int slot}) {
-  EntityRefBuilder result = new EntityRefBuilder(slot: slot);
+  EntityRefBuilder result = new EntityRefBuilder(
+      slot: slot,
+      nullabilitySuffix:
+          encodeNullabilitySuffix((type as TypeImpl).nullabilitySuffix));
   if (type is InterfaceType) {
     ClassElementForLink element = type.element;
     result.reference = compilationUnit.addReference(element);
@@ -1413,11 +1416,12 @@ abstract class CompilationUnitElementForLink
         return DynamicTypeImpl.instance;
       }
     }
+    DartType result;
     if (entity.paramReference != 0) {
-      return context.typeParameterContext
+      result = context.typeParameterContext
           .getTypeParameterType(entity.paramReference);
     } else if (entity.entityKind == EntityRefKind.genericFunctionType) {
-      return new GenericFunctionTypeElementForLink(
+      result = new GenericFunctionTypeElementForLink(
               this,
               context,
               entity.typeParameters,
@@ -1427,13 +1431,13 @@ abstract class CompilationUnitElementForLink
     } else if (entity.syntheticReturnType != null) {
       FunctionElementImpl element =
           new FunctionElementForLink_Synthetic(this, context, entity);
-      return element.type;
+      result = element.type;
     } else if (entity.implicitFunctionTypeIndices.isNotEmpty) {
       DartType type = resolveRef(entity.reference).asStaticType;
       for (int index in entity.implicitFunctionTypeIndices) {
         type = (type as FunctionType).parameters[index].type;
       }
-      return type;
+      result = type;
     } else {
       ReferenceableElementForLink element = resolveRef(entity.reference);
       bool implicitTypeArgumentsInUse = false;
@@ -1452,13 +1456,14 @@ abstract class CompilationUnitElementForLink
         }
       }
 
-      var type = element.buildType(
+      result = element.buildType(
           getTypeArgument, entity.implicitFunctionTypeIndices);
       if (implicitTypeArgumentsInUse) {
-        _typesWithImplicitArguments[type] = true;
+        _typesWithImplicitArguments[result] = true;
       }
-      return type;
     }
+    var nullabilitySuffix = decodeNullabilitySuffix(entity.nullabilitySuffix);
+    return (result as TypeImpl).withNullability(nullabilitySuffix);
   }
 
   @override
@@ -2471,7 +2476,7 @@ class ExprTypeComputer {
         reportConstEvaluationErrors: false);
     var typeResolverVisitor = new TypeResolverVisitor(
         library, source, typeProvider, errorListener,
-        nameScope: nameScope);
+        featureSet: featureSet, nameScope: nameScope);
     var variableResolverVisitor = new VariableResolverVisitor(
         library, source, typeProvider, errorListener,
         nameScope: nameScope, localVariableInfo: LocalVariableInfo());
@@ -3598,6 +3603,9 @@ abstract class LibraryElementForLink<
       _dependencies.length = _linkedLibrary.dependencies.length;
     }
   }
+
+  @override
+  bool get isNonNullableByDefault => _unlinkedDefiningUnit.isNNBD;
 
   @override
   ContextForLink get context => _linker.context;
@@ -5390,7 +5398,6 @@ class TypeProviderForLink extends TypeProviderBase {
   InterfaceType _listType;
   InterfaceType _mapType;
   InterfaceType _mapObjectObjectType;
-  InterfaceType _neverType;
   InterfaceType _nullType;
   InterfaceType _numType;
   InterfaceType _objectType;
@@ -5475,8 +5482,7 @@ class TypeProviderForLink extends TypeProviderBase {
       _mapType ??= _buildInterfaceType(_linker.coreLibrary, 'Map');
 
   @override
-  InterfaceType get neverType =>
-      _neverType ??= _buildInterfaceType(_linker.coreLibrary, 'Never');
+  DartType get neverType => BottomTypeImpl.instance;
 
   @override
   DartObjectImpl get nullObject {

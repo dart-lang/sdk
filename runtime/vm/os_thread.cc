@@ -33,7 +33,7 @@ OSThread::OSThread()
       trace_id_(OSThread::GetCurrentThreadTraceId()),
 #endif
       name_(NULL),
-      timeline_block_lock_(new Mutex()),
+      timeline_block_lock_(),
       timeline_block_(NULL),
       thread_list_next_(NULL),
       thread_interrupt_disabled_(1),  // Thread interrupts disabled by default.
@@ -85,7 +85,6 @@ OSThread::~OSThread() {
   }
 #endif
   timeline_block_ = NULL;
-  delete timeline_block_lock_;
   free(name_);
 }
 

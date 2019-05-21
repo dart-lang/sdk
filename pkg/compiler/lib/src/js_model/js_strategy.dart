@@ -8,10 +8,11 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../backend_strategy.dart';
 import '../common.dart';
-import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/codegen.dart' show CodegenRegistry;
 import '../common/tasks.dart';
+import '../common/work.dart';
 import '../compiler.dart';
-import '../deferred_load.dart';
+import '../deferred_load.dart' hide WorkItem;
 import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../enqueue.dart';
@@ -24,17 +25,17 @@ import '../inferrer/types.dart';
 import '../js/js_source_mapping.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/inferred_data.dart';
-import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
-import '../js_emitter/code_emitter_task.dart';
+import '../js_backend/namer.dart' show ModularNamer;
+import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../kernel/kernel_strategy.dart';
 import '../native/behavior.dart';
 import '../options.dart';
+import '../serialization/serialization.dart';
 import '../ssa/builder_kernel.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
 import '../ssa/types.dart';
-import '../tracer.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
@@ -97,8 +98,8 @@ class JsBackendStrategy implements BackendStrategy {
   }
 
   @override
-  SsaBuilder createSsaBuilder(CompilerTask task, CodegenInputs codegen,
-      SourceInformationStrategy sourceInformationStrategy) {
+  SsaBuilder createSsaBuilder(
+      CompilerTask task, SourceInformationStrategy sourceInformationStrategy) {
     return new KernelSsaBuilder(
         task,
         _compiler.options,
@@ -106,19 +107,21 @@ class JsBackendStrategy implements BackendStrategy {
         _compiler.dumpInfoTask,
         // ignore:deprecated_member_use_from_same_package
         elementMap,
-        codegen.namer,
-        codegen.emitter,
-        codegen.tracer,
         sourceInformationStrategy);
   }
 
   @override
-  WorkItemBuilder createCodegenWorkItemBuilder(
-      JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults,
-      CodegenInputs codegen) {
+  WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld) {
+    assert(_elementMap != null,
+        "JsBackendStrategy.elementMap has not been created yet.");
     return new KernelCodegenWorkItemBuilder(
-        _compiler.backend, closedWorld, globalInferenceResults, codegen);
+        _compiler.backend,
+        closedWorld,
+        new ClosedEntityLookup(_elementMap),
+        // TODO(johnniwinther): Avoid the need for a [ComponentLookup]. This
+        // is caused by some type masks holding a kernel node for using in
+        // tracing.
+        new ComponentLookup(_elementMap.programEnv.mainComponent));
   }
 
   @override
@@ -145,39 +148,35 @@ class JsBackendStrategy implements BackendStrategy {
 class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
   final JavaScriptBackend _backend;
   final JClosedWorld _closedWorld;
-  final GlobalTypeInferenceResults _globalInferenceResults;
-  final CodegenInputs _codegen;
+  final EntityLookup _entityLookup;
+  final ComponentLookup _componentLookup;
 
   KernelCodegenWorkItemBuilder(this._backend, this._closedWorld,
-      this._globalInferenceResults, this._codegen);
+      this._entityLookup, this._componentLookup);
 
   @override
-  CodegenWorkItem createWorkItem(MemberEntity entity) {
+  WorkItem createWorkItem(MemberEntity entity) {
     if (entity.isAbstract) return null;
     return new KernelCodegenWorkItem(
-        _backend, _closedWorld, _globalInferenceResults, _codegen, entity);
+        _backend, _closedWorld, _entityLookup, _componentLookup, entity);
   }
 }
 
-class KernelCodegenWorkItem extends CodegenWorkItem {
+class KernelCodegenWorkItem extends WorkItem {
   final JavaScriptBackend _backend;
   final JClosedWorld _closedWorld;
+  final EntityLookup _entityLookup;
+  final ComponentLookup _componentLookup;
   @override
   final MemberEntity element;
-  @override
-  final CodegenRegistry registry;
-  final GlobalTypeInferenceResults _globalInferenceResults;
-  final CodegenInputs _codegen;
 
-  KernelCodegenWorkItem(this._backend, this._closedWorld,
-      this._globalInferenceResults, this._codegen, this.element)
-      : registry =
-            new CodegenRegistry(_closedWorld.elementEnvironment, element);
+  KernelCodegenWorkItem(this._backend, this._closedWorld, this._entityLookup,
+      this._componentLookup, this.element);
 
   @override
   WorldImpact run() {
     return _backend.generateCode(
-        this, _closedWorld, _globalInferenceResults, _codegen);
+        this, _closedWorld, _entityLookup, _componentLookup);
   }
 }
 
@@ -188,44 +187,40 @@ class KernelSsaBuilder implements SsaBuilder {
   final DiagnosticReporter _reporter;
   final DumpInfoTask _dumpInfoTask;
   final JsToElementMap _elementMap;
-  final Namer _namer;
-  final Emitter _emitter;
-  final Tracer _tracer;
   final SourceInformationStrategy _sourceInformationStrategy;
 
   // TODO(johnniwinther,sra): Inlining decisions should not be based on the
   // order in which ssa graphs are built.
   FunctionInlineCache _inlineCache;
 
-  KernelSsaBuilder(
-      this._task,
-      this._options,
-      this._reporter,
-      this._dumpInfoTask,
-      this._elementMap,
-      this._namer,
-      this._emitter,
-      this._tracer,
-      this._sourceInformationStrategy);
+  KernelSsaBuilder(this._task, this._options, this._reporter,
+      this._dumpInfoTask, this._elementMap, this._sourceInformationStrategy);
 
   @override
-  HGraph build(CodegenWorkItem work, JClosedWorld closedWorld,
-      GlobalTypeInferenceResults results) {
+  HGraph build(
+      MemberEntity member,
+      JClosedWorld closedWorld,
+      GlobalTypeInferenceResults results,
+      CodegenInputs codegen,
+      CodegenRegistry registry,
+      ModularNamer namer,
+      ModularEmitter emitter) {
     _inlineCache ??= new FunctionInlineCache(closedWorld.annotationsData);
     return _task.measure(() {
       KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
           _options,
           _reporter,
-          work.element,
-          _elementMap.getMemberThisType(work.element),
+          member,
+          _elementMap.getMemberThisType(member),
           _dumpInfoTask,
           _elementMap,
           results,
           closedWorld,
-          work.registry,
-          _namer,
-          _emitter,
-          _tracer,
+          registry,
+          namer,
+          emitter,
+          codegen.tracer,
+          codegen.rtiEncoder,
           _sourceInformationStrategy,
           _inlineCache);
       return builder.build();

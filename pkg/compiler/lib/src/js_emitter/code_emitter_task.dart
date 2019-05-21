@@ -4,8 +4,6 @@
 
 library dart2js.js_emitter.code_emitter_task;
 
-import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
-
 import '../common.dart';
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
@@ -13,9 +11,9 @@ import '../constants/values.dart';
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
-import '../js_backend/js_backend.dart'
-    show CodegenInputs, JavaScriptBackend, Namer;
+import '../js_backend/backend.dart' show CodegenInputs, JavaScriptBackend;
 import '../js_backend/inferred_data.dart';
+import '../js_backend/namer.dart' show Namer;
 import '../universe/codegen_world_builder.dart';
 import '../world.dart' show JClosedWorld;
 import 'program_builder/program_builder.dart';
@@ -78,7 +76,8 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   /// Creates the [Emitter] for this task.
-  void createEmitter(Namer namer, JClosedWorld closedWorld) {
+  void createEmitter(
+      Namer namer, CodegenInputs codegen, JClosedWorld closedWorld) {
     measure(() {
       _nativeEmitter =
           new NativeEmitter(this, closedWorld, _backend.nativeCodegenEnqueuer);
@@ -89,7 +88,7 @@ class CodeEmitterTask extends CompilerTask {
           _compiler.dumpInfoTask,
           namer,
           closedWorld,
-          _backend.rtiEncoder,
+          codegen.rtiEncoder,
           _backend.sourceInformationStrategy,
           this,
           _generateSourceMap);
@@ -97,7 +96,7 @@ class CodeEmitterTask extends CompilerTask {
           _compiler.options,
           _compiler.reporter,
           _emitter,
-          _backend.rtiEncoder,
+          codegen.rtiEncoder,
           closedWorld.elementEnvironment);
       typeTestRegistry = new TypeTestRegistry(
           _compiler.options, closedWorld.elementEnvironment);
@@ -139,7 +138,7 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.sorter,
           typeTestRegistry.rtiNeededClasses,
           closedWorld.elementEnvironment.mainFunction);
-      int size = emitter.emitProgram(programBuilder, codegen, codegenWorld);
+      int size = emitter.emitProgram(programBuilder, codegenWorld);
       // TODO(floitsch): we shouldn't need the `neededClasses` anymore.
       neededClasses = programBuilder.collector.neededClasses;
       return size;
@@ -147,23 +146,14 @@ class CodeEmitterTask extends CompilerTask {
   }
 }
 
-abstract class Emitter {
-  Program get programForTesting;
-
-  /// Uses the [programBuilder] to generate a model of the program, emits
-  /// the program, and returns the size of the generated output.
-  int emitProgram(ProgramBuilder programBuilder, CodegenInputs codegen,
-      CodegenWorld codegenWorld);
-
-  /// Returns the JS function that must be invoked to get the value of the
-  /// lazily initialized static.
-  jsAst.Expression isolateLazyInitializerAccess(covariant FieldEntity element);
-
-  /// Returns the closure expression of a static function.
-  jsAst.Expression isolateStaticClosureAccess(covariant FunctionEntity element);
-
-  /// Returns the JS code for accessing the embedded [global].
-  jsAst.Expression generateEmbeddedGlobalAccess(String global);
+/// Interface for the subset of the [Emitter] that can be used during modular
+/// code generation.
+///
+/// Note that the emission phase is not itself modular but performed on
+/// the closed world computed by the codegen enqueuer.
+abstract class ModularEmitter {
+  /// Returns the JS prototype of the given class [e].
+  jsAst.Expression prototypeAccess(ClassEntity e, {bool hasBeenInstantiated});
 
   /// Returns the JS function representing the given function.
   ///
@@ -172,13 +162,41 @@ abstract class Emitter {
 
   jsAst.Expression staticFieldAccess(FieldEntity element);
 
+  /// Returns the JS function that must be invoked to get the value of the
+  /// lazily initialized static.
+  jsAst.Expression isolateLazyInitializerAccess(covariant FieldEntity element);
+
+  /// Returns the closure expression of a static function.
+  jsAst.Expression staticClosureAccess(covariant FunctionEntity element);
+
   /// Returns the JS constructor of the given element.
   ///
   /// The returned expression must only be used in a JS `new` expression.
   jsAst.Expression constructorAccess(ClassEntity e);
 
-  /// Returns the JS prototype of the given class [e].
-  jsAst.Expression prototypeAccess(ClassEntity e, {bool hasBeenInstantiated});
+  /// Returns the JS expression representing the type [e].
+  jsAst.Expression typeAccess(Entity e);
+
+  /// Returns the JS code for accessing the embedded [global].
+  jsAst.Expression generateEmbeddedGlobalAccess(String global);
+
+  /// Returns the JS code for accessing the given [constant].
+  jsAst.Expression constantReference(ConstantValue constant);
+
+  /// Returns the JS code for accessing the global property [global].
+  String generateEmbeddedGlobalAccessString(String global);
+}
+
+/// Interface for the emitter that is used during the emission phase on the
+/// closed world computed by the codegen enqueuer.
+///
+/// These methods are _not_ available during modular code generation.
+abstract class Emitter implements ModularEmitter {
+  Program get programForTesting;
+
+  /// Uses the [programBuilder] to generate a model of the program, emits
+  /// the program, and returns the size of the generated output.
+  int emitProgram(ProgramBuilder programBuilder, CodegenWorld codegenWorld);
 
   /// Returns the JS prototype of the given interceptor class [e].
   jsAst.Expression interceptorPrototypeAccess(ClassEntity e);
@@ -186,20 +204,11 @@ abstract class Emitter {
   /// Returns the JS constructor of the given interceptor class [e].
   jsAst.Expression interceptorClassAccess(ClassEntity e);
 
-  /// Returns the JS expression representing the type [e].
-  jsAst.Expression typeAccess(Entity e);
-
   /// Returns the JS expression representing a function that returns 'null'
   jsAst.Expression generateFunctionThatReturnsNull();
 
   int compareConstants(ConstantValue a, ConstantValue b);
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant);
-
-  /// Returns the JS code for accessing the given [constant].
-  jsAst.Expression constantReference(ConstantValue constant);
-
-  /// Returns the JS template for the given [builtin].
-  jsAst.Template templateForBuiltin(JsBuiltin builtin);
 
   /// Returns the size of the code generated for a given output [unit].
   int generatedSize(OutputUnit unit);

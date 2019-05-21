@@ -21,6 +21,7 @@ class Data {
 abstract class ChainContextWithCleanupHelper extends ChainContext {
   Map<TestDescription, Data> cleanupHelper = {};
 
+  @override
   Future<void> cleanUp(TestDescription description, Result result) {
     if (debugging() && result.outcome != Expectation.Pass) {
       print("Not cleaning up: Running in debug-mode for non-passing test.");
@@ -38,8 +39,10 @@ abstract class ChainContextWithCleanupHelper extends ChainContext {
 class Setup extends Step<TestDescription, Data, ChainContext> {
   const Setup();
 
+  @override
   String get name => "setup";
 
+  @override
   Future<Result<Data>> run(TestDescription input, ChainContext context) async {
     Data data = Data()..uri = input.uri;
     if (context is ChainContextWithCleanupHelper) {
@@ -52,8 +55,10 @@ class Setup extends Step<TestDescription, Data, ChainContext> {
 class SetCwdToSdkRoot extends Step<Data, Data, ChainContext> {
   const SetCwdToSdkRoot();
 
+  @override
   String get name => "setCWD";
 
+  @override
   Future<Result<Data>> run(Data input, ChainContext context) async {
     // stacktrace_helper assumes CWD is the sdk root dir.
     Directory.current = sdkRoot;
@@ -64,8 +69,10 @@ class SetCwdToSdkRoot extends Step<Data, Data, ChainContext> {
 class StepWithD8 extends Step<Data, Data, ChainContext> {
   const StepWithD8();
 
+  @override
   String get name => "step";
 
+  @override
   Future<Result<Data>> run(Data data, ChainContext context) async {
     var outWrapperPath = path.join(data.outDir.path, "wrapper.js");
     ProcessResult runResult =
@@ -80,8 +87,10 @@ class CheckSteps extends Step<Data, Data, ChainContext> {
 
   CheckSteps(this.debug);
 
+  @override
   String get name => "check";
 
+  @override
   Future<Result<Data>> run(Data data, ChainContext context) async {
     checkD8Steps(data.outDir.path, data.d8Output, data.code, debug: debug);
     return pass(data);

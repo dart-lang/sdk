@@ -68,14 +68,11 @@ io/wait_for_event_zone_caught_error_test: SkipByDesign # Uses mirrors.
 io/wait_for_event_zone_test: SkipByDesign # Uses mirrors.
 io/wait_for_test: SkipByDesign # Uses mirrors.
 
-[ !$strong ]
-float_array_static_test: MissingCompileTimeError
-
 [ $builder_tag == swarming && $system == macos ]
 io/*: Skip # Issue 30618
 
 # All static_tests have expected compile-time errors.
-[ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $runtime != none && $strong ]
+[ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $runtime != none ]
 float_array_static_test: MissingCompileTimeError
 
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
@@ -91,9 +88,6 @@ dwarf_stack_trace_test: SkipByDesign # Due to instruction canonicalization we ca
 [ $mode == release && $runtime == vm && $system == macos ]
 io/named_pipe_script_test: Pass, RuntimeError # Issue 28737
 
-[ $runtime == none && !$strong ]
-io/process_exit_negative_test: Fail, OK # Must be run to exit with non-zero exit code.
-
 [ $runtime == vm && $system == linux ]
 io/http_basic_test: Pass, Slow, Timeout # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
 io/http_launch_test: Pass, Slow, Timeout # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
@@ -108,7 +102,13 @@ io/socket_many_connections_test: Skip # This test fails with "Too many open file
 [ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # Deprecating all Dart1 modes of execution
 
-[ $strong && ($compiler == dartk || $compiler == dartkb || $compiler == dartkp) ]
+[ $arch == arm || $arch == arm64 || $runtime != vm || $mode == debug && $system == windows ]
+fragmentation_test: Skip
+
+[ $compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk ]
+*: SkipByDesign
+
+[ $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 io/file_error_test: RuntimeError
 io/file_test: RuntimeError
 io/http_auth_digest_test: RuntimeError
@@ -124,37 +124,6 @@ io/secure_socket_argument_test: CompileTimeError
 io/web_socket_pipe_test: RuntimeError
 io/web_socket_protocol_processor_test: CompileTimeError
 io/zlib_test: RuntimeError
-
-[ !$strong && ($compiler == dartk || $compiler == dartkb || $compiler == dartkp) ]
-io/compile_all_test: Skip # Crashes
-io/http_client_connect_test: Skip # Flaky.
-io/http_content_length_test: Skip # Flaky.
-io/http_proxy_test: Skip # Flaky.
-io/http_response_deadline_test: Skip # Flaky.
-io/http_reuse_server_port_test: Skip # Flaky.
-io/http_server_close_response_after_error_test: Skip # Flaky.
-io/http_shutdown_test: Skip # Flaky.
-io/raw_secure_server_closing_test: Skip # Flaky.
-io/secure_multiple_client_server_test: Skip # Flaky.
-io/secure_server_closing_test: Skip # Flaky.
-io/secure_server_socket_test: Skip # Flaky.
-io/web_socket_error_test: Skip # Flaky
-io/web_socket_ping_test: Skip # Flaky.
-io/web_socket_test: Skip # Flaky.
-map_insert_remove_oom_test: Skip # Heap limit too low.
-no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
-package/package1_test: CompileTimeError
-package/package_test: CompileTimeError
-package/scenarios/invalid/invalid_utf8_test: CompileTimeError
-package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
-package/scenarios/invalid/same_package_twice_test: CompileTimeError
-regress_29350_test: MissingCompileTimeError
-
-[ $arch == arm || $arch == arm64 || $runtime != vm || $mode == debug && $system == windows ]
-fragmentation_test: Skip
-
-[ $compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk ]
-*: SkipByDesign
 
 [ $mode == product || $runtime == dart_precompiled ]
 no_assert_test: SkipByDesign

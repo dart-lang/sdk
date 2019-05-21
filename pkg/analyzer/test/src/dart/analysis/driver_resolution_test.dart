@@ -1204,11 +1204,7 @@ class C {
     FunctionExpressionInvocation invocation = field.initializer;
     FunctionExpression closure = invocation.function.unParenthesized;
     FunctionElementImpl closureElement = closure.declaredElement;
-    if (AnalysisDriver.useSummary2) {
-      expect(closureElement.enclosingElement, same(field.declaredElement));
-    } else {
-      expect(closureElement.enclosingElement, same(fieldInitializer));
-    }
+    expect(closureElement.enclosingElement, same(fieldInitializer));
   }
 
   test_closure_inTopLevelVariable() async {
@@ -1226,11 +1222,7 @@ var v = (() => 42)();
     FunctionExpressionInvocation invocation = variable.initializer;
     FunctionExpression closure = invocation.function.unParenthesized;
     FunctionElementImpl closureElement = closure.declaredElement;
-    if (AnalysisDriver.useSummary2) {
-      expect(closureElement.enclosingElement, same(variable.declaredElement));
-    } else {
-      expect(closureElement.enclosingElement, same(variableInitializer));
-    }
+    expect(closureElement.enclosingElement, same(variableInitializer));
   }
 
   test_conditionalExpression() async {

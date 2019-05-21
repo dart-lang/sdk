@@ -54,8 +54,9 @@ class BlockBuilder : public ValueObject {
   }
 
   Definition* AddParameter(intptr_t index, bool with_frame) {
-    return AddToInitialDefinitions(new ParameterInstr(
-        index, flow_graph_->graph_entry(), with_frame ? FPREG : SPREG));
+    auto normal_entry = flow_graph_->graph_entry()->normal_entry();
+    return AddToInitialDefinitions(
+        new ParameterInstr(index, normal_entry, with_frame ? FPREG : SPREG));
   }
 
   TokenPosition TokenPos() { return flow_graph_->function().token_pos(); }

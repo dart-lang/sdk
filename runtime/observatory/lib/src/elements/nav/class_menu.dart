@@ -10,7 +10,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class NavClassMenuElement extends HtmlElement implements Renderable {
+class NavClassMenuElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavClassMenuElement>('nav-class-menu');
 
   RenderingScheduler _r;
@@ -34,14 +34,14 @@ class NavClassMenuElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(cls != null);
-    NavClassMenuElement e = document.createElement(tag.name);
+    NavClassMenuElement e = new NavClassMenuElement.created();
     e._r = new RenderingScheduler<NavClassMenuElement>(e, queue: queue);
     e._isolate = isolate;
     e._cls = cls;
     return e;
   }
 
-  NavClassMenuElement.created() : super.created();
+  NavClassMenuElement.created() : super.created(tag);
 
   @override
   void attached() {

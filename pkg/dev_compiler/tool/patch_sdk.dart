@@ -9,6 +9,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+// ignore: deprecated_member_use
 import 'package:analyzer/analyzer.dart'
     show parseCompilationUnit, parseDirectives;
 import 'package:analyzer/dart/ast/ast.dart';
@@ -391,7 +392,7 @@ class StringEditBuffer {
   /// Creates a new transaction.
   StringEditBuffer(this.original);
 
-  bool get hasEdits => _edits.length > 0;
+  bool get hasEdits => _edits.isNotEmpty;
 
   /// Edit the original text, replacing text on the range [begin] and
   /// exclusive [end] with the [replacement] string.
@@ -415,9 +416,10 @@ class StringEditBuffer {
   ///
   /// Throws [UnsupportedError] if the edits were overlapping. If no edits were
   /// made, the original string will be returned.
+  @override
   String toString() {
     var sb = StringBuffer();
-    if (_edits.length == 0) return original;
+    if (_edits.isEmpty) return original;
 
     // Sort edits by start location.
     _edits.sort();
@@ -461,8 +463,10 @@ class _StringEdit implements Comparable<_StringEdit> {
 
   int get length => end - begin;
 
+  @override
   String toString() => '(Edit @ $begin,$end: "$replace")';
 
+  @override
   int compareTo(_StringEdit other) {
     int diff = begin - other.begin;
     if (diff != 0) return diff;

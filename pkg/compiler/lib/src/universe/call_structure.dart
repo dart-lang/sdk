@@ -67,6 +67,15 @@ class CallStructure {
     sink.end(tag);
   }
 
+  /// Returns `true` if this call structure is normalized, that is, its named
+  /// arguments are sorted.
+  bool get isNormalized => true;
+
+  /// Returns the normalized version of this call structure.
+  ///
+  /// A [CallStructure] is normalized if its named arguments are sorted.
+  CallStructure toNormalized() => this;
+
   CallStructure withTypeArgumentCount(int typeArgumentCount) =>
       new CallStructure(argumentCount, namedArguments, typeArgumentCount);
 
@@ -185,17 +194,21 @@ class CallStructure {
   }
 }
 
-///
+/// Call structure with named arguments.
 class NamedCallStructure extends CallStructure {
   @override
   final List<String> namedArguments;
-  final List<String> _orderedNamedArguments = <String>[];
+  final List<String> _orderedNamedArguments;
 
   NamedCallStructure(
-      int argumentCount, this.namedArguments, int typeArgumentCount)
-      : super.unnamed(argumentCount, typeArgumentCount) {
-    assert(namedArguments.isNotEmpty);
-  }
+      int argumentCount, List<String> namedArguments, int typeArgumentCount)
+      : this.internal(
+            argumentCount, namedArguments, typeArgumentCount, <String>[]);
+
+  NamedCallStructure.internal(int argumentCount, this.namedArguments,
+      int typeArgumentCount, this._orderedNamedArguments)
+      : assert(namedArguments.isNotEmpty),
+        super.unnamed(argumentCount, typeArgumentCount);
 
   @override
   bool get isNamed => true;
@@ -208,6 +221,16 @@ class NamedCallStructure extends CallStructure {
 
   @override
   int get positionalArgumentCount => argumentCount - namedArgumentCount;
+
+  @override
+  bool get isNormalized => namedArguments == _orderedNamedArguments;
+
+  @override
+  CallStructure toNormalized() => new NamedCallStructure.internal(
+      argumentCount,
+      getOrderedNamedArguments(),
+      typeArgumentCount,
+      getOrderedNamedArguments());
 
   @override
   List<String> getOrderedNamedArguments() {

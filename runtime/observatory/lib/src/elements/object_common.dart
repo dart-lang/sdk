@@ -13,7 +13,7 @@ import 'package:observatory/src/elements/retaining_path.dart';
 import 'package:observatory/src/elements/sentinel_value.dart';
 import 'package:observatory/utils.dart';
 
-class ObjectCommonElement extends HtmlElement implements Renderable {
+class ObjectCommonElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<ObjectCommonElement>('object-common', dependencies: const [
     ClassRefElement.tag,
@@ -57,7 +57,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
     assert(references != null);
     assert(retainingPaths != null);
     assert(objects != null);
-    ObjectCommonElement e = document.createElement(tag.name);
+    ObjectCommonElement e = new ObjectCommonElement.created();
     e._r = new RenderingScheduler<ObjectCommonElement>(e, queue: queue);
     e._isolate = isolate;
     e._object = object;
@@ -69,7 +69,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  ObjectCommonElement.created() : super.created();
+  ObjectCommonElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -110,7 +110,8 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
                   _object.clazz == null
                       ? (new SpanElement()..text = '...')
                       : new ClassRefElement(_isolate, _object.clazz,
-                          queue: _r.queue)
+                              queue: _r.queue)
+                          .element
                 ]
             ],
           new DivElement()
@@ -156,7 +157,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
                 ..text = 'Retaining path ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = <Element>[_path]
+                ..children = <Element>[_path.element]
             ],
           new DivElement()
             ..classes = ['memberItem']
@@ -167,7 +168,7 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
                 ..text = 'Inbound references ',
               new DivElement()
                 ..classes = ['memberValue']
-                ..children = <Element>[_inbounds]
+                ..children = <Element>[_inbounds.element]
             ]
         ]
     ];
@@ -177,12 +178,13 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
     final content = <Element>[];
     if (_reachableSize != null) {
       if (_reachableSize.isSentinel) {
-        content.add(new SentinelValueElement(_reachableSize.asSentinel,
-            queue: _r.queue));
+        content.add(
+            new SentinelValueElement(_reachableSize.asSentinel, queue: _r.queue)
+                .element);
       } else {
         content.add(new SpanElement()
-          ..text = Utils
-              .formatSize(int.parse(_reachableSize.asValue.valueAsString)));
+          ..text = Utils.formatSize(
+              int.parse(_reachableSize.asValue.valueAsString)));
       }
     } else {
       content.add(new SpanElement()..text = '...');
@@ -205,8 +207,9 @@ class ObjectCommonElement extends HtmlElement implements Renderable {
     final content = <Element>[];
     if (_retainedSize != null) {
       if (_retainedSize.isSentinel) {
-        content.add(new SentinelValueElement(_retainedSize.asSentinel,
-            queue: _r.queue));
+        content.add(
+            new SentinelValueElement(_retainedSize.asSentinel, queue: _r.queue)
+                .element);
       } else {
         content.add(new SpanElement()
           ..text =

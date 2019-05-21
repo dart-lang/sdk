@@ -122,6 +122,15 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  test_nonDartFile() async {
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
+    await openFile(pubspecFileUri, simplePubspecContent);
+    final res = await getSignatureHelp(pubspecFileUri, startOfDocPos);
+    expect(res, isNull);
+  }
+
   test_params_multipleNamed() async {
     final content = '''
     /// Does foo.
@@ -250,6 +259,37 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
         new ParameterInformation('String s', null),
         new ParameterInformation('int i', null),
       ],
+    );
+  }
+
+  test_dartDocMacro() async {
+    final content = '''
+    /// {@template template_name}
+    /// This is shared content.
+    /// {@endtemplate}
+    const String bar = null;
+
+    /// {@macro template_name}
+    foo(String s, int i) {
+      foo(^);
+    }
+    ''';
+    final expectedLabel = 'foo(String s, int i)';
+    final expectedDoc = 'This is shared content.';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        new ParameterInformation('String s', null),
+        new ParameterInformation('int i', null),
+      ],
+      expectedFormat: null,
     );
   }
 

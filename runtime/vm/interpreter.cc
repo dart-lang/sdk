@@ -12,6 +12,7 @@
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
@@ -229,8 +230,8 @@ class InterpreterHelpers {
   }
 };
 
-DART_FORCE_INLINE static uint32_t* SavedCallerPC(RawObject** FP) {
-  return reinterpret_cast<uint32_t*>(FP[kKBCSavedCallerPcSlotFromFp]);
+DART_FORCE_INLINE static const KBCInstr* SavedCallerPC(RawObject** FP) {
+  return reinterpret_cast<const KBCInstr*>(FP[kKBCSavedCallerPcSlotFromFp]);
 }
 
 DART_FORCE_INLINE static RawFunction* FrameFunction(RawObject** FP) {
@@ -396,11 +397,12 @@ DART_FORCE_INLINE bool Interpreter::IsTracingExecution() const {
 }
 
 // Prints bytecode instruction at given pc for instruction tracing.
-DART_NOINLINE void Interpreter::TraceInstruction(uint32_t* pc) const {
+DART_NOINLINE void Interpreter::TraceInstruction(const KBCInstr* pc) const {
   THR_Print("%" Pu64 " ", icount_);
   if (FLAG_support_disassembler) {
-    KernelBytecodeDisassembler::Disassemble(reinterpret_cast<uword>(pc),
-                                            reinterpret_cast<uword>(pc + 1));
+    KernelBytecodeDisassembler::Disassemble(
+        reinterpret_cast<uword>(pc),
+        reinterpret_cast<uword>(KernelBytecode::Next(pc)));
   } else {
     THR_Print("Disassembler not supported in this mode.\n");
   }
@@ -430,13 +432,15 @@ void Interpreter::FlushTraceBuffer() {
   trace_buffer_idx_ = 0;
 }
 
-DART_NOINLINE void Interpreter::WriteInstructionToTrace(uint32_t* pc) {
+DART_NOINLINE void Interpreter::WriteInstructionToTrace(const KBCInstr* pc) {
   Dart_FileWriteCallback file_write = Dart::file_write_callback();
   if (file_write == NULL) {
     return;
   }
-  if (trace_buffer_idx_ < kTraceBufferInstrs) {
-    trace_buffer_[trace_buffer_idx_++] = static_cast<KBCInstr>(*pc);
+  const KBCInstr* next = KernelBytecode::Next(pc);
+  while ((trace_buffer_idx_ < kTraceBufferInstrs) && (pc != next)) {
+    trace_buffer_[trace_buffer_idx_++] = *pc;
+    ++pc;
   }
   if (trace_buffer_idx_ == kTraceBufferInstrs) {
     FlushTraceBuffer();
@@ -460,10 +464,10 @@ typedef double (*InterpreterLeafFloatRuntimeCall)(double d0, double d1);
 void Interpreter::Exit(Thread* thread,
                        RawObject** base,
                        RawObject** frame,
-                       uint32_t* pc) {
+                       const KBCInstr* pc) {
   frame[0] = Function::null();
   frame[1] = Bytecode::null();
-  frame[2] = reinterpret_cast<RawObject*>(pc);
+  frame[2] = reinterpret_cast<RawObject*>(reinterpret_cast<uword>(pc));
   frame[3] = reinterpret_cast<RawObject*>(base);
 
   RawObject** exit_fp = frame + kKBCDartFrameFixedSize;
@@ -534,7 +538,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
                                                RawFunction* function,
                                                RawObject** call_base,
                                                RawObject** call_top,
-                                               uint32_t** pc,
+                                               const KBCInstr** pc,
                                                RawObject*** FP,
                                                RawObject*** SP) {
   ASSERT(Function::HasCode(function));
@@ -619,7 +623,7 @@ DART_FORCE_INLINE bool Interpreter::InvokeBytecode(Thread* thread,
                                                    RawFunction* function,
                                                    RawObject** call_base,
                                                    RawObject** call_top,
-                                                   uint32_t** pc,
+                                                   const KBCInstr** pc,
                                                    RawObject*** FP,
                                                    RawObject*** SP) {
   ASSERT(Function::HasBytecode(function));
@@ -634,10 +638,11 @@ DART_FORCE_INLINE bool Interpreter::InvokeBytecode(Thread* thread,
   ASSERT(function == FrameFunction(callee_fp));
   RawBytecode* bytecode = function->ptr()->bytecode_;
   callee_fp[kKBCPcMarkerSlotFromFp] = bytecode;
-  callee_fp[kKBCSavedCallerPcSlotFromFp] = reinterpret_cast<RawObject*>(*pc);
+  callee_fp[kKBCSavedCallerPcSlotFromFp] =
+      reinterpret_cast<RawObject*>(reinterpret_cast<uword>(*pc));
   callee_fp[kKBCSavedCallerFpSlotFromFp] = reinterpret_cast<RawObject*>(*FP);
   pp_ = bytecode->ptr()->object_pool_;
-  *pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_);
+  *pc = reinterpret_cast<const KBCInstr*>(bytecode->ptr()->instructions_);
   NOT_IN_PRODUCT(pc_ = *pc);  // For the profiler.
   *FP = callee_fp;
   NOT_IN_PRODUCT(fp_ = callee_fp);  // For the profiler.
@@ -648,7 +653,7 @@ DART_FORCE_INLINE bool Interpreter::InvokeBytecode(Thread* thread,
 DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
                                            RawObject** call_base,
                                            RawObject** call_top,
-                                           uint32_t** pc,
+                                           const KBCInstr** pc,
                                            RawObject*** FP,
                                            RawObject*** SP) {
   RawObject** callee_fp = call_top + kKBCDartFrameFixedSize;
@@ -682,7 +687,7 @@ void Interpreter::InlineCacheMiss(int checked_args,
                                   RawICData* icdata,
                                   RawObject** args,
                                   RawObject** top,
-                                  uint32_t* pc,
+                                  const KBCInstr* pc,
                                   RawObject** FP,
                                   RawObject** SP) {
   RawObject** result = top;
@@ -725,7 +730,7 @@ DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
                                                   RawString* target_name,
                                                   RawObject** call_base,
                                                   RawObject** top,
-                                                  uint32_t** pc,
+                                                  const KBCInstr** pc,
                                                   RawObject*** FP,
                                                   RawObject*** SP) {
   const intptr_t type_args_len =
@@ -738,6 +743,7 @@ DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
   RawFunction* target;
   if (UNLIKELY(!lookup_cache_.Lookup(receiver_cid, target_name, &target))) {
     // Table lookup miss.
+    top[0] = 0;  // Clean up slot as it may be visited by GC.
     top[1] = call_base[receiver_idx];
     top[2] = target_name;
     top[3] = argdesc_;
@@ -766,7 +772,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall1(Thread* thread,
                                                   RawICData* icdata,
                                                   RawObject** call_base,
                                                   RawObject** top,
-                                                  uint32_t** pc,
+                                                  const KBCInstr** pc,
                                                   RawObject*** FP,
                                                   RawObject*** SP,
                                                   bool optimized) {
@@ -787,7 +793,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall1(Thread* thread,
   intptr_t i;
   for (i = 0; i < (length - (kCheckedArgs + 2)); i += (kCheckedArgs + 2)) {
     if (cache->data()[i + 0] == receiver_cid) {
-      top[0] = cache->data()[i + kCheckedArgs];
+      top[0] = cache->data()[i + ICData::TargetIndexFor(kCheckedArgs)];
       found = true;
       break;
     }
@@ -811,7 +817,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
                                                   RawICData* icdata,
                                                   RawObject** call_base,
                                                   RawObject** top,
-                                                  uint32_t** pc,
+                                                  const KBCInstr** pc,
                                                   RawObject*** FP,
                                                   RawObject*** SP,
                                                   bool optimized) {
@@ -835,7 +841,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
   for (i = 0; i < (length - (kCheckedArgs + 2)); i += (kCheckedArgs + 2)) {
     if ((cache->data()[i + 0] == receiver_cid) &&
         (cache->data()[i + 1] == arg0_cid)) {
-      top[0] = cache->data()[i + kCheckedArgs];
+      top[0] = cache->data()[i + ICData::TargetIndexFor(kCheckedArgs)];
       found = true;
       break;
     }
@@ -862,10 +868,10 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 #if defined(DEBUG)
 #define TRACE_INSTRUCTION                                                      \
   if (IsTracingExecution()) {                                                  \
-    TraceInstruction(pc - 1);                                                  \
+    TraceInstruction(pc);                                                      \
   }                                                                            \
   if (IsWritingTraceFile()) {                                                  \
-    WriteInstructionToTrace(pc - 1);                                           \
+    WriteInstructionToTrace(pc);                                               \
   }                                                                            \
   icount_++;
 #else
@@ -878,77 +884,207 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 #define DISPATCH_OP(val)                                                       \
   do {                                                                         \
     op = (val);                                                                \
-    rA = ((op >> 8) & 0xFF);                                                   \
     TRACE_INSTRUCTION                                                          \
-    goto* dispatch[op & 0xFF];                                                 \
+    goto* dispatch[op];                                                        \
   } while (0)
 #else
 #define DISPATCH_OP(val)                                                       \
   do {                                                                         \
     op = (val);                                                                \
-    rA = ((op >> 8) & 0xFF);                                                   \
     TRACE_INSTRUCTION                                                          \
     goto SwitchDispatch;                                                       \
   } while (0)
 #endif
 
 // Fetch next operation from PC, increment program counter and dispatch.
-#define DISPATCH() DISPATCH_OP(*pc++)
+#define DISPATCH() DISPATCH_OP(*pc)
 
 // Load target of a jump instruction into PC.
-#define LOAD_JUMP_TARGET() pc += ((static_cast<int32_t>(op) >> 8) - 1)
+#define LOAD_JUMP_TARGET() pc = rT
+
+#define BYTECODE_ENTRY_LABEL(Name) bc##Name:
+#define BYTECODE_WIDE_ENTRY_LABEL(Name) bc##Name##_Wide:
+#define BYTECODE_OLD_ENTRY_LABEL(Name) bc##Name##_Old:
+#define BYTECODE_IMPL_LABEL(Name) bc##Name##Impl:
+#define GOTO_BYTECODE_IMPL(Name) goto bc##Name##Impl;
 
 // Define entry point that handles bytecode Name with the given operand format.
-#define BYTECODE(Name, Operands)                                               \
-  BYTECODE_HEADER(Name, DECLARE_##Operands, DECODE_##Operands)
+#define BYTECODE(Name, Operands) BYTECODE_HEADER_##Operands##_WITH_OLD(Name)
 
-#define BYTECODE_HEADER(Name, Declare, Decode)                                 \
-  Declare;                                                                     \
-  bc##Name : Decode
+// TODO(alexmarkov): switch BYTECODE macro to BYTECODE_NEW implementation
+// and replace BYTECODE_NEW with BYTECODE when old instructions are gone.
+// Cleanup BYTECODE_HEADER_*_WITH_OLD macros and drop _WITH_OLD.
+static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
+              "Cleanup support for old bytecode format versions");
+
+#define BYTECODE_NEW(Name, Operands) BYTECODE_HEADER_##Operands(Name)
 
 // Helpers to decode common instruction formats. Used in conjunction with
 // BYTECODE() macro.
-#define DECLARE_A_B_C                                                          \
-  uint16_t rB, rC;                                                             \
-  USE(rB);                                                                     \
-  USE(rC)
-#define DECODE_A_B_C                                                           \
-  rB = ((op >> KernelBytecode::kBShift) & KernelBytecode::kBMask);             \
-  rC = ((op >> KernelBytecode::kCShift) & KernelBytecode::kCMask);
 
-#define DECLARE_A_B_Y                                                          \
-  uint16_t rB;                                                                 \
-  int8_t rY;                                                                   \
-  USE(rB);                                                                     \
-  USE(rY)
-#define DECODE_A_B_Y                                                           \
-  rB = ((op >> KernelBytecode::kBShift) & KernelBytecode::kBMask);             \
-  rY = ((op >> KernelBytecode::kYShift) & KernelBytecode::kYMask);
+#define BYTECODE_HEADER_0(Name)                                                \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  pc += 1;
 
-#define DECLARE_0
-#define DECODE_0
+#define BYTECODE_HEADER_0_WITH_OLD(Name)                                       \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_HEADER_0(Name)                                                      \
+  BYTECODE_IMPL_LABEL(Name)
 
-#define DECLARE_A
-#define DECODE_A
+#define BYTECODE_HEADER_A_WITH_OLD(Name)                                       \
+  uint32_t rA;                                                                 \
+  USE(rA);                                                                     \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
+  rA = pc[1];                                                                  \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  rA = pc[1];                                                                  \
+  pc += 2;                                                                     \
+  BYTECODE_IMPL_LABEL(Name)
 
-#define DECLARE_T
-#define DECODE_T
-
-#define DECLARE_D                                                              \
+#define BYTECODE_HEADER_D_WITH_OLD(Name)                                       \
   uint32_t rD;                                                                 \
-  USE(rD)
-#define DECODE_D rD = (op >> KernelBytecode::kDShift);
+  USE(rD);                                                                     \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
+  rD = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8);     \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_WIDE_ENTRY_LABEL(Name)                                              \
+  rD = static_cast<uint32_t>(pc[1]) | (static_cast<uint32_t>(pc[2]) << 8) |    \
+       (static_cast<uint32_t>(pc[3]) << 16) |                                  \
+       (static_cast<uint32_t>(pc[4]) << 24);                                   \
+  pc += 5;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  rD = pc[1];                                                                  \
+  pc += 2;                                                                     \
+  BYTECODE_IMPL_LABEL(Name)
 
-#define DECLARE_A_D DECLARE_D
-#define DECODE_A_D DECODE_D
+#define BYTECODE_HEADER_X_WITH_OLD(Name)                                       \
+  int32_t rX;                                                                  \
+  USE(rX);                                                                     \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
+  rX = static_cast<int16_t>(static_cast<uint16_t>(pc[2]) |                     \
+                            (static_cast<uint16_t>(pc[3]) << 8));              \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_WIDE_ENTRY_LABEL(Name)                                              \
+  rX = static_cast<int32_t>(static_cast<uint32_t>(pc[1]) |                     \
+                            (static_cast<uint32_t>(pc[2]) << 8) |              \
+                            (static_cast<uint32_t>(pc[3]) << 16) |             \
+                            (static_cast<uint32_t>(pc[4]) << 24));             \
+  pc += 5;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  rX = static_cast<int8_t>(pc[1]);                                             \
+  pc += 2;                                                                     \
+  BYTECODE_IMPL_LABEL(Name)
 
-#define DECLARE_X                                                              \
-  int32_t rD;                                                                  \
-  USE(rD)
-#define DECODE_X rD = (static_cast<int32_t>(op) >> KernelBytecode::kDShift);
+#define BYTECODE_HEADER_T_WITH_OLD(Name)                                       \
+  const KBCInstr* rT;                                                          \
+  USE(rT);                                                                     \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
+  rT = pc + (static_cast<int32_t>((static_cast<uint32_t>(pc[1]) << 8) |        \
+                                  (static_cast<uint32_t>(pc[2]) << 16) |       \
+                                  (static_cast<uint32_t>(pc[3]) << 24)) >>     \
+             (8 - 2));                                                         \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_WIDE_ENTRY_LABEL(Name)                                              \
+  rT = pc + (static_cast<int32_t>((static_cast<uint32_t>(pc[1]) << 8) |        \
+                                  (static_cast<uint32_t>(pc[2]) << 16) |       \
+                                  (static_cast<uint32_t>(pc[3]) << 24)) >>     \
+             8);                                                               \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  rT = pc + static_cast<int8_t>(pc[1]);                                        \
+  pc += 2;                                                                     \
+  BYTECODE_IMPL_LABEL(Name)
 
-#define DECLARE_A_X DECLARE_X
-#define DECODE_A_X DECODE_X
+#define BYTECODE_HEADER_A_E_WITH_OLD(Name)                                     \
+  uint32_t rA, rE;                                                             \
+  USE(rA);                                                                     \
+  USE(rE);                                                                     \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
+  rA = pc[1];                                                                  \
+  rE = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8);     \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_WIDE_ENTRY_LABEL(Name)                                              \
+  rA = pc[1];                                                                  \
+  rE = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8) |    \
+       (static_cast<uint32_t>(pc[4]) << 16) |                                  \
+       (static_cast<uint32_t>(pc[5]) << 24);                                   \
+  pc += 6;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  rA = pc[1];                                                                  \
+  rE = pc[2];                                                                  \
+  pc += 3;                                                                     \
+  BYTECODE_IMPL_LABEL(Name)
+
+#define BYTECODE_HEADER_A_Y_WITH_OLD(Name)                                     \
+  uint32_t rA;                                                                 \
+  int32_t rY;                                                                  \
+  USE(rA);                                                                     \
+  USE(rY);                                                                     \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
+  rA = pc[1];                                                                  \
+  rY = static_cast<int16_t>(static_cast<uint16_t>(pc[2]) |                     \
+                            (static_cast<uint16_t>(pc[3]) << 8));              \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_WIDE_ENTRY_LABEL(Name)                                              \
+  rA = pc[1];                                                                  \
+  rY = static_cast<int32_t>(static_cast<uint32_t>(pc[2]) |                     \
+                            (static_cast<uint32_t>(pc[3]) << 8) |              \
+                            (static_cast<uint32_t>(pc[4]) << 16) |             \
+                            (static_cast<uint32_t>(pc[5]) << 24));             \
+  pc += 6;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  rA = pc[1];                                                                  \
+  rY = static_cast<int8_t>(pc[2]);                                             \
+  pc += 3;                                                                     \
+  BYTECODE_IMPL_LABEL(Name)
+
+#define BYTECODE_HEADER_D_F_WITH_OLD(Name)                                     \
+  uint32_t rD, rF;                                                             \
+  USE(rD);                                                                     \
+  USE(rF);                                                                     \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
+  rF = pc[1];                                                                  \
+  rD = static_cast<uint32_t>(pc[2]) | (static_cast<uint32_t>(pc[3]) << 8);     \
+  pc += 4;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_WIDE_ENTRY_LABEL(Name)                                              \
+  rD = static_cast<uint32_t>(pc[1]) | (static_cast<uint32_t>(pc[2]) << 8) |    \
+       (static_cast<uint32_t>(pc[3]) << 16) |                                  \
+       (static_cast<uint32_t>(pc[4]) << 24);                                   \
+  rF = pc[5];                                                                  \
+  pc += 6;                                                                     \
+  GOTO_BYTECODE_IMPL(Name);                                                    \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  rD = pc[1];                                                                  \
+  rF = pc[2];                                                                  \
+  pc += 3;                                                                     \
+  BYTECODE_IMPL_LABEL(Name)
+
+#define BYTECODE_HEADER_A_B_C_WITH_OLD(Name)                                   \
+  uint32_t rA, rB, rC;                                                         \
+  USE(rA);                                                                     \
+  USE(rB);                                                                     \
+  USE(rC);                                                                     \
+  BYTECODE_OLD_ENTRY_LABEL(Name)                                               \
+  BYTECODE_ENTRY_LABEL(Name)                                                   \
+  rA = pc[1];                                                                  \
+  rB = pc[2];                                                                  \
+  rC = pc[3];                                                                  \
+  pc += 4;
 
 #define HANDLE_EXCEPTION                                                       \
   do {                                                                         \
@@ -1032,7 +1168,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
   }
 
 bool Interpreter::AssertAssignable(Thread* thread,
-                                   uint32_t* pc,
+                                   const KBCInstr* pc,
                                    RawObject** FP,
                                    RawObject** call_top,
                                    RawObject** args,
@@ -1126,7 +1262,7 @@ RawObject* Interpreter::Call(const Function& function,
 // Returns false on exception.
 DART_NOINLINE bool Interpreter::AllocateMint(Thread* thread,
                                              int64_t value,
-                                             uint32_t* pc,
+                                             const KBCInstr* pc,
                                              RawObject** FP,
                                              RawObject** SP) {
   ASSERT(!Smi::IsValid(value));
@@ -1157,7 +1293,7 @@ DART_NOINLINE bool Interpreter::AllocateMint(Thread* thread,
 // Returns false on exception.
 DART_NOINLINE bool Interpreter::AllocateDouble(Thread* thread,
                                                double value,
-                                               uint32_t* pc,
+                                               const KBCInstr* pc,
                                                RawObject** FP,
                                                RawObject** SP) {
   const intptr_t instance_size = Double::InstanceSize();
@@ -1187,7 +1323,7 @@ DART_NOINLINE bool Interpreter::AllocateDouble(Thread* thread,
 // Returns false on exception.
 DART_NOINLINE bool Interpreter::AllocateFloat32x4(Thread* thread,
                                                   simd128_value_t value,
-                                                  uint32_t* pc,
+                                                  const KBCInstr* pc,
                                                   RawObject** FP,
                                                   RawObject** SP) {
   const intptr_t instance_size = Float32x4::InstanceSize();
@@ -1217,7 +1353,7 @@ DART_NOINLINE bool Interpreter::AllocateFloat32x4(Thread* thread,
 // Returns false on exception.
 DART_NOINLINE bool Interpreter::AllocateFloat64x2(Thread* thread,
                                                   simd128_value_t value,
-                                                  uint32_t* pc,
+                                                  const KBCInstr* pc,
                                                   RawObject** FP,
                                                   RawObject** SP) {
   const intptr_t instance_size = Float64x2::InstanceSize();
@@ -1248,7 +1384,7 @@ DART_NOINLINE bool Interpreter::AllocateFloat64x2(Thread* thread,
 bool Interpreter::AllocateArray(Thread* thread,
                                 RawTypeArguments* type_args,
                                 RawObject* length_object,
-                                uint32_t* pc,
+                                const KBCInstr* pc,
                                 RawObject** FP,
                                 RawObject** SP) {
   if (LIKELY(!length_object->IsHeapObject())) {
@@ -1283,7 +1419,7 @@ bool Interpreter::AllocateArray(Thread* thread,
 // Returns false on exception.
 bool Interpreter::AllocateContext(Thread* thread,
                                   intptr_t num_context_variables,
-                                  uint32_t* pc,
+                                  const KBCInstr* pc,
                                   RawObject** FP,
                                   RawObject** SP) {
   const intptr_t instance_size = Context::InstanceSize(num_context_variables);
@@ -1314,7 +1450,7 @@ bool Interpreter::AllocateContext(Thread* thread,
 // Allocate a _Closure and put it into SP[0].
 // Returns false on exception.
 bool Interpreter::AllocateClosure(Thread* thread,
-                                  uint32_t* pc,
+                                  const KBCInstr* pc,
                                   RawObject** FP,
                                   RawObject** SP) {
   const intptr_t instance_size = Closure::InstanceSize();
@@ -1346,12 +1482,11 @@ RawObject* Interpreter::Call(RawFunction* function,
                              RawObject* const* argv,
                              Thread* thread) {
   // Interpreter state (see constants_kbc.h for high-level overview).
-  uint32_t* pc;    // Program Counter: points to the next op to execute.
+  const KBCInstr* pc;  // Program Counter: points to the next op to execute.
   RawObject** FP;  // Frame Pointer.
   RawObject** SP;  // Stack Pointer.
 
   uint32_t op;  // Currently executing op.
-  uint16_t rA;  // A component of the currently executing op.
 
   bool reentering = fp_ != NULL;
   if (!reentering) {
@@ -1420,7 +1555,7 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   // Ready to start executing bytecode. Load entry point and corresponding
   // object pool.
-  pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_);
+  pc = reinterpret_cast<const KBCInstr*>(bytecode->ptr()->instructions_);
   NOT_IN_PRODUCT(pc_ = pc);  // For the profiler.
   NOT_IN_PRODUCT(fp_ = FP);  // For the profiler.
   pp_ = bytecode->ptr()->object_pool_;
@@ -1442,7 +1577,7 @@ RawObject* Interpreter::Call(RawFunction* function,
 
 #ifdef DART_HAS_COMPUTED_GOTO
   static const void* dispatch[] = {
-#define TARGET(name, fmt, fmta, fmtb, fmtc) &&bc##name,
+#define TARGET(name, fmt, kind, fmta, fmtb, fmtc) &&bc##name,
       KERNEL_BYTECODES_LIST(TARGET)
 #undef TARGET
   };
@@ -1451,7 +1586,7 @@ RawObject* Interpreter::Call(RawFunction* function,
   DISPATCH();  // Enter the dispatch loop.
 SwitchDispatch:
   switch (op & 0xFF) {
-#define TARGET(name, fmt, fmta, fmtb, fmtc)                                    \
+#define TARGET(name, fmt, kind, fmta, fmtb, fmtc)                              \
   case KernelBytecode::k##name:                                                \
     goto bc##name;
     KERNEL_BYTECODES_LIST(TARGET)
@@ -1464,7 +1599,7 @@ SwitchDispatch:
   // KernelBytecode handlers (see constants_kbc.h for bytecode descriptions).
   {
     BYTECODE(Entry, D);
-    const uint16_t num_locals = rD;
+    const intptr_t num_locals = rD;
 
     // Initialize locals with null & set SP.
     for (intptr_t i = 0; i < num_locals; i++) {
@@ -1476,9 +1611,9 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(EntryFixed, A_D);
-    const uint16_t num_fixed_params = rA;
-    const uint16_t num_locals = rD;
+    BYTECODE(EntryFixed, A_E);
+    const intptr_t num_fixed_params = rA;
+    const intptr_t num_locals = rE;
 
     const intptr_t arg_count = InterpreterHelpers::ArgDescArgCount(argdesc_);
     const intptr_t pos_count = InterpreterHelpers::ArgDescPosCount(argdesc_);
@@ -1497,9 +1632,9 @@ SwitchDispatch:
 
   {
     BYTECODE(EntryOptional, A_B_C);
-    const uint16_t num_fixed_params = rA;
-    const uint16_t num_opt_pos_params = rB;
-    const uint16_t num_opt_named_params = rC;
+    const intptr_t num_fixed_params = rA;
+    const intptr_t num_opt_pos_params = rB;
+    const intptr_t num_opt_named_params = rC;
     const intptr_t min_num_pos_args = num_fixed_params;
     const intptr_t max_num_pos_args = num_fixed_params + num_opt_pos_params;
 
@@ -1525,59 +1660,54 @@ SwitchDispatch:
       // descriptor.
       RawObject** argdesc_data = argdesc_->ptr()->data();
 
-      intptr_t i = named_count - 1;           // argument position
-      intptr_t j = num_opt_named_params - 1;  // parameter position
-      while ((j >= 0) && (i >= 0)) {
+      intptr_t i = 0;  // argument position
+      intptr_t j = 0;  // parameter position
+      while ((j < num_opt_named_params) && (i < named_count)) {
         // Fetch formal parameter information: name, default value, target slot.
-        const uint32_t load_name = pc[2 * j];
-        const uint32_t load_value = pc[2 * j + 1];
-        ASSERT(KernelBytecode::DecodeOpcode(load_name) ==
-               KernelBytecode::kLoadConstant);
-        ASSERT(KernelBytecode::DecodeOpcode(load_value) ==
-               KernelBytecode::kLoadConstant);
+        const KBCInstr* load_name = pc;
+        const KBCInstr* load_value = KernelBytecode::Next(load_name);
+        pc = KernelBytecode::Next(load_value);
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name));
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value));
         const uint8_t reg = KernelBytecode::DecodeA(load_name);
         ASSERT(reg == KernelBytecode::DecodeA(load_value));
 
         RawString* name = static_cast<RawString*>(
-            LOAD_CONSTANT(KernelBytecode::DecodeD(load_name)));
+            LOAD_CONSTANT(KernelBytecode::DecodeE(load_name)));
         if (name == argdesc_data[ArgumentsDescriptor::name_index(i)]) {
           // Parameter was passed. Fetch passed value.
           const intptr_t arg_index = Smi::Value(static_cast<RawSmi*>(
               argdesc_data[ArgumentsDescriptor::position_index(i)]));
           FP[reg] = first_arg[arg_index];
-          i--;  // Consume passed argument.
+          ++i;  // Consume passed argument.
         } else {
           // Parameter was not passed. Fetch default value.
-          FP[reg] = LOAD_CONSTANT(KernelBytecode::DecodeD(load_value));
+          FP[reg] = LOAD_CONSTANT(KernelBytecode::DecodeE(load_value));
         }
-        j--;  // Next formal parameter.
+        ++j;  // Next formal parameter.
       }
 
       // If we have unprocessed formal parameters then initialize them all
       // using default values.
-      while (j >= 0) {
-        const uint32_t load_name = pc[2 * j];
-        const uint32_t load_value = pc[2 * j + 1];
-        ASSERT(KernelBytecode::DecodeOpcode(load_name) ==
-               KernelBytecode::kLoadConstant);
-        ASSERT(KernelBytecode::DecodeOpcode(load_value) ==
-               KernelBytecode::kLoadConstant);
+      while (j < num_opt_named_params) {
+        const KBCInstr* load_name = pc;
+        const KBCInstr* load_value = KernelBytecode::Next(load_name);
+        pc = KernelBytecode::Next(load_value);
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name));
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value));
         const uint8_t reg = KernelBytecode::DecodeA(load_name);
         ASSERT(reg == KernelBytecode::DecodeA(load_value));
 
-        FP[reg] = LOAD_CONSTANT(KernelBytecode::DecodeD(load_value));
-        j--;
+        FP[reg] = LOAD_CONSTANT(KernelBytecode::DecodeE(load_value));
+        ++j;
       }
 
       // If we have unprocessed passed arguments that means we have mismatch
       // between formal parameters and concrete arguments. This can only
       // occur if the current function is a closure.
-      if (i != -1) {
+      if (i < named_count) {
         goto NoSuchMethodFromPrologue;
       }
-
-      // Skip LoadConstant-s encoding information about named parameters.
-      pc += num_opt_named_params * 2;
 
       // SP points past copied arguments.
       SP = FP + num_fixed_params + num_opt_named_params - 1;
@@ -1593,22 +1723,17 @@ SwitchDispatch:
       // Process the list of default values encoded as a sequence of
       // LoadConstant instructions after EntryOpt bytecode.
       // Execute only those that correspond to parameters that were not passed.
-      for (intptr_t i = pos_count - num_fixed_params; i < num_opt_pos_params;
-           i++) {
-        const uint32_t load_value = pc[i];
-        ASSERT(KernelBytecode::DecodeOpcode(load_value) ==
-               KernelBytecode::kLoadConstant);
-#if defined(DEBUG)
-        const uint8_t reg = KernelBytecode::DecodeA(load_value);
-        ASSERT((num_fixed_params + i) == reg);
-#endif
-        FP[num_fixed_params + i] =
-            LOAD_CONSTANT(KernelBytecode::DecodeD(load_value));
+      for (intptr_t i = num_fixed_params; i < pos_count; ++i) {
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(pc));
+        pc = KernelBytecode::Next(pc);
       }
-
-      // Skip LoadConstant-s encoding default values for optional positional
-      // parameters.
-      pc += num_opt_pos_params;
+      for (intptr_t i = pos_count; i < max_num_pos_args; ++i) {
+        const KBCInstr* load_value = pc;
+        pc = KernelBytecode::Next(load_value);
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value));
+        ASSERT(KernelBytecode::DecodeA(load_value) == i);
+        FP[i] = LOAD_CONSTANT(KernelBytecode::DecodeE(load_value));
+      }
 
       // SP points past the last copied parameter.
       SP = FP + max_num_pos_args - 1;
@@ -1620,7 +1745,7 @@ SwitchDispatch:
   {
     BYTECODE(Frame, D);
     // Initialize locals with null and increment SP.
-    const uint16_t num_locals = rD;
+    const intptr_t num_locals = rD;
     for (intptr_t i = 1; i <= num_locals; i++) {
       SP[i] = null_value;
     }
@@ -1662,9 +1787,9 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(CheckFunctionTypeArgs, A_D);
-    const uint16_t declared_type_args_len = rA;
-    const uint16_t first_stack_local_index = rD;
+    BYTECODE(CheckFunctionTypeArgs, A_E);
+    const intptr_t declared_type_args_len = rA;
+    const intptr_t first_stack_local_index = rE;
 
     // Decode arguments descriptor's type args len.
     const intptr_t type_args_len =
@@ -1700,10 +1825,10 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(InstantiateTypeArgumentsTOS, A_D);
+    BYTECODE(InstantiateTypeArgumentsTOS, A_E);
     // Stack: instantiator type args, function type args
     RawTypeArguments* type_arguments =
-        static_cast<RawTypeArguments*>(LOAD_CONSTANT(rD));
+        static_cast<RawTypeArguments*>(LOAD_CONSTANT(rE));
 
     RawObject* instantiator_type_args = SP[-1];
     RawObject* function_type_args = SP[0];
@@ -1763,8 +1888,8 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(LoadConstant, A_D);
-    FP[rA] = LOAD_CONSTANT(rD);
+    BYTECODE(LoadConstant, A_E);
+    FP[rA] = LOAD_CONSTANT(rE);
     DISPATCH();
   }
 
@@ -1794,32 +1919,32 @@ SwitchDispatch:
 
   {
     BYTECODE(PushInt, X);
-    *++SP = Smi::New(rD);
+    *++SP = Smi::New(rX);
     DISPATCH();
   }
 
   {
     BYTECODE(Push, X);
-    *++SP = FP[rD];
+    *++SP = FP[rX];
     DISPATCH();
   }
 
   {
     BYTECODE(StoreLocal, X);
-    FP[rD] = *SP;
+    FP[rX] = *SP;
     DISPATCH();
   }
 
   {
     BYTECODE(PopLocal, X);
-    FP[rD] = *SP--;
+    FP[rX] = *SP--;
     DISPATCH();
   }
 
   {
-    BYTECODE(MoveSpecial, A_X);
+    BYTECODE(MoveSpecial, A_Y);
     ASSERT(rA < KernelBytecode::kSpecialIndexCount);
-    FP[rD] = special_[rA];
+    FP[rY] = special_[rA];
     DISPATCH();
   }
 
@@ -1830,7 +1955,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(IndirectStaticCall, A_D);
+    BYTECODE(DirectCall, D_F);
 
 #ifndef PRODUCT
     // Check if single stepping.
@@ -1843,40 +1968,8 @@ SwitchDispatch:
 
     // Invoke target function.
     {
-      const uint16_t argc = rA;
-      // Look up the function in the ICData.
-      RawObject* ic_data_obj = SP[0];
-      RawICData* ic_data = RAW_CAST(ICData, ic_data_obj);
-      RawObject** data = ic_data->ptr()->entries_->ptr()->data();
-      InterpreterHelpers::IncrementICUsageCount(data, 0, 0);
-      SP[0] = data[ICData::TargetIndexFor(ic_data->ptr()->state_bits_ & 0x3)];
-      RawObject** call_base = SP - argc;
-      RawObject** call_top = SP;  // *SP contains function
-      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(rD));
-      if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
-        HANDLE_EXCEPTION;
-      }
-    }
-
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DirectCall, A_D);
-
-#ifndef PRODUCT
-    // Check if single stepping.
-    if (thread->isolate()->single_step()) {
-      Exit(thread, FP, SP + 1, pc);
-      NativeArguments args(thread, 0, NULL, NULL);
-      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
-    }
-#endif  // !PRODUCT
-
-    // Invoke target function.
-    {
-      const uint16_t argc = rA;
-      const uint16_t kidx = rD;
+      const uint32_t argc = rF;
+      const uint32_t kidx = rD;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
       *++SP = LOAD_CONSTANT(kidx);
@@ -1892,7 +1985,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(InterfaceCall, A_D);
+    BYTECODE(InterfaceCall, D_F);
 
 #ifndef PRODUCT
     // Check if single stepping.
@@ -1904,8 +1997,8 @@ SwitchDispatch:
 #endif  // !PRODUCT
 
     {
-      const uint16_t argc = rA;
-      const uint16_t kidx = rD;
+      const uint32_t argc = rF;
+      const uint32_t kidx = rD;
 
       RawObject** call_base = SP - argc + 1;
       RawObject** call_top = SP + 1;
@@ -1924,7 +2017,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(UncheckedInterfaceCall, A_D);
+    BYTECODE(UncheckedInterfaceCall, D_F);
 
 #ifndef PRODUCT
     // Check if single stepping.
@@ -1936,8 +2029,8 @@ SwitchDispatch:
 #endif  // !PRODUCT
 
     {
-      const uint16_t argc = rA;
-      const uint16_t kidx = rD;
+      const uint32_t argc = rF;
+      const uint32_t kidx = rD;
 
       RawObject** call_base = SP - argc + 1;
       RawObject** call_top = SP + 1;
@@ -1956,7 +2049,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(DynamicCall, A_D);
+    BYTECODE(DynamicCall, D_F);
 
 #ifndef PRODUCT
     // Check if single stepping.
@@ -1968,8 +2061,8 @@ SwitchDispatch:
 #endif  // !PRODUCT
 
     {
-      const uint16_t argc = rA;
-      const uint16_t kidx = rD;
+      const uint32_t argc = rF;
+      const uint32_t kidx = rD;
 
       RawObject** call_base = SP - argc + 1;
       RawObject** call_top = SP + 1;
@@ -2064,7 +2157,12 @@ SwitchDispatch:
           // Change the ArgumentsDescriptor of the call with a new cached one.
           argdesc_ = ArgumentsDescriptor::New(
               0, KernelBytecode::kNativeCallToGrowableListArgc);
-          // Note the special handling of the return of this call in DecodeArgc.
+          if (!thread->isolate()->is_using_old_bytecode_instructions()) {
+            // Replace PC to the return trampoline so ReturnTOS would see
+            // a call bytecode at return address and will be able to get argc
+            // via DecodeArgc.
+            pc = KernelBytecode::GetNativeCallToGrowableListReturnTrampoline();
+          }
           if (!Invoke(thread, SP - 1, SP + 1, &pc, &FP, &SP)) {
             HANDLE_EXCEPTION;
           }
@@ -2214,7 +2312,9 @@ SwitchDispatch:
     }
 
     // Look at the caller to determine how many arguments to pop.
-    const uint8_t argc = KernelBytecode::DecodeArgc(pc[-1]);
+    const uint8_t argc = thread->isolate()->is_using_old_bytecode_instructions()
+                             ? KernelBytecode::DecodeArgc_Old(pc)
+                             : KernelBytecode::DecodeArgc(pc);
 
     // Restore SP, FP and PP. Push result and dispatch.
     SP = FrameArguments(FP, argc);
@@ -2223,6 +2323,14 @@ SwitchDispatch:
     NOT_IN_PRODUCT(pc_ = pc);  // For the profiler.
     pp_ = InterpreterHelpers::FrameBytecode(FP)->ptr()->object_pool_;
     *SP = result;
+#if defined(DEBUG)
+    if (IsTracingExecution()) {
+      THR_Print("%" Pu64 " ", icount_);
+      THR_Print("Returning to %s (argc %d)\n",
+                Function::Handle(FrameFunction(FP)).ToFullyQualifiedCString(),
+                static_cast<int>(argc));
+    }
+#endif
     DISPATCH();
   }
 
@@ -2333,13 +2441,13 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(StoreContextVar, A_D);
+    BYTECODE(StoreContextVar, A_E);
     const uword offset_in_words =
-        static_cast<uword>(Context::variable_offset(rD) / kWordSize);
+        static_cast<uword>(Context::variable_offset(rE) / kWordSize);
     RawContext* instance = reinterpret_cast<RawContext*>(SP[-1]);
     RawObject* value = reinterpret_cast<RawContext*>(SP[0]);
     SP -= 2;  // Drop instance and value.
-    ASSERT(rD < static_cast<uint32_t>(instance->ptr()->num_variables_));
+    ASSERT(rE < static_cast<uint32_t>(instance->ptr()->num_variables_));
     instance->StorePointer(
         reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words, value,
         thread);
@@ -2385,19 +2493,19 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(LoadContextVar, A_D);
+    BYTECODE(LoadContextVar, A_E);
     const uword offset_in_words =
-        static_cast<uword>(Context::variable_offset(rD) / kWordSize);
+        static_cast<uword>(Context::variable_offset(rE) / kWordSize);
     RawContext* instance = static_cast<RawContext*>(SP[0]);
-    ASSERT(rD < static_cast<uint32_t>(instance->ptr()->num_variables_));
+    ASSERT(rE < static_cast<uint32_t>(instance->ptr()->num_variables_));
     SP[0] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
     DISPATCH();
   }
 
   {
-    BYTECODE(AllocateContext, A_D);
+    BYTECODE(AllocateContext, A_E);
     ++SP;
-    const uint16_t num_context_variables = rD;
+    const uint32_t num_context_variables = rE;
     if (!AllocateContext(thread, num_context_variables, pc, FP, SP)) {
       HANDLE_EXCEPTION;
     }
@@ -2405,7 +2513,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(CloneContext, A_D);
+    BYTECODE(CloneContext, A_E);
     {
       SP[1] = SP[0];  // Context to clone.
       Exit(thread, FP, SP + 2, pc);
@@ -2490,7 +2598,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(AssertAssignable, A_D);
+    BYTECODE(AssertAssignable, A_E);
     // Stack: instance, type, instantiator type args, function type args, name
     RawObject** args = SP - 4;
     const bool may_be_smi = (rA == 1);
@@ -2499,7 +2607,7 @@ SwitchDispatch:
     const bool smi_ok = is_smi && may_be_smi;
     if (!smi_ok && (args[0] != null_value)) {
       RawSubtypeTestCache* cache =
-          static_cast<RawSubtypeTestCache*>(LOAD_CONSTANT(rD));
+          static_cast<RawSubtypeTestCache*>(LOAD_CONSTANT(rE));
 
       if (!AssertAssignable(thread, pc, FP, SP, args, cache)) {
         HANDLE_EXCEPTION;
@@ -2956,12 +3064,50 @@ SwitchDispatch:
 
   {
     BYTECODE(Trap, 0);
+    BYTECODE(Unused00, 0);
+    BYTECODE_NEW(Unused01, 0);
+    BYTECODE_NEW(Unused02, 0);
+    BYTECODE_NEW(Unused03, 0);
+    BYTECODE_NEW(Unused04, 0);
+    BYTECODE_NEW(Unused05, 0);
+    BYTECODE_NEW(Unused06, 0);
+    BYTECODE_NEW(Unused07, 0);
+    BYTECODE_NEW(Unused08, 0);
+    BYTECODE_NEW(Unused09, 0);
+    BYTECODE_NEW(Unused10, 0);
+    BYTECODE_NEW(Unused11, 0);
+    BYTECODE_NEW(Unused12, 0);
+    BYTECODE_NEW(Unused13, 0);
+    BYTECODE_NEW(Unused14, 0);
+    BYTECODE_NEW(Unused15, 0);
+    BYTECODE_NEW(Unused16, 0);
+    BYTECODE_NEW(Unused17, 0);
+    BYTECODE_NEW(Unused18, 0);
+    BYTECODE_NEW(Unused19, 0);
+    BYTECODE_NEW(Unused20, 0);
+    BYTECODE_NEW(Unused21, 0);
+    BYTECODE_NEW(Unused22, 0);
+    BYTECODE_NEW(Unused23, 0);
+    BYTECODE_NEW(Unused24, 0);
+    BYTECODE_NEW(Unused25, 0);
+    BYTECODE_NEW(Unused26, 0);
+    BYTECODE_NEW(Unused27, 0);
+    BYTECODE_NEW(Unused28, 0);
+    BYTECODE_NEW(Unused29, 0);
+    BYTECODE_NEW(Unused30, 0);
+    BYTECODE_NEW(Unused31, 0);
+    BYTECODE_NEW(Unused32, 0);
+    BYTECODE_NEW(Unused33, 0);
+    BYTECODE_NEW(Unused34, 0);
+    BYTECODE_NEW(Unused35, 0);
+    BYTECODE_NEW(Unused36, 0);
+    BYTECODE_NEW(Unused37, 0);
     UNIMPLEMENTED();
     DISPATCH();
   }
 
   {
-    BYTECODE(VMInternal_ImplicitGetter, 0);
+    BYTECODE_NEW(VMInternal_ImplicitGetter, 0);
 
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kImplicitGetter);
@@ -3010,7 +3156,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_ImplicitSetter, 0);
+    BYTECODE_NEW(VMInternal_ImplicitSetter, 0);
 
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kImplicitSetter);
@@ -3131,7 +3277,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_ImplicitStaticGetter, 0);
+    BYTECODE_NEW(VMInternal_ImplicitStaticGetter, 0);
 
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kImplicitStaticGetter);
@@ -3163,7 +3309,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_MethodExtractor, 0);
+    BYTECODE_NEW(VMInternal_MethodExtractor, 0);
 
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kMethodExtractor);
@@ -3203,7 +3349,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_InvokeClosure, 0);
+    BYTECODE_NEW(VMInternal_InvokeClosure, 0);
 
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kInvokeFieldDispatcher);
@@ -3225,7 +3371,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_InvokeField, 0);
+    BYTECODE_NEW(VMInternal_InvokeField, 0);
 
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kInvokeFieldDispatcher);
@@ -3329,7 +3475,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_ForwardDynamicInvocation, 0);
+    BYTECODE_NEW(VMInternal_ForwardDynamicInvocation, 0);
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) ==
            RawFunction::kDynamicInvocationForwarder);
@@ -3338,14 +3484,14 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_NoSuchMethodDispatcher, 0);
+    BYTECODE_NEW(VMInternal_NoSuchMethodDispatcher, 0);
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kNoSuchMethodDispatcher);
     goto NoSuchMethodFromPrologue;
   }
 
   {
-    BYTECODE(VMInternal_ImplicitStaticClosure, 0);
+    BYTECODE_NEW(VMInternal_ImplicitStaticClosure, 0);
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kImplicitClosureFunction);
     UNIMPLEMENTED();
@@ -3353,7 +3499,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_ImplicitInstanceClosure, 0);
+    BYTECODE_NEW(VMInternal_ImplicitInstanceClosure, 0);
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) == RawFunction::kImplicitClosureFunction);
     UNIMPLEMENTED();
@@ -3372,7 +3518,7 @@ SwitchDispatch:
         FP[kKBCFunctionSlotFromFp] = function;
         FP[kKBCPcMarkerSlotFromFp] = bytecode;
         pp_ = bytecode->ptr()->object_pool_;
-        pc = reinterpret_cast<uint32_t*>(bytecode->ptr()->instructions_);
+        pc = reinterpret_cast<const KBCInstr*>(bytecode->ptr()->instructions_);
         NOT_IN_PRODUCT(pc_ = pc);  // For the profiler.
         DISPATCH();
       }
@@ -3559,9 +3705,9 @@ void Interpreter::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
     thread->set_active_stacktrace(Object::null_object());
     special_[KernelBytecode::kExceptionSpecialIndex] = raw_exception;
     special_[KernelBytecode::kStackTraceSpecialIndex] = raw_stacktrace;
-    pc_ = reinterpret_cast<uint32_t*>(thread->resume_pc());
+    pc_ = reinterpret_cast<const KBCInstr*>(thread->resume_pc());
   } else {
-    pc_ = reinterpret_cast<uint32_t*>(pc);
+    pc_ = reinterpret_cast<const KBCInstr*>(pc);
   }
 
   // Set the tag.

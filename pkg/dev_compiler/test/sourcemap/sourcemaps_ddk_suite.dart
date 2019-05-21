@@ -21,12 +21,14 @@ Future<ChainContext> createContext(
 class SourceMapContext extends ChainContextWithCleanupHelper
     implements WithCompilerState {
   final Map<String, String> environment;
+  @override
   fe.InitializedCompilerState compilerState;
 
   SourceMapContext(this.environment);
 
   List<Step> _steps;
 
+  @override
   List<Step> get steps {
     return _steps ??= <Step>[
       const Setup(),
@@ -36,6 +38,7 @@ class SourceMapContext extends ChainContextWithCleanupHelper
     ];
   }
 
+  @override
   bool debugging() => environment.containsKey("debug");
 }
 
@@ -45,6 +48,7 @@ class DevCompilerRunner implements CompilerRunner {
 
   const DevCompilerRunner(this.context, [this.debugging = false]);
 
+  @override
   Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperFile) async {
     Uri outDir = outputFile.resolve(".");
     String outputFilename = outputFile.pathSegments.last;

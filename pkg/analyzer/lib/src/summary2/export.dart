@@ -16,8 +16,8 @@ class Export {
   bool addToExportScope(String name, Reference reference) {
     if (combinators != null) {
       for (Combinator combinator in combinators) {
-        if (combinator.isShow && !combinator.names.contains(name)) return false;
-        if (combinator.isHide && combinator.names.contains(name)) return false;
+        if (combinator.isShow && !combinator.matches(name)) return false;
+        if (combinator.isHide && combinator.matches(name)) return false;
       }
     }
     return exporter.addToExportScope(name, reference);

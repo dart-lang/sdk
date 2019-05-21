@@ -33,7 +33,7 @@ class SourceLibraryBuilder {
   LinkedLibraryContext context;
 
   LibraryElementImpl element;
-  LibraryScope libraryScope;
+  LibraryScope scope;
 
   /// Local declarations.
   final Scope localScope = Scope.top();
@@ -74,7 +74,12 @@ class SourceLibraryBuilder {
         } else {
           var references = linker.elementFactory.exportsOfLibrary('$uri');
           for (var reference in references) {
-            export.addToExportScope(reference.name, reference);
+            var name = reference.name;
+            if (reference.isSetter) {
+              export.addToExportScope('$name=', reference);
+            } else {
+              export.addToExportScope(name, reference);
+            }
           }
         }
       }
@@ -169,28 +174,7 @@ class SourceLibraryBuilder {
     }
     if ('$uri' == 'dart:core') {
       localScope.declare('dynamic', reference.getChild('dynamic'));
-    }
-  }
-
-  void addSyntheticConstructors() {
-    for (var reference in localScope.map.values) {
-      var node = reference.node;
-      if (node == null) continue;
-      if (node.kind != LinkedNodeKind.classDeclaration) continue;
-
-      // Skip the class if it already has a constructor.
-      if (node.classOrMixinDeclaration_members
-          .any((n) => n.kind == LinkedNodeKind.constructorDeclaration)) {
-        continue;
-      }
-
-      node.classOrMixinDeclaration_members.add(
-        LinkedNodeBuilder.constructorDeclaration(
-          constructorDeclaration_parameters:
-              LinkedNodeBuilder.formalParameterList(),
-          constructorDeclaration_body: LinkedNodeBuilder.emptyFunctionBody(),
-        )..isSynthetic = true,
-      );
+      localScope.declare('Never', reference.getChild('Never'));
     }
   }
 
@@ -211,7 +195,7 @@ class SourceLibraryBuilder {
 
   void buildElement() {
     element = linker.elementFactory.libraryOfUri('$uri');
-    libraryScope = LibraryScope(element);
+    scope = LibraryScope(element);
   }
 
   void buildInitialExportScope() {
@@ -248,7 +232,7 @@ class SourceLibraryBuilder {
 
   void resolveMetadata() {
     for (CompilationUnitElementImpl unit in element.units) {
-      var resolver = MetadataResolver(linker, element, unit);
+      var resolver = MetadataResolver(linker, element, scope, unit);
       unit.linkedNode.accept(resolver);
     }
   }
@@ -258,13 +242,12 @@ class SourceLibraryBuilder {
       var unitRef = reference.getChild('@unit');
       var unitReference = unitRef.getChild(unitContext.uriStr);
       var resolver = ReferenceResolver(
-        linker.linkingBundleContext,
         nodesToBuildType,
         linker.elementFactory,
         element,
         unitReference,
         linker.contextFeatures.isEnabled(Feature.non_nullable),
-        libraryScope,
+        scope,
       );
       unitContext.unit.accept(resolver);
     }

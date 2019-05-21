@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -21,11 +20,6 @@ import '../util/element_type_matchers.dart';
 import 'test_support.dart';
 
 main() {
-  // With summary2 DeclarationResolver is not used.
-  if (AnalysisDriver.useSummary2) {
-    return;
-  }
-
   defineReflectiveSuite(() {
     defineReflectiveTests(DeclarationResolverMetadataTest);
     defineReflectiveTests(DeclarationResolverTest);

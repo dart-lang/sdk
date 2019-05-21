@@ -284,8 +284,8 @@ class Heap {
 
   Isolate* isolate() const { return isolate_; }
 
-  Monitor* barrier() const { return barrier_; }
-  Monitor* barrier_done() const { return barrier_done_; }
+  Monitor* barrier() const { return &barrier_; }
+  Monitor* barrier_done() const { return &barrier_done_; }
 
   void SetupImagePage(void* pointer, uword size, bool is_executable) {
     old_space_.SetupImagePage(pointer, size, is_executable);
@@ -382,8 +382,8 @@ class Heap {
   WeakTable* new_weak_tables_[kNumWeakSelectors];
   WeakTable* old_weak_tables_[kNumWeakSelectors];
 
-  Monitor* barrier_;
-  Monitor* barrier_done_;
+  mutable Monitor barrier_;
+  mutable Monitor barrier_done_;
 
   // GC stats collection.
   GCStats stats_;

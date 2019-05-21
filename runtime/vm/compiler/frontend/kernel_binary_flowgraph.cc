@@ -168,14 +168,18 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
     if (H.thread()->IsMutatorThread()) {
       field.RecordStore(Object::null_object());
     } else {
-      ASSERT(field.is_nullable());
+      ASSERT(field.is_nullable(/* silence_assert = */ true));
     }
     return Fragment();
   }
 
   Fragment instructions;
   instructions += LoadLocal(parsed_function()->receiver_var());
+  // All closures created inside BuildExpression will have
+  // field.RawOwner() as its owner.
+  closure_owner_ = field.RawOwner();
   instructions += BuildExpression();
+  closure_owner_ = Object::null();
   instructions += flow_graph_builder_->StoreInstanceFieldGuarded(field, true);
   return instructions;
 }
@@ -963,27 +967,15 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     return bytecode_compiler.BuildGraph();
   }
 
-  // This is the legacy code path to handle bytecode attached to kernel AST
-  // members.
-  // TODO(alexmarkov): clean this up after dropping old format versions.
-  if ((FLAG_use_bytecode_compiler || FLAG_enable_interpreter) &&
-      function.IsBytecodeAllowed(Z)) {
-    if (!function.HasBytecode()) {
-      bytecode_metadata_helper_.ReadMetadata(function);
-    }
-    if (function.HasBytecode() &&
-        (function.kind() != RawFunction::kImplicitGetter) &&
-        (function.kind() != RawFunction::kImplicitSetter) &&
-        (function.kind() != RawFunction::kImplicitStaticGetter) &&
-        (function.kind() != RawFunction::kMethodExtractor) &&
-        (function.kind() != RawFunction::kInvokeFieldDispatcher) &&
-        (function.kind() != RawFunction::kNoSuchMethodDispatcher)) {
-      BytecodeFlowGraphBuilder bytecode_compiler(
-          flow_graph_builder_, parsed_function(),
-          &(flow_graph_builder_->ic_data_array_));
-      return bytecode_compiler.BuildGraph();
-    }
-  }
+  // Certain special functions could have a VM-internal bytecode
+  // attached to them.
+  ASSERT((!function.HasBytecode()) ||
+         (function.kind() == RawFunction::kImplicitGetter) ||
+         (function.kind() == RawFunction::kImplicitSetter) ||
+         (function.kind() == RawFunction::kImplicitStaticGetter) ||
+         (function.kind() == RawFunction::kMethodExtractor) ||
+         (function.kind() == RawFunction::kInvokeFieldDispatcher) ||
+         (function.kind() == RawFunction::kNoSuchMethodDispatcher));
 
   ParseKernelASTFunction();
 
@@ -4914,8 +4906,14 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         name = &Symbols::AnonymousClosure();
       }
       // NOTE: This is not TokenPosition in the general sense!
-      function = Function::NewClosureFunction(
-          *name, parsed_function()->function(), position);
+      if (!closure_owner_.IsNull()) {
+        function = Function::NewClosureFunctionWithKind(
+            RawFunction::kClosureFunction, *name, parsed_function()->function(),
+            position, closure_owner_);
+      } else {
+        function = Function::NewClosureFunction(
+            *name, parsed_function()->function(), position);
+      }
 
       function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
                                  FunctionNodeHelper::kSync);

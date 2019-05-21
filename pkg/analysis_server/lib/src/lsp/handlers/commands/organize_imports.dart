@@ -49,7 +49,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
       final organizer = new DirectiveOrganizer(code, unit, result.errors);
       final edits = organizer.organize();
 
-      return sendEditsToClient(docIdentifier, unit, edits);
+      return sendSourceEditsToClient(docIdentifier, unit, edits);
     });
   }
 }

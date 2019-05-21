@@ -2480,7 +2480,7 @@ class ProgramCompiler extends Object
     }
 
     var args = type.typeArguments;
-    Iterable<JS.Expression> jsArgs = null;
+    Iterable<JS.Expression> jsArgs;
     if (args.any((a) => a != const DynamicType())) {
       jsArgs = args.map(_emitType);
     }
@@ -2789,8 +2789,9 @@ class ProgramCompiler extends Object
             .toList();
         return mutatedParams;
       });
-      if (mutatedParams.isNotEmpty)
+      if (mutatedParams.isNotEmpty) {
         gen = js.call('() => #(#)', [gen, mutatedParams]);
+      }
 
       var returnType =
           _getExpectedReturnType(function, coreTypes.iterableClass);
@@ -3223,7 +3224,9 @@ class ProgramCompiler extends Object
         statements.add(labeled);
         target = labeled.body;
       }
-      for (var statement in statements) _effectiveTargets[statement] = target;
+      for (var statement in statements) {
+        _effectiveTargets[statement] = target;
+      }
 
       // If the effective target will compile to something that can have a
       // break from it without a label (e.g., a loop but not a block), then any
@@ -3484,7 +3487,7 @@ class ProgramCompiler extends Object
   /// switch statements with labeled continues must explicitly break/continue
   /// to escape the surrounding infinite loop.
   List<JS.SwitchCase> _visitSwitchCase(SwitchCase node,
-      {bool lastSwitchCase: false}) {
+      {bool lastSwitchCase = false}) {
     var cases = <JS.SwitchCase>[];
     var emptyBlock = JS.Block.empty();
     // TODO(jmesserly): make sure we are statically checking fall through
@@ -4801,9 +4804,9 @@ class ProgramCompiler extends Object
     // Only occurs inside unevaluated constants.
     List<JS.Expression> entries = [];
     _concatenate(Expression node) {
-      if (node is ListConcatenation)
+      if (node is ListConcatenation) {
         node.lists.forEach(_concatenate);
-      else {
+      } else {
         node.accept(this);
         if (node is ConstantExpression) {
           var list = node.constant as ListConstant;
@@ -4823,9 +4826,9 @@ class ProgramCompiler extends Object
     // Only occurs inside unevaluated constants.
     List<JS.Expression> entries = [];
     _concatenate(Expression node) {
-      if (node is SetConcatenation)
+      if (node is SetConcatenation) {
         node.sets.forEach(_concatenate);
-      else {
+      } else {
         node.accept(this);
         if (node is ConstantExpression) {
           var set = node.constant as SetConstant;
@@ -4845,9 +4848,9 @@ class ProgramCompiler extends Object
     // Only occurs inside unevaluated constants.
     List<JS.Expression> entries = [];
     _concatenate(Expression node) {
-      if (node is MapConcatenation)
+      if (node is MapConcatenation) {
         node.maps.forEach(_concatenate);
-      else {
+      } else {
         node.accept(this);
         if (node is ConstantExpression) {
           var map = node.constant as MapConstant;

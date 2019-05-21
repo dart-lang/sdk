@@ -32,7 +32,7 @@ enum HeapSnapshotTreeMode {
   groupByClass
 }
 
-class HeapSnapshotElement extends HtmlElement implements Renderable {
+class HeapSnapshotElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<HeapSnapshotElement>('heap-snapshot', dependencies: const [
     ClassRefElement.tag,
@@ -79,7 +79,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(snapshots != null);
     assert(objects != null);
-    HeapSnapshotElement e = document.createElement(tag.name);
+    HeapSnapshotElement e = new HeapSnapshotElement.created();
     e._r = new RenderingScheduler<HeapSnapshotElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
@@ -90,7 +90,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  HeapSnapshotElement.created() : super.created();
+  HeapSnapshotElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -109,16 +109,17 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
   void render() {
     final content = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('heap snapshot'),
-        new NavRefreshElement(queue: _r.queue)
-          ..disabled = M.isHeapSnapshotProgressRunning(_progress?.status)
-          ..onRefresh.listen((e) {
-            _refresh();
-          }),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(queue: _r.queue)
+              ..disabled = M.isHeapSnapshotProgressRunning(_progress?.status)
+              ..onRefresh.listen((e) {
+                _refresh();
+              }))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
     ];
     if (_progress == null) {
@@ -275,7 +276,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
           new DivElement()
             ..classes = ['content-centered-big', 'explanation']
             ..text = text,
-          _tree
+          _tree.element
         ]);
         break;
       case HeapSnapshotTreeMode.mergedDominatorTree:
@@ -290,7 +291,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
           new DivElement()
             ..classes = ['content-centered-big', 'explanation']
             ..text = text,
-          _tree
+          _tree.element
         ]);
         break;
       case HeapSnapshotTreeMode.ownershipTable:
@@ -308,7 +309,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
           new DivElement()
             ..classes = ['content-centered-big', 'explanation']
             ..text = text,
-          _tree
+          _tree.element
         ]);
         break;
       case HeapSnapshotTreeMode.groupByClass:
@@ -318,7 +319,7 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
             _createGroup, _updateGroup, _getChildrenGroup,
             items: items, queue: _r.queue);
         _tree.expand(_snapshot.dominatorTree);
-        report.add(_tree);
+        report.add(_tree.element);
         break;
       default:
         break;
@@ -504,8 +505,9 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
       element.children[2].text = _tree.isExpanded(item) ? '▼' : '►';
       element.children[3].text = '${item.instances} instances of ';
       element.children[4] =
-          new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
-            ..classes = ['name'];
+          (new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
+                ..classes = ['name'])
+              .element;
     } else if (item is Iterable) {
       element.children[0].text = '';
       if (item.isNotEmpty) {
@@ -536,12 +538,12 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
         element.children[3].text =
             '${item.count} references from instances of ';
         element.children[4].children = <Element>[
-          new ClassRefElement(_isolate, item.source, queue: _r.queue)
+          new ClassRefElement(_isolate, item.source, queue: _r.queue).element
         ];
       } else if (item is M.HeapSnapshotClassOutbound) {
         element.children[3]..text = '${item.count} references to instances of ';
         element.children[4].children = <Element>[
-          new ClassRefElement(_isolate, item.target, queue: _r.queue)
+          new ClassRefElement(_isolate, item.target, queue: _r.queue).element
         ];
       }
     }
@@ -556,8 +558,9 @@ class HeapSnapshotElement extends HtmlElement implements Renderable {
       ..classes = ['name']
       ..children = <Element>[
         new SpanElement()..text = ' instances of ',
-        new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
-          ..classes = ['name']
+        (new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
+              ..classes = ['name'])
+            .element
       ];
   }
 

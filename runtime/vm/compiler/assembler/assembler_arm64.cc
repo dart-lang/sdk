@@ -495,17 +495,6 @@ void Assembler::LoadObjectHelper(Register dst,
   }
 }
 
-void Assembler::LoadFunctionFromCalleePool(Register dst,
-                                           const Function& function,
-                                           Register new_pp) {
-  ASSERT(!constant_pool_allowed());
-  ASSERT(new_pp != PP);
-  const int32_t offset = ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(function)));
-  ASSERT(Address::CanHoldOffset(offset));
-  ldr(dst, Address(new_pp, offset));
-}
-
 void Assembler::LoadObject(Register dst, const Object& object) {
   LoadObjectHelper(dst, object, false);
 }
@@ -1453,19 +1442,21 @@ void Assembler::MonomorphicCheckedEntry() {
   bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);
 
+  const intptr_t start = CodeSize();
+
   Label immediate, miss;
   Bind(&miss);
   ldr(IP0, Address(THR, Thread::monomorphic_miss_entry_offset()));
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() == Instructions::kPolymorphicEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffset);
   LoadClassIdMayBeSmi(IP0, R0);
   cmp(R5, Operand(IP0, LSL, 1));
   b(&miss, NE);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() == Instructions::kMonomorphicEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffset);
 
   set_use_far_branches(saved_use_far_branches);
 }

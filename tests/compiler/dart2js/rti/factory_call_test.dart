@@ -46,7 +46,7 @@ main() {
     ProgramLookup programLookup = new ProgramLookup(compiler);
 
     js.Name getName(String name) {
-      return compiler.backend.namer
+      return compiler.backend.namerForTesting
           .globalPropertyNameForMember(lookupMember(elementEnvironment, name));
     }
 
@@ -81,14 +81,17 @@ main() {
       js.Name selector = getName(targetName);
       bool callFound = false;
       forEachNode(fun, onCall: (js.Call node) {
-        js.Expression target = node.target;
-        if (target is js.PropertyAccess && target.selector == selector) {
-          callFound = true;
-          Expect.equals(
-              expectedTypeArguments,
-              node.arguments.length,
-              "Unexpected argument count in $function call to $targetName: "
-              "${js.nodeToString(fun)}");
+        js.Expression target = js.undefer(node.target);
+        if (target is js.PropertyAccess) {
+          js.Node targetSelector = js.undefer(target.selector);
+          if (targetSelector is js.Name && targetSelector.key == selector.key) {
+            callFound = true;
+            Expect.equals(
+                expectedTypeArguments,
+                node.arguments.length,
+                "Unexpected argument count in $function call to $targetName: "
+                "${js.nodeToString(fun)}");
+          }
         }
       });
       Expect.isTrue(

@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/frontend/kernel_to_il.h"
-#include "vm/compiler/aot/precompiler.h"
-#include "vm/compiler/backend/locations.h"
 
+#include "platform/assert.h"
+#include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/compiler/ffi.h"
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
@@ -388,11 +389,12 @@ Fragment FlowGraphBuilder::ClosureCall(TokenPosition position,
 Fragment FlowGraphBuilder::FfiCall(
     const Function& signature,
     const ZoneGrowableArray<Representation>& arg_reps,
-    const ZoneGrowableArray<Location>& arg_locs) {
+    const ZoneGrowableArray<Location>& arg_locs,
+    const ZoneGrowableArray<HostLocation>* arg_host_locs) {
   Fragment body;
 
-  FfiCallInstr* call =
-      new (Z) FfiCallInstr(Z, GetNextDeoptId(), signature, arg_reps, arg_locs);
+  FfiCallInstr* const call = new (Z) FfiCallInstr(
+      Z, GetNextDeoptId(), signature, arg_reps, arg_locs, arg_host_locs);
 
   for (intptr_t i = call->InputCount() - 1; i >= 0; --i) {
     call->SetInputAt(i, Pop());
@@ -1949,14 +1951,9 @@ Fragment FlowGraphBuilder::BuildEntryPointsIntrospection() {
     function = owner.LookupFunction(func_name);
   }
 
-  auto& tmp = Object::Handle(Z);
-  tmp = function.Owner();
-  tmp = Class::Cast(tmp).library();
-  auto& library = Library::Cast(tmp);
-
   Object& options = Object::Handle(Z);
-  if (!library.FindPragma(thread_, function, Symbols::vm_trace_entrypoints(),
-                          &options) ||
+  if (!Library::FindPragma(thread_, /*only_core=*/false, function,
+                           Symbols::vm_trace_entrypoints(), &options) ||
       options.IsNull() || !options.IsClosure()) {
     return Drop();
   }
@@ -2503,7 +2500,6 @@ Fragment FlowGraphBuilder::BitCast(Representation from, Representation to) {
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     const Function& function) {
-#if !defined(TARGET_ARCH_DBC)
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
 
@@ -2519,7 +2515,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
   body += CheckStackOverflowInPrologue(function.token_pos());
 
   const Function& signature = Function::ZoneHandle(Z, function.FfiCSignature());
+#if !defined(TARGET_ARCH_DBC)
   const auto& arg_reps = *compiler::ffi::ArgumentRepresentations(signature);
+  const ZoneGrowableArray<HostLocation>* arg_host_locs = nullptr;
+#else
+  const auto& arg_reps = *compiler::ffi::ArgumentHostRepresentations(signature);
+  const auto* arg_host_locs = compiler::ffi::HostArgumentLocations(arg_reps);
+#endif
   const auto& arg_locs = *compiler::ffi::ArgumentLocations(arg_reps);
 
   BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
@@ -2564,7 +2566,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
                     Z, Class::Handle(I->object_store()->ffi_pointer_class()))
                     ->context_variables()[0]));
   body += UnboxTruncate(kUnboxedFfiIntPtr);
-  body += FfiCall(signature, arg_reps, arg_locs);
+  body += FfiCall(signature, arg_reps, arg_locs, arg_host_locs);
 
   ffi_type = signature.result_type();
   if (compiler::ffi::NativeTypeIsPointer(ffi_type)) {
@@ -2574,7 +2576,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     body += Drop();
     body += NullConstant();
   } else {
+#if !defined(TARGET_ARCH_DBC)
     Representation from_rep = compiler::ffi::ResultRepresentation(signature);
+#else
+    Representation from_rep =
+        compiler::ffi::ResultHostRepresentation(signature);
+#endif  // !defined(TARGET_ARCH_DBC)
     Representation to_rep = compiler::ffi::TypeRepresentation(ffi_type);
     if (from_rep != to_rep) {
       body += BitCast(from_rep, to_rep);
@@ -2588,9 +2595,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
 
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);
-#else
-  UNREACHABLE();
-#endif
 }
 
 void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {

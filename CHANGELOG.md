@@ -1,18 +1,31 @@
+## 2.3.2-dev.0.0
+
+### Tools
+
+#### Linter
+
+Updated the linter to `0.1.89`, which includes the following changes:
+
+* Broadened `prefer_null_aware_operators` to work beyond local variables.
+* Added `prefer_if_null_operators`.
+* Fixed `prefer_contains` false positives.
+* Fixed `unnecessary_parenthesis` false positives.
+
 ## 2.3.1-dev.0.0
 
-### Core library changes
+### Core libraries
 
 #### `dart:async`
-* BREAKING CHANGE:
-  Fixes bug in `StreamIterator` which allowed constructor argument to be `null`.
-  Also allowed `await for` on a `null` stream. This is now a runtime error.
+* **Breaking change:**
+  Fixed bug in `StreamIterator` that allowed constructor argument to be `null`
+  and allowed `await for` on a `null` stream. This is now a runtime error.
 
 #### `dart:core`
 
-* **Breaking change**: The `RegExp` interface has been extended with two new
+* **Breaking change:** The `RegExp` interface has been extended with two new
   constructor named parameters:
 
-  * `unicode:` (`bool`, default: `false`), for Unicode patterns , and
+  * `unicode:` (`bool`, default: `false`), for Unicode patterns
   * `dotAll:` (`bool`, default: `false`), to change the matching behavior of
     '.' to also match line terminating characters.
 
@@ -23,8 +36,8 @@
   now return a more specific subtype, `RegExpMatch`, which adds two features:
 
   * `Iterable<String> groupNames`, a property that contains the names of all
-    named capture groups, and
-  * `String namedGroup(String name)`: a method that retrieves the match for
+    named capture groups
+  * `String namedGroup(String name)`, a method that retrieves the match for
     the given named capture group
 
   This change only affects implementers of the `RegExp` interface; current
@@ -32,8 +45,21 @@
 
 #### `dart:isolate`
 
-* BREAKING CHANGE: The `await for` allowed `null` as a stream due to a bug
+* **Breaking change:** The `await for` allowed `null` as a stream due to a bug
   in `StreamIterator` class. This bug has now been fixed.
+
+## 2.3.1 - 2019-05-21
+
+This is a patch version release with bug fixes.
+
+### Tools
+
+#### dart2js
+
+* Fixed a bug that caused the compiler to crash when it compiled UI-as-code
+  features within fields (Issue [36864][]).
+
+[36864]: https://github.com/dart-lang/sdk/issues/36864
 
 ## 2.3.0 - 2019-05-08
 

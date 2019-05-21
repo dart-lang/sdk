@@ -106,7 +106,8 @@ class InstantiationStubGenerator {
   /// }
   /// ```
   ParameterStubMethod _generateSignatureStub(FieldEntity functionField) {
-    jsAst.Name operatorSignature = _namer.asName(_namer.operatorSignature);
+    jsAst.Name operatorSignature =
+        _namer.asName(_namer.fixedNames.operatorSignature);
 
     jsAst.Fun function = js('function() { return #(#(this.#), this.#); }', [
       _emitter.staticFunctionAccess(

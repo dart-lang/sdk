@@ -136,8 +136,8 @@ abstract class NullableTypeInference {
     // leads to O(depth) cost for calling this function. We could store the
     // resulting value if that becomes an issue, so we maintain the invariant
     // that each node is visited once.
-    Element element = null;
-    String name = null;
+    Element element;
+    String name;
     if (expr is PropertyAccess &&
         expr.operator?.type != TokenType.QUESTION_PERIOD) {
       element = expr.propertyName.staticElement;
@@ -196,7 +196,7 @@ abstract class NullableTypeInference {
       // they will throw noSuchMethod.
       // The only properties/methods on `null` are those on Object itself.
       for (var section in expr.cascadeSections) {
-        Element e = null;
+        Element e;
         if (section is PropertyAccess) {
           e = section.propertyName.staticElement;
         } else if (section is MethodInvocation) {

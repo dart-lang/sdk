@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:front_end/src/fasta/scanner/error_token.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -143,11 +144,15 @@ class LineInfoTest extends EngineTestCase {
     // See https://github.com/dart-lang/sdk/issues/30320
     String source = '<!-- @Component(';
     GatheringErrorListener listener = new GatheringErrorListener();
-    _scanWithListener(source, listener);
-    listener.assertErrorsWithCodes(const [
-      ScannerErrorCode.EXPECTED_TOKEN,
-      ScannerErrorCode.EXPECTED_TOKEN,
-    ]);
+    Scanner scanner =
+        new Scanner(null, new CharSequenceReader(source), listener)
+          ..configureFeatures(featureSet);
+    Token token = scanner.tokenize(reportScannerErrors: false);
+    expect(token, TypeMatcher<UnmatchedToken>());
+    token = token.next;
+    expect(token, TypeMatcher<UnmatchedToken>());
+    token = token.next;
+    expect(token, isNot(TypeMatcher<ErrorToken>()));
   }
 
   void _assertLineInfo(

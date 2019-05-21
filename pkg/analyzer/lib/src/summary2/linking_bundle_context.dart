@@ -32,14 +32,16 @@ class LinkingBundleContext {
   final Map<TypeParameterElement, int> _typeParameters = Map.identity();
   int _nextSyntheticTypeParameterId = 0x10000;
 
-  final Map<GenericFunctionTypeElement, int> _genericFunctionTypes =
-      Map.identity();
-  int _nextGenericFunctionTypeId = 1;
-
   LinkingBundleContext(this.dynamicReference);
 
-  int idOfGenericFunctionType(GenericFunctionTypeElement element) {
-    return _genericFunctionTypes[element];
+  /// We need indexes for references during linking, but once we are done,
+  /// we must clear indexes to make references ready for linking a next bundle.
+  void clearIndexes() {
+    for (var reference in references) {
+      if (reference != null) {
+        reference.index = null;
+      }
+    }
   }
 
   int idOfTypeParameter(TypeParameterElement element) {
@@ -70,10 +72,6 @@ class LinkingBundleContext {
     reference.index = references.length;
     references.add(reference);
     return reference.index;
-  }
-
-  int nextGenericFunctionTypeId() {
-    return _nextGenericFunctionTypeId++;
   }
 
   LinkedNodeTypeBuilder writeType(DartType type) {

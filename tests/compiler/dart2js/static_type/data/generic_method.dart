@@ -19,16 +19,16 @@ main() {
 
 genericMethod1(c) {
   if (/*dynamic*/ c is Class1) {
-    /*Class1*/ c. /*invoke: String*/ method('').length;
+    /*Class1*/ c. /*invoke: [Class1]->String*/ method('').length;
   }
 }
 
 genericMethod2(c) {
   if (/*dynamic*/ c is! Class1) return;
-  /*Class1*/ c. /*invoke: dynamic*/ method('').length;
+  /*Class1*/ c. /*invoke: [Class1]->dynamic*/ method('').length;
 }
 
 genericMethod3() {
   dynamic c = new Class2<int>();
-  /*Class2<int>*/ c. /*invoke: int*/ method();
+  /*Class2<int>*/ c. /*invoke: [Class2<int>]->int*/ method();
 }

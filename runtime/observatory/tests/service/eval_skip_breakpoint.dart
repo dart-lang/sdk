@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--verbose_debug
 
+import 'dart:developer';
+
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+
 import 'service_test_common.dart';
 import 'test_helper.dart';
-import 'dart:developer';
 
 const int LINE_A = 21;
 const int LINE_B = 16;

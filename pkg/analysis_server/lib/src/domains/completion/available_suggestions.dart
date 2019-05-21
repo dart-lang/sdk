@@ -148,7 +148,7 @@ protocol.AvailableSuggestionSet _protocolAvailableSuggestionSet(
 
 protocol.Element _protocolElement(Declaration declaration) {
   return protocol.Element(
-    _protocolElementKind(declaration.kind),
+    protocolElementKind(declaration.kind),
     declaration.name,
     _protocolElementFlags(declaration),
     location: protocol.Location(
@@ -173,7 +173,12 @@ int _protocolElementFlags(Declaration declaration) {
   );
 }
 
-protocol.ElementKind _protocolElementKind(DeclarationKind kind) {
+// TODO(dantup): We need to expose this because the Declarations code currently
+// returns declarations with DeclarationKinds but the DartCompletionManager
+// gives us a list of "included ElementKinds". Maybe it would be better to expose
+// includedDeclarationKinds and then just map that list to ElementKinds once in
+// domain_completion for the original protocol?
+protocol.ElementKind protocolElementKind(DeclarationKind kind) {
   switch (kind) {
     case DeclarationKind.CLASS:
       return protocol.ElementKind.CLASS;

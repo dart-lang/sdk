@@ -7,12 +7,12 @@
 
 #include "platform/assert.h"
 #include "vm/globals.h"
+#include "vm/os_thread.h"
 
 namespace dart {
 
 // Forward declarations.
 class Isolate;
-class Mutex;
 class RawObject;
 class ObjectPointerVisitor;
 
@@ -131,7 +131,7 @@ class BlockStack {
 
   List full_;
   List partial_;
-  Mutex* mutex_;
+  Mutex mutex_;
 
   // Note: This is shared on the basis of block size.
   static const intptr_t kMaxGlobalEmpty = 100;

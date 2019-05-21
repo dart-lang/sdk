@@ -28,7 +28,7 @@ import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/memory/graph.dart';
 import 'package:observatory/src/elements/memory/profile.dart';
 
-class MemoryDashboardElement extends HtmlElement implements Renderable {
+class MemoryDashboardElement extends CustomElement implements Renderable {
   static const tag = const Tag<MemoryDashboardElement>('memory-dashboard',
       dependencies: const [
         NavNotifyElement.tag,
@@ -71,7 +71,7 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
     assert(allocations != null);
     assert(events != null);
     assert(notifications != null);
-    MemoryDashboardElement e = document.createElement(tag.name);
+    MemoryDashboardElement e = new MemoryDashboardElement.created();
     e._r = new RenderingScheduler<MemoryDashboardElement>(e, queue: queue);
     e._vm = vm;
     e._vms = vms;
@@ -85,7 +85,7 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  MemoryDashboardElement.created() : super.created();
+  MemoryDashboardElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -111,13 +111,15 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
             ..onIsolateSelected.listen(_onIsolateSelected);
     }
     children = <Element>[
-      navBar(<Element>[new NavNotifyElement(_notifications, queue: _r.queue)]),
+      navBar(<Element>[
+        new NavNotifyElement(_notifications, queue: _r.queue).element
+      ]),
       new DivElement()
         ..classes = ['content-centered-big']
         ..children = <Element>[
           new HeadingElement.h2()..text = 'Memory Dashboard',
           new HRElement(),
-          _graph,
+          _graph.element,
           new HRElement(),
         ],
     ];
@@ -129,7 +131,8 @@ class MemoryDashboardElement extends HtmlElement implements Renderable {
         ]);
     } else {
       children.add(new MemoryProfileElement(
-          _isolate, _editor, _allocations, _snapshots, _objects));
+              _isolate, _editor, _allocations, _snapshots, _objects)
+          .element);
     }
   }
 

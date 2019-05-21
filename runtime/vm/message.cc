@@ -11,6 +11,8 @@
 
 namespace dart {
 
+const Dart_Port Message::kIllegalPort;
+
 Message::Message(Dart_Port dest_port,
                  uint8_t* snapshot,
                  intptr_t snapshot_length,

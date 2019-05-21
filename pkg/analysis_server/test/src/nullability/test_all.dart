@@ -6,12 +6,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'migration_visitor_test.dart' as migration_visitor_test;
 import 'provisional_api_test.dart' as provisional_api_test;
-import 'unit_propagation_test.dart' as unit_propagation_test;
 
 main() {
   defineReflectiveSuite(() {
     migration_visitor_test.main();
     provisional_api_test.main();
-    unit_propagation_test.main();
   });
 }

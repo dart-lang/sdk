@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -47,7 +48,8 @@ class AnalysisContextFactory {
       {UriResolver contributedResolver,
       MemoryResourceProvider resourceProvider}) {
     AnalysisContextForTests context = new AnalysisContextForTests();
-    return initContextWithCore(context, contributedResolver, resourceProvider);
+    return initContextWithCore(context, FeatureSet.forTesting(),
+        contributedResolver, resourceProvider);
   }
 
   /**
@@ -60,7 +62,8 @@ class AnalysisContextFactory {
       {MemoryResourceProvider resourceProvider}) {
     AnalysisContextForTests context = new AnalysisContextForTests();
     context._internalSetAnalysisOptions(options);
-    return initContextWithCore(context, null, resourceProvider);
+    return initContextWithCore(
+        context, options.contextFeatures, null, resourceProvider);
   }
 
   /**
@@ -73,8 +76,8 @@ class AnalysisContextFactory {
       Map<String, String> packages,
       {MemoryResourceProvider resourceProvider}) {
     AnalysisContextForTests context = new AnalysisContextForTests();
-    return initContextWithCore(
-        context, new TestPackageUriResolver(packages), resourceProvider);
+    return initContextWithCore(context, FeatureSet.forTesting(),
+        new TestPackageUriResolver(packages), resourceProvider);
   }
 
   /**
@@ -84,7 +87,7 @@ class AnalysisContextFactory {
    * be used when accessing the file system.
    */
   static InternalAnalysisContext initContextWithCore(
-      InternalAnalysisContext context,
+      InternalAnalysisContext context, FeatureSet featureSet,
       [UriResolver contributedResolver,
       MemoryResourceProvider resourceProvider]) {
     DartSdk sdk = new _AnalysisContextFactory_initContextWithCore(
@@ -174,7 +177,10 @@ class AnalysisContextFactory {
       proxyTopLevelVariableElt
     ];
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        coreContext, null, AstTestFactory.libraryIdentifier2(["dart", "core"]));
+        coreContext,
+        null,
+        AstTestFactory.libraryIdentifier2(["dart", "core"]),
+        featureSet.isEnabled(Feature.non_nullable));
     coreLibrary.definingCompilationUnit = coreUnit;
     //
     // dart:async
@@ -182,7 +188,8 @@ class AnalysisContextFactory {
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
         coreContext,
         null,
-        AstTestFactory.libraryIdentifier2(["dart", "async"]));
+        AstTestFactory.libraryIdentifier2(["dart", "async"]),
+        featureSet.isEnabled(Feature.non_nullable));
     CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
     asyncUnit.librarySource = asyncUnit.source = asyncSource;
@@ -329,8 +336,11 @@ class AnalysisContextFactory {
             "document", false, true, htmlDocumentElement.type);
     htmlUnit.topLevelVariables = <TopLevelVariableElement>[document];
     htmlUnit.accessors = <PropertyAccessorElement>[document.getter];
-    LibraryElementImpl htmlLibrary = new LibraryElementImpl.forNode(coreContext,
-        null, AstTestFactory.libraryIdentifier2(["dart", "dom", "html"]));
+    LibraryElementImpl htmlLibrary = new LibraryElementImpl.forNode(
+        coreContext,
+        null,
+        AstTestFactory.libraryIdentifier2(["dart", "dom", "html"]),
+        featureSet.isEnabled(Feature.non_nullable));
     htmlLibrary.definingCompilationUnit = htmlUnit;
     //
     // dart:math
@@ -390,7 +400,10 @@ class AnalysisContextFactory {
     ];
     mathUnit.types = <ClassElement>[randomElement];
     LibraryElementImpl mathLibrary = new LibraryElementImpl.forNode(
-        coreContext, null, AstTestFactory.libraryIdentifier2(["dart", "math"]));
+        coreContext,
+        null,
+        AstTestFactory.libraryIdentifier2(["dart", "math"]),
+        featureSet.isEnabled(Feature.non_nullable));
     mathLibrary.definingCompilationUnit = mathUnit;
     //
     // Record the elements.

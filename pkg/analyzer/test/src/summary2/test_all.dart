@@ -4,12 +4,10 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'ast_binary_writer_test.dart' as ast_binary_writer;
 import 'ast_text_printer_test.dart' as ast_text_printer;
 
 main() {
   defineReflectiveSuite(() {
-    ast_binary_writer.main();
     ast_text_printer.main();
   }, name: 'summary2');
 }

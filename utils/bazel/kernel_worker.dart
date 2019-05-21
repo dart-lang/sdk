@@ -16,7 +16,6 @@ import 'package:args/args.dart';
 import 'package:bazel_worker/bazel_worker.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
-import 'package:dev_compiler/src/flutter/track_widget_constructor_locations.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
@@ -129,7 +128,7 @@ final summaryArgsParser = new ArgParser()
   ..addOption('output')
   ..addFlag('reuse-compiler-result', defaultsTo: false)
   ..addFlag('use-incremental-compiler', defaultsTo: false)
-  ..addFlag('track-kernel-creation', defaultsTo: false);
+  ..addFlag('track-widget-creation', defaultsTo: false);
 
 class ComputeKernelResult {
   final bool succeeded;
@@ -173,18 +172,13 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   var excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
 
   var summaryOnly = parsedArgs['summary-only'] as bool;
-  var trackKernelCreation = parsedArgs['track-kernel-creation'] as bool;
-
-  if (summaryOnly && trackKernelCreation) {
-    throw new ArgumentError('error: --summary-only is not compatible with '
-        '--track-kernel-creation');
-  }
+  var trackWidgetCreation = parsedArgs['track-widget-creation'] as bool;
 
   // TODO(sigmund,jakemac): make target mandatory. We allow null to be backwards
   // compatible while we migrate existing clients of this tool.
   var targetName =
       (parsedArgs['target'] as String) ?? (summaryOnly ? 'ddc' : 'vm');
-  var targetFlags = new TargetFlags();
+  var targetFlags = new TargetFlags(trackWidgetCreation: trackWidgetCreation);
   Target target;
   switch (targetName) {
     case 'vm':
@@ -217,7 +211,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     case 'ddc':
       // TODO(jakemac):If `generateKernel` changes to return a summary
       // component, process the component instead.
-      target = new DevCompilerSummaryTarget(sources, excludeNonSources);
+      target =
+          new DevCompilerSummaryTarget(sources, excludeNonSources, targetFlags);
       if (!summaryOnly) {
         out.writeln('error: --no-summary-only not supported for the '
             'ddc target');
@@ -243,7 +238,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
 
   fe.InitializedCompilerState state;
   bool usingIncrementalCompiler = false;
-  if (parsedArgs['use-incremental-compiler'] && linkedInputs.isEmpty) {
+  if (parsedArgs['use-incremental-compiler'] &&
+      linkedInputs.isEmpty &&
+      isWorker) {
     usingIncrementalCompiler = true;
 
     /// Build a map of uris to digests.
@@ -296,23 +293,23 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         incrementalComponent.problemsAsJson = null;
         incrementalComponent.mainMethod = null;
         target.performOutlineTransformations(incrementalComponent);
-      } else if (trackKernelCreation) {
-        (new WidgetCreatorTracker()).transform(incrementalComponent);
+        return Future.value(fe.serializeComponent(incrementalComponent,
+            includeSources: false, includeOffsets: false));
       }
 
       return Future.value(fe.serializeComponent(incrementalComponent));
     });
+
+    state.options.onDiagnostic = null; // See http://dartbug.com/36983.
   } else if (summaryOnly) {
-    kernel = await fe.compileSummary(state, sources, onDiagnostic);
+    kernel = await fe.compileSummary(state, sources, onDiagnostic,
+        includeOffsets: false);
   } else {
     Component component =
         await fe.compileComponent(state, sources, onDiagnostic);
-
-    if (trackKernelCreation) {
-      (new WidgetCreatorTracker()).transform(component);
-    }
     kernel = fe.serializeComponent(component,
-        filter: (library) => sources.contains(library.importUri));
+        filter: (library) => sources.contains(library.importUri),
+        includeOffsets: true);
   }
 
   if (kernel != null) {
@@ -342,7 +339,9 @@ class DevCompilerSummaryTarget extends DevCompilerTarget {
   final List<Uri> sources;
   final bool excludeNonSources;
 
-  DevCompilerSummaryTarget(this.sources, this.excludeNonSources);
+  DevCompilerSummaryTarget(
+      this.sources, this.excludeNonSources, TargetFlags targetFlags)
+      : super(targetFlags);
 
   @override
   void performOutlineTransformations(Component component) {

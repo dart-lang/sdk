@@ -23,7 +23,7 @@ import 'package:observatory/src/elements/memory/snapshot.dart';
 
 enum _Analysis { allocations, dominatorTree }
 
-class MemoryProfileElement extends HtmlElement implements Renderable {
+class MemoryProfileElement extends CustomElement implements Renderable {
   static const tag = const Tag<MemoryProfileElement>('memory-profile',
       dependencies: const [
         MemoryAllocationsElement.tag,
@@ -56,7 +56,7 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
     assert(allocations != null);
     assert(snapshots != null);
     assert(objects != null);
-    MemoryProfileElement e = document.createElement(tag.name);
+    MemoryProfileElement e = new MemoryProfileElement.created();
     e._r = new RenderingScheduler<MemoryProfileElement>(e, queue: queue);
     e._isolate = isolate;
     e._editor = editor;
@@ -66,7 +66,7 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  MemoryProfileElement.created() : super.created();
+  MemoryProfileElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -88,13 +88,13 @@ class MemoryProfileElement extends HtmlElement implements Renderable {
       case _Analysis.allocations:
         final MemoryAllocationsElement allocations =
             new MemoryAllocationsElement(_isolate, _editor, _allocations);
-        current = allocations;
+        current = allocations.element;
         reload = ({bool gc: false}) => allocations.reload(gc: gc);
         break;
       case _Analysis.dominatorTree:
         final MemorySnapshotElement snapshot =
             new MemorySnapshotElement(_isolate, _editor, _snapshots, _objects);
-        current = snapshot;
+        current = snapshot.element;
         reload = ({bool gc: false}) => snapshot.reload(gc: gc);
         break;
     }

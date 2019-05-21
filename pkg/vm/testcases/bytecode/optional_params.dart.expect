@@ -34,8 +34,8 @@ Bytecode {
   PushInt              1
   Push                 r0
   StoreIndexedTOS
-  DirectCall           1, CP#3
-  DirectCall           1, CP#5
+  DirectCall           CP#3, 1
+  DirectCall           CP#5, 1
   Drop1
   PushNull
   PushInt              2
@@ -49,8 +49,8 @@ Bytecode {
   PushInt              1
   Push                 r1
   StoreIndexedTOS
-  DirectCall           1, CP#3
-  DirectCall           1, CP#5
+  DirectCall           CP#3, 1
+  DirectCall           CP#5, 1
   Drop1
   PushNull
   PushInt              2
@@ -64,8 +64,8 @@ Bytecode {
   PushInt              1
   Push                 r2
   StoreIndexedTOS
-  DirectCall           1, CP#3
-  DirectCall           1, CP#5
+  DirectCall           CP#3, 1
+  DirectCall           CP#5, 1
   Drop1
   PushNull
   ReturnTOS
@@ -110,8 +110,8 @@ Bytecode {
   PushInt              1
   Push                 r0
   StoreIndexedTOS
-  DirectCall           1, CP#7
-  DirectCall           1, CP#9
+  DirectCall           CP#7, 1
+  DirectCall           CP#9, 1
   Drop1
   PushNull
   PushInt              2
@@ -125,8 +125,8 @@ Bytecode {
   PushInt              1
   Push                 r1
   StoreIndexedTOS
-  DirectCall           1, CP#7
-  DirectCall           1, CP#9
+  DirectCall           CP#7, 1
+  DirectCall           CP#9, 1
   Drop1
   PushNull
   PushInt              2
@@ -140,8 +140,8 @@ Bytecode {
   PushInt              1
   Push                 r2
   StoreIndexedTOS
-  DirectCall           1, CP#7
-  DirectCall           1, CP#9
+  DirectCall           CP#7, 1
+  DirectCall           CP#9, 1
   Drop1
   PushNull
   PushInt              2
@@ -155,8 +155,8 @@ Bytecode {
   PushInt              1
   Push                 r3
   StoreIndexedTOS
-  DirectCall           1, CP#7
-  DirectCall           1, CP#9
+  DirectCall           CP#7, 1
+  DirectCall           CP#9, 1
   Drop1
   PushNull
   PushInt              2
@@ -170,8 +170,8 @@ Bytecode {
   PushInt              1
   Push                 r4
   StoreIndexedTOS
-  DirectCall           1, CP#7
-  DirectCall           1, CP#9
+  DirectCall           CP#7, 1
+  DirectCall           CP#9, 1
   Drop1
   PushNull
   ReturnTOS
@@ -213,13 +213,13 @@ Bytecode {
   PushNull
   Push                 r4
   InstantiateType      CP#4
-  DirectCall           1, CP#5
+  DirectCall           CP#5, 1
   Drop1
   Push                 r1
-  DirectCall           1, CP#5
+  DirectCall           CP#5, 1
   Drop1
   Push                 r3
-  DirectCall           1, CP#5
+  DirectCall           CP#5, 1
   Drop1
   PushNull
   ReturnTOS
@@ -245,12 +245,12 @@ Bytecode {
   CheckStack           0
   PushConstant         CP#0
   PushConstant         CP#1
-  DirectCall           2, CP#2
+  DirectCall           CP#2, 2
   Drop1
   PushConstant         CP#4
   PushConstant         CP#5
   PushConstant         CP#1
-  DirectCall           3, CP#6
+  DirectCall           CP#6, 3
   Drop1
   PushNull
   ReturnTOS

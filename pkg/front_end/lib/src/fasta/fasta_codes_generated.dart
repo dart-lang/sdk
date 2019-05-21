@@ -1486,36 +1486,6 @@ Message _withArgumentsConstEvalInvalidType(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstEvalIterationInConstList =
-    messageConstEvalIterationInConstList;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalIterationInConstList = const MessageCode(
-    "ConstEvalIterationInConstList",
-    analyzerCodes: <String>["NON_CONSTANT_LIST_ELEMENT"],
-    message: r"""Iteration can't be used in a constant list.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstEvalIterationInConstMap =
-    messageConstEvalIterationInConstMap;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalIterationInConstMap = const MessageCode(
-    "ConstEvalIterationInConstMap",
-    analyzerCodes: <String>["NON_CONSTANT_MAP_ELEMENT"],
-    message: r"""Iteration can't be used in a constant map.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstEvalIterationInConstSet =
-    messageConstEvalIterationInConstSet;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalIterationInConstSet = const MessageCode(
-    "ConstEvalIterationInConstSet",
-    analyzerCodes: <String>["NON_CONSTANT_SET_ELEMENT"],
-    message: r"""Iteration can't be used in a constant set.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Constant _constant)>
     templateConstEvalKeyImplementsEqual =
     const Template<Message Function(Constant _constant)>(

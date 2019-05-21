@@ -165,7 +165,7 @@ class Primitives {
     if (!JS(
         'bool',
         r'/^\s*[+-]?(?:Infinity|NaN|'
-        r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
+            r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
         source)) {
       return _parseDoubleError(source, handleError);
     }
@@ -207,7 +207,7 @@ class Primitives {
     return JS(
         'bool',
         'typeof version == "function"'
-        ' && typeof os == "object" && "system" in os');
+            ' && typeof os == "object" && "system" in os');
   }
 
   static bool get isJsshell {
@@ -334,15 +334,15 @@ class Primitives {
         'JSArray|Null',
         // Thu followed by a space.
         r'/^[A-Z,a-z]{3}\s'
-        // Oct 31 followed by space.
-        r'[A-Z,a-z]{3}\s\d+\s'
-        // Time followed by a space.
-        r'\d{2}:\d{2}:\d{2}\s'
-        // The time zone name followed by a space.
-        r'([A-Z]{3,5})\s'
-        // The year.
-        r'\d{4}$/'
-        '.exec(#.toString())',
+            // Oct 31 followed by space.
+            r'[A-Z,a-z]{3}\s\d+\s'
+            // Time followed by a space.
+            r'\d{2}:\d{2}:\d{2}\s'
+            // The time zone name followed by a space.
+            r'([A-Z]{3,5})\s'
+            // The year.
+            r'\d{4}$/'
+            '.exec(#.toString())',
         d);
     if (match != null) return match[1];
 

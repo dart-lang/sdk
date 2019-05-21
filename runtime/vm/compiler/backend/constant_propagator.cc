@@ -844,15 +844,9 @@ void ConstantPropagator::VisitLoadUntagged(LoadUntaggedInstr* instr) {
 }
 
 void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
-  intptr_t cid = instr->object()->Type()->ToCid();
-  if (cid != kDynamicCid) {
-    SetValue(instr, Smi::ZoneHandle(Z, Smi::New(cid)));
-    return;
-  }
-
   const Object& object = instr->object()->definition()->constant_value();
   if (IsConstant(object)) {
-    cid = object.GetClassId();
+    const intptr_t cid = object.GetClassId();
     SetValue(instr, Smi::ZoneHandle(Z, Smi::New(cid)));
     return;
   }

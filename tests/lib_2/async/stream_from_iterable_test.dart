@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:expect/async_minitest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 import 'event_helper.dart';
 

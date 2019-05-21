@@ -774,6 +774,12 @@ class KernelTarget extends TargetImplementation {
   /// Run all transformations that are needed when building a bundle of
   /// libraries for the first time.
   void runBuildTransformations() {
+    backendTarget.performPreConstantEvaluationTransformations(
+        component,
+        loader.coreTypes,
+        loader.libraries,
+        new KernelDiagnosticReporter(loader),
+        logger: (String msg) => ticker.logMs(msg));
     if (loader.target.enableConstantUpdate2018) {
       TypeEnvironment environment =
           new TypeEnvironment(loader.coreTypes, loader.hierarchy);

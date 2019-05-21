@@ -10,6 +10,3 @@ collection_runtime_dart_files = [
   "collection_patch.dart",
   "compact_hash.dart",
 ]
-
-collection_runtime_sources =
-    collection_runtime_cc_files + collection_runtime_dart_files

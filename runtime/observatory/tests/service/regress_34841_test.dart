@@ -19,6 +19,7 @@ class Bar extends Object with Foo {}
 void testFunction() {
   Bar bar = new Bar();
   print(bar.foo);
+  print(bar.baz());
   debugger();
 }
 

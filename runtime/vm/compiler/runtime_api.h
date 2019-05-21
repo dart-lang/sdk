@@ -419,7 +419,7 @@ class ICData : public AllStatic {
   static word CodeIndexFor(word num_args);
   static word CountIndexFor(word num_args);
   static word TargetIndexFor(word num_args);
-  static word ExactnessOffsetFor(word num_args);
+  static word ExactnessIndexFor(word num_args);
   static word TestEntryLengthFor(word num_args, bool exactness_check);
   static word EntryPointIndexFor(word num_args);
   static word NumArgsTestedShift();

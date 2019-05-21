@@ -5585,11 +5585,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
         var function = context.getGeneticTypeAliasFunction(linkedNode);
         if (function != null) {
           var reference = context.getGenericFunctionTypeReference(function);
-          return _function = GenericFunctionTypeElementImpl.forLinkedNode(
-            this,
-            reference,
-            function,
-          );
+          return _function = reference.element;
         } else {
           return null;
         }
@@ -6254,6 +6250,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// The context of the defining unit.
   final LinkedUnitContext linkedContext;
 
+  @override
+  final bool isNonNullableByDefault;
+
   /// The compilation unit that defines this library.
   CompilationUnitElement _definingCompilationUnit;
 
@@ -6304,8 +6303,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
-  LibraryElementImpl(
-      this.context, this.session, String name, int offset, this.nameLength)
+  LibraryElementImpl(this.context, this.session, String name, int offset,
+      this.nameLength, this.isNonNullableByDefault)
       : resynthesizerContext = null,
         unlinkedDefiningUnit = null,
         linkedContext = null,
@@ -6322,6 +6321,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       CompilationUnit linkedNode)
       : resynthesizerContext = null,
         unlinkedDefiningUnit = null,
+        isNonNullableByDefault = linkedContext.isNNBD,
         super.forLinkedNode(null, reference, linkedNode) {
     _name = name;
     _nameOffset = offset;
@@ -6333,7 +6333,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name].
-  LibraryElementImpl.forNode(this.context, this.session, LibraryIdentifier name)
+  LibraryElementImpl.forNode(this.context, this.session, LibraryIdentifier name,
+      this.isNonNullableByDefault)
       : nameLength = name != null ? name.length : 0,
         resynthesizerContext = null,
         unlinkedDefiningUnit = null,
@@ -6350,6 +6351,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       this.resynthesizerContext,
       this.unlinkedDefiningUnit)
       : linkedContext = null,
+        isNonNullableByDefault = unlinkedDefiningUnit.isNNBD,
         super.forSerialized(null) {
     _name = name;
     _nameOffset = offset;
@@ -7815,6 +7817,30 @@ class MultiplyInheritedPropertyAccessorElementImpl
   }
 }
 
+/// The synthetic element representing the declaration of the type `Never`.
+class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
+  /// Return the unique instance of this class.
+  static NeverElementImpl get instance =>
+      BottomTypeImpl.instance.element as NeverElementImpl;
+
+  @override
+  BottomTypeImpl type;
+
+  /// Initialize a newly created instance of this class. Instances of this class
+  /// should <b>not</b> be created except as part of creating the type
+  /// associated with this element. The single instance of this class should be
+  /// accessed through the method [instance].
+  NeverElementImpl() : super('Never', -1) {
+    setModifier(Modifier.SYNTHETIC, true);
+  }
+
+  @override
+  ElementKind get kind => ElementKind.NEVER;
+
+  @override
+  T accept<T>(ElementVisitor<T> visitor) => null;
+}
+
 /// A [VariableElementImpl], which is not a parameter.
 abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   /// The unlinked representation of the variable in the summary.
@@ -7897,10 +7923,11 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   FunctionElement get initializer {
     if (_initializer == null) {
       if (linkedNode != null) {
-        if (linkedContext.readInitializer(linkedNode) != null) {
+        if (linkedContext.hasInitializer(linkedNode)) {
           _initializer = new FunctionElementImpl('', -1)
             ..isSynthetic = true
-            .._type = FunctionTypeImpl.synthetic(type, [], []);
+            .._type = FunctionTypeImpl.synthetic(type, [], [])
+            ..enclosingElement = this;
         }
       }
       if (_unlinkedVariable != null) {
@@ -8220,7 +8247,7 @@ class ParameterElementImpl extends VariableElementImpl
   FunctionElement get initializer {
     if (_initializer == null) {
       if (linkedNode != null) {
-        if (linkedContext.readInitializer(linkedNode) != null) {
+        if (linkedContext.hasDefaultValue(linkedNode)) {
           _initializer = new FunctionElementImpl('', -1)..isSynthetic = true;
         }
       }
@@ -9545,6 +9572,10 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   TypeParameterType get type {
+    // Note: TypeParameterElement.type has nullability suffix `star` regardless
+    // of whether it appears in a migrated library.  This is because for type
+    // parameters of synthetic function types, the ancestor chain is broken and
+    // we can't find the enclosing library to tell whether it is migrated.
     return _type ??= new TypeParameterTypeImpl(this);
   }
 

@@ -2036,7 +2036,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   const intptr_t count_offset =
       target::ICData::CountIndexFor(num_args) * target::kWordSize;
   const intptr_t exactness_offset =
-      target::ICData::ExactnessOffsetFor(num_args) * target::kWordSize;
+      target::ICData::ExactnessIndexFor(num_args) * target::kWordSize;
 
   __ Bind(&loop);
   for (int unroll = optimize ? 4 : 2; unroll >= 0; unroll--) {
@@ -2988,6 +2988,7 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
 // RDI: function to be reoptimized.
 // R10: argument descriptor (preserved).
 void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
+  __ movq(CODE_REG, Address(THR, Thread::optimize_stub_offset()));
   __ EnterStubFrame();
   __ pushq(R10);           // Preserve args descriptor.
   __ pushq(Immediate(0));  // Result slot.

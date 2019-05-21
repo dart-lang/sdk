@@ -86,7 +86,7 @@ class FreeList {
 
   void Print() const;
 
-  Mutex* mutex() { return mutex_; }
+  Mutex* mutex() { return &mutex_; }
   uword TryAllocateLocked(intptr_t size, bool is_protected);
   void FreeLocked(uword addr, intptr_t size);
 
@@ -97,7 +97,7 @@ class FreeList {
   // Allocates locked and unprotected memory, but only from small elements
   // (i.e., fixed size lists).
   uword TryAllocateSmallLocked(intptr_t size) {
-    DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
+    DEBUG_ASSERT(mutex_.IsOwnedByCurrentThread());
     if (size > last_free_small_size_) {
       return 0;
     }
@@ -159,7 +159,7 @@ class FreeList {
   void PrintLarge() const;
 
   // Lock protecting the free list data structures.
-  Mutex* mutex_;
+  mutable Mutex mutex_;
 
   BitSet<kNumLists> free_map_;
 

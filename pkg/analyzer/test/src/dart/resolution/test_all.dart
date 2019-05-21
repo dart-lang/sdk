@@ -12,11 +12,13 @@ import 'constant_test.dart' as constant;
 import 'constructor_test.dart' as constructor;
 import 'definite_assignment_test.dart' as definite_assignment;
 import 'enum_test.dart' as enum_resolution;
+import 'export_test.dart' as export_;
 import 'flow_analysis_test.dart' as flow_analysis;
 import 'for_element_test.dart' as for_element;
 import 'for_in_test.dart' as for_in;
 import 'function_expression_invocation_test.dart'
     as function_expression_invocation;
+import 'generic_function_type_test.dart' as generic_function_type;
 import 'generic_type_alias_test.dart' as generic_type_alias;
 import 'import_prefix_test.dart' as import_prefix;
 import 'instance_creation_test.dart' as instance_creation;
@@ -26,6 +28,7 @@ import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin;
 import 'method_invocation_test.dart' as method_invocation;
 import 'mixin_test.dart' as mixin_resolution;
+import 'namespace_test.dart' as namespace;
 import 'non_nullable_test.dart' as non_nullable;
 import 'optional_const_test.dart' as optional_const;
 import 'property_access_test.dart' as property_access;
@@ -42,10 +45,12 @@ main() {
     constructor.main();
     definite_assignment.main();
     enum_resolution.main();
+    export_.main();
     flow_analysis.main();
     for_element.main();
     for_in.main();
     function_expression_invocation.main();
+    generic_function_type.main();
     generic_type_alias.main();
     import_prefix.main();
     instance_creation.main();
@@ -53,6 +58,7 @@ main() {
     instance_member_inference_mixin.main();
     method_invocation.main();
     mixin_resolution.main();
+    namespace.main();
     non_nullable.main();
     optional_const.main();
     property_access.main();

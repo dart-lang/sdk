@@ -51,6 +51,29 @@ class ScannerTest_Fasta_FuzzTestAPI {
 
 @reflectiveTest
 class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
+  @override
+  Token scanWithListener(String source, ErrorListener listener,
+      {ScannerConfiguration configuration}) {
+    var bytes = utf8.encode(source).toList()..add(0);
+    var result =
+        scan(bytes, configuration: configuration, includeComments: true);
+    var token = result.tokens;
+
+    // Translate error tokens
+    if (result.hasErrors) {
+      while (token is ErrorToken) {
+        translateErrorToken(token,
+            (ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+          listener.errors.add(new TestError(offset, errorCode, arguments));
+        });
+        token = token.next;
+      }
+    }
+
+    new Token.eof(-1)..setNext(token);
+    return token;
+  }
+
   test_invalid_utf8() {
     printBytes(List<int> bytes) {
       var hex = bytes.map((b) => '0x${b.toRadixString(16).toUpperCase()}');
@@ -85,8 +108,10 @@ class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
 @reflectiveTest
 class ScannerTest_Fasta extends ScannerTestBase {
   @override
-  Token scanWithListener(String source, ErrorListener listener) {
-    var result = scanString(source, includeComments: true);
+  Token scanWithListener(String source, ErrorListener listener,
+      {ScannerConfiguration configuration}) {
+    var result =
+        scanString(source, configuration: configuration, includeComments: true);
     var token = result.tokens;
 
     // Translate error tokens

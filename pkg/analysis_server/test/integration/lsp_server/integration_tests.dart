@@ -9,16 +9,12 @@ import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_byte_stream_channel.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:path/path.dart';
 
 import '../../lsp/server_abstract.dart';
 
 class AbstractLspAnalysisServerIntegrationTest
-    with
-        ResourceProviderMixin,
-        ClientCapabilitiesHelperMixin,
-        LspAnalysisServerTestMixin {
+    with ClientCapabilitiesHelperMixin, LspAnalysisServerTestMixin {
   LspServerClient client;
 
   final Map<int, Completer<ResponseMessage>> _completers = {};
@@ -49,6 +45,11 @@ class AbstractLspAnalysisServerIntegrationTest
     }
   }
 
+  newFile(String path, {String content}) =>
+      File(path).writeAsStringSync(content ?? '');
+
+  newFolder(String path) => Directory(path).createSync(recursive: true);
+
   @override
   void sendNotificationToServer(NotificationMessage notification) =>
       client.channel.sendNotification(notification);
@@ -74,7 +75,13 @@ class AbstractLspAnalysisServerIntegrationTest
     projectFolderPath = Directory.systemTemp
         .createTempSync('analysisServer')
         .resolveSymbolicLinksSync();
+    newFolder(projectFolderPath);
+    newFolder(join(projectFolderPath, 'lib'));
     projectFolderUri = Uri.file(projectFolderPath);
+    mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
+    mainFileUri = Uri.file(mainFilePath);
+    analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
+    analysisOptionsUri = Uri.file(analysisOptionsPath);
 
     client = new LspServerClient();
     await client.start();

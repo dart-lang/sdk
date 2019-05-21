@@ -192,6 +192,14 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.detail, isNot(contains('deprecated')));
   }
 
+  test_nonDartFile() async {
+    newFile(pubspecFilePath, content: simplePubspecContent);
+    await initialize();
+
+    final res = await getCompletion(pubspecFileUri, startOfDocPos);
+    expect(res, isEmpty);
+  }
+
   test_plainText() async {
     final content = '''
     class MyClass {
@@ -214,6 +222,210 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
     final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
     expect(updated, contains('a.abcdefghij'));
+  }
+
+  test_suggestionSets() async {
+    newFile(
+      join(projectFolderPath, 'other_file.dart'),
+      content: 'class InOtherFile {}',
+    );
+
+    final content = '''
+main() {
+  InOtherF^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    // Find the completion for the class in the other file.
+    final completion = res.singleWhere((c) => c.label == 'InOtherFile');
+    expect(completion, isNotNull);
+
+    // Resolve the completion item (via server) to get its edits. This is the
+    // LSP's equiv of getSuggestionDetails() and is invoked by LSP clients to
+    // populate additional info (in our case, the additional edits for inserting
+    // the import).
+    final resolved = await resolveCompletion(completion);
+    expect(resolved, isNotNull);
+
+    // Ensure the detail field was update to show this will auto-import.
+    expect(
+        resolved.detail, startsWith("Auto import from '../other_file.dart'"));
+
+    // There should be no command for this item because it doesn't need imports
+    // in other files. Same-file completions are in additionalEdits.
+    expect(resolved.command, isNull);
+
+    // Apply both the main completion edit and the additionalTextEdits atomically.
+    final newContent = applyTextEdits(
+      withoutMarkers(content),
+      [resolved.textEdit].followedBy(resolved.additionalTextEdits).toList(),
+    );
+
+    // Ensure both edits were made - the completion, and the inserted import.
+    expect(newContent, equals('''
+import '../other_file.dart';
+
+main() {
+  InOtherFile
+}
+    '''));
+  }
+
+  test_suggestionSets_insertsIntoPartFiles() async {
+    // File we'll be adding an import for.
+    newFile(
+      join(projectFolderPath, 'other_file.dart'),
+      content: 'class InOtherFile {}',
+    );
+
+    // File that will have the import added.
+    final parentContent = '''part 'main.dart';''';
+    final parentFilePath = newFile(
+      join(projectFolderPath, 'lib', 'parent.dart'),
+      content: parentContent,
+    ).path;
+
+    // File that we're invoking completion in.
+    final content = '''
+part of 'parent.dart';
+main() {
+  InOtherF^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completion = res.singleWhere((c) => c.label == 'InOtherFile');
+    expect(completion, isNotNull);
+
+    // Resolve the completion item to get its edits.
+    final resolved = await resolveCompletion(completion);
+    expect(resolved, isNotNull);
+    // Ensure it has a command, since it will need to make edits in other files
+    // and that's done by telling the server to send a workspace/applyEdit. LSP
+    // doesn't currently support these other-file edits in the completion.
+    // See https://github.com/microsoft/language-server-protocol/issues/749
+    expect(resolved.command, isNotNull);
+
+    // Apply all current-document edits.
+    final newContent = applyTextEdits(
+      withoutMarkers(content),
+      [resolved.textEdit].followedBy(resolved.additionalTextEdits).toList(),
+    );
+    expect(newContent, equals('''
+part of 'parent.dart';
+main() {
+  InOtherFile
+}
+    '''));
+
+    // Execute the associated command (which will handle edits in other files).
+    ApplyWorkspaceEditParams editParams;
+    final commandResponse = await handleExpectedRequest<Object,
+        ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
+      Method.workspace_applyEdit,
+      () => executeCommand(resolved.command),
+      handler: (edit) {
+        // When the server sends the edit back, just keep a copy and say we
+        // applied successfully (it'll be verified below).
+        editParams = edit;
+        return new ApplyWorkspaceEditResponse(true, null);
+      },
+    );
+    // Successful edits return an empty success() response.
+    expect(commandResponse, isNull);
+
+    // Ensure the edit came back.
+    expect(editParams, isNotNull);
+    expect(editParams.edit.changes, isNotNull);
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      parentFilePath: withoutMarkers(parentContent),
+    };
+    applyChanges(contents, editParams.edit.changes);
+
+    // Check the parent file was modified to include the import by the edits
+    // that came from the server.
+    expect(contents[parentFilePath], equals('''
+import '../other_file.dart';
+
+part 'main.dart';'''));
+  }
+
+  test_suggestionSets_unavailableIfDisabled() async {
+    newFile(
+      join(projectFolderPath, 'other_file.dart'),
+      content: 'class InOtherFile {}',
+    );
+
+    final content = '''
+main() {
+  InOtherF^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    // Support applyEdit, but explicitly disable the suggestions.
+    await initialize(
+      initializationOptions: {'suggestFromUnimportedLibraries': false},
+      workspaceCapabilities:
+          withApplyEditSupport(emptyWorkspaceClientCapabilities),
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    // Ensure the item doesn't appear in the results (because we might not
+    // be able to execute the import edits if they're in another file).
+    final completion = res.singleWhere(
+      (c) => c.label == 'InOtherFile',
+      orElse: () => null,
+    );
+    expect(completion, isNull);
+  }
+
+  test_suggestionSets_unavailableWithoutApplyEdit() async {
+    // If client doesn't advertise support for workspace/applyEdit, we won't
+    // include suggestion sets.
+    newFile(
+      join(projectFolderPath, 'other_file.dart'),
+      content: 'class InOtherFile {}',
+    );
+
+    final content = '''
+main() {
+  InOtherF^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    // Ensure the item doesn't appear in the results (because we might not
+    // be able to execute the import edits if they're in another file).
+    final completion = res.singleWhere(
+      (c) => c.label == 'InOtherFile',
+      orElse: () => null,
+    );
+    expect(completion, isNull);
   }
 
   test_unopenFile() async {

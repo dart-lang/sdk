@@ -12,7 +12,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/utils.dart';
 
-class TopRetainingInstancesElement extends HtmlElement implements Renderable {
+class TopRetainingInstancesElement extends CustomElement implements Renderable {
   static const tag = const Tag<TopRetainingInstancesElement>(
       'top-retainig-instances',
       dependencies: const [CurlyBlockElement.tag, InstanceRefElement.tag]);
@@ -42,7 +42,7 @@ class TopRetainingInstancesElement extends HtmlElement implements Renderable {
     assert(cls != null);
     assert(topRetainingInstances != null);
     assert(objects != null);
-    TopRetainingInstancesElement e = document.createElement(tag.name);
+    TopRetainingInstancesElement e = new TopRetainingInstancesElement.created();
     e._r =
         new RenderingScheduler<TopRetainingInstancesElement>(e, queue: queue);
     e._isolate = isolate;
@@ -52,7 +52,7 @@ class TopRetainingInstancesElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  TopRetainingInstancesElement.created() : super.created();
+  TopRetainingInstancesElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -69,20 +69,21 @@ class TopRetainingInstancesElement extends HtmlElement implements Renderable {
 
   void render() {
     children = <Element>[
-      new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-        ..content = <Element>[
-          new DivElement()
-            ..classes = ['memberList']
-            ..children = _createContent()
-        ]
-        ..onToggle.listen((e) async {
-          _expanded = e.control.expanded;
-          if (_expanded) {
-            e.control.disabled = true;
-            await _refresh();
-            e.control.disabled = false;
-          }
-        })
+      (new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
+            ..content = <Element>[
+              new DivElement()
+                ..classes = ['memberList']
+                ..children = _createContent()
+            ]
+            ..onToggle.listen((e) async {
+              _expanded = e.control.expanded;
+              if (_expanded) {
+                e.control.disabled = true;
+                await _refresh();
+                e.control.disabled = false;
+              }
+            }))
+          .element
     ];
   }
 

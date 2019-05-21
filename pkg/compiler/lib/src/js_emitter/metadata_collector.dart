@@ -37,7 +37,7 @@ abstract class _MetadataEntry extends jsAst.DeferredNumber
   // will be applied to the [entry] to also mark potential [_MetadataEntry]
   // instances in the [entry] as seen.
   @override
-  markSeen(jsAst.TokenCounter visitor);
+  void markSeen(jsAst.TokenCounter visitor);
 }
 
 class _BoundMetadataEntry extends _MetadataEntry {
@@ -65,7 +65,7 @@ class _BoundMetadataEntry extends _MetadataEntry {
   bool get isUsed => _rc > 0;
 
   @override
-  markSeen(jsAst.BaseVisitor visitor) {
+  void markSeen(jsAst.BaseVisitor visitor) {
     _rc++;
     if (_rc == 1) entry.accept(visitor);
   }

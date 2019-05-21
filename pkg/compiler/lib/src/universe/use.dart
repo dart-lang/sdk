@@ -20,6 +20,8 @@ import '../common.dart';
 import '../constants/values.dart';
 import '../elements/types.dart';
 import '../elements/entities.dart';
+import '../inferrer/abstract_value_domain.dart';
+import '../serialization/serialization.dart';
 import '../js_model/closure.dart';
 import '../util/util.dart' show equalElements, Hashing;
 import 'call_structure.dart' show CallStructure;
@@ -36,9 +38,49 @@ enum DynamicUseKind {
 /// property and [receiverConstraint] defines the known constraint for the
 /// object on which the property is accessed.
 class DynamicUse {
-  final Selector selector;
+  static const String tag = 'dynamic-use';
 
-  DynamicUse(this.selector);
+  final Selector selector;
+  final Object receiverConstraint;
+  final List<DartType> _typeArguments;
+
+  DynamicUse(this.selector, this.receiverConstraint, this._typeArguments) {
+    assert(
+        selector.callStructure.typeArgumentCount ==
+            (_typeArguments?.length ?? 0),
+        "Type argument count mismatch. Selector has "
+        "${selector.callStructure.typeArgumentCount} but "
+        "${_typeArguments?.length ?? 0} were passed.");
+  }
+
+  factory DynamicUse.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    Selector selector = Selector.readFromDataSource(source);
+    bool hasConstraint = source.readBool();
+    Object receiverConstraint;
+    if (hasConstraint) {
+      receiverConstraint = source.readAbstractValue();
+    }
+    List<DartType> typeArguments = source.readDartTypes(emptyAsNull: true);
+    source.end(tag);
+    return new DynamicUse(selector, receiverConstraint, typeArguments);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    selector.writeToDataSink(sink);
+    sink.writeBool(receiverConstraint != null);
+    if (receiverConstraint != null) {
+      if (receiverConstraint is AbstractValue) {
+        sink.writeAbstractValue(receiverConstraint);
+      } else {
+        throw new UnsupportedError(
+            "Unsupported receiver constraint: ${receiverConstraint}");
+      }
+    }
+    sink.writeDartTypes(_typeArguments, allowNull: true);
+    sink.end(tag);
+  }
 
   /// Short textual representation use for testing.
   String get shortText {
@@ -71,8 +113,6 @@ class DynamicUse {
     return sb.toString();
   }
 
-  Object get receiverConstraint => null;
-
   DynamicUseKind get kind {
     if (selector.isGetter) {
       return DynamicUseKind.GET;
@@ -83,7 +123,7 @@ class DynamicUse {
     }
   }
 
-  List<DartType> get typeArguments => const <DartType>[];
+  List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
 
   @override
   int get hashCode => Hashing.listHash(
@@ -99,48 +139,7 @@ class DynamicUse {
   }
 
   @override
-  String toString() => '$selector,$receiverConstraint';
-}
-
-class GenericDynamicUse extends DynamicUse {
-  final List<DartType> _typeArguments;
-
-  GenericDynamicUse(Selector selector, [this._typeArguments])
-      : super(selector) {
-    assert(
-        selector.callStructure.typeArgumentCount ==
-            (_typeArguments?.length ?? 0),
-        "Type argument count mismatch. Selector has "
-        "${selector.callStructure.typeArgumentCount} but "
-        "${typeArguments?.length ?? 0} were passed.");
-  }
-
-  @override
-  List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
-}
-
-/// A dynamic use with a receiver constraint.
-///
-/// This is used in the codegen phase where receivers are constrained to a
-/// type mask or similar.
-class ConstrainedDynamicUse extends DynamicUse {
-  @override
-  final Object receiverConstraint;
-  final List<DartType> _typeArguments;
-
-  ConstrainedDynamicUse(
-      Selector selector, this.receiverConstraint, this._typeArguments)
-      : super(selector) {
-    assert(
-        selector.callStructure.typeArgumentCount ==
-            (_typeArguments?.length ?? 0),
-        "Type argument count mismatch. Selector has "
-        "${selector.callStructure.typeArgumentCount} but "
-        "${_typeArguments?.length ?? 0} were passed.");
-  }
-
-  @override
-  List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
+  String toString() => '$selector,$receiverConstraint,$typeArguments';
 }
 
 enum StaticUseKind {
@@ -170,6 +169,8 @@ enum StaticUseKind {
 // TODO(johnniwinther): Create backend-specific implementations with better
 // invariants.
 class StaticUse {
+  static const String tag = 'static-use';
+
   final Entity element;
   final StaticUseKind kind;
   @override
@@ -178,23 +179,68 @@ class StaticUse {
   final CallStructure callStructure;
   final ImportEntity deferredImport;
   final ConstantValue constant;
+  final List<DartType> typeArguments;
 
   StaticUse.internal(Entity element, this.kind,
       {this.type,
       this.callStructure,
       this.deferredImport,
-      typeArgumentsHash: 0,
+      this.typeArguments,
       this.constant})
       : this.element = element,
         this.hashCode = Hashing.listHash([
           element,
           kind,
           type,
-          typeArgumentsHash,
+          Hashing.listHash(typeArguments),
           callStructure,
           deferredImport,
           constant
         ]);
+
+  bool _checkGenericInvariants() {
+    assert(
+        (callStructure?.typeArgumentCount ?? 0) == (typeArguments?.length ?? 0),
+        failedAt(
+            element,
+            "Type argument count mismatch. Call structure has "
+            "${callStructure?.typeArgumentCount ?? 0} but "
+            "${typeArguments?.length ?? 0} were passed in $this."));
+    return true;
+  }
+
+  factory StaticUse.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    MemberEntity element = source.readMember();
+    StaticUseKind kind = source.readEnum(StaticUseKind.values);
+    InterfaceType type = source.readDartType(allowNull: true);
+    CallStructure callStructure =
+        source.readValueOrNull(() => CallStructure.readFromDataSource(source));
+    ImportEntity deferredImport = source.readImportOrNull();
+    ConstantValue constant = source.readConstantOrNull();
+    List<DartType> typeArguments = source.readDartTypes(emptyAsNull: true);
+    source.end(tag);
+    return new StaticUse.internal(element, kind,
+        type: type,
+        callStructure: callStructure,
+        deferredImport: deferredImport,
+        constant: constant,
+        typeArguments: typeArguments);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    assert(element is MemberEntity, "Unsupported entity: $element");
+    sink.writeMember(element);
+    sink.writeEnum(kind);
+    sink.writeDartType(type, allowNull: true);
+    sink.writeValueOrNull(
+        callStructure, (CallStructure c) => c.writeToDataSink(sink));
+    sink.writeImportOrNull(deferredImport);
+    sink.writeConstantOrNull(constant);
+    sink.writeDartTypes(typeArguments, allowNull: true);
+    sink.end(tag);
+  }
 
   /// Short textual representation use for testing.
   String get shortText {
@@ -252,8 +298,6 @@ class StaticUse {
     return sb.toString();
   }
 
-  List<DartType> get typeArguments => null;
-
   /// Invocation of a static or top-level [element] with the given
   /// [callStructure].
   factory StaticUse.staticInvoke(
@@ -272,8 +316,13 @@ class StaticUse {
         failedAt(element,
             "Not CallStructure for static invocation of element $element."));
 
-    return new GenericStaticUse(element, StaticUseKind.STATIC_INVOKE,
-        callStructure, typeArguments, deferredImport);
+    StaticUse staticUse = new StaticUse.internal(
+        element, StaticUseKind.STATIC_INVOKE,
+        callStructure: callStructure,
+        typeArguments: typeArguments,
+        deferredImport: deferredImport);
+    assert(staticUse._checkGenericInvariants());
+    return staticUse;
   }
 
   /// Closurization of a static or top-level function [element].
@@ -351,8 +400,11 @@ class StaticUse {
         callStructure != null,
         failedAt(element,
             "Not CallStructure for super invocation of element $element."));
-    return new GenericStaticUse(
-        element, StaticUseKind.SUPER_INVOKE, callStructure, typeArguments);
+    StaticUse staticUse = new StaticUse.internal(
+        element, StaticUseKind.SUPER_INVOKE,
+        callStructure: callStructure, typeArguments: typeArguments);
+    assert(staticUse._checkGenericInvariants());
+    return staticUse;
   }
 
   /// Read access of a super field or getter [element].
@@ -449,8 +501,11 @@ class StaticUse {
             "Direct invoke element $element must be an instance member."));
     assert(element.isFunction,
         failedAt(element, "Direct invoke element $element must be a method."));
-    return new GenericStaticUse(
-        element, StaticUseKind.DIRECT_INVOKE, callStructure, typeArguments);
+    StaticUse staticUse = new StaticUse.internal(
+        element, StaticUseKind.DIRECT_INVOKE,
+        callStructure: callStructure, typeArguments: typeArguments);
+    assert(staticUse._checkGenericInvariants());
+    return staticUse;
   }
 
   /// Direct read access of a field or getter [element].
@@ -584,8 +639,11 @@ class StaticUse {
   /// [callStructure] and [typeArguments].
   factory StaticUse.closureCall(Local element, CallStructure callStructure,
       List<DartType> typeArguments) {
-    return new GenericStaticUse(
-        element, StaticUseKind.CLOSURE_CALL, callStructure, typeArguments);
+    StaticUse staticUse = new StaticUse.internal(
+        element, StaticUseKind.CLOSURE_CALL,
+        callStructure: callStructure, typeArguments: typeArguments);
+    assert(staticUse._checkGenericInvariants());
+    return staticUse;
   }
 
   /// Read of a call [method] on a closureClass.
@@ -610,7 +668,8 @@ class StaticUse {
   /// Inlining of [element].
   factory StaticUse.methodInlining(
       FunctionEntity element, List<DartType> typeArguments) {
-    return new GenericStaticUse.methodInlining(element, typeArguments);
+    return new StaticUse.internal(element, StaticUseKind.INLINING,
+        typeArguments: typeArguments);
   }
 
   @override
@@ -631,31 +690,6 @@ class StaticUse {
       'StaticUse($element,$kind,$type,$typeArguments,$callStructure)';
 }
 
-class GenericStaticUse extends StaticUse {
-  @override
-  final List<DartType> typeArguments;
-
-  GenericStaticUse(Entity entity, StaticUseKind kind,
-      CallStructure callStructure, this.typeArguments,
-      [ImportEntity deferredImport])
-      : super.internal(entity, kind,
-            callStructure: callStructure,
-            deferredImport: deferredImport,
-            typeArgumentsHash: Hashing.listHash(typeArguments)) {
-    assert(
-        (callStructure?.typeArgumentCount ?? 0) == (typeArguments?.length ?? 0),
-        failedAt(
-            element,
-            "Type argument count mismatch. Call structure has "
-            "${callStructure?.typeArgumentCount ?? 0} but "
-            "${typeArguments?.length ?? 0} were passed in $this."));
-  }
-
-  GenericStaticUse.methodInlining(FunctionEntity entity, this.typeArguments)
-      : super.internal(entity, StaticUseKind.INLINING,
-            typeArgumentsHash: Hashing.listHash(typeArguments));
-}
-
 enum TypeUseKind {
   IS_CHECK,
   AS_CAST,
@@ -672,6 +706,8 @@ enum TypeUseKind {
 
 /// Use of a [DartType].
 class TypeUse {
+  static const String tag = 'type-use';
+
   final DartType type;
   final TypeUseKind kind;
   @override
@@ -682,6 +718,23 @@ class TypeUse {
       : this.type = type,
         this.kind = kind,
         this.hashCode = Hashing.objectsHash(type, kind, deferredImport);
+
+  factory TypeUse.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    DartType type = source.readDartType();
+    TypeUseKind kind = source.readEnum(TypeUseKind.values);
+    ImportEntity deferredImport = source.readImportOrNull();
+    source.end(tag);
+    return new TypeUse.internal(type, kind, deferredImport);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeDartType(type);
+    sink.writeEnum(kind);
+    sink.writeImportOrNull(deferredImport);
+    sink.end(tag);
+  }
 
   /// Short textual representation use for testing.
   String get shortText {
@@ -818,9 +871,24 @@ class TypeUse {
 
 /// Use of a [ConstantValue].
 class ConstantUse {
+  static const String tag = 'constant-use';
+
   final ConstantValue value;
 
   ConstantUse._(this.value);
+
+  factory ConstantUse.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    ConstantValue value = source.readConstant();
+    source.end(tag);
+    return new ConstantUse._(value);
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeConstant(value);
+    sink.end(tag);
+  }
 
   /// Short textual representation use for testing.
   String get shortText {

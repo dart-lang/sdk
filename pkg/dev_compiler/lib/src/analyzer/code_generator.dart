@@ -83,6 +83,7 @@ class CodeGenerator extends Object
   /// Errors that were produced during compilation, if any.
   final ErrorCollector errors;
 
+  @override
   JSTypeRep jsTypeRep;
 
   /// The list of dart:_runtime SDK functions; these are assumed by other code
@@ -112,6 +113,7 @@ class CodeGenerator extends Object
   /// The  type provider from the current Analysis [context].
   final TypeProvider types;
 
+  @override
   final LibraryElement coreLibrary;
   final LibraryElement dartJSLibrary;
 
@@ -183,6 +185,7 @@ class CodeGenerator extends Object
 
   /// Information about virtual fields for all libraries in the current build
   /// unit.
+  @override
   final virtualFields = VirtualFieldModel();
 
   final _usedCovariantPrivateMembers = HashSet<ExecutableElement>();
@@ -234,6 +237,7 @@ class CodeGenerator extends Object
     jsTypeRep = JSTypeRep(rules, driver);
   }
 
+  @override
   LibraryElement get currentLibrary => _currentElement.library;
 
   @override
@@ -3444,7 +3448,7 @@ class CodeGenerator extends Object
       return _emitSetSimpleIdentifier(left, right);
     }
 
-    Expression target = null;
+    Expression target;
     SimpleIdentifier id;
     if (left is PropertyAccess) {
       if (left.operator.lexeme == '?.') {
@@ -4772,7 +4776,9 @@ class CodeGenerator extends Object
 
   AstNode _parentOperation(AstNode node) {
     node = node.parent;
-    while (node is ParenthesizedExpression) node = node.parent;
+    while (node is ParenthesizedExpression) {
+      node = node.parent;
+    }
     return node;
   }
 
@@ -6218,6 +6224,7 @@ class CodeGenerator extends Object
 
   /// Return true if this is one of the methods/properties on all Dart Objects
   /// (toString, hashCode, noSuchMethod, runtimeType, ==).
+  @override
   bool isObjectMember(String name) {
     // We could look these up on Object, but we have hard coded runtime helpers
     // so it's not really providing any benefit.
@@ -6253,7 +6260,7 @@ class CodeGenerator extends Object
     }
     var type = functionType.returnType;
 
-    InterfaceType expectedType = null;
+    InterfaceType expectedType;
     if (element.isAsynchronous) {
       if (element.isGenerator) {
         // Stream<T> -> T
@@ -6438,9 +6445,9 @@ class CodeGenerator extends Object
 
   JS.For _emitFor(ForParts forParts, JS.Statement body) {
     JS.Expression init;
-    if (forParts is ForPartsWithExpression)
+    if (forParts is ForPartsWithExpression) {
       init = _visitExpression(forParts.initialization);
-    else if (forParts is ForPartsWithDeclarations) {
+    } else if (forParts is ForPartsWithDeclarations) {
       init = visitVariableDeclarationList(forParts.variables);
     } else {
       throw new StateError('Unrecognized for loop parts');
@@ -6687,8 +6694,10 @@ class TemporaryVariableElement extends LocalVariableElementImpl {
         : enclosingElement;
   }
 
+  @override
   int get hashCode => identityHashCode(this);
 
+  @override
   bool operator ==(Object other) => identical(this, other);
 }
 

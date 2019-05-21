@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /// Visitor that gathers constraint variables for nullability migration from
@@ -40,18 +41,25 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   final NullabilityMigrationAssumptions assumptions;
 
-  ConstraintVariableGatherer(
-      this._variables, this._source, this._permissive, this.assumptions);
+  final NullabilityGraph _graph;
+
+  final TypeProvider _typeProvider;
+
+  ConstraintVariableGatherer(this._variables, this._source, this._permissive,
+      this.assumptions, this._graph, this._typeProvider);
 
   /// Creates and stores a [DecoratedType] object corresponding to the given
   /// [type] AST, and returns it.
-  DecoratedType decorateType(TypeAnnotation type) {
+  DecoratedType decorateType(TypeAnnotation type, AstNode enclosingNode) {
     return type == null
         // TODO(danrubel): Return something other than this
         // to indicate that we should insert a type for the declaration
         // that is missing a type reference.
         ? new DecoratedType(
-            DynamicTypeImpl.instance, NullabilityNode.forInferredDynamicType())
+            DynamicTypeImpl.instance,
+            NullabilityNode.forInferredDynamicType(
+                _graph, enclosingNode.offset),
+            _graph)
         : type.accept(this);
   }
 
@@ -81,14 +89,14 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitFunctionDeclaration(FunctionDeclaration node) {
     _handleExecutableDeclaration(node.declaredElement, node.returnType,
-        node.functionExpression.parameters);
+        node.functionExpression.parameters, node);
     return null;
   }
 
   @override
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
     _handleExecutableDeclaration(
-        node.declaredElement, node.returnType, node.parameters);
+        node.declaredElement, node.returnType, node.parameters, node);
     return null;
   }
 
@@ -107,9 +115,8 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitSimpleFormalParameter(SimpleFormalParameter node) {
-    var type = decorateType(node.type);
+    var type = decorateType(node.type, node);
     var declaredElement = node.declaredElement;
-    type.node.trackNonNullIntent(node.offset);
     _variables.recordDecoratedElementType(declaredElement, type);
     if (declaredElement.isNamed) {
       _currentFunctionType.namedParameters[declaredElement.name] = type;
@@ -125,8 +132,8 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(node is NamedType); // TODO(paulberry)
     var type = node.type;
     if (type.isVoid) {
-      return DecoratedType(
-          type, NullabilityNode.forTypeAnnotation(node.end, always: true));
+      return DecoratedType(type,
+          NullabilityNode.forTypeAnnotation(node.end, always: true), _graph);
     }
     assert(
         type is InterfaceType || type is TypeParameterType); // TODO(paulberry)
@@ -145,6 +152,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
         NullabilityNode.forTypeAnnotation(node.end,
             always: node.question != null),
         node.end,
+        _graph,
         typeArguments: typeArguments);
     _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType);
     return decoratedType;
@@ -153,15 +161,30 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitTypeName(TypeName node) => visitTypeAnnotation(node);
 
+  @override
+  DecoratedType visitTypeParameter(TypeParameter node) {
+    var element = node.declaredElement;
+    var decoratedBound = node.bound?.accept(this) ??
+        DecoratedType(
+            element.bound ?? _typeProvider.objectType,
+            NullabilityNode.forInferredDynamicType(_graph, node.offset),
+            _graph);
+    _variables.recordDecoratedElementType(element, decoratedBound);
+    return null;
+  }
+
   /// Common handling of function and method declarations.
-  void _handleExecutableDeclaration(ExecutableElement declaredElement,
-      TypeAnnotation returnType, FormalParameterList parameters) {
-    var decoratedReturnType = decorateType(returnType);
+  void _handleExecutableDeclaration(
+      ExecutableElement declaredElement,
+      TypeAnnotation returnType,
+      FormalParameterList parameters,
+      AstNode enclosingNode) {
+    var decoratedReturnType = decorateType(returnType, enclosingNode);
     var previousFunctionType = _currentFunctionType;
     // TODO(paulberry): test that it's correct to use `null` for the nullability
     // of the function type
     var functionType = DecoratedType(
-        declaredElement.type, NullabilityNode.never,
+        declaredElement.type, NullabilityNode.never, _graph,
         returnType: decoratedReturnType,
         positionalParameters: [],
         namedParameters: {});
@@ -210,6 +233,10 @@ abstract class VariableRepository {
   /// If [create] is `true`, and no decorated type is found for the given
   /// element, one is synthesized using [DecoratedType.forElement].
   DecoratedType decoratedElementType(Element element, {bool create: false});
+
+  /// Gets the [DecoratedType] associated with the given [typeAnnotation].
+  DecoratedType decoratedTypeAnnotation(
+      Source source, TypeAnnotation typeAnnotation);
 
   /// Records conditional discard information for the given AST node (which is
   /// an `if` statement or a conditional (`?:`) expression).

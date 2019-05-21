@@ -15,6 +15,8 @@ class ModularTest {
 
   ModularTest(this.modules, this.mainModule)
       : assert(mainModule != null && modules.length > 0);
+
+  String debugString() => modules.map((m) => m.debugString()).join('\n');
 }
 
 /// A single module in a modular test.
@@ -37,15 +39,51 @@ class Module {
   /// [Uri] from [rootUri].
   final Uri mainSource;
 
+  /// Whether this module is also available as a package import, where the
+  /// package name matches the module name.
+  bool isPackage;
+
+  /// When [isPackage], the base where all package URIs are resolved against.
+  /// Stored as a relative [Uri] from [rootUri].
+  final Uri packageBase;
+
+  /// Whether this is the main entry module of a test.
+  bool isMain;
+
   Module(this.name, this.dependencies, this.rootUri, this.sources,
-      this.mainSource) {
+      {this.mainSource,
+      this.isPackage: false,
+      this.isMain: false,
+      this.packageBase}) {
     if (!_validModuleName.hasMatch(name)) {
-      throw "invalid module name: $name";
+      throw ArgumentError("invalid module name: $name");
     }
   }
 
   @override
   String toString() => '[module $name]';
+
+  String debugString() {
+    var buffer = new StringBuffer();
+    buffer.write('   ');
+    buffer.write(name);
+    buffer.write(': ');
+    buffer.write(isPackage ? 'package' : '(not package)');
+    buffer.write(', deps: {${dependencies.map((d) => d.name).join(", ")}}');
+    buffer.write(', sources: {${sources.map((u) => "$u").join(', ')}}');
+    return '$buffer';
+  }
 }
 
 final RegExp _validModuleName = new RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*$');
+
+/// Helper to compute transitive dependencies from [module].
+Set<Module> computeTransitiveDependencies(Module module) {
+  Set<Module> deps = {};
+  helper(Module m) {
+    if (deps.add(m)) m.dependencies.forEach(helper);
+  }
+
+  module.dependencies.forEach(helper);
+  return deps;
+}

@@ -16,6 +16,3 @@ developer_runtime_dart_files = [
   "profiler.dart",
   "timeline.dart",
 ]
-
-developer_runtime_sources =
-    developer_runtime_cc_files + developer_runtime_dart_files

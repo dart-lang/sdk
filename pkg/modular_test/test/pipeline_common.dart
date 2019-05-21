@@ -57,6 +57,28 @@ abstract class PipelineTestStrategy<S extends ModularStep> {
       DataId resultId,
       bool requestDependenciesData: true});
 
+  /// Create a step that applies [action] only on the main module [inputId] data
+  /// and the the [depId] data of transitive dependencies and finally emits a
+  /// result with the given [resultId].
+  ///
+  /// [depId] may be the same as [inputId] but not [resultId] since this action
+  /// is only applied on the main module.
+  S createMainOnlyStep(
+      {String Function(String, List<String>) action,
+      DataId inputId,
+      DataId depId,
+      DataId resultId,
+      bool requestDependenciesData: true});
+
+  /// Create a step that applies [action1] and [action2] on the module [inputId]
+  /// data, and emits two results with the given [result1Id] and [result2Id].
+  S createTwoOutputStep(
+      {String Function(String) action1,
+      String Function(String) action2,
+      DataId inputId,
+      DataId result1Id,
+      DataId result2Id});
+
   /// Return the result data produced by a modular step.
   String getResult(Pipeline<S> pipeline, Module m, DataId dataId);
 
@@ -72,22 +94,26 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
     testStrategy.testRootUri.resolve("a2.dart"): 'A2',
     testStrategy.testRootUri.resolve("b/b1.dart"): 'B1',
     testStrategy.testRootUri.resolve("b/b2.dart"): 'B2',
+    testStrategy.testRootUri.resolve("c.dart"): 'C0',
   };
 
   var m1 = Module("a", const [], testStrategy.testRootUri,
-      [Uri.parse("a1.dart"), Uri.parse("a2.dart")], null);
-  var m2 = Module("b", [m1], testStrategy.testRootUri.resolve('b/'),
-      [Uri.parse("b1.dart"), Uri.parse("b2.dart")], null);
+      [Uri.parse("a1.dart"), Uri.parse("a2.dart")]);
+  var m2 = Module("b", [m1], testStrategy.testRootUri,
+      [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")]);
+  var m3 = Module("c", [m2], testStrategy.testRootUri, [Uri.parse("c.dart")],
+      isMain: true);
 
   var singleModuleInput = ModularTest([m1], m1);
-  var multipleModulesInput = ModularTest([m1, m2], m2);
+  var twoModuleInput = ModularTest([m1, m2], m2);
+  var threeModuleInput = ModularTest([m1, m2, m3], m3);
 
   test('can read source data if requested', () async {
     var concatStep =
         testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
     var pipeline = await testStrategy.createPipeline(sources, <S>[concatStep]);
     await pipeline.run(singleModuleInput);
-    expect(testStrategy.getResult(pipeline, m1, concatStep.resultId),
+    expect(testStrategy.getResult(pipeline, m1, _concatId),
         "a1.dart: A1\na2.dart: A2\n");
     await testStrategy.cleanup(pipeline);
   });
@@ -97,7 +123,7 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
         action: _concat, resultId: _concatId, requestSources: false);
     var pipeline = await testStrategy.createPipeline(sources, <S>[concatStep]);
     await pipeline.run(singleModuleInput);
-    expect(testStrategy.getResult(pipeline, m1, concatStep.resultId),
+    expect(testStrategy.getResult(pipeline, m1, _concatId),
         "a1.dart: null\na2.dart: null\n");
     await testStrategy.cleanup(pipeline);
   });
@@ -106,11 +132,11 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
     var concatStep =
         testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
     var pipeline = await testStrategy.createPipeline(sources, <S>[concatStep]);
-    await pipeline.run(multipleModulesInput);
-    expect(testStrategy.getResult(pipeline, m1, concatStep.resultId),
+    await pipeline.run(twoModuleInput);
+    expect(testStrategy.getResult(pipeline, m1, _concatId),
         "a1.dart: A1\na2.dart: A2\n");
-    expect(testStrategy.getResult(pipeline, m2, concatStep.resultId),
-        "b1.dart: B1\nb2.dart: B2\n");
+    expect(testStrategy.getResult(pipeline, m2, _concatId),
+        "b/b1.dart: B1\nb/b2.dart: B2\n");
     await testStrategy.cleanup(pipeline);
   });
 
@@ -121,11 +147,11 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
         action: _lowercase, inputId: _concatId, resultId: _lowercaseId);
     var pipeline = await testStrategy
         .createPipeline(sources, <S>[concatStep, lowercaseStep]);
-    await pipeline.run(multipleModulesInput);
-    expect(testStrategy.getResult(pipeline, m1, lowercaseStep.resultId),
+    await pipeline.run(twoModuleInput);
+    expect(testStrategy.getResult(pipeline, m1, _lowercaseId),
         "a1.dart: a1\na2.dart: a2\n");
-    expect(testStrategy.getResult(pipeline, m2, lowercaseStep.resultId),
-        "b1.dart: b1\nb2.dart: b2\n");
+    expect(testStrategy.getResult(pipeline, m2, _lowercaseId),
+        "b/b1.dart: b1\nb/b2.dart: b2\n");
     await testStrategy.cleanup(pipeline);
   });
 
@@ -139,11 +165,30 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
         requestModuleData: false);
     var pipeline = await testStrategy
         .createPipeline(sources, <S>[concatStep, lowercaseStep]);
-    await pipeline.run(multipleModulesInput);
-    expect(testStrategy.getResult(pipeline, m1, lowercaseStep.resultId),
+    await pipeline.run(twoModuleInput);
+    expect(testStrategy.getResult(pipeline, m1, _lowercaseId),
         "data for [module a] was null");
-    expect(testStrategy.getResult(pipeline, m2, lowercaseStep.resultId),
+    expect(testStrategy.getResult(pipeline, m2, _lowercaseId),
         "data for [module b] was null");
+    await testStrategy.cleanup(pipeline);
+  });
+
+  test('all outputs of a step are created together', () async {
+    var concatStep =
+        testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
+    var twoOutputStep = testStrategy.createTwoOutputStep(
+        action1: _lowercase,
+        action2: _uppercase,
+        inputId: _concatId,
+        result1Id: _lowercaseId,
+        result2Id: _uppercaseId);
+    var pipeline = await testStrategy
+        .createPipeline(sources, <S>[concatStep, twoOutputStep]);
+    await pipeline.run(twoModuleInput);
+    expect(testStrategy.getResult(pipeline, m2, _lowercaseId),
+        "b/b1.dart: b1\nb/b2.dart: b2\n");
+    expect(testStrategy.getResult(pipeline, m2, _uppercaseId),
+        "B/B1.DART: B1\nB/B2.DART: B2\n");
     await testStrategy.cleanup(pipeline);
   });
 
@@ -159,11 +204,10 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
         resultId: _joinId);
     var pipeline = await testStrategy.createPipeline(
         sources, <S>[concatStep, lowercaseStep, replaceJoinStep]);
-    await pipeline.run(multipleModulesInput);
-    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
-        "a1 a1\na2 a2\n");
-    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
-        "a1 a1\na2 a2\n\nb1 b1\nb2 b2\n");
+    await pipeline.run(twoModuleInput);
+    expect(testStrategy.getResult(pipeline, m1, _joinId), "a1 a1\na2 a2\n");
+    expect(testStrategy.getResult(pipeline, m2, _joinId),
+        "a1 a1\na2 a2\n\nb/b1 b1\nb/b2 b2\n");
     await testStrategy.cleanup(pipeline);
   });
 
@@ -181,11 +225,10 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
         requestDependenciesData: false);
     var pipeline = await testStrategy.createPipeline(
         sources, <S>[concatStep, lowercaseStep, replaceJoinStep]);
-    await pipeline.run(multipleModulesInput);
-    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
-        "a1 a1\na2 a2\n");
-    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
-        "null\nb1 b1\nb2 b2\n");
+    await pipeline.run(twoModuleInput);
+    expect(testStrategy.getResult(pipeline, m1, _joinId), "a1 a1\na2 a2\n");
+    expect(testStrategy.getResult(pipeline, m2, _joinId),
+        "null\nb/b1 b1\nb/b2 b2\n");
     await testStrategy.cleanup(pipeline);
   });
 
@@ -201,11 +244,10 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
         resultId: _joinId);
     var pipeline = await testStrategy.createPipeline(
         sources, <S>[concatStep, lowercaseStep, replaceJoinStep]);
-    await pipeline.run(multipleModulesInput);
-    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
-        "a1 a1\na2 a2\n");
-    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
-        "a1.dart: a1\na2.dart: a2\n\nb1 b1\nb2 b2\n");
+    await pipeline.run(twoModuleInput);
+    expect(testStrategy.getResult(pipeline, m1, _joinId), "a1 a1\na2 a2\n");
+    expect(testStrategy.getResult(pipeline, m2, _joinId),
+        "a1.dart: a1\na2.dart: a2\n\nb/b1 b1\nb/b2 b2\n");
     await testStrategy.cleanup(pipeline);
   });
 
@@ -223,17 +265,56 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
         requestDependenciesData: false);
     var pipeline = await testStrategy.createPipeline(
         sources, <S>[concatStep, lowercaseStep, replaceJoinStep]);
-    await pipeline.run(multipleModulesInput);
-    expect(testStrategy.getResult(pipeline, m1, replaceJoinStep.resultId),
-        "a1 a1\na2 a2\n");
-    expect(testStrategy.getResult(pipeline, m2, replaceJoinStep.resultId),
-        "null\nb1 b1\nb2 b2\n");
+    await pipeline.run(twoModuleInput);
+    expect(testStrategy.getResult(pipeline, m1, _joinId), "a1 a1\na2 a2\n");
+    expect(testStrategy.getResult(pipeline, m2, _joinId),
+        "null\nb/b1 b1\nb/b2 b2\n");
+    await testStrategy.cleanup(pipeline);
+  });
+
+  test('only main applies to main module', () async {
+    var concatStep =
+        testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
+    var lowercaseStep = testStrategy.createModuleDataStep(
+        action: _lowercase, inputId: _concatId, resultId: _lowercaseId);
+    var replaceJoinStep = testStrategy.createMainOnlyStep(
+        action: _replaceAndJoin,
+        inputId: _lowercaseId,
+        depId: _lowercaseId,
+        resultId: _joinId,
+        requestDependenciesData: true);
+    var pipeline = await testStrategy.createPipeline(
+        sources, <S>[concatStep, lowercaseStep, replaceJoinStep]);
+    await pipeline.run(threeModuleInput);
+    expect(testStrategy.getResult(pipeline, m1, _joinId), null);
+    expect(testStrategy.getResult(pipeline, m3, _joinId),
+        "b/b1.dart: b1\nb/b2.dart: b2\n\na1.dart: a1\na2.dart: a2\n\nc c0\n");
+    await testStrategy.cleanup(pipeline);
+  });
+
+  test('only main also needs to request transitive dependencies', () async {
+    var concatStep =
+        testStrategy.createSourceOnlyStep(action: _concat, resultId: _concatId);
+    var lowercaseStep = testStrategy.createModuleDataStep(
+        action: _lowercase, inputId: _concatId, resultId: _lowercaseId);
+    var replaceJoinStep = testStrategy.createMainOnlyStep(
+        action: _replaceAndJoin,
+        inputId: _lowercaseId,
+        depId: _lowercaseId,
+        resultId: _joinId,
+        requestDependenciesData: false);
+    var pipeline = await testStrategy.createPipeline(
+        sources, <S>[concatStep, lowercaseStep, replaceJoinStep]);
+    await pipeline.run(threeModuleInput);
+    expect(testStrategy.getResult(pipeline, m1, _joinId), null);
+    expect(testStrategy.getResult(pipeline, m3, _joinId), "null\nnull\nc c0\n");
     await testStrategy.cleanup(pipeline);
   });
 }
 
 DataId _concatId = const DataId("concat");
 DataId _lowercaseId = const DataId("lowercase");
+DataId _uppercaseId = const DataId("uppercase");
 DataId _joinId = const DataId("join");
 
 String _concat(Map<Uri, String> sources) {
@@ -245,6 +326,7 @@ String _concat(Map<Uri, String> sources) {
 }
 
 String _lowercase(String contents) => contents.toLowerCase();
+String _uppercase(String contents) => contents.toUpperCase();
 
 String _replaceAndJoin(String moduleData, List<String> depContents) {
   var buffer = new StringBuffer();

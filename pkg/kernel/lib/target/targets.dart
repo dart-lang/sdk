@@ -11,8 +11,9 @@ final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
   final bool legacyMode;
+  final bool trackWidgetCreation;
 
-  TargetFlags({this.legacyMode: false});
+  TargetFlags({this.legacyMode = false, this.trackWidgetCreation = false});
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);
@@ -114,6 +115,15 @@ abstract class Target {
   /// prevent affecting the internal invariants of the compiler and accidentally
   /// slowing down compilation.
   void performOutlineTransformations(Component component) {}
+
+  /// Perform target-specific transformations on the given libraries that must
+  /// run before constant evaluation.
+  void performPreConstantEvaluationTransformations(
+      Component component,
+      CoreTypes coreTypes,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
+      {void logger(String msg)}) {}
 
   /// Perform target-specific modular transformations on the given libraries.
   void performModularTransformationsOnLibraries(

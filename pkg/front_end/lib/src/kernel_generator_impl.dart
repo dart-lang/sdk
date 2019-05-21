@@ -35,19 +35,22 @@ import 'fasta/uri_translator.dart' show UriTranslator;
 Future<CompilerResult> generateKernel(ProcessedOptions options,
     {bool buildSummary: false,
     bool buildComponent: true,
-    bool truncateSummary: false}) async {
+    bool truncateSummary: false,
+    bool includeOffsets: true}) async {
   return await CompilerContext.runWithOptions(options, (_) async {
     return await generateKernelInternal(
         buildSummary: buildSummary,
         buildComponent: buildComponent,
-        truncateSummary: truncateSummary);
+        truncateSummary: truncateSummary,
+        includeOffsets: includeOffsets);
   });
 }
 
 Future<CompilerResult> generateKernelInternal(
     {bool buildSummary: false,
     bool buildComponent: true,
-    bool truncateSummary: false}) async {
+    bool truncateSummary: false,
+    bool includeOffsets: true}) async {
   var options = CompilerContext.current.options;
   var fs = options.fileSystem;
 
@@ -138,8 +141,8 @@ Future<CompilerResult> generateKernelInternal(
         options.ticker.logMs("Transformed outline");
       }
       // Don't include source (but do add it above to include importUris).
-      summary =
-          serializeComponent(trimmedSummaryComponent, includeSources: false);
+      summary = serializeComponent(trimmedSummaryComponent,
+          includeSources: false, includeOffsets: includeOffsets);
       options.ticker.logMs("Generated outline");
     }
 

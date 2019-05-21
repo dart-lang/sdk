@@ -35,22 +35,9 @@ const allFixes = <DartFixInfo>[
   //
   const DartFixInfo(
     'double-to-int',
-    'Find double literals ending in .0 and remove the .0\n'
+    'Find double literals ending in .0 and remove the .0 '
     'wherever double context can be inferred.',
     PreferIntLiteralsFix.task,
-  ),
-  //
-  // Experimental fixes
-  //
-  const DartFixInfo(
-    'non-nullable',
-    // TODO(danrubel) update description and make default/required
-    // when NNBD fix is ready
-    'Experimental: Update sources to be non-nullable by default.\n'
-    'Requires the experimental non-nullable flag to be enabled.\n'
-    'This is not applied unless explicitly included.',
-    NonNullableFix.task,
-    isDefault: false,
   ),
   const DartFixInfo(
     'use-spread-collections',
@@ -68,6 +55,18 @@ const allFixes = <DartFixInfo>[
     'map-for-elements',
     'Convert to for elements when building maps from iterables.',
     PreferForElementsToMapFromIterableFix.task,
+    isDefault: false,
+  ),
+  //
+  // Experimental fixes
+  //
+  const DartFixInfo(
+    'non-nullable',
+    // TODO(danrubel) update description and make default/required
+    // when NNBD fix is ready
+    'Experimental: Update sources to be non-nullable by default.\n'
+    'This requires the experimental non-nullable flag to be enabled.',
+    NonNullableFix.task,
     isDefault: false,
   ),
 ];

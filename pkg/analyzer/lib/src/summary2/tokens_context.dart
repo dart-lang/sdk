@@ -3,107 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
 /// The context for reading tokens.
 class TokensContext {
-  final UnlinkedTokens _tokens;
-  final List<Token> _indexToToken;
-  final Map<Token, int> _tokenToIndex;
-
-  TokensContext(this._tokens)
-      : _indexToToken = List<Token>(_tokens.type.length),
-        _tokenToIndex = Map.identity();
-
-  String lexeme(int index) {
-    return _tokens.lexeme[index];
-  }
-
-  void linkTokens(Token from, Token to) {
-    var fromIndex = _tokenToIndex[from];
-    var toIndex = _tokenToIndex[to];
-    Token prevToken = null;
-    for (var index = fromIndex; index <= toIndex && index != 0;) {
-      var token = _indexToToken[index];
-      token ??= tokenOfIndex(index);
-
-      prevToken?.next = token;
-
-      prevToken = token;
-      index = _tokens.next[index];
-    }
-  }
-
-  int offset(int index) {
-    return _tokens.offset[index];
-  }
-
-  Token tokenOfIndex(int index) {
-    if (index == 0) return null;
-
-    var token = _indexToToken[index];
-    if (token == null) {
-      var kind = _tokens.kind[index];
-      switch (kind) {
-        case UnlinkedTokenKind.nothing:
-          return null;
-        case UnlinkedTokenKind.comment:
-          token = CommentToken(
-            _binaryToAstTokenType(_tokens.type[index]),
-            _tokens.lexeme[index],
-            _tokens.offset[index],
-          );
-          break;
-        case UnlinkedTokenKind.keyword:
-          token = KeywordToken(
-            _binaryToAstTokenType(_tokens.type[index]),
-            _tokens.offset[index],
-            _getCommentToken(_tokens.precedingComment[index]),
-          );
-          break;
-        case UnlinkedTokenKind.simple:
-          token = SimpleToken(
-            _binaryToAstTokenType(_tokens.type[index]),
-            _tokens.offset[index],
-            _getCommentToken(_tokens.precedingComment[index]),
-          );
-          break;
-        case UnlinkedTokenKind.string:
-          token = StringToken(
-            _binaryToAstTokenType(_tokens.type[index]),
-            _tokens.lexeme[index],
-            _tokens.offset[index],
-            _getCommentToken(_tokens.precedingComment[index]),
-          );
-          break;
-        default:
-          throw UnimplementedError('Token kind: $kind');
-      }
-      _indexToToken[index] = token;
-      _tokenToIndex[token] = index;
-    }
-    return token;
-  }
-
-  UnlinkedTokenType type(int index) {
-    return _tokens.type[index];
-  }
-
-  CommentToken _getCommentToken(int index) {
-    var result = tokenOfIndex(index);
-    var token = result;
-    while (true) {
-      index = _tokens.next[index];
-      if (index == 0) return result;
-
-      var nextToken = tokenOfIndex(index);
-      token.next = nextToken;
-      token = nextToken;
-    }
-  }
-
-  static TokenType _binaryToAstTokenType(UnlinkedTokenType type) {
+  static TokenType binaryToAstTokenType(UnlinkedTokenType type) {
     switch (type) {
       case UnlinkedTokenType.ABSTRACT:
         return Keyword.ABSTRACT;

@@ -10,10 +10,13 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
 class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
   final List<String> openWorkspacePaths;
-  final bool onlyAnalyzeProjectsWithOpenFiles;
-  IntializedMessageHandler(LspAnalysisServer server, this.openWorkspacePaths,
-      this.onlyAnalyzeProjectsWithOpenFiles)
-      : super(server);
+  final bool onlyAnalyzeProjectsWithOpenFiles, suggestFromUnimportedLibraries;
+  IntializedMessageHandler(
+    LspAnalysisServer server,
+    this.openWorkspacePaths,
+    this.onlyAnalyzeProjectsWithOpenFiles,
+    this.suggestFromUnimportedLibraries,
+  ) : super(server);
   Method get handlesMessage => Method.initialized;
 
   @override
@@ -22,7 +25,10 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
 
   ErrorOr<void> handle(InitializedParams params) {
     server.messageHandler = new InitializedStateMessageHandler(
-        server, onlyAnalyzeProjectsWithOpenFiles);
+      server,
+      onlyAnalyzeProjectsWithOpenFiles,
+      suggestFromUnimportedLibraries,
+    );
 
     if (!onlyAnalyzeProjectsWithOpenFiles) {
       server.setAnalysisRoots(openWorkspacePaths);

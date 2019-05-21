@@ -640,7 +640,7 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitPartDirective() {
     PartDirective fromNode = AstTestFactory.partDirective2("part.dart");
     LibraryElement element = new LibraryElementImpl.forNode(
-        null, null, AstTestFactory.libraryIdentifier2(["lib"]));
+        null, null, AstTestFactory.libraryIdentifier2(["lib"]), true);
     fromNode.element = element;
     PartDirective toNode = AstTestFactory.partDirective2("part.dart");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -651,7 +651,7 @@ class ResolutionCopierTest extends EngineTestCase {
     PartOfDirective fromNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));
     LibraryElement element = new LibraryElementImpl.forNode(
-        null, null, AstTestFactory.libraryIdentifier2(["lib"]));
+        null, null, AstTestFactory.libraryIdentifier2(["lib"]), true);
     fromNode.element = element;
     PartOfDirective toNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));

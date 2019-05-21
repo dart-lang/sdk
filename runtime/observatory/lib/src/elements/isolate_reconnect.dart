@@ -15,7 +15,7 @@ import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class IsolateReconnectElement extends HtmlElement implements Renderable {
+class IsolateReconnectElement extends CustomElement implements Renderable {
   static const tag = const Tag<IsolateReconnectElement>('isolate-reconnect',
       dependencies: const [
         NavTopMenuElement.tag,
@@ -47,7 +47,7 @@ class IsolateReconnectElement extends HtmlElement implements Renderable {
     assert(missing != null);
     assert(uri != null);
     assert(notifications != null);
-    IsolateReconnectElement e = document.createElement(tag.name);
+    IsolateReconnectElement e = new IsolateReconnectElement.created();
     e._r = new RenderingScheduler<IsolateReconnectElement>(e, queue: queue);
     e._vm = vm;
     e._events = events;
@@ -57,7 +57,7 @@ class IsolateReconnectElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  IsolateReconnectElement.created() : super.created();
+  IsolateReconnectElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -80,8 +80,8 @@ class IsolateReconnectElement extends HtmlElement implements Renderable {
   void render() {
     children = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered']
@@ -111,7 +111,7 @@ class IsolateReconnectElement extends HtmlElement implements Renderable {
                   new AnchorElement(href: Uris.vm())..text = 'isolates summary',
                 ]))
         ],
-      new ViewFooterElement(queue: _r.queue)
+      new ViewFooterElement(queue: _r.queue).element
     ];
   }
 }

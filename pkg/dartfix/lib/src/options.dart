@@ -4,9 +4,9 @@
 
 import 'dart:io';
 
-import 'package:dartfix/src/context.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:dartfix/src/context.dart';
 import 'package:path/path.dart' as path;
 
 /// Command line options for `dartfix`.
@@ -55,10 +55,7 @@ class Options {
           help: 'Overwrite files even if there are errors.',
           defaultsTo: false,
           negatable: false)
-      ..addSeparator('Miscelaneous:')
-      ..addFlag(_colorOption,
-          help: 'Use ansi colors when printing messages.',
-          defaultsTo: Ansi.terminalSupportsAnsi)
+      ..addSeparator('Miscellaneous:')
       ..addFlag(_helpOption,
           abbr: 'h',
           help: 'Display this help message.',
@@ -68,7 +65,10 @@ class Options {
           abbr: 'v',
           defaultsTo: false,
           help: 'Verbose output.',
-          negatable: false);
+          negatable: false)
+      ..addFlag(_colorOption,
+          help: 'Use ansi colors when printing messages.',
+          defaultsTo: Ansi.terminalSupportsAnsi);
 
     context ??= new Context();
 
@@ -78,6 +78,7 @@ class Options {
     } on FormatException catch (e) {
       logger ??= new Logger.standard(ansi: new Ansi(Ansi.terminalSupportsAnsi));
       logger.stderr(e.message);
+      logger.stderr('\n');
       _showUsage(parser, logger);
       context.exit(15);
     }
@@ -103,8 +104,8 @@ class Options {
       context.exit(1);
     }
 
+    // For '--list', we short circuit the logic to validate the sdk and project.
     if (options.listFixes) {
-      _showUsage(parser, logger, showListHint: false);
       return options;
     }
 
@@ -112,19 +113,17 @@ class Options {
     String sdkPath = options.sdkPath;
     if (sdkPath == null) {
       logger.stderr('No Dart SDK found.');
-      _showUsage(parser, logger);
       context.exit(15);
     }
+
     if (!context.exists(sdkPath)) {
       logger.stderr('Invalid Dart SDK path: $sdkPath');
-      _showUsage(parser, logger);
       context.exit(15);
     }
 
     // Check for files and/or directories to analyze.
     if (options.targets == null || options.targets.isEmpty) {
       logger.stderr('Expected at least one file or directory to analyze.');
-      _showUsage(parser, logger);
       context.exit(15);
     }
 
@@ -138,7 +137,6 @@ class Options {
         } else {
           logger.stderr('Expected directory, but found: $target');
         }
-        _showUsage(parser, logger);
         context.exit(15);
       }
     }
@@ -189,14 +187,14 @@ class Options {
     logger.stderr(parser.usage);
     logger.stderr('''
 
-If neither --$includeOption nor --$requiredOption is specified, then all fixes
-will be applied. Any fixes specified using --$excludeOption will not be applied
-regardless of whether they are required or specifed using --$includeOption.''');
+If neither --$includeOption nor --$requiredOption is specified, then all fixes will be
+applied. Any fixes specified using --$excludeOption will not be applied regardless
+of whether they are required or specifed using --$includeOption.''');
     if (showListHint) {
       logger.stderr('''
 
-Use --list to display the fixes that can be specified
-using either --$includeOption or --$excludeOption.''');
+Use --list to display the fixes that can be specified using either
+--$includeOption or --$excludeOption.''');
     }
   }
 }

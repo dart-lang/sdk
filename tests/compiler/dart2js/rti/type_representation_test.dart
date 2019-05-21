@@ -14,7 +14,7 @@ import 'package:compiler/src/js/js.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/backend.dart' show JavaScriptBackend;
 import 'package:compiler/src/js_backend/runtime_types.dart'
-    show TypeRepresentationGenerator;
+    show RuntimeTypeTags, TypeRepresentationGenerator;
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import '../helpers/element_lookup.dart';
@@ -67,9 +67,10 @@ main() {
   Compiler compiler = result.compiler;
   JavaScriptBackend backend = compiler.backend;
 
+  RuntimeTypeTags rtiTags = const RuntimeTypeTags();
   TypeRepresentationGenerator typeRepresentation =
       new TypeRepresentationGenerator(
-          backend.namer, compiler.backendClosedWorldForTesting.nativeData);
+          rtiTags, compiler.backendClosedWorldForTesting.nativeData);
 
   Expression onVariable(TypeVariableType _variable) {
     TypeVariableType variable = _variable;
@@ -111,15 +112,15 @@ main() {
 
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-  String func = backend.namer.functionTypeTag;
-  String ret = backend.namer.functionTypeReturnTypeTag;
+  String func = rtiTags.functionTypeTag;
+  String ret = rtiTags.functionTypeReturnTypeTag;
   String retvoid = '$ret: -1';
-  String args = backend.namer.functionTypeRequiredParametersTag;
-  String opt = backend.namer.functionTypeOptionalParametersTag;
-  String named = backend.namer.functionTypeNamedParametersTag;
-  String bounds = backend.namer.functionTypeGenericBoundsTag;
-  String futureOr = backend.namer.futureOrTag;
-  String futureOrType = backend.namer.futureOrTypeTag;
+  String args = rtiTags.functionTypeRequiredParametersTag;
+  String opt = rtiTags.functionTypeOptionalParametersTag;
+  String named = rtiTags.functionTypeNamedParametersTag;
+  String bounds = rtiTags.functionTypeGenericBoundsTag;
+  String futureOr = rtiTags.futureOrTag;
+  String futureOrType = rtiTags.futureOrTypeTag;
 
   ClassEntity List_ = findClass(closedWorld, 'List');
   TypeVariableType List_E =

@@ -50,6 +50,7 @@ vm_sources = [
   "constants_dbc.h",
   "constants_ia32.cc",
   "constants_ia32.h",
+  "constants_kbc.cc",
   "constants_kbc.h",
   "constants_x64.cc",
   "constants_x64.h",

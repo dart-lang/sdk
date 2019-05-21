@@ -151,9 +151,12 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                        intptr_t argument_count,
                        const Array& argument_names,
                        bool use_unchecked_entry = false);
-  Fragment FfiCall(const Function& signature,
-                   const ZoneGrowableArray<Representation>& arg_reps,
-                   const ZoneGrowableArray<Location>& arg_locs);
+
+  Fragment FfiCall(
+      const Function& signature,
+      const ZoneGrowableArray<Representation>& arg_reps,
+      const ZoneGrowableArray<Location>& arg_locs,
+      const ZoneGrowableArray<HostLocation>* arg_host_locs = nullptr);
 
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadLocal(LocalVariable* variable);

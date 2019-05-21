@@ -9,6 +9,8 @@ import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../deferred_load.dart' show OutputUnit;
+import '../inferrer/abstract_value_domain.dart';
+import '../js/js.dart' as js;
 import '../util/util.dart';
 
 enum ConstantValueKind {
@@ -24,7 +26,8 @@ enum ConstantValueKind {
   CONSTRUCTED,
   TYPE,
   INTERCEPTOR,
-  SYNTHETIC,
+  JS_NAME,
+  ABSTRACT_VALUE,
   INSTANTIATION,
   DEFERRED_GLOBAL,
   NON_CONSTANT,
@@ -47,7 +50,9 @@ abstract class ConstantValueVisitor<R, A> {
   R visitType(covariant TypeConstantValue constant, covariant A arg);
   R visitInterceptor(
       covariant InterceptorConstantValue constant, covariant A arg);
-  R visitSynthetic(covariant SyntheticConstantValue constant, covariant A arg);
+  R visitAbstractValue(
+      covariant AbstractValueConstantValue constant, covariant A arg);
+  R visitJsName(covariant JsNameConstantValue constant, covariant A arg);
   R visitDeferredGlobal(
       covariant DeferredGlobalConstantValue constant, covariant A arg);
   R visitNonConstant(covariant NonConstantValue constant, covariant A arg);
@@ -808,42 +813,81 @@ class InterceptorConstantValue extends ConstantValue {
   }
 }
 
-class SyntheticConstantValue extends ConstantValue {
-  final payload;
-  final valueKind;
+class JsNameConstantValue extends ConstantValue {
+  final js.LiteralString name;
 
-  SyntheticConstantValue(this.valueKind, this.payload);
+  JsNameConstantValue(this.name);
 
   @override
   bool get isDummy => true;
 
   @override
   bool operator ==(other) {
-    return other is SyntheticConstantValue && payload == other.payload;
+    return other is JsNameConstantValue && name == other.name;
   }
 
   @override
-  get hashCode => payload.hashCode * 17 + valueKind.hashCode;
+  get hashCode => name.hashCode * 17;
 
   @override
   List<ConstantValue> getDependencies() => const <ConstantValue>[];
 
   @override
   accept(ConstantValueVisitor visitor, arg) {
-    return visitor.visitSynthetic(this, arg);
+    return visitor.visitJsName(this, arg);
   }
 
   @override
   DartType getType(CommonElements types) => types.dynamicType;
 
   @override
-  ConstantValueKind get kind => ConstantValueKind.SYNTHETIC;
+  ConstantValueKind get kind => ConstantValueKind.JS_NAME;
 
   @override
-  String toDartText() => 'synthetic($valueKind, $payload)';
+  String toDartText() => 'js_name(${name})';
 
   @override
-  String toStructuredText() => 'SyntheticConstant($valueKind, $payload)';
+  String toStructuredText() => 'JsNameConstant(${name})';
+}
+
+/// An abstract value as a constant value. This is only used during code
+/// generation.
+class AbstractValueConstantValue extends ConstantValue {
+  final AbstractValue abstractValue;
+
+  AbstractValueConstantValue(this.abstractValue);
+
+  @override
+  bool get isDummy => true;
+
+  @override
+  bool operator ==(other) {
+    return other is AbstractValueConstantValue &&
+        abstractValue == other.abstractValue;
+  }
+
+  @override
+  get hashCode => abstractValue.hashCode * 17;
+
+  @override
+  List<ConstantValue> getDependencies() => const <ConstantValue>[];
+
+  @override
+  accept(ConstantValueVisitor visitor, arg) {
+    return visitor.visitAbstractValue(this, arg);
+  }
+
+  @override
+  DartType getType(CommonElements types) => types.dynamicType;
+
+  @override
+  ConstantValueKind get kind => ConstantValueKind.ABSTRACT_VALUE;
+
+  @override
+  String toDartText() => 'abstract_value($abstractValue)';
+
+  @override
+  String toStructuredText() => 'AbstractValueConstant($abstractValue)';
 }
 
 class ConstructedConstantValue extends ObjectConstantValue {

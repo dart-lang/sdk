@@ -2486,19 +2486,6 @@ void Profile::PrintTimelineJSON(JSONStream* stream, bool code_trie) {
     for (intptr_t sample_index = 0; sample_index < samples_->length();
          sample_index++) {
       ProcessedSample* sample = samples_->At(sample_index);
-      JSONObject event(&events);
-      event.AddProperty("ph", "P");  // kind = sample event
-      // Add a blank name to keep about:tracing happy.
-      event.AddProperty("name", "");
-      event.AddProperty64("pid", pid);
-      event.AddProperty64("tid", OSThread::ThreadIdToIntPtr(sample->tid()));
-      event.AddPropertyTimeMicros("ts", sample->timestamp());
-      event.AddProperty("cat", "Dart");
-      if (!Isolate::IsVMInternalIsolate(isolate_)) {
-        JSONObject args(&event, "args");
-        args.AddProperty("mode", "basic");
-      }
-
       ProfileTrieNode* trie;
       if (code_trie) {
         trie = sample->timeline_code_trie();
@@ -2506,7 +2493,22 @@ void Profile::PrintTimelineJSON(JSONStream* stream, bool code_trie) {
         trie = sample->timeline_function_trie();
       }
       ASSERT(trie->frame_id() != -1);
-      event.AddPropertyF("sf", "%" Pd "-%" Pd, isolate_id, trie->frame_id());
+
+      if (trie->frame_id() != kRootFrameId) {
+        JSONObject event(&events);
+        event.AddProperty("ph", "P");  // kind = sample event
+        // Add a blank name to keep about:tracing happy.
+        event.AddProperty("name", "");
+        event.AddProperty64("pid", pid);
+        event.AddProperty64("tid", OSThread::ThreadIdToIntPtr(sample->tid()));
+        event.AddPropertyTimeMicros("ts", sample->timestamp());
+        event.AddProperty("cat", "Dart");
+        if (!Isolate::IsVMInternalIsolate(isolate_)) {
+          JSONObject args(&event, "args");
+          args.AddProperty("mode", "basic");
+        }
+        event.AddPropertyF("sf", "%" Pd "-%" Pd, isolate_id, trie->frame_id());
+      }
     }
   }
 }

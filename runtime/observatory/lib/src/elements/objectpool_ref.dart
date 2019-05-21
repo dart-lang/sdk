@@ -9,7 +9,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class ObjectPoolRefElement extends HtmlElement implements Renderable {
+class ObjectPoolRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<ObjectPoolRefElement>('object-pool-ref');
 
   RenderingScheduler<ObjectPoolRefElement> _r;
@@ -26,14 +26,14 @@ class ObjectPoolRefElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(pool != null);
-    ObjectPoolRefElement e = document.createElement(tag.name);
+    ObjectPoolRefElement e = new ObjectPoolRefElement.created();
     e._r = new RenderingScheduler<ObjectPoolRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._pool = pool;
     return e;
   }
 
-  ObjectPoolRefElement.created() : super.created();
+  ObjectPoolRefElement.created() : super.created(tag);
 
   @override
   void attached() {

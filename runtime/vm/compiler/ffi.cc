@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "platform/globals.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/compiler/runtime_api.h"
 
 namespace dart {
@@ -88,8 +89,6 @@ SmallRepresentation TypeSmallRepresentation(const AbstractType& ffi_type) {
   }
 }
 
-#if !defined(TARGET_ARCH_DBC)
-
 bool NativeTypeIsVoid(const AbstractType& result_type) {
   return result_type.type_class_id() == kFfiVoidCid;
 }
@@ -117,7 +116,8 @@ bool NativeTypeIsPointer(const AbstractType& result_type) {
 
 // Converts a Ffi [signature] to a list of Representations.
 // Note that this ignores first argument (receiver) which is dynamic.
-ZoneGrowableArray<Representation>* ArgumentRepresentations(
+template <class CallingConventions>
+ZoneGrowableArray<Representation>* ArgumentRepresentationsBase(
     const Function& signature) {
   intptr_t num_arguments = signature.num_fixed_parameters() - 1;
   auto result = new ZoneGrowableArray<Representation>(num_arguments);
@@ -125,6 +125,8 @@ ZoneGrowableArray<Representation>* ArgumentRepresentations(
     AbstractType& arg_type =
         AbstractType::Handle(signature.ParameterTypeAt(i + 1));
     Representation rep = TypeRepresentation(arg_type);
+    // In non simulator mode host::CallingConventions == CallingConventions.
+    // In simulator mode convert arguments to host representation.
     if (rep == kUnboxedFloat && CallingConventions::kAbiSoftFP) {
       rep = kUnboxedInt32;
     } else if (rep == kUnboxedDouble && CallingConventions::kAbiSoftFP) {
@@ -135,9 +137,51 @@ ZoneGrowableArray<Representation>* ArgumentRepresentations(
   return result;
 }
 
+template <class CallingConventions>
+Representation ResultRepresentationBase(const Function& signature) {
+  AbstractType& arg_type = AbstractType::Handle(signature.result_type());
+  Representation rep = TypeRepresentation(arg_type);
+  if (rep == kUnboxedFloat && CallingConventions::kAbiSoftFP) {
+    rep = kUnboxedInt32;
+  } else if (rep == kUnboxedDouble && CallingConventions::kAbiSoftFP) {
+    rep = kUnboxedInt64;
+  }
+  return rep;
+}
+
+#if !defined(TARGET_ARCH_DBC)
+
+ZoneGrowableArray<Representation>* ArgumentRepresentations(
+    const Function& signature) {
+  return ArgumentRepresentationsBase<CallingConventions>(signature);
+}
+
+Representation ResultRepresentation(const Function& signature) {
+  return ResultRepresentationBase<CallingConventions>(signature);
+}
+
+#endif  // !defined(TARGET_ARCH_DBC)
+
+#if defined(USING_SIMULATOR)
+
+ZoneGrowableArray<Representation>* ArgumentHostRepresentations(
+    const Function& signature) {
+  return ArgumentRepresentationsBase<host::CallingConventions>(signature);
+}
+
+Representation ResultHostRepresentation(const Function& signature) {
+  return ResultRepresentationBase<host::CallingConventions>(signature);
+}
+
+#endif  // defined(USING_SIMULATOR)
+
 // Represents the state of a stack frame going into a call, between allocations
 // of argument locations. Acts like a register allocator but for arguments in
 // the native ABI.
+template <class CallingConventions,
+          class Location,
+          class Register,
+          class FpuRegister>
 class ArgumentFrameState : public ValueObject {
  public:
   Location AllocateArgument(Representation rep) {
@@ -173,7 +217,8 @@ class ArgumentFrameState : public ValueObject {
 
  private:
   Location AllocateStackSlot() {
-    return Location::StackSlot(stack_height_in_slots++, SPREG);
+    return Location::StackSlot(stack_height_in_slots++,
+                               CallingConventions::kStackPointerRegister);
   }
 
   // Allocates a pair of stack slots where the first stack slot is aligned to an
@@ -186,7 +231,8 @@ class ArgumentFrameState : public ValueObject {
 
     Location result;
     if (rep == kUnboxedDouble) {
-      result = Location::DoubleStackSlot(stack_height_in_slots, SPREG);
+      result = Location::DoubleStackSlot(
+          stack_height_in_slots, CallingConventions::kStackPointerRegister);
       stack_height_in_slots += 2;
     } else {
       const Location low = AllocateStackSlot();
@@ -243,13 +289,18 @@ class ArgumentFrameState : public ValueObject {
 
 // Takes a list of argument representations, and converts it to a list of
 // argument locations based on calling convention.
-ZoneGrowableArray<Location>* ArgumentLocations(
+template <class CallingConventions,
+          class Location,
+          class Register,
+          class FpuRegister>
+ZoneGrowableArray<Location>* ArgumentLocationsBase(
     const ZoneGrowableArray<Representation>& arg_reps) {
   intptr_t num_arguments = arg_reps.length();
   auto result = new ZoneGrowableArray<Location>(num_arguments);
 
   // Loop through all arguments and assign a register or a stack location.
-  ArgumentFrameState frame_state;
+  ArgumentFrameState<CallingConventions, Location, Register, FpuRegister>
+      frame_state;
   for (intptr_t i = 0; i < num_arguments; i++) {
     Representation rep = arg_reps[i];
     result->Add(frame_state.AllocateArgument(rep));
@@ -257,18 +308,35 @@ ZoneGrowableArray<Location>* ArgumentLocations(
   return result;
 }
 
-Representation ResultRepresentation(const Function& signature) {
-  AbstractType& arg_type = AbstractType::Handle(signature.result_type());
-  Representation rep = TypeRepresentation(arg_type);
-  if (rep == kUnboxedFloat && CallingConventions::kAbiSoftFP) {
-    rep = kUnboxedInt32;
-  } else if (rep == kUnboxedDouble && CallingConventions::kAbiSoftFP) {
-    rep = kUnboxedInt64;
+ZoneGrowableArray<Location>* ArgumentLocations(
+    const ZoneGrowableArray<Representation>& arg_reps) {
+#if !defined(TARGET_ARCH_DBC)
+  return ArgumentLocationsBase<dart::CallingConventions, Location,
+                               dart::Register, dart::FpuRegister>(arg_reps);
+#else
+  intptr_t next_free_register = compiler::ffi::kFirstArgumentRegister;
+  intptr_t num_arguments = arg_reps.length();
+  auto result = new ZoneGrowableArray<Location>(num_arguments);
+  for (intptr_t i = 0; i < num_arguments; i++) {
+    // TODO(dacoharkes): In 32 bits, use pair locations.
+    result->Add(Location::RegisterLocation(next_free_register));
+    next_free_register++;
   }
-  return rep;
+  return result;
+#endif
 }
 
+#if defined(TARGET_ARCH_DBC)
+ZoneGrowableArray<HostLocation>* HostArgumentLocations(
+    const ZoneGrowableArray<Representation>& arg_reps) {
+  return ArgumentLocationsBase<dart::host::CallingConventions, HostLocation,
+                               dart::host::Register, dart::host::FpuRegister>(
+      arg_reps);
+}
+#endif
+
 Location ResultLocation(Representation result_rep) {
+#ifndef TARGET_ARCH_DBC
   switch (result_rep) {
     case kUnboxedFloat:
     case kUnboxedDouble:
@@ -293,10 +361,15 @@ Location ResultLocation(Representation result_rep) {
     default:
       UNREACHABLE();
   }
+#else
+  // TODO(dacoharkes): Support 64 bit result values on 32 bit DBC.
+  return Location::RegisterLocation(0);
+#endif
 }
 
 // Accounts for alignment, where some stack slots are used as padding.
-intptr_t NumStackSlots(const ZoneGrowableArray<Location>& locations) {
+template <class Location>
+intptr_t TemplateNumStackSlots(const ZoneGrowableArray<Location>& locations) {
   intptr_t num_arguments = locations.length();
   intptr_t max_height_in_slots = 0;
   for (intptr_t i = 0; i < num_arguments; i++) {
@@ -316,7 +389,88 @@ intptr_t NumStackSlots(const ZoneGrowableArray<Location>& locations) {
   return max_height_in_slots;
 }
 
-#endif  // !defined(TARGET_ARCH_DBC)
+intptr_t NumStackSlots(const ZoneGrowableArray<Location>& locations) {
+  return TemplateNumStackSlots(locations);
+}
+
+#if defined(TARGET_ARCH_DBC)
+
+static RawTypedData* typed_data_new_uintptr(intptr_t length) {
+#if defined(ARCH_IS_32_BIT)
+  return TypedData::New(kTypedDataUint32ArrayCid, length);
+#else
+  return TypedData::New(kTypedDataUint64ArrayCid, length);
+#endif
+}
+
+static void typed_data_set_uintptr(const TypedData& typed_data,
+                                   intptr_t index,
+                                   uintptr_t value) {
+#if defined(ARCH_IS_32_BIT)
+  typed_data.SetUint32(target::kWordSize * index, value);
+#else
+  typed_data.SetUint64(target::kWordSize * index, value);
+#endif
+}
+
+static uintptr_t typed_data_get_uintptr(const TypedData& typed_data,
+                                        intptr_t index) {
+#if defined(ARCH_IS_32_BIT)
+  return typed_data.GetUint32(target::kWordSize * index);
+#else
+  return typed_data.GetUint64(target::kWordSize * index);
+#endif
+}
+
+// Number of host stack slots used in 'locations'.
+static intptr_t HostNumStackSlots(
+    const ZoneGrowableArray<HostLocation>& locations) {
+  return TemplateNumStackSlots(locations);
+}
+
+RawTypedData* FfiSignatureDescriptor::New(
+    const ZoneGrowableArray<HostLocation>& arg_host_locations,
+    const Representation result_representation) {
+  const uintptr_t num_arguments = arg_host_locations.length();
+  const uintptr_t num_stack_slots = HostNumStackSlots(arg_host_locations);
+
+  const TypedData& result = TypedData::Handle(
+      typed_data_new_uintptr(kOffsetArgumentLocations + num_arguments));
+
+  typed_data_set_uintptr(result, kOffsetNumArguments, num_arguments);
+  typed_data_set_uintptr(result, kOffsetNumStackSlots, num_stack_slots);
+  typed_data_set_uintptr(result, kOffsetResultRepresentation,
+                         result_representation);
+
+  for (uintptr_t i = 0; i < num_arguments; i++) {
+    typed_data_set_uintptr(result, kOffsetArgumentLocations + i,
+                           arg_host_locations.At(i).write());
+  }
+
+  return result.raw();
+}
+
+intptr_t FfiSignatureDescriptor::length() const {
+  return typed_data_get_uintptr(typed_data_, kOffsetNumArguments);
+}
+
+intptr_t FfiSignatureDescriptor::num_stack_slots() const {
+  return typed_data_get_uintptr(typed_data_, kOffsetNumStackSlots);
+}
+
+HostLocation FfiSignatureDescriptor::LocationAt(intptr_t index) const {
+  return HostLocation::read(
+      typed_data_get_uintptr(typed_data_, kOffsetArgumentLocations + index));
+}
+
+Representation FfiSignatureDescriptor::ResultRepresentation() const {
+  uintptr_t result_int =
+      typed_data_get_uintptr(typed_data_, kOffsetResultRepresentation);
+  ASSERT(result_int < kNumRepresentations);
+  return static_cast<Representation>(result_int);
+}
+
+#endif  // defined(TARGET_ARCH_DBC)
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

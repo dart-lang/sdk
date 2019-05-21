@@ -883,6 +883,19 @@ main() {
     assertThat(element)..isReferencedAt('p: 1', true);
   }
 
+  test_isReferencedBy_ParameterElement_genericFunctionType() async {
+    await _indexTestUnit('''
+typedef F = void Function({int p});
+
+void main() {
+  F f;
+  f(p: 0);
+}
+''');
+    // We should not crash because of reference to "p" - a named parameter
+    // of a generic function type.
+  }
+
   test_isReferencedBy_ParameterElement_optionalPositional() async {
     await _indexTestUnit('''
 foo([p]) {

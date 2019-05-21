@@ -1604,6 +1604,26 @@ var v = (() {
     }
   }
 
+  test_compilationUnit_nnbd_disabled_via_dart_directive() {
+    featureSet = enableNnbd;
+    serializeLibraryText('''
+// @dart=2.2
+''');
+    expect(unlinkedUnits[0].isNNBD, false);
+  }
+
+  test_compilationUnit_nnbd_disabled_via_feature_set() {
+    featureSet = disableNnbd;
+    serializeLibraryText('');
+    expect(unlinkedUnits[0].isNNBD, false);
+  }
+
+  test_compilationUnit_nnbd_enabled() {
+    featureSet = enableNnbd;
+    serializeLibraryText('');
+    expect(unlinkedUnits[0].isNNBD, true);
+  }
+
   test_constExpr_binary_add() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 + 2;');
     assertUnlinkedConst(variable.initializer.bodyExpr, '1 + 2', operators: [
@@ -9504,7 +9524,7 @@ var v = extract(f);
     UnlinkedVariable variable = serializeVariableText('int v = null;');
     expect(variable.initializer.returnType, isNull);
     checkInferredTypeSlot(
-        variable.initializer.inferredReturnTypeSlot, null, '*bottom*',
+        variable.initializer.inferredReturnTypeSlot, null, 'Never',
         onlyInStrongMode: false);
   }
 
@@ -10827,7 +10847,7 @@ bool f() => true;
     EntityRef inferredType = getTypeRefForSlot(variable.inferredTypeSlot);
     checkLinkedTypeRef(inferredType.syntheticReturnType, 'dart:core', 'int');
     expect(inferredType.syntheticParams, hasLength(1));
-    checkLinkedTypeRef(inferredType.syntheticParams[0].type, null, '*bottom*');
+    checkLinkedTypeRef(inferredType.syntheticParams[0].type, null, 'Never');
   }
 
   test_syntheticFunctionType_inGenericClass() {

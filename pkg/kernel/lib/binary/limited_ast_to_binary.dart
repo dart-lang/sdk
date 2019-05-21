@@ -23,8 +23,11 @@ class LimitedBinaryPrinter extends BinaryPrinter {
   final bool excludeUriToSource;
 
   LimitedBinaryPrinter(
-      Sink<List<int>> sink, this.predicate, this.excludeUriToSource)
-      : super(sink, includeSources: !excludeUriToSource);
+      Sink<List<int>> sink, this.predicate, this.excludeUriToSource,
+      {bool includeOffsets = true})
+      : super(sink,
+            includeSources: !excludeUriToSource,
+            includeOffsets: includeOffsets);
 
   @override
   void computeCanonicalNames(Component component) {

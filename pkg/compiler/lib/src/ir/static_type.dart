@@ -940,7 +940,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   @override
   ir.DartType visitLet(ir.Let node) {
-    visitNode(node.variable.initializer);
+    _processLocalVariable(node.variable);
     return super.visitLet(node);
   }
 
@@ -1097,7 +1097,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     typeMap = typeMap.remove(variableScopeModel.assignedVariables);
     ir.DartType returnType = super.visitFunctionExpression(node);
     Set<ir.VariableDeclaration> _oldVariables = _currentVariables;
-    _currentVariables = new Set<ir.VariableDeclaration>();
+    _currentVariables = {};
     visitSignature(node.function);
     visitNode(node.function.body);
     handleFunctionExpression(node);
@@ -1342,7 +1342,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         typeMap.remove(variableScopeModel.getScopeFor(node).assignedVariables);
     typeMap = typeMap.remove(variableScopeModel.assignedVariables);
     Set<ir.VariableDeclaration> _oldVariables = _currentVariables;
-    _currentVariables = new Set<ir.VariableDeclaration>();
+    _currentVariables = {};
     visitSignature(node.function);
     visitNode(node.function.body);
     handleFunctionDeclaration(node);
@@ -1372,7 +1372,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   Null visitProcedure(ir.Procedure node) {
     thisType = new ThisInterfaceType.from(node.enclosingClass?.thisType);
-    _currentVariables = new Set<ir.VariableDeclaration>();
+    _currentVariables = {};
     visitSignature(node.function);
     visitNode(node.function.body);
     handleProcedure(node);
@@ -1386,7 +1386,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   Null visitConstructor(ir.Constructor node) {
     thisType = new ThisInterfaceType.from(node.enclosingClass.thisType);
-    _currentVariables = new Set<ir.VariableDeclaration>();
+    _currentVariables = {};
     visitSignature(node.function);
     visitNodes(node.initializers);
     visitNode(node.function.body);
@@ -1401,7 +1401,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   @override
   Null visitField(ir.Field node) {
     thisType = new ThisInterfaceType.from(node.enclosingClass?.thisType);
-    _currentVariables = new Set<ir.VariableDeclaration>();
+    _currentVariables = {};
     visitNode(node.initializer);
     handleField(node);
     _invalidatedVariables.removeAll(_currentVariables);
@@ -1411,8 +1411,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   void handleVariableDeclaration(ir.VariableDeclaration node) {}
 
-  @override
-  Null visitVariableDeclaration(ir.VariableDeclaration node) {
+  void _processLocalVariable(ir.VariableDeclaration node) {
     _currentVariables.add(node);
     ir.DartType type = visitNode(node.initializer);
     if (node.initializer != null &&
@@ -1420,6 +1419,11 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         inferEffectivelyFinalVariableTypes) {
       node.type = type;
     }
+  }
+
+  @override
+  Null visitVariableDeclaration(ir.VariableDeclaration node) {
+    _processLocalVariable(node);
     handleVariableDeclaration(node);
   }
 

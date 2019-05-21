@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -44,9 +45,12 @@ CompilationUnit parseText(
       new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER)
         ..configureFeatures(featureSet);
   Token token = scanner.tokenize();
+  // Pass the feature set from the scanner to the parser
+  // because the scanner may have detected a language version comment
+  // and downgraded the feature set it holds.
   Parser parser = new Parser(
       NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER,
-      featureSet: featureSet);
+      featureSet: scanner.featureSet);
   CompilationUnit unit = parser.parseCompilationUnit(token);
   unit.lineInfo = new LineInfo(scanner.lineStarts);
   return unit;
@@ -181,9 +185,10 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
     Map<String, LinkedLibrary> linkedSummaries = link(nonSdkLibraryUris,
         getDependency, getUnit, declaredVariables, analysisOptions);
 
+    var synchronousSession =
+        SynchronousSession(analysisOptions, declaredVariables);
     var analysisContext = RestrictedAnalysisContext(
-      analysisOptions,
-      declaredVariables,
+      synchronousSession,
       sourceFactory,
     );
 

@@ -11,6 +11,7 @@ import 'package:build_integration/file_system/multi_root.dart';
 import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/kernel.dart' hide MapEntry;
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:path/path.dart' as path;
@@ -20,7 +21,6 @@ import '../compiler/js_names.dart' as JS;
 import '../compiler/module_builder.dart';
 import '../compiler/shared_command.dart';
 import '../compiler/shared_compiler.dart';
-import '../flutter/track_widget_constructor_locations.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
@@ -36,7 +36,7 @@ const _binaryName = 'dartdevc -k';
 /// Returns `true` if the program compiled without any fatal errors.
 Future<CompilerResult> compile(List<String> args,
     {fe.InitializedCompilerState compilerState,
-    bool useIncrementalCompiler: false}) async {
+    bool useIncrementalCompiler = false}) async {
   try {
     return await _compile(args,
         compilerState: compilerState,
@@ -67,7 +67,7 @@ String _usageMessage(ArgParser ddcArgParser) =>
 
 Future<CompilerResult> _compile(List<String> args,
     {fe.InitializedCompilerState compilerState,
-    bool useIncrementalCompiler: false}) async {
+    bool useIncrementalCompiler = false}) async {
   // TODO(jmesserly): refactor options to share code with dartdevc CLI.
   var argParser = ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
@@ -213,6 +213,9 @@ Future<CompilerResult> _compile(List<String> args,
     }
   }
 
+  bool trackWidgetCreation =
+      argResults['track-widget-creation'] as bool ?? false;
+
   var oldCompilerState = compilerState;
   List<Component> doneInputSummaries;
   fe.IncrementalCompiler incrementalCompiler;
@@ -224,7 +227,8 @@ Future<CompilerResult> _compile(List<String> args,
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
         summaryModules.keys.toList(),
-        DevCompilerTarget(),
+        DevCompilerTarget(
+            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
         experiments: experiments);
   } else {
@@ -236,7 +240,8 @@ Future<CompilerResult> _compile(List<String> args,
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
         summaryModules.keys.toList(),
-        DevCompilerTarget(),
+        DevCompilerTarget(
+            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
         experiments: experiments);
     incrementalCompiler = compilerState.incrementalCompiler;
@@ -318,13 +323,6 @@ Future<CompilerResult> _compile(List<String> args,
   if (hierarchy == null) {
     var target = compilerState.options.target as DevCompilerTarget;
     hierarchy = target.hierarchy;
-  }
-
-  // TODO(jmesserly): remove this hack once Flutter SDK has a `dartdevc` with
-  // support for the widget inspector.
-  if (argResults['track-widget-creation'] as bool) {
-    component.computeCanonicalNames();
-    WidgetCreatorTracker(hierarchy).transform(component);
   }
 
   var compiler =

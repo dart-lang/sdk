@@ -5,5 +5,3 @@
 math_runtime_cc_files = [ "math.cc" ]
 
 math_runtime_dart_files = [ "math_patch.dart" ]
-
-math_runtime_sources = math_runtime_cc_files + math_runtime_dart_files

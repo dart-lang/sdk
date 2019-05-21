@@ -4398,20 +4398,12 @@ class Wrong<T> {
   }
 
   void test_missingClosingParenthesis() {
-    // It is possible that it is not possible to generate this error (that it's
-    // being reported in code that cannot actually be reached), but that hasn't
-    // been proven yet.
     createParser('(int a, int b ;',
-        expectedEndOffset: 14 /* ErrorToken at end of token stream */);
+        expectedEndOffset: 14 /* parsing ends at synthetic ')' */);
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    if (usingFastaParser) {
-      // Fasta scanner reports missing `)` error
-      listener.assertNoErrors();
-    } else {
-      listener.errors
-          .contains(expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 1));
-    }
+    listener.errors
+        .contains(expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 1));
   }
 
   void test_missingConstFinalVarOrType_static() {
@@ -9409,34 +9401,14 @@ class ParserTestCase extends EngineTestCase
     Source source = new TestSource();
     listener = new GatheringErrorListener();
 
-    void reportError(
-        ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-      listener
-          .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
-    }
-
-    //
-    // Scan the source.
-    //
     ScannerResult result = scanString(content, includeComments: true);
-    Token token = result.tokens;
-    if (result.hasErrors) {
-      // The default recovery strategy used by scanString
-      // places all error tokens at the head of the stream.
-      while (token.type == TokenType.BAD_INPUT) {
-        translateErrorToken(token, reportError);
-        token = token.next;
-      }
-    }
     listener.setLineInfo(source, result.lineStarts);
-    //
-    // Create and initialize the parser.
-    //
+
     parser = new Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.allowNativeClause = allowNativeClause;
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    parser.currentToken = token;
+    parser.currentToken = result.tokens;
   }
 
   @override
@@ -9557,31 +9529,13 @@ class ParserTestCase extends EngineTestCase
     Source source = new TestSource();
     GatheringErrorListener listener = new GatheringErrorListener();
 
-    void reportError(
-        ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-      listener
-          .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
-    }
-
-    //
-    // Scan the source.
-    //
     ScannerResult result = scanString(content, includeComments: true);
-    Token token = result.tokens;
-    if (result.hasErrors) {
-      // The default recovery strategy used by scanString
-      // places all error tokens at the head of the stream.
-      while (token.type == TokenType.BAD_INPUT) {
-        translateErrorToken(token, reportError);
-        token = token.next;
-      }
-    }
     listener.setLineInfo(source, result.lineStarts);
 
     Parser parser =
         new Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    CompilationUnit unit = parser.parseCompilationUnit(token);
+    CompilationUnit unit = parser.parseCompilationUnit(result.tokens);
     expect(unit, isNotNull);
     if (codes != null) {
       listener.assertErrorsWithCodes(codes);
@@ -9601,30 +9555,12 @@ class ParserTestCase extends EngineTestCase
     Source source = NonExistingSource.unknown;
     listener ??= AnalysisErrorListener.NULL_LISTENER;
 
-    void reportError(
-        ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-      listener
-          .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
-    }
-
-    //
-    // Scan the source.
-    //
     ScannerResult result = scanString(content, includeComments: true);
-    Token token = result.tokens;
-    if (result.hasErrors) {
-      // The default recovery strategy used by scanString
-      // places all error tokens at the head of the stream.
-      while (token.type == TokenType.BAD_INPUT) {
-        translateErrorToken(token, reportError);
-        token = token.next;
-      }
-    }
 
     Parser parser =
         new Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    CompilationUnit unit = parser.parseCompilationUnit(token);
+    CompilationUnit unit = parser.parseCompilationUnit(result.tokens);
     unit.lineInfo = new LineInfo(result.lineStarts);
     return unit;
   }
@@ -9952,31 +9888,13 @@ class ParserTestCase extends EngineTestCase
     Source source = new TestSource();
     listener = new GatheringErrorListener();
 
-    void reportError(
-        ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-      listener
-          .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
-    }
-
-    //
-    // Scan the source.
-    //
     ScannerResult result = scanString(content, includeComments: true);
-    Token token = result.tokens;
-    if (result.hasErrors) {
-      // The default recovery strategy used by scanString
-      // places all error tokens at the head of the stream.
-      while (token.type == TokenType.BAD_INPUT) {
-        translateErrorToken(token, reportError);
-        token = token.next;
-      }
-    }
     listener.setLineInfo(source, result.lineStarts);
 
     Parser parser =
         new Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    Statement statement = parser.parseStatement(token);
+    Statement statement = parser.parseStatement(result.tokens);
     expect(statement, isNotNull);
     return statement;
   }
@@ -9997,31 +9915,13 @@ class ParserTestCase extends EngineTestCase
     Source source = new TestSource();
     GatheringErrorListener listener = new GatheringErrorListener();
 
-    void reportError(
-        ScannerErrorCode errorCode, int offset, List<Object> arguments) {
-      listener
-          .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
-    }
-
-    //
-    // Scan the source.
-    //
     ScannerResult result = scanString(content);
-    Token token = result.tokens;
-    if (result.hasErrors) {
-      // The default recovery strategy used by scanString
-      // places all error tokens at the head of the stream.
-      while (token.type == TokenType.BAD_INPUT) {
-        translateErrorToken(token, reportError);
-        token = token.next;
-      }
-    }
     listener.setLineInfo(source, result.lineStarts);
 
     Parser parser =
         new Parser(source, listener, featureSet: FeatureSet.forTesting());
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    List<Statement> statements = parser.parseStatements(token);
+    List<Statement> statements = parser.parseStatements(result.tokens);
     expect(statements, hasLength(expectedCount));
     listener.assertErrorsWithCodes(errorCodes);
     return statements;

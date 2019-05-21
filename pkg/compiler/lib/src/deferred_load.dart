@@ -1235,7 +1235,7 @@ class OutputUnitData {
   final Map<MemberEntity, OutputUnit> _memberToUnit;
   final Map<Local, OutputUnit> _localFunctionToUnit;
   final Map<ConstantValue, OutputUnit> _constantToUnit;
-  final Iterable<OutputUnit> outputUnits;
+  final List<OutputUnit> outputUnits;
   final Map<ImportEntity, String> _importDeferName;
 
   /// A mapping from the name of a defer import to all the output units it

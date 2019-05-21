@@ -1679,7 +1679,6 @@ void IntegerInstructionSelector::ReplaceInstructions() {
                 replacement->ToCString());
     }
     defn->ReplaceWith(replacement, NULL);
-    ASSERT(flow_graph_->VerifyUseLists());
   }
 }
 

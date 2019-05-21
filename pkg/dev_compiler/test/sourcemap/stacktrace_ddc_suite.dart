@@ -10,6 +10,7 @@ Future<ChainContext> createContext(
 }
 
 class StackTraceContext extends ChainContextWithCleanupHelper {
+  @override
   final List<Step> steps = <Step>[
     const Setup(),
     const SetCwdToSdkRoot(),

@@ -188,11 +188,6 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
-    if (_isDebug) {
-      // Temporarily disable background compilation to avoid flaky crashes
-      // (see http://dartbug.com/30016 for details).
-      args.add('--no-background-compilation');
-    }
     if (_useEnableAsserts) {
       args.add('--enable_asserts');
     }
@@ -1148,8 +1143,10 @@ abstract class VMKernelCompilerMixin {
         !arguments.any((String arg) => noCausalAsyncStacksRegExp.hasMatch(arg));
     args.add('-Ddart.developer.causal_async_stacks=$causalAsyncStacks');
 
-    if (_useEnableAsserts) {
-      args.add('--enable_asserts');
+    if (_useEnableAsserts ||
+        arguments.contains('--enable-asserts') ||
+        arguments.contains('--enable_asserts')) {
+      args.add('--enable-asserts');
     }
 
     if (_configuration.useKernelBytecode) {

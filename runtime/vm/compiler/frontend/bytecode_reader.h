@@ -72,7 +72,6 @@ class BytecodeReaderHelper : public ValueObject {
   RawLibrary* ReadMain();
 
   RawArray* ReadBytecodeComponent(intptr_t md_offset);
-  RawArray* ReadBytecodeComponentV2(intptr_t md_offset);
 
   // Fills in [is_covariant] and [is_generic_covariant_impl] vectors
   // according to covariance attributes of [function] parameters.
@@ -261,6 +260,8 @@ class BytecodeReader : public AllStatic {
 
   // Read annotation for the given annotation field.
   static RawObject* ReadAnnotation(const Field& annotation_field);
+
+  static void UseBytecodeVersion(intptr_t version);
 };
 
 class BytecodeSourcePositionsIterator : ValueObject {
@@ -268,6 +269,8 @@ class BytecodeSourcePositionsIterator : ValueObject {
   BytecodeSourcePositionsIterator(Zone* zone, const Bytecode& bytecode)
       : reader_(ExternalTypedData::Handle(zone, bytecode.GetBinary(zone))),
         pairs_remaining_(0),
+        pc_shifter_(
+            Isolate::Current()->is_using_old_bytecode_instructions() ? 2 : 0),
         cur_bci_(0),
         cur_token_pos_(TokenPosition::kNoSource.value()) {
     if (bytecode.HasSourcePositions()) {
@@ -282,7 +285,7 @@ class BytecodeSourcePositionsIterator : ValueObject {
     }
     ASSERT(pairs_remaining_ > 0);
     --pairs_remaining_;
-    cur_bci_ += reader_.ReadUInt();
+    cur_bci_ += reader_.ReadUInt() << pc_shifter_;
     cur_token_pos_ += reader_.ReadSLEB128();
     return true;
   }
@@ -299,6 +302,7 @@ class BytecodeSourcePositionsIterator : ValueObject {
  private:
   Reader reader_;
   intptr_t pairs_remaining_;
+  intptr_t pc_shifter_;
   intptr_t cur_bci_;
   intptr_t cur_token_pos_;
 };

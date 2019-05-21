@@ -26,6 +26,7 @@ class Bar extends Foo {
     data3 = this;
   }
 
+  @override
   void doStuff() {
     /* bl */
     /*s:1*/ print(data2);

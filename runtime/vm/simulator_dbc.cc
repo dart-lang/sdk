@@ -14,14 +14,20 @@
 
 #include "vm/simulator.h"
 
+#include "lib/ffi.h"
+#include "platform/assert.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/ffi.h"
+#include "vm/compiler/ffi_dbc_trampoline.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/constants_dbc.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/heap/safepoint.h"
 #include "vm/lockers.h"
 #include "vm/native_arguments.h"
 #include "vm/native_entry.h"
@@ -616,6 +622,7 @@ typedef intptr_t (*SimulatorLeafRuntimeCall)(intptr_t r0,
 // Calls to leaf float Dart runtime functions are based on this interface.
 typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
 
+// Set up an exit frame for the garbage collector.
 void Simulator::Exit(Thread* thread,
                      RawObject** base,
                      RawObject** frame,
@@ -867,7 +874,7 @@ DART_FORCE_INLINE void Simulator::InstanceCall1(Thread* thread,
   intptr_t i;
   for (i = 0; i < (length - (kCheckedArgs + 2)); i += (kCheckedArgs + 2)) {
     if (cache->data()[i + 0] == receiver_cid) {
-      top[0] = cache->data()[i + kCheckedArgs];
+      top[0] = cache->data()[i + ICData::TargetIndexFor(kCheckedArgs)];
       found = true;
       break;
     }
@@ -913,7 +920,7 @@ DART_FORCE_INLINE void Simulator::InstanceCall2(Thread* thread,
   for (i = 0; i < (length - (kCheckedArgs + 2)); i += (kCheckedArgs + 2)) {
     if ((cache->data()[i + 0] == receiver_cid) &&
         (cache->data()[i + 1] == arg0_cid)) {
-      top[0] = cache->data()[i + kCheckedArgs];
+      top[0] = cache->data()[i + ICData::TargetIndexFor(kCheckedArgs)];
       found = true;
       break;
     }
@@ -1857,6 +1864,39 @@ SwitchDispatch:
 
     *(SP - num_arguments) = *return_slot;
     SP -= num_arguments;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(FfiCall, __D);
+    {
+      const auto& sig_desc = compiler::ffi::FfiSignatureDescriptor(
+          TypedData::Cast(Object::Handle(LOAD_CONSTANT(rD))));
+
+      // The arguments to this ffi call are on the stack at FP.
+      // kFirstLocalSlotFromFp is 0 in DBC, but the const is -1.
+      uint64_t* arg_values = reinterpret_cast<uint64_t*>(FP);
+
+      uint64_t* marshalled_args_data =
+          FfiMarshalledArguments::New(sig_desc, arg_values);
+      const auto& marshalled_args =
+          FfiMarshalledArguments(marshalled_args_data);
+
+      Exit(thread, FP, SP, pc);
+      {
+        TransitionGeneratedToNative transition(thread);
+        FfiTrampolineCall(marshalled_args_data);
+      }
+
+      const Representation result_rep = sig_desc.ResultRepresentation();
+      intptr_t result;
+      if (result_rep == kUnboxedDouble || result_rep == kUnboxedFloat) {
+        result = marshalled_args.DoubleResult();
+      } else {
+        result = marshalled_args.IntResult();
+      }
+      FP[0] = reinterpret_cast<RawObject*>(result);
+    }
     DISPATCH();
   }
 

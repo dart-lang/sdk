@@ -12,6 +12,7 @@ abstract class AbstractDataSource extends DataSourceMixin
   ComponentLookup _componentLookup;
   EntityLookup _entityLookup;
   LocalLookup _localLookup;
+  CodegenReader _codegenReader;
 
   IndexedSource<String> _stringIndex;
   IndexedSource<Uri> _uriIndex;
@@ -68,6 +69,13 @@ abstract class AbstractDataSource extends DataSourceMixin
   LocalLookup get localLookup {
     assert(_localLookup != null);
     return _localLookup;
+  }
+
+  @override
+  void registerCodegenReader(CodegenReader reader) {
+    assert(reader != null);
+    assert(_codegenReader == null);
+    _codegenReader = reader;
   }
 
   @override
@@ -495,11 +503,19 @@ abstract class AbstractDataSource extends DataSourceMixin
         return new InstantiationConstantValue(typeArguments, function);
       case ConstantValueKind.NON_CONSTANT:
         return new NonConstantValue();
-      case ConstantValueKind.DEFERRED_GLOBAL:
       case ConstantValueKind.INTERCEPTOR:
-      case ConstantValueKind.SYNTHETIC:
-        // These are only created in the SSA graph builder.
-        throw new UnsupportedError("Unsupported constant value kind ${kind}.");
+        ClassEntity cls = readClass();
+        return new InterceptorConstantValue(cls);
+      case ConstantValueKind.DEFERRED_GLOBAL:
+        ConstantValue constant = readConstant();
+        OutputUnit unit = readOutputUnitReference();
+        return new DeferredGlobalConstantValue(constant, unit);
+      case ConstantValueKind.ABSTRACT_VALUE:
+        AbstractValue abstractValue = readAbstractValue();
+        return new AbstractValueConstantValue(abstractValue);
+      case ConstantValueKind.JS_NAME:
+        js.LiteralString name = readJsNode();
+        return new JsNameConstantValue(name);
     }
     throw new UnsupportedError("Unexpexted constant value kind ${kind}.");
   }
@@ -624,6 +640,31 @@ abstract class AbstractDataSource extends DataSourceMixin
     Uri enclosingLibraryUri = _readUri();
     bool isDeferred = _readBool();
     return new ImportEntity(isDeferred, name, uri, enclosingLibraryUri);
+  }
+
+  @override
+  OutputUnit readOutputUnitReference() {
+    assert(
+        _codegenReader != null,
+        "Can not deserialize an OutputUnit reference "
+        "without a registered codegen reader.");
+    return _codegenReader.readOutputUnitReference(this);
+  }
+
+  @override
+  AbstractValue readAbstractValue() {
+    assert(
+        _codegenReader != null,
+        "Can not deserialize an AbstractValue "
+        "without a registered codegen reader.");
+    return _codegenReader.readAbstractValue(this);
+  }
+
+  @override
+  js.Node readJsNode() {
+    assert(_codegenReader != null,
+        "Can not deserialize a JS node without a registered codegen reader.");
+    return _codegenReader.readJsNode(this);
   }
 
   /// Actual deserialization of a section begin tag, implemented by subclasses.

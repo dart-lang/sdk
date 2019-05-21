@@ -4,19 +4,19 @@
 
 library vm_connect_element;
 
-import 'dart:html';
 import 'dart:async';
-import 'dart:convert';
+import 'dart:html';
+
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/src/elements/helpers/tag.dart';
-import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/src/elements/vm_connect_target.dart';
 
-class VMConnectElement extends HtmlElement implements Renderable {
+class VMConnectElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<VMConnectElement>('vm-connect', dependencies: const [
     NavTopMenuElement.tag,
@@ -41,7 +41,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
     assert(address != null);
     assert(notifications != null);
     assert(targets != null);
-    VMConnectElement e = document.createElement(tag.name);
+    VMConnectElement e = new VMConnectElement.created();
     e._r = new RenderingScheduler<VMConnectElement>(e, queue: queue);
     e._address = address;
     e._notifications = notifications;
@@ -49,7 +49,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  VMConnectElement.created() : super.created();
+  VMConnectElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -71,8 +71,8 @@ class VMConnectElement extends HtmlElement implements Renderable {
     final port = window.location.port;
     children = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered']
@@ -93,10 +93,11 @@ class VMConnectElement extends HtmlElement implements Renderable {
                       final bool current = _targets.isConnectedVMTarget(target);
                       return new LIElement()
                         ..children = <Element>[
-                          new VMConnectTargetElement(target,
-                              current: current, queue: _r.queue)
-                            ..onConnect.listen(_connect)
-                            ..onDelete.listen(_delete)
+                          (new VMConnectTargetElement(target,
+                                  current: current, queue: _r.queue)
+                                ..onConnect.listen(_connect)
+                                ..onDelete.listen(_delete))
+                              .element
                         ];
                     }).toList(),
                   new HRElement(),
@@ -121,7 +122,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
               new DivElement()..classes = ['flex-item-20-percent'],
             ],
         ],
-      new ViewFooterElement(queue: _r.queue)
+      new ViewFooterElement(queue: _r.queue).element
     ];
   }
 

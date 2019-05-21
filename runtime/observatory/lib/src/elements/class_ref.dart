@@ -9,7 +9,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class ClassRefElement extends HtmlElement implements Renderable {
+class ClassRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<ClassRefElement>('class-ref');
 
   RenderingScheduler<ClassRefElement> _r;
@@ -25,14 +25,14 @@ class ClassRefElement extends HtmlElement implements Renderable {
   factory ClassRefElement(M.IsolateRef isolate, M.ClassRef cls,
       {RenderingQueue queue}) {
     assert(cls != null);
-    ClassRefElement e = document.createElement(tag.name);
+    ClassRefElement e = new ClassRefElement.created();
     e._r = new RenderingScheduler<ClassRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._class = cls;
     return e;
   }
 
-  ClassRefElement.created() : super.created();
+  ClassRefElement.created() : super.created(tag);
 
   @override
   void attached() {

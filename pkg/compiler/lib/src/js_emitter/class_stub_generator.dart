@@ -62,7 +62,7 @@ class ClassStubGenerator {
       typeParameters,
       fieldInitializers,
       typeInits,
-      _namer.deferredAction
+      _namer.fixedNames.deferredAction
     ]);
   }
 

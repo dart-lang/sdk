@@ -13,6 +13,3 @@ internal_runtime_dart_files = [
   "print_patch.dart",
   "symbol_patch.dart",
 ]
-
-internal_runtime_sources =
-    internal_runtime_cc_files + internal_runtime_dart_files

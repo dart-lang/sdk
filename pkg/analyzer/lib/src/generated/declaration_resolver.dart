@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -27,12 +28,16 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   /// The compilation unit containing the AST nodes being visited.
   CompilationUnitElementImpl _enclosingUnit;
 
-  /// The type provider used to access the known types.
-  TypeProvider _typeProvider;
-
   /// The [ElementWalker] we are using to keep track of progress through the
   /// element model.
   ElementWalker _walker;
+
+  /// Is `true` if the current [ClassDeclaration] has a const constructor.
+  bool _hasConstConstructor = false;
+
+  /// The number of [GenericFunctionType] nodes that we encountered so far.
+  /// We use it to request the corresponding resolved node.
+  int _nextGenericFunctionTypeId = 0;
 
   DeclarationResolver();
 
@@ -42,7 +47,6 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   /// not match each other.
   void resolve(CompilationUnit unit, CompilationUnitElement element) {
     _enclosingUnit = element;
-    _typeProvider = _enclosingUnit.context?.typeProvider;
     _walker = new ElementWalker.forCompilationUnit(element);
     unit.element = element;
     try {
@@ -82,6 +86,14 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    _hasConstConstructor = false;
+    for (var member in node.members) {
+      if (member is ConstructorDeclaration && member.constKeyword != null) {
+        _hasConstConstructor = true;
+        break;
+      }
+    }
+
     ClassElement element = _match(node.name, _walker.getClass());
     _walk(new ElementWalker.forClass(element), () {
       super.visitClassDeclaration(node);
@@ -191,6 +203,10 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
     super.visitFieldDeclaration(node);
     FieldElement firstFieldElement = node.fields.variables[0].declaredElement;
     resolveMetadata(node, node.metadata, firstFieldElement);
+    if (node.fields.isConst ||
+        !node.isStatic && node.fields.isFinal && _hasConstConstructor) {
+      _consumeGenericFunctionTypeIds(node.fields);
+    }
   }
 
   @override
@@ -273,15 +289,21 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
     if (_walker.elementBuilder != null) {
       _walker.elementBuilder.visitGenericFunctionType(node);
     } else {
-      DartType type = node.type;
-      if (type != null) {
-        Element element = type.element;
-        if (element is GenericFunctionTypeElement) {
-          _setGenericFunctionType(node.returnType, element.returnType);
-          _walk(new ElementWalker.forGenericFunctionType(element), () {
-            super.visitGenericFunctionType(node);
-          });
-        }
+      Element element;
+      if (AnalysisDriver.useSummary2 && _enclosingUnit.linkedContext != null) {
+        var id = _nextGenericFunctionTypeId++;
+        var context = _enclosingUnit.linkedContext;
+        var linkedNode = context.getGenericFunctionType(id);
+        element = linkedNode.declaredElement;
+        (node as GenericFunctionTypeImpl).declaredElement = element;
+      } else {
+        element = node.type?.element;
+      }
+      if (element is GenericFunctionTypeElement) {
+        _setGenericFunctionType(node.returnType, element.returnType);
+        _walk(new ElementWalker.forGenericFunctionType(element), () {
+          super.visitGenericFunctionType(node);
+        });
       }
     }
   }
@@ -426,11 +448,15 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
     super.visitTopLevelVariableDeclaration(node);
     VariableElement firstElement = node.variables.variables[0].declaredElement;
     resolveMetadata(node, node.metadata, firstElement);
+    if (node.variables.isConst) {
+      _consumeGenericFunctionTypeIds(node.variables);
+    }
   }
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    if (node.parent.parent is FunctionTypedFormalParameter) {
+    if (node.parent.parent is FunctionTypedFormalParameter &&
+        !AnalysisDriver.useSummary2) {
       // Work around dartbug.com/28515.
       // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
       var element = new TypeParameterElementImpl.forNode(node.name);
@@ -473,6 +499,14 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
           node.parent is! TopLevelVariableDeclaration) {
         resolveMetadata(node, node.metadata, firstVariable);
       }
+    }
+  }
+
+  /// See [_ConsumeGenericFunctionTypeIdsVisitor].
+  void _consumeGenericFunctionTypeIds(VariableDeclarationList node) {
+    if (AnalysisDriver.useSummary2) {
+      var visitor = _ConsumeGenericFunctionTypeIdsVisitor(this);
+      node.variables.accept(visitor);
     }
   }
 
@@ -949,6 +983,24 @@ class ElementWalker {
   }
 
   static bool _isNotSynthetic(Element e) => !e.isSynthetic;
+}
+
+/// For consistency we set identifiers for [GenericFunctionType]s in constant
+/// variable initializers, and instance final fields of classes with constant
+/// constructors. However [DeclarationResolver] does not visit these
+/// initializers, in builds separate local elements. We still need to consume
+/// them to ensure that identifiers expected by the element model, and by
+/// [DeclarationResolver] match.
+class _ConsumeGenericFunctionTypeIdsVisitor extends RecursiveAstVisitor<void> {
+  final DeclarationResolver resolver;
+
+  _ConsumeGenericFunctionTypeIdsVisitor(this.resolver);
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    resolver._nextGenericFunctionTypeId++;
+    super.visitGenericFunctionType(node);
+  }
 }
 
 class _ElementMismatchException extends AnalysisException {

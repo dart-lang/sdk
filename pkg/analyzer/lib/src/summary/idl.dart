@@ -875,9 +875,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.annotation)
   LinkedNode get annotation_arguments;
 
-  @VariantId(15, variant: LinkedNodeKind.annotation)
-  int get annotation_atSign;
-
   @VariantId(7, variant: LinkedNodeKind.annotation)
   LinkedNode get annotation_constructorName;
 
@@ -890,20 +887,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(8, variant: LinkedNodeKind.annotation)
   LinkedNode get annotation_name;
 
-  @VariantId(16, variant: LinkedNodeKind.annotation)
-  int get annotation_period;
-
   @VariantId(2, variant: LinkedNodeKind.argumentList)
   List<LinkedNode> get argumentList_arguments;
-
-  @VariantId(15, variant: LinkedNodeKind.argumentList)
-  int get argumentList_leftParenthesis;
-
-  @VariantId(16, variant: LinkedNodeKind.argumentList)
-  int get argumentList_rightParenthesis;
-
-  @VariantId(15, variant: LinkedNodeKind.asExpression)
-  int get asExpression_asOperator;
 
   @VariantId(6, variant: LinkedNodeKind.asExpression)
   LinkedNode get asExpression_expression;
@@ -911,44 +896,17 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.asExpression)
   LinkedNode get asExpression_type;
 
-  @VariantId(15, variant: LinkedNodeKind.assertInitializer)
-  int get assertInitializer_assertKeyword;
-
-  @VariantId(16, variant: LinkedNodeKind.assertInitializer)
-  int get assertInitializer_comma;
-
   @VariantId(6, variant: LinkedNodeKind.assertInitializer)
   LinkedNode get assertInitializer_condition;
-
-  @VariantId(17, variant: LinkedNodeKind.assertInitializer)
-  int get assertInitializer_leftParenthesis;
 
   @VariantId(7, variant: LinkedNodeKind.assertInitializer)
   LinkedNode get assertInitializer_message;
 
-  @VariantId(18, variant: LinkedNodeKind.assertInitializer)
-  int get assertInitializer_rightParenthesis;
-
-  @VariantId(15, variant: LinkedNodeKind.assertStatement)
-  int get assertStatement_assertKeyword;
-
-  @VariantId(16, variant: LinkedNodeKind.assertStatement)
-  int get assertStatement_comma;
-
   @VariantId(6, variant: LinkedNodeKind.assertStatement)
   LinkedNode get assertStatement_condition;
 
-  @VariantId(17, variant: LinkedNodeKind.assertStatement)
-  int get assertStatement_leftParenthesis;
-
   @VariantId(7, variant: LinkedNodeKind.assertStatement)
   LinkedNode get assertStatement_message;
-
-  @VariantId(18, variant: LinkedNodeKind.assertStatement)
-  int get assertStatement_rightParenthesis;
-
-  @VariantId(19, variant: LinkedNodeKind.assertStatement)
-  int get assertStatement_semicolon;
 
   @VariantId(15, variant: LinkedNodeKind.assignmentExpression)
   int get assignmentExpression_element;
@@ -959,14 +917,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.assignmentExpression)
   LinkedNode get assignmentExpression_leftHandSide;
 
-  @VariantId(16, variant: LinkedNodeKind.assignmentExpression)
-  int get assignmentExpression_operator;
+  @VariantId(28, variant: LinkedNodeKind.assignmentExpression)
+  UnlinkedTokenType get assignmentExpression_operator;
 
   @VariantId(7, variant: LinkedNodeKind.assignmentExpression)
   LinkedNode get assignmentExpression_rightHandSide;
-
-  @VariantId(15, variant: LinkedNodeKind.awaitExpression)
-  int get awaitExpression_awaitKeyword;
 
   @VariantId(6, variant: LinkedNodeKind.awaitExpression)
   LinkedNode get awaitExpression_expression;
@@ -983,17 +938,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.binaryExpression)
   LinkedNode get binaryExpression_leftOperand;
 
-  @VariantId(16, variant: LinkedNodeKind.binaryExpression)
-  int get binaryExpression_operator;
+  @VariantId(28, variant: LinkedNodeKind.binaryExpression)
+  UnlinkedTokenType get binaryExpression_operator;
 
   @VariantId(7, variant: LinkedNodeKind.binaryExpression)
   LinkedNode get binaryExpression_rightOperand;
-
-  @VariantId(15, variant: LinkedNodeKind.block)
-  int get block_leftBracket;
-
-  @VariantId(16, variant: LinkedNodeKind.block)
-  int get block_rightBracket;
 
   @VariantId(2, variant: LinkedNodeKind.block)
   List<LinkedNode> get block_statements;
@@ -1001,26 +950,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.blockFunctionBody)
   LinkedNode get blockFunctionBody_block;
 
-  @VariantId(15, variant: LinkedNodeKind.blockFunctionBody)
-  int get blockFunctionBody_keyword;
-
-  @VariantId(16, variant: LinkedNodeKind.blockFunctionBody)
-  int get blockFunctionBody_star;
-
-  @VariantId(15, variant: LinkedNodeKind.booleanLiteral)
-  int get booleanLiteral_literal;
-
   @VariantId(27, variant: LinkedNodeKind.booleanLiteral)
   bool get booleanLiteral_value;
 
-  @VariantId(15, variant: LinkedNodeKind.breakStatement)
-  int get breakStatement_breakKeyword;
-
   @VariantId(6, variant: LinkedNodeKind.breakStatement)
   LinkedNode get breakStatement_label;
-
-  @VariantId(16, variant: LinkedNodeKind.breakStatement)
-  int get breakStatement_semicolon;
 
   @VariantId(2, variant: LinkedNodeKind.cascadeExpression)
   List<LinkedNode> get cascadeExpression_sections;
@@ -1031,35 +965,14 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.catchClause)
   LinkedNode get catchClause_body;
 
-  @VariantId(15, variant: LinkedNodeKind.catchClause)
-  int get catchClause_catchKeyword;
-
-  @VariantId(16, variant: LinkedNodeKind.catchClause)
-  int get catchClause_comma;
-
   @VariantId(7, variant: LinkedNodeKind.catchClause)
   LinkedNode get catchClause_exceptionParameter;
 
   @VariantId(8, variant: LinkedNodeKind.catchClause)
   LinkedNode get catchClause_exceptionType;
 
-  @VariantId(17, variant: LinkedNodeKind.catchClause)
-  int get catchClause_leftParenthesis;
-
-  @VariantId(18, variant: LinkedNodeKind.catchClause)
-  int get catchClause_onKeyword;
-
-  @VariantId(19, variant: LinkedNodeKind.catchClause)
-  int get catchClause_rightParenthesis;
-
   @VariantId(9, variant: LinkedNodeKind.catchClause)
   LinkedNode get catchClause_stackTraceParameter;
-
-  @VariantId(15, variant: LinkedNodeKind.classDeclaration)
-  int get classDeclaration_abstractKeyword;
-
-  @VariantId(16, variant: LinkedNodeKind.classDeclaration)
-  int get classDeclaration_classKeyword;
 
   @VariantId(6, variant: LinkedNodeKind.classDeclaration)
   LinkedNode get classDeclaration_extendsClause;
@@ -1079,35 +992,17 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   LinkedNode get classOrMixinDeclaration_implementsClause;
 
-  @VariantId(19, variantList: [
-    LinkedNodeKind.classDeclaration,
-    LinkedNodeKind.mixinDeclaration,
-  ])
-  int get classOrMixinDeclaration_leftBracket;
-
   @VariantId(5, variantList: [
     LinkedNodeKind.classDeclaration,
     LinkedNodeKind.mixinDeclaration,
   ])
   List<LinkedNode> get classOrMixinDeclaration_members;
 
-  @VariantId(18, variantList: [
-    LinkedNodeKind.classDeclaration,
-    LinkedNodeKind.mixinDeclaration,
-  ])
-  int get classOrMixinDeclaration_rightBracket;
-
   @VariantId(13, variantList: [
     LinkedNodeKind.classDeclaration,
     LinkedNodeKind.mixinDeclaration,
   ])
   LinkedNode get classOrMixinDeclaration_typeParameters;
-
-  @VariantId(15, variant: LinkedNodeKind.classTypeAlias)
-  int get classTypeAlias_abstractKeyword;
-
-  @VariantId(16, variant: LinkedNodeKind.classTypeAlias)
-  int get classTypeAlias_equals;
 
   @VariantId(9, variant: LinkedNodeKind.classTypeAlias)
   LinkedNode get classTypeAlias_implementsClause;
@@ -1161,17 +1056,11 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   int get codeOffset;
 
-  @VariantId(19, variantList: [
-    LinkedNodeKind.hideCombinator,
-    LinkedNodeKind.showCombinator,
-  ])
-  int get combinator_keyword;
-
   @VariantId(2, variant: LinkedNodeKind.comment)
   List<LinkedNode> get comment_references;
 
-  @VariantId(28, variant: LinkedNodeKind.comment)
-  List<int> get comment_tokens;
+  @VariantId(36, variant: LinkedNodeKind.comment)
+  List<String> get comment_tokens;
 
   @VariantId(29, variant: LinkedNodeKind.comment)
   LinkedNodeCommentType get comment_type;
@@ -1179,26 +1068,14 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.commentReference)
   LinkedNode get commentReference_identifier;
 
-  @VariantId(15, variant: LinkedNodeKind.commentReference)
-  int get commentReference_newKeyword;
-
-  @VariantId(15, variant: LinkedNodeKind.compilationUnit)
-  int get compilationUnit_beginToken;
-
   @VariantId(2, variant: LinkedNodeKind.compilationUnit)
   List<LinkedNode> get compilationUnit_declarations;
 
   @VariantId(3, variant: LinkedNodeKind.compilationUnit)
   List<LinkedNode> get compilationUnit_directives;
 
-  @VariantId(16, variant: LinkedNodeKind.compilationUnit)
-  int get compilationUnit_endToken;
-
   @VariantId(6, variant: LinkedNodeKind.compilationUnit)
   LinkedNode get compilationUnit_scriptTag;
-
-  @VariantId(15, variant: LinkedNodeKind.conditionalExpression)
-  int get conditionalExpression_colon;
 
   @VariantId(6, variant: LinkedNodeKind.conditionalExpression)
   LinkedNode get conditionalExpression_condition;
@@ -1206,26 +1083,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.conditionalExpression)
   LinkedNode get conditionalExpression_elseExpression;
 
-  @VariantId(16, variant: LinkedNodeKind.conditionalExpression)
-  int get conditionalExpression_question;
-
   @VariantId(8, variant: LinkedNodeKind.conditionalExpression)
   LinkedNode get conditionalExpression_thenExpression;
 
-  @VariantId(18, variant: LinkedNodeKind.configuration)
-  int get configuration_equalToken;
-
-  @VariantId(15, variant: LinkedNodeKind.configuration)
-  int get configuration_ifKeyword;
-
-  @VariantId(16, variant: LinkedNodeKind.configuration)
-  int get configuration_leftParenthesis;
-
   @VariantId(6, variant: LinkedNodeKind.configuration)
   LinkedNode get configuration_name;
-
-  @VariantId(17, variant: LinkedNodeKind.configuration)
-  int get configuration_rightParenthesis;
 
   @VariantId(8, variant: LinkedNodeKind.configuration)
   LinkedNode get configuration_uri;
@@ -1236,26 +1098,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.constructorDeclaration)
   LinkedNode get constructorDeclaration_body;
 
-  @VariantId(15, variant: LinkedNodeKind.constructorDeclaration)
-  int get constructorDeclaration_constKeyword;
-
-  @VariantId(16, variant: LinkedNodeKind.constructorDeclaration)
-  int get constructorDeclaration_externalKeyword;
-
-  @VariantId(17, variant: LinkedNodeKind.constructorDeclaration)
-  int get constructorDeclaration_factoryKeyword;
-
   @VariantId(2, variant: LinkedNodeKind.constructorDeclaration)
   List<LinkedNode> get constructorDeclaration_initializers;
 
-  @VariantId(7, variant: LinkedNodeKind.constructorDeclaration)
-  LinkedNode get constructorDeclaration_name;
-
   @VariantId(8, variant: LinkedNodeKind.constructorDeclaration)
   LinkedNode get constructorDeclaration_parameters;
-
-  @VariantId(18, variant: LinkedNodeKind.constructorDeclaration)
-  int get constructorDeclaration_period;
 
   @VariantId(9, variant: LinkedNodeKind.constructorDeclaration)
   LinkedNode get constructorDeclaration_redirectedConstructor;
@@ -1263,23 +1110,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(10, variant: LinkedNodeKind.constructorDeclaration)
   LinkedNode get constructorDeclaration_returnType;
 
-  @VariantId(19, variant: LinkedNodeKind.constructorDeclaration)
-  int get constructorDeclaration_separator;
-
-  @VariantId(15, variant: LinkedNodeKind.constructorFieldInitializer)
-  int get constructorFieldInitializer_equals;
-
   @VariantId(6, variant: LinkedNodeKind.constructorFieldInitializer)
   LinkedNode get constructorFieldInitializer_expression;
 
   @VariantId(7, variant: LinkedNodeKind.constructorFieldInitializer)
   LinkedNode get constructorFieldInitializer_fieldName;
-
-  @VariantId(16, variant: LinkedNodeKind.constructorFieldInitializer)
-  int get constructorFieldInitializer_period;
-
-  @VariantId(17, variant: LinkedNodeKind.constructorFieldInitializer)
-  int get constructorFieldInitializer_thisKeyword;
 
   @VariantId(15, variant: LinkedNodeKind.constructorName)
   int get constructorName_element;
@@ -1290,26 +1125,14 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.constructorName)
   LinkedNode get constructorName_name;
 
-  @VariantId(16, variant: LinkedNodeKind.constructorName)
-  int get constructorName_period;
-
   @VariantId(7, variant: LinkedNodeKind.constructorName)
   LinkedNode get constructorName_type;
-
-  @VariantId(15, variant: LinkedNodeKind.continueStatement)
-  int get continueStatement_continueKeyword;
 
   @VariantId(6, variant: LinkedNodeKind.continueStatement)
   LinkedNode get continueStatement_label;
 
-  @VariantId(16, variant: LinkedNodeKind.continueStatement)
-  int get continueStatement_semicolon;
-
   @VariantId(6, variant: LinkedNodeKind.declaredIdentifier)
   LinkedNode get declaredIdentifier_identifier;
-
-  @VariantId(15, variant: LinkedNodeKind.declaredIdentifier)
-  int get declaredIdentifier_keyword;
 
   @VariantId(7, variant: LinkedNodeKind.declaredIdentifier)
   LinkedNode get declaredIdentifier_type;
@@ -1323,96 +1146,39 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.defaultFormalParameter)
   LinkedNode get defaultFormalParameter_parameter;
 
-  @VariantId(15, variant: LinkedNodeKind.defaultFormalParameter)
-  int get defaultFormalParameter_separator;
-
-  @VariantId(18, variantList: [
-    LinkedNodeKind.exportDirective,
-    LinkedNodeKind.importDirective,
-    LinkedNodeKind.libraryDirective,
-    LinkedNodeKind.partDirective,
-    LinkedNodeKind.partOfDirective,
-  ])
-  int get directive_keyword;
-
-  @VariantId(33, variantList: [
-    LinkedNodeKind.exportDirective,
-    LinkedNodeKind.importDirective,
-    LinkedNodeKind.libraryDirective,
-    LinkedNodeKind.partDirective,
-    LinkedNodeKind.partOfDirective,
-  ])
-  int get directive_semicolon;
-
   @VariantId(6, variant: LinkedNodeKind.doStatement)
   LinkedNode get doStatement_body;
 
   @VariantId(7, variant: LinkedNodeKind.doStatement)
   LinkedNode get doStatement_condition;
 
-  @VariantId(17, variant: LinkedNodeKind.doStatement)
-  int get doStatement_doKeyword;
-
-  @VariantId(15, variant: LinkedNodeKind.doStatement)
-  int get doStatement_leftParenthesis;
-
-  @VariantId(16, variant: LinkedNodeKind.doStatement)
-  int get doStatement_rightParenthesis;
-
-  @VariantId(18, variant: LinkedNodeKind.doStatement)
-  int get doStatement_semicolon;
-
-  @VariantId(19, variant: LinkedNodeKind.doStatement)
-  int get doStatement_whileKeyword;
-
   @VariantId(2, variant: LinkedNodeKind.dottedName)
   List<LinkedNode> get dottedName_components;
-
-  @VariantId(15, variant: LinkedNodeKind.doubleLiteral)
-  int get doubleLiteral_literal;
 
   @VariantId(21, variant: LinkedNodeKind.doubleLiteral)
   double get doubleLiteral_value;
 
   @VariantId(15, variant: LinkedNodeKind.emptyFunctionBody)
-  int get emptyFunctionBody_semicolon;
+  int get emptyFunctionBody_fake;
 
   @VariantId(15, variant: LinkedNodeKind.emptyStatement)
-  int get emptyStatement_semicolon;
-
-  @VariantId(6, variant: LinkedNodeKind.enumConstantDeclaration)
-  LinkedNode get enumConstantDeclaration_name;
+  int get emptyStatement_fake;
 
   @VariantId(2, variant: LinkedNodeKind.enumDeclaration)
   List<LinkedNode> get enumDeclaration_constants;
 
-  @VariantId(15, variant: LinkedNodeKind.enumDeclaration)
-  int get enumDeclaration_enumKeyword;
-
-  @VariantId(16, variant: LinkedNodeKind.enumDeclaration)
-  int get enumDeclaration_leftBracket;
-
-  @VariantId(17, variant: LinkedNodeKind.enumDeclaration)
-  int get enumDeclaration_rightBracket;
-
   @VariantId(25, variantList: [
-    LinkedNodeKind.adjacentStrings,
     LinkedNodeKind.assignmentExpression,
     LinkedNodeKind.asExpression,
     LinkedNodeKind.awaitExpression,
     LinkedNodeKind.binaryExpression,
-    LinkedNodeKind.booleanLiteral,
     LinkedNodeKind.cascadeExpression,
     LinkedNodeKind.conditionalExpression,
-    LinkedNodeKind.doubleLiteral,
     LinkedNodeKind.functionExpressionInvocation,
     LinkedNodeKind.indexExpression,
     LinkedNodeKind.instanceCreationExpression,
-    LinkedNodeKind.integerLiteral,
-    LinkedNodeKind.isExpression,
     LinkedNodeKind.listLiteral,
     LinkedNodeKind.methodInvocation,
-    LinkedNodeKind.namedExpression,
     LinkedNodeKind.nullLiteral,
     LinkedNodeKind.parenthesizedExpression,
     LinkedNodeKind.prefixExpression,
@@ -1422,8 +1188,6 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.rethrowExpression,
     LinkedNodeKind.setOrMapLiteral,
     LinkedNodeKind.simpleIdentifier,
-    LinkedNodeKind.simpleStringLiteral,
-    LinkedNodeKind.stringInterpolation,
     LinkedNodeKind.superExpression,
     LinkedNodeKind.symbolLiteral,
     LinkedNodeKind.thisExpression,
@@ -1431,53 +1195,20 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   LinkedNodeType get expression_type;
 
-  @VariantId(15, variant: LinkedNodeKind.expressionFunctionBody)
-  int get expressionFunctionBody_arrow;
-
   @VariantId(6, variant: LinkedNodeKind.expressionFunctionBody)
   LinkedNode get expressionFunctionBody_expression;
-
-  @VariantId(16, variant: LinkedNodeKind.expressionFunctionBody)
-  int get expressionFunctionBody_keyword;
-
-  @VariantId(17, variant: LinkedNodeKind.expressionFunctionBody)
-  int get expressionFunctionBody_semicolon;
 
   @VariantId(6, variant: LinkedNodeKind.expressionStatement)
   LinkedNode get expressionStatement_expression;
 
-  @VariantId(15, variant: LinkedNodeKind.expressionStatement)
-  int get expressionStatement_semicolon;
-
-  @VariantId(15, variant: LinkedNodeKind.extendsClause)
-  int get extendsClause_extendsKeyword;
-
   @VariantId(6, variant: LinkedNodeKind.extendsClause)
   LinkedNode get extendsClause_superclass;
-
-  @VariantId(15, variant: LinkedNodeKind.fieldDeclaration)
-  int get fieldDeclaration_covariantKeyword;
 
   @VariantId(6, variant: LinkedNodeKind.fieldDeclaration)
   LinkedNode get fieldDeclaration_fields;
 
-  @VariantId(16, variant: LinkedNodeKind.fieldDeclaration)
-  int get fieldDeclaration_semicolon;
-
-  @VariantId(17, variant: LinkedNodeKind.fieldDeclaration)
-  int get fieldDeclaration_staticKeyword;
-
   @VariantId(8, variant: LinkedNodeKind.fieldFormalParameter)
   LinkedNode get fieldFormalParameter_formalParameters;
-
-  @VariantId(15, variant: LinkedNodeKind.fieldFormalParameter)
-  int get fieldFormalParameter_keyword;
-
-  @VariantId(16, variant: LinkedNodeKind.fieldFormalParameter)
-  int get fieldFormalParameter_period;
-
-  @VariantId(17, variant: LinkedNodeKind.fieldFormalParameter)
-  int get fieldFormalParameter_thisKeyword;
 
   @VariantId(6, variant: LinkedNodeKind.fieldFormalParameter)
   LinkedNode get fieldFormalParameter_type;
@@ -1485,11 +1216,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.fieldFormalParameter)
   LinkedNode get fieldFormalParameter_typeParameters;
 
-  @VariantId(15, variantList: [
-    LinkedNodeKind.forEachPartsWithDeclaration,
-    LinkedNodeKind.forEachPartsWithIdentifier,
-  ])
-  int get forEachParts_inKeyword;
+  @Id(18)
+  int get flags;
 
   @VariantId(6, variantList: [
     LinkedNodeKind.forEachPartsWithDeclaration,
@@ -1506,32 +1234,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.forElement)
   LinkedNode get forElement_body;
 
-  @VariantId(15, variant: LinkedNodeKind.formalParameterList)
-  int get formalParameterList_leftDelimiter;
-
-  @VariantId(16, variant: LinkedNodeKind.formalParameterList)
-  int get formalParameterList_leftParenthesis;
-
   @VariantId(2, variant: LinkedNodeKind.formalParameterList)
   List<LinkedNode> get formalParameterList_parameters;
-
-  @VariantId(17, variant: LinkedNodeKind.formalParameterList)
-  int get formalParameterList_rightDelimiter;
-
-  @VariantId(18, variant: LinkedNodeKind.formalParameterList)
-  int get formalParameterList_rightParenthesis;
-
-  @VariantId(15, variantList: [
-    LinkedNodeKind.forElement,
-    LinkedNodeKind.forStatement,
-  ])
-  int get forMixin_awaitKeyword;
-
-  @VariantId(16, variantList: [
-    LinkedNodeKind.forElement,
-    LinkedNodeKind.forStatement,
-  ])
-  int get forMixin_forKeyword;
 
   @VariantId(6, variantList: [
     LinkedNodeKind.forElement,
@@ -1539,35 +1243,11 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   LinkedNode get forMixin_forLoopParts;
 
-  @VariantId(17, variantList: [
-    LinkedNodeKind.forElement,
-    LinkedNodeKind.forStatement,
-  ])
-  int get forMixin_leftParenthesis;
-
-  @VariantId(19, variantList: [
-    LinkedNodeKind.forElement,
-    LinkedNodeKind.forStatement,
-  ])
-  int get forMixin_rightParenthesis;
-
   @VariantId(6, variantList: [
     LinkedNodeKind.forPartsWithDeclarations,
     LinkedNodeKind.forPartsWithExpression,
   ])
   LinkedNode get forParts_condition;
-
-  @VariantId(15, variantList: [
-    LinkedNodeKind.forPartsWithDeclarations,
-    LinkedNodeKind.forPartsWithExpression,
-  ])
-  int get forParts_leftSeparator;
-
-  @VariantId(16, variantList: [
-    LinkedNodeKind.forPartsWithDeclarations,
-    LinkedNodeKind.forPartsWithExpression,
-  ])
-  int get forParts_rightSeparator;
 
   @VariantId(5, variantList: [
     LinkedNodeKind.forPartsWithDeclarations,
@@ -1584,14 +1264,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.forStatement)
   LinkedNode get forStatement_body;
 
-  @VariantId(15, variant: LinkedNodeKind.functionDeclaration)
-  int get functionDeclaration_externalKeyword;
-
   @VariantId(6, variant: LinkedNodeKind.functionDeclaration)
   LinkedNode get functionDeclaration_functionExpression;
-
-  @VariantId(16, variant: LinkedNodeKind.functionDeclaration)
-  int get functionDeclaration_propertyKeyword;
 
   @VariantId(7, variant: LinkedNodeKind.functionDeclaration)
   LinkedNode get functionDeclaration_returnType;
@@ -1632,14 +1306,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(8, variant: LinkedNodeKind.genericFunctionType)
   LinkedNode get genericFunctionType_formalParameters;
 
-  @VariantId(15, variant: LinkedNodeKind.genericFunctionType)
-  int get genericFunctionType_functionKeyword;
-
   @VariantId(17, variant: LinkedNodeKind.genericFunctionType)
   int get genericFunctionType_id;
-
-  @VariantId(16, variant: LinkedNodeKind.genericFunctionType)
-  int get genericFunctionType_question;
 
   @VariantId(7, variant: LinkedNodeKind.genericFunctionType)
   LinkedNode get genericFunctionType_returnType;
@@ -1650,17 +1318,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.genericFunctionType)
   LinkedNode get genericFunctionType_typeParameters;
 
-  @VariantId(16, variant: LinkedNodeKind.genericTypeAlias)
-  int get genericTypeAlias_equals;
-
   @VariantId(7, variant: LinkedNodeKind.genericTypeAlias)
   LinkedNode get genericTypeAlias_functionType;
 
   @VariantId(6, variant: LinkedNodeKind.genericTypeAlias)
   LinkedNode get genericTypeAlias_typeParameters;
-
-  @VariantId(2, variant: LinkedNodeKind.hideCombinator)
-  List<LinkedNode> get hideCombinator_hiddenNames;
 
   @VariantId(9, variant: LinkedNodeKind.ifElement)
   LinkedNode get ifElement_elseElement;
@@ -1674,50 +1336,20 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   LinkedNode get ifMixin_condition;
 
-  @VariantId(15, variantList: [
-    LinkedNodeKind.ifElement,
-    LinkedNodeKind.ifStatement,
-  ])
-  int get ifMixin_elseKeyword;
-
-  @VariantId(16, variantList: [
-    LinkedNodeKind.ifElement,
-    LinkedNodeKind.ifStatement,
-  ])
-  int get ifMixin_ifKeyword;
-
-  @VariantId(17, variantList: [
-    LinkedNodeKind.ifElement,
-    LinkedNodeKind.ifStatement,
-  ])
-  int get ifMixin_leftParenthesis;
-
-  @VariantId(18, variantList: [
-    LinkedNodeKind.ifElement,
-    LinkedNodeKind.ifStatement,
-  ])
-  int get ifMixin_rightParenthesis;
-
   @VariantId(7, variant: LinkedNodeKind.ifStatement)
   LinkedNode get ifStatement_elseStatement;
 
   @VariantId(8, variant: LinkedNodeKind.ifStatement)
   LinkedNode get ifStatement_thenStatement;
 
-  @VariantId(15, variant: LinkedNodeKind.implementsClause)
-  int get implementsClause_implementsKeyword;
-
   @VariantId(2, variant: LinkedNodeKind.implementsClause)
   List<LinkedNode> get implementsClause_interfaces;
 
+  @VariantId(1, variant: LinkedNodeKind.importDirective)
+  String get importDirective_prefix;
+
   @VariantId(15, variant: LinkedNodeKind.importDirective)
-  int get importDirective_asKeyword;
-
-  @VariantId(16, variant: LinkedNodeKind.importDirective)
-  int get importDirective_deferredKeyword;
-
-  @VariantId(6, variant: LinkedNodeKind.importDirective)
-  LinkedNode get importDirective_prefix;
+  int get importDirective_prefixOffset;
 
   @VariantId(15, variant: LinkedNodeKind.indexExpression)
   int get indexExpression_element;
@@ -1727,15 +1359,6 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(6, variant: LinkedNodeKind.indexExpression)
   LinkedNode get indexExpression_index;
-
-  @VariantId(17, variant: LinkedNodeKind.indexExpression)
-  int get indexExpression_leftBracket;
-
-  @VariantId(16, variant: LinkedNodeKind.indexExpression)
-  int get indexExpression_period;
-
-  @VariantId(18, variant: LinkedNodeKind.indexExpression)
-  int get indexExpression_rightBracket;
 
   @VariantId(7, variant: LinkedNodeKind.indexExpression)
   LinkedNode get indexExpression_target;
@@ -1748,35 +1371,20 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   bool get inheritsCovariant;
 
-  @VariantId(6, variant: LinkedNodeKind.instanceCreationExpression)
-  LinkedNode get instanceCreationExpression_arguments;
+  @VariantId(2, variant: LinkedNodeKind.instanceCreationExpression)
+  List<LinkedNode> get instanceCreationExpression_arguments;
 
   @VariantId(7, variant: LinkedNodeKind.instanceCreationExpression)
   LinkedNode get instanceCreationExpression_constructorName;
 
-  @VariantId(15, variant: LinkedNodeKind.instanceCreationExpression)
-  int get instanceCreationExpression_keyword;
-
   @VariantId(8, variant: LinkedNodeKind.instanceCreationExpression)
   LinkedNode get instanceCreationExpression_typeArguments;
-
-  @VariantId(15, variant: LinkedNodeKind.integerLiteral)
-  int get integerLiteral_literal;
 
   @VariantId(16, variant: LinkedNodeKind.integerLiteral)
   int get integerLiteral_value;
 
   @VariantId(6, variant: LinkedNodeKind.interpolationExpression)
   LinkedNode get interpolationExpression_expression;
-
-  @VariantId(15, variant: LinkedNodeKind.interpolationExpression)
-  int get interpolationExpression_leftBracket;
-
-  @VariantId(16, variant: LinkedNodeKind.interpolationExpression)
-  int get interpolationExpression_rightBracket;
-
-  @VariantId(15, variant: LinkedNodeKind.interpolationString)
-  int get interpolationString_token;
 
   @VariantId(30, variant: LinkedNodeKind.interpolationString)
   String get interpolationString_value;
@@ -1802,23 +1410,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.isExpression)
   LinkedNode get isExpression_expression;
 
-  @VariantId(15, variant: LinkedNodeKind.isExpression)
-  int get isExpression_isOperator;
-
-  @VariantId(16, variant: LinkedNodeKind.isExpression)
-  int get isExpression_notOperator;
-
   @VariantId(7, variant: LinkedNodeKind.isExpression)
   LinkedNode get isExpression_type;
 
-  @Id(1)
-  bool get isSynthetic;
-
   @Id(0)
   LinkedNodeKind get kind;
-
-  @VariantId(15, variant: LinkedNodeKind.label)
-  int get label_colon;
 
   @VariantId(6, variant: LinkedNodeKind.label)
   LinkedNode get label_label;
@@ -1835,47 +1431,20 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(2, variant: LinkedNodeKind.libraryIdentifier)
   List<LinkedNode> get libraryIdentifier_components;
 
-  @VariantId(2, variant: LinkedNodeKind.listLiteral)
+  @VariantId(3, variant: LinkedNodeKind.listLiteral)
   List<LinkedNode> get listLiteral_elements;
-
-  @VariantId(15, variant: LinkedNodeKind.listLiteral)
-  int get listLiteral_leftBracket;
-
-  @VariantId(16, variant: LinkedNodeKind.listLiteral)
-  int get listLiteral_rightBracket;
 
   @VariantId(6, variant: LinkedNodeKind.mapLiteralEntry)
   LinkedNode get mapLiteralEntry_key;
 
-  @VariantId(15, variant: LinkedNodeKind.mapLiteralEntry)
-  int get mapLiteralEntry_separator;
-
   @VariantId(7, variant: LinkedNodeKind.mapLiteralEntry)
   LinkedNode get mapLiteralEntry_value;
-
-  @VariantId(19, variant: LinkedNodeKind.methodDeclaration)
-  int get methodDeclaration_actualProperty;
 
   @VariantId(6, variant: LinkedNodeKind.methodDeclaration)
   LinkedNode get methodDeclaration_body;
 
-  @VariantId(15, variant: LinkedNodeKind.methodDeclaration)
-  int get methodDeclaration_externalKeyword;
-
   @VariantId(7, variant: LinkedNodeKind.methodDeclaration)
   LinkedNode get methodDeclaration_formalParameters;
-
-  @VariantId(16, variant: LinkedNodeKind.methodDeclaration)
-  int get methodDeclaration_modifierKeyword;
-
-  @VariantId(10, variant: LinkedNodeKind.methodDeclaration)
-  LinkedNode get methodDeclaration_name;
-
-  @VariantId(17, variant: LinkedNodeKind.methodDeclaration)
-  int get methodDeclaration_operatorKeyword;
-
-  @VariantId(18, variant: LinkedNodeKind.methodDeclaration)
-  int get methodDeclaration_propertyKeyword;
 
   @VariantId(8, variant: LinkedNodeKind.methodDeclaration)
   LinkedNode get methodDeclaration_returnType;
@@ -1886,14 +1455,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.methodInvocation)
   LinkedNode get methodInvocation_methodName;
 
-  @VariantId(15, variant: LinkedNodeKind.methodInvocation)
-  int get methodInvocation_operator;
-
   @VariantId(7, variant: LinkedNodeKind.methodInvocation)
   LinkedNode get methodInvocation_target;
-
-  @VariantId(15, variant: LinkedNodeKind.mixinDeclaration)
-  int get mixinDeclaration_mixinKeyword;
 
   @VariantId(6, variant: LinkedNodeKind.mixinDeclaration)
   LinkedNode get mixinDeclaration_onClause;
@@ -1901,22 +1464,43 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(36, variant: LinkedNodeKind.mixinDeclaration)
   List<String> get mixinDeclaration_superInvokedNames;
 
-  @VariantId(14, variantList: [
-    LinkedNodeKind.classDeclaration,
-    LinkedNodeKind.classTypeAlias,
-    LinkedNodeKind.enumDeclaration,
-    LinkedNodeKind.functionDeclaration,
-    LinkedNodeKind.functionTypeAlias,
-    LinkedNodeKind.genericTypeAlias,
-    LinkedNodeKind.mixinDeclaration,
-  ])
-  LinkedNode get namedCompilationUnitMember_name;
+  @Id(37)
+  String get name;
 
   @VariantId(6, variant: LinkedNodeKind.namedExpression)
   LinkedNode get namedExpression_expression;
 
   @VariantId(7, variant: LinkedNodeKind.namedExpression)
   LinkedNode get namedExpression_name;
+
+  @VariantId(16, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.classTypeAlias,
+    LinkedNodeKind.constructorDeclaration,
+    LinkedNodeKind.enumConstantDeclaration,
+    LinkedNodeKind.enumDeclaration,
+    LinkedNodeKind.exportDirective,
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionDeclaration,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.genericTypeAlias,
+    LinkedNodeKind.importDirective,
+    LinkedNodeKind.methodDeclaration,
+    LinkedNodeKind.mixinDeclaration,
+    LinkedNodeKind.partDirective,
+    LinkedNodeKind.simpleFormalParameter,
+    LinkedNodeKind.typeParameter,
+    LinkedNodeKind.variableDeclaration,
+  ])
+  int get nameOffset;
+
+  @VariantId(36, variantList: [
+    LinkedNodeKind.hideCombinator,
+    LinkedNodeKind.showCombinator,
+    LinkedNodeKind.symbolLiteral,
+  ])
+  List<String> get names;
 
   @VariantId(2, variantList: [
     LinkedNodeKind.exportDirective,
@@ -1939,15 +1523,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.nativeClause)
   LinkedNode get nativeClause_name;
 
-  @VariantId(15, variant: LinkedNodeKind.nativeClause)
-  int get nativeClause_nativeKeyword;
-
-  @VariantId(15, variant: LinkedNodeKind.nativeFunctionBody)
-  int get nativeFunctionBody_nativeKeyword;
-
-  @VariantId(16, variant: LinkedNodeKind.nativeFunctionBody)
-  int get nativeFunctionBody_semicolon;
-
   @VariantId(6, variant: LinkedNodeKind.nativeFunctionBody)
   LinkedNode get nativeFunctionBody_stringLiteral;
 
@@ -1958,20 +1533,6 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   LinkedNode get normalFormalParameter_comment;
 
-  @VariantId(19, variantList: [
-    LinkedNodeKind.fieldFormalParameter,
-    LinkedNodeKind.functionTypedFormalParameter,
-    LinkedNodeKind.simpleFormalParameter,
-  ])
-  int get normalFormalParameter_covariantKeyword;
-
-  @VariantId(12, variantList: [
-    LinkedNodeKind.fieldFormalParameter,
-    LinkedNodeKind.functionTypedFormalParameter,
-    LinkedNodeKind.simpleFormalParameter,
-  ])
-  LinkedNode get normalFormalParameter_identifier;
-
   @VariantId(4, variantList: [
     LinkedNodeKind.fieldFormalParameter,
     LinkedNodeKind.functionTypedFormalParameter,
@@ -1979,18 +1540,8 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   List<LinkedNode> get normalFormalParameter_metadata;
 
-  @VariantId(18, variantList: [
-    LinkedNodeKind.fieldFormalParameter,
-    LinkedNodeKind.functionTypedFormalParameter,
-    LinkedNodeKind.simpleFormalParameter,
-  ])
-  int get normalFormalParameter_requiredKeyword;
-
   @VariantId(15, variant: LinkedNodeKind.nullLiteral)
-  int get nullLiteral_literal;
-
-  @VariantId(15, variant: LinkedNodeKind.onClause)
-  int get onClause_onKeyword;
+  int get nullLiteral_fake;
 
   @VariantId(2, variant: LinkedNodeKind.onClause)
   List<LinkedNode> get onClause_superclassConstraints;
@@ -1998,17 +1549,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.parenthesizedExpression)
   LinkedNode get parenthesizedExpression_expression;
 
-  @VariantId(15, variant: LinkedNodeKind.parenthesizedExpression)
-  int get parenthesizedExpression_leftParenthesis;
-
-  @VariantId(16, variant: LinkedNodeKind.parenthesizedExpression)
-  int get parenthesizedExpression_rightParenthesis;
-
   @VariantId(6, variant: LinkedNodeKind.partOfDirective)
   LinkedNode get partOfDirective_libraryName;
-
-  @VariantId(16, variant: LinkedNodeKind.partOfDirective)
-  int get partOfDirective_ofKeyword;
 
   @VariantId(7, variant: LinkedNodeKind.partOfDirective)
   LinkedNode get partOfDirective_uri;
@@ -2022,14 +1564,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.postfixExpression)
   LinkedNode get postfixExpression_operand;
 
-  @VariantId(16, variant: LinkedNodeKind.postfixExpression)
-  int get postfixExpression_operator;
+  @VariantId(28, variant: LinkedNodeKind.postfixExpression)
+  UnlinkedTokenType get postfixExpression_operator;
 
   @VariantId(6, variant: LinkedNodeKind.prefixedIdentifier)
   LinkedNode get prefixedIdentifier_identifier;
-
-  @VariantId(15, variant: LinkedNodeKind.prefixedIdentifier)
-  int get prefixedIdentifier_period;
 
   @VariantId(7, variant: LinkedNodeKind.prefixedIdentifier)
   LinkedNode get prefixedIdentifier_prefix;
@@ -2043,11 +1582,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.prefixExpression)
   LinkedNode get prefixExpression_operand;
 
-  @VariantId(16, variant: LinkedNodeKind.prefixExpression)
-  int get prefixExpression_operator;
+  @VariantId(28, variant: LinkedNodeKind.prefixExpression)
+  UnlinkedTokenType get prefixExpression_operator;
 
-  @VariantId(15, variant: LinkedNodeKind.propertyAccess)
-  int get propertyAccess_operator;
+  @VariantId(28, variant: LinkedNodeKind.propertyAccess)
+  UnlinkedTokenType get propertyAccess_operator;
 
   @VariantId(6, variant: LinkedNodeKind.propertyAccess)
   LinkedNode get propertyAccess_propertyName;
@@ -2067,47 +1606,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(23, variant: LinkedNodeKind.redirectingConstructorInvocation)
   LinkedNodeType get redirectingConstructorInvocation_elementType;
 
-  @VariantId(16, variant: LinkedNodeKind.redirectingConstructorInvocation)
-  int get redirectingConstructorInvocation_period;
-
-  @VariantId(17, variant: LinkedNodeKind.redirectingConstructorInvocation)
-  int get redirectingConstructorInvocation_thisKeyword;
-
-  @VariantId(15, variant: LinkedNodeKind.rethrowExpression)
-  int get rethrowExpression_rethrowKeyword;
-
   @VariantId(6, variant: LinkedNodeKind.returnStatement)
   LinkedNode get returnStatement_expression;
 
-  @VariantId(15, variant: LinkedNodeKind.returnStatement)
-  int get returnStatement_returnKeyword;
-
-  @VariantId(16, variant: LinkedNodeKind.returnStatement)
-  int get returnStatement_semicolon;
-
-  @VariantId(15, variant: LinkedNodeKind.scriptTag)
-  int get scriptTag_scriptTag;
-
-  @VariantId(2, variant: LinkedNodeKind.setOrMapLiteral)
+  @VariantId(3, variant: LinkedNodeKind.setOrMapLiteral)
   List<LinkedNode> get setOrMapLiteral_elements;
-
-  @VariantId(27, variant: LinkedNodeKind.setOrMapLiteral)
-  bool get setOrMapLiteral_isMap;
-
-  @VariantId(31, variant: LinkedNodeKind.setOrMapLiteral)
-  bool get setOrMapLiteral_isSet;
-
-  @VariantId(15, variant: LinkedNodeKind.setOrMapLiteral)
-  int get setOrMapLiteral_leftBracket;
-
-  @VariantId(16, variant: LinkedNodeKind.setOrMapLiteral)
-  int get setOrMapLiteral_rightBracket;
-
-  @VariantId(2, variant: LinkedNodeKind.showCombinator)
-  List<LinkedNode> get showCombinator_shownNames;
-
-  @VariantId(15, variant: LinkedNodeKind.simpleFormalParameter)
-  int get simpleFormalParameter_keyword;
 
   @VariantId(6, variant: LinkedNodeKind.simpleFormalParameter)
   LinkedNode get simpleFormalParameter_type;
@@ -2117,15 +1620,6 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(23, variant: LinkedNodeKind.simpleIdentifier)
   LinkedNodeType get simpleIdentifier_elementType;
-
-  @VariantId(27, variant: LinkedNodeKind.simpleIdentifier)
-  bool get simpleIdentifier_isDeclaration;
-
-  @VariantId(16, variant: LinkedNodeKind.simpleIdentifier)
-  int get simpleIdentifier_token;
-
-  @VariantId(15, variant: LinkedNodeKind.simpleStringLiteral)
-  int get simpleStringLiteral_token;
 
   @VariantId(20, variant: LinkedNodeKind.simpleStringLiteral)
   String get simpleStringLiteral_value;
@@ -2142,8 +1636,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.spreadElement)
   LinkedNode get spreadElement_expression;
 
-  @VariantId(15, variant: LinkedNodeKind.spreadElement)
-  int get spreadElement_spreadOperator;
+  @VariantId(38, variant: LinkedNodeKind.spreadElement)
+  UnlinkedTokenType get spreadElement_spreadOperator;
 
   @VariantId(2, variant: LinkedNodeKind.stringInterpolation)
   List<LinkedNode> get stringInterpolation_elements;
@@ -2160,29 +1654,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(23, variant: LinkedNodeKind.superConstructorInvocation)
   LinkedNodeType get superConstructorInvocation_elementType;
 
-  @VariantId(16, variant: LinkedNodeKind.superConstructorInvocation)
-  int get superConstructorInvocation_period;
-
-  @VariantId(17, variant: LinkedNodeKind.superConstructorInvocation)
-  int get superConstructorInvocation_superKeyword;
-
-  @VariantId(15, variant: LinkedNodeKind.superExpression)
-  int get superExpression_superKeyword;
-
   @VariantId(6, variant: LinkedNodeKind.switchCase)
   LinkedNode get switchCase_expression;
-
-  @VariantId(16, variantList: [
-    LinkedNodeKind.switchCase,
-    LinkedNodeKind.switchDefault,
-  ])
-  int get switchMember_colon;
-
-  @VariantId(15, variantList: [
-    LinkedNodeKind.switchCase,
-    LinkedNodeKind.switchDefault,
-  ])
-  int get switchMember_keyword;
 
   @VariantId(3, variantList: [
     LinkedNodeKind.switchCase,
@@ -2199,47 +1672,17 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.switchStatement)
   LinkedNode get switchStatement_expression;
 
-  @VariantId(18, variant: LinkedNodeKind.switchStatement)
-  int get switchStatement_leftBracket;
-
-  @VariantId(15, variant: LinkedNodeKind.switchStatement)
-  int get switchStatement_leftParenthesis;
-
   @VariantId(2, variant: LinkedNodeKind.switchStatement)
   List<LinkedNode> get switchStatement_members;
 
-  @VariantId(19, variant: LinkedNodeKind.switchStatement)
-  int get switchStatement_rightBracket;
-
-  @VariantId(16, variant: LinkedNodeKind.switchStatement)
-  int get switchStatement_rightParenthesis;
-
-  @VariantId(17, variant: LinkedNodeKind.switchStatement)
-  int get switchStatement_switchKeyword;
-
-  @VariantId(28, variant: LinkedNodeKind.symbolLiteral)
-  List<int> get symbolLiteral_components;
-
-  @VariantId(15, variant: LinkedNodeKind.symbolLiteral)
-  int get symbolLiteral_poundSign;
-
-  @VariantId(15, variant: LinkedNodeKind.thisExpression)
-  int get thisExpression_thisKeyword;
-
   @VariantId(6, variant: LinkedNodeKind.throwExpression)
   LinkedNode get throwExpression_expression;
-
-  @VariantId(15, variant: LinkedNodeKind.throwExpression)
-  int get throwExpression_throwKeyword;
 
   @VariantId(35, variantList: [
     LinkedNodeKind.simpleFormalParameter,
     LinkedNodeKind.variableDeclaration,
   ])
   TopLevelInferenceError get topLevelTypeInferenceError;
-
-  @VariantId(15, variant: LinkedNodeKind.topLevelVariableDeclaration)
-  int get topLevelVariableDeclaration_semicolon;
 
   @VariantId(6, variant: LinkedNodeKind.topLevelVariableDeclaration)
   LinkedNode get topLevelVariableDeclaration_variableList;
@@ -2253,82 +1696,35 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.tryStatement)
   LinkedNode get tryStatement_finallyBlock;
 
-  @VariantId(15, variant: LinkedNodeKind.tryStatement)
-  int get tryStatement_finallyKeyword;
-
-  @VariantId(16, variant: LinkedNodeKind.tryStatement)
-  int get tryStatement_tryKeyword;
-
   @VariantId(27, variantList: [
     LinkedNodeKind.functionTypeAlias,
     LinkedNodeKind.genericTypeAlias,
   ])
   bool get typeAlias_hasSelfReference;
 
-  @VariantId(19, variantList: [
-    LinkedNodeKind.classTypeAlias,
-    LinkedNodeKind.functionTypeAlias,
-    LinkedNodeKind.genericTypeAlias,
-  ])
-  int get typeAlias_semicolon;
-
-  @VariantId(18, variantList: [
-    LinkedNodeKind.classTypeAlias,
-    LinkedNodeKind.functionTypeAlias,
-    LinkedNodeKind.genericTypeAlias,
-  ])
-  int get typeAlias_typedefKeyword;
-
   @VariantId(2, variant: LinkedNodeKind.typeArgumentList)
   List<LinkedNode> get typeArgumentList_arguments;
 
-  @VariantId(15, variant: LinkedNodeKind.typeArgumentList)
-  int get typeArgumentList_leftBracket;
-
-  @VariantId(16, variant: LinkedNodeKind.typeArgumentList)
-  int get typeArgumentList_rightBracket;
-
-  @VariantId(19, variantList: [
+  @VariantId(2, variantList: [
     LinkedNodeKind.listLiteral,
     LinkedNodeKind.setOrMapLiteral,
   ])
-  int get typedLiteral_constKeyword;
-
-  @VariantId(14, variantList: [
-    LinkedNodeKind.listLiteral,
-    LinkedNodeKind.setOrMapLiteral,
-  ])
-  LinkedNode get typedLiteral_typeArguments;
+  List<LinkedNode> get typedLiteral_typeArguments;
 
   @VariantId(6, variant: LinkedNodeKind.typeName)
   LinkedNode get typeName_name;
 
-  @VariantId(15, variant: LinkedNodeKind.typeName)
-  int get typeName_question;
-
   @VariantId(23, variant: LinkedNodeKind.typeName)
   LinkedNodeType get typeName_type;
 
-  @VariantId(7, variant: LinkedNodeKind.typeName)
-  LinkedNode get typeName_typeArguments;
+  @VariantId(2, variant: LinkedNodeKind.typeName)
+  List<LinkedNode> get typeName_typeArguments;
 
   @VariantId(6, variant: LinkedNodeKind.typeParameter)
   LinkedNode get typeParameter_bound;
 
   @VariantId(23, variant: LinkedNodeKind.typeParameter)
   LinkedNodeType get typeParameter_defaultType;
-
-  @VariantId(15, variant: LinkedNodeKind.typeParameter)
-  int get typeParameter_extendsKeyword;
-
-  @VariantId(7, variant: LinkedNodeKind.typeParameter)
-  LinkedNode get typeParameter_name;
-
-  @VariantId(15, variant: LinkedNodeKind.typeParameterList)
-  int get typeParameterList_leftBracket;
-
-  @VariantId(16, variant: LinkedNodeKind.typeParameterList)
-  int get typeParameterList_rightBracket;
 
   @VariantId(2, variant: LinkedNodeKind.typeParameterList)
   List<LinkedNode> get typeParameterList_typeParameters;
@@ -2357,29 +1753,14 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(32, variant: LinkedNodeKind.variableDeclaration)
   LinkedNodeVariablesDeclaration get variableDeclaration_declaration;
 
-  @VariantId(15, variant: LinkedNodeKind.variableDeclaration)
-  int get variableDeclaration_equals;
-
   @VariantId(6, variant: LinkedNodeKind.variableDeclaration)
   LinkedNode get variableDeclaration_initializer;
-
-  @VariantId(7, variant: LinkedNodeKind.variableDeclaration)
-  LinkedNode get variableDeclaration_name;
-
-  @VariantId(15, variant: LinkedNodeKind.variableDeclarationList)
-  int get variableDeclarationList_keyword;
-
-  @VariantId(16, variant: LinkedNodeKind.variableDeclarationList)
-  int get variableDeclarationList_lateKeyword;
 
   @VariantId(6, variant: LinkedNodeKind.variableDeclarationList)
   LinkedNode get variableDeclarationList_type;
 
   @VariantId(2, variant: LinkedNodeKind.variableDeclarationList)
   List<LinkedNode> get variableDeclarationList_variables;
-
-  @VariantId(15, variant: LinkedNodeKind.variableDeclarationStatement)
-  int get variableDeclarationStatement_semicolon;
 
   @VariantId(6, variant: LinkedNodeKind.variableDeclarationStatement)
   LinkedNode get variableDeclarationStatement_variables;
@@ -2390,32 +1771,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.whileStatement)
   LinkedNode get whileStatement_condition;
 
-  @VariantId(15, variant: LinkedNodeKind.whileStatement)
-  int get whileStatement_leftParenthesis;
-
-  @VariantId(16, variant: LinkedNodeKind.whileStatement)
-  int get whileStatement_rightParenthesis;
-
-  @VariantId(17, variant: LinkedNodeKind.whileStatement)
-  int get whileStatement_whileKeyword;
-
   @VariantId(2, variant: LinkedNodeKind.withClause)
   List<LinkedNode> get withClause_mixinTypes;
 
-  @VariantId(15, variant: LinkedNodeKind.withClause)
-  int get withClause_withKeyword;
-
   @VariantId(6, variant: LinkedNodeKind.yieldStatement)
   LinkedNode get yieldStatement_expression;
-
-  @VariantId(17, variant: LinkedNodeKind.yieldStatement)
-  int get yieldStatement_semicolon;
-
-  @VariantId(16, variant: LinkedNodeKind.yieldStatement)
-  int get yieldStatement_star;
-
-  @VariantId(15, variant: LinkedNodeKind.yieldStatement)
-  int get yieldStatement_yieldKeyword;
 }
 
 /// Information about a group of libraries linked together, for example because
@@ -2537,7 +1897,6 @@ enum LinkedNodeKind {
   redirectingConstructorInvocation,
   rethrowExpression,
   returnStatement,
-  scriptTag,
   setOrMapLiteral,
   showCombinator,
   simpleFormalParameter,
@@ -2667,6 +2026,15 @@ abstract class LinkedNodeTypeTypeParameter extends base.SummaryClass {
 
 /// Information about a single library in a [LinkedNodeLibrary].
 abstract class LinkedNodeUnit extends base.SummaryClass {
+  /// All generic function types in the unit - in generic type aliases, or used
+  /// directly as type annotations.
+  ///
+  /// They are requested in two cases: when we are reading a node that contains
+  /// them (e.g. a return type of a method), or when we run over unresolved
+  /// AST in declaration resolver.
+  @Id(5)
+  List<LinkedNode> get genericFunctionTypes;
+
   @Id(3)
   bool get isSynthetic;
 
@@ -2683,6 +2051,9 @@ abstract class LinkedNodeUnit extends base.SummaryClass {
 
   @Id(0)
   String get uriStr;
+
+  @Id(6)
+  bool get isNNBD;
 }
 
 /// Information about a top-level declaration, or a field declaration that
@@ -2811,6 +2182,10 @@ abstract class PackageBundle extends base.SummaryClass {
   @Id(7)
   @deprecated
   String get apiSignature;
+
+  /// The version 2 of the summary.
+  @Id(9)
+  LinkedNodeBundle get bundle2;
 
   /// Information about the packages this package depends on, if known.
   @Id(8)
@@ -4768,6 +4143,10 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   /// Import declarations in the compilation unit.
   @Id(5)
   List<UnlinkedImport> get imports;
+
+  /// Indicates whether this compilation unit is opted into NNBD.
+  @Id(21)
+  bool get isNNBD;
 
   /// Indicates whether the unit contains a "part of" declaration.
   @Id(18)

@@ -5,6 +5,7 @@
 import 'dart:collection';
 import "dart:math" as math;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -38,6 +39,16 @@ import 'package:analyzer/src/generated/source.dart';
  * warnings not covered by the parser and resolver.
  */
 class ErrorVerifier extends RecursiveAstVisitor<void> {
+  /**
+   * Properties on the object class which are safe to call on nullable types.
+   * 
+   * Note that this must include tear-offs.
+   *
+   * TODO(mfairhurst): Calculate these fields rather than hard-code them.
+   */
+  static final _objectPropertyNames =
+      Set.from(['hashCode', 'runtimeType', 'noSuchMethod', 'toString']);
+
   /**
    * The error reporter by which errors will be reported.
    */
@@ -354,12 +365,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitAssertInitializer(AssertInitializer node) {
     _checkForNonBoolExpression(node);
+    _checkForNullableDereference(node.condition);
     super.visitAssertInitializer(node);
   }
 
   @override
   void visitAssertStatement(AssertStatement node) {
     _checkForNonBoolExpression(node);
+    _checkForNullableDereference(node.condition);
     super.visitAssertStatement(node);
   }
 
@@ -545,7 +558,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    _isNonNullable = (node as CompilationUnitImpl).isNonNullable;
+    _isNonNullable = node.featureSet.isEnabled(Feature.non_nullable);
     _checkDuplicateUnitMembers(node);
     _checkForDeferredPrefixCollisions(node);
     super.visitCompilationUnit(node);
@@ -1053,6 +1066,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     _checkTypeArguments(node);
     _checkForImplicitDynamicInvoke(node);
+    _checkForNullableDereference(methodName);
     _checkForMissingRequiredParam(
         node.staticInvokeType, node.argumentList, node.methodName);
     if (node.operator?.type != TokenType.QUESTION_PERIOD &&
@@ -1133,8 +1147,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     String property = node.identifier.name;
     if (node.staticElement is ExecutableElement &&
-        property != 'hashCode' &&
-        property != 'runtimeType') {
+        !_objectPropertyNames.contains(property)) {
       _checkForNullableDereference(node.prefix);
     }
     super.visitPrefixedIdentifier(node);
@@ -1163,8 +1176,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(typeReference, propertyName);
     if (node.operator?.type != TokenType.QUESTION_PERIOD &&
-        propertyName.name != 'hashCode' &&
-        propertyName.name != 'runtimeType') {
+        !_objectPropertyNames.contains(propertyName.name)) {
       _checkForNullableDereference(node.target);
     }
     _checkForUnnecessaryNullAware(node.target, node.operator);
@@ -5303,7 +5315,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     if (type is ParameterizedType) {
-      var element = type.element;
+      var element = typeName.name.staticElement;
       // prepare type parameters
       List<TypeParameterElement> parameterElements;
       if (element is ClassElement) {

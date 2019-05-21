@@ -31,6 +31,30 @@ import 'package:analyzer/src/summary/summary_sdk.dart';
  */
 final _typesWithImplicitTypeArguments = new Expando();
 
+NullabilitySuffix decodeNullabilitySuffix(EntityRefNullabilitySuffix suffix) {
+  switch (suffix) {
+    case EntityRefNullabilitySuffix.none:
+      return NullabilitySuffix.none;
+    case EntityRefNullabilitySuffix.question:
+      return NullabilitySuffix.question;
+    case EntityRefNullabilitySuffix.starOrIrrelevant:
+      return NullabilitySuffix.star;
+  }
+  throw new StateError('Unrecognized nullability suffix');
+}
+
+EntityRefNullabilitySuffix encodeNullabilitySuffix(NullabilitySuffix suffix) {
+  switch (suffix) {
+    case NullabilitySuffix.none:
+      return EntityRefNullabilitySuffix.none;
+    case NullabilitySuffix.question:
+      return EntityRefNullabilitySuffix.question;
+    case NullabilitySuffix.star:
+      return EntityRefNullabilitySuffix.starOrIrrelevant;
+  }
+  throw new StateError('Unrecognized nullability suffix');
+}
+
 /// An instance of [LibraryResynthesizer] is responsible for resynthesizing the
 /// elements in a single library from that library's summary.
 abstract class LibraryResynthesizer {
@@ -329,7 +353,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
       Source librarySource = _getSource(uri);
       if (serializedLibrary == null) {
         LibraryElementImpl libraryElement =
-            new LibraryElementImpl(context, session, '', -1, 0);
+            new LibraryElementImpl(context, session, '', -1, 0, true);
         libraryElement.isSynthetic = true;
         CompilationUnitElementImpl unitElement =
             new CompilationUnitElementImpl();
@@ -1343,17 +1367,18 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
         type = refinedType;
       }
     }
+    DartType result;
     if (type.paramReference != 0) {
-      return context.typeParameterContext
+      result = context.typeParameterContext
           .getTypeParameterType(type.paramReference);
     } else if (type.entityKind == EntityRefKind.genericFunctionType) {
       GenericFunctionTypeElement element =
           new GenericFunctionTypeElementImpl.forSerialized(context, type);
-      return element.type;
+      result = element.type;
     } else if (type.syntheticReturnType != null) {
       FunctionElementImpl element =
           new FunctionElementImpl_forLUB(context, type);
-      return element.type;
+      result = element.type;
     } else {
       DartType getTypeArgument(int i) {
         if (i < type.typeArguments.length) {
@@ -1369,12 +1394,14 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
         return DynamicTypeImpl.instance;
       }
 
-      return referenceInfo.buildType(
+      result = referenceInfo.buildType(
           instantiateToBoundsAllowed,
           type.typeArguments.length,
           getTypeArgument,
           type.implicitFunctionTypeIndices);
     }
+    var nullabilitySuffix = decodeNullabilitySuffix(type.nullabilitySuffix);
+    return (result as TypeImpl).withNullability(nullabilitySuffix);
   }
 
   @override

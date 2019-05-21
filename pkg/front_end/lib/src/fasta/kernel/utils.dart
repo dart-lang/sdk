@@ -60,12 +60,15 @@ Future<Null> writeComponentToFile(Component component, Uri uri,
 
 /// Serialize the libraries in [component] that match [filter].
 List<int> serializeComponent(Component component,
-    {bool filter(Library library), bool includeSources: true}) {
+    {bool filter(Library library),
+    bool includeSources: true,
+    bool includeOffsets: true}) {
   ByteSink byteSink = new ByteSink();
   BinaryPrinter printer = filter == null
-      ? new BinaryPrinter(byteSink, includeSources: includeSources)
-      : new LimitedBinaryPrinter(
-          byteSink, filter ?? (_) => true, !includeSources);
+      ? new BinaryPrinter(byteSink,
+          includeSources: includeSources, includeOffsets: includeOffsets)
+      : new LimitedBinaryPrinter(byteSink, filter, !includeSources,
+          includeOffsets: includeOffsets);
   printer.writeComponentFile(component);
   return byteSink.builder.takeBytes();
 }

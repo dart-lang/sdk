@@ -5,7 +5,7 @@
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
-import '../js_backend/js_backend.dart';
+import '../js_backend/js_backend.dart' show SuperMemberData;
 import '../js_backend/interceptor_data.dart';
 import '../options.dart';
 import '../universe/selector.dart' show Selector;
@@ -190,9 +190,8 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
       if (_interceptorData.isInterceptedSelector(selector) &&
           !_interceptorData.isInterceptedMixinSelector(
               selector, mask, _closedWorld)) {
-        ConstantValue constant = new SyntheticConstantValue(
-            SyntheticConstantKind.DUMMY_INTERCEPTOR,
-            receiverArgument.instructionType);
+        ConstantValue constant =
+            new AbstractValueConstantValue(receiverArgument.instructionType);
         HConstant dummy = graph.addConstant(constant, _closedWorld);
         receiverArgument.usedBy.remove(node);
         node.inputs[1] = dummy;

@@ -35,6 +35,10 @@ import 'package:crypto/crypto.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:meta/meta.dart';
 
+var counterFileStateRefresh = 0;
+var counterUnlinkedLinkedBytes = 0;
+var timerFileStateRefresh = Stopwatch();
+
 /**
  * [FileContentOverlay] is used to temporary override content of files.
  */
@@ -118,8 +122,10 @@ class FileState {
   String _unlinkedKey;
   AnalysisDriverUnlinkedUnit _driverUnlinkedUnit;
   UnlinkedUnit _unlinked;
-  UnlinkedUnit2 _unlinked2;
   List<int> _apiSignature;
+
+  UnlinkedUnit2 _unlinked2;
+  CompilationUnit _unitForLinking;
 
   List<FileState> _importedFiles;
   List<FileState> _exportedFiles;
@@ -454,8 +460,15 @@ class FileState {
    * Return `true` if the API signature changed since the last refresh.
    */
   bool refresh({bool allowCached: false}) {
+    counterFileStateRefresh++;
+
     if (_fsState.useSummary2) {
-      return _refresh2();
+      return _refresh2(allowCached: allowCached);
+    }
+
+    var timerWasRunning = timerFileStateRefresh.isRunning;
+    if (!timerWasRunning) {
+      timerFileStateRefresh.start();
     }
 
     _invalidateCurrentUnresolvedData();
@@ -494,6 +507,7 @@ class FileState {
                   referencedNames: referencedNames,
                   subtypedNames: subtypedNames)
               .toBuffer();
+          counterUnlinkedLinkedBytes += bytes.length;
           _fsState._byteStore.put(_unlinkedKey, bytes);
         });
       }
@@ -582,8 +596,24 @@ class FileState {
       files.add(this);
     }
 
+    if (!timerWasRunning) {
+      timerFileStateRefresh.stop();
+    }
+
     // Return whether the API signature changed.
     return apiSignatureChanged;
+  }
+
+  /// If the file has a parsed unit from computing unlinked data, return it.
+  /// Otherwise, parse it afresh now.
+  CompilationUnit takeUnitForLinking() {
+    if (_unitForLinking != null) {
+      var result = _unitForLinking;
+      _unitForLinking = null;
+      return result;
+    } else {
+      return parse();
+    }
   }
 
   @override
@@ -708,7 +738,7 @@ class FileState {
     Scanner scanner = new Scanner(source, reader, errorListener)
       ..configureFeatures(featureSet);
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
-      return scanner.tokenize();
+      return scanner.tokenize(reportScannerErrors: false);
     });
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
@@ -729,11 +759,16 @@ class FileState {
     return unit;
   }
 
-  bool _refresh2() {
+  bool _refresh2({bool allowCached: false}) {
+    var timerWasRunning = timerFileStateRefresh.isRunning;
+    if (!timerWasRunning) {
+      timerFileStateRefresh.start();
+    }
+
     _invalidateCurrentUnresolvedData();
 
     {
-      var rawFileState = _fsState._fileContentCache.get(path, false);
+      var rawFileState = _fsState._fileContentCache.get(path, allowCached);
       _content = rawFileState.content;
       _exists = rawFileState.exists;
       _contentHash = rawFileState.contentHash;
@@ -756,6 +791,7 @@ class FileState {
       bytes = _fsState._byteStore.get(_unlinkedKey);
       if (bytes == null || bytes.isEmpty) {
         CompilationUnit unit = parse();
+        _unitForLinking = unit;
         _fsState._logger.run('Create unlinked for $path', () {
           var unlinkedUnit = serializeAstUnlinked2(contentSignature, unit);
           var definedNames = computeDefinedNames(unit);
@@ -851,6 +887,10 @@ class FileState {
         _fsState._subtypedNameToFiles[name] = files;
       }
       files.add(this);
+    }
+
+    if (!timerWasRunning) {
+      timerFileStateRefresh.stop();
     }
 
     // Return whether the API signature changed.

@@ -37,6 +37,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   BufferedSink _constantsSink;
   BufferedSink _sink;
   bool includeSources;
+  bool includeOffsets;
 
   List<int> libraryOffsets;
   List<int> classOffsets;
@@ -57,7 +58,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   /// The BinaryPrinter will use its own buffer, so the [sink] does not need
   /// one.
   BinaryPrinter(Sink<List<int>> sink,
-      {StringIndexer stringIndexer, this.includeSources = true})
+      {StringIndexer stringIndexer,
+      this.includeSources = true,
+      this.includeOffsets = true})
       : _mainSink = new BufferedSink(sink),
         _metadataSink = new BufferedSink(new BytesSink()),
         _constantsBytesSink = new BytesSink(),
@@ -875,7 +878,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     // TODO(jensj): Delta-encoding.
     // File offset ranges from -1 and up,
     // but is here saved as unsigned (thus the +1)
-    writeUInt30(offset + 1);
+    if (!includeOffsets) {
+      writeUInt30(0);
+    } else {
+      writeUInt30(offset + 1);
+    }
   }
 
   void writeClassReference(Class class_) {

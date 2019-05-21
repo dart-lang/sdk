@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io' as io;
 
+import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
@@ -15,6 +16,7 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_completion.dart'
     show CompletionDomainHandler;
+import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
@@ -35,7 +37,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -43,6 +44,7 @@ import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
+import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:watcher/watcher.dart';
 
 /**
@@ -114,10 +116,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   PerformanceLog _analysisPerformanceLogger;
 
-  ByteStore byteStore;
-
-  nd.AnalysisDriverScheduler analysisDriverScheduler;
-
   ServerStateMessageHandler messageHandler;
 
   int nextRequestId = 1;
@@ -150,6 +148,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ResolverProvider packageResolverProvider: null,
   }) : super(options, diagnosticServer, baseResourceProvider) {
     messageHandler = new UninitializedStateMessageHandler(this);
+    // TODO(dantup): This code is almost identical to AnalysisServer, consider
+    // moving it the base class that already holds many of these fields.
     defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser = options.useFastaParser;
 
@@ -169,7 +169,13 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     byteStore = createByteStore(resourceProvider);
     analysisDriverScheduler =
         new nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
+    analysisDriverScheduler.status.listen(sendStatusNotification);
     analysisDriverScheduler.start();
+
+    declarationsTracker = DeclarationsTracker(byteStore, resourceProvider);
+    declarationsTrackerData = DeclarationsTrackerData(declarationsTracker);
+    analysisDriverScheduler.outOfBandWorker =
+        CompletionLibrariesWorker(declarationsTracker);
 
     contextManager = new ContextManagerImpl(
         resourceProvider,
@@ -343,9 +349,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     if (message is RequestMessage) {
       channel.sendResponse(
           new ResponseMessage(message.id, null, error, jsonRpcVersion));
-      // Since the LSP client might not show the failed requests to the user,
-      // also ensure the error is logged to the client.
-      logErrorToClient(error.message);
     } else if (message is ResponseMessage) {
       // For bad response messages where we can't respond with an error, send it as
       // show instead of log.
@@ -433,9 +436,21 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ));
   }
 
+  /// Send status notification to the client. The state of analysis is given by
+  /// the [status] information.
+  void sendStatusNotification(nd.AnalysisStatus status) {
+    channel.sendNotification(new NotificationMessage(
+      CustomMethods.AnalyzerStatus,
+      new AnalyzerStatusParams(status.isAnalyzing),
+      jsonRpcVersion,
+    ));
+  }
+
   void setAnalysisRoots(List<String> includedPaths) {
+    declarationsTracker.discardContexts();
     final uniquePaths = HashSet<String>.of(includedPaths ?? const []);
     contextManager.setRoots(uniquePaths.toList(), [], {});
+    addContextsToDeclarationsTracker();
   }
 
   /**
@@ -443,7 +458,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
    * absolute path.
    */
   bool shouldSendErrorsNotificationFor(String file) {
-    return contextManager.isInAnalysisRoot(file);
+    // Errors should not be reported for things that are explicitly skipped
+    // during normal analysis (for example dot folders are skipped over in
+    // _handleWatchEventImpl).
+    return contextManager.isInAnalysisRoot(file) &&
+        !contextManager.isContainedInDotFolder(file);
   }
 
   void showErrorMessageToUser(String message) {
@@ -475,7 +494,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           ..addAll(addedPaths ?? const [])
           ..removeAll(removedPaths ?? const []);
 
-    contextManager.setRoots(newPaths.toList(), [], {});
+    setAnalysisRoots(newPaths.toList());
   }
 
   void updateOverlay(String path, String contents) {
@@ -486,6 +505,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       resourceProvider.removeOverlay(path);
     }
     driverMap.values.forEach((driver) => driver.changeFile(path));
+
+    notifyDeclarationsTracker(path);
   }
 
   _updateDriversPriorityFiles() {
@@ -576,7 +597,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void broadcastWatchEvent(WatchEvent event) {
-    // TODO: implement broadcastWatchEvent
+    analysisServer.notifyDeclarationsTracker(event.path);
+    // TODO: implement plugin broadcastWatchEvent
   }
 
   @override

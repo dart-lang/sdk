@@ -287,6 +287,12 @@ abstract class ContextManager {
   List<AnalysisDriver> getDriversInAnalysisRoot(Folder analysisRoot);
 
   /**
+   * Determine whether the given [path], when interpreted relative to innermost
+   * context root, contains a folder whose name starts with '.'.
+   */
+  bool isContainedInDotFolder(String path);
+
+  /**
    * Return `true` if the given [path] is ignored by a [ContextInfo] whose
    * folder contains it.
    */
@@ -554,6 +560,15 @@ class ContextManagerImpl implements ContextManager {
       }
     }
     return drivers;
+  }
+
+  /**
+   * Determine whether the given [path], when interpreted relative to innermost
+   * context root, contains a folder whose name starts with '.'.
+   */
+  bool isContainedInDotFolder(String path) {
+    ContextInfo info = _getInnermostContextInfoFor(path);
+    return info != null && _isContainedInDotFolder(info.folder.path, path);
   }
 
   @override
@@ -870,7 +885,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Use the given analysis [driver] to analyze the content of the 
+   * Use the given analysis [driver] to analyze the content of the
    * AndroidManifest file at the given [path].
    */
   void _analyzeManifestFile(AnalysisDriver driver, String path) {

@@ -1,0 +1,76 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:collection';
+
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
+import 'package:analysis_server/src/lsp/mapping.dart' as lsp;
+import 'package:analysis_server/src/protocol_server.dart' as server;
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'server_abstract.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(MappingTest);
+  });
+}
+
+@reflectiveTest
+class MappingTest extends AbstractLspAnalysisServerTest {
+  test_completionItemKind_firstNotSupported() async {
+    // TYPE_PARAMETER maps to TypeParameter first, but since originally LSP
+    // did not support it, it'll map to Variable if the client doesn't support
+    // that.
+    var supportedKinds = new HashSet.of([
+      lsp.CompletionItemKind.TypeParameter,
+      lsp.CompletionItemKind.Variable,
+    ]);
+    var result = lsp.elementKindToCompletionItemKind(
+      supportedKinds,
+      server.ElementKind.TYPE_PARAMETER,
+    );
+    expect(result, equals(lsp.CompletionItemKind.TypeParameter));
+  }
+
+  test_completionItemKind_firstSupported() async {
+    // TYPE_PARAMETER maps to TypeParameter first, but since originally LSP
+    // did not support it, it'll map to Variable if the client doesn't support
+    // that.
+    var supportedKinds = new HashSet.of([lsp.CompletionItemKind.Variable]);
+    var result = lsp.elementKindToCompletionItemKind(
+      supportedKinds,
+      server.ElementKind.TYPE_PARAMETER,
+    );
+    expect(result, equals(lsp.CompletionItemKind.Variable));
+  }
+
+  test_completionItemKind_knownMapping() async {
+    final supportedKinds = new HashSet.of([lsp.CompletionItemKind.Class]);
+    final result = lsp.elementKindToCompletionItemKind(
+      supportedKinds,
+      server.ElementKind.CLASS,
+    );
+    expect(result, equals(lsp.CompletionItemKind.Class));
+  }
+
+  test_completionItemKind_notMapped() async {
+    var supportedKinds = new HashSet<lsp.CompletionItemKind>();
+    var result = lsp.elementKindToCompletionItemKind(
+      supportedKinds,
+      server.ElementKind.UNKNOWN, // Unknown is not mapped.
+    );
+    expect(result, isNull);
+  }
+
+  test_completionItemKind_notSupported() async {
+    var supportedKinds = new HashSet<lsp.CompletionItemKind>();
+    var result = lsp.elementKindToCompletionItemKind(
+      supportedKinds,
+      server.ElementKind.CLASS,
+    );
+    expect(result, isNull);
+  }
+}

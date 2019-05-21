@@ -1875,15 +1875,15 @@ typedef T foo<T extends S Function<S>(S)>(T t);
   }
 
   test_genericFunctionTypedParameter() async {
-    // TODO(paulberry): remove when dartbug.com/28515 fixed.
+    var code = '''
+void g(T f<T>(T x)) {}
+''';
     if (AnalysisDriver.useSummary2) {
-      await assertNoErrorsInCode('''
-void g(T f<T>(T x)) {}
-''');
+      await assertNoErrorsInCode(code);
     } else {
-      await assertErrorsInCode('''
-void g(T f<T>(T x)) {}
-''', [
+      // Once dartbug.com/28515 is fixed, this syntax should no longer generate an
+      // error.
+      await assertErrorsInCode(code, [
         // Due to dartbug.com/28515, some additional errors appear when using the
         // new analysis driver.
         error(StaticWarningCode.UNDEFINED_CLASS, 7, 1),

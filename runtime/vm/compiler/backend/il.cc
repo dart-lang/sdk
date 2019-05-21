@@ -3414,6 +3414,15 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
   return cids().HasClassId(value_cid) ? NULL : this;
 }
 
+Definition* LoadClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
+  const intptr_t cid = object()->Type()->ToCid();
+  if (cid != kDynamicCid) {
+    const auto& smi = Smi::ZoneHandle(flow_graph->zone(), Smi::New(cid));
+    return flow_graph->GetConstant(smi);
+  }
+  return this;
+}
+
 Instruction* CheckClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
   if (value()->BindsToConstant()) {
     const Object& constant_value = value()->BoundConstant();
@@ -3822,21 +3831,26 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 // fall-through code in [FlowGraphCompiler::CompileGraph()].
 // (As opposed to here where we don't check for the return value of
 // [Intrinsify]).
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
-  if (FLAG_precompiled_mode) {
-    const Function& function = compiler->parsed_function().function();
-    if (function.IsDynamicFunction()) {
-      compiler->SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
-      __ MonomorphicCheckedEntry();
-      compiler->SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
-    }
+  const Function& function = compiler->parsed_function().function();
+  if (function.IsDynamicFunction()) {
+    compiler->SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
+    __ MonomorphicCheckedEntry();
+    compiler->SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
   }
-  // NOTE: Because in X64/ARM mode the graph can have multiple entrypoints, we
-  // generate several times the same intrinsification & frame setup. That's why
-  // we cannot rely on the constant pool being `false` when we come in here.
+
+  // NOTE: Because of the presence of multiple entry-points, we generate several
+  // times the same intrinsification & frame setup. That's why we cannot rely on
+  // the constant pool being `false` when we come in here.
+#if defined(TARGET_USES_OBJECT_POOL)
   __ set_constant_pool_allowed(false);
-  if (compiler->TryIntrinsify()) return;
+#endif
+
+  if (compiler->TryIntrinsify() && compiler->skip_body_compilation()) {
+    return;
+  }
   compiler->EmitPrologue();
+
+#if defined(TARGET_USES_OBJECT_POOL)
   ASSERT(__ constant_pool_allowed());
 #endif
 
@@ -3874,13 +3888,16 @@ void OsrEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(compiler->is_optimizing());
   __ Bind(compiler->GetJumpLabel(this));
 
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
-  // NOTE: Because in JIT X64/ARM mode the graph can have multiple
-  // entrypoints, so we generate several times the same intrinsification &
-  // frame setup.  That's why we cannot rely on the constant pool being
-  // `false` when we come in here.
+  // NOTE: Because the graph can have multiple entrypoints, we generate several
+  // times the same intrinsification & frame setup. That's why we cannot rely on
+  // the constant pool being `false` when we come in here.
+#if defined(TARGET_USES_OBJECT_POOL)
   __ set_constant_pool_allowed(false);
+#endif
+
   compiler->EmitPrologue();
+
+#if defined(TARGET_USES_OBJECT_POOL)
   ASSERT(__ constant_pool_allowed());
 #endif
 
@@ -4260,7 +4277,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 bool InstanceCallInstr::MatchesCoreName(const String& name) {
-  return function_name().raw() == Library::PrivateCoreLibName(name).raw();
+  return Library::IsPrivateCoreLibName(function_name(), name);
 }
 
 RawFunction* InstanceCallInstr::ResolveForReceiverClass(
@@ -5272,10 +5289,6 @@ void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #endif  // defined(TARGET_ARCH_ARM)
 
-#if !defined(TARGET_ARCH_DBC)
-
-#define Z zone_
-
 Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   if (idx == TargetAddressIndex()) {
     return kUnboxedFfiIntPtr;
@@ -5283,6 +5296,10 @@ Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
     return arg_representations_[idx];
   }
 }
+
+#if !defined(TARGET_ARCH_DBC)
+
+#define Z zone_
 
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
@@ -5337,10 +5354,6 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-Representation FfiCallInstr::representation() const {
-  return compiler::ffi::ResultRepresentation(signature_);
-}
-
 Location FfiCallInstr::UnallocateStackSlots(Location in, bool is_atomic) {
   if (in.IsPairLocation()) {
     ASSERT(!is_atomic);
@@ -5361,20 +5374,33 @@ Location FfiCallInstr::UnallocateStackSlots(Location in, bool is_atomic) {
 
 #else
 
-Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
-  UNREACHABLE();
-}
-
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
-  UNREACHABLE();
-}
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
+                                 /*num_temps=*/0, LocationSummary::kCall);
 
-Representation FfiCallInstr::representation() const {
-  UNREACHABLE();
+  summary->set_in(
+      TargetAddressIndex(),
+      Location::RegisterLocation(compiler::ffi::kFunctionAddressRegister));
+  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
+    summary->set_in(i, arg_locations_[i]);
+  }
+  summary->set_out(0, compiler::ffi::ResultLocation(
+                          compiler::ffi::ResultHostRepresentation(signature_)));
+
+  return summary;
 }
 
 #endif  // !defined(TARGET_ARCH_DBC)
+
+Representation FfiCallInstr::representation() const {
+#if !defined(TARGET_ARCH_DBC)
+  return compiler::ffi::ResultRepresentation(signature_);
+#else
+  return compiler::ffi::ResultHostRepresentation(signature_);
+#endif  // !defined(TARGET_ARCH_DBC)
+}
 
 // SIMD
 

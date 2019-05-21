@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -60,5 +61,24 @@ class DiagnosticTest extends AbstractLspAnalysisServerTest {
     expect(diagnostic.range.start.character, equals(11));
     expect(diagnostic.range.end.line, equals(0));
     expect(diagnostic.range.end.character, equals(12));
+  }
+
+  test_dotFilesExcluded() async {
+    var dotFolderFilePath =
+        join(projectFolderPath, '.dart_tool', 'tool_file.dart');
+    var dotFolderFileUri = Uri.file(dotFolderFilePath);
+
+    newFile(dotFolderFilePath, content: 'String a = 1;');
+
+    List<Diagnostic> diagnostics = null;
+    waitForDiagnostics(dotFolderFileUri).then((d) => diagnostics = d);
+
+    // Send a request for a hover.
+    await initialize();
+    await getHover(dotFolderFileUri, Position(0, 0));
+
+    // Ensure that as part of responding to getHover, diagnostics were not
+    // transmitted.
+    expect(diagnostics, isNull);
   }
 }

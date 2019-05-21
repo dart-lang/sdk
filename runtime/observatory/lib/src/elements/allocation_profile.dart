@@ -38,7 +38,7 @@ enum _SortingField {
 
 enum _SortingDirection { ascending, descending }
 
-class AllocationProfileElement extends HtmlElement implements Renderable {
+class AllocationProfileElement extends CustomElement implements Renderable {
   static const tag = const Tag<AllocationProfileElement>('allocation-profile',
       dependencies: const [
         ClassRefElement.tag,
@@ -83,7 +83,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
     assert(events != null);
     assert(notifications != null);
     assert(repository != null);
-    AllocationProfileElement e = document.createElement(tag.name);
+    AllocationProfileElement e = new AllocationProfileElement.created();
     e._r = new RenderingScheduler<AllocationProfileElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
@@ -93,7 +93,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  AllocationProfileElement.created() : super.created();
+  AllocationProfileElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -118,19 +118,23 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
   void render() {
     children = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('allocation profile'),
-        new NavRefreshElement(
-            label: 'Download', disabled: _profile == null, queue: _r.queue)
-          ..onRefresh.listen((_) => _downloadCSV()),
-        new NavRefreshElement(label: 'Reset Accumulator', queue: _r.queue)
-          ..onRefresh.listen((_) => _refresh(reset: true)),
-        new NavRefreshElement(label: 'GC', queue: _r.queue)
-          ..onRefresh.listen((_) => _refresh(gc: true)),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((_) => _refresh()),
+        (new NavRefreshElement(
+                label: 'Download', disabled: _profile == null, queue: _r.queue)
+              ..onRefresh.listen((_) => _downloadCSV()))
+            .element,
+        (new NavRefreshElement(label: 'Reset Accumulator', queue: _r.queue)
+              ..onRefresh.listen((_) => _refresh(reset: true)))
+            .element,
+        (new NavRefreshElement(label: 'GC', queue: _r.queue)
+              ..onRefresh.listen((_) => _refresh(gc: true)))
+            .element,
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((_) => _refresh()))
+            .element,
         new DivElement()
           ..classes = ['nav-option']
           ..children = <Element>[
@@ -142,7 +146,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
               ..htmlFor = 'allocation-profile-auto-refresh'
               ..text = 'Auto-refresh on GC'
           ],
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
@@ -252,11 +256,12 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
           ..classes = _isCompacted ? ['collection', 'expanded'] : ['collection']
           ..children = <Element>[
             new VirtualCollectionElement(
-                _createCollectionLine, _updateCollectionLine,
-                createHeader: _createCollectionHeader,
-                search: _search,
-                items: _profile.members.toList()..sort(_createSorter()),
-                queue: _r.queue)
+                    _createCollectionLine, _updateCollectionLine,
+                    createHeader: _createCollectionHeader,
+                    search: _search,
+                    items: _profile.members.toList()..sort(_createSorter()),
+                    queue: _r.queue)
+                .element
           ]
       ]);
       _renderGraph(newChartHost, newChartLegend, _profile.newSpace);
@@ -476,6 +481,7 @@ class AllocationProfileElement extends HtmlElement implements Renderable {
     e.children[10].text = Utils.formatSize(_getOldCurrentSize(item));
     e.children[11].text = '${_getOldCurrentInstances(item)}';
     e.children[12] = new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
+        .element
       ..classes = ['name'];
   }
 

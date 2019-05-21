@@ -549,6 +549,7 @@ class Assembler : public AssemblerBase {
   void j(Condition condition, const ExternalLabel* label);
 
   void jmp(Register reg);
+  void jmp(const Address& address);
   void jmp(Label* label, bool near = kFarJump);
   void jmp(const ExternalLabel* label);
 
@@ -644,6 +645,8 @@ class Assembler : public AssemblerBase {
   void EnterFrame(intptr_t frame_space);
   void LeaveFrame();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
+
+  void MonomorphicCheckedEntry() {}
 
   // Require a temporary register 'tmp'.
   // Clobber all non-CPU registers (e.g. XMM registers and the "FPU stack").

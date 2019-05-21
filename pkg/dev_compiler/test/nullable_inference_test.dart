@@ -8,6 +8,7 @@ import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:test/test.dart';
 
 import 'package:dev_compiler/src/kernel/command.dart';
@@ -338,7 +339,7 @@ void main() {
           // arithmetic operation results on `i` are themselves not null, even
           // though `i` is nullable.
           '0, i.{dart.core::num::<}(10), 10, i = i.{dart.core::num::+}(1), '
-          'i.{dart.core::num::+}(1), 1, i.{dart.core::num::>=}(10), 10');
+              'i.{dart.core::num::+}(1), 1, i.{dart.core::num::>=}(10), 10');
     });
     test('for-in', () async {
       await expectNotNull('''main() {
@@ -429,7 +430,7 @@ void main() {
       test('parameters', () async {
         await expectNotNull(
             '$imports f(@notNull x, [@notNull y, @notNull z = 42]) '
-            '{ x; y; z; }',
+                '{ x; y; z; }',
             '42, x, y, z');
       });
       test('named parameters', () async {
@@ -456,7 +457,7 @@ void main() {
     test('method', () async {
       await expectNotNull(
           'library b; $imports class C { @notNull m() {} } '
-          'main() { var c = new C(); c.m(); }',
+              'main() { var c = new C(); c.m(); }',
           'new b::C::•(), c.{b::C::m}(), c');
     });
   });
@@ -575,8 +576,8 @@ const nullCheck = const _NullCheck();
   var mainUri = Uri.file('/memory/test.dart');
   _fileSystem.entityForUri(mainUri).writeAsStringSync(code);
   var oldCompilerState = _compilerState;
-  _compilerState = await fe.initializeCompiler(
-      oldCompilerState, sdkUri, packagesUri, null, [], DevCompilerTarget(),
+  _compilerState = await fe.initializeCompiler(oldCompilerState, sdkUri,
+      packagesUri, null, [], DevCompilerTarget(TargetFlags()),
       fileSystem: _fileSystem, experiments: const {});
   if (!identical(oldCompilerState, _compilerState)) inference = null;
   fe.DdcResult result =

@@ -31,7 +31,6 @@ class InterceptorStubGenerator {
   final Emitter _emitter;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
   final Namer _namer;
-  final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
   final CodegenWorld _codegenWorld;
   final JClosedWorld _closedWorld;
@@ -42,7 +41,6 @@ class InterceptorStubGenerator {
       this._emitter,
       this._nativeCodegenEnqueuer,
       this._namer,
-      this._oneShotInterceptorData,
       this._customElementsCodegenAnalysis,
       this._codegenWorld,
       this._closedWorld);
@@ -51,7 +49,10 @@ class InterceptorStubGenerator {
 
   InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
-  jsAst.Expression generateGetInterceptorMethod(Set<ClassEntity> classes) {
+  jsAst.Expression generateGetInterceptorMethod(
+      SpecializedGetInterceptor interceptor) {
+    Set<ClassEntity> classes = interceptor.classes;
+
     jsAst.Expression interceptorFor(ClassEntity cls) {
       return _emitter.interceptorPrototypeAccess(cls);
     }
@@ -374,11 +375,9 @@ class InterceptorStubGenerator {
     return null;
   }
 
-  jsAst.Expression generateOneShotInterceptor(jsAst.Name name) {
-    Selector selector =
-        _oneShotInterceptorData.getOneShotInterceptorSelector(name);
-    Set<ClassEntity> classes =
-        _interceptorData.getInterceptedClassesOn(selector.name, _closedWorld);
+  jsAst.Expression generateOneShotInterceptor(OneShotInterceptor interceptor) {
+    Selector selector = interceptor.selector;
+    Set<ClassEntity> classes = interceptor.classes;
     jsAst.Name getInterceptorName = _namer.nameForGetInterceptor(classes);
 
     List<String> parameterNames = <String>[];

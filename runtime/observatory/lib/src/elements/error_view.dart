@@ -14,7 +14,7 @@ import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class ErrorViewElement extends HtmlElement implements Renderable {
+class ErrorViewElement extends CustomElement implements Renderable {
   static const tag = const Tag<ErrorViewElement>('error-view',
       dependencies: const [
         NavTopMenuElement.tag,
@@ -36,14 +36,14 @@ class ErrorViewElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(error != null);
     assert(notifications != null);
-    ErrorViewElement e = document.createElement(tag.name);
+    ErrorViewElement e = new ErrorViewElement.created();
     e._r = new RenderingScheduler<ErrorViewElement>(e, queue: queue);
     e._error = error;
     e._notifications = notifications;
     return e;
   }
 
-  ErrorViewElement.created() : super.created();
+  ErrorViewElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -61,8 +61,8 @@ class ErrorViewElement extends HtmlElement implements Renderable {
   void render() {
     children = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered']
@@ -74,7 +74,7 @@ class ErrorViewElement extends HtmlElement implements Renderable {
             ..classes = ['well']
             ..children = <Element>[new PreElement()..text = error.message]
         ],
-      new ViewFooterElement(queue: _r.queue)
+      new ViewFooterElement(queue: _r.queue).element
     ];
   }
 

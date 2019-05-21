@@ -179,13 +179,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   test_uninitialized_rejectsRequests() async {
     final request = makeRequest(new Method.fromJson('randomRequest'), null);
-    final logParams = await expectErrorNotification<LogMessageParams>(() async {
-      final response = await channel.sendRequestToServer(request);
-      expect(response.id, equals(request.id));
-      expect(response.result, isNull);
-      expect(response.error, isNotNull);
-      expect(response.error.code, ErrorCodes.ServerNotInitialized);
-    });
-    expect(logParams.type, equals(MessageType.Error));
+    final response = await channel.sendRequestToServer(request);
+    expect(response.id, equals(request.id));
+    expect(response.result, isNull);
+    expect(response.error, isNotNull);
+    expect(response.error.code, ErrorCodes.ServerNotInitialized);
   }
 }

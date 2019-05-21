@@ -856,22 +856,13 @@ void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
   __ Ret();
 }
 
-static const Register new_pp = NOTFP;
-
 void FlowGraphCompiler::EmitFrameEntry() {
   const Function& function = parsed_function().function();
   if (CanOptimizeFunction() && function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {
     __ Comment("Invocation Count Check");
     const Register function_reg = R8;
-    if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
-      // The pool pointer is not setup before entering the Dart frame.
-      // Temporarily setup pool pointer for this dart function.
-      __ LoadPoolPointer(new_pp);
-    }
-    // Load function object from object pool.
-    __ LoadFunctionFromCalleePool(function_reg, function, new_pp);
-
+    __ ldr(function_reg, FieldAddress(CODE_REG, Code::owner_offset()));
     __ ldr(R3, FieldAddress(function_reg, Function::usage_counter_offset()));
     // Reoptimization of an optimized function is triggered by counting in
     // IC stubs, but not at the entry of the function.
@@ -881,8 +872,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     }
     __ CompareImmediate(R3, GetOptimizationThreshold());
     ASSERT(function_reg == R8);
-    __ Branch(StubCode::OptimizeFunction(),
-              compiler::ObjectPoolBuilderEntry::kNotPatchable, new_pp, GE);
+    __ Branch(Address(THR, Thread::optimize_entry_offset()), GE);
   }
   __ Comment("Enter frame");
   if (flow_graph().IsCompiledForOsr()) {
@@ -944,7 +934,7 @@ void FlowGraphCompiler::CompileGraph() {
 
   __ bkpt(0);
 
-  if (!fully_intrinsified_) {
+  if (!skip_body_compilation()) {
     ASSERT(assembler()->constant_pool_allowed());
     GenerateDeferredCode();
   }
@@ -1071,7 +1061,8 @@ void FlowGraphCompiler::EmitInstanceCall(const Code& stub,
   __ LoadFromOffset(kWord, R0, SP,
                     (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
   __ LoadUniqueObject(R9, ic_data);
-  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs);
+  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs,
+                   Code::EntryKind::kMonomorphic);
   __ Drop(ic_data.CountWithTypeArgs());
 }
 

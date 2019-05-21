@@ -69,6 +69,8 @@ class Reference {
 
   bool get isPrefix => parent != null && parent.name == '@prefix';
 
+  bool get isSetter => parent != null && parent.name == '@setter';
+
   bool get isTypeAlias => parent != null && parent.name == '@typeAlias';
 
   /// Return the child with the given name, or `null` if does not exist.
@@ -95,6 +97,10 @@ class Reference {
       }
       return false;
     }
+  }
+
+  void removeChild(String name) {
+    _children.remove(name);
   }
 
   String toString() => parent == null ? 'root' : '$parent::$name';

@@ -62,9 +62,6 @@ dwarf_stack_trace_test: Pass, RuntimeError # Results will flake due to identical
 io/namespace_test: RuntimeError
 io/test_runner_test: RuntimeError
 
-[ $runtime == dart_precompiled && !$checked && !$strong ]
-io/file_constructor_test: RuntimeError
-
 [ $compiler == app_jit || $compiler == precompiler ]
 io/compile_all_test: Skip # Incompatible flag --compile_all
 

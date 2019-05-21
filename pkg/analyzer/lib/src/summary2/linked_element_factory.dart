@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
@@ -26,6 +27,10 @@ class LinkedElementFactory {
 
   CoreTypes get coreTypes {
     return _coreTypes ??= CoreTypes(this);
+  }
+
+  bool get hasDartCore {
+    return libraryMap.containsKey('dart:core');
   }
 
   void addBundle(LinkedBundleContext context) {
@@ -78,6 +83,15 @@ class LinkedElementFactory {
     var reference = rootReference.getChild(uriStr);
     return elementOfReference(reference);
   }
+
+  /// We have linked the bundle, and need to disconnect its libraries, so
+  /// that the client can re-add the bundle, this time read from bytes.
+  void removeBundle(LinkedBundleContext context) {
+    for (var uriStr in context.libraryMap.keys) {
+      libraryMap.remove(uriStr);
+      rootReference.removeChild(uriStr);
+    }
+  }
 }
 
 class _ElementRequest {
@@ -121,6 +135,14 @@ class _ElementRequest {
     if (parentName == '@function') {
       CompilationUnitElementImpl enclosing = elementOfReference(parent2);
       return _function(enclosing, reference);
+    }
+
+    if (parentName == '@genericFunctionType') {
+      CompilationUnitElementImpl enclosing = elementOfReference(parent2);
+      var context = enclosing.linkedContext;
+      var id = int.parse(reference.name);
+      GenericFunctionTypeImpl node = context.getGenericFunctionType(id);
+      return node.declaredElement as GenericFunctionTypeElementImpl;
     }
 
     if (parentName == '@getter' || parentName == '@setter') {
@@ -226,6 +248,9 @@ class _ElementRequest {
     if (librarySource == null) return null;
 
     var libraryContext = elementFactory.libraryMap[uriStr];
+    if (libraryContext == null) {
+      throw ArgumentError('Missing library: $uriStr');
+    }
     var libraryNode = libraryContext.node;
     var hasName = libraryNode.name.isNotEmpty;
 

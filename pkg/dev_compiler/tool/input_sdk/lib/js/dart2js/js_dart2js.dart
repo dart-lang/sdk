@@ -291,12 +291,12 @@ class JsFunction extends JsObject {
     return JsFunction._fromJs(JS(
         '',
         'function(/*...arguments*/) {'
-        '  let args = [#(this)];'
-        '  for (let arg of arguments) {'
-        '    args.push(#(arg));'
-        '  }'
-        '  return #(#(...args));'
-        '}',
+            '  let args = [#(this)];'
+            '  for (let arg of arguments) {'
+            '    args.push(#(arg));'
+            '  }'
+            '  return #(#(...args));'
+            '}',
         _convertToDart,
         _convertToDart,
         _convertToJS,
@@ -445,15 +445,15 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 bool _isBrowserType(o) => JS(
     'bool',
     '# instanceof Object && ('
-    '# instanceof Blob || '
-    '# instanceof Event || '
-    '(window.KeyRange && # instanceof KeyRange) || '
-    '(window.IDBKeyRange && # instanceof IDBKeyRange) || '
-    '# instanceof ImageData || '
-    '# instanceof Node || '
-    // Int8Array.__proto__ is TypedArray.
-    '(window.Int8Array && # instanceof Int8Array.__proto__) || '
-    '# instanceof Window)',
+        '# instanceof Blob || '
+        '# instanceof Event || '
+        '(window.KeyRange && # instanceof KeyRange) || '
+        '(window.IDBKeyRange && # instanceof IDBKeyRange) || '
+        '# instanceof ImageData || '
+        '# instanceof Node || '
+        // Int8Array.__proto__ is TypedArray.
+        '(window.Int8Array && # instanceof Int8Array.__proto__) || '
+        '# instanceof Window)',
     o,
     o,
     o,
@@ -489,9 +489,9 @@ dynamic _wrapDartFunction(f) {
   var wrapper = JS(
       '',
       'function(/*...arguments*/) {'
-      '  let args = Array.prototype.map.call(arguments, #);'
-      '  return #(#(...args));'
-      '}',
+          '  let args = Array.prototype.map.call(arguments, #);'
+          '  return #(#(...args));'
+          '}',
       _convertToDart,
       _convertToJS,
       f);
@@ -571,12 +571,12 @@ Function allowInteropCaptureThis(Function f) {
     ret = JS(
         '',
         'function(/*...arguments*/) {'
-        '  let args = [this];'
-        '  for (let arg of arguments) {'
-        '    args.push(arg);'
-        '  }'
-        '  return #(...args);'
-        '}',
+            '  let args = [this];'
+            '  for (let arg of arguments) {'
+            '    args.push(arg);'
+            '  }'
+            '  return #(...args);'
+            '}',
         f);
     _interopCaptureThisExpando[f] = ret;
   }

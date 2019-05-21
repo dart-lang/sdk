@@ -981,7 +981,7 @@ abstract class Declaration implements VariableReference {}
 /// In particular, there is no guarantee that implementations of [compareTo]
 /// will implement some form of lexicographic ordering like [String.compareTo].
 abstract class Name extends Literal
-    implements Declaration, Parameter, Comparable {
+    implements Declaration, Parameter, Comparable<Name> {
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitName(this);
 
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
@@ -1448,7 +1448,7 @@ class Fun extends Expression {
   final Block body;
   final AsyncModifier asyncModifier;
 
-  Fun(this.params, this.body, {this.asyncModifier: const AsyncModifier.sync()});
+  Fun(this.params, this.body, {this.asyncModifier: AsyncModifier.sync});
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitFun(this);
 
@@ -1471,27 +1471,26 @@ class Fun extends Expression {
 }
 
 class AsyncModifier {
+  final int index;
   final bool isAsync;
   final bool isYielding;
   final String description;
 
-  const AsyncModifier.sync()
-      : isAsync = false,
-        isYielding = false,
-        description = "sync";
-  const AsyncModifier.async()
-      : isAsync = true,
-        isYielding = false,
-        description = "async";
-  const AsyncModifier.asyncStar()
-      : isAsync = true,
-        isYielding = true,
-        description = "async*";
-  const AsyncModifier.syncStar()
-      : isAsync = false,
-        isYielding = true,
-        description = "sync*";
-  toString() => description;
+  const AsyncModifier(this.index, this.description,
+      {this.isAsync, this.isYielding});
+
+  static const AsyncModifier sync =
+      const AsyncModifier(0, "sync", isAsync: false, isYielding: false);
+  static const AsyncModifier async =
+      const AsyncModifier(1, "async", isAsync: true, isYielding: false);
+  static const AsyncModifier asyncStar =
+      const AsyncModifier(2, "async*", isAsync: true, isYielding: true);
+  static const AsyncModifier syncStar =
+      const AsyncModifier(3, "sync*", isAsync: false, isYielding: true);
+
+  static const List<AsyncModifier> values = [sync, async, asyncStar, syncStar];
+
+  String toString() => description;
 }
 
 class PropertyAccess extends Expression {
@@ -1750,10 +1749,11 @@ class ObjectInitializer extends Expression {
 }
 
 class Property extends Node {
-  final Literal name;
+  final Expression name;
   final Expression value;
 
-  Property(this.name, this.value);
+  Property(this.name, this.value)
+      : assert(name is Literal || name is DeferredExpression);
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitProperty(this);
 
@@ -1986,4 +1986,10 @@ class Comment extends Statement {
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
+}
+
+/// Returns the value of [node] if it is a [DeferredExpression]. Otherwise
+/// returns the [node] itself.
+Node undefer(Node node) {
+  return node is DeferredExpression ? undefer(node.value) : node;
 }

@@ -151,6 +151,7 @@ class CallingConventions {
   static constexpr Register kFirstCalleeSavedCpuReg = EBX;
   static constexpr Register kFirstNonArgumentRegister = EAX;
   static constexpr Register kSecondNonArgumentRegister = ECX;
+  static constexpr Register kStackPointerRegister = SPREG;
 
   // Whether 64-bit arguments must be aligned to an even register or 8-byte
   // stack address. On IA32, 64-bit integers and floating-point values do *not*

@@ -368,8 +368,8 @@ word ICData::TargetIndexFor(word num_args) {
   return dart::ICData::TargetIndexFor(num_args);
 }
 
-word ICData::ExactnessOffsetFor(word num_args) {
-  return dart::ICData::ExactnessOffsetFor(num_args);
+word ICData::ExactnessIndexFor(word num_args) {
+  return dart::ICData::ExactnessIndexFor(num_args);
 }
 
 word ICData::TestEntryLengthFor(word num_args, bool exactness_check) {

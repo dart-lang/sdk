@@ -59,8 +59,10 @@ typedef CompileModule(String imports, String body, String libraryName,
 
 /// The command for invoking the modular compiler.
 class WebCompileCommand extends Command {
+  @override
   get name => 'compile';
 
+  @override
   get description => 'Compile a set of Dart files into a JavaScript module.';
   final MessageHandler messageHandler;
 
@@ -146,7 +148,7 @@ class WebCompileCommand extends Command {
       var bytes = summaryBytes[i];
 
       // Packages with no dart source files will have empty invalid summaries.
-      if (bytes.length == 0) continue;
+      if (bytes.isEmpty) continue;
 
       var moduleId = moduleIds[i];
       var url = '/$moduleId.api.ds';
@@ -164,7 +166,7 @@ class WebCompileCommand extends Command {
       var uri = Uri.parse(url);
       var base = path.basename(url);
       var parts = uri.pathSegments;
-      var match = null;
+      var match;
       int bestScore = 0;
       for (var candidate in summaryData.uriToSummaryPath.keys) {
         if (path.basename(candidate) != base) continue;
@@ -306,5 +308,6 @@ class WebCompileCommand extends Command {
 
 /// Thrown when the input source code has errors.
 class CompileErrorException implements Exception {
+  @override
   toString() => '\nPlease fix all errors before compiling (warnings are okay).';
 }

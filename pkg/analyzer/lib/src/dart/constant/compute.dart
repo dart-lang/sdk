@@ -37,9 +37,7 @@ void computeConstants(
   }
 }
 
-/**
- * [graph.Node] that is used to compute constants in dependency order.
- */
+/// [graph.Node] that is used to compute constants in dependency order.
 class _ConstantNode extends graph.Node<_ConstantNode> {
   final ConstantEvaluationEngine evaluationEngine;
   final Map<ConstantEvaluationTarget, _ConstantNode> nodeMap;
@@ -65,9 +63,7 @@ class _ConstantNode extends graph.Node<_ConstantNode> {
   }
 }
 
-/**
- * [graph.DependencyWalker] for computing constants and detecting cycles.
- */
+/// [graph.DependencyWalker] for computing constants and detecting cycles.
 class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
   final ConstantEvaluationEngine evaluationEngine;
 

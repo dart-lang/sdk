@@ -13,7 +13,7 @@ import 'dartfuzz_api_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.12';
+const String version = '1.13';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -131,7 +131,7 @@ class DartFuzz {
     indent += 2;
     emitLn('new X${classFields.length - 1}().run();');
     indent -= 2;
-    emitLn('} catch (e) {');
+    emitLn('} catch (exception, stackTrace) {');
     indent += 2;
     emitLn("print('throws');");
     indent -= 2;
@@ -411,7 +411,7 @@ class DartFuzz {
     indent += 2;
     emitStatements(depth + 1);
     indent -= 2;
-    emitLn('} catch (e) {');
+    emitLn('} catch (exception, stackTrace) {');
     indent += 2;
     emitStatements(depth + 1);
     indent -= 2;

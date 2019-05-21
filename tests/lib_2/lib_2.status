@@ -149,23 +149,10 @@ mirrors/dynamic_load_test: RuntimeError # Issue 26869 - Reload fails to preserve
 [ $jscl ]
 isolate/spawn_uri_multi_test/none: RuntimeError # Issue 13544
 
-[ !$strong ]
-async/future_test: SkipByDesign # Uses Dart 2 syntax.
-async/stream_first_where_test/badType: MissingCompileTimeError
-async/stream_from_iterable_test: SkipByDesign # Uses Dart 2 syntax.
-async/stream_last_where_test/badType: MissingCompileTimeError
-mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
-
 [ $builder_tag == mac10_7 && $runtime == safari ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
-
-[ $compiler != dart2analyzer && $compiler != fasta && !$strong ]
-async/future_or_type_test: Fail # Strong mode implements FutureOr, non-strong treats it as dynamic.
-
-[ $compiler != dartdevc && $checked && !$strong ]
-async/future_or_only_in_async_test/00: MissingCompileTimeError
 
 [ $compiler == dartk && $system == macos && $hot_reload && ($arch == simdbc || $arch == simdbc64) ]
 isolate/unresolved_ports_test: Pass, RuntimeError #  Issue 35410
@@ -197,18 +184,6 @@ html/custom_element_name_clash_test: Pass, Timeout # Issue 26789
 html/custom_elements_test: Pass, Timeout # Issue 26789
 html/request_animation_frame_test: Skip # Times out. Issue 22167
 html/transition_event_test: Skip # Times out. Issue 22167
-
-[ !$checked && !$strong ]
-async/future_or_only_in_async_test/00: MissingCompileTimeError
-async/multiple_timer_test: Pass, Fail # Timing related
-isolate/issue_24243_parent_isolate_test: SkipByDesign # Requires type checks.
-
-[ !$fasta && !$strong ]
-isolate/isolate_import_test/01: MissingCompileTimeError
-mirrors/top_level_accessors_test/01: MissingCompileTimeError
-typed_data/float32x4_static_test: MissingCompileTimeError
-typed_data/int32x4_static_test/01: MissingCompileTimeError
-typed_data/int32x4_static_test/02: MissingCompileTimeError
 
 [ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # Deprecating all Dart1 modes of execution

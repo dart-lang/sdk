@@ -14,6 +14,7 @@
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
+import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;
@@ -84,36 +85,48 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   static const jsonHandler = const LspJsonHandler(
       ApplyWorkspaceEditResponse.canParse, ApplyWorkspaceEditResponse.fromJson);
 
-  ApplyWorkspaceEditResponse(this.applied) {
+  ApplyWorkspaceEditResponse(this.applied, this.failureReason) {
     if (applied == null) {
       throw 'applied is required but was not provided';
     }
   }
   static ApplyWorkspaceEditResponse fromJson(Map<String, dynamic> json) {
     final applied = json['applied'];
-    return new ApplyWorkspaceEditResponse(applied);
+    final failureReason = json['failureReason'];
+    return new ApplyWorkspaceEditResponse(applied, failureReason);
   }
 
   /// Indicates whether the edit was applied or not.
   final bool applied;
 
+  /// An optional textual description for why the edit was not applied. This may
+  /// be used may be used by the server for diagnostic logging or to provide a
+  /// suitable error for a request that triggered the edit.
+  final String failureReason;
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['applied'] =
         applied ?? (throw 'applied is required but was not set');
+    if (failureReason != null) {
+      __result['failureReason'] = failureReason;
+    }
     return __result;
   }
 
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('applied') &&
-        obj['applied'] is bool;
+        obj['applied'] is bool &&
+        (obj['failureReason'] == null || obj['failureReason'] is String);
   }
 
   @override
   bool operator ==(other) {
     if (other is ApplyWorkspaceEditResponse) {
-      return applied == other.applied && true;
+      return applied == other.applied &&
+          failureReason == other.failureReason &&
+          true;
     }
     return false;
   }
@@ -122,6 +135,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, applied.hashCode);
+    hash = JenkinsSmiHash.combine(hash, failureReason.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -1497,7 +1511,9 @@ class CompletionItem implements ToJsonable {
         json['commitCharacters']?.map((item) => item)?.cast<String>()?.toList();
     final command =
         json['command'] != null ? Command.fromJson(json['command']) : null;
-    final data = json['data'];
+    final data = json['data'] != null
+        ? CompletionItemResolutionInfo.fromJson(json['data'])
+        : null;
     return new CompletionItem(
         label,
         kind,
@@ -1536,9 +1552,9 @@ class CompletionItem implements ToJsonable {
   /// will be ignored.
   final List<String> commitCharacters;
 
-  /// An data entry field that is preserved on a completion item between a
+  /// A data entry field that is preserved on a completion item between a
   /// completion and a completion resolve request.
-  final dynamic data;
+  final CompletionItemResolutionInfo data;
 
   /// Indicates if this item is deprecated.
   final bool deprecated;
@@ -1572,7 +1588,8 @@ class CompletionItem implements ToJsonable {
   final InsertTextFormat insertTextFormat;
 
   /// The kind of this completion item. Based of the kind an icon is chosen by
-  /// the editor.
+  /// the editor. The standardized set of available values is defined in
+  /// `CompletionItemKind`.
   final CompletionItemKind kind;
 
   /// The label of this completion item. By default also the text that is
@@ -1670,7 +1687,8 @@ class CompletionItem implements ToJsonable {
             (obj['commitCharacters'] is List &&
                 (obj['commitCharacters'].every((item) => item is String)))) &&
         (obj['command'] == null || Command.canParse(obj['command'])) &&
-        (obj['data'] == null || true);
+        (obj['data'] == null ||
+            CompletionItemResolutionInfo.canParse(obj['data']));
   }
 
   @override
@@ -1992,10 +2010,14 @@ class CompletionRegistrationOptions
       CompletionRegistrationOptions.canParse,
       CompletionRegistrationOptions.fromJson);
 
-  CompletionRegistrationOptions(
-      this.triggerCharacters, this.resolveProvider, this.documentSelector);
+  CompletionRegistrationOptions(this.triggerCharacters,
+      this.allCommitCharacters, this.resolveProvider, this.documentSelector);
   static CompletionRegistrationOptions fromJson(Map<String, dynamic> json) {
     final triggerCharacters = json['triggerCharacters']
+        ?.map((item) => item)
+        ?.cast<String>()
+        ?.toList();
+    final allCommitCharacters = json['allCommitCharacters']
         ?.map((item) => item)
         ?.cast<String>()
         ?.toList();
@@ -2004,9 +2026,17 @@ class CompletionRegistrationOptions
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
         ?.toList();
-    return new CompletionRegistrationOptions(
-        triggerCharacters, resolveProvider, documentSelector);
+    return new CompletionRegistrationOptions(triggerCharacters,
+        allCommitCharacters, resolveProvider, documentSelector);
   }
+
+  /// The list of all possible characters that commit a completion. This field
+  /// can be used if clients don't support individual commmit characters per
+  /// completion item. See
+  /// `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`
+  ///
+  /// Since 3.2.0
+  final List<String> allCommitCharacters;
 
   /// A document selector to identify the scope of the registration. If set to
   /// null the document selector provided on the client side will be used.
@@ -2033,6 +2063,9 @@ class CompletionRegistrationOptions
     if (triggerCharacters != null) {
       __result['triggerCharacters'] = triggerCharacters;
     }
+    if (allCommitCharacters != null) {
+      __result['allCommitCharacters'] = allCommitCharacters;
+    }
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
     }
@@ -2045,6 +2078,10 @@ class CompletionRegistrationOptions
         (obj['triggerCharacters'] == null ||
             (obj['triggerCharacters'] is List &&
                 (obj['triggerCharacters'].every((item) => item is String)))) &&
+        (obj['allCommitCharacters'] == null ||
+            (obj['allCommitCharacters'] is List &&
+                (obj['allCommitCharacters']
+                    .every((item) => item is String)))) &&
         (obj['resolveProvider'] == null || obj['resolveProvider'] is bool) &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] == null ||
@@ -2058,6 +2095,8 @@ class CompletionRegistrationOptions
     if (other is CompletionRegistrationOptions) {
       return listEqual(triggerCharacters, other.triggerCharacters,
               (String a, String b) => a == b) &&
+          listEqual(allCommitCharacters, other.allCommitCharacters,
+              (String a, String b) => a == b) &&
           resolveProvider == other.resolveProvider &&
           documentSelector == other.documentSelector &&
           true;
@@ -2069,6 +2108,7 @@ class CompletionRegistrationOptions
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, triggerCharacters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, allCommitCharacters.hashCode);
     hash = JenkinsSmiHash.combine(hash, resolveProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentSelector.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -2889,8 +2929,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
   String toString() => jsonEncoder.convert(toJson());
 }
 
-/// Describe options to be used when registering for text document change
-/// events.
+/// Describe options to be used when registering for file system change events.
 class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   static const jsonHandler = const LspJsonHandler(
       DidChangeWatchedFilesRegistrationOptions.canParse,
@@ -7077,7 +7116,8 @@ class ResponseMessage implements Message, ToJsonable {
   final Either2<num, String> id;
   final String jsonrpc;
 
-  /// The result of a request. This can be omitted in the case of an error.
+  /// The result of a request. This member is REQUIRED on success. This member
+  /// MUST NOT exist if there was an error invoking the method.
   final dynamic result;
 
   Map<String, dynamic> toJson() {
@@ -7202,6 +7242,7 @@ class ServerCapabilities implements ToJsonable {
       this.documentLinkProvider,
       this.colorProvider,
       this.foldingRangeProvider,
+      this.declarationProvider,
       this.executeCommandProvider,
       this.workspace,
       this.experimental);
@@ -7226,12 +7267,8 @@ class ServerCapabilities implements ToJsonable {
         ? SignatureHelpOptions.fromJson(json['signatureHelpProvider'])
         : null;
     final definitionProvider = json['definitionProvider'];
-    final typeDefinitionProvider = json['typeDefinitionProvider'] is bool
-        ? new Either2<bool, dynamic>.t1(json['typeDefinitionProvider'])
-        : (new Either2<bool, dynamic>.t2(json['typeDefinitionProvider']));
-    final implementationProvider = json['implementationProvider'] is bool
-        ? new Either2<bool, dynamic>.t1(json['implementationProvider'])
-        : (new Either2<bool, dynamic>.t2(json['implementationProvider']));
+    final typeDefinitionProvider = json['typeDefinitionProvider'];
+    final implementationProvider = json['implementationProvider'];
     final referencesProvider = json['referencesProvider'];
     final documentHighlightProvider = json['documentHighlightProvider'];
     final documentSymbolProvider = json['documentSymbolProvider'];
@@ -7269,27 +7306,9 @@ class ServerCapabilities implements ToJsonable {
     final documentLinkProvider = json['documentLinkProvider'] != null
         ? DocumentLinkOptions.fromJson(json['documentLinkProvider'])
         : null;
-    final colorProvider = json['colorProvider'] is bool
-        ? new Either3<bool, ColorProviderOptions, dynamic>.t1(
-            json['colorProvider'])
-        : (ColorProviderOptions.canParse(json['colorProvider'])
-            ? new Either3<bool, ColorProviderOptions, dynamic>.t2(
-                json['colorProvider'] != null
-                    ? ColorProviderOptions.fromJson(json['colorProvider'])
-                    : null)
-            : (new Either3<bool, ColorProviderOptions, dynamic>.t3(
-                json['colorProvider'])));
-    final foldingRangeProvider = json['foldingRangeProvider'] is bool
-        ? new Either3<bool, FoldingRangeProviderOptions, dynamic>.t1(
-            json['foldingRangeProvider'])
-        : (FoldingRangeProviderOptions.canParse(json['foldingRangeProvider'])
-            ? new Either3<bool, FoldingRangeProviderOptions, dynamic>.t2(
-                json['foldingRangeProvider'] != null
-                    ? FoldingRangeProviderOptions.fromJson(
-                        json['foldingRangeProvider'])
-                    : null)
-            : (new Either3<bool, FoldingRangeProviderOptions, dynamic>.t3(
-                json['foldingRangeProvider'])));
+    final colorProvider = json['colorProvider'];
+    final foldingRangeProvider = json['foldingRangeProvider'];
+    final declarationProvider = json['declarationProvider'];
     final executeCommandProvider = json['executeCommandProvider'] != null
         ? ExecuteCommandOptions.fromJson(json['executeCommandProvider'])
         : null;
@@ -7318,6 +7337,7 @@ class ServerCapabilities implements ToJsonable {
         documentLinkProvider,
         colorProvider,
         foldingRangeProvider,
+        declarationProvider,
         executeCommandProvider,
         workspace,
         experimental);
@@ -7334,10 +7354,15 @@ class ServerCapabilities implements ToJsonable {
   /// The server provides color provider support.
   ///
   /// Since 3.6.0
-  final Either3<bool, ColorProviderOptions, dynamic> colorProvider;
+  final dynamic colorProvider;
 
   /// The server provides completion support.
   final CompletionOptions completionProvider;
+
+  /// The server provides go to declaration support.
+  ///
+  /// Since 3.14.0
+  final dynamic declarationProvider;
 
   /// The server provides goto definition support.
   final bool definitionProvider;
@@ -7369,8 +7394,7 @@ class ServerCapabilities implements ToJsonable {
   /// The server provides folding provider support.
   ///
   /// Since 3.10.0
-  final Either3<bool, FoldingRangeProviderOptions, dynamic>
-      foldingRangeProvider;
+  final dynamic foldingRangeProvider;
 
   /// The server provides hover support.
   final bool hoverProvider;
@@ -7378,7 +7402,7 @@ class ServerCapabilities implements ToJsonable {
   /// The server provides Goto Implementation support.
   ///
   /// Since 3.6.0
-  final Either2<bool, dynamic> implementationProvider;
+  final dynamic implementationProvider;
 
   /// The server provides find references support.
   final bool referencesProvider;
@@ -7400,7 +7424,7 @@ class ServerCapabilities implements ToJsonable {
   /// The server provides Goto Type Definition support.
   ///
   /// Since 3.6.0
-  final Either2<bool, dynamic> typeDefinitionProvider;
+  final dynamic typeDefinitionProvider;
 
   /// Workspace specific server capabilities
   final ServerCapabilitiesWorkspace workspace;
@@ -7472,6 +7496,9 @@ class ServerCapabilities implements ToJsonable {
     if (foldingRangeProvider != null) {
       __result['foldingRangeProvider'] = foldingRangeProvider;
     }
+    if (declarationProvider != null) {
+      __result['declarationProvider'] = declarationProvider;
+    }
     if (executeCommandProvider != null) {
       __result['executeCommandProvider'] = executeCommandProvider;
     }
@@ -7496,10 +7523,8 @@ class ServerCapabilities implements ToJsonable {
             SignatureHelpOptions.canParse(obj['signatureHelpProvider'])) &&
         (obj['definitionProvider'] == null ||
             obj['definitionProvider'] is bool) &&
-        (obj['typeDefinitionProvider'] == null ||
-            (obj['typeDefinitionProvider'] is bool || true)) &&
-        (obj['implementationProvider'] == null ||
-            (obj['implementationProvider'] is bool || true)) &&
+        (obj['typeDefinitionProvider'] == null || true) &&
+        (obj['implementationProvider'] == null || true) &&
         (obj['referencesProvider'] == null ||
             obj['referencesProvider'] is bool) &&
         (obj['documentHighlightProvider'] == null ||
@@ -7525,15 +7550,9 @@ class ServerCapabilities implements ToJsonable {
                 RenameOptions.canParse(obj['renameProvider']))) &&
         (obj['documentLinkProvider'] == null ||
             DocumentLinkOptions.canParse(obj['documentLinkProvider'])) &&
-        (obj['colorProvider'] == null ||
-            (obj['colorProvider'] is bool ||
-                ColorProviderOptions.canParse(obj['colorProvider']) ||
-                true)) &&
-        (obj['foldingRangeProvider'] == null ||
-            (obj['foldingRangeProvider'] is bool ||
-                FoldingRangeProviderOptions.canParse(
-                    obj['foldingRangeProvider']) ||
-                true)) &&
+        (obj['colorProvider'] == null || true) &&
+        (obj['foldingRangeProvider'] == null || true) &&
+        (obj['declarationProvider'] == null || true) &&
         (obj['executeCommandProvider'] == null ||
             ExecuteCommandOptions.canParse(obj['executeCommandProvider'])) &&
         (obj['workspace'] == null ||
@@ -7566,6 +7585,7 @@ class ServerCapabilities implements ToJsonable {
           documentLinkProvider == other.documentLinkProvider &&
           colorProvider == other.colorProvider &&
           foldingRangeProvider == other.foldingRangeProvider &&
+          declarationProvider == other.declarationProvider &&
           executeCommandProvider == other.executeCommandProvider &&
           workspace == other.workspace &&
           experimental == other.experimental &&
@@ -7599,6 +7619,7 @@ class ServerCapabilities implements ToJsonable {
     hash = JenkinsSmiHash.combine(hash, documentLinkProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, colorProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, foldingRangeProvider.hashCode);
+    hash = JenkinsSmiHash.combine(hash, declarationProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, executeCommandProvider.hashCode);
     hash = JenkinsSmiHash.combine(hash, workspace.hashCode);
     hash = JenkinsSmiHash.combine(hash, experimental.hashCode);
@@ -11205,16 +11226,20 @@ class TextDocumentSyncOptions implements ToJsonable {
   /// TextDocumentSyncKind.None.
   final TextDocumentSyncKind change;
 
-  /// Open and close notifications are sent to the server.
+  /// Open and close notifications are sent to the server. If omitted open close
+  /// notification should not be sent.
   final bool openClose;
 
-  /// Save notifications are sent to the server.
+  /// If present save notifications are sent to the server. If omitted the
+  /// notification should not be sent.
   final SaveOptions save;
 
-  /// Will save notifications are sent to the server.
+  /// If present will save notifications are sent to the server. If omitted the
+  /// notification should not be sent.
   final bool willSave;
 
-  /// Will save wait until requests are sent to the server.
+  /// If present will save wait until requests are sent to the server. If
+  /// omitted the request should not be sent.
   final bool willSaveWaitUntil;
 
   Map<String, dynamic> toJson() {
@@ -12258,7 +12283,8 @@ class WorkspaceFolder implements ToJsonable {
     return new WorkspaceFolder(uri, name);
   }
 
-  /// The name of the workspace folder. Defaults to the uri's basename.
+  /// The name of the workspace folder. Used to refer to this workspace folder
+  /// in the user interface.
   final String name;
 
   /// The associated URI for this workspace folder.

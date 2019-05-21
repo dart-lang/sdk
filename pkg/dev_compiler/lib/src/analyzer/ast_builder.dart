@@ -16,15 +16,15 @@ class AstBuilder {
   KeywordToken get constKeyword => KeywordToken(Keyword.CONST, 0);
 
   TypeName typeName(Identifier id, List<TypeAnnotation> args) {
-    TypeArgumentList argList = null;
-    if (args != null && args.length > 0) argList = typeArgumentList(args);
+    TypeArgumentList argList;
+    if (args != null && args.isNotEmpty) argList = typeArgumentList(args);
     return astFactory.typeName(id, argList);
   }
 
   FunctionTypeAlias functionTypeAlias(TypeName ret, SimpleIdentifier name,
       List<TypeParameter> tParams, List<FormalParameter> params) {
     TypeParameterList tps =
-        (tParams.length == 0) ? null : typeParameterList(tParams);
+        (tParams.isEmpty) ? null : typeParameterList(tParams);
     FormalParameterList fps = formalParameterList(params);
     Token semi = Token(TokenType.SEMICOLON, 0);
     Token td = KeywordToken(Keyword.TYPEDEF, 0);
@@ -313,7 +313,7 @@ class AstBuilder {
     return astFactory.prefixedIdentifier(pre, period, id);
   }
 
-  TypeParameter typeParameter(SimpleIdentifier name, [TypeName bound = null]) {
+  TypeParameter typeParameter(SimpleIdentifier name, [TypeName bound]) {
     Token keyword = (bound == null) ? null : KeywordToken(Keyword.EXTENDS, 0);
     return astFactory.typeParameter(null, null, name, keyword, bound);
   }
@@ -388,8 +388,8 @@ class AstBuilder {
     bool hasOptional = params.any((p) => p.isPositional);
     bool hasNamed = params.any((p) => p.isNamed);
     assert(!(hasOptional && hasNamed));
-    Token ld = null;
-    Token rd = null;
+    Token ld;
+    Token rd;
     if (hasOptional) {
       ld = BeginToken(TokenType.OPEN_SQUARE_BRACKET, 0);
       rd = Token(TokenType.CLOSE_SQUARE_BRACKET, 0);

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/codegen.dart' show CodegenRegistry;
 import '../common/names.dart' show Selectors;
 import '../common/tasks.dart' show Measurer, CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
@@ -15,7 +15,7 @@ import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
-import '../js_backend/backend.dart';
+import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_backend/runtime_types.dart';
 import '../native/behavior.dart';
@@ -51,11 +51,12 @@ class SsaOptimizerTask extends CompilerTask {
   String get name => 'SSA optimizer';
 
   void optimize(
-      CodegenWorkItem work,
+      MemberEntity member,
       HGraph graph,
       CodegenInputs codegen,
       JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
+      GlobalTypeInferenceResults globalInferenceResults,
+      CodegenRegistry registry) {
     void runPhase(OptimizationPhase phase) {
       measureSubtask(phase.name, () => phase.visitGraph(graph));
       codegen.tracer.traceGraph(phase.name, graph);
@@ -63,7 +64,6 @@ class SsaOptimizerTask extends CompilerTask {
     }
 
     bool trustPrimitives = _options.trustPrimitives;
-    CodegenRegistry registry = work.registry;
     Set<HInstruction> boundsChecked = new Set<HInstruction>();
     SsaCodeMotion codeMotion;
     SsaLoadElimination loadElimination;
@@ -71,7 +71,7 @@ class SsaOptimizerTask extends CompilerTask {
     OptimizationTestLog log;
     if (retainDataForTesting) {
       loggersForTesting ??= {};
-      loggersForTesting[work.element] = log = new OptimizationTestLog();
+      loggersForTesting[member] = log = new OptimizationTestLog();
     }
 
     measure(() {
@@ -125,8 +125,7 @@ class SsaOptimizerTask extends CompilerTask {
       // Simplifying interceptors is not strictly just an optimization, it is
       // required for implementation correctness because the code generator
       // assumes it is always performed.
-      runPhase(new SsaSimplifyInterceptors(
-          closedWorld, work.element.enclosingClass));
+      runPhase(new SsaSimplifyInterceptors(closedWorld, member.enclosingClass));
 
       SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(closedWorld, this);
       runPhase(dce);
@@ -142,7 +141,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaInstructionSimplifier(globalInferenceResults, _options,
               codegen.rtiSubstitutions, closedWorld, registry, log),
           new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
-          new SsaSimplifyInterceptors(closedWorld, work.element.enclosingClass),
+          new SsaSimplifyInterceptors(closedWorld, member.enclosingClass),
           new SsaDeadCodeEliminator(closedWorld, this),
         ];
       } else {
@@ -1956,8 +1955,8 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   HInstruction get zapInstruction {
     if (zapInstructionCache == null) {
       // A constant with no type does not pollute types at phi nodes.
-      ConstantValue constant = new SyntheticConstantValue(
-          SyntheticConstantKind.EMPTY_VALUE, _abstractValueDomain.emptyType);
+      ConstantValue constant =
+          new AbstractValueConstantValue(_abstractValueDomain.emptyType);
       zapInstructionCache = analyzer.graph.addConstant(constant, closedWorld);
     }
     return zapInstructionCache;

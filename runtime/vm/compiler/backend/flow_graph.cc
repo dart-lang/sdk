@@ -27,7 +27,6 @@ DEFINE_FLAG(bool, use_smi_widening, false, "Enable Smi->Int32 widening pass.");
 DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
 #endif
 DEFINE_FLAG(bool, prune_dead_locals, true, "optimize dead locals away");
-DECLARE_FLAG(bool, verify_compiler);
 
 // Quick access to the current zone.
 #define Z (zone())
@@ -154,6 +153,9 @@ void FlowGraph::AddToGraphInitialDefinitions(Definition* defn) {
 void FlowGraph::AddToInitialDefinitions(BlockEntryWithInitialDefs* entry,
                                         Definition* defn) {
   defn->set_previous(entry);
+  if (auto par = defn->AsParameter()) {
+    par->set_block(entry);  // set cached block
+  }
   entry->initial_definitions()->Add(defn);
 }
 
@@ -297,80 +299,6 @@ void FlowGraph::MergeBlocks() {
   }
   // Recompute block order after changes were made.
   if (changed) DiscoverBlocks();
-}
-
-// Debugging code to verify the construction of use lists.
-static intptr_t MembershipCount(Value* use, Value* list) {
-  intptr_t count = 0;
-  while (list != NULL) {
-    if (list == use) ++count;
-    list = list->next_use();
-  }
-  return count;
-}
-
-static void VerifyUseListsInInstruction(Instruction* instr) {
-  ASSERT(instr != NULL);
-  ASSERT(!instr->IsJoinEntry());
-  for (intptr_t i = 0; i < instr->InputCount(); ++i) {
-    Value* use = instr->InputAt(i);
-    ASSERT(use->definition() != NULL);
-    ASSERT((use->definition() != instr) || use->definition()->IsPhi() ||
-           use->definition()->IsMaterializeObject());
-    ASSERT(use->instruction() == instr);
-    ASSERT(use->use_index() == i);
-    ASSERT(!FLAG_verify_compiler ||
-           (1 == MembershipCount(use, use->definition()->input_use_list())));
-  }
-  if (instr->env() != NULL) {
-    intptr_t use_index = 0;
-    for (Environment::DeepIterator it(instr->env()); !it.Done(); it.Advance()) {
-      Value* use = it.CurrentValue();
-      ASSERT(use->definition() != NULL);
-      ASSERT((use->definition() != instr) || use->definition()->IsPhi());
-      ASSERT(use->instruction() == instr);
-      ASSERT(use->use_index() == use_index++);
-      ASSERT(!FLAG_verify_compiler ||
-             (1 == MembershipCount(use, use->definition()->env_use_list())));
-    }
-  }
-  Definition* defn = instr->AsDefinition();
-  if (defn != NULL) {
-    // Used definitions must have an SSA name.  We use the name to index
-    // into bit vectors during analyses.  Some definitions without SSA names
-    // (e.g., PushArgument) have environment uses.
-    ASSERT((defn->input_use_list() == NULL) || defn->HasSSATemp());
-    Value* prev = NULL;
-    Value* curr = defn->input_use_list();
-    while (curr != NULL) {
-      ASSERT(prev == curr->previous_use());
-      ASSERT(defn == curr->definition());
-      Instruction* instr = curr->instruction();
-      // The instruction should not be removed from the graph.
-      ASSERT((instr->IsPhi() && instr->AsPhi()->is_alive()) ||
-             (instr->previous() != NULL));
-      ASSERT(curr == instr->InputAt(curr->use_index()));
-      prev = curr;
-      curr = curr->next_use();
-    }
-
-    prev = NULL;
-    curr = defn->env_use_list();
-    while (curr != NULL) {
-      ASSERT(prev == curr->previous_use());
-      ASSERT(defn == curr->definition());
-      Instruction* instr = curr->instruction();
-      ASSERT(curr == instr->env()->ValueAtUseIndex(curr->use_index()));
-      // BlockEntry instructions have environments attached to them but
-      // have no reliable way to verify if they are still in the graph.
-      // Thus we just assume they are.
-      ASSERT(instr->IsBlockEntry() ||
-             (instr->IsPhi() && instr->AsPhi()->is_alive()) ||
-             (instr->previous() != NULL));
-      prev = curr;
-      curr = curr->next_use();
-    }
-  }
 }
 
 void FlowGraph::ComputeIsReceiverRecursive(
@@ -572,31 +500,6 @@ void FlowGraph::AddExactnessGuard(InstanceCallInstr* call,
                              /*needs_number_check=*/false, call->deopt_id()),
       call->deopt_id());
   InsertBefore(call, guard, call->env(), FlowGraph::kEffect);
-}
-
-bool FlowGraph::VerifyUseLists() {
-  // Verify the initial definitions.
-  for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {
-    VerifyUseListsInInstruction((*graph_entry_->initial_definitions())[i]);
-  }
-
-  // Verify phis in join entries and the instructions in each block.
-  for (intptr_t i = 0; i < preorder_.length(); ++i) {
-    BlockEntryInstr* entry = preorder_[i];
-    JoinEntryInstr* join = entry->AsJoinEntry();
-    if (join != NULL) {
-      for (PhiIterator it(join); !it.Done(); it.Advance()) {
-        PhiInstr* phi = it.Current();
-        ASSERT(phi != NULL);
-        VerifyUseListsInInstruction(phi);
-      }
-    }
-    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-      VerifyUseListsInInstruction(it.Current());
-    }
-  }
-
-  return true;  // Return true so we can ASSERT validation.
 }
 
 // Verify that a redefinition dominates all uses of the redefined value.
@@ -1240,7 +1143,7 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
 
     param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
     (*env)[i] = param;
-    catch_entry->initial_definitions()->Add(param);
+    AddToInitialDefinitions(catch_entry, param);
   }
 }
 
@@ -1595,11 +1498,11 @@ RedefinitionInstr* FlowGraph::EnsureRedefinition(Instruction* prev,
                                                  Definition* original,
                                                  CompileType compile_type) {
   RedefinitionInstr* first = prev->next()->AsRedefinition();
-  if (first != NULL && (first->constrained_type() != NULL)) {
+  if (first != nullptr && (first->constrained_type() != nullptr)) {
     if ((first->value()->definition() == original) &&
         first->constrained_type()->IsEqualTo(&compile_type)) {
       // Already redefined. Do nothing.
-      return NULL;
+      return nullptr;
     }
   }
   RedefinitionInstr* redef = new RedefinitionInstr(new Value(original));
@@ -1610,8 +1513,17 @@ RedefinitionInstr* FlowGraph::EnsureRedefinition(Instruction* prev,
     redef->set_constrained_type(new CompileType(compile_type));
   }
 
-  InsertAfter(prev, redef, NULL, FlowGraph::kValue);
+  InsertAfter(prev, redef, nullptr, FlowGraph::kValue);
   RenameDominatedUses(original, redef, redef);
+
+  if (redef->input_use_list() == nullptr) {
+    // There are no dominated uses, so the newly added Redefinition is useless.
+    // Remove Redefinition to avoid interfering with
+    // BranchSimplifier::Simplify which needs empty blocks.
+    redef->RemoveFromGraph();
+    return nullptr;
+  }
+
   return redef;
 }
 

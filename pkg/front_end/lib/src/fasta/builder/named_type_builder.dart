@@ -82,9 +82,11 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
           typeName = name;
           typeNameOffset = charOffset;
         }
-        declaration = buildInvalidType(templateTypeArgumentsOnTypeVariable
-            .withArguments(typeName)
-            .withLocation(fileUri, typeNameOffset, typeName.length));
+        Message message =
+            templateTypeArgumentsOnTypeVariable.withArguments(typeName);
+        library.addProblem(message, typeNameOffset, typeName.length, fileUri);
+        declaration = buildInvalidType(
+            message.withLocation(fileUri, typeNameOffset, typeName.length));
       }
       return;
     } else if (member is TypeDeclarationBuilder) {
@@ -120,20 +122,22 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
     }
     int length =
         name is Identifier ? name.endCharOffset - charOffset : flatName.length;
+    Message message = template.withArguments(flatName);
+    library.addProblem(message, charOffset, length, fileUri, context: context);
     declaration = buildInvalidType(
-        template
-            .withArguments(flatName)
-            .withLocation(fileUri, charOffset, length),
+        message.withLocation(fileUri, charOffset, length),
         context: context);
   }
 
   @override
-  void check(int charOffset, Uri fileUri) {
+  void check(LibraryBuilder library, int charOffset, Uri fileUri) {
     if (arguments != null &&
         arguments.length != declaration.typeVariablesCount) {
-      declaration = buildInvalidType(templateTypeArgumentMismatch
-          .withArguments(declaration.typeVariablesCount)
-          .withLocation(fileUri, charOffset, noLength));
+      Message message = templateTypeArgumentMismatch
+          .withArguments(declaration.typeVariablesCount);
+      library.addProblem(message, charOffset, noLength, fileUri);
+      declaration =
+          buildInvalidType(message.withLocation(fileUri, charOffset, noLength));
     }
   }
 

@@ -17,11 +17,22 @@ RawTypedData* KBCNativeCallPattern::GetNativeEntryDataAt(
     uword pc,
     const Bytecode& bytecode) {
   ASSERT(bytecode.ContainsInstructionAt(pc));
-  const uword call_pc = pc - sizeof(KBCInstr);
-  KBCInstr call_instr = KernelBytecode::At(call_pc);
-  ASSERT(KernelBytecode::DecodeOpcode(call_instr) ==
-         KernelBytecode::kNativeCall);
-  intptr_t native_entry_data_pool_index = KernelBytecode::DecodeD(call_instr);
+
+  const KBCInstr* return_addr = reinterpret_cast<const KBCInstr*>(pc);
+  const KBCInstr* instr =
+      reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
+  ASSERT(instr < return_addr);
+  while (!KernelBytecode::IsNativeCallOpcode(instr)) {
+    instr = KernelBytecode::Next(instr);
+    if (instr >= return_addr) {
+      FATAL1(
+          "Unable to find NativeCall bytecode instruction"
+          " corresponding to PC %" Px,
+          pc);
+    }
+  }
+
+  intptr_t native_entry_data_pool_index = KernelBytecode::DecodeD(instr);
   const ObjectPool& obj_pool = ObjectPool::Handle(bytecode.object_pool());
   TypedData& native_entry_data = TypedData::Handle();
   native_entry_data ^= obj_pool.ObjectAt(native_entry_data_pool_index);

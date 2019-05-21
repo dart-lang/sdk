@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
@@ -10,12 +11,7 @@ import '../common/codegen.dart' show CodegenRegistry;
 import '../common/names.dart';
 import '../common_elements.dart';
 import '../constants/constant_system.dart' as constant_system;
-import '../constants/values.dart'
-    show
-        ConstantValue,
-        InterceptorConstantValue,
-        StringConstantValue,
-        TypeConstantValue;
+import '../constants/values.dart';
 import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
@@ -33,10 +29,10 @@ import '../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/inferred_data.dart';
-import '../js_backend/namer.dart';
+import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types.dart';
-import '../js_emitter/code_emitter_task.dart';
+import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/locals.dart' show JumpVisitor;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/element_map.dart';
@@ -113,14 +109,15 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
   final CompilerOptions options;
   final DiagnosticReporter reporter;
-  final Emitter _emitter;
-  final Namer _namer;
+  final ModularEmitter _emitter;
+  final ModularNamer _namer;
   final MemberEntity targetElement;
   final MemberEntity _initialTargetElement;
   final JClosedWorld closedWorld;
   final CodegenRegistry registry;
   final ClosureData _closureDataLookup;
   final Tracer _tracer;
+  final RuntimeTypesEncoder _rtiEncoder;
 
   /// A stack of [InterfaceType]s that have been seen during inlining of
   /// factory constructors.  These types are preserved in [HInvokeStatic]s and
@@ -168,6 +165,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       this._namer,
       this._emitter,
       this._tracer,
+      this._rtiEncoder,
       this._sourceInformationStrategy,
       this._inlineCache)
       : this.targetElement = _effectiveTargetElementFor(_initialTargetElement),
@@ -452,7 +450,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
                 closedWorld.fieldAnalysis.getFieldData(targetElement);
 
             if (fieldData.initialValue != null) {
-              registry.worldImpact.registerConstantUse(
+              registry.registerConstantUse(
                   new ConstantUse.init(fieldData.initialValue));
               if (targetElement.isStatic || targetElement.isTopLevel) {
                 /// No code is created for this field: All references inline the
@@ -462,7 +460,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
             } else if (fieldData.isLazy) {
               // The generated initializer needs be wrapped in the cyclic-error
               // helper.
-              registry.worldImpact.registerStaticUse(new StaticUse.staticInvoke(
+              registry.registerStaticUse(new StaticUse.staticInvoke(
                   closedWorld.commonElements.cyclicThrowHelper,
                   CallStructure.ONE_ARG));
             }
@@ -4339,8 +4337,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     HInstruction instruction = pop();
 
     if (instruction is HConstant) {
-      js.Name name =
-          _elementMap.getNameForJsGetName(instruction.constant, _namer);
+      js.Name name = _getNameForJsGetName(instruction.constant, _namer);
       stack.add(graph.addConstantStringFromName(name, closedWorld));
       return;
     }
@@ -4351,6 +4348,29 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         {'text': 'Error: Expected a JsGetName enum value.'});
     // Result expected on stack.
     stack.add(graph.addConstantNull(closedWorld));
+  }
+
+  int _extractEnumIndexFromConstantValue(
+      ConstantValue constant, ClassEntity classElement) {
+    if (constant is ConstructedConstantValue) {
+      if (constant.type.element == classElement) {
+        assert(constant.fields.length == 1 || constant.fields.length == 2);
+        ConstantValue indexConstant = constant.fields.values.first;
+        if (indexConstant is IntConstantValue) {
+          return indexConstant.intValue.toInt();
+        }
+      }
+    }
+    return null;
+  }
+
+  /// Returns the [js.Name] for the `JsGetName` [constant] value.
+  js.Name _getNameForJsGetName(ConstantValue constant, ModularNamer namer) {
+    int index = _extractEnumIndexFromConstantValue(
+        constant, _commonElements.jsGetNameEnum);
+    if (index == null) return null;
+    return namer.getNameForJsGetName(
+        CURRENT_ELEMENT_SPANNABLE, JsGetName.values[index]);
   }
 
   void _handleForeignJsEmbeddedGlobal(ir.StaticInvocation invocation) {
@@ -4393,8 +4413,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
     js.Template template;
     if (instruction is HConstant) {
-      template =
-          _elementMap.getJsBuiltinTemplate(instruction.constant, _emitter);
+      template = _getJsBuiltinTemplate(instruction.constant, _emitter);
     }
     if (template == null) {
       reporter.reportErrorMessage(
@@ -4423,6 +4442,73 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
     push(new HForeignCode(template, ssaType, inputs,
         nativeBehavior: nativeBehavior));
+  }
+
+  /// Returns the [js.Template] for the `JsBuiltin` [constant] value.
+  js.Template _getJsBuiltinTemplate(
+      ConstantValue constant, ModularEmitter emitter) {
+    int index = _extractEnumIndexFromConstantValue(
+        constant, _commonElements.jsBuiltinEnum);
+    if (index == null) return null;
+    return _templateForBuiltin(JsBuiltin.values[index]);
+  }
+
+  /// Returns the JS template for the given [builtin].
+  js.Template _templateForBuiltin(JsBuiltin builtin) {
+    switch (builtin) {
+      case JsBuiltin.dartObjectConstructor:
+        ClassEntity objectClass = closedWorld.commonElements.objectClass;
+        return js.js
+            .expressionTemplateYielding(_emitter.typeAccess(objectClass));
+
+      case JsBuiltin.isCheckPropertyToJsConstructorName:
+        int isPrefixLength = _namer.fixedNames.operatorIsPrefix.length;
+        return js.js.expressionTemplateFor('#.substring($isPrefixLength)');
+
+      case JsBuiltin.isFunctionType:
+        return _rtiEncoder.templateForIsFunctionType;
+
+      case JsBuiltin.isFutureOrType:
+        return _rtiEncoder.templateForIsFutureOrType;
+
+      case JsBuiltin.isVoidType:
+        return _rtiEncoder.templateForIsVoidType;
+
+      case JsBuiltin.isDynamicType:
+        return _rtiEncoder.templateForIsDynamicType;
+
+      case JsBuiltin.isJsInteropTypeArgument:
+        return _rtiEncoder.templateForIsJsInteropTypeArgument;
+
+      case JsBuiltin.rawRtiToJsConstructorName:
+        return js.js.expressionTemplateFor("#.name");
+
+      case JsBuiltin.rawRuntimeType:
+        return js.js.expressionTemplateFor("#.constructor");
+
+      case JsBuiltin.isSubtype:
+        // TODO(floitsch): move this closer to where is-check properties are
+        // built.
+        String isPrefix = _namer.fixedNames.operatorIsPrefix;
+        return js.js.expressionTemplateFor("('$isPrefix' + #) in #.prototype");
+
+      case JsBuiltin.isGivenTypeRti:
+        return js.js.expressionTemplateFor('#.name === #');
+
+      case JsBuiltin.getMetadata:
+        String metadataAccess =
+            _emitter.generateEmbeddedGlobalAccessString(METADATA);
+        return js.js.expressionTemplateFor("$metadataAccess[#]");
+
+      case JsBuiltin.getType:
+        String typesAccess = _emitter.generateEmbeddedGlobalAccessString(TYPES);
+        return js.js.expressionTemplateFor("$typesAccess[#]");
+
+      default:
+        reporter.internalError(
+            NO_LOCATION_SPANNABLE, "Unhandled Builtin: $builtin");
+        return null;
+    }
   }
 
   void _handleForeignJsGetFlag(ir.StaticInvocation invocation) {
@@ -4861,16 +4947,16 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     var arguments = <HInstruction>[];
     node.expression.accept(this);
     arguments.add(pop());
-    // TODO(johnniwinther): Use the static type of the expression.
+    StaticType expressionType = _getStaticType(node.expression);
     bool typeArgumentsNeeded = _rtiNeed.instantiationNeedsTypeArguments(
-        null, node.typeArguments.length);
+        expressionType.type, node.typeArguments.length);
     List<DartType> typeArguments = node.typeArguments
         .map((type) => typeArgumentsNeeded
             ? _elementMap.getDartType(type)
             : _commonElements.dynamicType)
         .toList();
     registry.registerGenericInstantiation(
-        new GenericInstantiation(null, typeArguments));
+        new GenericInstantiation(expressionType.type, typeArguments));
     // TODO(johnniwinther): Can we avoid creating the instantiation object?
     for (DartType type in typeArguments) {
       HInstruction instruction =

@@ -44,7 +44,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -127,7 +127,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -150,7 +150,7 @@ Bytecode {
   Push                 FP[-6]
   PushConstant         CP#1
   PushInt              2
-  DirectCall           4, CP#2
+  DirectCall           CP#2, 4
   ReturnTOS
 }
 ConstantPool {
@@ -170,7 +170,7 @@ Bytecode {
   Entry                1
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   ReturnTOS
 }
 ConstantPool {
@@ -188,7 +188,7 @@ Bytecode {
   Entry                1
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   ReturnTOS
 }
 ConstantPool {
@@ -207,9 +207,9 @@ Bytecode {
   CheckStack           0
   PushConstant         CP#0
   Push                 FP[-5]
-  DirectCall           1, CP#1
+  DirectCall           CP#1, 1
   PushConstant         CP#3
-  DynamicCall          3, CP#5
+  DynamicCall          CP#5, 3
   ReturnTOS
 }
 ConstantPool {
@@ -232,7 +232,7 @@ Bytecode {
   CheckStack           0
   Push                 FP[-5]
   PushInt              3
-  DirectCall           2, CP#0
+  DirectCall           CP#0, 2
   Drop1
   PushNull
   ReturnTOS
@@ -275,7 +275,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -323,7 +323,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -370,8 +370,8 @@ Bytecode {
   PushInt              5
   StoreIndexedTOS
   PushTrue
-  DirectCall           4, CP#6
-  DirectCall           2, CP#8
+  DirectCall           CP#6, 4
+  DirectCall           CP#8, 2
   ReturnTOS
 }
 ConstantPool {
@@ -408,8 +408,8 @@ Bytecode {
   Push                 FP[-5]
   StoreIndexedTOS
   PushTrue
-  DirectCall           4, CP#3
-  DirectCall           2, CP#5
+  DirectCall           CP#3, 4
+  DirectCall           CP#5, 2
   ReturnTOS
 }
 ConstantPool {
@@ -443,8 +443,8 @@ Bytecode {
   Push                 FP[-5]
   StoreIndexedTOS
   PushTrue
-  DirectCall           4, CP#3
-  DirectCall           2, CP#5
+  DirectCall           CP#3, 4
+  DirectCall           CP#5, 2
   ReturnTOS
 }
 ConstantPool {
@@ -479,10 +479,10 @@ Bytecode {
   Push                 FP[-5]
   StoreIndexedTOS
   PushTrue
-  DirectCall           4, CP#4
-  DirectCall           2, CP#6
+  DirectCall           CP#4, 4
+  DirectCall           CP#6, 2
   PushConstant         CP#8
-  DynamicCall          3, CP#10
+  DynamicCall          CP#10, 3
   ReturnTOS
 }
 ConstantPool {
@@ -524,8 +524,8 @@ Bytecode {
   PushInt              3
   StoreIndexedTOS
   PushTrue
-  DirectCall           4, CP#3
-  DirectCall           2, CP#5
+  DirectCall           CP#3, 4
+  DirectCall           CP#5, 2
   Drop1
   PushNull
   ReturnTOS

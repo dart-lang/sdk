@@ -108,6 +108,7 @@ class Simulator {
 
   static IntrinsicHandler intrinsics_[kIntrinsicCount];
 
+  // Set up an exit frame for the garbage collector.
   void Exit(Thread* thread,
             RawObject** base,
             RawObject** exit_frame,

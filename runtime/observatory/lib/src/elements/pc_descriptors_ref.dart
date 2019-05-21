@@ -9,7 +9,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class PcDescriptorsRefElement extends HtmlElement implements Renderable {
+class PcDescriptorsRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<PcDescriptorsRefElement>('pc-ref');
 
   RenderingScheduler<PcDescriptorsRefElement> _r;
@@ -28,14 +28,14 @@ class PcDescriptorsRefElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(descriptors != null);
-    PcDescriptorsRefElement e = document.createElement(tag.name);
+    PcDescriptorsRefElement e = new PcDescriptorsRefElement.created();
     e._r = new RenderingScheduler<PcDescriptorsRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._descriptors = descriptors;
     return e;
   }
 
-  PcDescriptorsRefElement.created() : super.created();
+  PcDescriptorsRefElement.created() : super.created(tag);
 
   @override
   void attached() {

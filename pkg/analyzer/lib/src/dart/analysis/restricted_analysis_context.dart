@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -14,42 +15,36 @@ import 'package:analyzer/src/generated/type_system.dart';
 /// functionality (which is task based), except what we intend to expose
 /// through the new API.
 class RestrictedAnalysisContext implements AnalysisContextImpl {
-  @override
-  final AnalysisOptionsImpl analysisOptions;
-
-  @override
-  final DeclaredVariables declaredVariables;
+  final SynchronousSession synchronousSession;
 
   @override
   final SourceFactory sourceFactory;
 
-  TypeProvider _typeProvider;
-
-  TypeSystem _typeSystem;
-
-  RestrictedAnalysisContext(
-      this.analysisOptions, this.declaredVariables, this.sourceFactory);
+  RestrictedAnalysisContext(this.synchronousSession, this.sourceFactory);
 
   @override
-  TypeProvider get typeProvider => _typeProvider;
+  AnalysisOptionsImpl get analysisOptions => synchronousSession.analysisOptions;
+
+  @override
+  DeclaredVariables get declaredVariables =>
+      synchronousSession.declaredVariables;
+
+  @override
+  TypeProvider get typeProvider => synchronousSession.typeProvider;
 
   @override
   set typeProvider(TypeProvider typeProvider) {
-    if (_typeProvider != null) {
-      throw StateError('TypeProvider can be set only once.');
-    }
-    _typeProvider = typeProvider;
+    synchronousSession.typeProvider = typeProvider;
   }
 
   @override
-  TypeSystem get typeSystem {
-    return _typeSystem ??= Dart2TypeSystem(
-      typeProvider,
-      implicitCasts: analysisOptions.implicitCasts,
-    );
-  }
+  TypeSystem get typeSystem => synchronousSession.typeSystem;
 
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
+  }
+
+  void clearTypeProvider() {
+    synchronousSession.clearTypeProvider();
   }
 }

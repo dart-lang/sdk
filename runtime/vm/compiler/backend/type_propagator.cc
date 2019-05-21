@@ -987,17 +987,11 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType::Dynamic();
   }
 
-  if (function.HasBytecode() &&
-      graph_entry->parsed_function().node_sequence() == nullptr) {
-    // TODO(alexmarkov): Consider adding node_sequence() and scope.
-    return CompileType::Dynamic();
-  }
-
   // Parameter is the receiver.
   if ((index() == 0) &&
       (function.IsDynamicFunction() || function.IsGenerativeConstructor())) {
     const AbstractType& type =
-        graph_entry->parsed_function().ParameterVariable(index())->type();
+        graph_entry->parsed_function().RawParameterVariable(0)->type();
     if (type.IsObjectType() || type.IsNullType()) {
       // Receiver can be null.
       return CompileType::FromAbstractType(type, CompileType::kNullable);
@@ -1034,6 +1028,12 @@ CompileType ParameterInstr::ComputeType() const {
     }
 
     return CompileType(CompileType::kNonNullable, cid, &type);
+  }
+
+  if (function.HasBytecode() &&
+      graph_entry->parsed_function().node_sequence() == nullptr) {
+    // TODO(alexmarkov): Consider adding node_sequence() and scope.
+    return CompileType::Dynamic();
   }
 
   const bool is_unchecked_entry_param =

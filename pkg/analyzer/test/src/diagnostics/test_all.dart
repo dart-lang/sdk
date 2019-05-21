@@ -32,7 +32,9 @@ import 'duplicate_import_test.dart' as duplicate_import;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
 import 'expression_in_map_test.dart' as expression_in_map;
+import 'extends_non_class_test.dart' as extends_non_class;
 import 'final_not_initialized_test.dart' as final_not_initialized;
+import 'implements_non_class_test.dart' as implements_non_class;
 import 'implicit_this_reference_in_initializer_test.dart'
     as implicit_this_reference_in_initializer;
 import 'import_deferred_library_with_load_function_test.dart'
@@ -69,6 +71,7 @@ import 'missing_default_value_for_parameter_test.dart'
     as missing_default_value_for_paramter;
 import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
+import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'mixin_super_class_constraint_non_interface_test.dart'
     as mixin_super_class_constraint_non_interface;
@@ -128,6 +131,7 @@ import 'sdk_version_gt_gt_gt_operator_test.dart'
     as sdk_version_gt_gt_gt_operator;
 import 'sdk_version_is_expression_in_const_context_test.dart'
     as sdk_version_is_expression_in_const_context;
+import 'sdk_version_never_test.dart' as sdk_version_never;
 import 'sdk_version_set_literal_test.dart' as sdk_version_set_literal;
 import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
 import 'set_element_type_not_assignable_test.dart'
@@ -184,7 +188,9 @@ main() {
     equal_elements_in_const_set.main();
     equal_keys_in_const_map.main();
     expression_in_map.main();
+    extends_non_class.main();
     final_not_initialized.main();
+    implements_non_class.main();
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
     invalid_assignment.main();
@@ -209,6 +215,7 @@ main() {
     missing_default_value_for_paramter.main();
     missing_required_param.main();
     missing_return.main();
+    mixin_of_non_class.main();
     mixin_on_sealed_class.main();
     mixin_super_class_constraint_non_interface.main();
     must_be_immutable.main();
@@ -248,6 +255,7 @@ main() {
     sdk_version_eq_eq_operator.main();
     sdk_version_gt_gt_gt_operator.main();
     sdk_version_is_expression_in_const_context.main();
+    sdk_version_never.main();
     sdk_version_set_literal.main();
     sdk_version_ui_as_code.main();
     set_element_type_not_assignable.main();

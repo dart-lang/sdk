@@ -9,7 +9,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../common.dart';
 import '../common/names.dart';
-import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/codegen.dart' show CodegenRegistry;
 import '../common/tasks.dart' show Measurer, CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
@@ -21,20 +21,19 @@ import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/interceptor_data.dart';
-import '../js_backend/backend.dart';
+import '../js_backend/backend.dart' show CodegenInputs, SuperMemberData;
 import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
-import '../js_backend/namer.dart';
+import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/runtime_types.dart';
-import '../js_emitter/code_emitter_task.dart';
+import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../native/behavior.dart';
 import '../options.dart';
 import '../tracer.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
-import '../universe/use.dart'
-    show ConstantUse, ConstrainedDynamicUse, StaticUse, TypeUse;
+import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 import '../world.dart' show JClosedWorld;
 import 'codegen_helpers.dart';
 import 'nodes.dart';
@@ -68,74 +67,93 @@ class SsaCodeGeneratorTask extends CompilerTask {
     if (needsAsyncRewrite) {
       return finish(element.asyncMarker.isAsync
           ? (element.asyncMarker.isYielding
-              ? const js.AsyncModifier.asyncStar()
-              : const js.AsyncModifier.async())
+              ? js.AsyncModifier.asyncStar
+              : js.AsyncModifier.async)
           : (element.asyncMarker.isYielding
-              ? const js.AsyncModifier.syncStar()
-              : const js.AsyncModifier.sync()));
+              ? js.AsyncModifier.syncStar
+              : js.AsyncModifier.sync));
     } else {
-      return finish(const js.AsyncModifier.sync());
+      return finish(js.AsyncModifier.sync);
     }
   }
 
-  js.Expression generateCode(CodegenWorkItem work, HGraph graph,
-      CodegenInputs codegen, JClosedWorld closedWorld) {
-    if (work.element.isField) {
-      return generateLazyInitializer(work, graph, codegen, closedWorld);
+  js.Expression generateCode(
+      MemberEntity member,
+      HGraph graph,
+      CodegenInputs codegen,
+      JClosedWorld closedWorld,
+      CodegenRegistry registry,
+      ModularNamer namer,
+      ModularEmitter emitter) {
+    if (member.isField) {
+      return generateLazyInitializer(
+          member, graph, codegen, closedWorld, registry, namer, emitter);
     } else {
-      return generateMethod(work, graph, codegen, closedWorld);
+      return generateMethod(
+          member, graph, codegen, closedWorld, registry, namer, emitter);
     }
   }
 
-  js.Expression generateLazyInitializer(CodegenWorkItem work, HGraph graph,
-      CodegenInputs codegen, JClosedWorld closedWorld) {
+  js.Expression generateLazyInitializer(
+      FieldEntity field,
+      HGraph graph,
+      CodegenInputs codegen,
+      JClosedWorld closedWorld,
+      CodegenRegistry registry,
+      ModularNamer namer,
+      ModularEmitter emitter) {
     return measure(() {
       codegen.tracer.traceGraph("codegen", graph);
       SourceInformation sourceInformation = sourceInformationStrategy
-          .createBuilderForContext(work.element)
-          .buildDeclaration(work.element);
+          .createBuilderForContext(field)
+          .buildDeclaration(field);
       SsaCodeGenerator codeGenerator = new SsaCodeGenerator(
           this,
           _options,
-          codegen.emitter,
+          emitter,
           codegen.checkedModeHelpers,
           codegen.oneShotInterceptorData,
           codegen.rtiSubstitutions,
           codegen.rtiEncoder,
-          codegen.namer,
+          namer,
           codegen.superMemberData,
           codegen.tracer,
           closedWorld,
-          work);
+          registry);
       codeGenerator.visitGraph(graph);
       return new js.Fun(codeGenerator.parameters, codeGenerator.body)
           .withSourceInformation(sourceInformation);
     });
   }
 
-  js.Expression generateMethod(CodegenWorkItem work, HGraph graph,
-      CodegenInputs codegen, JClosedWorld closedWorld) {
+  js.Expression generateMethod(
+      FunctionEntity method,
+      HGraph graph,
+      CodegenInputs codegen,
+      JClosedWorld closedWorld,
+      CodegenRegistry registry,
+      ModularNamer namer,
+      ModularEmitter emitter) {
     return measure(() {
-      FunctionEntity element = work.element;
-      if (element.asyncMarker != AsyncMarker.SYNC) {
-        work.registry.registerAsyncMarker(element.asyncMarker);
+      if (method.asyncMarker != AsyncMarker.SYNC) {
+        registry.registerAsyncMarker(method.asyncMarker);
       }
       SsaCodeGenerator codeGenerator = new SsaCodeGenerator(
           this,
           _options,
-          codegen.emitter,
+          emitter,
           codegen.checkedModeHelpers,
           codegen.oneShotInterceptorData,
           codegen.rtiSubstitutions,
           codegen.rtiEncoder,
-          codegen.namer,
+          namer,
           codegen.superMemberData,
           codegen.tracer,
           closedWorld,
-          work);
+          registry);
       codeGenerator.visitGraph(graph);
       codegen.tracer.traceGraph("codegen", graph);
-      return buildJavaScriptFunction(graph.needsAsyncRewrite, work.element,
+      return buildJavaScriptFunction(graph.needsAsyncRewrite, method,
           codeGenerator.parameters, codeGenerator.body);
     });
   }
@@ -162,16 +180,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   final CompilerTask _codegenTask;
   final CompilerOptions _options;
-  final Emitter _emitter;
+  final ModularEmitter _emitter;
   final CheckedModeHelpers _checkedModeHelpers;
   final OneShotInterceptorData _oneShotInterceptorData;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
   final RuntimeTypesEncoder _rtiEncoder;
-  final Namer _namer;
+  final ModularNamer _namer;
   final SuperMemberData _superMemberData;
   final Tracer _tracer;
   final JClosedWorld _closedWorld;
-  final CodegenWorkItem _work;
+  final CodegenRegistry _registry;
 
   final Set<HInstruction> generateAtUseSite;
   final Set<HInstruction> controlFlowOperators;
@@ -227,7 +245,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       this._superMemberData,
       this._tracer,
       this._closedWorld,
-      this._work,
+      this._registry,
       {SourceInformation sourceInformation})
       : declaredLocals = new Set<String>(),
         collectedVariableDeclarations = new Set<String>(),
@@ -240,8 +258,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         breakAction = new Set<JumpTarget>(),
         continueAction = new Set<LabelDefinition>(),
         implicitContinueAction = new Set<JumpTarget>();
-
-  CodegenRegistry get _registry => _work.registry;
 
   JCommonElements get _commonElements => _closedWorld.commonElements;
 
@@ -623,14 +639,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           op == '^' ||
           op == '&' ||
           op == '|') {
-        if (binary.left is js.VariableUse &&
-            (binary.left as js.VariableUse).name == variableName) {
+        js.Expression left = binary.left;
+        if (left is js.VariableUse && left.name == variableName) {
           // We know now, that we can shorten x = x + y into x += y.
           // Also check for the shortcut where y equals 1: x++ and x--.
+          js.Expression right = binary.right;
           if ((op == '+' || op == '-') &&
-              binary.right is js.LiteralNumber &&
-              (binary.right as js.LiteralNumber).value == "1") {
-            return new js.Prefix(op == '+' ? '++' : '--', binary.left);
+              right is js.LiteralNumber &&
+              right.value == "1") {
+            return new js.Prefix(op == '+' ? '++' : '--', left);
           }
           return new js.Assignment.compound(binary.left, op, binary.right);
         }
@@ -1811,8 +1828,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       assert(node.inputs.length == 1);
       _registry.registerSpecializedGetInterceptor(node.interceptedClasses);
       js.Name name = _namer.nameForGetInterceptor(node.interceptedClasses);
-      var isolate = new js.VariableUse(
-          _namer.globalObjectForLibrary(_commonElements.interceptorsLibrary));
+      js.Expression isolate = _namer
+          .readGlobalObjectForLibrary(_commonElements.interceptorsLibrary);
       use(node.receiver);
       List<js.Expression> arguments = <js.Expression>[pop()];
       push(js
@@ -1903,8 +1920,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   @override
   void visitOneShotInterceptor(HOneShotInterceptor node) {
     List<js.Expression> arguments = visitArguments(node.inputs);
-    var isolate = new js.VariableUse(
-        _namer.globalObjectForLibrary(_commonElements.interceptorsLibrary));
+    js.Expression isolate =
+        _namer.readGlobalObjectForLibrary(_commonElements.interceptorsLibrary);
     Selector selector = node.selector;
     js.Name methodName = _oneShotInterceptorData.registerOneShotInterceptor(
         selector, _namer, _closedWorld);
@@ -1964,8 +1981,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // may know something about the types of closures that need
       // the specific closure call method.
       Selector call = new Selector.callClosureFrom(selector);
-      _registry.registerDynamicUse(
-          new ConstrainedDynamicUse(call, null, node.typeArguments));
+      _registry
+          .registerDynamicUse(new DynamicUse(call, null, node.typeArguments));
     }
     if (target != null) {
       // This is a dynamic invocation which we have found to have a single
@@ -1982,7 +1999,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       AbstractValue mask =
           getOptimizedSelectorFor(node, selector, node.receiverType);
       _registry.registerDynamicUse(
-          new ConstrainedDynamicUse(selector, mask, node.typeArguments));
+          new DynamicUse(selector, mask, node.typeArguments));
     }
   }
 
@@ -1998,7 +2015,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       AbstractValue mask =
           getOptimizedSelectorFor(node, selector, node.receiverType);
       _registry.registerDynamicUse(
-          new ConstrainedDynamicUse(selector, mask, node.typeArguments));
+          new DynamicUse(selector, mask, node.typeArguments));
     }
   }
 
@@ -2016,7 +2033,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       AbstractValue mask =
           getOptimizedSelectorFor(node, selector, node.receiverType);
       _registry.registerDynamicUse(
-          new ConstrainedDynamicUse(selector, mask, node.typeArguments));
+          new DynamicUse(selector, mask, node.typeArguments));
     }
   }
 
@@ -2051,8 +2068,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // TODO(kasperl): If we have a typed selector for the call, we
     // may know something about the types of closures that need
     // the specific closure call method.
-    _registry.registerDynamicUse(
-        new ConstrainedDynamicUse(call, null, node.typeArguments));
+    _registry
+        .registerDynamicUse(new DynamicUse(call, null, node.typeArguments));
   }
 
   @override
@@ -2641,7 +2658,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assert(element.isFunction || element.isField);
     if (element.isFunction) {
       push(_emitter
-          .isolateStaticClosureAccess(element)
+          .staticClosureAccess(element)
           .withSourceInformation(node.sourceInformation));
       _registry.registerStaticUse(new StaticUse.staticTearOff(element));
     } else {

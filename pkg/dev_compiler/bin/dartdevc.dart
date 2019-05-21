@@ -47,6 +47,7 @@ class _CompilerWorker extends AsyncWorkerLoop {
   CompilerResult lastResult;
 
   /// Performs each individual work request.
+  @override
   Future<WorkResponse> performRequest(WorkRequest request) async {
     var args = _startupArgs.merge(request.arguments);
     var output = StringBuffer();

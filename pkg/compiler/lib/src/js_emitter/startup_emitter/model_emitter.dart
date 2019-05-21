@@ -44,7 +44,7 @@ import '../../io/source_information.dart';
 import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
-    show CodegenInputs, Namer, ConstantEmitter, StringBackedName;
+    show Namer, ConstantEmitter, StringBackedName;
 import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../../js_backend/runtime_types.dart';
 import '../../options.dart';
@@ -65,6 +65,7 @@ class ModelEmitter {
   final DumpInfoTask _dumpInfoTask;
   final Namer _namer;
   final CompilerTask _task;
+  final Emitter _emitter;
   ConstantEmitter _constantEmitter;
   final bool _shouldGenerateSourceMap;
   final JClosedWorld _closedWorld;
@@ -93,7 +94,7 @@ class ModelEmitter {
       this._namer,
       this._closedWorld,
       this._task,
-      Emitter emitter,
+      this._emitter,
       this._sourceInformationStrategy,
       RuntimeTypesEncoder rtiEncoder,
       this._shouldGenerateSourceMap)
@@ -105,7 +106,7 @@ class ModelEmitter {
         _closedWorld.rtiNeed,
         rtiEncoder,
         _closedWorld.fieldAnalysis,
-        emitter,
+        _emitter,
         this.generateConstantReference,
         constantListGenerator);
   }
@@ -113,15 +114,6 @@ class ModelEmitter {
   js.Expression constantListGenerator(js.Expression array) {
     // TODO(floitsch): remove hard-coded name.
     return js.js('makeConstList(#)', [array]);
-  }
-
-  js.Expression generateEmbeddedGlobalAccess(String global) {
-    return js.js(generateEmbeddedGlobalAccessString(global));
-  }
-
-  String generateEmbeddedGlobalAccessString(String global) {
-    // TODO(floitsch): don't use 'init' as global embedder storage.
-    return 'init.$global';
   }
 
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
@@ -154,17 +146,10 @@ class ModelEmitter {
     return _constantOrdering.compare(a, b);
   }
 
-  js.Expression generateStaticClosureAccess(FunctionEntity element) {
-    return js.js('#.#()', [
-      _namer.globalObjectForMember(element),
-      _namer.staticClosureName(element)
-    ]);
-  }
-
   js.Expression generateConstantReference(ConstantValue value) {
     if (value.isFunction) {
       FunctionConstantValue functionConstant = value;
-      return generateStaticClosureAccess(functionConstant.element);
+      return _emitter.staticClosureAccess(functionConstant.element);
     }
 
     // We are only interested in the "isInlined" part, but it does not hurt to
@@ -176,8 +161,7 @@ class ModelEmitter {
         [_namer.globalObjectForConstant(value), _namer.constantName(value)]);
   }
 
-  int emitProgram(
-      Program program, CodegenInputs codegen, CodegenWorld codegenWorld) {
+  int emitProgram(Program program, CodegenWorld codegenWorld) {
     MainFragment mainFragment = program.fragments.first;
     List<DeferredFragment> deferredFragments =
         new List<DeferredFragment>.from(program.deferredFragments);
@@ -186,10 +170,10 @@ class ModelEmitter {
         _options,
         _dumpInfoTask,
         _namer,
+        _emitter,
         _constantEmitter,
         this,
         _closedWorld,
-        codegen,
         codegenWorld);
 
     var deferredLoadingState = new DeferredLoadingState();

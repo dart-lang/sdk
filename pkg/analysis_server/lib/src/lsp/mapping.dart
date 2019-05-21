@@ -1,11 +1,20 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:collection';
 
+import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
+    as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart'
     show ResponseError;
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol_special.dart'
     show ErrorOr, Either2, Either4;
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
@@ -18,6 +27,8 @@ import 'package:analyzer/source/line_info.dart' as server;
 import 'package:analyzer/src/dart/analysis/search.dart' as server
     show DeclarationKind;
 import 'package:analyzer/src/generated/source.dart' as server;
+import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:analyzer/src/services/available_declarations.dart' as dec;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' as server;
 
 const languageSourceName = 'dart';
@@ -38,15 +49,51 @@ lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
 /// it's important to call this immediately after computing edits to ensure
 /// the document is not modified before the version number is read.
 lsp.WorkspaceEdit createWorkspaceEdit(
-    lsp.LspAnalysisServer server, server.SourceChange change) {
+    lsp.LspAnalysisServer server, List<server.SourceFileEdit> edits) {
   return toWorkspaceEdit(
       server.clientCapabilities?.workspace,
-      change.edits
+      edits
           .map((e) => new FileEditInformation(
               server.getVersionedDocumentIdentifier(e.file),
               server.getLineInfo(e.file),
               e.edits))
           .toList());
+}
+
+lsp.CompletionItemKind declarationKindToCompletionItemKind(
+  HashSet<lsp.CompletionItemKind> clientSupportedCompletionKinds,
+  dec.DeclarationKind kind,
+) {
+  bool isSupported(lsp.CompletionItemKind kind) =>
+      clientSupportedCompletionKinds.contains(kind);
+
+  List<lsp.CompletionItemKind> getKindPreferences() {
+    switch (kind) {
+      case dec.DeclarationKind.CLASS:
+      case dec.DeclarationKind.CLASS_TYPE_ALIAS:
+      case dec.DeclarationKind.MIXIN:
+        return const [lsp.CompletionItemKind.Class];
+      case dec.DeclarationKind.CONSTRUCTOR:
+        return const [lsp.CompletionItemKind.Constructor];
+      case dec.DeclarationKind.ENUM:
+      case dec.DeclarationKind.ENUM_CONSTANT:
+        return const [lsp.CompletionItemKind.Enum];
+      case dec.DeclarationKind.FUNCTION:
+        return const [lsp.CompletionItemKind.Function];
+      case dec.DeclarationKind.FUNCTION_TYPE_ALIAS:
+        return const [lsp.CompletionItemKind.Class];
+      case dec.DeclarationKind.GETTER:
+        return const [lsp.CompletionItemKind.Property];
+      case dec.DeclarationKind.SETTER:
+        return const [lsp.CompletionItemKind.Property];
+      case dec.DeclarationKind.VARIABLE:
+        return const [lsp.CompletionItemKind.Variable];
+      default:
+        return const [];
+    }
+  }
+
+  return getKindPreferences().firstWhere(isSupported, orElse: () => null);
 }
 
 lsp.SymbolKind declarationKindToSymbolKind(
@@ -84,11 +131,74 @@ lsp.SymbolKind declarationKindToSymbolKind(
         return const [lsp.SymbolKind.Variable];
       default:
         assert(false, 'Unexpected declaration kind $kind');
-        return null;
+        return const [];
     }
   }
 
   return getKindPreferences().firstWhere(isSupported, orElse: () => null);
+}
+
+lsp.CompletionItem declarationToCompletionItem(
+  lsp.TextDocumentClientCapabilitiesCompletion completionCapabilities,
+  HashSet<lsp.CompletionItemKind> supportedCompletionItemKinds,
+  String file,
+  int offset,
+  IncludedSuggestionSet includedSuggestionSet,
+  Library library,
+  Map<String, int> tagBoosts,
+  server.LineInfo lineInfo,
+  dec.Declaration declaration,
+  int replacementOffset,
+  int replacementLength,
+) {
+  final label = declaration.name;
+
+  final useDeprecated =
+      completionCapabilities?.completionItem?.deprecatedSupport == true;
+  final formats = completionCapabilities?.completionItem?.documentationFormat;
+
+  final completionKind = declarationKindToCompletionItemKind(
+      supportedCompletionItemKinds, declaration.kind);
+
+  var itemRelevance = includedSuggestionSet.relevance;
+  if (declaration.relevanceTags != null)
+    declaration.relevanceTags
+        .forEach((t) => itemRelevance += (tagBoosts[t] ?? 0));
+
+  return new lsp.CompletionItem(
+    label,
+    completionKind,
+    getDeclarationCompletionDetail(declaration, completionKind, useDeprecated),
+    asStringOrMarkupContent(formats, cleanDartdoc(declaration.docComplete)),
+    useDeprecated ? declaration.isDeprecated : null,
+    false, // preselect
+    // Relevance is a number, highest being best. LSP does text sort so subtract
+    // from a large number so that a text sort will result in the correct order.
+    // 555 -> 999455
+    //  10 -> 999990
+    //   1 -> 999999
+    (1000000 - itemRelevance).toString(),
+    null, // filterText uses label if not set
+    null, // insertText is deprecated, but also uses label if not set
+    // We don't have completions that use snippets, so we always return PlainText.
+    lsp.InsertTextFormat.PlainText,
+    new lsp.TextEdit(
+      // TODO(dantup): If `clientSupportsSnippets == true` then we should map
+      // `selection` in to a snippet (see how Dart Code does this).
+      toRange(lineInfo, replacementOffset, replacementLength),
+      label,
+    ),
+    [], // additionalTextEdits, used for adding imports, etc.
+    [], // commitCharacters
+    null, // command
+    // data, used for completionItem/resolve.
+    new lsp.CompletionItemResolutionInfo(
+      file,
+      offset,
+      includedSuggestionSet.id,
+      includedSuggestionSet.displayUri ?? library.uri?.toString(),
+    ),
+  );
 }
 
 lsp.CompletionItemKind elementKindToCompletionItemKind(
@@ -131,6 +241,8 @@ lsp.CompletionItemKind elementKindToCompletionItemKind(
         return const [lsp.CompletionItemKind.Variable];
       case server.ElementKind.METHOD:
         return const [lsp.CompletionItemKind.Method];
+      case server.ElementKind.MIXIN:
+        return const [lsp.CompletionItemKind.Class];
       case server.ElementKind.PARAMETER:
       case server.ElementKind.PREFIX:
         return const [lsp.CompletionItemKind.Variable];
@@ -147,7 +259,7 @@ lsp.CompletionItemKind elementKindToCompletionItemKind(
       case server.ElementKind.UNIT_TEST_TEST:
         return const [lsp.CompletionItemKind.Method];
       default:
-        return null;
+        return const [];
     }
   }
 
@@ -214,7 +326,7 @@ lsp.SymbolKind elementKindToSymbolKind(
         return const [lsp.SymbolKind.Method];
       default:
         assert(false, 'Unexpected element kind $kind');
-        return null;
+        return const [];
     }
   }
 
@@ -266,6 +378,48 @@ String getCompletionDetail(
     return prefix;
   }
 }
+
+String getDeclarationCompletionDetail(
+  dec.Declaration declaration,
+  lsp.CompletionItemKind completionKind,
+  bool clientSupportsDeprecated,
+) {
+  final hasParameters =
+      declaration.parameters != null && declaration.parameters.isNotEmpty;
+  final hasReturnType =
+      declaration.returnType != null && declaration.returnType.isNotEmpty;
+
+  final prefix = clientSupportsDeprecated || !declaration.isDeprecated
+      ? ''
+      : '(Deprecated) ';
+
+  if (completionKind == lsp.CompletionItemKind.Property) {
+    // Setters appear as methods with one arg but they also cause getters to not
+    // appear in the completion list, so displaying them as setters is misleading.
+    // To avoid this, always show only the return type, whether it's a getter
+    // or a setter.
+    return prefix +
+        (declaration.kind == dec.DeclarationKind.GETTER
+            ? declaration.returnType
+            // Don't assume setters always have parameters
+            // See https://github.com/dart-lang/sdk/issues/27747
+            : declaration.parameters != null &&
+                    declaration.parameters.isNotEmpty
+                // Extract the type part from '(MyType value)`
+                ? declaration.parameters
+                    .substring(1, declaration.parameters.lastIndexOf(" "))
+                : '');
+  } else if (hasParameters && hasReturnType) {
+    return '$prefix${declaration.parameters} → ${declaration.returnType}';
+  } else if (hasReturnType) {
+    return '$prefix${declaration.returnType}';
+  } else {
+    return prefix;
+  }
+}
+
+bool isDartDocument(lsp.TextDocumentIdentifier doc) =>
+    doc?.uri?.endsWith('.dart');
 
 lsp.Location navigationTargetToLocation(String targetFilePath,
     server.NavigationTarget target, server.LineInfo lineInfo) {
@@ -367,7 +521,7 @@ lsp.CompletionItemKind suggestionKindToCompletionItemKind(
       case server.CompletionSuggestionKind.PARAMETER:
         return const [lsp.CompletionItemKind.Value];
       default:
-        return null;
+        return const [];
     }
   }
 

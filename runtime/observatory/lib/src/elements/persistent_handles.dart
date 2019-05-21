@@ -25,7 +25,7 @@ enum _SortingField { externalSize, peer, finalizerCallback }
 
 enum _SortingDirection { ascending, descending }
 
-class PersistentHandlesPageElement extends HtmlElement implements Renderable {
+class PersistentHandlesPageElement extends CustomElement implements Renderable {
   static const tag = const Tag<PersistentHandlesPageElement>(
       'persistent-handles-page',
       dependencies: const [
@@ -71,7 +71,7 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(repository != null);
     assert(objects != null);
-    PersistentHandlesPageElement e = document.createElement(tag.name);
+    PersistentHandlesPageElement e = new PersistentHandlesPageElement.created();
     e._r =
         new RenderingScheduler<PersistentHandlesPageElement>(e, queue: queue);
     e._vm = vm;
@@ -83,7 +83,7 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  PersistentHandlesPageElement.created() : super.created();
+  PersistentHandlesPageElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -102,13 +102,14 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
   void render() {
     children = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('persistent handles'),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((_) => _refresh()),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((_) => _refresh()))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ])
     ]
       ..addAll(_createHandlers('Persistent Handles',
@@ -142,7 +143,8 @@ class PersistentHandlesPageElement extends HtmlElement implements Renderable {
                 ..classes = ['content-centered-big']
                 ..text = 'Loading...')
               : new VirtualCollectionElement(create, update,
-                  items: items, createHeader: createHeader, queue: _r.queue)
+                      items: items, createHeader: createHeader, queue: _r.queue)
+                  .element
         ]
     ];
   }

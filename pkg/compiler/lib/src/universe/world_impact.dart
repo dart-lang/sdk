@@ -82,6 +82,11 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
   Set<TypeUse> _typeUses;
   Set<ConstantUse> _constantUses;
 
+  WorldImpactBuilderImpl();
+
+  WorldImpactBuilderImpl.internal(
+      this._dynamicUses, this._staticUses, this._typeUses, this._constantUses);
+
   @override
   bool get isEmpty =>
       _dynamicUses == null &&

@@ -38,6 +38,35 @@ class Mutex;
 class ThreadState;
 class TimelineEventBlock;
 
+class Mutex {
+ public:
+  explicit Mutex(NOT_IN_PRODUCT(const char* name = "anonymous mutex"));
+  ~Mutex();
+
+  bool IsOwnedByCurrentThread() const;
+
+ private:
+  void Lock();
+  bool TryLock();  // Returns false if lock is busy and locking failed.
+  void Unlock();
+
+  MutexData data_;
+  NOT_IN_PRODUCT(const char* name_);
+#if defined(DEBUG)
+  ThreadId owner_;
+#endif  // defined(DEBUG)
+
+  friend class MallocLocker;
+  friend class MutexLocker;
+  friend class SafepointMutexLocker;
+  friend class OSThreadIterator;
+  friend class TimelineEventBlockIterator;
+  friend class TimelineEventRecorder;
+  friend class PageSpace;
+  friend void Dart_TestMutex();
+  DISALLOW_COPY_AND_ASSIGN(Mutex);
+};
+
 class BaseThread {
  public:
   bool is_os_thread() const { return is_os_thread_; }
@@ -86,7 +115,7 @@ class OSThread : public BaseThread {
     name_ = strdup(name);
   }
 
-  Mutex* timeline_block_lock() const { return timeline_block_lock_; }
+  Mutex* timeline_block_lock() const { return &timeline_block_lock_; }
 
   // Only safe to access when holding |timeline_block_lock_|.
   TimelineEventBlock* timeline_block() const { return timeline_block_; }
@@ -259,7 +288,7 @@ class OSThread : public BaseThread {
 #endif
   char* name_;  // A name for this thread.
 
-  Mutex* timeline_block_lock_;
+  mutable Mutex timeline_block_lock_;
   TimelineEventBlock* timeline_block_;
 
   // All |Thread|s are registered in the thread list.
@@ -308,44 +337,6 @@ class OSThreadIterator : public ValueObject {
   OSThread* next_;
 };
 
-class Mutex {
- public:
-  explicit Mutex(NOT_IN_PRODUCT(const char* name = "anonymous mutex"));
-  ~Mutex();
-
-#if defined(DEBUG)
-  bool IsOwnedByCurrentThread() const {
-    return owner_ == OSThread::GetCurrentThreadId();
-  }
-#else
-  bool IsOwnedByCurrentThread() const {
-    UNREACHABLE();
-    return false;
-  }
-#endif
-
- private:
-  void Lock();
-  bool TryLock();  // Returns false if lock is busy and locking failed.
-  void Unlock();
-
-  MutexData data_;
-  NOT_IN_PRODUCT(const char* name_);
-#if defined(DEBUG)
-  ThreadId owner_;
-#endif  // defined(DEBUG)
-
-  friend class MallocLocker;
-  friend class MutexLocker;
-  friend class SafepointMutexLocker;
-  friend class OSThreadIterator;
-  friend class TimelineEventBlockIterator;
-  friend class TimelineEventRecorder;
-  friend class PageSpace;
-  friend void Dart_TestMutex();
-  DISALLOW_COPY_AND_ASSIGN(Mutex);
-};
-
 class Monitor {
  public:
   enum WaitResult { kNotified, kTimedOut };
@@ -389,6 +380,15 @@ class Monitor {
   friend void Dart_TestMonitor();
   DISALLOW_COPY_AND_ASSIGN(Monitor);
 };
+
+inline bool Mutex::IsOwnedByCurrentThread() const {
+#if defined(DEBUG)
+  return owner_ == OSThread::GetCurrentThreadId();
+#else
+  UNREACHABLE();
+  return false;
+#endif
+}
 
 }  // namespace dart
 

@@ -27,7 +27,6 @@ class MixinSuperClassConstraintNonInterfaceWithNnbdTest
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
-  @failingTest
   test_Never() async {
     await assertErrorsInCode('''
 mixin M on Never {}

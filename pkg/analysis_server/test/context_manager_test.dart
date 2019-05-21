@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/sdk.dart';
@@ -1978,8 +1979,9 @@ include: package:boo/other_options.yaml
     String sdkExtPath = '$projPath/sdk_ext';
     newFile('$projPath/test', content: 'test.dart');
     newFile('$sdkExtPath/entry.dart');
+    var synchronousSession = SynchronousSession(analysisOptions, null);
     List<int> bytes = new SummaryBuilder(
-            [], RestrictedAnalysisContext(analysisOptions, null, null))
+            [], RestrictedAnalysisContext(synchronousSession, null))
         .build();
     newFileWithBytes('$projPath/sdk.ds', bytes);
     // Setup _embedder.yaml.

@@ -54,6 +54,7 @@ class MetaLet extends Expression {
   /// Returns an expression that ignores the result. This is a cross between
   /// [toExpression] and [toStatement]. Used for C-style for-loop updaters,
   /// which is an expression syntactically, but functions more like a statement.
+  @override
   Expression toVoidExpression() {
     var block = toStatement();
     var s = block.statements;
@@ -65,6 +66,7 @@ class MetaLet extends Expression {
     return _toInvokedFunction(block);
   }
 
+  @override
   Expression toAssignExpression(Expression left, [String op]) {
     if (left is Identifier) {
       return _simplifyAssignment(left, op: op) ?? _toAssign(left, op);
@@ -82,6 +84,7 @@ class MetaLet extends Expression {
     return MetaLet(variables, exprs);
   }
 
+  @override
   Statement toVariableDeclaration(VariableBinding name) {
     if (name is Identifier) {
       var simple = _simplifyAssignment(name, isDeclaration: true);
@@ -118,6 +121,7 @@ class MetaLet extends Expression {
     return _expression = _toInvokedFunction(block);
   }
 
+  @override
   Block toStatement() {
     // Skip return value if not used.
     var statements = body.map((e) => e.toStatement()).toList();
@@ -125,6 +129,7 @@ class MetaLet extends Expression {
     return _finishStatement(statements);
   }
 
+  @override
   Block toReturn() {
     var statements = body
         .map((e) => e == body.last ? e.toReturn() : e.toStatement())
@@ -132,6 +137,7 @@ class MetaLet extends Expression {
     return _finishStatement(statements);
   }
 
+  @override
   Block toYieldStatement({bool star = false}) {
     var statements = body
         .map((e) =>
@@ -140,6 +146,7 @@ class MetaLet extends Expression {
     return _finishStatement(statements);
   }
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) {
     // TODO(jmesserly): we special case vistors from js_ast.Template, because it
     // doesn't know about MetaLet. Should we integrate directly?
@@ -153,6 +160,7 @@ class MetaLet extends Expression {
     }
   }
 
+  @override
   void visitChildren(NodeVisitor visitor) {
     // TODO(jmesserly): we special case vistors from js_ast.Template, because it
     // doesn't know about MetaLet. Should we integrate directly?
@@ -166,6 +174,7 @@ class MetaLet extends Expression {
   }
 
   /// This generates as either a comma expression or a call.
+  @override
   int get precedenceLevel => toExpression().precedenceLevel;
 
   /// Patch to pretend [Template] supports visitMetaLet.
@@ -199,7 +208,9 @@ class MetaLet extends Expression {
     var node = Block(statements);
     node.accept(counter);
     // Also count the init expressions.
-    for (var init in variables.values) init.accept(counter);
+    for (var init in variables.values) {
+      init.accept(counter);
+    }
 
     var initializers = <VariableInitialization>[];
     var substitutions = <MetaLetVariable, Expression>{};

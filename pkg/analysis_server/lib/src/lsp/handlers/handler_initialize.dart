@@ -31,6 +31,13 @@ class InitializeMessageHandler
             true
         : false;
 
+    // The suggestFromUnimportedLibraries flag allows clients to opt-out of
+    // behaviour of including suggestions that are not imported. Defaults to true,
+    // so must be explicitly passed as false to disable.
+    final suggestFromUnimportedLibraries = params.initializationOptions ==
+            null ||
+        params.initializationOptions['suggestFromUnimportedLibraries'] != false;
+
     if (!onlyAnalyzeProjectsWithOpenFiles) {
       if (params.workspaceFolders != null) {
         params.workspaceFolders.forEach((wf) {
@@ -50,7 +57,11 @@ class InitializeMessageHandler
 
     server.handleClientConnection(params.capabilities);
     server.messageHandler = new InitializingStateMessageHandler(
-        server, openWorkspacePaths, onlyAnalyzeProjectsWithOpenFiles);
+      server,
+      openWorkspacePaths,
+      onlyAnalyzeProjectsWithOpenFiles,
+      suggestFromUnimportedLibraries,
+    );
 
     final codeActionLiteralSupport =
         params.capabilities.textDocument?.codeAction?.codeActionLiteralSupport;
@@ -68,7 +79,7 @@ class InitializeMessageHandler
         )),
         true, // hoverProvider
         new CompletionOptions(
-          false,
+          true, // resolveProvider
           // Set the characters that will cause the editor to automatically
           // trigger completion.
           // TODO(dantup): There are several characters that we want to conditionally
@@ -99,7 +110,7 @@ class InitializeMessageHandler
         ),
         true, // definitionProvider
         null,
-        null,
+        true, // implementationProvider
         true, // referencesProvider
         true, // documentHighlightProvider
         true, // documentSymbolProvider
@@ -120,8 +131,9 @@ class InitializeMessageHandler
             : Either2<bool, RenameOptions>.t1(true),
         null,
         null,
-        Either3<bool, FoldingRangeProviderOptions, dynamic>.t1(true),
+        true, // foldingRangeProvider
         new ExecuteCommandOptions(Commands.serverSupportedCommands),
+        null, // declarationProvider
         new ServerCapabilitiesWorkspace(
             new ServerCapabilitiesWorkspaceFolders(true, true)),
         null);

@@ -9,9 +9,14 @@ abstract class Commands {
   /// A list of all commands IDs that can be sent to the client to inform which
   /// commands should be sent to the server for execution (as opposed to being
   /// executed in the local plugin).
-  static const serverSupportedCommands = [sortMembers, organizeImports];
+  static const serverSupportedCommands = [
+    sortMembers,
+    organizeImports,
+    sendWorkspaceEdit,
+  ];
   static const sortMembers = 'edit.sortMembers';
   static const organizeImports = 'edit.organizeImports';
+  static const sendWorkspaceEdit = 'edit.sendWorkspaceEdit';
 }
 
 /// CodeActionKinds supported by the server that are not declared in the LSP spec.
@@ -41,7 +46,6 @@ abstract class ServerErrorCodes {
   static const FileHasErrors = const ErrorCodes(-32008);
   static const ClientFailedToApplyEdit = const ErrorCodes(-32009);
   static const RenameNotValid = const ErrorCodes(-32010);
-  static const ServerShuttingDown = const ErrorCodes(-32011);
 
   /// An error raised when the server detects that the server and client are out
   /// of sync and cannot recover. For example if a textDocument/didChange notification
@@ -60,4 +64,5 @@ abstract class ServerErrorCodes {
 
 abstract class CustomMethods {
   static const DiagnosticServer = const Method('dart/diagnosticServer');
+  static const AnalyzerStatus = const Method(r'$/analyzerStatus');
 }

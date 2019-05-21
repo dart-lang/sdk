@@ -2,6 +2,18 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/rasta/class_hierarchy.dart:5:17: Warning: Type 'Missing' not found.
+// class A extends Missing {}
+//                 ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/class_hierarchy.dart:7:20: Warning: Type 'Missing' not found.
+// class B implements Missing {}
+//                    ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/class_hierarchy.dart:9:23: Warning: Type 'Missing' not found.
+// class C = Object with Missing;
+//                       ^^^^^^^
+//
 // pkg/front_end/testcases/rasta/class_hierarchy.dart:9:7: Error: The type 'Missing' can't be mixed in.
 // class C = Object with Missing;
 //       ^

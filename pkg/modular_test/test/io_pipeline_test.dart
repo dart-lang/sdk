@@ -64,10 +64,28 @@ class IOPipelineTestStrategy implements PipelineTestStrategy<IOModularStep> {
       LinkStep(action, inputId, depId, resultId, requestDependenciesData);
 
   @override
+  IOModularStep createMainOnlyStep(
+          {String Function(String, List<String>) action,
+          DataId inputId,
+          DataId depId,
+          DataId resultId,
+          bool requestDependenciesData: true}) =>
+      MainOnlyStep(action, inputId, depId, resultId, requestDependenciesData);
+
+  @override
+  IOModularStep createTwoOutputStep(
+          {String Function(String) action1,
+          String Function(String) action2,
+          DataId inputId,
+          DataId result1Id,
+          DataId result2Id}) =>
+      TwoOutputStep(action1, action2, inputId, result1Id, result2Id);
+
+  @override
   String getResult(covariant IOPipeline pipeline, Module m, DataId dataId) {
     var folderUri = pipeline.tmpFoldersForTesting[dataId];
-    return File.fromUri(folderUri.resolve("${m.name}.${dataId.name}"))
-        .readAsStringSync();
+    var file = File.fromUri(folderUri.resolve("${m.name}.${dataId.name}"));
+    return file.existsSync() ? file.readAsStringSync() : null;
   }
 
   @override
@@ -86,6 +104,8 @@ class SourceOnlyStep implements IOModularStep {
   final bool needsSources;
   List<DataId> get dependencyDataNeeded => const [];
   List<DataId> get moduleDataNeeded => const [];
+  List<DataId> get resultData => [resultId];
+  bool get onlyOnMain => false;
 
   SourceOnlyStep(this.action, this.resultId, this.needsSources);
 
@@ -109,8 +129,10 @@ class ModuleDataStep implements IOModularStep {
   bool get needsSources => false;
   List<DataId> get dependencyDataNeeded => const [];
   final List<DataId> moduleDataNeeded;
+  List<DataId> get resultData => [resultId];
   final DataId resultId;
   final DataId inputId;
+  bool get onlyOnMain => false;
 
   ModuleDataStep(this.action, this.inputId, this.resultId, bool requestInput)
       : moduleDataNeeded = requestInput ? [inputId] : [];
@@ -126,14 +148,46 @@ class ModuleDataStep implements IOModularStep {
   }
 }
 
+class TwoOutputStep implements IOModularStep {
+  final String Function(String) action1;
+  final String Function(String) action2;
+  bool get needsSources => false;
+  List<DataId> get dependencyDataNeeded => const [];
+  List<DataId> get moduleDataNeeded => [inputId];
+  List<DataId> get resultData => [result1Id, result2Id];
+  final DataId result1Id;
+  final DataId result2Id;
+  final DataId inputId;
+  bool get onlyOnMain => false;
+
+  TwoOutputStep(
+      this.action1, this.action2, this.inputId, this.result1Id, this.result2Id);
+
+  @override
+  Future<void> execute(
+      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+    var inputData = await _readHelper(module, root, inputId, toUri);
+    var result1 =
+        inputData == null ? "data for $module was null" : action1(inputData);
+    var result2 =
+        inputData == null ? "data for $module was null" : action2(inputData);
+    await File.fromUri(root.resolveUri(toUri(module, result1Id)))
+        .writeAsString(result1);
+    await File.fromUri(root.resolveUri(toUri(module, result2Id)))
+        .writeAsString(result2);
+  }
+}
+
 class LinkStep implements IOModularStep {
   bool get needsSources => false;
   final List<DataId> dependencyDataNeeded;
   List<DataId> get moduleDataNeeded => [inputId];
+  List<DataId> get resultData => [resultId];
   final String Function(String, List<String>) action;
   final DataId inputId;
   final DataId depId;
   final DataId resultId;
+  bool get onlyOnMain => false;
 
   LinkStep(this.action, this.inputId, this.depId, this.resultId,
       bool requestDependencies)
@@ -144,6 +198,35 @@ class LinkStep implements IOModularStep {
       Module module, Uri root, ModuleDataToRelativeUri toUri) async {
     List<String> depsData = [];
     for (var dependency in module.dependencies) {
+      var depData = await _readHelper(dependency, root, depId, toUri);
+      depsData.add(depData);
+    }
+    var inputData = await _readHelper(module, root, inputId, toUri);
+    await File.fromUri(root.resolveUri(toUri(module, resultId)))
+        .writeAsString(action(inputData, depsData));
+  }
+}
+
+class MainOnlyStep implements IOModularStep {
+  bool get needsSources => false;
+  final List<DataId> dependencyDataNeeded;
+  List<DataId> get moduleDataNeeded => [inputId];
+  List<DataId> get resultData => [resultId];
+  final String Function(String, List<String>) action;
+  final DataId inputId;
+  final DataId depId;
+  final DataId resultId;
+  bool get onlyOnMain => true;
+
+  MainOnlyStep(this.action, this.inputId, this.depId, this.resultId,
+      bool requestDependencies)
+      : dependencyDataNeeded = requestDependencies ? [depId] : [];
+
+  @override
+  Future<void> execute(
+      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+    List<String> depsData = [];
+    for (var dependency in computeTransitiveDependencies(module)) {
       var depData = await _readHelper(dependency, root, depId, toUri);
       depsData.add(depData);
     }
