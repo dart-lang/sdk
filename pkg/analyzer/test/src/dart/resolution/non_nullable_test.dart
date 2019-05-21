@@ -26,6 +26,18 @@ class NonNullableTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
+  test_member_potentiallyNullable_called() async {
+    addTestFile(r'''
+m<T extends Function>() {
+  List<T?> x;
+  x.first();
+}
+''');
+    await resolveTestFile();
+    // Do not assert no test errors. Deliberately invokes nullable type.
+    assertType(findNode.methodInvocation('first').methodName, 'Function?');
+  }
+
   test_local_getterNullAwareAccess_interfaceType() async {
     addTestFile(r'''
 m() {

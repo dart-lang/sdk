@@ -3181,7 +3181,21 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       return objectType;
     }
 
-    return element.bound.resolveToBound(objectType);
+    NullabilitySuffix newNullabilitySuffix;
+    if (nullabilitySuffix == NullabilitySuffix.question ||
+        (element.bound as TypeImpl).nullabilitySuffix ==
+            NullabilitySuffix.question) {
+      newNullabilitySuffix = NullabilitySuffix.question;
+    } else if (nullabilitySuffix == NullabilitySuffix.star ||
+        (element.bound as TypeImpl).nullabilitySuffix ==
+            NullabilitySuffix.star) {
+      newNullabilitySuffix = NullabilitySuffix.star;
+    } else {
+      newNullabilitySuffix = NullabilitySuffix.none;
+    }
+
+    return (element.bound.resolveToBound(objectType) as TypeImpl)
+        .withNullability(newNullabilitySuffix);
   }
 
   @override

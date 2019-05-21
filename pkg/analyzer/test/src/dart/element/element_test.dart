@@ -3844,6 +3844,88 @@ class TypeParameterTypeImplTest extends EngineTestCase {
     expect(type.resolveToBound(null), same(classS.type));
   }
 
+  void test_resolveToBound_bound_nullableInner() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl element =
+        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    element.bound =
+        (classS.type as TypeImpl).withNullability(NullabilitySuffix.question);
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+    expect(type.resolveToBound(null), same(element.bound));
+  }
+
+  void test_resolveToBound_bound_nullableInnerOuter() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl element =
+        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    element.bound =
+        (classS.type as TypeImpl).withNullability(NullabilitySuffix.question);
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element)
+        .withNullability(NullabilitySuffix.question);
+    expect(type.resolveToBound(null), same(element.bound));
+  }
+
+  void test_resolveToBound_bound_nullableInnerStarOuter() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl element =
+        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    element.bound =
+        (classS.type as TypeImpl).withNullability(NullabilitySuffix.star);
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element)
+        .withNullability(NullabilitySuffix.question);
+    expect(
+        type.resolveToBound(null),
+        equals((classS.type as TypeImpl)
+            .withNullability(NullabilitySuffix.question)));
+  }
+
+  void test_resolveToBound_bound_nullableOuter() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl element =
+        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    element.bound = classS.type;
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element)
+        .withNullability(NullabilitySuffix.question);
+    expect(
+        type.resolveToBound(null),
+        equals((classS.type as TypeImpl)
+            .withNullability(NullabilitySuffix.question)));
+  }
+
+  void test_resolveToBound_bound_starInner() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl element =
+        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    element.bound =
+        (classS.type as TypeImpl).withNullability(NullabilitySuffix.star);
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+    expect(type.resolveToBound(null), same(element.bound));
+  }
+
+  void test_resolveToBound_bound_starInnerNullableOuter() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl element =
+        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    element.bound =
+        (classS.type as TypeImpl).withNullability(NullabilitySuffix.question);
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element)
+        .withNullability(NullabilitySuffix.star);
+    expect(type.resolveToBound(null), same(element.bound));
+  }
+
+  void test_resolveToBound_bound_starOuter() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl element =
+        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    element.bound = classS.type;
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element)
+        .withNullability(NullabilitySuffix.star);
+    expect(
+        type.resolveToBound(null),
+        same(
+            (classS.type as TypeImpl).withNullability(NullabilitySuffix.star)));
+  }
+
   void test_resolveToBound_nestedBound() {
     ClassElementImpl classS = ElementFactory.classElement2("A");
     TypeParameterElementImpl elementE =
