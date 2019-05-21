@@ -89,7 +89,7 @@ lsp.CompletionItemKind declarationKindToCompletionItemKind(
       case dec.DeclarationKind.VARIABLE:
         return const [lsp.CompletionItemKind.Variable];
       default:
-        return null;
+        return const [];
     }
   }
 
@@ -131,7 +131,7 @@ lsp.SymbolKind declarationKindToSymbolKind(
         return const [lsp.SymbolKind.Variable];
       default:
         assert(false, 'Unexpected declaration kind $kind');
-        return null;
+        return const [];
     }
   }
 
@@ -212,7 +212,6 @@ lsp.CompletionItemKind elementKindToCompletionItemKind(
     switch (kind) {
       case server.ElementKind.CLASS:
       case server.ElementKind.CLASS_TYPE_ALIAS:
-      case server.ElementKind.MIXIN:
         return const [lsp.CompletionItemKind.Class];
       case server.ElementKind.COMPILATION_UNIT:
         return const [lsp.CompletionItemKind.Module];
@@ -242,6 +241,8 @@ lsp.CompletionItemKind elementKindToCompletionItemKind(
         return const [lsp.CompletionItemKind.Variable];
       case server.ElementKind.METHOD:
         return const [lsp.CompletionItemKind.Method];
+      case server.ElementKind.MIXIN:
+        return const [lsp.CompletionItemKind.Class];
       case server.ElementKind.PARAMETER:
       case server.ElementKind.PREFIX:
         return const [lsp.CompletionItemKind.Variable];
@@ -258,7 +259,7 @@ lsp.CompletionItemKind elementKindToCompletionItemKind(
       case server.ElementKind.UNIT_TEST_TEST:
         return const [lsp.CompletionItemKind.Method];
       default:
-        return null;
+        return const [];
     }
   }
 
@@ -325,7 +326,7 @@ lsp.SymbolKind elementKindToSymbolKind(
         return const [lsp.SymbolKind.Method];
       default:
         assert(false, 'Unexpected element kind $kind');
-        return null;
+        return const [];
     }
   }
 
@@ -520,7 +521,7 @@ lsp.CompletionItemKind suggestionKindToCompletionItemKind(
       case server.CompletionSuggestionKind.PARAMETER:
         return const [lsp.CompletionItemKind.Value];
       default:
-        return null;
+        return const [];
     }
   }
 
