@@ -1570,7 +1570,7 @@ class KernelLibraryBuilder
       for (TypeParameter parameter in typeParameters) {
         checkBoundsInType(
             parameter.bound, typeEnvironment, parameter.fileOffset,
-            allowSuperBounded: false);
+            allowSuperBounded: true);
       }
     }
     if (positionalParameters != null) {
