@@ -70,8 +70,11 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   if (oldState == null ||
       oldState.incrementalCompiler == null ||
       oldState.incrementalCompiler.outlineOnly != outlineOnly) {
-    // No previous state.
+    // No - or immediately not correct - previous state.
     startOver = true;
+
+    // We'll load a new sdk, anything loaded already will have a wrong root.
+    workerInputCache.clear();
   } else {
     // We do have a previous state.
     cachedSdkInput = workerInputCache[sdkSummary];
@@ -79,6 +82,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
         !digestsEqual(cachedSdkInput.digest, sdkDigest)) {
       // The sdk is out of date.
       startOver = true;
+      // We'll load a new sdk, anything loaded already will have a wrong root.
+      workerInputCache.clear();
     }
   }
 
@@ -120,6 +125,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     incrementalCompiler.invalidateAllSources();
     options.packagesFileUri = packagesFile;
     options.fileSystem = fileSystem;
+    processedOpts.clearFileSystemCache();
   }
 
   // Then read all the input summary components.

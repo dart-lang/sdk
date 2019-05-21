@@ -165,6 +165,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       ..fileSystem = fileSystem ?? StandardFileSystem.instance;
     if (experiments != null) options.experimentalFlags = experiments;
 
+    // We'll load a new sdk, anything loaded already will have a wrong root.
+    workerInputCache.clear();
+
     processedOpts = new ProcessedOptions(options: options);
 
     cachedSdkInput = new WorkerInputComponent(null /* not compared anyway */,
@@ -190,6 +193,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     incrementalCompiler.invalidateAllSources();
     options.packagesFileUri = packagesFile;
     options.fileSystem = fileSystem;
+    processedOpts.clearFileSystemCache();
   }
   InitializedCompilerState compilerState = new InitializedCompilerState(
       options, processedOpts,

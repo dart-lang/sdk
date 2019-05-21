@@ -299,6 +299,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
 
       return Future.value(fe.serializeComponent(incrementalComponent));
     });
+
+    state.options.onDiagnostic = null; // See http://dartbug.com/36983.
   } else if (summaryOnly) {
     kernel = await fe.compileSummary(state, sources, onDiagnostic,
         includeOffsets: false);
