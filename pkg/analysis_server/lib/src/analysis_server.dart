@@ -892,6 +892,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
+  void analysisOptionsUpdated(nd.AnalysisDriver driver) {
+    analysisServer.updateContextInDeclarationsTracker(driver);
+  }
+
+  @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
     nd.AnalysisDriver analysisDriver = analysisServer.driverMap[contextFolder];
     if (analysisDriver != null) {

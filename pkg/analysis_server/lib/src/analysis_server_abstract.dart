@@ -291,4 +291,9 @@ abstract class AbstractAnalysisServer {
     declarationsTracker?.changeFile(path);
     analysisDriverScheduler.notify(null);
   }
+
+  void updateContextInDeclarationsTracker(nd.AnalysisDriver driver) {
+    declarationsTracker?.discardContext(driver.analysisContext);
+    declarationsTracker?.addContext(driver.analysisContext);
+  }
 }

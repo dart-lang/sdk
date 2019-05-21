@@ -474,6 +474,12 @@ class DeclarationsTracker {
     _changedPaths.add(path);
   }
 
+  /// Discard the [analysisContext], but don't discard any libraries that it
+  /// might have in its dependencies.
+  void discardContext(AnalysisContext analysisContext) {
+    _contexts.remove(analysisContext);
+  }
+
   /// Discard all contexts and libraries, notify the [changes] stream that
   /// these libraries are removed.
   void discardContexts() {

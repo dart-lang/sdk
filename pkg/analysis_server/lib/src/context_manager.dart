@@ -355,6 +355,11 @@ abstract class ContextManagerCallbacks {
   void afterWatchEvent(WatchEvent event);
 
   /**
+   * Called when analysis options or URI resolution in the [driver] are changed.
+   */
+  void analysisOptionsUpdated(AnalysisDriver driver);
+
+  /**
    * Called when the set of files associated with a context have changed (or
    * some of those files have been modified).  [changeSet] is the set of
    * changes that need to be applied to the context.
@@ -1630,6 +1635,7 @@ class ContextManagerImpl implements ContextManager {
         contextRoot: driver.contextRoot);
     SourceFactory factory = builder.createSourceFactory(contextRoot, options);
     driver.configure(analysisOptions: options, sourceFactory: factory);
+    callbacks.analysisOptionsUpdated(driver);
   }
 
   void _updateContextPackageUriResolver(Folder contextFolder) {

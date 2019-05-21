@@ -88,9 +88,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
    */
   RefactoringWorkspace _refactoringWorkspace;
 
-  RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
-      new RefactoringWorkspace(driverMap.values, searchEngine);
-
   /**
    * The versions of each document known to the server (keyed by path), used to
    * send back to the client for server-initiated edits so that the client can
@@ -198,6 +195,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   ClientCapabilities get clientCapabilities => _clientCapabilities;
 
   Future<void> get exited => channel.closed;
+
+  RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
+      new RefactoringWorkspace(driverMap.values, searchEngine);
 
   addPriorityFile(String path) {
     final didAdd = priorityFiles.add(path);
@@ -328,6 +328,28 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ));
   }
 
+  /// Logs an exception by sending it to the client (window/logMessage) and
+  /// recording it in a buffer on the server for diagnostics.
+  void logException(String message, exception, stackTrace) {
+    if (exception is CaughtException) {
+      stackTrace ??= exception.stackTrace;
+    }
+
+    final fullError = stackTrace == null ? message : '$message\n$stackTrace';
+
+    // Log the full message since showMessage above may be truncated or formatted
+    // badly (eg. VS Code takes the newlines out).
+    logErrorToClient(fullError);
+
+    // remember the last few exceptions
+    exceptions.add(new ServerException(
+      message,
+      exception,
+      stackTrace is StackTrace ? stackTrace : null,
+      false,
+    ));
+  }
+
   void publishDiagnostics(String path, List<Diagnostic> errors) {
     final params =
         new PublishDiagnosticsParams(Uri.file(path).toString(), errors);
@@ -414,28 +436,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     showErrorMessageToUser(message);
 
     logException(message, exception, stackTrace);
-  }
-
-  /// Logs an exception by sending it to the client (window/logMessage) and
-  /// recording it in a buffer on the server for diagnostics.
-  void logException(String message, exception, stackTrace) {
-    if (exception is CaughtException) {
-      stackTrace ??= exception.stackTrace;
-    }
-
-    final fullError = stackTrace == null ? message : '$message\n$stackTrace';
-
-    // Log the full message since showMessage above may be truncated or formatted
-    // badly (eg. VS Code takes the newlines out).
-    logErrorToClient(fullError);
-
-    // remember the last few exceptions
-    exceptions.add(new ServerException(
-      message,
-      exception,
-      stackTrace is StackTrace ? stackTrace : null,
-      false,
-    ));
   }
 
   /// Send status notification to the client. The state of analysis is given by
@@ -573,6 +573,11 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void afterWatchEvent(WatchEvent event) {
     // TODO: implement afterWatchEvent
+  }
+
+  @override
+  void analysisOptionsUpdated(nd.AnalysisDriver driver) {
+    // TODO: implement analysisOptionsUpdated
   }
 
   @override

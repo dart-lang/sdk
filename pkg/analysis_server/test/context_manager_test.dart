@@ -2519,6 +2519,9 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   void afterWatchEvent(WatchEvent event) {}
 
   @override
+  void analysisOptionsUpdated(AnalysisDriver driver) {}
+
+  @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
     AnalysisDriver driver = driverMap[contextFolder.path];
     if (driver != null) {
