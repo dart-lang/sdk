@@ -2108,6 +2108,37 @@ abstract class ExtendsClause implements AstNode {
   void set superclass(TypeName name);
 }
 
+/// The declaration of an extension of a type.
+///
+///    extension ::=
+///        'extension' [SimpleIdentifier] [TypeParameterList]?
+///        'on' [TypeAnnotation] '{' [ClassMember]* '}'
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ExtensionDeclaration implements NamedCompilationUnitMember {
+  /// Return the type that is being extended.
+  TypeAnnotation get extendedType;
+
+  /// Return the token representing the 'extension' keyword.
+  Token get extensionKeyword;
+
+  /// Return the left curly bracket.
+  Token get leftBracket;
+
+  /// Return the members being added to the extended class.
+  NodeList<ClassMember> get members;
+
+  /// Return the token representing the 'on' keyword.
+  Token get onKeyword;
+
+  /// Return the right curly bracket.
+  Token get rightBracket;
+
+  /// Return the type parameters for the extension, or `null` if the extension
+  /// does not have any type parameters.
+  TypeParameterList get typeParameters;
+}
+
 /// The declaration of one or more fields of the same type.
 ///
 ///    fieldDeclaration ::=
