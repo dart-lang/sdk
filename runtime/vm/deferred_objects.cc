@@ -125,8 +125,16 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
     // If the deoptimization happened at an IC call, update the IC data
     // to avoid repeated deoptimization at the same site next time around.
     ICData& ic_data = ICData::Handle(zone);
-    CodePatcher::GetInstanceCallAt(pc, code, &ic_data);
-    if (!ic_data.IsNull()) {
+    Array& ics = Array::Handle(zone, function.ic_data_array());
+    bool found = false;
+    for (intptr_t i = 1; i < ics.Length(); i++) {
+      ic_data ^= ics.At(i);
+      if (ic_data.deopt_id() == deopt_id_) {
+        found = true;
+        break;
+      }
+    }
+    if (found) {
       ic_data.AddDeoptReason(deopt_context->deopt_reason());
       // Propagate the reason to all ICData-s with same deopt_id since
       // only unoptimized-code ICData (IC calls) are propagated.

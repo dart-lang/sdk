@@ -1672,6 +1672,14 @@ class ICData : public Object {
   RebindRule rebind_rule() const;
   void set_rebind_rule(uint32_t rebind_rule) const;
 
+  bool is_megamorphic() const {
+    return MegamorphicBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_megamorphic(bool value) const {
+    StoreNonPointer(&raw_ptr()->state_bits_,
+                    MegamorphicBit::update(value, raw_ptr()->state_bits_));
+  }
+
   // The length of the array. This includes all sentinel entries including
   // the final one.
   intptr_t Length() const;
@@ -1801,6 +1809,8 @@ class ICData : public Object {
   // Used for printing and optimizations.
   RawICData* AsUnaryClassChecksSortedByCount() const;
 
+  RawMegamorphicCache* AsMegamorphicCache() const;
+
   // Consider only used entries.
   bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
   bool AllReceiversAreNumbers() const;
@@ -1893,7 +1903,9 @@ class ICData : public Object {
     kDeoptReasonPos = kTrackingExactnessPos + kTrackingExactnessSize,
     kDeoptReasonSize = kLastRecordedDeoptReason + 1,
     kRebindRulePos = kDeoptReasonPos + kDeoptReasonSize,
-    kRebindRuleSize = 3
+    kRebindRuleSize = 3,
+    kMegamorphicPos = kRebindRulePos + kRebindRuleSize,
+    kMegamorphicSize = 1,
   };
 
   COMPILE_ASSERT(kNumRebindRules <= (1 << kRebindRuleSize));
@@ -1914,6 +1926,9 @@ class ICData : public Object {
                                          uint32_t,
                                          ICData::kRebindRulePos,
                                          ICData::kRebindRuleSize> {};
+  class MegamorphicBit
+      : public BitField<uint32_t, bool, kMegamorphicPos, kMegamorphicSize> {};
+
 #if defined(DEBUG)
   // Used in asserts to verify that a check is not added twice.
   bool HasCheck(const GrowableArray<intptr_t>& cids) const;
@@ -5679,6 +5694,12 @@ class MegamorphicCache : public Object {
   static const intptr_t kSpreadFactor = 7;
   static const double kLoadFactor;
 
+  enum {
+    kClassIdIndex,
+    kTargetFunctionIndex,
+    kEntryLength,
+  };
+
   RawArray* buckets() const;
   void set_buckets(const Array& buckets) const;
 
@@ -5724,12 +5745,6 @@ class MegamorphicCache : public Object {
 
   void set_target_name(const String& value) const;
   void set_arguments_descriptor(const Array& value) const;
-
-  enum {
-    kClassIdIndex,
-    kTargetFunctionIndex,
-    kEntryLength,
-  };
 
   static inline void SetEntry(const Array& array,
                               intptr_t index,

@@ -702,6 +702,41 @@ void Cids::CreateHelper(Zone* zone,
       cid_ranges_.Add(new (zone) CidRange(id, id));
     }
   }
+
+  if (ic_data.is_megamorphic()) {
+    const MegamorphicCache& cache =
+        MegamorphicCache::Handle(zone, ic_data.AsMegamorphicCache());
+    const Array& buckets = Array::Handle(zone, cache.buckets());
+    for (intptr_t i = 0; i < buckets.Length();
+         i += MegamorphicCache::kEntryLength) {
+      intptr_t id = Smi::Value(
+          Smi::RawCast(buckets.At(i + MegamorphicCache::kClassIdIndex)));
+      if (id == kIllegalCid) {
+        continue;
+      }
+      if (include_targets) {
+        Function& function = Function::ZoneHandle(zone);
+        function ^= buckets.At(i + MegamorphicCache::kTargetFunctionIndex);
+        intptr_t count = function.usage_counter();
+        if (count < 0) {
+          if (function.HasCode()) {
+            // 'function' is queued for optimized compilation
+            count = FLAG_optimization_counter_threshold;
+          } else {
+            // 'function' is queued for unoptimized compilation
+            count = FLAG_compilation_counter_threshold;
+          }
+        } else if (Code::Handle(zone, function.CurrentCode()).is_optimized()) {
+          // 'function' was optimized and stopped counting
+          count = FLAG_optimization_counter_threshold;
+        }
+        cid_ranges_.Add(new (zone) TargetInfo(
+            id, id, &function, count, StaticTypeExactnessState::NotTracking()));
+      } else {
+        cid_ranges_.Add(new (zone) CidRange(id, id));
+      }
+    }
+  }
 }
 
 bool Cids::IsMonomorphic() const {
@@ -3746,6 +3781,14 @@ void CallTargets::MergeIntoRanges() {
   Sort(OrderByFrequency);
 }
 
+void CallTargets::Print() const {
+  for (intptr_t i = 0; i < length(); i++) {
+    OS::PrintErr("cid = [%" Pd ", %" Pd "], count = %" Pd ", target = %s\n",
+                 TargetAt(i)->cid_start, TargetAt(i)->cid_end,
+                 TargetAt(i)->count, TargetAt(i)->target->ToQualifiedCString());
+  }
+}
+
 // Shared code generation methods (EmitNativeCode and
 // MakeLocationSummary). Only assembly code that can be shared across all
 // architectures can be used. Machine specific register allocation and code
@@ -4410,8 +4453,8 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
 
   ASSERT(new_target->HasSingleTarget());
   const Function& target = new_target->FirstTarget();
-  StaticCallInstr* specialized =
-      StaticCallInstr::FromCall(flow_graph->zone(), this, target);
+  StaticCallInstr* specialized = StaticCallInstr::FromCall(
+      flow_graph->zone(), this, target, new_target->AggregateCallCount());
   flow_graph->InsertBefore(this, specialized, env(), FlowGraph::kValue);
   return specialized;
 }
