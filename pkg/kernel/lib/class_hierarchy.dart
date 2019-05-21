@@ -810,7 +810,21 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       _buildInterfaceMembers(class_, info, setters: false);
     }
 
+    assert(sanityCheckAlsoKnowsParentAndLibrary());
+
     return this;
+  }
+
+  bool sanityCheckAlsoKnowsParentAndLibrary() {
+    for (Class c in _infoFor.keys) {
+      if (!knownLibraries.contains(c.enclosingLibrary)) {
+        throw new StateError("Didn't know library of $c (from ${c.fileUri})");
+      }
+      if (c.supertype != null && _infoFor[c.supertype.classNode] == null) {
+        throw new StateError("Didn't know parent of $c (from ${c.fileUri})");
+      }
+    }
+    return true;
   }
 
   @override
