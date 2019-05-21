@@ -1,3 +1,8 @@
+# 0.1.90
+
+* fixed null-reference in `unrelated_type_equality_checks`
+* new lint: `unsafe_html`
+
 # 0.1.89
 
 * broadened `prefer_null_aware_operators` to work beyond local variables
