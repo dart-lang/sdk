@@ -101,13 +101,12 @@ library_for_all_configs("libdart_lib") {
     }
   }
   include_dirs = [ ".." ]
-  allsources =
-      async_runtime_sources + collection_runtime_sources +
-      convert_runtime_sources + core_runtime_sources +
-      developer_runtime_sources + internal_runtime_sources +
-      isolate_runtime_sources + math_runtime_sources + mirrors_runtime_sources +
-      profiler_runtime_sources + typed_data_runtime_sources +
-      vmservice_runtime_sources + ffi_runtime_sources
+  allsources = async_runtime_cc_files + collection_runtime_cc_files +
+               core_runtime_cc_files + developer_runtime_cc_files +
+               internal_runtime_cc_files + isolate_runtime_cc_files +
+               math_runtime_cc_files + mirrors_runtime_cc_files +
+               typed_data_runtime_cc_files + vmservice_runtime_cc_files +
+               ffi_runtime_cc_files
   sources = [ "bootstrap.cc" ] + rebase_path(allsources, ".", "../lib")
   snapshot_sources = []
   nosnapshot_sources = []

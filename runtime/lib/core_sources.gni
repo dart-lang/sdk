@@ -59,5 +59,3 @@ core_runtime_dart_files = [
   "uri_patch.dart",
   "weak_property.dart",
 ]
-
-core_runtime_sources = core_runtime_cc_files + core_runtime_dart_files

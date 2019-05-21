@@ -9,6 +9,3 @@ typed_data_runtime_cc_files = [
 ]
 
 typed_data_runtime_dart_files = [ "typed_data_patch.dart" ]
-
-typed_data_runtime_sources =
-    typed_data_runtime_cc_files + typed_data_runtime_dart_files

@@ -9,5 +9,3 @@ isolate_runtime_dart_files = [
   "isolate_patch.dart",
   "timer_impl.dart",
 ]
-
-isolate_runtime_sources = isolate_runtime_cc_files + isolate_runtime_dart_files

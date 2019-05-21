@@ -13,5 +13,3 @@ ffi_runtime_dart_files = [
   "ffi_dynamic_library_patch.dart",
   "ffi_native_type_patch.dart",
 ]
-
-ffi_runtime_sources = ffi_runtime_cc_files + ffi_runtime_dart_files

@@ -15,5 +15,3 @@ mirrors_runtime_dart_files = [
   "mirrors_impl.dart",
   "mirror_reference.dart",
 ]
-
-mirrors_runtime_sources = mirrors_runtime_cc_files + mirrors_runtime_dart_files
