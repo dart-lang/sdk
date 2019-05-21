@@ -1025,6 +1025,10 @@ class FlowGraphCompiler : public ValueObject {
   void FrameStateClear();
 #endif
 
+  // Returns true if instruction lookahead (window size one)
+  // is amenable to a peephole optimization.
+  bool IsPeephole(Instruction* instr) const;
+
   // This struct contains either function or code, the other one being NULL.
   class StaticCallsStruct : public ZoneAllocated {
    public:
@@ -1088,6 +1092,11 @@ class FlowGraphCompiler : public ValueObject {
   Label* intrinsic_slow_path_label_ = nullptr;
   bool fully_intrinsified_ = false;
   CodeStatistics* stats_;
+
+  // The definition whose value is supposed to be at the top of the
+  // expression stack. Used by peephole optimization (window size one)
+  // to eliminate redundant push/pop pairs.
+  Definition* top_of_stack_ = nullptr;
 
   const Class& double_class_;
   const Class& mint_class_;

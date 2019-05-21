@@ -42,6 +42,8 @@ DEFINE_FLAG(bool,
             false,
             "Inlining interval diagnostics");
 
+DEFINE_FLAG(bool, enable_peephole, true, "Enable peephole optimization");
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 DEFINE_FLAG(bool,
@@ -511,6 +513,35 @@ void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
                        line.ToCString());
 }
 
+#if !defined(TARGET_ARCH_DBC)
+
+static bool IsPusher(Instruction* instr) {
+  if (auto def = instr->AsDefinition()) {
+    return def->HasTemp();
+  }
+  return false;
+}
+
+static bool IsPopper(Instruction* instr) {
+  // TODO(ajcbik): even allow deopt targets by making environment aware?
+  if (!instr->CanBecomeDeoptimizationTarget()) {
+    return !instr->IsPushArgument() && instr->ArgumentCount() == 0 &&
+           instr->InputCount() > 0;
+  }
+  return false;
+}
+
+#endif
+
+bool FlowGraphCompiler::IsPeephole(Instruction* instr) const {
+#if !defined(TARGET_ARCH_DBC)
+  if (FLAG_enable_peephole && !is_optimizing()) {
+    return IsPusher(instr) && IsPopper(instr->next());
+  }
+#endif
+  return false;
+}
+
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
   if (Assembler::EmittingComments()) {
@@ -585,7 +616,12 @@ void FlowGraphCompiler::VisitBlocks() {
         pending_deoptimization_env_ = instr->env();
         instr->EmitNativeCode(this);
         pending_deoptimization_env_ = NULL;
-        EmitInstructionEpilogue(instr);
+        if (IsPeephole(instr)) {
+          ASSERT(top_of_stack_ == nullptr);
+          top_of_stack_ = instr->AsDefinition();
+        } else {
+          EmitInstructionEpilogue(instr);
+        }
         EndCodeSourceRange(instr->token_pos());
       }
 
@@ -1470,6 +1506,21 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
 
   bool blocked_registers[kNumberOfCpuRegisters];
 
+  // Connect input with peephole output for some special cases. All other
+  // cases are handled by simply allocating registers and generating code.
+  if (top_of_stack_ != nullptr) {
+    const intptr_t p = locs->input_count() - 1;
+    Location peephole = top_of_stack_->locs()->out(0);
+    if (locs->in(p).IsUnallocated() || locs->in(p).IsConstant()) {
+      // If input is unallocated, match with an output register, if set. Also,
+      // if input is a direct constant, but the peephole output is a register,
+      // use that register to avoid wasting the already generated code.
+      if (peephole.IsRegister()) {
+        locs->set_in(p, Location::RegisterLocation(peephole.reg()));
+      }
+    }
+  }
+
   // Block all registers globally reserved by the assembler, etc and mark
   // the rest as free.
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
@@ -1518,10 +1569,17 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     }
     ASSERT(reg != kNoRegister || loc.IsConstant());
 
-    // Inputs are consumed from the simulated frame. In case of a call argument
-    // we leave it until the call instruction.
+    // Inputs are consumed from the simulated frame (or a peephole push/pop).
+    // In case of a call argument we leave it until the call instruction.
     if (should_pop) {
-      if (loc.IsConstant()) {
+      if (top_of_stack_ != nullptr) {
+        if (!loc.IsConstant()) {
+          // Moves top of stack location of the peephole into the required
+          // input. None of the required moves needs a temp register allocator.
+          EmitMove(locs->in(i), top_of_stack_->locs()->out(0), nullptr);
+        }
+        top_of_stack_ = nullptr;  // consumed!
+      } else if (loc.IsConstant()) {
         assembler()->Drop(1);
       } else {
         assembler()->PopRegister(reg);
