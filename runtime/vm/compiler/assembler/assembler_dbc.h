@@ -39,6 +39,8 @@ class Assembler : public AssemblerBase {
   // Misc. functionality
   intptr_t prologue_offset() const { return 0; }
 
+  void MonomorphicCheckedEntry() {}
+
   // Debugging and bringup support.
   void Stop(const char* message) override;
 

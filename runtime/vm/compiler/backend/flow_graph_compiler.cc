@@ -335,12 +335,11 @@ intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
     return target->Position();
   }
 
-// Intrinsification happened.
-#ifdef DART_PRECOMPILER
+  // Intrinsification happened.
   if (parsed_function().function().IsDynamicFunction()) {
     return Instructions::kMonomorphicEntryOffset;
   }
-#endif
+
   return 0;
 }
 

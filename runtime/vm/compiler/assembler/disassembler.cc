@@ -318,11 +318,24 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
       ExceptionHandlers::Handle(zone, code.exception_handlers());
   THR_Print("%s}\n", handlers.ToCString());
 
-  if (instructions.unchecked_entrypoint_pc_offset() != 0) {
-    THR_Print("Unchecked entrypoint at offset 0x%" Px "\n",
-              Instructions::UncheckedEntryPoint(instructions.raw()));
-  } else {
-    THR_Print("No unchecked entrypoint.\n");
+  {
+    THR_Print("Entry points for function '%s' {\n", function_fullname);
+    THR_Print("  [code+0x%02" Px "] %" Px " kNormal\n",
+              Code::entry_point_offset(CodeEntryKind::kNormal) - kHeapObjectTag,
+              Instructions::EntryPoint(instructions.raw()));
+    THR_Print(
+        "  [code+0x%02" Px "] %" Px " kUnchecked\n",
+        Code::entry_point_offset(CodeEntryKind::kUnchecked) - kHeapObjectTag,
+        Instructions::UncheckedEntryPoint(instructions.raw()));
+    THR_Print(
+        "  [code+0x%02" Px "] %" Px " kMonomorphic\n",
+        Code::entry_point_offset(CodeEntryKind::kMonomorphic) - kHeapObjectTag,
+        Instructions::MonomorphicEntryPoint(instructions.raw()));
+    THR_Print("  [code+0x%02" Px "] %" Px " kMonomorphicUnchecked\n",
+              Code::entry_point_offset(CodeEntryKind::kMonomorphicUnchecked) -
+                  kHeapObjectTag,
+              Instructions::MonomorphicUncheckedEntryPoint(instructions.raw()));
+    THR_Print("}\n");
   }
 
   {

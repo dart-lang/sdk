@@ -219,13 +219,23 @@ void BlockScheduler::ReorderBlocksJIT() const {
     Union(&chains, source_chain, target_chain);
   }
 
+  // Ensure the checked entry remains first to avoid needing another offset on
+  // Instructions, compare Code::EntryPoint.
+  GraphEntryInstr* graph_entry = flow_graph()->graph_entry();
+  flow_graph()->CodegenBlockOrder(true)->Add(graph_entry);
+  FunctionEntryInstr* checked_entry = graph_entry->normal_entry();
+  if (checked_entry != nullptr) {
+    flow_graph()->CodegenBlockOrder(true)->Add(checked_entry);
+  }
   // Build a new block order.  Emit each chain when its first block occurs
   // in the original reverse postorder ordering (which gives a topological
   // sort of the blocks).
   for (intptr_t i = block_count - 1; i >= 0; --i) {
     if (chains[i]->first->block == flow_graph()->postorder()[i]) {
       for (Link* link = chains[i]->first; link != NULL; link = link->next) {
-        flow_graph()->CodegenBlockOrder(true)->Add(link->block);
+        if ((link->block != checked_entry) && (link->block != graph_entry)) {
+          flow_graph()->CodegenBlockOrder(true)->Add(link->block);
+        }
       }
     }
   }

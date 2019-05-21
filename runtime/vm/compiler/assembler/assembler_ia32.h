@@ -646,6 +646,8 @@ class Assembler : public AssemblerBase {
   void LeaveFrame();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
+  void MonomorphicCheckedEntry() {}
+
   // Require a temporary register 'tmp'.
   // Clobber all non-CPU registers (e.g. XMM registers and the "FPU stack").
   void TransitionGeneratedToNative(Register destination_address,

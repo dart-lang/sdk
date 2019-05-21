@@ -3831,16 +3831,12 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 // fall-through code in [FlowGraphCompiler::CompileGraph()].
 // (As opposed to here where we don't check for the return value of
 // [Intrinsify]).
-#if defined(DART_SUPPORT_PRECOMPILATION)
-  if (FLAG_precompiled_mode) {
-    const Function& function = compiler->parsed_function().function();
-    if (function.IsDynamicFunction()) {
-      compiler->SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
-      __ MonomorphicCheckedEntry();
-      compiler->SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
-    }
+  const Function& function = compiler->parsed_function().function();
+  if (function.IsDynamicFunction()) {
+    compiler->SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
+    __ MonomorphicCheckedEntry();
+    compiler->SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
   }
-#endif
 
   // NOTE: Because of the presence of multiple entry-points, we generate several
   // times the same intrinsification & frame setup. That's why we cannot rely on
