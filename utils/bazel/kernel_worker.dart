@@ -238,7 +238,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
 
   fe.InitializedCompilerState state;
   bool usingIncrementalCompiler = false;
-  if (parsedArgs['use-incremental-compiler'] && linkedInputs.isEmpty) {
+  if (parsedArgs['use-incremental-compiler'] &&
+      linkedInputs.isEmpty &&
+      isWorker) {
     usingIncrementalCompiler = true;
 
     /// Build a map of uris to digests.
@@ -298,12 +300,14 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       return Future.value(fe.serializeComponent(incrementalComponent));
     });
   } else if (summaryOnly) {
-    kernel = await fe.compileSummary(state, sources, onDiagnostic);
+    kernel = await fe.compileSummary(state, sources, onDiagnostic,
+        includeOffsets: false);
   } else {
     Component component =
         await fe.compileComponent(state, sources, onDiagnostic);
     kernel = fe.serializeComponent(component,
-        filter: (library) => sources.contains(library.importUri));
+        filter: (library) => sources.contains(library.importUri),
+        includeOffsets: true);
   }
 
   if (kernel != null) {

@@ -55,7 +55,10 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Target target,
     FileSystem fileSystem,
     bool outlineOnly) async {
-  List<int> sdkDigest = workerInputDigests[sdkSummary];
+  final List<int> sdkDigest = workerInputDigests[sdkSummary];
+  if (sdkDigest == null) {
+    throw new StateError("Expected to get digest for $sdkSummary");
+  }
   IncrementalCompiler incrementalCompiler;
   CompilerOptions options;
   ProcessedOptions processedOpts;
@@ -73,7 +76,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     // We do have a previous state.
     cachedSdkInput = workerInputCache[sdkSummary];
     if (cachedSdkInput == null ||
-        !digestsEqual(cachedSdkInput.digest, workerInputDigests[sdkSummary])) {
+        !digestsEqual(cachedSdkInput.digest, sdkDigest)) {
       // The sdk is out of date.
       startOver = true;
     }
@@ -102,7 +105,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   } else {
     options = oldState.options;
     processedOpts = oldState.processedOpts;
-
     var sdkComponent = cachedSdkInput.component;
     // Reset the state of the component.
     for (var lib in sdkComponent.libraries) {
@@ -127,6 +129,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   for (Uri summary in summaryInputs) {
     var cachedInput = workerInputCache[summary];
     var summaryDigest = workerInputDigests[summary];
+    if (summaryDigest == null) {
+      throw new StateError("Expected to get digest for $summary");
+    }
     if (cachedInput == null ||
         cachedInput.component.root != nameRoot ||
         !digestsEqual(cachedInput.digest, summaryDigest)) {
@@ -145,7 +150,10 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
   for (int i = 0; i < loadFromDill.length; i++) {
     Uri summary = loadFromDill[i];
-    var summaryDigest = workerInputDigests[summary];
+    List<int> summaryDigest = workerInputDigests[summary];
+    if (summaryDigest == null) {
+      throw new StateError("Expected to get digest for $summary");
+    }
     WorkerInputComponent cachedInput = WorkerInputComponent(
         summaryDigest,
         await processedOpts.loadComponent(
@@ -193,7 +201,7 @@ Future<InitializedCompilerState> initializeCompiler(
 
 Future<CompilerResult> _compile(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
-    {bool summaryOnly}) {
+    {bool summaryOnly, bool includeOffsets: true}) {
   summaryOnly ??= true;
   CompilerOptions options = compilerState.options;
   options..onDiagnostic = diagnosticMessageHandler;
@@ -203,13 +211,16 @@ Future<CompilerResult> _compile(InitializedCompilerState compilerState,
   processedOpts.inputs.addAll(inputs);
 
   return generateKernel(processedOpts,
-      buildSummary: summaryOnly, buildComponent: !summaryOnly);
+      buildSummary: summaryOnly,
+      buildComponent: !summaryOnly,
+      includeOffsets: includeOffsets);
 }
 
 Future<List<int>> compileSummary(InitializedCompilerState compilerState,
-    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler) async {
+    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
+    {bool includeOffsets: false}) async {
   var result = await _compile(compilerState, inputs, diagnosticMessageHandler,
-      summaryOnly: true);
+      summaryOnly: true, includeOffsets: includeOffsets);
   return result?.summary;
 }
 
