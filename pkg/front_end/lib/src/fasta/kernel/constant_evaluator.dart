@@ -397,6 +397,10 @@ class ConstantsTransformer extends Transformer {
     return super.visitListLiteral(node);
   }
 
+  visitListConcatenation(ListConcatenation node) {
+    return evaluateAndTransformWithContext(node, node);
+  }
+
   visitSetLiteral(SetLiteral node) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
@@ -404,11 +408,19 @@ class ConstantsTransformer extends Transformer {
     return super.visitSetLiteral(node);
   }
 
+  visitSetConcatenation(SetConcatenation node) {
+    return evaluateAndTransformWithContext(node, node);
+  }
+
   visitMapLiteral(MapLiteral node) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
     }
     return super.visitMapLiteral(node);
+  }
+
+  visitMapConcatenation(MapConcatenation node) {
+    return evaluateAndTransformWithContext(node, node);
   }
 
   visitConstructorInvocation(ConstructorInvocation node) {

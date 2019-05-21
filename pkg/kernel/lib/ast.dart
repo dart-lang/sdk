@@ -3215,9 +3215,9 @@ class StringConcatenation extends Expression {
 ///
 /// If [lists] is empty then an empty list is returned.
 ///
-/// These arise from spread and control-flow elements in const list literals
-/// containing unevaluated subexpressions. They only ever occur within
-/// unevaluated constants in constant expressions.
+/// These arise from spread and control-flow elements in const list literals.
+/// They are only present before constant evaluation, or within unevaluated
+/// constants in constant expressions.
 class ListConcatenation extends Expression {
   DartType typeArgument;
   final List<Expression> lists;
@@ -3248,9 +3248,9 @@ class ListConcatenation extends Expression {
 ///
 /// If [sets] is empty then an empty set is returned.
 ///
-/// These arise from spread and control-flow elements in const set literals
-/// containing unevaluated subexpressions. They only ever occur within
-/// unevaluated constants in constant expressions.
+/// These arise from spread and control-flow elements in const set literals.
+/// They are only present before constant evaluation, or within unevaluated
+/// constants in constant expressions.
 ///
 /// Duplicated values in or across the sets will result in a compile-time error
 /// during constant evaluation.
@@ -3284,9 +3284,9 @@ class SetConcatenation extends Expression {
 ///
 /// If [maps] is empty then an empty map is returned.
 ///
-/// These arise from spread and control-flow elements in const map literals
-/// containing unevaluated subexpressions. They only ever occur within
-/// unevaluated constants in constant expressions.
+/// These arise from spread and control-flow elements in const map literals.
+/// They are only present before constant evaluation, or within unevaluated
+/// constants in constant expressions.
 ///
 /// Duplicated keys in or across the maps will result in a compile-time error
 /// during constant evaluation.

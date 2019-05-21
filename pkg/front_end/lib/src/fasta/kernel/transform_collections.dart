@@ -13,6 +13,7 @@ import 'package:kernel/ast.dart'
         Block,
         BlockExpression,
         Class,
+        ConditionalExpression,
         DartType,
         DynamicType,
         Expression,
@@ -22,7 +23,10 @@ import 'package:kernel/ast.dart'
         ForStatement,
         IfStatement,
         InterfaceType,
+        Let,
+        ListConcatenation,
         ListLiteral,
+        MapConcatenation,
         MapEntry,
         MapLiteral,
         MethodInvocation,
@@ -31,6 +35,7 @@ import 'package:kernel/ast.dart'
         NullLiteral,
         Procedure,
         PropertyGet,
+        SetConcatenation,
         SetLiteral,
         Statement,
         StaticInvocation,
@@ -57,6 +62,8 @@ import 'collections.dart'
         IfMapEntry,
         SpreadElement,
         SpreadMapEntry;
+
+import '../problems.dart' show getFileUri, unhandled;
 
 import '../source/source_loader.dart' show SourceLoader;
 
@@ -277,8 +284,10 @@ class CollectionTransformer extends Transformer {
 
   @override
   TreeNode visitListLiteral(ListLiteral node) {
-    // Const collections are handled by the constant evaluator.
-    if (node.isConst) return node;
+    if (node.isConst) {
+      return _translateConstListOrSet(node, node.typeArgument, node.expressions,
+          isSet: false);
+    }
 
     return _translateListOrSet(node, node.typeArgument, node.expressions,
         isSet: false);
@@ -286,8 +295,10 @@ class CollectionTransformer extends Transformer {
 
   @override
   TreeNode visitSetLiteral(SetLiteral node) {
-    // Const collections are handled by the constant evaluator.
-    if (node.isConst) return node;
+    if (node.isConst) {
+      return _translateConstListOrSet(node, node.typeArgument, node.expressions,
+          isSet: true);
+    }
 
     return _translateListOrSet(node, node.typeArgument, node.expressions,
         isSet: true);
@@ -295,8 +306,9 @@ class CollectionTransformer extends Transformer {
 
   @override
   TreeNode visitMapLiteral(MapLiteral node) {
-    // Const collections are handled by the constant evaluator.
-    if (node.isConst) return node;
+    if (node.isConst) {
+      return _translateConstMap(node);
+    }
 
     // Translate entries in place up to the first control-flow entry, if any.
     int i = 0;
@@ -478,5 +490,151 @@ class CollectionTransformer extends Transformer {
           null);
     }
     body.add(statement);
+  }
+
+  TreeNode _translateConstListOrSet(
+      Expression node, DartType elementType, List<Expression> elements,
+      {bool isSet: false}) {
+    // Translate elements in place up to the first non-expression, if any.
+    int i = 0;
+    for (; i < elements.length; ++i) {
+      if (elements[i] is ControlFlowElement) break;
+      elements[i] = elements[i].accept(this)..parent = node;
+    }
+
+    // If there were only expressions, we are done.
+    if (i == elements.length) return node;
+
+    Expression makeLiteral(List<Expression> expressions) {
+      return isSet
+          ? new SetLiteral(expressions,
+              typeArgument: elementType, isConst: true)
+          : new ListLiteral(expressions,
+              typeArgument: elementType, isConst: true);
+    }
+
+    // Build a concatenation node.
+    List<Expression> parts = [];
+    List<Expression> currentPart = i > 0 ? elements.sublist(0, i) : null;
+
+    for (; i < elements.length; ++i) {
+      Expression element = elements[i];
+      if (element is SpreadElement) {
+        if (currentPart != null) {
+          parts.add(makeLiteral(currentPart));
+          currentPart = null;
+        }
+        Expression spreadExpression = element.expression.accept(this);
+        if (element.isNullAware) {
+          VariableDeclaration temp =
+              new VariableDeclaration(null, initializer: spreadExpression);
+          parts.add(new Let(
+              temp,
+              new ConditionalExpression(
+                  new MethodInvocation(new VariableGet(temp), new Name('=='),
+                      new Arguments([new NullLiteral()])),
+                  makeLiteral([]),
+                  new VariableGet(temp),
+                  const DynamicType())));
+        } else {
+          parts.add(spreadExpression);
+        }
+      } else if (element is IfElement) {
+        if (currentPart != null) {
+          parts.add(makeLiteral(currentPart));
+          currentPart = null;
+        }
+        Expression condition = element.condition.accept(this);
+        Expression then = makeLiteral([element.then]).accept(this);
+        Expression otherwise = element.otherwise != null
+            ? makeLiteral([element.otherwise]).accept(this)
+            : makeLiteral([]);
+        parts.add(new ConditionalExpression(
+            condition, then, otherwise, const DynamicType()));
+      } else if (element is ForElement || element is ForInElement) {
+        // Rejected earlier.
+        unhandled("${element.runtimeType}", "_translateConstListOrSet",
+            element.fileOffset, getFileUri(element));
+      } else {
+        currentPart ??= <Expression>[];
+        currentPart.add(element.accept(this));
+      }
+    }
+    if (currentPart != null) {
+      parts.add(makeLiteral(currentPart));
+    }
+    return isSet
+        ? new SetConcatenation(parts, typeArgument: elementType)
+        : new ListConcatenation(parts, typeArgument: elementType);
+  }
+
+  TreeNode _translateConstMap(MapLiteral node) {
+    // Translate entries in place up to the first control-flow entry, if any.
+    int i = 0;
+    for (; i < node.entries.length; ++i) {
+      if (node.entries[i] is ControlFlowMapEntry) break;
+      node.entries[i] = node.entries[i].accept(this)..parent = node;
+    }
+
+    // If there were no control-flow entries we are done.
+    if (i == node.entries.length) return node;
+
+    MapLiteral makeLiteral(List<MapEntry> entries) {
+      return new MapLiteral(entries,
+          keyType: node.keyType, valueType: node.valueType, isConst: true);
+    }
+
+    // Build a concatenation node.
+    List<Expression> parts = [];
+    List<MapEntry> currentPart = i > 0 ? node.entries.sublist(0, i) : null;
+
+    for (; i < node.entries.length; ++i) {
+      MapEntry entry = node.entries[i];
+      if (entry is SpreadMapEntry) {
+        if (currentPart != null) {
+          parts.add(makeLiteral(currentPart));
+          currentPart = null;
+        }
+        Expression spreadExpression = entry.expression.accept(this);
+        if (entry.isNullAware) {
+          VariableDeclaration temp =
+              new VariableDeclaration(null, initializer: spreadExpression);
+          parts.add(new Let(
+              temp,
+              new ConditionalExpression(
+                  new MethodInvocation(new VariableGet(temp), new Name('=='),
+                      new Arguments([new NullLiteral()])),
+                  makeLiteral([]),
+                  new VariableGet(temp),
+                  const DynamicType())));
+        } else {
+          parts.add(spreadExpression);
+        }
+      } else if (entry is IfMapEntry) {
+        if (currentPart != null) {
+          parts.add(makeLiteral(currentPart));
+          currentPart = null;
+        }
+        Expression condition = entry.condition.accept(this);
+        Expression then = makeLiteral([entry.then]).accept(this);
+        Expression otherwise = entry.otherwise != null
+            ? makeLiteral([entry.otherwise]).accept(this)
+            : makeLiteral([]);
+        parts.add(new ConditionalExpression(
+            condition, then, otherwise, const DynamicType()));
+      } else if (entry is ForMapEntry || entry is ForInMapEntry) {
+        // Rejected earlier.
+        unhandled("${entry.runtimeType}", "_translateConstMap",
+            entry.fileOffset, getFileUri(entry));
+      } else {
+        currentPart ??= <MapEntry>[];
+        currentPart.add(entry.accept(this));
+      }
+    }
+    if (currentPart != null) {
+      parts.add(makeLiteral(currentPart));
+    }
+    return new MapConcatenation(parts,
+        keyType: node.keyType, valueType: node.valueType);
   }
 }

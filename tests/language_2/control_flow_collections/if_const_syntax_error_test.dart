@@ -5,7 +5,7 @@
 // Check that 'if' in const collections is not enabled without the experimental
 // constant-update-2018 flag.
 
-// SharedOptions=--enable-experiment=control-flow-collections
+// SharedOptions=--enable-experiment=control-flow-collections,no-constant-update-2018
 
 void main() {
   // If cannot be used in a const collection.

@@ -2336,8 +2336,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       return;
     }
 
-    if (constantContext != ConstantContext.none &&
-        !library.loader.target.enableConstantUpdate2018) {
+    if (constantContext != ConstantContext.none) {
       handleRecoverableError(
           fasta.templateCantUseControlFlowOrSpreadAsConstant
               .withArguments(forToken),
@@ -4188,8 +4187,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       return;
     }
 
-    if (constantContext != ConstantContext.none &&
-        !library.loader.target.enableConstantUpdate2018) {
+    if (constantContext != ConstantContext.none) {
       handleRecoverableError(
           fasta.templateCantUseControlFlowOrSpreadAsConstant
               .withArguments(forToken),
