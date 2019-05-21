@@ -41,8 +41,10 @@
 
 #### Linter
 
-The Linter was updated to `0.1.89`, which includes the following changes:
+The Linter was updated to `0.1.90`, which includes the following changes:
 
+* fixed null-reference in `unrelated_type_equality_checks`
+* new lint: `unsafe_html`
 * broadened `prefer_null_aware_operators` to work beyond local variables
 * new lint: `prefer_if_null_operators`
 * fixed `prefer_contains` false positives
