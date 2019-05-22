@@ -1036,17 +1036,17 @@ class SourceLoader extends Loader<Library> {
 
   void transformListPostInference(List<TreeNode> list,
       bool transformSetLiterals, bool transformCollections) {
-    if (transformSetLiterals) {
-      SetLiteralTransformer transformer = setLiteralTransformer ??=
-          new SetLiteralTransformer(this,
-              transformConst: !target.enableConstantUpdate2018);
+    if (transformCollections) {
+      CollectionTransformer transformer =
+          collectionTransformer ??= new CollectionTransformer(this);
       for (int i = 0; i < list.length; ++i) {
         list[i] = list[i].accept(transformer);
       }
     }
-    if (transformCollections) {
-      CollectionTransformer transformer =
-          collectionTransformer ??= new CollectionTransformer(this);
+    if (transformSetLiterals) {
+      SetLiteralTransformer transformer = setLiteralTransformer ??=
+          new SetLiteralTransformer(this,
+              transformConst: !target.enableConstantUpdate2018);
       for (int i = 0; i < list.length; ++i) {
         list[i] = list[i].accept(transformer);
       }
