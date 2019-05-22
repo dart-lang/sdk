@@ -3852,7 +3852,7 @@ SwitchDispatch:
   {
     BYTECODE(StoreIndexedUint8, A_B_C);
     uint8_t* data = SimulatorHelpers::GetTypedData(FP[rA], FP[rB]);
-    *data = Smi::Value(RAW_CAST(Smi, FP[rC]));
+    *data = static_cast<uint8_t>(reinterpret_cast<word>(FP[rC]));
     DISPATCH();
   }
 
@@ -3860,8 +3860,8 @@ SwitchDispatch:
     BYTECODE(StoreIndexedUntaggedUint8, A_B_C);
     uint8_t* array = reinterpret_cast<uint8_t*>(FP[rA]);
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
-    RawSmi* value = RAW_CAST(Smi, FP[rC]);
-    array[Smi::Value(index)] = Smi::Value(value);
+    array[Smi::Value(index)] =
+        static_cast<uint8_t>(reinterpret_cast<word>(FP[rC]));
     DISPATCH();
   }
 
@@ -3896,9 +3896,9 @@ SwitchDispatch:
     BYTECODE(StoreIndexedOneByteString, A_B_C);
     RawOneByteString* array = RAW_CAST(OneByteString, FP[rA]);
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
-    RawSmi* value = RAW_CAST(Smi, FP[rC]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    array->ptr()->data()[Smi::Value(index)] = Smi::Value(value);
+    array->ptr()->data()[Smi::Value(index)] =
+        static_cast<uint8_t>(reinterpret_cast<word>(FP[rC]));
     DISPATCH();
   }
 
@@ -4007,14 +4007,15 @@ SwitchDispatch:
   {
     BYTECODE(LoadIndexedUint8, A_B_C);
     uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
-    FP[rA] = Smi::New(*data);
+    FP[rA] = reinterpret_cast<RawObject*>(static_cast<word>(*data));
     DISPATCH();
   }
 
   {
     BYTECODE(LoadIndexedInt8, A_B_C);
-    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
-    FP[rA] = Smi::New(*reinterpret_cast<int8_t*>(data));
+    int8_t* data = reinterpret_cast<int8_t*>(
+        SimulatorHelpers::GetTypedData(FP[rB], FP[rC]));
+    FP[rA] = reinterpret_cast<RawObject*>(static_cast<word>(*data));
     DISPATCH();
   }
 
@@ -4036,9 +4037,10 @@ SwitchDispatch:
 
   {
     BYTECODE(LoadIndexedUntaggedInt8, A_B_C);
-    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
+    int8_t* data = reinterpret_cast<int8_t*>(FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    FP[rA] = Smi::New(*reinterpret_cast<int8_t*>(data + Smi::Value(index)));
+    FP[rA] = reinterpret_cast<RawObject*>(
+        static_cast<word>(data[Smi::Value(index)]));
     DISPATCH();
   }
 
@@ -4046,7 +4048,8 @@ SwitchDispatch:
     BYTECODE(LoadIndexedUntaggedUint8, A_B_C);
     uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    FP[rA] = Smi::New(*reinterpret_cast<uint8_t*>(data + Smi::Value(index)));
+    FP[rA] = reinterpret_cast<RawObject*>(
+        static_cast<word>(data[Smi::Value(index)]));
     DISPATCH();
   }
 
@@ -4092,7 +4095,8 @@ SwitchDispatch:
     RawOneByteString* array = RAW_CAST(OneByteString, FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    FP[rA] = Smi::New(array->ptr()->data()[Smi::Value(index)]);
+    FP[rA] = reinterpret_cast<RawObject*>(
+        static_cast<word>(array->ptr()->data()[Smi::Value(index)]));
     DISPATCH();
   }
 
@@ -4101,7 +4105,8 @@ SwitchDispatch:
     RawTwoByteString* array = RAW_CAST(TwoByteString, FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    FP[rA] = Smi::New(array->ptr()->data()[Smi::Value(index)]);
+    FP[rA] = reinterpret_cast<RawObject*>(
+        static_cast<word>(array->ptr()->data()[Smi::Value(index)]));
     DISPATCH();
   }
 
