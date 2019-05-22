@@ -5876,7 +5876,6 @@ const b = C.named(); // ref
     }
   }
 
-  @failingTest
   test_optionalConst_prefixed() async {
     newFile('/test/lib/a.dart', content: r'''
 class C {

@@ -92,15 +92,6 @@ class AstRewriteVisitor extends ScopedVisitor {
         InstanceCreationExpression instanceCreationExpression =
             astFactory.instanceCreationExpression(
                 _getKeyword(node), constructorName, node.argumentList);
-        InterfaceType type = getType(typeSystem, element, node.typeArguments);
-        ConstructorElement constructorElement =
-            type.lookUpConstructor(null, definingLibrary);
-        methodName.staticElement = element;
-        methodName.staticType = type;
-        typeName.type = type;
-        constructorName.staticElement = constructorElement;
-        instanceCreationExpression.staticType = type;
-        instanceCreationExpression.staticElement = constructorElement;
         NodeReplacer.replace(node, instanceCreationExpression);
       }
     } else if (target is SimpleIdentifier) {
@@ -130,17 +121,6 @@ class AstRewriteVisitor extends ScopedVisitor {
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList,
                   typeArguments: typeArguments);
-          InterfaceType type = getType(typeSystem, element, null);
-          constructorElement =
-              type.lookUpConstructor(methodName.name, definingLibrary);
-          methodName.staticElement = element;
-          methodName.staticType = type;
-          target.staticElement = element;
-          target.staticType = type; // TODO(scheglov) remove this
-          typeName.type = type;
-          constructorName.staticElement = constructorElement;
-          instanceCreationExpression.staticType = type;
-          instanceCreationExpression.staticElement = constructorElement;
           NodeReplacer.replace(node, instanceCreationExpression);
         }
       } else if (element is PrefixElement) {
@@ -160,16 +140,6 @@ class AstRewriteVisitor extends ScopedVisitor {
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList);
-          InterfaceType type =
-              getType(typeSystem, prefixedElement, node.typeArguments);
-          ConstructorElement constructorElement =
-              type.lookUpConstructor(null, definingLibrary);
-          methodName.staticElement = element;
-          methodName.staticType = type;
-          typeName.type = type;
-          constructorName.staticElement = constructorElement;
-          instanceCreationExpression.staticType = type;
-          instanceCreationExpression.staticElement = constructorElement;
           NodeReplacer.replace(node, instanceCreationExpression);
         }
       }
@@ -197,16 +167,6 @@ class AstRewriteVisitor extends ScopedVisitor {
             InstanceCreationExpression instanceCreationExpression =
                 astFactory.instanceCreationExpression(
                     _getKeyword(node), constructorName, node.argumentList);
-            InterfaceType type = getType(typeSystem, element, typeArguments);
-            constructorElement =
-                type.lookUpConstructor(methodName.name, definingLibrary);
-            methodName.staticElement = element;
-            methodName.staticType = type;
-            target.identifier.staticElement = element;
-            typeName.type = type;
-            constructorName.staticElement = constructorElement;
-            instanceCreationExpression.staticType = type;
-            instanceCreationExpression.staticElement = constructorElement;
             NodeReplacer.replace(node, instanceCreationExpression);
           }
         }

@@ -114,6 +114,46 @@ mixin OptionalConstMixin implements ResolutionTest {
     );
   }
 
+  test_prefixed_unnamed_generic() async {
+    newFile('/test/lib/a.dart', content: r'''
+class C<T> {
+  const C();
+}
+''');
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as p;
+
+const x = p.C<int>();
+''');
+    _fillLibraries();
+
+    var element_C = libraryA.getType('C');
+    var element_p = findElement.prefix('p');
+
+    var creation = findNode.instanceCreation('p.C<int>()');
+    assertType(creation, 'C<int>');
+
+    var constructorName = creation.constructorName;
+
+    var typeName = constructorName.type;
+    assertType(typeName, 'C<int>');
+
+    var pC = typeName.name as PrefixedIdentifier;
+    assertElement(pC, element_C);
+    // TODO(scheglov) enforce
+//    assertTypeNull(pC);
+
+    var ref_p = pC.prefix;
+    assertElement(ref_p, element_p);
+    assertTypeNull(ref_p);
+
+    var ref_C = pC.identifier;
+    assertElement(ref_C, element_C);
+    assertTypeNull(ref_C);
+
+    assertType(typeName.typeArguments.arguments[0], 'int');
+  }
+
   void _fillLibraries([LibraryElement library]) {
     library ??= result.unit.declaredElement.library;
     var uriStr = library.source.uri.toString();
