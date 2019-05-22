@@ -615,8 +615,6 @@ class CallTargets : public Cids {
   const Function& FirstTarget() const;
   const Function& MostPopularTarget() const;
 
-  void Print() const;
-
  private:
   void MergeIntoRanges();
 };
@@ -3838,8 +3836,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
   template <class C>
   static StaticCallInstr* FromCall(Zone* zone,
                                    const C* call,
-                                   const Function& target,
-                                   intptr_t call_count) {
+                                   const Function& target) {
     PushArgumentsArray* args =
         new (zone) PushArgumentsArray(call->ArgumentCount());
     for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
@@ -3848,7 +3845,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
     StaticCallInstr* new_call = new (zone)
         StaticCallInstr(call->token_pos(), target, call->type_args_len(),
                         call->argument_names(), args, call->deopt_id(),
-                        call_count, ICData::kNoRebind);
+                        call->CallCount(), ICData::kNoRebind);
     if (call->result_type() != NULL) {
       new_call->result_type_ = call->result_type();
     }

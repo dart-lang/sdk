@@ -68,33 +68,23 @@ void CodePatcher::InsertDeoptimizationCallAt(uword start) {
 }
 
 RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
-                                        const Code& caller_code,
-                                        Object* data) {
-  ASSERT(caller_code.ContainsInstructionAt(return_address));
-  ICCallPattern call(return_address, caller_code);
-  if (data != NULL) {
-    *data = call.Data();
+                                        const Code& code,
+                                        ICData* ic_data) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  CallPattern call(return_address, code);
+  if (ic_data != NULL) {
+    *ic_data = call.IcData();
   }
   return call.TargetCode();
-}
-
-void CodePatcher::PatchInstanceCallAt(uword return_address,
-                                      const Code& caller_code,
-                                      const Object& data,
-                                      const Code& target) {
-  ASSERT(caller_code.ContainsInstructionAt(return_address));
-  ICCallPattern call(return_address, caller_code);
-  call.SetData(data);
-  call.SetTargetCode(target);
 }
 
 RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
                                                      const Code& code,
                                                      ICData* ic_data_result) {
   ASSERT(code.ContainsInstructionAt(return_address));
-  ICCallPattern static_call(return_address, code);
+  CallPattern static_call(return_address, code);
   ICData& ic_data = ICData::Handle();
-  ic_data ^= static_call.Data();
+  ic_data ^= static_call.IcData();
   if (ic_data_result != NULL) {
     *ic_data_result = ic_data.raw();
   }
@@ -142,20 +132,20 @@ RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
 }
 
 void CodePatcher::PatchNativeCallAt(uword return_address,
-                                    const Code& caller_code,
+                                    const Code& code,
                                     NativeFunction target,
                                     const Code& trampoline) {
-  ASSERT(caller_code.ContainsInstructionAt(return_address));
-  NativeCallPattern call(return_address, caller_code);
+  ASSERT(code.ContainsInstructionAt(return_address));
+  NativeCallPattern call(return_address, code);
   call.set_target(trampoline);
   call.set_native_function(target);
 }
 
 RawCode* CodePatcher::GetNativeCallAt(uword return_address,
-                                      const Code& caller_code,
+                                      const Code& code,
                                       NativeFunction* target) {
-  ASSERT(caller_code.ContainsInstructionAt(return_address));
-  NativeCallPattern call(return_address, caller_code);
+  ASSERT(code.ContainsInstructionAt(return_address));
+  NativeCallPattern call(return_address, code);
   *target = call.native_function();
   return call.target();
 }

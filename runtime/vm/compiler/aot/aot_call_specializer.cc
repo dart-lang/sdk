@@ -161,8 +161,7 @@ bool AotCallSpecializer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
       Function::Handle(Z, call->ResolveForReceiverClass(cls));
   ASSERT(!function.IsNull());
   const Function& target = Function::ZoneHandle(Z, function.raw());
-  StaticCallInstr* static_call =
-      StaticCallInstr::FromCall(Z, call, target, call->CallCount());
+  StaticCallInstr* static_call = StaticCallInstr::FromCall(Z, call, target);
   static_call->SetResultType(Z, CompileType::FromCid(kTypeCid));
   call->ReplaceWith(static_call, current_iterator());
   return true;
@@ -850,8 +849,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
       CallTargets* targets = CallTargets::Create(Z, unary_checks);
       ASSERT(targets->HasSingleTarget());
       const Function& target = targets->FirstTarget();
-      StaticCallInstr* call = StaticCallInstr::FromCall(
-          Z, instr, target, targets->AggregateCallCount());
+      StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
       instr->ReplaceWith(call, current_iterator());
       return;
     }
@@ -913,8 +911,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
         Function::Handle(Z, instr->ResolveForReceiverClass(receiver_class));
     if (!function.IsNull()) {
       const Function& target = Function::ZoneHandle(Z, function.raw());
-      StaticCallInstr* call =
-          StaticCallInstr::FromCall(Z, instr, target, instr->CallCount());
+      StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
       instr->ReplaceWith(call, current_iterator());
       return;
     }
@@ -1027,8 +1024,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
         // We have computed that there is only a single target for this call
         // within the whole hierarchy. Replace InstanceCall with StaticCall.
         const Function& target = Function::ZoneHandle(Z, single_target.raw());
-        StaticCallInstr* call =
-            StaticCallInstr::FromCall(Z, instr, target, instr->CallCount());
+        StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
         instr->ReplaceWith(call, current_iterator());
         return;
       } else if ((ic_data.raw() != ICData::null()) &&
@@ -1185,8 +1181,7 @@ void AotCallSpecializer::VisitPolymorphicInstanceCall(
         Z, call->instance_call()->ResolveForReceiverClass(receiver_class));
     if (!function.IsNull()) {
       // Only one target. Replace by static call.
-      StaticCallInstr* new_call =
-          StaticCallInstr::FromCall(Z, call, function, call->CallCount());
+      StaticCallInstr* new_call = StaticCallInstr::FromCall(Z, call, function);
       call->ReplaceWith(new_call, current_iterator());
     }
   }

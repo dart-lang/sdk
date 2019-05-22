@@ -82,34 +82,21 @@ class CallPattern : public ValueObject {
  public:
   CallPattern(uword pc, const Code& code);
 
+  RawICData* IcData();
+
   RawCode* TargetCode() const;
   void SetTargetCode(const Code& target) const;
 
  private:
   const ObjectPool& object_pool_;
+
+  uword end_;
+  uword ic_data_load_end_;
 
   intptr_t target_code_pool_index_;
+  ICData& ic_data_;
 
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
-};
-
-class ICCallPattern : public ValueObject {
- public:
-  ICCallPattern(uword pc, const Code& caller_code);
-
-  RawObject* Data() const;
-  void SetData(const Object& data) const;
-
-  RawCode* TargetCode() const;
-  void SetTargetCode(const Code& target) const;
-
- private:
-  const ObjectPool& object_pool_;
-
-  intptr_t target_pool_index_;
-  intptr_t data_pool_index_;
-
-  DISALLOW_COPY_AND_ASSIGN(ICCallPattern);
 };
 
 class NativeCallPattern : public ValueObject {

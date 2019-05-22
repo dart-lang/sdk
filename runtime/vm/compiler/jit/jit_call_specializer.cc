@@ -52,10 +52,8 @@ bool JitCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
 
 void JitCallSpecializer::ReplaceWithStaticCall(InstanceCallInstr* instr,
                                                const ICData& unary_checks,
-                                               const Function& target,
-                                               intptr_t call_count) {
-  StaticCallInstr* call =
-      StaticCallInstr::FromCall(Z, instr, target, call_count);
+                                               const Function& target) {
+  StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
   if (unary_checks.NumberOfChecks() == 1 &&
       unary_checks.GetExactnessAt(0).IsExact()) {
     if (unary_checks.GetExactnessAt(0).IsTriviallyExact()) {
@@ -145,8 +143,7 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
         Function::ZoneHandle(Z, unary_checks.GetTargetAt(0));
     if (flow_graph()->CheckForInstanceCall(instr, target.kind()) ==
         FlowGraph::ToCheck::kNoCheck) {
-      ReplaceWithStaticCall(instr, unary_checks, target,
-                            targets.AggregateCallCount());
+      ReplaceWithStaticCall(instr, unary_checks, target);
       return;
     }
   }
@@ -171,8 +168,7 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     // Call can still deoptimize, do not detach environment from instr.
     const Function& target =
         Function::ZoneHandle(Z, unary_checks.GetTargetAt(0));
-    ReplaceWithStaticCall(instr, unary_checks, target,
-                          targets.AggregateCallCount());
+    ReplaceWithStaticCall(instr, unary_checks, target);
   } else {
     PolymorphicInstanceCallInstr* call =
         new (Z) PolymorphicInstanceCallInstr(instr, targets,

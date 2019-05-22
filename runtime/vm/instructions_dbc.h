@@ -49,10 +49,9 @@ class InstructionPattern : public AllStatic {
 
 class CallPattern : public ValueObject {
  public:
-  CallPattern(uword pc, const Code& caller_code);
+  CallPattern(uword pc, const Code& code);
 
-  RawObject* Data() const;
-  void SetData(const Object& data) const;
+  RawICData* IcData();
 
   RawCode* TargetCode() const;
   void SetTargetCode(const Code& code) const;
@@ -63,9 +62,10 @@ class CallPattern : public ValueObject {
   const ObjectPool& object_pool_;
 
   uword end_;
+  uword ic_data_load_end_;
 
-  intptr_t data_pool_index_;
-  intptr_t target_pool_index_;
+  intptr_t target_code_pool_index_;
+  ICData& ic_data_;
 
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
 };

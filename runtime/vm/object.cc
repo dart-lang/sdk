@@ -14015,12 +14015,6 @@ RawICData* ICData::AsUnaryClassChecksSortedByCount() const {
   return result.raw();
 }
 
-RawMegamorphicCache* ICData::AsMegamorphicCache() const {
-  const String& name = String::Handle(target_name());
-  const Array& descriptor = Array::Handle(arguments_descriptor());
-  return MegamorphicCacheTable::Lookup(Isolate::Current(), name, descriptor);
-}
-
 bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
   if (NumberOfChecksIs(0)) return false;
   Class& cls = Class::Handle();
@@ -14219,7 +14213,6 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
       AbstractType::Handle(from.receivers_static_type())));
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
-  result.set_is_megamorphic(from.is_megamorphic());
   return result.raw();
 }
 
@@ -14244,7 +14237,6 @@ RawICData* ICData::Clone(const ICData& from) {
   result.set_entries(cloned_array);
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
-  result.set_is_megamorphic(from.is_megamorphic());
   return result.raw();
 }
 #endif

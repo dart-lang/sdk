@@ -77,6 +77,8 @@ class UnoptimizedCall : public ValueObject {
 
   intptr_t argument_index() const { return argument_index_; }
 
+  RawObject* ic_data() const { return object_pool_.ObjectAt(argument_index()); }
+
   RawCode* target() const {
     Code& code = Code::Handle();
     code ^= object_pool_.ObjectAt(code_index_);
@@ -121,18 +123,10 @@ class InstanceCall : public UnoptimizedCall {
   InstanceCall(uword return_address, const Code& code)
       : UnoptimizedCall(return_address, code) {
 #if defined(DEBUG)
-    Object& test_cache = Object::Handle(data());
-    ASSERT(test_cache.IsICData() || test_cache.IsMegamorphicCache());
-    if (test_cache.IsICData()) {
-      ASSERT(ICData::Cast(test_cache).NumArgsTested() > 0);
-    }
+    ICData& test_ic_data = ICData::Handle();
+    test_ic_data ^= ic_data();
+    ASSERT(test_ic_data.NumArgsTested() > 0);
 #endif  // DEBUG
-  }
-
-  RawObject* data() const { return object_pool_.ObjectAt(argument_index()); }
-  void set_data(const Object& data) const {
-    ASSERT(data.IsICData() || data.IsMegamorphicCache());
-    object_pool_.SetObjectAt(argument_index(), data);
   }
 
  private:
@@ -141,16 +135,14 @@ class InstanceCall : public UnoptimizedCall {
 
 class UnoptimizedStaticCall : public UnoptimizedCall {
  public:
-  UnoptimizedStaticCall(uword return_address, const Code& caller_code)
-      : UnoptimizedCall(return_address, caller_code) {
+  UnoptimizedStaticCall(uword return_address, const Code& code)
+      : UnoptimizedCall(return_address, code) {
 #if defined(DEBUG)
     ICData& test_ic_data = ICData::Handle();
     test_ic_data ^= ic_data();
     ASSERT(test_ic_data.NumArgsTested() >= 0);
 #endif  // DEBUG
   }
-
-  RawObject* ic_data() const { return object_pool_.ObjectAt(argument_index()); }
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedStaticCall);
@@ -160,8 +152,8 @@ class UnoptimizedStaticCall : public UnoptimizedCall {
 // the object pool.
 class PoolPointerCall : public ValueObject {
  public:
-  explicit PoolPointerCall(uword return_address, const Code& caller_code)
-      : object_pool_(ObjectPool::Handle(caller_code.GetObjectPool())),
+  explicit PoolPointerCall(uword return_address, const Code& code)
+      : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
         code_index_(-1) {
     uword pc = return_address;
 
@@ -432,24 +424,14 @@ void CodePatcher::PatchPoolPointerCallAt(uword return_address,
 }
 
 RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
-                                        const Code& caller_code,
-                                        Object* data) {
-  ASSERT(caller_code.ContainsInstructionAt(return_address));
-  InstanceCall call(return_address, caller_code);
-  if (data != NULL) {
-    *data = call.data();
+                                        const Code& code,
+                                        ICData* ic_data) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  InstanceCall call(return_address, code);
+  if (ic_data != NULL) {
+    *ic_data ^= call.ic_data();
   }
   return call.target();
-}
-
-void CodePatcher::PatchInstanceCallAt(uword return_address,
-                                      const Code& caller_code,
-                                      const Object& data,
-                                      const Code& target) {
-  ASSERT(caller_code.ContainsInstructionAt(return_address));
-  InstanceCall call(return_address, caller_code);
-  call.set_data(data);
-  call.set_target(target);
 }
 
 void CodePatcher::InsertDeoptimizationCallAt(uword start) {
@@ -457,10 +439,10 @@ void CodePatcher::InsertDeoptimizationCallAt(uword start) {
 }
 
 RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
-                                                     const Code& caller_code,
+                                                     const Code& code,
                                                      ICData* ic_data_result) {
-  ASSERT(caller_code.ContainsInstructionAt(return_address));
-  UnoptimizedStaticCall static_call(return_address, caller_code);
+  ASSERT(code.ContainsInstructionAt(return_address));
+  UnoptimizedStaticCall static_call(return_address, code);
   ICData& ic_data = ICData::Handle();
   ic_data ^= static_call.ic_data();
   if (ic_data_result != NULL) {
@@ -510,20 +492,20 @@ RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
 }
 
 void CodePatcher::PatchNativeCallAt(uword return_address,
-                                    const Code& caller_code,
+                                    const Code& code,
                                     NativeFunction target,
                                     const Code& trampoline) {
-  ASSERT(caller_code.ContainsInstructionAt(return_address));
-  NativeCall call(return_address, caller_code);
+  ASSERT(code.ContainsInstructionAt(return_address));
+  NativeCall call(return_address, code);
   call.set_target(trampoline);
   call.set_native_function(target);
 }
 
 RawCode* CodePatcher::GetNativeCallAt(uword return_address,
-                                      const Code& caller_code,
+                                      const Code& code,
                                       NativeFunction* target) {
-  ASSERT(caller_code.ContainsInstructionAt(return_address));
-  NativeCall call(return_address, caller_code);
+  ASSERT(code.ContainsInstructionAt(return_address));
+  NativeCall call(return_address, code);
   *target = call.native_function();
   return call.target();
 }

@@ -1171,40 +1171,6 @@ static RawFunction* InlineCacheMissHandler(
                    receiver.GetClassId(), target_function.ToCString());
     }
   }
-
-#if !defined(TARGET_ARCH_DBC) && !defined(DART_PRECOMPILED_RUNTIME)
-  // Maybe switch to megamorphic call.
-  // TODO(rmacnak): Investigate interaction with the kernel isolate in reload
-  // stress test mode.
-  if (!Isolate::Current()->is_kernel_isolate() &&
-      (ic_data.NumArgsTested() == 1) &&
-      (ic_data.NumberOfChecks() > FLAG_max_polymorphic_checks)) {
-    ASSERT(ic_data.rebind_rule() == ICData::kInstance);
-    Thread* thread = Thread::Current();
-    DartFrameIterator iterator(thread,
-                               StackFrameIterator::kNoCrossThreadIteration);
-    StackFrame* caller_frame = iterator.NextFrame();
-    ASSERT(caller_frame->IsDartFrame());
-    if (!caller_frame->is_interpreted()) {
-      Zone* zone = thread->zone();
-      const Code& caller_code =
-          Code::Handle(zone, caller_frame->LookupDartCode());
-      if (!caller_code.is_optimized()) {
-        const MegamorphicCache& cache =
-            MegamorphicCache::Handle(zone, ic_data.AsMegamorphicCache());
-        ic_data.set_is_megamorphic(true);
-        CodePatcher::PatchInstanceCallAt(caller_frame->pc(), caller_code, cache,
-                                         StubCode::MegamorphicCall());
-        if (FLAG_trace_ic) {
-          OS::PrintErr("InlineCacheMissHandler %" Pd " call at %#" Px
-                       " switching to megamorphic dispatch %s\n",
-                       args.length(), caller_frame->pc(), ic_data.ToCString());
-        }
-      }
-    }
-  }
-#endif  // !defined(TARGET_ARCH_DBC) && !defined(DART_PRECOMPILED_RUNTIME)
-
   return target_function.raw();
 }
 
