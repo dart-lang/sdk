@@ -1618,6 +1618,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final savedLoopDepth = currentLoopDepth;
     currentLoopDepth = 0;
 
+    int position = TreeNode.noOffset;
+    int endPosition = TreeNode.noOffset;
+    if (emitSourcePositions) {
+      position = (node is ast.FunctionDeclaration)
+          ? node.fileOffset
+          : function.fileOffset;
+      endPosition = function.fileEndOffset;
+    }
+
     if (function.typeParameters.isNotEmpty) {
       functionTypeParameters ??= new List<TypeParameter>();
       functionTypeParameters.addAll(function.typeParameters);
@@ -1644,6 +1653,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         objectTable
             .getHandle(savedIsClosure ? parentFunction : enclosingMember),
         objectTable.getNameHandle(null, name),
+        position,
+        endPosition,
         function.typeParameters
             .map((tp) => new NameAndType(
                 objectTable.getNameHandle(null, tp.name),

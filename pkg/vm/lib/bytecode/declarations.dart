@@ -140,10 +140,10 @@ class FieldDeclaration {
         ((flags & hasCustomScriptFlag) != 0) ? reader.readPackedObject() : null;
     final position = ((flags & hasSourcePositionsFlag) != 0)
         ? reader.readPackedUInt30() - 1
-        : 0;
+        : TreeNode.noOffset;
     final endPosition = ((flags & hasSourcePositionsFlag) != 0)
         ? reader.readPackedUInt30() - 1
-        : 0;
+        : TreeNode.noOffset;
     final initializerCode =
         ((flags & hasInitializerFlag) != 0 && (flags & isStaticFlag) != 0)
             ? reader.readLinkOffset<Code>()
@@ -298,10 +298,10 @@ class FunctionDeclaration {
         ((flags & hasCustomScriptFlag) != 0) ? reader.readPackedObject() : null;
     final position = ((flags & hasSourcePositionsFlag) != 0)
         ? reader.readPackedUInt30() - 1
-        : 0;
+        : TreeNode.noOffset;
     final endPosition = ((flags & hasSourcePositionsFlag) != 0)
         ? reader.readPackedUInt30() - 1
-        : 0;
+        : TreeNode.noOffset;
     final typeParameters = ((flags & hasTypeParamsFlag) != 0)
         ? new TypeParametersDeclaration.read(reader)
         : null;
@@ -628,12 +628,15 @@ class Code {
 }
 
 class ClosureDeclaration {
-  static const int flagHasOptionalPositionalParams = 1 << 0;
-  static const int flagHasOptionalNamedParams = 1 << 1;
-  static const int flagHasTypeParams = 1 << 2;
+  static const int hasOptionalPositionalParamsFlag = 1 << 0;
+  static const int hasOptionalNamedParamsFlag = 1 << 1;
+  static const int hasTypeParamsFlag = 1 << 2;
+  static const int hasSourcePositionsFlag = 1 << 3;
 
   final ObjectHandle parent;
   final ObjectHandle name;
+  final int position;
+  final int endPosition;
   final List<NameAndType> typeParams;
   final int numRequiredParams;
   final int numNamedParams;
@@ -644,6 +647,8 @@ class ClosureDeclaration {
   ClosureDeclaration(
       this.parent,
       this.name,
+      this.position,
+      this.endPosition,
       this.typeParams,
       this.numRequiredParams,
       this.numNamedParams,
@@ -654,19 +659,27 @@ class ClosureDeclaration {
     int flags = 0;
     if (numRequiredParams != parameters.length) {
       if (numNamedParams > 0) {
-        flags |= flagHasOptionalNamedParams;
+        flags |= hasOptionalNamedParamsFlag;
       } else {
-        flags |= flagHasOptionalPositionalParams;
+        flags |= hasOptionalPositionalParamsFlag;
       }
     }
     if (typeParams.isNotEmpty) {
-      flags |= flagHasTypeParams;
+      flags |= hasTypeParamsFlag;
+    }
+    if (position != TreeNode.noOffset) {
+      flags |= hasSourcePositionsFlag;
     }
     writer.writePackedUInt30(flags);
     writer.writePackedObject(parent);
     writer.writePackedObject(name);
 
-    if (flags & flagHasTypeParams != 0) {
+    if (flags & hasSourcePositionsFlag != 0) {
+      writer.writePackedUInt30(position + 1);
+      writer.writePackedUInt30(endPosition + 1);
+    }
+
+    if (flags & hasTypeParamsFlag != 0) {
       writer.writePackedUInt30(typeParams.length);
       for (var tp in typeParams) {
         writer.writePackedObject(tp.name);
@@ -677,7 +690,7 @@ class ClosureDeclaration {
     }
     writer.writePackedUInt30(parameters.length);
     if (flags &
-            (flagHasOptionalPositionalParams | flagHasOptionalNamedParams) !=
+            (hasOptionalPositionalParamsFlag | hasOptionalNamedParamsFlag) !=
         0) {
       writer.writePackedUInt30(numRequiredParams);
     }
@@ -692,8 +705,14 @@ class ClosureDeclaration {
     final int flags = reader.readPackedUInt30();
     final parent = reader.readPackedObject();
     final name = reader.readPackedObject();
+    final position = ((flags & hasSourcePositionsFlag) != 0)
+        ? reader.readPackedUInt30() - 1
+        : TreeNode.noOffset;
+    final endPosition = ((flags & hasSourcePositionsFlag) != 0)
+        ? reader.readPackedUInt30() - 1
+        : TreeNode.noOffset;
     List<NameAndType> typeParams;
-    if ((flags & flagHasTypeParams) != 0) {
+    if ((flags & hasTypeParamsFlag) != 0) {
       final int numTypeParams = reader.readPackedUInt30();
       List<ObjectHandle> names = new List<ObjectHandle>.generate(
           numTypeParams, (_) => reader.readPackedObject());
@@ -706,12 +725,12 @@ class ClosureDeclaration {
     }
     final numParams = reader.readPackedUInt30();
     final numRequiredParams = (flags &
-                (flagHasOptionalPositionalParams |
-                    flagHasOptionalNamedParams) !=
+                (hasOptionalPositionalParamsFlag |
+                    hasOptionalNamedParamsFlag) !=
             0)
         ? reader.readPackedUInt30()
         : numParams;
-    final numNamedParams = (flags & flagHasOptionalNamedParams != 0)
+    final numNamedParams = (flags & hasOptionalNamedParamsFlag != 0)
         ? (numParams - numRequiredParams)
         : 0;
     final List<NameAndType> parameters = new List<NameAndType>.generate(
@@ -719,14 +738,17 @@ class ClosureDeclaration {
         (_) => new NameAndType(
             reader.readPackedObject(), reader.readPackedObject()));
     final returnType = reader.readPackedObject();
-    return new ClosureDeclaration(parent, name, typeParams, numRequiredParams,
-        numNamedParams, parameters, returnType);
+    return new ClosureDeclaration(parent, name, position, endPosition,
+        typeParams, numRequiredParams, numNamedParams, parameters, returnType);
   }
 
   @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('Closure $parent::$name');
+    if (position != TreeNode.noOffset) {
+      sb.write(' pos = $position, end-pos = $endPosition');
+    }
     if (typeParams.isNotEmpty) {
       sb.write(' <${typeParams.join(', ')}>');
     }

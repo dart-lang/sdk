@@ -352,9 +352,12 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
 
 void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
                                                   intptr_t closureIndex) {
-  const int kHasOptionalPositionalParams = 1 << 0;
-  const int kHasOptionalNamedParams = 1 << 1;
-  const int kHasTypeParams = 1 << 2;
+  // Closure flags, must be in sync with ClosureDeclaration constants in
+  // pkg/vm/lib/bytecode/declarations.dart.
+  const int kHasOptionalPositionalParamsFlag = 1 << 0;
+  const int kHasOptionalNamedParamsFlag = 1 << 1;
+  const int kHasTypeParamsFlag = 1 << 2;
+  const int kHasSourcePositionsFlag = 1 << 3;
 
   const intptr_t flags = helper_->reader_.ReadUInt();
 
@@ -369,20 +372,27 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   String& name = String::CheckedHandle(Z, ReadObject());
   ASSERT(name.IsSymbol());
 
+  TokenPosition position = TokenPosition::kNoSource;
+  TokenPosition end_position = TokenPosition::kNoSource;
+  if ((flags & kHasSourcePositionsFlag) != 0) {
+    position = helper_->ReadPosition();
+    end_position = helper_->ReadPosition();
+  }
+
   const Function& closure = Function::Handle(
-      Z, Function::NewClosureFunction(name, Function::Cast(parent),
-                                      TokenPosition::kNoSource));
+      Z, Function::NewClosureFunction(name, Function::Cast(parent), position));
 
   closure.set_is_declared_in_bytecode(true);
+  closure.set_end_token_pos(end_position);
 
   closures_->SetAt(closureIndex, closure);
 
-  Type& signature_type =
-      Type::Handle(Z, ReadFunctionSignature(
-                          closure, (flags & kHasOptionalPositionalParams) != 0,
-                          (flags & kHasOptionalNamedParams) != 0,
-                          (flags & kHasTypeParams) != 0,
-                          /* has_positional_param_names = */ true));
+  Type& signature_type = Type::Handle(
+      Z, ReadFunctionSignature(closure,
+                               (flags & kHasOptionalPositionalParamsFlag) != 0,
+                               (flags & kHasOptionalNamedParamsFlag) != 0,
+                               (flags & kHasTypeParamsFlag) != 0,
+                               /* has_positional_param_names = */ true));
 
   closure.SetSignatureType(signature_type);
 }
