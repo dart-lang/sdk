@@ -142,7 +142,7 @@ class NativeTypeSet {
   /// field (which is also the constructor parameter).
   String _getNativeAnnotationName(Expression annotation) {
     if (!_isNativeAnnotation(annotation)) return null;
-    return constants.getFieldValueFromAnnotation(annotation, 'name');
+    return constants.getFieldValueFromAnnotation(annotation, 'name') as String;
   }
 }
 

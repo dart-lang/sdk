@@ -1,4 +1,6 @@
 analyzer:
+  strong-mode:
+    implicit-casts: false
   errors:
     todo: ignore
   exclude:

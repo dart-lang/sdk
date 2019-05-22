@@ -361,7 +361,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator<Statement> visitExpressionStatement(ExpressionStatement node) {
-    Instantiator<Expression> makeExpression = visit(node.expression);
+    var makeExpression = visit(node.expression) as Instantiator<Expression>;
     return (a) => makeExpression(a).toStatement();
   }
 
@@ -385,8 +385,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   Instantiator<Statement> visitIfConditionalCompilation(
       If node, InterpolatedExpression condition) {
-    Instantiator<Statement> makeThen = visit(node.then);
-    Instantiator<Statement> makeOtherwise = visit(node.otherwise);
+    var makeThen = visit(node.then) as Instantiator<Statement>;
+    var makeOtherwise = visit(node.otherwise) as Instantiator<Statement>;
     return (arguments) {
       // Allow bools to be used for conditional compliation.
       var nameOrPosition = condition.nameOrPosition;
@@ -400,49 +400,50 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   }
 
   Instantiator<Statement> visitIfNormal(If node) {
-    Instantiator<Expression> makeCondition = visit(node.condition);
-    Instantiator<Statement> makeThen = visit(node.then);
-    Instantiator<Statement> makeOtherwise = visit(node.otherwise);
+    var makeCondition = visit(node.condition) as Instantiator<Expression>;
+    var makeThen = visit(node.then) as Instantiator<Statement>;
+    var makeOtherwise = visit(node.otherwise) as Instantiator<Statement>;
     return (a) => If(makeCondition(a), makeThen(a), makeOtherwise(a));
   }
 
   @override
   Instantiator<Statement> visitFor(For node) {
-    Instantiator<Expression> makeInit = visitNullable(node.init);
-    Instantiator<Expression> makeCondition = visitNullable(node.condition);
-    Instantiator<Expression> makeUpdate = visitNullable(node.update);
-    Instantiator<Statement> makeBody = visit(node.body);
+    var makeInit = visitNullable(node.init) as Instantiator<Expression>;
+    var makeCondition =
+        visitNullable(node.condition) as Instantiator<Expression>;
+    var makeUpdate = visitNullable(node.update) as Instantiator<Expression>;
+    var makeBody = visit(node.body) as Instantiator<Statement>;
     return (a) => For(makeInit(a), makeCondition(a),
         makeUpdate(a)?.toVoidExpression(), makeBody(a));
   }
 
   @override
   Instantiator<ForIn> visitForIn(ForIn node) {
-    Instantiator<Expression> makeLeftHandSide = visit(node.leftHandSide);
-    Instantiator<Expression> makeObject = visit(node.object);
-    Instantiator<Statement> makeBody = visit(node.body);
+    var makeLeftHandSide = visit(node.leftHandSide) as Instantiator<Expression>;
+    var makeObject = visit(node.object) as Instantiator<Expression>;
+    var makeBody = visit(node.body) as Instantiator<Statement>;
     return (a) => ForIn(makeLeftHandSide(a), makeObject(a), makeBody(a));
   }
 
   @override
   Instantiator<ForOf> visitForOf(ForOf node) {
-    Instantiator<Expression> makeLeftHandSide = visit(node.leftHandSide);
-    Instantiator<Expression> makeObject = visit(node.iterable);
-    Instantiator<Statement> makeBody = visit(node.body);
+    var makeLeftHandSide = visit(node.leftHandSide) as Instantiator<Expression>;
+    var makeObject = visit(node.iterable) as Instantiator<Expression>;
+    var makeBody = visit(node.body) as Instantiator<Statement>;
     return (a) => ForOf(makeLeftHandSide(a), makeObject(a), makeBody(a));
   }
 
   @override
   Instantiator<While> visitWhile(While node) {
-    Instantiator<Expression> makeCondition = visit(node.condition);
-    Instantiator<Statement> makeBody = visit(node.body);
+    var makeCondition = visit(node.condition) as Instantiator<Expression>;
+    var makeBody = visit(node.body) as Instantiator<Statement>;
     return (a) => While(makeCondition(a), makeBody(a));
   }
 
   @override
   Instantiator<Do> visitDo(Do node) {
-    Instantiator<Statement> makeBody = visit(node.body);
-    Instantiator<Expression> makeCondition = visit(node.condition);
+    var makeBody = visit(node.body) as Instantiator<Statement>;
+    var makeCondition = visit(node.condition) as Instantiator<Expression>;
     return (a) => Do(makeBody(a), makeCondition(a));
   }
 
@@ -456,48 +457,49 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   @override
   Instantiator<Statement> visitReturn(Return node) {
     if (node.value == null) return (args) => Return();
-    Instantiator<Expression> makeExpression = visit(node.value);
+    var makeExpression = visit(node.value) as Instantiator<Expression>;
     return (a) => makeExpression(a).toReturn();
   }
 
   @override
   Instantiator<DartYield> visitDartYield(DartYield node) {
-    Instantiator<Expression> makeExpression = visit(node.expression);
+    var makeExpression = visit(node.expression) as Instantiator<Expression>;
     return (a) => DartYield(makeExpression(a), node.hasStar);
   }
 
   @override
   Instantiator<Throw> visitThrow(Throw node) {
-    Instantiator<Expression> makeExpression = visit(node.expression);
+    var makeExpression = visit(node.expression) as Instantiator<Expression>;
     return (a) => Throw(makeExpression(a));
   }
 
   @override
   Instantiator<Try> visitTry(Try node) {
-    Instantiator<Block> makeBody = visit(node.body);
-    Instantiator<Catch> makeCatch = visitNullable(node.catchPart);
-    Instantiator<Block> makeFinally = visitNullable(node.finallyPart);
+    var makeBody = visit(node.body) as Instantiator<Block>;
+    var makeCatch = visitNullable(node.catchPart) as Instantiator<Catch>;
+    var makeFinally = visitNullable(node.finallyPart) as Instantiator<Block>;
     return (a) => Try(makeBody(a), makeCatch(a), makeFinally(a));
   }
 
   @override
   Instantiator<Catch> visitCatch(Catch node) {
-    Instantiator<Identifier> makeDeclaration = visit(node.declaration);
-    Instantiator<Block> makeBody = visit(node.body);
+    var makeDeclaration = visit(node.declaration) as Instantiator<Identifier>;
+    var makeBody = visit(node.body) as Instantiator<Block>;
     return (a) => Catch(makeDeclaration(a), makeBody(a));
   }
 
   @override
   Instantiator<Switch> visitSwitch(Switch node) {
-    Instantiator<Expression> makeKey = visit(node.key);
+    var makeKey = visit(node.key) as Instantiator<Expression>;
     var makeCases = node.cases.map(visitSwitchCase).toList();
     return (a) => Switch(makeKey(a), makeCases.map((m) => m(a)).toList());
   }
 
   @override
   Instantiator<SwitchCase> visitSwitchCase(SwitchCase node) {
-    Instantiator<Expression> makeExpression = visitNullable(node.expression);
-    Instantiator<Block> makeBody = visit(node.body);
+    var makeExpression =
+        visitNullable(node.expression) as Instantiator<Expression>;
+    var makeBody = visit(node.body) as Instantiator<Block>;
     return (arguments) {
       return SwitchCase(makeExpression(arguments), makeBody(arguments));
     };
@@ -506,14 +508,14 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   @override
   Instantiator<FunctionDeclaration> visitFunctionDeclaration(
       FunctionDeclaration node) {
-    Instantiator<Identifier> makeName = visit(node.name);
-    Instantiator<Fun> makeFunction = visit(node.function);
+    var makeName = visit(node.name) as Instantiator<Identifier>;
+    var makeFunction = visit(node.function) as Instantiator<Fun>;
     return (a) => FunctionDeclaration(makeName(a), makeFunction(a));
   }
 
   @override
   Instantiator<LabeledStatement> visitLabeledStatement(LabeledStatement node) {
-    Instantiator<Statement> makeBody = visit(node.body);
+    var makeBody = visit(node.body) as Instantiator<Statement>;
     return (a) => LabeledStatement(node.label, makeBody(a));
   }
 
@@ -539,23 +541,24 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     Instantiator makeValue = visitNullable(node.value);
     return (arguments) {
       return makeValue(arguments)
-          .toAssignExpression(makeLeftHandSide(arguments), op);
+          .toAssignExpression(makeLeftHandSide(arguments), op) as Expression;
     };
   }
 
   @override
   Instantiator<VariableInitialization> visitVariableInitialization(
       VariableInitialization node) {
-    Instantiator<VariableBinding> makeDeclaration = visit(node.declaration);
-    Instantiator<Expression> makeValue = visitNullable(node.value);
+    var makeDeclaration =
+        visit(node.declaration) as Instantiator<VariableBinding>;
+    var makeValue = visitNullable(node.value) as Instantiator<Expression>;
     return (a) => VariableInitialization(makeDeclaration(a), makeValue(a));
   }
 
   @override
   Instantiator<Conditional> visitConditional(Conditional cond) {
-    Instantiator<Expression> makeCondition = visit(cond.condition);
-    Instantiator<Expression> makeThen = visit(cond.then);
-    Instantiator<Expression> makeOtherwise = visit(cond.otherwise);
+    var makeCondition = visit(cond.condition) as Instantiator<Expression>;
+    var makeThen = visit(cond.then) as Instantiator<Expression>;
+    var makeOtherwise = visit(cond.otherwise) as Instantiator<Expression>;
     return (a) => Conditional(makeCondition(a), makeThen(a), makeOtherwise(a));
   }
 
@@ -566,7 +569,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator<Call> visitCall(Call node) => handleCallOrNew(node, false);
 
   Instantiator<Call> handleCallOrNew(Call node, bool isNew) {
-    Instantiator<Expression> makeTarget = visit(node.target);
+    var makeTarget = visit(node.target) as Instantiator<Expression>;
     var argumentMakers = node.arguments.map(visitSplayableExpression).toList();
 
     // TODO(sra): Avoid copying call arguments if no interpolation or forced
@@ -580,22 +583,22 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator<Binary> visitBinary(Binary node) {
-    Instantiator<Expression> makeLeft = visit(node.left);
-    Instantiator<Expression> makeRight = visit(node.right);
+    var makeLeft = visit(node.left) as Instantiator<Expression>;
+    var makeRight = visit(node.right) as Instantiator<Expression>;
     String op = node.op;
     return (a) => Binary(op, makeLeft(a), makeRight(a));
   }
 
   @override
   Instantiator<Prefix> visitPrefix(Prefix node) {
-    Instantiator<Expression> makeOperand = visit(node.argument);
+    var makeOperand = visit(node.argument) as Instantiator<Expression>;
     String op = node.op;
     return (a) => Prefix(op, makeOperand(a));
   }
 
   @override
   Instantiator<Postfix> visitPostfix(Postfix node) {
-    Instantiator<Expression> makeOperand = visit(node.argument);
+    var makeOperand = visit(node.argument) as Instantiator<Expression>;
     String op = node.op;
     return (a) => Postfix(op, makeOperand(a));
   }
@@ -629,22 +632,22 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator<PropertyAccess> visitAccess(PropertyAccess node) {
-    Instantiator<Expression> makeReceiver = visit(node.receiver);
-    Instantiator<Expression> makeSelector = visit(node.selector);
+    var makeReceiver = visit(node.receiver) as Instantiator<Expression>;
+    var makeSelector = visit(node.selector) as Instantiator<Expression>;
     return (a) => PropertyAccess(makeReceiver(a), makeSelector(a));
   }
 
   @override
   Instantiator<NamedFunction> visitNamedFunction(NamedFunction node) {
-    Instantiator<Identifier> makeDeclaration = visit(node.name);
-    Instantiator<Fun> makeFunction = visit(node.function);
+    var makeDeclaration = visit(node.name) as Instantiator<Identifier>;
+    var makeFunction = visit(node.function) as Instantiator<Fun>;
     return (a) => NamedFunction(makeDeclaration(a), makeFunction(a));
   }
 
   @override
   Instantiator<Fun> visitFun(Fun node) {
     var paramMakers = node.params.map(visitSplayable).toList();
-    Instantiator<Block> makeBody = visit(node.body);
+    var makeBody = visit(node.body) as Instantiator<Block>;
     return (a) => Fun(splayNodes(paramMakers, a), makeBody(a),
         isGenerator: node.isGenerator, asyncModifier: node.asyncModifier);
   }
@@ -653,7 +656,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator<ArrowFun> visitArrowFun(ArrowFun node) {
     var paramMakers = node.params.map(visitSplayable).toList();
     Instantiator makeBody = visit(node.body);
-    return (a) => ArrowFun(splayNodes(paramMakers, a), makeBody(a));
+    return (a) => ArrowFun(splayNodes(paramMakers, a), makeBody(a) as Node);
   }
 
   @override
@@ -692,8 +695,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator<Property> visitProperty(Property node) {
-    Instantiator<Expression> makeName = visit(node.name);
-    Instantiator<Expression> makeValue = visit(node.value);
+    var makeName = visit(node.name) as Instantiator<Expression>;
+    var makeValue = visit(node.value) as Instantiator<Expression>;
     return (a) => Property(makeName(a), makeValue(a));
   }
 
@@ -709,7 +712,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator<TaggedTemplate> visitTaggedTemplate(TaggedTemplate node) {
-    Instantiator<Expression> makeTag = visit(node.tag);
+    var makeTag = visit(node.tag) as Instantiator<Expression>;
     var makeTemplate = visitTemplateString(node.template);
     return (a) => TaggedTemplate(makeTag(a), makeTemplate(a));
   }
@@ -723,8 +726,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   @override
   Instantiator<ClassExpression> visitClassExpression(ClassExpression node) {
     var makeMethods = node.methods.map(visitSplayableExpression).toList();
-    Instantiator<Identifier> makeName = visit(node.name);
-    Instantiator<Expression> makeHeritage = visit(node.heritage);
+    var makeName = visit(node.name) as Instantiator<Identifier>;
+    var makeHeritage = visit(node.heritage) as Instantiator<Expression>;
 
     return (a) => ClassExpression(
         makeName(a), makeHeritage(a), splayNodes(makeMethods, a));
@@ -732,8 +735,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator<Method> visitMethod(Method node) {
-    Instantiator<Expression> makeName = visit(node.name);
-    Instantiator<Fun> makeFunction = visit(node.function);
+    var makeName = visit(node.name) as Instantiator<Expression>;
+    var makeFunction = visit(node.function) as Instantiator<Fun>;
     return (a) => Method(makeName(a), makeFunction(a),
         isGetter: node.isGetter,
         isSetter: node.isSetter,
@@ -747,13 +750,13 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   @override
   Instantiator<CommentExpression> visitCommentExpression(
       CommentExpression node) {
-    Instantiator<Expression> makeExpr = visit(node.expression);
+    var makeExpr = visit(node.expression) as Instantiator<Expression>;
     return (a) => CommentExpression(node.comment, makeExpr(a));
   }
 
   @override
   Instantiator<Await> visitAwait(Await node) {
-    Instantiator<Expression> makeExpr = visit(node.expression);
+    var makeExpr = visit(node.expression) as Instantiator<Expression>;
     return (a) => Await(makeExpr(a));
   }
 
@@ -779,11 +782,12 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   @override
   Instantiator<DestructuredVariable> visitDestructuredVariable(
       DestructuredVariable node) {
-    Instantiator<Identifier> makeName = visitNullable(node.name);
-    Instantiator<Expression> makeProperty = visitNullable(node.property);
-    Instantiator<BindingPattern> makeStructure = visitNullable(node.structure);
-    Instantiator<Expression> makeDefaultValue =
-        visitNullable(node.defaultValue);
+    var makeName = visitNullable(node.name) as Instantiator<Identifier>;
+    var makeProperty = visitNullable(node.property) as Instantiator<Expression>;
+    var makeStructure =
+        visitNullable(node.structure) as Instantiator<BindingPattern>;
+    var makeDefaultValue =
+        visitNullable(node.defaultValue) as Instantiator<Expression>;
     return (a) => DestructuredVariable(
         name: makeName(a),
         property: makeProperty(a),

@@ -142,7 +142,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     if (name == '[]=') {
       _operatorSetResultStack.add(isLastParamMutated()
           ? JS.TemporaryId((formals.last as JS.Identifier).name)
-          : formals.last);
+          : formals.last as JS.Identifier);
     } else {
       _operatorSetResultStack.add(null);
     }

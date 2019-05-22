@@ -645,7 +645,9 @@ class AnalyzerToKernel {
     var f = type as a.FunctionType;
     if (f.name != null && f.name != '') {
       var ref = ensureNode
-          ? visitFunctionTypeAliasElement(f.element).reference
+          ? visitFunctionTypeAliasElement(
+                  f.element as a.FunctionTypeAliasElement)
+              .reference
           : _reference(f.element);
       return TypedefType.byReference(ref, f.typeArguments.map(visit).toList());
     }
@@ -752,8 +754,8 @@ class AnalyzerToKernel {
       void Function(Expression) addAnnotation) {
     if (metadata.isEmpty) return;
 
-    for (a.ElementAnnotationImpl annotation in metadata) {
-      var ast = annotation.annotationAst;
+    for (a.ElementAnnotation annotation in metadata) {
+      var ast = (annotation as a.ElementAnnotationImpl).annotationAst;
       var arguments = ast.arguments;
       if (arguments == null) {
         var e = ast.element;
@@ -833,7 +835,8 @@ class AnalyzerToKernel {
         //
         // This leads to mismatch in how we call this constructor. So we need to
         // find the redirected one.
-        for (var rc; (rc = constructor.redirectedConstructor) != null;) {
+        for (a.ConstructorElement rc;
+            (rc = constructor.redirectedConstructor) != null;) {
           constructor = rc;
         }
         constructor = constructor is a.ConstructorMember
@@ -852,7 +855,9 @@ class AnalyzerToKernel {
     }
     if (obj is a.DartObjectImpl && type is a.FunctionType) {
       var e = obj.toFunctionValue();
-      e = e is a.PropertyAccessorElement && e.isSynthetic ? e.variable : e;
+      e = e is a.PropertyAccessorElement && e.isSynthetic
+          ? e.variable as a.ExecutableElement
+          : e;
       // TODO(jmesserly): support generic tear-off implicit instantiation.
       return StaticGet.byReference(_reference(e));
     }

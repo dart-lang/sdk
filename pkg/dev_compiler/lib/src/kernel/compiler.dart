@@ -1164,7 +1164,7 @@ class ProgramCompiler extends Object
     var savedClass = _classEmittingSignatures;
     _classEmittingSignatures = c;
 
-    var interfaces = List.from(c.implementedTypes)
+    var interfaces = c.implementedTypes.toList()
       ..addAll(c.superclassConstraints());
     if (interfaces.isNotEmpty) {
       body.add(js.statement('#[#.implements] = () => [#];', [
@@ -2672,7 +2672,8 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitTypedefType(type) => visitFunctionType(type.unalias);
+  visitTypedefType(TypedefType type) =>
+      visitFunctionType(type.unalias as FunctionType);
 
   JS.Fun _emitFunction(FunctionNode f, String name) {
     // normal function (sync), vs (sync*, async, async*)
@@ -2698,11 +2699,11 @@ class ProgramCompiler extends Object
 
   List<JS.Parameter> _emitParameters(FunctionNode f) {
     var positional = f.positionalParameters;
-    var result = List<JS.Parameter>.from(positional.map(_emitVariableDef));
+    var result = List<JS.Parameter>.of(positional.map(_emitVariableDef));
     if (positional.isNotEmpty &&
         f.requiredParameterCount == positional.length &&
         positional.last.annotations.any(isJsRestAnnotation)) {
-      result.last = JS.RestParameter(result.last);
+      result.last = JS.RestParameter(result.last as JS.Identifier);
     }
     if (f.namedParameters.isNotEmpty) result.add(namedArgumentTemp);
     return result;
@@ -3724,7 +3725,7 @@ class ProgramCompiler extends Object
 
   @override
   visitConstantExpression(ConstantExpression node) =>
-      node.constant.accept(this);
+      node.constant.accept(this) as JS.Expression;
 
   @override
   visitVariableGet(VariableGet node) {
@@ -4006,7 +4007,7 @@ class ProgramCompiler extends Object
     return null;
   }
 
-  _isDynamicOrFunction(DartType t) =>
+  bool _isDynamicOrFunction(DartType t) =>
       t == coreTypes.functionClass.rawType || t == const DynamicType();
 
   JS.Expression _emitUnaryOperator(
@@ -4672,7 +4673,9 @@ class ProgramCompiler extends Object
 
     if (isFromEnvironmentInvocation(coreTypes, node)) {
       var value = _constants.evaluate(node);
-      if (value is PrimitiveConstant) return value.accept(this);
+      if (value is PrimitiveConstant) {
+        return value.accept(this) as JS.Expression;
+      }
     }
 
     if (args.positional.isEmpty &&
@@ -4953,7 +4956,7 @@ class ProgramCompiler extends Object
   @override
   visitTypeLiteral(TypeLiteral node) => _emitTypeLiteral(node.type);
 
-  _emitTypeLiteral(DartType type) {
+  JS.Expression _emitTypeLiteral(DartType type) {
     var typeRep = _emitType(type);
     // If the type is a type literal expression in Dart code, wrap the raw
     // runtime type in a "Type" instance.
@@ -5069,11 +5072,11 @@ class ProgramCompiler extends Object
 
     // Simplify `=> { return e; }` to `=> e`
     if (body is JS.Block) {
-      JS.Block block = body;
+      var block = body as JS.Block;
       if (block.statements.length == 1) {
         JS.Statement s = block.statements[0];
         if (s is JS.Block) {
-          block = s;
+          block = s as JS.Block;
           s = block.statements.length == 1 ? block.statements[0] : null;
         }
         if (s is JS.Return && s.value != null) body = s.value;
@@ -5204,10 +5207,11 @@ class ProgramCompiler extends Object
   /// Calls [findAnnotation] followed by [getNameFromAnnotation].
   String getAnnotationName(NamedNode node, bool test(Expression value)) {
     return _constants.getFieldValueFromAnnotation(
-        findAnnotation(node, test), 'name');
+        findAnnotation(node, test), 'name') as String;
   }
 
-  JS.Expression visitConstant(Constant node) => node.accept(this);
+  JS.Expression visitConstant(Constant node) =>
+      node.accept(this) as JS.Expression;
   @override
   visitNullConstant(NullConstant node) => JS.LiteralNull();
   @override
@@ -5267,7 +5271,7 @@ class ProgramCompiler extends Object
   @override
   visitInstanceConstant(node) {
     entryToProperty(MapEntry<Reference, Constant> entry) {
-      var constant = entry.value.accept(this);
+      var constant = entry.value.accept(this) as JS.Expression;
       var member = entry.key.asField;
       return JS.Property(
           _emitMemberName(member.name.name, member: member), constant);

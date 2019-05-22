@@ -118,7 +118,7 @@ class _ConstantVisitor extends ExpressionVisitor<bool> {
   final CoreTypes coreTypes;
   _ConstantVisitor(this.coreTypes);
 
-  bool isConstant(Expression e) => e.accept(this);
+  bool isConstant(Expression e) => e.accept(this) as bool;
 
   @override
   defaultExpression(node) => false;

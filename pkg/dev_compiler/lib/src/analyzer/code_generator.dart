@@ -610,7 +610,7 @@ class CodeGenerator extends Object
 
   @override
   visitExportDirective(ExportDirective node) {
-    ExportElement element = node.element;
+    var element = node.element as ExportElement;
     var currentLibrary = element.library;
 
     var currentNames = currentLibrary.publicNamespace.definedNames;
@@ -2275,7 +2275,7 @@ class CodeGenerator extends Object
   JS.Block _emitConstructorBody(ConstructorDeclaration node,
       List<VariableDeclaration> fields, JS.Expression className) {
     var body = <JS.Statement>[];
-    ClassDeclaration cls = node.parent;
+    var cls = node.parent as ClassDeclaration;
 
     // Generate optional/named argument value assignment. These can not have
     // side effects, and may be used by the constructor's initializers, so it's
@@ -2574,7 +2574,7 @@ class CodeGenerator extends Object
     }
 
     if (node.isGetter || node.isSetter) {
-      PropertyAccessorElement element = node.declaredElement;
+      var element = node.declaredElement as PropertyAccessorElement;
       var pairAccessor = node.isGetter
           ? element.correspondingSetter
           : element.correspondingGetter;
@@ -2718,7 +2718,7 @@ class CodeGenerator extends Object
 
     // Simplify `=> { return e; }` to `=> e`
     if (body is JS.Block) {
-      JS.Block block = body;
+      var block = body as JS.Block;
       if (block.statements.length == 1) {
         JS.Statement s = block.statements[0];
         if (s is JS.Return && s.value != null) body = s.value;
@@ -5843,8 +5843,7 @@ class CodeGenerator extends Object
     /// fucntion, call it, and yield the result of [yieldType].
     /// TODO(nshahan) Move to share between compilers. Need to work out a common
     /// emitLibraryName().
-    JS.Expression detectYieldAndCall(
-        JS.Statement body, InterfaceType yieldType) {
+    JS.Expression detectYieldAndCall(JS.Block body, InterfaceType yieldType) {
       var finder = YieldFinder();
       body.accept(finder);
       if (finder.hasYield) {
@@ -5871,7 +5870,7 @@ class CodeGenerator extends Object
         // a function call that returns the list.
         var functionBody = JS.Block([
           items,
-          node.accept<JS.Node>(this),
+          node.accept<JS.Node>(this) as JS.Statement,
           JS.Return(_currentCollectionVariable)
         ]);
         var functionCall = detectYieldAndCall(functionBody, arrayType);
@@ -5902,7 +5901,7 @@ class CodeGenerator extends Object
       ]);
     }
 
-    return pushToCurrentCollection(node);
+    return pushToCurrentCollection(node as Expression);
   }
 
   /// Returns `true` if [node] is a UI-as-Code [CollectionElement].
@@ -6293,7 +6292,7 @@ class CodeGenerator extends Object
   JS.Expression _throwUnsafe(String message) => runtimeCall(
       'throw(Error(#))', js.escapedString("compile error: $message"));
 
-  JS.Node _unreachable(Object node) {
+  Null _unreachable(Object node) {
     throw UnsupportedError('tried to generate an unreachable node: `$node`');
   }
 
@@ -6489,7 +6488,7 @@ class CodeGenerator extends Object
   @override
   JS.Statement visitForElement(ForElement node) {
     var jsBody = _isUiAsCodeElement(node.body)
-        ? node.body.accept(this)
+        ? node.body.accept(this) as JS.Statement
         : _visitNestedCollectionElement(node.body);
     return _forAdaptor(node.forLoopParts, node.awaitKeyword, jsBody);
   }
@@ -6497,13 +6496,13 @@ class CodeGenerator extends Object
   @override
   JS.Statement visitIfElement(IfElement node) {
     var thenElement = _isUiAsCodeElement(node.thenElement)
-        ? node.thenElement.accept(this)
+        ? node.thenElement.accept(this) as JS.Statement
         : _visitNestedCollectionElement(node.thenElement);
 
     JS.Statement elseElement;
     if (node.elseElement != null) {
       if (_isUiAsCodeElement(node.elseElement)) {
-        elseElement = node.elseElement.accept<JS.Node>(this);
+        elseElement = node.elseElement.accept<JS.Node>(this) as JS.Statement;
       } else {
         elseElement = _visitNestedCollectionElement(node.elseElement);
       }
@@ -6583,7 +6582,8 @@ class CodeGenerator extends Object
     /// Returns [expression] wrapped in an implict cast to [castType] or
     /// [expression] as provided if [castType] is `null` signifying that
     /// no cast is needed.
-    JS.Expression wrapInImplicitCast(JS.Expression expression, castType) =>
+    JS.Expression wrapInImplicitCast(
+            JS.Expression expression, DartType castType) =>
         castType == null ? expression : _emitCast(castType, expression);
 
     /// Returns a statement spreading the elements of [expression] into
