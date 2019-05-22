@@ -113,7 +113,7 @@ class MetaLet extends Expression {
     var block = toReturn();
     var s = block.statements;
     if (s.length == 1 && s.first is Return) {
-      return (s.first as Return).value;
+      return _expression = (s.first as Return).value;
     }
     // Wrap it in an immediately called function to get in expression context.
     return _expression = _toInvokedFunction(block);
