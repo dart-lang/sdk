@@ -219,6 +219,15 @@ m() {
 ''');
   }
 
+  test_member_dynamic_nullable() async {
+    await assertNoErrorsInCode(r'''
+m() {
+  dynamic x;
+  x.foo;
+}
+''');
+  }
+
   test_member_hashCode_nullable() async {
     await assertNoErrorsInCode(r'''
 m() {
@@ -271,6 +280,24 @@ m() {
   (x).runtimeType;
 }
 ''');
+  }
+
+  test_member_potentiallyNullable() async {
+    await assertErrorCodesInCode(r'''
+m<T extends int?>() {
+  T x;
+  x.isEven;
+}
+''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+  }
+
+  test_member_potentiallyNullable_called() async {
+    await assertErrorCodesInCode(r'''
+m<T extends Function>() {
+  List<T?> x;
+  x.first();
+}
+''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
   }
 
   test_member_questionDot_nullable() async {

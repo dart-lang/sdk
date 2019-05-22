@@ -4660,8 +4660,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (expression == null ||
         !_isNonNullable ||
         expression.staticType == null ||
-        (expression.staticType as TypeImpl).nullabilitySuffix !=
-            NullabilitySuffix.question) {
+        expression.staticType.isDynamic ||
+        !_typeSystem.isPotentiallyNullable(expression.staticType)) {
       return false;
     }
 
