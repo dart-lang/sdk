@@ -80,7 +80,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   @override
-  void visitForStatement2(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     _check(node.body);
   }
 

@@ -175,7 +175,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitForStatement2(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     final visitor = new _UseStringBufferVisitor(rule);
     node.body.accept(visitor);
   }

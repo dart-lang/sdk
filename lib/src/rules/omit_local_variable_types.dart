@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  void visitForStatement2(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     final loopParts = node.forLoopParts;
     if (loopParts is ForPartsWithDeclarations) {
       _visitVariableDeclarationList(loopParts.variables);

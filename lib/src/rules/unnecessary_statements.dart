@@ -214,7 +214,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitForStatement2(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     final loopParts = node.forLoopParts;
     if (loopParts is ForPartsWithExpression) {
       loopParts.initialization?.accept(reportNoClearEffect);
