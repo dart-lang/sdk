@@ -4024,6 +4024,8 @@ class Library : public Object {
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll(bool ignore_error = false);
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  // Finalize all classes in all libraries.
+  static RawError* FinalizeAllClasses();
   // Eagerly read all bytecode.
   static RawError* ReadAllBytecode();
 #endif

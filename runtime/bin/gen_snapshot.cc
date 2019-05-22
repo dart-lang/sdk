@@ -420,10 +420,18 @@ static void MaybeLoadCode() {
 
   if ((load_compilation_trace_filename != NULL) &&
       ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
+    // Finalize all classes. This ensures that there are no non-finalized
+    // classes in the gaps between cid ranges. Such classes prevent merging of
+    // cid ranges.
+    Dart_Handle result = Dart_FinalizeAllClasses();
+    CHECK_RESULT(result);
+    // Sort classes to have better cid ranges.
+    result = Dart_SortClasses();
+    CHECK_RESULT(result);
     uint8_t* buffer = NULL;
     intptr_t size = 0;
     ReadFile(load_compilation_trace_filename, &buffer, &size);
-    Dart_Handle result = Dart_LoadCompilationTrace(buffer, size);
+    result = Dart_LoadCompilationTrace(buffer, size);
     free(buffer);
     CHECK_RESULT(result);
   }

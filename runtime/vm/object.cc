@@ -12228,6 +12228,39 @@ RawError* Library::CompileAll(bool ignore_error /* = false */) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+
+RawError* Library::FinalizeAllClasses() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  Zone* zone = thread->zone();
+  Error& error = Error::Handle(zone);
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      Isolate::Current()->object_store()->libraries());
+  Library& lib = Library::Handle(zone);
+  Class& cls = Class::Handle(zone);
+  for (int i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    if (!lib.Loaded()) {
+      String& uri = String::Handle(zone, lib.url());
+      String& msg = String::Handle(
+          zone,
+          String::NewFormatted("Library '%s' is not loaded. "
+                               "Did you forget to call Dart_FinalizeLoading?",
+                               uri.ToCString()));
+      return ApiError::New(msg);
+    }
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      error = cls.EnsureIsFinalized(thread);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
+    }
+  }
+  return Error::null();
+}
+
 RawError* Library::ReadAllBytecode() {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
