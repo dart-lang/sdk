@@ -3540,8 +3540,7 @@ RawObject* Class::Invoke(const String& function_name,
 }
 
 static RawObject* EvaluateCompiledExpressionHelper(
-    const uint8_t* kernel_bytes,
-    intptr_t kernel_length,
+    const ExternalTypedData& kernel_data,
     const Array& type_definitions,
     const String& library_url,
     const String& klass,
@@ -3549,8 +3548,7 @@ static RawObject* EvaluateCompiledExpressionHelper(
     const TypeArguments& type_arguments);
 
 RawObject* Class::EvaluateCompiledExpression(
-    const uint8_t* kernel_bytes,
-    intptr_t kernel_length,
+    const ExternalTypedData& kernel_data,
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) const {
@@ -3563,7 +3561,7 @@ RawObject* Class::EvaluateCompiledExpression(
   }
 
   return EvaluateCompiledExpressionHelper(
-      kernel_bytes, kernel_length, type_definitions,
+      kernel_data, type_definitions,
       String::Handle(Library::Handle(library()).url()),
       IsTopLevel() ? String::Handle() : String::Handle(UserVisibleName()),
       arguments, type_arguments);
@@ -4013,8 +4011,7 @@ TokenPosition Class::ComputeEndTokenPos() const {
   if (scr.kind() == RawScript::kKernelTag) {
     ASSERT(kernel_offset() > 0);
     const Library& lib = Library::Handle(zone, library());
-    const ExternalTypedData& kernel_data =
-        ExternalTypedData::Handle(zone, lib.kernel_data());
+    const auto& kernel_data = TypedDataBase::Handle(zone, lib.kernel_data());
     ASSERT(!kernel_data.IsNull());
     const intptr_t library_kernel_offset = lib.kernel_offset();
     ASSERT(library_kernel_offset > 0);
@@ -5628,7 +5625,7 @@ void PatchClass::set_script(const Script& value) const {
   StorePointer(&raw_ptr()->script_, value.raw());
 }
 
-void PatchClass::set_library_kernel_data(const ExternalTypedData& data) const {
+void PatchClass::set_library_kernel_data(const TypedDataBase& data) const {
   StorePointer(&raw_ptr()->library_kernel_data_, data.raw());
 }
 
@@ -7693,7 +7690,7 @@ void Function::InheritBinaryDeclarationFrom(const Field& src) const {
 }
 
 void Function::SetKernelDataAndScript(const Script& script,
-                                      const ExternalTypedData& data,
+                                      const TypedDataBase& data,
                                       intptr_t offset) {
   Array& data_field = Array::Handle(Array::New(3));
   data_field.SetAt(0, script);
@@ -7735,12 +7732,12 @@ RawScript* Function::script() const {
   return Class::Cast(obj).script();
 }
 
-RawExternalTypedData* Function::KernelData() const {
+RawTypedDataBase* Function::KernelData() const {
   Object& data = Object::Handle(raw_ptr()->data_);
   if (data.IsArray()) {
     Object& script = Object::Handle(Array::Cast(data).At(0));
     if (script.IsScript()) {
-      return ExternalTypedData::RawCast(Array::Cast(data).At(1));
+      return TypedDataBase::RawCast(Array::Cast(data).At(1));
     }
   }
   if (IsClosureFunction()) {
@@ -8363,7 +8360,7 @@ RawScript* Field::Script() const {
   return PatchClass::Cast(obj).script();
 }
 
-RawExternalTypedData* Field::KernelData() const {
+RawTypedDataBase* Field::KernelData() const {
   const Object& obj = Object::Handle(this->raw_ptr()->owner_);
   // During background JIT compilation field objects are copied
   // and copy points to the original field via the owner field.
@@ -9204,11 +9201,10 @@ bool Script::IsPartOfDartColonLibrary() const {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void Script::LoadSourceFromKernel(const uint8_t* kernel_buffer,
-                                  intptr_t kernel_buffer_len) const {
+void Script::LoadSourceFromKernel(const ExternalTypedData& kernel_td) const {
   String& uri = String::Handle(resolved_url());
-  String& source = String::Handle(kernel::KernelLoader::FindSourceForScript(
-      kernel_buffer, kernel_buffer_len, uri));
+  String& source =
+      String::Handle(kernel::KernelLoader::FindSourceForScript(kernel_td, uri));
   set_source(source);
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -9784,7 +9780,7 @@ void Library::set_url(const String& name) const {
   StorePointer(&raw_ptr()->url_, name.raw());
 }
 
-void Library::set_kernel_data(const ExternalTypedData& data) const {
+void Library::set_kernel_data(const TypedDataBase& data) const {
   StorePointer(&raw_ptr()->kernel_data_, data.raw());
 }
 
@@ -11182,14 +11178,13 @@ RawObject* Library::Invoke(const String& function_name,
 }
 
 RawObject* Library::EvaluateCompiledExpression(
-    const uint8_t* kernel_bytes,
-    intptr_t kernel_length,
+    const ExternalTypedData& kernel_data,
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) const {
   return EvaluateCompiledExpressionHelper(
-      kernel_bytes, kernel_length, type_definitions, String::Handle(url()),
-      String::Handle(), arguments, type_arguments);
+      kernel_data, type_definitions, String::Handle(url()), String::Handle(),
+      arguments, type_arguments);
 }
 
 void Library::InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel) {
@@ -11247,8 +11242,7 @@ class LibraryLookupTraits {
 typedef UnorderedHashMap<LibraryLookupTraits> LibraryLookupMap;
 
 static RawObject* EvaluateCompiledExpressionHelper(
-    const uint8_t* kernel_bytes,
-    intptr_t kernel_length,
+    const ExternalTypedData& kernel_td,
     const Array& type_definitions,
     const String& library_url,
     const String& klass,
@@ -11259,8 +11253,7 @@ static RawObject* EvaluateCompiledExpressionHelper(
       String::New("Expression evaluation not available in precompiled mode."));
   return ApiError::New(error_str);
 #else
-  kernel::Program* kernel_pgm =
-      kernel::Program::ReadFromBuffer(kernel_bytes, kernel_length);
+  kernel::Program* kernel_pgm = kernel::Program::ReadFromTypedData(kernel_td);
 
   if (kernel_pgm == NULL) {
     return ApiError::New(String::Handle(
@@ -12027,11 +12020,11 @@ RawKernelProgramInfo* KernelProgramInfo::New() {
 
 RawKernelProgramInfo* KernelProgramInfo::New(
     const TypedData& string_offsets,
-    const ExternalTypedData& string_data,
+    const TypedDataBase& string_data,
     const TypedData& canonical_names,
-    const ExternalTypedData& metadata_payloads,
-    const ExternalTypedData& metadata_mappings,
-    const ExternalTypedData& constants_table,
+    const TypedDataBase& metadata_payload,
+    const TypedDataBase& metadata_mappings,
+    const TypedDataBase& constants_table,
     const Array& scripts,
     const Array& libraries_cache,
     const Array& classes_cache) {
@@ -12041,7 +12034,7 @@ RawKernelProgramInfo* KernelProgramInfo::New(
   info.StorePointer(&info.raw_ptr()->string_data_, string_data.raw());
   info.StorePointer(&info.raw_ptr()->canonical_names_, canonical_names.raw());
   info.StorePointer(&info.raw_ptr()->metadata_payloads_,
-                    metadata_payloads.raw());
+                    metadata_payload.raw());
   info.StorePointer(&info.raw_ptr()->metadata_mappings_,
                     metadata_mappings.raw());
   info.StorePointer(&info.raw_ptr()->scripts_, scripts.raw());
@@ -12069,8 +12062,7 @@ void KernelProgramInfo::set_constants(const Array& constants) const {
   StorePointer(&raw_ptr()->constants_, constants.raw());
 }
 
-void KernelProgramInfo::set_constants_table(
-    const ExternalTypedData& value) const {
+void KernelProgramInfo::set_constants_table(const TypedDataBase& value) const {
   StorePointer(&raw_ptr()->constants_table_, value.raw());
 }
 
@@ -15134,10 +15126,10 @@ RawBytecode* Bytecode::New(uword instructions,
   return result.raw();
 }
 
-RawExternalTypedData* Bytecode::GetBinary(Zone* zone) const {
+RawTypedDataBase* Bytecode::GetBinary(Zone* zone) const {
   const Function& func = Function::Handle(zone, function());
   if (func.IsNull()) {
-    return ExternalTypedData::null();
+    return TypedDataBase::null();
   }
   const Script& script = Script::Handle(zone, func.script());
   const KernelProgramInfo& info =
@@ -16103,8 +16095,7 @@ RawObject* Instance::Invoke(const String& function_name,
 
 RawObject* Instance::EvaluateCompiledExpression(
     const Class& method_cls,
-    const uint8_t* kernel_bytes,
-    intptr_t kernel_length,
+    const ExternalTypedData& kernel_data,
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) const {
@@ -16118,7 +16109,7 @@ RawObject* Instance::EvaluateCompiledExpression(
   }
 
   return EvaluateCompiledExpressionHelper(
-      kernel_bytes, kernel_length, type_definitions,
+      kernel_data, type_definitions,
       String::Handle(Library::Handle(method_cls.library()).url()),
       String::Handle(method_cls.UserVisibleName()), arguments_with_receiver,
       type_arguments);
@@ -21137,6 +21128,20 @@ const char* TypedDataBase::ToCString() const {
   // There are no instances of RawTypedDataBase.
   UNREACHABLE();
   return nullptr;
+}
+
+RawTypedDataView* TypedDataBase::CreateUint8View(intptr_t offset_in_bytes,
+                                                 intptr_t length_in_bytes,
+                                                 Heap::Space space) const {
+  auto& backing_store = TypedDataBase::Handle(raw());
+  if (IsTypedDataView()) {
+    const auto& this_view = TypedDataView::Cast(*this);
+    offset_in_bytes += ValueFromRawSmi(this_view.offset_in_bytes());
+    backing_store = this_view.typed_data();
+  }
+  ASSERT((offset_in_bytes + length_in_bytes) <= backing_store.LengthInBytes());
+  return TypedDataView::New(kTypedDataUint8ArrayViewCid, backing_store,
+                            offset_in_bytes, length_in_bytes, space);
 }
 
 const char* TypedDataView::ToCString() const {

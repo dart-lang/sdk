@@ -66,9 +66,6 @@ class Program {
 
   static Program* ReadFromFile(const char* script_uri,
                                const char** error = nullptr);
-  static Program* ReadFromBuffer(const uint8_t* buffer,
-                                 intptr_t buffer_length,
-                                 const char** error = nullptr);
   static Program* ReadFromTypedData(const ExternalTypedData& typed_data,
                                     const char** error = nullptr);
 
@@ -85,12 +82,12 @@ class Program {
     return metadata_mappings_offset_;
   }
   intptr_t constant_table_offset() { return constant_table_offset_; }
-  const uint8_t* kernel_data() { return kernel_data_; }
-  intptr_t kernel_data_size() { return kernel_data_size_; }
   intptr_t library_count() { return library_count_; }
 
+  const TypedDataBase& kernel_data() const { return *kernel_data_; }
+
  private:
-  Program() : kernel_data_(NULL), kernel_data_size_(-1) {}
+  Program() : kernel_data_(NULL) {}
 
   bool single_program_;
   uint32_t binary_version_;
@@ -115,8 +112,8 @@ class Program {
   // The offset from the start of the binary to the start of the string table.
   intptr_t string_table_offset_;
 
-  const uint8_t* kernel_data_;
-  intptr_t kernel_data_size_;
+  // The kernel buffer for this program.
+  const TypedDataBase* kernel_data_;
 
   DISALLOW_COPY_AND_ASSIGN(Program);
 };

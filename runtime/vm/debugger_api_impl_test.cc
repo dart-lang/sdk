@@ -192,16 +192,24 @@ DART_EXPORT Dart_Handle Dart_EvaluateStaticExpr(Dart_Handle lib_handle,
 
     const uint8_t* kernel_bytes = compilation_result.kernel;
     intptr_t kernel_length = compilation_result.kernel_size;
+
+    const auto& kernel_td = ExternalTypedData::Handle(ExternalTypedData::New(
+        kExternalTypedDataUint8ArrayCid, const_cast<uint8_t*>(kernel_bytes),
+        kernel_length, Heap::kOld));
+    kernel_td.AddFinalizer(
+        const_cast<uint8_t*>(kernel_bytes),
+        [](void* _, Dart_WeakPersistentHandle h, void* peer) { free(peer); },
+        kernel_length);
+
     Dart_Handle result = Api::NewHandle(
         T,
-        lib.EvaluateCompiledExpression(kernel_bytes, kernel_length,
+        lib.EvaluateCompiledExpression(kernel_td,
                                        /* type_definitions= */
                                        Array::empty_array(),
                                        /* param_values= */
                                        Array::empty_array(),
                                        /* type_param_values= */
                                        TypeArguments::null_type_arguments()));
-    free(const_cast<uint8_t*>(kernel_bytes));
     return result;
   }
 }

@@ -225,8 +225,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
       if (!class_field.is_static()) {
-        ExternalTypedData& kernel_data =
-            ExternalTypedData::Handle(Z, class_field.KernelData());
+        auto& kernel_data = TypedDataBase::Handle(Z, class_field.KernelData());
         ASSERT(!kernel_data.IsNull());
         intptr_t field_offset = class_field.kernel_offset();
         AlternativeReadingScope alt(&reader_, &kernel_data, field_offset);

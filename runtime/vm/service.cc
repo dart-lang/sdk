@@ -2878,7 +2878,17 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
 
   intptr_t kernel_length;
   const char* kernel_bytes_str = js->LookupParam("kernelBytes");
-  uint8_t* kernel_bytes = DecodeBase64(zone, kernel_bytes_str, &kernel_length);
+  uint8_t* kernel_bytes = DecodeBase64(kernel_bytes_str, &kernel_length);
+
+  const auto& kernel_td = ExternalTypedData::Handle(
+      ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, kernel_bytes,
+                             kernel_length, Heap::kOld));
+  kernel_td.AddFinalizer(
+      kernel_bytes,
+      [](void* _, Dart_WeakPersistentHandle h, void* peer) {
+        delete[] reinterpret_cast<uint8_t*>(peer);
+      },
+      kernel_length);
 
   if (js->HasParam("frameIndex")) {
     DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
@@ -2896,7 +2906,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
     const Object& result = Object::Handle(
         zone,
         frame->EvaluateCompiledExpression(
-            kernel_bytes, kernel_length,
+            kernel_td,
             Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
             Array::Handle(zone, Array::MakeFixedLength(param_values)),
             type_arguments));
@@ -2929,7 +2939,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
       const Object& result = Object::Handle(
           zone,
           lib.EvaluateCompiledExpression(
-              kernel_bytes, kernel_length,
+              kernel_td,
               Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
               Array::Handle(zone, Array::MakeFixedLength(param_values)),
               type_arguments));
@@ -2941,7 +2951,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
       const Object& result = Object::Handle(
           zone,
           cls.EvaluateCompiledExpression(
-              kernel_bytes, kernel_length,
+              kernel_td,
               Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
               Array::Handle(zone, Array::MakeFixedLength(param_values)),
               type_arguments));
@@ -2956,7 +2966,7 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
       const Object& result = Object::Handle(
           zone,
           instance.EvaluateCompiledExpression(
-              receiver_cls, kernel_bytes, kernel_length,
+              receiver_cls, kernel_td,
               Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
               Array::Handle(zone, Array::MakeFixedLength(param_values)),
               type_arguments));
@@ -4395,7 +4405,16 @@ static bool GetObject(Thread* thread, JSONStream* js) {
         const uint8_t* kernel_buffer = Service::dart_library_kernel();
         const intptr_t kernel_buffer_len =
             Service::dart_library_kernel_length();
-        script.LoadSourceFromKernel(kernel_buffer, kernel_buffer_len);
+
+        // NOTE: We do not add a finalizer to this buffer since the embedder
+        // will free it once the VM shuts down (it was provided via
+        // [Dart_SetDartLibrarySourcesKernel]).
+        const auto& kernel_td = ExternalTypedData::Handle(
+            ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
+                                   const_cast<uint8_t*>(kernel_buffer),
+                                   kernel_buffer_len, Heap::kOld));
+
+        script.LoadSourceFromKernel(kernel_td);
       }
     }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

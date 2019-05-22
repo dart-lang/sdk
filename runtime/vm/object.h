@@ -1235,8 +1235,7 @@ class Class : public Object {
   // (type_)param_names, and is invoked with the (type)argument values given in
   // (type_)param_values.
   RawObject* EvaluateCompiledExpression(
-      const uint8_t* kernel_bytes,
-      intptr_t kernel_length,
+      const ExternalTypedData& kernel_data,
       const Array& type_definitions,
       const Array& param_values,
       const TypeArguments& type_param_values) const;
@@ -1463,10 +1462,10 @@ class PatchClass : public Object {
   RawClass* patched_class() const { return raw_ptr()->patched_class_; }
   RawClass* origin_class() const { return raw_ptr()->origin_class_; }
   RawScript* script() const { return raw_ptr()->script_; }
-  RawExternalTypedData* library_kernel_data() const {
+  RawTypedDataBase* library_kernel_data() const {
     return raw_ptr()->library_kernel_data_;
   }
-  void set_library_kernel_data(const ExternalTypedData& data) const;
+  void set_library_kernel_data(const TypedDataBase& data) const;
 
   intptr_t library_kernel_offset() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -2525,12 +2524,12 @@ class Function : public Object {
   }
 
   void SetKernelDataAndScript(const Script& script,
-                              const ExternalTypedData& data,
+                              const TypedDataBase& data,
                               intptr_t offset);
 
   intptr_t KernelDataProgramOffset() const;
 
-  RawExternalTypedData* KernelData() const;
+  RawTypedDataBase* KernelData() const;
 
   bool IsOptimizable() const;
   void SetIsOptimizable(bool value) const;
@@ -3302,7 +3301,7 @@ class Field : public Object {
 
   void InheritBinaryDeclarationFrom(const Field& src) const;
 
-  RawExternalTypedData* KernelData() const;
+  RawTypedDataBase* KernelData() const;
 
   intptr_t KernelDataProgramOffset() const;
 
@@ -3721,8 +3720,7 @@ class Script : public Object {
                         RawScript::Kind kind);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  void LoadSourceFromKernel(const uint8_t* kernel_buffer,
-                            intptr_t kernel_buffer_len) const;
+  void LoadSourceFromKernel(const ExternalTypedData& kernel_td) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
  private:
@@ -3850,8 +3848,7 @@ class Library : public Object {
   // parameters given in (type_)param_names, and is invoked with the (type)
   // argument values given in (type_)param_values.
   RawObject* EvaluateCompiledExpression(
-      const uint8_t* kernel_bytes,
-      intptr_t kernel_length,
+      const ExternalTypedData& kernel_data,
       const Array& type_definitions,
       const Array& param_values,
       const TypeArguments& type_param_values) const;
@@ -4002,8 +3999,8 @@ class Library : public Object {
 
   inline intptr_t UrlHash() const;
 
-  RawExternalTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
-  void set_kernel_data(const ExternalTypedData& data) const;
+  RawTypedDataBase* kernel_data() const { return raw_ptr()->kernel_data_; }
+  void set_kernel_data(const TypedDataBase& data) const;
 
   intptr_t kernel_offset() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -4190,11 +4187,11 @@ class Namespace : public Object {
 class KernelProgramInfo : public Object {
  public:
   static RawKernelProgramInfo* New(const TypedData& string_offsets,
-                                   const ExternalTypedData& string_data,
+                                   const TypedDataBase& string_data,
                                    const TypedData& canonical_names,
-                                   const ExternalTypedData& metadata_payload,
-                                   const ExternalTypedData& metadata_mappings,
-                                   const ExternalTypedData& constants_table,
+                                   const TypedDataBase& metadata_payload,
+                                   const TypedDataBase& metadata_mappings,
+                                   const TypedDataBase& constants_table,
                                    const Array& scripts,
                                    const Array& libraries_cache,
                                    const Array& classes_cache);
@@ -4205,23 +4202,23 @@ class KernelProgramInfo : public Object {
 
   RawTypedData* string_offsets() const { return raw_ptr()->string_offsets_; }
 
-  RawExternalTypedData* string_data() const { return raw_ptr()->string_data_; }
+  RawTypedDataBase* string_data() const { return raw_ptr()->string_data_; }
 
   RawTypedData* canonical_names() const { return raw_ptr()->canonical_names_; }
 
-  RawExternalTypedData* metadata_payloads() const {
+  RawTypedDataBase* metadata_payloads() const {
     return raw_ptr()->metadata_payloads_;
   }
 
-  RawExternalTypedData* metadata_mappings() const {
+  RawTypedDataBase* metadata_mappings() const {
     return raw_ptr()->metadata_mappings_;
   }
 
-  RawExternalTypedData* constants_table() const {
+  RawTypedDataBase* constants_table() const {
     return raw_ptr()->constants_table_;
   }
 
-  void set_constants_table(const ExternalTypedData& value) const;
+  void set_constants_table(const TypedDataBase& value) const;
 
   RawArray* scripts() const { return raw_ptr()->scripts_; }
   void set_scripts(const Array& scripts) const;
@@ -5486,7 +5483,7 @@ class Bytecode : public Object {
                           intptr_t instructions_offset,
                           const ObjectPool& object_pool);
 
-  RawExternalTypedData* GetBinary(Zone* zone) const;
+  RawTypedDataBase* GetBinary(Zone* zone) const;
 
   TokenPosition GetTokenIndexOfPC(uword pc) const;
 
@@ -6069,8 +6066,7 @@ class Instance : public Object {
   // argument values given in (type_)param_values.
   RawObject* EvaluateCompiledExpression(
       const Class& method_cls,
-      const uint8_t* kernel_bytes,
-      intptr_t kernel_length,
+      const ExternalTypedData& kernel_data,
       const Array& type_definitions,
       const Array& param_values,
       const TypeArguments& type_param_values) const;
@@ -8421,6 +8417,19 @@ class TypedDataBase : public Instance {
     return element_size(ElementType(raw()->GetClassId()));
   }
 
+  void* DataAddr(intptr_t byte_offset) const {
+    ASSERT(byte_offset == 0 ||
+           (byte_offset > 0 && byte_offset < LengthInBytes()));
+#if defined(DEBUG)
+    ValidateInvariant();
+#endif
+    return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
+  }
+
+  RawTypedDataView* CreateUint8View(intptr_t offset_in_bytes,
+                                    intptr_t length_in_bytes,
+                                    Heap::Space space = Heap::kNew) const;
+
   static intptr_t ElementSizeInBytes(classid_t cid) {
     return element_size(ElementType(cid));
   }
@@ -8444,11 +8453,44 @@ class TypedDataBase : public Instance {
     }
   }
 
+#define TYPED_GETTER_SETTER(name, type)                                        \
+  type Get##name(intptr_t byte_offset) const {                                 \
+    ASSERT(byte_offset >= 0 &&                                                 \
+           (byte_offset + static_cast<intptr_t>(sizeof(type)) - 1) <           \
+               LengthInBytes());                                               \
+    return ReadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
+  }                                                                            \
+  void Set##name(intptr_t byte_offset, type value) const {                     \
+    ASSERT(byte_offset >= 0 &&                                                 \
+           (byte_offset + static_cast<intptr_t>(sizeof(type)) - 1) <           \
+               LengthInBytes());                                               \
+    NoSafepointScope no_safepoint;                                             \
+    StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
+  }
+
+  TYPED_GETTER_SETTER(Int8, int8_t)
+  TYPED_GETTER_SETTER(Uint8, uint8_t)
+  TYPED_GETTER_SETTER(Int16, int16_t)
+  TYPED_GETTER_SETTER(Uint16, uint16_t)
+  TYPED_GETTER_SETTER(Int32, int32_t)
+  TYPED_GETTER_SETTER(Uint32, uint32_t)
+  TYPED_GETTER_SETTER(Int64, int64_t)
+  TYPED_GETTER_SETTER(Uint64, uint64_t)
+  TYPED_GETTER_SETTER(Float32, float)
+  TYPED_GETTER_SETTER(Float64, double)
+  TYPED_GETTER_SETTER(Float32x4, simd128_value_t)
+  TYPED_GETTER_SETTER(Int32x4, simd128_value_t)
+  TYPED_GETTER_SETTER(Float64x2, simd128_value_t)
+
+#undef TYPED_GETTER_SETTER
+
  protected:
   void SetLength(intptr_t value) const {
     ASSERT(value <= Smi::kMaxValue);
     StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
+
+  virtual void ValidateInvariant() const {}
 
  private:
   friend class Class;
@@ -8473,43 +8515,8 @@ class TypedData : public TypedDataBase {
   // architecture.
   static const intptr_t kHashBits = 30;
 
-  void* DataAddr(intptr_t byte_offset) const {
-    ASSERT((byte_offset == 0) ||
-           ((byte_offset > 0) && (byte_offset < LengthInBytes())));
-    return reinterpret_cast<void*>(UnsafeMutableNonPointer(raw_ptr()->data()) +
-                                   byte_offset);
-  }
-
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const;
-
-#define TYPED_GETTER_SETTER(name, type)                                        \
-  type Get##name(intptr_t byte_offset) const {                                 \
-    ASSERT((byte_offset >= 0) &&                                               \
-           (byte_offset + static_cast<intptr_t>(sizeof(type)) - 1) <           \
-               LengthInBytes());                                               \
-    return ReadUnaligned(ReadOnlyDataAddr<type>(byte_offset));                 \
-  }                                                                            \
-  void Set##name(intptr_t byte_offset, type value) const {                     \
-    NoSafepointScope no_safepoint;                                             \
-    StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
-  }
-
-  TYPED_GETTER_SETTER(Int8, int8_t)
-  TYPED_GETTER_SETTER(Uint8, uint8_t)
-  TYPED_GETTER_SETTER(Int16, int16_t)
-  TYPED_GETTER_SETTER(Uint16, uint16_t)
-  TYPED_GETTER_SETTER(Int32, int32_t)
-  TYPED_GETTER_SETTER(Uint32, uint32_t)
-  TYPED_GETTER_SETTER(Int64, int64_t)
-  TYPED_GETTER_SETTER(Uint64, uint64_t)
-  TYPED_GETTER_SETTER(Float32, float)
-  TYPED_GETTER_SETTER(Float64, double)
-  TYPED_GETTER_SETTER(Float32x4, simd128_value_t)
-  TYPED_GETTER_SETTER(Int32x4, simd128_value_t)
-  TYPED_GETTER_SETTER(Float64x2, simd128_value_t)
-
-#undef TYPED_GETTER_SETTER
 
   static intptr_t data_offset() { return RawTypedData::payload_offset(); }
 
@@ -8595,6 +8602,10 @@ class TypedData : public TypedDataBase {
  protected:
   void RecomputeDataField() { raw()->RecomputeDataField(); }
 
+  virtual void ValidateInvariant() const {
+    ASSERT(raw_ptr()->data_ == raw_ptr()->internal_data());
+  }
+
  private:
   // Provides const access to non-pointer, non-aligned data within the object.
   // Such access does not need a write barrier, but it is *not* GC-safe, since
@@ -8619,35 +8630,6 @@ class ExternalTypedData : public TypedDataBase {
   // Alignment of data when serializing ExternalTypedData in a clustered
   // snapshot. Should be independent of word size.
   static const int kDataSerializationAlignment = 8;
-
-  void* DataAddr(intptr_t byte_offset) const {
-    ASSERT((byte_offset == 0) ||
-           ((byte_offset > 0) && (byte_offset < LengthInBytes())));
-    return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
-  }
-
-#define TYPED_GETTER_SETTER(name, type)                                        \
-  type Get##name(intptr_t byte_offset) const {                                 \
-    return ReadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
-  }                                                                            \
-  void Set##name(intptr_t byte_offset, type value) const {                     \
-    StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
-  }
-  TYPED_GETTER_SETTER(Int8, int8_t)
-  TYPED_GETTER_SETTER(Uint8, uint8_t)
-  TYPED_GETTER_SETTER(Int16, int16_t)
-  TYPED_GETTER_SETTER(Uint16, uint16_t)
-  TYPED_GETTER_SETTER(Int32, int32_t)
-  TYPED_GETTER_SETTER(Uint32, uint32_t)
-  TYPED_GETTER_SETTER(Int64, int64_t)
-  TYPED_GETTER_SETTER(Uint64, uint64_t)
-  TYPED_GETTER_SETTER(Float32, float)
-  TYPED_GETTER_SETTER(Float64, double)
-  TYPED_GETTER_SETTER(Float32x4, simd128_value_t)
-  TYPED_GETTER_SETTER(Int32x4, simd128_value_t)
-  TYPED_GETTER_SETTER(Float64x2, simd128_value_t)
-
-#undef TYPED_GETTER_SETTER
 
   FinalizablePersistentHandle* AddFinalizer(
       void* peer,
@@ -8733,7 +8715,7 @@ class TypedDataView : public TypedDataBase {
     return OFFSET_OF(RawTypedDataView, offset_in_bytes_);
   }
 
-  RawInstance* typed_data() const { return raw_ptr()->typed_data_; }
+  RawTypedDataBase* typed_data() const { return raw_ptr()->typed_data_; }
 
   void InitializeWith(const TypedDataBase& typed_data,
                       intptr_t offset_in_bytes,
@@ -8750,6 +8732,9 @@ class TypedDataView : public TypedDataBase {
   }
 
   RawSmi* offset_in_bytes() const { return raw_ptr()->offset_in_bytes_; }
+
+ protected:
+  virtual void ValidateInvariant() const { raw()->ValidateInnerPointer(); }
 
  private:
   void RecomputeDataField() { raw()->RecomputeDataField(); }

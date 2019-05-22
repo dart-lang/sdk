@@ -1591,11 +1591,19 @@ class BytecodeDeserializationCluster : public DeserializationCluster {
 
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
     Bytecode& bytecode = Bytecode::Handle(zone);
-    ExternalTypedData& binary = ExternalTypedData::Handle(zone);
+    TypedDataBase& binary = TypedDataBase::Handle(zone);
 
     for (intptr_t i = start_index_; i < stop_index_; i++) {
       bytecode ^= refs.At(i);
       binary = bytecode.GetBinary(zone);
+
+      // The deserialization cluster for kBytecodeCid might be before
+      // kTypedDataViewCids, which means the inner pointer might not have been
+      // updated yet.
+      if (binary.IsTypedDataView()) {
+        TypedDataView::Cast(binary).raw()->RecomputeDataField();
+      }
+
       bytecode.set_instructions(reinterpret_cast<uword>(
           binary.DataAddr(bytecode.instructions_binary_offset())));
     }

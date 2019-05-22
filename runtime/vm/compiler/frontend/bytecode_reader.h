@@ -267,7 +267,7 @@ class BytecodeReader : public AllStatic {
 class BytecodeSourcePositionsIterator : ValueObject {
  public:
   BytecodeSourcePositionsIterator(Zone* zone, const Bytecode& bytecode)
-      : reader_(ExternalTypedData::Handle(zone, bytecode.GetBinary(zone))),
+      : reader_(TypedDataBase::Handle(zone, bytecode.GetBinary(zone))),
         pairs_remaining_(0),
         pc_shifter_(
             Isolate::Current()->is_using_old_bytecode_instructions() ? 2 : 0),

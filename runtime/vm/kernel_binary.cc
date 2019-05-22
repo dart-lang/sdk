@@ -78,8 +78,8 @@ Program* Program::ReadFrom(Reader* reader, const char** error) {
 
   Program* program = new Program();
   program->binary_version_ = formatVersion;
-  program->kernel_data_ = reader->buffer();
-  program->kernel_data_size_ = reader->size();
+  program->kernel_data_ =
+      &TypedDataBase::ZoneHandle(reader->typed_data()->raw());
 
   // Dill files can be concatenated (e.g. cat a.dill b.dill > c.dill). Find out
   // if this dill contains more than one program.
@@ -126,45 +126,25 @@ Program* Program::ReadFromFile(const char* script_uri,
   if (script_uri == NULL) {
     return NULL;
   }
-  kernel::Program* kernel_program = NULL;
 
   const String& uri = String::Handle(String::New(script_uri));
   const Object& ret = Object::Handle(thread->isolate()->CallTagHandler(
       Dart_kKernelTag, Object::null_object(), uri));
-  Api::Scope api_scope(thread);
-  Dart_Handle retval = Api::NewHandle(thread, ret.raw());
-  {
+  if (ret.IsError()) {
+    Api::Scope api_scope(thread);
+    Dart_Handle retval = Api::NewHandle(thread, ret.raw());
     TransitionVMToNative transition(thread);
-    if (!Dart_IsError(retval)) {
-      Dart_TypedData_Type data_type;
-      uint8_t* data;
-      ASSERT(Dart_IsTypedData(retval));
-
-      uint8_t* kernel_buffer;
-      intptr_t kernel_buffer_size;
-      Dart_Handle val = Dart_TypedDataAcquireData(
-          retval, &data_type, reinterpret_cast<void**>(&data),
-          &kernel_buffer_size);
-      ASSERT(!Dart_IsError(val));
-      ASSERT(data_type == Dart_TypedData_kUint8);
-      kernel_buffer = reinterpret_cast<uint8_t*>(malloc(kernel_buffer_size));
-      memmove(kernel_buffer, data, kernel_buffer_size);
-      Dart_TypedDataReleaseData(retval);
-
-      kernel_program = kernel::Program::ReadFromBuffer(
-          kernel_buffer, kernel_buffer_size, error);
-    } else if (error != nullptr) {
+    if (error != nullptr) {
       *error = Dart_GetError(retval);
     }
+    return nullptr;
   }
-  return kernel_program;
-}
 
-Program* Program::ReadFromBuffer(const uint8_t* buffer,
-                                 intptr_t buffer_length,
-                                 const char** error) {
-  kernel::Reader reader(buffer, buffer_length);
-  return kernel::Program::ReadFrom(&reader, error);
+  // NOTE: We require the embedder to supply an external typed data (with a
+  // finalizer) so we can simply use it and don't need to make a copy.
+  RELEASE_ASSERT(ret.IsExternalTypedData());
+  const auto& td = ExternalTypedData::Cast(ret);
+  return kernel::Program::ReadFromTypedData(td, error);
 }
 
 Program* Program::ReadFromTypedData(const ExternalTypedData& typed_data,

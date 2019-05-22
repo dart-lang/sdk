@@ -44,17 +44,17 @@ class TranslationHelper {
   const TypedData& string_offsets() { return string_offsets_; }
   void SetStringOffsets(const TypedData& string_offsets);
 
-  const ExternalTypedData& string_data() { return string_data_; }
-  void SetStringData(const ExternalTypedData& string_data);
+  const TypedDataBase& string_data() { return string_data_; }
+  void SetStringData(const TypedDataBase& string_data);
 
   const TypedData& canonical_names() { return canonical_names_; }
   void SetCanonicalNames(const TypedData& canonical_names);
 
-  const ExternalTypedData& metadata_payloads() { return metadata_payloads_; }
-  void SetMetadataPayloads(const ExternalTypedData& metadata_payloads);
+  const TypedDataBase& metadata_payloads() { return metadata_payloads_; }
+  void SetMetadataPayloads(const TypedDataBase& metadata_payloads);
 
-  const ExternalTypedData& metadata_mappings() { return metadata_mappings_; }
-  void SetMetadataMappings(const ExternalTypedData& metadata_mappings);
+  const TypedDataBase& metadata_mappings() { return metadata_mappings_; }
+  void SetMetadataMappings(const TypedDataBase& metadata_mappings);
 
   const Array& constants() { return constants_; }
   void SetConstants(const Array& constants);
@@ -200,10 +200,10 @@ class TranslationHelper {
   Heap::Space allocation_space_;
 
   TypedData& string_offsets_;
-  ExternalTypedData& string_data_;
+  TypedDataBase& string_data_;
   TypedData& canonical_names_;
-  ExternalTypedData& metadata_payloads_;
-  ExternalTypedData& metadata_mappings_;
+  TypedDataBase& metadata_payloads_;
+  TypedDataBase& metadata_mappings_;
   Array& constants_;
   KernelProgramInfo& info_;
   Smi& name_index_handle_;
@@ -967,23 +967,12 @@ class KernelReaderHelper {
   KernelReaderHelper(Zone* zone,
                      TranslationHelper* translation_helper,
                      const Script& script,
-                     const ExternalTypedData& data,
+                     const TypedDataBase& data,
                      intptr_t data_program_offset)
       : zone_(zone),
         translation_helper_(*translation_helper),
         reader_(data),
         script_(script),
-        data_program_offset_(data_program_offset) {}
-
-  KernelReaderHelper(Zone* zone,
-                     TranslationHelper* translation_helper,
-                     const uint8_t* data_buffer,
-                     intptr_t buffer_length,
-                     intptr_t data_program_offset)
-      : zone_(zone),
-        translation_helper_(*translation_helper),
-        reader_(data_buffer, buffer_length),
-        script_(Script::Handle(zone_)),
         data_program_offset_(data_program_offset) {}
 
   virtual ~KernelReaderHelper() = default;

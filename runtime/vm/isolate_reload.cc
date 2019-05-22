@@ -612,7 +612,8 @@ void IsolateReloadContext::Reload(bool force_reload,
     kernel_program.set(kernel::Program::ReadFromFile(root_script_url));
     if (kernel_program.get() != NULL) {
       num_received_libs_ = kernel_program.get()->library_count();
-      bytes_received_libs_ = kernel_program.get()->kernel_data_size();
+      bytes_received_libs_ =
+          kernel_program.get()->kernel_data().LengthInBytes();
       p_num_received_classes = &num_received_classes_;
       p_num_received_procedures = &num_received_procedures_;
     } else {
@@ -661,13 +662,6 @@ void IsolateReloadContext::Reload(bool force_reload,
           [](void* isolate_callback_data, Dart_WeakPersistentHandle handle,
              void* data) { free(data); },
           retval.kernel_size);
-
-      // TODO(dartbug.com/33973): Change the heap objects to have a proper
-      // retaining path to the kernel blob and ensure the finalizer will free it
-      // once there are no longer references to it.
-      // (The [ExternalTypedData] currently referenced by e.g. functions point
-      // into the middle of c-allocated buffer and don't have a finalizer).
-      I->RetainKernelBlob(typed_data);
 
       kernel_program.set(kernel::Program::ReadFromTypedData(typed_data));
     }

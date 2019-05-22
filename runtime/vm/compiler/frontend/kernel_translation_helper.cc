@@ -27,10 +27,10 @@ TranslationHelper::TranslationHelper(Thread* thread)
       isolate_(thread->isolate()),
       allocation_space_(Heap::kNew),
       string_offsets_(TypedData::Handle(Z)),
-      string_data_(ExternalTypedData::Handle(Z)),
+      string_data_(TypedDataBase::Handle(Z)),
       canonical_names_(TypedData::Handle(Z)),
-      metadata_payloads_(ExternalTypedData::Handle(Z)),
-      metadata_mappings_(ExternalTypedData::Handle(Z)),
+      metadata_payloads_(TypedDataBase::Handle(Z)),
+      metadata_mappings_(TypedDataBase::Handle(Z)),
       constants_(Array::Handle(Z)),
       info_(KernelProgramInfo::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)) {}
@@ -41,20 +41,20 @@ TranslationHelper::TranslationHelper(Thread* thread, Heap::Space space)
       isolate_(thread->isolate()),
       allocation_space_(space),
       string_offsets_(TypedData::Handle(Z)),
-      string_data_(ExternalTypedData::Handle(Z)),
+      string_data_(TypedDataBase::Handle(Z)),
       canonical_names_(TypedData::Handle(Z)),
-      metadata_payloads_(ExternalTypedData::Handle(Z)),
-      metadata_mappings_(ExternalTypedData::Handle(Z)),
+      metadata_payloads_(TypedDataBase::Handle(Z)),
+      metadata_mappings_(TypedDataBase::Handle(Z)),
       constants_(Array::Handle(Z)),
       info_(KernelProgramInfo::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)) {}
 
 void TranslationHelper::Reset() {
   string_offsets_ = TypedData::null();
-  string_data_ = ExternalTypedData::null();
+  string_data_ = TypedDataBase::null();
   canonical_names_ = TypedData::null();
-  metadata_payloads_ = ExternalTypedData::null();
-  metadata_mappings_ = ExternalTypedData::null();
+  metadata_payloads_ = TypedDataBase::null();
+  metadata_mappings_ = TypedDataBase::null();
   constants_ = Array::null();
 }
 
@@ -74,10 +74,10 @@ void TranslationHelper::InitFromScript(const Script& script) {
 void TranslationHelper::InitFromKernelProgramInfo(
     const KernelProgramInfo& info) {
   SetStringOffsets(TypedData::Handle(Z, info.string_offsets()));
-  SetStringData(ExternalTypedData::Handle(Z, info.string_data()));
+  SetStringData(TypedDataBase::Handle(Z, info.string_data()));
   SetCanonicalNames(TypedData::Handle(Z, info.canonical_names()));
-  SetMetadataPayloads(ExternalTypedData::Handle(Z, info.metadata_payloads()));
-  SetMetadataMappings(ExternalTypedData::Handle(Z, info.metadata_mappings()));
+  SetMetadataPayloads(TypedDataBase::Handle(Z, info.metadata_payloads()));
+  SetMetadataMappings(TypedDataBase::Handle(Z, info.metadata_mappings()));
   SetConstants(Array::Handle(Z, info.constants()));
   SetKernelProgramInfo(info);
 }
@@ -97,7 +97,7 @@ void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
   string_offsets_ = string_offsets.raw();
 }
 
-void TranslationHelper::SetStringData(const ExternalTypedData& string_data) {
+void TranslationHelper::SetStringData(const TypedDataBase& string_data) {
   ASSERT(string_data_.IsNull());
   string_data_ = string_data.raw();
 }
@@ -108,14 +108,14 @@ void TranslationHelper::SetCanonicalNames(const TypedData& canonical_names) {
 }
 
 void TranslationHelper::SetMetadataPayloads(
-    const ExternalTypedData& metadata_payloads) {
+    const TypedDataBase& metadata_payloads) {
   ASSERT(metadata_payloads_.IsNull());
   ASSERT(Utils::IsAligned(metadata_payloads.DataAddr(0), kWordSize));
   metadata_payloads_ = metadata_payloads.raw();
 }
 
 void TranslationHelper::SetMetadataMappings(
-    const ExternalTypedData& metadata_mappings) {
+    const TypedDataBase& metadata_mappings) {
   ASSERT(metadata_mappings_.IsNull());
   metadata_mappings_ = metadata_mappings.raw();
 }
@@ -151,7 +151,7 @@ uint8_t* TranslationHelper::StringBuffer(StringIndex string_index) const {
   // expression will try to return the address that is one past the backing
   // store of the string_data_ table.  Though this is safe in C++ as long as the
   // address is not dereferenced, it will trigger the assert in
-  // ExternalTypedData::DataAddr.
+  // TypedDataBase::DataAddr.
   ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
   return reinterpret_cast<uint8_t*>(string_data_.DataAddr(0)) +
          StringOffset(string_index);

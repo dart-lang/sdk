@@ -18,7 +18,7 @@ class KernelFingerprintHelper : public KernelReaderHelper {
   KernelFingerprintHelper(Zone* zone,
                           TranslationHelper* translation_helper,
                           const Script& script,
-                          const ExternalTypedData& data,
+                          const TypedDataBase& data,
                           intptr_t data_program_offset)
       : KernelReaderHelper(zone,
                            translation_helper,
@@ -838,7 +838,7 @@ uint32_t KernelSourceFingerprintHelper::CalculateFieldFingerprint(
 
   KernelFingerprintHelper helper(
       zone, &translation_helper, script,
-      ExternalTypedData::Handle(zone, field.KernelData()),
+      TypedDataBase::Handle(zone, field.KernelData()),
       field.KernelDataProgramOffset());
   helper.SetOffset(field.kernel_offset());
   return helper.CalculateFieldFingerprint();
@@ -853,10 +853,9 @@ uint32_t KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
   TranslationHelper translation_helper(thread);
   translation_helper.InitFromScript(script);
 
-  KernelFingerprintHelper helper(
-      zone, &translation_helper, script,
-      ExternalTypedData::Handle(zone, func.KernelData()),
-      func.KernelDataProgramOffset());
+  KernelFingerprintHelper helper(zone, &translation_helper, script,
+                                 TypedDataBase::Handle(zone, func.KernelData()),
+                                 func.KernelDataProgramOffset());
   helper.SetOffset(func.kernel_offset());
   return helper.CalculateFunctionFingerprint();
 }

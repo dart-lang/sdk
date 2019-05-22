@@ -724,7 +724,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 #endif
 
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
-      this, ExternalTypedData::Handle(Z, function.KernelData()),
+      this, TypedDataBase::Handle(Z, function.KernelData()),
       function.KernelDataProgramOffset());
   return streaming_flow_graph_builder.BuildGraph();
 }

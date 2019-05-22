@@ -84,7 +84,7 @@ class LibraryIndex {
   // |kernel_data| is the kernel data for one library alone.
   // binary_version can be -1 in which case some parts of the index might not
   // be read.
-  explicit LibraryIndex(const ExternalTypedData& kernel_data,
+  explicit LibraryIndex(const TypedDataBase& kernel_data,
                         int32_t binary_version);
 
   intptr_t class_count() const { return class_count_; }
@@ -130,16 +130,9 @@ class LibraryIndex {
 
 class ClassIndex {
  public:
-  // |class_offset| is the offset of class' kernel data in |buffer| of
-  // size |size|. The size of the class' kernel data is |class_size|.
-  ClassIndex(const uint8_t* buffer,
-             intptr_t buffer_size,
-             intptr_t class_offset,
-             intptr_t class_size);
-
   // |class_offset| is the offset of class' kernel data in |kernel_data|.
   // The size of the class' kernel data is |class_size|.
-  ClassIndex(const ExternalTypedData& kernel_data,
+  ClassIndex(const TypedDataBase& kernel_data,
              intptr_t class_offset,
              intptr_t class_size);
 
@@ -215,8 +208,7 @@ class KernelLoader : public ValueObject {
                                     intptr_t* p_num_classes,
                                     intptr_t* p_num_procedures);
 
-  static RawString* FindSourceForScript(const uint8_t* kernel_buffer,
-                                        intptr_t kernel_buffer_length,
+  static RawString* FindSourceForScript(const ExternalTypedData& kernel_td,
                                         const String& url);
 
   RawLibrary* LoadLibrary(intptr_t index);
@@ -265,16 +257,14 @@ class KernelLoader : public ValueObject {
   }
 
   intptr_t library_offset(intptr_t index) {
-    kernel::Reader reader(program_->kernel_data(),
-                          program_->kernel_data_size());
+    kernel::Reader reader(program_->kernel_data());
     return reader.ReadFromIndexNoReset(reader.size(),
                                        LibraryCountFieldCountFromEnd + 1,
                                        program_->library_count() + 1, index);
   }
 
   NameIndex library_canonical_name(intptr_t index) {
-    kernel::Reader reader(program_->kernel_data(),
-                          program_->kernel_data_size());
+    kernel::Reader reader(program_->kernel_data());
     reader.set_offset(library_offset(index));
 
     // Start reading library.
@@ -288,7 +278,7 @@ class KernelLoader : public ValueObject {
   friend class BuildingTranslationHelper;
 
   KernelLoader(const Script& script,
-               const ExternalTypedData& kernel_data,
+               const TypedDataBase& kernel_data,
                intptr_t data_program_offset);
 
   void InitializeFields(
@@ -411,7 +401,7 @@ class KernelLoader : public ValueObject {
 
   NameIndex skip_vmservice_library_;
 
-  ExternalTypedData& library_kernel_data_;
+  TypedDataBase& library_kernel_data_;
   KernelProgramInfo& kernel_program_info_;
   BuildingTranslationHelper translation_helper_;
   KernelReaderHelper helper_;
