@@ -370,6 +370,30 @@ class AstFactoryImpl extends AstFactory {
       new ExtendsClauseImpl(extendsKeyword, superclass);
 
   @override
+  ExtensionDeclaration extensionDeclaration(
+          {Comment comment,
+          List<Annotation> metadata,
+          Token extensionKeyword,
+          @required SimpleIdentifier name,
+          TypeParameterList typeParameters,
+          Token onKeyword,
+          @required TypeAnnotation extendedType,
+          Token leftBracket,
+          List<ClassMember> members,
+          Token rightBracket}) =>
+      new ExtensionDeclarationImpl(
+          comment,
+          metadata,
+          extensionKeyword,
+          name,
+          typeParameters,
+          onKeyword,
+          extendedType,
+          leftBracket,
+          members,
+          rightBracket);
+
+  @override
   FieldDeclaration fieldDeclaration(
           Comment comment,
           List<Annotation> metadata,

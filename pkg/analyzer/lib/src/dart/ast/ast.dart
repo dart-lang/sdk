@@ -3821,6 +3821,109 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   }
 }
 
+/// The declaration of an extension of a type.
+///
+///    extension ::=
+///        'extension' [SimpleIdentifier] [TypeParameterList]?
+///        'on' [TypeAnnotation] '{' [ClassMember]* '}'
+///
+/// Clients may not extend, implement or mix-in this class.
+class ExtensionDeclarationImpl extends NamedCompilationUnitMemberImpl
+    implements ExtensionDeclaration {
+  @override
+  Token extensionKeyword;
+
+  /// The type parameters for the extension, or `null` if the extension
+  /// does not have any type parameters.
+  TypeParameterListImpl _typeParameters;
+
+  @override
+  Token onKeyword;
+
+  /// The type that is being extended.
+  TypeAnnotationImpl _extendedType;
+
+  @override
+  Token leftBracket;
+
+  /// The members being added to the extended class.
+  NodeList<ClassMember> _members;
+
+  @override
+  Token rightBracket;
+
+  ExtensionDeclarationImpl(
+      CommentImpl comment,
+      List<Annotation> metadata,
+      this.extensionKeyword,
+      SimpleIdentifierImpl name,
+      TypeParameterListImpl typeParameters,
+      this.onKeyword,
+      TypeAnnotationImpl extendedType,
+      this.leftBracket,
+      List<ClassMember> members,
+      this.rightBracket)
+      : super(comment, metadata, name) {
+    _typeParameters = _becomeParentOf(typeParameters);
+    _extendedType = _becomeParentOf(extendedType);
+    _members = new NodeListImpl<ClassMember>(this, members);
+  }
+
+  @override
+  Token get beginToken => extensionKeyword;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(extensionKeyword)
+    ..add(name)
+    ..add(typeParameters)
+    ..add(onKeyword)
+    ..add(extendedType)
+    ..add(leftBracket)
+    ..addAll(members)
+    ..add(rightBracket);
+
+  @override
+  Element get declaredElement => name.staticElement;
+
+  @override
+  Element get element => name.staticElement;
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  TypeAnnotation get extendedType => _extendedType;
+
+  void set extendedType(TypeAnnotation extendedClass) {
+    _extendedType = _becomeParentOf(extendedClass as TypeAnnotationImpl);
+  }
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata => name.beginToken;
+
+  @override
+  NodeList<ClassMember> get members => _members;
+
+  @override
+  TypeParameterList get typeParameters => _typeParameters;
+
+  void set typeParameters(TypeParameterList typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitExtensionDeclaration(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    name?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _extendedType?.accept(visitor);
+    _members.accept(visitor);
+  }
+}
+
 /// The declaration of one or more fields of the same type.
 ///
 ///    fieldDeclaration ::=

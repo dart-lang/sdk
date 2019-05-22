@@ -6673,6 +6673,9 @@ class CodeGenerator extends Object
   @override
   visitForPartsWithExpression(ForPartsWithExpression node) =>
       _unreachable(node);
+
+  @override
+  visitExtensionDeclaration(ExtensionDeclaration node) => _unreachable(node);
 }
 
 // TODO(jacobr): we would like to do something like the following

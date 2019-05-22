@@ -450,6 +450,20 @@ class AstCloner
           cloneToken(node.extendsKeyword), cloneNode(node.superclass));
 
   @override
+  ExtensionDeclaration visitExtensionDeclaration(ExtensionDeclaration node) =>
+      astFactory.extensionDeclaration(
+          comment: cloneNode(node.documentationComment),
+          metadata: cloneNodeList(node.metadata),
+          extensionKeyword: cloneToken(node.extensionKeyword),
+          name: cloneNode(node.name),
+          typeParameters: cloneNode(node.typeParameters),
+          onKeyword: cloneToken(node.onKeyword),
+          extendedType: cloneNode(node.extendedType),
+          leftBracket: cloneToken(node.leftBracket),
+          members: cloneNodeList(node.members),
+          rightBracket: cloneToken(node.rightBracket));
+
+  @override
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) =>
       astFactory.fieldDeclaration2(
           comment: cloneNode(node.documentationComment),
@@ -1574,6 +1588,22 @@ class AstComparator
     ExtendsClause other = _other as ExtendsClause;
     return isEqualTokens(node.extendsKeyword, other.extendsKeyword) &&
         isEqualNodes(node.superclass, other.superclass);
+  }
+
+  @override
+  bool visitExtensionDeclaration(ExtensionDeclaration node) {
+    ExtensionDeclaration other = _other as ExtensionDeclaration;
+    return isEqualNodes(
+            node.documentationComment, other.documentationComment) &&
+        _isEqualNodeLists(node.metadata, other.metadata) &&
+        isEqualTokens(node.extensionKeyword, other.extensionKeyword) &&
+        isEqualNodes(node.name, other.name) &&
+        isEqualNodes(node.typeParameters, other.typeParameters) &&
+        isEqualTokens(node.onKeyword, other.onKeyword) &&
+        isEqualNodes(node.extendedType, other.extendedType) &&
+        isEqualTokens(node.leftBracket, other.leftBracket) &&
+        _isEqualNodeLists(node.members, other.members) &&
+        isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override
@@ -2815,6 +2845,20 @@ class IncrementalAstCloner
   ExtendsClause visitExtendsClause(ExtendsClause node) =>
       astFactory.extendsClause(
           _mapToken(node.extendsKeyword), _cloneNode(node.superclass));
+
+  @override
+  ExtensionDeclaration visitExtensionDeclaration(ExtensionDeclaration node) =>
+      astFactory.extensionDeclaration(
+          comment: _cloneNode(node.documentationComment),
+          metadata: _cloneNodeList(node.metadata),
+          extensionKeyword: _mapToken(node.extensionKeyword),
+          name: _cloneNode(node.name),
+          typeParameters: _cloneNode(node.typeParameters),
+          onKeyword: _mapToken(node.onKeyword),
+          extendedType: _cloneNode(node.extendedType),
+          leftBracket: _mapToken(node.leftBracket),
+          members: _cloneNodeList(node.members),
+          rightBracket: _mapToken(node.rightBracket));
 
   @override
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) =>
@@ -4230,6 +4274,29 @@ class NodeReplacer with UIAsCodeVisitorMixin<bool> implements AstVisitor<bool> {
     return visitNode(node);
   }
 
+  bool visitExtensionDeclaration(ExtensionDeclaration node) {
+    if (identical(node.documentationComment, _oldNode)) {
+      node.documentationComment = _newNode as Comment;
+      return true;
+    } else if (_replaceInList(node.metadata)) {
+      return true;
+    } else if (identical(node.name, _oldNode)) {
+      (node as ExtensionDeclarationImpl).name = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.typeParameters, _oldNode)) {
+      (node as ExtensionDeclarationImpl).typeParameters =
+          _newNode as TypeParameterList;
+      return true;
+    } else if (identical(node.extendedType, _oldNode)) {
+      (node as ExtensionDeclarationImpl).extendedType =
+          _newNode as TypeAnnotation;
+      return true;
+    } else if (_replaceInList(node.members)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
   @override
   bool visitFieldDeclaration(FieldDeclaration node) {
     if (identical(node.fields, _oldNode)) {
@@ -5582,6 +5649,25 @@ class ResolutionCopier
     ExtendsClause toNode = this._toNode as ExtendsClause;
     return _and(_isEqualTokens(node.extendsKeyword, toNode.extendsKeyword),
         _isEqualNodes(node.superclass, toNode.superclass));
+  }
+
+  @override
+  bool visitExtensionDeclaration(ExtensionDeclaration node) {
+    ExtensionDeclaration toNode = this._toNode as ExtensionDeclaration;
+    if (_and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.extensionKeyword, toNode.extensionKeyword),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.typeParameters, toNode.typeParameters),
+        _isEqualTokens(node.onKeyword, toNode.onKeyword),
+        _isEqualNodes(node.extendedType, toNode.extendedType),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.members, toNode.members),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -7155,6 +7241,21 @@ class ToSourceVisitor
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    _visitTokenWithSuffix(node.extensionKeyword, ' ');
+    _visitNode(node.name);
+    _visitNode(node.typeParameters);
+    _writer.print(' ');
+    _visitToken(node.onKeyword);
+    _writer.print(' ');
+    _visitNodeWithSuffix(node.extendedType, ' ');
+    _visitToken(node.leftBracket);
+    _visitNodeListWithSeparator(node.members, ' ');
+    _visitToken(node.rightBracket);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _visitTokenWithSuffix(node.staticKeyword, " ");
@@ -7927,6 +8028,15 @@ class ToSourceVisitor
   }
 
   /**
+   * Safely visit the given [token].
+   */
+  void _visitToken(Token token) {
+    if (token != null) {
+      _writer.print(token.lexeme);
+    }
+  }
+
+  /**
    * Safely visit the given [token], printing the [suffix] after the token if it
    * is non-`null`.
    */
@@ -8072,6 +8182,16 @@ class ToSourceVisitor2
     if (node != null) {
       node.accept(this);
       sink.write(suffix);
+    }
+  }
+
+  /**
+   * Safely visit the given [token].
+   */
+  @protected
+  void safelyVisitToken(Token token) {
+    if (token != null) {
+      sink.write(token.lexeme);
     }
   }
 
@@ -8417,6 +8537,21 @@ class ToSourceVisitor2
   void visitExtendsClause(ExtendsClause node) {
     sink.write("extends ");
     safelyVisitNode(node.superclass);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    safelyVisitTokenWithSuffix(node.extensionKeyword, ' ');
+    safelyVisitNode(node.name);
+    safelyVisitNode(node.typeParameters);
+    sink.write(' ');
+    safelyVisitToken(node.onKeyword);
+    sink.write(' ');
+    safelyVisitNodeWithSuffix(node.extendedType, ' ');
+    safelyVisitToken(node.leftBracket);
+    safelyVisitNodeListWithSeparator(node.members, ' ');
+    safelyVisitToken(node.rightBracket);
   }
 
   @override

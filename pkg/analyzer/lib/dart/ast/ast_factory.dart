@@ -339,6 +339,20 @@ abstract class AstFactory {
   /// Returns a newly created extends clause.
   ExtendsClause extendsClause(Token extendsKeyword, TypeName superclass);
 
+  /// Return a newly created extention declaration. The list of [typeParameters]
+  /// can be `null` if there are no type parameters.
+  ExtensionDeclaration extensionDeclaration(
+      {Comment comment,
+      List<Annotation> metadata,
+      Token extensionKeyword,
+      @required SimpleIdentifier name,
+      TypeParameterList typeParameters,
+      Token onKeyword,
+      @required TypeAnnotation extendedType,
+      Token leftBracket,
+      List<ClassMember> members,
+      Token rightBracket});
+
   /// Returns a newly created field declaration. Either or both of the [comment]
   /// and [metadata] can be `null` if the declaration does not have the
   /// corresponding attribute. The [staticKeyword] can be `null` if the field is

@@ -500,6 +500,8 @@ abstract class AstVisitor<R> {
 
   R visitExtendsClause(ExtendsClause node);
 
+  R visitExtensionDeclaration(ExtensionDeclaration node);
+
   R visitFieldDeclaration(FieldDeclaration node);
 
   R visitFieldFormalParameter(FieldFormalParameter node);
