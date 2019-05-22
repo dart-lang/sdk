@@ -450,9 +450,11 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
         writeConstant(constant.referenced);
         writeOutputUnitReference(constant.unit);
         break;
-      case ConstantValueKind.ABSTRACT_VALUE:
-        AbstractValueConstantValue constant = value;
+      case ConstantValueKind.DUMMY_INTERCEPTOR:
+        DummyInterceptorConstantValue constant = value;
         writeAbstractValue(constant.abstractValue);
+        break;
+      case ConstantValueKind.UNREACHABLE:
         break;
       case ConstantValueKind.JS_NAME:
         JsNameConstantValue constant = value;

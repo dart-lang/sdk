@@ -212,7 +212,7 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   @override
   String get name {
     assert(isFinalized, "TokenName($key) has not been finalized.");
-    return _name ?? key;
+    return _name;
   }
 
   @override

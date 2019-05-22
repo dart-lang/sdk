@@ -628,6 +628,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   js.Expression generateExpressionAssignment(String variableName,
       js.Expression value, SourceInformation sourceInformation) {
+    // TODO(johnniwinther): Introduce a DeferredVariableUse to handle this
+    // in the SSA codegen or let the JS printer handle it fully and remove it
+    // here.
     if (value is js.Binary) {
       js.Binary binary = value;
       String op = binary.op;

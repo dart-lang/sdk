@@ -48,9 +48,15 @@ class ConstantValueTypeMasks
   }
 
   @override
-  TypeMask visitAbstractValue(
-      AbstractValueConstantValue constant, JClosedWorld closedWorld) {
+  TypeMask visitDummyInterceptor(
+      DummyInterceptorConstantValue constant, JClosedWorld closedWorld) {
     return constant.abstractValue;
+  }
+
+  @override
+  TypeMask visitUnreachable(
+      UnreachableConstantValue constant, JClosedWorld closedWorld) {
+    return closedWorld.abstractValueDomain.emptyType;
   }
 
   @override

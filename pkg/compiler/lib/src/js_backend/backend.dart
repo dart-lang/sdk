@@ -594,7 +594,6 @@ class JavaScriptBackend {
         _codegenImpactTransformer.transformCodegenImpact(result.impact);
     compiler.dumpInfoTask.registerImpact(member, worldImpact);
     result.applyModularState(_namer, emitterTask.emitter);
-    //print('$member:$result');
     return worldImpact;
   }
 

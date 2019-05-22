@@ -326,10 +326,7 @@ class HGraph {
   HConstant addConstantUnreachable(JClosedWorld closedWorld) {
     // A constant with an empty type used as the HInstruction of an expression
     // in an unreachable context.
-    return addConstant(
-        new AbstractValueConstantValue(
-            closedWorld.abstractValueDomain.emptyType),
-        closedWorld);
+    return addConstant(const UnreachableConstantValue(), closedWorld);
   }
 
   void finalize(AbstractValueDomain domain) {

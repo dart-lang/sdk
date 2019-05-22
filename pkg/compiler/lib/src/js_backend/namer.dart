@@ -1884,8 +1884,13 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
-  void visitAbstractValue(AbstractValueConstantValue constant, [_]) {
-    add('dummy_receiver');
+  void visitDummyInterceptor(DummyInterceptorConstantValue constant, [_]) {
+    add('dummy_interceptor');
+  }
+
+  @override
+  void visitUnreachable(UnreachableConstantValue constant, [_]) {
+    add('unreachable');
   }
 
   @override
@@ -2012,10 +2017,18 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   }
 
   @override
-  int visitAbstractValue(AbstractValueConstantValue constant, [_]) {
+  int visitDummyInterceptor(DummyInterceptorConstantValue constant, [_]) {
     throw failedAt(
         NO_LOCATION_SPANNABLE,
-        'AbstractValueConstantValue should never be named and '
+        'DummyInterceptorConstantValue should never be named and '
+        'never be subconstant');
+  }
+
+  @override
+  int visitUnreachable(UnreachableConstantValue constant, [_]) {
+    throw failedAt(
+        NO_LOCATION_SPANNABLE,
+        'UnreachableConstantValue should never be named and '
         'never be subconstant');
   }
 

@@ -144,8 +144,13 @@ class ModularConstantEmitter
   }
 
   @override
-  jsAst.Expression visitAbstractValue(AbstractValueConstantValue constant,
+  jsAst.Expression visitDummyInterceptor(DummyInterceptorConstantValue constant,
       [_]) {
+    return new jsAst.LiteralNumber('0');
+  }
+
+  @override
+  jsAst.Expression visitUnreachable(UnreachableConstantValue constant, [_]) {
     return new jsAst.LiteralNumber('0');
   }
 
