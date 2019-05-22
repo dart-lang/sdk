@@ -555,7 +555,11 @@ class Cids : public ZoneAllocated {
   explicit Cids(Zone* zone) : zone_(zone) {}
   // Creates the off-heap Cids object that reflects the contents
   // of the on-VM-heap IC data.
-  static Cids* Create(Zone* zone, const ICData& ic_data, int argument_number);
+  // Ranges of Cids are merged if there is only one target function and
+  // it is used for all cids in the gaps between ranges.
+  static Cids* CreateAndExpand(Zone* zone,
+                               const ICData& ic_data,
+                               int argument_number);
   static Cids* CreateMonomorphic(Zone* zone, intptr_t cid);
 
   bool Equals(const Cids& other) const;

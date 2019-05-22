@@ -649,24 +649,75 @@ Cids* Cids::CreateMonomorphic(Zone* zone, intptr_t cid) {
   return cids;
 }
 
-Cids* Cids::Create(Zone* zone, const ICData& ic_data, int argument_number) {
+Cids* Cids::CreateAndExpand(Zone* zone,
+                            const ICData& ic_data,
+                            int argument_number) {
   Cids* cids = new (zone) Cids(zone);
   cids->CreateHelper(zone, ic_data, argument_number,
                      /* include_targets = */ false);
   cids->Sort(OrderById);
 
   // Merge adjacent class id ranges.
-  int dest = 0;
-  for (int src = 1; src < cids->length(); src++) {
-    if (cids->cid_ranges_[dest]->cid_end + 1 >=
-        cids->cid_ranges_[src]->cid_start) {
-      cids->cid_ranges_[dest]->cid_end = cids->cid_ranges_[src]->cid_end;
-    } else {
-      dest++;
-      if (src != dest) cids->cid_ranges_[dest] = cids->cid_ranges_[src];
+  {
+    int dest = 0;
+    for (int src = 1; src < cids->length(); src++) {
+      if (cids->cid_ranges_[dest]->cid_end + 1 >=
+          cids->cid_ranges_[src]->cid_start) {
+        cids->cid_ranges_[dest]->cid_end = cids->cid_ranges_[src]->cid_end;
+      } else {
+        dest++;
+        if (src != dest) cids->cid_ranges_[dest] = cids->cid_ranges_[src];
+      }
+    }
+    cids->SetLength(dest + 1);
+  }
+
+  // Merging/extending cid ranges is also done in CallTargets::CreateAndExpand.
+  // If changing this code, consider also adjusting CallTargets code.
+
+  if (cids->length() > 1 && argument_number == 0 && ic_data.HasOneTarget()) {
+    // Try harder to merge ranges if method lookups in the gaps result in the
+    // same target method.
+    const Function& target = Function::Handle(zone, ic_data.GetTargetAt(0));
+    if (!MethodRecognizer::PolymorphicTarget(target)) {
+      const auto& args_desc_array =
+          Array::Handle(zone, ic_data.arguments_descriptor());
+      ArgumentsDescriptor args_desc(args_desc_array);
+      const auto& name = String::Handle(zone, ic_data.target_name());
+      auto& fn = Function::Handle(zone);
+
+      intptr_t dest = 0;
+      for (intptr_t src = 1; src < cids->length(); src++) {
+        // Inspect all cids in the gap and see if they all resolve to the same
+        // target.
+        bool can_merge = true;
+        for (intptr_t cid = cids->cid_ranges_[dest]->cid_end + 1,
+                      end = cids->cid_ranges_[src]->cid_start;
+             cid < end; ++cid) {
+          bool class_is_abstract = false;
+          if (FlowGraphCompiler::LookupMethodFor(cid, name, args_desc, &fn,
+                                                 &class_is_abstract)) {
+            if (fn.raw() == target.raw()) {
+              continue;
+            }
+            if (class_is_abstract) {
+              continue;
+            }
+          }
+          can_merge = false;
+          break;
+        }
+
+        if (can_merge) {
+          cids->cid_ranges_[dest]->cid_end = cids->cid_ranges_[src]->cid_end;
+        } else {
+          dest++;
+          if (src != dest) cids->cid_ranges_[dest] = cids->cid_ranges_[src];
+        }
+      }
+      cids->SetLength(dest + 1);
     }
   }
-  cids->SetLength(dest + 1);
 
   return cids;
 }
@@ -3650,6 +3701,9 @@ CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
   Function& fn = Function::Handle(zone);
 
   intptr_t length = targets.length();
+
+  // Merging/extending cid ranges is also done in Cids::CreateAndExpand.
+  // If changing this code, consider also adjusting Cids code.
 
   // Spread class-ids to preceding classes where a lookup yields the same
   // method.  A polymorphic target is not really the same method since its

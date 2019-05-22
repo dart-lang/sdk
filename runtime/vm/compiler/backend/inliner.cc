@@ -3322,10 +3322,10 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
     // Insert receiver class or null check if needed.
     switch (check) {
       case FlowGraph::ToCheck::kCheckCid: {
-        Instruction* check_class =
-            flow_graph->CreateCheckClass(call->Receiver()->definition(),
-                                         *Cids::Create(Z, *call->ic_data(), 0),
-                                         call->deopt_id(), call->token_pos());
+        Instruction* check_class = flow_graph->CreateCheckClass(
+            call->Receiver()->definition(),
+            *Cids::CreateAndExpand(Z, *call->ic_data(), 0), call->deopt_id(),
+            call->token_pos());
         flow_graph->InsertBefore(call, check_class, call->env(),
                                  FlowGraph::kEffect);
         break;
