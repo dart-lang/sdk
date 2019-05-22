@@ -241,5 +241,6 @@ main() {
         "offset: 4, prefixGenerator: , isInitializer: false, isSuper: false)",
         new KernelUnexpectedQualifiedUseGenerator(
             helper, token, generator, false));
+    return Future<void>.value();
   });
 }

@@ -79,11 +79,96 @@ int f() {}
 ''', [HintCode.MISSING_RETURN]);
   }
 
+  test_functionExpression_declared() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  f() {} // no hint
+}
+''');
+  }
+
+  test_functionExpression_expression() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  int Function() f = () => null; // no hint
+}
+''');
+  }
+
+  test_functionExpression_futureOrDynamic() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:async';
+main() {
+  FutureOr<dynamic> Function() f = () { print(42); };
+}
+''');
+  }
+
+  test_functionExpression_futureOrInt() async {
+    await assertErrorCodesInCode(r'''
+import 'dart:async';
+main() {
+  FutureOr<int> Function() f = () { print(42); };
+}
+''', [HintCode.MISSING_RETURN]);
+  }
+
+  test_functionExpression_inferred() async {
+    await assertErrorCodesInCode(r'''
+main() {
+  int Function() f = () { print(42); };
+}
+''', [HintCode.MISSING_RETURN]);
+  }
+
+  test_functionExpression_inferred_dynamic() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  Function() f = () { print(42); }; // no hint
+}
+''');
+  }
+
+  test_functionExpressionAsync_inferred() async {
+    await assertErrorCodesInCode(r'''
+main() {
+  Future<int> Function() f = () async { print(42); }; 
+}
+''', [HintCode.MISSING_RETURN]);
+  }
+
+  test_functionExpressionAsync_inferred_dynamic() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  Future Function() f = () async { print(42); }; // no hint
+}
+''');
+  }
+
   test_method() async {
     await assertErrorCodesInCode(r'''
 class A {
   int m() {}
-}''', [HintCode.MISSING_RETURN]);
+}
+''', [HintCode.MISSING_RETURN]);
+  }
+
+  test_method_futureOrDynamic() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:async';
+class A {
+  FutureOr<dynamic> m() {}
+}
+''');
+  }
+
+  test_method_futureOrInt() async {
+    await assertErrorCodesInCode(r'''
+import 'dart:async';
+class A {
+  FutureOr<int> m() {}
+}
+''', [HintCode.MISSING_RETURN]);
   }
 
   test_method_inferred() async {

@@ -1591,6 +1591,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       } else {
         reportInvalid(
             node, 'No support for ${target.runtimeType} in a static-get.');
+        return null;
       }
     });
   }

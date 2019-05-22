@@ -99,6 +99,7 @@ testClassSets() async {
       List<ClassEntity> visited = <ClassEntity>[];
       forEach(cls, (ClassEntity c) {
         visited.add(c);
+        return IterationStep.CONTINUE;
       });
       checkClasses('forEach($property)', cls, visited, expectedClasses,
           exact: exact);
@@ -424,6 +425,7 @@ testNativeClasses() async {
       if (allClasses.contains(other)) {
         strictSubclasses.add(other);
       }
+      return IterationStep.CONTINUE;
     });
     Expect.setEquals(subclasses, strictSubclasses,
         "Unexpected strict subclasses of $cls: ${strictSubclasses}.");
@@ -433,6 +435,7 @@ testNativeClasses() async {
       if (allClasses.contains(other)) {
         strictSubtypes.add(other);
       }
+      return IterationStep.CONTINUE;
     });
     Expect.setEquals(subtypes, strictSubtypes,
         "Unexpected strict subtypes of $cls: $strictSubtypes.");
