@@ -177,15 +177,7 @@ class Reader : public ValueObject {
         offset_(0) {
     // The reader expects that the actual data is external, though allows
     // having a view into this external typed data.
-#if defined(DEBUG)
-    if (typed_data_->IsTypedDataView()) {
-      const auto& backing_store =
-          TypedDataBase::Handle(TypedDataView::Cast(*typed_data_).typed_data());
-      ASSERT(backing_store.IsExternalTypedData());
-    } else {
-      ASSERT(typed_data_->IsExternalTypedData());
-    }
-#endif
+    DEBUG_ASSERT(typed_data_->IsBackedByExternalTypedData());
   }
 
   uint32_t ReadFromIndex(intptr_t end_offset,
@@ -199,10 +191,15 @@ class Reader : public ValueObject {
     return result;
   }
 
-  uint32_t ReadUInt32At(intptr_t offset) const {
-    ASSERT((size_ >= 4) && (offset >= 0) && (offset <= size_ - 4));
-    uint32_t value;
-    value = typed_data_->GetUint32(offset);
+  DART_FORCE_INLINE uint32_t ReadUInt32At(intptr_t offset) const {
+    ASSERT(size_ >= 4 && offset >= 0 && (offset <= size_ - 4));
+    // We validated in the [Reader] constructor that we have either an
+    // ExternalTypedData or a view on top of an ExternalTypedData.
+    //
+    // This means the data pointer will not change and we can use
+    // [DataAddrUnsafe].
+    const uint32_t value =
+        *static_cast<uint32_t*>(typed_data_->DataAddrUnsafe(offset));
     return Utils::BigEndianToHost32(value);
   }
 
@@ -358,9 +355,13 @@ class Reader : public ValueObject {
   }
 
  private:
-  const uint8_t* buffer() const {
-    NoSafepointScope no_safepoint(thread_);
-    return reinterpret_cast<uint8_t*>(typed_data_->DataAddr(0));
+  DART_FORCE_INLINE const uint8_t* buffer() const {
+    // We validated in the [Reader] constructor that we have either an
+    // ExternalTypedData or a view on top of an ExternalTypedData.
+    //
+    // This means the data pointer will not change and we can use
+    // [DataAddrUnsafe].
+    return reinterpret_cast<uint8_t*>(typed_data_->DataAddrUnsafe(0));
   }
 
   Thread* thread_;

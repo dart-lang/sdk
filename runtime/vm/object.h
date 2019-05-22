@@ -8410,6 +8410,13 @@ class TypedDataBase : public Instance {
 #if defined(DEBUG)
     ValidateInvariant();
 #endif
+    return DataAddrUnsafe(byte_offset);
+  }
+
+  // To speed up debug mode (e.g. for kernel reading - which uses typed data
+  // for kernel buffers) we expose the data pointer without asserts for bounds
+  // checks and invariants.
+  DART_FORCE_INLINE void* DataAddrUnsafe(intptr_t byte_offset) const {
     return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
   }
 
@@ -8470,6 +8477,10 @@ class TypedDataBase : public Instance {
   TYPED_GETTER_SETTER(Float64x2, simd128_value_t)
 
 #undef TYPED_GETTER_SETTER
+
+#if defined(DEBUG)
+  bool IsBackedByExternalTypedData() const;
+#endif
 
  protected:
   void SetLength(intptr_t value) const {

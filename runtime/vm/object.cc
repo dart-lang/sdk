@@ -21169,6 +21169,19 @@ RawTypedDataView* TypedDataBase::CreateUint8View(intptr_t offset_in_bytes,
                             offset_in_bytes, length_in_bytes, space);
 }
 
+#if defined(DEBUG)
+bool TypedDataBase::IsBackedByExternalTypedData() const {
+  if (IsExternalTypedData()) {
+    return true;
+  }
+  if (IsTypedDataView()) {
+    const auto& view = TypedDataView::Cast(*this);
+    return TypedDataBase::Handle(view.typed_data()).IsExternalTypedData();
+  }
+  return false;
+}
+#endif
+
 const char* TypedDataView::ToCString() const {
   auto zone = Thread::Current()->zone();
   return OS::SCreate(zone, "TypedDataView(cid: %" Pd ")", GetClassId());
