@@ -2291,10 +2291,7 @@ class AstBuilder extends StackListener {
       if (variableOrDeclaration is! SimpleIdentifier) {
         // Parser has already reported the error.
         if (!leftParenthesis.next.isIdentifier) {
-          parser.rewriter.insertToken(
-              leftParenthesis,
-              new SyntheticStringToken(
-                  TokenType.IDENTIFIER, '', leftParenthesis.next.charOffset));
+          parser.rewriter.insertSyntheticIdentifier(leftParenthesis);
         }
         variableOrDeclaration = ast.simpleIdentifier(leftParenthesis.next);
       }
