@@ -696,7 +696,7 @@ class CodeGenerator extends Object
         // TODO(jmesserly): fuse this with notNull check.
         // TODO(jmesserly): this does not correctly distinguish user casts from
         // required-for-soundness casts.
-        return runtimeCall('asInt(#)', jsFrom);
+        return runtimeCall('asInt(#)', [jsFrom]);
       }
 
       // A no-op in JavaScript.
@@ -1834,8 +1834,8 @@ class CodeGenerator extends Object
       ClassElement classElem, String jsPeerName, List<JS.Statement> body) {
     var className = _emitTopLevelName(classElem);
     if (jsTypeRep.isPrimitive(classElem.type)) {
-      body.add(
-          runtimeStatement('definePrimitiveHashCode(#.prototype)', className));
+      body.add(runtimeStatement(
+          'definePrimitiveHashCode(#.prototype)', [className]));
     }
     body.add(runtimeStatement(
         'registerExtension(#, #)', [js.string(jsPeerName), className]));
@@ -3044,7 +3044,7 @@ class CodeGenerator extends Object
       // If the type is a type literal expression in Dart code, wrap the raw
       // runtime type in a "Type" instance.
       if (!_isInForeignJS && _isTypeLiteral(node)) {
-        typeName = runtimeCall('wrapType(#)', typeName);
+        typeName = runtimeCall('wrapType(#)', [typeName]);
       }
 
       return typeName;
@@ -3283,7 +3283,7 @@ class CodeGenerator extends Object
     if (_isExternal(member)) {
       var nativeName = _extensionTypes.getNativePeers(c);
       if (nativeName.isNotEmpty) {
-        return runtimeCall('global.#', nativeName[0]);
+        return runtimeCall('global.#', [nativeName[0]]);
       }
     }
     return _emitTopLevelName(c);
@@ -3321,7 +3321,8 @@ class CodeGenerator extends Object
     // Anonymous JS types do not have a corresponding concrete JS type so we
     // have to use a helper to define them.
     if (_isObjectLiteral(element)) {
-      return runtimeCall('anonymousJSType(#)', js.escapedString(element.name));
+      return runtimeCall(
+          'anonymousJSType(#)', [js.escapedString(element.name)]);
     }
     var jsName = _getJSNameWithoutGlobal(element);
     if (jsName != null) {
@@ -4142,11 +4143,11 @@ class CodeGenerator extends Object
     if (conditionType is FunctionType &&
         conditionType.parameters.isEmpty &&
         conditionType.returnType == types.boolType) {
-      jsCondition = runtimeCall('test(#())', jsCondition);
+      jsCondition = runtimeCall('test(#())', [jsCondition]);
     } else if (conditionType != types.boolType) {
-      jsCondition = runtimeCall('dassert(#)', jsCondition);
+      jsCondition = runtimeCall('dassert(#)', [jsCondition]);
     } else if (isNullable(condition)) {
-      jsCondition = runtimeCall('test(#)', jsCondition);
+      jsCondition = runtimeCall('test(#)', [jsCondition]);
     }
     return js.statement(' if (!#) #.assertFailed(#);', [
       jsCondition,
@@ -4552,7 +4553,7 @@ class CodeGenerator extends Object
     if (expr == null) return null;
     var jsExpr = _visitExpression(expr);
     if (!isNullable(expr)) return jsExpr;
-    return runtimeCall('notNull(#)', jsExpr);
+    return runtimeCall('notNull(#)', [jsExpr]);
   }
 
   JS.Expression _emitEqualityOperator(BinaryExpression node, Token op) {
@@ -5362,12 +5363,13 @@ class CodeGenerator extends Object
 
   @override
   JS.Expression visitThrowExpression(ThrowExpression node) {
-    return runtimeCall('throw(#)', _visitExpression(node.expression));
+    return runtimeCall('throw(#)', [_visitExpression(node.expression)]);
   }
 
   @override
   JS.Expression visitRethrowExpression(RethrowExpression node) {
-    return runtimeCall('rethrow(#)', _emitSimpleIdentifier(_rethrowParameter));
+    return runtimeCall(
+        'rethrow(#)', [_emitSimpleIdentifier(_rethrowParameter)]);
   }
 
   /// Visits a statement, and ensures the resulting AST handles block scope
@@ -5774,7 +5776,7 @@ class CodeGenerator extends Object
         var jsExpr = _visitExpression(e);
         parts.add(e.staticType == types.stringType && !isNullable(e)
             ? jsExpr
-            : runtimeCall('str(#)', jsExpr));
+            : runtimeCall('str(#)', [jsExpr]));
       }
     }
     if (parts.isEmpty) return js.string('');
@@ -6018,10 +6020,10 @@ class CodeGenerator extends Object
     }
     if (node is AsExpression && CoercionReifier.isImplicit(node)) {
       assert(node.staticType == types.boolType);
-      return runtimeCall('dtest(#)', _visitExpression(node.expression));
+      return runtimeCall('dtest(#)', [_visitExpression(node.expression)]);
     }
     var result = _visitExpression(node);
-    if (isNullable(node)) result = runtimeCall('test(#)', result);
+    if (isNullable(node)) result = runtimeCall('test(#)', [result]);
     return result;
   }
 
@@ -6290,7 +6292,7 @@ class CodeGenerator extends Object
   }
 
   JS.Expression _throwUnsafe(String message) => runtimeCall(
-      'throw(Error(#))', js.escapedString("compile error: $message"));
+      'throw(Error(#))', [js.escapedString("compile error: $message")]);
 
   Null _unreachable(Object node) {
     throw UnsupportedError('tried to generate an unreachable node: `$node`');

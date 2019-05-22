@@ -1546,7 +1546,7 @@ class ProgramCompiler extends Object
     if (expr == null) return null;
     var jsExpr = _visitExpression(expr);
     if (!isNullable(expr)) return jsExpr;
-    return runtimeCall('notNull(#)', jsExpr);
+    return runtimeCall('notNull(#)', [jsExpr]);
   }
 
   /// If the class has only factory constructors, and it can be mixed in,
@@ -1990,8 +1990,8 @@ class ProgramCompiler extends Object
       Class c, String jsPeerName, List<JS.Statement> body) {
     var className = _emitTopLevelName(c);
     if (_typeRep.isPrimitive(c.rawType)) {
-      body.add(
-          runtimeStatement('definePrimitiveHashCode(#.prototype)', className));
+      body.add(runtimeStatement(
+          'definePrimitiveHashCode(#.prototype)', [className]));
     }
     body.add(runtimeStatement(
         'registerExtension(#, #)', [js.string(jsPeerName), className]));
@@ -2465,7 +2465,7 @@ class ProgramCompiler extends Object
     // have to use a helper to define them.
     if (isJSAnonymousType(c)) {
       return runtimeCall(
-          'anonymousJSType(#)', js.escapedString(getLocalClassName(c)));
+          'anonymousJSType(#)', [js.escapedString(getLocalClassName(c))]);
     }
     var jsName = _getJSNameWithoutGlobal(c);
     if (jsName != null) {
@@ -3055,11 +3055,11 @@ class ProgramCompiler extends Object
 
     if (node is AsExpression && node.isTypeError) {
       assert(node.getStaticType(types) == types.boolType);
-      return runtimeCall('dtest(#)', _visitExpression(node.operand));
+      return runtimeCall('dtest(#)', [_visitExpression(node.operand)]);
     }
 
     var result = _visitExpression(node);
-    if (isNullable(node)) result = runtimeCall('test(#)', result);
+    if (isNullable(node)) result = runtimeCall('test(#)', [result]);
     return result;
   }
 
@@ -3179,11 +3179,11 @@ class ProgramCompiler extends Object
     if (conditionType is FunctionType &&
         conditionType.requiredParameterCount == 0 &&
         conditionType.returnType == boolType) {
-      jsCondition = runtimeCall('test(#())', jsCondition);
+      jsCondition = runtimeCall('test(#())', [jsCondition]);
     } else if (conditionType != boolType) {
-      jsCondition = runtimeCall('dassert(#)', jsCondition);
+      jsCondition = runtimeCall('dassert(#)', [jsCondition]);
     } else if (isNullable(condition)) {
-      jsCondition = runtimeCall('test(#)', jsCondition);
+      jsCondition = runtimeCall('test(#)', [jsCondition]);
     }
     return js.statement(' if (!#) #.assertFailed(#);', [
       jsCondition,
@@ -4790,7 +4790,7 @@ class ProgramCompiler extends Object
       }
       parts.add(e.getStaticType(types) == types.stringType && !isNullable(e)
           ? jsExpr
-          : runtimeCall('str(#)', jsExpr));
+          : runtimeCall('str(#)', [jsExpr]));
     }
     if (parts.isEmpty) return js.string('');
     return JS.Expression.binary(parts, '+');
@@ -4926,7 +4926,7 @@ class ProgramCompiler extends Object
         // TODO(jmesserly): fuse this with notNull check.
         // TODO(jmesserly): this does not correctly distinguish user casts from
         // required-for-soundness casts.
-        return runtimeCall('asInt(#)', jsFrom);
+        return runtimeCall('asInt(#)', [jsFrom]);
       }
 
       // A no-op in JavaScript.
@@ -4954,7 +4954,7 @@ class ProgramCompiler extends Object
     var typeRep = _emitType(type);
     // If the type is a type literal expression in Dart code, wrap the raw
     // runtime type in a "Type" instance.
-    return _isInForeignJS ? typeRep : runtimeCall('wrapType(#)', typeRep);
+    return _isInForeignJS ? typeRep : runtimeCall('wrapType(#)', [typeRep]);
   }
 
   @override
@@ -4962,12 +4962,12 @@ class ProgramCompiler extends Object
 
   @override
   visitRethrow(Rethrow node) {
-    return runtimeCall('rethrow(#)', _emitVariableRef(_rethrowParameter));
+    return runtimeCall('rethrow(#)', [_emitVariableRef(_rethrowParameter)]);
   }
 
   @override
   visitThrow(Throw node) =>
-      runtimeCall('throw(#)', _visitExpression(node.expression));
+      runtimeCall('throw(#)', [_visitExpression(node.expression)]);
 
   @override
   visitListLiteral(ListLiteral node) {

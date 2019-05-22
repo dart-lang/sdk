@@ -202,34 +202,21 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   ///
   /// For example:
   ///
-  ///     runtimeCall('asInt(#)', expr)
+  ///     runtimeCall('asInt(#)', [<expr>])
   ///
   /// Generates a JS AST representing:
   ///
   ///     dart.asInt(<expr>)
   ///
   @protected
-  JS.Expression runtimeCall(String code, [args]) {
-    if (args != null) {
-      var newArgs = <Object>[runtimeModule];
-      if (args is Iterable) {
-        newArgs.addAll(args);
-      } else {
-        newArgs.add(args);
-      }
-      args = newArgs;
-    } else {
-      args = runtimeModule;
-    }
-    return js.call('#.$code', args);
-  }
+  JS.Expression runtimeCall(String code, [List<Object> args]) =>
+      js.call('#.$code', <Object>[runtimeModule, ...?args]);
 
   /// Calls [runtimeCall] and uses `toStatement()` to convert the resulting
   /// expression into a statement.
   @protected
-  JS.Statement runtimeStatement(String code, [args]) {
-    return runtimeCall(code, args).toStatement();
-  }
+  JS.Statement runtimeStatement(String code, [List<Object> args]) =>
+      runtimeCall(code, args).toStatement();
 
   /// Emits a private name JS Symbol for [name] scoped to the Dart [library].
   ///
@@ -342,7 +329,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// constant instance of a user-defined class stored in [expr].
   @protected
   JS.Expression canonicalizeConstObject(JS.Expression expr) =>
-      cacheConst(runtimeCall('const(#)', expr));
+      cacheConst(runtimeCall('const(#)', [expr]));
 
   /// Emits preamble for the module containing [libraries], and returns the
   /// list of module items for further items to be added.
