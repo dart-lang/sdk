@@ -3773,7 +3773,8 @@ class CodeGenerator extends Object
     // Handle Object methods that are supported by `null`.
     if (_isObjectMethodCall(name, argumentList.arguments) &&
         isNullable(target)) {
-      assert(typeArgs == null); // Object methods don't take type args.
+      assert(typeArgs == null ||
+          typeArgs.isEmpty); // Object methods don't take type args.
       return runtimeCall('#(#, #)', [name, jsTarget, args]);
     }
 
