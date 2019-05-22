@@ -79,7 +79,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
   }
 
   @override
-  visitForStatement2(ForStatement node) {
+  visitForStatement(ForStatement node) {
     final loopParts = node.forLoopParts;
     if (loopParts is ForEachPartsWithDeclaration) {
       final element = loopParts.loopVariable?.declaredElement;
@@ -128,7 +128,7 @@ class _Visitor extends SimpleAstVisitor {
   _Visitor(this.rule);
 
   @override
-  visitForStatement2(ForStatement node) {
+  visitForStatement(ForStatement node) {
     final loopParts = node.forLoopParts;
     if (loopParts is ForEachParts) {
       final visitor = new _PreferForEachVisitor(rule);
