@@ -1483,7 +1483,7 @@ class AstBuilder extends StackListener {
     if (name is SimpleIdentifier) {
       if (name.name == declaration.name.name && getOrSet == null) {
         constructor(name, null, null);
-      } else if (initializers.isNotEmpty) {
+      } else if (initializers.isNotEmpty && getOrSet == null) {
         constructor(name, null, null);
       } else {
         method(null, name);
