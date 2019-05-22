@@ -33,6 +33,13 @@ class AstBinaryReader {
   /// Set to `true` when this reader is used to lazily read its unit.
   bool isLazy = false;
 
+  /// Whether we are reading a directive.
+  ///
+  /// [StringLiteral]s in directives are not actual expressions, and don't need
+  /// a type. Moreover, when we are reading `dart:core` imports, the type
+  /// provider is not ready yet, so we cannot access type `String`.
+  bool _isReadingDirective = false;
+
   AstBinaryReader(this._unitContext);
 
   InterfaceType get _boolType => _unitContext.typeProvider.boolType;
@@ -151,9 +158,13 @@ class AstBinaryReader {
   }
 
   AdjacentStrings _read_adjacentStrings(LinkedNode data) {
-    return astFactory.adjacentStrings(
+    var node = astFactory.adjacentStrings(
       _readNodeList(data.adjacentStrings_strings),
-    )..staticType = _stringType;
+    );
+    if (!_isReadingDirective) {
+      node.staticType = _stringType;
+    }
+    return node;
   }
 
   Annotation _read_annotation(LinkedNode data) {
@@ -559,6 +570,7 @@ class AstBinaryReader {
 
   ExportDirective _read_exportDirective(LinkedNode data) {
     timerAstBinaryReaderDirective.start();
+    _isReadingDirective = true;
     try {
       var node = astFactory.exportDirective(
         _readNode(data.annotatedNode_comment),
@@ -572,6 +584,7 @@ class AstBinaryReader {
       LazyDirective.setData(node, data);
       return node;
     } finally {
+      _isReadingDirective = false;
       timerAstBinaryReaderDirective.stop();
     }
   }
@@ -887,6 +900,7 @@ class AstBinaryReader {
 
   ImportDirective _read_importDirective(LinkedNode data) {
     timerAstBinaryReaderDirective.start();
+    _isReadingDirective = true;
     try {
       SimpleIdentifier prefix;
       if (data.importDirective_prefix.isNotEmpty) {
@@ -911,6 +925,7 @@ class AstBinaryReader {
       LazyDirective.setData(node, data);
       return node;
     } finally {
+      _isReadingDirective = false;
       timerAstBinaryReaderDirective.stop();
     }
   }
@@ -1003,6 +1018,7 @@ class AstBinaryReader {
 
   LibraryDirective _read_libraryDirective(LinkedNode data) {
     timerAstBinaryReaderDirective.start();
+    _isReadingDirective = true;
     try {
       var node = astFactory.libraryDirective(
         _readNode(data.annotatedNode_comment),
@@ -1014,6 +1030,7 @@ class AstBinaryReader {
       LazyDirective.setData(node, data);
       return node;
     } finally {
+      _isReadingDirective = false;
       timerAstBinaryReaderDirective.stop();
     }
   }
@@ -1156,6 +1173,7 @@ class AstBinaryReader {
 
   PartDirective _read_partDirective(LinkedNode data) {
     timerAstBinaryReaderDirective.start();
+    _isReadingDirective = true;
     try {
       var node = astFactory.partDirective(
         _readNode(data.annotatedNode_comment),
@@ -1167,12 +1185,14 @@ class AstBinaryReader {
       LazyDirective.setData(node, data);
       return node;
     } finally {
+      _isReadingDirective = false;
       timerAstBinaryReaderDirective.stop();
     }
   }
 
   PartOfDirective _read_partOfDirective(LinkedNode data) {
     timerAstBinaryReaderDirective.start();
+    _isReadingDirective = true;
     try {
       var node = astFactory.partOfDirective(
         _readNode(data.annotatedNode_comment),
@@ -1186,6 +1206,7 @@ class AstBinaryReader {
       LazyDirective.setData(node, data);
       return node;
     } finally {
+      _isReadingDirective = false;
       timerAstBinaryReaderDirective.stop();
     }
   }
@@ -1324,10 +1345,11 @@ class AstBinaryReader {
   }
 
   SimpleStringLiteral _read_simpleStringLiteral(LinkedNode data) {
-    // TODO(scheglov) restore staticType
-    return AstTestFactory.string2(data.simpleStringLiteral_value)
-//      ..staticType = _stringType
-        ;
+    var node = AstTestFactory.string2(data.simpleStringLiteral_value);
+    if (!_isReadingDirective) {
+      node.staticType = _stringType;
+    }
+    return node;
   }
 
   SpreadElement _read_spreadElement(LinkedNode data) {
