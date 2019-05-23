@@ -2066,8 +2066,14 @@ class Parser {
     Token onKeyword = token.next;
     if (!optional('on', onKeyword)) {
       // Recovery
-      // TODO(danrubel): implement this.
-      throw "Internal error: extension recovery not implemented yet.";
+      if (optional('extends', onKeyword) || optional('with', onKeyword)) {
+        reportRecoverableError(
+            onKeyword, fasta.templateExpectedInstead.withArguments('on'));
+      } else {
+        reportRecoverableError(
+            token, fasta.templateExpectedAfterButGot.withArguments('on'));
+        onKeyword = rewriter.insertSyntheticKeyword(token, Keyword.ON);
+      }
     }
     TypeInfo typeInfo = computeType(onKeyword, true);
     token = typeInfo.ensureTypeNotVoid(onKeyword, this);
