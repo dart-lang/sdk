@@ -56,14 +56,31 @@ typedef List<DartType> TypeArgumentsComputer();
  */
 class BottomTypeImpl extends TypeImpl {
   /**
-   * The unique instance of this class.
+   * The unique instance of this class, nullable.
+   *
+   * This behaves equivalently to the `Null` type, but we distinguish it for two
+   * reasons: (1) there are circumstances where we need access to this type, but
+   * we don't have access to the type provider, so using `Never?` is a
+   * convenient solution.  (2) we may decide that the distinction is convenient
+   * in diagnostic messages (this is TBD).
    */
-  static final BottomTypeImpl instance = new BottomTypeImpl._();
+  static final BottomTypeImpl instanceNullable =
+      new BottomTypeImpl._(NullabilitySuffix.question);
+
+  /**
+   * The unique instance of this class, non-nullable.
+   */
+  static final BottomTypeImpl instance =
+      new BottomTypeImpl._(NullabilitySuffix.none);
+
+  @override
+  final NullabilitySuffix nullabilitySuffix;
 
   /**
    * Prevent the creation of instances of this class.
    */
-  BottomTypeImpl._() : super(new NeverElementImpl(), "Never") {
+  BottomTypeImpl._(this.nullabilitySuffix)
+      : super(new NeverElementImpl(), "Never") {
     (element as NeverElementImpl).type = this;
   }
 
@@ -74,7 +91,10 @@ class BottomTypeImpl extends TypeImpl {
   bool get isBottom => true;
 
   @override
-  NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.none;
+  bool get isDartCoreNull {
+    // `Never?` is equivalent to `Null`, so make sure it behaves the same.
+    return nullabilitySuffix == NullabilitySuffix.question;
+  }
 
   @override
   bool operator ==(Object object) => identical(object, this);
@@ -119,8 +139,22 @@ class BottomTypeImpl extends TypeImpl {
 
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
-    // The bottom type is always non-nullable.
-    return this;
+    switch (nullabilitySuffix) {
+      case NullabilitySuffix.question:
+        return instanceNullable;
+      case NullabilitySuffix.star:
+        // This should never happen.  Converting `Never` to a legacy type should
+        // yield `Null`, because prior to NNBD, `Null` was at the bottom of the
+        // type hierarchy.
+        //
+        // However, due to bugs elsewhere in the analyzer, this does still
+        // happen sometimes, so for now just coerce to `Never?`.
+        // TODO(paulberry): change this to throw an exception.
+        return instanceNullable;
+      case NullabilitySuffix.none:
+        return instance;
+    }
+    throw StateError('Unexpected nullabilitySuffix: $nullabilitySuffix');
   }
 }
 
