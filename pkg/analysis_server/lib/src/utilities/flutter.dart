@@ -284,6 +284,7 @@ class Flutter {
       if (isWidgetExpression(node)) {
         var parent = node.parent;
         if (parent is ArgumentList ||
+            parent is ExpressionFunctionBody && parent.expression == node ||
             parent is ListLiteral ||
             parent is NamedExpression && parent.expression == node ||
             parent is Statement) {

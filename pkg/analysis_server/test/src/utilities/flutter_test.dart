@@ -279,6 +279,16 @@ void useWidget(Widget w) {}
     expect(flutter.identifyWidgetExpression(expression), expression);
   }
 
+  test_identifyWidgetExpression_parent_expressionFunctionBody() async {
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main(Widget widget) => widget; // ref
+''');
+    Expression expression = findNodeAtString("widget; // ref");
+    expect(flutter.identifyWidgetExpression(expression), expression);
+  }
+
   test_identifyWidgetExpression_parent_expressionStatement() async {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
