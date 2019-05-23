@@ -75,6 +75,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
       const Duration(seconds: 1),
       onTimeout: () {
         didTimeout = true;
+        return null;
       },
     );
 
