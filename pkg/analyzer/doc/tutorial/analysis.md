@@ -24,8 +24,13 @@ to analyze.
 main() {
   List<String> includedPaths = <String>[/* ... */];
   AnalysisContextCollection collection =
-      new AnalysisContextCollection(includedPaths);
+      new AnalysisContextCollection(includedPaths: includedPaths);
   analyzeSomeFiles(collection, includedPaths);
+}
+
+analyzeSomeFiles(
+    AnalysisContextCollection collection, List<String> includedPaths) {
+  // See below.
 }
 ```
 
@@ -52,6 +57,10 @@ analyzeSomeFiles(
     analyzeSingleFile(context, path);
   }
 }
+
+analyzeSingleFile(AnalysisContext context, String path) {
+  // See below.
+}
 ```
 
 ## Analyzing Multiple Files
@@ -67,6 +76,10 @@ analyzeAllFiles(AnalysisContextCollection collection) {
       analyzeSingleFile(context, path);
     }
   }
+}
+
+analyzeSingleFile(AnalysisContext context, String path) {
+  // See below.
 }
 ```
 
