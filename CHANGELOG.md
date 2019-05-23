@@ -6,6 +6,15 @@
 
 ### Core library
 
+#### `dart:io`
+
+* Fixed `Cookie` class interoperability with certain websites by allowing the
+  cookie values to be the empty string (Issue [35804][]) and not stripping
+  double quotes from the value (Issue [33327][]) in accordance with RFC 6265.
+
+[33327]: https://github.com/dart-lang/sdk/issues/33327
+[35804]: https://github.com/dart-lang/sdk/issues/35804
+
 ### Dart VM
 
 ### Tools
