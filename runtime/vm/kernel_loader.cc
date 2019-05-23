@@ -408,6 +408,10 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
                                      program_->string_table_offset() -
                                          program_->metadata_mappings_offset()));
 
+#if defined(DEBUG)
+  MetadataHelper::VerifyMetadataMappings(metadata_mappings);
+#endif
+
   const Array& libraries_cache =
       Array::Handle(Z, HashTables::New<UnorderedHashMap<SmiTraits>>(
                            program_->library_count(), Heap::kOld));

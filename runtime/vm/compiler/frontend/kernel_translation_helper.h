@@ -803,6 +803,10 @@ class MetadataHelper {
                  const char* tag,
                  bool precompiler_only);
 
+#if defined(DEBUG)
+  static void VerifyMetadataMappings(const TypedDataBase& metadata_mappings);
+#endif
+
  protected:
   // Look for metadata mapping with node offset greater or equal than the given.
   intptr_t FindMetadataMapping(intptr_t node_offset);
