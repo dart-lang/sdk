@@ -209,12 +209,14 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers);
-  __ mov(CallingConventions::kFirstCalleeSavedCpuReg, SP);
+
+  __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
   __ mov(CSP, SP);
   __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
   __ blr(R0);
-  __ mov(SP, CallingConventions::kFirstCalleeSavedCpuReg);
+  __ LeaveFrame();
+
   __ PopRegisters(all_registers);
   __ mov(CSP, SP);
   __ Ret();
@@ -224,12 +226,14 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers);
-  __ mov(CallingConventions::kFirstCalleeSavedCpuReg, SP);
+
+  __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
   __ mov(CSP, SP);
   __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ blr(R0);
-  __ mov(SP, CallingConventions::kFirstCalleeSavedCpuReg);
+  __ LeaveFrame();
+
   __ PopRegisters(all_registers);
   __ mov(CSP, SP);
   __ Ret();
@@ -1806,7 +1810,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
     // ensure that the object is in new-space or has remembered bit set.
     EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
   }
-  __ LeaveStubFrame();                  // Restores correct SP.
+  __ LeaveStubFrame();  // Restores correct SP.
   __ ret();
 }
 

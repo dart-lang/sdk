@@ -140,16 +140,26 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
 
 void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   __ pushal();
+
+  __ EnterFrame(0);
+  __ ReserveAlignedFrameSpace(0);
   __ movl(EAX, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
   __ call(EAX);
+  __ LeaveFrame();
+
   __ popal();
   __ ret();
 }
 
 void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ pushal();
+
+  __ EnterFrame(0);
+  __ ReserveAlignedFrameSpace(0);
   __ movl(EAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ call(EAX);
+  __ LeaveFrame();
+
   __ popal();
   __ ret();
 }

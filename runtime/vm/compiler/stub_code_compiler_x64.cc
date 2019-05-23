@@ -204,8 +204,13 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers.cpu_registers(),
                    all_registers.fpu_registers());
+
+  __ EnterFrame(0);
+  __ ReserveAlignedFrameSpace(0);
   __ movq(RAX, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
   __ CallCFunction(RAX);
+  __ LeaveFrame();
+
   __ PopRegisters(all_registers.cpu_registers(), all_registers.fpu_registers());
   __ ret();
 }
@@ -215,8 +220,13 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers.cpu_registers(),
                    all_registers.fpu_registers());
+
+  __ EnterFrame(0);
+  __ ReserveAlignedFrameSpace(0);
   __ movq(RAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ CallCFunction(RAX);
+  __ LeaveFrame();
+
   __ PopRegisters(all_registers.cpu_registers(), all_registers.fpu_registers());
   __ ret();
 }
@@ -1762,7 +1772,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   // Create a stub frame.
   __ EnterStubFrame();  // Uses PP to access class object.
 
-  __ pushq(R9);         // Setup space on stack for return value.
+  __ pushq(R9);  // Setup space on stack for return value.
   __ PushObject(
       CastHandle<Object>(cls));  // Push class of object to be allocated.
   if (is_cls_parameterized) {

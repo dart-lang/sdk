@@ -274,8 +274,13 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers);
+
+  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ ReserveAlignedFrameSpace(0);
   __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
   __ blx(R0);
+  __ LeaveFrame((1 << FP) | (1 << LR), 0);
+
   __ PopRegisters(all_registers);
   __ Ret();
 }
@@ -284,8 +289,13 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers);
+
+  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ ReserveAlignedFrameSpace(0);
   __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ blx(R0);
+  __ LeaveFrame((1 << FP) | (1 << LR), 0);
+
   __ PopRegisters(all_registers);
   __ Ret();
 }
@@ -1748,7 +1758,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
     EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
   }
 
-  __ LeaveDartFrameAndReturn();         // Restores correct SP.
+  __ LeaveDartFrameAndReturn();  // Restores correct SP.
 }
 
 // Called for invoking "dynamic noSuchMethod(Invocation invocation)" function
