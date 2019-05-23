@@ -42,6 +42,7 @@ namespace dart {
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 0x38a80b0d)              \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 0x40052c4e)          \
   V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 0x07b89f54)              \
+  V(ByteData, ., ByteDataFactory, 0x0)                                         \
   V(_ByteDataView, get:offsetInBytes, ByteDataViewOffsetInBytes, 0x0)          \
   V(_ByteDataView, get:_typedData, ByteDataViewTypedData, 0x0)                 \
   V(_TypedListView, get:offsetInBytes, TypedDataViewOffsetInBytes, 0x0)        \

@@ -2778,6 +2778,11 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       if (call->is_known_list_constructor() &&
           IsFixedLengthArrayCid(call->Type()->ToCid())) {
         return call->ArgumentAt(1);
+      } else if (call->function().recognized_kind() ==
+                 MethodRecognizer::kByteDataFactory) {
+        // Similarly, we check for the ByteData constructor and forward its
+        // explicit length argument appropriately.
+        return call->ArgumentAt(1);
       } else if (IsTypedDataViewFactory(call->function())) {
         // Typed data view factories all take three arguments (after
         // the implicit type arguments parameter):
@@ -2820,6 +2825,11 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     if (StaticCallInstr* call = array->AsStaticCall()) {
       if (IsTypedDataViewFactory(call->function())) {
         return call->ArgumentAt(2);
+      } else if (call->function().recognized_kind() ==
+                 MethodRecognizer::kByteDataFactory) {
+        // A _ByteDataView returned from the ByteData constructor always
+        // has an offset of 0.
+        return flow_graph->GetConstant(Smi::Handle(Smi::New(0)));
       }
     }
   } else if (slot().IsTypeArguments()) {
@@ -2827,9 +2837,15 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     if (StaticCallInstr* call = array->AsStaticCall()) {
       if (call->is_known_list_constructor()) {
         return call->ArgumentAt(0);
-      } else if (call->function().recognized_kind() ==
-                 MethodRecognizer::kLinkedHashMap_getData) {
+      } else if (IsTypedDataViewFactory(call->function())) {
         return flow_graph->constant_null();
+      }
+      switch (call->function().recognized_kind()) {
+        case MethodRecognizer::kByteDataFactory:
+        case MethodRecognizer::kLinkedHashMap_getData:
+          return flow_graph->constant_null();
+        default:
+          break;
       }
     } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
       return create_array->element_type()->definition();
@@ -3573,6 +3589,11 @@ Instruction* GuardFieldLengthInstr::Canonicalize(FlowGraph* flow_graph) {
   if (call->is_known_list_constructor() &&
       LoadFieldInstr::IsFixedLengthArrayCid(call->Type()->ToCid())) {
     length = call->ArgumentAt(1)->AsConstant();
+  } else if (call->function().recognized_kind() ==
+             MethodRecognizer::kByteDataFactory) {
+    length = call->ArgumentAt(1)->AsConstant();
+  } else if (LoadFieldInstr::IsTypedDataViewFactory(call->function())) {
+    length = call->ArgumentAt(3)->AsConstant();
   }
   if ((length != NULL) && length->value().IsSmi() &&
       Smi::Cast(length->value()).Value() == expected_length) {
