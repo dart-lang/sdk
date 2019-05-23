@@ -306,6 +306,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
         return new OutputUnitInfo.internal();
       }
       assert(false);
+      return null;
     });
   }
 

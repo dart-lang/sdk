@@ -435,6 +435,7 @@ class BinaryReader {
         TypedefInfo info = new TypedefInfo.internal();
         _readBasicInfo(info);
         info.type = source.readString();
+        return info;
       });
 
   OutputUnitInfo _readOutputOrNull() {
