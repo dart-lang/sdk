@@ -1432,12 +1432,14 @@ void ParallelMoveResolver::EmitSwap(int index) {
     if (TargetCPUFeatures::neon_supported()) {
       const QRegister dst = destination.fpu_reg();
       const QRegister src = source.fpu_reg();
+      ASSERT(dst != QTMP && src != QTMP);
       __ vmovq(QTMP, src);
       __ vmovq(src, dst);
       __ vmovq(dst, QTMP);
     } else {
       const DRegister dst = EvenDRegisterOf(destination.fpu_reg());
       const DRegister src = EvenDRegisterOf(source.fpu_reg());
+      ASSERT(dst != DTMP && src != DTMP);
       __ vmovd(DTMP, src);
       __ vmovd(src, dst);
       __ vmovd(dst, DTMP);

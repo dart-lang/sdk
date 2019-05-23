@@ -1295,10 +1295,10 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
       (representation() == kUnboxedInt32x4) ||
       (representation() == kUnboxedFloat64x2)) {
     if (class_id() == kTypedDataFloat32ArrayCid) {
-      // Need register <= Q7 for float operations.
+      // Need register < Q7 for float operations.
       // TODO(fschneider): Add a register policy to specify a subset of
       // registers.
-      locs->set_out(0, Location::FpuRegisterLocation(Q7));
+      locs->set_out(0, Location::FpuRegisterLocation(Q6));
     } else {
       locs->set_out(0, Location::RequiresFpuRegister());
     }
@@ -1599,8 +1599,8 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
                                      Location::RequiresRegister()));
       break;
     case kTypedDataFloat32ArrayCid:
-      // Need low register (<= Q7).
-      locs->set_in(2, Location::FpuRegisterLocation(Q7));
+      // Need low register (< Q7).
+      locs->set_in(2, Location::FpuRegisterLocation(Q6));
       break;
     case kTypedDataFloat64ArrayCid:  // TODO(srdjan): Support Float64 constants.
     case kTypedDataInt32x4ArrayCid:
@@ -5396,9 +5396,9 @@ LocationSummary* DoubleToFloatInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* result = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  // Low (<= Q7) Q registers are needed for the conversion instructions.
+  // Low (< Q7) Q registers are needed for the conversion instructions.
   result->set_in(0, Location::RequiresFpuRegister());
-  result->set_out(0, Location::FpuRegisterLocation(Q7));
+  result->set_out(0, Location::FpuRegisterLocation(Q6));
   return result;
 }
 
@@ -5415,8 +5415,8 @@ LocationSummary* FloatToDoubleInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* result = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  // Low (<= Q7) Q registers are needed for the conversion instructions.
-  result->set_in(0, Location::FpuRegisterLocation(Q7));
+  // Low (< Q7) Q registers are needed for the conversion instructions.
+  result->set_in(0, Location::FpuRegisterLocation(Q6));
   result->set_out(0, Location::RequiresFpuRegister());
   return result;
 }
