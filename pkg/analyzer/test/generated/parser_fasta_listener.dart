@@ -201,6 +201,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void beginExtensionDeclaration(Token extensionKeyword, Token name) {
+    super.beginExtensionDeclaration(extensionKeyword, name);
+    begin('ExtensionDeclaration');
+  }
+
+  @override
   void beginFactoryMethod(
       Token lastConsumed, Token externalToken, Token constToken) {
     super.beginFactoryMethod(lastConsumed, externalToken, constToken);
@@ -687,6 +693,12 @@ class ForwardingTestListener extends ForwardingListener {
   void endExport(Token exportKeyword, Token semicolon) {
     end('Export');
     super.endExport(exportKeyword, semicolon);
+  }
+
+  @override
+  void endExtensionDeclaration(Token onKeyword, Token token) {
+    super.endExtensionDeclaration(onKeyword, token);
+    end('ExtensionDeclaration');
   }
 
   @override

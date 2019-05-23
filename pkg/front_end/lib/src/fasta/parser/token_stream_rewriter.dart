@@ -208,9 +208,11 @@ mixin _TokenStreamMixin {
 
   /// Insert a new simple synthetic token of [newTokenType] after [token]
   /// and return the new token.
-  Token insertSyntheticToken(Token token, TokenType newTokenType) =>
-      insertToken(
-          token, new SyntheticToken(newTokenType, token.next.charOffset));
+  Token insertSyntheticToken(Token token, TokenType newTokenType) {
+    assert(newTokenType is! Keyword, 'use insertSyntheticKeyword instead');
+    return insertToken(
+        token, new SyntheticToken(newTokenType, token.next.charOffset));
+  }
 
   /// Insert [newToken] after [token] and return [newToken].
   Token insertToken(Token token, Token newToken);

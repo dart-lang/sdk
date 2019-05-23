@@ -585,23 +585,26 @@ class Parser {
         return parseTopLevelMemberImpl(start);
       } else {
         parseTopLevelKeywordModifiers(start, keyword);
-        if (identical(value, 'mixin')) {
-          directiveState?.checkDeclaration();
-          return parseMixin(keyword);
-        } else if (identical(value, 'typedef')) {
-          directiveState?.checkDeclaration();
-          return parseTypedef(keyword);
-        } else if (identical(value, 'library')) {
-          directiveState?.checkLibrary(this, keyword);
-          return parseLibraryName(keyword);
-        } else if (identical(value, 'import')) {
+        if (identical(value, 'import')) {
           directiveState?.checkImport(this, keyword);
           return parseImport(keyword);
         } else if (identical(value, 'export')) {
           directiveState?.checkExport(this, keyword);
           return parseExport(keyword);
+        } else if (identical(value, 'typedef')) {
+          directiveState?.checkDeclaration();
+          return parseTypedef(keyword);
+        } else if (identical(value, 'mixin')) {
+          directiveState?.checkDeclaration();
+          return parseMixin(keyword);
+        } else if (identical(value, 'extension')) {
+          directiveState?.checkDeclaration();
+          return parseExtension(keyword);
         } else if (identical(value, 'part')) {
           return parsePartOrPartOf(keyword, directiveState);
+        } else if (identical(value, 'library')) {
+          directiveState?.checkLibrary(this, keyword);
+          return parseLibraryName(keyword);
         }
       }
     }
@@ -1724,7 +1727,7 @@ class Parser {
     Token begin = abstractToken ?? classKeyword;
     listener.beginClassOrNamedMixinApplication(begin);
     Token name = ensureIdentifier(
-        classKeyword, IdentifierContext.classOrMixinDeclaration);
+        classKeyword, IdentifierContext.classOrMixinOrExtensionDeclaration);
     Token token = computeTypeParamOrArg(name, true).parseVariables(name, this);
     if (optional('=', token.next)) {
       listener.beginNamedMixinApplication(begin, abstractToken, name);
@@ -1927,7 +1930,7 @@ class Parser {
     assert(optional('mixin', mixinKeyword));
     listener.beginClassOrNamedMixinApplication(mixinKeyword);
     Token name = ensureIdentifier(
-        mixinKeyword, IdentifierContext.classOrMixinDeclaration);
+        mixinKeyword, IdentifierContext.classOrMixinOrExtensionDeclaration);
     Token headerStart =
         computeTypeParamOrArg(name, true).parseVariables(name, this);
     listener.beginMixinDeclaration(mixinKeyword, name);
@@ -2045,6 +2048,36 @@ class Parser {
       ++typeCount;
     } while (optional(',', token.next));
     listener.handleMixinOn(onKeyword, typeCount);
+    return token;
+  }
+
+  /// ```
+  /// 'extension' <identifier><typeParameters>? 'on' <type> '?'?
+  //   `{'
+  //     <memberDeclaration>*
+  //   `}'
+  /// ```
+  Token parseExtension(Token extensionKeyword) {
+    assert(optional('extension', extensionKeyword));
+    Token name = ensureIdentifier(
+        extensionKeyword, IdentifierContext.classOrMixinOrExtensionDeclaration);
+    Token token = computeTypeParamOrArg(name, true).parseVariables(name, this);
+    listener.beginExtensionDeclaration(extensionKeyword, name);
+    Token onKeyword = token.next;
+    if (!optional('on', onKeyword)) {
+      // Recovery
+      // TODO(danrubel): implement this.
+      throw "Internal error: extension recovery not implemented yet.";
+    }
+    TypeInfo typeInfo = computeType(onKeyword, true);
+    token = typeInfo.ensureTypeNotVoid(onKeyword, this);
+    if (!optional('{', token.next)) {
+      // TODO(danrubel): replace this with a better error message.
+      ensureBlock(token, fasta.templateExpectedClassOrMixinBody);
+    }
+    // TODO(danrubel): Do not allow fields or constructors
+    token = parseClassOrMixinBody(token);
+    listener.endExtensionDeclaration(onKeyword, token);
     return token;
   }
 
@@ -2321,7 +2354,27 @@ class Parser {
           name, name, lateToken, varFinalOrConst, isTopLevel);
       ++fieldCount;
     }
-    token = ensureSemicolon(token);
+    Token semicolon = token.next;
+    if (optional(';', semicolon)) {
+      token = semicolon;
+    } else {
+      // Recovery
+      if (isTopLevel &&
+          beforeType.next.isIdentifier &&
+          beforeType.next.lexeme == 'extension') {
+        // Looks like an extension method
+        // TODO(danrubel): Remove when extension methods are enabled by default
+        // because then 'extension' will be interpreted as a built-in
+        // and this code will never be executed
+        reportRecoverableError(
+            beforeType.next,
+            fasta.templateExperimentNotEnabled
+                .withArguments('extension-methods'));
+        token = rewriter.insertSyntheticToken(token, TokenType.SEMICOLON);
+      } else {
+        token = ensureSemicolon(token);
+      }
+    }
     if (isTopLevel) {
       listener.endTopLevelFields(staticToken, covariantToken, lateToken,
           varFinalOrConst, fieldCount, beforeStart.next, token);
@@ -4516,8 +4569,7 @@ class Parser {
       // TODO(danrubel): Improve this error message.
       reportRecoverableError(
           next, fasta.templateExpectedButGot.withArguments('['));
-      rewriter.insertToken(
-          token, new SyntheticToken(TokenType.INDEX, next.charOffset));
+      rewriter.insertSyntheticToken(token, TokenType.INDEX);
     }
     return parseLiteralListSuffix(token, constKeyword);
   }

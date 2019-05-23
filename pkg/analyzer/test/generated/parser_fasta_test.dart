@@ -36,6 +36,7 @@ import 'test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassMemberParserTest_Fasta);
+    defineReflectiveTests(ExtensionMethodsParserTest_Fasta);
     defineReflectiveTests(CollectionLiteralParserTest);
     defineReflectiveTests(ComplexParserTest_Fasta);
     defineReflectiveTests(ErrorParserTest_Fasta);
@@ -1432,6 +1433,43 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(map.constKeyword, isNull);
     expect(map.typeArguments, isNull);
     expect(map.elements, hasLength(0));
+  }
+}
+
+@reflectiveTest
+class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
+  @override
+  CompilationUnit parseCompilationUnit(String content,
+      {List<ErrorCode> codes,
+      List<ExpectedError> errors,
+      FeatureSet featureSet}) {
+    return super.parseCompilationUnit(content,
+        codes: codes,
+        errors: errors,
+        featureSet: featureSet ??
+            FeatureSet.forTesting(
+              sdkVersion: '2.3.0',
+              additionalFeatures: [Feature.extension_methods],
+            ));
+  }
+
+  void test_simple() {
+    var unit = parseCompilationUnit('extension E on C { }');
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'on');
+    expect((extension.extendedType as NamedType).name.name, 'C');
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_simple_not_enabled() {
+    parseCompilationUnit('extension E on C { }',
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 0, 9),
+          expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 15, 1)
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.3.0'));
   }
 }
 

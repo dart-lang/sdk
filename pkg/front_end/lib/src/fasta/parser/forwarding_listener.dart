@@ -146,6 +146,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginExtensionDeclaration(Token extensionKeyword, Token name) {
+    listener?.beginExtensionDeclaration(extensionKeyword, name);
+  }
+
+  @override
   void beginFactoryMethod(
       Token lastConsumed, Token externalToken, Token constToken) {
     listener?.beginFactoryMethod(lastConsumed, externalToken, constToken);
@@ -579,6 +584,11 @@ class ForwardingListener implements Listener {
   @override
   void endExport(Token exportKeyword, Token semicolon) {
     listener?.endExport(exportKeyword, semicolon);
+  }
+
+  @override
+  void endExtensionDeclaration(Token onKeyword, Token token) {
+    listener?.endExtensionDeclaration(onKeyword, token);
   }
 
   @override
