@@ -1016,7 +1016,7 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(8, variant: LinkedNodeKind.classTypeAlias)
   LinkedNode get classTypeAlias_withClause;
 
-  @VariantId(34, variantList: [
+  @VariantId(33, variantList: [
     LinkedNodeKind.classDeclaration,
     LinkedNodeKind.classTypeAlias,
     LinkedNodeKind.compilationUnit,
@@ -1036,7 +1036,7 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   int get codeLength;
 
-  @VariantId(33, variantList: [
+  @VariantId(32, variantList: [
     LinkedNodeKind.classDeclaration,
     LinkedNodeKind.classTypeAlias,
     LinkedNodeKind.compilationUnit,
@@ -1059,7 +1059,7 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(2, variant: LinkedNodeKind.comment)
   List<LinkedNode> get comment_references;
 
-  @VariantId(36, variant: LinkedNodeKind.comment)
+  @VariantId(35, variant: LinkedNodeKind.comment)
   List<String> get comment_tokens;
 
   @VariantId(29, variant: LinkedNodeKind.comment)
@@ -1678,7 +1678,7 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.throwExpression)
   LinkedNode get throwExpression_expression;
 
-  @VariantId(35, variantList: [
+  @VariantId(34, variantList: [
     LinkedNodeKind.simpleFormalParameter,
     LinkedNodeKind.variableDeclaration,
   ])
@@ -1749,9 +1749,6 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.partDirective,
   ])
   int get uriBasedDirective_uriElement;
-
-  @VariantId(32, variant: LinkedNodeKind.variableDeclaration)
-  LinkedNodeVariablesDeclaration get variableDeclaration_declaration;
 
   @VariantId(6, variant: LinkedNodeKind.variableDeclaration)
   LinkedNode get variableDeclaration_initializer;
@@ -2035,6 +2032,9 @@ abstract class LinkedNodeUnit extends base.SummaryClass {
   @Id(5)
   List<LinkedNode> get genericFunctionTypes;
 
+  @Id(6)
+  bool get isNNBD;
+
   @Id(3)
   bool get isSynthetic;
 
@@ -2051,28 +2051,6 @@ abstract class LinkedNodeUnit extends base.SummaryClass {
 
   @Id(0)
   String get uriStr;
-
-  @Id(6)
-  bool get isNNBD;
-}
-
-/// Information about a top-level declaration, or a field declaration that
-/// contributes information to [LinkedNodeKind.variableDeclaration].
-abstract class LinkedNodeVariablesDeclaration extends base.SummaryClass {
-  @Id(0)
-  LinkedNode get comment;
-
-  @Id(1)
-  bool get isConst;
-
-  @Id(2)
-  bool get isCovariant;
-
-  @Id(3)
-  bool get isFinal;
-
-  @Id(4)
-  bool get isStatic;
 }
 
 /// Information about the resolution of an [UnlinkedReference].

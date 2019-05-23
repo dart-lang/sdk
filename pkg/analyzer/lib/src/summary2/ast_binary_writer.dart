@@ -31,11 +31,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   /// The list stored [GenericFunctionType]s, as visited in depth-first order.
   final List<LinkedNodeBuilder> genericFunctionTypes = [];
 
-  /// This field is set temporary while visiting [FieldDeclaration] or
-  /// [TopLevelVariableDeclaration] to store data shared among all variables
-  /// in these declarations.
-  LinkedNodeVariablesDeclarationBuilder _variablesDeclaration;
-
   /// Is `true` if the current [ClassDeclaration] has a const constructor,
   /// so initializers of final fields should be written.
   bool _hasConstConstructor = false;
@@ -501,11 +496,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitFieldDeclaration(FieldDeclaration node) {
-    _variablesDeclaration = LinkedNodeVariablesDeclarationBuilder(
-      isCovariant: node.covariantKeyword != null,
-      isStatic: node.isStatic,
-    );
-
     var builder = LinkedNodeBuilder.fieldDeclaration(
       fieldDeclaration_fields: node.fields.accept(this),
     );
@@ -514,9 +504,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       isStatic: node.staticKeyword != null,
     );
     _storeClassMember(builder, node);
-
-    _variablesDeclaration.comment = builder.annotatedNode_comment;
-    _variablesDeclaration = null;
 
     return builder;
   }
@@ -1280,15 +1267,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       TopLevelVariableDeclaration node) {
     timerAstBinaryWriterTopVar.start();
     try {
-      _variablesDeclaration = LinkedNodeVariablesDeclarationBuilder();
-
       var builder = LinkedNodeBuilder.topLevelVariableDeclaration(
         topLevelVariableDeclaration_variableList: node.variables?.accept(this),
       );
       _storeCompilationUnitMember(builder, node);
-
-      _variablesDeclaration.comment = builder.annotatedNode_comment;
-      _variablesDeclaration = null;
 
       return builder;
     } finally {
@@ -1367,7 +1349,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
     var builder = LinkedNodeBuilder.variableDeclaration(
       variableDeclaration_initializer: initializer?.accept(this),
-      variableDeclaration_declaration: _variablesDeclaration,
     );
     builder.flags = AstBinaryFlags.encode(
       hasInitializer: node.initializer != null,
@@ -1383,11 +1364,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitVariableDeclarationList(VariableDeclarationList node) {
-    if (_variablesDeclaration != null) {
-      _variablesDeclaration.isConst = node.isConst;
-      _variablesDeclaration.isFinal = node.isFinal;
-    }
-
     var builder = LinkedNodeBuilder.variableDeclarationList(
       variableDeclarationList_type: node.type?.accept(this),
       variableDeclarationList_variables: _writeNodeList(node.variables),
