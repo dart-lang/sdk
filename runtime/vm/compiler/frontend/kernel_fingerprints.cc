@@ -82,7 +82,6 @@ void KernelFingerprintHelper::CalculateConstructorFingerprint() {
   }
   helper.SetJustRead(ConstructorHelper::kInitializers);
   BuildHash(helper.flags_);
-  BuildHash(helper.annotation_count_);
 }
 
 void KernelFingerprintHelper::CalculateArgumentsFingerprint() {

@@ -262,8 +262,8 @@ class FunctionNodeHelper {
   TokenPosition end_position_;
   AsyncMarker async_marker_;
   AsyncMarker dart_async_marker_;
-  intptr_t total_parameter_count_;
-  intptr_t required_parameter_count_;
+  intptr_t total_parameter_count_ = 0;
+  intptr_t required_parameter_count_ = 0;
 
  private:
   KernelReaderHelper* helper_;
@@ -314,7 +314,7 @@ class TypeParameterHelper {
   }
 
   TokenPosition position_;
-  uint8_t flags_;
+  uint8_t flags_ = 0;
   StringIndex name_index_;
 
  private:
@@ -373,9 +373,9 @@ class VariableDeclarationHelper {
 
   TokenPosition position_;
   TokenPosition equals_position_;
-  uint8_t flags_;
+  uint8_t flags_ = 0;
   StringIndex name_index_;
-  intptr_t annotation_count_;
+  intptr_t annotation_count_ = 0;
 
  private:
   KernelReaderHelper* helper_;
@@ -452,9 +452,9 @@ class FieldHelper {
   NameIndex canonical_name_;
   TokenPosition position_;
   TokenPosition end_position_;
-  uint8_t flags_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
+  uint8_t flags_ = 0;
+  intptr_t source_uri_index_ = 0;
+  intptr_t annotation_count_ = 0;
 
  private:
   KernelReaderHelper* helper_;
@@ -542,9 +542,9 @@ class ProcedureHelper {
   TokenPosition position_;
   TokenPosition end_position_;
   Kind kind_;
-  uint8_t flags_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
+  uint8_t flags_ = 0;
+  intptr_t source_uri_index_ = 0;
+  intptr_t annotation_count_ = 0;
 
   // Only valid if the 'isForwardingStub' flag is set.
   NameIndex forwarding_stub_super_target_;
@@ -606,9 +606,9 @@ class ConstructorHelper {
   TokenPosition start_position_;
   TokenPosition position_;
   TokenPosition end_position_;
-  uint8_t flags_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
+  uint8_t flags_ = 0;
+  intptr_t source_uri_index_ = 0;
+  intptr_t annotation_count_ = 0;
 
  private:
   KernelReaderHelper* helper_;
@@ -679,10 +679,10 @@ class ClassHelper {
   TokenPosition position_;
   TokenPosition end_position_;
   StringIndex name_index_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
-  intptr_t procedure_count_;
-  uint8_t flags_;
+  intptr_t source_uri_index_ = 0;
+  intptr_t annotation_count_ = 0;
+  intptr_t procedure_count_ = 0;
+  uint8_t flags_ = 0;
 
  private:
   KernelReaderHelper* helper_;
@@ -741,10 +741,10 @@ class LibraryHelper {
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsSynthetic() const { return (flags_ & kSynthetic) != 0; }
 
-  uint8_t flags_;
+  uint8_t flags_ = 0;
   NameIndex canonical_name_;
   StringIndex name_index_;
-  intptr_t source_uri_index_;
+  intptr_t source_uri_index_ = 0;
 
  private:
   KernelReaderHelper* helper_;
@@ -775,7 +775,7 @@ class LibraryDependencyHelper {
   };
 
   explicit LibraryDependencyHelper(KernelReaderHelper* helper)
-      : annotation_count_(0), helper_(helper), next_read_(kFileOffset) {}
+      : helper_(helper), next_read_(kFileOffset) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -783,10 +783,10 @@ class LibraryDependencyHelper {
 
   void ReadUntilExcluding(Field field);
 
-  uint8_t flags_;
+  uint8_t flags_ = 0;
   StringIndex name_index_;
   NameIndex target_library_canonical_name_;
-  intptr_t annotation_count_;
+  intptr_t annotation_count_ = 0;
 
  private:
   KernelReaderHelper* helper_;
