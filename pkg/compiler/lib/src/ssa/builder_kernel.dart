@@ -620,17 +620,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     return _elementMap.getDartType(type);
   }
 
-  /// Pops the most recent instruction from the stack and 'boolifies' it.
-  ///
-  /// Boolification is checking if the value is '=== true'.
+  /// Pops the most recent instruction from the stack and ensures that it is a
+  /// non-null bool.
   HInstruction popBoolified() {
     HInstruction value = pop();
-    if (_typeBuilder.checkOrTrustTypes) {
-      return _typeBuilder.potentiallyCheckOrTrustTypeOfCondition(value);
-    }
-    HInstruction result = new HBoolify(value, _abstractValueDomain.boolType);
-    add(result);
-    return result;
+    return _typeBuilder.potentiallyCheckOrTrustTypeOfCondition(value);
   }
 
   /// Extend current method parameters with parameters for the class type
@@ -6110,8 +6104,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
   /// Generates type tests for the parameters of the inlined function.
   void _potentiallyCheckInlinedParameterTypes(FunctionEntity function) {
-    if (!_typeBuilder.checkOrTrustTypes) return;
-
     // TODO(sra): Incorporate properties of call site to help determine which
     // type parameters and value parameters need to be checked.
     bool trusted = false;

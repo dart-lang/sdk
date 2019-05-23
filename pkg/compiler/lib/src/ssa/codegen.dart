@@ -1561,15 +1561,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitGreaterEqual(HGreaterEqual node) => visitRelational(node, '>=');
 
   @override
-  visitBoolify(HBoolify node) {
-    assert(node.inputs.length == 1);
-    use(node.inputs[0]);
-    push(new js.Binary(
-            '===', pop(), newLiteralBool(true, node.sourceInformation))
-        .withSourceInformation(node.sourceInformation));
-  }
-
-  @override
   visitExit(HExit node) {
     // Don't do anything.
   }
@@ -2426,11 +2417,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         use(input.inputs[0]);
       } else if (input is HIdentity) {
         emitIdentityComparison(input, sourceInformation, inverse: true);
-      } else if (input is HBoolify) {
-        use(input.inputs[0]);
-        push(new js.Binary(
-                "!==", pop(), newLiteralBool(true, input.sourceInformation))
-            .withSourceInformation(sourceInformation));
       } else if (canGenerateOptimizedComparison(input)) {
         HRelational relational = input;
         constant_system.BinaryOperation operation = relational.operation();

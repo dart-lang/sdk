@@ -439,33 +439,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   @override
-  HInstruction visitBoolify(HBoolify node) {
-    List<HInstruction> inputs = node.inputs;
-    assert(inputs.length == 1);
-    HInstruction input = inputs[0];
-    if (input.isBoolean(_abstractValueDomain).isDefinitelyTrue) {
-      return input;
-    }
-
-    // If the code is unreachable, remove the HBoolify.  This can happen when
-    // there is a throw expression in a short-circuit conditional.  Removing the
-    // unreachable HBoolify makes it easier to reconstruct the short-circuit
-    // operation.
-    if (_abstractValueDomain.isEmpty(input.instructionType).isDefinitelyTrue) {
-      return input;
-    }
-
-    // All values that cannot be 'true' are boolified to false.
-    AbstractValue mask = input.instructionType;
-    if (_abstractValueDomain
-        .containsType(mask, commonElements.jsBoolClass)
-        .isPotentiallyFalse) {
-      return _graph.addConstantBool(false, _closedWorld);
-    }
-    return node;
-  }
-
-  @override
   HInstruction visitNot(HNot node) {
     List<HInstruction> inputs = node.inputs;
     assert(inputs.length == 1);
@@ -925,23 +898,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return node;
   }
 
-  bool allUsersAreBoolifies(HInstruction instruction) {
-    List<HInstruction> users = instruction.usedBy;
-    int length = users.length;
-    for (int i = 0; i < length; i++) {
-      if (users[i] is! HBoolify) return false;
-    }
-    return true;
-  }
-
   @override
   HInstruction visitRelational(HRelational node) {
-    if (allUsersAreBoolifies(node)) {
-      // TODO(ngeoffray): Call a boolified selector.
-      // This node stays the same, but the Boolify node will go away.
-    }
-    // Note that we still have to call [super] to make sure that we end up
-    // in the remaining optimizations.
     return super.visitRelational(node);
   }
 
@@ -2928,10 +2886,6 @@ class SsaTypeConversionInserter extends HBaseVisitor
             collectTargets(user, trueTargets, null);
           }
         }
-      } else if (user is HBoolify) {
-        // We collect targets for strictly boolean operations so HBoolify cannot
-        // change the result.
-        collectTargets(user, trueTargets, falseTargets);
       }
     }
   }

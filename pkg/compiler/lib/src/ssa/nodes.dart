@@ -31,7 +31,6 @@ abstract class HVisitor<R> {
   R visitBitNot(HBitNot node);
   R visitBitOr(HBitOr node);
   R visitBitXor(HBitXor node);
-  R visitBoolify(HBoolify node);
   R visitBoundsCheck(HBoundsCheck node);
   R visitBreak(HBreak node);
   R visitConstant(HConstant node);
@@ -432,8 +431,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitBitOr(HBitOr node) => visitBinaryBitOp(node);
   @override
   visitBitXor(HBitXor node) => visitBinaryBitOp(node);
-  @override
-  visitBoolify(HBoolify node) => visitInstruction(node);
   @override
   visitBoundsCheck(HBoundsCheck node) => visitCheck(node);
   @override
@@ -1019,7 +1016,6 @@ abstract class HInstruction implements Spannable {
 
   // Type codes.
   static const int UNDEFINED_TYPECODE = -1;
-  static const int BOOLIFY_TYPECODE = 0;
   static const int TYPE_GUARD_TYPECODE = 1;
   static const int BOUNDS_CHECK_TYPECODE = 2;
   static const int INTEGER_CHECK_TYPECODE = 3;
@@ -1556,23 +1552,6 @@ class HRef extends HInstruction {
 abstract class HLateInstruction extends HInstruction {
   HLateInstruction(List<HInstruction> inputs, AbstractValue type)
       : super(inputs, type);
-}
-
-class HBoolify extends HInstruction {
-  HBoolify(HInstruction value, AbstractValue type)
-      : super(<HInstruction>[value], type) {
-    setUseGvn();
-    sourceInformation = value.sourceInformation;
-  }
-
-  @override
-  accept(HVisitor visitor) => visitor.visitBoolify(this);
-  @override
-  int typeCode() => HInstruction.BOOLIFY_TYPECODE;
-  @override
-  bool typeEquals(other) => other is HBoolify;
-  @override
-  bool dataEquals(HInstruction other) => true;
 }
 
 /// A [HCheck] instruction is an instruction that might do a dynamic

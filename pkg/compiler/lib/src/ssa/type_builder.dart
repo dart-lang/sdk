@@ -262,8 +262,6 @@ abstract class TypeBuilder {
     return result;
   }
 
-  bool get checkOrTrustTypes => true;
-
   /// Build a [HTypeConversion] for converting [original] to type [type].
   ///
   /// Invariant: [type] must be valid in the context.

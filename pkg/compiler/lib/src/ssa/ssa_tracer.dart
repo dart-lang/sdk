@@ -173,11 +173,6 @@ class HInstructionStringifier implements HVisitor<String> {
     return "LateValue: ${temporaryId(node.inputs[0])}";
   }
 
-  @override
-  String visitBoolify(HBoolify node) {
-    return "Boolify: ${temporaryId(node.inputs[0])}";
-  }
-
   String handleInvokeBinary(HInvokeBinary node, String opcode) {
     String left = temporaryId(node.left);
     String right = temporaryId(node.right);
