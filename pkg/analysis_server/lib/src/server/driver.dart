@@ -30,6 +30,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:args/args.dart';
+import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
@@ -428,19 +429,21 @@ class Driver implements ServerStarter {
       }
     }
 
-    if (analysisServerOptions.useLanguageServerProtocol) {
-      startLspServer(results, analysisServerOptions, dartSdkManager,
-          instrumentationService, diagnosticServerPort);
-    } else {
-      startAnalysisServer(
-          results,
-          analysisServerOptions,
-          parser,
-          dartSdkManager,
-          instrumentationService,
-          analytics,
-          diagnosticServerPort);
-    }
+    CompilerContext.runWithDefaultOptions((_) async {
+      if (analysisServerOptions.useLanguageServerProtocol) {
+        startLspServer(results, analysisServerOptions, dartSdkManager,
+            instrumentationService, diagnosticServerPort);
+      } else {
+        startAnalysisServer(
+            results,
+            analysisServerOptions,
+            parser,
+            dartSdkManager,
+            instrumentationService,
+            analytics,
+            diagnosticServerPort);
+      }
+    });
   }
 
   void startAnalysisServer(
