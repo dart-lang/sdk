@@ -72,7 +72,7 @@ class DartUnitHoverComputer {
           // containing library
           LibraryElement library = element.library;
           if (library != null) {
-            hover.containingLibraryName = library.name;
+            hover.containingLibraryName = library.source.uri.toString();
             hover.containingLibraryPath = library.source.fullName;
           }
         }

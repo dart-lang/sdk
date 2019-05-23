@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -20,6 +21,9 @@ main() {
 
 @reflectiveTest
 class AnalysisHoverTest extends AbstractAnalysisTest {
+  /// If windows, return 'C:/', otherwise return the empty string
+  String get windowsCColon => Platform.isWindows ? 'C:/' : '';
+
   Future<HoverInformation> prepareHover(String search) {
     int offset = findOffset(search);
     return prepareHoverAt(offset);
@@ -116,7 +120,8 @@ main() {
     expect(hover.offset, findOffset('A(0)'));
     expect(hover.length, 'A(0)'.length);
     // element
-    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryName,
+        'file:///${windowsCColon}project/bin/test.dart');
     expect(hover.containingLibraryPath, testFile);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, '(const) A(int i) → A');
@@ -141,7 +146,8 @@ main() {
     expect(hover.offset, findOffset('A()'));
     expect(hover.length, 'A()'.length);
     // element
-    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryName,
+        'file:///${windowsCColon}project/bin/test.dart');
     expect(hover.containingLibraryPath, testFile);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, '(new) A() → A');
@@ -167,7 +173,8 @@ main() {
     expect(hover.offset, findOffset('new A'));
     expect(hover.length, 'new A()'.length);
     // element
-    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryName,
+        'file:///${windowsCColon}project/bin/test.dart');
     expect(hover.containingLibraryPath, testFile);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, 'A() → A');
@@ -192,7 +199,8 @@ main() {
       expect(hover.offset, findOffset('new A<String>'));
       expect(hover.length, 'new A<String>()'.length);
       // element
-      expect(hover.containingLibraryName, 'my.library');
+      expect(hover.containingLibraryName,
+          'file:///${windowsCColon}project/bin/test.dart');
       expect(hover.containingLibraryPath, testFile);
       expect(hover.dartdoc, isNull);
       expect(hover.elementDescription, 'A() → A<String>');
@@ -214,6 +222,7 @@ main() {
     }
     {
       HoverInformation hover = await prepareHover('String>');
+      expect(hover.containingLibraryName, 'dart:core');
       expect(hover.offset, findOffset('String>'));
       expect(hover.length, 'String'.length);
       expect(hover.elementKind, 'class');
@@ -329,7 +338,8 @@ List<String> fff(int a, String b) {
 ''');
     HoverInformation hover = await prepareHover('fff(int a');
     // element
-    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryName,
+        'file:///${windowsCColon}project/bin/test.dart');
     expect(hover.containingLibraryPath, testFile);
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
@@ -356,7 +366,8 @@ main(A a) {
 ''');
     HoverInformation hover = await prepareHover('fff);');
     // element
-    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryName,
+        'file:///${windowsCColon}project/bin/test.dart');
     expect(hover.containingLibraryPath, testFile);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
@@ -494,7 +505,8 @@ class A {
 ''');
     HoverInformation hover = await prepareHover('mmm(int a');
     // element
-    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryName,
+        'file:///${windowsCColon}project/bin/test.dart');
     expect(hover.containingLibraryPath, testFile);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
@@ -523,7 +535,8 @@ main(A a) {
     expect(hover.offset, findOffset('mmm(42, '));
     expect(hover.length, 'mmm'.length);
     // element
-    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryName,
+        'file:///${windowsCColon}project/bin/test.dart');
     expect(hover.containingLibraryPath, testFile);
     expect(hover.elementDescription, 'mmm(int a, String b) → List<String>');
     expect(hover.elementKind, 'method');
@@ -571,7 +584,8 @@ f(Stream<int> s) {
     expect(hover.offset, findOffset('transform(n'));
     expect(hover.length, 'transform'.length);
     // element
-    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryName,
+        'file:///${windowsCColon}project/bin/test.dart');
     expect(hover.containingLibraryPath, testFile);
     expect(hover.elementDescription,
         'Stream.transform<S>(StreamTransformer<int, S> streamTransformer) → Stream<S>');

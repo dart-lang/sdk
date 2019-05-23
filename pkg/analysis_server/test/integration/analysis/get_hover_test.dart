@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:path/path.dart' as path;
@@ -81,13 +82,13 @@ main() {
       expect(info.length, equals(length));
       if (isCore) {
         expect(path.basename(info.containingLibraryPath), equals('core.dart'));
-        expect(info.containingLibraryName, equals('dart.core'));
+        expect(info.containingLibraryName, equals('dart:core'));
       } else if (isLocal || isLiteral) {
         expect(info.containingLibraryPath, isNull);
         expect(info.containingLibraryName, isNull);
       } else {
         expect(info.containingLibraryPath, equals(pathname));
-        expect(info.containingLibraryName, equals('lib.test'));
+        expect(info.containingLibraryName, isNotNull);
       }
       if (docRegexp == null) {
         expect(info.dartdoc, isNull);

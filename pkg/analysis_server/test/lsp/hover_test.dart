@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
@@ -18,6 +20,9 @@ main() {
 
 @reflectiveTest
 class HoverTest extends AbstractLspAnalysisServerTest {
+  /// If windows, return 'C:/', otherwise return the empty string
+  String get windowsCColon => Platform.isWindows ? 'C:/' : '';
+
   test_dartDoc_macros() async {
     final content = '''
     /// {@template template_name}
@@ -67,6 +72,8 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 ```dart
 String abc
 ```
+*file:///${windowsCColon}project/lib/main.dart*
+
 ---
 This is a string.
 
@@ -165,6 +172,7 @@ print();
 ```dart
 String abc
 ```
+*file:///${windowsCColon}project/lib/main.dart*
     '''
         .trim();
 
