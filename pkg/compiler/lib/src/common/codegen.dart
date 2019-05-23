@@ -57,6 +57,8 @@ class CodegenImpact extends WorldImpact {
   Iterable<NativeBehavior> get nativeBehaviors => const [];
 
   Iterable<FunctionEntity> get nativeMethods => const [];
+
+  Iterable<Selector> get oneShotInterceptors => const [];
 }
 
 class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
@@ -70,6 +72,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   Set<GenericInstantiation> _genericInstantiations;
   List<NativeBehavior> _nativeBehaviors;
   Set<FunctionEntity> _nativeMethods;
+  Set<Selector> _oneShotInterceptors;
 
   _CodegenImpact();
 
@@ -85,7 +88,8 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
       this._asyncMarkers,
       this._genericInstantiations,
       this._nativeBehaviors,
-      this._nativeMethods)
+      this._nativeMethods,
+      this._oneShotInterceptors)
       : super.internal(dynamicUses, staticUses, typeUses, constantUses);
 
   factory _CodegenImpact.readFromDataSource(DataSource source) {
@@ -126,6 +130,9 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         emptyAsNull: true);
     Set<FunctionEntity> nativeMethods =
         source.readMembers<FunctionEntity>(emptyAsNull: true)?.toSet();
+    Set<Selector> oneShotInterceptors = source
+        .readList(() => Selector.readFromDataSource(source), emptyAsNull: true)
+        ?.toSet();
     source.end(tag);
     return new _CodegenImpact.internal(
         dynamicUses,
@@ -139,7 +146,8 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         asyncMarkers,
         genericInstantiations,
         nativeBehaviors,
-        nativeMethods);
+        nativeMethods,
+        oneShotInterceptors);
   }
 
   @override
@@ -172,6 +180,9 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         (NativeBehavior behavior) => behavior.writeToDataSink(sink),
         allowNull: true);
     sink.writeMembers(_nativeMethods, allowNull: true);
+    sink.writeList(_oneShotInterceptors,
+        (Selector selector) => selector.writeToDataSink(sink),
+        allowNull: true);
     sink.end(tag);
   }
 
@@ -267,6 +278,16 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     return _nativeMethods ?? const [];
   }
 
+  void registerOneShotInterceptor(Selector selector) {
+    _oneShotInterceptors ??= {};
+    _oneShotInterceptors.add(selector);
+  }
+
+  @override
+  Iterable<Selector> get oneShotInterceptors {
+    return _oneShotInterceptors ?? const [];
+  }
+
   @override
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -290,6 +311,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     add('genericInstantiations', genericInstantiations);
     add('nativeBehaviors', nativeBehaviors);
     add('nativeMethods', nativeMethods);
+    add('oneShotInterceptors', oneShotInterceptors);
 
     return sb.toString();
   }
@@ -346,6 +368,10 @@ class CodegenRegistry {
 
   void registerSpecializedGetInterceptor(Set<ClassEntity> classes) {
     _worldImpact.registerSpecializedGetInterceptor(classes);
+  }
+
+  void registerOneShotInterceptor(Selector selector) {
+    _worldImpact.registerOneShotInterceptor(selector);
   }
 
   void registerUseInterceptor() {
@@ -481,8 +507,8 @@ class CodegenResult {
         case ModularNameKind.nameForGetInterceptor:
           name.value = namer.nameForGetInterceptor(name.set);
           break;
-        case ModularNameKind.nameForGetOneShotInterceptor:
-          name.value = namer.nameForGetOneShotInterceptor(name.data, name.set);
+        case ModularNameKind.nameForOneShotInterceptor:
+          name.value = namer.nameForOneShotInterceptor(name.data, name.set);
           break;
         case ModularNameKind.asName:
           name.value = namer.asName(name.data);
@@ -556,7 +582,7 @@ enum ModularNameKind {
   globalPropertyNameForType,
   globalPropertyNameForMember,
   nameForGetInterceptor,
-  nameForGetOneShotInterceptor,
+  nameForOneShotInterceptor,
   asName,
 }
 
@@ -611,7 +637,7 @@ class ModularName extends js.Name implements js.AstContainer {
       case ModularNameKind.nameForGetInterceptor:
         set = source.readClasses().toSet();
         break;
-      case ModularNameKind.nameForGetOneShotInterceptor:
+      case ModularNameKind.nameForOneShotInterceptor:
         data = Selector.readFromDataSource(source);
         set = source.readClasses().toSet();
         break;
@@ -663,7 +689,7 @@ class ModularName extends js.Name implements js.AstContainer {
       case ModularNameKind.nameForGetInterceptor:
         sink.writeClasses(set);
         break;
-      case ModularNameKind.nameForGetOneShotInterceptor:
+      case ModularNameKind.nameForOneShotInterceptor:
         Selector selector = data;
         selector.writeToDataSink(sink);
         sink.writeClasses(set);

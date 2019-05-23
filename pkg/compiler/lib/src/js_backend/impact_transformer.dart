@@ -20,10 +20,12 @@ import '../native/enqueue.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../universe/feature.dart';
+import '../universe/selector.dart';
 import '../universe/use.dart'
     show StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import '../universe/world_impact.dart' show TransformedWorldImpact, WorldImpact;
 import '../util/util.dart';
+import '../world.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'custom_elements_analysis.dart';
@@ -342,6 +344,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
 class CodegenImpactTransformer {
   final CompilerOptions _options;
+  final JClosedWorld _closedWorld;
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final BackendImpacts _impacts;
@@ -356,6 +359,7 @@ class CodegenImpactTransformer {
 
   CodegenImpactTransformer(
       this._options,
+      this._closedWorld,
       this._elementEnvironment,
       this._commonElements,
       this._impacts,
@@ -453,6 +457,11 @@ class CodegenImpactTransformer {
 
     for (FunctionEntity function in impact.nativeMethods) {
       _nativeEmitter.nativeMethods.add(function);
+    }
+
+    for (Selector selector in impact.oneShotInterceptors) {
+      _oneShotInterceptorData.registerOneShotInterceptor(
+          selector, _namer, _closedWorld);
     }
 
     // TODO(johnniwinther): Remove eager registration.

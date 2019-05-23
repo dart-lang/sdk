@@ -30,11 +30,9 @@ import '../tracer.dart';
 import '../universe/class_hierarchy.dart'
     show ClassHierarchyBuilder, ClassQueries;
 import '../universe/codegen_world_builder.dart';
-import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
-import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
 import 'field_analysis.dart';
 import 'annotations.dart';
@@ -538,6 +536,12 @@ class JavaScriptBackend {
       JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults,
       CodegenInputs codegen) {
+    OneShotInterceptorData oneShotInterceptorData = new OneShotInterceptorData(
+        closedWorld.interceptorData,
+        closedWorld.commonElements,
+        closedWorld.nativeData);
+    _onCodegenEnqueuerStart(
+        globalInferenceResults, codegen, oneShotInterceptorData);
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
     BackendImpacts impacts = new BackendImpacts(commonElements);
@@ -549,7 +553,8 @@ class JavaScriptBackend {
         compiler.backendStrategy.createCodegenWorldBuilder(
             closedWorld.nativeData,
             closedWorld,
-            compiler.abstractValueStrategy.createSelectorStrategy()),
+            compiler.abstractValueStrategy.createSelectorStrategy(),
+            oneShotInterceptorData),
         compiler.backendStrategy.createCodegenWorkItemBuilder(closedWorld),
         new CodegenEnqueuerListener(
             elementEnvironment,
@@ -645,10 +650,6 @@ class JavaScriptBackend {
         ? const MinifiedFixedNames()
         : const FixedNames();
 
-    OneShotInterceptorData oneShotInterceptorData = new OneShotInterceptorData(
-        closedWorld.interceptorData,
-        closedWorld.commonElements,
-        closedWorld.nativeData);
     Tracer tracer = new Tracer(closedWorld, compiler.outputProvider);
     RuntimeTypesEncoder rtiEncoder = new RuntimeTypesEncoderImpl(
         rtiTags,
@@ -667,7 +668,7 @@ class JavaScriptBackend {
       rtiSubstitutions = runtimeTypesImpl;
     }
 
-    CodegenInputs codegen = new CodegenInputsImpl(oneShotInterceptorData,
+    CodegenInputs codegen = new CodegenInputsImpl(
         rtiSubstitutions, rtiEncoder, tracer, rtiTags, fixedNames);
 
     functionCompiler.initialize(globalTypeInferenceResults, codegen);
@@ -675,9 +676,10 @@ class JavaScriptBackend {
   }
 
   /// Called before the compiler starts running the codegen enqueuer.
-  void onCodegenEnqueuerStart(
+  void _onCodegenEnqueuerStart(
       GlobalTypeInferenceResults globalTypeInferenceResults,
-      CodegenInputs codegen) {
+      CodegenInputs codegen,
+      OneShotInterceptorData oneShotInterceptorData) {
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
     RuntimeTypeTags rtiTags = codegen.rtiTags;
     FixedNames fixedNames = codegen.fixedNames;
@@ -701,6 +703,7 @@ class JavaScriptBackend {
 
     _codegenImpactTransformer = new CodegenImpactTransformer(
         compiler.options,
+        closedWorld,
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
         impacts,
@@ -709,7 +712,7 @@ class JavaScriptBackend {
         closedWorld.rtiNeed,
         nativeCodegenEnqueuer,
         _namer,
-        codegen.oneShotInterceptorData,
+        oneShotInterceptorData,
         rtiChecksBuilder,
         emitterTask.nativeEmitter);
   }
@@ -770,38 +773,11 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
   }
 }
 
-class SuperMemberData {
-  /// A set of member that are called from subclasses via `super`.
-  final Set<MemberEntity> _aliasedSuperMembers = new Setlet<MemberEntity>();
-
-  /// Record that [member] is called from a subclass via `super`.
-  bool maybeRegisterAliasedSuperMember(MemberEntity member, Selector selector) {
-    if (!canUseAliasedSuperMember(member, selector)) {
-      // Invoking a super getter isn't supported, this would require changes to
-      // compact field descriptors in the emitter.
-      return false;
-    }
-    _aliasedSuperMembers.add(member);
-    return true;
-  }
-
-  bool canUseAliasedSuperMember(MemberEntity member, Selector selector) {
-    return !selector.isGetter;
-  }
-
-  /// Returns `true` if [member] is called from a subclass via `super`.
-  bool isAliasedSuperMember(MemberEntity member) {
-    return _aliasedSuperMembers.contains(member);
-  }
-}
-
 /// Interface for resources only used during code generation.
 abstract class CodegenInputs {
   CheckedModeHelpers get checkedModeHelpers;
-  OneShotInterceptorData get oneShotInterceptorData;
   RuntimeTypesSubstitutions get rtiSubstitutions;
   RuntimeTypesEncoder get rtiEncoder;
-  SuperMemberData get superMemberData;
   Tracer get tracer;
   RuntimeTypeTags get rtiTags;
   FixedNames get fixedNames;
@@ -812,16 +788,10 @@ class CodegenInputsImpl implements CodegenInputs {
   final CheckedModeHelpers checkedModeHelpers = new CheckedModeHelpers();
 
   @override
-  final OneShotInterceptorData oneShotInterceptorData;
-
-  @override
   final RuntimeTypesSubstitutions rtiSubstitutions;
 
   @override
   final RuntimeTypesEncoder rtiEncoder;
-
-  @override
-  final SuperMemberData superMemberData = new SuperMemberData();
 
   @override
   final Tracer tracer;
@@ -832,6 +802,6 @@ class CodegenInputsImpl implements CodegenInputs {
   @override
   final FixedNames fixedNames;
 
-  CodegenInputsImpl(this.oneShotInterceptorData, this.rtiSubstitutions,
-      this.rtiEncoder, this.tracer, this.rtiTags, this.fixedNames);
+  CodegenInputsImpl(this.rtiSubstitutions, this.rtiEncoder, this.tracer,
+      this.rtiTags, this.fixedNames);
 }

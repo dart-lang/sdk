@@ -12,6 +12,7 @@ import 'elements/entities.dart';
 import 'inferrer/types.dart';
 import 'io/source_information.dart';
 import 'js_backend/inferred_data.dart';
+import 'js_backend/interceptor_data.dart';
 import 'js_backend/native_data.dart';
 import 'ssa/ssa.dart';
 import 'universe/codegen_world_builder.dart';
@@ -35,7 +36,8 @@ abstract class BackendStrategy {
   CodegenWorldBuilder createCodegenWorldBuilder(
       NativeBasicData nativeBasicData,
       JClosedWorld closedWorld,
-      SelectorConstraintsStrategy selectorConstraintsStrategy);
+      SelectorConstraintsStrategy selectorConstraintsStrategy,
+      OneShotInterceptorData oneShotInterceptorData);
 
   /// Creates the [WorkItemBuilder] used by the codegen enqueuer.
   WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld);

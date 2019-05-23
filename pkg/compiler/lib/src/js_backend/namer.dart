@@ -1323,7 +1323,7 @@ class Namer extends ModularNamer {
   }
 
   @override
-  jsAst.Name nameForGetOneShotInterceptor(
+  jsAst.Name nameForOneShotInterceptor(
       Selector selector, Iterable<ClassEntity> classes) {
     // The one-shot name is a global name derived from the invocation name.  To
     // avoid instability we would like the names to be unique and not clash with
@@ -2365,7 +2365,7 @@ abstract class ModularNamer {
 
   /// Property name used for the one-shot interceptor method for the given
   /// [selector] and return-type specialization.
-  jsAst.Name nameForGetOneShotInterceptor(
+  jsAst.Name nameForOneShotInterceptor(
       Selector selector, Set<ClassEntity> classes);
 
   /// Returns the runtime name for [element].
@@ -2749,12 +2749,10 @@ class ModularNamerImpl extends ModularNamer {
   }
 
   @override
-  jsAst.Name nameForGetOneShotInterceptor(
+  jsAst.Name nameForOneShotInterceptor(
       Selector selector, Set<ClassEntity> classes) {
-    jsAst.Name name = new ModularName(
-        ModularNameKind.nameForGetOneShotInterceptor,
-        data: selector,
-        set: classes);
+    jsAst.Name name = new ModularName(ModularNameKind.nameForOneShotInterceptor,
+        data: selector, set: classes);
     _registry.registerModularName(name);
     return name;
   }

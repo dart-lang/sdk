@@ -25,6 +25,7 @@ import '../inferrer/types.dart';
 import '../js/js_source_mapping.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/inferred_data.dart';
+import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart' show ModularNamer;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
@@ -128,9 +129,10 @@ class JsBackendStrategy implements BackendStrategy {
   CodegenWorldBuilder createCodegenWorldBuilder(
       NativeBasicData nativeBasicData,
       JClosedWorld closedWorld,
-      SelectorConstraintsStrategy selectorConstraintsStrategy) {
+      SelectorConstraintsStrategy selectorConstraintsStrategy,
+      OneShotInterceptorData oneShotInterceptorData) {
     return new CodegenWorldBuilderImpl(
-        closedWorld, selectorConstraintsStrategy);
+        closedWorld, selectorConstraintsStrategy, oneShotInterceptorData);
   }
 
   @override

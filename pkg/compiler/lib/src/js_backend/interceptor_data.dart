@@ -394,7 +394,7 @@ class OneShotInterceptorData {
         interceptors[key] ??= new OneShotInterceptor(key, selector);
     interceptor.classes.addAll(classes);
     registerSpecializedGetInterceptor(classes, namer);
-    return namer.nameForGetOneShotInterceptor(selector, classes);
+    return namer.nameForOneShotInterceptor(selector, classes);
   }
 
   void registerSpecializedGetInterceptor(

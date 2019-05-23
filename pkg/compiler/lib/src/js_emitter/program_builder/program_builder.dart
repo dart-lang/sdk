@@ -20,7 +20,6 @@ import '../../io/source_information.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
-import '../../js_backend/backend.dart' show SuperMemberData;
 import '../../js_backend/backend_usage.dart';
 import '../../js_backend/custom_elements_analysis.dart';
 import '../../js_backend/inferred_data.dart';
@@ -68,7 +67,6 @@ class ProgramBuilder {
   final NativeData _nativeData;
   final RuntimeTypesNeed _rtiNeed;
   final InterceptorData _interceptorData;
-  final SuperMemberData _superMemberData;
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
   final OneShotInterceptorData _oneShotInterceptorData;
@@ -111,7 +109,6 @@ class ProgramBuilder {
       this._nativeData,
       this._rtiNeed,
       this._interceptorData,
-      this._superMemberData,
       this._rtiChecks,
       this._rtiEncoder,
       this._oneShotInterceptorData,
@@ -887,7 +884,7 @@ class ProgramBuilder {
 
     bool canBeApplied = _methodCanBeApplied(element);
 
-    js.Name aliasName = _superMemberData.isAliasedSuperMember(element)
+    js.Name aliasName = _codegenWorld.isAliasedSuperMember(element)
         ? _namer.aliasedSuperMemberPropertyName(element)
         : null;
 
@@ -1136,7 +1133,7 @@ class ProgramBuilder {
     Map<js.Name, OneShotInterceptor> interceptorMap = {};
     for (OneShotInterceptor interceptor
         in _oneShotInterceptorData.oneShotInterceptors) {
-      js.Name name = _namer.nameForGetOneShotInterceptor(
+      js.Name name = _namer.nameForOneShotInterceptor(
           interceptor.selector, interceptor.classes);
       names.add(name);
       assert(

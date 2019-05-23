@@ -362,7 +362,6 @@ abstract class Compiler {
     phase = PHASE_COMPILING;
 
     CodegenInputs codegen = backend.onCodegenStart(globalInferenceResults);
-    backend.onCodegenEnqueuerStart(globalInferenceResults, codegen);
     Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(
         closedWorld, globalInferenceResults, codegen);
     _codegenWorldBuilder = codegenEnqueuer.worldBuilder;

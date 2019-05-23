@@ -5,13 +5,21 @@
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
-import '../js_backend/js_backend.dart' show SuperMemberData;
 import '../js_backend/interceptor_data.dart';
 import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
 import 'codegen.dart' show CodegenPhase;
 import 'nodes.dart';
+
+/// Returns `true` if the invocation of [selector] on [member] can use an
+/// aliased member.
+///
+/// Invoking a super getter isn't supported, this would require changes to
+/// compact field descriptors in the emitter.
+bool canUseAliasedSuperMember(MemberEntity member, Selector selector) {
+  return !selector.isGetter;
+}
 
 /// Replaces some instructions with specialized versions to make codegen easier.
 /// Caches codegen information on nodes.
@@ -589,7 +597,6 @@ class SsaAssignmentChaining extends HBaseVisitor with CodegenPhase {
 ///   t2 = add(4, 3);
 class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
   final AbstractValueDomain _abstractValueDomain;
-  final SuperMemberData _superMemberData;
 
   /// List of [HInstruction] that the instruction merger expects in
   /// order when visiting the inputs of an instruction.
@@ -606,8 +613,7 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
     generateAtUseSite.add(instruction);
   }
 
-  SsaInstructionMerger(
-      this._abstractValueDomain, this.generateAtUseSite, this._superMemberData);
+  SsaInstructionMerger(this._abstractValueDomain, this.generateAtUseSite);
 
   @override
   void visitGraph(HGraph graph) {
@@ -693,7 +699,7 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
     // after first access if we use lazy initialization.
     // In this case, we therefore don't allow the receiver (the first argument)
     // to be generated at use site, and only analyze all other arguments.
-    if (!_superMemberData.canUseAliasedSuperMember(superMethod, selector)) {
+    if (!canUseAliasedSuperMember(superMethod, selector)) {
       analyzeInputs(instruction, 1);
     } else {
       super.visitInvokeSuper(instruction);

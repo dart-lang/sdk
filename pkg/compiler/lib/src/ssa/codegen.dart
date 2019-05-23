@@ -21,7 +21,7 @@ import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/interceptor_data.dart';
-import '../js_backend/backend.dart' show CodegenInputs, SuperMemberData;
+import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart' show ModularNamer;
@@ -112,11 +112,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
           _options,
           emitter,
           codegen.checkedModeHelpers,
-          codegen.oneShotInterceptorData,
           codegen.rtiSubstitutions,
           codegen.rtiEncoder,
           namer,
-          codegen.superMemberData,
           codegen.tracer,
           closedWorld,
           registry);
@@ -143,11 +141,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
           _options,
           emitter,
           codegen.checkedModeHelpers,
-          codegen.oneShotInterceptorData,
           codegen.rtiSubstitutions,
           codegen.rtiEncoder,
           namer,
-          codegen.superMemberData,
           codegen.tracer,
           closedWorld,
           registry);
@@ -182,11 +178,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final CompilerOptions _options;
   final ModularEmitter _emitter;
   final CheckedModeHelpers _checkedModeHelpers;
-  final OneShotInterceptorData _oneShotInterceptorData;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
   final RuntimeTypesEncoder _rtiEncoder;
   final ModularNamer _namer;
-  final SuperMemberData _superMemberData;
   final Tracer _tracer;
   final JClosedWorld _closedWorld;
   final CodegenRegistry _registry;
@@ -238,11 +232,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       this._options,
       this._emitter,
       this._checkedModeHelpers,
-      this._oneShotInterceptorData,
       this._rtiSubstitutions,
       this._rtiEncoder,
       this._namer,
-      this._superMemberData,
       this._tracer,
       this._closedWorld,
       this._registry,
@@ -389,8 +381,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     runPhase(new SsaTypeKnownRemover());
     runPhase(new SsaTrustedCheckRemover(_options));
     runPhase(new SsaAssignmentChaining(_options, _closedWorld));
-    runPhase(new SsaInstructionMerger(
-        _abstractValueDomain, generateAtUseSite, _superMemberData));
+    runPhase(new SsaInstructionMerger(_abstractValueDomain, generateAtUseSite));
     runPhase(new SsaConditionMerger(generateAtUseSite, controlFlowOperators));
     runPhase(new SsaShareRegionConstants(_options));
 
@@ -1926,8 +1917,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Expression isolate =
         _namer.readGlobalObjectForLibrary(_commonElements.interceptorsLibrary);
     Selector selector = node.selector;
-    js.Name methodName = _oneShotInterceptorData.registerOneShotInterceptor(
-        selector, _namer, _closedWorld);
+    Set<ClassEntity> classes =
+        _interceptorData.getInterceptedClassesOn(selector.name, _closedWorld);
+    _registry.registerOneShotInterceptor(selector);
+    js.Name methodName = _namer.nameForOneShotInterceptor(selector, classes);
     push(js
         .propertyCall(isolate, methodName, arguments)
         .withSourceInformation(node.sourceInformation));
@@ -2140,8 +2133,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     MemberEntity superElement = node.element;
     ClassEntity superClass = superElement.enclosingClass;
     Selector selector = node.selector;
-    bool useAliasedSuper = _superMemberData.maybeRegisterAliasedSuperMember(
-        superElement, selector);
+    bool useAliasedSuper = canUseAliasedSuperMember(superElement, selector);
     if (selector.isGetter) {
       if (superElement.isField || superElement.isGetter) {
         _registry.registerStaticUse(new StaticUse.superGet(superElement));
@@ -2156,8 +2148,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         _registry.registerStaticUse(new StaticUse.superSetterSet(superElement));
       }
     } else {
-      if (_superMemberData.maybeRegisterAliasedSuperMember(
-          superElement, selector)) {
+      if (useAliasedSuper) {
         _registry.registerStaticUse(new StaticUse.superInvoke(
             superElement, new CallStructure.unnamed(node.inputs.length)));
       } else {
