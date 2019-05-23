@@ -19,10 +19,18 @@
 
 ### Tools
 
+#### Linter
+
 The Linter was updated to `0.1.90`, which includes the following changes:
 
 * fixed null-reference in `unrelated_type_equality_checks`
 * new lint: `unsafe_html`
+
+#### Pub
+
+* `pub publish` will no longer warn about missing dependencies for import
+   statements in `example/`.
+* OAuth2 authentication will explicitely ask for the `openid` scope.
 
 ## 2.3.2-dev.0.0
 
@@ -311,7 +319,7 @@ The Linter was updated to `0.1.86`, which includes the following changes:
   `.g.dart`, etc.).
 *   Fixed false positives in `unnecessary_parenthesis`.
 
-#### Pub client
+#### Pub
 
 *   Added a CHANGELOG validator that complains if you `pub publish` without
     mentioning the current version.

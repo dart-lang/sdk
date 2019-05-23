@@ -113,7 +113,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_rev": "7d34c9e4e552a4f66acce32e4344ae27756a1949",
-  "pub_rev": "8c363fe26f059c3063f1129adbb3c4e22a8ce954",
+  "pub_rev": "b6d9152a7303805dedc49f93b11dde728f0e9f3d",
   "pub_semver_tag": "1.4.2",
   "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "2.1.5",
