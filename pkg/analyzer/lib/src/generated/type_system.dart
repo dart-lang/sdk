@@ -75,7 +75,8 @@ class Dart2TypeSystem extends TypeSystem {
       new HashSet<TypeComparison>();
 
   /**
-   * True if implicit casts should be allowed, otherwise false.
+   * False if implicit casts should always be disallowed, otherwise the
+   * [FeatureSet] will be used.
    *
    * This affects the behavior of [isAssignableTo].
    */
@@ -448,7 +449,8 @@ class Dart2TypeSystem extends TypeSystem {
   }
 
   @override
-  bool isAssignableTo(DartType fromType, DartType toType) {
+  bool isAssignableTo(DartType fromType, DartType toType,
+      {FeatureSet featureSet}) {
     // An actual subtype
     if (isSubtypeOf(fromType, toType)) {
       return true;
@@ -457,13 +459,21 @@ class Dart2TypeSystem extends TypeSystem {
     // A call method tearoff
     if (fromType is InterfaceType && acceptsFunctionType(toType)) {
       var callMethodType = getCallMethodType(fromType);
-      if (callMethodType != null && isAssignableTo(callMethodType, toType)) {
+      if (callMethodType != null &&
+          isAssignableTo(callMethodType, toType, featureSet: featureSet)) {
         return true;
       }
     }
 
+    // First make sure --no-implicit-casts disables all downcasts, including
+    // dynamic casts.
     if (!implicitCasts) {
       return false;
+    }
+
+    // Now handle NNBD default behavior, where we disable non-dynamic downcasts.
+    if (featureSet != null && featureSet.isEnabled(Feature.non_nullable)) {
+      return fromType.isDynamic;
     }
 
     // Don't allow implicit downcasts between function types
@@ -484,8 +494,7 @@ class Dart2TypeSystem extends TypeSystem {
       return false;
     }
 
-    // If the subtype relation goes the other way, allow the implicit
-    // downcast.
+    // If the subtype relation goes the other way, allow the implicit downcast.
     if (isSubtypeOf(toType, fromType)) {
       // TODO(leafp,jmesserly): we emit warnings/hints for these in
       // src/task/strong/checker.dart, which is a bit inconsistent. That
@@ -1978,9 +1987,11 @@ abstract class TypeSystem implements public.TypeSystem {
 
   /**
    * Return `true` if the [leftType] is assignable to the [rightType] (that is,
-   * if leftType <==> rightType).
+   * if leftType <==> rightType). Accepts a [FeatureSet] to correctly handle
+   * NNBD implicit downcasts.
    */
-  bool isAssignableTo(DartType leftType, DartType rightType);
+  bool isAssignableTo(DartType leftType, DartType rightType,
+      {FeatureSet featureSet});
 
   /**
    * Return `true` if the [leftType] is more specific than the [rightType]

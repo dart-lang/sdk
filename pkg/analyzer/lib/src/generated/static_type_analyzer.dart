@@ -602,8 +602,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     var context = InferenceContext.getContext(
         (node as IntegerLiteralImpl).immediatelyNegated ? node.parent : node);
     if (context == null ||
-        _typeSystem.isAssignableTo(_typeProvider.intType, context) ||
-        !_typeSystem.isAssignableTo(_typeProvider.doubleType, context)) {
+        _typeSystem.isAssignableTo(_typeProvider.intType, context,
+            featureSet: _featureSet) ||
+        !_typeSystem.isAssignableTo(_typeProvider.doubleType, context,
+            featureSet: _featureSet)) {
       _recordStaticType(node, _nonNullable(_typeProvider.intType));
     } else {
       _recordStaticType(node, _nonNullable(_typeProvider.doubleType));
@@ -1165,7 +1167,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void _checkForInvalidAssignmentIncDec(
       AstNode node, Expression operand, DartType type) {
     var operandWriteType = _getStaticType(operand);
-    if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
+    if (!_typeSystem.isAssignableTo(type, operandWriteType,
+        featureSet: _featureSet)) {
       _resolver.errorReporter.reportTypeErrorForNode(
         StaticTypeWarningCode.INVALID_ASSIGNMENT,
         node,

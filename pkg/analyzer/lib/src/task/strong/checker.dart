@@ -1118,7 +1118,7 @@ class CodeChecker extends RecursiveAstVisitor {
     }
 
     // Down cast or legal sideways cast, coercion needed.
-    if (rules.isAssignableTo(from, to)) {
+    if (rules.isAssignableTo(from, to, featureSet: _featureSet)) {
       return true;
     }
 
