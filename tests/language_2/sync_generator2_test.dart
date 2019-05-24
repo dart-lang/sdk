@@ -15,13 +15,10 @@ var yield = "topLevelYield";
 test01() sync* {
   var yield = 0; // //# 01: syntax error
   var await = 0; // //# 02: syntax error
-  var async = 0; // //# 03: syntax error
   bool yield() => false; //# 04: syntax error
   bool await() => false; //# 05: syntax error
-  bool async() => false; //# 06: syntax error
 
   var x1 = sync;
-  var x2 = async; // //# 07: syntax error
   var x3 = await; // //# 08: syntax error
   var x4 = await 55; // //# 09: compile-time error
   var x4 = yield; // //# 10: syntax error

@@ -940,8 +940,6 @@ void checkAsyncAwaitYieldAsIdentifier(Token identifier, Parser parser) {
       parser.reportRecoverableError(identifier, fasta.messageAwaitAsIdentifier);
     } else if (optional('yield', identifier)) {
       parser.reportRecoverableError(identifier, fasta.messageYieldAsIdentifier);
-    } else if (optional('async', identifier)) {
-      parser.reportRecoverableError(identifier, fasta.messageAsyncAsIdentifier);
     }
   }
 }

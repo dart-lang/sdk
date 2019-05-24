@@ -4,6 +4,9 @@
 
 ### Language
 
+* The identifier `async` can now be used in asynchronous and generator 
+  functions.
+
 ### Core library
 
 #### `dart:io`

@@ -51,8 +51,8 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode ASYNC_KEYWORD_USED_AS_IDENTIFIER =
       const ParserErrorCode(
           'ASYNC_KEYWORD_USED_AS_IDENTIFIER',
-          "The keywords 'async', 'await', and 'yield' can't be used as "
-          "identifiers in an asynchronous or generator function.");
+          "The keywords 'await' and 'yield' can't be used as "
+              "identifiers in an asynchronous or generator function.");
 
   static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = _BREAK_OUTSIDE_OF_LOOP;
 
@@ -340,7 +340,7 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode INVALID_COMMENT_REFERENCE = const ParserErrorCode(
       'INVALID_COMMENT_REFERENCE',
       "Comment references should contain a possibly prefixed identifier and "
-      "can start with 'new', but shouldn't contain anything else.");
+          "can start with 'new', but shouldn't contain anything else.");
 
   static const ParserErrorCode INVALID_CONSTRUCTOR_NAME = const ParserErrorCode(
       'INVALID_CONSTRUCTOR_NAME',
@@ -564,7 +564,7 @@ class ParserErrorCode extends ErrorCode {
       const ParserErrorCode(
           'MULTIPLE_VARIABLES_IN_FOR_EACH',
           "A single loop variable must be declared in a for-each loop before "
-          "the 'in', but {0} were found.",
+              "the 'in', but {0} were found.",
           correction:
               "Try moving all but one of the declarations inside the loop body.");
 
@@ -588,14 +588,14 @@ class ParserErrorCode extends ErrorCode {
       const ParserErrorCode(
           'NATIVE_CLAUSE_IN_NON_SDK_CODE',
           "Native clause can only be used in the SDK and code that is loaded "
-          "through native extensions.",
+              "through native extensions.",
           correction: "Try removing the native clause.");
 
   static const ParserErrorCode NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE =
       const ParserErrorCode(
           'NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE',
           "Native functions can only be declared in the SDK and code that is "
-          "loaded through native extensions.",
+              "loaded through native extensions.",
           correction: "Try removing the word 'native'.");
 
   static const ParserErrorCode NATIVE_CLAUSE_SHOULD_BE_ANNOTATION =

@@ -233,16 +233,6 @@ const MessageCode messageAssertExtraneousArgument = const MessageCode(
     message: r"""`assert` can't have more than two arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeAsyncAsIdentifier = messageAsyncAsIdentifier;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAsyncAsIdentifier = const MessageCode(
-    "AsyncAsIdentifier",
-    analyzerCodes: <String>["ASYNC_KEYWORD_USED_AS_IDENTIFIER"],
-    message:
-        r"""'async' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAwaitAsIdentifier = messageAwaitAsIdentifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

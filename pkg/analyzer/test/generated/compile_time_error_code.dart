@@ -2726,7 +2726,6 @@ class A {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 5),
-      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 32, 5),
     ]);
   }
 

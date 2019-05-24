@@ -1165,10 +1165,6 @@ AbstractNotSync:
   template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
   analyzerCode: NON_SYNC_ABSTRACT_METHOD
 
-AsyncAsIdentifier:
-  analyzerCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
-  template: "'async' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
-
 AwaitAsIdentifier:
   template: "'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
   analyzerCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
