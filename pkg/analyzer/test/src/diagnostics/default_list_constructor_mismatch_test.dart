@@ -36,26 +36,13 @@ var l = new List<String?>(3);
 ''');
   }
 
-  @failingTest
   test_inferredType() async {
-    // This test is failing because summary support is incomplete, which results
-    // in the constructor having a type of 'List<C*>*'.
     await assertErrorsInCode('''
 class C {}
 List<C> v = List(5);
 ''', [
       error(CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR_MISMATCH, 23, 4),
     ]);
-  }
-
-  test_starType() async {
-    // TODO(brianwilkerson) This test is currently taking advantage of the fact
-    //  that the SDK is not opted in, which makes the use of `int` below a
-    //  reference to 'int*'. When it's possible to opt-out in a test this needs
-    //  to be updated to use an explicitly opted out type.
-    await assertNoErrorsInCode('''
-List<int> v = List(5);
-''');
   }
 
   test_typeParameter() async {

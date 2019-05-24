@@ -3244,7 +3244,8 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       [List<FunctionTypeAliasElement> prune]) {
     int length = parameterTypes.length;
     for (int i = 0; i < length; i++) {
-      if (parameterTypes[i] == this) {
+      var parameterType = parameterTypes[i];
+      if (parameterType is TypeParameterTypeImpl && parameterType == this) {
         TypeImpl argumentType = argumentTypes[i];
 
         // TODO(scheglov) It should not happen, but sometimes arguments are null.
@@ -3254,15 +3255,29 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
         // TODO(scheglov) Proposed substitution rules for nullability.
         NullabilitySuffix resultNullability;
+        NullabilitySuffix parameterNullability =
+            parameterType.nullabilitySuffix;
         NullabilitySuffix argumentNullability = argumentType.nullabilitySuffix;
-        if (argumentNullability == NullabilitySuffix.question ||
-            nullabilitySuffix == NullabilitySuffix.question) {
-          resultNullability = NullabilitySuffix.question;
-        } else if (argumentNullability == NullabilitySuffix.star ||
-            nullabilitySuffix == NullabilitySuffix.star) {
-          resultNullability = NullabilitySuffix.star;
+        if (parameterNullability == NullabilitySuffix.none) {
+          if (argumentNullability == NullabilitySuffix.question ||
+              nullabilitySuffix == NullabilitySuffix.question) {
+            resultNullability = NullabilitySuffix.question;
+          } else if (argumentNullability == NullabilitySuffix.star ||
+              nullabilitySuffix == NullabilitySuffix.star) {
+            resultNullability = NullabilitySuffix.star;
+          } else {
+            resultNullability = NullabilitySuffix.none;
+          }
+        } else if (parameterNullability == NullabilitySuffix.star) {
+          if (argumentNullability == NullabilitySuffix.question ||
+              nullabilitySuffix == NullabilitySuffix.question) {
+            resultNullability = NullabilitySuffix.question;
+          } else {
+            resultNullability = argumentNullability;
+          }
         } else {
-          resultNullability = NullabilitySuffix.none;
+          // We should never be substituting for `T?`.
+          throw new StateError('Tried to substitute for T?');
         }
 
         return argumentType.withNullability(resultNullability);
