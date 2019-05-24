@@ -161,19 +161,24 @@ class _BaseGenerator {
     return json.encode(s);
   }
 
-  Iterable<String> _computeVariants(idlModel.ClassDeclaration cls) {
-    return cls.fields
-        .map((f) => f.variantMap?.values ?? [])
-        .expand((v) => v)
-        .expand((v) => v)
-        .toSet();
+  List<String> _computeVariants(idlModel.ClassDeclaration cls) {
+    var allVariants = Set<String>();
+    for (var field in cls.fields) {
+      var logicalFields = field.logicalProperties?.values;
+      if (logicalFields != null) {
+        for (var logicalField in logicalFields) {
+          allVariants.addAll(logicalField.variants);
+        }
+      }
+    }
+    return allVariants.toList()..sort();
   }
 
   String _variantAssertStatement(
     idlModel.ClassDeclaration class_,
-    List<String> variants,
+    idlModel.LogicalProperty property,
   ) {
-    var assertCondition = variants
+    var assertCondition = property.variants
         ?.map((key) => '${class_.variantField} == idl.$key')
         ?.join(' || ');
     return 'assert($assertCondition);';
@@ -212,32 +217,69 @@ class _BuilderGenerator extends _BaseGenerator {
     out();
     out('/// Accumulate non-[informative] data into [signature].');
     out('void collectApiSignature(api_sig.ApiSignature signature) {');
+
+    void writeField(String name, idlModel.FieldType type, bool isInformative) {
+      if (isInformative) {
+        return;
+      }
+      String ref = 'this.$name';
+      if (type.isList) {
+        out('if ($ref == null) {');
+        indent(() {
+          out('signature.addInt(0);');
+        });
+        out('} else {');
+        indent(() {
+          out('signature.addInt($ref.length);');
+          out('for (var x in $ref) {');
+          indent(() {
+            _generateSignatureCall(type.typeName, 'x', false);
+          });
+          out('}');
+        });
+        out('}');
+      } else {
+        _generateSignatureCall(type.typeName, ref, true);
+      }
+    }
+
     indent(() {
       List<idlModel.FieldDeclaration> sortedFields = cls.fields.toList()
         ..sort((idlModel.FieldDeclaration a, idlModel.FieldDeclaration b) =>
             a.id.compareTo(b.id));
-      for (idlModel.FieldDeclaration field in sortedFields) {
-        if (field.isInformative) {
-          continue;
-        }
-        String ref = 'this._${field.name}';
-        if (field.type.isList) {
-          out('if ($ref == null) {');
+      if (cls.variantField != null) {
+        var firstVariant = true;
+        for (var variant in _computeVariants(cls)) {
+          if (firstVariant) {
+            firstVariant = false;
+          } else {
+            out('else');
+          }
+          out('if (${cls.variantField} == idl.$variant) {');
           indent(() {
-            out('signature.addInt(0);');
-          });
-          out('} else {');
-          indent(() {
-            out('signature.addInt($ref.length);');
-            out('for (var x in $ref) {');
-            indent(() {
-              _generateSignatureCall(field.type.typeName, 'x', false);
-            });
-            out('}');
+            for (var field in sortedFields) {
+              var logicalProperties = field.logicalProperties;
+              if (logicalProperties != null) {
+                for (var logicalName in logicalProperties.keys) {
+                  var logicalProperty = logicalProperties[logicalName];
+                  if (logicalProperty.variants.contains(variant)) {
+                    writeField(
+                      logicalName,
+                      field.type,
+                      logicalProperty.isInformative,
+                    );
+                  }
+                }
+              } else {
+                writeField(field.name, field.type, field.isInformative);
+              }
+            }
           });
           out('}');
-        } else {
-          _generateSignatureCall(field.type.typeName, ref, true);
+        }
+      } else {
+        for (idlModel.FieldDeclaration field in sortedFields) {
+          writeField('_${field.name}', field.type, field.isInformative);
         }
       }
     });
@@ -252,10 +294,11 @@ class _BuilderGenerator extends _BaseGenerator {
         out('$builderName.$constructorName({');
 
         for (var field in cls.fields) {
-          if (field.variantMap != null) {
-            for (var property in field.variantMap.keys) {
-              if (field.variantMap[property].contains(variant)) {
-                out('${encodedType(field.type)} $property,');
+          if (field.logicalProperties != null) {
+            for (var logicalName in field.logicalProperties.keys) {
+              var logicalProperty = field.logicalProperties[logicalName];
+              if (logicalProperty.variants.contains(variant)) {
+                out('${encodedType(field.type)} $logicalName,');
               }
             }
           }
@@ -267,10 +310,11 @@ class _BuilderGenerator extends _BaseGenerator {
 
         var separator = ',';
         for (var field in cls.fields) {
-          if (field.variantMap != null) {
-            for (var property in field.variantMap.keys) {
-              if (field.variantMap[property].contains(variant)) {
-                out('$separator _${field.name} = $property');
+          if (field.logicalProperties != null) {
+            for (var logicalName in field.logicalProperties.keys) {
+              var logicalProperty = field.logicalProperties[logicalName];
+              if (logicalProperty.variants.contains(variant)) {
+                out('$separator _${field.name} = $logicalName');
                 separator = ', ';
               }
             }
@@ -407,18 +451,53 @@ class _BuilderGenerator extends _BaseGenerator {
     out();
     out('/// Flush [informative] data recursively.');
     out('void flushInformative() {');
+
+    void writeField(String name, idlModel.FieldType type, bool isInformative) {
+      if (isInformative) {
+        out('$name = null;');
+      } else if (_idl.classes.containsKey(type.typeName)) {
+        if (type.isList) {
+          out('$name?.forEach((b) => b.flushInformative());');
+        } else {
+          out('$name?.flushInformative();');
+        }
+      }
+    }
+
     indent(() {
-      for (idlModel.FieldDeclaration field in cls.fields) {
-        idlModel.FieldType fieldType = field.type;
-        String valueName = '_' + field.name;
-        if (field.isInformative) {
-          out('$valueName = null;');
-        } else if (_idl.classes.containsKey(fieldType.typeName)) {
-          if (fieldType.isList) {
-            out('$valueName?.forEach((b) => b.flushInformative());');
+      if (cls.variantField != null) {
+        var firstVariant = true;
+        for (var variant in _computeVariants(cls)) {
+          if (firstVariant) {
+            firstVariant = false;
           } else {
-            out('$valueName?.flushInformative();');
+            out('else');
           }
+          out('if (${cls.variantField} == idl.$variant) {');
+          indent(() {
+            for (var field in cls.fields) {
+              var logicalProperties = field.logicalProperties;
+              if (logicalProperties != null) {
+                for (var logicalName in logicalProperties.keys) {
+                  var logicalProperty = logicalProperties[logicalName];
+                  if (logicalProperty.variants.contains(variant)) {
+                    writeField(
+                      logicalName,
+                      field.type,
+                      logicalProperty.isInformative,
+                    );
+                  }
+                }
+              } else {
+                writeField(field.name, field.type, field.isInformative);
+              }
+            }
+          });
+          out('}');
+        }
+      } else {
+        for (idlModel.FieldDeclaration field in cls.fields) {
+          writeField('_${field.name}', field.type, field.isInformative);
         }
       }
     });
@@ -437,13 +516,13 @@ class _BuilderGenerator extends _BaseGenerator {
         out('@override');
         out('Null get $fieldName => ${_BaseGenerator._throwDeprecated};');
       } else {
-        if (field.variantMap != null) {
-          for (var logicalName in field.variantMap.keys) {
-            var variants = field.variantMap[logicalName];
+        if (field.logicalProperties != null) {
+          for (var logicalName in field.logicalProperties.keys) {
+            var logicalProperty = field.logicalProperties[logicalName];
             out('@override');
             out('$typeStr get $logicalName {');
             indent(() {
-              out(_variantAssertStatement(cls, variants));
+              out(_variantAssertStatement(cls, logicalProperty));
               out('return _${field.name}$defSuffix;');
             });
             out('}');
@@ -459,12 +538,12 @@ class _BuilderGenerator extends _BaseGenerator {
 
         outDoc(field.documentation);
 
-        if (field.variantMap != null) {
-          for (var logicalName in field.variantMap.keys) {
-            var variants = field.variantMap[logicalName];
+        if (field.logicalProperties != null) {
+          for (var logicalName in field.logicalProperties.keys) {
+            var logicalProperty = field.logicalProperties[logicalName];
             out('set $logicalName($typeStr value) {');
             indent(() {
-              out(_variantAssertStatement(cls, variants));
+              out(_variantAssertStatement(cls, logicalProperty));
               _generateNonNegativeInt(fieldType);
               out('_variantField_${field.id} = value;');
             });
@@ -889,21 +968,21 @@ class _CodeGenerator {
     var fieldType = new idlModel.FieldType(type.name, isList);
 
     String name = getter.name;
-    Map<String, List<String>> variantMap;
+    Map<String, idlModel.LogicalProperty> logicalProperties;
     if (variants != null) {
       var fieldsWithSameId =
           cls.allFields.where((field) => field.id == id).toList();
       if (fieldsWithSameId.isNotEmpty) {
-        var existingField = fieldsWithSameId.first;
-        if (existingField.variantMap == null) {
+        var existingField = fieldsWithSameId.single;
+        if (existingField.logicalProperties == null) {
           throw Exception('$desc: id $id is already used as a non-variant '
               'field: ${existingField.name}');
         }
 
-        var map = existingField.variantMap;
+        var map = existingField.logicalProperties;
         for (var variant in variants) {
           for (var logicalName in map.keys) {
-            if (map[logicalName].contains(variant)) {
+            if (map[logicalName].variants.contains(variant)) {
               throw Exception('$desc: id $id is already used for $logicalName');
             }
           }
@@ -915,11 +994,27 @@ class _CodeGenerator {
           );
         }
 
-        map.putIfAbsent(getter.name, () => <String>[]).addAll(variants);
+        if (map[getter.name] != null) {
+          throw Exception(
+            '$desc: logical property ${getter.name} is already used',
+          );
+        }
+
+        map[getter.name] = idlModel.LogicalProperty(
+          isDeprecated: isDeprecated,
+          isInformative: isInformative,
+          variants: variants,
+        );
         return;
       } else {
         name = 'variantField_$id';
-        variantMap = <String, List<String>>{getter.name: variants};
+        logicalProperties = <String, idlModel.LogicalProperty>{
+          getter.name: idlModel.LogicalProperty(
+            isDeprecated: isDeprecated,
+            isInformative: isInformative,
+            variants: variants,
+          ),
+        };
       }
     }
 
@@ -931,7 +1026,7 @@ class _CodeGenerator {
         id: id,
         isDeprecated: isDeprecated,
         isInformative: isInformative,
-        variantMap: variantMap,
+        logicalProperties: logicalProperties,
       ),
     );
   }
@@ -1152,13 +1247,13 @@ class _ImplGenerator extends _BaseGenerator {
           out('@override');
           out('Null get $fieldName => ${_BaseGenerator._throwDeprecated};');
         } else {
-          if (field.variantMap != null) {
-            for (var logicalName in field.variantMap.keys) {
-              var variants = field.variantMap[logicalName];
+          if (field.logicalProperties != null) {
+            for (var logicalName in field.logicalProperties.keys) {
+              var logicalProperty = field.logicalProperties[logicalName];
               out('@override');
               out('$returnType get $logicalName {');
               indent(() {
-                out(_variantAssertStatement(cls, variants));
+                out(_variantAssertStatement(cls, logicalProperty));
                 String readExpr =
                     '$readCode.vTableGet(_bc, _bcOffset, $index, $def)';
                 out('_$fieldName ??= $readExpr;');
@@ -1248,7 +1343,7 @@ class _MixinGenerator extends _BaseGenerator {
         if (cls.variantField != null) {
           indent(() {
             for (idlModel.FieldDeclaration field in cls.fields) {
-              if (field.variantMap == null) {
+              if (field.logicalProperties == null) {
                 var condition = jsonCondition(field.type, field.name);
                 var storeField = jsonStore(field.type, field.name);
                 out('if ($condition) $storeField;');
@@ -1258,9 +1353,11 @@ class _MixinGenerator extends _BaseGenerator {
               out('if (${cls.variantField} == idl.$variant) {');
               indent(() {
                 for (idlModel.FieldDeclaration field in cls.fields) {
-                  if (field.variantMap != null) {
-                    for (var logicalName in field.variantMap.keys) {
-                      if (field.variantMap[logicalName].contains(variant)) {
+                  var logicalProperties = field.logicalProperties;
+                  if (logicalProperties != null) {
+                    for (var logicalName in logicalProperties.keys) {
+                      var logicalProperty = logicalProperties[logicalName];
+                      if (logicalProperty.variants.contains(variant)) {
                         var condition = jsonCondition(field.type, logicalName);
                         var storeField = jsonStore(field.type, logicalName);
                         out('if ($condition) $storeField;');
@@ -1296,9 +1393,10 @@ class _MixinGenerator extends _BaseGenerator {
           indent(() {
             out('return {');
             for (idlModel.FieldDeclaration field in cls.fields) {
-              if (field.variantMap != null) {
-                for (var logicalName in field.variantMap.keys) {
-                  if (field.variantMap[logicalName].contains(variant)) {
+              if (field.logicalProperties != null) {
+                for (var logicalName in field.logicalProperties.keys) {
+                  var logicalProperty = field.logicalProperties[logicalName];
+                  if (logicalProperty.variants.contains(variant)) {
                     out('${quoted(logicalName)}: $logicalName,');
                   }
                 }

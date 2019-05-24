@@ -7824,186 +7824,73 @@ class LinkedNodeBuilder extends Object
     _variantField_19 = value;
   }
 
-  LinkedNodeBuilder.functionDeclaration({
-    LinkedNodeTypeBuilder actualReturnType,
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder functionDeclaration_functionExpression,
-    LinkedNodeBuilder functionDeclaration_returnType,
-    int codeLength,
-    int codeOffset,
-    int nameOffset,
-  })  : _kind = idl.LinkedNodeKind.functionDeclaration,
-        _variantField_24 = actualReturnType,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = functionDeclaration_functionExpression,
-        _variantField_7 = functionDeclaration_returnType,
-        _variantField_33 = codeLength,
-        _variantField_32 = codeOffset,
-        _variantField_16 = nameOffset;
+  LinkedNodeBuilder.adjacentStrings({
+    List<LinkedNodeBuilder> adjacentStrings_strings,
+  })  : _kind = idl.LinkedNodeKind.adjacentStrings,
+        _variantField_2 = adjacentStrings_strings;
 
-  LinkedNodeBuilder.functionExpression({
-    LinkedNodeTypeBuilder actualReturnType,
-    LinkedNodeBuilder functionExpression_body,
-    LinkedNodeBuilder functionExpression_formalParameters,
-    LinkedNodeBuilder functionExpression_typeParameters,
-  })  : _kind = idl.LinkedNodeKind.functionExpression,
-        _variantField_24 = actualReturnType,
-        _variantField_6 = functionExpression_body,
-        _variantField_7 = functionExpression_formalParameters,
-        _variantField_8 = functionExpression_typeParameters;
+  LinkedNodeBuilder.annotation({
+    LinkedNodeBuilder annotation_arguments,
+    LinkedNodeBuilder annotation_constructorName,
+    int annotation_element,
+    LinkedNodeTypeBuilder annotation_elementType,
+    LinkedNodeBuilder annotation_name,
+  })  : _kind = idl.LinkedNodeKind.annotation,
+        _variantField_6 = annotation_arguments,
+        _variantField_7 = annotation_constructorName,
+        _variantField_17 = annotation_element,
+        _variantField_23 = annotation_elementType,
+        _variantField_8 = annotation_name;
 
-  LinkedNodeBuilder.functionTypeAlias({
-    LinkedNodeTypeBuilder actualReturnType,
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder functionTypeAlias_formalParameters,
-    LinkedNodeBuilder functionTypeAlias_returnType,
-    LinkedNodeBuilder functionTypeAlias_typeParameters,
-    bool typeAlias_hasSelfReference,
-    int codeLength,
-    int codeOffset,
-    int nameOffset,
-    bool simplyBoundable_isSimplyBounded,
-  })  : _kind = idl.LinkedNodeKind.functionTypeAlias,
-        _variantField_24 = actualReturnType,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = functionTypeAlias_formalParameters,
-        _variantField_7 = functionTypeAlias_returnType,
-        _variantField_8 = functionTypeAlias_typeParameters,
-        _variantField_27 = typeAlias_hasSelfReference,
-        _variantField_33 = codeLength,
-        _variantField_32 = codeOffset,
-        _variantField_16 = nameOffset,
-        _variantField_31 = simplyBoundable_isSimplyBounded;
+  LinkedNodeBuilder.argumentList({
+    List<LinkedNodeBuilder> argumentList_arguments,
+  })  : _kind = idl.LinkedNodeKind.argumentList,
+        _variantField_2 = argumentList_arguments;
 
-  LinkedNodeBuilder.genericFunctionType({
-    LinkedNodeTypeBuilder actualReturnType,
-    LinkedNodeBuilder genericFunctionType_typeParameters,
-    LinkedNodeBuilder genericFunctionType_returnType,
-    int genericFunctionType_id,
-    LinkedNodeBuilder genericFunctionType_formalParameters,
-    LinkedNodeTypeBuilder genericFunctionType_type,
-  })  : _kind = idl.LinkedNodeKind.genericFunctionType,
-        _variantField_24 = actualReturnType,
-        _variantField_6 = genericFunctionType_typeParameters,
-        _variantField_7 = genericFunctionType_returnType,
-        _variantField_17 = genericFunctionType_id,
-        _variantField_8 = genericFunctionType_formalParameters,
-        _variantField_25 = genericFunctionType_type;
+  LinkedNodeBuilder.asExpression({
+    LinkedNodeBuilder asExpression_expression,
+    LinkedNodeBuilder asExpression_type,
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.asExpression,
+        _variantField_6 = asExpression_expression,
+        _variantField_7 = asExpression_type,
+        _variantField_25 = expression_type;
 
-  LinkedNodeBuilder.methodDeclaration({
-    LinkedNodeTypeBuilder actualReturnType,
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder methodDeclaration_body,
-    LinkedNodeBuilder methodDeclaration_formalParameters,
-    LinkedNodeBuilder methodDeclaration_returnType,
-    LinkedNodeBuilder methodDeclaration_typeParameters,
-    int codeLength,
-    int codeOffset,
-    int nameOffset,
-  })  : _kind = idl.LinkedNodeKind.methodDeclaration,
-        _variantField_24 = actualReturnType,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = methodDeclaration_body,
-        _variantField_7 = methodDeclaration_formalParameters,
-        _variantField_8 = methodDeclaration_returnType,
-        _variantField_9 = methodDeclaration_typeParameters,
-        _variantField_33 = codeLength,
-        _variantField_32 = codeOffset,
-        _variantField_16 = nameOffset;
+  LinkedNodeBuilder.assertInitializer({
+    LinkedNodeBuilder assertInitializer_condition,
+    LinkedNodeBuilder assertInitializer_message,
+  })  : _kind = idl.LinkedNodeKind.assertInitializer,
+        _variantField_6 = assertInitializer_condition,
+        _variantField_7 = assertInitializer_message;
 
-  LinkedNodeBuilder.fieldFormalParameter({
-    LinkedNodeTypeBuilder actualType,
-    List<LinkedNodeBuilder> normalFormalParameter_metadata,
-    LinkedNodeBuilder fieldFormalParameter_type,
-    LinkedNodeBuilder fieldFormalParameter_typeParameters,
-    LinkedNodeBuilder fieldFormalParameter_formalParameters,
-    bool inheritsCovariant,
-    int codeLength,
-    int codeOffset,
-    int nameOffset,
-    LinkedNodeBuilder normalFormalParameter_comment,
-  })  : _kind = idl.LinkedNodeKind.fieldFormalParameter,
-        _variantField_24 = actualType,
-        _variantField_4 = normalFormalParameter_metadata,
-        _variantField_6 = fieldFormalParameter_type,
-        _variantField_7 = fieldFormalParameter_typeParameters,
-        _variantField_8 = fieldFormalParameter_formalParameters,
-        _variantField_27 = inheritsCovariant,
-        _variantField_33 = codeLength,
-        _variantField_32 = codeOffset,
-        _variantField_16 = nameOffset,
-        _variantField_14 = normalFormalParameter_comment;
+  LinkedNodeBuilder.assertStatement({
+    LinkedNodeBuilder assertStatement_condition,
+    LinkedNodeBuilder assertStatement_message,
+  })  : _kind = idl.LinkedNodeKind.assertStatement,
+        _variantField_6 = assertStatement_condition,
+        _variantField_7 = assertStatement_message;
 
-  LinkedNodeBuilder.functionTypedFormalParameter({
-    LinkedNodeTypeBuilder actualType,
-    List<LinkedNodeBuilder> normalFormalParameter_metadata,
-    LinkedNodeBuilder functionTypedFormalParameter_formalParameters,
-    LinkedNodeBuilder functionTypedFormalParameter_returnType,
-    LinkedNodeBuilder functionTypedFormalParameter_typeParameters,
-    bool inheritsCovariant,
-    int codeLength,
-    int codeOffset,
-    int nameOffset,
-    LinkedNodeBuilder normalFormalParameter_comment,
-  })  : _kind = idl.LinkedNodeKind.functionTypedFormalParameter,
-        _variantField_24 = actualType,
-        _variantField_4 = normalFormalParameter_metadata,
-        _variantField_6 = functionTypedFormalParameter_formalParameters,
-        _variantField_7 = functionTypedFormalParameter_returnType,
-        _variantField_8 = functionTypedFormalParameter_typeParameters,
-        _variantField_27 = inheritsCovariant,
-        _variantField_33 = codeLength,
-        _variantField_32 = codeOffset,
-        _variantField_16 = nameOffset,
-        _variantField_14 = normalFormalParameter_comment;
+  LinkedNodeBuilder.assignmentExpression({
+    LinkedNodeBuilder assignmentExpression_leftHandSide,
+    LinkedNodeBuilder assignmentExpression_rightHandSide,
+    LinkedNodeTypeBuilder assignmentExpression_elementType,
+    int assignmentExpression_element,
+    idl.UnlinkedTokenType assignmentExpression_operator,
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.assignmentExpression,
+        _variantField_6 = assignmentExpression_leftHandSide,
+        _variantField_7 = assignmentExpression_rightHandSide,
+        _variantField_23 = assignmentExpression_elementType,
+        _variantField_15 = assignmentExpression_element,
+        _variantField_28 = assignmentExpression_operator,
+        _variantField_25 = expression_type;
 
-  LinkedNodeBuilder.simpleFormalParameter({
-    LinkedNodeTypeBuilder actualType,
-    List<LinkedNodeBuilder> normalFormalParameter_metadata,
-    LinkedNodeBuilder simpleFormalParameter_type,
-    bool inheritsCovariant,
-    int codeLength,
-    int codeOffset,
-    int nameOffset,
-    LinkedNodeBuilder normalFormalParameter_comment,
-    TopLevelInferenceErrorBuilder topLevelTypeInferenceError,
-  })  : _kind = idl.LinkedNodeKind.simpleFormalParameter,
-        _variantField_24 = actualType,
-        _variantField_4 = normalFormalParameter_metadata,
-        _variantField_6 = simpleFormalParameter_type,
-        _variantField_27 = inheritsCovariant,
-        _variantField_33 = codeLength,
-        _variantField_32 = codeOffset,
-        _variantField_16 = nameOffset,
-        _variantField_14 = normalFormalParameter_comment,
-        _variantField_34 = topLevelTypeInferenceError;
-
-  LinkedNodeBuilder.variableDeclaration({
-    LinkedNodeTypeBuilder actualType,
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder variableDeclaration_initializer,
-    bool inheritsCovariant,
-    int codeLength,
-    int codeOffset,
-    int nameOffset,
-    TopLevelInferenceErrorBuilder topLevelTypeInferenceError,
-  })  : _kind = idl.LinkedNodeKind.variableDeclaration,
-        _variantField_24 = actualType,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = variableDeclaration_initializer,
-        _variantField_27 = inheritsCovariant,
-        _variantField_33 = codeLength,
-        _variantField_32 = codeOffset,
-        _variantField_16 = nameOffset,
-        _variantField_34 = topLevelTypeInferenceError;
+  LinkedNodeBuilder.awaitExpression({
+    LinkedNodeBuilder awaitExpression_expression,
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.awaitExpression,
+        _variantField_6 = awaitExpression_expression,
+        _variantField_25 = expression_type;
 
   LinkedNodeBuilder.binaryExpression({
     LinkedNodeTypeBuilder binaryExpression_invokeType,
@@ -8022,48 +7909,25 @@ class LinkedNodeBuilder extends Object
         _variantField_28 = binaryExpression_operator,
         _variantField_25 = expression_type;
 
-  LinkedNodeBuilder.functionExpressionInvocation({
-    LinkedNodeTypeBuilder invocationExpression_invokeType,
-    LinkedNodeBuilder functionExpressionInvocation_function,
-    LinkedNodeBuilder invocationExpression_typeArguments,
-    LinkedNodeTypeBuilder expression_type,
-    LinkedNodeBuilder invocationExpression_arguments,
-  })  : _kind = idl.LinkedNodeKind.functionExpressionInvocation,
-        _variantField_24 = invocationExpression_invokeType,
-        _variantField_6 = functionExpressionInvocation_function,
-        _variantField_12 = invocationExpression_typeArguments,
-        _variantField_25 = expression_type,
-        _variantField_14 = invocationExpression_arguments;
-
-  LinkedNodeBuilder.methodInvocation({
-    LinkedNodeTypeBuilder invocationExpression_invokeType,
-    LinkedNodeBuilder methodInvocation_methodName,
-    LinkedNodeBuilder methodInvocation_target,
-    LinkedNodeBuilder invocationExpression_typeArguments,
-    LinkedNodeTypeBuilder expression_type,
-    LinkedNodeBuilder invocationExpression_arguments,
-  })  : _kind = idl.LinkedNodeKind.methodInvocation,
-        _variantField_24 = invocationExpression_invokeType,
-        _variantField_6 = methodInvocation_methodName,
-        _variantField_7 = methodInvocation_target,
-        _variantField_12 = invocationExpression_typeArguments,
-        _variantField_25 = expression_type,
-        _variantField_14 = invocationExpression_arguments;
-
-  LinkedNodeBuilder.adjacentStrings({
-    List<LinkedNodeBuilder> adjacentStrings_strings,
-  })  : _kind = idl.LinkedNodeKind.adjacentStrings,
-        _variantField_2 = adjacentStrings_strings;
-
-  LinkedNodeBuilder.argumentList({
-    List<LinkedNodeBuilder> argumentList_arguments,
-  })  : _kind = idl.LinkedNodeKind.argumentList,
-        _variantField_2 = argumentList_arguments;
-
   LinkedNodeBuilder.block({
     List<LinkedNodeBuilder> block_statements,
   })  : _kind = idl.LinkedNodeKind.block,
         _variantField_2 = block_statements;
+
+  LinkedNodeBuilder.blockFunctionBody({
+    LinkedNodeBuilder blockFunctionBody_block,
+  })  : _kind = idl.LinkedNodeKind.blockFunctionBody,
+        _variantField_6 = blockFunctionBody_block;
+
+  LinkedNodeBuilder.booleanLiteral({
+    bool booleanLiteral_value,
+  })  : _kind = idl.LinkedNodeKind.booleanLiteral,
+        _variantField_27 = booleanLiteral_value;
+
+  LinkedNodeBuilder.breakStatement({
+    LinkedNodeBuilder breakStatement_label,
+  })  : _kind = idl.LinkedNodeKind.breakStatement,
+        _variantField_6 = breakStatement_label;
 
   LinkedNodeBuilder.cascadeExpression({
     List<LinkedNodeBuilder> cascadeExpression_sections,
@@ -8074,228 +7938,16 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = cascadeExpression_target,
         _variantField_25 = expression_type;
 
-  LinkedNodeBuilder.comment({
-    List<LinkedNodeBuilder> comment_references,
-    List<String> comment_tokens,
-    idl.LinkedNodeCommentType comment_type,
-  })  : _kind = idl.LinkedNodeKind.comment,
-        _variantField_2 = comment_references,
-        _variantField_35 = comment_tokens,
-        _variantField_29 = comment_type;
-
-  LinkedNodeBuilder.compilationUnit({
-    List<LinkedNodeBuilder> compilationUnit_declarations,
-    LinkedNodeBuilder compilationUnit_scriptTag,
-    int codeLength,
-    int codeOffset,
-    List<LinkedNodeBuilder> compilationUnit_directives,
-  })  : _kind = idl.LinkedNodeKind.compilationUnit,
-        _variantField_2 = compilationUnit_declarations,
-        _variantField_6 = compilationUnit_scriptTag,
-        _variantField_33 = codeLength,
-        _variantField_32 = codeOffset,
-        _variantField_3 = compilationUnit_directives;
-
-  LinkedNodeBuilder.constructorDeclaration({
-    List<LinkedNodeBuilder> constructorDeclaration_initializers,
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder constructorDeclaration_body,
-    LinkedNodeBuilder constructorDeclaration_parameters,
-    LinkedNodeBuilder constructorDeclaration_redirectedConstructor,
-    int codeLength,
-    int codeOffset,
-    LinkedNodeBuilder constructorDeclaration_returnType,
-    int nameOffset,
-  })  : _kind = idl.LinkedNodeKind.constructorDeclaration,
-        _variantField_2 = constructorDeclaration_initializers,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = constructorDeclaration_body,
-        _variantField_8 = constructorDeclaration_parameters,
-        _variantField_9 = constructorDeclaration_redirectedConstructor,
-        _variantField_33 = codeLength,
-        _variantField_32 = codeOffset,
-        _variantField_10 = constructorDeclaration_returnType,
-        _variantField_16 = nameOffset;
-
-  LinkedNodeBuilder.dottedName({
-    List<LinkedNodeBuilder> dottedName_components,
-  })  : _kind = idl.LinkedNodeKind.dottedName,
-        _variantField_2 = dottedName_components;
-
-  LinkedNodeBuilder.enumDeclaration({
-    List<LinkedNodeBuilder> enumDeclaration_constants,
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    int codeLength,
-    int codeOffset,
-    int nameOffset,
-  })  : _kind = idl.LinkedNodeKind.enumDeclaration,
-        _variantField_2 = enumDeclaration_constants,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_33 = codeLength,
-        _variantField_32 = codeOffset,
-        _variantField_16 = nameOffset;
-
-  LinkedNodeBuilder.formalParameterList({
-    List<LinkedNodeBuilder> formalParameterList_parameters,
-  })  : _kind = idl.LinkedNodeKind.formalParameterList,
-        _variantField_2 = formalParameterList_parameters;
-
-  LinkedNodeBuilder.implementsClause({
-    List<LinkedNodeBuilder> implementsClause_interfaces,
-  })  : _kind = idl.LinkedNodeKind.implementsClause,
-        _variantField_2 = implementsClause_interfaces;
-
-  LinkedNodeBuilder.instanceCreationExpression({
-    List<LinkedNodeBuilder> instanceCreationExpression_arguments,
-    LinkedNodeBuilder instanceCreationExpression_constructorName,
-    LinkedNodeBuilder instanceCreationExpression_typeArguments,
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.instanceCreationExpression,
-        _variantField_2 = instanceCreationExpression_arguments,
-        _variantField_7 = instanceCreationExpression_constructorName,
-        _variantField_8 = instanceCreationExpression_typeArguments,
-        _variantField_25 = expression_type;
-
-  LinkedNodeBuilder.labeledStatement({
-    List<LinkedNodeBuilder> labeledStatement_labels,
-    LinkedNodeBuilder labeledStatement_statement,
-  })  : _kind = idl.LinkedNodeKind.labeledStatement,
-        _variantField_2 = labeledStatement_labels,
-        _variantField_6 = labeledStatement_statement;
-
-  LinkedNodeBuilder.libraryIdentifier({
-    List<LinkedNodeBuilder> libraryIdentifier_components,
-  })  : _kind = idl.LinkedNodeKind.libraryIdentifier,
-        _variantField_2 = libraryIdentifier_components;
-
-  LinkedNodeBuilder.exportDirective({
-    List<LinkedNodeBuilder> namespaceDirective_combinators,
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    List<LinkedNodeBuilder> namespaceDirective_configurations,
-    int nameOffset,
-    LinkedNodeBuilder uriBasedDirective_uri,
-    String namespaceDirective_selectedUri,
-    String uriBasedDirective_uriContent,
-    int uriBasedDirective_uriElement,
-  })  : _kind = idl.LinkedNodeKind.exportDirective,
-        _variantField_2 = namespaceDirective_combinators,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_3 = namespaceDirective_configurations,
-        _variantField_16 = nameOffset,
-        _variantField_14 = uriBasedDirective_uri,
-        _variantField_20 = namespaceDirective_selectedUri,
-        _variantField_22 = uriBasedDirective_uriContent,
-        _variantField_19 = uriBasedDirective_uriElement;
-
-  LinkedNodeBuilder.importDirective({
-    List<LinkedNodeBuilder> namespaceDirective_combinators,
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    int importDirective_prefixOffset,
-    List<LinkedNodeBuilder> namespaceDirective_configurations,
-    String importDirective_prefix,
-    int nameOffset,
-    LinkedNodeBuilder uriBasedDirective_uri,
-    String namespaceDirective_selectedUri,
-    String uriBasedDirective_uriContent,
-    int uriBasedDirective_uriElement,
-  })  : _kind = idl.LinkedNodeKind.importDirective,
-        _variantField_2 = namespaceDirective_combinators,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_15 = importDirective_prefixOffset,
-        _variantField_3 = namespaceDirective_configurations,
-        _variantField_1 = importDirective_prefix,
-        _variantField_16 = nameOffset,
-        _variantField_14 = uriBasedDirective_uri,
-        _variantField_20 = namespaceDirective_selectedUri,
-        _variantField_22 = uriBasedDirective_uriContent,
-        _variantField_19 = uriBasedDirective_uriElement;
-
-  LinkedNodeBuilder.onClause({
-    List<LinkedNodeBuilder> onClause_superclassConstraints,
-  })  : _kind = idl.LinkedNodeKind.onClause,
-        _variantField_2 = onClause_superclassConstraints;
-
-  LinkedNodeBuilder.stringInterpolation({
-    List<LinkedNodeBuilder> stringInterpolation_elements,
-  })  : _kind = idl.LinkedNodeKind.stringInterpolation,
-        _variantField_2 = stringInterpolation_elements;
-
-  LinkedNodeBuilder.switchStatement({
-    List<LinkedNodeBuilder> switchStatement_members,
-    LinkedNodeBuilder switchStatement_expression,
-  })  : _kind = idl.LinkedNodeKind.switchStatement,
-        _variantField_2 = switchStatement_members,
-        _variantField_7 = switchStatement_expression;
-
-  LinkedNodeBuilder.tryStatement({
-    List<LinkedNodeBuilder> tryStatement_catchClauses,
-    LinkedNodeBuilder tryStatement_body,
-    LinkedNodeBuilder tryStatement_finallyBlock,
-  })  : _kind = idl.LinkedNodeKind.tryStatement,
-        _variantField_2 = tryStatement_catchClauses,
-        _variantField_6 = tryStatement_body,
-        _variantField_7 = tryStatement_finallyBlock;
-
-  LinkedNodeBuilder.typeArgumentList({
-    List<LinkedNodeBuilder> typeArgumentList_arguments,
-  })  : _kind = idl.LinkedNodeKind.typeArgumentList,
-        _variantField_2 = typeArgumentList_arguments;
-
-  LinkedNodeBuilder.listLiteral({
-    List<LinkedNodeBuilder> typedLiteral_typeArguments,
-    List<LinkedNodeBuilder> listLiteral_elements,
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.listLiteral,
-        _variantField_2 = typedLiteral_typeArguments,
-        _variantField_3 = listLiteral_elements,
-        _variantField_25 = expression_type;
-
-  LinkedNodeBuilder.setOrMapLiteral({
-    List<LinkedNodeBuilder> typedLiteral_typeArguments,
-    List<LinkedNodeBuilder> setOrMapLiteral_elements,
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.setOrMapLiteral,
-        _variantField_2 = typedLiteral_typeArguments,
-        _variantField_3 = setOrMapLiteral_elements,
-        _variantField_25 = expression_type;
-
-  LinkedNodeBuilder.typeName({
-    List<LinkedNodeBuilder> typeName_typeArguments,
-    LinkedNodeBuilder typeName_name,
-    LinkedNodeTypeBuilder typeName_type,
-  })  : _kind = idl.LinkedNodeKind.typeName,
-        _variantField_2 = typeName_typeArguments,
-        _variantField_6 = typeName_name,
-        _variantField_23 = typeName_type;
-
-  LinkedNodeBuilder.typeParameterList({
-    List<LinkedNodeBuilder> typeParameterList_typeParameters,
-  })  : _kind = idl.LinkedNodeKind.typeParameterList,
-        _variantField_2 = typeParameterList_typeParameters;
-
-  LinkedNodeBuilder.variableDeclarationList({
-    List<LinkedNodeBuilder> variableDeclarationList_variables,
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder variableDeclarationList_type,
-  })  : _kind = idl.LinkedNodeKind.variableDeclarationList,
-        _variantField_2 = variableDeclarationList_variables,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = variableDeclarationList_type;
-
-  LinkedNodeBuilder.withClause({
-    List<LinkedNodeBuilder> withClause_mixinTypes,
-  })  : _kind = idl.LinkedNodeKind.withClause,
-        _variantField_2 = withClause_mixinTypes;
+  LinkedNodeBuilder.catchClause({
+    LinkedNodeBuilder catchClause_body,
+    LinkedNodeBuilder catchClause_exceptionParameter,
+    LinkedNodeBuilder catchClause_exceptionType,
+    LinkedNodeBuilder catchClause_stackTraceParameter,
+  })  : _kind = idl.LinkedNodeKind.catchClause,
+        _variantField_6 = catchClause_body,
+        _variantField_7 = catchClause_exceptionParameter,
+        _variantField_8 = catchClause_exceptionType,
+        _variantField_9 = catchClause_stackTraceParameter;
 
   LinkedNodeBuilder.classDeclaration({
     LinkedNodeBuilder annotatedNode_comment,
@@ -8349,6 +8001,99 @@ class LinkedNodeBuilder extends Object
         _variantField_16 = nameOffset,
         _variantField_31 = simplyBoundable_isSimplyBounded;
 
+  LinkedNodeBuilder.comment({
+    List<LinkedNodeBuilder> comment_references,
+    List<String> comment_tokens,
+    idl.LinkedNodeCommentType comment_type,
+  })  : _kind = idl.LinkedNodeKind.comment,
+        _variantField_2 = comment_references,
+        _variantField_35 = comment_tokens,
+        _variantField_29 = comment_type;
+
+  LinkedNodeBuilder.commentReference({
+    LinkedNodeBuilder commentReference_identifier,
+  })  : _kind = idl.LinkedNodeKind.commentReference,
+        _variantField_6 = commentReference_identifier;
+
+  LinkedNodeBuilder.compilationUnit({
+    List<LinkedNodeBuilder> compilationUnit_declarations,
+    LinkedNodeBuilder compilationUnit_scriptTag,
+    int codeLength,
+    int codeOffset,
+    List<LinkedNodeBuilder> compilationUnit_directives,
+  })  : _kind = idl.LinkedNodeKind.compilationUnit,
+        _variantField_2 = compilationUnit_declarations,
+        _variantField_6 = compilationUnit_scriptTag,
+        _variantField_33 = codeLength,
+        _variantField_32 = codeOffset,
+        _variantField_3 = compilationUnit_directives;
+
+  LinkedNodeBuilder.conditionalExpression({
+    LinkedNodeBuilder conditionalExpression_condition,
+    LinkedNodeBuilder conditionalExpression_elseExpression,
+    LinkedNodeBuilder conditionalExpression_thenExpression,
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.conditionalExpression,
+        _variantField_6 = conditionalExpression_condition,
+        _variantField_7 = conditionalExpression_elseExpression,
+        _variantField_8 = conditionalExpression_thenExpression,
+        _variantField_25 = expression_type;
+
+  LinkedNodeBuilder.configuration({
+    LinkedNodeBuilder configuration_name,
+    LinkedNodeBuilder configuration_value,
+    LinkedNodeBuilder configuration_uri,
+  })  : _kind = idl.LinkedNodeKind.configuration,
+        _variantField_6 = configuration_name,
+        _variantField_7 = configuration_value,
+        _variantField_8 = configuration_uri;
+
+  LinkedNodeBuilder.constructorDeclaration({
+    List<LinkedNodeBuilder> constructorDeclaration_initializers,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder constructorDeclaration_body,
+    LinkedNodeBuilder constructorDeclaration_parameters,
+    LinkedNodeBuilder constructorDeclaration_redirectedConstructor,
+    int codeLength,
+    int codeOffset,
+    LinkedNodeBuilder constructorDeclaration_returnType,
+    int nameOffset,
+  })  : _kind = idl.LinkedNodeKind.constructorDeclaration,
+        _variantField_2 = constructorDeclaration_initializers,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = constructorDeclaration_body,
+        _variantField_8 = constructorDeclaration_parameters,
+        _variantField_9 = constructorDeclaration_redirectedConstructor,
+        _variantField_33 = codeLength,
+        _variantField_32 = codeOffset,
+        _variantField_10 = constructorDeclaration_returnType,
+        _variantField_16 = nameOffset;
+
+  LinkedNodeBuilder.constructorFieldInitializer({
+    LinkedNodeBuilder constructorFieldInitializer_expression,
+    LinkedNodeBuilder constructorFieldInitializer_fieldName,
+  })  : _kind = idl.LinkedNodeKind.constructorFieldInitializer,
+        _variantField_6 = constructorFieldInitializer_expression,
+        _variantField_7 = constructorFieldInitializer_fieldName;
+
+  LinkedNodeBuilder.constructorName({
+    LinkedNodeBuilder constructorName_name,
+    LinkedNodeBuilder constructorName_type,
+    LinkedNodeTypeBuilder constructorName_elementType,
+    int constructorName_element,
+  })  : _kind = idl.LinkedNodeKind.constructorName,
+        _variantField_6 = constructorName_name,
+        _variantField_7 = constructorName_type,
+        _variantField_23 = constructorName_elementType,
+        _variantField_15 = constructorName_element;
+
+  LinkedNodeBuilder.continueStatement({
+    LinkedNodeBuilder continueStatement_label,
+  })  : _kind = idl.LinkedNodeKind.continueStatement,
+        _variantField_6 = continueStatement_label;
+
   LinkedNodeBuilder.declaredIdentifier({
     LinkedNodeBuilder annotatedNode_comment,
     List<LinkedNodeBuilder> annotatedNode_metadata,
@@ -8360,6 +8105,46 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = declaredIdentifier_identifier,
         _variantField_7 = declaredIdentifier_type;
 
+  LinkedNodeBuilder.defaultFormalParameter({
+    LinkedNodeBuilder defaultFormalParameter_defaultValue,
+    LinkedNodeBuilder defaultFormalParameter_parameter,
+    int codeLength,
+    int codeOffset,
+    idl.LinkedNodeFormalParameterKind defaultFormalParameter_kind,
+  })  : _kind = idl.LinkedNodeKind.defaultFormalParameter,
+        _variantField_6 = defaultFormalParameter_defaultValue,
+        _variantField_7 = defaultFormalParameter_parameter,
+        _variantField_33 = codeLength,
+        _variantField_32 = codeOffset,
+        _variantField_26 = defaultFormalParameter_kind;
+
+  LinkedNodeBuilder.doStatement({
+    LinkedNodeBuilder doStatement_body,
+    LinkedNodeBuilder doStatement_condition,
+  })  : _kind = idl.LinkedNodeKind.doStatement,
+        _variantField_6 = doStatement_body,
+        _variantField_7 = doStatement_condition;
+
+  LinkedNodeBuilder.dottedName({
+    List<LinkedNodeBuilder> dottedName_components,
+  })  : _kind = idl.LinkedNodeKind.dottedName,
+        _variantField_2 = dottedName_components;
+
+  LinkedNodeBuilder.doubleLiteral({
+    double doubleLiteral_value,
+  })  : _kind = idl.LinkedNodeKind.doubleLiteral,
+        _variantField_21 = doubleLiteral_value;
+
+  LinkedNodeBuilder.emptyFunctionBody({
+    int emptyFunctionBody_fake,
+  })  : _kind = idl.LinkedNodeKind.emptyFunctionBody,
+        _variantField_15 = emptyFunctionBody_fake;
+
+  LinkedNodeBuilder.emptyStatement({
+    int emptyStatement_fake,
+  })  : _kind = idl.LinkedNodeKind.emptyStatement,
+        _variantField_15 = emptyStatement_fake;
+
   LinkedNodeBuilder.enumConstantDeclaration({
     LinkedNodeBuilder annotatedNode_comment,
     List<LinkedNodeBuilder> annotatedNode_metadata,
@@ -8369,6 +8154,57 @@ class LinkedNodeBuilder extends Object
         _variantField_4 = annotatedNode_metadata,
         _variantField_16 = nameOffset;
 
+  LinkedNodeBuilder.enumDeclaration({
+    List<LinkedNodeBuilder> enumDeclaration_constants,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    int codeLength,
+    int codeOffset,
+    int nameOffset,
+  })  : _kind = idl.LinkedNodeKind.enumDeclaration,
+        _variantField_2 = enumDeclaration_constants,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_33 = codeLength,
+        _variantField_32 = codeOffset,
+        _variantField_16 = nameOffset;
+
+  LinkedNodeBuilder.exportDirective({
+    List<LinkedNodeBuilder> namespaceDirective_combinators,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    List<LinkedNodeBuilder> namespaceDirective_configurations,
+    int nameOffset,
+    LinkedNodeBuilder uriBasedDirective_uri,
+    String namespaceDirective_selectedUri,
+    String uriBasedDirective_uriContent,
+    int uriBasedDirective_uriElement,
+  })  : _kind = idl.LinkedNodeKind.exportDirective,
+        _variantField_2 = namespaceDirective_combinators,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_3 = namespaceDirective_configurations,
+        _variantField_16 = nameOffset,
+        _variantField_14 = uriBasedDirective_uri,
+        _variantField_20 = namespaceDirective_selectedUri,
+        _variantField_22 = uriBasedDirective_uriContent,
+        _variantField_19 = uriBasedDirective_uriElement;
+
+  LinkedNodeBuilder.expressionFunctionBody({
+    LinkedNodeBuilder expressionFunctionBody_expression,
+  })  : _kind = idl.LinkedNodeKind.expressionFunctionBody,
+        _variantField_6 = expressionFunctionBody_expression;
+
+  LinkedNodeBuilder.expressionStatement({
+    LinkedNodeBuilder expressionStatement_expression,
+  })  : _kind = idl.LinkedNodeKind.expressionStatement,
+        _variantField_6 = expressionStatement_expression;
+
+  LinkedNodeBuilder.extendsClause({
+    LinkedNodeBuilder extendsClause_superclass,
+  })  : _kind = idl.LinkedNodeKind.extendsClause,
+        _variantField_6 = extendsClause_superclass;
+
   LinkedNodeBuilder.fieldDeclaration({
     LinkedNodeBuilder annotatedNode_comment,
     List<LinkedNodeBuilder> annotatedNode_metadata,
@@ -8377,6 +8213,191 @@ class LinkedNodeBuilder extends Object
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
         _variantField_6 = fieldDeclaration_fields;
+
+  LinkedNodeBuilder.fieldFormalParameter({
+    LinkedNodeTypeBuilder actualType,
+    List<LinkedNodeBuilder> normalFormalParameter_metadata,
+    LinkedNodeBuilder fieldFormalParameter_type,
+    LinkedNodeBuilder fieldFormalParameter_typeParameters,
+    LinkedNodeBuilder fieldFormalParameter_formalParameters,
+    bool inheritsCovariant,
+    int codeLength,
+    int codeOffset,
+    int nameOffset,
+    LinkedNodeBuilder normalFormalParameter_comment,
+  })  : _kind = idl.LinkedNodeKind.fieldFormalParameter,
+        _variantField_24 = actualType,
+        _variantField_4 = normalFormalParameter_metadata,
+        _variantField_6 = fieldFormalParameter_type,
+        _variantField_7 = fieldFormalParameter_typeParameters,
+        _variantField_8 = fieldFormalParameter_formalParameters,
+        _variantField_27 = inheritsCovariant,
+        _variantField_33 = codeLength,
+        _variantField_32 = codeOffset,
+        _variantField_16 = nameOffset,
+        _variantField_14 = normalFormalParameter_comment;
+
+  LinkedNodeBuilder.forEachPartsWithDeclaration({
+    LinkedNodeBuilder forEachParts_iterable,
+    LinkedNodeBuilder forEachPartsWithDeclaration_loopVariable,
+  })  : _kind = idl.LinkedNodeKind.forEachPartsWithDeclaration,
+        _variantField_6 = forEachParts_iterable,
+        _variantField_7 = forEachPartsWithDeclaration_loopVariable;
+
+  LinkedNodeBuilder.forEachPartsWithIdentifier({
+    LinkedNodeBuilder forEachParts_iterable,
+    LinkedNodeBuilder forEachPartsWithIdentifier_identifier,
+  })  : _kind = idl.LinkedNodeKind.forEachPartsWithIdentifier,
+        _variantField_6 = forEachParts_iterable,
+        _variantField_7 = forEachPartsWithIdentifier_identifier;
+
+  LinkedNodeBuilder.forElement({
+    LinkedNodeBuilder forMixin_forLoopParts,
+    LinkedNodeBuilder forElement_body,
+  })  : _kind = idl.LinkedNodeKind.forElement,
+        _variantField_6 = forMixin_forLoopParts,
+        _variantField_7 = forElement_body;
+
+  LinkedNodeBuilder.forPartsWithDeclarations({
+    LinkedNodeBuilder forParts_condition,
+    LinkedNodeBuilder forPartsWithDeclarations_variables,
+    List<LinkedNodeBuilder> forParts_updaters,
+  })  : _kind = idl.LinkedNodeKind.forPartsWithDeclarations,
+        _variantField_6 = forParts_condition,
+        _variantField_7 = forPartsWithDeclarations_variables,
+        _variantField_5 = forParts_updaters;
+
+  LinkedNodeBuilder.forPartsWithExpression({
+    LinkedNodeBuilder forParts_condition,
+    LinkedNodeBuilder forPartsWithExpression_initialization,
+    List<LinkedNodeBuilder> forParts_updaters,
+  })  : _kind = idl.LinkedNodeKind.forPartsWithExpression,
+        _variantField_6 = forParts_condition,
+        _variantField_7 = forPartsWithExpression_initialization,
+        _variantField_5 = forParts_updaters;
+
+  LinkedNodeBuilder.forStatement({
+    LinkedNodeBuilder forMixin_forLoopParts,
+    LinkedNodeBuilder forStatement_body,
+  })  : _kind = idl.LinkedNodeKind.forStatement,
+        _variantField_6 = forMixin_forLoopParts,
+        _variantField_7 = forStatement_body;
+
+  LinkedNodeBuilder.formalParameterList({
+    List<LinkedNodeBuilder> formalParameterList_parameters,
+  })  : _kind = idl.LinkedNodeKind.formalParameterList,
+        _variantField_2 = formalParameterList_parameters;
+
+  LinkedNodeBuilder.functionDeclaration({
+    LinkedNodeTypeBuilder actualReturnType,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder functionDeclaration_functionExpression,
+    LinkedNodeBuilder functionDeclaration_returnType,
+    int codeLength,
+    int codeOffset,
+    int nameOffset,
+  })  : _kind = idl.LinkedNodeKind.functionDeclaration,
+        _variantField_24 = actualReturnType,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = functionDeclaration_functionExpression,
+        _variantField_7 = functionDeclaration_returnType,
+        _variantField_33 = codeLength,
+        _variantField_32 = codeOffset,
+        _variantField_16 = nameOffset;
+
+  LinkedNodeBuilder.functionDeclarationStatement({
+    LinkedNodeBuilder functionDeclarationStatement_functionDeclaration,
+  })  : _kind = idl.LinkedNodeKind.functionDeclarationStatement,
+        _variantField_6 = functionDeclarationStatement_functionDeclaration;
+
+  LinkedNodeBuilder.functionExpression({
+    LinkedNodeTypeBuilder actualReturnType,
+    LinkedNodeBuilder functionExpression_body,
+    LinkedNodeBuilder functionExpression_formalParameters,
+    LinkedNodeBuilder functionExpression_typeParameters,
+  })  : _kind = idl.LinkedNodeKind.functionExpression,
+        _variantField_24 = actualReturnType,
+        _variantField_6 = functionExpression_body,
+        _variantField_7 = functionExpression_formalParameters,
+        _variantField_8 = functionExpression_typeParameters;
+
+  LinkedNodeBuilder.functionExpressionInvocation({
+    LinkedNodeTypeBuilder invocationExpression_invokeType,
+    LinkedNodeBuilder functionExpressionInvocation_function,
+    LinkedNodeBuilder invocationExpression_typeArguments,
+    LinkedNodeTypeBuilder expression_type,
+    LinkedNodeBuilder invocationExpression_arguments,
+  })  : _kind = idl.LinkedNodeKind.functionExpressionInvocation,
+        _variantField_24 = invocationExpression_invokeType,
+        _variantField_6 = functionExpressionInvocation_function,
+        _variantField_12 = invocationExpression_typeArguments,
+        _variantField_25 = expression_type,
+        _variantField_14 = invocationExpression_arguments;
+
+  LinkedNodeBuilder.functionTypeAlias({
+    LinkedNodeTypeBuilder actualReturnType,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder functionTypeAlias_formalParameters,
+    LinkedNodeBuilder functionTypeAlias_returnType,
+    LinkedNodeBuilder functionTypeAlias_typeParameters,
+    bool typeAlias_hasSelfReference,
+    int codeLength,
+    int codeOffset,
+    int nameOffset,
+    bool simplyBoundable_isSimplyBounded,
+  })  : _kind = idl.LinkedNodeKind.functionTypeAlias,
+        _variantField_24 = actualReturnType,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = functionTypeAlias_formalParameters,
+        _variantField_7 = functionTypeAlias_returnType,
+        _variantField_8 = functionTypeAlias_typeParameters,
+        _variantField_27 = typeAlias_hasSelfReference,
+        _variantField_33 = codeLength,
+        _variantField_32 = codeOffset,
+        _variantField_16 = nameOffset,
+        _variantField_31 = simplyBoundable_isSimplyBounded;
+
+  LinkedNodeBuilder.functionTypedFormalParameter({
+    LinkedNodeTypeBuilder actualType,
+    List<LinkedNodeBuilder> normalFormalParameter_metadata,
+    LinkedNodeBuilder functionTypedFormalParameter_formalParameters,
+    LinkedNodeBuilder functionTypedFormalParameter_returnType,
+    LinkedNodeBuilder functionTypedFormalParameter_typeParameters,
+    bool inheritsCovariant,
+    int codeLength,
+    int codeOffset,
+    int nameOffset,
+    LinkedNodeBuilder normalFormalParameter_comment,
+  })  : _kind = idl.LinkedNodeKind.functionTypedFormalParameter,
+        _variantField_24 = actualType,
+        _variantField_4 = normalFormalParameter_metadata,
+        _variantField_6 = functionTypedFormalParameter_formalParameters,
+        _variantField_7 = functionTypedFormalParameter_returnType,
+        _variantField_8 = functionTypedFormalParameter_typeParameters,
+        _variantField_27 = inheritsCovariant,
+        _variantField_33 = codeLength,
+        _variantField_32 = codeOffset,
+        _variantField_16 = nameOffset,
+        _variantField_14 = normalFormalParameter_comment;
+
+  LinkedNodeBuilder.genericFunctionType({
+    LinkedNodeTypeBuilder actualReturnType,
+    LinkedNodeBuilder genericFunctionType_typeParameters,
+    LinkedNodeBuilder genericFunctionType_returnType,
+    int genericFunctionType_id,
+    LinkedNodeBuilder genericFunctionType_formalParameters,
+    LinkedNodeTypeBuilder genericFunctionType_type,
+  })  : _kind = idl.LinkedNodeKind.genericFunctionType,
+        _variantField_24 = actualReturnType,
+        _variantField_6 = genericFunctionType_typeParameters,
+        _variantField_7 = genericFunctionType_returnType,
+        _variantField_17 = genericFunctionType_id,
+        _variantField_8 = genericFunctionType_formalParameters,
+        _variantField_25 = genericFunctionType_type;
 
   LinkedNodeBuilder.genericTypeAlias({
     LinkedNodeBuilder annotatedNode_comment,
@@ -8399,6 +8420,117 @@ class LinkedNodeBuilder extends Object
         _variantField_16 = nameOffset,
         _variantField_31 = simplyBoundable_isSimplyBounded;
 
+  LinkedNodeBuilder.hideCombinator({
+    List<String> names,
+  })  : _kind = idl.LinkedNodeKind.hideCombinator,
+        _variantField_36 = names;
+
+  LinkedNodeBuilder.ifElement({
+    LinkedNodeBuilder ifMixin_condition,
+    LinkedNodeBuilder ifElement_thenElement,
+    LinkedNodeBuilder ifElement_elseElement,
+  })  : _kind = idl.LinkedNodeKind.ifElement,
+        _variantField_6 = ifMixin_condition,
+        _variantField_8 = ifElement_thenElement,
+        _variantField_9 = ifElement_elseElement;
+
+  LinkedNodeBuilder.ifStatement({
+    LinkedNodeBuilder ifMixin_condition,
+    LinkedNodeBuilder ifStatement_elseStatement,
+    LinkedNodeBuilder ifStatement_thenStatement,
+  })  : _kind = idl.LinkedNodeKind.ifStatement,
+        _variantField_6 = ifMixin_condition,
+        _variantField_7 = ifStatement_elseStatement,
+        _variantField_8 = ifStatement_thenStatement;
+
+  LinkedNodeBuilder.implementsClause({
+    List<LinkedNodeBuilder> implementsClause_interfaces,
+  })  : _kind = idl.LinkedNodeKind.implementsClause,
+        _variantField_2 = implementsClause_interfaces;
+
+  LinkedNodeBuilder.importDirective({
+    List<LinkedNodeBuilder> namespaceDirective_combinators,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    int importDirective_prefixOffset,
+    List<LinkedNodeBuilder> namespaceDirective_configurations,
+    String importDirective_prefix,
+    int nameOffset,
+    LinkedNodeBuilder uriBasedDirective_uri,
+    String namespaceDirective_selectedUri,
+    String uriBasedDirective_uriContent,
+    int uriBasedDirective_uriElement,
+  })  : _kind = idl.LinkedNodeKind.importDirective,
+        _variantField_2 = namespaceDirective_combinators,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_15 = importDirective_prefixOffset,
+        _variantField_3 = namespaceDirective_configurations,
+        _variantField_1 = importDirective_prefix,
+        _variantField_16 = nameOffset,
+        _variantField_14 = uriBasedDirective_uri,
+        _variantField_20 = namespaceDirective_selectedUri,
+        _variantField_22 = uriBasedDirective_uriContent,
+        _variantField_19 = uriBasedDirective_uriElement;
+
+  LinkedNodeBuilder.indexExpression({
+    LinkedNodeBuilder indexExpression_index,
+    LinkedNodeBuilder indexExpression_target,
+    LinkedNodeTypeBuilder indexExpression_elementType,
+    int indexExpression_element,
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.indexExpression,
+        _variantField_6 = indexExpression_index,
+        _variantField_7 = indexExpression_target,
+        _variantField_23 = indexExpression_elementType,
+        _variantField_15 = indexExpression_element,
+        _variantField_25 = expression_type;
+
+  LinkedNodeBuilder.instanceCreationExpression({
+    List<LinkedNodeBuilder> instanceCreationExpression_arguments,
+    LinkedNodeBuilder instanceCreationExpression_constructorName,
+    LinkedNodeBuilder instanceCreationExpression_typeArguments,
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.instanceCreationExpression,
+        _variantField_2 = instanceCreationExpression_arguments,
+        _variantField_7 = instanceCreationExpression_constructorName,
+        _variantField_8 = instanceCreationExpression_typeArguments,
+        _variantField_25 = expression_type;
+
+  LinkedNodeBuilder.integerLiteral({
+    int integerLiteral_value,
+  })  : _kind = idl.LinkedNodeKind.integerLiteral,
+        _variantField_16 = integerLiteral_value;
+
+  LinkedNodeBuilder.interpolationExpression({
+    LinkedNodeBuilder interpolationExpression_expression,
+  })  : _kind = idl.LinkedNodeKind.interpolationExpression,
+        _variantField_6 = interpolationExpression_expression;
+
+  LinkedNodeBuilder.interpolationString({
+    String interpolationString_value,
+  })  : _kind = idl.LinkedNodeKind.interpolationString,
+        _variantField_30 = interpolationString_value;
+
+  LinkedNodeBuilder.isExpression({
+    LinkedNodeBuilder isExpression_expression,
+    LinkedNodeBuilder isExpression_type,
+  })  : _kind = idl.LinkedNodeKind.isExpression,
+        _variantField_6 = isExpression_expression,
+        _variantField_7 = isExpression_type;
+
+  LinkedNodeBuilder.label({
+    LinkedNodeBuilder label_label,
+  })  : _kind = idl.LinkedNodeKind.label,
+        _variantField_6 = label_label;
+
+  LinkedNodeBuilder.labeledStatement({
+    List<LinkedNodeBuilder> labeledStatement_labels,
+    LinkedNodeBuilder labeledStatement_statement,
+  })  : _kind = idl.LinkedNodeKind.labeledStatement,
+        _variantField_2 = labeledStatement_labels,
+        _variantField_6 = labeledStatement_statement;
+
   LinkedNodeBuilder.libraryDirective({
     LinkedNodeBuilder annotatedNode_comment,
     List<LinkedNodeBuilder> annotatedNode_metadata,
@@ -8407,6 +8539,65 @@ class LinkedNodeBuilder extends Object
         _variantField_11 = annotatedNode_comment,
         _variantField_4 = annotatedNode_metadata,
         _variantField_6 = libraryDirective_name;
+
+  LinkedNodeBuilder.libraryIdentifier({
+    List<LinkedNodeBuilder> libraryIdentifier_components,
+  })  : _kind = idl.LinkedNodeKind.libraryIdentifier,
+        _variantField_2 = libraryIdentifier_components;
+
+  LinkedNodeBuilder.listLiteral({
+    List<LinkedNodeBuilder> typedLiteral_typeArguments,
+    List<LinkedNodeBuilder> listLiteral_elements,
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.listLiteral,
+        _variantField_2 = typedLiteral_typeArguments,
+        _variantField_3 = listLiteral_elements,
+        _variantField_25 = expression_type;
+
+  LinkedNodeBuilder.mapLiteralEntry({
+    LinkedNodeBuilder mapLiteralEntry_key,
+    LinkedNodeBuilder mapLiteralEntry_value,
+  })  : _kind = idl.LinkedNodeKind.mapLiteralEntry,
+        _variantField_6 = mapLiteralEntry_key,
+        _variantField_7 = mapLiteralEntry_value;
+
+  LinkedNodeBuilder.methodDeclaration({
+    LinkedNodeTypeBuilder actualReturnType,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder methodDeclaration_body,
+    LinkedNodeBuilder methodDeclaration_formalParameters,
+    LinkedNodeBuilder methodDeclaration_returnType,
+    LinkedNodeBuilder methodDeclaration_typeParameters,
+    int codeLength,
+    int codeOffset,
+    int nameOffset,
+  })  : _kind = idl.LinkedNodeKind.methodDeclaration,
+        _variantField_24 = actualReturnType,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = methodDeclaration_body,
+        _variantField_7 = methodDeclaration_formalParameters,
+        _variantField_8 = methodDeclaration_returnType,
+        _variantField_9 = methodDeclaration_typeParameters,
+        _variantField_33 = codeLength,
+        _variantField_32 = codeOffset,
+        _variantField_16 = nameOffset;
+
+  LinkedNodeBuilder.methodInvocation({
+    LinkedNodeTypeBuilder invocationExpression_invokeType,
+    LinkedNodeBuilder methodInvocation_methodName,
+    LinkedNodeBuilder methodInvocation_target,
+    LinkedNodeBuilder invocationExpression_typeArguments,
+    LinkedNodeTypeBuilder expression_type,
+    LinkedNodeBuilder invocationExpression_arguments,
+  })  : _kind = idl.LinkedNodeKind.methodInvocation,
+        _variantField_24 = invocationExpression_invokeType,
+        _variantField_6 = methodInvocation_methodName,
+        _variantField_7 = methodInvocation_target,
+        _variantField_12 = invocationExpression_typeArguments,
+        _variantField_25 = expression_type,
+        _variantField_14 = invocationExpression_arguments;
 
   LinkedNodeBuilder.mixinDeclaration({
     LinkedNodeBuilder annotatedNode_comment,
@@ -8432,6 +8623,42 @@ class LinkedNodeBuilder extends Object
         _variantField_16 = nameOffset,
         _variantField_36 = mixinDeclaration_superInvokedNames,
         _variantField_31 = simplyBoundable_isSimplyBounded;
+
+  LinkedNodeBuilder.namedExpression({
+    LinkedNodeBuilder namedExpression_expression,
+    LinkedNodeBuilder namedExpression_name,
+  })  : _kind = idl.LinkedNodeKind.namedExpression,
+        _variantField_6 = namedExpression_expression,
+        _variantField_7 = namedExpression_name;
+
+  LinkedNodeBuilder.nativeClause({
+    LinkedNodeBuilder nativeClause_name,
+  })  : _kind = idl.LinkedNodeKind.nativeClause,
+        _variantField_6 = nativeClause_name;
+
+  LinkedNodeBuilder.nativeFunctionBody({
+    LinkedNodeBuilder nativeFunctionBody_stringLiteral,
+  })  : _kind = idl.LinkedNodeKind.nativeFunctionBody,
+        _variantField_6 = nativeFunctionBody_stringLiteral;
+
+  LinkedNodeBuilder.nullLiteral({
+    int nullLiteral_fake,
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.nullLiteral,
+        _variantField_15 = nullLiteral_fake,
+        _variantField_25 = expression_type;
+
+  LinkedNodeBuilder.onClause({
+    List<LinkedNodeBuilder> onClause_superclassConstraints,
+  })  : _kind = idl.LinkedNodeKind.onClause,
+        _variantField_2 = onClause_superclassConstraints;
+
+  LinkedNodeBuilder.parenthesizedExpression({
+    LinkedNodeBuilder parenthesizedExpression_expression,
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.parenthesizedExpression,
+        _variantField_6 = parenthesizedExpression_expression,
+        _variantField_25 = expression_type;
 
   LinkedNodeBuilder.partDirective({
     LinkedNodeBuilder annotatedNode_comment,
@@ -8459,340 +8686,6 @@ class LinkedNodeBuilder extends Object
         _variantField_6 = partOfDirective_libraryName,
         _variantField_7 = partOfDirective_uri;
 
-  LinkedNodeBuilder.topLevelVariableDeclaration({
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder topLevelVariableDeclaration_variableList,
-  })  : _kind = idl.LinkedNodeKind.topLevelVariableDeclaration,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = topLevelVariableDeclaration_variableList;
-
-  LinkedNodeBuilder.typeParameter({
-    LinkedNodeBuilder annotatedNode_comment,
-    List<LinkedNodeBuilder> annotatedNode_metadata,
-    LinkedNodeBuilder typeParameter_bound,
-    LinkedNodeTypeBuilder typeParameter_defaultType,
-    int codeLength,
-    int codeOffset,
-    int nameOffset,
-  })  : _kind = idl.LinkedNodeKind.typeParameter,
-        _variantField_11 = annotatedNode_comment,
-        _variantField_4 = annotatedNode_metadata,
-        _variantField_6 = typeParameter_bound,
-        _variantField_23 = typeParameter_defaultType,
-        _variantField_33 = codeLength,
-        _variantField_32 = codeOffset,
-        _variantField_16 = nameOffset;
-
-  LinkedNodeBuilder.switchCase({
-    List<LinkedNodeBuilder> switchMember_statements,
-    LinkedNodeBuilder switchCase_expression,
-    List<LinkedNodeBuilder> switchMember_labels,
-  })  : _kind = idl.LinkedNodeKind.switchCase,
-        _variantField_4 = switchMember_statements,
-        _variantField_6 = switchCase_expression,
-        _variantField_3 = switchMember_labels;
-
-  LinkedNodeBuilder.switchDefault({
-    List<LinkedNodeBuilder> switchMember_statements,
-    List<LinkedNodeBuilder> switchMember_labels,
-  })  : _kind = idl.LinkedNodeKind.switchDefault,
-        _variantField_4 = switchMember_statements,
-        _variantField_3 = switchMember_labels;
-
-  LinkedNodeBuilder.annotation({
-    LinkedNodeBuilder annotation_arguments,
-    LinkedNodeBuilder annotation_constructorName,
-    int annotation_element,
-    LinkedNodeTypeBuilder annotation_elementType,
-    LinkedNodeBuilder annotation_name,
-  })  : _kind = idl.LinkedNodeKind.annotation,
-        _variantField_6 = annotation_arguments,
-        _variantField_7 = annotation_constructorName,
-        _variantField_17 = annotation_element,
-        _variantField_23 = annotation_elementType,
-        _variantField_8 = annotation_name;
-
-  LinkedNodeBuilder.asExpression({
-    LinkedNodeBuilder asExpression_expression,
-    LinkedNodeBuilder asExpression_type,
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.asExpression,
-        _variantField_6 = asExpression_expression,
-        _variantField_7 = asExpression_type,
-        _variantField_25 = expression_type;
-
-  LinkedNodeBuilder.assertInitializer({
-    LinkedNodeBuilder assertInitializer_condition,
-    LinkedNodeBuilder assertInitializer_message,
-  })  : _kind = idl.LinkedNodeKind.assertInitializer,
-        _variantField_6 = assertInitializer_condition,
-        _variantField_7 = assertInitializer_message;
-
-  LinkedNodeBuilder.assertStatement({
-    LinkedNodeBuilder assertStatement_condition,
-    LinkedNodeBuilder assertStatement_message,
-  })  : _kind = idl.LinkedNodeKind.assertStatement,
-        _variantField_6 = assertStatement_condition,
-        _variantField_7 = assertStatement_message;
-
-  LinkedNodeBuilder.assignmentExpression({
-    LinkedNodeBuilder assignmentExpression_leftHandSide,
-    LinkedNodeBuilder assignmentExpression_rightHandSide,
-    LinkedNodeTypeBuilder assignmentExpression_elementType,
-    int assignmentExpression_element,
-    idl.UnlinkedTokenType assignmentExpression_operator,
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.assignmentExpression,
-        _variantField_6 = assignmentExpression_leftHandSide,
-        _variantField_7 = assignmentExpression_rightHandSide,
-        _variantField_23 = assignmentExpression_elementType,
-        _variantField_15 = assignmentExpression_element,
-        _variantField_28 = assignmentExpression_operator,
-        _variantField_25 = expression_type;
-
-  LinkedNodeBuilder.awaitExpression({
-    LinkedNodeBuilder awaitExpression_expression,
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.awaitExpression,
-        _variantField_6 = awaitExpression_expression,
-        _variantField_25 = expression_type;
-
-  LinkedNodeBuilder.blockFunctionBody({
-    LinkedNodeBuilder blockFunctionBody_block,
-  })  : _kind = idl.LinkedNodeKind.blockFunctionBody,
-        _variantField_6 = blockFunctionBody_block;
-
-  LinkedNodeBuilder.breakStatement({
-    LinkedNodeBuilder breakStatement_label,
-  })  : _kind = idl.LinkedNodeKind.breakStatement,
-        _variantField_6 = breakStatement_label;
-
-  LinkedNodeBuilder.catchClause({
-    LinkedNodeBuilder catchClause_body,
-    LinkedNodeBuilder catchClause_exceptionParameter,
-    LinkedNodeBuilder catchClause_exceptionType,
-    LinkedNodeBuilder catchClause_stackTraceParameter,
-  })  : _kind = idl.LinkedNodeKind.catchClause,
-        _variantField_6 = catchClause_body,
-        _variantField_7 = catchClause_exceptionParameter,
-        _variantField_8 = catchClause_exceptionType,
-        _variantField_9 = catchClause_stackTraceParameter;
-
-  LinkedNodeBuilder.commentReference({
-    LinkedNodeBuilder commentReference_identifier,
-  })  : _kind = idl.LinkedNodeKind.commentReference,
-        _variantField_6 = commentReference_identifier;
-
-  LinkedNodeBuilder.conditionalExpression({
-    LinkedNodeBuilder conditionalExpression_condition,
-    LinkedNodeBuilder conditionalExpression_elseExpression,
-    LinkedNodeBuilder conditionalExpression_thenExpression,
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.conditionalExpression,
-        _variantField_6 = conditionalExpression_condition,
-        _variantField_7 = conditionalExpression_elseExpression,
-        _variantField_8 = conditionalExpression_thenExpression,
-        _variantField_25 = expression_type;
-
-  LinkedNodeBuilder.configuration({
-    LinkedNodeBuilder configuration_name,
-    LinkedNodeBuilder configuration_value,
-    LinkedNodeBuilder configuration_uri,
-  })  : _kind = idl.LinkedNodeKind.configuration,
-        _variantField_6 = configuration_name,
-        _variantField_7 = configuration_value,
-        _variantField_8 = configuration_uri;
-
-  LinkedNodeBuilder.constructorFieldInitializer({
-    LinkedNodeBuilder constructorFieldInitializer_expression,
-    LinkedNodeBuilder constructorFieldInitializer_fieldName,
-  })  : _kind = idl.LinkedNodeKind.constructorFieldInitializer,
-        _variantField_6 = constructorFieldInitializer_expression,
-        _variantField_7 = constructorFieldInitializer_fieldName;
-
-  LinkedNodeBuilder.constructorName({
-    LinkedNodeBuilder constructorName_name,
-    LinkedNodeBuilder constructorName_type,
-    LinkedNodeTypeBuilder constructorName_elementType,
-    int constructorName_element,
-  })  : _kind = idl.LinkedNodeKind.constructorName,
-        _variantField_6 = constructorName_name,
-        _variantField_7 = constructorName_type,
-        _variantField_23 = constructorName_elementType,
-        _variantField_15 = constructorName_element;
-
-  LinkedNodeBuilder.continueStatement({
-    LinkedNodeBuilder continueStatement_label,
-  })  : _kind = idl.LinkedNodeKind.continueStatement,
-        _variantField_6 = continueStatement_label;
-
-  LinkedNodeBuilder.defaultFormalParameter({
-    LinkedNodeBuilder defaultFormalParameter_defaultValue,
-    LinkedNodeBuilder defaultFormalParameter_parameter,
-    int codeLength,
-    int codeOffset,
-    idl.LinkedNodeFormalParameterKind defaultFormalParameter_kind,
-  })  : _kind = idl.LinkedNodeKind.defaultFormalParameter,
-        _variantField_6 = defaultFormalParameter_defaultValue,
-        _variantField_7 = defaultFormalParameter_parameter,
-        _variantField_33 = codeLength,
-        _variantField_32 = codeOffset,
-        _variantField_26 = defaultFormalParameter_kind;
-
-  LinkedNodeBuilder.doStatement({
-    LinkedNodeBuilder doStatement_body,
-    LinkedNodeBuilder doStatement_condition,
-  })  : _kind = idl.LinkedNodeKind.doStatement,
-        _variantField_6 = doStatement_body,
-        _variantField_7 = doStatement_condition;
-
-  LinkedNodeBuilder.expressionFunctionBody({
-    LinkedNodeBuilder expressionFunctionBody_expression,
-  })  : _kind = idl.LinkedNodeKind.expressionFunctionBody,
-        _variantField_6 = expressionFunctionBody_expression;
-
-  LinkedNodeBuilder.expressionStatement({
-    LinkedNodeBuilder expressionStatement_expression,
-  })  : _kind = idl.LinkedNodeKind.expressionStatement,
-        _variantField_6 = expressionStatement_expression;
-
-  LinkedNodeBuilder.extendsClause({
-    LinkedNodeBuilder extendsClause_superclass,
-  })  : _kind = idl.LinkedNodeKind.extendsClause,
-        _variantField_6 = extendsClause_superclass;
-
-  LinkedNodeBuilder.forEachPartsWithDeclaration({
-    LinkedNodeBuilder forEachParts_iterable,
-    LinkedNodeBuilder forEachPartsWithDeclaration_loopVariable,
-  })  : _kind = idl.LinkedNodeKind.forEachPartsWithDeclaration,
-        _variantField_6 = forEachParts_iterable,
-        _variantField_7 = forEachPartsWithDeclaration_loopVariable;
-
-  LinkedNodeBuilder.forEachPartsWithIdentifier({
-    LinkedNodeBuilder forEachParts_iterable,
-    LinkedNodeBuilder forEachPartsWithIdentifier_identifier,
-  })  : _kind = idl.LinkedNodeKind.forEachPartsWithIdentifier,
-        _variantField_6 = forEachParts_iterable,
-        _variantField_7 = forEachPartsWithIdentifier_identifier;
-
-  LinkedNodeBuilder.forElement({
-    LinkedNodeBuilder forMixin_forLoopParts,
-    LinkedNodeBuilder forElement_body,
-  })  : _kind = idl.LinkedNodeKind.forElement,
-        _variantField_6 = forMixin_forLoopParts,
-        _variantField_7 = forElement_body;
-
-  LinkedNodeBuilder.forStatement({
-    LinkedNodeBuilder forMixin_forLoopParts,
-    LinkedNodeBuilder forStatement_body,
-  })  : _kind = idl.LinkedNodeKind.forStatement,
-        _variantField_6 = forMixin_forLoopParts,
-        _variantField_7 = forStatement_body;
-
-  LinkedNodeBuilder.forPartsWithDeclarations({
-    LinkedNodeBuilder forParts_condition,
-    LinkedNodeBuilder forPartsWithDeclarations_variables,
-    List<LinkedNodeBuilder> forParts_updaters,
-  })  : _kind = idl.LinkedNodeKind.forPartsWithDeclarations,
-        _variantField_6 = forParts_condition,
-        _variantField_7 = forPartsWithDeclarations_variables,
-        _variantField_5 = forParts_updaters;
-
-  LinkedNodeBuilder.forPartsWithExpression({
-    LinkedNodeBuilder forParts_condition,
-    LinkedNodeBuilder forPartsWithExpression_initialization,
-    List<LinkedNodeBuilder> forParts_updaters,
-  })  : _kind = idl.LinkedNodeKind.forPartsWithExpression,
-        _variantField_6 = forParts_condition,
-        _variantField_7 = forPartsWithExpression_initialization,
-        _variantField_5 = forParts_updaters;
-
-  LinkedNodeBuilder.functionDeclarationStatement({
-    LinkedNodeBuilder functionDeclarationStatement_functionDeclaration,
-  })  : _kind = idl.LinkedNodeKind.functionDeclarationStatement,
-        _variantField_6 = functionDeclarationStatement_functionDeclaration;
-
-  LinkedNodeBuilder.ifElement({
-    LinkedNodeBuilder ifMixin_condition,
-    LinkedNodeBuilder ifElement_thenElement,
-    LinkedNodeBuilder ifElement_elseElement,
-  })  : _kind = idl.LinkedNodeKind.ifElement,
-        _variantField_6 = ifMixin_condition,
-        _variantField_8 = ifElement_thenElement,
-        _variantField_9 = ifElement_elseElement;
-
-  LinkedNodeBuilder.ifStatement({
-    LinkedNodeBuilder ifMixin_condition,
-    LinkedNodeBuilder ifStatement_elseStatement,
-    LinkedNodeBuilder ifStatement_thenStatement,
-  })  : _kind = idl.LinkedNodeKind.ifStatement,
-        _variantField_6 = ifMixin_condition,
-        _variantField_7 = ifStatement_elseStatement,
-        _variantField_8 = ifStatement_thenStatement;
-
-  LinkedNodeBuilder.indexExpression({
-    LinkedNodeBuilder indexExpression_index,
-    LinkedNodeBuilder indexExpression_target,
-    LinkedNodeTypeBuilder indexExpression_elementType,
-    int indexExpression_element,
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.indexExpression,
-        _variantField_6 = indexExpression_index,
-        _variantField_7 = indexExpression_target,
-        _variantField_23 = indexExpression_elementType,
-        _variantField_15 = indexExpression_element,
-        _variantField_25 = expression_type;
-
-  LinkedNodeBuilder.interpolationExpression({
-    LinkedNodeBuilder interpolationExpression_expression,
-  })  : _kind = idl.LinkedNodeKind.interpolationExpression,
-        _variantField_6 = interpolationExpression_expression;
-
-  LinkedNodeBuilder.isExpression({
-    LinkedNodeBuilder isExpression_expression,
-    LinkedNodeBuilder isExpression_type,
-  })  : _kind = idl.LinkedNodeKind.isExpression,
-        _variantField_6 = isExpression_expression,
-        _variantField_7 = isExpression_type;
-
-  LinkedNodeBuilder.label({
-    LinkedNodeBuilder label_label,
-  })  : _kind = idl.LinkedNodeKind.label,
-        _variantField_6 = label_label;
-
-  LinkedNodeBuilder.mapLiteralEntry({
-    LinkedNodeBuilder mapLiteralEntry_key,
-    LinkedNodeBuilder mapLiteralEntry_value,
-  })  : _kind = idl.LinkedNodeKind.mapLiteralEntry,
-        _variantField_6 = mapLiteralEntry_key,
-        _variantField_7 = mapLiteralEntry_value;
-
-  LinkedNodeBuilder.namedExpression({
-    LinkedNodeBuilder namedExpression_expression,
-    LinkedNodeBuilder namedExpression_name,
-  })  : _kind = idl.LinkedNodeKind.namedExpression,
-        _variantField_6 = namedExpression_expression,
-        _variantField_7 = namedExpression_name;
-
-  LinkedNodeBuilder.nativeClause({
-    LinkedNodeBuilder nativeClause_name,
-  })  : _kind = idl.LinkedNodeKind.nativeClause,
-        _variantField_6 = nativeClause_name;
-
-  LinkedNodeBuilder.nativeFunctionBody({
-    LinkedNodeBuilder nativeFunctionBody_stringLiteral,
-  })  : _kind = idl.LinkedNodeKind.nativeFunctionBody,
-        _variantField_6 = nativeFunctionBody_stringLiteral;
-
-  LinkedNodeBuilder.parenthesizedExpression({
-    LinkedNodeBuilder parenthesizedExpression_expression,
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.parenthesizedExpression,
-        _variantField_6 = parenthesizedExpression_expression,
-        _variantField_25 = expression_type;
-
   LinkedNodeBuilder.postfixExpression({
     LinkedNodeBuilder postfixExpression_operand,
     LinkedNodeTypeBuilder postfixExpression_elementType,
@@ -8806,15 +8699,6 @@ class LinkedNodeBuilder extends Object
         _variantField_28 = postfixExpression_operator,
         _variantField_25 = expression_type;
 
-  LinkedNodeBuilder.prefixedIdentifier({
-    LinkedNodeBuilder prefixedIdentifier_identifier,
-    LinkedNodeBuilder prefixedIdentifier_prefix,
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.prefixedIdentifier,
-        _variantField_6 = prefixedIdentifier_identifier,
-        _variantField_7 = prefixedIdentifier_prefix,
-        _variantField_25 = expression_type;
-
   LinkedNodeBuilder.prefixExpression({
     LinkedNodeBuilder prefixExpression_operand,
     LinkedNodeTypeBuilder prefixExpression_elementType,
@@ -8826,6 +8710,15 @@ class LinkedNodeBuilder extends Object
         _variantField_23 = prefixExpression_elementType,
         _variantField_15 = prefixExpression_element,
         _variantField_28 = prefixExpression_operator,
+        _variantField_25 = expression_type;
+
+  LinkedNodeBuilder.prefixedIdentifier({
+    LinkedNodeBuilder prefixedIdentifier_identifier,
+    LinkedNodeBuilder prefixedIdentifier_prefix,
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.prefixedIdentifier,
+        _variantField_6 = prefixedIdentifier_identifier,
+        _variantField_7 = prefixedIdentifier_prefix,
         _variantField_25 = expression_type;
 
   LinkedNodeBuilder.propertyAccess({
@@ -8850,10 +8743,64 @@ class LinkedNodeBuilder extends Object
         _variantField_23 = redirectingConstructorInvocation_elementType,
         _variantField_15 = redirectingConstructorInvocation_element;
 
+  LinkedNodeBuilder.rethrowExpression({
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.rethrowExpression,
+        _variantField_25 = expression_type;
+
   LinkedNodeBuilder.returnStatement({
     LinkedNodeBuilder returnStatement_expression,
   })  : _kind = idl.LinkedNodeKind.returnStatement,
         _variantField_6 = returnStatement_expression;
+
+  LinkedNodeBuilder.setOrMapLiteral({
+    List<LinkedNodeBuilder> typedLiteral_typeArguments,
+    List<LinkedNodeBuilder> setOrMapLiteral_elements,
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.setOrMapLiteral,
+        _variantField_2 = typedLiteral_typeArguments,
+        _variantField_3 = setOrMapLiteral_elements,
+        _variantField_25 = expression_type;
+
+  LinkedNodeBuilder.showCombinator({
+    List<String> names,
+  })  : _kind = idl.LinkedNodeKind.showCombinator,
+        _variantField_36 = names;
+
+  LinkedNodeBuilder.simpleFormalParameter({
+    LinkedNodeTypeBuilder actualType,
+    List<LinkedNodeBuilder> normalFormalParameter_metadata,
+    LinkedNodeBuilder simpleFormalParameter_type,
+    bool inheritsCovariant,
+    int codeLength,
+    int codeOffset,
+    int nameOffset,
+    LinkedNodeBuilder normalFormalParameter_comment,
+    TopLevelInferenceErrorBuilder topLevelTypeInferenceError,
+  })  : _kind = idl.LinkedNodeKind.simpleFormalParameter,
+        _variantField_24 = actualType,
+        _variantField_4 = normalFormalParameter_metadata,
+        _variantField_6 = simpleFormalParameter_type,
+        _variantField_27 = inheritsCovariant,
+        _variantField_33 = codeLength,
+        _variantField_32 = codeOffset,
+        _variantField_16 = nameOffset,
+        _variantField_14 = normalFormalParameter_comment,
+        _variantField_34 = topLevelTypeInferenceError;
+
+  LinkedNodeBuilder.simpleIdentifier({
+    LinkedNodeTypeBuilder simpleIdentifier_elementType,
+    int simpleIdentifier_element,
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.simpleIdentifier,
+        _variantField_23 = simpleIdentifier_elementType,
+        _variantField_15 = simpleIdentifier_element,
+        _variantField_25 = expression_type;
+
+  LinkedNodeBuilder.simpleStringLiteral({
+    String simpleStringLiteral_value,
+  })  : _kind = idl.LinkedNodeKind.simpleStringLiteral,
+        _variantField_20 = simpleStringLiteral_value;
 
   LinkedNodeBuilder.spreadElement({
     LinkedNodeBuilder spreadElement_expression,
@@ -8861,6 +8808,11 @@ class LinkedNodeBuilder extends Object
   })  : _kind = idl.LinkedNodeKind.spreadElement,
         _variantField_6 = spreadElement_expression,
         _variantField_38 = spreadElement_spreadOperator;
+
+  LinkedNodeBuilder.stringInterpolation({
+    List<LinkedNodeBuilder> stringInterpolation_elements,
+  })  : _kind = idl.LinkedNodeKind.stringInterpolation,
+        _variantField_2 = stringInterpolation_elements;
 
   LinkedNodeBuilder.superConstructorInvocation({
     LinkedNodeBuilder superConstructorInvocation_arguments,
@@ -8873,75 +8825,33 @@ class LinkedNodeBuilder extends Object
         _variantField_23 = superConstructorInvocation_elementType,
         _variantField_15 = superConstructorInvocation_element;
 
-  LinkedNodeBuilder.throwExpression({
-    LinkedNodeBuilder throwExpression_expression,
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.throwExpression,
-        _variantField_6 = throwExpression_expression,
-        _variantField_25 = expression_type;
-
-  LinkedNodeBuilder.variableDeclarationStatement({
-    LinkedNodeBuilder variableDeclarationStatement_variables,
-  })  : _kind = idl.LinkedNodeKind.variableDeclarationStatement,
-        _variantField_6 = variableDeclarationStatement_variables;
-
-  LinkedNodeBuilder.whileStatement({
-    LinkedNodeBuilder whileStatement_body,
-    LinkedNodeBuilder whileStatement_condition,
-  })  : _kind = idl.LinkedNodeKind.whileStatement,
-        _variantField_6 = whileStatement_body,
-        _variantField_7 = whileStatement_condition;
-
-  LinkedNodeBuilder.yieldStatement({
-    LinkedNodeBuilder yieldStatement_expression,
-  })  : _kind = idl.LinkedNodeKind.yieldStatement,
-        _variantField_6 = yieldStatement_expression;
-
-  LinkedNodeBuilder.simpleIdentifier({
-    LinkedNodeTypeBuilder simpleIdentifier_elementType,
-    int simpleIdentifier_element,
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.simpleIdentifier,
-        _variantField_23 = simpleIdentifier_elementType,
-        _variantField_15 = simpleIdentifier_element,
-        _variantField_25 = expression_type;
-
-  LinkedNodeBuilder.emptyFunctionBody({
-    int emptyFunctionBody_fake,
-  })  : _kind = idl.LinkedNodeKind.emptyFunctionBody,
-        _variantField_15 = emptyFunctionBody_fake;
-
-  LinkedNodeBuilder.emptyStatement({
-    int emptyStatement_fake,
-  })  : _kind = idl.LinkedNodeKind.emptyStatement,
-        _variantField_15 = emptyStatement_fake;
-
-  LinkedNodeBuilder.nullLiteral({
-    int nullLiteral_fake,
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.nullLiteral,
-        _variantField_15 = nullLiteral_fake,
-        _variantField_25 = expression_type;
-
-  LinkedNodeBuilder.booleanLiteral({
-    bool booleanLiteral_value,
-  })  : _kind = idl.LinkedNodeKind.booleanLiteral,
-        _variantField_27 = booleanLiteral_value;
-
-  LinkedNodeBuilder.doubleLiteral({
-    double doubleLiteral_value,
-  })  : _kind = idl.LinkedNodeKind.doubleLiteral,
-        _variantField_21 = doubleLiteral_value;
-
-  LinkedNodeBuilder.rethrowExpression({
-    LinkedNodeTypeBuilder expression_type,
-  })  : _kind = idl.LinkedNodeKind.rethrowExpression,
-        _variantField_25 = expression_type;
-
   LinkedNodeBuilder.superExpression({
     LinkedNodeTypeBuilder expression_type,
   })  : _kind = idl.LinkedNodeKind.superExpression,
         _variantField_25 = expression_type;
+
+  LinkedNodeBuilder.switchCase({
+    List<LinkedNodeBuilder> switchMember_statements,
+    LinkedNodeBuilder switchCase_expression,
+    List<LinkedNodeBuilder> switchMember_labels,
+  })  : _kind = idl.LinkedNodeKind.switchCase,
+        _variantField_4 = switchMember_statements,
+        _variantField_6 = switchCase_expression,
+        _variantField_3 = switchMember_labels;
+
+  LinkedNodeBuilder.switchDefault({
+    List<LinkedNodeBuilder> switchMember_statements,
+    List<LinkedNodeBuilder> switchMember_labels,
+  })  : _kind = idl.LinkedNodeKind.switchDefault,
+        _variantField_4 = switchMember_statements,
+        _variantField_3 = switchMember_labels;
+
+  LinkedNodeBuilder.switchStatement({
+    List<LinkedNodeBuilder> switchStatement_members,
+    LinkedNodeBuilder switchStatement_expression,
+  })  : _kind = idl.LinkedNodeKind.switchStatement,
+        _variantField_2 = switchStatement_members,
+        _variantField_7 = switchStatement_expression;
 
   LinkedNodeBuilder.symbolLiteral({
     LinkedNodeTypeBuilder expression_type,
@@ -8955,152 +8865,2209 @@ class LinkedNodeBuilder extends Object
   })  : _kind = idl.LinkedNodeKind.thisExpression,
         _variantField_25 = expression_type;
 
-  LinkedNodeBuilder.integerLiteral({
-    int integerLiteral_value,
-  })  : _kind = idl.LinkedNodeKind.integerLiteral,
-        _variantField_16 = integerLiteral_value;
+  LinkedNodeBuilder.throwExpression({
+    LinkedNodeBuilder throwExpression_expression,
+    LinkedNodeTypeBuilder expression_type,
+  })  : _kind = idl.LinkedNodeKind.throwExpression,
+        _variantField_6 = throwExpression_expression,
+        _variantField_25 = expression_type;
 
-  LinkedNodeBuilder.interpolationString({
-    String interpolationString_value,
-  })  : _kind = idl.LinkedNodeKind.interpolationString,
-        _variantField_30 = interpolationString_value;
+  LinkedNodeBuilder.topLevelVariableDeclaration({
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder topLevelVariableDeclaration_variableList,
+  })  : _kind = idl.LinkedNodeKind.topLevelVariableDeclaration,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = topLevelVariableDeclaration_variableList;
 
-  LinkedNodeBuilder.hideCombinator({
-    List<String> names,
-  })  : _kind = idl.LinkedNodeKind.hideCombinator,
-        _variantField_36 = names;
+  LinkedNodeBuilder.tryStatement({
+    List<LinkedNodeBuilder> tryStatement_catchClauses,
+    LinkedNodeBuilder tryStatement_body,
+    LinkedNodeBuilder tryStatement_finallyBlock,
+  })  : _kind = idl.LinkedNodeKind.tryStatement,
+        _variantField_2 = tryStatement_catchClauses,
+        _variantField_6 = tryStatement_body,
+        _variantField_7 = tryStatement_finallyBlock;
 
-  LinkedNodeBuilder.showCombinator({
-    List<String> names,
-  })  : _kind = idl.LinkedNodeKind.showCombinator,
-        _variantField_36 = names;
+  LinkedNodeBuilder.typeArgumentList({
+    List<LinkedNodeBuilder> typeArgumentList_arguments,
+  })  : _kind = idl.LinkedNodeKind.typeArgumentList,
+        _variantField_2 = typeArgumentList_arguments;
 
-  LinkedNodeBuilder.simpleStringLiteral({
-    String simpleStringLiteral_value,
-  })  : _kind = idl.LinkedNodeKind.simpleStringLiteral,
-        _variantField_20 = simpleStringLiteral_value;
+  LinkedNodeBuilder.typeName({
+    List<LinkedNodeBuilder> typeName_typeArguments,
+    LinkedNodeBuilder typeName_name,
+    LinkedNodeTypeBuilder typeName_type,
+  })  : _kind = idl.LinkedNodeKind.typeName,
+        _variantField_2 = typeName_typeArguments,
+        _variantField_6 = typeName_name,
+        _variantField_23 = typeName_type;
+
+  LinkedNodeBuilder.typeParameter({
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder typeParameter_bound,
+    LinkedNodeTypeBuilder typeParameter_defaultType,
+    int codeLength,
+    int codeOffset,
+    int nameOffset,
+  })  : _kind = idl.LinkedNodeKind.typeParameter,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = typeParameter_bound,
+        _variantField_23 = typeParameter_defaultType,
+        _variantField_33 = codeLength,
+        _variantField_32 = codeOffset,
+        _variantField_16 = nameOffset;
+
+  LinkedNodeBuilder.typeParameterList({
+    List<LinkedNodeBuilder> typeParameterList_typeParameters,
+  })  : _kind = idl.LinkedNodeKind.typeParameterList,
+        _variantField_2 = typeParameterList_typeParameters;
+
+  LinkedNodeBuilder.variableDeclaration({
+    LinkedNodeTypeBuilder actualType,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder variableDeclaration_initializer,
+    bool inheritsCovariant,
+    int codeLength,
+    int codeOffset,
+    int nameOffset,
+    TopLevelInferenceErrorBuilder topLevelTypeInferenceError,
+  })  : _kind = idl.LinkedNodeKind.variableDeclaration,
+        _variantField_24 = actualType,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = variableDeclaration_initializer,
+        _variantField_27 = inheritsCovariant,
+        _variantField_33 = codeLength,
+        _variantField_32 = codeOffset,
+        _variantField_16 = nameOffset,
+        _variantField_34 = topLevelTypeInferenceError;
+
+  LinkedNodeBuilder.variableDeclarationList({
+    List<LinkedNodeBuilder> variableDeclarationList_variables,
+    LinkedNodeBuilder annotatedNode_comment,
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder variableDeclarationList_type,
+  })  : _kind = idl.LinkedNodeKind.variableDeclarationList,
+        _variantField_2 = variableDeclarationList_variables,
+        _variantField_11 = annotatedNode_comment,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = variableDeclarationList_type;
+
+  LinkedNodeBuilder.variableDeclarationStatement({
+    LinkedNodeBuilder variableDeclarationStatement_variables,
+  })  : _kind = idl.LinkedNodeKind.variableDeclarationStatement,
+        _variantField_6 = variableDeclarationStatement_variables;
+
+  LinkedNodeBuilder.whileStatement({
+    LinkedNodeBuilder whileStatement_body,
+    LinkedNodeBuilder whileStatement_condition,
+  })  : _kind = idl.LinkedNodeKind.whileStatement,
+        _variantField_6 = whileStatement_body,
+        _variantField_7 = whileStatement_condition;
+
+  LinkedNodeBuilder.withClause({
+    List<LinkedNodeBuilder> withClause_mixinTypes,
+  })  : _kind = idl.LinkedNodeKind.withClause,
+        _variantField_2 = withClause_mixinTypes;
+
+  LinkedNodeBuilder.yieldStatement({
+    LinkedNodeBuilder yieldStatement_expression,
+  })  : _kind = idl.LinkedNodeKind.yieldStatement,
+        _variantField_6 = yieldStatement_expression;
 
   /// Flush [informative] data recursively.
   void flushInformative() {
-    _variantField_24?.flushInformative();
-    _variantField_2?.forEach((b) => b.flushInformative());
-    _variantField_11?.flushInformative();
-    _variantField_4?.forEach((b) => b.flushInformative());
-    _variantField_6?.flushInformative();
-    _variantField_7?.flushInformative();
-    _variantField_23?.flushInformative();
-    _variantField_8?.flushInformative();
-    _variantField_9?.flushInformative();
-    _variantField_12?.flushInformative();
-    _variantField_5?.forEach((b) => b.flushInformative());
-    _variantField_13?.flushInformative();
-    _variantField_3?.forEach((b) => b.flushInformative());
-    _variantField_10?.flushInformative();
-    _variantField_25?.flushInformative();
-    _variantField_14?.flushInformative();
-    _variantField_34?.flushInformative();
+    if (kind == idl.LinkedNodeKind.adjacentStrings) {
+      adjacentStrings_strings?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.annotation) {
+      annotation_arguments?.flushInformative();
+      annotation_constructorName?.flushInformative();
+      annotation_elementType?.flushInformative();
+      annotation_name?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.argumentList) {
+      argumentList_arguments?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.asExpression) {
+      asExpression_expression?.flushInformative();
+      asExpression_type?.flushInformative();
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.assertInitializer) {
+      assertInitializer_condition?.flushInformative();
+      assertInitializer_message?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.assertStatement) {
+      assertStatement_condition?.flushInformative();
+      assertStatement_message?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.assignmentExpression) {
+      assignmentExpression_leftHandSide?.flushInformative();
+      assignmentExpression_rightHandSide?.flushInformative();
+      assignmentExpression_elementType?.flushInformative();
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.awaitExpression) {
+      awaitExpression_expression?.flushInformative();
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.binaryExpression) {
+      binaryExpression_invokeType?.flushInformative();
+      binaryExpression_leftOperand?.flushInformative();
+      binaryExpression_rightOperand?.flushInformative();
+      binaryExpression_elementType?.flushInformative();
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.block) {
+      block_statements?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.blockFunctionBody) {
+      blockFunctionBody_block?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.booleanLiteral) {
+    } else if (kind == idl.LinkedNodeKind.breakStatement) {
+      breakStatement_label?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.cascadeExpression) {
+      cascadeExpression_sections?.forEach((b) => b.flushInformative());
+      cascadeExpression_target?.flushInformative();
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.catchClause) {
+      catchClause_body?.flushInformative();
+      catchClause_exceptionParameter?.flushInformative();
+      catchClause_exceptionType?.flushInformative();
+      catchClause_stackTraceParameter?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.classDeclaration) {
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      classDeclaration_extendsClause?.flushInformative();
+      classDeclaration_withClause?.flushInformative();
+      classDeclaration_nativeClause?.flushInformative();
+      classOrMixinDeclaration_implementsClause?.flushInformative();
+      classOrMixinDeclaration_members?.forEach((b) => b.flushInformative());
+      classOrMixinDeclaration_typeParameters?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.classTypeAlias) {
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      classTypeAlias_typeParameters?.flushInformative();
+      classTypeAlias_superclass?.flushInformative();
+      classTypeAlias_withClause?.flushInformative();
+      classTypeAlias_implementsClause?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.comment) {
+      comment_references?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.commentReference) {
+      commentReference_identifier?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.compilationUnit) {
+      compilationUnit_declarations?.forEach((b) => b.flushInformative());
+      compilationUnit_scriptTag?.flushInformative();
+      compilationUnit_directives?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.conditionalExpression) {
+      conditionalExpression_condition?.flushInformative();
+      conditionalExpression_elseExpression?.flushInformative();
+      conditionalExpression_thenExpression?.flushInformative();
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.configuration) {
+      configuration_name?.flushInformative();
+      configuration_value?.flushInformative();
+      configuration_uri?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.constructorDeclaration) {
+      constructorDeclaration_initializers?.forEach((b) => b.flushInformative());
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      constructorDeclaration_body?.flushInformative();
+      constructorDeclaration_parameters?.flushInformative();
+      constructorDeclaration_redirectedConstructor?.flushInformative();
+      constructorDeclaration_returnType?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.constructorFieldInitializer) {
+      constructorFieldInitializer_expression?.flushInformative();
+      constructorFieldInitializer_fieldName?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.constructorName) {
+      constructorName_name?.flushInformative();
+      constructorName_type?.flushInformative();
+      constructorName_elementType?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.continueStatement) {
+      continueStatement_label?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.declaredIdentifier) {
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      declaredIdentifier_identifier?.flushInformative();
+      declaredIdentifier_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.defaultFormalParameter) {
+      defaultFormalParameter_defaultValue?.flushInformative();
+      defaultFormalParameter_parameter?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.doStatement) {
+      doStatement_body?.flushInformative();
+      doStatement_condition?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.dottedName) {
+      dottedName_components?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.doubleLiteral) {
+    } else if (kind == idl.LinkedNodeKind.emptyFunctionBody) {
+    } else if (kind == idl.LinkedNodeKind.emptyStatement) {
+    } else if (kind == idl.LinkedNodeKind.enumConstantDeclaration) {
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.enumDeclaration) {
+      enumDeclaration_constants?.forEach((b) => b.flushInformative());
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.exportDirective) {
+      namespaceDirective_combinators?.forEach((b) => b.flushInformative());
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      namespaceDirective_configurations?.forEach((b) => b.flushInformative());
+      uriBasedDirective_uri?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.expressionFunctionBody) {
+      expressionFunctionBody_expression?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.expressionStatement) {
+      expressionStatement_expression?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.extendsClause) {
+      extendsClause_superclass?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.fieldDeclaration) {
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      fieldDeclaration_fields?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
+      actualType?.flushInformative();
+      normalFormalParameter_metadata?.forEach((b) => b.flushInformative());
+      fieldFormalParameter_type?.flushInformative();
+      fieldFormalParameter_typeParameters?.flushInformative();
+      fieldFormalParameter_formalParameters?.flushInformative();
+      normalFormalParameter_comment?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.forEachPartsWithDeclaration) {
+      forEachParts_iterable?.flushInformative();
+      forEachPartsWithDeclaration_loopVariable?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.forEachPartsWithIdentifier) {
+      forEachParts_iterable?.flushInformative();
+      forEachPartsWithIdentifier_identifier?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.forElement) {
+      forMixin_forLoopParts?.flushInformative();
+      forElement_body?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.forPartsWithDeclarations) {
+      forParts_condition?.flushInformative();
+      forPartsWithDeclarations_variables?.flushInformative();
+      forParts_updaters?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.forPartsWithExpression) {
+      forParts_condition?.flushInformative();
+      forPartsWithExpression_initialization?.flushInformative();
+      forParts_updaters?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.forStatement) {
+      forMixin_forLoopParts?.flushInformative();
+      forStatement_body?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.formalParameterList) {
+      formalParameterList_parameters?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.functionDeclaration) {
+      actualReturnType?.flushInformative();
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      functionDeclaration_functionExpression?.flushInformative();
+      functionDeclaration_returnType?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.functionDeclarationStatement) {
+      functionDeclarationStatement_functionDeclaration?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.functionExpression) {
+      actualReturnType?.flushInformative();
+      functionExpression_body?.flushInformative();
+      functionExpression_formalParameters?.flushInformative();
+      functionExpression_typeParameters?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
+      invocationExpression_invokeType?.flushInformative();
+      functionExpressionInvocation_function?.flushInformative();
+      invocationExpression_typeArguments?.flushInformative();
+      expression_type?.flushInformative();
+      invocationExpression_arguments?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.functionTypeAlias) {
+      actualReturnType?.flushInformative();
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      functionTypeAlias_formalParameters?.flushInformative();
+      functionTypeAlias_returnType?.flushInformative();
+      functionTypeAlias_typeParameters?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
+      actualType?.flushInformative();
+      normalFormalParameter_metadata?.forEach((b) => b.flushInformative());
+      functionTypedFormalParameter_formalParameters?.flushInformative();
+      functionTypedFormalParameter_returnType?.flushInformative();
+      functionTypedFormalParameter_typeParameters?.flushInformative();
+      normalFormalParameter_comment?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.genericFunctionType) {
+      actualReturnType?.flushInformative();
+      genericFunctionType_typeParameters?.flushInformative();
+      genericFunctionType_returnType?.flushInformative();
+      genericFunctionType_formalParameters?.flushInformative();
+      genericFunctionType_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.genericTypeAlias) {
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      genericTypeAlias_typeParameters?.flushInformative();
+      genericTypeAlias_functionType?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.hideCombinator) {
+    } else if (kind == idl.LinkedNodeKind.ifElement) {
+      ifMixin_condition?.flushInformative();
+      ifElement_thenElement?.flushInformative();
+      ifElement_elseElement?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.ifStatement) {
+      ifMixin_condition?.flushInformative();
+      ifStatement_elseStatement?.flushInformative();
+      ifStatement_thenStatement?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.implementsClause) {
+      implementsClause_interfaces?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.importDirective) {
+      namespaceDirective_combinators?.forEach((b) => b.flushInformative());
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      namespaceDirective_configurations?.forEach((b) => b.flushInformative());
+      uriBasedDirective_uri?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.indexExpression) {
+      indexExpression_index?.flushInformative();
+      indexExpression_target?.flushInformative();
+      indexExpression_elementType?.flushInformative();
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.instanceCreationExpression) {
+      instanceCreationExpression_arguments
+          ?.forEach((b) => b.flushInformative());
+      instanceCreationExpression_constructorName?.flushInformative();
+      instanceCreationExpression_typeArguments?.flushInformative();
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.integerLiteral) {
+    } else if (kind == idl.LinkedNodeKind.interpolationExpression) {
+      interpolationExpression_expression?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.interpolationString) {
+    } else if (kind == idl.LinkedNodeKind.isExpression) {
+      isExpression_expression?.flushInformative();
+      isExpression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.label) {
+      label_label?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.labeledStatement) {
+      labeledStatement_labels?.forEach((b) => b.flushInformative());
+      labeledStatement_statement?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.libraryDirective) {
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      libraryDirective_name?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.libraryIdentifier) {
+      libraryIdentifier_components?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.listLiteral) {
+      typedLiteral_typeArguments?.forEach((b) => b.flushInformative());
+      listLiteral_elements?.forEach((b) => b.flushInformative());
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.mapLiteralEntry) {
+      mapLiteralEntry_key?.flushInformative();
+      mapLiteralEntry_value?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.methodDeclaration) {
+      actualReturnType?.flushInformative();
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      methodDeclaration_body?.flushInformative();
+      methodDeclaration_formalParameters?.flushInformative();
+      methodDeclaration_returnType?.flushInformative();
+      methodDeclaration_typeParameters?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.methodInvocation) {
+      invocationExpression_invokeType?.flushInformative();
+      methodInvocation_methodName?.flushInformative();
+      methodInvocation_target?.flushInformative();
+      invocationExpression_typeArguments?.flushInformative();
+      expression_type?.flushInformative();
+      invocationExpression_arguments?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.mixinDeclaration) {
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      mixinDeclaration_onClause?.flushInformative();
+      classOrMixinDeclaration_implementsClause?.flushInformative();
+      classOrMixinDeclaration_members?.forEach((b) => b.flushInformative());
+      classOrMixinDeclaration_typeParameters?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.namedExpression) {
+      namedExpression_expression?.flushInformative();
+      namedExpression_name?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.nativeClause) {
+      nativeClause_name?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.nativeFunctionBody) {
+      nativeFunctionBody_stringLiteral?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.nullLiteral) {
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.onClause) {
+      onClause_superclassConstraints?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.parenthesizedExpression) {
+      parenthesizedExpression_expression?.flushInformative();
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.partDirective) {
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      uriBasedDirective_uri?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.partOfDirective) {
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      partOfDirective_libraryName?.flushInformative();
+      partOfDirective_uri?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.postfixExpression) {
+      postfixExpression_operand?.flushInformative();
+      postfixExpression_elementType?.flushInformative();
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.prefixExpression) {
+      prefixExpression_operand?.flushInformative();
+      prefixExpression_elementType?.flushInformative();
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.prefixedIdentifier) {
+      prefixedIdentifier_identifier?.flushInformative();
+      prefixedIdentifier_prefix?.flushInformative();
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.propertyAccess) {
+      propertyAccess_propertyName?.flushInformative();
+      propertyAccess_target?.flushInformative();
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.redirectingConstructorInvocation) {
+      redirectingConstructorInvocation_arguments?.flushInformative();
+      redirectingConstructorInvocation_constructorName?.flushInformative();
+      redirectingConstructorInvocation_elementType?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.rethrowExpression) {
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.returnStatement) {
+      returnStatement_expression?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.setOrMapLiteral) {
+      typedLiteral_typeArguments?.forEach((b) => b.flushInformative());
+      setOrMapLiteral_elements?.forEach((b) => b.flushInformative());
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.showCombinator) {
+    } else if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
+      actualType?.flushInformative();
+      normalFormalParameter_metadata?.forEach((b) => b.flushInformative());
+      simpleFormalParameter_type?.flushInformative();
+      normalFormalParameter_comment?.flushInformative();
+      topLevelTypeInferenceError?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.simpleIdentifier) {
+      simpleIdentifier_elementType?.flushInformative();
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.simpleStringLiteral) {
+    } else if (kind == idl.LinkedNodeKind.spreadElement) {
+      spreadElement_expression?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.stringInterpolation) {
+      stringInterpolation_elements?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.superConstructorInvocation) {
+      superConstructorInvocation_arguments?.flushInformative();
+      superConstructorInvocation_constructorName?.flushInformative();
+      superConstructorInvocation_elementType?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.superExpression) {
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.switchCase) {
+      switchMember_statements?.forEach((b) => b.flushInformative());
+      switchCase_expression?.flushInformative();
+      switchMember_labels?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.switchDefault) {
+      switchMember_statements?.forEach((b) => b.flushInformative());
+      switchMember_labels?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.switchStatement) {
+      switchStatement_members?.forEach((b) => b.flushInformative());
+      switchStatement_expression?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.symbolLiteral) {
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.thisExpression) {
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.throwExpression) {
+      throwExpression_expression?.flushInformative();
+      expression_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.topLevelVariableDeclaration) {
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      topLevelVariableDeclaration_variableList?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.tryStatement) {
+      tryStatement_catchClauses?.forEach((b) => b.flushInformative());
+      tryStatement_body?.flushInformative();
+      tryStatement_finallyBlock?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.typeArgumentList) {
+      typeArgumentList_arguments?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.typeName) {
+      typeName_typeArguments?.forEach((b) => b.flushInformative());
+      typeName_name?.flushInformative();
+      typeName_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.typeParameter) {
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      typeParameter_bound?.flushInformative();
+      typeParameter_defaultType?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.typeParameterList) {
+      typeParameterList_typeParameters?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.variableDeclaration) {
+      actualType?.flushInformative();
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      variableDeclaration_initializer?.flushInformative();
+      topLevelTypeInferenceError?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.variableDeclarationList) {
+      variableDeclarationList_variables?.forEach((b) => b.flushInformative());
+      annotatedNode_comment?.flushInformative();
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      variableDeclarationList_type?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.variableDeclarationStatement) {
+      variableDeclarationStatement_variables?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.whileStatement) {
+      whileStatement_body?.flushInformative();
+      whileStatement_condition?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.withClause) {
+      withClause_mixinTypes?.forEach((b) => b.flushInformative());
+    } else if (kind == idl.LinkedNodeKind.yieldStatement) {
+      yieldStatement_expression?.flushInformative();
+    }
   }
 
   /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addInt(this._kind == null ? 0 : this._kind.index);
-    signature.addString(this._variantField_1 ?? '');
-    if (this._variantField_2 == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._variantField_2.length);
-      for (var x in this._variantField_2) {
-        x?.collectApiSignature(signature);
+    if (kind == idl.LinkedNodeKind.adjacentStrings) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.adjacentStrings_strings == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.adjacentStrings_strings.length);
+        for (var x in this.adjacentStrings_strings) {
+          x?.collectApiSignature(signature);
+        }
       }
-    }
-    if (this._variantField_3 == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._variantField_3.length);
-      for (var x in this._variantField_3) {
-        x?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.annotation) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.annotation_arguments != null);
+      this.annotation_arguments?.collectApiSignature(signature);
+      signature.addBool(this.annotation_constructorName != null);
+      this.annotation_constructorName?.collectApiSignature(signature);
+      signature.addBool(this.annotation_name != null);
+      this.annotation_name?.collectApiSignature(signature);
+      signature.addInt(this.annotation_element ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.annotation_elementType != null);
+      this.annotation_elementType?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.argumentList) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.argumentList_arguments == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.argumentList_arguments.length);
+        for (var x in this.argumentList_arguments) {
+          x?.collectApiSignature(signature);
+        }
       }
-    }
-    if (this._variantField_4 == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._variantField_4.length);
-      for (var x in this._variantField_4) {
-        x?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.asExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.asExpression_expression != null);
+      this.asExpression_expression?.collectApiSignature(signature);
+      signature.addBool(this.asExpression_type != null);
+      this.asExpression_type?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.assertInitializer) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.assertInitializer_condition != null);
+      this.assertInitializer_condition?.collectApiSignature(signature);
+      signature.addBool(this.assertInitializer_message != null);
+      this.assertInitializer_message?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.assertStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.assertStatement_condition != null);
+      this.assertStatement_condition?.collectApiSignature(signature);
+      signature.addBool(this.assertStatement_message != null);
+      this.assertStatement_message?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.assignmentExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.assignmentExpression_leftHandSide != null);
+      this.assignmentExpression_leftHandSide?.collectApiSignature(signature);
+      signature.addBool(this.assignmentExpression_rightHandSide != null);
+      this.assignmentExpression_rightHandSide?.collectApiSignature(signature);
+      signature.addInt(this.assignmentExpression_element ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.assignmentExpression_elementType != null);
+      this.assignmentExpression_elementType?.collectApiSignature(signature);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addInt(this.assignmentExpression_operator == null
+          ? 0
+          : this.assignmentExpression_operator.index);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.awaitExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.awaitExpression_expression != null);
+      this.awaitExpression_expression?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.binaryExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.binaryExpression_leftOperand != null);
+      this.binaryExpression_leftOperand?.collectApiSignature(signature);
+      signature.addBool(this.binaryExpression_rightOperand != null);
+      this.binaryExpression_rightOperand?.collectApiSignature(signature);
+      signature.addInt(this.binaryExpression_element ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.binaryExpression_elementType != null);
+      this.binaryExpression_elementType?.collectApiSignature(signature);
+      signature.addBool(this.binaryExpression_invokeType != null);
+      this.binaryExpression_invokeType?.collectApiSignature(signature);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addInt(this.binaryExpression_operator == null
+          ? 0
+          : this.binaryExpression_operator.index);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.block) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.block_statements == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.block_statements.length);
+        for (var x in this.block_statements) {
+          x?.collectApiSignature(signature);
+        }
       }
-    }
-    if (this._variantField_5 == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._variantField_5.length);
-      for (var x in this._variantField_5) {
-        x?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.blockFunctionBody) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.blockFunctionBody_block != null);
+      this.blockFunctionBody_block?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.booleanLiteral) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.booleanLiteral_value == true);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.breakStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.breakStatement_label != null);
+      this.breakStatement_label?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.cascadeExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.cascadeExpression_sections == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.cascadeExpression_sections.length);
+        for (var x in this.cascadeExpression_sections) {
+          x?.collectApiSignature(signature);
+        }
       }
-    }
-    signature.addBool(this._variantField_6 != null);
-    this._variantField_6?.collectApiSignature(signature);
-    signature.addBool(this._variantField_7 != null);
-    this._variantField_7?.collectApiSignature(signature);
-    signature.addBool(this._variantField_8 != null);
-    this._variantField_8?.collectApiSignature(signature);
-    signature.addBool(this._variantField_9 != null);
-    this._variantField_9?.collectApiSignature(signature);
-    signature.addBool(this._variantField_10 != null);
-    this._variantField_10?.collectApiSignature(signature);
-    signature.addBool(this._variantField_11 != null);
-    this._variantField_11?.collectApiSignature(signature);
-    signature.addBool(this._variantField_12 != null);
-    this._variantField_12?.collectApiSignature(signature);
-    signature.addBool(this._variantField_13 != null);
-    this._variantField_13?.collectApiSignature(signature);
-    signature.addBool(this._variantField_14 != null);
-    this._variantField_14?.collectApiSignature(signature);
-    signature.addInt(this._variantField_15 ?? 0);
-    signature.addInt(this._variantField_16 ?? 0);
-    signature.addInt(this._variantField_17 ?? 0);
-    signature.addInt(this._flags ?? 0);
-    signature.addInt(this._variantField_19 ?? 0);
-    signature.addString(this._variantField_20 ?? '');
-    signature.addDouble(this._variantField_21 ?? 0.0);
-    signature.addString(this._variantField_22 ?? '');
-    signature.addBool(this._variantField_23 != null);
-    this._variantField_23?.collectApiSignature(signature);
-    signature.addBool(this._variantField_24 != null);
-    this._variantField_24?.collectApiSignature(signature);
-    signature.addBool(this._variantField_25 != null);
-    this._variantField_25?.collectApiSignature(signature);
-    signature.addInt(
-        this._variantField_26 == null ? 0 : this._variantField_26.index);
-    signature.addBool(this._variantField_27 == true);
-    signature.addInt(
-        this._variantField_28 == null ? 0 : this._variantField_28.index);
-    signature.addInt(
-        this._variantField_29 == null ? 0 : this._variantField_29.index);
-    signature.addString(this._variantField_30 ?? '');
-    signature.addBool(this._variantField_31 == true);
-    signature.addInt(this._variantField_32 ?? 0);
-    signature.addInt(this._variantField_33 ?? 0);
-    signature.addBool(this._variantField_34 != null);
-    this._variantField_34?.collectApiSignature(signature);
-    if (this._variantField_35 == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._variantField_35.length);
-      for (var x in this._variantField_35) {
-        signature.addString(x);
+      signature.addBool(this.cascadeExpression_target != null);
+      this.cascadeExpression_target?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.catchClause) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.catchClause_body != null);
+      this.catchClause_body?.collectApiSignature(signature);
+      signature.addBool(this.catchClause_exceptionParameter != null);
+      this.catchClause_exceptionParameter?.collectApiSignature(signature);
+      signature.addBool(this.catchClause_exceptionType != null);
+      this.catchClause_exceptionType?.collectApiSignature(signature);
+      signature.addBool(this.catchClause_stackTraceParameter != null);
+      this.catchClause_stackTraceParameter?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.classDeclaration) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
       }
-    }
-    if (this._variantField_36 == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._variantField_36.length);
-      for (var x in this._variantField_36) {
-        signature.addString(x);
+      if (this.classOrMixinDeclaration_members == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.classOrMixinDeclaration_members.length);
+        for (var x in this.classOrMixinDeclaration_members) {
+          x?.collectApiSignature(signature);
+        }
       }
+      signature.addBool(this.classDeclaration_extendsClause != null);
+      this.classDeclaration_extendsClause?.collectApiSignature(signature);
+      signature.addBool(this.classDeclaration_withClause != null);
+      this.classDeclaration_withClause?.collectApiSignature(signature);
+      signature.addBool(this.classDeclaration_nativeClause != null);
+      this.classDeclaration_nativeClause?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addBool(this.classOrMixinDeclaration_implementsClause != null);
+      this
+          .classOrMixinDeclaration_implementsClause
+          ?.collectApiSignature(signature);
+      signature.addBool(this.classOrMixinDeclaration_typeParameters != null);
+      this
+          .classOrMixinDeclaration_typeParameters
+          ?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.classDeclaration_isDartObject == true);
+      signature.addBool(this.simplyBoundable_isSimplyBounded == true);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.classTypeAlias) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.classTypeAlias_typeParameters != null);
+      this.classTypeAlias_typeParameters?.collectApiSignature(signature);
+      signature.addBool(this.classTypeAlias_superclass != null);
+      this.classTypeAlias_superclass?.collectApiSignature(signature);
+      signature.addBool(this.classTypeAlias_withClause != null);
+      this.classTypeAlias_withClause?.collectApiSignature(signature);
+      signature.addBool(this.classTypeAlias_implementsClause != null);
+      this.classTypeAlias_implementsClause?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.simplyBoundable_isSimplyBounded == true);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.comment) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.comment_references == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.comment_references.length);
+        for (var x in this.comment_references) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addInt(this.flags ?? 0);
+      signature.addInt(this.comment_type == null ? 0 : this.comment_type.index);
+      if (this.comment_tokens == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.comment_tokens.length);
+        for (var x in this.comment_tokens) {
+          signature.addString(x);
+        }
+      }
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.commentReference) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.commentReference_identifier != null);
+      this.commentReference_identifier?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.compilationUnit) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.compilationUnit_declarations == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.compilationUnit_declarations.length);
+        for (var x in this.compilationUnit_declarations) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      if (this.compilationUnit_directives == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.compilationUnit_directives.length);
+        for (var x in this.compilationUnit_directives) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.compilationUnit_scriptTag != null);
+      this.compilationUnit_scriptTag?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.conditionalExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.conditionalExpression_condition != null);
+      this.conditionalExpression_condition?.collectApiSignature(signature);
+      signature.addBool(this.conditionalExpression_elseExpression != null);
+      this.conditionalExpression_elseExpression?.collectApiSignature(signature);
+      signature.addBool(this.conditionalExpression_thenExpression != null);
+      this.conditionalExpression_thenExpression?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.configuration) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.configuration_name != null);
+      this.configuration_name?.collectApiSignature(signature);
+      signature.addBool(this.configuration_value != null);
+      this.configuration_value?.collectApiSignature(signature);
+      signature.addBool(this.configuration_uri != null);
+      this.configuration_uri?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.constructorDeclaration) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.constructorDeclaration_initializers == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.constructorDeclaration_initializers.length);
+        for (var x in this.constructorDeclaration_initializers) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.constructorDeclaration_body != null);
+      this.constructorDeclaration_body?.collectApiSignature(signature);
+      signature.addBool(this.constructorDeclaration_parameters != null);
+      this.constructorDeclaration_parameters?.collectApiSignature(signature);
+      signature
+          .addBool(this.constructorDeclaration_redirectedConstructor != null);
+      this
+          .constructorDeclaration_redirectedConstructor
+          ?.collectApiSignature(signature);
+      signature.addBool(this.constructorDeclaration_returnType != null);
+      this.constructorDeclaration_returnType?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.constructorFieldInitializer) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.constructorFieldInitializer_expression != null);
+      this
+          .constructorFieldInitializer_expression
+          ?.collectApiSignature(signature);
+      signature.addBool(this.constructorFieldInitializer_fieldName != null);
+      this
+          .constructorFieldInitializer_fieldName
+          ?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.constructorName) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.constructorName_name != null);
+      this.constructorName_name?.collectApiSignature(signature);
+      signature.addBool(this.constructorName_type != null);
+      this.constructorName_type?.collectApiSignature(signature);
+      signature.addInt(this.constructorName_element ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.constructorName_elementType != null);
+      this.constructorName_elementType?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.continueStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.continueStatement_label != null);
+      this.continueStatement_label?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.declaredIdentifier) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.declaredIdentifier_identifier != null);
+      this.declaredIdentifier_identifier?.collectApiSignature(signature);
+      signature.addBool(this.declaredIdentifier_type != null);
+      this.declaredIdentifier_type?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.defaultFormalParameter) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.defaultFormalParameter_defaultValue != null);
+      this.defaultFormalParameter_defaultValue?.collectApiSignature(signature);
+      signature.addBool(this.defaultFormalParameter_parameter != null);
+      this.defaultFormalParameter_parameter?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addInt(this.defaultFormalParameter_kind == null
+          ? 0
+          : this.defaultFormalParameter_kind.index);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.doStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.doStatement_body != null);
+      this.doStatement_body?.collectApiSignature(signature);
+      signature.addBool(this.doStatement_condition != null);
+      this.doStatement_condition?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.dottedName) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.dottedName_components == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.dottedName_components.length);
+        for (var x in this.dottedName_components) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.doubleLiteral) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.flags ?? 0);
+      signature.addDouble(this.doubleLiteral_value ?? 0.0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.emptyFunctionBody) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.emptyFunctionBody_fake ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.emptyStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.emptyStatement_fake ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.enumConstantDeclaration) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.enumDeclaration) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.enumDeclaration_constants == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.enumDeclaration_constants.length);
+        for (var x in this.enumDeclaration_constants) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.exportDirective) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.namespaceDirective_combinators == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.namespaceDirective_combinators.length);
+        for (var x in this.namespaceDirective_combinators) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      if (this.namespaceDirective_configurations == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.namespaceDirective_configurations.length);
+        for (var x in this.namespaceDirective_configurations) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addBool(this.uriBasedDirective_uri != null);
+      this.uriBasedDirective_uri?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addInt(this.uriBasedDirective_uriElement ?? 0);
+      signature.addString(this.namespaceDirective_selectedUri ?? '');
+      signature.addString(this.uriBasedDirective_uriContent ?? '');
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.expressionFunctionBody) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.expressionFunctionBody_expression != null);
+      this.expressionFunctionBody_expression?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.expressionStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.expressionStatement_expression != null);
+      this.expressionStatement_expression?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.extendsClause) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.extendsClause_superclass != null);
+      this.extendsClause_superclass?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.fieldDeclaration) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.fieldDeclaration_fields != null);
+      this.fieldDeclaration_fields?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.normalFormalParameter_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.normalFormalParameter_metadata.length);
+        for (var x in this.normalFormalParameter_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.fieldFormalParameter_type != null);
+      this.fieldFormalParameter_type?.collectApiSignature(signature);
+      signature.addBool(this.fieldFormalParameter_typeParameters != null);
+      this.fieldFormalParameter_typeParameters?.collectApiSignature(signature);
+      signature.addBool(this.fieldFormalParameter_formalParameters != null);
+      this
+          .fieldFormalParameter_formalParameters
+          ?.collectApiSignature(signature);
+      signature.addBool(this.normalFormalParameter_comment != null);
+      this.normalFormalParameter_comment?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.actualType != null);
+      this.actualType?.collectApiSignature(signature);
+      signature.addBool(this.inheritsCovariant == true);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.forEachPartsWithDeclaration) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.forEachParts_iterable != null);
+      this.forEachParts_iterable?.collectApiSignature(signature);
+      signature.addBool(this.forEachPartsWithDeclaration_loopVariable != null);
+      this
+          .forEachPartsWithDeclaration_loopVariable
+          ?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.forEachPartsWithIdentifier) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.forEachParts_iterable != null);
+      this.forEachParts_iterable?.collectApiSignature(signature);
+      signature.addBool(this.forEachPartsWithIdentifier_identifier != null);
+      this
+          .forEachPartsWithIdentifier_identifier
+          ?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.forElement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.forMixin_forLoopParts != null);
+      this.forMixin_forLoopParts?.collectApiSignature(signature);
+      signature.addBool(this.forElement_body != null);
+      this.forElement_body?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.forPartsWithDeclarations) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.forParts_updaters == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.forParts_updaters.length);
+        for (var x in this.forParts_updaters) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.forParts_condition != null);
+      this.forParts_condition?.collectApiSignature(signature);
+      signature.addBool(this.forPartsWithDeclarations_variables != null);
+      this.forPartsWithDeclarations_variables?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.forPartsWithExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.forParts_updaters == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.forParts_updaters.length);
+        for (var x in this.forParts_updaters) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.forParts_condition != null);
+      this.forParts_condition?.collectApiSignature(signature);
+      signature.addBool(this.forPartsWithExpression_initialization != null);
+      this
+          .forPartsWithExpression_initialization
+          ?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.forStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.forMixin_forLoopParts != null);
+      this.forMixin_forLoopParts?.collectApiSignature(signature);
+      signature.addBool(this.forStatement_body != null);
+      this.forStatement_body?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.formalParameterList) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.formalParameterList_parameters == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.formalParameterList_parameters.length);
+        for (var x in this.formalParameterList_parameters) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.functionDeclaration) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.functionDeclaration_functionExpression != null);
+      this
+          .functionDeclaration_functionExpression
+          ?.collectApiSignature(signature);
+      signature.addBool(this.functionDeclaration_returnType != null);
+      this.functionDeclaration_returnType?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.actualReturnType != null);
+      this.actualReturnType?.collectApiSignature(signature);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.functionDeclarationStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(
+          this.functionDeclarationStatement_functionDeclaration != null);
+      this
+          .functionDeclarationStatement_functionDeclaration
+          ?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.functionExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.functionExpression_body != null);
+      this.functionExpression_body?.collectApiSignature(signature);
+      signature.addBool(this.functionExpression_formalParameters != null);
+      this.functionExpression_formalParameters?.collectApiSignature(signature);
+      signature.addBool(this.functionExpression_typeParameters != null);
+      this.functionExpression_typeParameters?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.actualReturnType != null);
+      this.actualReturnType?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.functionExpressionInvocation_function != null);
+      this
+          .functionExpressionInvocation_function
+          ?.collectApiSignature(signature);
+      signature.addBool(this.invocationExpression_typeArguments != null);
+      this.invocationExpression_typeArguments?.collectApiSignature(signature);
+      signature.addBool(this.invocationExpression_arguments != null);
+      this.invocationExpression_arguments?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.invocationExpression_invokeType != null);
+      this.invocationExpression_invokeType?.collectApiSignature(signature);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.functionTypeAlias) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.functionTypeAlias_formalParameters != null);
+      this.functionTypeAlias_formalParameters?.collectApiSignature(signature);
+      signature.addBool(this.functionTypeAlias_returnType != null);
+      this.functionTypeAlias_returnType?.collectApiSignature(signature);
+      signature.addBool(this.functionTypeAlias_typeParameters != null);
+      this.functionTypeAlias_typeParameters?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.actualReturnType != null);
+      this.actualReturnType?.collectApiSignature(signature);
+      signature.addBool(this.typeAlias_hasSelfReference == true);
+      signature.addBool(this.simplyBoundable_isSimplyBounded == true);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.normalFormalParameter_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.normalFormalParameter_metadata.length);
+        for (var x in this.normalFormalParameter_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature
+          .addBool(this.functionTypedFormalParameter_formalParameters != null);
+      this
+          .functionTypedFormalParameter_formalParameters
+          ?.collectApiSignature(signature);
+      signature.addBool(this.functionTypedFormalParameter_returnType != null);
+      this
+          .functionTypedFormalParameter_returnType
+          ?.collectApiSignature(signature);
+      signature
+          .addBool(this.functionTypedFormalParameter_typeParameters != null);
+      this
+          .functionTypedFormalParameter_typeParameters
+          ?.collectApiSignature(signature);
+      signature.addBool(this.normalFormalParameter_comment != null);
+      this.normalFormalParameter_comment?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.actualType != null);
+      this.actualType?.collectApiSignature(signature);
+      signature.addBool(this.inheritsCovariant == true);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.genericFunctionType) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.genericFunctionType_typeParameters != null);
+      this.genericFunctionType_typeParameters?.collectApiSignature(signature);
+      signature.addBool(this.genericFunctionType_returnType != null);
+      this.genericFunctionType_returnType?.collectApiSignature(signature);
+      signature.addBool(this.genericFunctionType_formalParameters != null);
+      this.genericFunctionType_formalParameters?.collectApiSignature(signature);
+      signature.addInt(this.genericFunctionType_id ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.actualReturnType != null);
+      this.actualReturnType?.collectApiSignature(signature);
+      signature.addBool(this.genericFunctionType_type != null);
+      this.genericFunctionType_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.genericTypeAlias) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.genericTypeAlias_typeParameters != null);
+      this.genericTypeAlias_typeParameters?.collectApiSignature(signature);
+      signature.addBool(this.genericTypeAlias_functionType != null);
+      this.genericTypeAlias_functionType?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.typeAlias_hasSelfReference == true);
+      signature.addBool(this.simplyBoundable_isSimplyBounded == true);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.hideCombinator) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.flags ?? 0);
+      if (this.names == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.names.length);
+        for (var x in this.names) {
+          signature.addString(x);
+        }
+      }
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.ifElement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.ifMixin_condition != null);
+      this.ifMixin_condition?.collectApiSignature(signature);
+      signature.addBool(this.ifElement_thenElement != null);
+      this.ifElement_thenElement?.collectApiSignature(signature);
+      signature.addBool(this.ifElement_elseElement != null);
+      this.ifElement_elseElement?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.ifStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.ifMixin_condition != null);
+      this.ifMixin_condition?.collectApiSignature(signature);
+      signature.addBool(this.ifStatement_elseStatement != null);
+      this.ifStatement_elseStatement?.collectApiSignature(signature);
+      signature.addBool(this.ifStatement_thenStatement != null);
+      this.ifStatement_thenStatement?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.implementsClause) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.implementsClause_interfaces == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.implementsClause_interfaces.length);
+        for (var x in this.implementsClause_interfaces) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.importDirective) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addString(this.importDirective_prefix ?? '');
+      if (this.namespaceDirective_combinators == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.namespaceDirective_combinators.length);
+        for (var x in this.namespaceDirective_combinators) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      if (this.namespaceDirective_configurations == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.namespaceDirective_configurations.length);
+        for (var x in this.namespaceDirective_configurations) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addBool(this.uriBasedDirective_uri != null);
+      this.uriBasedDirective_uri?.collectApiSignature(signature);
+      signature.addInt(this.importDirective_prefixOffset ?? 0);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addInt(this.uriBasedDirective_uriElement ?? 0);
+      signature.addString(this.namespaceDirective_selectedUri ?? '');
+      signature.addString(this.uriBasedDirective_uriContent ?? '');
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.indexExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.indexExpression_index != null);
+      this.indexExpression_index?.collectApiSignature(signature);
+      signature.addBool(this.indexExpression_target != null);
+      this.indexExpression_target?.collectApiSignature(signature);
+      signature.addInt(this.indexExpression_element ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.indexExpression_elementType != null);
+      this.indexExpression_elementType?.collectApiSignature(signature);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.instanceCreationExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.instanceCreationExpression_arguments == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.instanceCreationExpression_arguments.length);
+        for (var x in this.instanceCreationExpression_arguments) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature
+          .addBool(this.instanceCreationExpression_constructorName != null);
+      this
+          .instanceCreationExpression_constructorName
+          ?.collectApiSignature(signature);
+      signature.addBool(this.instanceCreationExpression_typeArguments != null);
+      this
+          .instanceCreationExpression_typeArguments
+          ?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.integerLiteral) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.integerLiteral_value ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.interpolationExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.interpolationExpression_expression != null);
+      this.interpolationExpression_expression?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.interpolationString) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.interpolationString_value ?? '');
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.isExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.isExpression_expression != null);
+      this.isExpression_expression?.collectApiSignature(signature);
+      signature.addBool(this.isExpression_type != null);
+      this.isExpression_type?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.label) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.label_label != null);
+      this.label_label?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.labeledStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.labeledStatement_labels == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.labeledStatement_labels.length);
+        for (var x in this.labeledStatement_labels) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.labeledStatement_statement != null);
+      this.labeledStatement_statement?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.libraryDirective) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.libraryDirective_name != null);
+      this.libraryDirective_name?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.libraryIdentifier) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.libraryIdentifier_components == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.libraryIdentifier_components.length);
+        for (var x in this.libraryIdentifier_components) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.listLiteral) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.typedLiteral_typeArguments == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.typedLiteral_typeArguments.length);
+        for (var x in this.typedLiteral_typeArguments) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      if (this.listLiteral_elements == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.listLiteral_elements.length);
+        for (var x in this.listLiteral_elements) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.mapLiteralEntry) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.mapLiteralEntry_key != null);
+      this.mapLiteralEntry_key?.collectApiSignature(signature);
+      signature.addBool(this.mapLiteralEntry_value != null);
+      this.mapLiteralEntry_value?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.methodDeclaration) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.methodDeclaration_body != null);
+      this.methodDeclaration_body?.collectApiSignature(signature);
+      signature.addBool(this.methodDeclaration_formalParameters != null);
+      this.methodDeclaration_formalParameters?.collectApiSignature(signature);
+      signature.addBool(this.methodDeclaration_returnType != null);
+      this.methodDeclaration_returnType?.collectApiSignature(signature);
+      signature.addBool(this.methodDeclaration_typeParameters != null);
+      this.methodDeclaration_typeParameters?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.actualReturnType != null);
+      this.actualReturnType?.collectApiSignature(signature);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.methodInvocation) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.methodInvocation_methodName != null);
+      this.methodInvocation_methodName?.collectApiSignature(signature);
+      signature.addBool(this.methodInvocation_target != null);
+      this.methodInvocation_target?.collectApiSignature(signature);
+      signature.addBool(this.invocationExpression_typeArguments != null);
+      this.invocationExpression_typeArguments?.collectApiSignature(signature);
+      signature.addBool(this.invocationExpression_arguments != null);
+      this.invocationExpression_arguments?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.invocationExpression_invokeType != null);
+      this.invocationExpression_invokeType?.collectApiSignature(signature);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.mixinDeclaration) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      if (this.classOrMixinDeclaration_members == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.classOrMixinDeclaration_members.length);
+        for (var x in this.classOrMixinDeclaration_members) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.mixinDeclaration_onClause != null);
+      this.mixinDeclaration_onClause?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addBool(this.classOrMixinDeclaration_implementsClause != null);
+      this
+          .classOrMixinDeclaration_implementsClause
+          ?.collectApiSignature(signature);
+      signature.addBool(this.classOrMixinDeclaration_typeParameters != null);
+      this
+          .classOrMixinDeclaration_typeParameters
+          ?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.simplyBoundable_isSimplyBounded == true);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      if (this.mixinDeclaration_superInvokedNames == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.mixinDeclaration_superInvokedNames.length);
+        for (var x in this.mixinDeclaration_superInvokedNames) {
+          signature.addString(x);
+        }
+      }
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.namedExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.namedExpression_expression != null);
+      this.namedExpression_expression?.collectApiSignature(signature);
+      signature.addBool(this.namedExpression_name != null);
+      this.namedExpression_name?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.nativeClause) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.nativeClause_name != null);
+      this.nativeClause_name?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.nativeFunctionBody) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.nativeFunctionBody_stringLiteral != null);
+      this.nativeFunctionBody_stringLiteral?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.nullLiteral) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.nullLiteral_fake ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.onClause) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.onClause_superclassConstraints == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.onClause_superclassConstraints.length);
+        for (var x in this.onClause_superclassConstraints) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.parenthesizedExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.parenthesizedExpression_expression != null);
+      this.parenthesizedExpression_expression?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.partDirective) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addBool(this.uriBasedDirective_uri != null);
+      this.uriBasedDirective_uri?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addInt(this.uriBasedDirective_uriElement ?? 0);
+      signature.addString(this.uriBasedDirective_uriContent ?? '');
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.partOfDirective) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.partOfDirective_libraryName != null);
+      this.partOfDirective_libraryName?.collectApiSignature(signature);
+      signature.addBool(this.partOfDirective_uri != null);
+      this.partOfDirective_uri?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.postfixExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.postfixExpression_operand != null);
+      this.postfixExpression_operand?.collectApiSignature(signature);
+      signature.addInt(this.postfixExpression_element ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.postfixExpression_elementType != null);
+      this.postfixExpression_elementType?.collectApiSignature(signature);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addInt(this.postfixExpression_operator == null
+          ? 0
+          : this.postfixExpression_operator.index);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.prefixExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.prefixExpression_operand != null);
+      this.prefixExpression_operand?.collectApiSignature(signature);
+      signature.addInt(this.prefixExpression_element ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.prefixExpression_elementType != null);
+      this.prefixExpression_elementType?.collectApiSignature(signature);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addInt(this.prefixExpression_operator == null
+          ? 0
+          : this.prefixExpression_operator.index);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.prefixedIdentifier) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.prefixedIdentifier_identifier != null);
+      this.prefixedIdentifier_identifier?.collectApiSignature(signature);
+      signature.addBool(this.prefixedIdentifier_prefix != null);
+      this.prefixedIdentifier_prefix?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.propertyAccess) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.propertyAccess_propertyName != null);
+      this.propertyAccess_propertyName?.collectApiSignature(signature);
+      signature.addBool(this.propertyAccess_target != null);
+      this.propertyAccess_target?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addInt(this.propertyAccess_operator == null
+          ? 0
+          : this.propertyAccess_operator.index);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.redirectingConstructorInvocation) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature
+          .addBool(this.redirectingConstructorInvocation_arguments != null);
+      this
+          .redirectingConstructorInvocation_arguments
+          ?.collectApiSignature(signature);
+      signature.addBool(
+          this.redirectingConstructorInvocation_constructorName != null);
+      this
+          .redirectingConstructorInvocation_constructorName
+          ?.collectApiSignature(signature);
+      signature.addInt(this.redirectingConstructorInvocation_element ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature
+          .addBool(this.redirectingConstructorInvocation_elementType != null);
+      this
+          .redirectingConstructorInvocation_elementType
+          ?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.rethrowExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.returnStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.returnStatement_expression != null);
+      this.returnStatement_expression?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.setOrMapLiteral) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.typedLiteral_typeArguments == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.typedLiteral_typeArguments.length);
+        for (var x in this.typedLiteral_typeArguments) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      if (this.setOrMapLiteral_elements == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.setOrMapLiteral_elements.length);
+        for (var x in this.setOrMapLiteral_elements) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.showCombinator) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.flags ?? 0);
+      if (this.names == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.names.length);
+        for (var x in this.names) {
+          signature.addString(x);
+        }
+      }
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.normalFormalParameter_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.normalFormalParameter_metadata.length);
+        for (var x in this.normalFormalParameter_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.simpleFormalParameter_type != null);
+      this.simpleFormalParameter_type?.collectApiSignature(signature);
+      signature.addBool(this.normalFormalParameter_comment != null);
+      this.normalFormalParameter_comment?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.actualType != null);
+      this.actualType?.collectApiSignature(signature);
+      signature.addBool(this.inheritsCovariant == true);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addBool(this.topLevelTypeInferenceError != null);
+      this.topLevelTypeInferenceError?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.simpleIdentifier) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.simpleIdentifier_element ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.simpleIdentifier_elementType != null);
+      this.simpleIdentifier_elementType?.collectApiSignature(signature);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.simpleStringLiteral) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.simpleStringLiteral_value ?? '');
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.spreadElement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.spreadElement_expression != null);
+      this.spreadElement_expression?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+      signature.addInt(this.spreadElement_spreadOperator == null
+          ? 0
+          : this.spreadElement_spreadOperator.index);
+    } else if (kind == idl.LinkedNodeKind.stringInterpolation) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.stringInterpolation_elements == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.stringInterpolation_elements.length);
+        for (var x in this.stringInterpolation_elements) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.superConstructorInvocation) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.superConstructorInvocation_arguments != null);
+      this.superConstructorInvocation_arguments?.collectApiSignature(signature);
+      signature
+          .addBool(this.superConstructorInvocation_constructorName != null);
+      this
+          .superConstructorInvocation_constructorName
+          ?.collectApiSignature(signature);
+      signature.addInt(this.superConstructorInvocation_element ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.superConstructorInvocation_elementType != null);
+      this
+          .superConstructorInvocation_elementType
+          ?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.superExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.switchCase) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.switchMember_labels == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.switchMember_labels.length);
+        for (var x in this.switchMember_labels) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      if (this.switchMember_statements == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.switchMember_statements.length);
+        for (var x in this.switchMember_statements) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.switchCase_expression != null);
+      this.switchCase_expression?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.switchDefault) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.switchMember_labels == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.switchMember_labels.length);
+        for (var x in this.switchMember_labels) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      if (this.switchMember_statements == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.switchMember_statements.length);
+        for (var x in this.switchMember_statements) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.switchStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.switchStatement_members == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.switchStatement_members.length);
+        for (var x in this.switchStatement_members) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.switchStatement_expression != null);
+      this.switchStatement_expression?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.symbolLiteral) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      if (this.names == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.names.length);
+        for (var x in this.names) {
+          signature.addString(x);
+        }
+      }
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.thisExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.throwExpression) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.throwExpression_expression != null);
+      this.throwExpression_expression?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.topLevelVariableDeclaration) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.topLevelVariableDeclaration_variableList != null);
+      this
+          .topLevelVariableDeclaration_variableList
+          ?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.tryStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.tryStatement_catchClauses == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.tryStatement_catchClauses.length);
+        for (var x in this.tryStatement_catchClauses) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.tryStatement_body != null);
+      this.tryStatement_body?.collectApiSignature(signature);
+      signature.addBool(this.tryStatement_finallyBlock != null);
+      this.tryStatement_finallyBlock?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.typeArgumentList) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.typeArgumentList_arguments == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.typeArgumentList_arguments.length);
+        for (var x in this.typeArgumentList_arguments) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.typeName) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.typeName_typeArguments == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.typeName_typeArguments.length);
+        for (var x in this.typeName_typeArguments) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.typeName_name != null);
+      this.typeName_name?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.typeName_type != null);
+      this.typeName_type?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.typeParameter) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.typeParameter_bound != null);
+      this.typeParameter_bound?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.typeParameter_defaultType != null);
+      this.typeParameter_defaultType?.collectApiSignature(signature);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.typeParameterList) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.typeParameterList_typeParameters == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.typeParameterList_typeParameters.length);
+        for (var x in this.typeParameterList_typeParameters) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.variableDeclaration) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.variableDeclaration_initializer != null);
+      this.variableDeclaration_initializer?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.actualType != null);
+      this.actualType?.collectApiSignature(signature);
+      signature.addBool(this.inheritsCovariant == true);
+      signature.addInt(this.codeOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addBool(this.topLevelTypeInferenceError != null);
+      this.topLevelTypeInferenceError?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.variableDeclarationList) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.variableDeclarationList_variables == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.variableDeclarationList_variables.length);
+        for (var x in this.variableDeclarationList_variables) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.variableDeclarationList_type != null);
+      this.variableDeclarationList_type?.collectApiSignature(signature);
+      signature.addBool(this.annotatedNode_comment != null);
+      this.annotatedNode_comment?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.variableDeclarationStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.variableDeclarationStatement_variables != null);
+      this
+          .variableDeclarationStatement_variables
+          ?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.whileStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.whileStatement_body != null);
+      this.whileStatement_body?.collectApiSignature(signature);
+      signature.addBool(this.whileStatement_condition != null);
+      this.whileStatement_condition?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.withClause) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.withClause_mixinTypes == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.withClause_mixinTypes.length);
+        for (var x in this.withClause_mixinTypes) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.yieldStatement) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addBool(this.yieldStatement_expression != null);
+      this.yieldStatement_expression?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
     }
-    signature.addString(this._name ?? '');
-    signature.addInt(
-        this._variantField_38 == null ? 0 : this._variantField_38.index);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -11578,192 +13545,76 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
     if (kind != idl.LinkedNodeKind.adjacentStrings)
       _result["kind"] = kind.toString().split('.')[1];
     if (name != '') _result["name"] = name;
-    if (kind == idl.LinkedNodeKind.functionDeclaration) {
-      if (actualReturnType != null)
-        _result["actualReturnType"] = actualReturnType.toJson();
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (functionDeclaration_functionExpression != null)
-        _result["functionDeclaration_functionExpression"] =
-            functionDeclaration_functionExpression.toJson();
-      if (functionDeclaration_returnType != null)
-        _result["functionDeclaration_returnType"] =
-            functionDeclaration_returnType.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    if (kind == idl.LinkedNodeKind.adjacentStrings) {
+      if (adjacentStrings_strings.isNotEmpty)
+        _result["adjacentStrings_strings"] =
+            adjacentStrings_strings.map((_value) => _value.toJson()).toList();
     }
-    if (kind == idl.LinkedNodeKind.functionExpression) {
-      if (actualReturnType != null)
-        _result["actualReturnType"] = actualReturnType.toJson();
-      if (functionExpression_body != null)
-        _result["functionExpression_body"] = functionExpression_body.toJson();
-      if (functionExpression_formalParameters != null)
-        _result["functionExpression_formalParameters"] =
-            functionExpression_formalParameters.toJson();
-      if (functionExpression_typeParameters != null)
-        _result["functionExpression_typeParameters"] =
-            functionExpression_typeParameters.toJson();
+    if (kind == idl.LinkedNodeKind.annotation) {
+      if (annotation_arguments != null)
+        _result["annotation_arguments"] = annotation_arguments.toJson();
+      if (annotation_constructorName != null)
+        _result["annotation_constructorName"] =
+            annotation_constructorName.toJson();
+      if (annotation_element != 0)
+        _result["annotation_element"] = annotation_element;
+      if (annotation_elementType != null)
+        _result["annotation_elementType"] = annotation_elementType.toJson();
+      if (annotation_name != null)
+        _result["annotation_name"] = annotation_name.toJson();
     }
-    if (kind == idl.LinkedNodeKind.functionTypeAlias) {
-      if (actualReturnType != null)
-        _result["actualReturnType"] = actualReturnType.toJson();
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (functionTypeAlias_formalParameters != null)
-        _result["functionTypeAlias_formalParameters"] =
-            functionTypeAlias_formalParameters.toJson();
-      if (functionTypeAlias_returnType != null)
-        _result["functionTypeAlias_returnType"] =
-            functionTypeAlias_returnType.toJson();
-      if (functionTypeAlias_typeParameters != null)
-        _result["functionTypeAlias_typeParameters"] =
-            functionTypeAlias_typeParameters.toJson();
-      if (typeAlias_hasSelfReference != false)
-        _result["typeAlias_hasSelfReference"] = typeAlias_hasSelfReference;
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (simplyBoundable_isSimplyBounded != false)
-        _result["simplyBoundable_isSimplyBounded"] =
-            simplyBoundable_isSimplyBounded;
+    if (kind == idl.LinkedNodeKind.argumentList) {
+      if (argumentList_arguments.isNotEmpty)
+        _result["argumentList_arguments"] =
+            argumentList_arguments.map((_value) => _value.toJson()).toList();
     }
-    if (kind == idl.LinkedNodeKind.genericFunctionType) {
-      if (actualReturnType != null)
-        _result["actualReturnType"] = actualReturnType.toJson();
-      if (genericFunctionType_typeParameters != null)
-        _result["genericFunctionType_typeParameters"] =
-            genericFunctionType_typeParameters.toJson();
-      if (genericFunctionType_returnType != null)
-        _result["genericFunctionType_returnType"] =
-            genericFunctionType_returnType.toJson();
-      if (genericFunctionType_id != 0)
-        _result["genericFunctionType_id"] = genericFunctionType_id;
-      if (genericFunctionType_formalParameters != null)
-        _result["genericFunctionType_formalParameters"] =
-            genericFunctionType_formalParameters.toJson();
-      if (genericFunctionType_type != null)
-        _result["genericFunctionType_type"] = genericFunctionType_type.toJson();
+    if (kind == idl.LinkedNodeKind.asExpression) {
+      if (asExpression_expression != null)
+        _result["asExpression_expression"] = asExpression_expression.toJson();
+      if (asExpression_type != null)
+        _result["asExpression_type"] = asExpression_type.toJson();
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
     }
-    if (kind == idl.LinkedNodeKind.methodDeclaration) {
-      if (actualReturnType != null)
-        _result["actualReturnType"] = actualReturnType.toJson();
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (methodDeclaration_body != null)
-        _result["methodDeclaration_body"] = methodDeclaration_body.toJson();
-      if (methodDeclaration_formalParameters != null)
-        _result["methodDeclaration_formalParameters"] =
-            methodDeclaration_formalParameters.toJson();
-      if (methodDeclaration_returnType != null)
-        _result["methodDeclaration_returnType"] =
-            methodDeclaration_returnType.toJson();
-      if (methodDeclaration_typeParameters != null)
-        _result["methodDeclaration_typeParameters"] =
-            methodDeclaration_typeParameters.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    if (kind == idl.LinkedNodeKind.assertInitializer) {
+      if (assertInitializer_condition != null)
+        _result["assertInitializer_condition"] =
+            assertInitializer_condition.toJson();
+      if (assertInitializer_message != null)
+        _result["assertInitializer_message"] =
+            assertInitializer_message.toJson();
     }
-    if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
-      if (actualType != null) _result["actualType"] = actualType.toJson();
-      if (normalFormalParameter_metadata.isNotEmpty)
-        _result["normalFormalParameter_metadata"] =
-            normalFormalParameter_metadata
-                .map((_value) => _value.toJson())
-                .toList();
-      if (fieldFormalParameter_type != null)
-        _result["fieldFormalParameter_type"] =
-            fieldFormalParameter_type.toJson();
-      if (fieldFormalParameter_typeParameters != null)
-        _result["fieldFormalParameter_typeParameters"] =
-            fieldFormalParameter_typeParameters.toJson();
-      if (fieldFormalParameter_formalParameters != null)
-        _result["fieldFormalParameter_formalParameters"] =
-            fieldFormalParameter_formalParameters.toJson();
-      if (inheritsCovariant != false)
-        _result["inheritsCovariant"] = inheritsCovariant;
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (normalFormalParameter_comment != null)
-        _result["normalFormalParameter_comment"] =
-            normalFormalParameter_comment.toJson();
+    if (kind == idl.LinkedNodeKind.assertStatement) {
+      if (assertStatement_condition != null)
+        _result["assertStatement_condition"] =
+            assertStatement_condition.toJson();
+      if (assertStatement_message != null)
+        _result["assertStatement_message"] = assertStatement_message.toJson();
     }
-    if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
-      if (actualType != null) _result["actualType"] = actualType.toJson();
-      if (normalFormalParameter_metadata.isNotEmpty)
-        _result["normalFormalParameter_metadata"] =
-            normalFormalParameter_metadata
-                .map((_value) => _value.toJson())
-                .toList();
-      if (functionTypedFormalParameter_formalParameters != null)
-        _result["functionTypedFormalParameter_formalParameters"] =
-            functionTypedFormalParameter_formalParameters.toJson();
-      if (functionTypedFormalParameter_returnType != null)
-        _result["functionTypedFormalParameter_returnType"] =
-            functionTypedFormalParameter_returnType.toJson();
-      if (functionTypedFormalParameter_typeParameters != null)
-        _result["functionTypedFormalParameter_typeParameters"] =
-            functionTypedFormalParameter_typeParameters.toJson();
-      if (inheritsCovariant != false)
-        _result["inheritsCovariant"] = inheritsCovariant;
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (normalFormalParameter_comment != null)
-        _result["normalFormalParameter_comment"] =
-            normalFormalParameter_comment.toJson();
+    if (kind == idl.LinkedNodeKind.assignmentExpression) {
+      if (assignmentExpression_leftHandSide != null)
+        _result["assignmentExpression_leftHandSide"] =
+            assignmentExpression_leftHandSide.toJson();
+      if (assignmentExpression_rightHandSide != null)
+        _result["assignmentExpression_rightHandSide"] =
+            assignmentExpression_rightHandSide.toJson();
+      if (assignmentExpression_elementType != null)
+        _result["assignmentExpression_elementType"] =
+            assignmentExpression_elementType.toJson();
+      if (assignmentExpression_element != 0)
+        _result["assignmentExpression_element"] = assignmentExpression_element;
+      if (assignmentExpression_operator != idl.UnlinkedTokenType.NOTHING)
+        _result["assignmentExpression_operator"] =
+            assignmentExpression_operator.toString().split('.')[1];
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
     }
-    if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
-      if (actualType != null) _result["actualType"] = actualType.toJson();
-      if (normalFormalParameter_metadata.isNotEmpty)
-        _result["normalFormalParameter_metadata"] =
-            normalFormalParameter_metadata
-                .map((_value) => _value.toJson())
-                .toList();
-      if (simpleFormalParameter_type != null)
-        _result["simpleFormalParameter_type"] =
-            simpleFormalParameter_type.toJson();
-      if (inheritsCovariant != false)
-        _result["inheritsCovariant"] = inheritsCovariant;
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (normalFormalParameter_comment != null)
-        _result["normalFormalParameter_comment"] =
-            normalFormalParameter_comment.toJson();
-      if (topLevelTypeInferenceError != null)
-        _result["topLevelTypeInferenceError"] =
-            topLevelTypeInferenceError.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.variableDeclaration) {
-      if (actualType != null) _result["actualType"] = actualType.toJson();
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (variableDeclaration_initializer != null)
-        _result["variableDeclaration_initializer"] =
-            variableDeclaration_initializer.toJson();
-      if (inheritsCovariant != false)
-        _result["inheritsCovariant"] = inheritsCovariant;
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (topLevelTypeInferenceError != null)
-        _result["topLevelTypeInferenceError"] =
-            topLevelTypeInferenceError.toJson();
+    if (kind == idl.LinkedNodeKind.awaitExpression) {
+      if (awaitExpression_expression != null)
+        _result["awaitExpression_expression"] =
+            awaitExpression_expression.toJson();
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
     }
     if (kind == idl.LinkedNodeKind.binaryExpression) {
       if (binaryExpression_invokeType != null)
@@ -11786,54 +13637,22 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (expression_type != null)
         _result["expression_type"] = expression_type.toJson();
     }
-    if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
-      if (invocationExpression_invokeType != null)
-        _result["invocationExpression_invokeType"] =
-            invocationExpression_invokeType.toJson();
-      if (functionExpressionInvocation_function != null)
-        _result["functionExpressionInvocation_function"] =
-            functionExpressionInvocation_function.toJson();
-      if (invocationExpression_typeArguments != null)
-        _result["invocationExpression_typeArguments"] =
-            invocationExpression_typeArguments.toJson();
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-      if (invocationExpression_arguments != null)
-        _result["invocationExpression_arguments"] =
-            invocationExpression_arguments.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.methodInvocation) {
-      if (invocationExpression_invokeType != null)
-        _result["invocationExpression_invokeType"] =
-            invocationExpression_invokeType.toJson();
-      if (methodInvocation_methodName != null)
-        _result["methodInvocation_methodName"] =
-            methodInvocation_methodName.toJson();
-      if (methodInvocation_target != null)
-        _result["methodInvocation_target"] = methodInvocation_target.toJson();
-      if (invocationExpression_typeArguments != null)
-        _result["invocationExpression_typeArguments"] =
-            invocationExpression_typeArguments.toJson();
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-      if (invocationExpression_arguments != null)
-        _result["invocationExpression_arguments"] =
-            invocationExpression_arguments.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.adjacentStrings) {
-      if (adjacentStrings_strings.isNotEmpty)
-        _result["adjacentStrings_strings"] =
-            adjacentStrings_strings.map((_value) => _value.toJson()).toList();
-    }
-    if (kind == idl.LinkedNodeKind.argumentList) {
-      if (argumentList_arguments.isNotEmpty)
-        _result["argumentList_arguments"] =
-            argumentList_arguments.map((_value) => _value.toJson()).toList();
-    }
     if (kind == idl.LinkedNodeKind.block) {
       if (block_statements.isNotEmpty)
         _result["block_statements"] =
             block_statements.map((_value) => _value.toJson()).toList();
+    }
+    if (kind == idl.LinkedNodeKind.blockFunctionBody) {
+      if (blockFunctionBody_block != null)
+        _result["blockFunctionBody_block"] = blockFunctionBody_block.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.booleanLiteral) {
+      if (booleanLiteral_value != false)
+        _result["booleanLiteral_value"] = booleanLiteral_value;
+    }
+    if (kind == idl.LinkedNodeKind.breakStatement) {
+      if (breakStatement_label != null)
+        _result["breakStatement_label"] = breakStatement_label.toJson();
     }
     if (kind == idl.LinkedNodeKind.cascadeExpression) {
       if (cascadeExpression_sections.isNotEmpty)
@@ -11845,268 +13664,18 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (expression_type != null)
         _result["expression_type"] = expression_type.toJson();
     }
-    if (kind == idl.LinkedNodeKind.comment) {
-      if (comment_references.isNotEmpty)
-        _result["comment_references"] =
-            comment_references.map((_value) => _value.toJson()).toList();
-      if (comment_tokens.isNotEmpty) _result["comment_tokens"] = comment_tokens;
-      if (comment_type != idl.LinkedNodeCommentType.block)
-        _result["comment_type"] = comment_type.toString().split('.')[1];
-    }
-    if (kind == idl.LinkedNodeKind.compilationUnit) {
-      if (compilationUnit_declarations.isNotEmpty)
-        _result["compilationUnit_declarations"] = compilationUnit_declarations
-            .map((_value) => _value.toJson())
-            .toList();
-      if (compilationUnit_scriptTag != null)
-        _result["compilationUnit_scriptTag"] =
-            compilationUnit_scriptTag.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (compilationUnit_directives.isNotEmpty)
-        _result["compilationUnit_directives"] = compilationUnit_directives
-            .map((_value) => _value.toJson())
-            .toList();
-    }
-    if (kind == idl.LinkedNodeKind.constructorDeclaration) {
-      if (constructorDeclaration_initializers.isNotEmpty)
-        _result["constructorDeclaration_initializers"] =
-            constructorDeclaration_initializers
-                .map((_value) => _value.toJson())
-                .toList();
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (constructorDeclaration_body != null)
-        _result["constructorDeclaration_body"] =
-            constructorDeclaration_body.toJson();
-      if (constructorDeclaration_parameters != null)
-        _result["constructorDeclaration_parameters"] =
-            constructorDeclaration_parameters.toJson();
-      if (constructorDeclaration_redirectedConstructor != null)
-        _result["constructorDeclaration_redirectedConstructor"] =
-            constructorDeclaration_redirectedConstructor.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (constructorDeclaration_returnType != null)
-        _result["constructorDeclaration_returnType"] =
-            constructorDeclaration_returnType.toJson();
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-    }
-    if (kind == idl.LinkedNodeKind.dottedName) {
-      if (dottedName_components.isNotEmpty)
-        _result["dottedName_components"] =
-            dottedName_components.map((_value) => _value.toJson()).toList();
-    }
-    if (kind == idl.LinkedNodeKind.enumDeclaration) {
-      if (enumDeclaration_constants.isNotEmpty)
-        _result["enumDeclaration_constants"] =
-            enumDeclaration_constants.map((_value) => _value.toJson()).toList();
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-    }
-    if (kind == idl.LinkedNodeKind.formalParameterList) {
-      if (formalParameterList_parameters.isNotEmpty)
-        _result["formalParameterList_parameters"] =
-            formalParameterList_parameters
-                .map((_value) => _value.toJson())
-                .toList();
-    }
-    if (kind == idl.LinkedNodeKind.implementsClause) {
-      if (implementsClause_interfaces.isNotEmpty)
-        _result["implementsClause_interfaces"] = implementsClause_interfaces
-            .map((_value) => _value.toJson())
-            .toList();
-    }
-    if (kind == idl.LinkedNodeKind.instanceCreationExpression) {
-      if (instanceCreationExpression_arguments.isNotEmpty)
-        _result["instanceCreationExpression_arguments"] =
-            instanceCreationExpression_arguments
-                .map((_value) => _value.toJson())
-                .toList();
-      if (instanceCreationExpression_constructorName != null)
-        _result["instanceCreationExpression_constructorName"] =
-            instanceCreationExpression_constructorName.toJson();
-      if (instanceCreationExpression_typeArguments != null)
-        _result["instanceCreationExpression_typeArguments"] =
-            instanceCreationExpression_typeArguments.toJson();
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.labeledStatement) {
-      if (labeledStatement_labels.isNotEmpty)
-        _result["labeledStatement_labels"] =
-            labeledStatement_labels.map((_value) => _value.toJson()).toList();
-      if (labeledStatement_statement != null)
-        _result["labeledStatement_statement"] =
-            labeledStatement_statement.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.libraryIdentifier) {
-      if (libraryIdentifier_components.isNotEmpty)
-        _result["libraryIdentifier_components"] = libraryIdentifier_components
-            .map((_value) => _value.toJson())
-            .toList();
-    }
-    if (kind == idl.LinkedNodeKind.exportDirective) {
-      if (namespaceDirective_combinators.isNotEmpty)
-        _result["namespaceDirective_combinators"] =
-            namespaceDirective_combinators
-                .map((_value) => _value.toJson())
-                .toList();
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (namespaceDirective_configurations.isNotEmpty)
-        _result["namespaceDirective_configurations"] =
-            namespaceDirective_configurations
-                .map((_value) => _value.toJson())
-                .toList();
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (uriBasedDirective_uri != null)
-        _result["uriBasedDirective_uri"] = uriBasedDirective_uri.toJson();
-      if (namespaceDirective_selectedUri != '')
-        _result["namespaceDirective_selectedUri"] =
-            namespaceDirective_selectedUri;
-      if (uriBasedDirective_uriContent != '')
-        _result["uriBasedDirective_uriContent"] = uriBasedDirective_uriContent;
-      if (uriBasedDirective_uriElement != 0)
-        _result["uriBasedDirective_uriElement"] = uriBasedDirective_uriElement;
-    }
-    if (kind == idl.LinkedNodeKind.importDirective) {
-      if (namespaceDirective_combinators.isNotEmpty)
-        _result["namespaceDirective_combinators"] =
-            namespaceDirective_combinators
-                .map((_value) => _value.toJson())
-                .toList();
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (importDirective_prefixOffset != 0)
-        _result["importDirective_prefixOffset"] = importDirective_prefixOffset;
-      if (namespaceDirective_configurations.isNotEmpty)
-        _result["namespaceDirective_configurations"] =
-            namespaceDirective_configurations
-                .map((_value) => _value.toJson())
-                .toList();
-      if (importDirective_prefix != '')
-        _result["importDirective_prefix"] = importDirective_prefix;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (uriBasedDirective_uri != null)
-        _result["uriBasedDirective_uri"] = uriBasedDirective_uri.toJson();
-      if (namespaceDirective_selectedUri != '')
-        _result["namespaceDirective_selectedUri"] =
-            namespaceDirective_selectedUri;
-      if (uriBasedDirective_uriContent != '')
-        _result["uriBasedDirective_uriContent"] = uriBasedDirective_uriContent;
-      if (uriBasedDirective_uriElement != 0)
-        _result["uriBasedDirective_uriElement"] = uriBasedDirective_uriElement;
-    }
-    if (kind == idl.LinkedNodeKind.onClause) {
-      if (onClause_superclassConstraints.isNotEmpty)
-        _result["onClause_superclassConstraints"] =
-            onClause_superclassConstraints
-                .map((_value) => _value.toJson())
-                .toList();
-    }
-    if (kind == idl.LinkedNodeKind.stringInterpolation) {
-      if (stringInterpolation_elements.isNotEmpty)
-        _result["stringInterpolation_elements"] = stringInterpolation_elements
-            .map((_value) => _value.toJson())
-            .toList();
-    }
-    if (kind == idl.LinkedNodeKind.switchStatement) {
-      if (switchStatement_members.isNotEmpty)
-        _result["switchStatement_members"] =
-            switchStatement_members.map((_value) => _value.toJson()).toList();
-      if (switchStatement_expression != null)
-        _result["switchStatement_expression"] =
-            switchStatement_expression.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.tryStatement) {
-      if (tryStatement_catchClauses.isNotEmpty)
-        _result["tryStatement_catchClauses"] =
-            tryStatement_catchClauses.map((_value) => _value.toJson()).toList();
-      if (tryStatement_body != null)
-        _result["tryStatement_body"] = tryStatement_body.toJson();
-      if (tryStatement_finallyBlock != null)
-        _result["tryStatement_finallyBlock"] =
-            tryStatement_finallyBlock.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.typeArgumentList) {
-      if (typeArgumentList_arguments.isNotEmpty)
-        _result["typeArgumentList_arguments"] = typeArgumentList_arguments
-            .map((_value) => _value.toJson())
-            .toList();
-    }
-    if (kind == idl.LinkedNodeKind.listLiteral) {
-      if (typedLiteral_typeArguments.isNotEmpty)
-        _result["typedLiteral_typeArguments"] = typedLiteral_typeArguments
-            .map((_value) => _value.toJson())
-            .toList();
-      if (listLiteral_elements.isNotEmpty)
-        _result["listLiteral_elements"] =
-            listLiteral_elements.map((_value) => _value.toJson()).toList();
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.setOrMapLiteral) {
-      if (typedLiteral_typeArguments.isNotEmpty)
-        _result["typedLiteral_typeArguments"] = typedLiteral_typeArguments
-            .map((_value) => _value.toJson())
-            .toList();
-      if (setOrMapLiteral_elements.isNotEmpty)
-        _result["setOrMapLiteral_elements"] =
-            setOrMapLiteral_elements.map((_value) => _value.toJson()).toList();
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.typeName) {
-      if (typeName_typeArguments.isNotEmpty)
-        _result["typeName_typeArguments"] =
-            typeName_typeArguments.map((_value) => _value.toJson()).toList();
-      if (typeName_name != null)
-        _result["typeName_name"] = typeName_name.toJson();
-      if (typeName_type != null)
-        _result["typeName_type"] = typeName_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.typeParameterList) {
-      if (typeParameterList_typeParameters.isNotEmpty)
-        _result["typeParameterList_typeParameters"] =
-            typeParameterList_typeParameters
-                .map((_value) => _value.toJson())
-                .toList();
-    }
-    if (kind == idl.LinkedNodeKind.variableDeclarationList) {
-      if (variableDeclarationList_variables.isNotEmpty)
-        _result["variableDeclarationList_variables"] =
-            variableDeclarationList_variables
-                .map((_value) => _value.toJson())
-                .toList();
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (variableDeclarationList_type != null)
-        _result["variableDeclarationList_type"] =
-            variableDeclarationList_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.withClause) {
-      if (withClause_mixinTypes.isNotEmpty)
-        _result["withClause_mixinTypes"] =
-            withClause_mixinTypes.map((_value) => _value.toJson()).toList();
+    if (kind == idl.LinkedNodeKind.catchClause) {
+      if (catchClause_body != null)
+        _result["catchClause_body"] = catchClause_body.toJson();
+      if (catchClause_exceptionParameter != null)
+        _result["catchClause_exceptionParameter"] =
+            catchClause_exceptionParameter.toJson();
+      if (catchClause_exceptionType != null)
+        _result["catchClause_exceptionType"] =
+            catchClause_exceptionType.toJson();
+      if (catchClause_stackTraceParameter != null)
+        _result["catchClause_stackTraceParameter"] =
+            catchClause_stackTraceParameter.toJson();
     }
     if (kind == idl.LinkedNodeKind.classDeclaration) {
       if (annotatedNode_comment != null)
@@ -12169,6 +13738,105 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["simplyBoundable_isSimplyBounded"] =
             simplyBoundable_isSimplyBounded;
     }
+    if (kind == idl.LinkedNodeKind.comment) {
+      if (comment_references.isNotEmpty)
+        _result["comment_references"] =
+            comment_references.map((_value) => _value.toJson()).toList();
+      if (comment_tokens.isNotEmpty) _result["comment_tokens"] = comment_tokens;
+      if (comment_type != idl.LinkedNodeCommentType.block)
+        _result["comment_type"] = comment_type.toString().split('.')[1];
+    }
+    if (kind == idl.LinkedNodeKind.commentReference) {
+      if (commentReference_identifier != null)
+        _result["commentReference_identifier"] =
+            commentReference_identifier.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.compilationUnit) {
+      if (compilationUnit_declarations.isNotEmpty)
+        _result["compilationUnit_declarations"] = compilationUnit_declarations
+            .map((_value) => _value.toJson())
+            .toList();
+      if (compilationUnit_scriptTag != null)
+        _result["compilationUnit_scriptTag"] =
+            compilationUnit_scriptTag.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (compilationUnit_directives.isNotEmpty)
+        _result["compilationUnit_directives"] = compilationUnit_directives
+            .map((_value) => _value.toJson())
+            .toList();
+    }
+    if (kind == idl.LinkedNodeKind.conditionalExpression) {
+      if (conditionalExpression_condition != null)
+        _result["conditionalExpression_condition"] =
+            conditionalExpression_condition.toJson();
+      if (conditionalExpression_elseExpression != null)
+        _result["conditionalExpression_elseExpression"] =
+            conditionalExpression_elseExpression.toJson();
+      if (conditionalExpression_thenExpression != null)
+        _result["conditionalExpression_thenExpression"] =
+            conditionalExpression_thenExpression.toJson();
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.configuration) {
+      if (configuration_name != null)
+        _result["configuration_name"] = configuration_name.toJson();
+      if (configuration_value != null)
+        _result["configuration_value"] = configuration_value.toJson();
+      if (configuration_uri != null)
+        _result["configuration_uri"] = configuration_uri.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.constructorDeclaration) {
+      if (constructorDeclaration_initializers.isNotEmpty)
+        _result["constructorDeclaration_initializers"] =
+            constructorDeclaration_initializers
+                .map((_value) => _value.toJson())
+                .toList();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (constructorDeclaration_body != null)
+        _result["constructorDeclaration_body"] =
+            constructorDeclaration_body.toJson();
+      if (constructorDeclaration_parameters != null)
+        _result["constructorDeclaration_parameters"] =
+            constructorDeclaration_parameters.toJson();
+      if (constructorDeclaration_redirectedConstructor != null)
+        _result["constructorDeclaration_redirectedConstructor"] =
+            constructorDeclaration_redirectedConstructor.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (constructorDeclaration_returnType != null)
+        _result["constructorDeclaration_returnType"] =
+            constructorDeclaration_returnType.toJson();
+      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    }
+    if (kind == idl.LinkedNodeKind.constructorFieldInitializer) {
+      if (constructorFieldInitializer_expression != null)
+        _result["constructorFieldInitializer_expression"] =
+            constructorFieldInitializer_expression.toJson();
+      if (constructorFieldInitializer_fieldName != null)
+        _result["constructorFieldInitializer_fieldName"] =
+            constructorFieldInitializer_fieldName.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.constructorName) {
+      if (constructorName_name != null)
+        _result["constructorName_name"] = constructorName_name.toJson();
+      if (constructorName_type != null)
+        _result["constructorName_type"] = constructorName_type.toJson();
+      if (constructorName_elementType != null)
+        _result["constructorName_elementType"] =
+            constructorName_elementType.toJson();
+      if (constructorName_element != 0)
+        _result["constructorName_element"] = constructorName_element;
+    }
+    if (kind == idl.LinkedNodeKind.continueStatement) {
+      if (continueStatement_label != null)
+        _result["continueStatement_label"] = continueStatement_label.toJson();
+    }
     if (kind == idl.LinkedNodeKind.declaredIdentifier) {
       if (annotatedNode_comment != null)
         _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
@@ -12181,6 +13849,45 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (declaredIdentifier_type != null)
         _result["declaredIdentifier_type"] = declaredIdentifier_type.toJson();
     }
+    if (kind == idl.LinkedNodeKind.defaultFormalParameter) {
+      if (defaultFormalParameter_defaultValue != null)
+        _result["defaultFormalParameter_defaultValue"] =
+            defaultFormalParameter_defaultValue.toJson();
+      if (defaultFormalParameter_parameter != null)
+        _result["defaultFormalParameter_parameter"] =
+            defaultFormalParameter_parameter.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (defaultFormalParameter_kind !=
+          idl.LinkedNodeFormalParameterKind.requiredPositional)
+        _result["defaultFormalParameter_kind"] =
+            defaultFormalParameter_kind.toString().split('.')[1];
+    }
+    if (kind == idl.LinkedNodeKind.doStatement) {
+      if (doStatement_body != null)
+        _result["doStatement_body"] = doStatement_body.toJson();
+      if (doStatement_condition != null)
+        _result["doStatement_condition"] = doStatement_condition.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.dottedName) {
+      if (dottedName_components.isNotEmpty)
+        _result["dottedName_components"] =
+            dottedName_components.map((_value) => _value.toJson()).toList();
+    }
+    if (kind == idl.LinkedNodeKind.doubleLiteral) {
+      if (doubleLiteral_value != 0.0)
+        _result["doubleLiteral_value"] = doubleLiteral_value.isFinite
+            ? doubleLiteral_value
+            : doubleLiteral_value.toString();
+    }
+    if (kind == idl.LinkedNodeKind.emptyFunctionBody) {
+      if (emptyFunctionBody_fake != 0)
+        _result["emptyFunctionBody_fake"] = emptyFunctionBody_fake;
+    }
+    if (kind == idl.LinkedNodeKind.emptyStatement) {
+      if (emptyStatement_fake != 0)
+        _result["emptyStatement_fake"] = emptyStatement_fake;
+    }
     if (kind == idl.LinkedNodeKind.enumConstantDeclaration) {
       if (annotatedNode_comment != null)
         _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
@@ -12188,6 +13895,60 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
       if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    }
+    if (kind == idl.LinkedNodeKind.enumDeclaration) {
+      if (enumDeclaration_constants.isNotEmpty)
+        _result["enumDeclaration_constants"] =
+            enumDeclaration_constants.map((_value) => _value.toJson()).toList();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    }
+    if (kind == idl.LinkedNodeKind.exportDirective) {
+      if (namespaceDirective_combinators.isNotEmpty)
+        _result["namespaceDirective_combinators"] =
+            namespaceDirective_combinators
+                .map((_value) => _value.toJson())
+                .toList();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (namespaceDirective_configurations.isNotEmpty)
+        _result["namespaceDirective_configurations"] =
+            namespaceDirective_configurations
+                .map((_value) => _value.toJson())
+                .toList();
+      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+      if (uriBasedDirective_uri != null)
+        _result["uriBasedDirective_uri"] = uriBasedDirective_uri.toJson();
+      if (namespaceDirective_selectedUri != '')
+        _result["namespaceDirective_selectedUri"] =
+            namespaceDirective_selectedUri;
+      if (uriBasedDirective_uriContent != '')
+        _result["uriBasedDirective_uriContent"] = uriBasedDirective_uriContent;
+      if (uriBasedDirective_uriElement != 0)
+        _result["uriBasedDirective_uriElement"] = uriBasedDirective_uriElement;
+    }
+    if (kind == idl.LinkedNodeKind.expressionFunctionBody) {
+      if (expressionFunctionBody_expression != null)
+        _result["expressionFunctionBody_expression"] =
+            expressionFunctionBody_expression.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.expressionStatement) {
+      if (expressionStatement_expression != null)
+        _result["expressionStatement_expression"] =
+            expressionStatement_expression.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.extendsClause) {
+      if (extendsClause_superclass != null)
+        _result["extendsClause_superclass"] = extendsClause_superclass.toJson();
     }
     if (kind == idl.LinkedNodeKind.fieldDeclaration) {
       if (annotatedNode_comment != null)
@@ -12197,6 +13958,203 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
       if (fieldDeclaration_fields != null)
         _result["fieldDeclaration_fields"] = fieldDeclaration_fields.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
+      if (actualType != null) _result["actualType"] = actualType.toJson();
+      if (normalFormalParameter_metadata.isNotEmpty)
+        _result["normalFormalParameter_metadata"] =
+            normalFormalParameter_metadata
+                .map((_value) => _value.toJson())
+                .toList();
+      if (fieldFormalParameter_type != null)
+        _result["fieldFormalParameter_type"] =
+            fieldFormalParameter_type.toJson();
+      if (fieldFormalParameter_typeParameters != null)
+        _result["fieldFormalParameter_typeParameters"] =
+            fieldFormalParameter_typeParameters.toJson();
+      if (fieldFormalParameter_formalParameters != null)
+        _result["fieldFormalParameter_formalParameters"] =
+            fieldFormalParameter_formalParameters.toJson();
+      if (inheritsCovariant != false)
+        _result["inheritsCovariant"] = inheritsCovariant;
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+      if (normalFormalParameter_comment != null)
+        _result["normalFormalParameter_comment"] =
+            normalFormalParameter_comment.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.forEachPartsWithDeclaration) {
+      if (forEachParts_iterable != null)
+        _result["forEachParts_iterable"] = forEachParts_iterable.toJson();
+      if (forEachPartsWithDeclaration_loopVariable != null)
+        _result["forEachPartsWithDeclaration_loopVariable"] =
+            forEachPartsWithDeclaration_loopVariable.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.forEachPartsWithIdentifier) {
+      if (forEachParts_iterable != null)
+        _result["forEachParts_iterable"] = forEachParts_iterable.toJson();
+      if (forEachPartsWithIdentifier_identifier != null)
+        _result["forEachPartsWithIdentifier_identifier"] =
+            forEachPartsWithIdentifier_identifier.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.forElement) {
+      if (forMixin_forLoopParts != null)
+        _result["forMixin_forLoopParts"] = forMixin_forLoopParts.toJson();
+      if (forElement_body != null)
+        _result["forElement_body"] = forElement_body.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.forPartsWithDeclarations) {
+      if (forParts_condition != null)
+        _result["forParts_condition"] = forParts_condition.toJson();
+      if (forPartsWithDeclarations_variables != null)
+        _result["forPartsWithDeclarations_variables"] =
+            forPartsWithDeclarations_variables.toJson();
+      if (forParts_updaters.isNotEmpty)
+        _result["forParts_updaters"] =
+            forParts_updaters.map((_value) => _value.toJson()).toList();
+    }
+    if (kind == idl.LinkedNodeKind.forPartsWithExpression) {
+      if (forParts_condition != null)
+        _result["forParts_condition"] = forParts_condition.toJson();
+      if (forPartsWithExpression_initialization != null)
+        _result["forPartsWithExpression_initialization"] =
+            forPartsWithExpression_initialization.toJson();
+      if (forParts_updaters.isNotEmpty)
+        _result["forParts_updaters"] =
+            forParts_updaters.map((_value) => _value.toJson()).toList();
+    }
+    if (kind == idl.LinkedNodeKind.forStatement) {
+      if (forMixin_forLoopParts != null)
+        _result["forMixin_forLoopParts"] = forMixin_forLoopParts.toJson();
+      if (forStatement_body != null)
+        _result["forStatement_body"] = forStatement_body.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.formalParameterList) {
+      if (formalParameterList_parameters.isNotEmpty)
+        _result["formalParameterList_parameters"] =
+            formalParameterList_parameters
+                .map((_value) => _value.toJson())
+                .toList();
+    }
+    if (kind == idl.LinkedNodeKind.functionDeclaration) {
+      if (actualReturnType != null)
+        _result["actualReturnType"] = actualReturnType.toJson();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (functionDeclaration_functionExpression != null)
+        _result["functionDeclaration_functionExpression"] =
+            functionDeclaration_functionExpression.toJson();
+      if (functionDeclaration_returnType != null)
+        _result["functionDeclaration_returnType"] =
+            functionDeclaration_returnType.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    }
+    if (kind == idl.LinkedNodeKind.functionDeclarationStatement) {
+      if (functionDeclarationStatement_functionDeclaration != null)
+        _result["functionDeclarationStatement_functionDeclaration"] =
+            functionDeclarationStatement_functionDeclaration.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.functionExpression) {
+      if (actualReturnType != null)
+        _result["actualReturnType"] = actualReturnType.toJson();
+      if (functionExpression_body != null)
+        _result["functionExpression_body"] = functionExpression_body.toJson();
+      if (functionExpression_formalParameters != null)
+        _result["functionExpression_formalParameters"] =
+            functionExpression_formalParameters.toJson();
+      if (functionExpression_typeParameters != null)
+        _result["functionExpression_typeParameters"] =
+            functionExpression_typeParameters.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
+      if (invocationExpression_invokeType != null)
+        _result["invocationExpression_invokeType"] =
+            invocationExpression_invokeType.toJson();
+      if (functionExpressionInvocation_function != null)
+        _result["functionExpressionInvocation_function"] =
+            functionExpressionInvocation_function.toJson();
+      if (invocationExpression_typeArguments != null)
+        _result["invocationExpression_typeArguments"] =
+            invocationExpression_typeArguments.toJson();
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+      if (invocationExpression_arguments != null)
+        _result["invocationExpression_arguments"] =
+            invocationExpression_arguments.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.functionTypeAlias) {
+      if (actualReturnType != null)
+        _result["actualReturnType"] = actualReturnType.toJson();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (functionTypeAlias_formalParameters != null)
+        _result["functionTypeAlias_formalParameters"] =
+            functionTypeAlias_formalParameters.toJson();
+      if (functionTypeAlias_returnType != null)
+        _result["functionTypeAlias_returnType"] =
+            functionTypeAlias_returnType.toJson();
+      if (functionTypeAlias_typeParameters != null)
+        _result["functionTypeAlias_typeParameters"] =
+            functionTypeAlias_typeParameters.toJson();
+      if (typeAlias_hasSelfReference != false)
+        _result["typeAlias_hasSelfReference"] = typeAlias_hasSelfReference;
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+      if (simplyBoundable_isSimplyBounded != false)
+        _result["simplyBoundable_isSimplyBounded"] =
+            simplyBoundable_isSimplyBounded;
+    }
+    if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
+      if (actualType != null) _result["actualType"] = actualType.toJson();
+      if (normalFormalParameter_metadata.isNotEmpty)
+        _result["normalFormalParameter_metadata"] =
+            normalFormalParameter_metadata
+                .map((_value) => _value.toJson())
+                .toList();
+      if (functionTypedFormalParameter_formalParameters != null)
+        _result["functionTypedFormalParameter_formalParameters"] =
+            functionTypedFormalParameter_formalParameters.toJson();
+      if (functionTypedFormalParameter_returnType != null)
+        _result["functionTypedFormalParameter_returnType"] =
+            functionTypedFormalParameter_returnType.toJson();
+      if (functionTypedFormalParameter_typeParameters != null)
+        _result["functionTypedFormalParameter_typeParameters"] =
+            functionTypedFormalParameter_typeParameters.toJson();
+      if (inheritsCovariant != false)
+        _result["inheritsCovariant"] = inheritsCovariant;
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+      if (normalFormalParameter_comment != null)
+        _result["normalFormalParameter_comment"] =
+            normalFormalParameter_comment.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.genericFunctionType) {
+      if (actualReturnType != null)
+        _result["actualReturnType"] = actualReturnType.toJson();
+      if (genericFunctionType_typeParameters != null)
+        _result["genericFunctionType_typeParameters"] =
+            genericFunctionType_typeParameters.toJson();
+      if (genericFunctionType_returnType != null)
+        _result["genericFunctionType_returnType"] =
+            genericFunctionType_returnType.toJson();
+      if (genericFunctionType_id != 0)
+        _result["genericFunctionType_id"] = genericFunctionType_id;
+      if (genericFunctionType_formalParameters != null)
+        _result["genericFunctionType_formalParameters"] =
+            genericFunctionType_formalParameters.toJson();
+      if (genericFunctionType_type != null)
+        _result["genericFunctionType_type"] = genericFunctionType_type.toJson();
     }
     if (kind == idl.LinkedNodeKind.genericTypeAlias) {
       if (annotatedNode_comment != null)
@@ -12219,6 +14177,122 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["simplyBoundable_isSimplyBounded"] =
             simplyBoundable_isSimplyBounded;
     }
+    if (kind == idl.LinkedNodeKind.hideCombinator) {
+      if (names.isNotEmpty) _result["names"] = names;
+    }
+    if (kind == idl.LinkedNodeKind.ifElement) {
+      if (ifMixin_condition != null)
+        _result["ifMixin_condition"] = ifMixin_condition.toJson();
+      if (ifElement_thenElement != null)
+        _result["ifElement_thenElement"] = ifElement_thenElement.toJson();
+      if (ifElement_elseElement != null)
+        _result["ifElement_elseElement"] = ifElement_elseElement.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.ifStatement) {
+      if (ifMixin_condition != null)
+        _result["ifMixin_condition"] = ifMixin_condition.toJson();
+      if (ifStatement_elseStatement != null)
+        _result["ifStatement_elseStatement"] =
+            ifStatement_elseStatement.toJson();
+      if (ifStatement_thenStatement != null)
+        _result["ifStatement_thenStatement"] =
+            ifStatement_thenStatement.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.implementsClause) {
+      if (implementsClause_interfaces.isNotEmpty)
+        _result["implementsClause_interfaces"] = implementsClause_interfaces
+            .map((_value) => _value.toJson())
+            .toList();
+    }
+    if (kind == idl.LinkedNodeKind.importDirective) {
+      if (namespaceDirective_combinators.isNotEmpty)
+        _result["namespaceDirective_combinators"] =
+            namespaceDirective_combinators
+                .map((_value) => _value.toJson())
+                .toList();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (importDirective_prefixOffset != 0)
+        _result["importDirective_prefixOffset"] = importDirective_prefixOffset;
+      if (namespaceDirective_configurations.isNotEmpty)
+        _result["namespaceDirective_configurations"] =
+            namespaceDirective_configurations
+                .map((_value) => _value.toJson())
+                .toList();
+      if (importDirective_prefix != '')
+        _result["importDirective_prefix"] = importDirective_prefix;
+      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+      if (uriBasedDirective_uri != null)
+        _result["uriBasedDirective_uri"] = uriBasedDirective_uri.toJson();
+      if (namespaceDirective_selectedUri != '')
+        _result["namespaceDirective_selectedUri"] =
+            namespaceDirective_selectedUri;
+      if (uriBasedDirective_uriContent != '')
+        _result["uriBasedDirective_uriContent"] = uriBasedDirective_uriContent;
+      if (uriBasedDirective_uriElement != 0)
+        _result["uriBasedDirective_uriElement"] = uriBasedDirective_uriElement;
+    }
+    if (kind == idl.LinkedNodeKind.indexExpression) {
+      if (indexExpression_index != null)
+        _result["indexExpression_index"] = indexExpression_index.toJson();
+      if (indexExpression_target != null)
+        _result["indexExpression_target"] = indexExpression_target.toJson();
+      if (indexExpression_elementType != null)
+        _result["indexExpression_elementType"] =
+            indexExpression_elementType.toJson();
+      if (indexExpression_element != 0)
+        _result["indexExpression_element"] = indexExpression_element;
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.instanceCreationExpression) {
+      if (instanceCreationExpression_arguments.isNotEmpty)
+        _result["instanceCreationExpression_arguments"] =
+            instanceCreationExpression_arguments
+                .map((_value) => _value.toJson())
+                .toList();
+      if (instanceCreationExpression_constructorName != null)
+        _result["instanceCreationExpression_constructorName"] =
+            instanceCreationExpression_constructorName.toJson();
+      if (instanceCreationExpression_typeArguments != null)
+        _result["instanceCreationExpression_typeArguments"] =
+            instanceCreationExpression_typeArguments.toJson();
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.integerLiteral) {
+      if (integerLiteral_value != 0)
+        _result["integerLiteral_value"] = integerLiteral_value;
+    }
+    if (kind == idl.LinkedNodeKind.interpolationExpression) {
+      if (interpolationExpression_expression != null)
+        _result["interpolationExpression_expression"] =
+            interpolationExpression_expression.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.interpolationString) {
+      if (interpolationString_value != '')
+        _result["interpolationString_value"] = interpolationString_value;
+    }
+    if (kind == idl.LinkedNodeKind.isExpression) {
+      if (isExpression_expression != null)
+        _result["isExpression_expression"] = isExpression_expression.toJson();
+      if (isExpression_type != null)
+        _result["isExpression_type"] = isExpression_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.label) {
+      if (label_label != null) _result["label_label"] = label_label.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.labeledStatement) {
+      if (labeledStatement_labels.isNotEmpty)
+        _result["labeledStatement_labels"] =
+            labeledStatement_labels.map((_value) => _value.toJson()).toList();
+      if (labeledStatement_statement != null)
+        _result["labeledStatement_statement"] =
+            labeledStatement_statement.toJson();
+    }
     if (kind == idl.LinkedNodeKind.libraryDirective) {
       if (annotatedNode_comment != null)
         _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
@@ -12227,6 +14301,70 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
       if (libraryDirective_name != null)
         _result["libraryDirective_name"] = libraryDirective_name.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.libraryIdentifier) {
+      if (libraryIdentifier_components.isNotEmpty)
+        _result["libraryIdentifier_components"] = libraryIdentifier_components
+            .map((_value) => _value.toJson())
+            .toList();
+    }
+    if (kind == idl.LinkedNodeKind.listLiteral) {
+      if (typedLiteral_typeArguments.isNotEmpty)
+        _result["typedLiteral_typeArguments"] = typedLiteral_typeArguments
+            .map((_value) => _value.toJson())
+            .toList();
+      if (listLiteral_elements.isNotEmpty)
+        _result["listLiteral_elements"] =
+            listLiteral_elements.map((_value) => _value.toJson()).toList();
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.mapLiteralEntry) {
+      if (mapLiteralEntry_key != null)
+        _result["mapLiteralEntry_key"] = mapLiteralEntry_key.toJson();
+      if (mapLiteralEntry_value != null)
+        _result["mapLiteralEntry_value"] = mapLiteralEntry_value.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.methodDeclaration) {
+      if (actualReturnType != null)
+        _result["actualReturnType"] = actualReturnType.toJson();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (methodDeclaration_body != null)
+        _result["methodDeclaration_body"] = methodDeclaration_body.toJson();
+      if (methodDeclaration_formalParameters != null)
+        _result["methodDeclaration_formalParameters"] =
+            methodDeclaration_formalParameters.toJson();
+      if (methodDeclaration_returnType != null)
+        _result["methodDeclaration_returnType"] =
+            methodDeclaration_returnType.toJson();
+      if (methodDeclaration_typeParameters != null)
+        _result["methodDeclaration_typeParameters"] =
+            methodDeclaration_typeParameters.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    }
+    if (kind == idl.LinkedNodeKind.methodInvocation) {
+      if (invocationExpression_invokeType != null)
+        _result["invocationExpression_invokeType"] =
+            invocationExpression_invokeType.toJson();
+      if (methodInvocation_methodName != null)
+        _result["methodInvocation_methodName"] =
+            methodInvocation_methodName.toJson();
+      if (methodInvocation_target != null)
+        _result["methodInvocation_target"] = methodInvocation_target.toJson();
+      if (invocationExpression_typeArguments != null)
+        _result["invocationExpression_typeArguments"] =
+            invocationExpression_typeArguments.toJson();
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+      if (invocationExpression_arguments != null)
+        _result["invocationExpression_arguments"] =
+            invocationExpression_arguments.toJson();
     }
     if (kind == idl.LinkedNodeKind.mixinDeclaration) {
       if (annotatedNode_comment != null)
@@ -12258,6 +14396,41 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["simplyBoundable_isSimplyBounded"] =
             simplyBoundable_isSimplyBounded;
     }
+    if (kind == idl.LinkedNodeKind.namedExpression) {
+      if (namedExpression_expression != null)
+        _result["namedExpression_expression"] =
+            namedExpression_expression.toJson();
+      if (namedExpression_name != null)
+        _result["namedExpression_name"] = namedExpression_name.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.nativeClause) {
+      if (nativeClause_name != null)
+        _result["nativeClause_name"] = nativeClause_name.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.nativeFunctionBody) {
+      if (nativeFunctionBody_stringLiteral != null)
+        _result["nativeFunctionBody_stringLiteral"] =
+            nativeFunctionBody_stringLiteral.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.nullLiteral) {
+      if (nullLiteral_fake != 0) _result["nullLiteral_fake"] = nullLiteral_fake;
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.onClause) {
+      if (onClause_superclassConstraints.isNotEmpty)
+        _result["onClause_superclassConstraints"] =
+            onClause_superclassConstraints
+                .map((_value) => _value.toJson())
+                .toList();
+    }
+    if (kind == idl.LinkedNodeKind.parenthesizedExpression) {
+      if (parenthesizedExpression_expression != null)
+        _result["parenthesizedExpression_expression"] =
+            parenthesizedExpression_expression.toJson();
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+    }
     if (kind == idl.LinkedNodeKind.partDirective) {
       if (annotatedNode_comment != null)
         _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
@@ -12284,339 +14457,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (partOfDirective_uri != null)
         _result["partOfDirective_uri"] = partOfDirective_uri.toJson();
     }
-    if (kind == idl.LinkedNodeKind.topLevelVariableDeclaration) {
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (topLevelVariableDeclaration_variableList != null)
-        _result["topLevelVariableDeclaration_variableList"] =
-            topLevelVariableDeclaration_variableList.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.typeParameter) {
-      if (annotatedNode_comment != null)
-        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
-      if (annotatedNode_metadata.isNotEmpty)
-        _result["annotatedNode_metadata"] =
-            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (typeParameter_bound != null)
-        _result["typeParameter_bound"] = typeParameter_bound.toJson();
-      if (typeParameter_defaultType != null)
-        _result["typeParameter_defaultType"] =
-            typeParameter_defaultType.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-    }
-    if (kind == idl.LinkedNodeKind.switchCase) {
-      if (switchMember_statements.isNotEmpty)
-        _result["switchMember_statements"] =
-            switchMember_statements.map((_value) => _value.toJson()).toList();
-      if (switchCase_expression != null)
-        _result["switchCase_expression"] = switchCase_expression.toJson();
-      if (switchMember_labels.isNotEmpty)
-        _result["switchMember_labels"] =
-            switchMember_labels.map((_value) => _value.toJson()).toList();
-    }
-    if (kind == idl.LinkedNodeKind.switchDefault) {
-      if (switchMember_statements.isNotEmpty)
-        _result["switchMember_statements"] =
-            switchMember_statements.map((_value) => _value.toJson()).toList();
-      if (switchMember_labels.isNotEmpty)
-        _result["switchMember_labels"] =
-            switchMember_labels.map((_value) => _value.toJson()).toList();
-    }
-    if (kind == idl.LinkedNodeKind.annotation) {
-      if (annotation_arguments != null)
-        _result["annotation_arguments"] = annotation_arguments.toJson();
-      if (annotation_constructorName != null)
-        _result["annotation_constructorName"] =
-            annotation_constructorName.toJson();
-      if (annotation_element != 0)
-        _result["annotation_element"] = annotation_element;
-      if (annotation_elementType != null)
-        _result["annotation_elementType"] = annotation_elementType.toJson();
-      if (annotation_name != null)
-        _result["annotation_name"] = annotation_name.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.asExpression) {
-      if (asExpression_expression != null)
-        _result["asExpression_expression"] = asExpression_expression.toJson();
-      if (asExpression_type != null)
-        _result["asExpression_type"] = asExpression_type.toJson();
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.assertInitializer) {
-      if (assertInitializer_condition != null)
-        _result["assertInitializer_condition"] =
-            assertInitializer_condition.toJson();
-      if (assertInitializer_message != null)
-        _result["assertInitializer_message"] =
-            assertInitializer_message.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.assertStatement) {
-      if (assertStatement_condition != null)
-        _result["assertStatement_condition"] =
-            assertStatement_condition.toJson();
-      if (assertStatement_message != null)
-        _result["assertStatement_message"] = assertStatement_message.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.assignmentExpression) {
-      if (assignmentExpression_leftHandSide != null)
-        _result["assignmentExpression_leftHandSide"] =
-            assignmentExpression_leftHandSide.toJson();
-      if (assignmentExpression_rightHandSide != null)
-        _result["assignmentExpression_rightHandSide"] =
-            assignmentExpression_rightHandSide.toJson();
-      if (assignmentExpression_elementType != null)
-        _result["assignmentExpression_elementType"] =
-            assignmentExpression_elementType.toJson();
-      if (assignmentExpression_element != 0)
-        _result["assignmentExpression_element"] = assignmentExpression_element;
-      if (assignmentExpression_operator != idl.UnlinkedTokenType.NOTHING)
-        _result["assignmentExpression_operator"] =
-            assignmentExpression_operator.toString().split('.')[1];
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.awaitExpression) {
-      if (awaitExpression_expression != null)
-        _result["awaitExpression_expression"] =
-            awaitExpression_expression.toJson();
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.blockFunctionBody) {
-      if (blockFunctionBody_block != null)
-        _result["blockFunctionBody_block"] = blockFunctionBody_block.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.breakStatement) {
-      if (breakStatement_label != null)
-        _result["breakStatement_label"] = breakStatement_label.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.catchClause) {
-      if (catchClause_body != null)
-        _result["catchClause_body"] = catchClause_body.toJson();
-      if (catchClause_exceptionParameter != null)
-        _result["catchClause_exceptionParameter"] =
-            catchClause_exceptionParameter.toJson();
-      if (catchClause_exceptionType != null)
-        _result["catchClause_exceptionType"] =
-            catchClause_exceptionType.toJson();
-      if (catchClause_stackTraceParameter != null)
-        _result["catchClause_stackTraceParameter"] =
-            catchClause_stackTraceParameter.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.commentReference) {
-      if (commentReference_identifier != null)
-        _result["commentReference_identifier"] =
-            commentReference_identifier.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.conditionalExpression) {
-      if (conditionalExpression_condition != null)
-        _result["conditionalExpression_condition"] =
-            conditionalExpression_condition.toJson();
-      if (conditionalExpression_elseExpression != null)
-        _result["conditionalExpression_elseExpression"] =
-            conditionalExpression_elseExpression.toJson();
-      if (conditionalExpression_thenExpression != null)
-        _result["conditionalExpression_thenExpression"] =
-            conditionalExpression_thenExpression.toJson();
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.configuration) {
-      if (configuration_name != null)
-        _result["configuration_name"] = configuration_name.toJson();
-      if (configuration_value != null)
-        _result["configuration_value"] = configuration_value.toJson();
-      if (configuration_uri != null)
-        _result["configuration_uri"] = configuration_uri.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.constructorFieldInitializer) {
-      if (constructorFieldInitializer_expression != null)
-        _result["constructorFieldInitializer_expression"] =
-            constructorFieldInitializer_expression.toJson();
-      if (constructorFieldInitializer_fieldName != null)
-        _result["constructorFieldInitializer_fieldName"] =
-            constructorFieldInitializer_fieldName.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.constructorName) {
-      if (constructorName_name != null)
-        _result["constructorName_name"] = constructorName_name.toJson();
-      if (constructorName_type != null)
-        _result["constructorName_type"] = constructorName_type.toJson();
-      if (constructorName_elementType != null)
-        _result["constructorName_elementType"] =
-            constructorName_elementType.toJson();
-      if (constructorName_element != 0)
-        _result["constructorName_element"] = constructorName_element;
-    }
-    if (kind == idl.LinkedNodeKind.continueStatement) {
-      if (continueStatement_label != null)
-        _result["continueStatement_label"] = continueStatement_label.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.defaultFormalParameter) {
-      if (defaultFormalParameter_defaultValue != null)
-        _result["defaultFormalParameter_defaultValue"] =
-            defaultFormalParameter_defaultValue.toJson();
-      if (defaultFormalParameter_parameter != null)
-        _result["defaultFormalParameter_parameter"] =
-            defaultFormalParameter_parameter.toJson();
-      if (codeLength != 0) _result["codeLength"] = codeLength;
-      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (defaultFormalParameter_kind !=
-          idl.LinkedNodeFormalParameterKind.requiredPositional)
-        _result["defaultFormalParameter_kind"] =
-            defaultFormalParameter_kind.toString().split('.')[1];
-    }
-    if (kind == idl.LinkedNodeKind.doStatement) {
-      if (doStatement_body != null)
-        _result["doStatement_body"] = doStatement_body.toJson();
-      if (doStatement_condition != null)
-        _result["doStatement_condition"] = doStatement_condition.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.expressionFunctionBody) {
-      if (expressionFunctionBody_expression != null)
-        _result["expressionFunctionBody_expression"] =
-            expressionFunctionBody_expression.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.expressionStatement) {
-      if (expressionStatement_expression != null)
-        _result["expressionStatement_expression"] =
-            expressionStatement_expression.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.extendsClause) {
-      if (extendsClause_superclass != null)
-        _result["extendsClause_superclass"] = extendsClause_superclass.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.forEachPartsWithDeclaration) {
-      if (forEachParts_iterable != null)
-        _result["forEachParts_iterable"] = forEachParts_iterable.toJson();
-      if (forEachPartsWithDeclaration_loopVariable != null)
-        _result["forEachPartsWithDeclaration_loopVariable"] =
-            forEachPartsWithDeclaration_loopVariable.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.forEachPartsWithIdentifier) {
-      if (forEachParts_iterable != null)
-        _result["forEachParts_iterable"] = forEachParts_iterable.toJson();
-      if (forEachPartsWithIdentifier_identifier != null)
-        _result["forEachPartsWithIdentifier_identifier"] =
-            forEachPartsWithIdentifier_identifier.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.forElement) {
-      if (forMixin_forLoopParts != null)
-        _result["forMixin_forLoopParts"] = forMixin_forLoopParts.toJson();
-      if (forElement_body != null)
-        _result["forElement_body"] = forElement_body.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.forStatement) {
-      if (forMixin_forLoopParts != null)
-        _result["forMixin_forLoopParts"] = forMixin_forLoopParts.toJson();
-      if (forStatement_body != null)
-        _result["forStatement_body"] = forStatement_body.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.forPartsWithDeclarations) {
-      if (forParts_condition != null)
-        _result["forParts_condition"] = forParts_condition.toJson();
-      if (forPartsWithDeclarations_variables != null)
-        _result["forPartsWithDeclarations_variables"] =
-            forPartsWithDeclarations_variables.toJson();
-      if (forParts_updaters.isNotEmpty)
-        _result["forParts_updaters"] =
-            forParts_updaters.map((_value) => _value.toJson()).toList();
-    }
-    if (kind == idl.LinkedNodeKind.forPartsWithExpression) {
-      if (forParts_condition != null)
-        _result["forParts_condition"] = forParts_condition.toJson();
-      if (forPartsWithExpression_initialization != null)
-        _result["forPartsWithExpression_initialization"] =
-            forPartsWithExpression_initialization.toJson();
-      if (forParts_updaters.isNotEmpty)
-        _result["forParts_updaters"] =
-            forParts_updaters.map((_value) => _value.toJson()).toList();
-    }
-    if (kind == idl.LinkedNodeKind.functionDeclarationStatement) {
-      if (functionDeclarationStatement_functionDeclaration != null)
-        _result["functionDeclarationStatement_functionDeclaration"] =
-            functionDeclarationStatement_functionDeclaration.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.ifElement) {
-      if (ifMixin_condition != null)
-        _result["ifMixin_condition"] = ifMixin_condition.toJson();
-      if (ifElement_thenElement != null)
-        _result["ifElement_thenElement"] = ifElement_thenElement.toJson();
-      if (ifElement_elseElement != null)
-        _result["ifElement_elseElement"] = ifElement_elseElement.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.ifStatement) {
-      if (ifMixin_condition != null)
-        _result["ifMixin_condition"] = ifMixin_condition.toJson();
-      if (ifStatement_elseStatement != null)
-        _result["ifStatement_elseStatement"] =
-            ifStatement_elseStatement.toJson();
-      if (ifStatement_thenStatement != null)
-        _result["ifStatement_thenStatement"] =
-            ifStatement_thenStatement.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.indexExpression) {
-      if (indexExpression_index != null)
-        _result["indexExpression_index"] = indexExpression_index.toJson();
-      if (indexExpression_target != null)
-        _result["indexExpression_target"] = indexExpression_target.toJson();
-      if (indexExpression_elementType != null)
-        _result["indexExpression_elementType"] =
-            indexExpression_elementType.toJson();
-      if (indexExpression_element != 0)
-        _result["indexExpression_element"] = indexExpression_element;
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.interpolationExpression) {
-      if (interpolationExpression_expression != null)
-        _result["interpolationExpression_expression"] =
-            interpolationExpression_expression.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.isExpression) {
-      if (isExpression_expression != null)
-        _result["isExpression_expression"] = isExpression_expression.toJson();
-      if (isExpression_type != null)
-        _result["isExpression_type"] = isExpression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.label) {
-      if (label_label != null) _result["label_label"] = label_label.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.mapLiteralEntry) {
-      if (mapLiteralEntry_key != null)
-        _result["mapLiteralEntry_key"] = mapLiteralEntry_key.toJson();
-      if (mapLiteralEntry_value != null)
-        _result["mapLiteralEntry_value"] = mapLiteralEntry_value.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.namedExpression) {
-      if (namedExpression_expression != null)
-        _result["namedExpression_expression"] =
-            namedExpression_expression.toJson();
-      if (namedExpression_name != null)
-        _result["namedExpression_name"] = namedExpression_name.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.nativeClause) {
-      if (nativeClause_name != null)
-        _result["nativeClause_name"] = nativeClause_name.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.nativeFunctionBody) {
-      if (nativeFunctionBody_stringLiteral != null)
-        _result["nativeFunctionBody_stringLiteral"] =
-            nativeFunctionBody_stringLiteral.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.parenthesizedExpression) {
-      if (parenthesizedExpression_expression != null)
-        _result["parenthesizedExpression_expression"] =
-            parenthesizedExpression_expression.toJson();
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
     if (kind == idl.LinkedNodeKind.postfixExpression) {
       if (postfixExpression_operand != null)
         _result["postfixExpression_operand"] =
@@ -12632,16 +14472,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (expression_type != null)
         _result["expression_type"] = expression_type.toJson();
     }
-    if (kind == idl.LinkedNodeKind.prefixedIdentifier) {
-      if (prefixedIdentifier_identifier != null)
-        _result["prefixedIdentifier_identifier"] =
-            prefixedIdentifier_identifier.toJson();
-      if (prefixedIdentifier_prefix != null)
-        _result["prefixedIdentifier_prefix"] =
-            prefixedIdentifier_prefix.toJson();
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
     if (kind == idl.LinkedNodeKind.prefixExpression) {
       if (prefixExpression_operand != null)
         _result["prefixExpression_operand"] = prefixExpression_operand.toJson();
@@ -12653,6 +14483,16 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (prefixExpression_operator != idl.UnlinkedTokenType.NOTHING)
         _result["prefixExpression_operator"] =
             prefixExpression_operator.toString().split('.')[1];
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.prefixedIdentifier) {
+      if (prefixedIdentifier_identifier != null)
+        _result["prefixedIdentifier_identifier"] =
+            prefixedIdentifier_identifier.toJson();
+      if (prefixedIdentifier_prefix != null)
+        _result["prefixedIdentifier_prefix"] =
+            prefixedIdentifier_prefix.toJson();
       if (expression_type != null)
         _result["expression_type"] = expression_type.toJson();
     }
@@ -12682,10 +14522,63 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["redirectingConstructorInvocation_element"] =
             redirectingConstructorInvocation_element;
     }
+    if (kind == idl.LinkedNodeKind.rethrowExpression) {
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+    }
     if (kind == idl.LinkedNodeKind.returnStatement) {
       if (returnStatement_expression != null)
         _result["returnStatement_expression"] =
             returnStatement_expression.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.setOrMapLiteral) {
+      if (typedLiteral_typeArguments.isNotEmpty)
+        _result["typedLiteral_typeArguments"] = typedLiteral_typeArguments
+            .map((_value) => _value.toJson())
+            .toList();
+      if (setOrMapLiteral_elements.isNotEmpty)
+        _result["setOrMapLiteral_elements"] =
+            setOrMapLiteral_elements.map((_value) => _value.toJson()).toList();
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.showCombinator) {
+      if (names.isNotEmpty) _result["names"] = names;
+    }
+    if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
+      if (actualType != null) _result["actualType"] = actualType.toJson();
+      if (normalFormalParameter_metadata.isNotEmpty)
+        _result["normalFormalParameter_metadata"] =
+            normalFormalParameter_metadata
+                .map((_value) => _value.toJson())
+                .toList();
+      if (simpleFormalParameter_type != null)
+        _result["simpleFormalParameter_type"] =
+            simpleFormalParameter_type.toJson();
+      if (inheritsCovariant != false)
+        _result["inheritsCovariant"] = inheritsCovariant;
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+      if (normalFormalParameter_comment != null)
+        _result["normalFormalParameter_comment"] =
+            normalFormalParameter_comment.toJson();
+      if (topLevelTypeInferenceError != null)
+        _result["topLevelTypeInferenceError"] =
+            topLevelTypeInferenceError.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.simpleIdentifier) {
+      if (simpleIdentifier_elementType != null)
+        _result["simpleIdentifier_elementType"] =
+            simpleIdentifier_elementType.toJson();
+      if (simpleIdentifier_element != 0)
+        _result["simpleIdentifier_element"] = simpleIdentifier_element;
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.simpleStringLiteral) {
+      if (simpleStringLiteral_value != '')
+        _result["simpleStringLiteral_value"] = simpleStringLiteral_value;
     }
     if (kind == idl.LinkedNodeKind.spreadElement) {
       if (spreadElement_expression != null)
@@ -12693,6 +14586,12 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (spreadElement_spreadOperator != idl.UnlinkedTokenType.NOTHING)
         _result["spreadElement_spreadOperator"] =
             spreadElement_spreadOperator.toString().split('.')[1];
+    }
+    if (kind == idl.LinkedNodeKind.stringInterpolation) {
+      if (stringInterpolation_elements.isNotEmpty)
+        _result["stringInterpolation_elements"] = stringInterpolation_elements
+            .map((_value) => _value.toJson())
+            .toList();
     }
     if (kind == idl.LinkedNodeKind.superConstructorInvocation) {
       if (superConstructorInvocation_arguments != null)
@@ -12708,12 +14607,142 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["superConstructorInvocation_element"] =
             superConstructorInvocation_element;
     }
+    if (kind == idl.LinkedNodeKind.superExpression) {
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.switchCase) {
+      if (switchMember_statements.isNotEmpty)
+        _result["switchMember_statements"] =
+            switchMember_statements.map((_value) => _value.toJson()).toList();
+      if (switchCase_expression != null)
+        _result["switchCase_expression"] = switchCase_expression.toJson();
+      if (switchMember_labels.isNotEmpty)
+        _result["switchMember_labels"] =
+            switchMember_labels.map((_value) => _value.toJson()).toList();
+    }
+    if (kind == idl.LinkedNodeKind.switchDefault) {
+      if (switchMember_statements.isNotEmpty)
+        _result["switchMember_statements"] =
+            switchMember_statements.map((_value) => _value.toJson()).toList();
+      if (switchMember_labels.isNotEmpty)
+        _result["switchMember_labels"] =
+            switchMember_labels.map((_value) => _value.toJson()).toList();
+    }
+    if (kind == idl.LinkedNodeKind.switchStatement) {
+      if (switchStatement_members.isNotEmpty)
+        _result["switchStatement_members"] =
+            switchStatement_members.map((_value) => _value.toJson()).toList();
+      if (switchStatement_expression != null)
+        _result["switchStatement_expression"] =
+            switchStatement_expression.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.symbolLiteral) {
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+      if (names.isNotEmpty) _result["names"] = names;
+    }
+    if (kind == idl.LinkedNodeKind.thisExpression) {
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
+    }
     if (kind == idl.LinkedNodeKind.throwExpression) {
       if (throwExpression_expression != null)
         _result["throwExpression_expression"] =
             throwExpression_expression.toJson();
       if (expression_type != null)
         _result["expression_type"] = expression_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.topLevelVariableDeclaration) {
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (topLevelVariableDeclaration_variableList != null)
+        _result["topLevelVariableDeclaration_variableList"] =
+            topLevelVariableDeclaration_variableList.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.tryStatement) {
+      if (tryStatement_catchClauses.isNotEmpty)
+        _result["tryStatement_catchClauses"] =
+            tryStatement_catchClauses.map((_value) => _value.toJson()).toList();
+      if (tryStatement_body != null)
+        _result["tryStatement_body"] = tryStatement_body.toJson();
+      if (tryStatement_finallyBlock != null)
+        _result["tryStatement_finallyBlock"] =
+            tryStatement_finallyBlock.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.typeArgumentList) {
+      if (typeArgumentList_arguments.isNotEmpty)
+        _result["typeArgumentList_arguments"] = typeArgumentList_arguments
+            .map((_value) => _value.toJson())
+            .toList();
+    }
+    if (kind == idl.LinkedNodeKind.typeName) {
+      if (typeName_typeArguments.isNotEmpty)
+        _result["typeName_typeArguments"] =
+            typeName_typeArguments.map((_value) => _value.toJson()).toList();
+      if (typeName_name != null)
+        _result["typeName_name"] = typeName_name.toJson();
+      if (typeName_type != null)
+        _result["typeName_type"] = typeName_type.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.typeParameter) {
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (typeParameter_bound != null)
+        _result["typeParameter_bound"] = typeParameter_bound.toJson();
+      if (typeParameter_defaultType != null)
+        _result["typeParameter_defaultType"] =
+            typeParameter_defaultType.toJson();
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+    }
+    if (kind == idl.LinkedNodeKind.typeParameterList) {
+      if (typeParameterList_typeParameters.isNotEmpty)
+        _result["typeParameterList_typeParameters"] =
+            typeParameterList_typeParameters
+                .map((_value) => _value.toJson())
+                .toList();
+    }
+    if (kind == idl.LinkedNodeKind.variableDeclaration) {
+      if (actualType != null) _result["actualType"] = actualType.toJson();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (variableDeclaration_initializer != null)
+        _result["variableDeclaration_initializer"] =
+            variableDeclaration_initializer.toJson();
+      if (inheritsCovariant != false)
+        _result["inheritsCovariant"] = inheritsCovariant;
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+      if (topLevelTypeInferenceError != null)
+        _result["topLevelTypeInferenceError"] =
+            topLevelTypeInferenceError.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.variableDeclarationList) {
+      if (variableDeclarationList_variables.isNotEmpty)
+        _result["variableDeclarationList_variables"] =
+            variableDeclarationList_variables
+                .map((_value) => _value.toJson())
+                .toList();
+      if (annotatedNode_comment != null)
+        _result["annotatedNode_comment"] = annotatedNode_comment.toJson();
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (variableDeclarationList_type != null)
+        _result["variableDeclarationList_type"] =
+            variableDeclarationList_type.toJson();
     }
     if (kind == idl.LinkedNodeKind.variableDeclarationStatement) {
       if (variableDeclarationStatement_variables != null)
@@ -12726,733 +14755,24 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (whileStatement_condition != null)
         _result["whileStatement_condition"] = whileStatement_condition.toJson();
     }
+    if (kind == idl.LinkedNodeKind.withClause) {
+      if (withClause_mixinTypes.isNotEmpty)
+        _result["withClause_mixinTypes"] =
+            withClause_mixinTypes.map((_value) => _value.toJson()).toList();
+    }
     if (kind == idl.LinkedNodeKind.yieldStatement) {
       if (yieldStatement_expression != null)
         _result["yieldStatement_expression"] =
             yieldStatement_expression.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.simpleIdentifier) {
-      if (simpleIdentifier_elementType != null)
-        _result["simpleIdentifier_elementType"] =
-            simpleIdentifier_elementType.toJson();
-      if (simpleIdentifier_element != 0)
-        _result["simpleIdentifier_element"] = simpleIdentifier_element;
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.emptyFunctionBody) {
-      if (emptyFunctionBody_fake != 0)
-        _result["emptyFunctionBody_fake"] = emptyFunctionBody_fake;
-    }
-    if (kind == idl.LinkedNodeKind.emptyStatement) {
-      if (emptyStatement_fake != 0)
-        _result["emptyStatement_fake"] = emptyStatement_fake;
-    }
-    if (kind == idl.LinkedNodeKind.nullLiteral) {
-      if (nullLiteral_fake != 0) _result["nullLiteral_fake"] = nullLiteral_fake;
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.booleanLiteral) {
-      if (booleanLiteral_value != false)
-        _result["booleanLiteral_value"] = booleanLiteral_value;
-    }
-    if (kind == idl.LinkedNodeKind.doubleLiteral) {
-      if (doubleLiteral_value != 0.0)
-        _result["doubleLiteral_value"] = doubleLiteral_value.isFinite
-            ? doubleLiteral_value
-            : doubleLiteral_value.toString();
-    }
-    if (kind == idl.LinkedNodeKind.rethrowExpression) {
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.superExpression) {
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.symbolLiteral) {
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-      if (names.isNotEmpty) _result["names"] = names;
-    }
-    if (kind == idl.LinkedNodeKind.thisExpression) {
-      if (expression_type != null)
-        _result["expression_type"] = expression_type.toJson();
-    }
-    if (kind == idl.LinkedNodeKind.integerLiteral) {
-      if (integerLiteral_value != 0)
-        _result["integerLiteral_value"] = integerLiteral_value;
-    }
-    if (kind == idl.LinkedNodeKind.interpolationString) {
-      if (interpolationString_value != '')
-        _result["interpolationString_value"] = interpolationString_value;
-    }
-    if (kind == idl.LinkedNodeKind.hideCombinator) {
-      if (names.isNotEmpty) _result["names"] = names;
-    }
-    if (kind == idl.LinkedNodeKind.showCombinator) {
-      if (names.isNotEmpty) _result["names"] = names;
-    }
-    if (kind == idl.LinkedNodeKind.simpleStringLiteral) {
-      if (simpleStringLiteral_value != '')
-        _result["simpleStringLiteral_value"] = simpleStringLiteral_value;
     }
     return _result;
   }
 
   @override
   Map<String, Object> toMap() {
-    if (kind == idl.LinkedNodeKind.functionDeclaration) {
-      return {
-        "actualReturnType": actualReturnType,
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "functionDeclaration_functionExpression":
-            functionDeclaration_functionExpression,
-        "functionDeclaration_returnType": functionDeclaration_returnType,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.functionExpression) {
-      return {
-        "actualReturnType": actualReturnType,
-        "functionExpression_body": functionExpression_body,
-        "functionExpression_formalParameters":
-            functionExpression_formalParameters,
-        "functionExpression_typeParameters": functionExpression_typeParameters,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.functionTypeAlias) {
-      return {
-        "actualReturnType": actualReturnType,
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "functionTypeAlias_formalParameters":
-            functionTypeAlias_formalParameters,
-        "functionTypeAlias_returnType": functionTypeAlias_returnType,
-        "functionTypeAlias_typeParameters": functionTypeAlias_typeParameters,
-        "typeAlias_hasSelfReference": typeAlias_hasSelfReference,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "kind": kind,
-        "name": name,
-        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.genericFunctionType) {
-      return {
-        "actualReturnType": actualReturnType,
-        "genericFunctionType_typeParameters":
-            genericFunctionType_typeParameters,
-        "genericFunctionType_returnType": genericFunctionType_returnType,
-        "genericFunctionType_id": genericFunctionType_id,
-        "genericFunctionType_formalParameters":
-            genericFunctionType_formalParameters,
-        "genericFunctionType_type": genericFunctionType_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.methodDeclaration) {
-      return {
-        "actualReturnType": actualReturnType,
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "methodDeclaration_body": methodDeclaration_body,
-        "methodDeclaration_formalParameters":
-            methodDeclaration_formalParameters,
-        "methodDeclaration_returnType": methodDeclaration_returnType,
-        "methodDeclaration_typeParameters": methodDeclaration_typeParameters,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
-      return {
-        "actualType": actualType,
-        "normalFormalParameter_metadata": normalFormalParameter_metadata,
-        "fieldFormalParameter_type": fieldFormalParameter_type,
-        "fieldFormalParameter_typeParameters":
-            fieldFormalParameter_typeParameters,
-        "fieldFormalParameter_formalParameters":
-            fieldFormalParameter_formalParameters,
-        "inheritsCovariant": inheritsCovariant,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "normalFormalParameter_comment": normalFormalParameter_comment,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
-      return {
-        "actualType": actualType,
-        "normalFormalParameter_metadata": normalFormalParameter_metadata,
-        "functionTypedFormalParameter_formalParameters":
-            functionTypedFormalParameter_formalParameters,
-        "functionTypedFormalParameter_returnType":
-            functionTypedFormalParameter_returnType,
-        "functionTypedFormalParameter_typeParameters":
-            functionTypedFormalParameter_typeParameters,
-        "inheritsCovariant": inheritsCovariant,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "normalFormalParameter_comment": normalFormalParameter_comment,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
-      return {
-        "actualType": actualType,
-        "normalFormalParameter_metadata": normalFormalParameter_metadata,
-        "simpleFormalParameter_type": simpleFormalParameter_type,
-        "inheritsCovariant": inheritsCovariant,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "normalFormalParameter_comment": normalFormalParameter_comment,
-        "kind": kind,
-        "name": name,
-        "topLevelTypeInferenceError": topLevelTypeInferenceError,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.variableDeclaration) {
-      return {
-        "actualType": actualType,
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "variableDeclaration_initializer": variableDeclaration_initializer,
-        "inheritsCovariant": inheritsCovariant,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "kind": kind,
-        "name": name,
-        "topLevelTypeInferenceError": topLevelTypeInferenceError,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.binaryExpression) {
-      return {
-        "binaryExpression_invokeType": binaryExpression_invokeType,
-        "binaryExpression_leftOperand": binaryExpression_leftOperand,
-        "binaryExpression_rightOperand": binaryExpression_rightOperand,
-        "binaryExpression_elementType": binaryExpression_elementType,
-        "binaryExpression_element": binaryExpression_element,
-        "binaryExpression_operator": binaryExpression_operator,
-        "expression_type": expression_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
-      return {
-        "invocationExpression_invokeType": invocationExpression_invokeType,
-        "functionExpressionInvocation_function":
-            functionExpressionInvocation_function,
-        "invocationExpression_typeArguments":
-            invocationExpression_typeArguments,
-        "expression_type": expression_type,
-        "flags": flags,
-        "invocationExpression_arguments": invocationExpression_arguments,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.methodInvocation) {
-      return {
-        "invocationExpression_invokeType": invocationExpression_invokeType,
-        "methodInvocation_methodName": methodInvocation_methodName,
-        "methodInvocation_target": methodInvocation_target,
-        "invocationExpression_typeArguments":
-            invocationExpression_typeArguments,
-        "expression_type": expression_type,
-        "flags": flags,
-        "invocationExpression_arguments": invocationExpression_arguments,
-        "kind": kind,
-        "name": name,
-      };
-    }
     if (kind == idl.LinkedNodeKind.adjacentStrings) {
       return {
         "adjacentStrings_strings": adjacentStrings_strings,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.argumentList) {
-      return {
-        "argumentList_arguments": argumentList_arguments,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.block) {
-      return {
-        "block_statements": block_statements,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.cascadeExpression) {
-      return {
-        "cascadeExpression_sections": cascadeExpression_sections,
-        "cascadeExpression_target": cascadeExpression_target,
-        "expression_type": expression_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.comment) {
-      return {
-        "comment_references": comment_references,
-        "comment_tokens": comment_tokens,
-        "comment_type": comment_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.compilationUnit) {
-      return {
-        "compilationUnit_declarations": compilationUnit_declarations,
-        "compilationUnit_scriptTag": compilationUnit_scriptTag,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "compilationUnit_directives": compilationUnit_directives,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.constructorDeclaration) {
-      return {
-        "constructorDeclaration_initializers":
-            constructorDeclaration_initializers,
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "constructorDeclaration_body": constructorDeclaration_body,
-        "constructorDeclaration_parameters": constructorDeclaration_parameters,
-        "constructorDeclaration_redirectedConstructor":
-            constructorDeclaration_redirectedConstructor,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "constructorDeclaration_returnType": constructorDeclaration_returnType,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.dottedName) {
-      return {
-        "dottedName_components": dottedName_components,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.enumDeclaration) {
-      return {
-        "enumDeclaration_constants": enumDeclaration_constants,
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.formalParameterList) {
-      return {
-        "formalParameterList_parameters": formalParameterList_parameters,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.implementsClause) {
-      return {
-        "implementsClause_interfaces": implementsClause_interfaces,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.instanceCreationExpression) {
-      return {
-        "instanceCreationExpression_arguments":
-            instanceCreationExpression_arguments,
-        "instanceCreationExpression_constructorName":
-            instanceCreationExpression_constructorName,
-        "instanceCreationExpression_typeArguments":
-            instanceCreationExpression_typeArguments,
-        "expression_type": expression_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.labeledStatement) {
-      return {
-        "labeledStatement_labels": labeledStatement_labels,
-        "labeledStatement_statement": labeledStatement_statement,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.libraryIdentifier) {
-      return {
-        "libraryIdentifier_components": libraryIdentifier_components,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.exportDirective) {
-      return {
-        "namespaceDirective_combinators": namespaceDirective_combinators,
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "namespaceDirective_configurations": namespaceDirective_configurations,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "uriBasedDirective_uri": uriBasedDirective_uri,
-        "kind": kind,
-        "name": name,
-        "namespaceDirective_selectedUri": namespaceDirective_selectedUri,
-        "uriBasedDirective_uriContent": uriBasedDirective_uriContent,
-        "uriBasedDirective_uriElement": uriBasedDirective_uriElement,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.importDirective) {
-      return {
-        "namespaceDirective_combinators": namespaceDirective_combinators,
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "importDirective_prefixOffset": importDirective_prefixOffset,
-        "namespaceDirective_configurations": namespaceDirective_configurations,
-        "flags": flags,
-        "importDirective_prefix": importDirective_prefix,
-        "nameOffset": nameOffset,
-        "uriBasedDirective_uri": uriBasedDirective_uri,
-        "kind": kind,
-        "name": name,
-        "namespaceDirective_selectedUri": namespaceDirective_selectedUri,
-        "uriBasedDirective_uriContent": uriBasedDirective_uriContent,
-        "uriBasedDirective_uriElement": uriBasedDirective_uriElement,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.onClause) {
-      return {
-        "onClause_superclassConstraints": onClause_superclassConstraints,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.stringInterpolation) {
-      return {
-        "stringInterpolation_elements": stringInterpolation_elements,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.switchStatement) {
-      return {
-        "switchStatement_members": switchStatement_members,
-        "switchStatement_expression": switchStatement_expression,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.tryStatement) {
-      return {
-        "tryStatement_catchClauses": tryStatement_catchClauses,
-        "tryStatement_body": tryStatement_body,
-        "tryStatement_finallyBlock": tryStatement_finallyBlock,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.typeArgumentList) {
-      return {
-        "typeArgumentList_arguments": typeArgumentList_arguments,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.listLiteral) {
-      return {
-        "typedLiteral_typeArguments": typedLiteral_typeArguments,
-        "listLiteral_elements": listLiteral_elements,
-        "expression_type": expression_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.setOrMapLiteral) {
-      return {
-        "typedLiteral_typeArguments": typedLiteral_typeArguments,
-        "setOrMapLiteral_elements": setOrMapLiteral_elements,
-        "expression_type": expression_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.typeName) {
-      return {
-        "typeName_typeArguments": typeName_typeArguments,
-        "typeName_name": typeName_name,
-        "typeName_type": typeName_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.typeParameterList) {
-      return {
-        "typeParameterList_typeParameters": typeParameterList_typeParameters,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.variableDeclarationList) {
-      return {
-        "variableDeclarationList_variables": variableDeclarationList_variables,
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "variableDeclarationList_type": variableDeclarationList_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.withClause) {
-      return {
-        "withClause_mixinTypes": withClause_mixinTypes,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.classDeclaration) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "classDeclaration_extendsClause": classDeclaration_extendsClause,
-        "classDeclaration_withClause": classDeclaration_withClause,
-        "classDeclaration_nativeClause": classDeclaration_nativeClause,
-        "classDeclaration_isDartObject": classDeclaration_isDartObject,
-        "classOrMixinDeclaration_implementsClause":
-            classOrMixinDeclaration_implementsClause,
-        "classOrMixinDeclaration_members": classOrMixinDeclaration_members,
-        "classOrMixinDeclaration_typeParameters":
-            classOrMixinDeclaration_typeParameters,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "kind": kind,
-        "name": name,
-        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.classTypeAlias) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "classTypeAlias_typeParameters": classTypeAlias_typeParameters,
-        "classTypeAlias_superclass": classTypeAlias_superclass,
-        "classTypeAlias_withClause": classTypeAlias_withClause,
-        "classTypeAlias_implementsClause": classTypeAlias_implementsClause,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "kind": kind,
-        "name": name,
-        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.declaredIdentifier) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "declaredIdentifier_identifier": declaredIdentifier_identifier,
-        "declaredIdentifier_type": declaredIdentifier_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.enumConstantDeclaration) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.fieldDeclaration) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "fieldDeclaration_fields": fieldDeclaration_fields,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.genericTypeAlias) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "genericTypeAlias_typeParameters": genericTypeAlias_typeParameters,
-        "genericTypeAlias_functionType": genericTypeAlias_functionType,
-        "typeAlias_hasSelfReference": typeAlias_hasSelfReference,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "kind": kind,
-        "name": name,
-        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.libraryDirective) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "libraryDirective_name": libraryDirective_name,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.mixinDeclaration) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "mixinDeclaration_onClause": mixinDeclaration_onClause,
-        "classOrMixinDeclaration_implementsClause":
-            classOrMixinDeclaration_implementsClause,
-        "classOrMixinDeclaration_members": classOrMixinDeclaration_members,
-        "classOrMixinDeclaration_typeParameters":
-            classOrMixinDeclaration_typeParameters,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "kind": kind,
-        "mixinDeclaration_superInvokedNames":
-            mixinDeclaration_superInvokedNames,
-        "name": name,
-        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.partDirective) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "uriBasedDirective_uri": uriBasedDirective_uri,
-        "kind": kind,
-        "name": name,
-        "uriBasedDirective_uriContent": uriBasedDirective_uriContent,
-        "uriBasedDirective_uriElement": uriBasedDirective_uriElement,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.partOfDirective) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "partOfDirective_libraryName": partOfDirective_libraryName,
-        "partOfDirective_uri": partOfDirective_uri,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.topLevelVariableDeclaration) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "topLevelVariableDeclaration_variableList":
-            topLevelVariableDeclaration_variableList,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.typeParameter) {
-      return {
-        "annotatedNode_comment": annotatedNode_comment,
-        "annotatedNode_metadata": annotatedNode_metadata,
-        "typeParameter_bound": typeParameter_bound,
-        "typeParameter_defaultType": typeParameter_defaultType,
-        "codeLength": codeLength,
-        "codeOffset": codeOffset,
-        "flags": flags,
-        "nameOffset": nameOffset,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.switchCase) {
-      return {
-        "switchMember_statements": switchMember_statements,
-        "switchCase_expression": switchCase_expression,
-        "switchMember_labels": switchMember_labels,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.switchDefault) {
-      return {
-        "switchMember_statements": switchMember_statements,
-        "switchMember_labels": switchMember_labels,
         "flags": flags,
         "kind": kind,
         "name": name,
@@ -13465,6 +14785,14 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "annotation_element": annotation_element,
         "annotation_elementType": annotation_elementType,
         "annotation_name": annotation_name,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.argumentList) {
+      return {
+        "argumentList_arguments": argumentList_arguments,
         "flags": flags,
         "kind": kind,
         "name": name,
@@ -13521,6 +14849,28 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "name": name,
       };
     }
+    if (kind == idl.LinkedNodeKind.binaryExpression) {
+      return {
+        "binaryExpression_invokeType": binaryExpression_invokeType,
+        "binaryExpression_leftOperand": binaryExpression_leftOperand,
+        "binaryExpression_rightOperand": binaryExpression_rightOperand,
+        "binaryExpression_elementType": binaryExpression_elementType,
+        "binaryExpression_element": binaryExpression_element,
+        "binaryExpression_operator": binaryExpression_operator,
+        "expression_type": expression_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.block) {
+      return {
+        "block_statements": block_statements,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
     if (kind == idl.LinkedNodeKind.blockFunctionBody) {
       return {
         "blockFunctionBody_block": blockFunctionBody_block,
@@ -13529,9 +14879,27 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "name": name,
       };
     }
+    if (kind == idl.LinkedNodeKind.booleanLiteral) {
+      return {
+        "booleanLiteral_value": booleanLiteral_value,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
     if (kind == idl.LinkedNodeKind.breakStatement) {
       return {
         "breakStatement_label": breakStatement_label,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.cascadeExpression) {
+      return {
+        "cascadeExpression_sections": cascadeExpression_sections,
+        "cascadeExpression_target": cascadeExpression_target,
+        "expression_type": expression_type,
         "flags": flags,
         "kind": kind,
         "name": name,
@@ -13548,9 +14916,70 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "name": name,
       };
     }
+    if (kind == idl.LinkedNodeKind.classDeclaration) {
+      return {
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "classDeclaration_extendsClause": classDeclaration_extendsClause,
+        "classDeclaration_withClause": classDeclaration_withClause,
+        "classDeclaration_nativeClause": classDeclaration_nativeClause,
+        "classDeclaration_isDartObject": classDeclaration_isDartObject,
+        "classOrMixinDeclaration_implementsClause":
+            classOrMixinDeclaration_implementsClause,
+        "classOrMixinDeclaration_members": classOrMixinDeclaration_members,
+        "classOrMixinDeclaration_typeParameters":
+            classOrMixinDeclaration_typeParameters,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "kind": kind,
+        "name": name,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.classTypeAlias) {
+      return {
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "classTypeAlias_typeParameters": classTypeAlias_typeParameters,
+        "classTypeAlias_superclass": classTypeAlias_superclass,
+        "classTypeAlias_withClause": classTypeAlias_withClause,
+        "classTypeAlias_implementsClause": classTypeAlias_implementsClause,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "kind": kind,
+        "name": name,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.comment) {
+      return {
+        "comment_references": comment_references,
+        "comment_tokens": comment_tokens,
+        "comment_type": comment_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
     if (kind == idl.LinkedNodeKind.commentReference) {
       return {
         "commentReference_identifier": commentReference_identifier,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.compilationUnit) {
+      return {
+        "compilationUnit_declarations": compilationUnit_declarations,
+        "compilationUnit_scriptTag": compilationUnit_scriptTag,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "compilationUnit_directives": compilationUnit_directives,
         "flags": flags,
         "kind": kind,
         "name": name,
@@ -13575,6 +15004,25 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "configuration_value": configuration_value,
         "configuration_uri": configuration_uri,
         "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.constructorDeclaration) {
+      return {
+        "constructorDeclaration_initializers":
+            constructorDeclaration_initializers,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "constructorDeclaration_body": constructorDeclaration_body,
+        "constructorDeclaration_parameters": constructorDeclaration_parameters,
+        "constructorDeclaration_redirectedConstructor":
+            constructorDeclaration_redirectedConstructor,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "constructorDeclaration_returnType": constructorDeclaration_returnType,
+        "flags": flags,
+        "nameOffset": nameOffset,
         "kind": kind,
         "name": name,
       };
@@ -13609,6 +15057,17 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "name": name,
       };
     }
+    if (kind == idl.LinkedNodeKind.declaredIdentifier) {
+      return {
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "declaredIdentifier_identifier": declaredIdentifier_identifier,
+        "declaredIdentifier_type": declaredIdentifier_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
     if (kind == idl.LinkedNodeKind.defaultFormalParameter) {
       return {
         "defaultFormalParameter_defaultValue":
@@ -13631,6 +15090,77 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "name": name,
       };
     }
+    if (kind == idl.LinkedNodeKind.dottedName) {
+      return {
+        "dottedName_components": dottedName_components,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.doubleLiteral) {
+      return {
+        "doubleLiteral_value": doubleLiteral_value,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.emptyFunctionBody) {
+      return {
+        "emptyFunctionBody_fake": emptyFunctionBody_fake,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.emptyStatement) {
+      return {
+        "emptyStatement_fake": emptyStatement_fake,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.enumConstantDeclaration) {
+      return {
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.enumDeclaration) {
+      return {
+        "enumDeclaration_constants": enumDeclaration_constants,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.exportDirective) {
+      return {
+        "namespaceDirective_combinators": namespaceDirective_combinators,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "namespaceDirective_configurations": namespaceDirective_configurations,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "uriBasedDirective_uri": uriBasedDirective_uri,
+        "kind": kind,
+        "name": name,
+        "namespaceDirective_selectedUri": namespaceDirective_selectedUri,
+        "uriBasedDirective_uriContent": uriBasedDirective_uriContent,
+        "uriBasedDirective_uriElement": uriBasedDirective_uriElement,
+      };
+    }
     if (kind == idl.LinkedNodeKind.expressionFunctionBody) {
       return {
         "expressionFunctionBody_expression": expressionFunctionBody_expression,
@@ -13651,6 +15181,35 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       return {
         "extendsClause_superclass": extendsClause_superclass,
         "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.fieldDeclaration) {
+      return {
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "fieldDeclaration_fields": fieldDeclaration_fields,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
+      return {
+        "actualType": actualType,
+        "normalFormalParameter_metadata": normalFormalParameter_metadata,
+        "fieldFormalParameter_type": fieldFormalParameter_type,
+        "fieldFormalParameter_typeParameters":
+            fieldFormalParameter_typeParameters,
+        "fieldFormalParameter_formalParameters":
+            fieldFormalParameter_formalParameters,
+        "inheritsCovariant": inheritsCovariant,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "normalFormalParameter_comment": normalFormalParameter_comment,
         "kind": kind,
         "name": name,
       };
@@ -13684,15 +15243,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "name": name,
       };
     }
-    if (kind == idl.LinkedNodeKind.forStatement) {
-      return {
-        "forMixin_forLoopParts": forMixin_forLoopParts,
-        "forStatement_body": forStatement_body,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
     if (kind == idl.LinkedNodeKind.forPartsWithDeclarations) {
       return {
         "forParts_condition": forParts_condition,
@@ -13715,12 +15265,149 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "name": name,
       };
     }
+    if (kind == idl.LinkedNodeKind.forStatement) {
+      return {
+        "forMixin_forLoopParts": forMixin_forLoopParts,
+        "forStatement_body": forStatement_body,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.formalParameterList) {
+      return {
+        "formalParameterList_parameters": formalParameterList_parameters,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.functionDeclaration) {
+      return {
+        "actualReturnType": actualReturnType,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "functionDeclaration_functionExpression":
+            functionDeclaration_functionExpression,
+        "functionDeclaration_returnType": functionDeclaration_returnType,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "kind": kind,
+        "name": name,
+      };
+    }
     if (kind == idl.LinkedNodeKind.functionDeclarationStatement) {
       return {
         "functionDeclarationStatement_functionDeclaration":
             functionDeclarationStatement_functionDeclaration,
         "flags": flags,
         "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.functionExpression) {
+      return {
+        "actualReturnType": actualReturnType,
+        "functionExpression_body": functionExpression_body,
+        "functionExpression_formalParameters":
+            functionExpression_formalParameters,
+        "functionExpression_typeParameters": functionExpression_typeParameters,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.functionExpressionInvocation) {
+      return {
+        "invocationExpression_invokeType": invocationExpression_invokeType,
+        "functionExpressionInvocation_function":
+            functionExpressionInvocation_function,
+        "invocationExpression_typeArguments":
+            invocationExpression_typeArguments,
+        "expression_type": expression_type,
+        "flags": flags,
+        "invocationExpression_arguments": invocationExpression_arguments,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.functionTypeAlias) {
+      return {
+        "actualReturnType": actualReturnType,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "functionTypeAlias_formalParameters":
+            functionTypeAlias_formalParameters,
+        "functionTypeAlias_returnType": functionTypeAlias_returnType,
+        "functionTypeAlias_typeParameters": functionTypeAlias_typeParameters,
+        "typeAlias_hasSelfReference": typeAlias_hasSelfReference,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "kind": kind,
+        "name": name,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
+      return {
+        "actualType": actualType,
+        "normalFormalParameter_metadata": normalFormalParameter_metadata,
+        "functionTypedFormalParameter_formalParameters":
+            functionTypedFormalParameter_formalParameters,
+        "functionTypedFormalParameter_returnType":
+            functionTypedFormalParameter_returnType,
+        "functionTypedFormalParameter_typeParameters":
+            functionTypedFormalParameter_typeParameters,
+        "inheritsCovariant": inheritsCovariant,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "normalFormalParameter_comment": normalFormalParameter_comment,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.genericFunctionType) {
+      return {
+        "actualReturnType": actualReturnType,
+        "genericFunctionType_typeParameters":
+            genericFunctionType_typeParameters,
+        "genericFunctionType_returnType": genericFunctionType_returnType,
+        "genericFunctionType_id": genericFunctionType_id,
+        "genericFunctionType_formalParameters":
+            genericFunctionType_formalParameters,
+        "genericFunctionType_type": genericFunctionType_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.genericTypeAlias) {
+      return {
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "genericTypeAlias_typeParameters": genericTypeAlias_typeParameters,
+        "genericTypeAlias_functionType": genericTypeAlias_functionType,
+        "typeAlias_hasSelfReference": typeAlias_hasSelfReference,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "kind": kind,
+        "name": name,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.hideCombinator) {
+      return {
+        "flags": flags,
+        "kind": kind,
+        "names": names,
         "name": name,
       };
     }
@@ -13744,6 +15431,32 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "name": name,
       };
     }
+    if (kind == idl.LinkedNodeKind.implementsClause) {
+      return {
+        "implementsClause_interfaces": implementsClause_interfaces,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.importDirective) {
+      return {
+        "namespaceDirective_combinators": namespaceDirective_combinators,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "importDirective_prefixOffset": importDirective_prefixOffset,
+        "namespaceDirective_configurations": namespaceDirective_configurations,
+        "flags": flags,
+        "importDirective_prefix": importDirective_prefix,
+        "nameOffset": nameOffset,
+        "uriBasedDirective_uri": uriBasedDirective_uri,
+        "kind": kind,
+        "name": name,
+        "namespaceDirective_selectedUri": namespaceDirective_selectedUri,
+        "uriBasedDirective_uriContent": uriBasedDirective_uriContent,
+        "uriBasedDirective_uriElement": uriBasedDirective_uriElement,
+      };
+    }
     if (kind == idl.LinkedNodeKind.indexExpression) {
       return {
         "indexExpression_index": indexExpression_index,
@@ -13756,11 +15469,41 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "name": name,
       };
     }
+    if (kind == idl.LinkedNodeKind.instanceCreationExpression) {
+      return {
+        "instanceCreationExpression_arguments":
+            instanceCreationExpression_arguments,
+        "instanceCreationExpression_constructorName":
+            instanceCreationExpression_constructorName,
+        "instanceCreationExpression_typeArguments":
+            instanceCreationExpression_typeArguments,
+        "expression_type": expression_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.integerLiteral) {
+      return {
+        "flags": flags,
+        "integerLiteral_value": integerLiteral_value,
+        "kind": kind,
+        "name": name,
+      };
+    }
     if (kind == idl.LinkedNodeKind.interpolationExpression) {
       return {
         "interpolationExpression_expression":
             interpolationExpression_expression,
         "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.interpolationString) {
+      return {
+        "flags": flags,
+        "interpolationString_value": interpolationString_value,
         "kind": kind,
         "name": name,
       };
@@ -13782,6 +15525,43 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "name": name,
       };
     }
+    if (kind == idl.LinkedNodeKind.labeledStatement) {
+      return {
+        "labeledStatement_labels": labeledStatement_labels,
+        "labeledStatement_statement": labeledStatement_statement,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.libraryDirective) {
+      return {
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "libraryDirective_name": libraryDirective_name,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.libraryIdentifier) {
+      return {
+        "libraryIdentifier_components": libraryIdentifier_components,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.listLiteral) {
+      return {
+        "typedLiteral_typeArguments": typedLiteral_typeArguments,
+        "listLiteral_elements": listLiteral_elements,
+        "expression_type": expression_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
     if (kind == idl.LinkedNodeKind.mapLiteralEntry) {
       return {
         "mapLiteralEntry_key": mapLiteralEntry_key,
@@ -13789,6 +15569,59 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "flags": flags,
         "kind": kind,
         "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.methodDeclaration) {
+      return {
+        "actualReturnType": actualReturnType,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "methodDeclaration_body": methodDeclaration_body,
+        "methodDeclaration_formalParameters":
+            methodDeclaration_formalParameters,
+        "methodDeclaration_returnType": methodDeclaration_returnType,
+        "methodDeclaration_typeParameters": methodDeclaration_typeParameters,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.methodInvocation) {
+      return {
+        "invocationExpression_invokeType": invocationExpression_invokeType,
+        "methodInvocation_methodName": methodInvocation_methodName,
+        "methodInvocation_target": methodInvocation_target,
+        "invocationExpression_typeArguments":
+            invocationExpression_typeArguments,
+        "expression_type": expression_type,
+        "flags": flags,
+        "invocationExpression_arguments": invocationExpression_arguments,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.mixinDeclaration) {
+      return {
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "mixinDeclaration_onClause": mixinDeclaration_onClause,
+        "classOrMixinDeclaration_implementsClause":
+            classOrMixinDeclaration_implementsClause,
+        "classOrMixinDeclaration_members": classOrMixinDeclaration_members,
+        "classOrMixinDeclaration_typeParameters":
+            classOrMixinDeclaration_typeParameters,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "kind": kind,
+        "mixinDeclaration_superInvokedNames":
+            mixinDeclaration_superInvokedNames,
+        "name": name,
+        "simplyBoundable_isSimplyBounded": simplyBoundable_isSimplyBounded,
       };
     }
     if (kind == idl.LinkedNodeKind.namedExpression) {
@@ -13816,11 +15649,52 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "name": name,
       };
     }
+    if (kind == idl.LinkedNodeKind.nullLiteral) {
+      return {
+        "nullLiteral_fake": nullLiteral_fake,
+        "expression_type": expression_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.onClause) {
+      return {
+        "onClause_superclassConstraints": onClause_superclassConstraints,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
     if (kind == idl.LinkedNodeKind.parenthesizedExpression) {
       return {
         "parenthesizedExpression_expression":
             parenthesizedExpression_expression,
         "expression_type": expression_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.partDirective) {
+      return {
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "uriBasedDirective_uri": uriBasedDirective_uri,
+        "kind": kind,
+        "name": name,
+        "uriBasedDirective_uriContent": uriBasedDirective_uriContent,
+        "uriBasedDirective_uriElement": uriBasedDirective_uriElement,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.partOfDirective) {
+      return {
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "partOfDirective_libraryName": partOfDirective_libraryName,
+        "partOfDirective_uri": partOfDirective_uri,
         "flags": flags,
         "kind": kind,
         "name": name,
@@ -13838,22 +15712,22 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "name": name,
       };
     }
-    if (kind == idl.LinkedNodeKind.prefixedIdentifier) {
-      return {
-        "prefixedIdentifier_identifier": prefixedIdentifier_identifier,
-        "prefixedIdentifier_prefix": prefixedIdentifier_prefix,
-        "expression_type": expression_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
     if (kind == idl.LinkedNodeKind.prefixExpression) {
       return {
         "prefixExpression_operand": prefixExpression_operand,
         "prefixExpression_elementType": prefixExpression_elementType,
         "prefixExpression_element": prefixExpression_element,
         "prefixExpression_operator": prefixExpression_operator,
+        "expression_type": expression_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.prefixedIdentifier) {
+      return {
+        "prefixedIdentifier_identifier": prefixedIdentifier_identifier,
+        "prefixedIdentifier_prefix": prefixedIdentifier_prefix,
         "expression_type": expression_type,
         "flags": flags,
         "kind": kind,
@@ -13886,12 +15760,72 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "name": name,
       };
     }
+    if (kind == idl.LinkedNodeKind.rethrowExpression) {
+      return {
+        "expression_type": expression_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
     if (kind == idl.LinkedNodeKind.returnStatement) {
       return {
         "returnStatement_expression": returnStatement_expression,
         "flags": flags,
         "kind": kind,
         "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.setOrMapLiteral) {
+      return {
+        "typedLiteral_typeArguments": typedLiteral_typeArguments,
+        "setOrMapLiteral_elements": setOrMapLiteral_elements,
+        "expression_type": expression_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.showCombinator) {
+      return {
+        "flags": flags,
+        "kind": kind,
+        "names": names,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
+      return {
+        "actualType": actualType,
+        "normalFormalParameter_metadata": normalFormalParameter_metadata,
+        "simpleFormalParameter_type": simpleFormalParameter_type,
+        "inheritsCovariant": inheritsCovariant,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "normalFormalParameter_comment": normalFormalParameter_comment,
+        "kind": kind,
+        "name": name,
+        "topLevelTypeInferenceError": topLevelTypeInferenceError,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.simpleIdentifier) {
+      return {
+        "simpleIdentifier_elementType": simpleIdentifier_elementType,
+        "simpleIdentifier_element": simpleIdentifier_element,
+        "expression_type": expression_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.simpleStringLiteral) {
+      return {
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+        "simpleStringLiteral_value": simpleStringLiteral_value,
       };
     }
     if (kind == idl.LinkedNodeKind.spreadElement) {
@@ -13901,6 +15835,14 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "kind": kind,
         "name": name,
         "spreadElement_spreadOperator": spreadElement_spreadOperator,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.stringInterpolation) {
+      return {
+        "stringInterpolation_elements": stringInterpolation_elements,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
       };
     }
     if (kind == idl.LinkedNodeKind.superConstructorInvocation) {
@@ -13918,10 +15860,151 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "name": name,
       };
     }
+    if (kind == idl.LinkedNodeKind.superExpression) {
+      return {
+        "expression_type": expression_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.switchCase) {
+      return {
+        "switchMember_statements": switchMember_statements,
+        "switchCase_expression": switchCase_expression,
+        "switchMember_labels": switchMember_labels,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.switchDefault) {
+      return {
+        "switchMember_statements": switchMember_statements,
+        "switchMember_labels": switchMember_labels,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.switchStatement) {
+      return {
+        "switchStatement_members": switchStatement_members,
+        "switchStatement_expression": switchStatement_expression,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.symbolLiteral) {
+      return {
+        "expression_type": expression_type,
+        "flags": flags,
+        "kind": kind,
+        "names": names,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.thisExpression) {
+      return {
+        "expression_type": expression_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
     if (kind == idl.LinkedNodeKind.throwExpression) {
       return {
         "throwExpression_expression": throwExpression_expression,
         "expression_type": expression_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.topLevelVariableDeclaration) {
+      return {
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "topLevelVariableDeclaration_variableList":
+            topLevelVariableDeclaration_variableList,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.tryStatement) {
+      return {
+        "tryStatement_catchClauses": tryStatement_catchClauses,
+        "tryStatement_body": tryStatement_body,
+        "tryStatement_finallyBlock": tryStatement_finallyBlock,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.typeArgumentList) {
+      return {
+        "typeArgumentList_arguments": typeArgumentList_arguments,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.typeName) {
+      return {
+        "typeName_typeArguments": typeName_typeArguments,
+        "typeName_name": typeName_name,
+        "typeName_type": typeName_type,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.typeParameter) {
+      return {
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "typeParameter_bound": typeParameter_bound,
+        "typeParameter_defaultType": typeParameter_defaultType,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.typeParameterList) {
+      return {
+        "typeParameterList_typeParameters": typeParameterList_typeParameters,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.variableDeclaration) {
+      return {
+        "actualType": actualType,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "variableDeclaration_initializer": variableDeclaration_initializer,
+        "inheritsCovariant": inheritsCovariant,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "flags": flags,
+        "nameOffset": nameOffset,
+        "kind": kind,
+        "name": name,
+        "topLevelTypeInferenceError": topLevelTypeInferenceError,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.variableDeclarationList) {
+      return {
+        "variableDeclarationList_variables": variableDeclarationList_variables,
+        "annotatedNode_comment": annotatedNode_comment,
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "variableDeclarationList_type": variableDeclarationList_type,
         "flags": flags,
         "kind": kind,
         "name": name,
@@ -13945,136 +16028,20 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "name": name,
       };
     }
+    if (kind == idl.LinkedNodeKind.withClause) {
+      return {
+        "withClause_mixinTypes": withClause_mixinTypes,
+        "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
     if (kind == idl.LinkedNodeKind.yieldStatement) {
       return {
         "yieldStatement_expression": yieldStatement_expression,
         "flags": flags,
         "kind": kind,
         "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.simpleIdentifier) {
-      return {
-        "simpleIdentifier_elementType": simpleIdentifier_elementType,
-        "simpleIdentifier_element": simpleIdentifier_element,
-        "expression_type": expression_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.emptyFunctionBody) {
-      return {
-        "emptyFunctionBody_fake": emptyFunctionBody_fake,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.emptyStatement) {
-      return {
-        "emptyStatement_fake": emptyStatement_fake,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.nullLiteral) {
-      return {
-        "nullLiteral_fake": nullLiteral_fake,
-        "expression_type": expression_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.booleanLiteral) {
-      return {
-        "booleanLiteral_value": booleanLiteral_value,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.doubleLiteral) {
-      return {
-        "doubleLiteral_value": doubleLiteral_value,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.rethrowExpression) {
-      return {
-        "expression_type": expression_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.superExpression) {
-      return {
-        "expression_type": expression_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.symbolLiteral) {
-      return {
-        "expression_type": expression_type,
-        "flags": flags,
-        "kind": kind,
-        "names": names,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.thisExpression) {
-      return {
-        "expression_type": expression_type,
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.integerLiteral) {
-      return {
-        "flags": flags,
-        "integerLiteral_value": integerLiteral_value,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.interpolationString) {
-      return {
-        "flags": flags,
-        "interpolationString_value": interpolationString_value,
-        "kind": kind,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.hideCombinator) {
-      return {
-        "flags": flags,
-        "kind": kind,
-        "names": names,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.showCombinator) {
-      return {
-        "flags": flags,
-        "kind": kind,
-        "names": names,
-        "name": name,
-      };
-    }
-    if (kind == idl.LinkedNodeKind.simpleStringLiteral) {
-      return {
-        "flags": flags,
-        "kind": kind,
-        "name": name,
-        "simpleStringLiteral_value": simpleStringLiteral_value,
       };
     }
     throw StateError("Unexpected $kind");
