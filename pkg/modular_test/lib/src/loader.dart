@@ -43,7 +43,10 @@ Future<ModularTest> loadTest(Uri uri) async {
   String specString;
   Module mainModule;
   Map<String, Uri> packages = {};
-  await for (var entry in folder.list(recursive: false)) {
+  var entries = folder.listSync(recursive: false).toList()
+    // Sort to avoid dependency on file system order.
+    ..sort(_compareFileSystemEntity);
+  for (var entry in entries) {
     var entryUri = entry.uri;
     if (entry is File) {
       var fileName = entryUri.path.substring(testUri.path.length);
@@ -246,4 +249,21 @@ class InvalidTestError extends Error {
   final String message;
   InvalidTestError(this.message);
   String toString() => "Invalid test: $message";
+}
+
+/// Comparator to sort directories before files.
+int _compareFileSystemEntity(FileSystemEntity a, FileSystemEntity b) {
+  if (a is Directory) {
+    if (b is Directory) {
+      return a.path.compareTo(b.path);
+    } else {
+      return -1;
+    }
+  } else {
+    if (b is Directory) {
+      return 1;
+    } else {
+      return a.path.compareTo(b.path);
+    }
+  }
 }
