@@ -856,9 +856,23 @@ void ConstantPropagator::VisitLoadUntagged(LoadUntaggedInstr* instr) {
 }
 
 void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
+  // This first part duplicates the work done in LoadClassIdInstr::Canonicalize,
+  // which replaces uses of LoadClassIdInstr where the object has a concrete
+  // type with a Constant. Canonicalize runs before the ConstantPropagation
+  // pass, so if that was all, this wouldn't be needed.
+  //
+  // However, the ConstantPropagator also runs as part of OptimizeBranches, and
+  // TypePropagation runs between it and the previous Canonicalize. Thus, the
+  // type may have become concrete and we should take that into account. Not
+  // doing so led to some benchmark regressions.
+  intptr_t cid = instr->object()->Type()->ToCid();
+  if (cid != kDynamicCid) {
+    SetValue(instr, Smi::ZoneHandle(Z, Smi::New(cid)));
+    return;
+  }
   const Object& object = instr->object()->definition()->constant_value();
   if (IsConstant(object)) {
-    const intptr_t cid = object.GetClassId();
+    cid = object.GetClassId();
     SetValue(instr, Smi::ZoneHandle(Z, Smi::New(cid)));
     return;
   }
