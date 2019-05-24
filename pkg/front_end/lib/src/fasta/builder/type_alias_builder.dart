@@ -19,7 +19,7 @@ abstract class TypeAliasBuilder<T extends TypeBuilder, R>
   final List<TypeVariableBuilder<T, R>> typeVariables;
 
   TypeAliasBuilder(
-      List<MetadataBuilder<T>> metadata,
+      List<MetadataBuilder> metadata,
       String name,
       this.typeVariables,
       this.type,

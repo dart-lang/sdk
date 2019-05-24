@@ -12,7 +12,7 @@ abstract class EnumBuilder<T extends TypeBuilder, R>
 }
 
 class EnumConstantInfo {
-  final List<MetadataBuilder<TypeBuilder>> metadata;
+  final List<MetadataBuilder> metadata;
   final String name;
   final int charOffset;
   final String documentationComment;
