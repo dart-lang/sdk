@@ -54,15 +54,511 @@ List<GeneratedContent> getAllTargets(String idlPath) {
 
 typedef String _StringToString(String s);
 
-class _CodeGenerator {
+class _BaseGenerator {
   static const String _throwDeprecated =
       "throw new UnimplementedError('attempt to access deprecated field')";
 
+  /// Semantic model of the "IDL" input file.
+  final idlModel.Idl _idl;
+
   /// Buffer in which generated code is accumulated.
-  final StringBuffer _outBuffer = new StringBuffer();
+  final StringBuffer _outBuffer;
 
   /// Current indentation level.
   String _indentation = '';
+
+  _BaseGenerator(this._idl, this._outBuffer);
+
+  /// Generate a Dart expression representing the default value for a field
+  /// having the given [type], or `null` if there is no default value.
+  ///
+  /// If [builder] is `true`, the returned type should be appropriate for use in
+  /// a builder class.
+  String defaultValue(idlModel.FieldType type, bool builder) {
+    if (type.isList) {
+      if (builder) {
+        idlModel.FieldType elementType =
+            new idlModel.FieldType(type.typeName, false);
+        return '<${encodedType(elementType)}>[]';
+      } else {
+        return 'const <${idlPrefix(type.typeName)}>[]';
+      }
+    } else if (_idl.enums.containsKey(type.typeName)) {
+      return '${idlPrefix(type.typeName)}.'
+          '${_idl.enums[type.typeName].values[0].name}';
+    } else if (type.typeName == 'double') {
+      return '0.0';
+    } else if (type.typeName == 'int') {
+      return '0';
+    } else if (type.typeName == 'String') {
+      return "''";
+    } else if (type.typeName == 'bool') {
+      return 'false';
+    } else {
+      return null;
+    }
+  }
+
+  /// Generate a string representing the Dart type which should be used to
+  /// represent [type] while building a serialized data structure.
+  String encodedType(idlModel.FieldType type) {
+    String typeStr;
+    if (_idl.classes.containsKey(type.typeName)) {
+      typeStr = '${type.typeName}Builder';
+    } else {
+      typeStr = idlPrefix(type.typeName);
+    }
+    if (type.isList) {
+      return 'List<$typeStr>';
+    } else {
+      return typeStr;
+    }
+  }
+
+  /// Add the prefix `idl.` to a type name, unless that type name is the name of
+  /// a built-in type.
+  String idlPrefix(String s) {
+    switch (s) {
+      case 'bool':
+      case 'double':
+      case 'int':
+      case 'String':
+        return s;
+      default:
+        return 'idl.$s';
+    }
+  }
+
+  /// Execute [callback] with two spaces added to [_indentation].
+  void indent(void callback()) {
+    String oldIndentation = _indentation;
+    try {
+      _indentation += '  ';
+      callback();
+    } finally {
+      _indentation = oldIndentation;
+    }
+  }
+
+  /// Add the string [s] to the output as a single line, indenting as
+  /// appropriate.
+  void out([String s = '']) {
+    if (s == '') {
+      _outBuffer.writeln('');
+    } else {
+      _outBuffer.writeln('$_indentation$s');
+    }
+  }
+
+  void outDoc(String documentation) {
+    if (documentation != null) {
+      documentation.split('\n').forEach(out);
+    }
+  }
+
+  /// Enclose [s] in quotes, escaping as necessary.
+  String quoted(String s) {
+    return json.encode(s);
+  }
+
+  Iterable<String> _computeVariants(idlModel.ClassDeclaration cls) {
+    return cls.fields
+        .map((f) => f.variantMap?.values ?? [])
+        .expand((v) => v)
+        .expand((v) => v)
+        .toSet();
+  }
+
+  String _variantAssertStatement(
+    idlModel.ClassDeclaration class_,
+    List<String> variants,
+  ) {
+    var assertCondition = variants
+        ?.map((key) => '${class_.variantField} == idl.$key')
+        ?.join(' || ');
+    return 'assert($assertCondition);';
+  }
+}
+
+class _BuilderGenerator extends _BaseGenerator {
+  final idlModel.ClassDeclaration cls;
+  List<String> constructorParams = <String>[];
+
+  _BuilderGenerator(idlModel.Idl idl, StringBuffer outBuffer, this.cls)
+      : super(idl, outBuffer);
+
+  String get builderName => name + 'Builder';
+
+  String get name => cls.name;
+
+  void generate() {
+    String mixinName = '_${name}Mixin';
+    var implementsClause =
+        cls.isDeprecated ? '' : ' implements ${idlPrefix(name)}';
+    out('class $builderName extends Object with $mixinName$implementsClause {');
+    indent(() {
+      _generateFields();
+      _generateGettersSetters();
+      _generateConstructors();
+      _generateFlushInformative();
+      _generateCollectApiSignature();
+      _generateToBuffer();
+      _generateFinish();
+    });
+    out('}');
+  }
+
+  void _generateCollectApiSignature() {
+    out();
+    out('/// Accumulate non-[informative] data into [signature].');
+    out('void collectApiSignature(api_sig.ApiSignature signature) {');
+    indent(() {
+      List<idlModel.FieldDeclaration> sortedFields = cls.fields.toList()
+        ..sort((idlModel.FieldDeclaration a, idlModel.FieldDeclaration b) =>
+            a.id.compareTo(b.id));
+      for (idlModel.FieldDeclaration field in sortedFields) {
+        if (field.isInformative) {
+          continue;
+        }
+        String ref = 'this._${field.name}';
+        if (field.type.isList) {
+          out('if ($ref == null) {');
+          indent(() {
+            out('signature.addInt(0);');
+          });
+          out('} else {');
+          indent(() {
+            out('signature.addInt($ref.length);');
+            out('for (var x in $ref) {');
+            indent(() {
+              _generateSignatureCall(field.type.typeName, 'x', false);
+            });
+            out('}');
+          });
+          out('}');
+        } else {
+          _generateSignatureCall(field.type.typeName, ref, true);
+        }
+      }
+    });
+    out('}');
+  }
+
+  void _generateConstructors() {
+    out();
+    if (cls.variantField != null) {
+      for (var variant in _computeVariants(cls)) {
+        var constructorName = variant.split('.')[1];
+        out('$builderName.$constructorName({');
+
+        for (var field in cls.fields) {
+          if (field.variantMap != null) {
+            for (var property in field.variantMap.keys) {
+              if (field.variantMap[property].contains(variant)) {
+                out('${encodedType(field.type)} $property,');
+              }
+            }
+          }
+        }
+
+        out('}) : ');
+
+        out('_${cls.variantField} = idl.$variant');
+
+        var separator = ',';
+        for (var field in cls.fields) {
+          if (field.variantMap != null) {
+            for (var property in field.variantMap.keys) {
+              if (field.variantMap[property].contains(variant)) {
+                out('$separator _${field.name} = $property');
+                separator = ', ';
+              }
+            }
+          }
+        }
+
+        out(';');
+        out();
+      }
+    } else {
+      out('$builderName({${constructorParams.join(', ')}})');
+      List<idlModel.FieldDeclaration> fields = cls.fields.toList();
+      for (int i = 0; i < fields.length; i++) {
+        idlModel.FieldDeclaration field = fields[i];
+        String prefix = i == 0 ? '  : ' : '    ';
+        String suffix = i == fields.length - 1 ? ';' : ',';
+        out('${prefix}_${field.name} = ${field.name}$suffix');
+      }
+    }
+  }
+
+  void _generateFields() {
+    for (idlModel.FieldDeclaration field in cls.fields) {
+      String fieldName = field.name;
+      idlModel.FieldType type = field.type;
+      String typeStr = encodedType(type);
+      out('$typeStr _$fieldName;');
+    }
+  }
+
+  void _generateFinish() {
+    out();
+    out('fb.Offset finish(fb.Builder fbBuilder) {');
+    indent(() {
+      // Write objects and remember Offset(s).
+      for (idlModel.FieldDeclaration field in cls.fields) {
+        idlModel.FieldType fieldType = field.type;
+        String offsetName = 'offset_' + field.name;
+        if (fieldType.isList ||
+            fieldType.typeName == 'String' ||
+            _idl.classes.containsKey(fieldType.typeName)) {
+          out('fb.Offset $offsetName;');
+        }
+      }
+
+      for (idlModel.FieldDeclaration field in cls.fields) {
+        idlModel.FieldType fieldType = field.type;
+        String valueName = '_' + field.name;
+        String offsetName = 'offset_' + field.name;
+        String condition;
+        String writeCode;
+        if (fieldType.isList) {
+          condition = ' || $valueName.isEmpty';
+          if (_idl.classes.containsKey(fieldType.typeName)) {
+            String itemCode = 'b.finish(fbBuilder)';
+            String listCode = '$valueName.map((b) => $itemCode).toList()';
+            writeCode = '$offsetName = fbBuilder.writeList($listCode);';
+          } else if (_idl.enums.containsKey(fieldType.typeName)) {
+            String itemCode = 'b.index';
+            String listCode = '$valueName.map((b) => $itemCode).toList()';
+            writeCode = '$offsetName = fbBuilder.writeListUint8($listCode);';
+          } else if (fieldType.typeName == 'bool') {
+            writeCode = '$offsetName = fbBuilder.writeListBool($valueName);';
+          } else if (fieldType.typeName == 'int') {
+            writeCode = '$offsetName = fbBuilder.writeListUint32($valueName);';
+          } else if (fieldType.typeName == 'double') {
+            writeCode = '$offsetName = fbBuilder.writeListFloat64($valueName);';
+          } else {
+            assert(fieldType.typeName == 'String');
+            String itemCode = 'fbBuilder.writeString(b)';
+            String listCode = '$valueName.map((b) => $itemCode).toList()';
+            writeCode = '$offsetName = fbBuilder.writeList($listCode);';
+          }
+        } else if (fieldType.typeName == 'String') {
+          writeCode = '$offsetName = fbBuilder.writeString($valueName);';
+        } else if (_idl.classes.containsKey(fieldType.typeName)) {
+          writeCode = '$offsetName = $valueName.finish(fbBuilder);';
+        }
+        if (writeCode != null) {
+          if (condition == null) {
+            out('if ($valueName != null) {');
+          } else {
+            out('if (!($valueName == null$condition)) {');
+          }
+          indent(() {
+            out(writeCode);
+          });
+          out('}');
+        }
+      }
+
+      // Write the table.
+      out('fbBuilder.startTable();');
+      for (idlModel.FieldDeclaration field in cls.fields) {
+        int index = field.id;
+        idlModel.FieldType fieldType = field.type;
+        String valueName = '_' + field.name;
+        String condition = '$valueName != null';
+        String writeCode;
+        if (fieldType.isList ||
+            fieldType.typeName == 'String' ||
+            _idl.classes.containsKey(fieldType.typeName)) {
+          String offsetName = 'offset_' + field.name;
+          condition = '$offsetName != null';
+          writeCode = 'fbBuilder.addOffset($index, $offsetName);';
+        } else if (fieldType.typeName == 'bool') {
+          condition = '$valueName == true';
+          writeCode = 'fbBuilder.addBool($index, true);';
+        } else if (fieldType.typeName == 'double') {
+          condition += ' && $valueName != ${defaultValue(fieldType, true)}';
+          writeCode = 'fbBuilder.addFloat64($index, $valueName);';
+        } else if (fieldType.typeName == 'int') {
+          condition += ' && $valueName != ${defaultValue(fieldType, true)}';
+          writeCode = 'fbBuilder.addUint32($index, $valueName);';
+        } else if (_idl.enums.containsKey(fieldType.typeName)) {
+          condition += ' && $valueName != ${defaultValue(fieldType, true)}';
+          writeCode = 'fbBuilder.addUint8($index, $valueName.index);';
+        }
+        if (writeCode == null) {
+          throw new UnimplementedError('Writing type ${fieldType.typeName}');
+        }
+        out('if ($condition) {');
+        indent(() {
+          out(writeCode);
+        });
+        out('}');
+      }
+      out('return fbBuilder.endTable();');
+    });
+    out('}');
+  }
+
+  void _generateFlushInformative() {
+    out();
+    out('/// Flush [informative] data recursively.');
+    out('void flushInformative() {');
+    indent(() {
+      for (idlModel.FieldDeclaration field in cls.fields) {
+        idlModel.FieldType fieldType = field.type;
+        String valueName = '_' + field.name;
+        if (field.isInformative) {
+          out('$valueName = null;');
+        } else if (_idl.classes.containsKey(fieldType.typeName)) {
+          if (fieldType.isList) {
+            out('$valueName?.forEach((b) => b.flushInformative());');
+          } else {
+            out('$valueName?.flushInformative();');
+          }
+        }
+      }
+    });
+    out('}');
+  }
+
+  void _generateGettersSetters() {
+    for (idlModel.FieldDeclaration field in cls.allFields) {
+      String fieldName = field.name;
+      idlModel.FieldType fieldType = field.type;
+      String typeStr = encodedType(fieldType);
+      String def = defaultValue(fieldType, true);
+      String defSuffix = def == null ? '' : ' ??= $def';
+      out();
+      if (field.isDeprecated) {
+        out('@override');
+        out('Null get $fieldName => ${_BaseGenerator._throwDeprecated};');
+      } else {
+        if (field.variantMap != null) {
+          for (var logicalName in field.variantMap.keys) {
+            var variants = field.variantMap[logicalName];
+            out('@override');
+            out('$typeStr get $logicalName {');
+            indent(() {
+              out(_variantAssertStatement(cls, variants));
+              out('return _${field.name}$defSuffix;');
+            });
+            out('}');
+            out();
+          }
+        } else {
+          out('@override');
+          out('$typeStr get $fieldName => _$fieldName$defSuffix;');
+        }
+        out();
+
+        constructorParams.add('$typeStr $fieldName');
+
+        outDoc(field.documentation);
+
+        if (field.variantMap != null) {
+          for (var logicalName in field.variantMap.keys) {
+            var variants = field.variantMap[logicalName];
+            out('set $logicalName($typeStr value) {');
+            indent(() {
+              out(_variantAssertStatement(cls, variants));
+              _generateNonNegativeInt(fieldType);
+              out('_variantField_${field.id} = value;');
+            });
+            out('}');
+            out();
+          }
+        } else {
+          out('set $fieldName($typeStr value) {');
+          indent(() {
+            _generateNonNegativeInt(fieldType);
+            out('this._$fieldName = value;');
+          });
+          out('}');
+        }
+      }
+    }
+  }
+
+  void _generateNonNegativeInt(idlModel.FieldType fieldType) {
+    if (fieldType.typeName == 'int') {
+      if (!fieldType.isList) {
+        out('assert(value == null || value >= 0);');
+      } else {
+        out('assert(value == null || value.every((e) => e >= 0));');
+      }
+    }
+  }
+
+  /// Generate a call to the appropriate method of [ApiSignature] for the type
+  /// [typeName], using the data named by [ref].  If [couldBeNull] is `true`,
+  /// generate code to handle the possibility that [ref] is `null` (substituting
+  /// in the appropriate default value).
+  void _generateSignatureCall(String typeName, String ref, bool couldBeNull) {
+    if (_idl.enums.containsKey(typeName)) {
+      if (couldBeNull) {
+        out('signature.addInt($ref == null ? 0 : $ref.index);');
+      } else {
+        out('signature.addInt($ref.index);');
+      }
+    } else if (_idl.classes.containsKey(typeName)) {
+      if (couldBeNull) {
+        out('signature.addBool($ref != null);');
+      }
+      out('$ref?.collectApiSignature(signature);');
+    } else {
+      switch (typeName) {
+        case 'String':
+          if (couldBeNull) {
+            ref += " ?? ''";
+          }
+          out("signature.addString($ref);");
+          break;
+        case 'int':
+          if (couldBeNull) {
+            ref += ' ?? 0';
+          }
+          out('signature.addInt($ref);');
+          break;
+        case 'bool':
+          if (couldBeNull) {
+            ref += ' == true';
+          }
+          out('signature.addBool($ref);');
+          break;
+        case 'double':
+          if (couldBeNull) {
+            ref += ' ?? 0.0';
+          }
+          out('signature.addDouble($ref);');
+          break;
+        default:
+          throw "Don't know how to generate signature call for $typeName";
+      }
+    }
+  }
+
+  void _generateToBuffer() {
+    if (cls.isTopLevel) {
+      out();
+      out('List<int> toBuffer() {');
+      indent(() {
+        out('fb.Builder fbBuilder = new fb.Builder();');
+        String fileId =
+            cls.fileIdentifier == null ? '' : ', ${quoted(cls.fileIdentifier)}';
+        out('return fbBuilder.finish(finish(fbBuilder)$fileId);');
+      });
+      out('}');
+    }
+  }
+}
+
+class _CodeGenerator {
+  /// Buffer in which generated code is accumulated.
+  final StringBuffer _outBuffer = new StringBuffer();
 
   /// Semantic model of the "IDL" input file.
   idlModel.Idl _idl;
@@ -131,63 +627,6 @@ class _CodeGenerator {
         }
       }
     });
-  }
-
-  /// Generate a string representing the Dart type which should be used to
-  /// represent [type] when deserialized.
-  String dartType(idlModel.FieldType type) {
-    String baseType = idlPrefix(type.typeName);
-    if (type.isList) {
-      return 'List<$baseType>';
-    } else {
-      return baseType;
-    }
-  }
-
-  /// Generate a Dart expression representing the default value for a field
-  /// having the given [type], or `null` if there is no default value.
-  ///
-  /// If [builder] is `true`, the returned type should be appropriate for use in
-  /// a builder class.
-  String defaultValue(idlModel.FieldType type, bool builder) {
-    if (type.isList) {
-      if (builder) {
-        idlModel.FieldType elementType =
-            new idlModel.FieldType(type.typeName, false);
-        return '<${encodedType(elementType)}>[]';
-      } else {
-        return 'const <${idlPrefix(type.typeName)}>[]';
-      }
-    } else if (_idl.enums.containsKey(type.typeName)) {
-      return '${idlPrefix(type.typeName)}.'
-          '${_idl.enums[type.typeName].values[0].name}';
-    } else if (type.typeName == 'double') {
-      return '0.0';
-    } else if (type.typeName == 'int') {
-      return '0';
-    } else if (type.typeName == 'String') {
-      return "''";
-    } else if (type.typeName == 'bool') {
-      return 'false';
-    } else {
-      return null;
-    }
-  }
-
-  /// Generate a string representing the Dart type which should be used to
-  /// represent [type] while building a serialized data structure.
-  String encodedType(idlModel.FieldType type) {
-    String typeStr;
-    if (_idl.classes.containsKey(type.typeName)) {
-      typeStr = '${type.typeName}Builder';
-    } else {
-      typeStr = idlPrefix(type.typeName);
-    }
-    if (type.isList) {
-      return 'List<$typeStr>';
-    } else {
-      return typeStr;
-    }
   }
 
   /// Process the AST in [idlParsed] and store the resulting semantic model in
@@ -283,91 +722,10 @@ class _CodeGenerator {
     }
   }
 
-  /// Generate a string representing the FlatBuffer schema type which should be
-  /// used to represent [type].
-  String fbsType(idlModel.FieldType type) {
-    String typeStr;
-    switch (type.typeName) {
-      case 'bool':
-        typeStr = 'bool';
-        break;
-      case 'double':
-        typeStr = 'double';
-        break;
-      case 'int':
-        typeStr = 'uint';
-        break;
-      case 'String':
-        typeStr = 'string';
-        break;
-      default:
-        typeStr = type.typeName;
-        break;
-    }
-    if (type.isList) {
-      // FlatBuffers don't natively support a packed list of booleans, so we
-      // treat it as a list of unsigned bytes, which is a compatible data
-      // structure.
-      if (typeStr == 'bool') {
-        typeStr = 'ubyte';
-      }
-      return '[$typeStr]';
-    } else {
-      return typeStr;
-    }
-  }
-
   /// Entry point to the code generator when generating the "format.fbs" file.
   void generateFlatBufferSchema() {
     outputHeader();
-    for (idlModel.EnumDeclaration enm in _idl.enums.values) {
-      out();
-      outDoc(enm.documentation);
-      out('enum ${enm.name} : byte {');
-      indent(() {
-        for (int i = 0; i < enm.values.length; i++) {
-          idlModel.EnumValueDeclaration value = enm.values[i];
-          if (i != 0) {
-            out();
-          }
-          String suffix = i < enm.values.length - 1 ? ',' : '';
-          outDoc(value.documentation);
-          out('${value.name}$suffix');
-        }
-      });
-      out('}');
-    }
-    for (idlModel.ClassDeclaration cls in _idl.classes.values) {
-      out();
-      outDoc(cls.documentation);
-      out('table ${cls.name} {');
-      indent(() {
-        for (int i = 0; i < cls.allFields.length; i++) {
-          idlModel.FieldDeclaration field = cls.allFields[i];
-          if (i != 0) {
-            out();
-          }
-          outDoc(field.documentation);
-          List<String> attributes = <String>['id: ${field.id}'];
-          if (field.isDeprecated) {
-            attributes.add('deprecated');
-          }
-          String attrText = attributes.join(', ');
-          out('${field.name}:${fbsType(field.type)} ($attrText);');
-        }
-      });
-      out('}');
-    }
-    out();
-    // Standard flatbuffers only support one root type.  We support multiple
-    // root types.  For now work around this by forcing PackageBundle to be the
-    // root type.  TODO(paulberry): come up with a better solution.
-    idlModel.ClassDeclaration rootType = _idl.classes['PackageBundle'];
-    out('root_type ${rootType.name};');
-    if (rootType.fileIdentifier != null) {
-      out();
-      out('file_identifier ${quoted(rootType.fileIdentifier)};');
-    }
+    _FlatBufferSchemaGenerator(_idl, _outBuffer).generate();
   }
 
   /// Entry point to the code generator when generating the "format.dart" file.
@@ -382,69 +740,33 @@ class _CodeGenerator {
     out();
     out("import 'idl.dart' as idl;");
     out();
-    for (idlModel.EnumDeclaration enm in _idl.enums.values) {
-      _generateEnumReader(enm);
+    for (idlModel.EnumDeclaration enum_ in _idl.enums.values) {
+      _EnumReaderGenerator(_idl, _outBuffer, enum_).generate();
       out();
     }
     for (idlModel.ClassDeclaration cls in _idl.classes.values) {
       if (!cls.isDeprecated) {
-        _generateBuilder(cls);
+        _BuilderGenerator(_idl, _outBuffer, cls).generate();
         out();
       }
       if (cls.isTopLevel) {
-        _generateReadFunction(cls);
+        _ReaderGenerator(_idl, _outBuffer, cls).generateReaderFunction();
         out();
       }
       if (!cls.isDeprecated) {
-        _generateReader(cls);
+        _ReaderGenerator(_idl, _outBuffer, cls).generateReader();
         out();
-        _generateImpl(cls);
+        _ImplGenerator(_idl, _outBuffer, cls).generate();
         out();
-        _generateMixin(cls);
+        _MixinGenerator(_idl, _outBuffer, cls).generate();
         out();
       }
     }
   }
 
-  /// Add the prefix `idl.` to a type name, unless that type name is the name of
-  /// a built-in type.
-  String idlPrefix(String s) {
-    switch (s) {
-      case 'bool':
-      case 'double':
-      case 'int':
-      case 'String':
-        return s;
-      default:
-        return 'idl.$s';
-    }
-  }
-
-  /// Execute [callback] with two spaces added to [_indentation].
-  void indent(void callback()) {
-    String oldIndentation = _indentation;
-    try {
-      _indentation += '  ';
-      callback();
-    } finally {
-      _indentation = oldIndentation;
-    }
-  }
-
-  /// Add the string [s] to the output as a single line, indenting as
-  /// appropriate.
+  /// Add the string [s] to the output as a single line.
   void out([String s = '']) {
-    if (s == '') {
-      _outBuffer.writeln('');
-    } else {
-      _outBuffer.writeln('$_indentation$s');
-    }
-  }
-
-  void outDoc(String documentation) {
-    if (documentation != null) {
-      documentation.split('\n').forEach(out);
-    }
+    _outBuffer.writeln(s);
   }
 
   void outputHeader() {
@@ -457,11 +779,6 @@ class _CodeGenerator {
     out('// "pkg/analyzer/tool/summary/generate.dart \$IDL_FILE_PATH",');
     out('// or "pkg/analyzer/tool/generate_files" for the analyzer package IDL/sources.');
     out();
-  }
-
-  /// Enclose [s] in quotes, escaping as necessary.
-  String quoted(String s) {
-    return json.encode(s);
   }
 
   void _addFieldForGetter(
@@ -619,313 +936,41 @@ class _CodeGenerator {
     );
   }
 
-  Iterable<String> _computeVariants(idlModel.ClassDeclaration cls) {
-    return cls.fields
-        .map((f) => f.variantMap?.values ?? [])
-        .expand((v) => v)
-        .expand((v) => v)
-        .toSet();
+  /// Return the documentation text of the given [node], or `null` if the [node]
+  /// does not have a comment.  Each line is `\n` separated.
+  String _getNodeDoc(AnnotatedNode node) {
+    Comment comment = node.documentationComment;
+    if (comment != null && comment.isDocumentation) {
+      if (comment.tokens.length == 1 &&
+          comment.tokens.first.lexeme.startsWith('/*')) {
+        Token token = comment.tokens.first;
+        return token.lexeme.split('\n').map((String line) {
+          line = line.trimLeft();
+          if (line.startsWith('*')) line = ' ' + line;
+          return line;
+        }).join('\n');
+      } else if (comment.tokens
+          .every((token) => token.lexeme.startsWith('///'))) {
+        return comment.tokens
+            .map((token) => token.lexeme.trimLeft())
+            .join('\n');
+      }
+    }
+    return null;
   }
+}
 
-  void _generateBuilder(idlModel.ClassDeclaration cls) {
-    String name = cls.name;
-    String builderName = name + 'Builder';
-    String mixinName = '_${name}Mixin';
-    List<String> constructorParams = <String>[];
-    var implementsClause =
-        cls.isDeprecated ? '' : ' implements ${idlPrefix(name)}';
-    out('class $builderName extends Object with $mixinName$implementsClause {');
-    indent(() {
-      // Generate fields.
-      for (idlModel.FieldDeclaration field in cls.fields) {
-        String fieldName = field.name;
-        idlModel.FieldType type = field.type;
-        String typeStr = encodedType(type);
-        out('$typeStr _$fieldName;');
-      }
+class _EnumReaderGenerator extends _BaseGenerator {
+  final idlModel.EnumDeclaration enum_;
 
-      // Generate getters and setters.
-      for (idlModel.FieldDeclaration field in cls.allFields) {
-        String fieldName = field.name;
-        idlModel.FieldType fieldType = field.type;
-        String typeStr = encodedType(fieldType);
-        String def = defaultValue(fieldType, true);
-        String defSuffix = def == null ? '' : ' ??= $def';
-        out();
-        if (field.isDeprecated) {
-          out('@override');
-          out('Null get $fieldName => $_throwDeprecated;');
-        } else {
-          if (field.variantMap != null) {
-            for (var logicalName in field.variantMap.keys) {
-              var variants = field.variantMap[logicalName];
-              out('@override');
-              out('$typeStr get $logicalName {');
-              indent(() {
-                out(_variantAssertStatement(cls, variants));
-                out('return _${field.name}$defSuffix;');
-              });
-              out('}');
-              out();
-            }
-          } else {
-            out('@override');
-            out('$typeStr get $fieldName => _$fieldName$defSuffix;');
-          }
-          out();
+  _EnumReaderGenerator(idlModel.Idl idl, StringBuffer outBuffer, this.enum_)
+      : super(idl, outBuffer);
 
-          constructorParams.add('$typeStr $fieldName');
-
-          outDoc(field.documentation);
-
-          if (field.variantMap != null) {
-            for (var logicalName in field.variantMap.keys) {
-              var variants = field.variantMap[logicalName];
-              out('set $logicalName($typeStr value) {');
-              indent(() {
-                out(_variantAssertStatement(cls, variants));
-                _generateNonNegativeInt(fieldType);
-                out('_variantField_${field.id} = value;');
-              });
-              out('}');
-              out();
-            }
-          } else {
-            out('set $fieldName($typeStr value) {');
-            indent(() {
-              _generateNonNegativeInt(fieldType);
-              out('this._$fieldName = value;');
-            });
-            out('}');
-          }
-        }
-      }
-      // Generate constructor.
-      out();
-      if (cls.variantField != null) {
-        for (var variant in _computeVariants(cls)) {
-          var constructorName = variant.split('.')[1];
-          out('$builderName.$constructorName({');
-
-          for (var field in cls.fields) {
-            if (field.variantMap != null) {
-              for (var property in field.variantMap.keys) {
-                if (field.variantMap[property].contains(variant)) {
-                  out('${encodedType(field.type)} $property,');
-                }
-              }
-            }
-          }
-
-          out('}) : ');
-
-          out('_${cls.variantField} = idl.$variant');
-
-          var separator = ',';
-          for (var field in cls.fields) {
-            if (field.variantMap != null) {
-              for (var property in field.variantMap.keys) {
-                if (field.variantMap[property].contains(variant)) {
-                  out('$separator _${field.name} = $property');
-                  separator = ', ';
-                }
-              }
-            }
-          }
-
-          out(';');
-          out();
-        }
-      } else {
-        out('$builderName({${constructorParams.join(', ')}})');
-        List<idlModel.FieldDeclaration> fields = cls.fields.toList();
-        for (int i = 0; i < fields.length; i++) {
-          idlModel.FieldDeclaration field = fields[i];
-          String prefix = i == 0 ? '  : ' : '    ';
-          String suffix = i == fields.length - 1 ? ';' : ',';
-          out('${prefix}_${field.name} = ${field.name}$suffix');
-        }
-      }
-
-      // Generate flushInformative().
-      {
-        out();
-        out('/// Flush [informative] data recursively.');
-        out('void flushInformative() {');
-        indent(() {
-          for (idlModel.FieldDeclaration field in cls.fields) {
-            idlModel.FieldType fieldType = field.type;
-            String valueName = '_' + field.name;
-            if (field.isInformative) {
-              out('$valueName = null;');
-            } else if (_idl.classes.containsKey(fieldType.typeName)) {
-              if (fieldType.isList) {
-                out('$valueName?.forEach((b) => b.flushInformative());');
-              } else {
-                out('$valueName?.flushInformative();');
-              }
-            }
-          }
-        });
-        out('}');
-      }
-      // Generate collectApiSignature().
-      {
-        out();
-        out('/// Accumulate non-[informative] data into [signature].');
-        out('void collectApiSignature(api_sig.ApiSignature signature) {');
-        indent(() {
-          List<idlModel.FieldDeclaration> sortedFields = cls.fields.toList()
-            ..sort((idlModel.FieldDeclaration a, idlModel.FieldDeclaration b) =>
-                a.id.compareTo(b.id));
-          for (idlModel.FieldDeclaration field in sortedFields) {
-            if (field.isInformative) {
-              continue;
-            }
-            String ref = 'this._${field.name}';
-            if (field.type.isList) {
-              out('if ($ref == null) {');
-              indent(() {
-                out('signature.addInt(0);');
-              });
-              out('} else {');
-              indent(() {
-                out('signature.addInt($ref.length);');
-                out('for (var x in $ref) {');
-                indent(() {
-                  _generateSignatureCall(field.type.typeName, 'x', false);
-                });
-                out('}');
-              });
-              out('}');
-            } else {
-              _generateSignatureCall(field.type.typeName, ref, true);
-            }
-          }
-        });
-        out('}');
-      }
-      // Generate finish.
-      if (cls.isTopLevel) {
-        out();
-        out('List<int> toBuffer() {');
-        indent(() {
-          out('fb.Builder fbBuilder = new fb.Builder();');
-          String fileId = cls.fileIdentifier == null
-              ? ''
-              : ', ${quoted(cls.fileIdentifier)}';
-          out('return fbBuilder.finish(finish(fbBuilder)$fileId);');
-        });
-        out('}');
-      }
-      out();
-      out('fb.Offset finish(fb.Builder fbBuilder) {');
-      indent(() {
-        // Write objects and remember Offset(s).
-        for (idlModel.FieldDeclaration field in cls.fields) {
-          idlModel.FieldType fieldType = field.type;
-          String offsetName = 'offset_' + field.name;
-          if (fieldType.isList ||
-              fieldType.typeName == 'String' ||
-              _idl.classes.containsKey(fieldType.typeName)) {
-            out('fb.Offset $offsetName;');
-          }
-        }
-        for (idlModel.FieldDeclaration field in cls.fields) {
-          idlModel.FieldType fieldType = field.type;
-          String valueName = '_' + field.name;
-          String offsetName = 'offset_' + field.name;
-          String condition;
-          String writeCode;
-          if (fieldType.isList) {
-            condition = ' || $valueName.isEmpty';
-            if (_idl.classes.containsKey(fieldType.typeName)) {
-              String itemCode = 'b.finish(fbBuilder)';
-              String listCode = '$valueName.map((b) => $itemCode).toList()';
-              writeCode = '$offsetName = fbBuilder.writeList($listCode);';
-            } else if (_idl.enums.containsKey(fieldType.typeName)) {
-              String itemCode = 'b.index';
-              String listCode = '$valueName.map((b) => $itemCode).toList()';
-              writeCode = '$offsetName = fbBuilder.writeListUint8($listCode);';
-            } else if (fieldType.typeName == 'bool') {
-              writeCode = '$offsetName = fbBuilder.writeListBool($valueName);';
-            } else if (fieldType.typeName == 'int') {
-              writeCode =
-                  '$offsetName = fbBuilder.writeListUint32($valueName);';
-            } else if (fieldType.typeName == 'double') {
-              writeCode =
-                  '$offsetName = fbBuilder.writeListFloat64($valueName);';
-            } else {
-              assert(fieldType.typeName == 'String');
-              String itemCode = 'fbBuilder.writeString(b)';
-              String listCode = '$valueName.map((b) => $itemCode).toList()';
-              writeCode = '$offsetName = fbBuilder.writeList($listCode);';
-            }
-          } else if (fieldType.typeName == 'String') {
-            writeCode = '$offsetName = fbBuilder.writeString($valueName);';
-          } else if (_idl.classes.containsKey(fieldType.typeName)) {
-            writeCode = '$offsetName = $valueName.finish(fbBuilder);';
-          }
-          if (writeCode != null) {
-            if (condition == null) {
-              out('if ($valueName != null) {');
-            } else {
-              out('if (!($valueName == null$condition)) {');
-            }
-            indent(() {
-              out(writeCode);
-            });
-            out('}');
-          }
-        }
-        // Write the table.
-        out('fbBuilder.startTable();');
-        for (idlModel.FieldDeclaration field in cls.fields) {
-          int index = field.id;
-          idlModel.FieldType fieldType = field.type;
-          String valueName = '_' + field.name;
-          String condition = '$valueName != null';
-          String writeCode;
-          if (fieldType.isList ||
-              fieldType.typeName == 'String' ||
-              _idl.classes.containsKey(fieldType.typeName)) {
-            String offsetName = 'offset_' + field.name;
-            condition = '$offsetName != null';
-            writeCode = 'fbBuilder.addOffset($index, $offsetName);';
-          } else if (fieldType.typeName == 'bool') {
-            condition = '$valueName == true';
-            writeCode = 'fbBuilder.addBool($index, true);';
-          } else if (fieldType.typeName == 'double') {
-            condition += ' && $valueName != ${defaultValue(fieldType, true)}';
-            writeCode = 'fbBuilder.addFloat64($index, $valueName);';
-          } else if (fieldType.typeName == 'int') {
-            condition += ' && $valueName != ${defaultValue(fieldType, true)}';
-            writeCode = 'fbBuilder.addUint32($index, $valueName);';
-          } else if (_idl.enums.containsKey(fieldType.typeName)) {
-            condition += ' && $valueName != ${defaultValue(fieldType, true)}';
-            writeCode = 'fbBuilder.addUint8($index, $valueName.index);';
-          }
-          if (writeCode == null) {
-            throw new UnimplementedError('Writing type ${fieldType.typeName}');
-          }
-          out('if ($condition) {');
-          indent(() {
-            out(writeCode);
-          });
-          out('}');
-        }
-        out('return fbBuilder.endTable();');
-      });
-      out('}');
-    });
-    out('}');
-  }
-
-  void _generateEnumReader(idlModel.EnumDeclaration enm) {
-    String name = enm.name;
+  void generate() {
+    String name = enum_.name;
     String readerName = '_${name}Reader';
     String count = '${idlPrefix(name)}.values.length';
-    String def = '${idlPrefix(name)}.${enm.values[0].name}';
+    String def = '${idlPrefix(name)}.${enum_.values[0].name}';
     out('class $readerName extends fb.Reader<${idlPrefix(name)}> {');
     indent(() {
       out('const $readerName() : super();');
@@ -943,8 +988,105 @@ class _CodeGenerator {
     });
     out('}');
   }
+}
 
-  void _generateImpl(idlModel.ClassDeclaration cls) {
+class _FlatBufferSchemaGenerator extends _BaseGenerator {
+  _FlatBufferSchemaGenerator(idlModel.Idl idl, StringBuffer outBuffer)
+      : super(idl, outBuffer);
+
+  void generate() {
+    for (idlModel.EnumDeclaration enm in _idl.enums.values) {
+      out();
+      outDoc(enm.documentation);
+      out('enum ${enm.name} : byte {');
+      indent(() {
+        for (int i = 0; i < enm.values.length; i++) {
+          idlModel.EnumValueDeclaration value = enm.values[i];
+          if (i != 0) {
+            out();
+          }
+          String suffix = i < enm.values.length - 1 ? ',' : '';
+          outDoc(value.documentation);
+          out('${value.name}$suffix');
+        }
+      });
+      out('}');
+    }
+    for (idlModel.ClassDeclaration cls in _idl.classes.values) {
+      out();
+      outDoc(cls.documentation);
+      out('table ${cls.name} {');
+      indent(() {
+        for (int i = 0; i < cls.allFields.length; i++) {
+          idlModel.FieldDeclaration field = cls.allFields[i];
+          if (i != 0) {
+            out();
+          }
+          outDoc(field.documentation);
+          List<String> attributes = <String>['id: ${field.id}'];
+          if (field.isDeprecated) {
+            attributes.add('deprecated');
+          }
+          String attrText = attributes.join(', ');
+          out('${field.name}:${_fbsType(field.type)} ($attrText);');
+        }
+      });
+      out('}');
+    }
+    out();
+    // Standard flatbuffers only support one root type.  We support multiple
+    // root types.  For now work around this by forcing PackageBundle to be the
+    // root type.  TODO(paulberry): come up with a better solution.
+    idlModel.ClassDeclaration rootType = _idl.classes['PackageBundle'];
+    out('root_type ${rootType.name};');
+    if (rootType.fileIdentifier != null) {
+      out();
+      out('file_identifier ${quoted(rootType.fileIdentifier)};');
+    }
+  }
+
+  /// Generate a string representing the FlatBuffer schema type which should be
+  /// used to represent [type].
+  String _fbsType(idlModel.FieldType type) {
+    String typeStr;
+    switch (type.typeName) {
+      case 'bool':
+        typeStr = 'bool';
+        break;
+      case 'double':
+        typeStr = 'double';
+        break;
+      case 'int':
+        typeStr = 'uint';
+        break;
+      case 'String':
+        typeStr = 'string';
+        break;
+      default:
+        typeStr = type.typeName;
+        break;
+    }
+    if (type.isList) {
+      // FlatBuffers don't natively support a packed list of booleans, so we
+      // treat it as a list of unsigned bytes, which is a compatible data
+      // structure.
+      if (typeStr == 'bool') {
+        typeStr = 'ubyte';
+      }
+      return '[$typeStr]';
+    } else {
+      return typeStr;
+    }
+  }
+}
+
+class _ImplGenerator extends _BaseGenerator {
+  final idlModel.ClassDeclaration cls;
+
+  _ImplGenerator(idlModel.Idl idl, StringBuffer outBuffer, this.cls)
+      : super(idl, outBuffer);
+
+  void generate() {
     String name = cls.name;
     String implName = '_${name}Impl';
     String mixinName = '_${name}Mixin';
@@ -958,7 +1100,7 @@ class _CodeGenerator {
       out();
       // Write cache fields.
       for (idlModel.FieldDeclaration field in cls.fields) {
-        String returnType = dartType(field.type);
+        String returnType = _dartType(field.type);
         String fieldName = field.name;
         out('$returnType _$fieldName;');
       }
@@ -1005,10 +1147,10 @@ class _CodeGenerator {
         assert(readCode != null);
         // Write the getter implementation.
         out();
-        String returnType = dartType(type);
+        String returnType = _dartType(type);
         if (field.isDeprecated) {
           out('@override');
-          out('Null get $fieldName => $_throwDeprecated;');
+          out('Null get $fieldName => ${_BaseGenerator._throwDeprecated};');
         } else {
           if (field.variantMap != null) {
             for (var logicalName in field.variantMap.keys) {
@@ -1042,7 +1184,25 @@ class _CodeGenerator {
     out('}');
   }
 
-  void _generateMixin(idlModel.ClassDeclaration cls) {
+  /// Generate a string representing the Dart type which should be used to
+  /// represent [type] when deserialized.
+  String _dartType(idlModel.FieldType type) {
+    String baseType = idlPrefix(type.typeName);
+    if (type.isList) {
+      return 'List<$baseType>';
+    } else {
+      return baseType;
+    }
+  }
+}
+
+class _MixinGenerator extends _BaseGenerator {
+  final idlModel.ClassDeclaration cls;
+
+  _MixinGenerator(idlModel.Idl idl, StringBuffer outBuffer, this.cls)
+      : super(idl, outBuffer);
+
+  void generate() {
     String name = cls.name;
     String mixinName = '_${name}Mixin';
     out('abstract class $mixinName implements ${idlPrefix(name)} {');
@@ -1170,18 +1330,15 @@ class _CodeGenerator {
     });
     out('}');
   }
+}
 
-  void _generateNonNegativeInt(idlModel.FieldType fieldType) {
-    if (fieldType.typeName == 'int') {
-      if (!fieldType.isList) {
-        out('assert(value == null || value >= 0);');
-      } else {
-        out('assert(value == null || value.every((e) => e >= 0));');
-      }
-    }
-  }
+class _ReaderGenerator extends _BaseGenerator {
+  final idlModel.ClassDeclaration cls;
 
-  void _generateReader(idlModel.ClassDeclaration cls) {
+  _ReaderGenerator(idlModel.Idl idl, StringBuffer outBuffer, this.cls)
+      : super(idl, outBuffer);
+
+  void generateReader() {
     String name = cls.name;
     String readerName = '_${name}Reader';
     String implName = '_${name}Impl';
@@ -1195,7 +1352,7 @@ class _CodeGenerator {
     out('}');
   }
 
-  void _generateReadFunction(idlModel.ClassDeclaration cls) {
+  void generateReaderFunction() {
     String name = cls.name;
     out('${idlPrefix(name)} read$name(List<int> buffer) {');
     indent(() {
@@ -1203,86 +1360,5 @@ class _CodeGenerator {
       out('return const _${name}Reader().read(rootRef, 0);');
     });
     out('}');
-  }
-
-  /// Generate a call to the appropriate method of [ApiSignature] for the type
-  /// [typeName], using the data named by [ref].  If [couldBeNull] is `true`,
-  /// generate code to handle the possibility that [ref] is `null` (substituting
-  /// in the appropriate default value).
-  void _generateSignatureCall(String typeName, String ref, bool couldBeNull) {
-    if (_idl.enums.containsKey(typeName)) {
-      if (couldBeNull) {
-        out('signature.addInt($ref == null ? 0 : $ref.index);');
-      } else {
-        out('signature.addInt($ref.index);');
-      }
-    } else if (_idl.classes.containsKey(typeName)) {
-      if (couldBeNull) {
-        out('signature.addBool($ref != null);');
-      }
-      out('$ref?.collectApiSignature(signature);');
-    } else {
-      switch (typeName) {
-        case 'String':
-          if (couldBeNull) {
-            ref += " ?? ''";
-          }
-          out("signature.addString($ref);");
-          break;
-        case 'int':
-          if (couldBeNull) {
-            ref += ' ?? 0';
-          }
-          out('signature.addInt($ref);');
-          break;
-        case 'bool':
-          if (couldBeNull) {
-            ref += ' == true';
-          }
-          out('signature.addBool($ref);');
-          break;
-        case 'double':
-          if (couldBeNull) {
-            ref += ' ?? 0.0';
-          }
-          out('signature.addDouble($ref);');
-          break;
-        default:
-          throw "Don't know how to generate signature call for $typeName";
-      }
-    }
-  }
-
-  /// Return the documentation text of the given [node], or `null` if the [node]
-  /// does not have a comment.  Each line is `\n` separated.
-  String _getNodeDoc(AnnotatedNode node) {
-    Comment comment = node.documentationComment;
-    if (comment != null && comment.isDocumentation) {
-      if (comment.tokens.length == 1 &&
-          comment.tokens.first.lexeme.startsWith('/*')) {
-        Token token = comment.tokens.first;
-        return token.lexeme.split('\n').map((String line) {
-          line = line.trimLeft();
-          if (line.startsWith('*')) line = ' ' + line;
-          return line;
-        }).join('\n');
-      } else if (comment.tokens
-          .every((token) => token.lexeme.startsWith('///'))) {
-        return comment.tokens
-            .map((token) => token.lexeme.trimLeft())
-            .join('\n');
-      }
-    }
-    return null;
-  }
-
-  String _variantAssertStatement(
-    idlModel.ClassDeclaration class_,
-    List<String> variants,
-  ) {
-    var assertCondition = variants
-        ?.map((key) => '${class_.variantField} == idl.$key')
-        ?.join(' || ');
-    return 'assert($assertCondition);';
   }
 }
