@@ -2107,7 +2107,10 @@ abstract class TypeSystem implements public.TypeSystem {
     return null;
   }
 
+  /// Returns a non-nullable version of [type].  This is equivalent to the
+  /// operation `NonNull` defined in the spec.
   DartType promoteToNonNull(TypeImpl type) {
+    if (type.isDartCoreNull) return typeProvider.bottomType;
     // TODO(mfairhurst): handle type parameter types
     return type.withNullability(NullabilitySuffix.none);
   }

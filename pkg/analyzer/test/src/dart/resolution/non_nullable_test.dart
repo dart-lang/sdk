@@ -207,6 +207,18 @@ m<T extends Function>() {
     assertType(findNode.methodInvocation('first').methodName, 'Function?');
   }
 
+  test_null_assertion_operator_changes_null_to_never() async {
+    addTestFile('''
+main() {
+  Null x = null;
+  x!;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.postfix('x!'), 'Never');
+  }
+
   test_null_assertion_operator_removes_nullability() async {
     addTestFile('''
 main() {
