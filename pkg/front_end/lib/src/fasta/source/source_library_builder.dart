@@ -396,26 +396,18 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   void addFields(String documentationComment, List<MetadataBuilder> metadata,
       int modifiers, T type, List<FieldInfo> fieldInfos) {
     for (FieldInfo info in fieldInfos) {
-      String name = info.name;
-      int charOffset = info.charOffset;
-      int charEndOffset = info.charEndOffset;
-      bool hasInitializer = info.initializerTokenForInference != null;
-      Token initializerTokenForInference =
+      Token startToken =
           type != null || legacyMode ? null : info.initializerTokenForInference;
-      if (initializerTokenForInference != null) {
-        Token beforeLast = info.beforeLast;
-        beforeLast.setNext(new Token.eof(beforeLast.next.offset));
+      if (startToken != null) {
+        // Extract only the tokens for the initializer expression from the
+        // token stream.
+        Token endToken = info.beforeLast;
+        endToken.setNext(new Token.eof(endToken.next.offset));
+        new Token.eof(startToken.previous.offset).setNext(startToken);
       }
-      addField(
-          documentationComment,
-          metadata,
-          modifiers,
-          type,
-          name,
-          charOffset,
-          charEndOffset,
-          initializerTokenForInference,
-          hasInitializer);
+      bool hasInitializer = info.initializerTokenForInference != null;
+      addField(documentationComment, metadata, modifiers, type, info.name,
+          info.charOffset, info.charEndOffset, startToken, hasInitializer);
     }
   }
 
