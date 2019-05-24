@@ -1654,7 +1654,7 @@ class Parser {
 
   Token skipBlock(Token token) {
     // The scanner ensures that `{` always has a closing `}`.
-    return ensureBlock(token, null).endGroup;
+    return ensureBlock(token, null, null).endGroup;
   }
 
   /// ```
@@ -1713,7 +1713,8 @@ class Parser {
         }
       }
     } else {
-      leftBrace = ensureBlock(token, fasta.templateExpectedEnumBody);
+      // TODO(danrubel): merge this error message with missing class/mixin body
+      leftBrace = ensureBlock(token, fasta.templateExpectedEnumBody, null);
       token = leftBrace.endGroup;
     }
     assert(optional('}', token));
@@ -1772,7 +1773,7 @@ class Parser {
     if (!optional('{', token.next)) {
       // Recovery
       token = parseClassHeaderRecovery(start, begin, classKeyword);
-      ensureBlock(token, fasta.templateExpectedClassOrMixinBody);
+      ensureBlock(token, null, 'class declaration');
     }
     token = parseClassOrMixinBody(token);
     listener.endClassDeclaration(begin, token);
@@ -1938,7 +1939,7 @@ class Parser {
     if (!optional('{', token.next)) {
       // Recovery
       token = parseMixinHeaderRecovery(token, mixinKeyword, headerStart);
-      ensureBlock(token, fasta.templateExpectedClassOrMixinBody);
+      ensureBlock(token, null, 'mixin declaration');
     }
     token = parseClassOrMixinBody(token);
     listener.endMixinDeclaration(mixinKeyword, token);
@@ -2078,8 +2079,7 @@ class Parser {
     TypeInfo typeInfo = computeType(onKeyword, true);
     token = typeInfo.ensureTypeNotVoid(onKeyword, this);
     if (!optional('{', token.next)) {
-      // TODO(danrubel): replace this with a better error message.
-      ensureBlock(token, fasta.templateExpectedClassOrMixinBody);
+      ensureBlock(token, null, 'extension declaration');
     }
     // TODO(danrubel): Do not allow fields or constructors
     token = parseClassOrMixinBody(token);
@@ -2701,17 +2701,28 @@ class Parser {
   }
 
   /// If the next token is an opening curly brace, return it. Otherwise, use the
-  /// given [template] to report an error, insert an opening and a closing curly
-  /// brace, and return the newly inserted opening curly brace. If the
-  /// [template] is `null`, use a default error message instead.
-  Token ensureBlock(
-      Token token, Template<Message Function(Token token)> template) {
+  /// given [template] or [blockKind] to report an error, insert an opening and
+  /// a closing curly brace, and return the newly inserted opening curly brace.
+  /// If  [template] and [blockKind] are `null`, then use
+  /// a default error message instead.
+  Token ensureBlock(Token token,
+      Template<Message Function(Token token)> template, String blockKind) {
     Token next = token.next;
     if (optional('{', next)) return next;
-    Message message = template == null
-        ? fasta.templateExpectedButGot.withArguments('{')
-        : template.withArguments(next);
-    reportRecoverableError(next, message);
+    if (template == null) {
+      if (blockKind == null) {
+        // TODO(danrubel): rename ExpectedButGot to ExpectedBefore
+        reportRecoverableError(
+            next, fasta.templateExpectedButGot.withArguments('{'));
+      } else {
+        // TODO(danrubel): rename ExpectedClassOrMixinBody
+        //  to ExpectedDeclarationOrClauseBody
+        reportRecoverableError(token,
+            fasta.templateExpectedClassOrMixinBody.withArguments(blockKind));
+      }
+    } else {
+      reportRecoverableError(next, template.withArguments(next));
+    }
     return insertBlock(token);
   }
 
@@ -2842,7 +2853,7 @@ class Parser {
 
   Token skipClassOrMixinBody(Token token) {
     // The scanner ensures that `{` always has a closing `}`.
-    return ensureBlock(token, fasta.templateExpectedClassOrMixinBody);
+    return ensureBlock(token, null, null);
   }
 
   /// ```
@@ -3556,7 +3567,7 @@ class Parser {
         begin = next = token.next;
         // Fall through to parse the block.
       } else {
-        token = ensureBlock(token, fasta.templateExpectedFunctionBody);
+        token = ensureBlock(token, fasta.templateExpectedFunctionBody, null);
         listener.handleInvalidFunctionBody(token);
         return token.endGroup;
       }
@@ -3678,7 +3689,8 @@ class Parser {
     }
     final value = token.next.stringValue;
     if (identical(value, '{')) {
-      return parseBlock(token);
+      // The scanner ensures that `{` always has a closing `}`.
+      return parseBlock(token, null);
     } else if (identical(value, 'return')) {
       return parseReturnStatement(token);
     } else if (identical(value, 'var') || identical(value, 'final')) {
@@ -5631,8 +5643,8 @@ class Parser {
   ///   '{' statement* '}'
   /// ;
   /// ```
-  Token parseBlock(Token token) {
-    Token begin = token = ensureBlock(token, null);
+  Token parseBlock(Token token, String blockKind) {
+    Token begin = token = ensureBlock(token, null, blockKind);
     listener.beginBlock(begin);
     int statementCount = 0;
     Token startToken = token.next;
@@ -5661,7 +5673,8 @@ class Parser {
     // because an error has already been reported by the caller.
     Listener originalListener = listener;
     listener = new ForwardingListener(listener)..forwardErrors = false;
-    token = parseBlock(token);
+    // The scanner ensures that `{` always has a closing `}`.
+    token = parseBlock(token, null);
     listener = originalListener;
     listener.handleInvalidTopLevelBlock(begin);
     return token;
@@ -5776,7 +5789,8 @@ class Parser {
     Token tryKeyword = token.next;
     assert(optional('try', tryKeyword));
     listener.beginTryStatement(tryKeyword);
-    Token lastConsumed = parseBlock(tryKeyword);
+    // TODO(danrubel): pass 'try statement' for blockKind and update tests
+    Token lastConsumed = parseBlock(tryKeyword, null);
     token = lastConsumed.next;
     int catchCount = 0;
 
@@ -5871,7 +5885,8 @@ class Parser {
         token = lastConsumed.next;
       }
       listener.endCatchClause(token);
-      lastConsumed = parseBlock(lastConsumed);
+      // TODO(danrubel): pass 'catch clause' for blockKind and update tests
+      lastConsumed = parseBlock(lastConsumed, null);
       token = lastConsumed.next;
       ++catchCount;
       listener.handleCatchBlock(onKeyword, catchKeyword, comma);
@@ -5881,7 +5896,8 @@ class Parser {
     Token finallyKeyword = null;
     if (optional('finally', token)) {
       finallyKeyword = token;
-      lastConsumed = parseBlock(token);
+      // TODO(danrubel): pass 'finally clause' for blockKind and update tests
+      lastConsumed = parseBlock(token, null);
       token = lastConsumed.next;
       listener.handleFinallyBlock(finallyKeyword);
     } else {
@@ -5919,7 +5935,8 @@ class Parser {
   /// ;
   /// ```
   Token parseSwitchBlock(Token token) {
-    Token beginSwitch = token = ensureBlock(token, null);
+    // TODO(danrubel): pass 'switch statement' for blockKind and update tests
+    Token beginSwitch = token = ensureBlock(token, null, null);
     listener.beginSwitchBlock(beginSwitch);
     int caseCount = 0;
     Token defaultKeyword = null;

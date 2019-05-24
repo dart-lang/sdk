@@ -240,6 +240,7 @@ class ErrorCodeValuesTest {
         declaredNames.remove('CONST_AND_COVARIANT');
         declaredNames.remove('CONST_AND_VAR');
         declaredNames.remove('COVARIANT_AFTER_FINAL');
+        declaredNames.remove('MISSING_CLASS_BODY');
       }
 
       // Assert that all remaining declared names are in errorCodeValues

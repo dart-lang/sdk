@@ -4413,7 +4413,7 @@ class Wrong<T> {
 
   void test_missingClassBody() {
     parseCompilationUnit("class A class B {}",
-        errors: [expectedError(ParserErrorCode.MISSING_CLASS_BODY, 8, 5)]);
+        errors: [expectedError(ParserErrorCode.MISSING_CLASS_BODY, 6, 1)]);
   }
 
   void test_missingClosingParenthesis() {

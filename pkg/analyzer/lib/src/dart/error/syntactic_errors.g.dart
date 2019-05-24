@@ -103,6 +103,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _EXPERIMENT_NOT_ENABLED,
   _EXPECTED_ELSE_OR_COMMA,
   _INVALID_SUPER_IN_INITIALIZER,
+  _EXPECTED_BODY,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -226,6 +227,10 @@ const ParserErrorCode _EQUALITY_CANNOT_BE_EQUALITY_OPERAND = const ParserErrorCo
     'EQUALITY_CANNOT_BE_EQUALITY_OPERAND',
     r"An equality expression can't be an operand of another equality expression.",
     correction: "Try re-writing the expression.");
+
+const ParserErrorCode _EXPECTED_BODY = const ParserErrorCode(
+    'EXPECTED_BODY', r"A #string must have a body, even if it is empty.",
+    correction: "Try adding an empty body.");
 
 const ParserErrorCode _EXPECTED_ELSE_OR_COMMA = const ParserErrorCode(
     'EXPECTED_ELSE_OR_COMMA', r"Expected 'else' or comma.");

@@ -161,6 +161,8 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode EQUALITY_CANNOT_BE_EQUALITY_OPERAND =
       _EQUALITY_CANNOT_BE_EQUALITY_OPERAND;
 
+  static const ParserErrorCode EXPECTED_BODY = _EXPECTED_BODY;
+
   static const ParserErrorCode EXPECTED_CASE_OR_DEFAULT = const ParserErrorCode(
       'EXPECTED_CASE_OR_DEFAULT', "Expected 'case' or 'default'.",
       correction: "Try placing this code inside a case clause.");
@@ -415,11 +417,7 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode MISSING_CATCH_OR_FINALLY =
       _MISSING_CATCH_OR_FINALLY;
 
-  /// TODO(danrubel): Consider splitting this into two separate error messages.
-  static const ParserErrorCode MISSING_CLASS_BODY = const ParserErrorCode(
-      'MISSING_CLASS_BODY',
-      "A class or mixin definition must have a body, even if it is empty.",
-      correction: "Try adding a body to your class or mixin.");
+  static const ParserErrorCode MISSING_CLASS_BODY = _EXPECTED_BODY;
 
   static const ParserErrorCode MISSING_CLOSING_PARENTHESIS =
       const ParserErrorCode(

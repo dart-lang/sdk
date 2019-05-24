@@ -413,10 +413,10 @@ ImplementsFutureOr:
       class A implements FutureOr<int> {}
 
 ExpectedClassOrMixinBody:
-  template: "Expected a class or mixin body, but got '#lexeme'."
-  analyzerCode: MISSING_CLASS_BODY
-
-ExpectedClassBodyToSkip: ExpectedClassOrMixinBody
+  index: 96
+  template: "A #string must have a body, even if it is empty."
+  tip: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_BODY
 
 ExpectedDeclaration:
   template: "Expected a declaration, but got '#lexeme'."

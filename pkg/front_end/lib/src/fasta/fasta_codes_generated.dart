@@ -2914,27 +2914,6 @@ Message _withArgumentsExpectedButGot(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Token token)> templateExpectedClassBodyToSkip =
-    const Template<Message Function(Token token)>(
-        messageTemplate:
-            r"""Expected a class or mixin body, but got '#lexeme'.""",
-        withArguments: _withArgumentsExpectedClassBodyToSkip);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Token token)> codeExpectedClassBodyToSkip =
-    const Code<Message Function(Token token)>(
-        "ExpectedClassBodyToSkip", templateExpectedClassBodyToSkip,
-        analyzerCodes: <String>["MISSING_CLASS_BODY"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedClassBodyToSkip(Token token) {
-  String lexeme = token.lexeme;
-  return new Message(codeExpectedClassBodyToSkip,
-      message: """Expected a class or mixin body, but got '${lexeme}'.""",
-      arguments: {'token': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedClassMember =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""Expected a class member, but got '#lexeme'.""",
@@ -2955,24 +2934,27 @@ Message _withArgumentsExpectedClassMember(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Token token)> templateExpectedClassOrMixinBody =
-    const Template<Message Function(Token token)>(
+const Template<Message Function(String string)>
+    templateExpectedClassOrMixinBody =
+    const Template<Message Function(String string)>(
         messageTemplate:
-            r"""Expected a class or mixin body, but got '#lexeme'.""",
+            r"""A #string must have a body, even if it is empty.""",
+        tipTemplate: r"""Try adding an empty body.""",
         withArguments: _withArgumentsExpectedClassOrMixinBody);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Token token)> codeExpectedClassOrMixinBody =
-    const Code<Message Function(Token token)>(
+const Code<Message Function(String string)> codeExpectedClassOrMixinBody =
+    const Code<Message Function(String string)>(
         "ExpectedClassOrMixinBody", templateExpectedClassOrMixinBody,
-        analyzerCodes: <String>["MISSING_CLASS_BODY"]);
+        index: 96);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedClassOrMixinBody(Token token) {
-  String lexeme = token.lexeme;
+Message _withArgumentsExpectedClassOrMixinBody(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeExpectedClassOrMixinBody,
-      message: """Expected a class or mixin body, but got '${lexeme}'.""",
-      arguments: {'token': token});
+      message: """A ${string} must have a body, even if it is empty.""",
+      tip: """Try adding an empty body.""",
+      arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
