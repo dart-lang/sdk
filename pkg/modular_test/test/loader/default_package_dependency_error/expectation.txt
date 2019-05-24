@@ -2,6 +2,7 @@
 
 expect
   is package? yes
+  is shared?  yes
   dependencies: meta
   lib/expect.dart
   lib/matchers_lite.dart
@@ -10,11 +11,13 @@ expect
 main
   **main module**
   is package? no
+  is shared?  no
   dependencies: expect
   main.dart
 
 meta
   is package? yes
+  is shared?  yes
   (no dependencies)
   lib/dart2js.dart
   lib/meta.dart

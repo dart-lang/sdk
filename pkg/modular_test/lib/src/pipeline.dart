@@ -48,6 +48,9 @@ class ModularStep {
       this.moduleDataNeeded: const [],
       this.resultData,
       this.onlyOnMain: false});
+
+  /// Notifies that the step was not executed, but cached instead.
+  void notifyCached(Module module) {}
 }
 
 /// An object to uniquely identify modular data produced by a modular step.
@@ -63,9 +66,13 @@ class DataId {
 }
 
 abstract class Pipeline<S extends ModularStep> {
+  /// Whether to cache the result of shared modules (e.g. shard packages and sdk
+  /// libraries) when multiple tests are run by this pipeline.
+  final bool cacheSharedModules;
+
   final List<S> steps;
 
-  Pipeline(this.steps) {
+  Pipeline(this.steps, this.cacheSharedModules) {
     _validate();
   }
 

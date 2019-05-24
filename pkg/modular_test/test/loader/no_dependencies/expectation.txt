@@ -3,5 +3,6 @@
 main
   **main module**
   is package? no
+  is shared?  no
   (no dependencies)
   main.dart

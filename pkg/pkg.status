@@ -178,10 +178,10 @@ analyzer/tool/*: Skip # Issue 26813
 
 [ $compiler != dart2analyzer && $runtime != vm ]
 dev_compiler/test/*: Skip
-modular_test/test/dependency_parser_test: SkipByDesign
 modular_test/test/find_sdk_root1_test: SkipByDesign
 modular_test/test/io_pipeline_test: SkipByDesign
 modular_test/test/loader/loader_test: SkipByDesign
+modular_test/test/specification_parser_test: SkipByDesign
 modular_test/test/src/find_sdk_root2_test: SkipByDesign
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]

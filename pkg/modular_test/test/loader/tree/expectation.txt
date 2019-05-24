@@ -2,21 +2,25 @@
 
 a
   is package? no
+  is shared?  no
   dependencies: b, c
   a.dart
 
 b
   is package? no
+  is shared?  no
   dependencies: d
   b.dart
 
 c
   is package? no
+  is shared?  no
   (no dependencies)
   c.dart
 
 d
   is package? no
+  is shared?  no
   (no dependencies)
   d/d.dart
   d/e.dart
@@ -24,5 +28,6 @@ d
 main
   **main module**
   is package? no
+  is shared?  no
   dependencies: a
   main.dart

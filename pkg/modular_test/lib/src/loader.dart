@@ -17,11 +17,11 @@
 ///       [defaultPackagesInput]. The list of packages provided is expected to
 ///       be disjoint with those in [defaultPackagesInput].
 ///   * a modules.yaml file: a specification of dependencies between modules.
-///     The format is described in `dependencies_parser.dart`.
+///     The format is described in `test_specification_parser.dart`.
 import 'dart:io';
 import 'dart:convert';
 import 'suite.dart';
-import 'dependency_parser.dart';
+import 'test_specification_parser.dart';
 import 'find_sdk_root.dart';
 
 import 'package:package_config/packages_file.dart' as package_config;
@@ -40,7 +40,7 @@ Future<ModularTest> loadTest(Uri uri) async {
   Map<String, Uri> defaultPackages =
       package_config.parse(_defaultPackagesInput, root);
   Map<String, Module> modules = {};
-  String spec;
+  String specString;
   Module mainModule;
   Map<String, Uri> packages = {};
   await for (var entry in folder.list(recursive: false)) {
@@ -69,7 +69,7 @@ Future<ModularTest> loadTest(Uri uri) async {
         List<int> packagesBytes = await entry.readAsBytes();
         packages = package_config.parse(packagesBytes, entryUri);
       } else if (fileName == 'modules.yaml') {
-        spec = await entry.readAsString();
+        specString = await entry.readAsString();
       }
     } else {
       assert(entry is Directory);
@@ -88,7 +88,7 @@ Future<ModularTest> loadTest(Uri uri) async {
           packageBase: Uri.parse('$moduleName/'));
     }
   }
-  if (spec == null) {
+  if (specString == null) {
     return _invalidTest("modules.yaml file is missing");
   }
   if (mainModule == null) {
@@ -97,12 +97,15 @@ Future<ModularTest> loadTest(Uri uri) async {
 
   _addDefaultPackageEntries(packages, defaultPackages);
   await _addModulePerPackage(packages, modules);
-  _attachDependencies(parseDependencyMap(spec), modules);
-  _attachDependencies(parseDependencyMap(_defaultPackagesSpec), modules);
+  TestSpecification spec = parseTestSpecification(specString);
+  _attachDependencies(spec.dependencies, modules);
+  _attachDependencies(
+      parseTestSpecification(_defaultPackagesSpec).dependencies, modules);
   _detectCyclesAndRemoveUnreachable(modules, mainModule);
   var sortedModules = modules.values.toList()
     ..sort((a, b) => a.name.compareTo(b.name));
-  return new ModularTest(sortedModules, mainModule);
+  var sortedFlags = spec.flags.toList()..sort();
+  return new ModularTest(sortedModules, mainModule, sortedFlags);
 }
 
 /// Returns all source files recursively found in a folder as relative URIs.
@@ -169,7 +172,7 @@ Future<void> _addModulePerPackage(
       // module that is part of the test (package name and module name should
       // match).
       modules[packageName] = Module(packageName, [], rootUri, sources,
-          isPackage: true, packageBase: Uri.parse('lib/'));
+          isPackage: true, packageBase: Uri.parse('lib/'), isShared: true);
     }
   }
 }

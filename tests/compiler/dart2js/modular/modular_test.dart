@@ -23,15 +23,23 @@ main(List<String> args) {
   asyncTest(() async {
     var baseUri = Platform.script.resolve('data/');
     var baseDir = Directory.fromUri(baseUri);
+    var pipeline = new IOPipeline([
+      SourceToDillStep(),
+      GlobalAnalysisStep(),
+      Dart2jsBackendStep(),
+      RunD8(),
+    ], cacheSharedModules: true);
     await for (var entry in baseDir.list(recursive: false)) {
       if (entry is Directory) {
-        await _runTest(entry.uri, baseUri);
+        await _runTest(pipeline, entry.uri, baseUri);
       }
     }
+
+    await pipeline.cleanup();
   });
 }
 
-Future<void> _runTest(Uri uri, Uri baseDir) async {
+Future<void> _runTest(IOPipeline pipeline, Uri uri, Uri baseDir) async {
   var dirName = uri.path.substring(baseDir.path.length);
   if (_options.filter != null && !dirName.contains(_options.filter)) {
     if (_options.showSkipped) print("skipped: $dirName");
@@ -41,13 +49,6 @@ Future<void> _runTest(Uri uri, Uri baseDir) async {
   print("testing: $dirName");
   ModularTest test = await loadTest(uri);
   if (_options.verbose) print(test.debugString());
-  var pipeline = new IOPipeline([
-    SourceToDillStep(),
-    GlobalAnalysisStep(),
-    Dart2jsBackendStep(),
-    RunD8(),
-  ]);
-
   await pipeline.run(test);
 }
 
@@ -153,6 +154,11 @@ class SourceToDillStep implements IOModularStep {
         Platform.resolvedExecutable, workerArgs, root.toFilePath());
     _checkExitCode(result, this, module);
   }
+
+  @override
+  void notifyCached(Module module) {
+    if (_options.verbose) print("cached step: source-to-dill on $module");
+  }
 }
 
 // Step that invokes the dart2js global analysis on the main module by providing
@@ -194,6 +200,12 @@ class GlobalAnalysisStep implements IOModularStep {
 
     _checkExitCode(result, this, module);
   }
+
+  @override
+  void notifyCached(Module module) {
+    if (_options.verbose)
+      print("cached step: dart2js global analysis on $module");
+  }
 }
 
 // Step that invokes the dart2js backend on the main module given the results of
@@ -230,6 +242,11 @@ class Dart2jsBackendStep implements IOModularStep {
         await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
 
     _checkExitCode(result, this, module);
+  }
+
+  @override
+  void notifyCached(Module module) {
+    if (_options.verbose) print("cached step: dart2js backend on $module");
   }
 }
 
@@ -268,6 +285,11 @@ class RunD8 implements IOModularStep {
 
     await File.fromUri(root.resolveUri(toUri(module, txtId)))
         .writeAsString(result.stdout);
+  }
+
+  @override
+  void notifyCached(Module module) {
+    if (_options.verbose) print("cached step: d8 on $module");
   }
 }
 

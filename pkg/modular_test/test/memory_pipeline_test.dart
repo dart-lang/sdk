@@ -22,8 +22,10 @@ class MemoryPipelineTestStrategy
 
   @override
   FutureOr<Pipeline<MemoryModularStep>> createPipeline(
-      Map<Uri, String> sources, List<MemoryModularStep> steps) {
-    return new MemoryPipeline(sources, steps);
+      Map<Uri, String> sources, List<MemoryModularStep> steps,
+      {bool cacheSharedModules: false}) {
+    return new MemoryPipeline(sources, steps,
+        cacheSharedModules: cacheSharedModules);
   }
 
   @override
@@ -95,6 +97,9 @@ class SourceOnlyStep implements MemoryModularStep {
     }
     return Future.value({resultId: action(sources)});
   }
+
+  @override
+  void notifyCached(Module module) {}
 }
 
 class ModuleDataStep implements MemoryModularStep {
@@ -117,6 +122,9 @@ class ModuleDataStep implements MemoryModularStep {
       return Future.value({resultId: "data for $module was null"});
     return Future.value({resultId: action(inputData)});
   }
+
+  @override
+  void notifyCached(Module module) {}
 }
 
 class TwoOutputStep implements MemoryModularStep {
@@ -145,6 +153,9 @@ class TwoOutputStep implements MemoryModularStep {
     return Future.value(
         {result1Id: action1(inputData), result2Id: action2(inputData)});
   }
+
+  @override
+  void notifyCached(Module module) {}
 }
 
 class LinkStep implements MemoryModularStep {
@@ -170,6 +181,9 @@ class LinkStep implements MemoryModularStep {
     var inputData = dataProvider(module, inputId) as String;
     return Future.value({resultId: action(inputData, depsData)});
   }
+
+  @override
+  void notifyCached(Module module) {}
 }
 
 class MainOnlyStep implements MemoryModularStep {
@@ -195,4 +209,7 @@ class MainOnlyStep implements MemoryModularStep {
     var inputData = dataProvider(module, inputId) as String;
     return Future.value({resultId: action(inputData, depsData)});
   }
+
+  @override
+  void notifyCached(Module module) {}
 }

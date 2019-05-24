@@ -2,14 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// This library defines how to read module dependencies from a Yaml
-/// specification. We expect to find specifications written in this format:
+/// This library defines how to read a test specification from a Yaml
+/// file. We expect specifications written in this format:
 ///
 ///    dependencies:
 ///      b: a
 ///      main: [b, expect]
+///    flags:
+///      - "--enable-experiment=constant-update-2018"
 ///
-/// Where:
+/// Where the dependencies section describe how modules depend on one another,
+/// and the flags section show what flags are needed to run that specific test.
+///
+/// When defining dependencies:
 ///   - Each name corresponds to a module.
 ///   - Module names correlate to either a file, a folder, or a package.
 ///   - A map entry contains all the dependencies of a module, if any.
@@ -22,12 +27,8 @@
 import 'package:yaml/yaml.dart';
 
 /// Parses [contents] containing a module dependencies specification written in
-/// yaml, and returns a normalized dependency map.
-///
-/// Note: some values in the map may not have a corresponding key. That may be
-/// the case for modules that have no dependencies and modules that are not
-/// specified in [contents] (e.g. modules that are supported by default).
-Map<String, List<String>> parseDependencyMap(String contents) {
+/// yaml, and returns a [TestSpecification].
+TestSpecification parseTestSpecification(String contents) {
   var spec = loadYaml(contents);
   if (spec is! YamlMap) {
     return _invalidSpecification("spec is not a map");
@@ -60,7 +61,38 @@ Map<String, List<String>> parseDependencyMap(String contents) {
           "entry: '$value' is not a string or a list of strings");
     }
   });
-  return normalizedMap;
+
+  List<String> normalizedFlags = [];
+  dynamic flags = spec['flags'];
+  if (flags is String) {
+    normalizedFlags.add(flags);
+  } else if (flags is List) {
+    normalizedFlags.addAll(flags.cast<String>());
+  } else if (flags != null) {
+    _invalidSpecification(
+        "flags: '$flags' expected to be string or list of strings");
+  }
+  return new TestSpecification(normalizedFlags, normalizedMap);
+}
+
+/// Data specifying details about a modular test including dependencies and
+/// flags that are necessary in order to properly run a test.
+///
+class TestSpecification {
+  /// Set of flags necessary to properly run a test.
+  ///
+  /// Usually this contains flags enabling language experiments.
+  final List<String> flags;
+
+  /// Dependencies of the modules that are expected to exist on the test.
+  ///
+  /// Note: some values in the map may not have a corresponding key. That may be
+  /// the case for modules that have no dependencies and modules that are not
+  /// specified explicitly because they are added automatically by the framework
+  /// (for instance, the module of `package:expect` or the sdk itself).
+  final Map<String, List<String>> dependencies;
+
+  TestSpecification(this.flags, this.dependencies);
 }
 
 _invalidSpecification(String message) {

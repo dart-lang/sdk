@@ -27,7 +27,7 @@ main() {
     ]);
   });
 
-  test('circular dependency is not allowed', () {
+  test('circular step dependency is not allowed', () {
     var id1 = DataId("data_a");
     expect(
         () => validateSteps([
@@ -78,7 +78,7 @@ validateSteps(List<ModularStep> steps) {
 /// An implementation of [Pipeline] that simply validates the steps, but doesn't
 /// do anything else.
 class _NoopPipeline extends Pipeline {
-  _NoopPipeline(List<ModularStep> steps) : super(steps);
+  _NoopPipeline(List<ModularStep> steps) : super(steps, false);
 
   @override
   Future<void> runStep(ModularStep step, Module module,

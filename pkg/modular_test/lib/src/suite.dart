@@ -13,8 +13,23 @@ class ModularTest {
   /// The module containing the main entry method.
   final Module mainModule;
 
-  ModularTest(this.modules, this.mainModule)
-      : assert(mainModule != null && modules.length > 0);
+  /// Flags provided to tools that compile and execute the test.
+  final List<String> flags;
+
+  ModularTest(this.modules, this.mainModule, this.flags) {
+    if (mainModule == null) {
+      throw ArgumentError("main module was null");
+    }
+    if (flags == null) {
+      throw ArgumentError("flags was null");
+    }
+    if (modules == null || modules.length == 0) {
+      throw ArgumentError("modules cannot be null or empty");
+    }
+    for (var module in modules) {
+      module._validateDependencies();
+    }
+  }
 
   String debugString() => modules.map((m) => m.debugString()).join('\n');
 }
@@ -50,13 +65,33 @@ class Module {
   /// Whether this is the main entry module of a test.
   bool isMain;
 
+  /// Whether this module is test specific or shared across tests. Usually this
+  /// will be true only for the SDK and shared packages like `package:expect`.
+  bool isShared;
+
   Module(this.name, this.dependencies, this.rootUri, this.sources,
       {this.mainSource,
       this.isPackage: false,
       this.isMain: false,
-      this.packageBase}) {
+      this.packageBase,
+      this.isShared: false}) {
     if (!_validModuleName.hasMatch(name)) {
       throw ArgumentError("invalid module name: $name");
+    }
+  }
+
+  void _validateDependencies() {
+    if (!isPackage && !isShared) return;
+    for (var dependency in dependencies) {
+      if (isPackage && !dependency.isPackage) {
+        throw InvalidModularTestError("invalid dependency: $name is a package "
+            "but it depends on ${dependency.name}, which is not.");
+      }
+      if (isShared && !dependency.isShared) {
+        throw InvalidModularTestError(
+            "invalid dependency: $name is a shared module "
+            "but it depends on ${dependency.name}, which is not.");
+      }
     }
   }
 
@@ -86,4 +121,29 @@ Set<Module> computeTransitiveDependencies(Module module) {
 
   module.dependencies.forEach(helper);
   return deps;
+}
+
+/// A registry that can map a test configuration to a simple id.
+///
+/// This is used to help determine whether two tests are run with the same set
+/// of flags (the same configuration), and thus pipelines could reuse the
+/// results of shared modules from the first test when running the second test.
+class ConfigurationRegistry {
+  Map<String, int> _configurationId = {};
+
+  /// Compute an id to identify the configuration of a modular test.
+  ///
+  /// A configuration is defined in terms of the set of flags provided to a
+  /// test. If two test provided to this registry share the same set of flags,
+  /// the resulting ids are the same. Similarly, if the flags are different,
+  /// their ids will be different as well.
+  int computeConfigurationId(ModularTest test) {
+    return _configurationId[test.flags.join(' ')] ??= _configurationId.length;
+  }
+}
+
+class InvalidModularTestError extends Error {
+  final String message;
+  InvalidModularTestError(this.message);
+  String toString() => "Invalid modular test: $message";
 }
