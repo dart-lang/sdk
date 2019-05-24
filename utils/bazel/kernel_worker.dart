@@ -128,7 +128,9 @@ final summaryArgsParser = new ArgParser()
   ..addOption('output')
   ..addFlag('reuse-compiler-result', defaultsTo: false)
   ..addFlag('use-incremental-compiler', defaultsTo: false)
-  ..addFlag('track-widget-creation', defaultsTo: false);
+  ..addFlag('track-widget-creation', defaultsTo: false)
+  ..addMultiOption('enable-experiment',
+      help: 'Enable a language experiment when invoking the CFE.');
 
 class ComputeKernelResult {
   final bool succeeded;
@@ -167,8 +169,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   if (multiRoots.isEmpty) multiRoots.add(Uri.base);
   var fileSystem = new MultiRootFileSystem(parsedArgs['multi-root-scheme'],
       multiRoots, fe.StandardFileSystem.instance);
-  var sources =
-      (parsedArgs['source'] as List<String>).map(Uri.base.resolve).toList();
+  var sources = (parsedArgs['source'] as List<String>).map(_toUri).toList();
   var excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
 
   var summaryOnly = parsedArgs['summary-only'] as bool;
@@ -222,19 +223,11 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       out.writeln('error: unsupported target: $targetName');
   }
 
-  // TODO(sigmund,jakemac): make it mandatory. We allow null while we migrate
-  // existing clients of this tool.
-  var librariesSpec = parsedArgs['libraries-file'] == null
-      ? null
-      : Uri.base.resolve(parsedArgs['libraries-file']);
+  List<Uri> linkedInputs =
+      (parsedArgs['input-linked'] as List<String>).map(_toUri).toList();
 
-  List<Uri> linkedInputs = (parsedArgs['input-linked'] as List<String>)
-      .map(Uri.base.resolve)
-      .toList();
-
-  List<Uri> summaryInputs = (parsedArgs['input-summary'] as List<String>)
-      .map(Uri.base.resolve)
-      .toList();
+  List<Uri> summaryInputs =
+      (parsedArgs['input-summary'] as List<String>).map(_toUri).toList();
 
   fe.InitializedCompilerState state;
   bool usingIncrementalCompiler = false;
@@ -253,27 +246,30 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       inputDigests[uri] = input.digest;
     }
 
+    // TODO(sigmund): add support for experiments with the incremental compiler.
     state = await fe.initializeIncrementalCompiler(
         previousState,
-        Uri.base.resolve(parsedArgs['dart-sdk-summary']),
-        Uri.base.resolve(parsedArgs['packages-file']),
-        librariesSpec,
+        _toUri(parsedArgs['dart-sdk-summary']),
+        _toUri(parsedArgs['packages-file']),
+        _toUri(parsedArgs['libraries-file']),
         summaryInputs,
         inputDigests,
         target,
         fileSystem,
+        (parsedArgs['enable-experiment'] as List<String>),
         summaryOnly);
   } else {
     state = await fe.initializeCompiler(
         // TODO(sigmund): pass an old state once we can make use of it.
         null,
-        Uri.base.resolve(parsedArgs['dart-sdk-summary']),
-        librariesSpec,
-        Uri.base.resolve(parsedArgs['packages-file']),
+        _toUri(parsedArgs['dart-sdk-summary']),
+        _toUri(parsedArgs['libraries-file']),
+        _toUri(parsedArgs['packages-file']),
         summaryInputs,
         linkedInputs,
         target,
-        fileSystem);
+        fileSystem,
+        (parsedArgs['enable-experiment'] as List<String>));
   }
 
   void onDiagnostic(fe.DiagnosticMessage message) {
@@ -308,7 +304,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     Component component =
         await fe.compileComponent(state, sources, onDiagnostic);
     kernel = fe.serializeComponent(component,
-        filter: (library) => sources.contains(library.importUri),
+        filter: excludeNonSources
+            ? (library) => sources.contains(library.importUri)
+            : null,
         includeOffsets: true);
   }
 
@@ -364,4 +362,9 @@ class DevCompilerSummaryTarget extends DevCompilerTarget {
       }
     }
   }
+}
+
+Uri _toUri(String uriString) {
+  if (uriString == null) return null;
+  return Uri.base.resolve(uriString);
 }
