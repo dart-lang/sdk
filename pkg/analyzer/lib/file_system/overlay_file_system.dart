@@ -70,6 +70,11 @@ class OverlayResourceProvider implements ResourceProvider {
 
   @override
   Resource getResource(String path) {
+    if (hasOverlay(path)) {
+      return new _OverlayResource._from(this, baseProvider.getFile(path));
+    } else if (_hasOverlayIn(path)) {
+      return new _OverlayResource._from(this, baseProvider.getFolder(path));
+    }
     return new _OverlayResource._from(this, baseProvider.getResource(path));
   }
 
@@ -140,14 +145,18 @@ class OverlayResourceProvider implements ResourceProvider {
   }
 
   /**
-   * Return the paths of all of the overlaid files that are immediate children
-   * of the given [folder].
+   * Return `true` if there is an overlay associated with at least one file
+   * contained inside the folder with the given [folderPath].
    */
-  Iterable<String> _overlaysInFolder(Folder folder) {
-    String folderPath = folder.path;
-    return _overlayContent.keys
-        .where((path) => pathContext.dirname(path) == folderPath);
-  }
+  bool _hasOverlayIn(String folderPath) => _overlayContent.keys
+      .any((filePath) => pathContext.isWithin(folderPath, filePath));
+
+  /**
+   * Return the paths of all of the overlaid files that are children of the
+   * given [folder], either directly or indirectly.
+   */
+  Iterable<String> _overlaysInFolder(String folderPath) => _overlayContent.keys
+      .where((filePath) => pathContext.isWithin(folderPath, filePath));
 }
 
 /**
@@ -281,7 +290,7 @@ class _OverlayFolder extends _OverlayResource implements Folder {
   Stream<WatchEvent> get changes => _folder.changes;
 
   @override
-  bool get exists => _resource.exists;
+  bool get exists => _provider._hasOverlayIn(path) || _resource.exists;
 
   /**
    * Return the folder from the base resource provider that corresponds to this
@@ -330,12 +339,24 @@ class _OverlayFolder extends _OverlayResource implements Folder {
 
   @override
   List<Resource> getChildren() {
-    List<Resource> children = _folder
-        .getChildren()
-        .map((child) => new _OverlayResource._from(_provider, child))
-        .toList();
-    for (String overlayPath in _provider._overlaysInFolder(this)) {
-      children.add(_provider.getFile(overlayPath));
+    List<Resource> children;
+    try {
+      children = _folder
+          .getChildren()
+          .map((child) => new _OverlayResource._from(_provider, child))
+          .toList();
+    } on FileSystemException {
+      children = [];
+    }
+    for (String overlayPath in _provider._overlaysInFolder(path)) {
+      pathos.Context context = _provider.pathContext;
+      if (context.dirname(overlayPath) == path) {
+        children.add(_provider.getFile(overlayPath));
+      } else {
+        String relativePath = context.relative(overlayPath, from: path);
+        String folderName = context.split(relativePath)[0];
+        children.add(_provider.getFolder(context.join(path, folderName)));
+      }
     }
     return children;
   }
