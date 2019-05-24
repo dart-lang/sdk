@@ -434,9 +434,8 @@ bool _ignoreTypeFailure(Object t1, Object t2) {
     result =
         _ignoreTypeFailure(t1, typeFuture) || _ignoreTypeFailure(t1, typeArg);
   } else {
-    result = t1 is FunctionType && t2 is FunctionType ||
-        isSubtypeOf(t2, unwrapType(Iterable)) &&
-            isSubtypeOf(t1, unwrapType(Iterable));
+    result = isSubtypeOf(t2, unwrapType(Iterable)) &&
+        isSubtypeOf(t1, unwrapType(Iterable));
     if (result) {
       _warn('Ignoring cast fail from ${typeName(t1)} to ${typeName(t2)}');
     }
