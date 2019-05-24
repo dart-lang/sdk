@@ -203,7 +203,7 @@ class Driver implements ServerStarter {
       "disable-server-feature-completion";
 
   /**
-   * The name of the option to disable the completion feature.
+   * The name of the option to disable the search feature.
    */
   static const String DISABLE_SERVER_FEATURE_SEARCH =
       "disable-server-feature-search";

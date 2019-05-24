@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:path/path.dart' as path;
