@@ -2046,6 +2046,13 @@ abstract class TypeSystem implements public.TypeSystem {
     return getLeastUpperBound(leftType, rightType);
   }
 
+  /// Returns a nullable version of [type].  The result would be equivalent to
+  /// the union `type | Null` (if we supported union types).
+  DartType makeNullable(TypeImpl type) {
+    // TODO(paulberry): handle type parameter types
+    return type.withNullability(NullabilitySuffix.question);
+  }
+
   /// Attempts to find the appropriate substitution for [typeParameters] that can
   /// be applied to [src] to make it equal to [dest].  If no such substitution can
   /// be found, `null` is returned.

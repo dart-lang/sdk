@@ -2958,6 +2958,12 @@ abstract class TypeImpl implements DartType {
    *
    * If the nullability of `this` already matches [nullabilitySuffix], `this`
    * is returned.
+   *
+   * Note: this method just does low-level manipulations of the underlying type,
+   * so it is what you want if you are constructing a fresh type and want it to
+   * have the correct nullability suffix, but it is generally *not* what you
+   * want if you're manipulating existing types.  For manipulating existing
+   * types, please use the methods in [TypeSystem].
    */
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix);
 

@@ -778,9 +778,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     TypeImpl staticType = _getStaticType(operand, read: true);
 
     if (node.operator.type == TokenType.BANG) {
-      // TODO(paulberry): This does the wrong thing if staticType is a type
-      // parameter type.
-      staticType = staticType.withNullability(NullabilitySuffix.none);
+      staticType = _typeSystem.promoteToNonNull(staticType);
     } else {
       // No need to check for `intVar++`, the result is `int`.
       if (!staticType.isDartCoreInt) {
@@ -916,8 +914,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     if (node.operator.type == TokenType.QUESTION_PERIOD &&
         _nonNullableEnabled) {
-      staticType =
-          (staticType as TypeImpl).withNullability(NullabilitySuffix.question);
+      staticType = _typeSystem.makeNullable(staticType);
     }
     staticType = _inferGenericInstantiationFromContext(node, staticType);
 
@@ -1235,22 +1232,24 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * Compute the return type of the method or function represented by the given
    * type that is being invoked.
    */
-  DartType _computeInvokeReturnType(DartType type,
+  DartType /*!*/ _computeInvokeReturnType(DartType type,
       {@required bool isNullableInvoke}) {
-    TypeImpl returnType;
+    TypeImpl /*!*/ returnType;
     if (type is InterfaceType) {
       MethodElement callMethod = type.lookUpMethod(
           FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
-      returnType = callMethod?.type?.returnType;
+      returnType = callMethod?.type?.returnType ?? _dynamicType;
     } else if (type is FunctionType) {
-      returnType = type.returnType;
+      returnType = type.returnType ?? _dynamicType;
+    } else {
+      returnType = _dynamicType;
     }
 
     if (isNullableInvoke && _nonNullableEnabled) {
-      returnType = returnType?.withNullability(NullabilitySuffix.question);
+      returnType = _typeSystem.makeNullable(returnType);
     }
 
-    return returnType ?? _dynamicType;
+    return returnType;
   }
 
   /**
