@@ -158,6 +158,7 @@ enum StaticUseKind {
   CONST_CONSTRUCTOR_INVOKE,
   DIRECT_INVOKE,
   INLINING,
+  GENERATOR_BODY_INVOKE,
   STATIC_INVOKE,
   STATIC_GET,
   STATIC_SET,
@@ -488,7 +489,7 @@ class StaticUse {
   /// Direct invocation of a generator (body) [element], as a static call or
   /// through a this or super constructor call.
   factory StaticUse.generatorBodyInvoke(FunctionEntity element) {
-    return new StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
+    return new StaticUse.internal(element, StaticUseKind.GENERATOR_BODY_INVOKE,
         callStructure: CallStructure.NO_ARGS);
   }
 
@@ -901,8 +902,11 @@ class ConstantUse {
   /// Type constant used for registration of custom elements.
   ConstantUse.customElements(TypeConstantValue value) : this._(value);
 
-  /// Constant literal used on code.
+  /// Constant literal used in code.
   ConstantUse.literal(ConstantValue value) : this._(value);
+
+  /// Deferred constant used in code.
+  ConstantUse.deferred(DeferredGlobalConstantValue value) : this._(value);
 
   @override
   bool operator ==(other) {

@@ -12,6 +12,7 @@ import '../common/names.dart';
 import '../common_elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
+import '../deferred_load.dart';
 import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
@@ -1358,7 +1359,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     }
 
     JGeneratorBody body = _elementMap.getGeneratorBody(function);
-    closedWorld.outputUnitData.registerColocatedMembers(function, body);
     push(new HInvokeGeneratorBody(
         body,
         inputs,
@@ -1734,11 +1734,13 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         _sourceInformationBuilder.buildGet(node);
     if (!closedWorld.outputUnitData
         .hasOnlyNonDeferredImportPathsToConstant(targetElement, value)) {
+      OutputUnit outputUnit =
+          closedWorld.outputUnitData.outputUnitForConstant(value);
+      ConstantValue deferredConstant =
+          new DeferredGlobalConstantValue(value, outputUnit);
+      registry.registerConstantUse(new ConstantUse.deferred(deferredConstant));
       stack.add(graph.addDeferredConstant(
-          value,
-          closedWorld.outputUnitData.outputUnitForConstant(value),
-          sourceInformation,
-          closedWorld));
+          deferredConstant, sourceInformation, closedWorld));
     } else {
       stack.add(graph.addConstant(value, closedWorld,
           sourceInformation: sourceInformation));
@@ -3297,15 +3299,20 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         push(new HStatic(field, _typeInferenceMap.getInferredTypeOf(field),
             sourceInformation));
       } else if (fieldData.isEffectivelyConstant) {
-        var unit = closedWorld.outputUnitData.outputUnitForMember(field);
+        OutputUnit outputUnit =
+            closedWorld.outputUnitData.outputUnitForMember(field);
         // TODO(sigmund): this is not equivalent to what the old FE does: if
         // there is no prefix the old FE wouldn't treat this in any special
         // way. Also, if the prefix points to a constant in the main output
         // unit, the old FE would still generate a deferred wrapper here.
         if (!closedWorld.outputUnitData
             .hasOnlyNonDeferredImportPaths(targetElement, field)) {
+          ConstantValue deferredConstant = new DeferredGlobalConstantValue(
+              fieldData.initialValue, outputUnit);
+          registry
+              .registerConstantUse(new ConstantUse.deferred(deferredConstant));
           stack.add(graph.addDeferredConstant(
-              fieldData.initialValue, unit, sourceInformation, closedWorld));
+              deferredConstant, sourceInformation, closedWorld));
         } else {
           stack.add(graph.addConstant(fieldData.initialValue, closedWorld,
               sourceInformation: sourceInformation));

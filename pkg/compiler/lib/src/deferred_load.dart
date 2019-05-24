@@ -1456,9 +1456,9 @@ class OutputUnitData {
 
   /// Registers that a constant is used in the same deferred output unit as
   /// [field].
-  void registerConstantDeferredUse(
-      DeferredGlobalConstantValue constant, OutputUnit unit) {
+  void registerConstantDeferredUse(DeferredGlobalConstantValue constant) {
     if (!isProgramSplit) return;
+    OutputUnit unit = constant.unit;
     assert(
         _constantToUnit[constant] == null || _constantToUnit[constant] == unit);
     _constantToUnit[constant] = unit;

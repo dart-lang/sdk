@@ -8,7 +8,6 @@ import '../closure.dart';
 import '../common.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
@@ -283,11 +282,9 @@ class HGraph {
     return result;
   }
 
-  HConstant addDeferredConstant(ConstantValue constant, OutputUnit unit,
+  HConstant addDeferredConstant(DeferredGlobalConstantValue constant,
       SourceInformation sourceInformation, JClosedWorld closedWorld) {
-    ConstantValue wrapper = new DeferredGlobalConstantValue(constant, unit);
-    closedWorld.outputUnitData.registerConstantDeferredUse(wrapper, unit);
-    return addConstant(wrapper, closedWorld,
+    return addConstant(constant, closedWorld,
         sourceInformation: sourceInformation);
   }
 
