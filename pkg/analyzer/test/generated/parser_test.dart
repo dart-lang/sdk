@@ -5329,7 +5329,7 @@ m() {
         parseStatement('switch (a) return;', expectedEndOffset: 11);
     expect(statement, isNotNull);
     listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 6)]
+        ? [expectedError(ParserErrorCode.EXPECTED_BODY, 9, 1)]
         : [
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 6),
             expectedError(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT, 11, 6),

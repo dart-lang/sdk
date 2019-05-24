@@ -22,7 +22,7 @@ class SwitchStatementTest extends PartialCodeTest {
               'switch',
               [
                 ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_BODY,
                 ParserErrorCode.EXPECTED_TOKEN
               ],
               "switch (_s_) {}",
@@ -32,7 +32,7 @@ class SwitchStatementTest extends PartialCodeTest {
               'switch (',
               [
                 ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_BODY,
                 ScannerErrorCode.EXPECTED_TOKEN
               ],
               "switch (_s_) {}",
@@ -47,11 +47,11 @@ class SwitchStatementTest extends PartialCodeTest {
           new TestDescriptor(
               'expression',
               'switch (a',
-              [ParserErrorCode.EXPECTED_TOKEN, ScannerErrorCode.EXPECTED_TOKEN],
+              [ParserErrorCode.EXPECTED_BODY, ScannerErrorCode.EXPECTED_TOKEN],
               "switch (a) {}",
               failing: ['block']),
           new TestDescriptor('rightParen', 'switch (a)',
-              [ParserErrorCode.EXPECTED_TOKEN], "switch (a) {}",
+              [ParserErrorCode.EXPECTED_BODY], "switch (a) {}",
               failing: ['block']),
           new TestDescriptor('leftBrace', 'switch (a) {',
               [ScannerErrorCode.EXPECTED_TOKEN], "switch (a) {}",

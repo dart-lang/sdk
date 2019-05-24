@@ -5789,8 +5789,7 @@ class Parser {
     Token tryKeyword = token.next;
     assert(optional('try', tryKeyword));
     listener.beginTryStatement(tryKeyword);
-    // TODO(danrubel): pass 'try statement' for blockKind and update tests
-    Token lastConsumed = parseBlock(tryKeyword, null);
+    Token lastConsumed = parseBlock(tryKeyword, 'try statement');
     token = lastConsumed.next;
     int catchCount = 0;
 
@@ -5885,8 +5884,7 @@ class Parser {
         token = lastConsumed.next;
       }
       listener.endCatchClause(token);
-      // TODO(danrubel): pass 'catch clause' for blockKind and update tests
-      lastConsumed = parseBlock(lastConsumed, null);
+      lastConsumed = parseBlock(lastConsumed, 'catch clause');
       token = lastConsumed.next;
       ++catchCount;
       listener.handleCatchBlock(onKeyword, catchKeyword, comma);
@@ -5896,8 +5894,7 @@ class Parser {
     Token finallyKeyword = null;
     if (optional('finally', token)) {
       finallyKeyword = token;
-      // TODO(danrubel): pass 'finally clause' for blockKind and update tests
-      lastConsumed = parseBlock(token, null);
+      lastConsumed = parseBlock(token, 'finally clause');
       token = lastConsumed.next;
       listener.handleFinallyBlock(finallyKeyword);
     } else {
@@ -5935,8 +5932,7 @@ class Parser {
   /// ;
   /// ```
   Token parseSwitchBlock(Token token) {
-    // TODO(danrubel): pass 'switch statement' for blockKind and update tests
-    Token beginSwitch = token = ensureBlock(token, null, null);
+    Token beginSwitch = token = ensureBlock(token, null, 'switch statement');
     listener.beginSwitchBlock(beginSwitch);
     int caseCount = 0;
     Token defaultKeyword = null;
