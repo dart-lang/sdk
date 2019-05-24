@@ -1013,7 +1013,19 @@ class RawFfiTrampolineData : public RawObject {
   VISIT_FROM(RawObject*, signature_type_);
   RawType* signature_type_;
   RawFunction* c_signature_;
-  VISIT_TO(RawObject*, c_signature_);
+
+  // Target Dart method for callbacks, otherwise null.
+  RawFunction* callback_target_;
+
+  VISIT_TO(RawObject*, callback_target_);
+
+  // Callback id for callbacks, otherwise 0.
+  //
+  // The callbacks ids are used so that native callbacks can lookup their own
+  // code objects, since native code doesn't pass code objects into function
+  // calls. The callback id is also used to for verifying that callbacks are
+  // called on the correct isolate. See DLRT_VerifyCallbackIsolate for details.
+  uint32_t callback_id_;
 };
 
 class RawField : public RawObject {

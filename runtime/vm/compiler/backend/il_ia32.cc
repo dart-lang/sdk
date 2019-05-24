@@ -886,7 +886,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popl(tmp);
   __ movl(Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), tmp);
 
-  __ TransitionGeneratedToNative(branch, tmp);
+  __ TransitionGeneratedToNative(branch, FPREG, tmp);
   __ call(branch);
 
   // The x86 calling convention requires floating point values to be returned on

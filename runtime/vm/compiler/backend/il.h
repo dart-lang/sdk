@@ -336,18 +336,21 @@ struct InstrAttrs {
   M(JoinEntry, kNoGC)                                                          \
   M(TargetEntry, kNoGC)                                                        \
   M(FunctionEntry, kNoGC)                                                      \
+  M(NativeEntry, kNoGC)                                                        \
   M(OsrEntry, kNoGC)                                                           \
   M(IndirectEntry, kNoGC)                                                      \
   M(CatchBlockEntry, kNoGC)                                                    \
   M(Phi, kNoGC)                                                                \
   M(Redefinition, kNoGC)                                                       \
   M(Parameter, kNoGC)                                                          \
+  M(NativeParameter, kNoGC)                                                    \
   M(LoadIndexedUnsafe, kNoGC)                                                  \
   M(StoreIndexedUnsafe, kNoGC)                                                 \
   M(TailCall, kNoGC)                                                           \
   M(ParallelMove, kNoGC)                                                       \
   M(PushArgument, kNoGC)                                                       \
   M(Return, kNoGC)                                                             \
+  M(NativeReturn, kNoGC)                                                       \
   M(Throw, kNoGC)                                                              \
   M(ReThrow, kNoGC)                                                            \
   M(Stop, _)                                                                   \
@@ -919,6 +922,28 @@ class Instruction : public ZoneAllocated {
   }
 
   virtual bool UseSharedSlowPathStub(bool is_optimizing) const { return false; }
+
+  // 'RegisterKindForResult()' returns the register kind necessary to hold the
+  // result.
+  //
+  // This is not virtual because instructions should override representation()
+  // instead.
+  Location::Kind RegisterKindForResult() const {
+    const Representation rep = representation();
+#if !defined(TARGET_ARCH_DBC)
+    if ((rep == kUnboxedFloat) || (rep == kUnboxedDouble) ||
+        (rep == kUnboxedFloat32x4) || (rep == kUnboxedInt32x4) ||
+        (rep == kUnboxedFloat64x2)) {
+      return Location::kFpuRegister;
+    }
+#else
+    // DBC supports only unboxed doubles and does not have distinguished FPU
+    // registers.
+    ASSERT((rep != kUnboxedFloat32x4) && (rep != kUnboxedInt32x4) &&
+           (rep != kUnboxedFloat64x2));
+#endif
+    return Location::kRegister;
+  }
 
  protected:
   // GetDeoptId and/or CopyDeoptIdFrom.
@@ -1618,6 +1643,33 @@ class FunctionEntryInstr : public BlockEntryWithInitialDefs {
   DISALLOW_COPY_AND_ASSIGN(FunctionEntryInstr);
 };
 
+// Represents entry into a function from native code.
+//
+// Native entries are not allowed to have regular parameters. They should use
+// NativeParameter instead (which doesn't count as an initial definition).
+class NativeEntryInstr : public FunctionEntryInstr {
+ public:
+  NativeEntryInstr(const ZoneGrowableArray<Location>* argument_locations,
+                   GraphEntryInstr* graph_entry,
+                   intptr_t block_id,
+                   intptr_t try_index,
+                   intptr_t deopt_id,
+                   intptr_t callback_id)
+      : FunctionEntryInstr(graph_entry, block_id, try_index, deopt_id),
+        callback_id_(callback_id),
+        argument_locations_(argument_locations) {}
+
+  DECLARE_INSTRUCTION(NativeEntry)
+
+  PRINT_TO_SUPPORT
+
+ private:
+  void SaveArgument(FlowGraphCompiler* compiler, Location loc) const;
+
+  const intptr_t callback_id_;
+  const ZoneGrowableArray<Location>* const argument_locations_;
+};
+
 // Represents an OSR entrypoint to a function.
 //
 // The OSR entry has it's own initial definitions.
@@ -2197,6 +2249,57 @@ class ParameterInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
 };
 
+// Native parameters are not treated as initial definitions because they cannot
+// be inlined and are only usable in optimized code. The location must be a
+// stack location relative to the position of the stack (SPREG) after
+// register-based arguments have been saved on entry to a native call. See
+// NativeEntryInstr::EmitNativeCode for more details.
+//
+// TOOD(33549): Unify with ParameterInstr.
+class NativeParameterInstr : public Definition {
+ public:
+  NativeParameterInstr(Location loc, Representation representation)
+      : loc_(loc), representation_(representation) {
+    if (loc.IsPairLocation()) {
+      for (intptr_t i : {0, 1}) {
+        ASSERT(loc_.Component(i).HasStackIndex() &&
+               loc_.Component(i).base_reg() == SPREG);
+      }
+    } else {
+      ASSERT(loc_.HasStackIndex() && loc_.base_reg() == SPREG);
+    }
+  }
+
+  DECLARE_INSTRUCTION(NativeParameter)
+
+  virtual Representation representation() const { return representation_; }
+
+  intptr_t InputCount() const { return 0; }
+  Value* InputAt(intptr_t i) const {
+    UNREACHABLE();
+    return NULL;
+  }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  // TODO(sjindel): We can make this more precise.
+  virtual CompileType ComputeType() const { return CompileType::Dynamic(); }
+
+  virtual bool MayThrow() const { return false; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
+
+  const Location loc_;
+  const Representation representation_;
+
+  DISALLOW_COPY_AND_ASSIGN(NativeParameterInstr);
+};
+
 // Stores a tagged pointer to a slot accessible from a fixed register.  It has
 // the form:
 //
@@ -2260,8 +2363,11 @@ class StoreIndexedUnsafeInstr : public TemplateInstruction<2, NoThrow> {
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
 class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  LoadIndexedUnsafeInstr(Value* index, intptr_t offset, CompileType result_type)
-      : offset_(offset) {
+  LoadIndexedUnsafeInstr(Value* index,
+                         intptr_t offset,
+                         CompileType result_type,
+                         Representation representation = kTagged)
+      : offset_(offset), representation_(representation) {
     UpdateType(result_type);
     SetInputAt(0, index);
   }
@@ -2272,7 +2378,6 @@ class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
     ASSERT(index == 0);
     return kTagged;
   }
-  virtual Representation representation() const { return kTagged; }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -2288,6 +2393,7 @@ class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
 
  private:
   const intptr_t offset_;
+  const Representation representation_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedUnsafeInstr);
 };
@@ -2395,6 +2501,40 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
+};
+
+// Represents a return from a Dart function into native code.
+class NativeReturnInstr : public ReturnInstr {
+ public:
+  NativeReturnInstr(TokenPosition token_pos,
+                    Value* value,
+                    Representation rep,
+                    Location result_location,
+                    intptr_t deopt_id)
+      : ReturnInstr(token_pos, value, deopt_id),
+        result_representation_(rep),
+        result_location_(result_location) {}
+
+  DECLARE_INSTRUCTION(NativeReturn)
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return result_representation_;
+  }
+
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    // Unlike ReturnInstr, NativeReturnInstr cannot be inlined (because it's
+    // returning into native code).
+    return false;
+  }
+
+ private:
+  const Representation result_representation_;
+  const Location result_location_;
+
+  DISALLOW_COPY_AND_ASSIGN(NativeReturnInstr);
 };
 
 class ThrowInstr : public TemplateInstruction<0, Throws> {

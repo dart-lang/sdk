@@ -84,7 +84,8 @@ namespace dart {
   V(RawBool*, CaseInsensitiveCompareUTF16, RawString*, RawSmi*, RawSmi*,       \
     RawSmi*)                                                                   \
   V(void, EnterSafepoint)                                                      \
-  V(void, ExitSafepoint)
+  V(void, ExitSafepoint)                                                       \
+  V(void, VerifyCallbackIsolate, int32_t, uword)
 
 }  // namespace dart
 

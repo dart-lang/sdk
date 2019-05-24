@@ -179,6 +179,7 @@ class ObjectPointerVisitor;
   V(GetterPrefix, "get:")                                                      \
   V(GreaterEqualOperator, ">=")                                                \
   V(GrowRegExpStack, "_growRegExpStack")                                       \
+  V(HandleExposedException, "_handleExposedException")                         \
   V(HaveSameRuntimeType, "_haveSameRuntimeType")                               \
   V(Hide, "hide")                                                              \
   V(ICData, "ICData")                                                          \

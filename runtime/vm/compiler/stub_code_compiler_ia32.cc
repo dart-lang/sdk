@@ -164,6 +164,10 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ ret();
 }
 
+void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
+  __ Breakpoint();
+}
+
 void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
     Assembler* assembler) {
   __ Breakpoint();
