@@ -111,8 +111,8 @@ class SourceOnlyStep implements IOModularStep {
   SourceOnlyStep(this.action, this.resultId, this.needsSources);
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
     Map<Uri, String> sources = {};
 
     for (var uri in module.sources) {
@@ -142,8 +142,8 @@ class ModuleDataStep implements IOModularStep {
       : moduleDataNeeded = requestInput ? [inputId] : [];
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
     var inputData = await _readHelper(module, root, inputId, toUri);
     var result =
         inputData == null ? "data for $module was null" : action(inputData);
@@ -171,8 +171,8 @@ class TwoOutputStep implements IOModularStep {
       this.action1, this.action2, this.inputId, this.result1Id, this.result2Id);
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
     var inputData = await _readHelper(module, root, inputId, toUri);
     var result1 =
         inputData == null ? "data for $module was null" : action1(inputData);
@@ -204,8 +204,8 @@ class LinkStep implements IOModularStep {
       : dependencyDataNeeded = requestDependencies ? [depId] : [];
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
     List<String> depsData = [];
     for (var dependency in module.dependencies) {
       var depData = await _readHelper(dependency, root, depId, toUri);
@@ -236,8 +236,8 @@ class MainOnlyStep implements IOModularStep {
       : dependencyDataNeeded = requestDependencies ? [depId] : [];
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
     List<String> depsData = [];
     for (var dependency in computeTransitiveDependencies(module)) {
       var depData = await _readHelper(dependency, root, depId, toUri);

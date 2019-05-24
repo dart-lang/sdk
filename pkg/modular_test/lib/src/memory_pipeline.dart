@@ -13,8 +13,11 @@ typedef ModuleDataProvider = Object Function(Module, DataId);
 typedef SourceProvider = String Function(Uri);
 
 abstract class MemoryModularStep extends ModularStep {
-  Future<Map<DataId, Object>> execute(Module module,
-      SourceProvider sourceProvider, ModuleDataProvider dataProvider);
+  Future<Map<DataId, Object>> execute(
+      Module module,
+      SourceProvider sourceProvider,
+      ModuleDataProvider dataProvider,
+      List<String> flags);
 }
 
 class MemoryPipeline extends Pipeline<MemoryModularStep> {
@@ -66,7 +69,7 @@ class MemoryPipeline extends Pipeline<MemoryModularStep> {
 
   @override
   Future<void> runStep(MemoryModularStep step, Module module,
-      Map<Module, Set<DataId>> visibleData) async {
+      Map<Module, Set<DataId>> visibleData, List<String> flags) async {
     if (cacheSharedModules && module.isShared) {
       bool allCachedResultsFound = true;
       for (var dataId in step.resultData) {
@@ -98,7 +101,8 @@ class MemoryPipeline extends Pipeline<MemoryModularStep> {
     Map<DataId, Object> result = await step.execute(
         module,
         (Uri uri) => inputSources[uri],
-        (Module m, DataId id) => inputData[m][id]);
+        (Module m, DataId id) => inputData[m][id],
+        flags);
     for (var dataId in step.resultData) {
       (_results[module] ??= {})[dataId] = result[dataId];
     }

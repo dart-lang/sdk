@@ -39,7 +39,8 @@ Future<ModularTest> loadTest(Uri uri) async {
   Uri root = await findRoot();
   Map<String, Uri> defaultPackages =
       package_config.parse(_defaultPackagesInput, root);
-  Map<String, Module> modules = {};
+  Module sdkModule = await _createSdkModule(root);
+  Map<String, Module> modules = {'sdk': sdkModule};
   String specString;
   Module mainModule;
   Map<String, Uri> packages = {};
@@ -52,6 +53,11 @@ Future<ModularTest> loadTest(Uri uri) async {
       var fileName = entryUri.path.substring(testUri.path.length);
       if (fileName.endsWith('.dart')) {
         var moduleName = fileName.substring(0, fileName.indexOf('.dart'));
+        if (moduleName == 'sdk') {
+          return _invalidTest("The file '$fileName' defines a module called "
+              "'$moduleName' which conflicts with the sdk module "
+              "that is provided by default.");
+        }
         if (defaultPackages.containsKey(moduleName)) {
           return _invalidTest("The file '$fileName' defines a module called "
               "'$moduleName' which conflicts with a package by the same name "
@@ -78,6 +84,11 @@ Future<ModularTest> loadTest(Uri uri) async {
       assert(entry is Directory);
       var path = entryUri.path;
       var moduleName = path.substring(testUri.path.length, path.length - 1);
+      if (moduleName == 'sdk') {
+        return _invalidTest("The folder '$moduleName' defines a module "
+            "which conflicts with the sdk module "
+            "that is provided by default.");
+      }
       if (defaultPackages.containsKey(moduleName)) {
         return _invalidTest("The folder '$moduleName' defines a module "
             "which conflicts with a package by the same name "
@@ -104,6 +115,7 @@ Future<ModularTest> loadTest(Uri uri) async {
   _attachDependencies(spec.dependencies, modules);
   _attachDependencies(
       parseTestSpecification(_defaultPackagesSpec).dependencies, modules);
+  _addSdkDependencies(modules, sdkModule);
   _detectCyclesAndRemoveUnreachable(modules, mainModule);
   var sortedModules = modules.values.toList()
     ..sort((a, b) => a.name.compareTo(b.name));
@@ -148,6 +160,15 @@ void _attachDependencies(
   });
 }
 
+/// Make every module depend on the sdk module.
+void _addSdkDependencies(Map<String, Module> modules, Module sdkModule) {
+  for (var module in modules.values) {
+    if (module != sdkModule) {
+      module.dependencies.add(sdkModule);
+    }
+  }
+}
+
 void _addDefaultPackageEntries(
     Map<String, Uri> packages, Map<String, Uri> defaultPackages) {
   for (var name in defaultPackages.keys) {
@@ -178,6 +199,30 @@ Future<void> _addModulePerPackage(
           isPackage: true, packageBase: Uri.parse('lib/'), isShared: true);
     }
   }
+}
+
+Future<Module> _createSdkModule(Uri root) async {
+  List<Uri> sources = [Uri.parse('sdk/lib/libraries.json')];
+
+  // Include all dart2js, ddc, vm library sources and patch files.
+  // Note: we don't extract the list of files from the libraries.json because
+  // it doesn't list files that are transitively imported.
+  var sdkLibrariesAndPatchesRoots = [
+    'sdk/lib/',
+    'runtime/lib/',
+    'runtime/bin/',
+    'pkg/dev_compiler/tool/input_sdk/',
+  ];
+  for (var path in sdkLibrariesAndPatchesRoots) {
+    var dir = Directory.fromUri(root.resolve(path));
+    await for (var file in dir.list(recursive: true)) {
+      if (file is File && file.path.endsWith(".dart")) {
+        sources.add(Uri.parse(file.path.substring(root.path.length)));
+      }
+    }
+  }
+  sources..sort((a, b) => a.path.compareTo(b.path));
+  return Module('sdk', [], root, sources, isSdk: true, isShared: true);
 }
 
 /// Trim the set of modules, and detect cycles while we are at it.

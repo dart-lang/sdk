@@ -4,5 +4,13 @@ main
   **main module**
   is package? no
   is shared?  no
-  (no dependencies)
+  is sdk?  no
+  dependencies: sdk
   main.dart
+
+sdk
+  is package? no
+  is shared?  yes
+  is sdk?  yes
+  (no dependencies)
+  (sdk sources omitted)

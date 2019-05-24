@@ -89,8 +89,11 @@ class SourceOnlyStep implements MemoryModularStep {
 
   SourceOnlyStep(this.action, this.resultId, this.needsSources);
 
-  Future<Map<DataId, Object>> execute(Module module,
-      SourceProvider sourceProvider, ModuleDataProvider dataProvider) {
+  Future<Map<DataId, Object>> execute(
+      Module module,
+      SourceProvider sourceProvider,
+      ModuleDataProvider dataProvider,
+      List<String> flags) {
     Map<Uri, String> sources = {};
     for (var uri in module.sources) {
       sources[uri] = sourceProvider(module.rootUri.resolveUri(uri));
@@ -115,8 +118,11 @@ class ModuleDataStep implements MemoryModularStep {
   ModuleDataStep(this.action, this.inputId, this.resultId, bool requestInput)
       : moduleDataNeeded = requestInput ? [inputId] : [];
 
-  Future<Map<DataId, Object>> execute(Module module,
-      SourceProvider sourceProvider, ModuleDataProvider dataProvider) {
+  Future<Map<DataId, Object>> execute(
+      Module module,
+      SourceProvider sourceProvider,
+      ModuleDataProvider dataProvider,
+      List<String> flags) {
     var inputData = dataProvider(module, inputId) as String;
     if (inputData == null)
       return Future.value({resultId: "data for $module was null"});
@@ -142,8 +148,11 @@ class TwoOutputStep implements MemoryModularStep {
   TwoOutputStep(
       this.action1, this.action2, this.inputId, this.result1Id, this.result2Id);
 
-  Future<Map<DataId, Object>> execute(Module module,
-      SourceProvider sourceProvider, ModuleDataProvider dataProvider) {
+  Future<Map<DataId, Object>> execute(
+      Module module,
+      SourceProvider sourceProvider,
+      ModuleDataProvider dataProvider,
+      List<String> flags) {
     var inputData = dataProvider(module, inputId) as String;
     if (inputData == null)
       return Future.value({
@@ -173,8 +182,11 @@ class LinkStep implements MemoryModularStep {
       bool requestDependencies)
       : dependencyDataNeeded = requestDependencies ? [depId] : [];
 
-  Future<Map<DataId, Object>> execute(Module module,
-      SourceProvider sourceProvider, ModuleDataProvider dataProvider) {
+  Future<Map<DataId, Object>> execute(
+      Module module,
+      SourceProvider sourceProvider,
+      ModuleDataProvider dataProvider,
+      List<String> flags) {
     List<String> depsData = module.dependencies
         .map((d) => dataProvider(d, depId) as String)
         .toList();
@@ -201,8 +213,11 @@ class MainOnlyStep implements MemoryModularStep {
       bool requestDependencies)
       : dependencyDataNeeded = requestDependencies ? [depId] : [];
 
-  Future<Map<DataId, Object>> execute(Module module,
-      SourceProvider sourceProvider, ModuleDataProvider dataProvider) {
+  Future<Map<DataId, Object>> execute(
+      Module module,
+      SourceProvider sourceProvider,
+      ModuleDataProvider dataProvider,
+      List<String> flags) {
     List<String> depsData = computeTransitiveDependencies(module)
         .map((d) => dataProvider(d, depId) as String)
         .toList();

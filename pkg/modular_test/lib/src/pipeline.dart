@@ -121,7 +121,7 @@ abstract class Pipeline<S extends ModularStep> {
     // TODO(sigmund): validate that [ModularTest] has no cycles.
     Map<Module, Set<DataId>> computedData = {};
     for (var step in steps) {
-      await _recursiveRun(step, test.mainModule, computedData, {}, {});
+      await _recursiveRun(step, test.mainModule, computedData, {}, test.flags);
     }
   }
 
@@ -129,22 +129,22 @@ abstract class Pipeline<S extends ModularStep> {
       S step,
       Module module,
       Map<Module, Set<DataId>> computedData,
-      Set<Module> seen,
-      Set<Module> parentDependencies) async {
-    if (!seen.add(module)) return;
-    parentDependencies.add(module);
-    Set<Module> transitiveDependencies = {};
+      Map<Module, Set<Module>> transitiveDependencies,
+      List<String> flags) async {
+    if (transitiveDependencies.containsKey(module)) return;
+    var deps = transitiveDependencies[module] = {};
     for (var dependency in module.dependencies) {
       await _recursiveRun(
-          step, dependency, computedData, seen, transitiveDependencies);
+          step, dependency, computedData, transitiveDependencies, flags);
+      deps.add(dependency);
+      deps.addAll(transitiveDependencies[dependency]);
     }
-    parentDependencies.addAll(transitiveDependencies);
 
     if (step.onlyOnMain && !module.isMain) return;
     // Include only requested data from transitive dependencies.
     Map<Module, Set<DataId>> visibleData = {};
 
-    transitiveDependencies.forEach((dep) {
+    deps.forEach((dep) {
       visibleData[dep] = {};
       for (var dataId in step.dependencyDataNeeded) {
         if (computedData[dep].contains(dataId)) {
@@ -158,12 +158,12 @@ abstract class Pipeline<S extends ModularStep> {
         visibleData[module].add(dataId);
       }
     }
-    await runStep(step, module, visibleData);
+    await runStep(step, module, visibleData, flags);
     (computedData[module] ??= {}).addAll(step.resultData);
   }
 
-  Future<void> runStep(
-      S step, Module module, Map<Module, Set<DataId>> visibleData);
+  Future<void> runStep(S step, Module module,
+      Map<Module, Set<DataId>> visibleData, List<String> flags);
 }
 
 class InvalidPipelineError extends Error {

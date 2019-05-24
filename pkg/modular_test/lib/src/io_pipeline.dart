@@ -22,7 +22,8 @@ abstract class IOModularStep extends ModularStep {
   /// Assets created on previous steps of the pipeline should be available under
   /// `root.resolveUri(toUri(module, dataId))` and the output of this step
   /// should be stored under `root.resolveUri(toUri(module, resultKind))`.
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri);
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags);
 }
 
 class IOPipeline extends Pipeline<IOModularStep> {
@@ -94,7 +95,7 @@ class IOPipeline extends Pipeline<IOModularStep> {
 
   @override
   Future<void> runStep(IOModularStep step, Module module,
-      Map<Module, Set<DataId>> visibleData) async {
+      Map<Module, Set<DataId>> visibleData, List<String> flags) async {
     if (cacheSharedModules && module.isShared) {
       // If all expected outputs are already available, skip the step.
       bool allCachedResultsFound = true;
@@ -135,7 +136,7 @@ class IOPipeline extends Pipeline<IOModularStep> {
     }
 
     await step.execute(module, stepFolder.uri,
-        (Module m, DataId id) => Uri.parse(_toFileName(m, id)));
+        (Module m, DataId id) => Uri.parse(_toFileName(m, id)), flags);
 
     for (var dataId in step.resultData) {
       var outputFile =

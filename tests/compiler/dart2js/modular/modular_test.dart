@@ -76,9 +76,10 @@ class SourceToDillStep implements IOModularStep {
   bool get onlyOnMain => false;
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
     if (_options.verbose) print("step: source-to-dill on $module");
+
     // We use non file-URI schemes for representeing source locations in a
     // root-agnostic way. This allows us to refer to file across modules and
     // across steps without exposing the underlying temporary folders that are
@@ -87,7 +88,7 @@ class SourceToDillStep implements IOModularStep {
     //
     // Files in packages are defined in terms of `package:` URIs, while
     // non-package URIs are defined using the `dart-dev-app` scheme.
-    String rootScheme = 'dev-dart-app';
+    String rootScheme = module.isSdk ? 'dart-dev-sdk' : 'dev-dart-app';
     String sourceToImportUri(Uri relativeUri) {
       if (module.isPackage) {
         var basePath = module.packageBase.path;
@@ -127,10 +128,30 @@ class SourceToDillStep implements IOModularStep {
         .writeAsString('$packagesContents');
 
     var sdkRoot = Platform.script.resolve("../../../../");
-    var platform =
-        computePlatformBinariesLocation().resolve("dart2js_platform.dill");
+    List<String> sources;
+    List<String> extraArgs;
+    if (module.isSdk) {
+      // When no flags are passed, we can skip compilation and reuse the
+      // platform.dill created by build.py.
+      if (flags.isEmpty) {
+        var platform =
+            computePlatformBinariesLocation().resolve("dart2js_platform.dill");
+        var destination = root.resolveUri(toUri(module, dillId));
+        if (_options.verbose) {
+          print('command:\ncp $platform $destination');
+        }
+        await File.fromUri(platform).copy(destination.toFilePath());
+        return;
+      }
+      sources = ['dart:core'];
+      extraArgs = ['--libraries-file', '$rootScheme:///sdk/lib/libraries.json'];
+      assert(transitiveDependencies.isEmpty);
+    } else {
+      sources = module.sources.map(sourceToImportUri).toList();
+      extraArgs = ['--packages-file', '$rootScheme:/.packages'];
+    }
 
-    List<String> workerArgs = [
+    List<String> args = [
       sdkRoot.resolve("utils/bazel/kernel_worker.dart").toFilePath(),
       '--no-summary-only',
       '--target',
@@ -139,19 +160,17 @@ class SourceToDillStep implements IOModularStep {
       '$root',
       '--multi-root-scheme',
       rootScheme,
-      '--dart-sdk-summary',
-      '${platform}',
+      ...extraArgs,
       '--output',
       '${toUri(module, dillId)}',
-      '--packages-file',
-      '$rootScheme:/.packages',
       ...(transitiveDependencies
           .expand((m) => ['--input-linked', '${toUri(m, dillId)}'])),
-      ...(module.sources.expand((uri) => ['--source', sourceToImportUri(uri)])),
+      ...(sources.expand((String uri) => ['--source', uri])),
+      ...(flags.expand((String flag) => ['--enable-experiment', flag])),
     ];
 
-    var result = await _runProcess(
-        Platform.resolvedExecutable, workerArgs, root.toFilePath());
+    var result =
+        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
     _checkExitCode(result, this, module);
   }
 
@@ -180,8 +199,8 @@ class GlobalAnalysisStep implements IOModularStep {
   bool get onlyOnMain => true;
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
     if (_options.verbose) print("step: dart2js global analysis on $module");
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
     Iterable<String> dillDependencies =
@@ -191,6 +210,7 @@ class GlobalAnalysisStep implements IOModularStep {
       '--packages=${sdkRoot.toFilePath()}/.packages',
       'package:compiler/src/dart2js.dart',
       '${toUri(module, dillId)}',
+      for (String flag in flags) '--enable-experiment=$flag',
       '--dill-dependencies=${dillDependencies.join(',')}',
       '--write-data=${toUri(module, globalDataId)}',
       '--out=${toUri(module, updatedDillId)}',
@@ -227,14 +247,15 @@ class Dart2jsBackendStep implements IOModularStep {
   bool get onlyOnMain => true;
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
     if (_options.verbose) print("step: dart2js backend on $module");
     var sdkRoot = Platform.script.resolve("../../../../");
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/.packages',
       'package:compiler/src/dart2js.dart',
       '${toUri(module, updatedDillId)}',
+      for (String flag in flags) '--enable-experiment=$flag',
       '--read-data=${toUri(module, globalDataId)}',
       '--out=${toUri(module, jsId)}',
     ];
@@ -268,8 +289,8 @@ class RunD8 implements IOModularStep {
   bool get onlyOnMain => true;
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
     if (_options.verbose) print("step: d8 on $module");
     var sdkRoot = Platform.script.resolve("../../../../");
     List<String> d8Args = [

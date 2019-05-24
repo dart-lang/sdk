@@ -27,7 +27,7 @@ class ModularTest {
       throw ArgumentError("modules cannot be null or empty");
     }
     for (var module in modules) {
-      module._validateDependencies();
+      module._validate();
     }
   }
 
@@ -58,6 +58,9 @@ class Module {
   /// package name matches the module name.
   bool isPackage;
 
+  /// Whether this module represents part of the sdk.
+  bool isSdk;
+
   /// When [isPackage], the base where all package URIs are resolved against.
   /// Stored as a relative [Uri] from [rootUri].
   final Uri packageBase;
@@ -74,16 +77,25 @@ class Module {
       this.isPackage: false,
       this.isMain: false,
       this.packageBase,
-      this.isShared: false}) {
+      this.isShared: false,
+      this.isSdk: false}) {
     if (!_validModuleName.hasMatch(name)) {
       throw ArgumentError("invalid module name: $name");
     }
   }
 
-  void _validateDependencies() {
-    if (!isPackage && !isShared) return;
+  void _validate() {
+    if (!isPackage && !isShared && !isSdk) return;
+
+    // Note: we validate this now and not in the constructor because loader.dart
+    // may update `isPackage` after the module is created.
+    if (isSdk && isPackage) {
+      throw InvalidModularTestError("invalid module: $name is an sdk "
+          "module but was also marked as a package module.");
+    }
+
     for (var dependency in dependencies) {
-      if (isPackage && !dependency.isPackage) {
+      if (isPackage && !dependency.isPackage && !dependency.isSdk) {
         throw InvalidModularTestError("invalid dependency: $name is a package "
             "but it depends on ${dependency.name}, which is not.");
       }
@@ -91,6 +103,17 @@ class Module {
         throw InvalidModularTestError(
             "invalid dependency: $name is a shared module "
             "but it depends on ${dependency.name}, which is not.");
+      }
+      if (isSdk) {
+        // TODO(sigmund): we should allow to split sdk modules in smaller
+        // pieces. This requires a bit of work:
+        // - allow to compile subsets of the sdk (see #30957 regarding
+        //   extraRequiredLibraries in CFE)
+        // - add logic to specify sdk dependencies.
+        throw InvalidModularTestError(
+            "invalid dependency: $name is an sdk module that depends on  "
+            "${dependency.name}, but sdk modules are not expected to "
+            "have dependencies.");
       }
     }
   }
@@ -105,7 +128,11 @@ class Module {
     buffer.write(': ');
     buffer.write(isPackage ? 'package' : '(not package)');
     buffer.write(', deps: {${dependencies.map((d) => d.name).join(", ")}}');
-    buffer.write(', sources: {${sources.map((u) => "$u").join(', ')}}');
+    if (isSdk) {
+      buffer.write(', sources: {...omitted ${sources.length} sources...}');
+    } else {
+      buffer.write(', sources: {${sources.map((u) => "$u").join(', ')}}');
+    }
     return '$buffer';
   }
 }

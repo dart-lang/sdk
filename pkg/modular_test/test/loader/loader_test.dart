@@ -74,6 +74,7 @@ String _dumpAsText(ModularTest test) {
     }
     buffer.write('\n  is package? ${module.isPackage ? 'yes' : 'no'}');
     buffer.write('\n  is shared?  ${module.isShared ? 'yes' : 'no'}');
+    buffer.write('\n  is sdk?  ${module.isSdk ? 'yes' : 'no'}');
     if (module.dependencies.isEmpty) {
       buffer.write('\n  (no dependencies)');
     } else {
@@ -83,6 +84,8 @@ String _dumpAsText(ModularTest test) {
 
     if (module.sources.isEmpty) {
       buffer.write('\n  (no sources)');
+    } else if (module.isSdk) {
+      buffer.write('\n  (sdk sources omitted)');
     } else {
       module.sources.forEach((uri) {
         buffer.write('\n  $uri');

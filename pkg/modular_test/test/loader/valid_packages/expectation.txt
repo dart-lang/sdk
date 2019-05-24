@@ -3,7 +3,8 @@
 expect
   is package? yes
   is shared?  yes
-  dependencies: meta
+  is sdk?  no
+  dependencies: meta, sdk
   lib/expect.dart
   lib/matchers_lite.dart
   lib/minitest.dart
@@ -11,7 +12,8 @@ expect
 js
   is package? yes
   is shared?  yes
-  (no dependencies)
+  is sdk?  no
+  dependencies: sdk
   lib/js.dart
   lib/js_util.dart
   lib/src/varargs.dart
@@ -20,12 +22,21 @@ main
   **main module**
   is package? no
   is shared?  no
-  dependencies: js, expect
+  is sdk?  no
+  dependencies: js, expect, sdk
   main.dart
 
 meta
   is package? yes
   is shared?  yes
-  (no dependencies)
+  is sdk?  no
+  dependencies: sdk
   lib/dart2js.dart
   lib/meta.dart
+
+sdk
+  is package? no
+  is shared?  yes
+  is sdk?  yes
+  (no dependencies)
+  (sdk sources omitted)
