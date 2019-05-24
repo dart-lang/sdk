@@ -84,6 +84,10 @@ class Flags {
   static const String dillDependencies = '--dill-dependencies';
   static const String readData = '--read-data';
   static const String writeData = '--write-data';
+  static const String readCodegen = '--read-codegen';
+  static const String writeCodegen = '--write-codegen';
+  static const String codegenShard = '--codegen-shard';
+  static const String codegenShards = '--codegen-shards';
   static const String cfeOnly = '--cfe-only';
   static const String debugGlobalInference = '--debug-global-inference';
 

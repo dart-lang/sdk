@@ -6,18 +6,22 @@ library dart2js.common.codegen;
 
 import 'package:js_ast/src/precedence.dart' as js show PRIMARY;
 
+import '../common.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
 import '../deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
 import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
+import '../js_backend/backend.dart';
 import '../js_backend/namer.dart';
 import '../js_emitter/code_emitter_task.dart' show Emitter;
 import '../native/behavior.dart';
 import '../serialization/serialization.dart';
+import '../ssa/ssa.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
@@ -414,6 +418,58 @@ class CodegenRegistry {
   }
 }
 
+/// Interface for reading the code generation results for all [MemberEntity]s.
+abstract class CodegenResults {
+  GlobalTypeInferenceResults get globalTypeInferenceResults;
+  CodegenInputs get codegenInputs;
+  CodegenResult getCodegenResults(MemberEntity member);
+}
+
+/// Code generation results computed on-demand.
+///
+/// This is used in the non-modular codegen enqueuer driving code generation.
+class OnDemandCodegenResults extends CodegenResults {
+  @override
+  final GlobalTypeInferenceResults globalTypeInferenceResults;
+  @override
+  final CodegenInputs codegenInputs;
+  final SsaFunctionCompiler _functionCompiler;
+
+  OnDemandCodegenResults(this.globalTypeInferenceResults, this.codegenInputs,
+      this._functionCompiler);
+
+  @override
+  CodegenResult getCodegenResults(MemberEntity member) {
+    return _functionCompiler.compile(member);
+  }
+}
+
+/// Deserialized code generation results.
+///
+/// This is used for modular code generation.
+class DeserializedCodegenResults extends CodegenResults {
+  @override
+  final GlobalTypeInferenceResults globalTypeInferenceResults;
+  @override
+  final CodegenInputs codegenInputs;
+
+  final Map<MemberEntity, CodegenResult> _map;
+
+  DeserializedCodegenResults(
+      this.globalTypeInferenceResults, this.codegenInputs, this._map);
+
+  @override
+  CodegenResult getCodegenResults(MemberEntity member) {
+    CodegenResult result = _map[member];
+    if (result == null) {
+      failedAt(member,
+          "No codegen results from $member (${identityHashCode(member)}).");
+    }
+    return result;
+  }
+}
+
+/// The code generation result for a single [MemberEntity].
 class CodegenResult {
   static const String tag = 'codegen-result';
 

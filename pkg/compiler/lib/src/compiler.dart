@@ -11,6 +11,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart'
 
 import '../compiler_new.dart' as api;
 import 'backend_strategy.dart';
+import 'common/codegen.dart';
 import 'common/names.dart' show Selectors, Uris;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
@@ -171,7 +172,8 @@ abstract class Compiler {
       enqueuer,
       dumpInfoTask = new DumpInfoTask(this),
       selfTask,
-      serializationTask = new SerializationTask(this, measurer),
+      serializationTask = new SerializationTask(
+          options, reporter, provider, outputProvider, measurer),
     ];
 
     tasks.addAll(backend.tasks);
@@ -227,13 +229,14 @@ abstract class Compiler {
     reporter.log('Compiling $uri (${options.buildId})');
 
     if (options.readDataUri != null) {
-      GlobalTypeInferenceResults results =
-          await serializationTask.deserialize();
+      GlobalTypeInferenceResults globalTypeInferenceResults =
+          await serializationTask.deserializeGlobalTypeInference(
+              environment, abstractValueStrategy);
       if (options.debugGlobalInference) {
-        performGlobalTypeInference(results.closedWorld);
+        performGlobalTypeInference(globalTypeInferenceResults.closedWorld);
         return;
       }
-      emitJavaScriptCode(results);
+      await generateJavaScriptCode(globalTypeInferenceResults);
     } else {
       KernelResult result = await kernelLoader.load(uri);
       reporter.log("Kernel load complete");
@@ -260,6 +263,31 @@ abstract class Compiler {
       }
 
       await compileFromKernel(result.rootLibraryUri, result.libraries);
+    }
+  }
+
+  void generateJavaScriptCode(
+      GlobalTypeInferenceResults globalTypeInferenceResults) async {
+    JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
+    backendStrategy.registerJClosedWorld(closedWorld);
+    if (options.showInternalProgress) reporter.log('Compiling...');
+    phase = PHASE_COMPILING;
+    CodegenInputs codegenInputs =
+        backend.onCodegenStart(globalTypeInferenceResults);
+
+    if (options.readCodegenUri != null) {
+      CodegenResults codegenResults =
+          await serializationTask.deserializeCodegen(
+              backendStrategy, globalTypeInferenceResults, codegenInputs);
+      runCodegenEnqueuer(codegenResults);
+    } else {
+      CodegenResults codegenResults = new OnDemandCodegenResults(
+          globalTypeInferenceResults, codegenInputs, backend.functionCompiler);
+      if (options.writeCodegenUri != null) {
+        serializationTask.serializeCodegen(backendStrategy, codegenResults);
+      } else {
+        runCodegenEnqueuer(codegenResults);
+      }
     }
   }
 
@@ -355,15 +383,13 @@ abstract class Compiler {
         mainFunction, closedWorld, inferredDataBuilder);
   }
 
-  void emitJavaScriptCode(GlobalTypeInferenceResults globalInferenceResults) {
+  void runCodegenEnqueuer(CodegenResults codegenResults) {
+    GlobalTypeInferenceResults globalInferenceResults =
+        codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalInferenceResults.closedWorld;
-    backendStrategy.registerJClosedWorld(closedWorld);
-    if (options.showInternalProgress) reporter.log('Compiling...');
-    phase = PHASE_COMPILING;
-
-    CodegenInputs codegen = backend.onCodegenStart(globalInferenceResults);
+    CodegenInputs codegenInputs = codegenResults.codegenInputs;
     Enqueuer codegenEnqueuer = enqueuer.createCodegenEnqueuer(
-        closedWorld, globalInferenceResults, codegen);
+        closedWorld, globalInferenceResults, codegenInputs, codegenResults);
     _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
 
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
@@ -375,14 +401,14 @@ abstract class Compiler {
       codegenWorldForTesting = codegenWorld;
     }
     int programSize = backend.assembleProgram(closedWorld,
-        globalInferenceResults.inferredData, codegen, codegenWorld);
+        globalInferenceResults.inferredData, codegenInputs, codegenWorld);
 
     if (options.dumpInfo) {
       dumpInfoTask.reportSize(programSize);
       dumpInfoTask.dumpInfo(closedWorld, globalInferenceResults);
     }
 
-    backend.onCodegenEnd(codegen);
+    backend.onCodegenEnd(codegenInputs);
 
     checkQueue(codegenEnqueuer);
   }
@@ -397,7 +423,8 @@ abstract class Compiler {
         GlobalTypeInferenceResults globalInferenceResults =
             performGlobalTypeInference(closedWorld);
         if (options.writeDataUri != null) {
-          serializationTask.serialize(globalInferenceResults);
+          serializationTask
+              .serializeGlobalTypeInference(globalInferenceResults);
           return;
         }
         if (options.testMode) {
@@ -415,7 +442,7 @@ abstract class Compiler {
               worldData);
         }
         if (stopAfterTypeInference) return;
-        emitJavaScriptCode(globalInferenceResults);
+        generateJavaScriptCode(globalInferenceResults);
       }
     });
   }

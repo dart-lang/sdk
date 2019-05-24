@@ -107,10 +107,10 @@ class CodeEmitterTask extends CompilerTask {
       Namer namer,
       JClosedWorld closedWorld,
       InferredData inferredData,
-      CodegenInputs codegen,
+      CodegenInputs codegenInputs,
       CodegenWorld codegenWorld) {
     return measure(() {
-      _finalizeRti(codegen, codegenWorld);
+      _finalizeRti(codegenInputs, codegenWorld);
       ProgramBuilder programBuilder = new ProgramBuilder(
           _compiler.options,
           _compiler.reporter,
@@ -124,7 +124,7 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.rtiNeed,
           closedWorld.interceptorData,
           typeTestRegistry.rtiChecks,
-          codegen.rtiEncoder,
+          codegenInputs.rtiEncoder,
           codegenWorld.oneShotInterceptorData,
           _backend.customElementsCodegenAnalysis,
           _backend.generatedCode,

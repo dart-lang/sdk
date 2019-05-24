@@ -5,6 +5,7 @@
 library dart2js.backend_strategy;
 
 import 'common.dart';
+import 'common/codegen.dart';
 import 'common/tasks.dart';
 import 'deferred_load.dart' show OutputUnitData;
 import 'enqueue.dart';
@@ -14,6 +15,7 @@ import 'io/source_information.dart';
 import 'js_backend/inferred_data.dart';
 import 'js_backend/interceptor_data.dart';
 import 'js_backend/native_data.dart';
+import 'serialization/serialization.dart';
 import 'ssa/ssa.dart';
 import 'universe/codegen_world_builder.dart';
 import 'universe/world_builder.dart';
@@ -40,7 +42,8 @@ abstract class BackendStrategy {
       OneShotInterceptorData oneShotInterceptorData);
 
   /// Creates the [WorkItemBuilder] used by the codegen enqueuer.
-  WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld);
+  WorkItemBuilder createCodegenWorkItemBuilder(
+      JClosedWorld closedWorld, CodegenResults codegenResults);
 
   /// Creates the [SsaBuilder] used for the element model.
   SsaBuilder createSsaBuilder(
@@ -55,4 +58,15 @@ abstract class BackendStrategy {
   /// Creates the [TypesInferrer] used by this strategy.
   TypesInferrer createTypesInferrer(
       JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder);
+
+  /// Calls [f] for every member that needs to be serialized for modular code
+  /// generation and returns an [EntityWriter] for encoding these members in
+  /// the serialized data.
+  ///
+  /// The needed members include members computed on demand during non-modular
+  /// code generation, such as constructor bodies and and generator bodies.
+  EntityWriter forEachCodegenMember(void Function(MemberEntity member) f);
+
+  /// Prepare [source] to deserialize modular code generation data.
+  void prepareCodegenReader(DataSource source);
 }

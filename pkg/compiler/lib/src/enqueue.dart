@@ -6,6 +6,7 @@ library dart2js.enqueue;
 
 import 'dart:collection' show Queue;
 
+import 'common/codegen.dart';
 import 'common/tasks.dart' show CompilerTask;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
@@ -68,9 +69,10 @@ class EnqueueTask extends CompilerTask {
   Enqueuer createCodegenEnqueuer(
       JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults,
-      CodegenInputs codegen) {
-    Enqueuer enqueuer = compiler.backend.createCodegenEnqueuer(
-        this, compiler, closedWorld, globalInferenceResults, codegen)
+      CodegenInputs codegenInputs,
+      CodegenResults codegenResults) {
+    Enqueuer enqueuer = compiler.backend.createCodegenEnqueuer(this, compiler,
+        closedWorld, globalInferenceResults, codegenInputs, codegenResults)
       ..onEmptyForTesting = compiler.onCodegenQueueEmptyForTesting;
     if (retainDataForTesting) {
       codegenEnqueuerForTesting = enqueuer;

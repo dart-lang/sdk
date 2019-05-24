@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../backend_strategy.dart';
 import '../common.dart';
-import '../common/codegen.dart' show CodegenRegistry;
+import '../common/codegen.dart' show CodegenRegistry, CodegenResults;
 import '../common/tasks.dart';
 import '../common/work.dart';
 import '../compiler.dart';
@@ -112,12 +112,14 @@ class JsBackendStrategy implements BackendStrategy {
   }
 
   @override
-  WorkItemBuilder createCodegenWorkItemBuilder(JClosedWorld closedWorld) {
+  WorkItemBuilder createCodegenWorkItemBuilder(
+      JClosedWorld closedWorld, CodegenResults codegenResults) {
     assert(_elementMap != null,
         "JsBackendStrategy.elementMap has not been created yet.");
     return new KernelCodegenWorkItemBuilder(
         _compiler.backend,
         closedWorld,
+        codegenResults,
         new ClosedEntityLookup(_elementMap),
         // TODO(johnniwinther): Avoid the need for a [ComponentLookup]. This
         // is caused by some type masks holding a kernel node for using in
@@ -145,40 +147,65 @@ class JsBackendStrategy implements BackendStrategy {
       JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder) {
     return new TypeGraphInferrer(_compiler, closedWorld, inferredDataBuilder);
   }
+
+  @override
+  void prepareCodegenReader(DataSource source) {
+    source.registerEntityReader(new ClosedEntityReader(_elementMap));
+    source.registerEntityLookup(new ClosedEntityLookup(_elementMap));
+    source.registerComponentLookup(
+        new ComponentLookup(_elementMap.programEnv.mainComponent));
+  }
+
+  @override
+  EntityWriter forEachCodegenMember(void Function(MemberEntity member) f) {
+    int earlyMemberIndexLimit = _elementMap.prepareForCodegenSerialization();
+    ClosedEntityWriter entityWriter =
+        new ClosedEntityWriter(_elementMap, earlyMemberIndexLimit);
+    for (int memberIndex = 0;
+        memberIndex < _elementMap.members.length;
+        memberIndex++) {
+      MemberEntity member = _elementMap.members.getEntity(memberIndex);
+      if (member == null || member.isAbstract) continue;
+      f(member);
+    }
+    return entityWriter;
+  }
 }
 
 class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
   final JavaScriptBackend _backend;
   final JClosedWorld _closedWorld;
+  final CodegenResults _codegenResults;
   final EntityLookup _entityLookup;
   final ComponentLookup _componentLookup;
 
   KernelCodegenWorkItemBuilder(this._backend, this._closedWorld,
-      this._entityLookup, this._componentLookup);
+      this._codegenResults, this._entityLookup, this._componentLookup);
 
   @override
   WorkItem createWorkItem(MemberEntity entity) {
     if (entity.isAbstract) return null;
-    return new KernelCodegenWorkItem(
-        _backend, _closedWorld, _entityLookup, _componentLookup, entity);
+    return new KernelCodegenWorkItem(_backend, _closedWorld, _codegenResults,
+        _entityLookup, _componentLookup, entity);
   }
 }
 
 class KernelCodegenWorkItem extends WorkItem {
   final JavaScriptBackend _backend;
   final JClosedWorld _closedWorld;
+  final CodegenResults _codegenResults;
   final EntityLookup _entityLookup;
   final ComponentLookup _componentLookup;
   @override
   final MemberEntity element;
 
-  KernelCodegenWorkItem(this._backend, this._closedWorld, this._entityLookup,
-      this._componentLookup, this.element);
+  KernelCodegenWorkItem(this._backend, this._closedWorld, this._codegenResults,
+      this._entityLookup, this._componentLookup, this.element);
 
   @override
   WorldImpact run() {
     return _backend.generateCode(
-        this, _closedWorld, _entityLookup, _componentLookup);
+        this, _closedWorld, _codegenResults, _entityLookup, _componentLookup);
   }
 }
 

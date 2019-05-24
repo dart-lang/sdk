@@ -34,6 +34,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 
   Map<Type, IndexedSink> _generalCaches = {};
 
+  EntityWriter _entityWriter = const EntityWriter();
   CodegenWriter _codegenWriter;
 
   AbstractDataSink({this.useDataKinds: false}) {
@@ -307,22 +308,26 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 
   @override
   void writeLibrary(IndexedLibrary value) {
-    writeInt(value.libraryIndex);
+    _entityWriter.writeLibraryToDataSink(this, value);
   }
 
   @override
   void writeClass(IndexedClass value) {
-    writeInt(value.classIndex);
+    _entityWriter.writeClassToDataSink(this, value);
   }
 
   @override
   void writeTypedef(IndexedTypedef value) {
-    writeInt(value.typedefIndex);
+    _entityWriter.writeTypedefToDataSink(this, value);
   }
 
   @override
   void writeMember(IndexedMember value) {
-    writeInt(value.memberIndex);
+    _entityWriter.writeMemberToDataSink(this, value);
+  }
+
+  void writeTypeVariable(IndexedTypeVariable value) {
+    _entityWriter.writeTypeVariableToDataSink(this, value);
   }
 
   @override
@@ -487,6 +492,12 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     _writeUri(value.uri);
     _writeUri(value.enclosingLibraryUri);
     _writeBool(value.isDeferred);
+  }
+
+  @override
+  void registerEntityWriter(EntityWriter writer) {
+    assert(writer != null);
+    _entityWriter = writer;
   }
 
   @override

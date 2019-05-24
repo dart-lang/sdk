@@ -130,7 +130,7 @@ class DartTypeWriter
       List<FunctionTypeVariable> functionTypeVariables) {
     _sink.writeEnum(DartTypeKind.typeVariable);
     IndexedTypeVariable typeVariable = type.element;
-    _sink.writeInt(typeVariable.typeVariableIndex);
+    _sink.writeTypeVariable(typeVariable);
   }
 
   @override

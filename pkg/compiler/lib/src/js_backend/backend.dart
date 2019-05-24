@@ -535,7 +535,8 @@ class JavaScriptBackend {
       Compiler compiler,
       JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults,
-      CodegenInputs codegen) {
+      CodegenInputs codegen,
+      CodegenResults codegenResults) {
     OneShotInterceptorData oneShotInterceptorData = new OneShotInterceptorData(
         closedWorld.interceptorData,
         closedWorld.commonElements,
@@ -555,7 +556,8 @@ class JavaScriptBackend {
             closedWorld,
             compiler.abstractValueStrategy.createSelectorStrategy(),
             oneShotInterceptorData),
-        compiler.backendStrategy.createCodegenWorkItemBuilder(closedWorld),
+        compiler.backendStrategy
+            .createCodegenWorkItemBuilder(closedWorld, codegenResults),
         new CodegenEnqueuerListener(
             elementEnvironment,
             commonElements,
@@ -568,10 +570,14 @@ class JavaScriptBackend {
 
   Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
 
-  WorldImpact generateCode(WorkItem work, JClosedWorld closedWorld,
-      EntityLookup entityLookup, ComponentLookup componentLookup) {
+  WorldImpact generateCode(
+      WorkItem work,
+      JClosedWorld closedWorld,
+      CodegenResults codegenResults,
+      EntityLookup entityLookup,
+      ComponentLookup componentLookup) {
     MemberEntity member = work.element;
-    CodegenResult result = functionCompiler.compile(member);
+    CodegenResult result = codegenResults.getCodegenResults(member);
     if (compiler.options.testMode) {
       bool useDataKinds = true;
       List<Object> data = [];
@@ -617,9 +623,9 @@ class JavaScriptBackend {
 
   /// Generates the output and returns the total size of the generated code.
   int assembleProgram(JClosedWorld closedWorld, InferredData inferredData,
-      CodegenInputs codegen, CodegenWorld codegenWorld) {
+      CodegenInputs codegenInputs, CodegenWorld codegenWorld) {
     int programSize = emitterTask.assembleProgram(
-        _namer, closedWorld, inferredData, codegen, codegenWorld);
+        _namer, closedWorld, inferredData, codegenInputs, codegenWorld);
     closedWorld.noSuchMethodData.emitDiagnostic(reporter);
     return programSize;
   }
