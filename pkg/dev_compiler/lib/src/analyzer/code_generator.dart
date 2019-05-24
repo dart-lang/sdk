@@ -5038,6 +5038,11 @@ class CodeGenerator extends Object
     var op = node.operator;
     var expr = node.operand;
 
+    if (op.type == TokenType.BANG) {
+      // If the expression is non-nullable already, this is a no-op.
+      return isNullable(expr) ? notNull(expr) : _visitExpression(expr);
+    }
+
     var dispatchType = getStaticType(expr);
     if (jsTypeRep.unaryOperationIsPrimitive(dispatchType)) {
       if (!isNullable(expr)) {
