@@ -9,19 +9,25 @@ import 'package:compiler/src/commandline_options.dart';
 main(List<String> args) async {
   Stopwatch stopwatch = new Stopwatch();
   String input;
+  String serializedInput;
   String output = 'out.js';
   List<String> arguments = [];
   int start = 0;
+  int stop = 3;
   int shards;
   bool enableAssertions = false;
   for (String arg in args) {
     if (arg.startsWith('-')) {
       if (arg.startsWith('--start=')) {
         start = int.parse(arg.substring('--start='.length));
+      } else if (arg.startsWith('--stop=')) {
+        stop = int.parse(arg.substring('--stop='.length));
       } else if (arg.startsWith('--shards=')) {
         shards = int.parse(arg.substring('--shards='.length));
       } else if (arg == '-ea' || arg == '--enable_asserts') {
         enableAssertions = true;
+      } else if (arg.startsWith('--in=')) {
+        serializedInput = arg.substring('--in='.length);
       } else if (arg.startsWith('-o')) {
         output = arg.substring('-o'.length);
       } else if (arg.startsWith('--out=')) {
@@ -43,6 +49,12 @@ main(List<String> args) async {
     exit(-1);
   }
 
+  serializedInput ??= output;
+
+  String inputPrefix = serializedInput;
+  if (serializedInput.endsWith('.js')) {
+    inputPrefix = output.substring(0, output.length - '.js'.length);
+  }
   String outputPrefix = output;
   if (output.endsWith('.js')) {
     outputPrefix = output.substring(0, output.length - '.js'.length);
@@ -55,18 +67,18 @@ main(List<String> args) async {
   baseOptions.add('package:compiler/src/dart2js.dart');
   baseOptions.addAll(arguments);
 
-  String cfeOutput = '${outputPrefix}0.dill';
-  String dillOutput = '${outputPrefix}.dill';
-  String dataOutput = '${outputPrefix}.dill.data';
+  String cfeOutput = '${inputPrefix}0.dill';
+  String dillOutput = '${inputPrefix}.dill';
+  String dataOutput = '${inputPrefix}.dill.data';
   String codeOutput = '${outputPrefix}.code';
   shards ??= 2;
 
   stopwatch.start();
-  if (start <= 0) {
+  if (start <= 0 && stop >= 0) {
     await subProcess(
         baseOptions, [input, Flags.cfeOnly, '--out=$cfeOutput'], '0:\t');
   }
-  if (start <= 1) {
+  if (start <= 1 && stop >= 1) {
     await subProcess(
         baseOptions,
         [cfeOutput, '--out=$dillOutput', '${Flags.writeData}=${dataOutput}'],
@@ -78,7 +90,7 @@ main(List<String> args) async {
         [dillOutput, '${Flags.readData}=${dataOutput}', '--out=${output}'],
         '3:\t');
   } else {
-    if (start <= 2) {
+    if (start <= 2 && stop >= 2) {
       List<List<String>> additionalArguments = [];
       List<String> outputPrefixes = [];
       for (int shard = 0; shard < shards; shard++) {
@@ -101,7 +113,7 @@ main(List<String> args) async {
       subwatch.stop();
       print('2:\tTotal time: ${_formatMs(subwatch.elapsedMilliseconds)}');
     }
-    if (start <= 3) {
+    if (start <= 3 && stop >= 3) {
       await subProcess(
           baseOptions,
           [

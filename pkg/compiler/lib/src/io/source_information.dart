@@ -84,8 +84,8 @@ class FrameContext {
 
   factory FrameContext.readFromDataSource(DataSource source) {
     source.begin(tag);
-    SourceInformation callInformation =
-        SourceInformation.readFromDataSource(source);
+    SourceInformation callInformation = source.readCached<SourceInformation>(
+        () => SourceInformation.readFromDataSource(source));
     String inlinedMethodName = source.readString();
     source.end(tag);
     return new FrameContext(callInformation, inlinedMethodName);
@@ -93,7 +93,10 @@ class FrameContext {
 
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
-    SourceInformation.writeToDataSink(sink, callInformation);
+    sink.writeCached<SourceInformation>(
+        callInformation,
+        (SourceInformation sourceInformation) =>
+            SourceInformation.writeToDataSink(sink, sourceInformation));
     sink.writeString(inlinedMethodName);
     sink.end(tag);
   }
@@ -317,8 +320,8 @@ abstract class SourceLocation {
   @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    if (other is! SourceLocation) return false;
-    return sourceUri == other.sourceUri &&
+    return other is SourceLocation &&
+        sourceUri == other.sourceUri &&
         offset == other.offset &&
         sourceName == other.sourceName;
   }

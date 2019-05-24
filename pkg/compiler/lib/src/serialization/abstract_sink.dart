@@ -37,7 +37,9 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   EntityWriter _entityWriter = const EntityWriter();
   CodegenWriter _codegenWriter;
 
-  AbstractDataSink({this.useDataKinds: false}) {
+  final Map<String, int> tagFrequencyMap;
+
+  AbstractDataSink({this.useDataKinds: false, this.tagFrequencyMap}) {
     _dartTypeWriter = new DartTypeWriter(this);
     _dartTypeNodeWriter = new DartTypeNodeWriter(this);
     _stringIndex = new IndexedSink<String>(this);
@@ -48,6 +50,10 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 
   @override
   void begin(String tag) {
+    if (tagFrequencyMap != null) {
+      tagFrequencyMap[tag] ??= 0;
+      tagFrequencyMap[tag]++;
+    }
     if (useDataKinds) {
       _tags ??= <String>[];
       _tags.add(tag);

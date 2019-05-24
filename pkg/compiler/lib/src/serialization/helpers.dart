@@ -336,6 +336,7 @@ class DartTypeNodeWriter
 class IndexedSink<E> {
   final AbstractDataSink _sink;
   final Map<E, int> _cache = {};
+  Set<E> _current = {};
 
   IndexedSink(this._sink);
 
@@ -346,10 +347,14 @@ class IndexedSink<E> {
   void write(E value, void writeValue(E value)) {
     int index = _cache[value];
     if (index == null) {
+      if (!_current.add(value)) {
+        throw new ArgumentError("Cyclic dependency on cached value: $value");
+      }
       index = _cache.length;
-      _cache[value] = index;
       _sink._writeIntInternal(index);
       writeValue(value);
+      _cache[value] = index;
+      _current.remove(value);
     } else {
       _sink._writeIntInternal(index);
     }
