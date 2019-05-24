@@ -105,6 +105,7 @@ analyzer:
             content = '''
 
     - non-nullable''';
+            return null;
           },
         );
       }
