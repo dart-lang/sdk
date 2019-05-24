@@ -15941,15 +15941,15 @@ class HoverInformation implements HasToJson {
 
   /**
    * The URI of the containing library, examples here include "dart:core",
-   * "package:.." and even "file:.." URIs. The data is omitted if the element
-   * is declared inside an HTML file.
+   * "package:.." and file uris represented by the path on disk, "/..". The
+   * data is omitted if the element is declared inside an HTML file.
    */
   String get containingLibraryName => _containingLibraryName;
 
   /**
    * The URI of the containing library, examples here include "dart:core",
-   * "package:.." and even "file:.." URIs. The data is omitted if the element
-   * is declared inside an HTML file.
+   * "package:.." and file uris represented by the path on disk, "/..". The
+   * data is omitted if the element is declared inside an HTML file.
    */
   void set containingLibraryName(String value) {
     this._containingLibraryName = value;

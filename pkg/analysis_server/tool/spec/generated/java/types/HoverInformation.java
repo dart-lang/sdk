@@ -55,8 +55,9 @@ public class HoverInformation {
   private final String containingLibraryPath;
 
   /**
-   * The URI of the containing library, examples here include "dart:core", "package:.." and even
-   * "file:.." URIs. The data is omitted if the element is declared inside an HTML file.
+   * The URI of the containing library, examples here include "dart:core", "package:.." and file uris
+   * represented by the path on disk, "/..". The data is omitted if the element is declared inside an
+   * HTML file.
    */
   private final String containingLibraryName;
 
@@ -185,8 +186,9 @@ public class HoverInformation {
   }
 
   /**
-   * The URI of the containing library, examples here include "dart:core", "package:.." and even
-   * "file:.." URIs. The data is omitted if the element is declared inside an HTML file.
+   * The URI of the containing library, examples here include "dart:core", "package:.." and file uris
+   * represented by the path on disk, "/..". The data is omitted if the element is declared inside an
+   * HTML file.
    */
   public String getContainingLibraryName() {
     return containingLibraryName;

@@ -8,6 +8,7 @@ import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
@@ -72,7 +73,15 @@ class DartUnitHoverComputer {
           // containing library
           LibraryElement library = element.library;
           if (library != null) {
-            hover.containingLibraryName = library.source.uri.toString();
+            Uri uri = library.source.uri;
+            if (uri.scheme != '' && uri.scheme == 'file') {
+              // for 'file:' URIs, use the path (contents after 'file:///')
+              hover.containingLibraryName = _unit
+                  .declaredElement.session.resourceProvider.pathContext
+                  .fromUri(uri);
+            } else {
+              hover.containingLibraryName = uri.toString();
+            }
             hover.containingLibraryPath = library.source.fullName;
           }
         }

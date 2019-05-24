@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,8 +22,8 @@ main() {
 
 @reflectiveTest
 class AnalysisHoverTest extends AbstractAnalysisTest {
-  /// If windows, return 'C:/', otherwise return the empty string
-  String get windowsCColon => Platform.isWindows ? 'C:/' : '';
+  /// If windows, return 'C:', otherwise return the empty string
+  String get windowsCColon => Platform.isWindows ? 'C:' : '';
 
   Future<HoverInformation> prepareHover(String search) {
     int offset = findOffset(search);
@@ -121,7 +122,7 @@ main() {
     expect(hover.length, 'A(0)'.length);
     // element
     expect(hover.containingLibraryName,
-        'file:///${windowsCColon}project/bin/test.dart');
+        normalize('$windowsCColon/project/bin/test.dart'));
     expect(hover.containingLibraryPath, testFile);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, '(const) A(int i) → A');
@@ -147,7 +148,7 @@ main() {
     expect(hover.length, 'A()'.length);
     // element
     expect(hover.containingLibraryName,
-        'file:///${windowsCColon}project/bin/test.dart');
+        normalize('$windowsCColon/project/bin/test.dart'));
     expect(hover.containingLibraryPath, testFile);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, '(new) A() → A');
@@ -174,7 +175,7 @@ main() {
     expect(hover.length, 'new A()'.length);
     // element
     expect(hover.containingLibraryName,
-        'file:///${windowsCColon}project/bin/test.dart');
+        normalize('$windowsCColon/project/bin/test.dart'));
     expect(hover.containingLibraryPath, testFile);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, 'A() → A');
@@ -200,7 +201,7 @@ main() {
       expect(hover.length, 'new A<String>()'.length);
       // element
       expect(hover.containingLibraryName,
-          'file:///${windowsCColon}project/bin/test.dart');
+          normalize('$windowsCColon/project/bin/test.dart'));
       expect(hover.containingLibraryPath, testFile);
       expect(hover.dartdoc, isNull);
       expect(hover.elementDescription, 'A() → A<String>');
@@ -339,7 +340,7 @@ List<String> fff(int a, String b) {
     HoverInformation hover = await prepareHover('fff(int a');
     // element
     expect(hover.containingLibraryName,
-        'file:///${windowsCColon}project/bin/test.dart');
+        normalize('$windowsCColon/project/bin/test.dart'));
     expect(hover.containingLibraryPath, testFile);
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
@@ -367,7 +368,7 @@ main(A a) {
     HoverInformation hover = await prepareHover('fff);');
     // element
     expect(hover.containingLibraryName,
-        'file:///${windowsCColon}project/bin/test.dart');
+        normalize('$windowsCColon/project/bin/test.dart'));
     expect(hover.containingLibraryPath, testFile);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
@@ -506,7 +507,7 @@ class A {
     HoverInformation hover = await prepareHover('mmm(int a');
     // element
     expect(hover.containingLibraryName,
-        'file:///${windowsCColon}project/bin/test.dart');
+        normalize('$windowsCColon/project/bin/test.dart'));
     expect(hover.containingLibraryPath, testFile);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
@@ -536,7 +537,7 @@ main(A a) {
     expect(hover.length, 'mmm'.length);
     // element
     expect(hover.containingLibraryName,
-        'file:///${windowsCColon}project/bin/test.dart');
+        normalize('$windowsCColon/project/bin/test.dart'));
     expect(hover.containingLibraryPath, testFile);
     expect(hover.elementDescription, 'mmm(int a, String b) → List<String>');
     expect(hover.elementKind, 'method');
@@ -585,7 +586,7 @@ f(Stream<int> s) {
     expect(hover.length, 'transform'.length);
     // element
     expect(hover.containingLibraryName,
-        'file:///${windowsCColon}project/bin/test.dart');
+        normalize('$windowsCColon/project/bin/test.dart'));
     expect(hover.containingLibraryPath, testFile);
     expect(hover.elementDescription,
         'Stream.transform<S>(StreamTransformer<int, S> streamTransformer) → Stream<S>');

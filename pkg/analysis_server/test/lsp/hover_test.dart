@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -68,11 +69,14 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     String [[a^bc]];
     ''';
 
+    final containingLibraryName =
+        path.normalize("$windowsCColon/project/lib/main.dart");
+
     final expectedHoverContent = '''
 ```dart
 String abc
 ```
-*file:///${windowsCColon}project/lib/main.dart*
+*$containingLibraryName*
 
 ---
 This is a string.
@@ -168,11 +172,14 @@ print();
     String [[a^bc]];
     ''';
 
+    final containingLibraryName =
+        path.normalize("$windowsCColon/project/lib/main.dart");
+
     final expectedHoverContent = '''
 ```dart
 String abc
 ```
-*file:///${windowsCColon}project/lib/main.dart*
+*$containingLibraryName*
     '''
         .trim();
 
