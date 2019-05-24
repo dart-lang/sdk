@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.26.1</version>
+  <version>1.27.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -1588,6 +1588,17 @@
           returned for the indicated completion.
         </p>
       </field>
+      <field name="libraryFile" optional="true">
+        <ref>FilePath</ref>
+        <p>
+          The library file that contains the file where completion was
+          requested. The client might use it for example together with the
+          <tt>existingImports</tt> notification to filter out available
+          suggestions. If there were changes to existing imports in the library,
+          the corresponding <tt>existingImports</tt> notification will be sent
+          before the completion notification.
+        </p>
+      </field>
       <field name="includedSuggestionSets" optional="true">
         <list>
           <ref>IncludedSuggestionSet</ref>
@@ -1654,6 +1665,27 @@
         </list>
         <p>
           A list of library ids that no longer apply.
+        </p>
+      </field>
+    </params>
+  </notification>
+  <notification event="existingImports">
+    <p>
+      Reports existing imports in a library. This notification may be sent
+      multiple times for a library. When a notification is processed, clients
+      should replace any previous information for the library.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The defining file of the library.
+        </p>
+      </field>
+      <field name="imports">
+        <ref>ExistingImports</ref>
+        <p>
+          The existing imports in the library.
         </p>
       </field>
     </params>
@@ -3666,6 +3698,86 @@
         <list>
           <ref>AvailableSuggestion</ref>
         </list>
+      </field>
+    </object>
+  </type>
+  <type name="ExistingImport">
+    <p>
+      Information about an existing import, with elements that it provides.
+    </p>
+    <object>
+      <field name="uri">
+        <ref>int</ref>
+        <p>
+          The URI of the imported library.
+          It is an index in the <tt>strings</tt> field, in the enclosing
+          <tt>ExistingImports</tt> and its <tt>ImportedElementSet</tt> object.
+        </p>
+      </field>
+      <field name="elements">
+        <list>
+          <ref>int</ref>
+        </list>
+        <p>
+          The list of indexes of elements, in the enclosing
+          <tt>ExistingImports</tt> object.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="ExistingImports">
+    <p>
+      Information about all existing imports in a library.
+    </p>
+    <object>
+      <field name="elements">
+        <ref>ImportedElementSet</ref>
+        <p>
+          The set of all unique imported elements for all imports.
+        </p>
+      </field>
+      <field name="imports">
+        <list>
+          <ref>ExistingImport</ref>
+        </list>
+        <p>
+          The list of imports in the library.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="ImportedElementSet">
+    <p>
+      The set of top-level elements encoded as pairs of the defining library
+      URI and the name, and stored in the parallel lists <tt>elementUris</tt>
+      and <tt>elementNames</tt>.
+    </p>
+    <object>
+      <field name="strings">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          The list of unique strings in this object.
+        </p>
+      </field>
+      <field name="uris">
+        <list>
+          <ref>int</ref>
+        </list>
+        <p>
+          The library URI part of the element.
+          It is an index in the <tt>strings</tt> field.
+        </p>
+      </field>
+      <field name="names">
+        <list>
+          <ref>int</ref>
+        </list>
+        <p>
+          The name part of a the element.
+          It is an index in the <tt>strings</tt> field.
+        </p>
       </field>
     </object>
   </type>

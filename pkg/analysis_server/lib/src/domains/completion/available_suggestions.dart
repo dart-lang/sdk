@@ -4,7 +4,9 @@
 
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 
 /// Compute which suggestion sets should be included into completion inside
@@ -77,6 +79,78 @@ protocol.Notification createCompletionAvailableSuggestionsNotification(
     }).toList(),
     removedLibraries: removed,
   ).toNotification();
+}
+
+/// Compute existing imports and elements that they provide.
+protocol.Notification createExistingImportsNotification(
+  ResolvedUnitResult resolvedUnit,
+) {
+  var uniqueStrings = _UniqueImportedStrings();
+  var uniqueElements = _UniqueImportedElements();
+  var existingImports = <protocol.ExistingImport>[];
+
+  var importElementList = resolvedUnit.libraryElement.imports;
+  for (var import in importElementList) {
+    var importedUriStr = '${import.importedLibrary.librarySource.uri}';
+
+    var existingImportElements = <int>[];
+    for (var element in import.namespace.definedNames.values) {
+      if (element.librarySource != null) {
+        var index = uniqueElements.indexOf(uniqueStrings, element);
+        existingImportElements.add(index);
+      }
+    }
+
+    existingImports.add(protocol.ExistingImport(
+      uniqueStrings.indexOf(importedUriStr),
+      existingImportElements,
+    ));
+  }
+
+  return protocol.CompletionExistingImportsParams(
+    resolvedUnit.libraryElement.source.fullName,
+    protocol.ExistingImports(
+      protocol.ImportedElementSet(
+        uniqueStrings.values,
+        uniqueElements.uriList,
+        uniqueElements.nameList,
+      ),
+      existingImports,
+    ),
+  ).toNotification();
+}
+
+/// TODO(dantup): We need to expose this because the Declarations code currently
+/// returns declarations with DeclarationKinds but the DartCompletionManager
+/// gives us a list of "included ElementKinds". Maybe it would be better to expose
+/// includedDeclarationKinds and then just map that list to ElementKinds once in
+/// domain_completion for the original protocol?
+protocol.ElementKind protocolElementKind(DeclarationKind kind) {
+  switch (kind) {
+    case DeclarationKind.CLASS:
+      return protocol.ElementKind.CLASS;
+    case DeclarationKind.CLASS_TYPE_ALIAS:
+      return protocol.ElementKind.CLASS_TYPE_ALIAS;
+    case DeclarationKind.CONSTRUCTOR:
+      return protocol.ElementKind.CONSTRUCTOR;
+    case DeclarationKind.ENUM:
+      return protocol.ElementKind.ENUM;
+    case DeclarationKind.ENUM_CONSTANT:
+      return protocol.ElementKind.ENUM_CONSTANT;
+    case DeclarationKind.FUNCTION:
+      return protocol.ElementKind.FUNCTION;
+    case DeclarationKind.FUNCTION_TYPE_ALIAS:
+      return protocol.ElementKind.FUNCTION_TYPE_ALIAS;
+    case DeclarationKind.GETTER:
+      return protocol.ElementKind.GETTER;
+    case DeclarationKind.MIXIN:
+      return protocol.ElementKind.MIXIN;
+    case DeclarationKind.SETTER:
+      return protocol.ElementKind.SETTER;
+    case DeclarationKind.VARIABLE:
+      return protocol.ElementKind.TOP_LEVEL_VARIABLE;
+  }
+  return protocol.ElementKind.UNKNOWN;
 }
 
 /// Computes the best URI to import [what] into the [unit] library.
@@ -173,39 +247,6 @@ int _protocolElementFlags(Declaration declaration) {
   );
 }
 
-// TODO(dantup): We need to expose this because the Declarations code currently
-// returns declarations with DeclarationKinds but the DartCompletionManager
-// gives us a list of "included ElementKinds". Maybe it would be better to expose
-// includedDeclarationKinds and then just map that list to ElementKinds once in
-// domain_completion for the original protocol?
-protocol.ElementKind protocolElementKind(DeclarationKind kind) {
-  switch (kind) {
-    case DeclarationKind.CLASS:
-      return protocol.ElementKind.CLASS;
-    case DeclarationKind.CLASS_TYPE_ALIAS:
-      return protocol.ElementKind.CLASS_TYPE_ALIAS;
-    case DeclarationKind.CONSTRUCTOR:
-      return protocol.ElementKind.CONSTRUCTOR;
-    case DeclarationKind.ENUM:
-      return protocol.ElementKind.ENUM;
-    case DeclarationKind.ENUM_CONSTANT:
-      return protocol.ElementKind.ENUM_CONSTANT;
-    case DeclarationKind.FUNCTION:
-      return protocol.ElementKind.FUNCTION;
-    case DeclarationKind.FUNCTION_TYPE_ALIAS:
-      return protocol.ElementKind.FUNCTION_TYPE_ALIAS;
-    case DeclarationKind.GETTER:
-      return protocol.ElementKind.GETTER;
-    case DeclarationKind.MIXIN:
-      return protocol.ElementKind.MIXIN;
-    case DeclarationKind.SETTER:
-      return protocol.ElementKind.SETTER;
-    case DeclarationKind.VARIABLE:
-      return protocol.ElementKind.TOP_LEVEL_VARIABLE;
-  }
-  return protocol.ElementKind.UNKNOWN;
-}
-
 class CompletionLibrariesWorker implements SchedulerWorker {
   final DeclarationsTracker tracker;
 
@@ -275,5 +316,58 @@ class DeclarationsTrackerData {
       throw StateError('Not listening.');
     }
     _listener = null;
+  }
+}
+
+class _ImportedElement {
+  final int uri;
+  final int name;
+
+  @override
+  final int hashCode;
+
+  _ImportedElement(this.uri, this.name)
+      : hashCode = JenkinsSmiHash.hash2(uri, name);
+
+  @override
+  bool operator ==(other) {
+    return other is _ImportedElement && other.uri == uri && other.name == name;
+  }
+}
+
+class _UniqueImportedElements {
+  final map = <_ImportedElement, int>{};
+
+  List<int> get nameList => map.keys.map((e) => e.name).toList();
+
+  List<int> get uriList => map.keys.map((e) => e.uri).toList();
+
+  int indexOf(_UniqueImportedStrings strings, Element element) {
+    var uriStr = '${element.librarySource.uri}';
+    var wrapper = _ImportedElement(
+      strings.indexOf(uriStr),
+      strings.indexOf(element.name),
+    );
+    var index = map[wrapper];
+    if (index == null) {
+      index = map.length;
+      map[wrapper] = index;
+    }
+    return index;
+  }
+}
+
+class _UniqueImportedStrings {
+  final map = <String, int>{};
+
+  List<String> get values => map.keys.toList();
+
+  int indexOf(String str) {
+    var index = map[str];
+    if (index == null) {
+      index = map.length;
+      map[str] = index;
+    }
+    return index;
   }
 }
