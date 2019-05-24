@@ -21,7 +21,7 @@ Alternatively, if you want to contribute to the linter or examine the source, cl
 
 The linter gives you feedback to help you catch potential errors and keep your code in line with the published [Dart Style Guide](https://www.dartlang.org/articles/style-guide/). Currently enforceable lint rules (or "lints") are catalogued [here][lints] and can be configured via an [analysis options file][options_file].  The linter is run from within the `dartanalyzer` [command-line tool](https://github.com/dart-lang/sdk/tree/master/pkg/analyzer_cli#dartanalyzer) shipped with the Dart SDK.  Assuming you have lints configured in an `analysis_options.yaml` file with these contents:
 
-```
+```yaml
 linter:
   rules:
     - annotate_overrides
@@ -43,7 +43,7 @@ If a specific lint warning should be ignored, it can be flagged with a comment. 
 
 tells the `dartanalyzer` to ignore this instance of `avoid_as` warning.  As lints are treated the same as errors and warnings by the analyzer, their severity can similarly be configured in an options file.  For example, an analysis options file that specifies
 
-```
+```yaml
 linter:
   rules:
     - avoid_as
