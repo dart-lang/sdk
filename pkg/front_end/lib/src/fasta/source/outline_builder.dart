@@ -41,6 +41,7 @@ import '../ignored_parser_errors.dart' show isIgnoredParserError;
 // TODO(ahe): The outline isn't supposed to import kernel-specific builders.
 import '../kernel/kernel_builder.dart'
     show
+        KernelMetadataBuilder,
         KernelMixinApplicationBuilder,
         KernelNamedTypeBuilder,
         KernelTypeBuilder;
@@ -137,25 +138,17 @@ class OutlineBuilder extends StackListener {
   @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     debugEvent("Metadata");
-    List arguments = pop();
-    popIfNotNull(periodBeforeName); // charOffset.
-    String postfix = popIfNotNull(periodBeforeName);
-    List<TypeBuilder> typeArguments = pop();
-    if (arguments == null) {
-      pop(); // charOffset
-      pop(); // expression
-      push(new MetadataBuilder(beginToken.charOffset));
-    } else {
-      int charOffset = pop();
-      Object typeName = pop();
-      if (typeName is ParserRecovery) {
-        push(typeName);
-      } else {
-        library.addConstructorReference(
-            typeName, typeArguments, postfix, charOffset);
-        push(new MetadataBuilder(beginToken.charOffset));
-      }
+    pop(); // arguments
+    if (periodBeforeName != null) {
+      pop(); // offset
+      pop(); // constructor name
     }
+    pop(); // type arguments
+    pop(); // offset
+    Object sentinel = pop(); // prefix or constructor
+    push(sentinel is ParserRecovery
+        ? sentinel
+        : new KernelMetadataBuilder(beginToken));
   }
 
   @override

@@ -34,6 +34,8 @@ export 'kernel_invalid_type_builder.dart' show KernelInvalidTypeBuilder;
 
 export 'kernel_library_builder.dart' show KernelLibraryBuilder;
 
+export 'kernel_metadata_builder.dart' show KernelMetadataBuilder;
+
 export 'kernel_mixin_application_builder.dart'
     show KernelMixinApplicationBuilder;
 

@@ -4,8 +4,6 @@
 
 library fasta.metadata_builder;
 
-class MetadataBuilder {
-  final int charOffset;
-
-  MetadataBuilder(this.charOffset);
+abstract class MetadataBuilder {
+  int get charOffset;
 }
