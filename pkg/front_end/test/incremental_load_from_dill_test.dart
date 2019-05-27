@@ -307,7 +307,6 @@ Future<Null> newWorldTest(
       for (String moduleName in world["modules"]) {
         Component moduleComponent = moduleComponents[moduleName];
         if (moduleComponent != null) {
-          moduleComponent.computeCanonicalNames();
           modulesToUse.add(moduleComponent);
         }
       }

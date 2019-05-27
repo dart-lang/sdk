@@ -124,7 +124,17 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     for (var lib in sdkComponent.libraries) {
       lib.isExternal = cachedSdkInput.externalLibs.contains(lib.importUri);
     }
+
+    // Make sure the canonical name root knows about the sdk - otherwise we
+    // won't be able to link to it when loading more outlines.
     sdkComponent.adoptChildren();
+
+    // TODO(jensj): This is - at least currently - neccessary,
+    // although it's not entirely obvious why.
+    // It likely has to do with several outlines containing the same libraries.
+    // Once that stops (and we check for it) we can probably remove this,
+    // and instead only do it when about to reuse an outline in the
+    // 'inputSummaries.add(component);' line further down.
     for (WorkerInputComponent cachedInput in workerInputCache.values) {
       cachedInput.component.adoptChildren();
     }
@@ -157,8 +167,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       for (var lib in component.libraries) {
         lib.isExternal = cachedInput.externalLibs.contains(lib.importUri);
       }
-      component.adoptChildren();
-      component.computeCanonicalNames();
       inputSummaries.add(component);
     }
   }
