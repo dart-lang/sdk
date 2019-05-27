@@ -9032,7 +9032,7 @@ class LinkedNodeBuilder extends Object
       catchClause_exceptionType?.flushInformative();
       catchClause_stackTraceParameter?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.classDeclaration) {
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       classDeclaration_extendsClause?.flushInformative();
       classDeclaration_withClause?.flushInformative();
@@ -9040,13 +9040,19 @@ class LinkedNodeBuilder extends Object
       classOrMixinDeclaration_implementsClause?.flushInformative();
       classOrMixinDeclaration_members?.forEach((b) => b.flushInformative());
       classOrMixinDeclaration_typeParameters?.flushInformative();
+      codeLength = null;
+      codeOffset = null;
+      nameOffset = null;
     } else if (kind == idl.LinkedNodeKind.classTypeAlias) {
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       classTypeAlias_typeParameters?.flushInformative();
       classTypeAlias_superclass?.flushInformative();
       classTypeAlias_withClause?.flushInformative();
       classTypeAlias_implementsClause?.flushInformative();
+      codeLength = null;
+      codeOffset = null;
+      nameOffset = null;
     } else if (kind == idl.LinkedNodeKind.comment) {
       comment_references?.forEach((b) => b.flushInformative());
     } else if (kind == idl.LinkedNodeKind.commentReference) {
@@ -9054,6 +9060,8 @@ class LinkedNodeBuilder extends Object
     } else if (kind == idl.LinkedNodeKind.compilationUnit) {
       compilationUnit_declarations?.forEach((b) => b.flushInformative());
       compilationUnit_scriptTag?.flushInformative();
+      codeLength = null;
+      codeOffset = null;
       compilationUnit_directives?.forEach((b) => b.flushInformative());
     } else if (kind == idl.LinkedNodeKind.conditionalExpression) {
       conditionalExpression_condition?.flushInformative();
@@ -9066,12 +9074,15 @@ class LinkedNodeBuilder extends Object
       configuration_uri?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.constructorDeclaration) {
       constructorDeclaration_initializers?.forEach((b) => b.flushInformative());
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       constructorDeclaration_body?.flushInformative();
       constructorDeclaration_parameters?.flushInformative();
       constructorDeclaration_redirectedConstructor?.flushInformative();
+      codeLength = null;
+      codeOffset = null;
       constructorDeclaration_returnType?.flushInformative();
+      nameOffset = null;
     } else if (kind == idl.LinkedNodeKind.constructorFieldInitializer) {
       constructorFieldInitializer_expression?.flushInformative();
       constructorFieldInitializer_fieldName?.flushInformative();
@@ -9082,13 +9093,15 @@ class LinkedNodeBuilder extends Object
     } else if (kind == idl.LinkedNodeKind.continueStatement) {
       continueStatement_label?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.declaredIdentifier) {
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       declaredIdentifier_identifier?.flushInformative();
       declaredIdentifier_type?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.defaultFormalParameter) {
       defaultFormalParameter_defaultValue?.flushInformative();
       defaultFormalParameter_parameter?.flushInformative();
+      codeLength = null;
+      codeOffset = null;
     } else if (kind == idl.LinkedNodeKind.doStatement) {
       doStatement_body?.flushInformative();
       doStatement_condition?.flushInformative();
@@ -9098,17 +9111,22 @@ class LinkedNodeBuilder extends Object
     } else if (kind == idl.LinkedNodeKind.emptyFunctionBody) {
     } else if (kind == idl.LinkedNodeKind.emptyStatement) {
     } else if (kind == idl.LinkedNodeKind.enumConstantDeclaration) {
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      nameOffset = null;
     } else if (kind == idl.LinkedNodeKind.enumDeclaration) {
       enumDeclaration_constants?.forEach((b) => b.flushInformative());
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      codeLength = null;
+      codeOffset = null;
+      nameOffset = null;
     } else if (kind == idl.LinkedNodeKind.exportDirective) {
       namespaceDirective_combinators?.forEach((b) => b.flushInformative());
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       namespaceDirective_configurations?.forEach((b) => b.flushInformative());
+      nameOffset = null;
       uriBasedDirective_uri?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.expressionFunctionBody) {
       expressionFunctionBody_expression?.flushInformative();
@@ -9117,7 +9135,7 @@ class LinkedNodeBuilder extends Object
     } else if (kind == idl.LinkedNodeKind.extendsClause) {
       extendsClause_superclass?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.fieldDeclaration) {
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       fieldDeclaration_fields?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
@@ -9126,7 +9144,10 @@ class LinkedNodeBuilder extends Object
       fieldFormalParameter_type?.flushInformative();
       fieldFormalParameter_typeParameters?.flushInformative();
       fieldFormalParameter_formalParameters?.flushInformative();
-      normalFormalParameter_comment?.flushInformative();
+      codeLength = null;
+      codeOffset = null;
+      nameOffset = null;
+      normalFormalParameter_comment = null;
     } else if (kind == idl.LinkedNodeKind.forEachPartsWithDeclaration) {
       forEachParts_iterable?.flushInformative();
       forEachPartsWithDeclaration_loopVariable?.flushInformative();
@@ -9151,10 +9172,13 @@ class LinkedNodeBuilder extends Object
       formalParameterList_parameters?.forEach((b) => b.flushInformative());
     } else if (kind == idl.LinkedNodeKind.functionDeclaration) {
       actualReturnType?.flushInformative();
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       functionDeclaration_functionExpression?.flushInformative();
       functionDeclaration_returnType?.flushInformative();
+      codeLength = null;
+      codeOffset = null;
+      nameOffset = null;
     } else if (kind == idl.LinkedNodeKind.functionDeclarationStatement) {
       functionDeclarationStatement_functionDeclaration?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.functionExpression) {
@@ -9170,18 +9194,24 @@ class LinkedNodeBuilder extends Object
       invocationExpression_arguments?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.functionTypeAlias) {
       actualReturnType?.flushInformative();
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       functionTypeAlias_formalParameters?.flushInformative();
       functionTypeAlias_returnType?.flushInformative();
       functionTypeAlias_typeParameters?.flushInformative();
+      codeLength = null;
+      codeOffset = null;
+      nameOffset = null;
     } else if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
       actualType?.flushInformative();
       normalFormalParameter_metadata?.forEach((b) => b.flushInformative());
       functionTypedFormalParameter_formalParameters?.flushInformative();
       functionTypedFormalParameter_returnType?.flushInformative();
       functionTypedFormalParameter_typeParameters?.flushInformative();
-      normalFormalParameter_comment?.flushInformative();
+      codeLength = null;
+      codeOffset = null;
+      nameOffset = null;
+      normalFormalParameter_comment = null;
     } else if (kind == idl.LinkedNodeKind.genericFunctionType) {
       actualReturnType?.flushInformative();
       genericFunctionType_typeParameters?.flushInformative();
@@ -9189,10 +9219,13 @@ class LinkedNodeBuilder extends Object
       genericFunctionType_formalParameters?.flushInformative();
       genericFunctionType_type?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.genericTypeAlias) {
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       genericTypeAlias_typeParameters?.flushInformative();
       genericTypeAlias_functionType?.flushInformative();
+      codeLength = null;
+      codeOffset = null;
+      nameOffset = null;
     } else if (kind == idl.LinkedNodeKind.hideCombinator) {
     } else if (kind == idl.LinkedNodeKind.ifElement) {
       ifMixin_condition?.flushInformative();
@@ -9206,9 +9239,10 @@ class LinkedNodeBuilder extends Object
       implementsClause_interfaces?.forEach((b) => b.flushInformative());
     } else if (kind == idl.LinkedNodeKind.importDirective) {
       namespaceDirective_combinators?.forEach((b) => b.flushInformative());
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       namespaceDirective_configurations?.forEach((b) => b.flushInformative());
+      nameOffset = null;
       uriBasedDirective_uri?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.indexExpression) {
       indexExpression_index?.flushInformative();
@@ -9234,7 +9268,7 @@ class LinkedNodeBuilder extends Object
       labeledStatement_labels?.forEach((b) => b.flushInformative());
       labeledStatement_statement?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.libraryDirective) {
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       libraryDirective_name?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.libraryIdentifier) {
@@ -9248,12 +9282,15 @@ class LinkedNodeBuilder extends Object
       mapLiteralEntry_value?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.methodDeclaration) {
       actualReturnType?.flushInformative();
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       methodDeclaration_body?.flushInformative();
       methodDeclaration_formalParameters?.flushInformative();
       methodDeclaration_returnType?.flushInformative();
       methodDeclaration_typeParameters?.flushInformative();
+      codeLength = null;
+      codeOffset = null;
+      nameOffset = null;
     } else if (kind == idl.LinkedNodeKind.methodInvocation) {
       invocationExpression_invokeType?.flushInformative();
       methodInvocation_methodName?.flushInformative();
@@ -9262,12 +9299,15 @@ class LinkedNodeBuilder extends Object
       expression_type?.flushInformative();
       invocationExpression_arguments?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.mixinDeclaration) {
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       mixinDeclaration_onClause?.flushInformative();
       classOrMixinDeclaration_implementsClause?.flushInformative();
       classOrMixinDeclaration_members?.forEach((b) => b.flushInformative());
       classOrMixinDeclaration_typeParameters?.flushInformative();
+      codeLength = null;
+      codeOffset = null;
+      nameOffset = null;
     } else if (kind == idl.LinkedNodeKind.namedExpression) {
       namedExpression_expression?.flushInformative();
       namedExpression_name?.flushInformative();
@@ -9283,11 +9323,12 @@ class LinkedNodeBuilder extends Object
       parenthesizedExpression_expression?.flushInformative();
       expression_type?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.partDirective) {
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      nameOffset = null;
       uriBasedDirective_uri?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.partOfDirective) {
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       partOfDirective_libraryName?.flushInformative();
       partOfDirective_uri?.flushInformative();
@@ -9324,7 +9365,10 @@ class LinkedNodeBuilder extends Object
       actualType?.flushInformative();
       normalFormalParameter_metadata?.forEach((b) => b.flushInformative());
       simpleFormalParameter_type?.flushInformative();
-      normalFormalParameter_comment?.flushInformative();
+      codeLength = null;
+      codeOffset = null;
+      nameOffset = null;
+      normalFormalParameter_comment = null;
       topLevelTypeInferenceError?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.simpleIdentifier) {
       simpleIdentifier_elementType?.flushInformative();
@@ -9358,7 +9402,7 @@ class LinkedNodeBuilder extends Object
       throwExpression_expression?.flushInformative();
       expression_type?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.topLevelVariableDeclaration) {
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       topLevelVariableDeclaration_variableList?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.tryStatement) {
@@ -9372,21 +9416,27 @@ class LinkedNodeBuilder extends Object
       typeName_name?.flushInformative();
       typeName_type?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.typeParameter) {
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       typeParameter_bound?.flushInformative();
       typeParameter_defaultType?.flushInformative();
+      codeLength = null;
+      codeOffset = null;
+      nameOffset = null;
     } else if (kind == idl.LinkedNodeKind.typeParameterList) {
       typeParameterList_typeParameters?.forEach((b) => b.flushInformative());
     } else if (kind == idl.LinkedNodeKind.variableDeclaration) {
       actualType?.flushInformative();
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       variableDeclaration_initializer?.flushInformative();
+      codeLength = null;
+      codeOffset = null;
+      nameOffset = null;
       topLevelTypeInferenceError?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.variableDeclarationList) {
       variableDeclarationList_variables?.forEach((b) => b.flushInformative());
-      annotatedNode_comment?.flushInformative();
+      annotatedNode_comment = null;
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       variableDeclarationList_type?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.variableDeclarationStatement) {
@@ -9589,8 +9639,6 @@ class LinkedNodeBuilder extends Object
       this.classDeclaration_withClause?.collectApiSignature(signature);
       signature.addBool(this.classDeclaration_nativeClause != null);
       this.classDeclaration_nativeClause?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
       signature.addBool(this.classOrMixinDeclaration_implementsClause != null);
       this
           .classOrMixinDeclaration_implementsClause
@@ -9599,12 +9647,9 @@ class LinkedNodeBuilder extends Object
       this
           .classOrMixinDeclaration_typeParameters
           ?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addBool(this.classDeclaration_isDartObject == true);
       signature.addBool(this.simplyBoundable_isSimplyBounded == true);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.classTypeAlias) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -9624,13 +9669,8 @@ class LinkedNodeBuilder extends Object
       this.classTypeAlias_withClause?.collectApiSignature(signature);
       signature.addBool(this.classTypeAlias_implementsClause != null);
       this.classTypeAlias_implementsClause?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addBool(this.simplyBoundable_isSimplyBounded == true);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.comment) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -9680,8 +9720,6 @@ class LinkedNodeBuilder extends Object
       signature.addBool(this.compilationUnit_scriptTag != null);
       this.compilationUnit_scriptTag?.collectApiSignature(signature);
       signature.addInt(this.flags ?? 0);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.conditionalExpression) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -9734,12 +9772,7 @@ class LinkedNodeBuilder extends Object
           ?.collectApiSignature(signature);
       signature.addBool(this.constructorDeclaration_returnType != null);
       this.constructorDeclaration_returnType?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.constructorFieldInitializer) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -9784,8 +9817,6 @@ class LinkedNodeBuilder extends Object
       this.declaredIdentifier_identifier?.collectApiSignature(signature);
       signature.addBool(this.declaredIdentifier_type != null);
       this.declaredIdentifier_type?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
       signature.addInt(this.flags ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.defaultFormalParameter) {
@@ -9798,8 +9829,6 @@ class LinkedNodeBuilder extends Object
       signature.addInt(this.defaultFormalParameter_kind == null
           ? 0
           : this.defaultFormalParameter_kind.index);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.doStatement) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -9846,9 +9875,6 @@ class LinkedNodeBuilder extends Object
           x?.collectApiSignature(signature);
         }
       }
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.enumDeclaration) {
@@ -9869,12 +9895,7 @@ class LinkedNodeBuilder extends Object
           x?.collectApiSignature(signature);
         }
       }
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.exportDirective) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -9902,11 +9923,8 @@ class LinkedNodeBuilder extends Object
           x?.collectApiSignature(signature);
         }
       }
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
       signature.addBool(this.uriBasedDirective_uri != null);
       this.uriBasedDirective_uri?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addInt(this.uriBasedDirective_uriElement ?? 0);
       signature.addString(this.namespaceDirective_selectedUri ?? '');
@@ -9942,8 +9960,6 @@ class LinkedNodeBuilder extends Object
       }
       signature.addBool(this.fieldDeclaration_fields != null);
       this.fieldDeclaration_fields?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
       signature.addInt(this.flags ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
@@ -9964,15 +9980,10 @@ class LinkedNodeBuilder extends Object
       this
           .fieldFormalParameter_formalParameters
           ?.collectApiSignature(signature);
-      signature.addBool(this.normalFormalParameter_comment != null);
-      this.normalFormalParameter_comment?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addBool(this.actualType != null);
       this.actualType?.collectApiSignature(signature);
       signature.addBool(this.inheritsCovariant == true);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.forEachPartsWithDeclaration) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -10072,14 +10083,9 @@ class LinkedNodeBuilder extends Object
           ?.collectApiSignature(signature);
       signature.addBool(this.functionDeclaration_returnType != null);
       this.functionDeclaration_returnType?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addBool(this.actualReturnType != null);
       this.actualReturnType?.collectApiSignature(signature);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.functionDeclarationStatement) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -10134,16 +10140,11 @@ class LinkedNodeBuilder extends Object
       this.functionTypeAlias_returnType?.collectApiSignature(signature);
       signature.addBool(this.functionTypeAlias_typeParameters != null);
       this.functionTypeAlias_typeParameters?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addBool(this.actualReturnType != null);
       this.actualReturnType?.collectApiSignature(signature);
       signature.addBool(this.typeAlias_hasSelfReference == true);
       signature.addBool(this.simplyBoundable_isSimplyBounded == true);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -10169,15 +10170,10 @@ class LinkedNodeBuilder extends Object
       this
           .functionTypedFormalParameter_typeParameters
           ?.collectApiSignature(signature);
-      signature.addBool(this.normalFormalParameter_comment != null);
-      this.normalFormalParameter_comment?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addBool(this.actualType != null);
       this.actualType?.collectApiSignature(signature);
       signature.addBool(this.inheritsCovariant == true);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.genericFunctionType) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -10208,14 +10204,9 @@ class LinkedNodeBuilder extends Object
       this.genericTypeAlias_typeParameters?.collectApiSignature(signature);
       signature.addBool(this.genericTypeAlias_functionType != null);
       this.genericTypeAlias_functionType?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addBool(this.typeAlias_hasSelfReference == true);
       signature.addBool(this.simplyBoundable_isSimplyBounded == true);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.hideCombinator) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -10288,12 +10279,9 @@ class LinkedNodeBuilder extends Object
           x?.collectApiSignature(signature);
         }
       }
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
       signature.addBool(this.uriBasedDirective_uri != null);
       this.uriBasedDirective_uri?.collectApiSignature(signature);
       signature.addInt(this.importDirective_prefixOffset ?? 0);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addInt(this.uriBasedDirective_uriElement ?? 0);
       signature.addString(this.namespaceDirective_selectedUri ?? '');
@@ -10391,8 +10379,6 @@ class LinkedNodeBuilder extends Object
       }
       signature.addBool(this.libraryDirective_name != null);
       this.libraryDirective_name?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
       signature.addInt(this.flags ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.libraryIdentifier) {
@@ -10455,14 +10441,9 @@ class LinkedNodeBuilder extends Object
       this.methodDeclaration_returnType?.collectApiSignature(signature);
       signature.addBool(this.methodDeclaration_typeParameters != null);
       this.methodDeclaration_typeParameters?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addBool(this.actualReturnType != null);
       this.actualReturnType?.collectApiSignature(signature);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.methodInvocation) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -10500,8 +10481,6 @@ class LinkedNodeBuilder extends Object
       }
       signature.addBool(this.mixinDeclaration_onClause != null);
       this.mixinDeclaration_onClause?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
       signature.addBool(this.classOrMixinDeclaration_implementsClause != null);
       this
           .classOrMixinDeclaration_implementsClause
@@ -10510,11 +10489,8 @@ class LinkedNodeBuilder extends Object
       this
           .classOrMixinDeclaration_typeParameters
           ?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addBool(this.simplyBoundable_isSimplyBounded == true);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       if (this.mixinDeclaration_superInvokedNames == null) {
         signature.addInt(0);
       } else {
@@ -10581,11 +10557,8 @@ class LinkedNodeBuilder extends Object
           x?.collectApiSignature(signature);
         }
       }
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
       signature.addBool(this.uriBasedDirective_uri != null);
       this.uriBasedDirective_uri?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addInt(this.uriBasedDirective_uriElement ?? 0);
       signature.addString(this.uriBasedDirective_uriContent ?? '');
@@ -10604,8 +10577,6 @@ class LinkedNodeBuilder extends Object
       this.partOfDirective_libraryName?.collectApiSignature(signature);
       signature.addBool(this.partOfDirective_uri != null);
       this.partOfDirective_uri?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
       signature.addInt(this.flags ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.postfixExpression) {
@@ -10737,15 +10708,10 @@ class LinkedNodeBuilder extends Object
       }
       signature.addBool(this.simpleFormalParameter_type != null);
       this.simpleFormalParameter_type?.collectApiSignature(signature);
-      signature.addBool(this.normalFormalParameter_comment != null);
-      this.normalFormalParameter_comment?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addBool(this.actualType != null);
       this.actualType?.collectApiSignature(signature);
       signature.addBool(this.inheritsCovariant == true);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       signature.addBool(this.topLevelTypeInferenceError != null);
       this.topLevelTypeInferenceError?.collectApiSignature(signature);
       signature.addString(this.name ?? '');
@@ -10904,8 +10870,6 @@ class LinkedNodeBuilder extends Object
       this
           .topLevelVariableDeclaration_variableList
           ?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
       signature.addInt(this.flags ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.tryStatement) {
@@ -10964,14 +10928,9 @@ class LinkedNodeBuilder extends Object
       }
       signature.addBool(this.typeParameter_bound != null);
       this.typeParameter_bound?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addBool(this.typeParameter_defaultType != null);
       this.typeParameter_defaultType?.collectApiSignature(signature);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.typeParameterList) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -10997,15 +10956,10 @@ class LinkedNodeBuilder extends Object
       }
       signature.addBool(this.variableDeclaration_initializer != null);
       this.variableDeclaration_initializer?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
-      signature.addInt(this.nameOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addBool(this.actualType != null);
       this.actualType?.collectApiSignature(signature);
       signature.addBool(this.inheritsCovariant == true);
-      signature.addInt(this.codeOffset ?? 0);
-      signature.addInt(this.codeLength ?? 0);
       signature.addBool(this.topLevelTypeInferenceError != null);
       this.topLevelTypeInferenceError?.collectApiSignature(signature);
       signature.addString(this.name ?? '');
@@ -11029,8 +10983,6 @@ class LinkedNodeBuilder extends Object
       }
       signature.addBool(this.variableDeclarationList_type != null);
       this.variableDeclarationList_type?.collectApiSignature(signature);
-      signature.addBool(this.annotatedNode_comment != null);
-      this.annotatedNode_comment?.collectApiSignature(signature);
       signature.addInt(this.flags ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.variableDeclarationStatement) {

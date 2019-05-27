@@ -845,6 +845,7 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.variableDeclaration,
     LinkedNodeKind.variableDeclarationList,
   ])
+  @informative
   LinkedNode get annotatedNode_comment;
 
   @VariantId(4, variantList: [
@@ -1034,6 +1035,7 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.typeParameter,
     LinkedNodeKind.variableDeclaration,
   ])
+  @informative
   int get codeLength;
 
   @VariantId(32, variantList: [
@@ -1054,6 +1056,7 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.typeParameter,
     LinkedNodeKind.variableDeclaration,
   ])
+  @informative
   int get codeOffset;
 
   @VariantId(2, variant: LinkedNodeKind.comment)
@@ -1493,6 +1496,7 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.typeParameter,
     LinkedNodeKind.variableDeclaration,
   ])
+  @informative
   int get nameOffset;
 
   @VariantId(36, variantList: [
@@ -1531,6 +1535,7 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.functionTypedFormalParameter,
     LinkedNodeKind.simpleFormalParameter,
   ])
+  @informative
   LinkedNode get normalFormalParameter_comment;
 
   @VariantId(4, variantList: [
