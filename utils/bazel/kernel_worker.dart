@@ -295,8 +295,6 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
 
       return Future.value(fe.serializeComponent(incrementalComponent));
     });
-
-    state.options.onDiagnostic = null; // See http://dartbug.com/36983.
   } else if (summaryOnly) {
     kernel = await fe.compileSummary(state, sources, onDiagnostic,
         includeOffsets: false);
@@ -309,6 +307,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
             : null,
         includeOffsets: true);
   }
+  state.options.onDiagnostic = null; // See http://dartbug.com/36983.
 
   if (kernel != null) {
     var outputFile = new File(parsedArgs['output']);
