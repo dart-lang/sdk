@@ -50,6 +50,9 @@ String getImprovedType(String interfaceName, String fieldName) {
     "TextDocumentSyncOptions": {
       "change": "TextDocumentSyncKind",
     },
+    "TextDocumentChangeRegistrationOptions": {
+      "syncKind": "TextDocumentSyncKind",
+    },
     "FileSystemWatcher": {
       "kind": "WatchKind",
     },

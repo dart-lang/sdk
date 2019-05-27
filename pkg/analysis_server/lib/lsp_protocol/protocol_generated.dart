@@ -8415,7 +8415,9 @@ class TextDocumentChangeRegistrationOptions
   }
   static TextDocumentChangeRegistrationOptions fromJson(
       Map<String, dynamic> json) {
-    final syncKind = json['syncKind'];
+    final syncKind = json['syncKind'] != null
+        ? TextDocumentSyncKind.fromJson(json['syncKind'])
+        : null;
     final documentSelector = json['documentSelector']
         ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
         ?.cast<DocumentFilter>()
@@ -8430,7 +8432,7 @@ class TextDocumentChangeRegistrationOptions
 
   /// How documents are synced to the server. See TextDocumentSyncKind.Full and
   /// TextDocumentSyncKind.Incremental.
-  final num syncKind;
+  final TextDocumentSyncKind syncKind;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
@@ -8443,7 +8445,7 @@ class TextDocumentChangeRegistrationOptions
   static bool canParse(Object obj) {
     return obj is Map<String, dynamic> &&
         obj.containsKey('syncKind') &&
-        obj['syncKind'] is num &&
+        TextDocumentSyncKind.canParse(obj['syncKind']) &&
         obj.containsKey('documentSelector') &&
         (obj['documentSelector'] == null ||
             (obj['documentSelector'] is List &&
