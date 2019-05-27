@@ -756,10 +756,12 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
     // to the kill set.
     const bool is_function_entry = block->IsFunctionEntry();
     const bool is_osr_entry = block->IsOsrEntry();
-    if (is_function_entry || is_osr_entry || block->IsCatchBlockEntry()) {
+    const bool is_catch_block_entry = block->IsCatchBlockEntry();
+    if (is_function_entry || is_osr_entry || is_catch_block_entry) {
       const intptr_t parameter_count =
-          is_osr_entry ? flow_graph_->variable_count()
-                       : flow_graph_->num_direct_parameters();
+          (is_osr_entry || is_catch_block_entry)
+              ? flow_graph_->variable_count()
+              : flow_graph_->num_direct_parameters();
       for (intptr_t i = 0; i < parameter_count; ++i) {
         live_in->Remove(i);
         kill->Add(i);
