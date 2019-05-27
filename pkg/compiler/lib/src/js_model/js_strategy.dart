@@ -218,8 +218,6 @@ class KernelSsaBuilder implements SsaBuilder {
   final JsToElementMap _elementMap;
   final SourceInformationStrategy _sourceInformationStrategy;
 
-  // TODO(johnniwinther,sra): Inlining decisions should not be based on the
-  // order in which ssa graphs are built.
   FunctionInlineCache _inlineCache;
 
   KernelSsaBuilder(this._task, this._options, this._reporter,

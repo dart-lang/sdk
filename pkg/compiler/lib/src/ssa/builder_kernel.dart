@@ -5711,7 +5711,12 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         if (canInline) {
           _inlineCache.markAsInlinable(function, insideLoop: insideLoop);
         } else {
-          _inlineCache.markAsNonInlinable(function, insideLoop: insideLoop);
+          if (_isFunctionCalledOnce(function)) {
+            // TODO(34203): We can't update the decision due to imprecision in
+            // the calledOnce data, described in Issue 34203.
+          } else {
+            _inlineCache.markAsNonInlinable(function, insideLoop: insideLoop);
+          }
         }
       }
       return canInline;
