@@ -3960,7 +3960,8 @@ LocationSummary* NativeEntryInstr::MakeLocationSummary(Zone* zone,
   UNREACHABLE();
 }
 
-#if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_IA32) &&                 \
+    !defined(TARGET_ARCH_ARM64)
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
@@ -4079,8 +4080,8 @@ void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #if !defined(TARGET_ARCH_DBC)
   // The native entry frame has size -kExitLinkSlotFromFp. In order to access
   // the top of stack from above the entry frame, we add a constant to account
-  // for the the two frame pointers and return address of the entry frame.
-  constexpr intptr_t kEntryFramePadding = 3;
+  // for the the two frame pointers and two return addresses of the entry frame.
+  constexpr intptr_t kEntryFramePadding = 4;
   FrameRebase rebase(/*old_base=*/SPREG, /*new_base=*/FPREG,
                      -kExitLinkSlotFromEntryFp + kEntryFramePadding);
   const Location dst = locs()->out(0);

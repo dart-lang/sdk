@@ -552,11 +552,12 @@ static uword CompileNativeCallback(const Function& c_signature,
                                    const Function& dart_target) {
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
   UNREACHABLE();
-#elif !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_IA32)
+#elif !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_IA32) &&               \
+    !defined(TARGET_ARCH_ARM64)
   // https://github.com/dart-lang/sdk/issues/35774
   // FFI is supported, but callbacks are not.
   Exceptions::ThrowUnsupportedError(
-      "FFI callbacks are currently supported on Intel only.");
+      "FFI callbacks are currently supported on Intel and 64-bit ARM only.");
 #else
   Thread* const thread = Thread::Current();
   const int32_t callback_id = thread->AllocateFfiCallbackId();

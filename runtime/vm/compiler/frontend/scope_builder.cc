@@ -392,6 +392,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       // Callbacks need try/catch variables.
       if (function.IsFfiTrampoline() &&
           function.FfiCallbackTarget() != Function::null()) {
+        current_function_async_marker_ = FunctionNodeHelper::kSync;
         ++depth_.try_;
         AddTryVariables();
         --depth_.try_;

@@ -24,7 +24,7 @@ negative_function_test: Skip
 [ $arch == x64 || $arch == arm64 || $arch == simdbc64 ]
 enable_structs_test: SkipByDesign  # Tests that structs don't work on 32-bit systems.
 
-[ $arch != x64 && $arch != ia32 ]
+[ $arch != x64 && $arch != ia32 && $arch != arm64 ]
 function_callbacks_test: Skip # Issue 35761
 
 [ $runtime == dart_precompiled ]

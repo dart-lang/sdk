@@ -1012,7 +1012,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     SaveArgument(compiler, argument_locations_->At(i));
   }
 
-  // Enter the entry frame.
+  // Enter the entry frame. Push a dummy return address for consistency with
+  // EnterFrame on ARM(64).
+  __ PushImmediate(Immediate(0));
   __ EnterFrame(0);
 
   // Save a space for the code object.

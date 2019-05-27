@@ -185,7 +185,7 @@ testCallbackWrongIsolate() async {
 }
 
 void main() async {
-  testcases.forEach((t) => t.run());
+  testcases.forEach((t) => t.run()); //# 00: ok
 
   // These tests terminate the process after successful completion, so we have
   // to run them separately.

@@ -240,7 +240,21 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 }
 
 void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
-  __ Breakpoint();
+  __ EnterFrame(0);
+  __ ReserveAlignedFrameSpace(0);
+
+  // First argument is already set up by the caller.
+  //
+  // Second argument is the return address of the caller.
+  __ mov(CallingConventions::ArgumentRegisters[1], LR);
+  __ LoadFromOffset(R2, THR,
+                    kVerifyCallbackIsolateRuntimeEntry.OffsetFromThread());
+  __ mov(CSP, SP);
+  __ blr(R2);
+  __ mov(SP, CSP);
+
+  __ LeaveFrame();
+  __ Ret();
 }
 
 // R1: The extracted method.
@@ -1119,20 +1133,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ ldr(TMP, Address(R3, target::Thread::invoke_dart_code_stub_offset()));
   __ Push(TMP);
 
-  // Save the callee-saved registers.
-  for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
-    const Register r = static_cast<Register>(i);
-    // We use str instead of the Push macro because we will be pushing the PP
-    // register when it is not holding a pool-pointer since we are coming from
-    // C++ code.
-    __ str(r, Address(SP, -1 * target::kWordSize, Address::PreIndex));
-  }
-
-  // Save the bottom 64-bits of callee-saved V registers.
-  for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
-    const VRegister r = static_cast<VRegister>(i);
-    __ PushDouble(r);
-  }
+  __ PushNativeCalleeSavedRegisters();
 
   // Set up THR, which caches the current thread in Dart code.
   if (THR != R3) {
@@ -1226,21 +1227,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Pop(R4);
   __ StoreToOffset(R4, THR, target::Thread::vm_tag_offset());
 
-  // Restore the bottom 64-bits of callee-saved V registers.
-  for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {
-    const VRegister r = static_cast<VRegister>(i);
-    __ PopDouble(r);
-  }
-
-  // Restore C++ ABI callee-saved registers.
-  for (int i = kAbiLastPreservedCpuReg; i >= kAbiFirstPreservedCpuReg; i--) {
-    Register r = static_cast<Register>(i);
-    // We use ldr instead of the Pop macro because we will be popping the PP
-    // register when it is not holding a pool-pointer since we are returning to
-    // C++ code. We also skip the dart stack pointer SP, since we are still
-    // using it as the stack pointer.
-    __ ldr(r, Address(SP, 1 * target::kWordSize, Address::PostIndex));
-  }
+  __ PopNativeCalleeSavedRegisters();
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();

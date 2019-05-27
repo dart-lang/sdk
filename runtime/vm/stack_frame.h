@@ -134,8 +134,7 @@ class StackFrame : public ValueObject {
 
  protected:
   explicit StackFrame(Thread* thread)
-      : fp_(0), sp_(0), pc_(0), thread_(thread), is_interpreted_(false) {
-  }
+      : fp_(0), sp_(0), pc_(0), thread_(thread), is_interpreted_(false) {}
 
   // Name of the frame, used for generic frame printing functionality.
   virtual const char* GetName() const {
@@ -471,7 +470,8 @@ DART_FORCE_INLINE static uword LocalVarAddress(uword fp, intptr_t index) {
   return fp + LocalVarIndex(0, index) * kWordSize;
 }
 
-#if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_IA32)
+#if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_IA32) &&                 \
+    !defined(TARGET_ARCH_ARM64)
 // For FFI native -> Dart callbacks, the number of stack slots between arguments
 // passed on stack and arguments saved in callback prologue. This placeholder
 // here is for unsupported architectures.
