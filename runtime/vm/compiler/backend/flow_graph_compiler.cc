@@ -2105,6 +2105,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
                                         intptr_t total_ic_calls,
                                         Code::EntryKind entry_kind) {
   ASSERT(is_optimizing());
+  ASSERT(complete || (failed != nullptr));  // Complete calls can't fail.
 
   const Array& arguments_descriptor =
       Array::ZoneHandle(zone(), args_info.ToArgumentsDescriptor());
@@ -2139,8 +2140,10 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
 
   if (smi_case != kNoCase) {
     Label after_smi_test;
-    EmitTestAndCallSmiBranch(non_smi_length == 0 ? failed : &after_smi_test,
-                             /* jump_if_smi= */ false);
+    if (!complete) {
+      EmitTestAndCallSmiBranch(non_smi_length == 0 ? failed : &after_smi_test,
+                               /* jump_if_smi= */ false);
+    }
 
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
