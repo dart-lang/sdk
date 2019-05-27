@@ -471,7 +471,7 @@ DART_FORCE_INLINE static uword LocalVarAddress(uword fp, intptr_t index) {
   return fp + LocalVarIndex(0, index) * kWordSize;
 }
 
-#if !defined(TARGET_ARCH_X64)
+#if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_IA32)
 // For FFI native -> Dart callbacks, the number of stack slots between arguments
 // passed on stack and arguments saved in callback prologue. This placeholder
 // here is for unsupported architectures.

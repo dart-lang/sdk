@@ -46,6 +46,10 @@ static const int kSavedCallerPpSlotFromFp = kSavedCallerFpSlotFromFp;
 // Entry and exit frame layout.
 static const int kExitLinkSlotFromEntryFp = -7;
 
+// All arguments are passed on the stack, so none need to be saved.
+// 1 slot for return address. No frame for holding the saved arguments.
+constexpr intptr_t kCallbackSlotsBeforeSavedArguments = 1;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_STACK_FRAME_IA32_H_

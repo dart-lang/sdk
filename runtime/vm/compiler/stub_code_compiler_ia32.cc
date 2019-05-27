@@ -140,6 +140,8 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
 
 void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   __ pushal();
+  __ subl(SPREG, Immediate(8));
+  __ movsd(Address(SPREG, 0), XMM0);
 
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
@@ -147,12 +149,16 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   __ call(EAX);
   __ LeaveFrame();
 
+  __ movsd(XMM0, Address(SPREG, 0));
+  __ addl(SPREG, Immediate(8));
   __ popal();
   __ ret();
 }
 
 void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ pushal();
+  __ subl(SPREG, Immediate(8));
+  __ movsd(Address(SPREG, 0), XMM0);
 
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
@@ -160,12 +166,33 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ call(EAX);
   __ LeaveFrame();
 
+  __ movsd(XMM0, Address(SPREG, 0));
+  __ addl(SPREG, Immediate(8));
   __ popal();
   __ ret();
 }
 
 void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
-  __ Breakpoint();
+  __ EnterFrame(0);
+  __ ReserveAlignedFrameSpace(0);
+
+  // The return address needs to be the second argument to
+  // VerifyCallbackIsolate.
+  __ movl(EAX, Address(FPREG, 4));
+  __ pushl(EAX);
+
+  // Argument to the stub is callback ID, which is also the first argument to
+  // VerifyCallbackIsolate.
+  __ movl(EAX, Address(FPREG, 8));
+  __ pushl(EAX);
+
+  // Call the VerifyCallbackIsolate runtime entry.
+  __ movl(EAX,
+          Address(THR, kVerifyCallbackIsolateRuntimeEntry.OffsetFromThread()));
+  __ call(EAX);
+
+  __ LeaveFrame();
+  __ ret();
 }
 
 void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
@@ -871,6 +898,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ pushl(EDX);
   __ movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
           Immediate(0));
+
+  // In debug mode, verify that we've pushed the top exit frame info at the
+  // correct offset from FP.
+  __ EmitEntryFrameVerification();
 
   // Mark that the thread is executing Dart code. Do this after initializing the
   // exit link for the profiler.

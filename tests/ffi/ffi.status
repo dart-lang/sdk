@@ -11,7 +11,6 @@ data_not_asan_test: SkipByDesign # This test tries to allocate too much memory o
 # dartbug.com/35768: Structs not supported on 32-bit.
 [ $arch == ia32 || $arch == arm || $arch == simdbc ]
 function_structs_test: Skip
-function_callbacks_test: Skip
 structs_test: Skip
 
 # dartbug.com/35934
@@ -25,7 +24,7 @@ negative_function_test: Skip
 [ $arch == x64 || $arch == arm64 || $arch == simdbc64 ]
 enable_structs_test: SkipByDesign  # Tests that structs don't work on 32-bit systems.
 
-[ $arch != x64 ]
+[ $arch != x64 && $arch != ia32 ]
 function_callbacks_test: Skip # Issue 35761
 
 [ $runtime == dart_precompiled ]

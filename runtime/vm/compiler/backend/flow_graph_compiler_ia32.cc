@@ -1194,6 +1194,9 @@ void FlowGraphCompiler::EmitMove(Location destination,
   } else if (source.IsStackSlot()) {
     if (destination.IsRegister()) {
       __ movl(destination.reg(), LocationToStackSlotAddress(source));
+    } else if (destination.IsFpuRegister()) {
+      // 32-bit float
+      __ movss(destination.fpu_reg(), LocationToStackSlotAddress(source));
     } else {
       ASSERT(destination.IsStackSlot());
       Register scratch = tmp->AllocateTemporary();
