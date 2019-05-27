@@ -96,6 +96,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   final Component componentToInitializeFrom;
   bool initializedFromDill = false;
   Uri previousPackagesUri;
+  Map<String, Uri> previousPackagesMap;
+  Map<String, Uri> currentPackagesMap;
   bool hasToCheckPackageUris = false;
   Map<Uri, List<DiagnosticMessageFromJson>> remainingComponentProblems =
       new Map<Uri, List<DiagnosticMessageFromJson>>();
@@ -137,6 +139,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       hasToCheckPackageUris = hasToCheckPackageUris || bypassCache;
       UriTranslator uriTranslator =
           await c.options.getUriTranslator(bypassCache: bypassCache);
+      previousPackagesMap = currentPackagesMap;
+      currentPackagesMap = uriTranslator.packages.asMap();
       ticker.logMs("Read packages file");
 
       if (dillLoadedData == null) {
@@ -831,10 +835,21 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (importUri != fileUri && invalidatedUris.contains(fileUri)) {
         return true;
       }
-      if (hasToCheckPackageUris &&
-          importUri.scheme == "package" &&
-          uriTranslator.translate(importUri, false) != fileUri) {
-        return true;
+      if (hasToCheckPackageUris && importUri.scheme == "package") {
+        // Get package name, check if the base URI has changed for the package,
+        // if it has, translate the URI again,
+        // otherwise the URI cannot have changed.
+        String path = importUri.path;
+        int firstSlash = path.indexOf('/');
+        String packageName = path.substring(0, firstSlash);
+        if (previousPackagesMap == null ||
+            (previousPackagesMap[packageName] !=
+                currentPackagesMap[packageName])) {
+          Uri newFileUri = uriTranslator.translate(importUri, false);
+          if (newFileUri != fileUri) {
+            return true;
+          }
+        }
       }
       if (builders[importUri]?.isSynthetic ?? false) return true;
       return false;
