@@ -200,6 +200,23 @@ class DevCompilerConstantsBackend extends ConstantsBackend {
 
   @override
   NumberSemantics get numberSemantics => NumberSemantics.js;
+
+  @override
+  bool shouldInlineConstant(ConstantExpression initializer) {
+    Constant constant = initializer.constant;
+    if (constant is StringConstant) {
+      // Only inline small string constants, not large ones.
+      // (The upper bound value is arbitrary.)
+      return constant.value.length < 32;
+    } else if (constant is PrimitiveConstant) {
+      // Inline all other primitives.
+      return true;
+    } else {
+      // Don't inline other constants, because it would take too much code size.
+      // Better to refer to them by their field/variable name.
+      return false;
+    }
+  }
 }
 
 class _ErrorReporter extends SimpleErrorReporter {
