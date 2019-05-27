@@ -220,11 +220,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           notReused: notReusedLibraries);
       Set<Uri> reusedLibraryUris =
           new Set<Uri>.from(reusedLibraries.map((b) => b.uri));
+      bool removedBuilders = false;
       for (Uri uri in new Set<Uri>.from(dillLoadedData.loader.builders.keys)
         ..removeAll(reusedLibraryUris)) {
         LibraryBuilder builder = dillLoadedData.loader.builders.remove(uri);
         userBuilders?.remove(uri);
         CompilerContext.current.uriToSource.remove(builder.fileUri);
+        removedBuilders = true;
+      }
+      if (removedBuilders) {
+        dillLoadedData.loader.libraries.clear();
+        for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
+          dillLoadedData.loader.libraries.add(builder.target);
+        }
       }
 
       if (hasToCheckPackageUris) {
