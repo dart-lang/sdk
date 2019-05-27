@@ -12,7 +12,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/backend.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
-import 'package:compiler/src/ssa/builder_kernel.dart' as kernel;
+import 'package:compiler/src/ssa/builder_kernel.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -53,6 +53,7 @@ class InliningIrComputer extends IrDataExtractor<String> {
   final JavaScriptBackend backend;
   final JsToElementMap _elementMap;
   final ClosureData _closureDataLookup;
+  final InlineDataCache _inlineDataCache;
 
   InliningIrComputer(
       DiagnosticReporter reporter,
@@ -61,7 +62,8 @@ class InliningIrComputer extends IrDataExtractor<String> {
       MemberEntity member,
       this.backend,
       this._closureDataLookup)
-      : super(reporter, actualMap);
+      : this._inlineDataCache = new InlineDataCache(enableUserAssertions: true),
+        super(reporter, actualMap);
 
   String getMemberValue(MemberEntity member) {
     if (member is FunctionEntity) {
@@ -125,14 +127,16 @@ class InliningIrComputer extends IrDataExtractor<String> {
 
   String getTooDifficultReasonForbidLoops(MemberEntity member) {
     if (member is! FunctionEntity) return null;
-    return kernel.InlineWeeder.cannotBeInlinedReason(_elementMap, member, null,
-        enableUserAssertions: true);
+    return _inlineDataCache
+        .getInlineData(_elementMap, member)
+        .cannotBeInlinedReason();
   }
 
   String getTooDifficultReasonAllowLoops(MemberEntity member) {
     if (member is! FunctionEntity) return null;
-    return kernel.InlineWeeder.cannotBeInlinedReason(_elementMap, member, null,
-        allowLoops: true, enableUserAssertions: true);
+    return _inlineDataCache
+        .getInlineData(_elementMap, member)
+        .cannotBeInlinedReason(allowLoops: true);
   }
 
   @override

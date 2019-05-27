@@ -219,6 +219,7 @@ class KernelSsaBuilder implements SsaBuilder {
   final SourceInformationStrategy _sourceInformationStrategy;
 
   FunctionInlineCache _inlineCache;
+  InlineDataCache _inlineDataCache;
 
   KernelSsaBuilder(this._task, this._options, this._reporter,
       this._dumpInfoTask, this._elementMap, this._sourceInformationStrategy);
@@ -233,6 +234,9 @@ class KernelSsaBuilder implements SsaBuilder {
       ModularNamer namer,
       ModularEmitter emitter) {
     _inlineCache ??= new FunctionInlineCache(closedWorld.annotationsData);
+    _inlineDataCache ??= new InlineDataCache(
+        enableUserAssertions: _options.enableUserAssertions,
+        omitImplicitCasts: _options.omitImplicitChecks);
     return _task.measure(() {
       KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
           _options,
@@ -249,7 +253,8 @@ class KernelSsaBuilder implements SsaBuilder {
           codegen.tracer,
           codegen.rtiEncoder,
           _sourceInformationStrategy,
-          _inlineCache);
+          _inlineCache,
+          _inlineDataCache);
       return builder.build();
     });
   }

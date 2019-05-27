@@ -82,11 +82,12 @@ class FunctionInlineCache {
   final Map<FunctionEntity, int> _cachedDecisions =
       new Map<FunctionEntity, int>();
 
+  final Set<FunctionEntity> _noInlineFunctions = new Set<FunctionEntity>();
   final Set<FunctionEntity> _tryInlineFunctions = new Set<FunctionEntity>();
 
   FunctionInlineCache(AnnotationsData annotationsData) {
     annotationsData.forEachNoInline((FunctionEntity function) {
-      markAsNonInlinable(function);
+      markAsNoInline(function);
     });
     annotationsData.forEachTryInline((FunctionEntity function) {
       markAsTryInline(function);
@@ -172,7 +173,7 @@ class FunctionInlineCache {
         case _mustNotInline:
           throw failedAt(
               element,
-              "Can't mark a function as non-inlinable and inlinable at the "
+              "Can't mark $element as non-inlinable and inlinable at the "
               "same time.");
 
         case _unknown:
@@ -198,7 +199,7 @@ class FunctionInlineCache {
         case _canInlineInLoopMustNotOutside:
           throw failedAt(
               element,
-              "Can't mark a function as non-inlinable and inlinable at the "
+              "Can't mark $element as non-inlinable and inlinable at the "
               "same time.");
 
         case _unknown:
@@ -228,7 +229,7 @@ class FunctionInlineCache {
         case _canInline:
           throw failedAt(
               element,
-              "Can't mark a function as non-inlinable and inlinable at the "
+              "Can't mark $element as non-inlinable and inlinable at the "
               "same time.");
 
         case _mayInlineInLoopMustNotOutside:
@@ -245,7 +246,7 @@ class FunctionInlineCache {
         case _canInline:
           throw failedAt(
               element,
-              "Can't mark a function as non-inlinable and inlinable at the "
+              "Can't mark $element as non-inlinable and inlinable at the "
               "same time.");
 
         case _unknown:
@@ -268,6 +269,16 @@ class FunctionInlineCache {
           break;
       }
     }
+  }
+
+  void markAsNoInline(FunctionEntity element) {
+    assert(checkFunction(element), failedAt(element));
+    _noInlineFunctions.add(element);
+  }
+
+  bool markedAsNoInline(FunctionEntity element) {
+    assert(checkFunction(element), failedAt(element));
+    return _noInlineFunctions.contains(element);
   }
 
   void markAsTryInline(FunctionEntity element) {
