@@ -2140,7 +2140,10 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
 
   if (smi_case != kNoCase) {
     Label after_smi_test;
-    if (!complete) {
+    // If the call is complete and there are no other possible receiver
+    // classes - then receiver can only be a smi value and we don't need
+    // to check if it is a smi.
+    if (!(complete && non_smi_length == 0)) {
       EmitTestAndCallSmiBranch(non_smi_length == 0 ? failed : &after_smi_test,
                                /* jump_if_smi= */ false);
     }
