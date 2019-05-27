@@ -9,9 +9,7 @@
 #include <sys/types.h>
 #include <csignal>
 
-#include "platform/assert.h"
 #include "platform/globals.h"
-#include "vm/os_thread.h"
 #if defined(HOST_OS_WINDOWS)
 #include <psapi.h>
 #else
@@ -513,7 +511,11 @@ DART_EXPORT int RedirectStderr() {
   char filename[256];
   snprintf(filename, sizeof(filename), "/tmp/captured_stderr_%d", getpid());
   FILE* f = freopen(filename, "w", stderr);
-  ASSERT(f);
+  if (f == nullptr) {
+    fprintf(stderr, "Could not open temp file.\n");
+    Dart_PrepareToAbort();
+    abort();
+  }
   printf("Got file %s\n", filename);
   return getpid();
 }
@@ -645,7 +647,7 @@ struct CallbackTestData {
   void (*callback)();
 };
 
-#if defined(TARGET_OS_LINUX) && !defined(PRODUCT)
+#if defined(TARGET_OS_LINUX)
 
 thread_local sigjmp_buf buf;
 void CallbackTestSignalHandler(int) {
@@ -684,7 +686,6 @@ void* TestCallbackOnThreadOutsideIsolate(void* parameter) {
 
 int TestCallbackOtherThreadHelper(void* (*tester)(void*), void (*fn)()) {
   CallbackTestData data = {1, fn};
-
   pthread_attr_t attr;
   int result = pthread_attr_init(&attr);
   CHECK_EQ(result, 0);
@@ -701,7 +702,7 @@ int TestCallbackOtherThreadHelper(void* (*tester)(void*), void (*fn)()) {
 
   // Doesn't actually return because the other thread will exit when the test is
   // finished.
-  UNREACHABLE();
+  return 1;
 }
 
 // Run a callback on another thread and verify that it triggers SIGABRT.
@@ -726,6 +727,6 @@ DART_EXPORT int TestCallbackWrongIsolate(void (*fn)()) {
   return ExpectAbort(fn);
 }
 
-#endif  // defined(TARGET_OS_LINUX) && !defined(PRODUCT)
+#endif  // defined(TARGET_OS_LINUX)
 
 }  // namespace dart
