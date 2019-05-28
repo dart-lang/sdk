@@ -993,7 +993,7 @@ main() {
     await resolveTestFile();
 
     var node = findNode.simple('myVar(42)');
-    assertType(node, '(int) → String');
+    assertType(node, 'String Function(int)');
   }
 
   test_metadata_class() async {

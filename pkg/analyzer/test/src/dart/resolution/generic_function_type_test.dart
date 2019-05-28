@@ -59,19 +59,19 @@ double Function() x;
 ''');
     assertType(
       findNode.genericFunctionType('void Function()'),
-      '() → void',
+      'void Function()',
     );
     assertType(
       findNode.genericFunctionType('bool Function()'),
-      '() → bool',
+      'bool Function()',
     );
     assertType(
       findNode.genericFunctionType('int Function()'),
-      '() → int',
+      'int Function()',
     );
     assertType(
       findNode.genericFunctionType('double Function()'),
-      '() → double',
+      'double Function()',
     );
   }
 
@@ -100,19 +100,19 @@ double Function() x;
 ''');
     assertType(
       findNode.genericFunctionType('void Function()'),
-      '() → void',
+      'void Function()',
     );
     assertType(
       findNode.genericFunctionType('bool Function()'),
-      '() → bool',
+      'bool Function()',
     );
     assertType(
       findNode.genericFunctionType('int Function()'),
-      '() → int',
+      'int Function()',
     );
     assertType(
       findNode.genericFunctionType('double Function()'),
-      '() → double',
+      'double Function()',
     );
   }
 }

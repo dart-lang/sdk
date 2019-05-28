@@ -1834,14 +1834,14 @@ class FunctionTypeImplTest extends EngineTestCase {
     var s = ElementFactory.genericTypeAliasElement("s");
     t.function.returnType = s.type;
     s.function.returnType = t.type;
-    expect(t.type.toString(), '() \u2192 () \u2192 ...');
+    expect(t.type.toString(), '... Function() Function()');
   }
 
   void test_toString_recursive_via_interface_type() {
     var f = ElementFactory.genericTypeAliasElement('f');
     ClassElementImpl c = ElementFactory.classElement2('C', ['T']);
     f.function.returnType = c.type.instantiate([f.type]);
-    expect(f.type.toString(), '() \u2192 C<...>');
+    expect(f.type.toString(), 'C<...> Function()');
   }
 
   void test_typeParameters_genericLocalFunction_genericMethod_genericClass() {

@@ -242,7 +242,7 @@ main() {
     await resolveTestFile();
     assertNoTestErrors();
 
-    assertType(findNode.typeName('F? a'), '(bool, String?) → int??');
+    assertType(findNode.typeName('F? a'), 'int? Function(bool, String?)?');
   }
 
   @failingTest
@@ -259,7 +259,7 @@ main() {
 
     assertType(
       findNode.typeName('F<String>'),
-      '(bool!, String!, String?) → int??',
+      'int? Function(bool!, String!, String?)?',
     );
   }
 }

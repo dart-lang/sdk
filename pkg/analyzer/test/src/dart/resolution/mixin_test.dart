@@ -1689,7 +1689,7 @@ mixin M<T> on C<T> {}
 M<T> f<T>() => null;
 ''');
     var fInvocation = findNode.methodInvocation('f()');
-    expect(fInvocation.staticInvokeType.toString(), '() → M<int>');
+    expect(fInvocation.staticInvokeType.toString(), 'M<int> Function()');
   }
 
   test_onClause() async {
@@ -1776,7 +1776,7 @@ class X extends A with M {}
 
     var invocation = findNode.methodInvocation('foo(42)');
     assertElement(invocation, findElement.method('foo'));
-    assertInvokeType(invocation, '(int) → void');
+    assertInvokeType(invocation, 'void Function(int)');
     assertType(invocation, 'void');
   }
 

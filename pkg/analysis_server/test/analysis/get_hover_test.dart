@@ -543,7 +543,7 @@ main(A a) {
     expect(hover.elementKind, 'method');
     expect(hover.isDeprecated, isFalse);
     // types
-    expect(hover.staticType, '(int, String) → List<String>');
+    expect(hover.staticType, 'List<String> Function(int, String)');
     expect(hover.propagatedType, isNull);
     // no parameter
     expect(hover.parameter, isNull);
@@ -594,7 +594,7 @@ f(Stream<int> s) {
     expect(hover.isDeprecated, isFalse);
     // types
     expect(hover.staticType,
-        '(StreamTransformer<int, dynamic>) → Stream<dynamic>');
+        'Stream<dynamic> Function(StreamTransformer<int, dynamic>)');
     expect(hover.propagatedType, isNull);
     // no parameter
     expect(hover.parameter, isNull);

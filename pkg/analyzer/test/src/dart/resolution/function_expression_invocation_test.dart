@@ -51,7 +51,7 @@ bool f<T>(T a) => true;
 
     var invocation = findNode.functionExpressionInvocation('(0)');
     assertType(invocation, 'bool');
-    assertInvokeType(invocation, '(int) → bool');
+    assertInvokeType(invocation, 'bool Function(int)');
     assertTypeArgumentTypes(invocation, ['int']);
   }
 }

@@ -92,7 +92,7 @@ typedef F<T> = T Function(T);
       {t: intType},
       {t: BottomTypeImpl.instance},
     ).substituteType(type);
-    assertElementTypeString(result, '(Never) → int');
+    assertElementTypeString(result, 'int Function(Never)');
   }
 }
 
@@ -138,11 +138,11 @@ typedef F<T> = T Function<U extends T>(U);
 
     var type = findElement.genericTypeAlias('F').function.type;
     var t = findElement.typeParameter('T');
-    assertElementTypeString(type, '<U extends T>(U) → T');
+    assertElementTypeString(type, 'T Function<U extends T>(U)');
     _assertSubstitution(
       type,
       {t: intType},
-      '<U extends int>(U) → int',
+      'int Function<U extends int>(U)',
     );
   }
 
@@ -155,16 +155,16 @@ typedef F<T, U> = T Function(U u, bool);
     var type = findElement.genericTypeAlias('F').function.type;
     var t = findElement.typeParameter('T');
     var u = findElement.typeParameter('U');
-    assertElementTypeString(type, '(U, bool) → T');
+    assertElementTypeString(type, 'T Function(U, bool)');
     _assertSubstitution(
       type,
       {t: intType},
-      '(U, bool) → int',
+      'int Function(U, bool)',
     );
     _assertSubstitution(
       type,
       {t: intType, u: doubleType},
-      '(double, bool) → int',
+      'int Function(double, bool)',
     );
   }
 

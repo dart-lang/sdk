@@ -276,6 +276,12 @@ class CircularFunctionTypeImpl extends DynamicTypeImpl
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) => this;
 
   @override
+  void _appendToWithTypeParameters(StringBuffer buffer,
+      Set<TypeImpl> visitedTypes, bool withNullability, String typeParameters) {
+    throw StateError('We should never get here.');
+  }
+
+  @override
   void _forEachParameterType(
       ParameterKind kind, callback(String name, DartType type)) {
     // There are no parameters.
@@ -714,11 +720,11 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes,
       {bool withNullability = false}) {
-    // TODO(paulberry): update to use the new "Function" syntax to avoid
-    // ambiguity with NNBD, and eliminate code duplication with
+    // TODO(paulberry): eliminate code duplication with
     // _ElementWriter.writeType.  See issue #35818.
     if (visitedTypes.add(this)) {
       if (typeFormals.isNotEmpty) {
+        StringBuffer typeParametersBuffer = StringBuffer();
         // To print a type with type variables, first make sure we have unique
         // variable names to print.
         Set<TypeParameterType> freeVariables = new HashSet<TypeParameterType>();
@@ -733,10 +739,10 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
         List<DartType> instantiateTypeArgs = <DartType>[];
         List<DartType> variables = <DartType>[];
-        buffer.write("<");
+        typeParametersBuffer.write('<');
         for (TypeParameterElement e in typeFormals) {
           if (e != typeFormals[0]) {
-            buffer.write(",");
+            typeParametersBuffer.write(',');
           }
           String name = e.name;
           int counter = 0;
@@ -751,89 +757,27 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
           }
           TypeParameterTypeImpl t =
               new TypeParameterTypeImpl(new TypeParameterElementImpl(name, -1));
-          t.appendTo(buffer, visitedTypes, withNullability: withNullability);
+          t.appendTo(typeParametersBuffer, visitedTypes,
+              withNullability: withNullability);
           instantiateTypeArgs.add(t);
           variables.add(e.type);
           if (e.bound != null) {
-            buffer.write(" extends ");
+            typeParametersBuffer.write(' extends ');
             TypeImpl renamed =
                 e.bound.substitute2(instantiateTypeArgs, variables);
-            renamed.appendTo(buffer, visitedTypes);
+            renamed.appendTo(typeParametersBuffer, visitedTypes);
           }
         }
-        buffer.write(">");
+        typeParametersBuffer.write('>');
 
-        // Instantiate it and print the resulting type. After instantiation, it
-        // will no longer have typeFormals, so we will continue below.
-        this
-            .instantiate(instantiateTypeArgs)
-            .appendTo(buffer, visitedTypes, withNullability: withNullability);
-        return;
-      }
-
-      List<DartType> normalParameterTypes = this.normalParameterTypes;
-      List<DartType> optionalParameterTypes = this.optionalParameterTypes;
-      Map<String, DartType> namedParameterTypes = this.namedParameterTypes;
-      DartType returnType = this.returnType;
-
-      bool needsComma = false;
-      void writeSeparator() {
-        if (needsComma) {
-          buffer.write(", ");
-        } else {
-          needsComma = true;
-        }
-      }
-
-      void startOptionalParameters() {
-        if (needsComma) {
-          buffer.write(", ");
-          needsComma = false;
-        }
-      }
-
-      buffer.write("(");
-      if (normalParameterTypes.isNotEmpty) {
-        for (DartType type in normalParameterTypes) {
-          writeSeparator();
-          (type as TypeImpl)
-              .appendTo(buffer, visitedTypes, withNullability: withNullability);
-        }
-      }
-      if (optionalParameterTypes.isNotEmpty) {
-        startOptionalParameters();
-        buffer.write("[");
-        for (DartType type in optionalParameterTypes) {
-          writeSeparator();
-          (type as TypeImpl)
-              .appendTo(buffer, visitedTypes, withNullability: withNullability);
-        }
-        buffer.write("]");
-        needsComma = true;
-      }
-      if (namedParameterTypes.isNotEmpty) {
-        startOptionalParameters();
-        buffer.write("{");
-        namedParameterTypes.forEach((String name, DartType type) {
-          writeSeparator();
-          buffer.write(name);
-          buffer.write(": ");
-          (type as TypeImpl)
-              .appendTo(buffer, visitedTypes, withNullability: withNullability);
-        });
-        buffer.write("}");
-        needsComma = true;
-      }
-      buffer.write(")");
-      buffer.write(ElementImpl.RIGHT_ARROW);
-      if (returnType == null) {
-        buffer.write("null");
+        // Instantiate it and print the resulting type.
+        this.instantiate(instantiateTypeArgs)._appendToWithTypeParameters(
+            buffer,
+            visitedTypes,
+            withNullability,
+            typeParametersBuffer.toString());
       } else {
-        (returnType as TypeImpl)
-            .appendTo(buffer, visitedTypes, withNullability: withNullability);
-      }
-      if (withNullability) {
-        _appendNullability(buffer);
+        _appendToWithTypeParameters(buffer, visitedTypes, withNullability, '');
       }
       visitedTypes.remove(this);
     } else {
@@ -935,6 +879,76 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   FunctionTypeImpl substitute3(List<DartType> argumentTypes) =>
       substitute2(argumentTypes, typeArguments);
+
+  void _appendToWithTypeParameters(StringBuffer buffer,
+      Set<TypeImpl> visitedTypes, bool withNullability, String typeParameters) {
+    List<DartType> normalParameterTypes = this.normalParameterTypes;
+    List<DartType> optionalParameterTypes = this.optionalParameterTypes;
+    Map<String, DartType> namedParameterTypes = this.namedParameterTypes;
+    DartType returnType = this.returnType;
+
+    if (returnType == null) {
+      buffer.write('null');
+    } else {
+      (returnType as TypeImpl)
+          .appendTo(buffer, visitedTypes, withNullability: withNullability);
+    }
+    buffer.write(' Function');
+    buffer.write(typeParameters);
+    bool needsComma = false;
+
+    void writeSeparator() {
+      if (needsComma) {
+        buffer.write(', ');
+      } else {
+        needsComma = true;
+      }
+    }
+
+    void startOptionalParameters() {
+      if (needsComma) {
+        buffer.write(', ');
+        needsComma = false;
+      }
+    }
+
+    buffer.write('(');
+    if (normalParameterTypes.isNotEmpty) {
+      for (DartType type in normalParameterTypes) {
+        writeSeparator();
+        (type as TypeImpl)
+            .appendTo(buffer, visitedTypes, withNullability: withNullability);
+      }
+    }
+    if (optionalParameterTypes.isNotEmpty) {
+      startOptionalParameters();
+      buffer.write('[');
+      for (DartType type in optionalParameterTypes) {
+        writeSeparator();
+        (type as TypeImpl)
+            .appendTo(buffer, visitedTypes, withNullability: withNullability);
+      }
+      buffer.write(']');
+      needsComma = true;
+    }
+    if (namedParameterTypes.isNotEmpty) {
+      startOptionalParameters();
+      buffer.write('{');
+      namedParameterTypes.forEach((String name, DartType type) {
+        writeSeparator();
+        buffer.write(name);
+        buffer.write(': ');
+        (type as TypeImpl)
+            .appendTo(buffer, visitedTypes, withNullability: withNullability);
+      });
+      buffer.write('}');
+      needsComma = true;
+    }
+    buffer.write(')');
+    if (withNullability) {
+      _appendNullability(buffer);
+    }
+  }
 
   /**
    * Invokes [callback] for each parameter of [kind] with the parameter's [name]

@@ -38,7 +38,7 @@ abstract class B extends A {
     assertMethodInvocation(
       invocation,
       findElement.method('foo', of: 'A'),
-      '(int) → void',
+      'void Function(int)',
     );
     assertSuperExpression(invocation.target);
   }
@@ -63,7 +63,7 @@ mixin M implements A {
     assertMethodInvocation(
       invocation,
       findElement.method('foo', of: 'A'),
-      '(int) → void',
+      'void Function(int)',
     );
     assertSuperExpression(invocation.target);
   }
@@ -88,7 +88,7 @@ class B extends Object with A {
     assertMethodInvocation(
       invocation,
       findElement.method('foo', of: 'A'),
-      '() → int',
+      'int Function()',
     );
     assertSuperExpression(invocation.target);
   }
@@ -116,7 +116,7 @@ class C extends B {
     assertMethodInvocation(
       invocation,
       findElement.method('foo', of: 'M'),
-      '(int) → void',
+      'void Function(int)',
     );
     assertSuperExpression(invocation.target);
   }
@@ -140,7 +140,7 @@ class B extends A {
     assertMethodInvocation(
       invocation,
       findElement.method('foo', of: 'A'),
-      '() → int',
+      'int Function()',
     );
     assertSuperExpression(invocation.target);
   }
@@ -168,7 +168,7 @@ class C extends B {
     assertMethodInvocation(
       invocation,
       findElement.method('foo', of: 'A'),
-      '(int) → void',
+      'void Function(int)',
     );
     assertSuperExpression(invocation.target);
   }
@@ -195,7 +195,7 @@ main() {
     ]);
 
     var invocation = findNode.methodInvocation('foo(0)');
-    assertInvokeType(invocation, '(int) → void');
+    assertInvokeType(invocation, 'void Function(int)');
     assertType(invocation, 'void');
   }
 
@@ -221,7 +221,7 @@ main() {
     ]);
 
     var invocation = findNode.methodInvocation('foo(0)');
-    assertInvokeType(invocation, '(int) → void');
+    assertInvokeType(invocation, 'void Function(int)');
     assertType(invocation, 'void');
   }
 
@@ -311,7 +311,7 @@ main(C c) {
     _assertInvalidInvocation(
       'c.foo();',
       findElement.getter('foo'),
-      expectedMethodNameType: '() → dynamic',
+      expectedMethodNameType: 'dynamic Function()',
     );
   }
 
@@ -332,7 +332,7 @@ class B extends A {
     _assertInvalidInvocation(
       'foo();',
       findElement.getter('foo'),
-      expectedMethodNameType: '() → dynamic',
+      expectedMethodNameType: 'dynamic Function()',
     );
   }
 
@@ -351,7 +351,7 @@ class C {
     _assertInvalidInvocation(
       'foo();',
       findElement.getter('foo'),
-      expectedMethodNameType: '() → dynamic',
+      expectedMethodNameType: 'dynamic Function()',
     );
   }
 
@@ -383,8 +383,8 @@ class C<T extends MyFunction> {
     assertMethodInvocation(
       findNode.methodInvocation('foo(0)'),
       findElement.getter('foo'),
-      '(int) → double',
-      expectedMethodNameType: '() → T',
+      'double Function(int)',
+      expectedMethodNameType: 'T Function()',
     );
   }
 
@@ -405,7 +405,7 @@ main() {
     _assertInvalidInvocation(
       'foo()',
       findElement.getter('foo'),
-      expectedMethodNameType: '() → int',
+      expectedMethodNameType: 'int Function()',
     );
   }
 
@@ -426,7 +426,7 @@ class C {
     _assertInvalidInvocation(
       'foo()',
       findElement.getter('foo'),
-      expectedMethodNameType: '() → int',
+      expectedMethodNameType: 'int Function()',
     );
   }
 
@@ -449,7 +449,7 @@ class B extends A {
     _assertInvalidInvocation(
       'foo()',
       findElement.getter('foo'),
-      expectedMethodNameType: '() → int',
+      expectedMethodNameType: 'int Function()',
     );
   }
 
@@ -476,7 +476,7 @@ main() {
     assertMethodInvocation(
       invocation,
       import.topFunction('foo'),
-      '() → void',
+      'void Function()',
     );
     assertImportPrefix(invocation.target, import.prefix);
   }
@@ -500,7 +500,7 @@ main() {
     assertMethodInvocation(
       invocation,
       import.importedLibrary.loadLibraryFunction,
-      '() → Future<dynamic>',
+      'Future<dynamic> Function()',
     );
     assertImportPrefix(invocation.target, import.prefix);
   }
@@ -867,7 +867,7 @@ main(C<void> c) {
       'c.foo()',
       findElement.getter('foo'),
       expectedNameType: 'void',
-      expectedMethodNameType: '() → void',
+      expectedMethodNameType: 'void Function()',
     );
   }
 
@@ -904,7 +904,7 @@ main() {
     assertMethodInvocation(
       findNode.methodInvocation('foo()()'),
       findElement.topFunction('foo'),
-      '() → void',
+      'void Function()',
     );
   }
 
@@ -924,7 +924,7 @@ main() {
       'foo()',
       findElement.topGet('foo'),
       expectedNameType: 'void',
-      expectedMethodNameType: '() → void',
+      expectedMethodNameType: 'void Function()',
     );
   }
 
@@ -943,7 +943,7 @@ main() {
     assertMethodInvocation(
       findNode.methodInvocation('toString()'),
       null,
-      '() → String',
+      'String Function()',
     );
   }
 
@@ -962,7 +962,7 @@ main() {
     assertMethodInvocation(
       findNode.methodInvocation('toString()'),
       null,
-      '() → String',
+      'String Function()',
     );
   }
 
@@ -981,7 +981,7 @@ main() {
     assertMethodInvocation(
       findNode.methodInvocation('toString()'),
       null,
-      '() → String',
+      'String Function()',
     );
   }
 
@@ -1000,7 +1000,7 @@ main() {
     assertMethodInvocation(
       findNode.methodInvocation('foo<int>()'),
       findElement.topFunction('foo'),
-      '() → void',
+      'void Function()',
     );
     assertTypeName(findNode.typeName('int>'), intElement, 'int');
   }
@@ -1020,7 +1020,7 @@ main() {
     assertMethodInvocation(
       findNode.methodInvocation('foo<int>()'),
       findElement.topFunction('foo'),
-      '() → Map<num, dynamic>',
+      'Map<num, dynamic> Function()',
       expectedTypeArguments: ['num', 'dynamic'],
     );
     assertTypeName(findNode.typeName('int>'), intElement, 'int');
@@ -1043,8 +1043,8 @@ main() {
     assertMethodInvocation(
       invocation,
       findElement.getter('foo'),
-      '(int) → double',
-      expectedMethodNameType: '() → (int) → double',
+      'double Function(int)',
+      expectedMethodNameType: 'double Function(int) Function()',
     );
     assertClassRef(invocation.target, findElement.class_('C'));
   }
@@ -1066,7 +1066,7 @@ main() {
     assertMethodInvocation(
       invocation,
       findElement.method('foo'),
-      '(int) → void',
+      'void Function(int)',
     );
     assertClassRef(invocation.target, findElement.class_('C'));
   }
@@ -1088,7 +1088,7 @@ main() {
     assertMethodInvocation(
       invocation,
       import.importedLibrary.loadLibraryFunction,
-      '() → Future<dynamic>',
+      'Future<dynamic> Function()',
     );
     assertImportPrefix(invocation.target, import.prefix);
   }
@@ -1108,10 +1108,10 @@ main() {
     assertMethodInvocation(
       invocation,
       null,
-      '(int) → void',
+      'void Function(int)',
     );
     assertElement(invocation.target, findElement.topFunction('foo'));
-    assertType(invocation.target, '(int) → void');
+    assertType(invocation.target, 'void Function(int)');
   }
 
   test_hasReceiver_importPrefix_topFunction() async {
@@ -1135,7 +1135,7 @@ main() {
     assertMethodInvocation(
       invocation,
       import.topFunction('foo'),
-      '(int, int) → int',
+      'int Function(int, int)',
       expectedTypeArguments: ['int'],
     );
     assertImportPrefix(invocation.target, import.prefix);
@@ -1162,8 +1162,8 @@ main() {
     assertMethodInvocation(
       invocation,
       import.topGetter('foo'),
-      '(int, int) → int',
-      expectedMethodNameType: '() → <T>(T, T) → T',
+      'int Function(int, int)',
+      expectedMethodNameType: 'T Function<T>(T, T) Function()',
       expectedTypeArguments: ['int'],
     );
     assertImportPrefix(invocation.target, import.prefix);
@@ -1212,8 +1212,8 @@ main(C c) {
     assertMethodInvocation(
       invocation,
       findElement.getter('foo'),
-      '(int) → double',
-      expectedMethodNameType: '() → (int) → double',
+      'double Function(int)',
+      expectedMethodNameType: 'double Function(int) Function()',
     );
   }
 
@@ -1234,8 +1234,8 @@ main(C c) {
     assertMethodInvocation(
       invocation,
       findElement.method('foo'),
-      '(int) → void',
-      expectedMethodNameType: '(int) → void',
+      'void Function(int)',
+      expectedMethodNameType: 'void Function(int)',
     );
     assertTypeArgumentTypes(invocation, []);
   }
@@ -1259,8 +1259,8 @@ main(C c) {
     assertMethodInvocation(
       invocation,
       findElement.method('foo'),
-      '(int) → int',
-      expectedMethodNameType: '(int) → int',
+      'int Function(int)',
+      expectedMethodNameType: 'int Function(int)',
       expectedTypeArguments: ['int'],
     );
     assertTypeArgumentTypes(invocation, ['int']);
@@ -1293,7 +1293,7 @@ void main(C c) {
     assertMethodInvocation(
       invocation,
       findElement.method('foo', of: 'I2'),
-      '(Object) → void',
+      'void Function(Object)',
     );
   }
 
@@ -1318,7 +1318,7 @@ class C<T extends A> {
     assertMethodInvocation(
       invocation,
       findElement.method('foo'),
-      '(int) → void',
+      'void Function(int)',
     );
   }
 
@@ -1345,8 +1345,8 @@ main() {
     assertMethodInvocation(
       invocation,
       import.class_('C').getGetter('foo'),
-      '(int) → double',
-      expectedMethodNameType: '() → (int) → double',
+      'double Function(int)',
+      expectedMethodNameType: 'double Function(int) Function()',
     );
 
     PrefixedIdentifier target = invocation.target;
@@ -1377,7 +1377,7 @@ main() {
     assertMethodInvocation(
       invocation,
       import.class_('C').getMethod('foo'),
-      '(int) → void',
+      'void Function(int)',
     );
 
     PrefixedIdentifier target = invocation.target;
@@ -1404,8 +1404,8 @@ class B extends A {
     assertMethodInvocation(
       invocation,
       findElement.getter('foo', of: 'A'),
-      '(int) → double',
-      expectedMethodNameType: '() → (int) → double',
+      'double Function(int)',
+      expectedMethodNameType: 'double Function(int) Function()',
     );
     assertSuperExpression(invocation.target);
   }
@@ -1429,7 +1429,7 @@ class B extends A {
     assertMethodInvocation(
       invocation,
       findElement.method('foo', of: 'A'),
-      '(int) → void',
+      'void Function(int)',
     );
     assertSuperExpression(invocation.target);
   }
@@ -1449,7 +1449,7 @@ main() {
     assertMethodInvocation(
       invocation,
       findElement.topFunction('foo'),
-      '({a: int, b: bool}) → void',
+      'void Function({a: int, b: bool})',
     );
     assertNamedParameterRef('b: false', 'b');
     assertNamedParameterRef('a: 0', 'a');
@@ -1474,8 +1474,8 @@ class B extends A {
     assertMethodInvocation(
       invocation,
       findElement.getter('foo'),
-      '(int) → double',
-      expectedMethodNameType: '() → (int) → double',
+      'double Function(int)',
+      expectedMethodNameType: 'double Function(int) Function()',
     );
   }
 
@@ -1496,8 +1496,8 @@ class C {
     assertMethodInvocation(
       invocation,
       findElement.getter('foo'),
-      '(int) → double',
-      expectedMethodNameType: '() → (int) → double',
+      'double Function(int)',
+      expectedMethodNameType: 'double Function(int) Function()',
     );
   }
 
@@ -1531,7 +1531,7 @@ main() {
     assertMethodInvocation(
       invocation,
       findElement.localFunction('foo'),
-      '(int) → void',
+      'void Function(int)',
     );
   }
 
@@ -1550,7 +1550,7 @@ main() {
     assertMethodInvocation(
       invocation,
       findElement.localVar('foo'),
-      '(int) → void',
+      'void Function(int)',
     );
   }
 
@@ -1571,7 +1571,7 @@ main(C c) {
     assertMethodInvocation(
       invocation,
       findElement.parameter('c'),
-      '(int) → void',
+      'void Function(int)',
     );
   }
 
@@ -1591,7 +1591,7 @@ main() {
     assertMethodInvocation(
       invocation,
       findElement.localVar('foo'),
-      '(int) → void',
+      'void Function(int)',
     );
   }
 
@@ -1614,7 +1614,7 @@ class B extends A {
     assertMethodInvocation(
       invocation,
       findElement.method('foo'),
-      '(int) → void',
+      'void Function(int)',
     );
   }
 
@@ -1635,7 +1635,7 @@ class C {
     assertMethodInvocation(
       invocation,
       findElement.method('foo'),
-      '(int) → void',
+      'void Function(int)',
     );
   }
 
@@ -1654,8 +1654,8 @@ main() {
     assertMethodInvocation(
       invocation,
       findElement.topFunction('foo'),
-      '(int) → void',
-      expectedMethodNameType: '(int) → void',
+      'void Function(int)',
+      expectedMethodNameType: 'void Function(int)',
     );
   }
 
@@ -1674,8 +1674,8 @@ main() {
     assertMethodInvocation(
       invocation,
       findElement.topGet('foo'),
-      '(int) → double',
-      expectedMethodNameType: '() → (int) → double',
+      'double Function(int)',
+      expectedMethodNameType: 'double Function(int) Function()',
     );
   }
 
@@ -1694,8 +1694,8 @@ main() {
     assertMethodInvocation(
       invocation,
       findElement.topGet('foo'),
-      '(int) → void',
-      expectedMethodNameType: '() → (int) → void',
+      'void Function(int)',
+      expectedMethodNameType: 'void Function(int) Function()',
     );
   }
 
@@ -1726,7 +1726,7 @@ main() {
     assertMethodInvocation(
       invocation,
       typeProvider.objectType.getMethod('toString'),
-      '() → String',
+      'String Function()',
     );
   }
 

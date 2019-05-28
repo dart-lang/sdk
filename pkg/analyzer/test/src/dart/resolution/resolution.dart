@@ -468,8 +468,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   static String _extractReturnType(String invokeType) {
-    int arrowIndex = invokeType.indexOf('→');
-    expect(arrowIndex, isNonNegative);
-    return invokeType.substring(arrowIndex + 1).trim();
+    int functionIndex = invokeType.indexOf(' Function');
+    expect(functionIndex, isNonNegative);
+    return invokeType.substring(0, functionIndex);
   }
 }

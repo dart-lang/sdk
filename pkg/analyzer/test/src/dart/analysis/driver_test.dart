@@ -1754,7 +1754,7 @@ class B {}
     expect(result.errors, hasLength(0));
 
     var f = result.unit.declarations[0] as FunctionDeclaration;
-    expect(f.name.staticType.toString(), '() → int');
+    expect(f.name.staticType.toString(), 'int Function()');
     expect(f.returnType.type.toString(), 'int');
 
     // The same result is also received through the stream.
@@ -3392,7 +3392,7 @@ class F extends X {}
     expect(result.errors, hasLength(0));
 
     var f = result.unit.declarations[0] as FunctionDeclaration;
-    expect(f.name.staticType.toString(), '() → int');
+    expect(f.name.staticType.toString(), 'int Function()');
     expect(f.returnType.type.toString(), 'int');
   }
 
