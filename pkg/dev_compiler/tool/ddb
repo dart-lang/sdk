@@ -236,6 +236,15 @@ void main(List<String> args) async {
         nodeBinary, ['--inspect=localhost:$port', nodeFile],
         environment: {'NODE_PATH': nodePath});
   } else if (d8) {
+    // Fix SDK import.  `d8` doesn't let us set paths, so we need a full path
+    // to the SDK.
+
+    var jsFile = File('$libRoot/$basename.js');
+    var jsContents = jsFile.readAsStringSync();
+    jsContents = jsContents.replaceFirst(
+        "from 'dart_sdk.js'", "from '$sdkJsPath/dart_sdk.js'");
+    jsFile.writeAsStringSync(jsContents);
+
     var runjs = '''
     import { dart, _isolate_helper } from '$sdkJsPath/dart_sdk.js';
     import { $basename } from '$basename.js';

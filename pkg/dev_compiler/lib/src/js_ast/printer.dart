@@ -1306,7 +1306,7 @@ class Printer implements NodeVisitor {
     if (from != null) {
       out(' from');
       spaceOut();
-      visit(from);
+      out("'${from.valueWithoutQuotes}.js'");
     }
   }
 

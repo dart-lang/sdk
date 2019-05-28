@@ -167,7 +167,7 @@ void createHtmlWrapper(File sdkJsFile, Uri outputFile, String jsContent,
   var sdkFile = File(path.relative(sdkJsFile.path, from: sdkRoot.path));
   String jsRootDart = "/root_dart/${sdkFile.uri}";
   File.fromUri(outputFile.resolve("$outputFilename.html.js")).writeAsStringSync(
-      jsContent.replaceFirst("from 'dart_sdk'", "from '$jsRootDart'"));
+      jsContent.replaceFirst("from 'dart_sdk.js'", "from '$jsRootDart'"));
   File.fromUri(outputFile.resolve("$outputFilename.html.html"))
       .writeAsStringSync(getWrapperHtmlContent(
           jsRootDart, "/root_build/$outputFilename.html.js"));
