@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:core';
+import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -230,10 +231,10 @@ class _OverlayFile extends _OverlayResource implements File {
   }
 
   @override
-  List<int> readAsBytesSync() {
+  Uint8List readAsBytesSync() {
     String content = _provider._getOverlayContent(path);
     if (content != null) {
-      return content.codeUnits;
+      return Uint8List.fromList(content.codeUnits);
     }
     return _file.readAsBytesSync();
   }
