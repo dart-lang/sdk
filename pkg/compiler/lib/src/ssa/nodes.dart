@@ -95,6 +95,7 @@ abstract class HVisitor<R> {
   R visitTruncatingDivide(HTruncatingDivide node);
   R visitTry(HTry node);
   R visitTypeConversion(HTypeConversion node);
+  R visitBoolConversion(HBoolConversion node);
   R visitTypeKnown(HTypeKnown node);
   R visitYield(HYield node);
 
@@ -566,6 +567,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIsViaInterceptor(HIsViaInterceptor node) => visitInstruction(node);
   @override
   visitTypeConversion(HTypeConversion node) => visitCheck(node);
+  @override
+  visitBoolConversion(HBoolConversion node) => visitCheck(node);
   @override
   visitTypeKnown(HTypeKnown node) => visitCheck(node);
   @override
@@ -1055,6 +1058,7 @@ abstract class HInstruction implements Spannable {
   static const int REMAINDER_TYPECODE = 42;
   static const int GET_LENGTH_TYPECODE = 43;
   static const int ABS_TYPECODE = 44;
+  static const int BOOL_CONVERSION_TYPECODE = 45;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++,
@@ -1361,11 +1365,7 @@ abstract class HInstruction implements Spannable {
           closedWorld.abstractValueDomain.dynamicType, this, sourceInformation);
     }
     assert(type.isInterfaceType);
-    if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
-      // Boolean conversion checks work on non-nullable booleans.
-      return new HTypeConversion(type, kind,
-          closedWorld.abstractValueDomain.boolType, this, sourceInformation);
-    } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.treatAsRaw) {
+    if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.treatAsRaw) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
       InterfaceType interfaceType = type;
@@ -3490,8 +3490,7 @@ class HTypeConversion extends HCheck {
   static const int CHECKED_MODE_CHECK = 0;
   static const int ARGUMENT_TYPE_CHECK = 1;
   static const int CAST_TYPE_CHECK = 2;
-  static const int BOOLEAN_CONVERSION_CHECK = 3;
-  static const int RECEIVER_TYPE_CHECK = 4;
+  static const int RECEIVER_TYPE_CHECK = 3;
 
   final DartType typeExpression;
   final int kind;
@@ -3553,23 +3552,15 @@ class HTypeConversion extends HCheck {
   @override
   HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
     if (typeExpression == type) {
-      // Don't omit a boolean conversion (which doesn't allow `null`) unless
-      // this type conversion is already a boolean conversion.
-      if (kind != BOOLEAN_CONVERSION_CHECK || isBooleanConversionCheck) {
-        return this;
-      }
+      return this;
     }
     return super.convertType(closedWorld, type, kind);
   }
 
-  bool get isCheckedModeCheck {
-    return kind == CHECKED_MODE_CHECK || kind == BOOLEAN_CONVERSION_CHECK;
-  }
-
+  bool get isCheckedModeCheck => kind == CHECKED_MODE_CHECK;
   bool get isArgumentTypeCheck => kind == ARGUMENT_TYPE_CHECK;
   bool get isReceiverTypeCheck => kind == RECEIVER_TYPE_CHECK;
   bool get isCastTypeCheck => kind == CAST_TYPE_CHECK;
-  bool get isBooleanConversionCheck => kind == BOOLEAN_CONVERSION_CHECK;
 
   @override
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
@@ -3637,6 +3628,45 @@ class HTypeConversion extends HCheck {
   String toString() => 'HTypeConversion(type=$typeExpression, kind=$kind, '
       '${hasTypeRepresentation ? 'representation=$typeRepresentation, ' : ''}'
       'checkedInput=$checkedInput)';
+}
+
+/// A check that the input to a condition (if, ?:, while, etc) is non-null. The
+/// front-end generates 'as bool' checks, but until the transition to NNBD is
+/// complete, this allows `null` to be passed to the condition.
+///
+// TODO(sra): Once NNDB is far enough along that the front-end can generate `as
+// bool!` checks and the backend checks them correctly, this instruction will
+// become unnecessary and should be removed.
+class HBoolConversion extends HCheck {
+  HBoolConversion(HInstruction input, AbstractValue type)
+      : super(<HInstruction>[input], type);
+
+  @override
+  bool isJsStatement() => false;
+
+  @override
+  bool isCodeMotionInvariant() => false;
+
+  @override
+  accept(HVisitor visitor) => visitor.visitBoolConversion(this);
+
+  @override
+  int typeCode() => HInstruction.BOOL_CONVERSION_TYPECODE;
+  @override
+  bool typeEquals(HInstruction other) => other is HBoolConversion;
+  @override
+  bool dataEquals(HBoolConversion other) => true;
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain
+        .isIn(inputType, instructionType)
+        .isDefinitelyTrue;
+  }
+
+  @override
+  toString() => 'HBoolConversion($checkedInput)';
 }
 
 /// The [HTypeKnown] instruction marks a value with a refined type.

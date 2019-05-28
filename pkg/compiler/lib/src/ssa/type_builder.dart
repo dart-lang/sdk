@@ -85,6 +85,19 @@ abstract class TypeBuilder {
     return other;
   }
 
+  /// Produces code that checks the runtime type is actually the type specified
+  /// by attempting a type conversion.
+  HInstruction _checkBoolConverion(HInstruction original) {
+    var checkInstruction =
+        HBoolConversion(original, _abstractValueDomain.boolType);
+    if (checkInstruction.isRedundant(_closedWorld)) {
+      return original;
+    }
+    DartType boolType = _closedWorld.commonElements.boolType;
+    builder.registry?.registerTypeUse(new TypeUse.isCheck(boolType));
+    return checkInstruction;
+  }
+
   HInstruction trustTypeOfParameter(HInstruction original, DartType type) {
     if (type == null) return original;
     HInstruction trusted = _trustType(original, type);
@@ -135,8 +148,7 @@ abstract class TypeBuilder {
     if (builder.options.conditionCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, boolType);
     } else if (builder.options.conditionCheckPolicy.isEmitted) {
-      checkedOrTrusted = _checkType(
-          original, boolType, HTypeConversion.BOOLEAN_CONVERSION_CHECK);
+      checkedOrTrusted = _checkBoolConverion(original);
     }
     if (checkedOrTrusted == original) return original;
     builder.add(checkedOrTrusted);

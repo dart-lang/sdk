@@ -227,9 +227,6 @@ class OptimizationTestLog {
       case HTypeConversion.CAST_TYPE_CHECK:
         features['kind'] = 'cast';
         break;
-      case HTypeConversion.BOOLEAN_CONVERSION_CHECK:
-        features['kind'] = 'boolean';
-        break;
       case HTypeConversion.RECEIVER_TYPE_CHECK:
         features['kind'] = 'receiver';
         break;

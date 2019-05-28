@@ -611,12 +611,16 @@ class HInstructionStringifier implements HVisitor<String> {
         return 'ARGUMENT';
       case HTypeConversion.CAST_TYPE_CHECK:
         return 'CAST';
-      case HTypeConversion.BOOLEAN_CONVERSION_CHECK:
-        return 'BOOLEAN_CONVERSION';
       case HTypeConversion.RECEIVER_TYPE_CHECK:
         return 'RECEIVER';
     }
     return '?';
+  }
+
+  @override
+  String visitBoolConversion(HBoolConversion node) {
+    String checkedInput = temporaryId(node.checkedInput);
+    return "BoolConversion: $checkedInput";
   }
 
   @override

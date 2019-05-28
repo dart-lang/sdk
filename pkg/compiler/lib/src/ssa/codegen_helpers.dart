@@ -417,6 +417,12 @@ class SsaTrustedCheckRemover extends HBaseVisitor with CodegenPhase {
       instruction.block.remove(instruction);
     }
   }
+
+  @override
+  void visitBoolConversion(HBoolConversion instruction) {
+    instruction.block.rewrite(instruction, instruction.checkedInput);
+    instruction.block.remove(instruction);
+  }
 }
 
 /// Use the result of static and field assignments where it is profitable to use

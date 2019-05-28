@@ -694,8 +694,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // argument.
     bool needsAssignment = true;
     if (instruction is HTypeConversion) {
-      HTypeConversion typeConversion = instruction;
-      String inputName = variableNames.getName(typeConversion.checkedInput);
+      String inputName = variableNames.getName(instruction.checkedInput);
+      if (variableNames.getName(instruction) == inputName) {
+        needsAssignment = false;
+      }
+    }
+    if (instruction is HBoolConversion) {
+      String inputName = variableNames.getName(instruction.checkedInput);
       if (variableNames.getName(instruction) == inputName) {
         needsAssignment = false;
       }
@@ -3165,14 +3170,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
     _registry.registerTypeUse(new TypeUse.isCheck(type));
 
-    CheckedModeHelper helper;
-    if (node.isBooleanConversionCheck) {
-      helper = const CheckedModeHelper('boolConversionCheck');
-    } else {
-      helper = _checkedModeHelpers.getCheckedModeHelper(
-          type, _closedWorld.commonElements,
-          typeCast: node.isCastTypeCheck);
-    }
+    CheckedModeHelper helper = _checkedModeHelpers.getCheckedModeHelper(
+        type, _closedWorld.commonElements,
+        typeCast: node.isCastTypeCheck);
 
     StaticUse staticUse = helper.getStaticUse(_closedWorld.commonElements);
     _registry.registerStaticUse(staticUse);
@@ -3180,6 +3180,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.checkedInput);
     arguments.add(pop());
     helper.generateAdditionalArguments(this, _namer, node, arguments);
+    push(
+        new js.Call(_emitter.staticFunctionAccess(staticUse.element), arguments)
+            .withSourceInformation(node.sourceInformation));
+  }
+
+  @override
+  void visitBoolConversion(HBoolConversion node) {
+    _registry.registerTypeUse(new TypeUse.isCheck(_commonElements.boolType));
+    CheckedModeHelper helper = const CheckedModeHelper('boolConversionCheck');
+    StaticUse staticUse = helper.getStaticUse(_commonElements);
+    _registry.registerStaticUse(staticUse);
+    use(node.checkedInput);
+    List<js.Expression> arguments = [pop()];
     push(
         new js.Call(_emitter.staticFunctionAccess(staticUse.element), arguments)
             .withSourceInformation(node.sourceInformation));
