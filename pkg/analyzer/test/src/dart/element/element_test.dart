@@ -238,7 +238,7 @@ class ClassElementImplTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElementImpl method = ElementFactory.methodElement(methodName, null);
-    method.abstract = true;
+    method.isAbstract = true;
     classA.methods = <MethodElement>[method];
     (library.definingCompilationUnit as CompilationUnitElementImpl).types =
         <ClassElement>[classA];
@@ -260,7 +260,7 @@ class ClassElementImplTest {
     classA.methods = <MethodElement>[inheritedMethod];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     MethodElementImpl method = ElementFactory.methodElement(methodName, null);
-    method.abstract = true;
+    method.isAbstract = true;
     classB.methods = <MethodElement>[method];
     (library.definingCompilationUnit as CompilationUnitElementImpl).types =
         <ClassElement>[classA, classB];
@@ -298,11 +298,11 @@ class ClassElementImplTest {
     // }
     LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.abstract = true;
+    classA.isAbstract = true;
     String methodName = "m";
     MethodElementImpl inheritedMethod =
         ElementFactory.methodElement(methodName, null);
-    inheritedMethod.abstract = true;
+    inheritedMethod.isAbstract = true;
     classA.methods = <MethodElement>[inheritedMethod];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     MethodElement method = ElementFactory.methodElement(methodName, null);
@@ -485,7 +485,7 @@ class ClassElementImplTest {
     classA.methods = <MethodElement>[inheritedMethod];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     MethodElementImpl method = ElementFactory.methodElement(methodName, null);
-    method.abstract = true;
+    method.isAbstract = true;
     classB.methods = <MethodElement>[method];
     (library.definingCompilationUnit as CompilationUnitElementImpl).types =
         <ClassElement>[classA, classB];
@@ -524,11 +524,11 @@ class ClassElementImplTest {
     // }
     LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.abstract = true;
+    classA.isAbstract = true;
     String methodName = "m";
     MethodElementImpl inheritedMethod =
         ElementFactory.methodElement(methodName, null);
-    inheritedMethod.abstract = true;
+    inheritedMethod.isAbstract = true;
     classA.methods = <MethodElement>[inheritedMethod];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     MethodElement method = ElementFactory.methodElement(methodName, null);
@@ -558,7 +558,7 @@ class ClassElementImplTest {
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     MethodElementImpl abstractMethod =
         ElementFactory.methodElement(methodName, null);
-    abstractMethod.abstract = true;
+    abstractMethod.isAbstract = true;
     classB.methods = <MethodElement>[abstractMethod];
     ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
     MethodElementImpl method = ElementFactory.methodElement(methodName, null);

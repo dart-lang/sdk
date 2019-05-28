@@ -245,7 +245,7 @@ class AnalysisContextFactory {
     // Stream
     ClassElementImpl streamElement =
         ElementFactory.classElement2("Stream", ["T"]);
-    streamElement.abstract = true;
+    streamElement.isAbstract = true;
     streamElement.constructors = <ConstructorElement>[
       ElementFactory.constructorElement2(streamElement, null)
     ];
@@ -365,7 +365,7 @@ class AnalysisContextFactory {
     TopLevelVariableElement piElement = ElementFactory.topLevelVariableElement3(
         "PI", true, false, provider.doubleType);
     ClassElementImpl randomElement = ElementFactory.classElement2("Random");
-    randomElement.abstract = true;
+    randomElement.isAbstract = true;
     ConstructorElementImpl randomConstructor =
         ElementFactory.constructorElement2(randomElement, null);
     randomConstructor.factory = true;

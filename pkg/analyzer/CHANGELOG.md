@@ -4,6 +4,9 @@
   `featureSet` parameter.
 * Refined the return type of the getter `TypeParameter.declaredElement`.  It is
   always guaranteed to return a `TypeParameterElement`.
+* Deprecated the `abstract` setter in `ClassElementImpl`, `EnumElementImpl`,
+  `MethodElementImpl`, and `PropertyAccessorElementImpl`.  `isAbstract` should
+  be used instead.
 
 ## 0.36.3
 * Deprecated `AstFactory.compilationUnit`.  In a future analyzer release, this

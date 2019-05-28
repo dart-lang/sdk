@@ -479,9 +479,9 @@ class ClassElementImpl extends AbstractClassElementImpl
       : super.forSerialized(enclosingUnit);
 
   /// Set whether this class is abstract.
+  @Deprecated('Use isAbstract instead')
   void set abstract(bool isAbstract) {
-    _assertNotResynthesized(_unlinkedClass);
-    setModifier(Modifier.ABSTRACT, isAbstract);
+    this.isAbstract = isAbstract;
   }
 
   @override
@@ -822,6 +822,12 @@ class ClassElementImpl extends AbstractClassElementImpl
       return _unlinkedClass.isAbstract;
     }
     return hasModifier(Modifier.ABSTRACT);
+  }
+
+  /// Set whether this class is abstract.
+  void set isAbstract(bool isAbstract) {
+    _assertNotResynthesized(_unlinkedClass);
+    setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
   @override
@@ -4016,6 +4022,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
       : super.forSerialized(enclosingUnit);
 
   /// Set whether this class is abstract.
+  @Deprecated('This setter will be removed')
   void set abstract(bool isAbstract) {
     _assertNotResynthesized(_unlinkedEnum);
   }
@@ -7185,9 +7192,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
       : super.forSerialized(serializedExecutable, enclosingClass);
 
   /// Set whether this method is abstract.
+  @Deprecated('Use isAbstract instead')
   void set abstract(bool isAbstract) {
-    _assertNotResynthesized(serializedExecutable);
-    setModifier(Modifier.ABSTRACT, isAbstract);
+    this.isAbstract = isAbstract;
   }
 
   @override
@@ -7205,6 +7212,12 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext =>
       super.enclosingElement as ClassElementImpl;
+
+  /// Set whether this class is abstract.
+  void set isAbstract(bool isAbstract) {
+    _assertNotResynthesized(serializedExecutable);
+    setModifier(Modifier.ABSTRACT, isAbstract);
+  }
 
   @override
   bool get isOperator {
@@ -8897,9 +8910,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   /// Set whether this accessor is abstract.
+  @Deprecated('Use isAbstract instead')
   void set abstract(bool isAbstract) {
-    _assertNotResynthesized(serializedExecutable);
-    setModifier(Modifier.ABSTRACT, isAbstract);
+    this.isAbstract = isAbstract;
   }
 
   @override
@@ -8944,6 +8957,12 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     String name = displayName;
     String suffix = isGetter ? "?" : "=";
     return "$name$suffix";
+  }
+
+  /// Set whether this class is abstract.
+  void set isAbstract(bool isAbstract) {
+    _assertNotResynthesized(serializedExecutable);
+    setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
   @override
