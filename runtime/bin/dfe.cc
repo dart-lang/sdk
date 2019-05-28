@@ -407,20 +407,34 @@ class KernelIRNode {
   DISALLOW_COPY_AND_ASSIGN(KernelIRNode);
 };
 
+class StringPointer {
+ public:
+  explicit StringPointer(char* c_str) : c_str_(c_str) {}
+  ~StringPointer() { free(c_str_); }
+
+  const char* c_str() { return c_str_; }
+
+ private:
+  char* c_str_;
+  DISALLOW_COPY_AND_ASSIGN(StringPointer);
+};
+
 // Supports "kernel list" files as input.
 // Those are text files that start with '#@dill' on new line, followed
 // by absolute paths to kernel files or relative paths, that are relative
-// to dart process working directory.
+// to [script_uri] "kernel list" file.
 // Below is an example of valid kernel list file:
 // ```
 // #@dill
 // /projects/mytest/build/bin/main.vm.dill
 // /projects/mytest/build/packages/mytest/lib.vm.dill
 // ```
-static bool TryReadKernelListBuffer(uint8_t* buffer,
+static bool TryReadKernelListBuffer(const char* script_uri,
+                                    uint8_t* buffer,
                                     intptr_t buffer_size,
                                     uint8_t** kernel_ir,
                                     intptr_t* kernel_ir_size) {
+  const char* kernel_list_dirname = DartUtils::DirName(script_uri);
   KernelIRNode* kernel_ir_head = NULL;
   KernelIRNode* kernel_ir_tail = NULL;
   // Add all kernels to the linked list
@@ -432,7 +446,13 @@ static bool TryReadKernelListBuffer(uint8_t* buffer,
     *tail = '\0';
     intptr_t this_kernel_size;
     uint8_t* this_buffer;
-    if (!TryReadFile(filename, &this_buffer, &this_kernel_size)) {
+
+    StringPointer absolute_filename(
+        File::IsAbsolutePath(filename)
+            ? strdup(filename)
+            : Utils::SCreate("%s%s", kernel_list_dirname, filename));
+    if (!TryReadFile(absolute_filename.c_str(), &this_buffer,
+                     &this_kernel_size)) {
       return false;
     }
 
@@ -472,8 +492,8 @@ bool DFE::TryReadKernelFile(const char* script_uri,
   DartUtils::MagicNumber magic_number =
       DartUtils::SniffForMagicNumber(buffer, *kernel_ir_size);
   if (magic_number == DartUtils::kKernelListMagicNumber) {
-    return TryReadKernelListBuffer(buffer, *kernel_ir_size, kernel_ir,
-                                   kernel_ir_size);
+    return TryReadKernelListBuffer(script_uri, buffer, *kernel_ir_size,
+                                   kernel_ir, kernel_ir_size);
   }
   return TryReadSimpleKernelBuffer(buffer, kernel_ir, kernel_ir_size);
 }
