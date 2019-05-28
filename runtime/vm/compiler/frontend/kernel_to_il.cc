@@ -2491,6 +2491,9 @@ Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
   Fragment box(not_null_entry);
   {
     Class& result_class = Class::ZoneHandle(Z, result_type.type_class());
+    // This class might only be instantiated as a return type of ffi calls.
+    result_class.EnsureIsFinalized(thread_);
+
     TypeArguments& args = TypeArguments::ZoneHandle(Z, result_type.arguments());
 
     // A kernel transform for FFI in the front-end ensures that type parameters
