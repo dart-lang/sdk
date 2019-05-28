@@ -1002,6 +1002,10 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t sigdesc_kidx = __ AddConstant(signature_descriptor);
 
   __ FfiCall(sigdesc_kidx);
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
+                                 token_pos());
+  compiler->RecordAfterCallHelper(token_pos(), deopt_id(), 0,
+                                  FlowGraphCompiler::kHasResult, locs());
 }
 
 EMIT_NATIVE_CODE(NativeCall,
