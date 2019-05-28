@@ -8,6 +8,7 @@ import 'dart:isolate';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -15,7 +16,11 @@ import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -28,6 +33,10 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
+import 'package:analyzer/src/summary2/link.dart' as summary2;
+import 'package:analyzer/src/summary2/linked_bundle_context.dart' as summary2;
+import 'package:analyzer/src/summary2/linked_element_factory.dart' as summary2;
+import 'package:analyzer/src/summary2/reference.dart' as summary2;
 import 'package:analyzer_cli/src/context_cache.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
@@ -175,15 +184,21 @@ class BuildMode with HasContextMixin {
   final ContextCache contextCache;
 
   SummaryDataStore summaryDataStore;
-  AnalysisOptions analysisOptions;
+  AnalysisOptionsImpl analysisOptions;
   Map<Uri, File> uriToFileMap;
   final List<Source> explicitSources = <Source>[];
   final List<PackageBundle> unlinkedBundles = <PackageBundle>[];
 
+  SourceFactory sourceFactory;
+  DeclaredVariables declaredVariables;
   AnalysisDriver analysisDriver;
 
   PackageBundleAssembler assembler;
   final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
+
+  final bool buildSummary2 = true;
+  final Map<String, ParsedUnitResult> inputParsedUnitResults = {};
+  summary2.LinkedElementFactory elementFactory;
 
   // May be null.
   final DependencyTracker dependencyTracker;
@@ -275,6 +290,10 @@ class BuildMode with HasContextMixin {
             _computeLinkedLibraries(unlinkedUris);
           }
 
+          if (buildSummary2) {
+            _computeLinkedLibraries2();
+          }
+
           // Write the whole package bundle.
           PackageBundleBuilder bundle = assembler.assemble();
           if (options.buildSummaryOutput != null) {
@@ -348,6 +367,58 @@ class BuildMode with HasContextMixin {
           analysisDriver.declaredVariables,
           analysisOptions);
       linkResult.forEach(assembler.addLinkedLibrary);
+    });
+  }
+
+  /**
+   * Use [elementFactory] filled with input summaries, and link prepared
+   * [inputParsedUnitResults] to produce linked libraries in [assembler].
+   */
+  void _computeLinkedLibraries2() {
+    logger.run('Link output summary2', () {
+      var inputLibraries = <summary2.LinkInputLibrary>[];
+
+      for (var librarySource in explicitSources) {
+        var path = librarySource.fullName;
+
+        var parseResult = inputParsedUnitResults[path];
+        if (parseResult == null) {
+          throw ArgumentError('No parsed unit for $path');
+        }
+
+        var unit = parseResult.unit;
+        var isPart = unit.directives.any((d) => d is PartOfDirective);
+        if (isPart) {
+          continue;
+        }
+
+        var inputUnits = <summary2.LinkInputUnit>[];
+        inputUnits.add(
+          summary2.LinkInputUnit(librarySource, false, unit),
+        );
+
+        for (var directive in unit.directives) {
+          if (directive is PartDirective) {
+            var partUri = directive.uri.stringValue;
+            var partSource = sourceFactory.resolveUri(librarySource, partUri);
+            var partPath = partSource.fullName;
+            var partParseResult = inputParsedUnitResults[partPath];
+            if (partParseResult == null) {
+              throw ArgumentError('No parsed unit for part $partPath in $path');
+            }
+            inputUnits.add(
+              summary2.LinkInputUnit(partSource, false, partParseResult.unit),
+            );
+          }
+        }
+
+        inputLibraries.add(
+          summary2.LinkInputLibrary(librarySource, inputUnits),
+        );
+      }
+
+      var linkResult = summary2.link(elementFactory, inputLibraries);
+      assembler.setBundle2(linkResult.bundle);
     });
   }
 
@@ -429,7 +500,7 @@ class BuildMode with HasContextMixin {
       summaryDataStore.addBundle(null, sdkBundle);
     });
 
-    var sourceFactory = new SourceFactory(<UriResolver>[
+    sourceFactory = new SourceFactory(<UriResolver>[
       new DartUriResolver(sdk),
       new TrackingInSummaryUriResolver(
           new InSummaryUriResolver(resourceProvider, summaryDataStore),
@@ -449,12 +520,41 @@ class BuildMode with HasContextMixin {
         new FileContentOverlay(),
         null,
         sourceFactory,
-        analysisOptions as AnalysisOptionsImpl,
+        analysisOptions,
         externalSummaries: summaryDataStore);
-    analysisDriver.declaredVariables =
-        new DeclaredVariables.fromMap(options.definedVariables);
+
+    declaredVariables = new DeclaredVariables.fromMap(options.definedVariables);
+    analysisDriver.declaredVariables = declaredVariables;
+
+    if (buildSummary2) {
+      _createLinkedElementFactory();
+    }
 
     scheduler.start();
+  }
+
+  void _createLinkedElementFactory() {
+    var rootReference = summary2.Reference.root();
+    var dartCoreRef = rootReference.getChild('dart:core');
+    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
+    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
+
+    var analysisContext = RestrictedAnalysisContext(
+      SynchronousSession(analysisOptions, declaredVariables),
+      sourceFactory,
+    );
+
+    elementFactory = summary2.LinkedElementFactory(
+      analysisContext,
+      null,
+      rootReference,
+    );
+
+    for (var bundle in summaryDataStore.bundles) {
+      elementFactory.addBundle(
+        summary2.LinkedBundleContext(elementFactory, bundle.bundle2),
+      );
+    }
   }
 
   /**
@@ -495,13 +595,14 @@ class BuildMode with HasContextMixin {
     }
     // Parse the source and serialize its AST.
     Uri uri = Uri.parse(absoluteUri);
-    Source source = analysisDriver.sourceFactory.forUri2(uri);
+    Source source = sourceFactory.forUri2(uri);
     if (!source.exists()) {
       // TODO(paulberry): we should report a warning/error because DDC
       // compilations are unlikely to work.
       return;
     }
     var result = await analysisDriver.parseFile(source.fullName);
+    inputParsedUnitResults[result.path] = result;
     UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(result.unit);
     uriToUnit[absoluteUri] = unlinkedUnit;
     assembler.addUnlinkedUnit(source, unlinkedUnit);
