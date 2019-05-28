@@ -22,20 +22,32 @@ namespace bin {
 
 NamespaceImpl::NamespaceImpl(fdio_ns_t* fdio_ns)
       : fdio_ns_(fdio_ns),
-        rootfd_(fdio_ns_opendir(fdio_ns)),
         cwd_(strdup("/")) {
-  ASSERT(rootfd_ > 0);
+  rootfd_ = fdio_ns_opendir(fdio_ns);
+  if (rootfd_ < 0) {
+    FATAL2("Failed to open file descriptor for namespace: errno=%d: %s", errno,
+           strerror(errno));
+  }
   cwdfd_ = dup(rootfd_);
-  ASSERT(cwdfd_ > 0);
+  if (cwdfd_ < 0) {
+    FATAL2("Failed to dup() namespace file descriptor: errno=%d: %s", errno,
+           strerror(errno));
+  }
 }
 
 NamespaceImpl::NamespaceImpl(const char* path)
       : fdio_ns_(NULL),
-        rootfd_(TEMP_FAILURE_RETRY(open(path, O_DIRECTORY))),
         cwd_(strdup("/")) {
-  ASSERT(rootfd_ > 0);
+  rootfd_ = TEMP_FAILURE_RETRY(open(path, O_DIRECTORY));
+  if (rootfd_ < 0) {
+    FATAL2("Failed to open file descriptor for namespace: errno=%d: %s", errno,
+           strerror(errno));
+  }
   cwdfd_ = dup(rootfd_);
-  ASSERT(cwdfd_ > 0);
+  if (cwdfd_ < 0) {
+    FATAL2("Failed to dup() namespace file descriptor: errno=%d: %s", errno,
+           strerror(errno));
+  }
 }
 
 NamespaceImpl::~NamespaceImpl() {
@@ -54,7 +66,7 @@ bool NamespaceImpl::SetCwd(Namespace* namespc, const char* new_path) {
   NamespaceScope ns(namespc, new_path);
   const intptr_t new_cwdfd =
       TEMP_FAILURE_RETRY(openat(ns.fd(), ns.path(), O_DIRECTORY));
-  if (new_cwdfd != 0) {
+  if (new_cwdfd < 0) {
     return false;
   }
 
