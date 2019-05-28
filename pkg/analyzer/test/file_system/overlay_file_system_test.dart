@@ -179,6 +179,15 @@ class FileTest extends OverlayTestSupport {
     expect(file.readAsBytesSync(), <int>[98, 98, 98]);
   }
 
+  test_readAsBytesSync_existing_withOverlay_utf8() {
+    // Strings should be encoded as UTF8 when they're written, so when we read
+    // them back as bytes we should see the UTF8-encoded version of the string.
+    String overlayContent = '\u00e5'; // latin small letter a with ring above
+    File file =
+        _file(exists: true, withOverlay: true, overlayContent: overlayContent);
+    expect(file.readAsBytesSync(), <int>[0xc3, 0xa5]);
+  }
+
   test_readAsBytesSync_notExisting_withoutOverlay() {
     File file = _file(exists: false);
     expect(() => file.readAsBytesSync(), throwsA(_isFileSystemException));
@@ -785,7 +794,8 @@ class OverlayTestSupport {
       {@required bool exists,
       String content,
       String path,
-      bool withOverlay = false}) {
+      bool withOverlay = false,
+      String overlayContent = 'bbb'}) {
     if (path == null) {
       path = defaultFilePath;
     } else {
@@ -795,7 +805,7 @@ class OverlayTestSupport {
       baseProvider.newFile(path, content ?? 'a');
     }
     if (withOverlay) {
-      provider.setOverlay(path, content: 'bbb', modificationStamp: 42);
+      provider.setOverlay(path, content: overlayContent, modificationStamp: 42);
     }
     return provider.getFile(path);
   }

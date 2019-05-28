@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:core';
 import 'dart:typed_data';
 
@@ -234,7 +235,7 @@ class _OverlayFile extends _OverlayResource implements File {
   Uint8List readAsBytesSync() {
     String content = _provider._getOverlayContent(path);
     if (content != null) {
-      return Uint8List.fromList(content.codeUnits);
+      return utf8.encode(content) as Uint8List;
     }
     return _file.readAsBytesSync();
   }
