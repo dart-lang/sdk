@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:math' show max, min;
 
 import 'package:front_end/src/api_unstable/ddc.dart' show TypeSchemaEnvironment;
@@ -3185,10 +3186,24 @@ class ProgramCompiler extends Object
     } else if (isNullable(condition)) {
       jsCondition = runtimeCall('test(#)', [jsCondition]);
     }
-    return js.statement(' if (!#) #.assertFailed(#);', [
+
+    var encodedConditionSource = node
+        .enclosingComponent.uriToSource[node.location.file].source
+        .sublist(node.conditionStartOffset, node.conditionEndOffset);
+    var conditionSource = utf8.decode(encodedConditionSource);
+    var location = _getLocation(node.conditionStartOffset);
+    return js.statement(' if (!#) #.assertFailed(#, #, #, #, #);', [
       jsCondition,
       runtimeModule,
-      node.message != null ? [_visitExpression(node.message)] : []
+      if (node.message == null)
+        JS.LiteralNull()
+      else
+        _visitExpression(node.message),
+      js.escapedString(location.sourceUrl.toString()),
+      // Lines and columns are typically printed with 1 based indexing.
+      js.number(location.line + 1),
+      js.number(location.column + 1),
+      js.escapedString(conditionSource),
     ]);
   }
 

@@ -4150,10 +4150,20 @@ class CodeGenerator extends Object
     } else if (isNullable(condition)) {
       jsCondition = runtimeCall('test(#)', [jsCondition]);
     }
-    return js.statement(' if (!#) #.assertFailed(#);', [
+
+    var location = _getLocation(condition.offset);
+    return js.statement(' if (!#) #.assertFailed(#, #, #, #, #);', [
       jsCondition,
       runtimeModule,
-      message != null ? [_visitExpression(message)] : []
+      if (message == null)
+        JS.LiteralNull()
+      else
+        _visitExpression(message),
+      js.escapedString(location.sourceUrl.toString()),
+      // Lines and columns are typically printed with 1 based indexing.
+      js.number(location.line + 1),
+      js.number(location.column + 1),
+      js.escapedString(condition.toSource()),
     ]);
   }
 

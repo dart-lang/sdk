@@ -738,10 +738,28 @@ class RuntimeError extends Error {
 
 /// Error thrown by DDC when an `assert()` fails (with or without a message).
 class AssertionErrorImpl extends AssertionError {
-  AssertionErrorImpl(message) : super(message);
-  String toString() =>
-      "Assertion failed: " +
-      (message != null ? Error.safeToString(message) : "is not true");
+  final String _fileUri;
+  final int _line;
+  final int _column;
+  final String _conditionSource;
+
+  AssertionErrorImpl(Object message,
+      [this._fileUri, this._line, this._column, this._conditionSource])
+      : super(message);
+
+  String toString() {
+    var failureMessage = "";
+    if (_fileUri != null &&
+        _line != null &&
+        _column != null &&
+        _conditionSource != null) {
+      failureMessage += "$_fileUri:${_line}:${_column}\n$_conditionSource\n";
+    }
+    failureMessage +=
+        message != null ? Error.safeToString(message) : "is not true";
+
+    return "Assertion failed: $failureMessage";
+  }
 }
 
 /**
