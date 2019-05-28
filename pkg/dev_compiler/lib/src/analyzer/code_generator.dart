@@ -428,7 +428,7 @@ class CodeGenerator extends Object
   String jsLibraryName(LibraryElement library) {
     var uri = library.source.uri;
     if (uri.scheme == 'dart') {
-      return uri.path;
+      return isSdkInternalRuntime(library) ? 'dart' : uri.path;
     }
     // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
     var encodedSeparator = '__';

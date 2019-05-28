@@ -317,7 +317,9 @@ class ProgramCompiler extends Object
   @override
   String jsLibraryName(Library library) {
     var uri = library.importUri;
-    if (uri.scheme == 'dart') return uri.path;
+    if (uri.scheme == 'dart') {
+      return isSdkInternalRuntime(library) ? 'dart' : uri.path;
+    }
 
     // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
     Iterable<String> segments;

@@ -67,8 +67,21 @@ class DevCompilerTarget extends Target {
       uri.scheme == 'dart' &&
       (uri.path == 'core' || uri.path == '_interceptors');
 
+  bool _allowedTestLibrary(Uri uri) {
+    String scriptName = uri.path;
+    return scriptName.contains('tests/compiler/dartdevc_native');
+  }
+
+  bool _allowedDartLibrary(Uri uri) => uri.scheme == 'dart';
+
   @override
-  bool enableNative(Uri uri) => uri.scheme == 'dart';
+  bool enableNative(Uri uri) =>
+      _allowedTestLibrary(uri) || _allowedDartLibrary(uri);
+
+  @override
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
+      super.allowPlatformPrivateLibraryAccess(importer, imported) ||
+      _allowedTestLibrary(importer);
 
   @override
   bool get nativeExtensionExpectsString => false;
