@@ -3608,3 +3608,9 @@ NonNullAwareSpreadIsNull:
     main() {
       <int>[...null];
     }
+
+BadTypeVariableInSupertype:
+  template: "Found unsupported uses of '#name' in supertype '#name2'."
+  script: >
+    class A<X> {}
+    class B<Y> extends A<Function(Y)> {}

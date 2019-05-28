@@ -263,6 +263,34 @@ const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
     message: r"""'await' can only be used in 'async' or 'async*' methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateBadTypeVariableInSupertype =
+    const Template<Message Function(String name, String name2)>(
+        messageTemplate:
+            r"""Found unsupported uses of '#name' in supertype '#name2'.""",
+        withArguments: _withArgumentsBadTypeVariableInSupertype);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeBadTypeVariableInSupertype =
+    const Code<Message Function(String name, String name2)>(
+  "BadTypeVariableInSupertype",
+  templateBadTypeVariableInSupertype,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsBadTypeVariableInSupertype(String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeBadTypeVariableInSupertype,
+      message:
+          """Found unsupported uses of '${name}' in supertype '${name2}'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,
