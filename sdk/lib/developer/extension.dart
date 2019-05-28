@@ -9,19 +9,24 @@ part of dart.developer;
 /// If the RPC was successful, use [ServiceExtensionResponse.result], otherwise
 /// use [ServiceExtensionResponse.error].
 class ServiceExtensionResponse {
-  final String _result;
-  final int _errorCode;
-  final String _errorDetail;
+  /// The result of a successful service protocol extension RPC.
+  final String result;
+
+  /// The error code associated with a failed service protocol extension RPC.
+  final int errorCode;
+
+  /// The details of a failed service protocol extension RPC.
+  final String errorDetail;
 
   /// Creates a successful response to a service protocol extension RPC.
   ///
   /// Requires [result] to be a JSON object encoded as a string. When forming
   /// the JSON-RPC message [result] will be inlined directly.
   ServiceExtensionResponse.result(String result)
-      : _result = result,
-        _errorCode = null,
-        _errorDetail = null {
-    ArgumentError.checkNotNull(_result, "result");
+      : result = result,
+        errorCode = null,
+        errorDetail = null {
+    ArgumentError.checkNotNull(result, "result");
   }
 
   /// Creates an error response to a service protocol extension RPC.
@@ -31,11 +36,11 @@ class ServiceExtensionResponse {
   /// encoded as a string. When forming the JSON-RPC message [errorDetail] will
   /// be inlined directly.
   ServiceExtensionResponse.error(int errorCode, String errorDetail)
-      : _result = null,
-        _errorCode = errorCode,
-        _errorDetail = errorDetail {
-    _validateErrorCode(_errorCode);
-    ArgumentError.checkNotNull(_errorDetail, "errorDetail");
+      : result = null,
+        errorCode = errorCode,
+        errorDetail = errorDetail {
+    _validateErrorCode(errorCode);
+    ArgumentError.checkNotNull(errorDetail, "errorDetail");
   }
 
   /// Invalid method parameter(s) error code.
@@ -83,20 +88,20 @@ class ServiceExtensionResponse {
     throw new ArgumentError.value(errorCode, "errorCode", "Out of range");
   }
 
-  // ignore: unused_element, called from runtime/lib/developer.dart
-  bool _isError() => (_errorCode != null) && (_errorDetail != null);
+  /// Determines if this response represents an error.
+  bool isError() => (errorCode != null) && (errorDetail != null);
 
   // ignore: unused_element, called from runtime/lib/developer.dart
   String _toString() {
-    if (_result != null) {
-      return _result;
+    if (result != null) {
+      return result;
     } else {
-      assert(_errorCode != null);
-      assert(_errorDetail != null);
+      assert(errorCode != null);
+      assert(errorDetail != null);
       return json.encode({
-        'code': _errorCode,
-        'message': _errorCodeMessage(_errorCode),
-        'data': {'details': _errorDetail}
+        'code': errorCode,
+        'message': _errorCodeMessage(errorCode),
+        'data': {'details': errorDetail}
       });
     }
   }

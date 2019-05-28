@@ -4,10 +4,15 @@
 
 ### Language
 
-* The identifier `async` can now be used in asynchronous and generator 
+* The identifier `async` can now be used in asynchronous and generator
   functions.
 
-### Core library
+### Core libraries
+
+#### `dart:developer`
+* Exposed `result`, `errorCode` and `errorDetail` getters in
+  `ServiceExtensionResponse` to allow for better debugging of VM service
+  extension RPC results.
 
 #### `dart:io`
 
