@@ -905,7 +905,9 @@ mixin ClientCapabilitiesHelperMixin {
     WorkspaceClientCapabilities source,
     Map<String, dynamic> workspaceCapabilities,
   ) {
-    final json = source.toJson();
+    // TODO(dantup): As above - it seems like this round trip should be
+    // unnecessary.
+    final json = jsonDecode(jsonEncode(source));
     if (workspaceCapabilities != null) {
       workspaceCapabilities.keys.forEach((key) {
         json[key] = workspaceCapabilities[key];

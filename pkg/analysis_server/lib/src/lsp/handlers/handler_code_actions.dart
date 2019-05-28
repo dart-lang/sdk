@@ -40,6 +40,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
     final capabilities = server?.clientCapabilities?.textDocument?.codeAction;
 
+    final clientSupportsWorkspaceApplyEdit =
+        server?.clientCapabilities?.workspace?.applyEdit == true;
+
     final clientSupportsLiteralCodeActions =
         capabilities?.codeActionLiteralSupport != null;
 
@@ -59,6 +62,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           return _getCodeActions(
               clientSupportedCodeActionKinds,
               clientSupportsLiteralCodeActions,
+              clientSupportsWorkspaceApplyEdit,
               path.result,
               params.range,
               offset,
@@ -148,6 +152,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   Future<ErrorOr<List<Either2<Command, CodeAction>>>> _getCodeActions(
     HashSet<CodeActionKind> kinds,
     bool supportsLiterals,
+    bool supportsWorkspaceApplyEdit,
     String path,
     Range range,
     int offset,
@@ -155,7 +160,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     ResolvedUnitResult unit,
   ) async {
     final results = await Future.wait([
-      _getSourceActions(kinds, supportsLiterals, path),
+      _getSourceActions(
+          kinds, supportsLiterals, supportsWorkspaceApplyEdit, path),
       _getAssistActions(kinds, supportsLiterals, offset, length, unit),
       _getRefactorActions(kinds, supportsLiterals, path, range, unit),
       _getFixActions(kinds, supportsLiterals, range, unit),
@@ -236,18 +242,25 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   Future<List<Either2<Command, CodeAction>>> _getSourceActions(
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
+    bool clientSupportsWorkspaceApplyEdit,
     String path,
   ) async {
     // The source actions supported are only valid for Dart files.
     if (!AnalysisEngine.isDartFileName(path)) {
-      return [];
+      return const [];
     }
 
     // If the client told us what kinds they support but it does not include
     // Source then don't return any.
     if (clientSupportsLiteralCodeActions &&
         !clientSupportedCodeActionKinds.contains(CodeActionKind.Source)) {
-      return [];
+      return const [];
+    }
+
+    // If the client does not support workspace/applyEdit, we won't be able to
+    // run any of these.
+    if (!clientSupportsWorkspaceApplyEdit) {
+      return const [];
     }
 
     return [
