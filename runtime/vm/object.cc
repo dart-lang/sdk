@@ -6210,10 +6210,18 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
       break;
     case RawFunction::kDynamicInvocationForwarder:
       return "DynamicInvocationForwarder";
-    default:
-      UNREACHABLE();
-      return NULL;
+      break;
+    case RawFunction::kFfiTrampoline:
+      return "FfiTrampoline";
+      break;
   }
+  // When you add a case to this switch, please also update the observatory.
+  // - runtime/observatory/lib/src/models/objects/function.dart (FunctionKind)
+  // - runtime/observatory/lib/src/elements/function_view.dart
+  //   (_functionKindToString)
+  // - runtime/observatory/lib/src/service/object.dart (stringToFunctionKind)
+  UNREACHABLE();
+  return NULL;
 }
 
 void Function::SetRedirectionType(const Type& type) const {

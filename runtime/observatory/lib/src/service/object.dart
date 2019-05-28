@@ -3036,6 +3036,8 @@ M.FunctionKind stringToFunctionKind(String value) {
       return M.FunctionKind.collected;
     case 'Native':
       return M.FunctionKind.native;
+    case 'FfiTrampoline':
+      return M.FunctionKind.ffiTrampoline;
     case 'Stub':
       return M.FunctionKind.stub;
     case 'Tag':

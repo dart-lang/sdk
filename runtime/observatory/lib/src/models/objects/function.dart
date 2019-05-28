@@ -21,6 +21,7 @@ enum FunctionKind {
   invokeFieldDispatcher,
   collected,
   native,
+  ffiTrampoline,
   stub,
   tag,
   signatureFunction,
