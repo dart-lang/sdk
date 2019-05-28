@@ -3266,7 +3266,7 @@ typedef void (*Dart_StreamingWriteCallback)(void* callback_data,
  *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_SNAPSHOT.
  *  The kDartVmSnapshotData and kDartVmSnapshotInstructions should be passed to
  *  Dart_Initialize. The kDartIsolateSnapshotData and
- *  kDartIsoalteSnapshotInstructions should be passed to Dart_CreateIsolate.
+ *  kDartIsolateSnapshotInstructions should be passed to Dart_CreateIsolate.
  *
  *  The callback will be invoked one or more times to provide the assembly code.
  *
@@ -3275,6 +3275,31 @@ typedef void (*Dart_StreamingWriteCallback)(void* callback_data,
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                     void* callback_data);
+
+/**
+ *  Creates a precompiled snapshot.
+ *   - A root library must have been loaded.
+ *   - Dart_Precompile must have been called.
+ *
+ *  Outputs an ELF shared library defining the symbols
+ *   - kDartVmSnapshotData
+ *   - kDartVmSnapshotInstructions
+ *   - kDartIsolateSnapshotData
+ *   - kDartIsolateSnapshotInstructions
+ *
+ *  The shared library should be dynamically loaded by the embedder.
+ *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_SNAPSHOT.
+ *  The kDartVmSnapshotData and kDartVmSnapshotInstructions should be passed to
+ *  Dart_Initialize. The kDartIsolateSnapshotData and
+ *  kDartIsolateSnapshotInstructions should be passed to Dart_CreateIsolate.
+ *
+ *  The callback will be invoked one or more times to provide the binary output.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
+Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
+                               void* callback_data);
 
 /**
  *  Like Dart_CreateAppAOTSnapshotAsAssembly, but only includes

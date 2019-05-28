@@ -260,6 +260,7 @@ class Configuration {
         useAnalyzerCfe: boolOption("use-cfe"),
         useAnalyzerFastaParser: boolOption("analyzer-use-fasta-parser"),
         useBlobs: boolOption("use-blobs"),
+        useElf: boolOption("use-elf"),
         useHotReload: boolOption("hot-reload"),
         useHotReloadRollback: boolOption("hot-reload-rollback"),
         useSdk: boolOption("use-sdk"));
@@ -313,6 +314,7 @@ class Configuration {
 
   // TODO(rnystrom): What is this?
   final bool useBlobs;
+  final bool useElf;
 
   final bool useHotReload;
   final bool useHotReloadRollback;
@@ -334,6 +336,7 @@ class Configuration {
       bool useAnalyzerCfe,
       bool useAnalyzerFastaParser,
       bool useBlobs,
+      bool useElf,
       bool useHotReload,
       bool useHotReloadRollback,
       bool useSdk})
@@ -350,6 +353,7 @@ class Configuration {
         useAnalyzerCfe = useAnalyzerCfe ?? false,
         useAnalyzerFastaParser = useAnalyzerFastaParser ?? false,
         useBlobs = useBlobs ?? false,
+        useElf = useElf ?? false,
         useHotReload = useHotReload ?? false,
         useHotReloadRollback = useHotReloadRollback ?? false,
         useSdk = useSdk ?? false;
@@ -375,6 +379,7 @@ class Configuration {
       useAnalyzerCfe == other.useAnalyzerCfe &&
       useAnalyzerFastaParser == other.useAnalyzerFastaParser &&
       useBlobs == other.useBlobs &&
+      useElf == other.useElf &&
       useHotReload == other.useHotReload &&
       useHotReloadRollback == other.useHotReloadRollback &&
       useSdk == other.useSdk;
@@ -406,6 +411,7 @@ class Configuration {
         useAnalyzerCfe,
         useAnalyzerFastaParser,
         useBlobs,
+        useElf,
         useHotReload,
         useHotReloadRollback,
         useSdk

@@ -50,10 +50,14 @@ abstract class RuntimeConfiguration {
       case Runtime.dartPrecompiled:
         if (configuration.system == System.android) {
           return new DartPrecompiledAdbRuntimeConfiguration(
-              useBlobs: configuration.useBlobs);
+            useBlobs: configuration.useBlobs,
+            useElf: configuration.useElf,
+          );
         } else {
           return new DartPrecompiledRuntimeConfiguration(
-              useBlobs: configuration.useBlobs);
+            useBlobs: configuration.useBlobs,
+            useElf: configuration.useElf,
+          );
         }
         break;
 
@@ -238,7 +242,10 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
 class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
   final bool useBlobs;
-  DartPrecompiledRuntimeConfiguration({bool useBlobs}) : useBlobs = useBlobs;
+  final bool useElf;
+  DartPrecompiledRuntimeConfiguration({bool useBlobs, bool useElf})
+      : useBlobs = useBlobs,
+        useElf = useElf;
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
@@ -292,7 +299,10 @@ class DartPrecompiledAdbRuntimeConfiguration
       '/data/local/tmp/precompilation-testing/test';
 
   final bool useBlobs;
-  DartPrecompiledAdbRuntimeConfiguration({bool useBlobs}) : useBlobs = useBlobs;
+  final bool useElf;
+  DartPrecompiledAdbRuntimeConfiguration({bool useBlobs, bool useElf})
+      : useBlobs = useBlobs,
+        useElf = useElf;
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
@@ -311,7 +321,7 @@ class DartPrecompiledAdbRuntimeConfiguration
     String processTest = suite.processTestBinaryFileName;
     return [
       Command.adbPrecompiled(
-          precompiledRunner, processTest, script, arguments, useBlobs)
+          precompiledRunner, processTest, script, arguments, useBlobs, useElf)
     ];
   }
 }

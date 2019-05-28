@@ -95,6 +95,8 @@ vm_sources = [
   "double_internals.h",
   "dwarf.cc",
   "dwarf.h",
+  "elf.cc",
+  "elf.h",
   "exceptions.cc",
   "exceptions.h",
   "finalizable_data.h",

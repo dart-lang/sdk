@@ -76,10 +76,15 @@ class Command {
         checked: checked);
   }
 
-  static Command adbPrecompiled(String precompiledRunner, String processTest,
-      String testDirectory, List<String> arguments, bool useBlobs) {
-    return new AdbPrecompilationCommand._(
-        precompiledRunner, processTest, testDirectory, arguments, useBlobs);
+  static Command adbPrecompiled(
+      String precompiledRunner,
+      String processTest,
+      String testDirectory,
+      List<String> arguments,
+      bool useBlobs,
+      bool useElf) {
+    return new AdbPrecompilationCommand._(precompiledRunner, processTest,
+        testDirectory, arguments, useBlobs, useElf);
   }
 
   static Command adbDartk(String precompiledRunner, String processTest,
@@ -589,6 +594,7 @@ class AdbPrecompilationCommand extends Command {
   final String precompiledTestDirectory;
   final List<String> arguments;
   final bool useBlobs;
+  final bool useElf;
 
   AdbPrecompilationCommand._(
       this.precompiledRunnerFilename,
@@ -596,6 +602,7 @@ class AdbPrecompilationCommand extends Command {
       this.precompiledTestDirectory,
       this.arguments,
       this.useBlobs,
+      this.useElf,
       {int index = 0})
       : super._("adb_precompilation", index: index);
 
@@ -605,6 +612,7 @@ class AdbPrecompilationCommand extends Command {
       precompiledTestDirectory,
       arguments,
       useBlobs,
+      useElf,
       index: index);
   _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
@@ -612,12 +620,14 @@ class AdbPrecompilationCommand extends Command {
     builder.add(precompiledTestDirectory);
     builder.add(arguments);
     builder.add(useBlobs);
+    builder.add(useElf);
   }
 
   bool _equal(AdbPrecompilationCommand other) =>
       super._equal(other) &&
       precompiledRunnerFilename == other.precompiledRunnerFilename &&
       useBlobs == other.useBlobs &&
+      useElf == other.useElf &&
       arguments == other.arguments &&
       precompiledTestDirectory == other.precompiledTestDirectory;
 
