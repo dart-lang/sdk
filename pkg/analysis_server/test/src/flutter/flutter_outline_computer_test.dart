@@ -205,6 +205,73 @@ class MyWidget extends StatelessWidget {
     }
   }
 
+  test_children_closure_blockBody() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+import 'package:flutter/widgets.dart';
+
+class WidgetA extends StatelessWidget {
+  final Widget Function(bool) factory;
+
+  WidgetA(this.factory);
+}
+''');
+    FlutterOutline unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+import 'a.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new WidgetA((b) {
+      if (b) {
+        return const Text('aaa'),
+      } else {
+        return const Container(),
+      }
+    }); // WidgetA
+  }
+}
+''');
+    expect(_toText(unitOutline), r'''
+(D) MyWidget
+  (D) build
+    WidgetA
+      Text
+      Container
+''');
+  }
+
+  test_children_closure_expressionBody() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+import 'package:flutter/widgets.dart';
+
+class WidgetA extends StatelessWidget {
+  final Widget Function() factory;
+
+  WidgetA(this.factory);
+}
+''');
+    FlutterOutline unitOutline = await _computeOutline('''
+import 'package:flutter/widgets.dart';
+import 'a.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new WidgetA(
+      () => const Text('aaa'),
+    ); // WidgetA
+  }
+}
+''');
+    expect(_toText(unitOutline), r'''
+(D) MyWidget
+  (D) build
+    WidgetA
+      Text
+''');
+  }
+
   test_children_withCollectionElements() async {
     FlutterOutline unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';

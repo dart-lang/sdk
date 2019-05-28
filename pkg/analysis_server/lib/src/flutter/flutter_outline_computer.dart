@@ -63,7 +63,20 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
     var flutterDartOutline = _convert(dartOutline);
 
     // Create outlines for widgets.
-    resolvedUnit.unit.accept(new _FlutterOutlineBuilder(this));
+    var visitor = new _FlutterOutlineBuilder(this);
+    resolvedUnit.unit.accept(visitor);
+
+    // Associate Flutter outlines with Dart outlines.
+    for (var outline in visitor.outlines) {
+      for (var parent in _depthFirstOrder) {
+        if (parent.offset < outline.offset &&
+            outline.offset + outline.length < parent.offset + parent.length) {
+          parent.children ??= <protocol.FlutterOutline>[];
+          parent.children.add(outline);
+          break;
+        }
+      }
+    }
 
     // Compute instrumented code.
     if (widgets.values.any((w) => w.hasDesignTimeConstructor)) {
@@ -224,8 +237,14 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
             }
           }
         } else {
-          ParameterElement parameter = argument.staticParameterElement;
-          _addAttribute(attributes, argument, parameter);
+          var visitor = _FlutterOutlineBuilder(this);
+          argument.accept(visitor);
+          if (visitor.outlines.isNotEmpty) {
+            children.addAll(visitor.outlines);
+          } else {
+            ParameterElement parameter = argument.staticParameterElement;
+            _addAttribute(attributes, argument, parameter);
+          }
         }
       }
 
@@ -385,6 +404,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
 
 class _FlutterOutlineBuilder extends GeneralizingAstVisitor<void> {
   final FlutterOutlineComputer computer;
+  final List<protocol.FlutterOutline> outlines = [];
 
   _FlutterOutlineBuilder(this.computer);
 
@@ -392,14 +412,7 @@ class _FlutterOutlineBuilder extends GeneralizingAstVisitor<void> {
   void visitExpression(Expression node) {
     var outline = computer._createOutline(node, false);
     if (outline != null) {
-      for (var parent in computer._depthFirstOrder) {
-        if (parent.offset < outline.offset &&
-            outline.offset + outline.length < parent.offset + parent.length) {
-          parent.children ??= <protocol.FlutterOutline>[];
-          parent.children.add(outline);
-          return;
-        }
-      }
+      outlines.add(outline);
     } else {
       super.visitExpression(node);
     }
