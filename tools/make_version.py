@@ -69,7 +69,7 @@ def MakeSnapshotHashString():
 
 def MakeFile(quiet, output_file, input_file, no_git_hash, custom_for_pub, version_file=None):
   if version_file:
-    version_string = utils.GetVersion(version_file)
+    version_string = utils.GetVersion(no_git_hash, version_file)
   else:
     version_string = MakeVersionString(quiet, no_git_hash, custom_for_pub)
 
