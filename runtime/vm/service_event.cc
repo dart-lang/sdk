@@ -95,7 +95,7 @@ const char* ServiceEvent::KindAsCString() const {
     case kEmbedder:
       return embedder_kind();
     case kLogging:
-      return "_Logging";
+      return "Logging";
     case kDebuggerSettingsUpdate:
       return "_DebuggerSettingsUpdate";
     case kIllegal:
@@ -239,6 +239,7 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   }
   if (kind() == kLogging) {
     JSONObject logRecord(&jsobj, "logRecord");
+    logRecord.AddProperty("type", "LogRecord");
     logRecord.AddProperty64("sequenceNumber", log_record_.sequence_number);
     logRecord.AddPropertyTimeMillis("time", log_record_.timestamp);
     logRecord.AddProperty64("level", log_record_.level);

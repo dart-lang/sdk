@@ -1225,7 +1225,7 @@ class RawHeapSnapshot {
 
 /// State for a running isolate.
 class Isolate extends ServiceObjectOwner implements M.Isolate {
-  static const kLoggingStream = '_Logging';
+  static const kLoggingStream = 'Logging';
   static const kExtensionStream = 'Extension';
 
   VM get vm => owner;
@@ -2104,7 +2104,7 @@ class ServiceEvent extends ServiceObject {
   static const kInspect = 'Inspect';
   static const kDebuggerSettingsUpdate = '_DebuggerSettingsUpdate';
   static const kConnectionClosed = 'ConnectionClosed';
-  static const kLogging = '_Logging';
+  static const kLogging = 'Logging';
   static const kExtension = 'Extension';
   static const kServiceRegistered = 'ServiceRegistered';
   static const kServiceUnregistered = 'ServiceUnregistered';
