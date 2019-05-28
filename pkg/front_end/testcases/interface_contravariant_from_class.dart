@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=checks*/
 library test;
 
 typedef void F<T>(T t);
 
 class B<T> {
-  void f(F<T> x, int y) {}
+  T f(int x) {}
 }
 
 abstract class I<T> {
-  void f(F<T> x, Object y);
+  T f(Object x);
 }
 
 abstract class C<T> extends B<F<T>> implements I<F<T>> {}

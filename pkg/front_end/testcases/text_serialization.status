@@ -671,6 +671,9 @@ instantiate_to_bound/typedef_literal_map: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_omitted_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_raw_in_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_super_bounded_type: TextSerializationFailure # Was: Pass
+interface_contravariant_from_class: TextSerializationFailure
+interface_covariantImpl_from_class: TextSerializationFailure
+interface_covariantInterface_from_class: TextSerializationFailure
 invalid_assignment: TextSerializationFailure # Was: Pass
 invalid_cast: TextSerializationFailure # Was: Pass
 invalid_type: TypeCheckError

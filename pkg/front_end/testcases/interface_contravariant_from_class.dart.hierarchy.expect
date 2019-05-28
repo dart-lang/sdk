@@ -56,11 +56,9 @@ I:
 
 C:
   superclasses:
-    Object
-      -> B<F<T>>
-  interfaces: I<F<T>>
+    B
+  interfaces:
   classMembers:
-    B.f
     Object.toString
     Object.runtimeType
     Object._simpleInstanceOf
@@ -72,16 +70,3 @@ C:
     Object._simpleInstanceOfTrue
     Object.==
   classSetters:
-  interfaceMembers:
-    B.f
-    Object.toString
-    Object.runtimeType
-    Object._simpleInstanceOf
-    Object._instanceOf
-    Object.noSuchMethod
-    Object._identityHashCode
-    Object.hashCode
-    Object._simpleInstanceOfFalse
-    Object._simpleInstanceOfTrue
-    Object.==
-  interfaceSetters:
