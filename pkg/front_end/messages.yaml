@@ -208,7 +208,7 @@ Encoding:
   bytes: [255]
 
 ExperimentNotEnabled:
-  index: 93
+  index: 48
   template: "This requires the '#string' experiment to be enabled."
   tip: "Try enabling this experiment by adding it to the command line when compiling and running."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
@@ -236,7 +236,7 @@ EmptyOptionalParameterList:
     }
 
 ExpectedElseOrComma:
-  index: 94
+  index: 46
   template: "Expected 'else' or comma."
   analyzerCode: ParserErrorCode.EXPECTED_ELSE_OR_COMMA
 
@@ -413,7 +413,7 @@ ImplementsFutureOr:
       class A implements FutureOr<int> {}
 
 ExpectedClassOrMixinBody:
-  index: 96
+  index: 8
   template: "A #string must have a body, even if it is empty."
   tip: "Try adding an empty body."
   analyzerCode: ParserErrorCode.EXPECTED_BODY
@@ -618,6 +618,11 @@ ModifierOutOfOrder:
   analyzerCode: ParserErrorCode.MODIFIER_OUT_OF_ORDER
   script:
     - "class C { factory const C() = prefix.B.foo; }"
+    - "class C { factory external C(); }"
+    - "class C { const external C(); }"
+    - "class C { static external f(); }"
+    - "class C { final static int f = 5; }"
+    - "class C { var static f; }"
 
 TypeBeforeFactory:
   index: 57
@@ -642,14 +647,6 @@ ConstMethod:
   script:
     - "class C { const m() {} }"
 
-CovariantAfterVar:
-  index: 8
-  template: "The modifier 'covariant' should be before the modifier 'var'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.COVARIANT_AFTER_VAR
-  script:
-    - "var covariant f;"
-
 CovariantAndStatic:
   index: 66
   template: "Members can't be declared to be both 'covariant' and 'static'."
@@ -670,30 +667,6 @@ DuplicatedModifier:
     - "class C { final final m = 5; }"
     - "class C { static static var m; }"
     - "class C { var var m; }"
-
-ExternalAfterConst:
-  index: 46
-  template: "The modifier 'external' should be before the modifier 'const'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.EXTERNAL_AFTER_CONST
-  script:
-    - "class C { const external C(); }"
-
-ExternalAfterFactory:
-  index: 47
-  template: "The modifier 'external' should be before the modifier 'factory'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.EXTERNAL_AFTER_FACTORY
-  script:
-    - "class C { factory external C(); }"
-
-ExternalAfterStatic:
-  index: 48
-  template: "The modifier 'external' should be before the modifier 'static'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.EXTERNAL_AFTER_STATIC
-  script:
-    - "class C { static external f(); }"
 
 ExternalConstructorWithBody:
   index: 87
@@ -808,30 +781,6 @@ FinalAndVar:
   script:
     - "class C { final var x = 5; }"
     - "class C { var final x = 5; }"
-
-StaticAfterConst:
-  index: 20
-  template: "The modifier 'static' should be before the modifier 'const'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.STATIC_AFTER_CONST
-  script:
-    - "class C { const static int f; }"
-
-StaticAfterFinal:
-  index: 19
-  template: "The modifier 'static' should be before the modifier 'final'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.STATIC_AFTER_FINAL
-  script:
-    - "class C { final static int f = 5; }"
-
-StaticAfterVar:
-  index: 18
-  template: "The modifier 'static' should be before the modifier 'var'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.STATIC_AFTER_VAR
-  script:
-    - "class C { var static f; }"
 
 StaticConstructor:
   index: 4
@@ -1043,7 +992,7 @@ RequiredParameterWithDefault:
       }
 
 StackOverflow:
-  index: 91
+  index: 19
   template: "The file has too many nested expressions or statements."
   tip: "Try simplifying the code."
   analyzerCode: ParserErrorCode.STACK_OVERFLOW
@@ -1222,7 +1171,7 @@ YieldNotGenerator:
   analyzerCode: YIELD_IN_NON_GENERATOR
 
 OnlyTry:
-  index: 92
+  index: 20
   template: "A try block must be followed by an 'on', 'catch', or 'finally' clause."
   tip: "Try adding either a catch or finally clause, or remove the try statement."
   analyzerCode: ParserErrorCode.MISSING_CATCH_OR_FINALLY
@@ -1290,7 +1239,7 @@ CatchSyntaxExtraParameters:
     - "try {} catch (e, s, x) {}"
 
 SuperNullAware:
-  index: 90
+  index: 18
   template: "The operator '?.' cannot be used with 'super' because 'super' cannot be null."
   tip: "Try replacing '?.' with '.'"
   analyzerCode: ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
@@ -2538,7 +2487,7 @@ SdkSpecificationNotFound:
   tip: "Normally, the specification is a file named 'libraries.json' in the Dart SDK install location."
 
 InvalidSuperInInitializer:
-  index: 95
+  index: 47
   template: "Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')"
   analyzerCode: ParserErrorCode.INVALID_SUPER_IN_INITIALIZER
 

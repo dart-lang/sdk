@@ -1943,17 +1943,6 @@ Message _withArgumentsCouldNotParseUri(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeCovariantAfterVar = messageCovariantAfterVar;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCovariantAfterVar = const MessageCode(
-    "CovariantAfterVar",
-    index: 8,
-    message:
-        r"""The modifier 'covariant' should be before the modifier 'var'.""",
-    tip: r"""Try re-ordering the modifiers.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCovariantAndStatic = messageCovariantAndStatic;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2974,7 +2963,7 @@ const Template<Message Function(String string)>
 const Code<Message Function(String string)> codeExpectedClassOrMixinBody =
     const Code<Message Function(String string)>(
         "ExpectedClassOrMixinBody", templateExpectedClassOrMixinBody,
-        index: 96);
+        index: 8);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedClassOrMixinBody(String string) {
@@ -3011,7 +3000,7 @@ const Code<Null> codeExpectedElseOrComma = messageExpectedElseOrComma;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedElseOrComma = const MessageCode(
     "ExpectedElseOrComma",
-    index: 94,
+    index: 46,
     message: r"""Expected 'else' or comma.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3224,7 +3213,7 @@ const Template<
 const Code<Message Function(String string)> codeExperimentNotEnabled =
     const Code<Message Function(String string)>(
         "ExperimentNotEnabled", templateExperimentNotEnabled,
-        index: 93);
+        index: 48);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExperimentNotEnabled(String string) {
@@ -3325,39 +3314,6 @@ Message _withArgumentsExtendingRestricted(String name) {
           """'${name}' is restricted and can't be extended or implemented.""",
       arguments: {'name': name});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeExternalAfterConst = messageExternalAfterConst;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalAfterConst = const MessageCode(
-    "ExternalAfterConst",
-    index: 46,
-    message:
-        r"""The modifier 'external' should be before the modifier 'const'.""",
-    tip: r"""Try re-ordering the modifiers.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeExternalAfterFactory = messageExternalAfterFactory;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalAfterFactory = const MessageCode(
-    "ExternalAfterFactory",
-    index: 47,
-    message:
-        r"""The modifier 'external' should be before the modifier 'factory'.""",
-    tip: r"""Try re-ordering the modifiers.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeExternalAfterStatic = messageExternalAfterStatic;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalAfterStatic = const MessageCode(
-    "ExternalAfterStatic",
-    index: 48,
-    message:
-        r"""The modifier 'external' should be before the modifier 'static'.""",
-    tip: r"""Try re-ordering the modifiers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalClass = messageExternalClass;
@@ -6315,7 +6271,7 @@ const Code<Null> codeInvalidSuperInInitializer =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidSuperInInitializer = const MessageCode(
     "InvalidSuperInInitializer",
-    index: 95,
+    index: 47,
     message:
         r"""Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')""");
 
@@ -7388,7 +7344,7 @@ const Code<Null> codeOnlyTry = messageOnlyTry;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageOnlyTry = const MessageCode("OnlyTry",
-    index: 92,
+    index: 20,
     message:
         r"""A try block must be followed by an 'on', 'catch', or 'finally' clause.""",
     tip:
@@ -8739,40 +8695,9 @@ const Code<Null> codeStackOverflow = messageStackOverflow;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStackOverflow = const MessageCode("StackOverflow",
-    index: 91,
+    index: 19,
     message: r"""The file has too many nested expressions or statements.""",
     tip: r"""Try simplifying the code.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeStaticAfterConst = messageStaticAfterConst;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStaticAfterConst = const MessageCode(
-    "StaticAfterConst",
-    index: 20,
-    message:
-        r"""The modifier 'static' should be before the modifier 'const'.""",
-    tip: r"""Try re-ordering the modifiers.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeStaticAfterFinal = messageStaticAfterFinal;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStaticAfterFinal = const MessageCode(
-    "StaticAfterFinal",
-    index: 19,
-    message:
-        r"""The modifier 'static' should be before the modifier 'final'.""",
-    tip: r"""Try re-ordering the modifiers.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeStaticAfterVar = messageStaticAfterVar;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStaticAfterVar = const MessageCode("StaticAfterVar",
-    index: 18,
-    message: r"""The modifier 'static' should be before the modifier 'var'.""",
-    tip: r"""Try re-ordering the modifiers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStaticAndInstanceConflict =
@@ -8847,7 +8772,7 @@ const Code<Null> codeSuperNullAware = messageSuperNullAware;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperNullAware = const MessageCode("SuperNullAware",
-    index: 90,
+    index: 18,
     message:
         r"""The operator '?.' cannot be used with 'super' because 'super' cannot be null.""",
     tip: r"""Try replacing '?.' with '.'""");

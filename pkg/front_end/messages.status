@@ -102,7 +102,6 @@ ContinueOutsideOfLoop/script1: Fail
 ContinueWithoutLabelInCase/script1: Fail
 CouldNotParseUri/analyzerCode: Fail
 CouldNotParseUri/example: Fail
-CovariantAfterVar/script1: Fail
 CovariantAndStatic/script1: Fail
 CovariantAndStatic/script2: Fail
 CovariantMember/script1: Fail
@@ -360,7 +359,6 @@ SourceOutlineSummary/example: Fail
 SpreadMapEntryTypeMismatch/analyzerCode: Fail # There's no analyzer code for that error yet.
 SpreadTypeMismatch/analyzerCode: Fail # There's no analyzer code for that error yet.
 StackOverflow/example: Fail
-StaticAfterConst/script1: Fail
 SuperAsExpression/example: Fail
 SuperAsIdentifier/example: Fail
 SuperNullAware/example: Fail

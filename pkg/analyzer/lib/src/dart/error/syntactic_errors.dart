@@ -109,7 +109,7 @@ class ParserErrorCode extends ErrorCode {
   // TODO(danrubel): Remove this unused error code
   static const ParserErrorCode COVARIANT_AFTER_FINAL = _MODIFIER_OUT_OF_ORDER;
 
-  static const ParserErrorCode COVARIANT_AFTER_VAR = _COVARIANT_AFTER_VAR;
+  static const ParserErrorCode COVARIANT_AFTER_VAR = _MODIFIER_OUT_OF_ORDER;
 
   static const ParserErrorCode COVARIANT_AND_STATIC = _COVARIANT_AND_STATIC;
 
@@ -204,11 +204,11 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
       _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE;
 
-  static const ParserErrorCode EXTERNAL_AFTER_CONST = _EXTERNAL_AFTER_CONST;
+  static const ParserErrorCode EXTERNAL_AFTER_CONST = _MODIFIER_OUT_OF_ORDER;
 
-  static const ParserErrorCode EXTERNAL_AFTER_FACTORY = _EXTERNAL_AFTER_FACTORY;
+  static const ParserErrorCode EXTERNAL_AFTER_FACTORY = _MODIFIER_OUT_OF_ORDER;
 
-  static const ParserErrorCode EXTERNAL_AFTER_STATIC = _EXTERNAL_AFTER_STATIC;
+  static const ParserErrorCode EXTERNAL_AFTER_STATIC = _MODIFIER_OUT_OF_ORDER;
 
   static const ParserErrorCode EXTERNAL_CLASS = _EXTERNAL_CLASS;
 
@@ -663,11 +663,11 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode STACK_OVERFLOW = _STACK_OVERFLOW;
 
-  static const ParserErrorCode STATIC_AFTER_CONST = _STATIC_AFTER_CONST;
+  static const ParserErrorCode STATIC_AFTER_CONST = _MODIFIER_OUT_OF_ORDER;
 
-  static const ParserErrorCode STATIC_AFTER_FINAL = _STATIC_AFTER_FINAL;
+  static const ParserErrorCode STATIC_AFTER_FINAL = _MODIFIER_OUT_OF_ORDER;
 
-  static const ParserErrorCode STATIC_AFTER_VAR = _STATIC_AFTER_VAR;
+  static const ParserErrorCode STATIC_AFTER_VAR = _MODIFIER_OUT_OF_ORDER;
 
   static const ParserErrorCode STATIC_CONSTRUCTOR = _STATIC_CONSTRUCTOR;
 

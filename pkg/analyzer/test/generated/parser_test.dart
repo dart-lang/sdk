@@ -3253,7 +3253,7 @@ class Foo {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.EXTERNAL_AFTER_FACTORY, 8, 8)]);
+        [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 8, 8)]);
   }
 
   void test_externalAfterStatic() {
