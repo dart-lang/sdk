@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/engine.dart';
@@ -534,11 +533,6 @@ class BuildMode with HasContextMixin {
   }
 
   void _createLinkedElementFactory() {
-    var rootReference = summary2.Reference.root();
-    var dartCoreRef = rootReference.getChild('dart:core');
-    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
-    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
-
     var analysisContext = RestrictedAnalysisContext(
       SynchronousSession(analysisOptions, declaredVariables),
       sourceFactory,
@@ -547,7 +541,7 @@ class BuildMode with HasContextMixin {
     elementFactory = summary2.LinkedElementFactory(
       analysisContext,
       null,
-      rootReference,
+      summary2.Reference.root(),
     );
 
     for (var bundle in summaryDataStore.bundles) {

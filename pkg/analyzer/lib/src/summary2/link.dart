@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -50,12 +49,9 @@ class Linker {
   InheritanceManager2 inheritance; // TODO(scheglov) cache it
 
   Linker(this.elementFactory) {
-    var dynamicRef = rootReference.getChild('dart:core').getChild('dynamic');
-    dynamicRef.element = DynamicElementImpl.instance;
-    var neverRef = rootReference.getChild('dart:core').getChild('Never');
-    neverRef.element = NeverElementImpl.instance;
-
-    linkingBundleContext = LinkingBundleContext(dynamicRef);
+    linkingBundleContext = LinkingBundleContext(
+      elementFactory.dynamicRef,
+    );
 
     bundleContext = LinkedBundleContext.forAst(
       elementFactory,

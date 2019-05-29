@@ -51,11 +51,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
       );
     }
 
-    var rootReference = Reference.root();
-    var dartCoreRef = rootReference.getChild('dart:core');
-    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
-    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
-
     var elementFactory = LinkedElementFactory(
       RestrictedAnalysisContext(
         SynchronousSession(
@@ -65,7 +60,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
         sourceFactory,
       ),
       _AnalysisSessionForLinking(),
-      rootReference,
+      Reference.root(),
     );
 
     var sdkLinkResult = link(elementFactory, inputLibraries);
@@ -90,16 +85,10 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
       sourceFactory,
     );
 
-    var rootReference = Reference.root();
-    rootReference.getChild('dart:core').getChild('dynamic').element =
-        DynamicElementImpl.instance;
-    rootReference.getChild('dart:core').getChild('Never').element =
-        NeverElementImpl.instance;
-
     var elementFactory = LinkedElementFactory(
       analysisContext,
       _AnalysisSessionForLinking(),
-      rootReference,
+      Reference.root(),
     );
     elementFactory.addBundle(
       LinkedBundleContext(elementFactory, sdkBundle),
