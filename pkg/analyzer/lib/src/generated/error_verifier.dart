@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
@@ -527,6 +528,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _initializeInitialFieldElementsMap(_enclosingClass.fields);
       _checkForFinalNotInitializedInClass(members);
       _checkForBadFunctionUse(node);
+      _checkForWrongTypeParameterVarianceInSuperinterfaces();
       super.visitClassDeclaration(node);
     } finally {
       _isInNativeClass = false;
@@ -544,6 +546,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
       _checkClassInheritance(
           node, node.superclass, node.withClause, node.implementsClause);
+      _checkForWrongTypeParameterVarianceInSuperinterfaces();
     } finally {
       _enclosingClass = outerClassElement;
     }
@@ -1105,6 +1108,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
       _initializeInitialFieldElementsMap(_enclosingClass.fields);
       _checkForFinalNotInitializedInClass(members);
+      _checkForWrongTypeParameterVarianceInSuperinterfaces();
       //      _checkForBadFunctionUse(node);
       super.visitMixinDeclaration(node);
     } finally {
@@ -5720,6 +5724,30 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
           setterName);
     }
+  }
+
+  void _checkForWrongTypeParameterVarianceInSuperinterfaces() {
+    void checkOne(DartType superInterface) {
+      if (superInterface != null) {
+        for (var typeParameter in _enclosingClass.typeParameters) {
+          var variance = computeVariance(typeParameter, superInterface);
+          if (variance == Variance.contravariant ||
+              variance == Variance.invariant) {
+            _errorReporter.reportErrorForElement(
+              CompileTimeErrorCode
+                  .WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+              typeParameter,
+              [typeParameter.name, superInterface],
+            );
+          }
+        }
+      }
+    }
+
+    checkOne(_enclosingClass.supertype);
+    _enclosingClass.interfaces.forEach(checkOne);
+    _enclosingClass.mixins.forEach(checkOne);
+    _enclosingClass.superclassConstraints.forEach(checkOne);
   }
 
   /**

@@ -165,6 +165,8 @@ import 'unused_local_variable_test.dart' as unused_local_variable;
 import 'unused_shown_name_test.dart' as unused_shown_name;
 import 'use_of_void_result_test.dart' as use_of_void_result;
 import 'variable_type_mismatch_test.dart' as variable_type_mismatch;
+import 'wrong_type_parameter_variance_in_superinterface_test.dart'
+    as wrong_type_parameter_variance_in_superinterface;
 
 main() {
   defineReflectiveSuite(() {
@@ -287,5 +289,6 @@ main() {
     unused_shown_name.main();
     use_of_void_result.main();
     variable_type_mismatch.main();
+    wrong_type_parameter_variance_in_superinterface.main();
   }, name: 'diagnostics');
 }

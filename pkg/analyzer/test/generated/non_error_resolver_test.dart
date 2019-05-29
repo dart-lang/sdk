@@ -1901,7 +1901,7 @@ class C extends A<B> with M {}
   }
 
   test_infer_mixin_with_substitution_functionType_new_syntax() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 abstract class A<T> {}
 
 class B {}
@@ -1909,7 +1909,13 @@ class B {}
 mixin M<T, U> on A<T Function(U)> {}
 
 class C extends A<int Function(String)> with M {}
-''');
+''', [
+      error(
+        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+        47,
+        1,
+      ),
+    ]);
     CompilationUnit unit = result.unit;
     ClassElement classC =
         resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
