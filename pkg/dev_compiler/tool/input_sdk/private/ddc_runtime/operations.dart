@@ -15,13 +15,15 @@ class InvocationImpl extends Invocation {
   final bool isMethod;
   final bool isGetter;
   final bool isSetter;
+  final String failureMessage;
 
   InvocationImpl(memberName, List<Object> positionalArguments,
       {namedArguments,
       List typeArguments,
       this.isMethod = false,
       this.isGetter = false,
-      this.isSetter = false})
+      this.isSetter = false,
+      this.failureMessage = 'method not found'})
       : memberName =
             isSetter ? _setterSymbol(memberName) : _dartSymbol(memberName),
         positionalArguments = List.unmodifiable(positionalArguments),
@@ -156,19 +158,27 @@ dput(obj, field, value, [@undefined mirrors]) {
   return value;
 }
 
-/// Check that a function of a given type can be applied to
-/// actuals.
-bool _checkApply(FunctionType type, List actuals, namedActuals) {
+/// Returns an error message if function of a given [type] can't be applied to
+/// [actuals] and [namedActuals].
+///
+/// Returns `null` if all checks pass.
+String _argumentErrors(FunctionType type, List actuals, namedActuals) {
   // Check for too few required arguments.
   int actualsCount = JS('!', '#.length', actuals);
   var required = type.args;
   int requiredCount = JS('!', '#.length', required);
-  if (actualsCount < requiredCount) return false;
+  if (actualsCount < requiredCount) {
+    return 'Dynamic call with too few arguments. '
+        'Expected: $requiredCount Actual: $actualsCount';
+  }
 
   // Check for too many postional arguments.
   var extras = actualsCount - requiredCount;
   var optionals = type.optionals;
-  if (extras > JS<int>('!', '#.length', optionals)) return false;
+  if (extras > JS<int>('!', '#.length', optionals)) {
+    return 'Dynamic call with too many arguments. '
+        'Expected: $requiredCount Actual: $actualsCount';
+  }
 
   // Check if we have invalid named arguments.
   Iterable names;
@@ -176,7 +186,9 @@ bool _checkApply(FunctionType type, List actuals, namedActuals) {
   if (namedActuals != null) {
     names = getOwnPropertyNames(namedActuals);
     for (var name in names) {
-      if (!JS('!', '#.hasOwnProperty(#)', named, name)) return false;
+      if (!JS('!', '#.hasOwnProperty(#)', named, name)) {
+        return "Dynamic call with unexpected named argument '$name'.";
+      }
     }
   }
   // Now that we know the signature matches, we can perform type checks.
@@ -191,7 +203,7 @@ bool _checkApply(FunctionType type, List actuals, namedActuals) {
       JS('', '#[#]._check(#[#])', named, name, namedActuals, name);
     }
   }
-  return true;
+  return null;
 }
 
 _toSymbolName(symbol) => JS('', '''(() => {
@@ -242,14 +254,16 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
 
   let originalTarget = obj === void 0 ? f : obj;
 
-  function callNSM() {
+  function callNSM(errorMessage) {
     return $noSuchMethod(originalTarget, new $InvocationImpl.new(
         $displayName, $args, {
           namedArguments: $named,
           typeArguments: $typeArgs,
-          isMethod: true
+          isMethod: true,
+          failureMessage: errorMessage
         }));
   }
+  if ($f == null) return callNSM('Dynamic call of null.');
   if (!($f instanceof Function)) {
     // We're not a function (and hence not a method either)
     // Grab the `call` method if it's not a function.
@@ -261,7 +275,8 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
       $f = ${bindCall(f, _canonicalMember(f, 'call'))};
       $ftype = null;
     }
-    if ($f == null) return callNSM();
+    if ($f == null) return callNSM(
+        "Dynamic call of object has no instance method 'call'.");
   }
   // If f is a function, but not a method (no method type)
   // then it should have been a function valued field, so
@@ -291,21 +306,23 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
     if ($typeArgs == null) {
       $typeArgs = $ftype.instantiateDefaultBounds();
     } else if ($typeArgs.length != formalCount) {
-      return callNSM();
+      return callNSM('Dynamic call with incorrect number of type arguments. ' +
+          'Expected: ' + formalCount + ' Actual: ' + $typeArgs.length);
     } else {
       $ftype.checkBounds($typeArgs);
     }
     $ftype = $ftype.instantiate($typeArgs);
   } else if ($typeArgs != null) {
-    return callNSM();
+    return callNSM('Dynamic call with unexpected type arguments. ' +
+        'Expected: 0 Actual: ' + $typeArgs.length);
   }
-
-  if ($_checkApply($ftype, $args, $named)) {
+  let errorMessage = $_argumentErrors($ftype, $args, $named);
+  if (errorMessage == null) {
     if ($typeArgs != null) $args = $typeArgs.concat($args);
     if ($named != null) $args.push($named);
     return $f.apply($obj, $args);
   }
-  return callNSM();
+  return callNSM(errorMessage);
 })()''');
 
 dcall(f, args, [@undefined named]) =>

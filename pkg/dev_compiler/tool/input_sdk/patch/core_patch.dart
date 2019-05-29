@@ -645,6 +645,7 @@ class NoSuchMethodError {
   final List _arguments;
   final Map<Symbol, dynamic> _namedArguments;
   final List _existingArgumentNames;
+  final Invocation _invocation;
 
   @patch
   NoSuchMethodError(Object receiver, Symbol memberName,
@@ -654,7 +655,8 @@ class NoSuchMethodError {
         _memberName = memberName,
         _arguments = positionalArguments,
         _namedArguments = namedArguments,
-        _existingArgumentNames = existingArgumentNames;
+        _existingArgumentNames = existingArgumentNames,
+        _invocation = null;
 
   @patch
   NoSuchMethodError.withInvocation(Object receiver, Invocation invocation)
@@ -662,7 +664,8 @@ class NoSuchMethodError {
         _memberName = invocation.memberName,
         _arguments = invocation.positionalArguments,
         _namedArguments = invocation.namedArguments,
-        _existingArgumentNames = null;
+        _existingArgumentNames = null,
+        _invocation = invocation;
 
   @patch
   String toString() {
@@ -687,8 +690,12 @@ class NoSuchMethodError {
     String memberName = _symbolToString(_memberName);
     String receiverText = Error.safeToString(_receiver);
     String actualParameters = '$sb';
+    var failureMessage = (_invocation is dart.InvocationImpl)
+        ? (_invocation as dart.InvocationImpl).failureMessage
+        : 'method not found';
     if (_existingArgumentNames == null) {
-      return "NoSuchMethodError: method not found: '$memberName'\n"
+      return "NoSuchMethodError: '$memberName'\n"
+          "$failureMessage\n"
           "Receiver: ${receiverText}\n"
           "Arguments: [$actualParameters]";
     } else {
