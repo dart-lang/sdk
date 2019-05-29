@@ -18,7 +18,7 @@ application_snapshot("dartdevc") {
     "--dart-sdk",
     rebase_path("../../sdk"),
     "--dart-sdk-summary",
-    rebase_path(sdk_summary),
+    rebase_path(sdk_dill),
     "-k",
     "-o",
     "dartdevc.js",
