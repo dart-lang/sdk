@@ -57,6 +57,7 @@ class Declaration {
   final String typeParameters;
 
   List<String> _relevanceTags;
+  Uri _locationLibraryUri;
 
   Declaration({
     @required this.children,
@@ -83,6 +84,8 @@ class Declaration {
     @required this.returnType,
     @required this.typeParameters,
   }) : _relevanceTags = relevanceTags;
+
+  Uri get locationLibraryUri => _locationLibraryUri;
 
   List<String> get relevanceTags => _relevanceTags;
 
@@ -1110,6 +1113,7 @@ class _File {
         libraryDeclarations.addAll(part.file.fileDeclarations);
       }
       _computeRelevanceTags(libraryDeclarations);
+      _setLocationLibraryUri();
     }
   }
 
@@ -1383,6 +1387,19 @@ class _File {
           returnType: _getTypeAnnotationString(functionType.returnType),
           typeParameters: functionType.typeParameters?.toSource(),
         );
+      } else if (node is FunctionTypeAlias) {
+        var parameters = node.parameters;
+        addDeclaration(
+          isDeprecated: isDeprecated,
+          kind: DeclarationKind.FUNCTION_TYPE_ALIAS,
+          name: node.name,
+          parameters: parameters.toSource(),
+          parameterNames: _getFormalParameterNames(parameters),
+          parameterTypes: _getFormalParameterTypes(parameters),
+          requiredParameterCount: _getFormalParameterRequiredCount(parameters),
+          returnType: _getTypeAnnotationString(node.returnType),
+          typeParameters: node.typeParameters?.toSource(),
+        );
       } else if (node is MixinDeclaration) {
         addDeclaration(
           isDeprecated: isDeprecated,
@@ -1507,6 +1524,12 @@ class _File {
 
     templateNames = idlFile.directiveInfo.templateNames.toList();
     templateValues = idlFile.directiveInfo.templateValues.toList();
+  }
+
+  void _setLocationLibraryUri() {
+    for (var declaration in libraryDeclarations) {
+      declaration._locationLibraryUri = uri;
+    }
   }
 
   static _DefaultArguments _computeDefaultArguments(

@@ -40,6 +40,7 @@ main() {
 }
 ''');
     await waitForTasksFinished();
+    doAllDeclarationsTrackerWork();
     List<AnalysisErrorFixes> errorFixes =
         await _getFixesAt('Completer<String>');
     expect(errorFixes, hasLength(1));
@@ -140,6 +141,10 @@ print(1)
 aaa:${asFileUri('/aaa/lib')}
 bbb:${asFileUri('/bbb/lib')}
 ''');
+    newFile('/aaa/pubspec.yaml', content: r'''
+dependencies:
+  bbb: any
+''');
     // Ensure that the target is analyzed as an implicit source.
     newFile('/aaa/lib/foo.dart', content: 'import "package:bbb/target.dart";');
 
@@ -157,6 +162,7 @@ bbb:${asFileUri('/bbb/lib')}
     _addOverlay(testFile, testCode);
 
     await waitForTasksFinished();
+    doAllDeclarationsTrackerWork();
 
     List<String> fixes = (await _getFixesAt('Foo()'))
         .single

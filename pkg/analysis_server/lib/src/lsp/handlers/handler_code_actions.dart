@@ -17,6 +17,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
@@ -192,7 +193,14 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         int errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
         if (errorLine >= range.start.line && errorLine <= range.end.line) {
           var workspace = DartChangeWorkspace(server.currentSessions);
-          var context = new DartFixContextImpl(workspace, unit, error);
+          var context = new DartFixContextImpl(workspace, unit, error, (name) {
+            var tracker = server.declarationsTracker;
+            return TopLevelDeclarationsProvider(tracker).get(
+              unit.session.analysisContext,
+              unit.path,
+              name,
+            );
+          });
           final fixes = await fixContributor.computeFixes(context);
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.SORT_BY_RELEVANCE);
