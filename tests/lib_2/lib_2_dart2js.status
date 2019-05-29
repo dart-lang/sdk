@@ -10,7 +10,6 @@ collection/list_test: RuntimeError
 convert/chunked_conversion_utf88_test: Slow
 convert/utf85_test: Slow
 developer/timeline_test: Skip # Not supported
-html/async_spawnuri_test: SkipByDesign
 html/async_test: SkipByDesign
 html/custom/document_register_basic_test: Slow
 html/custom/document_register_type_extensions_test/construction: Slow
@@ -82,7 +81,6 @@ typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage thi
 
 [ $compiler == dart2js && $runtime == d8 ]
 async/dart2js_uncaught_error_test: RuntimeError
-html/async_spawnuri_test: RuntimeError
 html/async_test: RuntimeError
 html/audiobuffersourcenode_test: RuntimeError
 html/audiocontext_test: RuntimeError
@@ -494,7 +492,6 @@ html/mirrors_js_typed_interop_test: SkipByDesign
 html/postmessage_structured_test: SkipByDesign
 
 [ $compiler == dart2js && !$csp && $minified ]
-html/async_spawnuri_test: RuntimeError
 html/async_test: RuntimeError
 html/audiobuffersourcenode_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/audiocontext_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.

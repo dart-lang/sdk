@@ -8,9 +8,7 @@ import 'command.dart';
 import 'compiler_configuration.dart';
 import 'configuration.dart';
 import 'repository.dart';
-// TODO(ahe): Remove this import, we can precompute all the values required
-// from TestSuite once the refactoring is complete.
-import 'test_suite.dart';
+import 'utils.dart';
 
 /// Describes the commands to run a given test case or its compiled output.
 ///
@@ -82,7 +80,6 @@ abstract class RuntimeConfiguration {
   }
 
   List<Command> computeRuntimeCommands(
-      TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
@@ -92,9 +89,74 @@ abstract class RuntimeConfiguration {
     throw "Unimplemented runtime '$runtimeType'";
   }
 
+  /**
+   * The output directory for this suite's configuration.
+   */
+  String get buildDir => _configuration.buildDirectory;
+
   List<String> dart2jsPreambles(Uri preambleDir) => [];
 
   bool get shouldSkipNegativeTests => false;
+
+  /// Returns the path to the Dart VM executable.
+  String get dartVmBinaryFileName {
+    // Controlled by user with the option "--dart".
+    var dartExecutable = _configuration.dartPath;
+
+    if (dartExecutable == null) {
+      dartExecutable = dartVmExecutableFileName;
+    }
+
+    TestUtils.ensureExists(dartExecutable, _configuration);
+    return dartExecutable;
+  }
+
+  String get dartVmExecutableFileName {
+    return _configuration.useSdk
+        ? '$buildDir/dart-sdk/bin/dart$executableBinarySuffix'
+        : '$buildDir/dart$executableBinarySuffix';
+  }
+
+  String get dartPrecompiledBinaryFileName {
+    // Controlled by user with the option "--dart_precompiled".
+    var dartExecutable = _configuration.dartPrecompiledPath;
+
+    if (dartExecutable == null || dartExecutable == '') {
+      var suffix = executableBinarySuffix;
+      dartExecutable = '$buildDir/dart_precompiled_runtime$suffix';
+    }
+
+    TestUtils.ensureExists(dartExecutable, _configuration);
+    return dartExecutable;
+  }
+
+  String get processTestBinaryFileName {
+    var suffix = executableBinarySuffix;
+    var processTestExecutable = '$buildDir/process_test$suffix';
+    TestUtils.ensureExists(processTestExecutable, _configuration);
+    return processTestExecutable;
+  }
+
+  String get d8FileName {
+    var suffix = executableBinarySuffix;
+    var d8Dir = Repository.dir.append('third_party/d8');
+    var d8Path = d8Dir.append('${Platform.operatingSystem}/d8$suffix');
+    var d8 = d8Path.toNativePath();
+    TestUtils.ensureExists(d8, _configuration);
+    return d8;
+  }
+
+  String get jsShellFileName {
+    var executableSuffix = executableBinarySuffix;
+    var executable = 'jsshell$executableSuffix';
+    var jsshellDir = Repository.uri.resolve("tools/testing/bin").path;
+    var jsshell = '$jsshellDir/$executable';
+    TestUtils.ensureExists(jsshell, _configuration);
+    return jsshell;
+  }
+
+  String get executableBinarySuffix => Platform.isWindows ? '.exe' : '';
+  String get executableScriptSuffix => Platform.isWindows ? '.bat' : '';
 }
 
 /// The 'none' runtime configuration.
@@ -102,7 +164,6 @@ class NoneRuntimeConfiguration extends RuntimeConfiguration {
   NoneRuntimeConfiguration() : super._subclass();
 
   List<Command> computeRuntimeCommands(
-      TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
@@ -130,7 +191,6 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
   D8RuntimeConfiguration() : super('d8');
 
   List<Command> computeRuntimeCommands(
-      TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
@@ -140,7 +200,7 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
     checkArtifact(artifact);
     return [
       Command.jsCommandLine(
-          moniker, suite.d8FileName, arguments, environmentOverrides)
+          moniker, d8FileName, arguments, environmentOverrides)
     ];
   }
 
@@ -154,7 +214,6 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
   JsshellRuntimeConfiguration() : super('jsshell');
 
   List<Command> computeRuntimeCommands(
-      TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
@@ -163,7 +222,7 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
     checkArtifact(artifact);
     return [
       Command.jsCommandLine(
-          moniker, suite.jsShellFileName, arguments, environmentOverrides)
+          moniker, jsShellFileName, arguments, environmentOverrides)
     ];
   }
 
@@ -214,7 +273,6 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
 //// The standalone Dart VM binary, "dart" or "dart.exe".
 class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
   List<Command> computeRuntimeCommands(
-      TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
@@ -232,9 +290,9 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
     if (isCrashExpected) {
       arguments.insert(0, '--suppress-core-dump');
     }
-    String executable = suite.dartVmBinaryFileName;
+    String executable = dartVmBinaryFileName;
     if (type == 'application/kernel-ir-fully-linked') {
-      executable = suite.dartVmExecutableFileName;
+      executable = dartVmExecutableFileName;
     }
     return [Command.vm(executable, arguments, environmentOverrides)];
   }
@@ -248,7 +306,6 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
         useElf = useElf;
 
   List<Command> computeRuntimeCommands(
-      TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
@@ -261,8 +318,7 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
     }
 
     return [
-      Command.vm(
-          suite.dartPrecompiledBinaryFileName, arguments, environmentOverrides)
+      Command.vm(dartPrecompiledBinaryFileName, arguments, environmentOverrides)
     ];
   }
 }
@@ -272,7 +328,6 @@ class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
   static const String DeviceTestDir = '/data/local/tmp/testing/test';
 
   List<Command> computeRuntimeCommands(
-      TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
@@ -284,8 +339,8 @@ class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
       throw "dart cannot run files of type '$type'.";
     }
 
-    final String buildPath = suite.buildDir;
-    final String processTest = suite.processTestBinaryFileName;
+    final String buildPath = buildDir;
+    final String processTest = processTestBinaryFileName;
     return [
       Command.adbDartk(buildPath, processTest, script, arguments, extraLibs)
     ];
@@ -305,7 +360,6 @@ class DartPrecompiledAdbRuntimeConfiguration
         useElf = useElf;
 
   List<Command> computeRuntimeCommands(
-      TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
@@ -317,8 +371,8 @@ class DartPrecompiledAdbRuntimeConfiguration
       throw "dart_precompiled cannot run files of type '$type'.";
     }
 
-    String precompiledRunner = suite.dartPrecompiledBinaryFileName;
-    String processTest = suite.processTestBinaryFileName;
+    String precompiledRunner = dartPrecompiledBinaryFileName;
+    String processTest = processTestBinaryFileName;
     return [
       Command.adbPrecompiled(
           precompiledRunner, processTest, script, arguments, useBlobs, useElf)
@@ -343,17 +397,16 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
   }
 
   List<Command> computeRuntimeCommands(
-      TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,
       List<String> extraLibs,
       bool isCrashExpected) {
-    String executable = suite.dartVmBinaryFileName;
+    String executable = dartVmBinaryFileName;
     return selfCheckers
         .map((String tester) => Command.vmBatch(
             executable, tester, arguments, environmentOverrides,
-            checked: suite.configuration.isChecked))
+            checked: _configuration.isChecked))
         .toList();
   }
 
@@ -366,7 +419,6 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
 // TODO(ahe): Remove this class.
 class DummyRuntimeConfiguration extends DartVmRuntimeConfiguration {
   List<Command> computeRuntimeCommands(
-      TestSuite suite,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides,

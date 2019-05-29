@@ -43,6 +43,7 @@
       "tests/standalone/",
       "tests/standalone_2/",
       "tests/ffi/",
+      "third_party/babel/babel.min.js",
       "third_party/d8/",
       "third_party/observatory_pub_packages/packages/web_components/",
       "third_party/pkg/",
@@ -245,7 +246,12 @@
       "options": {
         "use-sdk": true
     }},
-    "dart2js-win-(ie11|edge)": {
+    "dart2js-win-ie11": {
+      "options": {
+        "use-sdk": true,
+        "babel": "{\"presets\":[\"es2015\"]}"
+    }},
+    "dart2js-win-edge": {
       "options": {
         "use-sdk": true
     }},

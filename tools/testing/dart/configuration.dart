@@ -165,6 +165,7 @@ class TestConfiguration {
   final String outputDirectory;
   final String packageRoot;
   final String suiteDirectory;
+  String get babel => configuration.babel;
   String get builderTag => configuration.builderTag;
   final List<String> reproducingArguments;
 
@@ -211,24 +212,30 @@ class TestConfiguration {
   ///     build/none_vm_release_x64
   String get buildDirectory => system.outputDirectory + configurationDirectory;
 
+  int _timeout;
+
   // TODO(whesse): Put non-default timeouts explicitly in configs, not this.
   /// Calculates a default timeout based on the compiler and runtime used,
   /// and the mode, architecture, etc.
   int get timeout {
-    if (configuration.timeout == null) {
-      var isReload = hotReload || hotReloadRollback;
+    if (_timeout == null) {
+      if (configuration.timeout > 0) {
+        _timeout = configuration.timeout;
+      } else {
+        var isReload = hotReload || hotReloadRollback;
 
-      var compilerMulitiplier = compilerConfiguration.timeoutMultiplier;
-      var runtimeMultiplier = runtimeConfiguration.timeoutMultiplier(
-          mode: mode,
-          isChecked: isChecked,
-          isReload: isReload,
-          arch: architecture);
+        var compilerMulitiplier = compilerConfiguration.timeoutMultiplier;
+        var runtimeMultiplier = runtimeConfiguration.timeoutMultiplier(
+            mode: mode,
+            isChecked: isChecked,
+            isReload: isReload,
+            arch: architecture);
 
-      configuration.timeout = 60 * compilerMulitiplier * runtimeMultiplier;
+        _timeout = 60 * compilerMulitiplier * runtimeMultiplier;
+      }
     }
 
-    return configuration.timeout;
+    return _timeout;
   }
 
   List<String> get standardOptions {

@@ -244,7 +244,7 @@ class TestCase extends UniqueObject {
  * it is longer than MAX_HEAD characters, and just keeps the head and
  * the last TAIL_LENGTH characters of the output.
  */
-class OutputLog {
+class OutputLog implements StreamConsumer<List<int>> {
   static const int MAX_HEAD = 500 * 1024;
   static const int TAIL_LENGTH = 10 * 1024;
   List<int> head = <int>[];
@@ -252,6 +252,7 @@ class OutputLog {
   List<int> complete;
   bool dataDropped = false;
   bool hasNonUtf8 = false;
+  StreamSubscription _subscription;
 
   OutputLog();
 
@@ -325,6 +326,53 @@ be increased, please contact dart-engprod or file an issue.
     }
     return complete;
   }
+
+  @override
+  Future addStream(Stream<List<int>> stream) {
+    _subscription = stream.listen(this.add);
+    return _subscription.asFuture();
+  }
+
+  @override
+  Future close() {
+    toList();
+    return _subscription?.cancel();
+  }
+
+  Future cancel() {
+    return _subscription?.cancel();
+  }
+}
+
+// An [OutputLog] that tees the output to a file as well.
+class FileOutputLog extends OutputLog {
+  io.File _outputFile;
+  io.IOSink _sink;
+
+  FileOutputLog(this._outputFile);
+
+  @override
+  void add(List<int> data) {
+    super.add(data);
+    _sink ??= _outputFile.openWrite();
+    _sink.add(data);
+  }
+
+  @override
+  Future close() {
+    return Future.wait([
+      super.close(),
+      if (_sink != null) _sink.flush().whenComplete(_sink.close)
+    ]);
+  }
+
+  @override
+  Future cancel() {
+    return Future.wait([
+      super.cancel(),
+      if (_sink != null) _sink.flush().whenComplete(_sink.close)
+    ]);
+  }
 }
 
 // Helper to get a list of all child pids for a parent process.
@@ -381,16 +429,19 @@ class RunningProcess {
   int timeout;
   bool timedOut = false;
   DateTime startTime;
-  Timer timeoutTimer;
   int pid;
-  OutputLog stdout = new OutputLog();
-  OutputLog stderr = new OutputLog();
+  OutputLog stdout;
+  OutputLog stderr = OutputLog();
+  StreamConsumer stdoutConsumer;
   List<String> diagnostics = <String>[];
   bool compilationSkipped = false;
   Completer<CommandOutput> completer;
   TestConfiguration configuration;
 
-  RunningProcess(this.command, this.timeout, {this.configuration});
+  RunningProcess(this.command, this.timeout,
+      {this.configuration, io.File outputFile}) {
+    stdout = outputFile != null ? FileOutputLog(outputFile) : OutputLog();
+  }
 
   Future<CommandOutput> run() {
     completer = new Completer<CommandOutput>();
@@ -410,43 +461,9 @@ class RunningProcess {
           environment: processEnvironment,
           workingDirectory: command.workingDirectory);
       processFuture.then((io.Process process) {
-        StreamSubscription stdoutSubscription =
-            _drainStream(process.stdout, stdout);
-        StreamSubscription stderrSubscription =
-            _drainStream(process.stderr, stderr);
-
-        var stdoutCompleter = new Completer<Null>();
-        var stderrCompleter = new Completer<Null>();
-
-        bool stdoutDone = false;
-        bool stderrDone = false;
+        var stdoutFuture = process.stdout.pipe(stdout);
+        var stderrFuture = process.stderr.pipe(stderr);
         pid = process.pid;
-
-        // This timer is used to close stdio to the subprocess once we got
-        // the exitCode. Sometimes descendants of the subprocess keep stdio
-        // handles alive even though the direct subprocess is dead.
-        Timer watchdogTimer;
-
-        closeStdout([_]) {
-          if (!stdoutDone) {
-            stdoutCompleter.complete();
-            stdoutDone = true;
-            if (stderrDone && watchdogTimer != null) {
-              watchdogTimer.cancel();
-            }
-          }
-        }
-
-        closeStderr([_]) {
-          if (!stderrDone) {
-            stderrCompleter.complete();
-            stderrDone = true;
-
-            if (stdoutDone && watchdogTimer != null) {
-              watchdogTimer.cancel();
-            }
-          }
-        }
 
         // Close stdin so that tests that try to block on input will fail.
         process.stdin.close();
@@ -507,30 +524,31 @@ class RunningProcess {
           }
         }
 
-        stdoutSubscription.asFuture().then(closeStdout);
-        stderrSubscription.asFuture().then(closeStderr);
-
-        process.exitCode.then((exitCode) {
-          if (!stdoutDone || !stderrDone) {
-            watchdogTimer = new Timer(MAX_STDIO_DELAY, () {
-              DebugLogger.warning(
-                  "$MAX_STDIO_DELAY_PASSED_MESSAGE (command: $command)");
-              watchdogTimer = null;
-              stdoutSubscription.cancel();
-              stderrSubscription.cancel();
-              closeStdout();
-              closeStderr();
-            });
-          }
-
-          Future.wait([stdoutCompleter.future, stderrCompleter.future])
-              .then((_) {
+        // Wait for the process to finish or timeout
+        process.exitCode
+            .timeout(Duration(seconds: timeout), onTimeout: timeoutHandler)
+            .then((exitCode) {
+          // This timeout is used to close stdio to the subprocess once we got
+          // the exitCode. Sometimes descendants of the subprocess keep stdio
+          // handles alive even though the direct subprocess is dead.
+          Future.wait([stdoutFuture, stderrFuture]).timeout(MAX_STDIO_DELAY,
+              onTimeout: () async {
+            DebugLogger.warning(
+                "$MAX_STDIO_DELAY_PASSED_MESSAGE (command: $command)");
+            await stdout.cancel();
+            await stderr.cancel();
+            _commandComplete(exitCode);
+            return null;
+          }).then((_) {
+            if (stdout is FileOutputLog) {
+              // Prevent logging data that has already been written to a file
+              // and is unlikely too add value in the logs because the command
+              // succeeded.
+              stdout.complete = <int>[];
+            }
             _commandComplete(exitCode);
           });
         });
-
-        timeoutTimer =
-            new Timer(new Duration(seconds: timeout), timeoutHandler);
       }).catchError((e) {
         // TODO(floitsch): should we try to report the stacktrace?
         print("Process error:");
@@ -543,9 +561,6 @@ class RunningProcess {
   }
 
   void _commandComplete(int exitCode) {
-    if (timeoutTimer != null) {
-      timeoutTimer.cancel();
-    }
     var commandOutput = _createCommandOutput(command, exitCode);
     completer.complete(commandOutput);
   }
@@ -571,11 +586,6 @@ class RunningProcess {
         pid);
     commandOutput.diagnostics.addAll(diagnostics);
     return commandOutput;
-  }
-
-  StreamSubscription _drainStream(
-      Stream<List<int>> source, OutputLog destination) {
-    return source.listen(destination.add);
   }
 
   Map<String, String> _createProcessEnvironment() {
@@ -1209,7 +1219,8 @@ class CommandExecutorImpl implements CommandExecutor {
       return _getBatchRunner(name)
           .runCommand(name, command, timeout, command.arguments);
     } else if (command is CompilationCommand &&
-        globalConfiguration.batchDart2JS) {
+        globalConfiguration.batchDart2JS &&
+        command.displayName == 'dart2js') {
       return _getBatchRunner("dart2js")
           .runCommand("dart2js", command, timeout, command.arguments);
     } else if (command is AnalysisCommand && globalConfiguration.batch) {
@@ -1243,6 +1254,12 @@ class CommandExecutorImpl implements CommandExecutor {
       var name = command.displayName;
       return _getBatchRunner(command.displayName + command.dartFile)
           .runCommand(name, command, timeout, command.arguments);
+    } else if (command is CompilationCommand &&
+        command.displayName == 'babel') {
+      return new RunningProcess(command, timeout,
+              configuration: globalConfiguration,
+              outputFile: io.File(command.outputFile))
+          .run();
     } else if (command is ProcessCommand) {
       return new RunningProcess(command, timeout,
               configuration: globalConfiguration)

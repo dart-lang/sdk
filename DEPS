@@ -168,7 +168,6 @@ deps = {
       }],
       "dep_type": "cipd",
   },
-
   Var("dart_root") + "/tests/co19_2/src": {
       "packages": [{
           "package": "dart/third_party/co19",
@@ -176,11 +175,16 @@ deps = {
       }],
       "dep_type": "cipd",
   },
-
   Var("dart_root") + "/third_party/markupsafe":
       Var("chromium_git") + "/chromium/src/third_party/markupsafe.git" +
       "@" + Var("markupsafe_rev"),
-
+  Var("dart_root") + "/third_party/babel": {
+      "packages": [{
+          "package": "dart/third_party/babel",
+          "version": "version:7.4.5",
+      }],
+      "dep_type": "cipd",
+  },
   Var("dart_root") + "/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
       "@" + Var("zlib_rev"),

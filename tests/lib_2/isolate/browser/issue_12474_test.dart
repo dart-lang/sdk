@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Note: the following comment is used by test.dart to additionally compile the
-// other isolate's code.
-// OtherScripts=issue_12474_child.dart
-// OtherScripts=package/issue_12474_lib.dart
-
 import 'dart:isolate';
 
 final SPAWN_PACKAGE_ROOT = Uri.parse(".");

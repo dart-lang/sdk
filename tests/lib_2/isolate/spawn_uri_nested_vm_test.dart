@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Example of nested spawning of isolates from a URI
-// Note: the following comment is used by test.dart to additionally compile the
-// other isolate's code.
-// OtherScripts=spawn_uri_nested_child1_vm_isolate.dart spawn_uri_nested_child2_vm_isolate.dart
 library NestedSpawnUriLibrary;
 
 import 'dart:isolate';
