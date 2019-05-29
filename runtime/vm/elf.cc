@@ -63,10 +63,6 @@ static const intptr_t DT_SYMTAB = 6;
 static const intptr_t DT_STRSZ = 10;
 static const intptr_t DT_SYMENT = 11;
 
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
-#define TARGET_ARCH_IS_32_BIT 1
-#endif
-
 #if defined(TARGET_ARCH_IS_32_BIT)
 static const intptr_t kElfHeaderSize = 52;
 static const intptr_t kElfSectionTableEntrySize = 40;

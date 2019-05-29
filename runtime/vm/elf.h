@@ -48,7 +48,7 @@ class Elf : public ZoneAllocated {
   void WriteOff(uword value) {
     stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
   }
-#if defined(ARCH_IS_64_BIT)
+#if defined(TARGET_ARCH_IS_64_BIT)
   void WriteXWord(uint64_t value) {
     stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
   }
