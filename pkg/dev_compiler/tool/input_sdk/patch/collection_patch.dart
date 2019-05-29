@@ -303,8 +303,9 @@ class _HashSet<E> extends _InternalSet<E>
   }
 }
 
-class ImmutableSet<E> extends _HashSet<E> {
-  ImmutableSet.from(JSArray entries) {
+// Used for DDC const sets.
+class _ImmutableSet<E> extends _HashSet<E> {
+  _ImmutableSet.from(JSArray entries) {
     var map = _map;
     for (Object key in entries) {
       if (key == null) {
@@ -323,7 +324,7 @@ class ImmutableSet<E> extends _HashSet<E> {
   bool remove(Object key) => throw _unsupported();
 
   static Error _unsupported() =>
-      UnsupportedError("Cannot modify unmodifiable map");
+      UnsupportedError("Cannot modify unmodifiable set");
 }
 
 class _IdentityHashSet<E> extends _InternalSet<E>

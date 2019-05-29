@@ -548,6 +548,14 @@ Map<K, V> constMap<K, V>(JSArray elements) {
 }
 
 final constantSets = JS('', 'new Map()');
+var _immutableSetConstructor;
+
+// We cannot invoke private class constructors directly in Dart.
+Set<E> _createImmutableSet<E>(JSArray<E> elements) {
+  _immutableSetConstructor ??=
+      JS('', '#.#', getLibrary('dart:collection'), '_ImmutableSet\$');
+  return JS('', 'new (#(#)).from(#)', _immutableSetConstructor, E, elements);
+}
 
 Set<E> constSet<E>(JSArray<E> elements) {
   var count = elements.length;
@@ -557,7 +565,7 @@ Set<E> constSet<E>(JSArray<E> elements) {
   }
   var result = JS('', '#.get(#)', map, E);
   if (result != null) return result;
-  result = ImmutableSet<E>.from(elements);
+  result = _createImmutableSet<E>(elements);
   JS('', '#.set(#, #)', map, E, result);
   return result;
 }

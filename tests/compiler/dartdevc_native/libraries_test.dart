@@ -9,10 +9,12 @@ import 'dart:_runtime' as dart;
 part 'libraries_part.dart';
 
 void main() {
+  // Test getLibraries()
   var libraries = dart.getLibraries();
   Expect.isTrue(libraries.contains('dart:core'));
   Expect.isTrue(libraries.contains('package:expect/expect.dart'));
 
+  // Test getParts(...)
   var expectParts = dart.getParts('package:expect/expect.dart');
   Expect.isTrue(expectParts.isEmpty);
 
@@ -22,4 +24,9 @@ void main() {
   var testParts = dart.getParts(testLibraries.first);
   Expect.isTrue(testParts.length == 1);
   Expect.isTrue(testParts.first.endsWith('libraries_part.dart'));
+
+  // Test getLibrary(...)
+  var core = dart.getLibrary('dart:core');
+  var stackTraceType = dart.wrapType(JS('', '#.StackTrace', core));
+  Expect.equals(StackTrace, stackTraceType);
 }

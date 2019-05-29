@@ -155,24 +155,40 @@ void trackLibraries(
 }
 
 List<String> _libraries;
+Map<String, Object> _libraryObjects;
 Map<String, List<String>> _parts;
 
 _computeLibraryMetadata() {
   _libraries = [];
+  _libraryObjects = {};
   _parts = {};
   var modules = getModuleNames();
   for (var name in modules) {
     // Add libraries from each module.
     var module = getModuleLibraries(name);
-    _libraries.addAll(getOwnPropertyNames(module).cast());
+    var libraries = getOwnPropertyNames(module).cast<String>();
+    _libraries.addAll(libraries);
+    for (var library in libraries) {
+      _libraryObjects[library] = JS('', '#.#', module, library);
+    }
 
     // Add parts from each module.
     var partMap = getModulePartMap(name);
-    List<String> libraries = List.from(getOwnPropertyNames(partMap));
+    libraries = getOwnPropertyNames(partMap).cast<String>();
     for (var library in libraries) {
       _parts[library] = List.from(JS('List', '#.#', partMap, library));
     }
   }
+}
+
+/// Returns the JS library object for a given library [uri] or
+/// undefined / null if it isn't loaded.  Top-level types and
+/// methods are available on this object.
+Object getLibrary(String uri) {
+  if (_libraryObjects == null) {
+    _computeLibraryMetadata();
+  }
+  return _libraryObjects[uri];
 }
 
 /// Returns a JSArray of library uris (e.g,
