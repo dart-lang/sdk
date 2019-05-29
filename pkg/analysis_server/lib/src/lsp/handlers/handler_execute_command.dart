@@ -33,7 +33,8 @@ class ExecuteCommandHandler
   LspJsonHandler<ExecuteCommandParams> get jsonHandler =>
       ExecuteCommandParams.jsonHandler;
 
-  Future<ErrorOr<Object>> handle(ExecuteCommandParams params) async {
+  Future<ErrorOr<Object>> handle(
+      ExecuteCommandParams params, CancellationToken token) async {
     final handler = commandHandlers[params.command];
     if (handler == null) {
       return error(ServerErrorCodes.UnknownCommand,

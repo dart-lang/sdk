@@ -19,7 +19,8 @@ class InitializeMessageHandler
   LspJsonHandler<InitializeParams> get jsonHandler =>
       InitializeParams.jsonHandler;
 
-  ErrorOr<InitializeResult> handle(InitializeParams params) {
+  ErrorOr<InitializeResult> handle(
+      InitializeParams params, CancellationToken token) {
     final openWorkspacePaths = <String>[];
 
     // The onlyAnalyzeProjectsWithOpenFiles flag allows opening huge folders

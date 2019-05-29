@@ -8,6 +8,17 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 
 const jsonRpcVersion = '2.0';
 
+const NullJsonHandler = const LspJsonHandler<Null>(_alwaysTrue, _alwaysNull);
+
+ErrorOr<R> cancelled<R>([R t]) =>
+    error(ErrorCodes.RequestCancelled, 'Request was cancelled', null);
+
+ErrorOr<R> error<R>(ErrorCodes code, String message, [String data]) =>
+    new ErrorOr<R>.error(new ResponseError(code, message, data));
+
+ErrorOr<R> failure<R>(ErrorOr<dynamic> error) =>
+    new ErrorOr<R>.error(error.error);
+
 Object specToJson(Object obj) {
   if (obj is ToJsonable) {
     return obj.toJson();
@@ -15,6 +26,12 @@ Object specToJson(Object obj) {
     return obj;
   }
 }
+
+ErrorOr<R> success<R>([R t]) => new ErrorOr<R>.success(t);
+
+Null _alwaysNull(_) => null;
+
+bool _alwaysTrue(_) => true;
 
 class Either2<T1, T2> {
   final int _which;
@@ -38,6 +55,9 @@ class Either2<T1, T2> {
   }
 
   Object toJson() => map(specToJson, specToJson);
+
+  @override
+  String toString() => map((t) => t.toString(), (t) => t.toString());
 
   /// Checks whether the value of the union equals the supplied value.
   bool valueEquals(o) => map((t) => t == o, (t) => t == o);
@@ -82,6 +102,13 @@ class Either3<T1, T2, T3> {
   }
 
   Object toJson() => map(specToJson, specToJson, specToJson);
+
+  @override
+  String toString() => map(
+        (t) => t.toString(),
+        (t) => t.toString(),
+        (t) => t.toString(),
+      );
 
   /// Checks whether the value of the union equals the supplied value.
   bool valueEquals(o) => map((t) => t == o, (t) => t == o, (t) => t == o);
@@ -144,6 +171,14 @@ class Either4<T1, T2, T3, T4> {
 
   Object toJson() => map(specToJson, specToJson, specToJson, specToJson);
 
+  @override
+  String toString() => map(
+        (t) => t.toString(),
+        (t) => t.toString(),
+        (t) => t.toString(),
+        (t) => t.toString(),
+      );
+
   /// Checks whether the value of the union equals the supplied value.
   bool valueEquals(o) =>
       map((t) => t == o, (t) => t == o, (t) => t == o, (t) => t == o);
@@ -197,10 +232,6 @@ class LspJsonHandler<T> {
 
   const LspJsonHandler(this.validateParams, this.convertParams);
 }
-
-bool _alwaysTrue(_) => true;
-Null _alwaysNull(_) => null;
-const NullJsonHandler = const LspJsonHandler<Null>(_alwaysTrue, _alwaysNull);
 
 abstract class ToJsonable {
   Object toJson();

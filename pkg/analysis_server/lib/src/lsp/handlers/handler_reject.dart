@@ -21,7 +21,7 @@ class RejectMessageHandler extends MessageHandler<Object, void> {
   LspJsonHandler<void> get jsonHandler => NullJsonHandler;
 
   @override
-  ErrorOr<void> handle(void _) {
+  ErrorOr<void> handle(void _, CancellationToken token) {
     return error(errorCode, errorMessage, null);
   }
 }

@@ -33,7 +33,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       CodeActionParams.jsonHandler;
 
   Future<ErrorOr<List<Either2<Command, CodeAction>>>> handle(
-      CodeActionParams params) async {
+      CodeActionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }

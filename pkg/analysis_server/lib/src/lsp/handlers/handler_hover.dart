@@ -23,7 +23,8 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
   LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
       TextDocumentPositionParams.jsonHandler;
 
-  Future<ErrorOr<Hover>> handle(TextDocumentPositionParams params) async {
+  Future<ErrorOr<Hover>> handle(
+      TextDocumentPositionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }

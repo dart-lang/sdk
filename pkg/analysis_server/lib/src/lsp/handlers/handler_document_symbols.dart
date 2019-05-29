@@ -48,7 +48,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
       DocumentSymbolParams.jsonHandler;
 
   Future<ErrorOr<Either2<List<DocumentSymbol>, List<SymbolInformation>>>>
-      handle(DocumentSymbolParams params) async {
+      handle(DocumentSymbolParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(
         Either2<List<DocumentSymbol>, List<SymbolInformation>>.t2([]),

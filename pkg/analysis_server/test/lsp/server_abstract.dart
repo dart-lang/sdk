@@ -194,7 +194,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         changes,
       ),
     );
-    sendNotificationToServer(notification);
+    await sendNotificationToServer(notification);
   }
 
   Future changeWorkspaceFolders({List<Uri> add, List<Uri> remove}) async {
@@ -207,7 +207,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         ),
       ),
     );
-    sendNotificationToServer(notification);
+    await sendNotificationToServer(notification);
   }
 
   Future closeFile(Uri uri) async {
@@ -216,7 +216,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       new DidCloseTextDocumentParams(
           new TextDocumentIdentifier(uri.toString())),
     );
-    sendNotificationToServer(notification);
+    await sendNotificationToServer(notification);
   }
 
   Future<Object> executeCommand(Command command) async {
@@ -568,7 +568,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     if (response.error == null) {
       final notification =
           makeNotification(Method.initialized, new InitializedParams());
-      sendNotificationToServer(notification);
+      await sendNotificationToServer(notification);
       await pumpEventQueue();
     } else if (throwOnFailure) {
       throw 'Error during initialize request: '
@@ -605,7 +605,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       new DidOpenTextDocumentParams(new TextDocumentItem(
           uri.toString(), dartLanguageId, version, content)),
     );
-    sendNotificationToServer(notification);
+    await sendNotificationToServer(notification);
     await pumpEventQueue();
   }
 

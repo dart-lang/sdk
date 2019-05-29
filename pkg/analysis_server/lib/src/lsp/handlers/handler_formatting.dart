@@ -32,7 +32,7 @@ class FormattingHandler
   }
 
   Future<ErrorOr<List<TextEdit>>> handle(
-      DocumentFormattingParams params) async {
+      DocumentFormattingParams params, CancellationToken token) async {
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) => formatFile(path));
   }

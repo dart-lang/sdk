@@ -21,7 +21,8 @@ class WorkspaceFoldersHandler
   LspJsonHandler<DidChangeWorkspaceFoldersParams> get jsonHandler =>
       DidChangeWorkspaceFoldersParams.jsonHandler;
 
-  ErrorOr<void> handle(DidChangeWorkspaceFoldersParams params) {
+  ErrorOr<void> handle(
+      DidChangeWorkspaceFoldersParams params, CancellationToken token) {
     // Don't do anything if our analysis roots are not based on open workspaces.
     if (!updateAnalysisRoots) {
       return success();

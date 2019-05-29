@@ -24,7 +24,7 @@ class WorkspaceSymbolHandler
       WorkspaceSymbolParams.jsonHandler;
 
   Future<ErrorOr<List<SymbolInformation>>> handle(
-      WorkspaceSymbolParams params) async {
+      WorkspaceSymbolParams params, CancellationToken token) async {
     // Respond to empty queries with an empty list. The spec says this should
     // be non-empty, however VS Code's client sends empty requests (but then
     // appears to not render the results we supply anyway).
@@ -55,6 +55,9 @@ class WorkspaceSymbolHandler
     for (var driver in server.driverMap.values) {
       final driverResults = await driver.search
           .declarations(regex, remainingResults, filePathsHashSet);
+      if (token.isCancellationRequested) {
+        return cancelled();
+      }
       declarations.addAll(driverResults);
       remainingResults -= driverResults.length;
     }

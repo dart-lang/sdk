@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_cancel_request.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -19,6 +20,22 @@ Iterable<T> convert<T, E>(Iterable<E> items, T Function(E) converter) {
   return items.map(converter).where((item) => item != null);
 }
 
+class CancelableToken extends CancellationToken {
+  bool _isCancelled = false;
+
+  @override
+  bool get isCancellationRequested => _isCancelled;
+
+  void cancel() => _isCancelled = true;
+}
+
+/// A token used to signal cancellation of an operation. This allows computation
+/// to be skipped when a caller is no longer interested in the result, for example
+/// when a $/cancel request is recieved for an in-progress request.
+abstract class CancellationToken {
+  bool get isCancellationRequested;
+}
+
 abstract class CommandHandler<P, R> with Handler<P, R> {
   CommandHandler(LspAnalysisServer server) {
     this.server = server;
@@ -29,12 +46,6 @@ abstract class CommandHandler<P, R> with Handler<P, R> {
 
 mixin Handler<P, R> {
   LspAnalysisServer server;
-
-  ErrorOr<R> error<R>(ErrorCodes code, String message, String data) =>
-      new ErrorOr<R>.error(new ResponseError(code, message, data));
-
-  ErrorOr<R> failure<R>(ErrorOr<dynamic> error) =>
-      new ErrorOr<R>.error(error.error);
 
   Future<ErrorOr<ResolvedUnitResult>> requireResolvedUnit(String path) async {
     final result = await server.getResolvedUnit(path);
@@ -51,8 +62,6 @@ mixin Handler<P, R> {
     }
     return success(result);
   }
-
-  ErrorOr<R> success<R>([R t]) => new ErrorOr<R>.success(t);
 }
 
 /// An object that can handle messages and produce responses for requests.
@@ -69,41 +78,73 @@ abstract class MessageHandler<P, R> with Handler<P, R> {
   /// A handler that can parse and validate JSON params.
   LspJsonHandler<P> get jsonHandler;
 
-  FutureOr<ErrorOr<R>> handle(P params);
+  FutureOr<ErrorOr<R>> handle(P params, CancellationToken token);
 
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the
   /// return value will be sent back in a [ResponseMessage].
   /// [NotificationMessage]s are not expected to return results.
-  FutureOr<ErrorOr<R>> handleMessage(IncomingMessage message) {
+  FutureOr<ErrorOr<R>> handleMessage(
+      IncomingMessage message, CancellationToken token) {
     if (!jsonHandler.validateParams(message.params)) {
       return error(ErrorCodes.InvalidParams,
           'Invalid params for ${message.method}', null);
     }
 
     final params = jsonHandler.convertParams(message.params);
-    return handle(params);
+    return handle(params, token);
   }
+}
+
+class NotCancelableToken extends CancellationToken {
+  @override
+  bool get isCancellationRequested => false;
 }
 
 /// A message handler that handles all messages for a given server state.
 abstract class ServerStateMessageHandler {
   final LspAnalysisServer server;
   final Map<Method, MessageHandler> _messageHandlers = {};
+  final CancelRequestHandler _cancelHandler;
+  final NotCancelableToken _notCancelableToken = NotCancelableToken();
 
-  ServerStateMessageHandler(this.server);
-
-  ErrorOr<Object> failure<Object>(ErrorCodes code, String message,
-          [String data]) =>
-      new ErrorOr<Object>.error(new ResponseError(code, message, data));
+  ServerStateMessageHandler(this.server)
+      : _cancelHandler = CancelRequestHandler(server) {
+    registerHandler(_cancelHandler);
+  }
 
   /// Handle the given [message]. If the [message] is a [RequestMessage], then the
   /// return value will be sent back in a [ResponseMessage].
   /// [NotificationMessage]s are not expected to return results.
   FutureOr<ErrorOr<Object>> handleMessage(IncomingMessage message) async {
     final handler = _messageHandlers[message.method];
-    return handler != null
-        ? handler.handleMessage(message)
-        : handleUnknownMessage(message);
+    if (handler == null) {
+      return handleUnknownMessage(message);
+    }
+
+    // Create a cancellation token that will allow us to cancel this request if
+    // requested to save processing (the handler will need to specifically
+    // check the token after `await` points).
+    //
+    // Notifications cannot be cancelled so they get a fake token that will never
+    // cancel so that they can share the same APIs with cancellable requests.
+    final token = message is RequestMessage
+        ? _cancelHandler.createToken(message)
+        : _notCancelableToken;
+
+    try {
+      final result = await handler.handleMessage(message, token);
+      // Do a final check before returning the result, because if the request was
+      // cancelled we can save the overhead of serialising everything to JSON
+      // and the client to deserialising the same in order to read the ID to see
+      // that it was a request it didn't need (in the case of completions this
+      // can be quite large).
+      await Future.delayed(Duration.zero);
+      return token.isCancellationRequested ? cancelled() : result;
+    } finally {
+      if (message is RequestMessage) {
+        _cancelHandler.clearToken(message);
+      }
+    }
   }
 
   FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
@@ -112,8 +153,7 @@ abstract class ServerStateMessageHandler {
     // to so they don't leave open requests on the client.
     return _isOptionalNotification(message)
         ? success()
-        : failure(
-            ErrorCodes.MethodNotFound, 'Unknown method ${message.method}');
+        : error(ErrorCodes.MethodNotFound, 'Unknown method ${message.method}');
   }
 
   registerHandler(MessageHandler handler) {
@@ -128,8 +168,6 @@ abstract class ServerStateMessageHandler {
   reject(Method method, ErrorCodes code, String message) {
     registerHandler(new RejectMessageHandler(server, method, code, message));
   }
-
-  ErrorOr<Object> success<Object>([Object t]) => new ErrorOr<Object>.success(t);
 
   bool _isOptionalNotification(IncomingMessage message) {
     // Not a notification.

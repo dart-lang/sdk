@@ -24,7 +24,7 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
   LspJsonHandler<InitializedParams> get jsonHandler =>
       InitializedParams.jsonHandler;
 
-  ErrorOr<void> handle(InitializedParams params) {
+  ErrorOr<void> handle(InitializedParams params, CancellationToken token) {
     server.messageHandler = new InitializedStateMessageHandler(
       server,
       onlyAnalyzeProjectsWithOpenFiles,
