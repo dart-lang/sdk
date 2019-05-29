@@ -3609,7 +3609,7 @@ class B<T2, U2> {
     expect(typeName.type.toString(), 'A<T2, U2>');
 
     var constructorMember = redirected.staticElement;
-    expect(constructorMember.toString(), 'A.named() → A<T2, U2>');
+    expect(constructorMember.toString(), 'A<T2, U2> A.named()');
     expect(redirected.name.staticElement, constructorMember);
   }
 
@@ -3646,7 +3646,7 @@ class B<T2, U2> {
     expect(typeName.type.toString(), 'A<T2, U2>');
 
     expect(redirected.name, isNull);
-    expect(redirected.staticElement.toString(), 'A() → A<T2, U2>');
+    expect(redirected.staticElement.toString(), 'A<T2, U2> A()');
   }
 
   test_redirectingConstructor_propagation() async {

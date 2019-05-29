@@ -73,26 +73,27 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
     ConstructorElement baseElement = this.baseElement;
     List<ParameterElement> parameters = this.parameters;
     FunctionType type = this.type;
+
     StringBuffer buffer = new StringBuffer();
+    if (type != null) {
+      buffer.write(type.returnType);
+      buffer.write(' ');
+    }
     buffer.write(baseElement.enclosingElement.displayName);
     String name = displayName;
     if (name != null && !name.isEmpty) {
-      buffer.write(".");
+      buffer.write('.');
       buffer.write(name);
     }
-    buffer.write("(");
+    buffer.write('(');
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
-        buffer.write(", ");
+        buffer.write(', ');
       }
       buffer.write(parameters[i]);
     }
-    buffer.write(")");
-    if (type != null) {
-      buffer.write(ElementImpl.RIGHT_ARROW);
-      buffer.write(type.returnType);
-    }
+    buffer.write(')');
     return buffer.toString();
   }
 
@@ -621,28 +622,33 @@ class MethodMember extends ExecutableMember implements MethodElement {
     MethodElement baseElement = this.baseElement;
     List<ParameterElement> parameters = this.parameters;
     FunctionType type = this.type;
+
     StringBuffer buffer = new StringBuffer();
+    if (type != null) {
+      buffer.write(type.returnType);
+      buffer.write(' ');
+    }
     buffer.write(baseElement.enclosingElement.displayName);
-    buffer.write(".");
+    buffer.write('.');
     buffer.write(baseElement.displayName);
     int typeParameterCount = typeParameters.length;
     if (typeParameterCount > 0) {
       buffer.write('<');
       for (int i = 0; i < typeParameterCount; i++) {
         if (i > 0) {
-          buffer.write(", ");
+          buffer.write(', ');
         }
         (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
       }
       buffer.write('>');
     }
-    buffer.write("(");
+    buffer.write('(');
     String closing = null;
     ParameterKind kind = ParameterKind.REQUIRED;
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
-        buffer.write(", ");
+        buffer.write(', ');
       }
       ParameterElement parameter = parameters[i];
       // ignore: deprecated_member_use_from_same_package
@@ -652,11 +658,11 @@ class MethodMember extends ExecutableMember implements MethodElement {
           buffer.write(closing);
         }
         if (parameter.isOptionalPositional) {
-          buffer.write("[");
-          closing = "]";
+          buffer.write('[');
+          closing = ']';
         } else if (parameter.isNamed) {
-          buffer.write("{");
-          closing = "}";
+          buffer.write('{');
+          closing = '}';
         } else {
           closing = null;
         }
@@ -667,11 +673,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
     if (closing != null) {
       buffer.write(closing);
     }
-    buffer.write(")");
-    if (type != null) {
-      buffer.write(ElementImpl.RIGHT_ARROW);
-      buffer.write(type.returnType);
-    }
+    buffer.write(')');
     return buffer.toString();
   }
 
@@ -852,28 +854,29 @@ class PropertyAccessorMember extends ExecutableMember
     PropertyAccessorElement baseElement = this.baseElement;
     List<ParameterElement> parameters = this.parameters;
     FunctionType type = this.type;
+
     StringBuffer builder = new StringBuffer();
+    if (type != null) {
+      builder.write(type.returnType);
+      builder.write(' ');
+    }
     if (isGetter) {
-      builder.write("get ");
+      builder.write('get ');
     } else {
-      builder.write("set ");
+      builder.write('set ');
     }
     builder.write(baseElement.enclosingElement.displayName);
-    builder.write(".");
+    builder.write('.');
     builder.write(baseElement.displayName);
-    builder.write("(");
+    builder.write('(');
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
-        builder.write(", ");
+        builder.write(', ');
       }
       builder.write(parameters[i]);
     }
-    builder.write(")");
-    if (type != null) {
-      builder.write(ElementImpl.RIGHT_ARROW);
-      builder.write(type.returnType);
-    }
+    builder.write(')');
     return builder.toString();
   }
 

@@ -2709,6 +2709,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   void appendTo(StringBuffer buffer) {
+    String name;
     if (enclosingElement == null) {
       String message;
       String name = displayName;
@@ -2719,16 +2720,15 @@ class ConstructorElementImpl extends ExecutableElementImpl
         message = 'Found unnamed constructor element with no enclosing element';
       }
       AnalysisEngine.instance.logger.logError(message);
-      buffer.write('<unknown class>');
+      name = '<unknown class>';
     } else {
-      buffer.write(enclosingElement.displayName);
+      name = enclosingElement.displayName;
     }
-    String name = displayName;
-    if (name != null && !name.isEmpty) {
-      buffer.write(".");
-      buffer.write(name);
+    String constructorName = displayName;
+    if (constructorName != null && !constructorName.isEmpty) {
+      name = '$name.$constructorName';
     }
-    super.appendTo(buffer);
+    appendToWithName(buffer, name);
   }
 
   @deprecated
@@ -3213,6 +3213,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
 /// A base class for concrete implementations of an [Element].
 abstract class ElementImpl implements Element {
   /// An Unicode right arrow.
+  @deprecated
   static final String RIGHT_ARROW = " \u2192 ";
 
   static int _NEXT_ID = 0;
@@ -4624,6 +4625,23 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   void appendTo(StringBuffer buffer) {
+    appendToWithName(buffer, displayName);
+  }
+
+  /// Append a textual representation of this element to the given [buffer]. The
+  /// [name] is the name of the executable element or `null` if the element has
+  /// no name. If [includeType] is `true` then the return type will be included.
+  void appendToWithName(StringBuffer buffer, String name) {
+    FunctionType functionType = type;
+    if (functionType != null) {
+      buffer.write(functionType.returnType);
+      if (name != null) {
+        buffer.write(' ');
+        buffer.write(name);
+      }
+    } else if (name != null) {
+      buffer.write(name);
+    }
     if (this.kind != ElementKind.GETTER) {
       int typeParameterCount = typeParameters.length;
       if (typeParameterCount > 0) {
@@ -4671,10 +4689,6 @@ abstract class ExecutableElementImpl extends ElementImpl
         buffer.write(closing);
       }
       buffer.write(')');
-    }
-    if (type != null) {
-      buffer.write(ElementImpl.RIGHT_ARROW);
-      buffer.write(type.returnType);
     }
   }
 
@@ -5184,15 +5198,6 @@ class FunctionElementImpl extends ExecutableElementImpl
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
-
-  @override
-  void appendTo(StringBuffer buffer) {
-    String name = displayName;
-    if (name != null) {
-      buffer.write(name);
-    }
-    super.appendTo(buffer);
-  }
 
   @deprecated
   @override
@@ -7264,12 +7269,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
 
-  @override
-  void appendTo(StringBuffer buffer) {
-    buffer.write(displayName);
-    super.appendTo(buffer);
-  }
-
   @deprecated
   @override
   MethodDeclaration computeNode() =>
@@ -9043,9 +9042,8 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   void appendTo(StringBuffer buffer) {
-    buffer.write(isGetter ? "get " : "set ");
-    buffer.write(variable.displayName);
-    super.appendTo(buffer);
+    super.appendToWithName(
+        buffer, (isGetter ? 'get ' : 'set ') + variable.displayName);
   }
 
   @deprecated

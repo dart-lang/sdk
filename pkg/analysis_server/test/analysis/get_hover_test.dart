@@ -92,7 +92,7 @@ main() {
       expect(hover.length, 'new A.named()'.length);
       // element
       expect(hover.dartdoc, 'my doc');
-      expect(hover.elementDescription, 'A.named() → A');
+      expect(hover.elementDescription, 'A A.named()');
       expect(hover.elementKind, 'constructor');
     }
 
@@ -125,7 +125,7 @@ main() {
         normalize('$windowsCColon/project/bin/test.dart'));
     expect(hover.containingLibraryPath, testFile);
     expect(hover.dartdoc, isNull);
-    expect(hover.elementDescription, '(const) A(int i) → A');
+    expect(hover.elementDescription, '(const) A A(int i)');
     expect(hover.elementKind, 'constructor');
     // types
     expect(hover.staticType, isNull);
@@ -151,7 +151,7 @@ main() {
         normalize('$windowsCColon/project/bin/test.dart'));
     expect(hover.containingLibraryPath, testFile);
     expect(hover.dartdoc, isNull);
-    expect(hover.elementDescription, '(new) A() → A');
+    expect(hover.elementDescription, '(new) A A()');
     expect(hover.elementKind, 'constructor');
     // types
     expect(hover.staticType, isNull);
@@ -178,7 +178,7 @@ main() {
         normalize('$windowsCColon/project/bin/test.dart'));
     expect(hover.containingLibraryPath, testFile);
     expect(hover.dartdoc, isNull);
-    expect(hover.elementDescription, 'A() → A');
+    expect(hover.elementDescription, 'A A()');
     expect(hover.elementKind, 'constructor');
     // types
     expect(hover.staticType, isNull);
@@ -204,7 +204,7 @@ main() {
           normalize('$windowsCColon/project/bin/test.dart'));
       expect(hover.containingLibraryPath, testFile);
       expect(hover.dartdoc, isNull);
-      expect(hover.elementDescription, 'A() → A<String>');
+      expect(hover.elementDescription, 'A<String> A()');
       expect(hover.elementKind, 'constructor');
       // types
       expect(hover.staticType, isNull);
@@ -344,7 +344,7 @@ List<String> fff(int a, String b) {
     expect(hover.containingLibraryPath, testFile);
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-    expect(hover.elementDescription, 'fff(int a, String b) → List<String>');
+    expect(hover.elementDescription, 'List<String> fff(int a, String b)');
     expect(hover.elementKind, 'function');
     // types
     expect(hover.staticType, isNull);
@@ -511,7 +511,7 @@ class A {
     expect(hover.containingLibraryPath, testFile);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-    expect(hover.elementDescription, 'mmm(int a, String b) → List<String>');
+    expect(hover.elementDescription, 'List<String> mmm(int a, String b)');
     expect(hover.elementKind, 'method');
     // types
     expect(hover.staticType, isNull);
@@ -539,7 +539,7 @@ main(A a) {
     expect(hover.containingLibraryName,
         normalize('$windowsCColon/project/bin/test.dart'));
     expect(hover.containingLibraryPath, testFile);
-    expect(hover.elementDescription, 'mmm(int a, String b) → List<String>');
+    expect(hover.elementDescription, 'List<String> mmm(int a, String b)');
     expect(hover.elementKind, 'method');
     expect(hover.isDeprecated, isFalse);
     // types
@@ -562,7 +562,7 @@ main() {
     HoverInformation hover = await prepareHover('test();');
     // element
     expect(hover.containingLibraryPath, testFile);
-    expect(hover.elementDescription, 'test() → void');
+    expect(hover.elementDescription, 'void test()');
     expect(hover.elementKind, 'method');
     expect(hover.isDeprecated, isTrue);
   }
@@ -589,7 +589,7 @@ f(Stream<int> s) {
         normalize('$windowsCColon/project/bin/test.dart'));
     expect(hover.containingLibraryPath, testFile);
     expect(hover.elementDescription,
-        'Stream.transform<S>(StreamTransformer<int, S> streamTransformer) → Stream<S>');
+        'Stream<S> Stream.transform<S>(StreamTransformer<int, S> streamTransformer)');
     expect(hover.elementKind, 'method');
     expect(hover.isDeprecated, isFalse);
     // types

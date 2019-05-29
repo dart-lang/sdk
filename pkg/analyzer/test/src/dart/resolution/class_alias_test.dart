@@ -26,7 +26,7 @@ class X = A with M;
 ''');
     await resolveTestFile();
     assertNoTestErrors();
-    assertConstructors(findElement.class_('X'), ['X() → X']);
+    assertConstructors(findElement.class_('X'), ['X X()']);
   }
 
   test_element() async {
@@ -83,8 +83,8 @@ class C1 = A with M1;
     await resolveTestFile();
     assertNoTestErrors();
 
-    assertConstructors(findElement.class_('C1'), ['C1(int i) → C1']);
-    assertConstructors(findElement.class_('C2'), ['C2(int i) → C2']);
+    assertConstructors(findElement.class_('C1'), ['C1 C1(int i)']);
+    assertConstructors(findElement.class_('C2'), ['C2 C2(int i)']);
   }
 
   test_implicitConstructors_optionalParameters() async {
@@ -105,9 +105,9 @@ class C = A with M;
     assertConstructors(
       findElement.class_('C'),
       [
-        'C.c1(int a) → C',
-        'C.c2(int a, [int b, int c]) → C',
-        'C.c3(int a, {int b, int c}) → C'
+        'C C.c1(int a)',
+        'C C.c2(int a, [int b, int c])',
+        'C C.c3(int a, {int b, int c})'
       ],
     );
   }
@@ -125,6 +125,6 @@ class B<E extends num> = A<E> with M;
     await resolveTestFile();
     assertNoTestErrors();
 
-    assertConstructors(findElement.class_('B'), ['B(E x, E y) → B<E>']);
+    assertConstructors(findElement.class_('B'), ['B<E> B(E x, E y)']);
   }
 }
