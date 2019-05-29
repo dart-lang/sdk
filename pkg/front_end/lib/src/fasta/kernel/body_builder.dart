@@ -509,7 +509,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
 
       ConstantContext savedConstantContext = pop();
-      if (expression is! StaticAccessGenerator) {
+      if (expression is! StaticAccessGenerator &&
+          expression is! VariableUseGenerator) {
         push(wrapInProblem(
             toValue(expression), fasta.messageExpressionNotMetadata, noLength));
       } else {
