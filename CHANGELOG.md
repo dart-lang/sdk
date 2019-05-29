@@ -4,8 +4,19 @@
 
 ### Language
 
+*   **Breaking change:** Covariance of type variables used in super-interfaces
+    is now enforced (issue [35097][]).  For example, the following code was
+    previously accepted and will now be rejected:
+
+```dart
+class A<X> {};
+class B<X> extends A<void Function(X)> {};
+```
+
 * The identifier `async` can now be used in asynchronous and generator
   functions.
+
+[35097]: https://github.com/dart-lang/sdk/issues/35097
 
 ### Core libraries
 
