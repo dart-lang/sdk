@@ -88,8 +88,10 @@ class IOPipeline extends Pipeline<IOModularStep> {
   /// Delete folders that were kept around either because of
   /// [saveIntermediateResultsForTesting] or because of [cacheSharedModules].
   Future<void> cleanup() async {
+    if (_resultsFolderUri == null) return;
     if (saveIntermediateResultsForTesting || cacheSharedModules) {
       await Directory.fromUri(_resultsFolderUri).delete(recursive: true);
+      _resultsFolderUri = null;
     }
   }
 

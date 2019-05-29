@@ -7,49 +7,26 @@
 /// This is a shell that runs multiple tests, one per folder under `data/`.
 import 'dart:io';
 
-import 'package:args/args.dart';
-import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:modular_test/src/io_pipeline.dart';
-import 'package:modular_test/src/loader.dart';
 import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/suite.dart';
+import 'package:modular_test/src/runner.dart';
 
-_Options _options;
-main(List<String> args) {
-  _options = _Options.parse(args);
-  asyncTest(() async {
-    var baseUri = Platform.script.resolve('data/');
-    var baseDir = Directory.fromUri(baseUri);
-    var pipeline = new IOPipeline([
-      SourceToDillStep(),
-      GlobalAnalysisStep(),
-      Dart2jsBackendStep(),
-      RunD8(),
-    ], cacheSharedModules: true);
-    await for (var entry in baseDir.list(recursive: false)) {
-      if (entry is Directory) {
-        await _runTest(pipeline, entry.uri, baseUri);
-      }
-    }
-
-    await pipeline.cleanup();
-  });
-}
-
-Future<void> _runTest(IOPipeline pipeline, Uri uri, Uri baseDir) async {
-  var dirName = uri.path.substring(baseDir.path.length);
-  if (_options.filter != null && !dirName.contains(_options.filter)) {
-    if (_options.showSkipped) print("skipped: $dirName");
-    return;
-  }
-
-  print("testing: $dirName");
-  ModularTest test = await loadTest(uri);
-  if (_options.verbose) print(test.debugString());
-  await pipeline.run(test);
+Options _options;
+main(List<String> args) async {
+  _options = Options.parse(args);
+  await runSuite(
+      Platform.script.resolve('data/'),
+      _options,
+      new IOPipeline([
+        SourceToDillStep(),
+        GlobalAnalysisStep(),
+        Dart2jsBackendStep(),
+        RunD8(),
+      ], cacheSharedModules: true));
 }
 
 const dillId = const DataId("dill");
@@ -342,28 +319,4 @@ String get _d8executable {
     return 'third_party/d8/macos/d8';
   }
   throw new UnsupportedError('Unsupported platform.');
-}
-
-class _Options {
-  bool showSkipped = false;
-  bool verbose = false;
-  String filter = null;
-
-  static _Options parse(List<String> args) {
-    var parser = new ArgParser()
-      ..addFlag('verbose',
-          abbr: 'v',
-          defaultsTo: false,
-          help: "print detailed information about the test and modular steps")
-      ..addFlag('show-skipped',
-          defaultsTo: false,
-          help: "print the name of the tests skipped by the filtering option")
-      ..addOption('filter',
-          help: "only run tests containing this filter as a substring");
-    ArgResults argResults = parser.parse(args);
-    return _Options()
-      ..showSkipped = argResults['show-skipped']
-      ..verbose = argResults['verbose']
-      ..filter = argResults['filter'];
-  }
 }
