@@ -467,6 +467,10 @@ class CodeGenerator extends Object
   }
 
   @override
+  Iterable<String> jsPartDebuggerNames(LibraryElement library) =>
+      library.parts.map((part) => part.uri);
+
+  @override
   String libraryToModule(LibraryElement library) {
     var source = library.source;
     // TODO(jmesserly): we need to split out HTML.

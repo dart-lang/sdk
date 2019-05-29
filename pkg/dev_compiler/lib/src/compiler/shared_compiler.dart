@@ -108,6 +108,10 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   @protected
   String jsLibraryDebuggerName(Library library);
 
+  /// Debugger friendly names for all parts in a Dart [library].
+  @protected
+  Iterable<String> jsPartDebuggerNames(Library library);
+
   /// Gets the module import URI that contains [library].
   @protected
   String libraryToModule(Library library);
@@ -473,19 +477,25 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 
   void _emitDebuggerExtensionInfo(String name) {
     var properties = <JS.Property>[];
+    var parts = <JS.Property>[];
     _libraries.forEach((library, value) {
       // TODO(jacobr): we could specify a short library name instead of the
       // full library uri if we wanted to save space.
-      properties.add(
-          JS.Property(js.escapedString(jsLibraryDebuggerName(library)), value));
+      var libraryName = js.escapedString(jsLibraryDebuggerName(library));
+      properties.add(JS.Property(libraryName, value));
+      var partNames = jsPartDebuggerNames(library);
+      if (partNames.isNotEmpty) {
+        parts.add(JS.Property(libraryName, js.stringArray(partNames)));
+      }
     });
     var module = JS.ObjectInitializer(properties, multiline: true);
+    var partMap = JS.ObjectInitializer(parts, multiline: true);
 
     // Track the module name for each library in the module.
     // This data is only required for debugging.
     moduleItems.add(js.statement(
-        '#.trackLibraries(#, #, $sourceMapLocationID);',
-        [runtimeModule, js.string(name), module]));
+        '#.trackLibraries(#, #, #, $sourceMapLocationID);',
+        [runtimeModule, js.string(name), module, partMap]));
   }
 
   /// Finishes the module created by [startModule], by combining the preable

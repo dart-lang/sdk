@@ -341,6 +341,10 @@ class ProgramCompiler extends Object
   String jsLibraryDebuggerName(Library library) => '${library.importUri}';
 
   @override
+  Iterable<String> jsPartDebuggerNames(Library library) =>
+      library.parts.map((part) => part.partUri);
+
+  @override
   bool isSdkInternalRuntime(Library l) {
     var uri = l.importUri;
     return uri.scheme == 'dart' && uri.path == '_runtime';
