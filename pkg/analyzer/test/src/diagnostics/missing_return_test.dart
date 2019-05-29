@@ -32,10 +32,12 @@ int f() {
   }
 
   test_async() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 Future<int> f() async {}
-''', [HintCode.MISSING_RETURN]);
+''', [
+      error(HintCode.MISSING_RETURN, 21, 11),
+    ]);
   }
 
   test_async_futureOrVoid() async {
@@ -66,17 +68,21 @@ int f() => 0;
   }
 
   test_factory() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   factory A() {}
 }
-''', [HintCode.MISSING_RETURN]);
+''', [
+      error(HintCode.MISSING_RETURN, 12, 14),
+    ]);
   }
 
   test_function() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 int f() {}
-''', [HintCode.MISSING_RETURN]);
+''', [
+      error(HintCode.MISSING_RETURN, 0, 3),
+    ]);
   }
 
   test_functionExpression_declared() async {
@@ -105,20 +111,26 @@ main() {
   }
 
   test_functionExpression_futureOrInt() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 main() {
   FutureOr<int> Function() f = () { print(42); };
 }
-''', [HintCode.MISSING_RETURN]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+      error(HintCode.MISSING_RETURN, 61, 17),
+    ]);
   }
 
   test_functionExpression_inferred() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   int Function() f = () { print(42); };
 }
-''', [HintCode.MISSING_RETURN]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+      error(HintCode.MISSING_RETURN, 30, 17),
+    ]);
   }
 
   test_functionExpression_inferred_dynamic() async {
@@ -130,11 +142,14 @@ main() {
   }
 
   test_functionExpressionAsync_inferred() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   Future<int> Function() f = () async { print(42); }; 
 }
-''', [HintCode.MISSING_RETURN]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
+      error(HintCode.MISSING_RETURN, 38, 23),
+    ]);
   }
 
   test_functionExpressionAsync_inferred_dynamic() async {
@@ -146,11 +161,13 @@ main() {
   }
 
   test_method() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   int m() {}
 }
-''', [HintCode.MISSING_RETURN]);
+''', [
+      error(HintCode.MISSING_RETURN, 12, 3),
+    ]);
   }
 
   test_method_futureOrDynamic() async {
@@ -163,23 +180,27 @@ class A {
   }
 
   test_method_futureOrInt() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 class A {
   FutureOr<int> m() {}
 }
-''', [HintCode.MISSING_RETURN]);
+''', [
+      error(HintCode.MISSING_RETURN, 33, 13),
+    ]);
   }
 
   test_method_inferred() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int m();
 }
 class B extends A {
   m() {}
 }
-''', [HintCode.MISSING_RETURN]);
+''', [
+      error(HintCode.MISSING_RETURN, 54, 6),
+    ]);
   }
 
   test_noReturnType() async {
