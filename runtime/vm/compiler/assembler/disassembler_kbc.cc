@@ -330,7 +330,6 @@ void KernelBytecodeDisassembler::DecodeInstruction(char* hex_buffer,
                                                    uword pc) {
   const KBCInstr* instr = reinterpret_cast<const KBCInstr*>(pc);
   const KernelBytecode::Opcode opcode = KernelBytecode::DecodeOpcode(instr);
-  ASSERT(opcode < kOpcodeCount);
   const intptr_t instr_size = KernelBytecode::kInstructionSize[opcode];
 
   size_t name_size =
