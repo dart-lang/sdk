@@ -1,0 +1,144 @@
+diff --git a/ci/analyze.sh b/ci/analyze.sh
+index 9ee12a913..33d930238 100755
+--- a/ci/analyze.sh
++++ b/ci/analyze.sh
+@@ -32,6 +32,20 @@ if [ -n "$RESULTS" ]; then
+   exit 1;
+ fi
+ 
++echo "Analyzing flutter_kernel_transformers..."
++RESULTS=`dartanalyzer                                                          \
++  --packages=flutter/flutter_kernel_transformers/.packages                     \
++  --options flutter/analysis_options.yaml                                      \
++  flutter/flutter_kernel_transformers                                          \
++  2>&1                                                                         \
++  | grep -Ev "No issues found!"                                                \
++  | grep -Ev "Analyzing.+flutter_kernel_transformers"`
++echo "$RESULTS"
++if [ -n "$RESULTS" ]; then
++  echo "Failed."
++  exit 1;
++fi
++
+ echo "Analyzing tools/licenses..."
+ (cd flutter/tools/licenses && pub get)
+ RESULTS=`dartanalyzer                                                          \
+diff --git a/ci/licenses_golden/licenses_flutter b/ci/licenses_golden/licenses_flutter
+index ee13f32a1..b20158634 100644
+--- a/ci/licenses_golden/licenses_flutter
++++ b/ci/licenses_golden/licenses_flutter
+@@ -88,6 +88,7 @@ FILE: ../../../flutter/flow/texture.cc
+ FILE: ../../../flutter/flow/texture.h
+ FILE: ../../../flutter/flow/view_holder.cc
+ FILE: ../../../flutter/flow/view_holder.h
++FILE: ../../../flutter/flutter_kernel_transformers/lib/track_widget_constructor_locations.dart
+ FILE: ../../../flutter/fml/base32.cc
+ FILE: ../../../flutter/fml/base32.h
+ FILE: ../../../flutter/fml/base32_unittest.cc
+diff --git a/frontend_server/BUILD.gn b/frontend_server/BUILD.gn
+index 7d3dfd5f6..21660d297 100644
+--- a/frontend_server/BUILD.gn
++++ b/frontend_server/BUILD.gn
+@@ -22,6 +22,7 @@ if (is_fuchsia_host || is_fuchsia) {
+       "//third_party/dart/pkg/front_end",
+       "//third_party/dart/pkg/kernel",
+       "//third_party/dart/pkg/vm",
++      "//third_party/flutter/flutter_kernel_transformers",
+     ]
+   }
+ 
+@@ -60,6 +61,14 @@ if (is_fuchsia_host || is_fuchsia) {
+                     ],
+                     "list lines")
+ 
++    frontend_server_files +=
++        exec_script("//third_party/dart/tools/list_dart_files.py",
++                    [
++                      "absolute",
++                      rebase_path("../flutter_kernel_transformers"),
++                    ],
++                    "list lines")
++
+     frontend_server_files +=
+         exec_script("//third_party/dart/tools/list_dart_files.py",
+                     [
+diff --git a/frontend_server/lib/server.dart b/frontend_server/lib/server.dart
+index b3a61f181..9620a5de0 100644
+--- a/frontend_server/lib/server.dart
++++ b/frontend_server/lib/server.dart
+@@ -10,6 +10,7 @@ import 'dart:io' hide FileSystemEntity;
+ import 'package:args/args.dart';
+ import 'package:path/path.dart' as path;
+ 
++import 'package:flutter_kernel_transformers/track_widget_constructor_locations.dart';
+ import 'package:vm/incremental_compiler.dart';
+ import 'package:vm/frontend_server.dart' as frontend show FrontendCompiler,
+     CompilerInterface, listenAndCompile, argParser, usage;
+@@ -20,8 +21,9 @@ class _FlutterFrontendCompiler implements frontend.CompilerInterface{
+   final frontend.CompilerInterface _compiler;
+ 
+   _FlutterFrontendCompiler(StringSink output,
+-      {bool unsafePackageSerialization}) :
++      {bool trackWidgetCreation = false, bool unsafePackageSerialization}) :
+           _compiler = frontend.FrontendCompiler(output,
++          transformer: trackWidgetCreation ? WidgetCreatorTracker() : null,
+           unsafePackageSerialization: unsafePackageSerialization);
+ 
+   @override
+@@ -100,10 +102,8 @@ Future<int> starter(
+         '--incremental',
+         '--sdk-root=$sdkRoot',
+         '--output-dill=$outputTrainingDill',
+-        '--target=flutter',
+-        '--track-widget-creation',
+-      ]);
+-      compiler ??= _FlutterFrontendCompiler(output);
++        '--target=flutter']);
++      compiler ??= _FlutterFrontendCompiler(output, trackWidgetCreation: true);
+ 
+       await compiler.compile(Platform.script.toFilePath(), options);
+       compiler.acceptLastDelta();
+@@ -121,6 +121,7 @@ Future<int> starter(
+   }
+ 
+   compiler ??= _FlutterFrontendCompiler(output,
++      trackWidgetCreation: options['track-widget-creation'],
+       unsafePackageSerialization: options['unsafe-package-serialization']);
+ 
+   if (options.rest.isNotEmpty) {
+diff --git a/frontend_server/pubspec.yaml b/frontend_server/pubspec.yaml
+index badc50e49..de6263ccd 100644
+--- a/frontend_server/pubspec.yaml
++++ b/frontend_server/pubspec.yaml
+@@ -12,6 +12,7 @@ dependencies:
+   convert: any
+   crypto: any
+   front_end: any
++  flutter_kernel_transformers: any
+   kernel: any
+   logging: any
+   meta: any
+diff --git a/tools/generate_package_files.py b/tools/generate_package_files.py
+index 13399b126..39dc60d20 100644
+--- a/tools/generate_package_files.py
++++ b/tools/generate_package_files.py
+@@ -3,14 +3,16 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
+-# This script generates .packages file for frontend_server from Dart SDKs
+-# .packages file located in  third_party/dart/.packages
++# This script generates .packages file for frontend_server and
++# flutter_kernel_transformers from Dart SDKs .packages file located in
++# third_party/dart/.packages
+ 
+ import os
+ import shutil
+ 
+ ALL_PACKAGES = {
+-  'frontend_server': [],
++  'frontend_server': ['flutter_kernel_transformers'],
++  'flutter_kernel_transformers': [],
+ }
+ 
+ SRC_DIR = os.getcwd()
