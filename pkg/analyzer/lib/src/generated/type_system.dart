@@ -51,7 +51,9 @@ int _getTopiness(DartType t) {
 
 bool _isBottom(DartType t) {
   return t.isBottom ||
-      t.isDartCoreNull ||
+      // TODO(mfairhurst): Remove the exception treating Null* as Top.
+      t.isDartCoreNull &&
+          (t as TypeImpl).nullabilitySuffix == NullabilitySuffix.star ||
       identical(t, UnknownInferredType.instance);
 }
 
@@ -60,7 +62,8 @@ bool _isTop(DartType t) {
     return _isTop((t as InterfaceType).typeArguments[0]);
   }
   return t.isDynamic ||
-      t.isObject ||
+      (t.isObject &&
+          (t as TypeImpl).nullabilitySuffix != NullabilitySuffix.none) ||
       t.isVoid ||
       identical(t, UnknownInferredType.instance);
 }
@@ -559,12 +562,23 @@ class Dart2TypeSystem extends TypeSystem {
         p1.isCovariant && isSubtypeOf(p1.type, p2.type);
   }
 
+  /// Check if [_t1] is a subtype of [_t2].
+  ///
+  /// Partially updated to reflect
+  /// https://github.com/dart-lang/language/blob/da5adf7eb5f2d479069d8660ed7ca7b230098510/resources/type-system/subtyping.md
+  ///
+  /// However, it does not correllate 1:1 and does not specialize Null vs Never
+  /// cases. It also is not guaranteed to be exactly accurate vs the "spec"
+  /// because it has slightly different order of operations. These should be
+  /// brought in line or proven equivalent.
   @override
-  bool isSubtypeOf(DartType t1, DartType t2) {
+  bool isSubtypeOf(DartType _t1, DartType _t2) {
+    var t1 = _t1 as TypeImpl;
+    var t2 = _t2 as TypeImpl;
+
     if (identical(t1, t2)) {
       return true;
     }
-
     // The types are void, dynamic, bottom, interface types, function types,
     // FutureOr<T> and type parameters.
     //
@@ -583,10 +597,36 @@ class Dart2TypeSystem extends TypeSystem {
       return false;
     }
 
+    // TODO(mfairhurst): Convert Null to Never?, to simplify the algorithm, and
+    // remove this check.
+    if (t1.isDartCoreNull) {
+      if (t2.nullabilitySuffix != NullabilitySuffix.none) {
+        return true;
+      }
+    }
+
+    // Handle T1? <: T2
+    if (t1.nullabilitySuffix == NullabilitySuffix.question) {
+      if (t2.nullabilitySuffix == NullabilitySuffix.none) {
+        // If T2 is not FutureOr<S2>, then subtype is false.
+        if (!t2.isDartAsyncFutureOr) {
+          return false;
+        }
+
+        // T1? <: FutureOr<T2> is true if T2 is S2?.
+        // TODO(mfairhurst): handle T1? <: FutureOr<dynamic>, etc.
+        if (t2 is InterfaceTypeImpl &&
+            (t2.typeArguments[0] as TypeImpl).nullabilitySuffix ==
+                NullabilitySuffix.none) {
+          return false;
+        }
+      }
+    }
+
     // Handle FutureOr<T> union type.
-    if (t1 is InterfaceType && t1.isDartAsyncFutureOr) {
+    if (t1 is InterfaceTypeImpl && t1.isDartAsyncFutureOr) {
       var t1TypeArg = t1.typeArguments[0];
-      if (t2 is InterfaceType && t2.isDartAsyncFutureOr) {
+      if (t2 is InterfaceTypeImpl && t2.isDartAsyncFutureOr) {
         var t2TypeArg = t2.typeArguments[0];
         // FutureOr<A> <: FutureOr<B> iff A <: B
         return isSubtypeOf(t1TypeArg, t2TypeArg);
@@ -598,7 +638,7 @@ class Dart2TypeSystem extends TypeSystem {
       return isSubtypeOf(t1Future, t2) && isSubtypeOf(t1TypeArg, t2);
     }
 
-    if (t2 is InterfaceType && t2.isDartAsyncFutureOr) {
+    if (t2 is InterfaceTypeImpl && t2.isDartAsyncFutureOr) {
       // given t2 is Future<A> | A, then:
       // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
       var t2TypeArg = t2.typeArguments[0];
@@ -610,23 +650,26 @@ class Dart2TypeSystem extends TypeSystem {
     //  T is not dynamic or object (handled above)
     //  True if T == S
     //  Or true if bound of S is S' and S' <: T
-    if (t1 is TypeParameterType) {
-      if (t2 is TypeParameterType &&
+    if (t1 is TypeParameterTypeImpl) {
+      if (t2 is TypeParameterTypeImpl &&
           t1.definition == t2.definition &&
           _typeParameterBoundsSubtype(t1.bound, t2.bound, true)) {
         return true;
       }
+
       DartType bound = t1.element.bound;
       return bound == null
           ? false
           : _typeParameterBoundsSubtype(bound, t2, false);
     }
+
     if (t2 is TypeParameterType) {
       return false;
     }
 
-    // We've eliminated void, dynamic, bottom, type parameters, and FutureOr.
-    // The only cases are the combinations of interface type and function type.
+    // We've eliminated void, dynamic, bottom, type parameters, FutureOr,
+    // nullable, and legacy nullable types. The only cases are the combinations
+    // of interface type and function type.
 
     // A function type can only subtype an interface type if
     // the interface type is Function
@@ -637,11 +680,11 @@ class Dart2TypeSystem extends TypeSystem {
     if (t1 is InterfaceType && t2 is FunctionType) return false;
 
     // Two interface types
-    if (t1 is InterfaceType && t2 is InterfaceType) {
+    if (t1 is InterfaceTypeImpl && t2 is InterfaceTypeImpl) {
       return _isInterfaceSubtypeOf(t1, t2, null);
     }
 
-    return _isFunctionSubtypeOf(t1, t2);
+    return _isFunctionSubtypeOf(t1 as FunctionType, t2 as FunctionType);
   }
 
   /// Given a [type] T that may have an unknown type `?`, returns a type

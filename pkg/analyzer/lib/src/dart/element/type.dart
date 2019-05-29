@@ -349,8 +349,10 @@ class DeferredFunctionTypeImpl extends _FunctionTypeImplLazy {
 
   DeferredFunctionTypeImpl(this._computeElement, String name,
       List<DartType> typeArguments, bool isInstantiated,
-      {NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star})
-      : super._(null, name, null, typeArguments, null, null, isInstantiated,
+      {NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
+      FunctionTypedElement computedElement})
+      : _computedElement = computedElement,
+        super._(null, name, null, typeArguments, null, null, isInstantiated,
             nullabilitySuffix: nullabilitySuffix);
 
   @override
@@ -367,6 +369,7 @@ class DeferredFunctionTypeImpl extends _FunctionTypeImplLazy {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
     return DeferredFunctionTypeImpl(
         _computeElement, name, typeArguments, isInstantiated,
+        computedElement: _computedElement,
         nullabilitySuffix: nullabilitySuffix);
   }
 }
