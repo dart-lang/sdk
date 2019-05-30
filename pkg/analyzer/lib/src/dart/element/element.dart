@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptionsImpl;
@@ -5821,15 +5822,23 @@ class GenericTypeAliasElementImpl extends ElementImpl
       return null;
     }
     FunctionType functionType = function.type;
+
     List<TypeParameterElement> parameterElements = element.typeParameters;
-    List<DartType> parameterTypes =
-        TypeParameterTypeImpl.getTypes(parameterElements);
-    int parameterCount = parameterTypes.length;
+    int parameterCount = parameterElements.length;
+
     if (typeArguments == null ||
         parameterElements.length != typeArguments.length) {
       DartType dynamicType = DynamicElementImpl.instance.type;
       typeArguments = new List<DartType>.filled(parameterCount, dynamicType);
     }
+
+    if (element is GenericTypeAliasElementImpl && element.linkedNode != null) {
+      return Substitution.fromPairs(parameterElements, typeArguments)
+          .substituteType(functionType);
+    }
+
+    List<DartType> parameterTypes =
+        TypeParameterTypeImpl.getTypes(parameterElements);
     return functionType.substitute2(typeArguments, parameterTypes);
   }
 }

@@ -4750,20 +4750,20 @@ void main() {
 ''');
     await resolveTestFile();
 
-    var mainStatements = _getMainStatements(result);
-    var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
-    var fElement = fDeclaration.functionDeclaration.declaredElement;
-    var tElement = fElement.typeParameters[0];
-    var body = fDeclaration.functionDeclaration.functionExpression.body
-        as BlockFunctionBody;
-    var gDeclaration = body.block.statements[0] as VariableDeclarationStatement;
-    var gType = gDeclaration.variables.type as TypeName;
+    var tElement = findNode.typeParameter('T>(T x)').declaredElement;
+
+    var gType = findNode.typeName('Consumer<T>');
     var gTypeType = gType.type as FunctionType;
-    var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
-    expect(gTypeTypeArgument.element, same(tElement));
+
+    if (!AnalysisDriver.useSummary2) {
+      var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
+      expect(gTypeTypeArgument.element, same(tElement));
+    }
+
     var gTypeParameterType =
         gTypeType.namedParameterTypes['u'] as TypeParameterType;
     expect(gTypeParameterType.element, same(tElement));
+
     var gArgumentType = gType.typeArguments.arguments[0] as TypeName;
     var tReference = gArgumentType.name;
     assertElement(tReference, tElement);
@@ -4783,20 +4783,20 @@ void main() {
 ''');
     await resolveTestFile();
 
-    var mainStatements = _getMainStatements(result);
-    var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
-    var fElement = fDeclaration.functionDeclaration.declaredElement;
-    var tElement = fElement.typeParameters[0];
-    var body = fDeclaration.functionDeclaration.functionExpression.body
-        as BlockFunctionBody;
-    var gDeclaration = body.block.statements[0] as VariableDeclarationStatement;
-    var gType = gDeclaration.variables.type as TypeName;
+    var tElement = findNode.typeParameter('T>(T x)').declaredElement;
+
+    var gType = findNode.typeName('Consumer<T>');
     var gTypeType = gType.type as FunctionType;
-    var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
-    expect(gTypeTypeArgument.element, same(tElement));
+
+    if (!AnalysisDriver.useSummary2) {
+      var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
+      expect(gTypeTypeArgument.element, same(tElement));
+    }
+
     var gTypeParameterType =
         gTypeType.normalParameterTypes[0] as TypeParameterType;
     expect(gTypeParameterType.element, same(tElement));
+
     var gArgumentType = gType.typeArguments.arguments[0] as TypeName;
     var tReference = gArgumentType.name;
     assertElement(tReference, tElement);
@@ -4816,20 +4816,20 @@ void main() {
 ''');
     await resolveTestFile();
 
-    var mainStatements = _getMainStatements(result);
-    var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
-    var fElement = fDeclaration.functionDeclaration.declaredElement;
-    var tElement = fElement.typeParameters[0];
-    var body = fDeclaration.functionDeclaration.functionExpression.body
-        as BlockFunctionBody;
-    var gDeclaration = body.block.statements[0] as VariableDeclarationStatement;
-    var gType = gDeclaration.variables.type as TypeName;
+    var tElement = findNode.typeParameter('T>(T x)').declaredElement;
+
+    var gType = findNode.typeName('Consumer<T>');
     var gTypeType = gType.type as FunctionType;
-    var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
-    expect(gTypeTypeArgument.element, same(tElement));
+
+    if (!AnalysisDriver.useSummary2) {
+      var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
+      expect(gTypeTypeArgument.element, same(tElement));
+    }
+
     var gTypeParameterType =
         gTypeType.optionalParameterTypes[0] as TypeParameterType;
     expect(gTypeParameterType.element, same(tElement));
+
     var gArgumentType = gType.typeArguments.arguments[0] as TypeName;
     var tReference = gArgumentType.name;
     assertElement(tReference, tElement);
@@ -4849,19 +4849,19 @@ void main() {
 ''');
     await resolveTestFile();
 
-    var mainStatements = _getMainStatements(result);
-    var fDeclaration = mainStatements[0] as FunctionDeclarationStatement;
-    var fElement = fDeclaration.functionDeclaration.declaredElement;
-    var tElement = fElement.typeParameters[0];
-    var body = fDeclaration.functionDeclaration.functionExpression.body
-        as BlockFunctionBody;
-    var gDeclaration = body.block.statements[0] as VariableDeclarationStatement;
-    var gType = gDeclaration.variables.type as TypeName;
+    var tElement = findNode.typeParameter('T>(T x)').declaredElement;
+
+    var gType = findNode.typeName('Producer<T>');
     var gTypeType = gType.type as FunctionType;
-    var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
-    expect(gTypeTypeArgument.element, same(tElement));
+
+    if (!AnalysisDriver.useSummary2) {
+      var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
+      expect(gTypeTypeArgument.element, same(tElement));
+    }
+
     var gTypeReturnType = gTypeType.returnType as TypeParameterType;
     expect(gTypeReturnType.element, same(tElement));
+
     var gArgumentType = gType.typeArguments.arguments[0] as TypeName;
     var tReference = gArgumentType.name;
     assertElement(tReference, tElement);
@@ -7971,26 +7971,18 @@ class C {
 ''');
 
     await resolveTestFile();
-    CompilationUnit unit = result.unit;
-    CompilationUnitElement unitElement = unit.declaredElement;
-    var typeProvider = unitElement.context.typeProvider;
 
-    FunctionTypeAlias alias = unit.declarations[0];
+    FunctionTypeAlias alias = findNode.functionTypeAlias('F<T>');
     GenericTypeAliasElement aliasElement = alias.declaredElement;
-    FunctionType aliasType = aliasElement.type;
 
-    ClassDeclaration cNode = unit.declarations[1];
-
-    FieldDeclaration fDeclaration = cNode.members[0];
-    FunctionType instantiatedAliasType =
-        aliasType.instantiate([typeProvider.intType]);
+    FieldDeclaration fDeclaration = findNode.fieldDeclaration('F<int> f');
 
     TypeName typeName = fDeclaration.fields.type;
-    expect(typeName.type, instantiatedAliasType);
+    expect('${typeName.type}', 'int Function(bool)');
 
     SimpleIdentifier typeIdentifier = typeName.name;
     expect(typeIdentifier.staticElement, same(aliasElement));
-    expect(typeIdentifier.staticType, instantiatedAliasType);
+    expect('${typeIdentifier.staticType}', 'int Function(bool)');
 
     List<TypeAnnotation> typeArguments = typeName.typeArguments.arguments;
     expect(typeArguments, hasLength(1));
