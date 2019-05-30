@@ -24,7 +24,6 @@ import 'package:analyzer/src/generated/constant.dart'
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, NamespaceBuilder;
 import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart';
 import 'package:path/path.dart' as path;
@@ -1548,7 +1547,7 @@ class CodeGenerator extends Object
           param = covariantParams.lookup(param) as ParameterElement;
 
           if (param == null) continue;
-          if (param.kind == ParameterKind.NAMED) {
+          if (param.isNamed) {
             foundNamedParams = true;
 
             var name = propertyName(param.name);
@@ -1561,10 +1560,12 @@ class CodeGenerator extends Object
             var jsParam = _emitParameter(param);
             jsParams.add(jsParam);
 
-            if (param.kind == ParameterKind.POSITIONAL) {
+            if (param.isPositional) {
               body.add(js.statement('if (# !== void 0) #;',
                   [jsParam, _emitCast(param.type, jsParam)]));
             } else {
+              //TODO(nshahan) Cleanup this logic. Do we need this else branch?
+              // https://github.com/dart-lang/sdk/issues/37123
               body.add(_emitCast(param.type, jsParam).toStatement());
             }
           }
