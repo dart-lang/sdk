@@ -323,12 +323,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       isExternal: node.externalKeyword != null,
       isFactory: node.factoryKeyword != null,
     );
+    builder.constructorDeclaration_returnTypeOffset = node.returnType.offset;
     if (node.name != null) {
       builder
+        ..constructorDeclaration_periodOffset = node.period.offset
         ..name = node.name.name
         ..nameOffset = node.name.offset;
-    } else {
-      builder..nameOffset = node.returnType.offset;
     }
     _storeClassMember(builder, node);
     _storeCodeOffsetLength(builder, node);

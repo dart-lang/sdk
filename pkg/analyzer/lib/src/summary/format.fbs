@@ -1924,6 +1924,8 @@ table LinkedNode {
 
   variantField_3:[LinkedNode] (id: 3);
 
+  variantField_19:uint (id: 19);
+
   variantField_10:LinkedNode (id: 10);
 
   variantField_26:LinkedNodeFormalParameterKind (id: 26);
@@ -1957,8 +1959,6 @@ table LinkedNode {
   variantField_34:TopLevelInferenceError (id: 34);
 
   variantField_22:string (id: 22);
-
-  variantField_19:uint (id: 19);
 }
 
 /// Information about a group of libraries linked together, for example because

@@ -2614,6 +2614,15 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   int get nameEnd {
+    if (linkedNode != null) {
+      var node = linkedNode as ConstructorDeclaration;
+      if (node.name != null) {
+        return node.name.end;
+      } else {
+        return node.returnType.end;
+      }
+    }
+
     if (serializedExecutable != null) {
       if (serializedExecutable.name.isNotEmpty) {
         return serializedExecutable.nameEnd;
@@ -2631,6 +2640,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   int get periodOffset {
+    if (linkedNode != null) {
+      var node = linkedNode as ConstructorDeclaration;
+      return node.period?.offset;
+    }
+
     if (serializedExecutable != null) {
       if (serializedExecutable.name.isNotEmpty) {
         return serializedExecutable.periodOffset;

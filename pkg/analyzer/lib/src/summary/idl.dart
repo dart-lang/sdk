@@ -1107,11 +1107,19 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(8, variant: LinkedNodeKind.constructorDeclaration)
   LinkedNode get constructorDeclaration_parameters;
 
+  @VariantId(19, variant: LinkedNodeKind.constructorDeclaration)
+  @informative
+  int get constructorDeclaration_periodOffset;
+
   @VariantId(9, variant: LinkedNodeKind.constructorDeclaration)
   LinkedNode get constructorDeclaration_redirectedConstructor;
 
   @VariantId(10, variant: LinkedNodeKind.constructorDeclaration)
   LinkedNode get constructorDeclaration_returnType;
+
+  @VariantId(17, variant: LinkedNodeKind.constructorDeclaration)
+  @informative
+  int get constructorDeclaration_returnTypeOffset;
 
   @VariantId(6, variant: LinkedNodeKind.constructorFieldInitializer)
   LinkedNode get constructorFieldInitializer_expression;

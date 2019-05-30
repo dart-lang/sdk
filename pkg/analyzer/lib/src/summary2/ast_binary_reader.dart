@@ -426,15 +426,25 @@ class AstBinaryReader {
   }
 
   ConstructorDeclaration _read_constructorDeclaration(LinkedNode data) {
+    SimpleIdentifier returnType = _readNode(
+      data.constructorDeclaration_returnType,
+    );
+    returnType.token.offset = data.constructorDeclaration_returnTypeOffset;
+
     var node = astFactory.constructorDeclaration(
       _readNodeLazy(data.annotatedNode_comment),
       _readNodeListLazy(data.annotatedNode_metadata),
       AstBinaryFlags.isExternal(data.flags) ? _Tokens.EXTERNAL : null,
       AstBinaryFlags.isConst(data.flags) ? _Tokens.CONST : null,
       AstBinaryFlags.isFactory(data.flags) ? _Tokens.FACTORY : null,
-      _readNode(data.constructorDeclaration_returnType),
-      data.name.isNotEmpty ? _Tokens.PERIOD : null,
-      _declaredIdentifier(data),
+      returnType,
+      data.name.isNotEmpty
+          ? Token(
+              TokenType.PERIOD,
+              data.constructorDeclaration_periodOffset,
+            )
+          : null,
+      data.name.isNotEmpty ? _declaredIdentifier(data) : null,
       _readNodeLazy(data.constructorDeclaration_parameters),
       _Tokens.choose(
         AstBinaryFlags.hasSeparatorColon(data.flags),
