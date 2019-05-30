@@ -728,7 +728,8 @@ word ClassTable::SizeOffsetFor(intptr_t cid, bool is_new) {
 }
 #endif  // !defined(PRODUCT)
 
-const word ClassTable::kSizeOfClassPairLog2 = dart::kSizeOfClassPairLog2;
+const word ClassTable::kSizeOfClassPairLog2 =
+    dart::ClassTable::kSizeOfClassPairLog2;
 
 const intptr_t Instructions::kPolymorphicEntryOffset =
     dart::Instructions::kPolymorphicEntryOffset;

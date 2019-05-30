@@ -377,22 +377,6 @@ RawArray* ArgumentsDescriptor::GetArgumentNames() const {
   return names.raw();
 }
 
-intptr_t ArgumentsDescriptor::type_args_len_offset() {
-  return Array::element_offset(kTypeArgsLenIndex);
-}
-
-intptr_t ArgumentsDescriptor::count_offset() {
-  return Array::element_offset(kCountIndex);
-}
-
-intptr_t ArgumentsDescriptor::positional_count_offset() {
-  return Array::element_offset(kPositionalCountIndex);
-}
-
-intptr_t ArgumentsDescriptor::first_named_entry_offset() {
-  return Array::element_offset(kFirstNamedEntryIndex);
-}
-
 RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
                                    intptr_t num_arguments,
                                    const Array& optional_arguments_names) {
