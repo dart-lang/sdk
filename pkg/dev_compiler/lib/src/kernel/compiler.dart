@@ -2438,22 +2438,22 @@ class ProgramCompiler extends Object
   }
 
   @override
-  defaultDartType(type) => _emitInvalidNode(type);
+  JS.Expression defaultDartType(DartType type) => _emitInvalidNode(type);
 
   @override
-  visitInvalidType(type) => defaultDartType(type);
+  JS.Expression visitInvalidType(InvalidType type) => defaultDartType(type);
 
   @override
-  visitDynamicType(type) => runtimeCall('dynamic');
+  JS.Expression visitDynamicType(DynamicType type) => runtimeCall('dynamic');
 
   @override
-  visitVoidType(type) => runtimeCall('void');
+  JS.Expression visitVoidType(VoidType type) => runtimeCall('void');
 
   @override
-  visitBottomType(type) => runtimeCall('bottom');
+  JS.Expression visitBottomType(BottomType type) => runtimeCall('bottom');
 
   @override
-  visitInterfaceType(type) {
+  JS.Expression visitInterfaceType(InterfaceType type) {
     var c = type.classNode;
     _declareBeforeUse(c);
 
@@ -2511,7 +2511,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitFunctionType(type, {Member member, bool lazy = false}) {
+  JS.Expression visitFunctionType(type, {Member member, bool lazy = false}) {
     var requiredTypes =
         type.positionalParameters.take(type.requiredParameterCount).toList();
     var function = member?.function;
@@ -2666,14 +2666,14 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitTypeParameterType(type) => _emitTypeParameter(type.parameter);
+  JS.Expression visitTypeParameterType(TypeParameterType type) =>
+      _emitTypeParameter(type.parameter);
 
-  JS.Identifier _emitTypeParameter(TypeParameter t) {
-    return JS.Identifier(getTypeParameterName(t));
-  }
+  JS.Identifier _emitTypeParameter(TypeParameter t) =>
+      JS.Identifier(getTypeParameterName(t));
 
   @override
-  visitTypedefType(TypedefType type) =>
+  JS.Expression visitTypedefType(TypedefType type) =>
       visitFunctionType(type.unalias as FunctionType);
 
   JS.Fun _emitFunction(FunctionNode f, String name) {
@@ -3135,10 +3135,11 @@ class ProgramCompiler extends Object
   }
 
   @override
-  defaultStatement(Statement node) => _emitInvalidNode(node).toStatement();
+  JS.Statement defaultStatement(Statement node) =>
+      _emitInvalidNode(node).toStatement();
 
   @override
-  visitExpressionStatement(ExpressionStatement node) {
+  JS.Statement visitExpressionStatement(ExpressionStatement node) {
     var expr = node.expression;
     if (expr is StaticInvocation) {
       if (isInlineJS(expr.target)) {
@@ -3152,7 +3153,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitBlock(Block node) {
+  JS.Statement visitBlock(Block node) {
     // If this is the block body of a function, don't mark it as a separate
     // scope, because the function is the scope. This avoids generating an
     // unncessary nested block.
@@ -3166,17 +3167,17 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitEmptyStatement(EmptyStatement node) => JS.EmptyStatement();
+  JS.Statement visitEmptyStatement(EmptyStatement node) => JS.EmptyStatement();
 
   @override
-  visitAssertBlock(AssertBlock node) {
+  JS.Statement visitAssertBlock(AssertBlock node) {
     // AssertBlocks are introduced by the VM-specific async elimination
     // transformation.  We do not expect them to arise here.
     throw UnsupportedError('compilation of an assert block');
   }
 
   @override
-  visitAssertStatement(AssertStatement node) {
+  JS.Statement visitAssertStatement(AssertStatement node) {
     if (!options.enableAsserts) return JS.EmptyStatement();
     var condition = node.condition;
     var conditionType = condition.getStaticType(types);
@@ -3224,7 +3225,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitLabeledStatement(LabeledStatement node) {
+  JS.Statement visitLabeledStatement(LabeledStatement node) {
     List<LabeledStatement> saved;
     var target = _effectiveTargets[node];
     // If the effective target is known then this statement is either contained
@@ -3262,7 +3263,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitBreakStatement(BreakStatement node) {
+  JS.Statement visitBreakStatement(BreakStatement node) {
     // Switch statements with continue labels must explicitly break to their
     // implicit label due to their being wrapped in a loop.
     if (_inLabeledContinueSwitch &&
@@ -3449,7 +3450,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitSwitchStatement(SwitchStatement node) {
+  JS.Statement visitSwitchStatement(SwitchStatement node) {
     // Switches with labeled continues are generated as an infinite loop with
     // an explicit variable for holding the switch's next case state and an
     // explicit label. Any implicit breaks are made explicit (e.g., when break
@@ -3533,7 +3534,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitContinueSwitchStatement(ContinueSwitchStatement node) {
+  JS.Statement visitContinueSwitchStatement(ContinueSwitchStatement node) {
     var switchStmt = node.target.parent;
     if (_inLabeledContinueSwitch &&
         _switchLabelStates.containsKey(switchStmt)) {
@@ -3553,7 +3554,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitIfStatement(IfStatement node) {
+  JS.Statement visitIfStatement(IfStatement node) {
     return JS.If(_visitTest(node.condition), _visitScope(node.then),
         _visitScope(node.otherwise));
   }
@@ -3579,7 +3580,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitTryCatch(TryCatch node) {
+  JS.Statement visitTryCatch(TryCatch node) {
     return JS.Try(
         _visitStatement(node.body).toBlock(), _visitCatch(node.catches), null);
   }
@@ -3661,7 +3662,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitTryFinally(TryFinally node) {
+  JS.Statement visitTryFinally(TryFinally node) {
     var body = _visitStatement(node.body);
     var finallyBlock =
         _superDisallowed(() => _visitStatement(node.finalizer).toBlock());
@@ -3676,7 +3677,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitYieldStatement(YieldStatement node) {
+  JS.Statement visitYieldStatement(YieldStatement node) {
     var jsExpr = _visitExpression(node.expression);
     var star = node.isYieldStar;
     if (_asyncStarController != null) {
@@ -3703,7 +3704,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  JS.Statement visitVariableDeclaration(VariableDeclaration node) {
     // TODO(jmesserly): casts are sometimes required here.
     // Kernel does not represent these explicitly.
     var v = _emitVariableDef(node);
@@ -3712,7 +3713,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  JS.Statement visitFunctionDeclaration(FunctionDeclaration node) {
     var func = node.function;
     var fn = _emitFunction(func, node.variable.name);
 
@@ -3730,20 +3731,22 @@ class ProgramCompiler extends Object
   }
 
   @override
-  defaultExpression(Expression node) => _emitInvalidNode(node);
+  JS.Expression defaultExpression(Expression node) => _emitInvalidNode(node);
 
   @override
-  defaultBasicLiteral(BasicLiteral node) => defaultExpression(node);
+  JS.Expression defaultBasicLiteral(BasicLiteral node) =>
+      defaultExpression(node);
 
   @override
-  visitInvalidExpression(InvalidExpression node) => defaultExpression(node);
+  JS.Expression visitInvalidExpression(InvalidExpression node) =>
+      defaultExpression(node);
 
   @override
-  visitConstantExpression(ConstantExpression node) =>
+  JS.Expression visitConstantExpression(ConstantExpression node) =>
       node.constant.accept(this) as JS.Expression;
 
   @override
-  visitVariableGet(VariableGet node) {
+  JS.Expression visitVariableGet(VariableGet node) {
     var v = node.variable;
     var id = _emitVariableRef(v);
     if (id.name == v.name) {
@@ -3783,28 +3786,29 @@ class ProgramCompiler extends Object
 
   // TODO(jmesserly): resugar operators for kernel, such as ++x, x++, x+=.
   @override
-  visitVariableSet(VariableSet node) => _visitExpression(node.value)
-      .toAssignExpression(_emitVariableRef(node.variable));
+  JS.Expression visitVariableSet(VariableSet node) =>
+      _visitExpression(node.value)
+          .toAssignExpression(_emitVariableRef(node.variable));
 
   @override
-  visitPropertyGet(PropertyGet node) {
+  JS.Expression visitPropertyGet(PropertyGet node) {
     return _emitPropertyGet(
         node.receiver, node.interfaceTarget, node.name.name);
   }
 
   @override
-  visitPropertySet(PropertySet node) {
+  JS.Expression visitPropertySet(PropertySet node) {
     return _emitPropertySet(
         node.receiver, node.interfaceTarget, node.value, node.name.name);
   }
 
   @override
-  visitDirectPropertyGet(DirectPropertyGet node) {
+  JS.Expression visitDirectPropertyGet(DirectPropertyGet node) {
     return _emitPropertyGet(node.receiver, node.target);
   }
 
   @override
-  visitDirectPropertySet(DirectPropertySet node) {
+  JS.Expression visitDirectPropertySet(DirectPropertySet node) {
     return _emitPropertySet(node.receiver, node.target, node.value);
   }
 
@@ -3869,7 +3873,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitSuperPropertyGet(SuperPropertyGet node) {
+  JS.Expression visitSuperPropertyGet(SuperPropertyGet node) {
     var target = node.interfaceTarget;
     var jsTarget = _emitSuperTarget(target);
     if (_reifyTearoff(target)) {
@@ -3879,14 +3883,14 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitSuperPropertySet(SuperPropertySet node) {
+  JS.Expression visitSuperPropertySet(SuperPropertySet node) {
     var target = node.interfaceTarget;
     var jsTarget = _emitSuperTarget(target, setter: true);
     return _visitExpression(node.value).toAssignExpression(jsTarget);
   }
 
   @override
-  visitStaticGet(StaticGet node) => _emitStaticGet(node.target);
+  JS.Expression visitStaticGet(StaticGet node) => _emitStaticGet(node.target);
 
   JS.Expression _emitStaticGet(Member target) {
     // TODO(vsm): Re-inline constants.  See:
@@ -3902,19 +3906,19 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitStaticSet(StaticSet node) {
+  JS.Expression visitStaticSet(StaticSet node) {
     return _visitExpression(node.value)
         .toAssignExpression(_emitStaticTarget(node.target));
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
+  JS.Expression visitMethodInvocation(MethodInvocation node) {
     return _emitMethodCall(
         node.receiver, node.interfaceTarget, node.arguments, node);
   }
 
   @override
-  visitDirectMethodInvocation(DirectMethodInvocation node) {
+  JS.Expression visitDirectMethodInvocation(DirectMethodInvocation node) {
     return _emitMethodCall(node.receiver, node.target, node.arguments, node);
   }
 
@@ -4378,7 +4382,7 @@ class ProgramCompiler extends Object
 
   // TODO(jmesserly): optimize super operators for kernel
   @override
-  visitSuperMethodInvocation(SuperMethodInvocation node) {
+  JS.Expression visitSuperMethodInvocation(SuperMethodInvocation node) {
     var target = node.interfaceTarget;
     return JS.Call(_emitSuperTarget(target),
         _emitArgumentList(node.arguments, target: target));
@@ -4430,7 +4434,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitStaticInvocation(StaticInvocation node) {
+  JS.Expression visitStaticInvocation(StaticInvocation node) {
     var target = node.target;
     if (isInlineJS(target)) return _emitInlineJSCode(node) as JS.Expression;
     if (target.isFactory) return _emitFactoryInvocation(node);
@@ -4665,7 +4669,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitConstructorInvocation(ConstructorInvocation node) {
+  JS.Expression visitConstructorInvocation(ConstructorInvocation node) {
     var ctor = node.target;
     var args = node.arguments;
     var result = JS.New(_emitConstructorName(node.constructedType, ctor),
@@ -4763,7 +4767,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitNot(Not node) {
+  JS.Expression visitNot(Not node) {
     var operand = node.operand;
     if (operand is MethodInvocation && operand.name.name == '==') {
       return _emitEqualityOperator(operand.receiver, operand.interfaceTarget,
@@ -4785,14 +4789,14 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitLogicalExpression(LogicalExpression node) {
+  JS.Expression visitLogicalExpression(LogicalExpression node) {
     // The operands of logical boolean operators are subject to boolean
     // conversion.
     return _visitTest(node);
   }
 
   @override
-  visitConditionalExpression(ConditionalExpression node) {
+  JS.Expression visitConditionalExpression(ConditionalExpression node) {
     return js.call('# ? # : #', [
       _visitTest(node.condition),
       _visitExpression(node.then),
@@ -4802,7 +4806,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitStringConcatenation(StringConcatenation node) {
+  JS.Expression visitStringConcatenation(StringConcatenation node) {
     var parts = <JS.Expression>[];
     for (var e in node.expressions) {
       var jsExpr = _visitExpression(e);
@@ -4818,7 +4822,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitListConcatenation(ListConcatenation node) {
+  JS.Expression visitListConcatenation(ListConcatenation node) {
     // Only occurs inside unevaluated constants.
     List<JS.Expression> entries = [];
     _concatenate(Expression node) {
@@ -4840,7 +4844,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitSetConcatenation(SetConcatenation node) {
+  JS.Expression visitSetConcatenation(SetConcatenation node) {
     // Only occurs inside unevaluated constants.
     List<JS.Expression> entries = [];
     _concatenate(Expression node) {
@@ -4862,7 +4866,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitMapConcatenation(MapConcatenation node) {
+  JS.Expression visitMapConcatenation(MapConcatenation node) {
     // Only occurs inside unevaluated constants.
     List<JS.Expression> entries = [];
     _concatenate(Expression node) {
@@ -4890,13 +4894,13 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitInstanceCreation(InstanceCreation node) {
+  JS.Expression visitInstanceCreation(InstanceCreation node) {
     // Only occurs inside unevaluated constants.
     throw new UnsupportedError("Instance creation");
   }
 
   @override
-  visitIsExpression(IsExpression node) {
+  JS.Expression visitIsExpression(IsExpression node) {
     return _emitIsExpression(node.operand, node.type);
   }
 
@@ -4913,7 +4917,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitAsExpression(AsExpression node) {
+  JS.Expression visitAsExpression(AsExpression node) {
     Expression fromExpr = node.operand;
     var to = node.type;
     var jsFrom = _visitExpression(fromExpr);
@@ -4966,10 +4970,12 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitSymbolLiteral(SymbolLiteral node) => emitDartSymbol(node.value);
+  JS.Expression visitSymbolLiteral(SymbolLiteral node) =>
+      emitDartSymbol(node.value);
 
   @override
-  visitTypeLiteral(TypeLiteral node) => _emitTypeLiteral(node.type);
+  JS.Expression visitTypeLiteral(TypeLiteral node) =>
+      _emitTypeLiteral(node.type);
 
   JS.Expression _emitTypeLiteral(DartType type) {
     var typeRep = _emitType(type);
@@ -4979,19 +4985,19 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitThisExpression(ThisExpression node) => JS.This();
+  JS.Expression visitThisExpression(ThisExpression node) => JS.This();
 
   @override
-  visitRethrow(Rethrow node) {
+  JS.Expression visitRethrow(Rethrow node) {
     return runtimeCall('rethrow(#)', [_emitVariableRef(_rethrowParameter)]);
   }
 
   @override
-  visitThrow(Throw node) =>
+  JS.Expression visitThrow(Throw node) =>
       runtimeCall('throw(#)', [_visitExpression(node.expression)]);
 
   @override
-  visitListLiteral(ListLiteral node) {
+  JS.Expression visitListLiteral(ListLiteral node) {
     var elementType = node.typeArgument;
     var elements = _visitExpressionList(node.expressions);
     // TODO(markzipan): remove const check when we use front-end const eval
@@ -5023,7 +5029,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitSetLiteral(SetLiteral node) {
+  JS.Expression visitSetLiteral(SetLiteral node) {
     // TODO(markzipan): remove const check when we use front-end const eval
     if (!node.isConst) {
       var setType = visitInterfaceType(
@@ -5045,7 +5051,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitMapLiteral(MapLiteral node) {
+  JS.Expression visitMapLiteral(MapLiteral node) {
     var entries = <JS.Expression>[];
     for (var e in node.entries) {
       entries.add(_visitExpression(e.key));
@@ -5071,11 +5077,11 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitAwaitExpression(AwaitExpression node) =>
+  JS.Expression visitAwaitExpression(AwaitExpression node) =>
       JS.Yield(_visitExpression(node.operand));
 
   @override
-  visitFunctionExpression(FunctionExpression node) {
+  JS.Expression visitFunctionExpression(FunctionExpression node) {
     var fn = _emitArrowFunction(node);
     if (!_reifyFunctionType(node.function)) return fn;
     return _emitFunctionTagged(fn, node.getStaticType(types) as FunctionType);
@@ -5104,22 +5110,24 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitStringLiteral(StringLiteral node) => js.escapedString(node.value, '"');
+  JS.Expression visitStringLiteral(StringLiteral node) =>
+      js.escapedString(node.value, '"');
 
   @override
-  visitIntLiteral(IntLiteral node) => js.uint64(node.value);
+  JS.Expression visitIntLiteral(IntLiteral node) => js.uint64(node.value);
 
   @override
-  visitDoubleLiteral(DoubleLiteral node) => js.number(node.value);
+  JS.Expression visitDoubleLiteral(DoubleLiteral node) => js.number(node.value);
 
   @override
-  visitBoolLiteral(BoolLiteral node) => JS.LiteralBool(node.value);
+  JS.Expression visitBoolLiteral(BoolLiteral node) =>
+      JS.LiteralBool(node.value);
 
   @override
-  visitNullLiteral(NullLiteral node) => JS.LiteralNull();
+  JS.Expression visitNullLiteral(NullLiteral node) => JS.LiteralNull();
 
   @override
-  visitLet(Let node) {
+  JS.Expression visitLet(Let node) {
     var v = node.variable;
     var init = _visitExpression(v.initializer);
     var body = _visitExpression(node.body);
@@ -5141,7 +5149,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitBlockExpression(BlockExpression node) {
+  JS.Expression visitBlockExpression(BlockExpression node) {
     var jsExpr = _visitExpression(node.value);
     List<JS.Statement> jsStmts = node.body.statements
         .map(_visitStatement)
@@ -5164,7 +5172,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitInstantiation(Instantiation node) {
+  JS.Expression visitInstantiation(Instantiation node) {
     return runtimeCall('gbind(#, #)', [
       _visitExpression(node.expression),
       node.typeArguments.map(_emitType).toList()
@@ -5172,14 +5180,16 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitLoadLibrary(LoadLibrary node) => runtimeCall('loadLibrary()');
+  JS.Expression visitLoadLibrary(LoadLibrary node) =>
+      runtimeCall('loadLibrary()');
 
   // TODO(jmesserly): DDC loads all libraries eagerly.
   // See
   // https://github.com/dart-lang/sdk/issues/27776
   // https://github.com/dart-lang/sdk/issues/27777
   @override
-  visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) => js.boolean(true);
+  JS.Expression visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
+      js.boolean(true);
 
   bool _reifyFunctionType(FunctionNode f) {
     if (_currentLibrary.importUri.scheme != 'dart') return true;
@@ -5228,13 +5238,13 @@ class ProgramCompiler extends Object
   JS.Expression visitConstant(Constant node) =>
       node.accept(this) as JS.Expression;
   @override
-  visitNullConstant(NullConstant node) => JS.LiteralNull();
+  JS.Expression visitNullConstant(NullConstant node) => JS.LiteralNull();
   @override
-  visitBoolConstant(BoolConstant node) => js.boolean(node.value);
+  JS.Expression visitBoolConstant(BoolConstant node) => js.boolean(node.value);
   @override
-  visitIntConstant(IntConstant node) => js.number(node.value);
+  JS.Expression visitIntConstant(IntConstant node) => js.number(node.value);
   @override
-  visitDoubleConstant(DoubleConstant node) {
+  JS.Expression visitDoubleConstant(DoubleConstant node) {
     var value = node.value;
 
     // Emit the constant as an integer, if possible.
@@ -5252,18 +5262,20 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitStringConstant(StringConstant node) => js.escapedString(node.value, '"');
+  JS.Expression visitStringConstant(StringConstant node) =>
+      js.escapedString(node.value, '"');
 
   // DDC does not currently use the non-primivite constant nodes; rather these
   // are emitted via their normal expression nodes.
   @override
-  defaultConstant(Constant node) => _emitInvalidNode(node);
+  JS.Expression defaultConstant(Constant node) => _emitInvalidNode(node);
 
   @override
-  visitSymbolConstant(node) => emitDartSymbol(node.name);
+  JS.Expression visitSymbolConstant(SymbolConstant node) =>
+      emitDartSymbol(node.name);
 
   @override
-  visitMapConstant(node) {
+  JS.Expression visitMapConstant(MapConstant node) {
     var entries = <JS.Expression>[];
     for (var e in node.entries) {
       entries.add(visitConstant(e.key));
@@ -5274,17 +5286,15 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitListConstant(node) => _emitConstList(
+  JS.Expression visitListConstant(ListConstant node) => _emitConstList(
       node.typeArgument, node.entries.map(visitConstant).toList());
 
   @override
-  visitSetConstant(node) {
-    return _emitConstSet(
-        node.typeArgument, node.entries.map(visitConstant).toList());
-  }
+  JS.Expression visitSetConstant(SetConstant node) => _emitConstSet(
+      node.typeArgument, node.entries.map(visitConstant).toList());
 
   @override
-  visitInstanceConstant(node) {
+  JS.Expression visitInstanceConstant(InstanceConstant node) {
     entryToProperty(MapEntry<Reference, Constant> entry) {
       var constant = entry.value.accept(this) as JS.Expression;
       var member = entry.key.asField;
@@ -5301,23 +5311,24 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitTearOffConstant(node) => _emitStaticGet(node.procedure);
+  JS.Expression visitTearOffConstant(TearOffConstant node) =>
+      _emitStaticGet(node.procedure);
 
   @override
-  visitTypeLiteralConstant(node) => _emitTypeLiteral(node.type);
+  JS.Expression visitTypeLiteralConstant(TypeLiteralConstant node) =>
+      _emitTypeLiteral(node.type);
 
   @override
-  visitPartialInstantiationConstant(node) {
-    return runtimeCall('gbind(#, #)', [
-      visitConstant(node.tearOffConstant),
-      node.types.map(_emitType).toList()
-    ]);
-  }
+  JS.Expression visitPartialInstantiationConstant(
+          PartialInstantiationConstant node) =>
+      runtimeCall('gbind(#, #)', [
+        visitConstant(node.tearOffConstant),
+        node.types.map(_emitType).toList()
+      ]);
 
   @override
-  visitUnevaluatedConstant(node) {
-    return _visitExpression(node.expression);
-  }
+  JS.Expression visitUnevaluatedConstant(UnevaluatedConstant node) =>
+      _visitExpression(node.expression);
 }
 
 bool _isInlineJSFunction(Statement body) {
