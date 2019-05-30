@@ -552,10 +552,11 @@ class ProgramCompiler extends Object
       className ?? JS.Identifier(name)
     ]);
 
-    var genericArgs = [typeConstructor];
-    if (deferredBaseClass != null && deferredBaseClass.isNotEmpty) {
-      genericArgs.add(js.call('(#) => { #; }', [jsFormals, deferredBaseClass]));
-    }
+    var genericArgs = [
+      typeConstructor,
+      if (deferredBaseClass != null && deferredBaseClass.isNotEmpty)
+        js.call('(#) => { #; }', [jsFormals, deferredBaseClass]),
+    ];
 
     var genericCall = runtimeCall('generic(#)', [genericArgs]);
 
@@ -724,12 +725,12 @@ class ProgramCompiler extends Object
         _currentUri = ctor.enclosingClass.fileUri;
         var jsParams = _emitParameters(ctor.function);
         _currentUri = savedUri;
-        var ctorBody = <JS.Statement>[];
-        if (mixinCtor != null) ctorBody.add(mixinCtor);
         var name = ctor.name.name;
-        if (name != '' || hasUnnamedSuper) {
-          ctorBody.add(_emitSuperConstructorCall(className, name, jsParams));
-        }
+        var ctorBody = [
+          if (mixinCtor != null) mixinCtor,
+          if (name != '' || hasUnnamedSuper)
+            _emitSuperConstructorCall(className, name, jsParams),
+        ];
         body.add(_addConstructorToClass(
             c, className, name, JS.Fun(jsParams, JS.Block(ctorBody))));
       }
@@ -1289,8 +1290,10 @@ class ProgramCompiler extends Object
 
     if (emitMetadata) {
       var constructors = <JS.Property>[];
-      var allConstructors = List<Member>.from(c.constructors)
-        ..addAll(c.procedures.where((p) => p.isFactory));
+      var allConstructors = [
+        ...c.constructors,
+        ...c.procedures.where((p) => p.isFactory),
+      ];
       for (var ctor in allConstructors) {
         var memberName = _constructorName(ctor.name.name);
         var type = _emitAnnotatedFunctionType(
@@ -3025,9 +3028,10 @@ class ProgramCompiler extends Object
       // (sync*/async/async*). Our code generator assumes it can emit names for
       // named argument initialization, and sync* functions also emit locally
       // modified parameters into the function's scope.
-      var parameterNames = HashSet<String>()
-        ..addAll(f.positionalParameters.map((p) => p.name))
-        ..addAll(f.namedParameters.map((p) => p.name));
+      var parameterNames = {
+        for (var p in f.positionalParameters) p.name,
+        for (var p in f.namedParameters) p.name,
+      };
 
       return jsBody.toScopedBlock(parameterNames);
     }
@@ -3615,15 +3619,14 @@ class ProgramCompiler extends Object
         runtimeModule,
         _emitVariableRef(caughtError)
       ]),
+      if (stackTraceParameter != null)
+        js.statement('let # = #.stackTrace(#)', [
+          _emitVariableDef(stackTraceParameter),
+          runtimeModule,
+          _emitVariableRef(caughtError)
+        ]),
+      catchBody,
     ];
-    if (stackTraceParameter != null) {
-      catchStatements.add(js.statement('let # = #.stackTrace(#)', [
-        _emitVariableDef(stackTraceParameter),
-        runtimeModule,
-        _emitVariableRef(caughtError)
-      ]));
-    }
-    catchStatements.add(catchBody);
     _rethrowParameter = savedRethrow;
     return JS.Catch(_emitVariableDef(caughtError), JS.Block(catchStatements));
   }
@@ -4416,13 +4419,12 @@ class ProgramCompiler extends Object
             isGetter: !setter, isSetter: setter);
       } else {
         var function = member.function;
-        var params = _emitTypeFormals(function.typeParameters);
-        for (var param in function.positionalParameters) {
-          params.add(JS.Identifier(param.name));
-        }
-        if (function.namedParameters.isNotEmpty) {
-          params.add(namedArgumentTemp);
-        }
+        var params = [
+          ..._emitTypeFormals(function.typeParameters),
+          for (var param in function.positionalParameters)
+            JS.Identifier(param.name),
+          if (function.namedParameters.isNotEmpty) namedArgumentTemp,
+        ];
 
         var fn = js.fun(
             'function(#) { return super[#](#); }', [params, jsName, params]);
@@ -4535,26 +4537,18 @@ class ProgramCompiler extends Object
   List<JS.Expression> _emitArgumentList(Arguments node,
       {bool types = true, Member target}) {
     types = types && _reifyGenericFunction(target);
-    var args = <JS.Expression>[];
-    if (types) {
-      for (var typeArg in node.types) {
-        args.add(_emitType(typeArg));
-      }
-    }
-    for (var arg in node.positional) {
-      if (arg is StaticInvocation &&
-          isJSSpreadInvocation(arg.target) &&
-          arg.arguments.positional.length == 1) {
-        args.add(JS.Spread(_visitExpression(arg.arguments.positional[0])));
-      } else {
-        args.add(_visitExpression(arg));
-      }
-    }
-    if (node.named.isNotEmpty) {
-      args.add(
-          JS.ObjectInitializer(node.named.map(_emitNamedExpression).toList()));
-    }
-    return args;
+    return [
+      if (types) for (var typeArg in node.types) _emitType(typeArg),
+      for (var arg in node.positional)
+        if (arg is StaticInvocation &&
+            isJSSpreadInvocation(arg.target) &&
+            arg.arguments.positional.length == 1)
+          JS.Spread(_visitExpression(arg.arguments.positional[0]))
+        else
+          _visitExpression(arg),
+      if (node.named.isNotEmpty)
+        JS.ObjectInitializer(node.named.map(_emitNamedExpression).toList()),
+    ];
   }
 
   JS.Property _emitNamedExpression(NamedExpression arg) {
@@ -5052,11 +5046,12 @@ class ProgramCompiler extends Object
 
   @override
   JS.Expression visitMapLiteral(MapLiteral node) {
-    var entries = <JS.Expression>[];
-    for (var e in node.entries) {
-      entries.add(_visitExpression(e.key));
-      entries.add(_visitExpression(e.value));
-    }
+    var entries = [
+      for (var e in node.entries) ...[
+        _visitExpression(e.key),
+        _visitExpression(e.value),
+      ],
+    ];
 
     // TODO(markzipan): remove const check when we use front-end const eval
     if (!node.isConst) {
@@ -5151,10 +5146,10 @@ class ProgramCompiler extends Object
   @override
   JS.Expression visitBlockExpression(BlockExpression node) {
     var jsExpr = _visitExpression(node.value);
-    List<JS.Statement> jsStmts = node.body.statements
-        .map(_visitStatement)
-        .toList()
-          ..add(JS.Return(jsExpr));
+    var jsStmts = [
+      for (var s in node.body.statements) _visitStatement(s),
+      JS.Return(jsExpr),
+    ];
     var jsBlock = JS.Block(jsStmts);
     // BlockExpressions with async operations must be constructed
     // with a generator instead of a lambda.
@@ -5276,12 +5271,12 @@ class ProgramCompiler extends Object
 
   @override
   JS.Expression visitMapConstant(MapConstant node) {
-    var entries = <JS.Expression>[];
-    for (var e in node.entries) {
-      entries.add(visitConstant(e.key));
-      entries.add(visitConstant(e.value));
-    }
-
+    var entries = [
+      for (var e in node.entries) ...[
+        visitConstant(e.key),
+        visitConstant(e.value),
+      ],
+    ];
     return _emitConstMap(node.keyType, node.valueType, entries);
   }
 
@@ -5304,8 +5299,10 @@ class ProgramCompiler extends Object
 
     var type = visitInterfaceType(node.getType(types) as InterfaceType);
     var prototype = js.call("#.prototype", [type]);
-    var properties = [JS.Property(propertyName("__proto__"), prototype)]
-      ..addAll(node.fieldValues.entries.map(entryToProperty));
+    var properties = [
+      JS.Property(propertyName("__proto__"), prototype),
+      for (var e in node.fieldValues.entries) entryToProperty(e),
+    ];
     return canonicalizeConstObject(
         JS.ObjectInitializer(properties, multiline: true));
   }
