@@ -19,7 +19,7 @@ main() {
 
 @reflectiveTest
 class LogicalAndTest extends DriverResolutionTest {
-  test_simple() async {
+  test_upward() async {
     addTestFile('''
 void f(bool a, bool b) {
   var c = a && b;
@@ -40,11 +40,26 @@ class LogicalAndWithNnbdTest extends LogicalAndTest {
 
   @override
   bool get typeToStringWithNullability => true;
+
+  @failingTest
+  test_downward() async {
+    addTestFile('''
+void f(b) {
+  var c = a() && b();
+  print(c);
+}
+T a<T>() => throw '';
+T b<T>() => throw '';
+''');
+    await resolveTestFile();
+    assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
+    assertInvokeType(findNode.methodInvocation('b('), 'bool Function()');
+  }
 }
 
 @reflectiveTest
 class LogicalOrTest extends DriverResolutionTest {
-  test_simple() async {
+  test_upward() async {
     addTestFile('''
 void f(bool a, bool b) {
   var c = a || b;
@@ -65,4 +80,19 @@ class LogicalOrWithNnbdTest extends LogicalOrTest {
 
   @override
   bool get typeToStringWithNullability => true;
+
+  @failingTest
+  test_downward() async {
+    addTestFile('''
+void f(b) {
+  var c = a() || b();
+  print(c);
+}
+T a<T>() => throw '';
+T b<T>() => throw '';
+''');
+    await resolveTestFile();
+    assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
+    assertInvokeType(findNode.methodInvocation('b('), 'bool Function()');
+  }
 }

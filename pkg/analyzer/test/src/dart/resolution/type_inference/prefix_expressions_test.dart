@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class NotTest extends DriverResolutionTest {
-  test_simple() async {
+  test_upward() async {
     addTestFile('''
 void f(bool a) {
   var b = !a;
@@ -38,4 +38,17 @@ class NotWithNnbdTest extends NotTest {
 
   @override
   bool get typeToStringWithNullability => true;
+
+  @failingTest
+  test_downward() async {
+    addTestFile('''
+void f(b) {
+  var c = !a();
+  print(c);
+}
+T a<T>() => throw '';
+''');
+    await resolveTestFile();
+    assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
+  }
 }
