@@ -51,6 +51,7 @@ class LibraryContext {
   final PerformanceLog logger;
   final ByteStore byteStore;
   final AnalysisSession analysisSession;
+  final SummaryDataStore externalSummaries;
   final SummaryDataStore store = new SummaryDataStore([]);
 
   /// The size of the linked data that is loaded by this context.
@@ -73,7 +74,7 @@ class LibraryContext {
     @required AnalysisOptions analysisOptions,
     @required DeclaredVariables declaredVariables,
     @required SourceFactory sourceFactory,
-    @required SummaryDataStore externalSummaries,
+    @required this.externalSummaries,
     @required FileState targetLibrary,
     @required bool useSummary2,
   })  : this.logger = logger,
@@ -150,6 +151,10 @@ class LibraryContext {
 
   /// Load data required to access elements of the given [targetLibrary].
   void load(FileState targetLibrary) {
+    if (AnalysisDriver.useSummary2) {
+      throw StateError('Unexpected with summary2.');
+    }
+
     // The library is already a part of the context, nothing to do.
     if (store.linkedMap.containsKey(targetLibrary.uriStr)) {
       return;
@@ -352,6 +357,13 @@ class LibraryContext {
       analysisSession,
       Reference.root(),
     );
+    if (externalSummaries != null) {
+      for (var bundle in externalSummaries.bundles) {
+        elementFactory.addBundle(
+          LinkedBundleContext(elementFactory, bundle.bundle2),
+        );
+      }
+    }
   }
 
   void _createElementFactoryTypeProvider() {

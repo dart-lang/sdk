@@ -104,7 +104,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * Whether summary2 should be used to resynthesize elements.
    */
-  static final bool useSummary2 = false;
+  static bool useSummary2 = false;
 
   /**
    * The scheduler that schedules analysis work in this, and possibly other

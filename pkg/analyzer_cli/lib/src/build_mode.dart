@@ -196,6 +196,7 @@ class BuildMode with HasContextMixin {
   final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
 
   final bool buildSummary2 = true;
+  final bool consumeSummary2 = false;
   final Map<String, ParsedUnitResult> inputParsedUnitResults = {};
   summary2.LinkedElementFactory elementFactory;
 
@@ -509,6 +510,10 @@ class BuildMode with HasContextMixin {
 
     analysisOptions =
         createAnalysisOptionsForCommandLineOptions(options, rootPath);
+
+    if (consumeSummary2) {
+      AnalysisDriver.useSummary2 = true;
+    }
 
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
     analysisDriver = new AnalysisDriver(
