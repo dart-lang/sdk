@@ -77,8 +77,6 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     return library.partOfLibrary ?? library;
   }
 
-  void buildAnnotations(LibraryBuilder library) {}
-
   /// Registers a constructor redirection for this class and returns true if
   /// this redirection gives rise to a cycle that has not been reported before.
   bool checkConstructorCyclic(String source, String target) {
@@ -126,7 +124,7 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     return constructors.lookup(name, charOffset, uri);
   }
 
-  void forEach(void f(String name, Declaration builder)) {
+  void forEach(void f(String name, MemberBuilder builder)) {
     scope.forEach(f);
   }
 

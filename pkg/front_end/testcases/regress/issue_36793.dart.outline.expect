@@ -13,7 +13,6 @@ import self as self;
 import "dart:core" as core;
 
 static const field core::int y;
-@self::y
 static field core::int x;
 static method main() → dynamic
   ;

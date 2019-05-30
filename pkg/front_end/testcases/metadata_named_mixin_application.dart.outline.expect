@@ -2,7 +2,6 @@ library;
 import self as self;
 import "dart:core" as core;
 
-@self::a
 class C = self::D with self::E {
   synthetic constructor •() → self::C
     : super self::D::•()

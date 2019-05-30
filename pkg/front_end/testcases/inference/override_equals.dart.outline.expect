@@ -5,7 +5,6 @@ import "dart:core" as core;
 class NullEquality extends core::Object {
   synthetic constructor •() → self::NullEquality
     ;
-  @core::override
   operator ==(core::Object other) → core::Null
     ;
 }

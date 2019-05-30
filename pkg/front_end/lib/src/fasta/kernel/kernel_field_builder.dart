@@ -23,9 +23,7 @@ import 'kernel_builder.dart'
         FieldBuilder,
         ImplicitFieldType,
         KernelLibraryBuilder,
-        KernelMetadataBuilder,
         KernelTypeBuilder,
-        LibraryBuilder,
         MetadataBuilder;
 
 import 'kernel_shadow_ast.dart' show ShadowField;
@@ -91,13 +89,6 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
           .recordStaticFieldInferenceCandidate(field, library);
     }
     return field;
-  }
-
-  @override
-  void buildAnnotations(LibraryBuilder library) {
-    ClassBuilder classBuilder = isClassMember ? parent : null;
-    KernelMetadataBuilder.buildAnnotations(
-        field, metadata, library, classBuilder, this, null);
   }
 
   Field get target => field;

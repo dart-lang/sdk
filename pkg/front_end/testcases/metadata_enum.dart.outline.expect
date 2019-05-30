@@ -2,7 +2,6 @@ library;
 import self as self;
 import "dart:core" as core;
 
-@self::a
 class E extends core::Object {
   final field core::int index;
   final field core::String _name;

@@ -82,7 +82,6 @@ import '../kernel/kernel_builder.dart'
         KernelProcedureBuilder,
         KernelTypeBuilder,
         LibraryBuilder,
-        MemberBuilder,
         NamedTypeBuilder,
         TypeBuilder;
 
@@ -946,23 +945,6 @@ class SourceLoader extends Loader<Library> {
       }
     }
     ticker.logMs("Checked mixin declaration applications");
-  }
-
-  void buildAnnotations() {
-    builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library.loader == this) {
-        library.buildAnnotations();
-        Iterator<Declaration> iterator = library.iterator;
-        while (iterator.moveNext()) {
-          Declaration declaration = iterator.current;
-          if (declaration is ClassBuilder) {
-            declaration.buildAnnotations(library);
-          } else if (declaration is MemberBuilder) {
-            declaration.buildAnnotations(library);
-          }
-        }
-      }
-    });
   }
 
   ClassHierarchyBuilder buildClassHierarchy(

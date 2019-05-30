@@ -7,7 +7,7 @@ static method isPrime([@vm.inferred-type.metadata=int?] dynamic n) → core::boo
   if(_in::unsafeCast<core::bool>([@vm.direct-call.metadata=dart.core::_IntegerImplementation::<??] [@vm.inferred-type.metadata=dart.core::bool] n.<(2)))
     return false;
   for (core::int i = 2; [@vm.direct-call.metadata=dart.core::_IntegerImplementation::<=??] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart.core::_IntegerImplementation::*??] [@vm.inferred-type.metadata=int? (skip check)] i.{core::num::*}(i).{core::num::<=}(_in::unsafeCast<core::num>(n)); i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+??] [@vm.inferred-type.metadata=int? (skip check)] i.{core::num::+}(1)) {
-    if([@vm.inferred-type.metadata=dart.core::bool?] [@vm.direct-call.metadata=dart.core::_IntegerImplementation::%??] [@vm.inferred-type.metadata=int?] n.%(i).{core::Object::==}(0))
+    if([@vm.inferred-type.metadata=dart.core::bool] [@vm.direct-call.metadata=dart.core::_IntegerImplementation::%??] [@vm.inferred-type.metadata=int?] n.%(i).{core::Object::==}(0))
       return false;
   }
   return true;
@@ -17,7 +17,7 @@ static method nThPrimeNumber([@vm.inferred-type.metadata=dart.core::_Smi] core::
   for (core::int i = 1; ; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+??] [@vm.inferred-type.metadata=int? (skip check)] i.{core::num::+}(1)) {
     if([@vm.inferred-type.metadata=dart.core::bool] self::isPrime(i))
       counter = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+??] [@vm.inferred-type.metadata=int? (skip check)] counter.{core::num::+}(1);
-    if([@vm.inferred-type.metadata=dart.core::bool?] counter.{core::num::==}(n)) {
+    if([@vm.inferred-type.metadata=dart.core::bool] counter.{core::num::==}(n)) {
       return i;
     }
   }
@@ -25,7 +25,7 @@ static method nThPrimeNumber([@vm.inferred-type.metadata=dart.core::_Smi] core::
 static method run() → void {
   core::int e = 611953;
   core::int p = [@vm.inferred-type.metadata=int?] self::nThPrimeNumber(50000);
-  if(![@vm.inferred-type.metadata=dart.core::bool?] p.{core::num::==}(e)) {
+  if(![@vm.inferred-type.metadata=dart.core::bool] p.{core::num::==}(e)) {
     throw core::Exception::•("Unexpected result: ${p} != ${e}");
   }
 }

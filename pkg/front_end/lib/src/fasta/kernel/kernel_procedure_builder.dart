@@ -65,7 +65,6 @@ import 'kernel_builder.dart'
         FormalParameterBuilder,
         KernelFormalParameterBuilder,
         KernelLibraryBuilder,
-        KernelMetadataBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -362,18 +361,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
     return procedure;
   }
 
-  @override
-  void buildAnnotations(LibraryBuilder library) {
-    ClassBuilder classBuilder = isClassMember ? parent : null;
-    KernelMetadataBuilder.buildAnnotations(
-        procedure,
-        metadata,
-        library,
-        classBuilder,
-        this,
-        computeFormalParameterScope(classBuilder?.scope ?? library.scope));
-  }
-
   Procedure get target => origin.procedure;
 
   @override
@@ -494,18 +481,6 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       library.loader.typeInferenceEngine.toBeInferred[constructor] = library;
     }
     return constructor;
-  }
-
-  @override
-  void buildAnnotations(LibraryBuilder library) {
-    ClassBuilder classBuilder = isClassMember ? parent : null;
-    KernelMetadataBuilder.buildAnnotations(
-        constructor,
-        metadata,
-        library,
-        classBuilder,
-        this,
-        computeFormalParameterScope(classBuilder?.scope ?? library.scope));
   }
 
   FunctionNode buildFunction(LibraryBuilder library) {

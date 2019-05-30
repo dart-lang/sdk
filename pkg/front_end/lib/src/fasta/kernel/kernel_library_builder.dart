@@ -135,7 +135,6 @@ import 'kernel_builder.dart'
         KernelTypeAliasBuilder,
         KernelFunctionTypeBuilder,
         KernelInvalidTypeBuilder,
-        KernelMetadataBuilder,
         KernelMixinApplicationBuilder,
         KernelNamedTypeBuilder,
         KernelProcedureBuilder,
@@ -900,12 +899,6 @@ class KernelLibraryBuilder
     var builder = new KernelTypeVariableBuilder(name, this, charOffset, bound);
     boundlessTypeVariables.add(builder);
     return builder;
-  }
-
-  @override
-  void buildAnnotations() {
-    KernelMetadataBuilder.buildAnnotations(
-        library, metadata, this, null, null, null);
   }
 
   @override

@@ -6,7 +6,6 @@ class Foo extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::Foo::•];
   constructor named(dynamic p) → self::Foo
     ;
-  @self::forFactoryItself
   static factory •(dynamic p) → self::Foo
     let dynamic #redirecting_factory = self::Foo::named in invalid-expression;
 }

@@ -192,11 +192,6 @@ abstract class FileUriNode extends TreeNode {
   Uri get fileUri;
 }
 
-abstract class Annotatable {
-  List<Expression> get annotations;
-  void addAnnotation(Expression node);
-}
-
 /// Indirection between a reference and its definition.
 ///
 /// There is only one reference object per [NamedNode].
@@ -272,8 +267,7 @@ class Reference {
 // ------------------------------------------------------------------------
 
 @coq
-class Library extends NamedNode
-    implements Annotatable, Comparable<Library>, FileUriNode {
+class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   /// An import path to this library.
   ///
   /// The [Uri] should have the `dart`, `package`, `app`, or `file` scheme.
@@ -727,7 +721,7 @@ enum ClassLevel {
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
 @coq
-class Class extends NamedNode implements Annotatable, FileUriNode {
+class Class extends NamedNode implements FileUriNode {
   /// Start offset of the class in the source file it comes from.
   ///
   /// Note that this includes annotations if any.
@@ -1092,7 +1086,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 // ------------------------------------------------------------------------
 
 @coq
-abstract class Member extends NamedNode implements Annotatable, FileUriNode {
+abstract class Member extends NamedNode implements FileUriNode {
   /// End offset in the source file it comes from.
   ///
   /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file

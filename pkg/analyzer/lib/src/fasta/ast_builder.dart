@@ -2008,7 +2008,8 @@ class AstBuilder extends StackListener {
     }
   }
 
-  void finishFunction(formals, AsyncMarker asyncModifier, FunctionBody body) {
+  void finishFunction(
+      List annotations, formals, AsyncMarker asyncModifier, FunctionBody body) {
     debugEvent("finishFunction");
 
     Statement bodyStatement;

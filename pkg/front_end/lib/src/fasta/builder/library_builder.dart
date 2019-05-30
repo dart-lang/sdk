@@ -235,8 +235,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   }
 
   void recordAccess(int charOffset, int length, Uri fileUri) {}
-
-  void buildAnnotations() {}
 }
 
 class LibraryLocalDeclarationIterator implements Iterator<Declaration> {

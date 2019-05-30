@@ -12,7 +12,6 @@ class _FailingTest extends core::Object {
 class MyTest extends core::Object {
   synthetic constructor •() → self::MyTest
     ;
-  @self::failingTest
   method foo() → void
     ;
 }
