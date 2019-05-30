@@ -38,6 +38,45 @@ main() {
     await assertNoFix();
   }
 
+  test_lib() async {
+    addPackageFile('my_pkg', 'a.dart', 'class Test {}');
+    newFile('/home/test/pubspec.yaml', content: r'''
+dependencies:
+  my_pkg: any
+''');
+
+    await resolveTestUnit('''
+main() {
+  Test test = null;
+  print(test);
+}
+''');
+
+    await assertHasFix('''
+import 'package:my_pkg/a.dart';
+
+main() {
+  Test test = null;
+  print(test);
+}
+''', expectedNumberOfFixesForKind: 1);
+  }
+
+  test_lib_src() async {
+    addPackageFile('my_pkg', 'src/a.dart', 'class Test {}');
+    newFile('/home/test/pubspec.yaml', content: r'''
+dependencies:
+  my_pkg: any
+''');
+    await resolveTestUnit('''
+main() {
+  Test test = null;
+  print(test);
+}
+''');
+    await assertNoFix();
+  }
+
   test_notInLib() async {
     addSource('/home/other/test/lib.dart', 'class Test {}');
     await resolveTestUnit('''
@@ -49,97 +88,40 @@ main() {
     await assertNoFix();
   }
 
-  test_preferDirectOverExport() async {
-    addPackageFile('my_pkg', 'a.dart', "export 'b.dart';");
-    addPackageFile('my_pkg', 'b.dart', 'class Test {}');
-    newFile('/home/test/pubspec.yaml', content: r'''
-dependencies:
-  my_pkg: any
-''');
-
-    await resolveTestUnit('''
-main() {
-  Test test = null;
-  print(test);
-}
-''');
-
-    await assertHasFix('''
-import 'package:my_pkg/b.dart';
-
-main() {
-  Test test = null;
-  print(test);
-}
-''', expectedNumberOfFixesForKind: 1);
-  }
-
-  test_preferDirectOverExport_src() async {
-    addPackageFile('my_pkg', 'a.dart', "export 'b.dart';");
-    addPackageFile('my_pkg', 'b.dart', 'class Test {}');
-    newFile('/home/test/pubspec.yaml', content: r'''
-dependencies:
-  my_pkg: any
-''');
-    await resolveTestUnit('''
-main() {
-  Test test = null;
-  print(test);
-}
-''');
-    await assertHasFix('''
-import 'package:my_pkg/b.dart';
-
-main() {
-  Test test = null;
-  print(test);
-}
-''', expectedNumberOfFixesForKind: 1);
-  }
-
   test_relativeDirective() async {
     addSource('/home/test/lib/a.dart', '''
-import "b.dart";
-''');
-    addSource('/home/test/lib/b.dart', '''
 class Foo {}
 ''');
     await resolveTestUnit('''
 main() { new Foo(); }
 ''');
     await assertHasFix('''
-import 'b.dart';
+import 'a.dart';
 
 main() { new Foo(); }
 ''',
         expectedNumberOfFixesForKind: 2,
-        matchFixMessage: "Import library 'b.dart'");
+        matchFixMessage: "Import library 'a.dart'");
   }
 
   test_relativeDirective_downOneDirectory() async {
     addSource('/home/test/lib/dir/a.dart', '''
-import "b.dart";
-''');
-    addSource('/home/test/lib/dir/b.dart', '''
 class Foo {}
 ''');
     await resolveTestUnit('''
 main() { new Foo(); }
 ''');
     await assertHasFix('''
-import 'dir/b.dart';
+import 'dir/a.dart';
 
 main() { new Foo(); }
 ''',
         expectedNumberOfFixesForKind: 2,
-        matchFixMessage: "Import library 'dir/b.dart'");
+        matchFixMessage: "Import library 'dir/a.dart'");
   }
 
   test_relativeDirective_upOneDirectory() async {
     addSource('/home/test/lib/a.dart', '''
-import "b.dart";
-''');
-    addSource('/home/test/lib/b.dart', '''
 class Foo {}
 ''');
     testFile = convertPath('/home/test/lib/dir/test.dart');
@@ -147,12 +129,12 @@ class Foo {}
 main() { new Foo(); }
 ''');
     await assertHasFix('''
-import '../b.dart';
+import '../a.dart';
 
 main() { new Foo(); }
 ''',
         expectedNumberOfFixesForKind: 2,
-        matchFixMessage: "Import library '../b.dart'");
+        matchFixMessage: "Import library '../a.dart'");
   }
 
   test_withClass_annotation() async {
@@ -500,7 +482,7 @@ class ImportLibraryProject2Test extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT2;
 
-  test_preferDirectOverExport() async {
+  test_lib() async {
     addPackageFile('my_pkg', 'a.dart', "export 'b.dart';");
     addPackageFile('my_pkg', 'b.dart', 'class Test {}');
     newFile('/home/test/pubspec.yaml', content: r'''
@@ -523,9 +505,9 @@ main() {
 ''');
   }
 
-  test_preferDirectOverExport_src() async {
-    addPackageFile('my_pkg', 'a.dart', "export 'b.dart';");
-    addPackageFile('my_pkg', 'b.dart', 'class Test {}');
+  test_lib_src() async {
+    addPackageFile('my_pkg', 'a.dart', "export 'src/b.dart';");
+    addPackageFile('my_pkg', 'src/b.dart', 'class Test {}');
     newFile('/home/test/pubspec.yaml', content: r'''
 dependencies:
   my_pkg: any
