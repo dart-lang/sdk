@@ -218,13 +218,13 @@ class GoodCaseWithDifferentNamedArgs {
 class BadCaseWithNamedArgsInitializer {
   num x, y;
   BadCaseWithNamedArgsInitializer({num x, num y = 1})
-    : this.x = x, // LINT
-      this.y = y; // LINT
+      : this.x = x, // LINT
+        this.y = y; // LINT
 }
 
 class GoodCaseWithDifferentNamedArgsInitializer {
   num x, y;
   GoodCaseWithDifferentNamedArgsInitializer({num a, num b = 1})
-    : this.x = a, // OK
-      this.y = b; // OK
+      : this.x = a, // OK
+        this.y = b; // OK
 }
