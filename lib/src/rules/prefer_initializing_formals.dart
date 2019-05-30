@@ -102,7 +102,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           leftElement.enclosingElement ==
               node.declaredElement.enclosingElement &&
           parameters.contains(rightElement) &&
-          (!parametersUsedMoreThanOnce.contains(rightElement) ||
+          (!parametersUsedMoreThanOnce.contains(rightElement) &&
+              !(rightElement as ParameterElement).isNamed ||
               leftElement.name == rightElement.name);
     }
 
@@ -113,9 +114,10 @@ class _Visitor extends SimpleAstVisitor<void> {
               true) &&
           expression is SimpleIdentifier &&
           parameters.contains(expression.staticElement) &&
-          (!parametersUsedMoreThanOnce.contains(expression.staticElement) ||
-              constructorFieldInitializer.fieldName.staticElement?.name ==
-                  expression.staticElement.name);
+          (!parametersUsedMoreThanOnce.contains(expression.staticElement) &&
+              !(expression.staticElement as ParameterElement).isNamed ||
+              (constructorFieldInitializer.fieldName.staticElement?.name ==
+                  expression.staticElement.name));
     }
 
     void processElement(Element element) {
