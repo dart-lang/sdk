@@ -31,8 +31,17 @@ class B<X> extends A<void Function(X)> {};
   cookie values to be the empty string (Issue [35804][]) and not stripping
   double quotes from the value (Issue [33327][]) in accordance with RFC 6265.
 
-[33327]: https://github.com/dart-lang/sdk/issues/33327
-[35804]: https://github.com/dart-lang/sdk/issues/35804
+  [33327]: https://github.com/dart-lang/sdk/issues/33327
+  [35804]: https://github.com/dart-lang/sdk/issues/35804
+
+* The `HttpClientResponse` interface has been extended with the addition of a
+  new `compressionState` getter, which specifies whether the body of a
+  response was compressed when it was received and whether it has been
+  automatically uncompressed via `HttpClient.autoUncompress`.
+
+  * **Breaking change**: For those implementing the `HttpClientResponse`
+    interface, this is a breaking change, as implementing classes will need to
+    implement the new getter.
 
 ### Dart VM
 

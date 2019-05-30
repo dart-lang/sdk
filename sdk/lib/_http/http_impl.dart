@@ -292,15 +292,26 @@ class _HttpClientResponse extends _HttpInboundMessage
   // The HttpClientRequest of this response.
   final _HttpClientRequest _httpRequest;
 
-  // Whether this response is configured to auto uncompress.
-  final bool autoUncompress;
+  // The compression state of this response.
+  final HttpClientResponseCompressionState compressionState;
 
   _HttpClientResponse(
       _HttpIncoming _incoming, this._httpRequest, this._httpClient)
-      : autoUncompress = _httpClient.autoUncompress,
+      : compressionState = _getCompressionState(_httpClient, _incoming.headers),
         super(_incoming) {
     // Set uri for potential exceptions.
     _incoming.uri = _httpRequest.uri;
+  }
+
+  static HttpClientResponseCompressionState _getCompressionState(
+      _HttpClient httpClient, _HttpHeaders headers) {
+    if (headers.value(HttpHeaders.contentEncodingHeader) == "gzip") {
+      return httpClient.autoUncompress
+          ? HttpClientResponseCompressionState.decompressed
+          : HttpClientResponseCompressionState.compressed;
+    } else {
+      return HttpClientResponseCompressionState.notCompressed;
+    }
   }
 
   int get statusCode => _incoming.statusCode;
@@ -381,8 +392,7 @@ class _HttpClientResponse extends _HttpInboundMessage
       return new Stream<List<int>>.empty().listen(null, onDone: onDone);
     }
     Stream<List<int>> stream = _incoming;
-    if (autoUncompress &&
-        headers.value(HttpHeaders.contentEncodingHeader) == "gzip") {
+    if (compressionState == HttpClientResponseCompressionState.decompressed) {
       stream = stream.transform(gzip.decoder);
     }
     return stream.listen(onData,

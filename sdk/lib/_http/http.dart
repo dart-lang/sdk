@@ -1958,6 +1958,13 @@ abstract class HttpClientResponse implements Stream<List<int>> {
    */
   int get contentLength;
 
+  /// The compression state of the response.
+  ///
+  /// This specifies whether the response bytes were compressed when they were
+  /// received across the wire and whether callers will receive compressed
+  /// or uncompressed bytes when they listed to this response's byte stream.
+  HttpClientResponseCompressionState get compressionState;
+
   /**
    * Gets the persistent connection state returned by the server.
    *
@@ -2035,6 +2042,48 @@ abstract class HttpClientResponse implements Stream<List<int>> {
    * is not available.
    */
   HttpConnectionInfo get connectionInfo;
+}
+
+/// Enum that specifies the compression state of the byte stream of an
+/// [HttpClientResponse].
+///
+/// The values herein allow callers to answer the following questions as they
+/// pertain to an [HttpClientResponse]:
+///
+///  * Can the value of the response's `Content-Length` HTTP header be trusted?
+///  * Does the caller need to manually decompress the response's byte stream?
+///
+/// This enum is accessed via the [HttpClientResponse.compressionState] value.
+enum HttpClientResponseCompressionState {
+  /// The body of the HTTP response was received and remains in an uncompressed
+  /// state.
+  ///
+  /// In this state, the value of the `Content-Length` HTTP header, if
+  /// specified (non-negative), should match the number of bytes produced by
+  /// the response's byte stream.
+  notCompressed,
+
+  /// The body of the HTTP response was originally compressed, but by virtue of
+  /// the [HttpClient.autoUncompress] configuration option, it has been
+  /// automatically uncompressed.
+  ///
+  /// HTTP headers are not modified, so when a response has been uncompressed
+  /// in this way, the value of the `Content-Length` HTTP header cannot be
+  /// trusted, as it will contain the compressed content length, whereas the
+  /// stream of bytes produced by the response will contain uncompressed bytes.
+  decompressed,
+
+  /// The body of the HTTP response contains compressed bytes.
+  ///
+  /// In this state, the value of the `Content-Length` HTTP header, if
+  /// specified (non-negative), should match the number of bytes produced by
+  /// the response's byte stream.
+  ///
+  /// If the caller wishes to manually uncompress the body of the response,
+  /// it should consult the value of the `Content-Encoding` HTTP header to see
+  /// what type of compression has been applied. See
+  /// <https://tools.ietf.org/html/rfc2616#section-14.11> for more information.
+  compressed,
 }
 
 abstract class HttpClientCredentials {}
