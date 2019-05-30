@@ -1202,6 +1202,22 @@ class C {
 ''');
   }
 
+  test_class_method_namedAsSupertype() async {
+    var library = await checkLibrary(r'''
+class A {}
+class B extends A {
+  void A() {}
+}
+''');
+    checkElementText(library, r'''
+class A {
+}
+class B extends A {
+  void A() {}
+}
+''');
+  }
+
   test_class_method_params() async {
     var library = await checkLibrary('class C { f(x, y) {} }');
     checkElementText(library, r'''
@@ -8662,6 +8678,22 @@ mixin M {}
 ''');
     checkElementText(library, r'''
 mixin M on Object {
+}
+''');
+  }
+
+  test_mixin_method_namedAsConstraint() async {
+    var library = await checkLibrary(r'''
+class A {}
+mixin B on A {
+  void A() {}
+}
+''');
+    checkElementText(library, r'''
+class A {
+}
+mixin B on A {
+  void A() {}
 }
 ''');
   }
