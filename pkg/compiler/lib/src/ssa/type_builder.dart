@@ -116,8 +116,7 @@ abstract class TypeBuilder {
     if (builder.options.parameterCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, type);
     } else if (builder.options.parameterCheckPolicy.isEmitted) {
-      checkedOrTrusted =
-          _checkType(original, type, HTypeConversion.CHECKED_MODE_CHECK);
+      checkedOrTrusted = _checkType(original, type, HTypeConversion.TYPE_CHECK);
     }
     if (checkedOrTrusted == original) return original;
     builder.add(checkedOrTrusted);
@@ -129,7 +128,7 @@ abstract class TypeBuilder {
   /// trusts the written type.
   HInstruction potentiallyCheckOrTrustTypeOfAssignment(
       HInstruction original, DartType type,
-      {int kind: HTypeConversion.CHECKED_MODE_CHECK}) {
+      {int kind: HTypeConversion.TYPE_CHECK}) {
     if (type == null) return original;
     HInstruction checkedOrTrusted = original;
     if (builder.options.assignmentCheckPolicy.isTrusted) {

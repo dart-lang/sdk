@@ -95,6 +95,7 @@ abstract class HVisitor<R> {
   R visitTruncatingDivide(HTruncatingDivide node);
   R visitTry(HTry node);
   R visitTypeConversion(HTypeConversion node);
+  R visitPrimitiveCheck(HPrimitiveCheck node);
   R visitBoolConversion(HBoolConversion node);
   R visitTypeKnown(HTypeKnown node);
   R visitYield(HYield node);
@@ -569,6 +570,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitTypeConversion(HTypeConversion node) => visitCheck(node);
   @override
   visitBoolConversion(HBoolConversion node) => visitCheck(node);
+  @override
+  visitPrimitiveCheck(HPrimitiveCheck node) => visitCheck(node);
   @override
   visitTypeKnown(HTypeKnown node) => visitCheck(node);
   @override
@@ -1059,6 +1062,7 @@ abstract class HInstruction implements Spannable {
   static const int GET_LENGTH_TYPECODE = 43;
   static const int ABS_TYPECODE = 44;
   static const int BOOL_CONVERSION_TYPECODE = 45;
+  static const int PRIMITIVE_CHECK_TYPECODE = 46;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++,
@@ -1365,7 +1369,7 @@ abstract class HInstruction implements Spannable {
           closedWorld.abstractValueDomain.dynamicType, this, sourceInformation);
     }
     assert(type.isInterfaceType);
-    if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.treatAsRaw) {
+    if (kind == HTypeConversion.TYPE_CHECK && !type.treatAsRaw) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
       InterfaceType interfaceType = type;
@@ -3487,54 +3491,30 @@ class HLateValue extends HLateInstruction {
 
 class HTypeConversion extends HCheck {
   // Values for [kind].
-  static const int CHECKED_MODE_CHECK = 0;
-  static const int ARGUMENT_TYPE_CHECK = 1;
-  static const int CAST_TYPE_CHECK = 2;
-  static const int RECEIVER_TYPE_CHECK = 3;
+  static const int TYPE_CHECK = 0;
+  static const int CAST_CHECK = 1;
 
   final DartType typeExpression;
   final int kind;
-  // [receiverTypeCheckSelector] is the selector used for a receiver type check
-  // on open-coded operators, e.g. the not-null check on `x` in `x + 1` would be
-  // compiled to the following, for which we need the selector `$add`.
-  //
-  //     if (typeof x != "number") x.$add();
-  //
-  final Selector receiverTypeCheckSelector;
 
   AbstractValue checkedType; // Not final because we refine it.
   AbstractValue
       inputType; // Holds input type for codegen after HTypeKnown removal.
 
   HTypeConversion(this.typeExpression, this.kind, AbstractValue type,
-      HInstruction input, SourceInformation sourceInformation,
-      {this.receiverTypeCheckSelector})
+      HInstruction input, SourceInformation sourceInformation)
       : checkedType = type,
         super(<HInstruction>[input], type) {
-    assert(!isReceiverTypeCheck || receiverTypeCheckSelector != null);
     assert(typeExpression == null || !typeExpression.isTypedef);
-    assert(!isControlFlow() || typeExpression != null);
-    sourceElement = input.sourceElement;
+    this.sourceElement = input.sourceElement;
     this.sourceInformation = sourceInformation;
   }
 
   HTypeConversion.withTypeRepresentation(this.typeExpression, this.kind,
       AbstractValue type, HInstruction input, HInstruction typeRepresentation)
       : checkedType = type,
-        receiverTypeCheckSelector = null,
         super(<HInstruction>[input, typeRepresentation], type) {
     assert(!typeExpression.isTypedef);
-    sourceElement = input.sourceElement;
-  }
-
-  HTypeConversion.viaMethodOnType(this.typeExpression, this.kind,
-      AbstractValue type, HInstruction reifiedType, HInstruction input)
-      : checkedType = type,
-        receiverTypeCheckSelector = null,
-        super(<HInstruction>[reifiedType, input], type) {
-    // This form is currently used only for function types.
-    assert(typeExpression.isFunctionType);
-    assert(kind == CHECKED_MODE_CHECK || kind == CAST_TYPE_CHECK);
     sourceElement = input.sourceElement;
   }
 
@@ -3557,10 +3537,8 @@ class HTypeConversion extends HCheck {
     return super.convertType(closedWorld, type, kind);
   }
 
-  bool get isCheckedModeCheck => kind == CHECKED_MODE_CHECK;
-  bool get isArgumentTypeCheck => kind == ARGUMENT_TYPE_CHECK;
-  bool get isReceiverTypeCheck => kind == RECEIVER_TYPE_CHECK;
-  bool get isCastTypeCheck => kind == CAST_TYPE_CHECK;
+  bool get isTypeCheck => kind == TYPE_CHECK;
+  bool get isCastCheck => kind == CAST_CHECK;
 
   @override
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
@@ -3568,7 +3546,7 @@ class HTypeConversion extends HCheck {
   @override
   bool isJsStatement() => isControlFlow();
   @override
-  bool isControlFlow() => isArgumentTypeCheck || isReceiverTypeCheck;
+  bool isControlFlow() => false;
 
   @override
   int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
@@ -3581,8 +3559,7 @@ class HTypeConversion extends HCheck {
   bool dataEquals(HTypeConversion other) {
     return kind == other.kind &&
         typeExpression == other.typeExpression &&
-        checkedType == other.checkedType &&
-        receiverTypeCheckSelector == other.receiverTypeCheckSelector;
+        checkedType == other.checkedType;
   }
 
   bool isRedundant(JClosedWorld closedWorld) {
@@ -3627,6 +3604,91 @@ class HTypeConversion extends HCheck {
   @override
   String toString() => 'HTypeConversion(type=$typeExpression, kind=$kind, '
       '${hasTypeRepresentation ? 'representation=$typeRepresentation, ' : ''}'
+      'checkedInput=$checkedInput)';
+}
+
+/// Check for receiver or argument type when lowering operation to a primitive,
+/// e.g. lowering `+` to [HAdd].
+///
+/// After NNBD, `a + b` will require `a` and `b` are non-nullable and these
+/// checks will become explicit in the source (e.g. `a! + b!`). At that time,
+/// this check should be removed.  If needed, the `!` check can be optimized
+/// give the same signals to the JavaScript VM.
+class HPrimitiveCheck extends HCheck {
+  // Values for [kind].
+  static const int ARGUMENT_TYPE_CHECK = 1;
+  static const int RECEIVER_TYPE_CHECK = 3;
+
+  final DartType typeExpression;
+  final int kind;
+
+  // [receiverTypeCheckSelector] is the selector used for a receiver type check
+  // on open-coded operators, e.g. the not-null check on `x` in `x + 1` would be
+  // compiled to the following, for which we need the selector `$add`.
+  //
+  //     if (typeof x != "number") x.$add();
+  //
+  final Selector receiverTypeCheckSelector;
+
+  AbstractValue checkedType; // Not final because we refine it.
+  AbstractValue
+      inputType; // Holds input type for codegen after HTypeKnown removal.
+
+  HPrimitiveCheck(this.typeExpression, this.kind, AbstractValue type,
+      HInstruction input, SourceInformation sourceInformation,
+      {this.receiverTypeCheckSelector})
+      : checkedType = type,
+        super(<HInstruction>[input], type) {
+    assert(isReceiverTypeCheck == (receiverTypeCheckSelector != null));
+    this.sourceElement = input.sourceElement;
+    this.sourceInformation = sourceInformation;
+  }
+
+  @override
+  HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
+    if (typeExpression == type) {
+      return this;
+    }
+    return super.convertType(closedWorld, type, kind);
+  }
+
+  bool get isArgumentTypeCheck => kind == ARGUMENT_TYPE_CHECK;
+  bool get isReceiverTypeCheck => kind == RECEIVER_TYPE_CHECK;
+
+  @override
+  accept(HVisitor visitor) => visitor.visitPrimitiveCheck(this);
+
+  @override
+  bool isJsStatement() => true;
+  @override
+  bool isControlFlow() => true;
+
+  @override
+  int typeCode() => HInstruction.PRIMITIVE_CHECK_TYPECODE;
+  @override
+  bool typeEquals(HInstruction other) => other is HPrimitiveCheck;
+  @override
+  bool isCodeMotionInvariant() => false;
+
+  @override
+  bool dataEquals(HPrimitiveCheck other) {
+    return kind == other.kind &&
+        checkedType == other.checkedType &&
+        receiverTypeCheckSelector == other.receiverTypeCheckSelector;
+  }
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    // Type is refined from `dynamic`, so it might become non-redundant.
+    if (abstractValueDomain.containsAll(checkedType).isPotentiallyTrue) {
+      return false;
+    }
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain.isIn(inputType, checkedType).isDefinitelyTrue;
+  }
+
+  @override
+  String toString() => 'HPrimitiveCheck(checkedType=$checkedType, kind=$kind, '
       'checkedInput=$checkedInput)';
 }
 

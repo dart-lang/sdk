@@ -380,6 +380,8 @@ class SsaTypeKnownRemover extends HBaseVisitor with CodegenPhase {
     for (HInstruction user in instruction.usedBy) {
       if (user is HTypeConversion) {
         user.inputType = instruction.instructionType;
+      } else if (user is HPrimitiveCheck) {
+        user.inputType = instruction.instructionType;
       }
     }
     instruction.block.rewrite(instruction, instruction.checkedInput);
@@ -387,7 +389,7 @@ class SsaTypeKnownRemover extends HBaseVisitor with CodegenPhase {
   }
 }
 
-/// Remove [HTypeConversion] instructions from the graph in '--trust-primitives'
+/// Remove [HPrimitiveCheck] instructions from the graph in '--trust-primitives'
 /// mode.
 class SsaTrustedCheckRemover extends HBaseVisitor with CodegenPhase {
   final CompilerOptions _options;
@@ -411,11 +413,9 @@ class SsaTrustedCheckRemover extends HBaseVisitor with CodegenPhase {
   }
 
   @override
-  void visitTypeConversion(HTypeConversion instruction) {
-    if (instruction.isReceiverTypeCheck || instruction.isArgumentTypeCheck) {
-      instruction.block.rewrite(instruction, instruction.checkedInput);
-      instruction.block.remove(instruction);
-    }
+  void visitPrimitiveCheck(HPrimitiveCheck instruction) {
+    instruction.block.rewrite(instruction, instruction.checkedInput);
+    instruction.block.remove(instruction);
   }
 
   @override
@@ -749,14 +749,13 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
 
   @override
   void visitTypeConversion(HTypeConversion instruction) {
-    if (!instruction.isArgumentTypeCheck && !instruction.isReceiverTypeCheck) {
-      assert(instruction.isCheckedModeCheck || instruction.isCastTypeCheck);
-      // Checked mode checks and cast checks compile to code that
-      // only use their input once, so we can safely visit them
-      // and try to merge the input.
-      visitInstruction(instruction);
-    }
+    // Type checks and cast checks compile to code that only use their input
+    // once, so we can safely visit them and try to merge the input.
+    visitInstruction(instruction);
   }
+
+  @override
+  void visitPrimitiveCheck(HPrimitiveCheck instruction) {}
 
   @override
   void visitTypeKnown(HTypeKnown instruction) {

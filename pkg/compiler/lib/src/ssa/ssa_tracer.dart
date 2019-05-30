@@ -604,16 +604,22 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String _typeConversionKind(HTypeConversion node) {
-    switch (node.kind) {
-      case HTypeConversion.CHECKED_MODE_CHECK:
-        return 'CHECKED_MODE';
-      case HTypeConversion.ARGUMENT_TYPE_CHECK:
-        return 'ARGUMENT';
-      case HTypeConversion.CAST_TYPE_CHECK:
-        return 'CAST';
-      case HTypeConversion.RECEIVER_TYPE_CHECK:
-        return 'RECEIVER';
-    }
+    if (node.isTypeCheck) return 'TYPE_CHECK';
+    if (node.isCastCheck) return 'CAST_CHECK';
+    return '?';
+  }
+
+  @override
+  String visitPrimitiveCheck(HPrimitiveCheck node) {
+    String checkedInput = temporaryId(node.checkedInput);
+    assert(node.inputs.length == 1);
+    String kind = _primitiveCheckKind(node);
+    return "PrimitiveCheck: $kind $checkedInput to ${node.instructionType}";
+  }
+
+  String _primitiveCheckKind(HPrimitiveCheck node) {
+    if (node.isReceiverTypeCheck) return 'RECEIVER';
+    if (node.isArgumentTypeCheck) return 'ARGUMENT';
     return '?';
   }
 

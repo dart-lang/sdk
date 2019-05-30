@@ -693,16 +693,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // emit an assignment, because the intTypeCheck just returns its
     // argument.
     bool needsAssignment = true;
-    if (instruction is HTypeConversion) {
-      String inputName = variableNames.getName(instruction.checkedInput);
-      if (variableNames.getName(instruction) == inputName) {
-        needsAssignment = false;
-      }
-    }
-    if (instruction is HBoolConversion) {
-      String inputName = variableNames.getName(instruction.checkedInput);
-      if (variableNames.getName(instruction) == inputName) {
-        needsAssignment = false;
+    if (instruction is HCheck) {
+      if (instruction is HTypeConversion ||
+          instruction is HPrimitiveCheck ||
+          instruction is HBoolConversion) {
+        String inputName = variableNames.getName(instruction.checkedInput);
+        if (variableNames.getName(instruction) == inputName) {
+          needsAssignment = false;
+        }
       }
     }
     if (instruction is HLocalValue) {
@@ -3109,55 +3107,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         negative: negative);
   }
 
-  js.Expression generateReceiverOrArgumentTypeTest(HTypeConversion node) {
-    DartType type = node.typeExpression;
-    HInstruction input = node.checkedInput;
-    AbstractValue checkedType = node.checkedType;
-    // This path is no longer used for indexable primitive types.
-    assert(_abstractValueDomain.isJsIndexable(checkedType).isPotentiallyFalse);
-    // Figure out if it is beneficial to use a null check.  V8 generally prefers
-    // 'typeof' checks, but for integers we cannot compile this test into a
-    // single typeof check so the null check is cheaper.
-    if (type == _commonElements.numType) {
-      // input is !num
-      checkNum(input, '!==', input.sourceInformation);
-      return pop();
-    } else if (type == _commonElements.boolType) {
-      // input is !bool
-      checkBool(input, '!==', input.sourceInformation);
-      return pop();
-    }
-    throw failedAt(input, 'Unexpected check: $type.');
-  }
-
   @override
   void visitTypeConversion(HTypeConversion node) {
-    if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
-      js.Expression test = generateReceiverOrArgumentTypeTest(node);
-      js.Block oldContainer = currentContainer;
-      js.Statement body = new js.Block.empty();
-      currentContainer = body;
-      if (node.isArgumentTypeCheck) {
-        generateThrowWithHelper(
-            _commonElements.throwIllegalArgumentException, node.checkedInput,
-            sourceInformation: node.sourceInformation);
-      } else if (node.isReceiverTypeCheck) {
-        use(node.checkedInput);
-        js.Name methodName =
-            _namer.invocationName(node.receiverTypeCheckSelector);
-        js.Expression call = js.propertyCall(pop(), methodName,
-            []).withSourceInformation(node.sourceInformation);
-        pushStatement(
-            new js.Return(call).withSourceInformation(node.sourceInformation));
-      }
-      currentContainer = oldContainer;
-      body = unwrapStatement(body);
-      pushStatement(new js.If.noElse(test, body)
-          .withSourceInformation(node.sourceInformation));
-      return;
-    }
-
-    assert(node.isCheckedModeCheck || node.isCastTypeCheck);
+    assert(node.isTypeCheck || node.isCastCheck);
     DartType type = node.typeExpression;
     assert(!type.isTypedef);
     assert(!type.isDynamic);
@@ -3172,7 +3124,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     CheckedModeHelper helper = _checkedModeHelpers.getCheckedModeHelper(
         type, _closedWorld.commonElements,
-        typeCast: node.isCastTypeCheck);
+        typeCast: node.isCastCheck);
 
     StaticUse staticUse = helper.getStaticUse(_closedWorld.commonElements);
     _registry.registerStaticUse(staticUse);
@@ -3183,6 +3135,53 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(
         new js.Call(_emitter.staticFunctionAccess(staticUse.element), arguments)
             .withSourceInformation(node.sourceInformation));
+  }
+
+  @override
+  void visitPrimitiveCheck(HPrimitiveCheck node) {
+    js.Expression test = _generateReceiverOrArgumentTypeTest(node);
+    js.Block oldContainer = currentContainer;
+    js.Statement body = new js.Block.empty();
+    currentContainer = body;
+    if (node.isArgumentTypeCheck) {
+      generateThrowWithHelper(
+          _commonElements.throwIllegalArgumentException, node.checkedInput,
+          sourceInformation: node.sourceInformation);
+    } else if (node.isReceiverTypeCheck) {
+      use(node.checkedInput);
+      js.Name methodName =
+          _namer.invocationName(node.receiverTypeCheckSelector);
+      js.Expression call = js.propertyCall(
+          pop(), methodName, []).withSourceInformation(node.sourceInformation);
+      pushStatement(
+          new js.Return(call).withSourceInformation(node.sourceInformation));
+    }
+    currentContainer = oldContainer;
+    body = unwrapStatement(body);
+    pushStatement(new js.If.noElse(test, body)
+        .withSourceInformation(node.sourceInformation));
+  }
+
+  js.Expression _generateReceiverOrArgumentTypeTest(HPrimitiveCheck node) {
+    DartType type = node.typeExpression;
+    HInstruction input = node.checkedInput;
+    AbstractValue checkedType = node.checkedType;
+    // This path is no longer used for indexable primitive types.
+    assert(_abstractValueDomain.isJsIndexable(checkedType).isPotentiallyFalse);
+    // Figure out if it is beneficial to use a null check.  V8 generally prefers
+    // 'typeof' checks, but for integers we cannot compile this test into a
+    // single typeof check so the null check is cheaper.
+    if (type == _commonElements.numType) {
+      // input is !num
+      checkNum(input, '!==', input.sourceInformation);
+      return pop();
+    }
+    if (type == _commonElements.boolType) {
+      // input is !bool
+      checkBool(input, '!==', input.sourceInformation);
+      return pop();
+    }
+    throw failedAt(input, 'Unexpected check: $type.');
   }
 
   @override

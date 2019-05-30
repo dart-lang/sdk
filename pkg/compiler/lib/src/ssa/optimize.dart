@@ -1119,6 +1119,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   @override
+  HInstruction visitPrimitiveCheck(HPrimitiveCheck node) {
+    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+    return node;
+  }
+
+  @override
   HInstruction visitBoolConversion(HBoolConversion node) {
     if (node.isRedundant(_closedWorld)) return node.checkedInput;
     return node;
@@ -1328,8 +1334,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
         node.needsCheck = true;
         return node;
       }
-      HInstruction other = value.convertType(
-          _closedWorld, type, HTypeConversion.CHECKED_MODE_CHECK);
+      HInstruction other =
+          value.convertType(_closedWorld, type, HTypeConversion.TYPE_CHECK);
       if (other != value) {
         node.block.addBefore(node, other);
         value = other;

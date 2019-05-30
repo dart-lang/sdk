@@ -2401,8 +2401,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           expressionInstruction,
           localsHandler.substInContext(type),
           node.isTypeError
-              ? HTypeConversion.CHECKED_MODE_CHECK
-              : HTypeConversion.CAST_TYPE_CHECK,
+              ? HTypeConversion.TYPE_CHECK
+              : HTypeConversion.CAST_CHECK,
           sourceInformation: sourceInformation);
       if (converted != expressionInstruction) {
         add(converted);
@@ -3819,9 +3819,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
               "Expected 1-2 argument, actual: $arguments."));
       HInstruction lengthInput = arguments.first;
       if (lengthInput.isNumber(_abstractValueDomain).isPotentiallyFalse) {
-        HTypeConversion conversion = new HTypeConversion(
+        HPrimitiveCheck conversion = new HPrimitiveCheck(
             _commonElements.numType,
-            HTypeConversion.ARGUMENT_TYPE_CHECK,
+            HPrimitiveCheck.ARGUMENT_TYPE_CHECK,
             _abstractValueDomain.numType,
             lengthInput,
             sourceInformation);
