@@ -5,8 +5,6 @@
 #ifndef RUNTIME_VM_COMPILER_RUNTIME_OFFSETS_LIST_H_
 #define RUNTIME_VM_COMPILER_RUNTIME_OFFSETS_LIST_H_
 
-#include "runtime/vm/globals.h"
-
 // Macro list of all constants that differ based on whether the architecture is
 // 32-bit or 64-bit. They are used to allow the target architecture to differ
 // from the host, like this:
