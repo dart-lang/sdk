@@ -5228,7 +5228,7 @@ class Code : public Object {
 #endif
   }
 
-  // Will compute local var descriptors is necessary.
+  // Will compute local var descriptors if necessary.
   RawLocalVarDescriptors* GetLocalVarDescriptors() const;
 
   RawExceptionHandlers* exception_handlers() const {
@@ -5518,6 +5518,38 @@ class Bytecode : public Object {
   bool HasSourcePositions() const {
     return (source_positions_binary_offset() != 0);
   }
+
+#if !defined(PRODUCT)
+  intptr_t local_variables_binary_offset() const {
+    return raw_ptr()->local_variables_binary_offset_;
+  }
+  void set_local_variables_binary_offset(intptr_t value) const {
+    StoreNonPointer(&raw_ptr()->local_variables_binary_offset_, value);
+  }
+  bool HasLocalVariablesInfo() const {
+    return (local_variables_binary_offset() != 0);
+  }
+#endif  // !defined(PRODUCT)
+
+  RawLocalVarDescriptors* var_descriptors() const {
+#if defined(PRODUCT)
+    UNREACHABLE();
+    return nullptr;
+#else
+    return raw_ptr()->var_descriptors_;
+#endif
+  }
+  void set_var_descriptors(const LocalVarDescriptors& value) const {
+#if defined(PRODUCT)
+    UNREACHABLE();
+#else
+    ASSERT(value.IsOld());
+    StorePointer(&raw_ptr()->var_descriptors_, value.raw());
+#endif
+  }
+
+  // Will compute local var descriptors if necessary.
+  RawLocalVarDescriptors* GetLocalVarDescriptors() const;
 
   const char* Name() const;
   const char* QualifiedName() const;

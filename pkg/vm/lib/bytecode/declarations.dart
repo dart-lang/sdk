@@ -12,6 +12,7 @@ import 'dbc.dart'
     show currentBytecodeFormatVersion, futureBytecodeFormatVersion;
 import 'disassembler.dart' show BytecodeDisassembler;
 import 'exceptions.dart' show ExceptionsTable;
+import 'local_variable_table.dart' show LocalVariableTable;
 import 'object_table.dart' show ObjectTable, ObjectHandle, NameAndType;
 import 'source_positions.dart' show SourcePositions;
 
@@ -491,11 +492,13 @@ class Code {
   static const hasParameterFlagsFlag = 1 << 4;
   static const hasForwardingStubTargetFlag = 1 << 5;
   static const hasDefaultFunctionTypeArgsFlag = 1 << 6;
+  static const hasLocalVariablesFlag = 1 << 7;
 
   final ConstantPool constantPool;
   final List<int> bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions sourcePositions;
+  final LocalVariableTable localVariables;
   final List<ObjectHandle> nullableFields;
   final List<ClosureDeclaration> closures;
   final List<int> parameterFlags;
@@ -505,6 +508,8 @@ class Code {
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
   bool get hasSourcePositions =>
       sourcePositions != null && sourcePositions.mapping.isNotEmpty;
+  bool get hasLocalVariables =>
+      localVariables != null && localVariables.isNotEmpty;
   bool get hasNullableFields => nullableFields.isNotEmpty;
   bool get hasClosures => closures.isNotEmpty;
 
@@ -517,13 +522,15 @@ class Code {
       (forwardingStubTargetCpIndex != null ? hasForwardingStubTargetFlag : 0) |
       (defaultFunctionTypeArgsCpIndex != null
           ? hasDefaultFunctionTypeArgsFlag
-          : 0);
+          : 0) |
+      (hasLocalVariables ? hasLocalVariablesFlag : 0);
 
   Code(
       this.constantPool,
       this.bytecodes,
       this.exceptionsTable,
       this.sourcePositions,
+      this.localVariables,
       this.nullableFields,
       this.closures,
       this.parameterFlags,
@@ -554,6 +561,9 @@ class Code {
     }
     if (hasSourcePositions) {
       writer.writeLinkOffset(sourcePositions);
+    }
+    if (hasLocalVariables) {
+      writer.writeLinkOffset(localVariables);
     }
     if (hasNullableFields) {
       writer.writePackedList(nullableFields);
@@ -590,6 +600,9 @@ class Code {
     final sourcePositions = ((flags & hasSourcePositionsFlag) != 0)
         ? reader.readLinkOffset<SourcePositions>()
         : null;
+    final localVariables = ((flags & hasLocalVariablesFlag) != 0)
+        ? reader.readLinkOffset<LocalVariableTable>()
+        : null;
     final List<ObjectHandle> nullableFields =
         ((flags & hasNullableFieldsFlag) != 0)
             ? reader.readPackedList<ObjectHandle>()
@@ -602,6 +615,7 @@ class Code {
         bytecodes,
         exceptionsTable,
         sourcePositions,
+        localVariables,
         nullableFields,
         closures,
         parameterFlags,
@@ -616,6 +630,9 @@ class Code {
       "${new BytecodeDisassembler().disassemble(bytecodes, exceptionsTable, annotations: [
         hasSourcePositions
             ? sourcePositions.getBytecodeAnnotations()
+            : const <int, String>{},
+        hasLocalVariables
+            ? localVariables.getBytecodeAnnotations()
             : const <int, String>{}
       ])}}\n"
       "$exceptionsTable"
@@ -776,19 +793,28 @@ class ClosureDeclaration {
 /// Bytecode of a nested function (closure).
 /// Closures share the constant pool of a top-level member.
 class ClosureCode {
+  static const hasExceptionsTableFlag = 1 << 0;
+  static const hasSourcePositionsFlag = 1 << 1;
+  static const hasLocalVariablesFlag = 1 << 2;
+
   final List<int> bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions sourcePositions;
+  final LocalVariableTable localVariables;
 
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
   bool get hasSourcePositions =>
       sourcePositions != null && sourcePositions.mapping.isNotEmpty;
+  bool get hasLocalVariables =>
+      localVariables != null && localVariables.isNotEmpty;
 
   int get flags =>
-      (hasExceptionsTable ? Code.hasExceptionsTableFlag : 0) |
-      (hasSourcePositions ? Code.hasSourcePositionsFlag : 0);
+      (hasExceptionsTable ? hasExceptionsTableFlag : 0) |
+      (hasSourcePositions ? hasSourcePositionsFlag : 0) |
+      (hasLocalVariables ? hasLocalVariablesFlag : 0);
 
-  ClosureCode(this.bytecodes, this.exceptionsTable, this.sourcePositions);
+  ClosureCode(this.bytecodes, this.exceptionsTable, this.sourcePositions,
+      this.localVariables);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -799,18 +825,25 @@ class ClosureCode {
     if (hasSourcePositions) {
       writer.writeLinkOffset(sourcePositions);
     }
+    if (hasLocalVariables) {
+      writer.writeLinkOffset(localVariables);
+    }
   }
 
   factory ClosureCode.read(BufferedReader reader) {
     final int flags = reader.readPackedUInt30();
     final List<int> bytecodes = _readBytecodeInstructions(reader);
-    final exceptionsTable = ((flags & Code.hasExceptionsTableFlag) != 0)
+    final exceptionsTable = ((flags & hasExceptionsTableFlag) != 0)
         ? new ExceptionsTable.read(reader)
         : new ExceptionsTable();
-    final sourcePositions = ((flags & Code.hasSourcePositionsFlag) != 0)
+    final sourcePositions = ((flags & hasSourcePositionsFlag) != 0)
         ? reader.readLinkOffset<SourcePositions>()
         : null;
-    return new ClosureCode(bytecodes, exceptionsTable, sourcePositions);
+    final localVariables = ((flags & hasLocalVariablesFlag) != 0)
+        ? reader.readLinkOffset<LocalVariableTable>()
+        : null;
+    return new ClosureCode(
+        bytecodes, exceptionsTable, sourcePositions, localVariables);
   }
 
   @override
@@ -821,6 +854,9 @@ class ClosureCode {
         .disassemble(bytecodes, exceptionsTable, annotations: [
       hasSourcePositions
           ? sourcePositions.getBytecodeAnnotations()
+          : const <int, String>{},
+      hasLocalVariables
+          ? localVariables.getBytecodeAnnotations()
           : const <int, String>{}
     ]));
     sb.writeln('}');
@@ -840,7 +876,7 @@ class _Section {
 
 class Component {
   static const int magicValue = 0x44424332; // 'DBC2'
-  static const int numSections = 7;
+  static const int numSections = 8;
   static const int sectionAlignment = 4;
 
   //  UInt32 magic, version, numSections x (numItems, offset)
@@ -852,6 +888,7 @@ class Component {
   List<Members> members = <Members>[];
   List<Code> codes = <Code>[];
   List<SourcePositions> sourcePositions = <SourcePositions>[];
+  List<LocalVariableTable> localVariables = <LocalVariableTable>[];
   List<ObjectHandle> annotations = <ObjectHandle>[];
   ObjectHandle mainLibrary;
 
@@ -870,6 +907,13 @@ class Component {
     for (var annot in annotations) {
       writer.linkWriter.put(annot, annotationsWriter.offset);
       annotationsWriter.writePackedObject(annot);
+    }
+
+    final BufferedWriter localVariablesWriter =
+        new BufferedWriter.fromWriter(writer);
+    for (var lv in localVariables) {
+      writer.linkWriter.put(lv, localVariablesWriter.offset);
+      lv.write(localVariablesWriter);
     }
 
     final BufferedWriter sourcePositionsWriter =
@@ -910,6 +954,7 @@ class Component {
       new _Section(members.length, membersWriter),
       new _Section(codes.length, codesWriter),
       new _Section(sourcePositions.length, sourcePositionsWriter),
+      new _Section(localVariables.length, localVariablesWriter),
       new _Section(annotations.length, annotationsWriter),
     ];
     assert(sections.length == numSections);
@@ -978,6 +1023,9 @@ class Component {
     final sourcePositionsNum = reader.readUInt32();
     final sourcePositionsOffset = reader.readUInt32();
 
+    final localVariablesNum = reader.readUInt32();
+    final localVariablesOffset = reader.readUInt32();
+
     final annotationsNum = reader.readUInt32();
     final annotationsOffset = reader.readUInt32();
 
@@ -1008,6 +1056,15 @@ class Component {
       SourcePositions sp = new SourcePositions.read(reader);
       reader.linkReader.setOffset(sp, offset);
       sourcePositions.add(sp);
+    }
+
+    final localVariablesStart = start + localVariablesOffset;
+    reader.offset = localVariablesStart;
+    for (int i = 0; i < localVariablesNum; ++i) {
+      int offset = reader.offset - localVariablesStart;
+      LocalVariableTable lv = new LocalVariableTable.read(reader);
+      reader.linkReader.setOffset(lv, offset);
+      localVariables.add(lv);
     }
 
     final codesStart = start + codesOffset;

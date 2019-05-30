@@ -15194,6 +15194,9 @@ RawBytecode* Bytecode::New(uword instructions,
     result.set_pc_descriptors(Object::empty_descriptors());
     result.set_instructions_binary_offset(instructions_offset);
     result.set_source_positions_binary_offset(0);
+#if !defined(PRODUCT)
+    result.set_local_variables_binary_offset(0);
+#endif
   }
   return result.raw();
 }
@@ -15291,6 +15294,25 @@ RawBytecode* Bytecode::FindCode(uword pc) {
     return static_cast<RawBytecode*>(needle);
   }
   return Bytecode::null();
+}
+
+RawLocalVarDescriptors* Bytecode::GetLocalVarDescriptors() const {
+#if defined(PRODUCT) || defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+  return LocalVarDescriptors::null();
+#else
+  Zone* zone = Thread::Current()->zone();
+  auto& var_descs = LocalVarDescriptors::Handle(zone, var_descriptors());
+  if (var_descs.IsNull()) {
+    const auto& func = Function::Handle(zone, function());
+    ASSERT(!func.IsNull());
+    var_descs =
+        kernel::BytecodeReader::ComputeLocalVarDescriptors(zone, func, *this);
+    ASSERT(!var_descs.IsNull());
+    set_var_descriptors(var_descs);
+  }
+  return var_descs.raw();
+#endif
 }
 
 RawContext* Context::New(intptr_t num_variables, Heap::Space space) {

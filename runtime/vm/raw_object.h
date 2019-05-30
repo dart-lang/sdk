@@ -1351,11 +1351,18 @@ class RawBytecode : public RawObject {
   RawFunction* function_;
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
+  NOT_IN_PRODUCT(RawLocalVarDescriptors* var_descriptors_);
+#if defined(PRODUCT)
   VISIT_TO(RawObject*, pc_descriptors_);
+#else
+  VISIT_TO(RawObject*, var_descriptors_);
+#endif
+
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   int32_t instructions_binary_offset_;
   int32_t source_positions_binary_offset_;
+  NOT_IN_PRODUCT(int32_t local_variables_binary_offset_);
 
   static bool ContainsPC(RawObject* raw_obj, uword pc);
 

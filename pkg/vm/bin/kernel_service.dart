@@ -146,7 +146,10 @@ abstract class Compiler {
       if (options.bytecode && errors.isEmpty) {
         await runWithFrontEndCompilerContext(script, options, component, () {
           // TODO(alexmarkov): pass environment defines
-          generateBytecode(component);
+          // TODO(alexmarkov): disable source positions and local variables
+          // in VM PRODUCT mode.
+          generateBytecode(component,
+              emitSourcePositions: true, emitLocalVarInfo: true);
         });
       }
 

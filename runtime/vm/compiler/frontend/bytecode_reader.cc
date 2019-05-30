@@ -15,6 +15,7 @@
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/reusable_handles.h"
+#include "vm/stack_frame_kbc.h"
 #include "vm/timeline.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -244,6 +245,7 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
       (flags & Code::kHasExceptionsTableFlag) != 0;
   const bool has_source_positions =
       (flags & Code::kHasSourcePositionsFlag) != 0;
+  const bool has_local_variables = (flags & Code::kHasLocalVariablesFlag) != 0;
   const bool has_nullable_fields = (flags & Code::kHasNullableFieldsFlag) != 0;
   const bool has_closures = (flags & Code::kHasClosuresFlag) != 0;
   const bool has_parameters_flags = (flags & Code::kHasParameterFlagsFlag) != 0;
@@ -299,6 +301,8 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
 
   ReadSourcePositions(bytecode, has_source_positions);
 
+  ReadLocalVariables(bytecode, has_local_variables);
+
   if (FLAG_dump_kernel_bytecode) {
     KernelBytecodeDisassembler::Disassemble(function);
   }
@@ -330,9 +334,11 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
 
       const intptr_t flags = helper_->reader_.ReadUInt();
       const bool has_exceptions_table =
-          (flags & Code::kHasExceptionsTableFlag) != 0;
+          (flags & ClosureCode::kHasExceptionsTableFlag) != 0;
       const bool has_source_positions =
-          (flags & Code::kHasSourcePositionsFlag) != 0;
+          (flags & ClosureCode::kHasSourcePositionsFlag) != 0;
+      const bool has_local_variables =
+          (flags & ClosureCode::kHasLocalVariablesFlag) != 0;
 
       // Read closure bytecode and attach to closure function.
       closure_bytecode = ReadBytecode(pool);
@@ -342,6 +348,8 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
       ReadExceptionsTable(closure_bytecode, has_exceptions_table);
 
       ReadSourcePositions(closure_bytecode, has_source_positions);
+
+      ReadLocalVariables(closure_bytecode, has_local_variables);
 
       if (FLAG_dump_kernel_bytecode) {
         KernelBytecodeDisassembler::Disassemble(closure);
@@ -407,8 +415,6 @@ RawType* BytecodeReaderHelper::ReadFunctionSignature(
 
   if (has_type_params) {
     ReadTypeParametersDeclaration(Class::Handle(Z), func);
-    function_type_type_parameters_ =
-        &TypeArguments::Handle(Z, func.type_parameters());
   }
 
   const intptr_t kImplicitClosureParam = 1;
@@ -490,6 +496,7 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
     // Do not set type parameters for factories, as VM uses class type
     // parameters instead.
     parameterized_function.set_type_parameters(type_parameters);
+    function_type_type_parameters_ = &type_parameters;
   }
 
   // Step b) Fill in the bounds of all [TypeParameter]s.
@@ -799,6 +806,21 @@ void BytecodeReaderHelper::ReadSourcePositions(const Bytecode& bytecode,
       bytecode_component_->GetSourcePositionsOffset() + offset);
 }
 
+void BytecodeReaderHelper::ReadLocalVariables(const Bytecode& bytecode,
+                                              bool has_local_variables) {
+  if (!has_local_variables) {
+    return;
+  }
+
+  intptr_t offset = helper_->reader_.ReadUInt();
+  USE(offset);
+
+#if !defined(PRODUCT)
+  bytecode.set_local_variables_binary_offset(
+      bytecode_component_->GetLocalVariablesOffset() + offset);
+#endif
+}
+
 RawTypedData* BytecodeReaderHelper::NativeEntry(const Function& function,
                                                 const String& external_name) {
   MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
@@ -912,6 +934,14 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   const intptr_t sources_positions_offset =
       start_offset + helper_->reader_.ReadUInt32();
 
+  intptr_t local_variables_offset = 0;
+  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 9,
+                "Cleanup condition");
+  if (version >= 9) {
+    helper_->reader_.ReadUInt32();  // Skip localVariables.numItems
+    local_variables_offset = start_offset + helper_->reader_.ReadUInt32();
+  }
+
   helper_->reader_.ReadUInt32();  // Skip annotations.numItems
   const intptr_t annotations_offset =
       start_offset + helper_->reader_.ReadUInt32();
@@ -934,11 +964,11 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   helper_->reader_.set_offset(objects_contents_offset + objects_size);
 
   const Array& bytecode_component_array = Array::Handle(
-      Z,
-      BytecodeComponentData::New(
-          Z, version, num_objects, string_table_offset, strings_contents_offset,
-          objects_contents_offset, main_offset, members_offset, codes_offset,
-          sources_positions_offset, annotations_offset, Heap::kOld));
+      Z, BytecodeComponentData::New(
+             Z, version, num_objects, string_table_offset,
+             strings_contents_offset, objects_contents_offset, main_offset,
+             members_offset, codes_offset, sources_positions_offset,
+             local_variables_offset, annotations_offset, Heap::kOld));
 
   BytecodeComponentData bytecode_component(bytecode_component_array);
 
@@ -2094,6 +2124,10 @@ intptr_t BytecodeComponentData::GetSourcePositionsOffset() const {
   return Smi::Value(Smi::RawCast(data_.At(kSourcePositionsOffset)));
 }
 
+intptr_t BytecodeComponentData::GetLocalVariablesOffset() const {
+  return Smi::Value(Smi::RawCast(data_.At(kLocalVariablesOffset)));
+}
+
 intptr_t BytecodeComponentData::GetAnnotationsOffset() const {
   return Smi::Value(Smi::RawCast(data_.At(kAnnotationsOffset)));
 }
@@ -2116,6 +2150,7 @@ RawArray* BytecodeComponentData::New(Zone* zone,
                                      intptr_t members_offset,
                                      intptr_t codes_offset,
                                      intptr_t source_positions_offset,
+                                     intptr_t local_variables_offset,
                                      intptr_t annotations_offset,
                                      Heap::Space space) {
   const Array& data =
@@ -2145,6 +2180,9 @@ RawArray* BytecodeComponentData::New(Zone* zone,
 
   smi_handle = Smi::New(source_positions_offset);
   data.SetAt(kSourcePositionsOffset, smi_handle);
+
+  smi_handle = Smi::New(local_variables_offset);
+  data.SetAt(kLocalVariablesOffset, smi_handle);
 
   smi_handle = Smi::New(annotations_offset);
   data.SetAt(kAnnotationsOffset, smi_handle);
@@ -2222,6 +2260,108 @@ RawObject* BytecodeReader::ReadAnnotation(const Field& annotation_field) {
   return bytecode_metadata_helper.ReadAnnotation(
       annotation_field.bytecode_offset());
 }
+
+#if !defined(PRODUCT)
+RawLocalVarDescriptors* BytecodeReader::ComputeLocalVarDescriptors(
+    Zone* zone,
+    const Function& function,
+    const Bytecode& bytecode) {
+  ASSERT(function.is_declared_in_bytecode());
+  ASSERT(function.HasBytecode());
+  ASSERT(!bytecode.IsNull());
+  ASSERT(function.bytecode() == bytecode.raw());
+
+  struct VarDesc {
+    const String* name;
+    RawLocalVarDescriptors::VarInfo info;
+  };
+  GrowableArray<VarDesc> vars(8);
+
+  if (function.IsLocalFunction()) {
+    const auto& parent = Function::Handle(zone, function.parent_function());
+    ASSERT(parent.is_declared_in_bytecode() && parent.HasBytecode());
+    const auto& parent_bytecode = Bytecode::Handle(zone, parent.bytecode());
+    const auto& parent_vars = LocalVarDescriptors::Handle(
+        zone, parent_bytecode.GetLocalVarDescriptors());
+    for (intptr_t i = 0; i < parent_vars.Length(); ++i) {
+      RawLocalVarDescriptors::VarInfo var_info;
+      parent_vars.GetInfo(i, &var_info);
+      // Include parent's context variable if variable's scope
+      // intersects with the local function range.
+      // It is not enough to check if local function is declared within the
+      // scope of variable, because in case of async functions closure has
+      // the same range as original function.
+      if (var_info.kind() == RawLocalVarDescriptors::kContextVar &&
+          ((var_info.begin_pos <= function.token_pos() &&
+            function.token_pos() <= var_info.end_pos) ||
+           (function.token_pos() <= var_info.begin_pos &&
+            var_info.begin_pos <= function.end_token_pos()))) {
+        vars.Add(
+            VarDesc{&String::Handle(zone, parent_vars.GetName(i)), var_info});
+      }
+    }
+  }
+
+  if (bytecode.HasLocalVariablesInfo()) {
+    intptr_t scope_id = 0;
+    intptr_t context_level = -1;
+    BytecodeLocalVariablesIterator local_vars(zone, bytecode);
+    while (local_vars.MoveNext()) {
+      switch (local_vars.Kind()) {
+        case BytecodeLocalVariablesIterator::kScope: {
+          ++scope_id;
+          context_level = local_vars.ContextLevel();
+        } break;
+        case BytecodeLocalVariablesIterator::kVariableDeclaration: {
+          VarDesc desc;
+          desc.name = &String::Handle(zone, local_vars.Name());
+          if (local_vars.IsCaptured()) {
+            desc.info.set_kind(RawLocalVarDescriptors::kContextVar);
+            desc.info.scope_id = context_level;
+            desc.info.set_index(local_vars.Index());
+          } else {
+            desc.info.set_kind(RawLocalVarDescriptors::kStackVar);
+            desc.info.scope_id = scope_id;
+            if (local_vars.Index() < 0) {
+              // Parameter
+              desc.info.set_index(-local_vars.Index() - kKBCParamEndSlotFromFp);
+            } else {
+              desc.info.set_index(-local_vars.Index());
+            }
+          }
+          desc.info.declaration_pos = local_vars.DeclarationTokenPos();
+          desc.info.begin_pos = local_vars.StartTokenPos();
+          desc.info.end_pos = local_vars.EndTokenPos();
+          vars.Add(desc);
+        } break;
+        case BytecodeLocalVariablesIterator::kContextVariable: {
+          ASSERT(local_vars.Index() >= 0);
+          const intptr_t context_variable_index = -local_vars.Index();
+          VarDesc desc;
+          desc.name = &Symbols::CurrentContextVar();
+          desc.info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
+          desc.info.scope_id = 0;
+          desc.info.declaration_pos = TokenPosition::kMinSource;
+          desc.info.begin_pos = TokenPosition::kMinSource;
+          desc.info.end_pos = TokenPosition::kMinSource;
+          desc.info.set_index(context_variable_index);
+          vars.Add(desc);
+        } break;
+      }
+    }
+  }
+
+  if (vars.is_empty()) {
+    return Object::empty_var_descriptors().raw();
+  }
+  const LocalVarDescriptors& var_desc = LocalVarDescriptors::Handle(
+      zone, LocalVarDescriptors::New(vars.length()));
+  for (intptr_t i = 0; i < vars.length(); i++) {
+    var_desc.SetVar(i, *(vars[i].name), &vars[i].info);
+  }
+  return var_desc.raw();
+}
+#endif  // !defined(PRODUCT)
 
 static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
               "Cleanup support for old bytecode format versions");

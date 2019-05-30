@@ -1379,7 +1379,9 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     ObjectHandle handle = _nodeCache[node];
     if (handle == null) {
       handle = node.accept(_nodeVisitor);
-      _nodeCache[node] = handle;
+      if (handle != null && handle.isCacheable) {
+        _nodeCache[node] = handle;
+      }
     } else {
       ++handle._useCount;
     }

@@ -850,6 +850,9 @@ class _Allocator extends RecursiveVisitor<Null> {
           (_currentScope.tempsUsed + count) - _currentFrame.temporaries.length;
       int local = _currentScope.localsUsed;
       _currentScope.localsUsed += newSlots;
+      if (_currentScope.localsUsed > localVariableIndexLimit) {
+        throw new LocalVariableIndexOverflowException();
+      }
       _updateFrameSize();
       for (int i = 0; i < newSlots; i++) {
         _currentFrame.temporaries.add(local + i);

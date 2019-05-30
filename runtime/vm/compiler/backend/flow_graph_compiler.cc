@@ -1111,22 +1111,19 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
 #if defined(PRODUCT)
 // No debugger: no var descriptors.
 #else
-  // TODO(alexmarkov): revise local vars descriptors when compiling bytecode
-  if (code.is_optimized() ||
-      flow_graph().function().is_declared_in_bytecode() ||
-      flow_graph().function().HasBytecode()) {
+  if (code.is_optimized()) {
     // Optimized code does not need variable descriptors. They are
     // only stored in the unoptimized version.
     code.set_var_descriptors(Object::empty_var_descriptors());
     return;
   }
   LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle();
-  if (parsed_function().node_sequence() == NULL) {
+  if (flow_graph().IsIrregexpFunction()) {
     // Eager local var descriptors computation for Irregexp function as it is
     // complicated to factor out.
     // TODO(srdjan): Consider canonicalizing and reusing the local var
     // descriptor for IrregexpFunction.
-    ASSERT(flow_graph().IsIrregexpFunction());
+    ASSERT(parsed_function().node_sequence() == nullptr);
     var_descs = LocalVarDescriptors::New(1);
     RawLocalVarDescriptors::VarInfo info;
     info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);

@@ -109,6 +109,15 @@ class BytecodeReaderHelper : public ValueObject {
     static const int kHasParameterFlagsFlag = 1 << 4;
     static const int kHasForwardingStubTargetFlag = 1 << 5;
     static const int kHasDefaultFunctionTypeArgsFlag = 1 << 6;
+    static const int kHasLocalVariablesFlag = 1 << 7;
+  };
+
+  // Closure code flags, must be in sync with ClosureCode constants in
+  // pkg/vm/lib/bytecode/declarations.dart.
+  struct ClosureCode {
+    static const int kHasExceptionsTableFlag = 1 << 0;
+    static const int kHasSourcePositionsFlag = 1 << 1;
+    static const int kHasLocalVariablesFlag = 1 << 2;
   };
 
   // Parameter flags, must be in sync with ParameterDeclaration constants in
@@ -131,7 +140,7 @@ class BytecodeReaderHelper : public ValueObject {
 
    private:
     BytecodeReaderHelper* bytecode_reader_;
-    TypeArguments* const saved_type_parameters_;
+    const TypeArguments* const saved_type_parameters_;
   };
 
   class FunctionScope : public ValueObject {
@@ -173,6 +182,7 @@ class BytecodeReaderHelper : public ValueObject {
   RawBytecode* ReadBytecode(const ObjectPool& pool);
   void ReadExceptionsTable(const Bytecode& bytecode, bool has_exceptions_table);
   void ReadSourcePositions(const Bytecode& bytecode, bool has_source_positions);
+  void ReadLocalVariables(const Bytecode& bytecode, bool has_local_variables);
   RawTypedData* NativeEntry(const Function& function,
                             const String& external_name);
   RawString* ConstructorName(const Class& cls, const String& name);
@@ -192,7 +202,7 @@ class BytecodeReaderHelper : public ValueObject {
   Zone* const zone_;
   BytecodeComponentData* const bytecode_component_;
   Array* closures_ = nullptr;
-  TypeArguments* function_type_type_parameters_ = nullptr;
+  const TypeArguments* function_type_type_parameters_ = nullptr;
   PatchClass* patch_class_ = nullptr;
   Array* functions_ = nullptr;
   intptr_t function_index_ = 0;
@@ -214,6 +224,7 @@ class BytecodeComponentData : ValueObject {
     kMembersOffset,
     kCodesOffset,
     kSourcePositionsOffset,
+    kLocalVariablesOffset,
     kAnnotationsOffset,
     kNumFields
   };
@@ -228,6 +239,7 @@ class BytecodeComponentData : ValueObject {
   intptr_t GetMembersOffset() const;
   intptr_t GetCodesOffset() const;
   intptr_t GetSourcePositionsOffset() const;
+  intptr_t GetLocalVariablesOffset() const;
   intptr_t GetAnnotationsOffset() const;
   void SetObject(intptr_t index, const Object& obj) const;
   RawObject* GetObject(intptr_t index) const;
@@ -244,6 +256,7 @@ class BytecodeComponentData : ValueObject {
                        intptr_t members_offset,
                        intptr_t codes_offset,
                        intptr_t source_positions_offset,
+                       intptr_t local_variables_offset,
                        intptr_t annotations_offset,
                        Heap::Space space);
 
@@ -261,21 +274,27 @@ class BytecodeReader : public AllStatic {
   // Read annotation for the given annotation field.
   static RawObject* ReadAnnotation(const Field& annotation_field);
 
+#if !defined(PRODUCT)
+  // Compute local variable descriptors for [function] with [bytecode].
+  static RawLocalVarDescriptors* ComputeLocalVarDescriptors(
+      Zone* zone,
+      const Function& function,
+      const Bytecode& bytecode);
+#endif
+
   static void UseBytecodeVersion(intptr_t version);
 };
 
 class BytecodeSourcePositionsIterator : ValueObject {
  public:
   BytecodeSourcePositionsIterator(Zone* zone, const Bytecode& bytecode)
-      : reader_(TypedDataBase::Handle(zone, bytecode.GetBinary(zone))),
-        pairs_remaining_(0),
-        pc_shifter_(
-            Isolate::Current()->is_using_old_bytecode_instructions() ? 2 : 0),
-        cur_bci_(0),
-        cur_token_pos_(TokenPosition::kNoSource.value()) {
+      : reader_(TypedDataBase::Handle(zone, bytecode.GetBinary(zone))) {
     if (bytecode.HasSourcePositions()) {
       reader_.set_offset(bytecode.source_positions_binary_offset());
       pairs_remaining_ = reader_.ReadUInt();
+      if (Isolate::Current()->is_using_old_bytecode_instructions()) {
+        pc_shifter_ = 2;
+      }
     }
   }
 
@@ -301,11 +320,123 @@ class BytecodeSourcePositionsIterator : ValueObject {
 
  private:
   Reader reader_;
-  intptr_t pairs_remaining_;
-  intptr_t pc_shifter_;
-  intptr_t cur_bci_;
-  intptr_t cur_token_pos_;
+  intptr_t pairs_remaining_ = 0;
+  intptr_t pc_shifter_ = 0;
+  intptr_t cur_bci_ = 0;
+  intptr_t cur_token_pos_ = 0;
 };
+
+#if !defined(PRODUCT)
+class BytecodeLocalVariablesIterator : ValueObject {
+ public:
+  // These constants should match corresponding constants in
+  // pkg/vm/lib/bytecode/local_variable_table.dart.
+  enum {
+    kInvalid,
+    kScope,
+    kVariableDeclaration,
+    kContextVariable,
+  };
+
+  static const intptr_t kKindMask = 0xF;
+  static const intptr_t kIsCapturedFlag = 1 << 4;
+
+  BytecodeLocalVariablesIterator(Zone* zone, const Bytecode& bytecode)
+      : reader_(TypedDataBase::Handle(zone, bytecode.GetBinary(zone))),
+        object_pool_(ObjectPool::Handle(zone, bytecode.object_pool())) {
+    if (bytecode.HasLocalVariablesInfo()) {
+      reader_.set_offset(bytecode.local_variables_binary_offset());
+      entries_remaining_ = reader_.ReadUInt();
+    }
+  }
+
+  bool MoveNext() {
+    if (entries_remaining_ == 0) {
+      return false;
+    }
+    ASSERT(entries_remaining_ > 0);
+    --entries_remaining_;
+    cur_kind_and_flags_ = reader_.ReadByte();
+    cur_start_pc_ += reader_.ReadSLEB128();
+    switch (Kind()) {
+      case kScope:
+        cur_end_pc_ = cur_start_pc_ + reader_.ReadUInt();
+        cur_index_ = reader_.ReadSLEB128();
+        cur_token_pos_ = reader_.ReadPosition();
+        cur_end_token_pos_ = reader_.ReadPosition();
+        break;
+      case kVariableDeclaration:
+        cur_index_ = reader_.ReadSLEB128();
+        cur_name_ = reader_.ReadUInt();
+        cur_type_ = reader_.ReadUInt();
+        cur_declaration_token_pos_ = reader_.ReadPosition();
+        cur_token_pos_ = reader_.ReadPosition();
+        break;
+      case kContextVariable:
+        cur_index_ = reader_.ReadSLEB128();
+        break;
+    }
+    return true;
+  }
+
+  intptr_t Kind() const { return cur_kind_and_flags_ & kKindMask; }
+  bool IsScope() const { return Kind() == kScope; }
+  bool IsVariableDeclaration() const { return Kind() == kVariableDeclaration; }
+  bool IsContextVariable() const { return Kind() == kContextVariable; }
+
+  intptr_t StartPC() const { return cur_start_pc_; }
+  intptr_t EndPC() const {
+    ASSERT(IsScope() || IsVariableDeclaration());
+    return cur_end_pc_;
+  }
+  intptr_t ContextLevel() const {
+    ASSERT(IsScope());
+    return cur_index_;
+  }
+  TokenPosition StartTokenPos() const {
+    ASSERT(IsScope() || IsVariableDeclaration());
+    return cur_token_pos_;
+  }
+  TokenPosition EndTokenPos() const {
+    ASSERT(IsScope() || IsVariableDeclaration());
+    return cur_end_token_pos_;
+  }
+  intptr_t Index() const {
+    ASSERT(IsVariableDeclaration() || IsContextVariable());
+    return cur_index_;
+  }
+  RawString* Name() const {
+    ASSERT(IsVariableDeclaration());
+    return String::RawCast(object_pool_.ObjectAt(cur_name_));
+  }
+  RawAbstractType* Type() const {
+    ASSERT(IsVariableDeclaration());
+    return AbstractType::RawCast(object_pool_.ObjectAt(cur_type_));
+  }
+  TokenPosition DeclarationTokenPos() const {
+    ASSERT(IsVariableDeclaration());
+    return cur_declaration_token_pos_;
+  }
+  bool IsCaptured() const {
+    ASSERT(IsVariableDeclaration());
+    return (cur_kind_and_flags_ & kIsCapturedFlag) != 0;
+  }
+
+ private:
+  Reader reader_;
+  const ObjectPool& object_pool_;
+  intptr_t entries_remaining_ = 0;
+  intptr_t cur_kind_and_flags_ = 0;
+  intptr_t cur_start_pc_ = 0;
+  intptr_t cur_end_pc_ = 0;
+  intptr_t cur_index_ = -1;
+  intptr_t cur_name_ = -1;
+  intptr_t cur_type_ = -1;
+  TokenPosition cur_token_pos_ = TokenPosition::kNoSource;
+  TokenPosition cur_declaration_token_pos_ = TokenPosition::kNoSource;
+  TokenPosition cur_end_token_pos_ = TokenPosition::kNoSource;
+};
+#endif  // !defined(PRODUCT)
 
 bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
                                                Zone* zone);

@@ -412,6 +412,15 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
   const ExceptionHandlers& handlers =
       ExceptionHandlers::Handle(zone, bytecode.exception_handlers());
   THR_Print("%s}\n", handlers.ToCString());
+
+  if (FLAG_print_variable_descriptors) {
+    THR_Print("Local variable descriptors for function '%s' {\n",
+              function_fullname);
+    const auto& var_descriptors =
+        LocalVarDescriptors::Handle(zone, bytecode.GetLocalVarDescriptors());
+    THR_Print("%s\n}\n", var_descriptors.ToCString());
+  }
+
 #else
   UNREACHABLE();
 #endif

@@ -667,6 +667,9 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
 
 // Calculate the context level at the current token index of the frame.
 intptr_t ActivationFrame::ContextLevel() {
+  // TODO(regis): get context level information using
+  //  BytecodeLocalVariablesIterator for interpreted frames and compiled frames
+  //  with a function coming from bytecode (function.is_declared_in_bytecode())
   const Context& ctx = GetSavedCurrentContext();
   if (context_level_ < 0 && !ctx.IsNull()) {
     ASSERT(!code_.is_optimized());
