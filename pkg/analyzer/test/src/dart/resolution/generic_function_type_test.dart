@@ -76,6 +76,19 @@ double Function() x;
   }
 
   /// Test that when multiple [GenericFunctionType]s are used in a
+  /// [FunctionDeclaration], the one in the return type is consumed before the
+  /// one in the parameter type. This is necessary because matching of
+  /// [GenericFunctionType] nodes to their elements is based on the sequential
+  /// identifier of a node in the unit.
+  test_typeAnnotation_function_returnType_parameterType() async {
+    await assertNoErrorsInCode(r'''
+void Function(E a) f<E>(void Function() b) {
+  return (_) {};
+}
+''');
+  }
+
+  /// Test that when multiple [GenericFunctionType]s are used in a
   /// [GenericFunctionType], all of them are resolved correctly.
   test_typeAnnotation_genericFunctionType() async {
     await assertNoErrorsInCode('''
@@ -114,5 +127,20 @@ double Function() x;
       findNode.genericFunctionType('double Function()'),
       'double Function()',
     );
+  }
+
+  /// Test that when multiple [GenericFunctionType]s are used in a
+  /// [MethodDeclaration], the one in the return type is consumed before the
+  /// one in the parameter type. This is necessary because matching of
+  /// [GenericFunctionType] nodes to their elements is based on the sequential
+  /// identifier of a node in the unit.
+  test_typeAnnotation_method_returnType_parameterType() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  void Function(E a) f<E>(void Function() b) {
+    return (_) {};
+  }
+}
+''');
   }
 }

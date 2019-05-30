@@ -245,6 +245,9 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
     _setGenericFunctionType(node.returnType, element.returnType);
     (node.functionExpression as FunctionExpressionImpl).declaredElement =
         element;
+    if (AnalysisDriver.useSummary2 && _enclosingUnit.linkedContext != null) {
+      node.returnType?.accept(this);
+    }
     _walker._elementHolder?.addFunction(element);
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitFunctionDeclaration(node);
@@ -378,6 +381,9 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
       }
     }
     _setGenericFunctionType(node.returnType, element.returnType);
+    if (AnalysisDriver.useSummary2 && _enclosingUnit.linkedContext != null) {
+      node.returnType?.accept(this);
+    }
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitMethodDeclaration(node);
     });
