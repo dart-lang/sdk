@@ -134,21 +134,20 @@ print(1)
   }
 
   test_suggestImportFromDifferentAnalysisRoot() async {
-    String asFileUri(String input) =>
-        new Uri.file(convertPath(input)).toString();
     newFolder('/aaa');
     newFile('/aaa/.packages', content: '''
-aaa:${asFileUri('/aaa/lib')}
-bbb:${asFileUri('/bbb/lib')}
+aaa:${toUri('/aaa/lib')}
+bbb:${toUri('/bbb/lib')}
 ''');
     newFile('/aaa/pubspec.yaml', content: r'''
 dependencies:
   bbb: any
 ''');
-    // Ensure that the target is analyzed as an implicit source.
-    newFile('/aaa/lib/foo.dart', content: 'import "package:bbb/target.dart";');
 
     newFolder('/bbb');
+    newFile('/bbb/.packages', content: '''
+bbb:${toUri('/bbb/lib')}
+''');
     newFile('/bbb/lib/target.dart', content: 'class Foo() {}');
 
     handleSuccessfulRequest(
