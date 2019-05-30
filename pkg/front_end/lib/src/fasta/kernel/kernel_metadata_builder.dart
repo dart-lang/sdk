@@ -4,12 +4,48 @@
 
 library fasta.kernel_metadata_builder;
 
-import 'kernel_builder.dart' show MetadataBuilder;
+import 'package:kernel/ast.dart' show Annotatable, Class, Library;
+
+import 'kernel_body_builder.dart' show KernelBodyBuilder;
+
+import 'kernel_builder.dart'
+    show
+        KernelClassBuilder,
+        KernelLibraryBuilder,
+        MetadataBuilder,
+        MemberBuilder;
 
 import '../scanner.dart' show Token;
 
-class KernelMetadataBuilder extends MetadataBuilder {
-  final int charOffset;
+import '../scope.dart' show Scope;
 
-  KernelMetadataBuilder(Token beginToken) : charOffset = beginToken.charOffset;
+class KernelMetadataBuilder extends MetadataBuilder {
+  final Token beginToken;
+
+  int get charOffset => beginToken.charOffset;
+
+  KernelMetadataBuilder(this.beginToken);
+
+  static void buildAnnotations(
+      Annotatable parent,
+      List<MetadataBuilder> metadata,
+      KernelLibraryBuilder library,
+      KernelClassBuilder classBuilder,
+      MemberBuilder member,
+      Scope parameterScope) {
+    if (metadata == null) return;
+    Uri fileUri = member?.fileUri ?? classBuilder?.fileUri ?? library.fileUri;
+    Scope scope = parent is Library || parent is Class || classBuilder == null
+        ? library.scope
+        : classBuilder.scope;
+    KernelBodyBuilder bodyBuilder = new KernelBodyBuilder.forAnnotation(
+        library, classBuilder, member, scope, parameterScope, fileUri);
+    for (int i = 0; i < metadata.length; ++i) {
+      KernelMetadataBuilder annotationBuilder = metadata[i];
+      parent.addAnnotation(
+          bodyBuilder.parseAnnotation(annotationBuilder.beginToken));
+    }
+    bodyBuilder.inferAnnotations(parent.annotations);
+    bodyBuilder.resolveRedirectingFactoryTargets();
+  }
 }
