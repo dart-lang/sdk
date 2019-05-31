@@ -331,7 +331,7 @@ m() {
     await assertNoErrorsInCode(r'''
 m() {
   int x;
-  x.noSuchMethod(null);
+  x.noSuchMethod(throw '');
 }
 ''');
   }
