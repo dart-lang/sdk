@@ -37,7 +37,12 @@ class B<X> extends A<void Function(X)> {};
 * The `HttpClientResponse` interface has been extended with the addition of a
   new `compressionState` getter, which specifies whether the body of a
   response was compressed when it was received and whether it has been
-  automatically uncompressed via `HttpClient.autoUncompress`.
+  automatically uncompressed via `HttpClient.autoUncompress` (Issue [36971][]).
+
+  As part of this change, a corresponding new enum was added to `dart:io`:
+  `HttpClientResponseCompressionState`.
+
+  [36971]: https://github.com/dart-lang/sdk/issues/36971
 
   * **Breaking change**: For those implementing the `HttpClientResponse`
     interface, this is a breaking change, as implementing classes will need to
