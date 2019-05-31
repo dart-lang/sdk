@@ -1218,6 +1218,23 @@ class ConstantWorkItem extends WorkItem {
   }
 }
 
+/// Interface for updating an [OutputUnitData] object with data for late
+/// members, that is, members created on demand during code generation.
+class LateOutputUnitDataBuilder {
+  final OutputUnitData _outputUnitData;
+
+  LateOutputUnitDataBuilder(this._outputUnitData);
+
+  /// Registers [newEntity] to be emitted in the same output unit as
+  /// [existingEntity];
+  void registerColocatedMembers(
+      MemberEntity existingEntity, MemberEntity newEntity) {
+    assert(_outputUnitData._memberToUnit[newEntity] == null);
+    _outputUnitData._memberToUnit[newEntity] =
+        _outputUnitData.outputUnitForMember(existingEntity);
+  }
+}
+
 /// Results of the deferred loading algorithm.
 ///
 /// Provides information about the output unit associated with entities and
@@ -1393,23 +1410,27 @@ class OutputUnitData {
   }
 
   /// Returns the [OutputUnit] where [cls] belongs.
-  OutputUnit outputUnitForClass(ClassEntity cls) {
+  // TODO(johnniwinther): Remove the need for [allowNull]. Dump-info currently
+  // needs it.
+  OutputUnit outputUnitForClass(ClassEntity cls, {bool allowNull: false}) {
     if (!isProgramSplit) return mainOutputUnit;
     OutputUnit unit = _classToUnit[cls];
+    assert(allowNull || unit != null, 'No output unit for class $cls');
     return unit ?? mainOutputUnit;
   }
+
+  OutputUnit outputUnitForClassForTesting(ClassEntity cls) => _classToUnit[cls];
 
   /// Returns the [OutputUnit] where [member] belongs.
   OutputUnit outputUnitForMember(MemberEntity member) {
     if (!isProgramSplit) return mainOutputUnit;
     OutputUnit unit = _memberToUnit[member];
-    if (unit != null) return unit;
-    if (member.isInstanceMember) {
-      return outputUnitForClass(member.enclosingClass);
-    }
-
-    return mainOutputUnit;
+    assert(unit != null, 'No output unit for member $member');
+    return unit ?? mainOutputUnit;
   }
+
+  OutputUnit outputUnitForMemberForTesting(MemberEntity member) =>
+      _memberToUnit[member];
 
   /// Direct access to the output-unit to constants map used for testing.
   Iterable<ConstantValue> get constantsForTesting => _constantToUnit.keys;
@@ -1419,6 +1440,9 @@ class OutputUnitData {
     if (!isProgramSplit) return mainOutputUnit;
     return _constantToUnit[constant];
   }
+
+  OutputUnit outputUnitForConstantForTesting(ConstantValue constant) =>
+      _constantToUnit[constant];
 
   /// Indicates whether [element] is deferred.
   bool isDeferredClass(ClassEntity element) {
@@ -1462,14 +1486,6 @@ class OutputUnitData {
     assert(
         _constantToUnit[constant] == null || _constantToUnit[constant] == unit);
     _constantToUnit[constant] = unit;
-  }
-
-  /// Registers [newEntity] to be emitted in the same output unit as
-  /// [existingEntity];
-  void registerColocatedMembers(
-      MemberEntity existingEntity, MemberEntity newEntity) {
-    assert(_memberToUnit[newEntity] == null);
-    _memberToUnit[newEntity] = outputUnitForMember(existingEntity);
   }
 
   /// Returns the unique name for the given deferred [import].

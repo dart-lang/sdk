@@ -105,7 +105,7 @@ class OutputUnitDataComputer extends DataComputer<String> {
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     OutputUnitData data = closedWorld.outputUnitData;
-    String value = outputUnitString(data.outputUnitForClass(cls));
+    String value = outputUnitString(data.outputUnitForClassForTesting(cls));
 
     JsToElementMap elementMap = closedWorld.elementMap;
     ClassDefinition definition = elementMap.getClassDefinition(cls);
@@ -141,7 +141,7 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
 
   String getMemberValue(MemberEntity member, Set<String> constants) {
     StringBuffer sb = new StringBuffer();
-    sb.write(outputUnitString(_data.outputUnitForMember(member)));
+    sb.write(outputUnitString(_data.outputUnitForMemberForTesting(member)));
     if (constants.isNotEmpty) {
       List<String> text = constants.toList()..sort();
       sb.write(',constants=[${text.join(',')}]');
@@ -166,7 +166,7 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
         }
         _registerValue(
             new NodeId(span.begin, IdKind.node),
-            outputUnitString(_data.outputUnitForConstant(constant)),
+            outputUnitString(_data.outputUnitForConstantForTesting(constant)),
             node,
             span,
             actualMap,

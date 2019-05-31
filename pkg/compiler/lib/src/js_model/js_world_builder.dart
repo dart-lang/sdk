@@ -486,6 +486,9 @@ class JsClosedWorldBuilder {
         if (entity is KLocalFunction) {
           var closureInfo = closureDataLookup.getClosureInfo(entity.node);
           result[closureInfo.callMethod] = unit;
+          if (closureInfo.signatureMethod != null) {
+            result[closureInfo.signatureMethod] = unit;
+          }
         }
       });
       return result;

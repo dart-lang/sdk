@@ -81,8 +81,11 @@ class JsBackendStrategy implements BackendStrategy {
         closureDataBuilder,
         _compiler.options,
         _compiler.abstractValueStrategy);
-    return closedWorldBuilder.convertClosedWorld(
+    JClosedWorld jClosedWorld = closedWorldBuilder.convertClosedWorld(
         closedWorld, strategy.closureModels, outputUnitData);
+    _elementMap.lateOutputUnitDataBuilder =
+        new LateOutputUnitDataBuilder(jClosedWorld.outputUnitData);
+    return jClosedWorld;
   }
 
   @override

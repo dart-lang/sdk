@@ -688,7 +688,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         break;
       case StaticUseKind.INLINING:
       case StaticUseKind.CALL_METHOD:
-      case StaticUseKind.GENERATOR_BODY_INVOKE:
         failedAt(CURRENT_ELEMENT_SPANNABLE,
             "Static use ${staticUse.kind} is not supported during resolution.");
     }

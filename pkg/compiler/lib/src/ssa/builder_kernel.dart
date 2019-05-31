@@ -6660,6 +6660,88 @@ class InlineData {
 
     return null;
   }
+
+  @override
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('InlineData(');
+    String comma = '';
+    if (isConstructor) {
+      sb.write('isConstructor');
+      comma = ',';
+    }
+    if (codeAfterReturn) {
+      sb.write(comma);
+      sb.write('codeAfterReturn');
+      comma = ',';
+    }
+    if (hasLoop) {
+      sb.write(comma);
+      sb.write('hasLoop');
+      comma = ',';
+    }
+    if (hasClosure) {
+      sb.write(comma);
+      sb.write('hasClosure');
+      comma = ',';
+    }
+    if (hasTry) {
+      sb.write(comma);
+      sb.write('hasTry');
+      comma = ',';
+    }
+    if (hasAsyncAwait) {
+      sb.write(comma);
+      sb.write('hasAsyncAwait');
+      comma = ',';
+    }
+    if (hasThrow) {
+      sb.write(comma);
+      sb.write('hasThrow');
+      comma = ',';
+    }
+    if (hasLongString) {
+      sb.write(comma);
+      sb.write('hasLongString');
+      comma = ',';
+    }
+    if (hasExternalConstantConstructorCall) {
+      sb.write(comma);
+      sb.write('hasExternalConstantConstructorCall');
+      comma = ',';
+    }
+    if (hasTypeArguments) {
+      sb.write(comma);
+      sb.write('hasTypeArguments');
+      comma = ',';
+    }
+    if (hasArgumentDefaulting) {
+      sb.write(comma);
+      sb.write('hasArgumentDefaulting');
+      comma = ',';
+    }
+    if (hasCast) {
+      sb.write(comma);
+      sb.write('hasCast');
+      comma = ',';
+    }
+    if (hasIf) {
+      sb.write(comma);
+      sb.write('hasIf');
+      comma = ',';
+    }
+    if (argumentCounts.isNotEmpty) {
+      sb.write(comma);
+      sb.write('argumentCounts={${argumentCounts.join(',')}}');
+      comma = ',';
+    }
+    sb.write(comma);
+    sb.write('regularNodeCount=$regularNodeCount,');
+    sb.write('callCount=$callCount,');
+    sb.write('reductiveNodeCount=$reductiveNodeCount');
+    sb.write(')');
+    return sb.toString();
+  }
 }
 
 class InlineDataCache {

@@ -17,7 +17,6 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_emitter/native_emitter.dart';
-import '../js_model/elements.dart';
 import '../native/enqueue.dart';
 import '../native/behavior.dart';
 import '../options.dart';
@@ -419,11 +418,6 @@ class CodegenImpactTransformer {
 
     for (StaticUse staticUse in impact.staticUses) {
       switch (staticUse.kind) {
-        case StaticUseKind.GENERATOR_BODY_INVOKE:
-          JGeneratorBody generatorBody = staticUse.element;
-          _closedWorld.outputUnitData
-              .registerColocatedMembers(generatorBody.function, generatorBody);
-          break;
         case StaticUseKind.CALL_METHOD:
           FunctionEntity callMethod = staticUse.element;
           if (_rtiNeed.methodNeedsSignature(callMethod)) {

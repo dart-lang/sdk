@@ -345,7 +345,6 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
         useSet.addAll(
             usage.invoke(Accesses.superAccess, staticUse.callStructure));
         break;
-      case StaticUseKind.GENERATOR_BODY_INVOKE:
       case StaticUseKind.STATIC_INVOKE:
         registerStaticInvocation(staticUse);
         useSet.addAll(

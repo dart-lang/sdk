@@ -158,7 +158,6 @@ enum StaticUseKind {
   CONST_CONSTRUCTOR_INVOKE,
   DIRECT_INVOKE,
   INLINING,
-  GENERATOR_BODY_INVOKE,
   STATIC_INVOKE,
   STATIC_GET,
   STATIC_SET,
@@ -489,7 +488,7 @@ class StaticUse {
   /// Direct invocation of a generator (body) [element], as a static call or
   /// through a this or super constructor call.
   factory StaticUse.generatorBodyInvoke(FunctionEntity element) {
-    return new StaticUse.internal(element, StaticUseKind.GENERATOR_BODY_INVOKE,
+    return new StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: CallStructure.NO_ARGS);
   }
 

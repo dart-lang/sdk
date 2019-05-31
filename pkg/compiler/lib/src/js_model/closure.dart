@@ -628,6 +628,7 @@ class KernelClosureClassInfo extends JsScopeInfo
 
   @override
   JFunction callMethod;
+  @override
   JSignatureMethod signatureMethod;
   @override
   final Local closureEntity;

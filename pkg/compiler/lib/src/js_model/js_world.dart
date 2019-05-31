@@ -170,6 +170,8 @@ class JsClosedWorld implements JClosedWorld {
 
     OutputUnitData outputUnitData =
         new OutputUnitData.readFromDataSource(source);
+    elementMap.lateOutputUnitDataBuilder =
+        new LateOutputUnitDataBuilder(outputUnitData);
 
     Map<MemberEntity, MemberAccess> memberAccess =
         source.readMemberMap(() => new MemberAccess.readFromDataSource(source));

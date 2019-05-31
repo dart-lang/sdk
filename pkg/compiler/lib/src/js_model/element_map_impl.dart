@@ -19,6 +19,7 @@ import '../constants/constructors.dart';
 import '../constants/evaluation.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
+import '../deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/indexed.dart';
@@ -126,6 +127,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   Map<IndexedFunction, JGeneratorBody> _generatorBodies = {};
 
   Map<IndexedClass, List<IndexedMember>> _injectedClassMembers = {};
+
+  LateOutputUnitDataBuilder lateOutputUnitDataBuilder;
 
   JsKernelToElementMap(
       this.reporter,
@@ -1656,6 +1659,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       // TODO(johnniwinther): Avoid this by only including live members in the
       // js-model.
       classEnv.addConstructorBody(constructorBody);
+      lateOutputUnitDataBuilder.registerColocatedMembers(
+          constructor, constructorBody);
       data.constructorBody = constructorBody;
     }
     return data.constructorBody;
@@ -2104,6 +2109,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         (_injectedClassMembers[function.enclosingClass] ??= <IndexedMember>[])
             .add(generatorBody);
       }
+      lateOutputUnitDataBuilder.registerColocatedMembers(
+          generatorBody.function, generatorBody);
       _generatorBodies[function] = generatorBody;
     }
     return generatorBody;

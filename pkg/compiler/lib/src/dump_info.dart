@@ -365,7 +365,7 @@ class ElementInfoCollector {
 
   OutputUnitInfo _unitInfoForClass(ClassEntity entity) {
     return _infoFromOutputUnit(
-        closedWorld.outputUnitData.outputUnitForClass(entity));
+        closedWorld.outputUnitData.outputUnitForClass(entity, allowNull: true));
   }
 
   OutputUnitInfo _unitInfoForConstant(ConstantValue constant) {
