@@ -7,6 +7,7 @@
 /// This is a shell that runs multiple tests, one per folder under `data/`.
 import 'dart:io';
 
+import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
@@ -24,7 +25,9 @@ main(List<String> args) async {
       new IOPipeline([
         SourceToDillStep(),
         GlobalAnalysisStep(),
-        Dart2jsBackendStep(),
+        Dart2jsCodegenStep(codeId0),
+        Dart2jsCodegenStep(codeId1),
+        Dart2jsEmissionStep(),
         RunD8(),
       ], cacheSharedModules: true));
 }
@@ -32,6 +35,9 @@ main(List<String> args) async {
 const dillId = const DataId("dill");
 const updatedDillId = const DataId("udill");
 const globalDataId = const DataId("gdata");
+const codeId = const ShardsDataId("code", 2);
+const codeId0 = const ShardDataId(codeId, 0);
+const codeId1 = const ShardDataId(codeId, 1);
 const jsId = const DataId("js");
 const txtId = const DataId("txt");
 
@@ -188,8 +194,8 @@ class GlobalAnalysisStep implements IOModularStep {
       'package:compiler/src/dart2js.dart',
       '${toUri(module, dillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
-      '--dill-dependencies=${dillDependencies.join(',')}',
-      '--write-data=${toUri(module, globalDataId)}',
+      '${Flags.dillDependencies}=${dillDependencies.join(',')}',
+      '${Flags.writeData}=${toUri(module, globalDataId)}',
       '--out=${toUri(module, updatedDillId)}',
     ];
     var result =
@@ -205,11 +211,16 @@ class GlobalAnalysisStep implements IOModularStep {
   }
 }
 
-// Step that invokes the dart2js backend on the main module given the results of
-// the global analysis step.
-class Dart2jsBackendStep implements IOModularStep {
+// Step that invokes the dart2js code generation on the main module given the
+// results of the global analysis step and produces one shard of the codegen
+// output.
+class Dart2jsCodegenStep implements IOModularStep {
+  final ShardDataId codeId;
+
+  Dart2jsCodegenStep(this.codeId);
+
   @override
-  List<DataId> get resultData => const [jsId];
+  List<DataId> get resultData => [codeId];
 
   @override
   bool get needsSources => false;
@@ -233,7 +244,55 @@ class Dart2jsBackendStep implements IOModularStep {
       'package:compiler/src/dart2js.dart',
       '${toUri(module, updatedDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
-      '--read-data=${toUri(module, globalDataId)}',
+      '${Flags.readData}=${toUri(module, globalDataId)}',
+      '${Flags.writeCodegen}=${toUri(module, codeId.dataId)}',
+      '${Flags.codegenShard}=${codeId.shard}',
+      '${Flags.codegenShards}=${codeId.dataId.shards}',
+    ];
+    var result =
+        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
+
+    _checkExitCode(result, this, module);
+  }
+
+  @override
+  void notifyCached(Module module) {
+    if (_options.verbose) print("cached step: dart2js backend on $module");
+  }
+}
+
+// Step that invokes the dart2js codegen enqueuer and emitter on the main module
+// given the results of the global analysis step and codegen shards.
+class Dart2jsEmissionStep implements IOModularStep {
+  @override
+  List<DataId> get resultData => const [jsId];
+
+  @override
+  bool get needsSources => false;
+
+  @override
+  List<DataId> get dependencyDataNeeded => const [];
+
+  @override
+  List<DataId> get moduleDataNeeded =>
+      const [updatedDillId, globalDataId, codeId0, codeId1];
+
+  @override
+  bool get onlyOnMain => true;
+
+  @override
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
+    if (_options.verbose) print("step: dart2js backend on $module");
+    var sdkRoot = Platform.script.resolve("../../../../");
+    List<String> args = [
+      '--packages=${sdkRoot.toFilePath()}/.packages',
+      'package:compiler/src/dart2js.dart',
+      '${toUri(module, updatedDillId)}',
+      for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
+      '${Flags.readData}=${toUri(module, globalDataId)}',
+      '${Flags.readCodegen}=${toUri(module, codeId)}',
+      '${Flags.codegenShards}=${codeId.shards}',
       '--out=${toUri(module, jsId)}',
     ];
     var result =
@@ -319,4 +378,33 @@ String get _d8executable {
     return 'third_party/d8/macos/d8';
   }
   throw new UnsupportedError('Unsupported platform.');
+}
+
+class ShardsDataId implements DataId {
+  @override
+  final String name;
+  final int shards;
+
+  const ShardsDataId(this.name, this.shards);
+
+  @override
+  String toString() => name;
+}
+
+class ShardDataId implements DataId {
+  final ShardsDataId dataId;
+  final int _shard;
+
+  const ShardDataId(this.dataId, this._shard);
+
+  int get shard {
+    assert(0 <= _shard && _shard < dataId.shards);
+    return _shard;
+  }
+
+  @override
+  String get name => '${dataId.name}${shard}';
+
+  @override
+  String toString() => name;
 }
