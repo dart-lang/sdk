@@ -16,6 +16,18 @@ index 7d450be42..e158e33af 100644
  
    @override
    List<Cookie> get cookies => null;
+diff --git a/packages/flutter_tools/lib/src/base/io.dart b/packages/flutter_tools/lib/src/base/io.dart
+index 4c9d2250b..8b3535d54 100644
+--- a/packages/flutter_tools/lib/src/base/io.dart
++++ b/packages/flutter_tools/lib/src/base/io.dart
+@@ -47,6 +47,7 @@ export 'dart:io'
+         HttpClient,
+         HttpClientRequest,
+         HttpClientResponse,
++        HttpClientResponseCompressionState,
+         HttpHeaders,
+         HttpRequest,
+         HttpServer,
 diff --git a/packages/flutter_tools/test/commands/create_test.dart b/packages/flutter_tools/test/commands/create_test.dart
 index b5453cbb1..f7cdf6164 100644
 --- a/packages/flutter_tools/test/commands/create_test.dart
