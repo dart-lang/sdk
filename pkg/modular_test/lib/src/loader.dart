@@ -217,7 +217,7 @@ Future<Module> _createSdkModule(Uri root) async {
     var dir = Directory.fromUri(root.resolve(path));
     await for (var file in dir.list(recursive: true)) {
       if (file is File && file.path.endsWith(".dart")) {
-        sources.add(Uri.parse(file.path.substring(root.path.length)));
+        sources.add(Uri.parse(file.uri.path.substring(root.path.length)));
       }
     }
   }
