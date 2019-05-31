@@ -67,9 +67,11 @@ class ConstantInitializersResolver {
   }
 
   void _variableDeclarationList(VariableDeclarationList node) {
-    if (node.isConst && node.type != null) {
+    var typeNode = node.type;
+    if (node.isConst && typeNode != null) {
       for (var variable in node.variables) {
         if (variable.initializer != null) {
+          InferenceContext.setType(variable.initializer, typeNode.type);
           var astResolver = AstResolver(linker, _library, _scope);
           astResolver.rewriteAst(variable.initializer);
           astResolver.resolve(variable.initializer);

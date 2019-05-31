@@ -2537,6 +2537,66 @@ class C {
 ''');
   }
 
+  test_const_inference_downward_list() async {
+    var library = await checkLibrary('''
+class P<T> {
+  const P();
+}
+
+class P1<T> extends P<T> {
+  const P1();
+}
+
+class P2<T> extends P<T> {
+  const P2();
+}
+
+const List<P> values = [
+  P1(),
+  P2<int>(),
+];
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+class P<T> {
+  const P();
+}
+class P1<T> extends P<T> {
+  const P1();
+}
+class P2<T> extends P<T> {
+  const P2();
+}
+const List<P<dynamic>> values = /*typeArgs=P<dynamic>*/[/*typeArgs=dynamic*/
+        P1/*location: test.dart;P1*/(),
+        P2/*location: test.dart;P2*/<
+        int/*location: dart:core;int*/>()];
+''',
+          withTypes: true);
+    } else {
+      checkElementText(
+          library,
+          '''
+class P<T> {
+  const P();
+}
+class P1<T> extends P<T> {
+  const P1();
+}
+class P2<T> extends P<T> {
+  const P2();
+}
+const List<P<dynamic>> values = const /*typeArgs=dynamic*/[const /*typeArgs=dynamic*/
+        P1/*location: test.dart;P1*/(), const
+        P2/*location: test.dart;P2*/<
+        int/*location: dart:core;int*/>()];
+''',
+          withTypes: true);
+    }
+  }
+
   test_const_invalid_field_const() async {
     var library = await checkLibrary(r'''
 class C {
