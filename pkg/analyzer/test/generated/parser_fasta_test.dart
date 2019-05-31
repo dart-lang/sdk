@@ -1453,6 +1453,48 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
             ));
   }
 
+  void test_complex_extends() {
+    var unit = parseCompilationUnit(
+        'extension E extends A with B, C implements D { }',
+        errors: [
+          expectedError(ParserErrorCode.EXPECTED_INSTEAD, 12, 7),
+          expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 22, 4),
+          expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 28, 1),
+          expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 32, 10),
+        ]);
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'extends');
+    expect((extension.extendedType as NamedType).name.name, 'A');
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_complex_implements() {
+    var unit = parseCompilationUnit('extension E implements C, D { }', errors: [
+      expectedError(ParserErrorCode.EXPECTED_INSTEAD, 12, 10),
+      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 24, 1),
+    ]);
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'implements');
+    expect((extension.extendedType as NamedType).name.name, 'C');
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_complex_type() {
+    var unit = parseCompilationUnit('extension E on C<T> { }');
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'on');
+    var namedType = (extension.extendedType as NamedType);
+    expect(namedType.name.name, 'C');
+    expect(namedType.typeArguments.arguments, hasLength(1));
+    expect(extension.members, hasLength(0));
+  }
+
   void test_missing_on() {
     var unit = parseCompilationUnit('extension E', errors: [
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
@@ -1467,6 +1509,31 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     expect(extension.members, hasLength(0));
   }
 
+  void test_missing_on_withBlock() {
+    var unit = parseCompilationUnit('extension E {}', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
+    ]);
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'on');
+    expect((extension.extendedType as NamedType).name.name, '');
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_missing_on_withClassAndBlock() {
+    var unit = parseCompilationUnit('extension E C {}', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
+    ]);
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'on');
+    expect((extension.extendedType as NamedType).name.name, 'C');
+    expect(extension.members, hasLength(0));
+  }
+
   void test_simple() {
     var unit = parseCompilationUnit('extension E on C { }');
     expect(unit.declarations, hasLength(1));
@@ -1474,6 +1541,9 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     expect(extension.name.name, 'E');
     expect(extension.onKeyword.lexeme, 'on');
     expect((extension.extendedType as NamedType).name.name, 'C');
+    var namedType = (extension.extendedType as NamedType);
+    expect(namedType.name.name, 'C');
+    expect(namedType.typeArguments, isNull);
     expect(extension.members, hasLength(0));
   }
 
@@ -1485,6 +1555,18 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name.name, 'E');
     expect(extension.onKeyword.lexeme, 'extends');
+    expect((extension.extendedType as NamedType).name.name, 'C');
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_simple_implements() {
+    var unit = parseCompilationUnit('extension E implements C { }', errors: [
+      expectedError(ParserErrorCode.EXPECTED_INSTEAD, 12, 10),
+    ]);
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'implements');
     expect((extension.extendedType as NamedType).name.name, 'C');
     expect(extension.members, hasLength(0));
   }

@@ -2067,7 +2067,9 @@ class Parser {
     Token onKeyword = token.next;
     if (!optional('on', onKeyword)) {
       // Recovery
-      if (optional('extends', onKeyword) || optional('with', onKeyword)) {
+      if (optional('extends', onKeyword) ||
+          optional('implements', onKeyword) ||
+          optional('with', onKeyword)) {
         reportRecoverableError(
             onKeyword, fasta.templateExpectedInstead.withArguments('on'));
       } else {
@@ -2079,6 +2081,27 @@ class Parser {
     TypeInfo typeInfo = computeType(onKeyword, true);
     token = typeInfo.ensureTypeNotVoid(onKeyword, this);
     if (!optional('{', token.next)) {
+      // Recovery
+      Token next = token.next;
+      while (!next.isEof) {
+        if (optional(',', next) ||
+            optional('extends', next) ||
+            optional('implements', next) ||
+            optional('on', next) ||
+            optional('with', next)) {
+          // Report an error and skip `,` or specific keyword
+          // optionally followed by an identifier
+          reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
+          token = next;
+          next = token.next;
+          if (next.isIdentifier) {
+            token = next;
+            next = token.next;
+          }
+        } else {
+          break;
+        }
+      }
       ensureBlock(token, null, 'extension declaration');
     }
     // TODO(danrubel): Do not allow fields or constructors
