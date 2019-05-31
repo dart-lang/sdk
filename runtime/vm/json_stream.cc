@@ -500,6 +500,14 @@ void JSONObject::AddFixedServiceId(const char* format, ...) const {
   va_end(args);
 }
 
+void JSONObject::AddServiceId(const char* format, ...) const {
+  // Add the id property.
+  va_list args;
+  va_start(args, format);
+  stream_->VPrintfProperty("id", format, args);
+  va_end(args);
+}
+
 void JSONObject::AddLocation(const Script& script,
                              TokenPosition token_pos,
                              TokenPosition end_token_pos) const {
