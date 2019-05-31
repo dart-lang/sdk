@@ -737,7 +737,9 @@ class LinkedUnitContext {
   }
 
   bool isExplicitlyCovariant(AstNode node) {
-    if (node is EnumConstantDeclaration) {
+    if (node is DefaultFormalParameter) {
+      return isExplicitlyCovariant(node.parameter);
+    } else if (node is EnumConstantDeclaration) {
       return false;
     } else if (node is FormalParameter) {
       return node.covariantKeyword != null;
@@ -922,7 +924,9 @@ class LinkedUnitContext {
   }
 
   void setInheritsCovariant(AstNode node, bool value) {
-    if (node is FormalParameter) {
+    if (node is DefaultFormalParameter) {
+      setInheritsCovariant(node.parameter, value);
+    } else if (node is FormalParameter) {
       LazyAst.setInheritsCovariant(node, value);
     } else if (node is VariableDeclaration) {
       LazyAst.setInheritsCovariant(node, value);

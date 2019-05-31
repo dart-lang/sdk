@@ -8987,11 +8987,41 @@ void main@5(int p@14) {}
         withOffsets: true);
   }
 
-  test_parameter_covariant() async {
-    var library = await checkLibrary('class C { void m(covariant C c) {} }');
+  test_parameter_covariant_explicit_named() async {
+    var library = await checkLibrary('''
+class A {
+  void m({covariant A a}) {}
+}
+''');
     checkElementText(library, r'''
-class C {
-  void m(covariant C c) {}
+class A {
+  void m({covariant A a}) {}
+}
+''');
+  }
+
+  test_parameter_covariant_explicit_positional() async {
+    var library = await checkLibrary('''
+class A {
+  void m([covariant A a]) {}
+}
+''');
+    checkElementText(library, r'''
+class A {
+  void m([covariant A a]) {}
+}
+''');
+  }
+
+  test_parameter_covariant_explicit_required() async {
+    var library = await checkLibrary('''
+class A {
+  void m(covariant A a) {}
+}
+''');
+    checkElementText(library, r'''
+class A {
+  void m(covariant A a) {}
 }
 ''');
   }
@@ -9011,6 +9041,25 @@ class A<T> {
 }
 class B<T> extends A<T> {
   void f(covariant T t) {}
+}
+''');
+  }
+
+  test_parameter_covariant_inherited_named() async {
+    var library = await checkLibrary('''
+class A {
+  void m({covariant A a}) {}
+}
+class B extends A {
+  void m({B a}) {}
+}
+''');
+    checkElementText(library, r'''
+class A {
+  void m({covariant A a}) {}
+}
+class B extends A {
+  void m({covariant B a}) {}
 }
 ''');
   }
