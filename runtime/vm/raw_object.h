@@ -812,7 +812,7 @@ class RawPatchClass : public RawObject {
   RawClass* patched_class_;
   RawClass* origin_class_;
   RawScript* script_;
-  RawTypedDataBase* library_kernel_data_;
+  RawExternalTypedData* library_kernel_data_;
   VISIT_TO(RawObject*, library_kernel_data_);
 
   RawObject** to_snapshot(Snapshot::Kind kind) {
@@ -1166,7 +1166,7 @@ class RawLibrary : public RawObject {
   RawArray* imports_;        // List of Namespaces imported without prefix.
   RawArray* exports_;        // List of re-exported Namespaces.
   RawInstance* load_error_;  // Error iff load_state_ == kLoadError.
-  RawTypedDataBase* kernel_data_;
+  RawExternalTypedData* kernel_data_;
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
@@ -1221,16 +1221,16 @@ class RawKernelProgramInfo : public RawObject {
 
   VISIT_FROM(RawObject*, string_offsets_);
   RawTypedData* string_offsets_;
-  RawTypedDataBase* string_data_;
+  RawExternalTypedData* string_data_;
   RawTypedData* canonical_names_;
-  RawTypedDataBase* metadata_payloads_;
-  RawTypedDataBase* metadata_mappings_;
+  RawExternalTypedData* metadata_payloads_;
+  RawExternalTypedData* metadata_mappings_;
   RawArray* scripts_;
   RawArray* constants_;
   RawArray* bytecode_component_;
   RawGrowableObjectArray* potential_natives_;
   RawGrowableObjectArray* potential_pragma_functions_;
-  RawTypedDataBase* constants_table_;
+  RawExternalTypedData* constants_table_;
   RawArray* libraries_cache_;
   RawArray* classes_cache_;
   VISIT_TO(RawObject*, classes_cache_);
@@ -2099,7 +2099,6 @@ class RawTypedDataBase : public RawInstance {
 
  private:
   friend class RawTypedDataView;
-  friend class TypedDataView;
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypedDataBase);
 };
 
@@ -2155,8 +2154,8 @@ class RawTypedDataView : public RawTypedDataBase {
     ptr()->data_ = payload + offset_in_bytes;
   }
 
-  // Recompute [data_] based on internal [typed_data_] - needs to be called by
-  // GC whenever the backing store moved.
+  // Recopute [data_] based on internal [typed_data_] - needs to be called by GC
+  // whenever the backing store moved.
   //
   // NOTICE: This method assumes [this] is the forwarded object and the
   // [typed_data_] pointer points to the new backing store. The backing store's
@@ -2168,7 +2167,7 @@ class RawTypedDataView : public RawTypedDataBase {
     ptr()->data_ = payload + offset_in_bytes;
   }
 
-  void ValidateInnerPointer() const {
+  void ValidateInnerPointer() {
     if (ptr()->typed_data_->GetClassId() == kNullCid) {
       // The view object must have gotten just initialized.
       if (ptr()->data_ != nullptr ||

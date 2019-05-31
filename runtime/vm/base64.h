@@ -5,12 +5,11 @@
 #ifndef RUNTIME_VM_BASE64_H_
 #define RUNTIME_VM_BASE64_H_
 
-#include "platform/globals.h"
+#include "vm/zone.h"
 
 namespace dart {
 
-// If non-null, the returned buffer has to be freed via delete[].
-uint8_t* DecodeBase64(const char* str, intptr_t* out_decoded_len);
+uint8_t* DecodeBase64(Zone* zone, const char* str, intptr_t* out_decoded_len);
 
 }  // namespace dart
 

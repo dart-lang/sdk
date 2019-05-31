@@ -22,7 +22,7 @@ namespace kernel {
 class StreamingFlowGraphBuilder : public KernelReaderHelper {
  public:
   StreamingFlowGraphBuilder(FlowGraphBuilder* flow_graph_builder,
-                            const TypedDataBase& data,
+                            const ExternalTypedData& data,
                             intptr_t data_program_offset)
       : KernelReaderHelper(
             flow_graph_builder->zone_,

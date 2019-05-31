@@ -79,15 +79,8 @@ static RawError* BootstrapFromKernel(Thread* thread,
                                      intptr_t kernel_buffer_size) {
   Zone* zone = thread->zone();
   const char* error = nullptr;
-
-  // NOTE: We do not attach a finalizer for this object, because the embedder
-  // will free it once the isolate has shutdown.
-  // (The embedder provides this buffer to [Dart_CreateIsolateFromKernel])
-  const auto& td = ExternalTypedData::Handle(ExternalTypedData::New(
-      kExternalTypedDataUint8ArrayCid, const_cast<uint8_t*>(kernel_buffer),
-      kernel_buffer_size, Heap::kOld));
-
-  kernel::Program* program = kernel::Program::ReadFromTypedData(td, &error);
+  kernel::Program* program = kernel::Program::ReadFromBuffer(
+      kernel_buffer, kernel_buffer_size, &error);
   if (program == nullptr) {
     const intptr_t kMessageBufferSize = 512;
     char message_buffer[kMessageBufferSize];

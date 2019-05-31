@@ -28,7 +28,7 @@ bool FieldHasFunctionLiteralInitializer(const Field& field,
 
   KernelReaderHelper kernel_reader_helper(
       zone, &translation_helper, Script::Handle(zone, field.Script()),
-      TypedDataBase::Handle(zone, field.KernelData()),
+      ExternalTypedData::Handle(zone, field.KernelData()),
       field.KernelDataProgramOffset());
   kernel_reader_helper.SetOffset(field.kernel_offset());
   kernel::FieldHelper field_helper(&kernel_reader_helper);
@@ -148,7 +148,7 @@ class KernelTokenPositionCollector : public KernelReaderHelper {
       Zone* zone,
       TranslationHelper* translation_helper,
       const Script& script,
-      const TypedDataBase& data,
+      const ExternalTypedData& data,
       intptr_t data_program_offset,
       intptr_t initial_script_index,
       intptr_t record_for_script_id,
@@ -257,7 +257,7 @@ static RawArray* AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
 }
 
 static void CollectKernelDataTokenPositions(
-    const TypedDataBase& kernel_data,
+    const ExternalTypedData& kernel_data,
     const Script& script,
     const Script& entry_script,
     intptr_t kernel_offset,
@@ -351,7 +351,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
   Library& lib = Library::Handle(zone);
   Object& entry = Object::Handle(zone);
   Script& entry_script = Script::Handle(zone);
-  TypedDataBase& data = TypedDataBase::Handle(zone);
+  ExternalTypedData& data = ExternalTypedData::Handle(zone);
 
   auto& temp_array = Array::Handle(zone);
   auto& temp_field = Field::Handle(zone);
@@ -362,7 +362,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
     DictionaryIterator it(lib);
     while (it.HasNext()) {
       entry = it.GetNext();
-      data = TypedDataBase::null();
+      data = ExternalTypedData::null();
       if (entry.IsClass()) {
         const Class& klass = Class::Cast(entry);
         if (klass.script() == interesting_script.raw()) {
@@ -476,7 +476,7 @@ class MetadataEvaluator : public KernelReaderHelper {
   MetadataEvaluator(Zone* zone,
                     TranslationHelper* translation_helper,
                     const Script& script,
-                    const TypedDataBase& data,
+                    const ExternalTypedData& data,
                     intptr_t data_program_offset,
                     ActiveClass* active_class)
       : KernelReaderHelper(zone,
@@ -540,7 +540,7 @@ RawObject* EvaluateMetadata(const Field& metadata_field,
 
     MetadataEvaluator metadata_evaluator(
         zone, &helper, script,
-        TypedDataBase::Handle(zone, metadata_field.KernelData()),
+        ExternalTypedData::Handle(zone, metadata_field.KernelData()),
         metadata_field.KernelDataProgramOffset(), &active_class);
 
     return metadata_evaluator.EvaluateMetadata(metadata_field.kernel_offset(),
@@ -556,7 +556,7 @@ class ParameterDescriptorBuilder : public KernelReaderHelper {
   ParameterDescriptorBuilder(TranslationHelper* translation_helper,
                              const Script& script,
                              Zone* zone,
-                             const TypedDataBase& data,
+                             const ExternalTypedData& data,
                              intptr_t data_program_offset,
                              ActiveClass* active_class)
       : KernelReaderHelper(zone,
@@ -649,7 +649,7 @@ RawObject* BuildParameterDescriptor(const Function& function) {
 
     ParameterDescriptorBuilder builder(
         &helper, Script::Handle(zone, function.script()), zone,
-        TypedDataBase::Handle(zone, function.KernelData()),
+        ExternalTypedData::Handle(zone, function.KernelData()),
         function.KernelDataProgramOffset(), &active_class);
 
     return builder.BuildParameterDescriptor(function.kernel_offset());
@@ -674,7 +674,7 @@ void ReadParameterCovariance(const Function& function,
 
   KernelReaderHelper reader_helper(
       zone, &translation_helper, script,
-      TypedDataBase::Handle(zone, function.KernelData()),
+      ExternalTypedData::Handle(zone, function.KernelData()),
       function.KernelDataProgramOffset());
 
   if (function.is_declared_in_bytecode()) {
@@ -770,7 +770,7 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
 static ProcedureAttributesMetadata ProcedureAttributesOf(
     Zone* zone,
     const Script& script,
-    const TypedDataBase& kernel_data,
+    const ExternalTypedData& kernel_data,
     intptr_t kernel_data_program_offset,
     intptr_t kernel_offset) {
   TranslationHelper translation_helper(Thread::Current());
@@ -789,7 +789,7 @@ ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
                                                   Zone* zone) {
   const Script& script = Script::Handle(zone, function.script());
   return ProcedureAttributesOf(
-      zone, script, TypedDataBase::Handle(zone, function.KernelData()),
+      zone, script, ExternalTypedData::Handle(zone, function.KernelData()),
       function.KernelDataProgramOffset(), function.kernel_offset());
 }
 
@@ -798,7 +798,7 @@ ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
   const Class& parent = Class::Handle(zone, field.Owner());
   const Script& script = Script::Handle(zone, parent.script());
   return ProcedureAttributesOf(
-      zone, script, TypedDataBase::Handle(zone, field.KernelData()),
+      zone, script, ExternalTypedData::Handle(zone, field.KernelData()),
       field.KernelDataProgramOffset(), field.kernel_offset());
 }
 

@@ -57,7 +57,8 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
           zone_,
           &translation_helper_,
           Script::Handle(Z, parsed_function->function().script()),
-          TypedDataBase::Handle(Z, parsed_function->function().KernelData()),
+          ExternalTypedData::Handle(Z,
+                                    parsed_function->function().KernelData()),
           parsed_function->function().KernelDataProgramOffset()),
       inferred_type_metadata_helper_(&helper_),
       procedure_attributes_metadata_helper_(&helper_),
@@ -184,8 +185,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           for (intptr_t i = 0; i < class_fields.Length(); ++i) {
             class_field ^= class_fields.At(i);
             if (!class_field.is_static()) {
-              auto& kernel_data =
-                  TypedDataBase::Handle(Z, class_field.KernelData());
+              ExternalTypedData& kernel_data =
+                  ExternalTypedData::Handle(Z, class_field.KernelData());
               ASSERT(!kernel_data.IsNull());
               intptr_t field_offset = class_field.kernel_offset();
               AlternativeReadingScope alt(&helper_.reader_, &kernel_data,
@@ -461,7 +462,8 @@ void ScopeBuilder::VisitConstructor() {
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
       if (!class_field.is_static()) {
-        auto& kernel_data = TypedDataBase::Handle(Z, class_field.KernelData());
+        ExternalTypedData& kernel_data =
+            ExternalTypedData::Handle(Z, class_field.KernelData());
         ASSERT(!kernel_data.IsNull());
         intptr_t field_offset = class_field.kernel_offset();
         AlternativeReadingScope alt(&helper_.reader_, &kernel_data,
@@ -1715,7 +1717,8 @@ void ScopeBuilder::LookupVariable(intptr_t declaration_binary_offset) {
 StringIndex ScopeBuilder::GetNameFromVariableDeclaration(
     intptr_t kernel_offset,
     const Function& function) {
-  auto& kernel_data = TypedDataBase::Handle(Z, function.KernelData());
+  ExternalTypedData& kernel_data =
+      ExternalTypedData::Handle(Z, function.KernelData());
   ASSERT(!kernel_data.IsNull());
 
   // Temporarily go to the variable declaration, read the name.

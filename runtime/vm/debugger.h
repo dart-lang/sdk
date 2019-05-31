@@ -354,7 +354,8 @@ class ActivationFrame : public ZoneAllocated {
       const GrowableObjectArray& param_values,
       const GrowableObjectArray& type_params_names);
 
-  RawObject* EvaluateCompiledExpression(const ExternalTypedData& kernel_td,
+  RawObject* EvaluateCompiledExpression(const uint8_t* kernel_bytes,
+                                        intptr_t kernel_length,
                                         const Array& arguments,
                                         const Array& type_definitions,
                                         const TypeArguments& type_arguments);

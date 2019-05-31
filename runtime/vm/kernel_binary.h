@@ -170,15 +170,19 @@ static const int HeaderSize = 8;  // 'magic', 'formatVersion'.
 
 class Reader : public ValueObject {
  public:
-  explicit Reader(const TypedDataBase& typed_data)
+  Reader(const uint8_t* buffer, intptr_t size)
+      : thread_(NULL),
+        raw_buffer_(buffer),
+        typed_data_(NULL),
+        size_(size),
+        offset_(0) {}
+
+  explicit Reader(const ExternalTypedData& typed_data)
       : thread_(Thread::Current()),
+        raw_buffer_(NULL),
         typed_data_(&typed_data),
         size_(typed_data.IsNull() ? 0 : typed_data.Length()),
-        offset_(0) {
-    // The reader expects that the actual data is external, though allows
-    // having a view into this external typed data.
-    DEBUG_ASSERT(typed_data_->IsBackedByExternalTypedData());
-  }
+        offset_(0) {}
 
   uint32_t ReadFromIndex(intptr_t end_offset,
                          intptr_t fields_before,
@@ -191,15 +195,14 @@ class Reader : public ValueObject {
     return result;
   }
 
-  DART_FORCE_INLINE uint32_t ReadUInt32At(intptr_t offset) const {
-    ASSERT(size_ >= 4 && offset >= 0 && (offset <= size_ - 4));
-    // We validated in the [Reader] constructor that we have either an
-    // ExternalTypedData or a view on top of an ExternalTypedData.
-    //
-    // This means the data pointer will not change and we can use
-    // [DataAddrUnsafe].
-    const uint32_t value =
-        *static_cast<uint32_t*>(typed_data_->DataAddrUnsafe(offset));
+  uint32_t ReadUInt32At(intptr_t offset) const {
+    ASSERT((size_ >= 4) && (offset >= 0) && (offset <= size_ - 4));
+    uint32_t value;
+    if (raw_buffer_ != NULL) {
+      value = *reinterpret_cast<const uint32_t*>(raw_buffer_ + offset);
+    } else {
+      value = typed_data_->GetUint32(offset);
+    }
     return Utils::BigEndianToHost32(value);
   }
 
@@ -344,9 +347,18 @@ class Reader : public ValueObject {
   intptr_t size() const { return size_; }
   void set_size(intptr_t size) { size_ = size; }
 
-  const TypedDataBase* typed_data() const { return typed_data_; }
-  void set_typed_data(const TypedDataBase* typed_data) {
+  const ExternalTypedData* typed_data() const { return typed_data_; }
+  void set_typed_data(const ExternalTypedData* typed_data) {
     typed_data_ = typed_data;
+  }
+
+  const uint8_t* raw_buffer() const { return raw_buffer_; }
+  void set_raw_buffer(const uint8_t* raw_buffer) { raw_buffer_ = raw_buffer; }
+
+  RawExternalTypedData* ExternalDataFromTo(intptr_t start, intptr_t end) {
+    return ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
+                                  const_cast<uint8_t*>(buffer() + start),
+                                  end - start, Heap::kOld);
   }
 
   const uint8_t* BufferAt(intptr_t offset) {
@@ -355,17 +367,17 @@ class Reader : public ValueObject {
   }
 
  private:
-  DART_FORCE_INLINE const uint8_t* buffer() const {
-    // We validated in the [Reader] constructor that we have either an
-    // ExternalTypedData or a view on top of an ExternalTypedData.
-    //
-    // This means the data pointer will not change and we can use
-    // [DataAddrUnsafe].
-    return reinterpret_cast<uint8_t*>(typed_data_->DataAddrUnsafe(0));
+  const uint8_t* buffer() const {
+    if (raw_buffer_ != NULL) {
+      return raw_buffer_;
+    }
+    NoSafepointScope no_safepoint(thread_);
+    return reinterpret_cast<uint8_t*>(typed_data_->DataAddr(0));
   }
 
   Thread* thread_;
-  const TypedDataBase* typed_data_;
+  const uint8_t* raw_buffer_;
+  const ExternalTypedData* typed_data_;
   intptr_t size_;
   intptr_t offset_;
   TokenPosition max_position_;
@@ -383,18 +395,21 @@ class AlternativeReadingScope {
   AlternativeReadingScope(Reader* reader, intptr_t new_position)
       : reader_(reader),
         saved_size_(reader_->size()),
+        saved_raw_buffer_(reader_->raw_buffer()),
         saved_typed_data_(reader_->typed_data()),
         saved_offset_(reader_->offset()) {
     reader_->set_offset(new_position);
   }
 
   AlternativeReadingScope(Reader* reader,
-                          const TypedDataBase* new_typed_data,
+                          const ExternalTypedData* new_typed_data,
                           intptr_t new_position)
       : reader_(reader),
         saved_size_(reader_->size()),
+        saved_raw_buffer_(reader_->raw_buffer()),
         saved_typed_data_(reader_->typed_data()),
         saved_offset_(reader_->offset()) {
+    reader_->set_raw_buffer(NULL);
     reader_->set_typed_data(new_typed_data);
     reader_->set_size(new_typed_data->Length());
     reader_->set_offset(new_position);
@@ -403,10 +418,12 @@ class AlternativeReadingScope {
   explicit AlternativeReadingScope(Reader* reader)
       : reader_(reader),
         saved_size_(reader_->size()),
+        saved_raw_buffer_(reader_->raw_buffer()),
         saved_typed_data_(reader_->typed_data()),
         saved_offset_(reader_->offset()) {}
 
   ~AlternativeReadingScope() {
+    reader_->set_raw_buffer(saved_raw_buffer_);
     reader_->set_typed_data(saved_typed_data_);
     reader_->set_size(saved_size_);
     reader_->set_offset(saved_offset_);
@@ -417,7 +434,8 @@ class AlternativeReadingScope {
  private:
   Reader* reader_;
   intptr_t saved_size_;
-  const TypedDataBase* saved_typed_data_;
+  const uint8_t* saved_raw_buffer_;
+  const ExternalTypedData* saved_typed_data_;
   intptr_t saved_offset_;
 
   DISALLOW_COPY_AND_ASSIGN(AlternativeReadingScope);

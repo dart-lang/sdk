@@ -2213,7 +2213,7 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
 
     KernelReaderHelper reader_helper(
         zone, &translation_helper, script,
-        TypedDataBase::Handle(zone, function.KernelData()),
+        ExternalTypedData::Handle(zone, function.KernelData()),
         function.KernelDataProgramOffset());
     ActiveClass active_class;
 
@@ -2255,7 +2255,7 @@ RawObject* BytecodeReader::ReadAnnotation(const Field& annotation_field) {
 
   KernelReaderHelper reader_helper(
       zone, &translation_helper, script,
-      TypedDataBase::Handle(zone, annotation_field.KernelData()),
+      ExternalTypedData::Handle(zone, annotation_field.KernelData()),
       annotation_field.KernelDataProgramOffset());
   ActiveClass active_class;
 

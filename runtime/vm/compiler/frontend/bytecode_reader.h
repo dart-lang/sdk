@@ -288,7 +288,7 @@ class BytecodeReader : public AllStatic {
 class BytecodeSourcePositionsIterator : ValueObject {
  public:
   BytecodeSourcePositionsIterator(Zone* zone, const Bytecode& bytecode)
-      : reader_(TypedDataBase::Handle(zone, bytecode.GetBinary(zone))) {
+      : reader_(ExternalTypedData::Handle(zone, bytecode.GetBinary(zone))) {
     if (bytecode.HasSourcePositions()) {
       reader_.set_offset(bytecode.source_positions_binary_offset());
       pairs_remaining_ = reader_.ReadUInt();
@@ -337,7 +337,7 @@ class BytecodeLocalVariablesIterator : ValueObject {
   static const intptr_t kIsCapturedFlag = 1 << 4;
 
   BytecodeLocalVariablesIterator(Zone* zone, const Bytecode& bytecode)
-      : reader_(TypedDataBase::Handle(zone, bytecode.GetBinary(zone))),
+      : reader_(ExternalTypedData::Handle(zone, bytecode.GetBinary(zone))),
         object_pool_(ObjectPool::Handle(zone, bytecode.object_pool())) {
     if (bytecode.HasLocalVariablesInfo()) {
       reader_.set_offset(bytecode.local_variables_binary_offset());

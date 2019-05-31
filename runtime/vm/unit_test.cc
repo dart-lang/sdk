@@ -682,16 +682,8 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
     const uint8_t* kernel_bytes = compilation_result.kernel;
     intptr_t kernel_length = compilation_result.kernel_size;
 
-    const auto& kernel_td = ExternalTypedData::Handle(ExternalTypedData::New(
-        kExternalTypedDataUint8ArrayCid, const_cast<uint8_t*>(kernel_bytes),
-        kernel_length, Heap::kOld));
-    kernel_td.AddFinalizer(
-        const_cast<uint8_t*>(kernel_bytes),
-        [](void* _, Dart_WeakPersistentHandle h, void* peer) { free(peer); },
-        kernel_length);
-
-    val = lib.EvaluateCompiledExpression(kernel_td, Array::empty_array(),
-                                         param_values,
+    val = lib.EvaluateCompiledExpression(kernel_bytes, kernel_length,
+                                         Array::empty_array(), param_values,
                                          TypeArguments::null_type_arguments());
   }
   return Api::NewHandle(thread, val.raw());

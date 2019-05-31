@@ -1341,14 +1341,16 @@ static bool IsPrivateVariableName(const String& var_name) {
 }
 
 RawObject* ActivationFrame::EvaluateCompiledExpression(
-    const ExternalTypedData& kernel_td,
+    const uint8_t* kernel_bytes,
+    intptr_t kernel_length,
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) {
   if (function().is_static()) {
     const Class& cls = Class::Handle(function().Owner());
-    return cls.EvaluateCompiledExpression(kernel_td, type_definitions,
-                                          arguments, type_arguments);
+    return cls.EvaluateCompiledExpression(kernel_bytes, kernel_length,
+                                          type_definitions, arguments,
+                                          type_arguments);
   } else {
     const Object& receiver = Object::Handle(GetReceiver());
     const Class& method_cls = Class::Handle(function().origin());
@@ -1357,8 +1359,9 @@ RawObject* ActivationFrame::EvaluateCompiledExpression(
       return Object::null();
     }
     const Instance& inst = Instance::Cast(receiver);
-    return inst.EvaluateCompiledExpression(
-        method_cls, kernel_td, type_definitions, arguments, type_arguments);
+    return inst.EvaluateCompiledExpression(method_cls, kernel_bytes,
+                                           kernel_length, type_definitions,
+                                           arguments, type_arguments);
   }
 }
 

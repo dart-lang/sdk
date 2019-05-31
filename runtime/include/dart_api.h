@@ -2841,8 +2841,8 @@ typedef enum {
  * of an application is needed and the VM is 'use dart front end' mode.
  * The dart front end typically compiles all the scripts, imports and part
  * files into one intermediate file hence we don't use the source/import or
- * script tags. The return value should be an error or an external TypedData
- * containing the kernel bytes.
+ * script tags. The return value should be an error or a TypedData containing
+ * the kernel bytes.
  *
  * Dart_kImportExtensionTag
  *

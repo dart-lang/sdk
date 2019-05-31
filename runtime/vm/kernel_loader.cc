@@ -143,7 +143,7 @@ RawClass* BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
   return loader_->LookupClass(library_lookup_handle_, klass);
 }
 
-LibraryIndex::LibraryIndex(const TypedDataBase& kernel_data,
+LibraryIndex::LibraryIndex(const ExternalTypedData& kernel_data,
                            int32_t binary_version)
     : reader_(kernel_data), binary_version_(binary_version) {
   intptr_t data_size = reader_.size();
@@ -160,7 +160,15 @@ LibraryIndex::LibraryIndex(const TypedDataBase& kernel_data,
   }
 }
 
-ClassIndex::ClassIndex(const TypedDataBase& library_kernel_data,
+ClassIndex::ClassIndex(const uint8_t* buffer,
+                       intptr_t buffer_size,
+                       intptr_t class_offset,
+                       intptr_t class_size)
+    : reader_(buffer, buffer_size) {
+  Init(class_offset, class_size);
+}
+
+ClassIndex::ClassIndex(const ExternalTypedData& library_kernel_data,
                        intptr_t class_offset,
                        intptr_t class_size)
     : reader_(library_kernel_data) {
@@ -185,13 +193,13 @@ KernelLoader::KernelLoader(Program* program,
       library_kernel_offset_(-1),  // Set to the correct value in LoadLibrary
       correction_offset_(-1),      // Set to the correct value in LoadLibrary
       loading_native_wrappers_library_(false),
-      library_kernel_data_(TypedDataBase::ZoneHandle(zone_)),
+      library_kernel_data_(ExternalTypedData::ZoneHandle(zone_)),
       kernel_program_info_(KernelProgramInfo::ZoneHandle(zone_)),
       translation_helper_(this, thread_, Heap::kOld),
       helper_(zone_,
               &translation_helper_,
-              Script::Handle(thread_->zone()),
-              program->kernel_data(),
+              program_->kernel_data(),
+              program_->kernel_data_size(),
               0),
       type_translator_(&helper_, &active_class_, /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_),
@@ -228,11 +236,9 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
     return Object::Handle(loader.LoadProgram(process_pending_classes));
   }
 
+  kernel::Reader reader(program->kernel_data(), program->kernel_data_size());
   GrowableArray<intptr_t> subprogram_file_starts;
-  {
-    kernel::Reader reader(program->kernel_data());
-    index_programs(&reader, &subprogram_file_starts);
-  }
+  index_programs(&reader, &subprogram_file_starts);
 
   Zone* zone = thread->zone();
   Library& library = Library::Handle(zone);
@@ -241,19 +247,15 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
   // First index all source tables.
   UriToSourceTable uri_to_source_table;
   UriToSourceTableEntry wrapper;
-  auto& subprogram_view = TypedDataView::Handle(zone);
   for (intptr_t i = subprogram_count - 1; i >= 0; --i) {
     intptr_t subprogram_start = subprogram_file_starts.At(i);
     intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
     Thread* thread_ = Thread::Current();
     Zone* zone_ = thread_->zone();
     TranslationHelper translation_helper(thread);
-
-    subprogram_view = program->kernel_data().CreateUint8View(
-        subprogram_start, subprogram_end - subprogram_start);
-
-    KernelReaderHelper helper_(zone_, &translation_helper, Script::Handle(),
-                               subprogram_view, 0);
+    KernelReaderHelper helper_(zone_, &translation_helper,
+                               program->kernel_data() + subprogram_start,
+                               subprogram_end - subprogram_start, 0);
     const intptr_t source_table_size = helper_.SourceTableSize();
     for (intptr_t index = 0; index < source_table_size; ++index) {
       const String& uri_string = helper_.SourceTableUriFor(index);
@@ -285,13 +287,11 @@ Object& KernelLoader::LoadEntireProgram(Program* program,
 
   // Create "fake programs" for each sub-program.
   for (intptr_t i = subprogram_count - 1; i >= 0; --i) {
-    const intptr_t subprogram_start = subprogram_file_starts.At(i);
-    const intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
-
-    subprogram_view = program->kernel_data().CreateUint8View(
-        subprogram_start, subprogram_end - subprogram_start);
-
-    kernel::Reader reader(subprogram_view);
+    intptr_t subprogram_start = subprogram_file_starts.At(i);
+    intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
+    reader.set_raw_buffer(program->kernel_data() + subprogram_start);
+    reader.set_size(subprogram_end - subprogram_start);
+    reader.set_offset(0);
     Program* subprogram = Program::ReadFrom(&reader);
     ASSERT(subprogram->is_single_program());
     KernelLoader loader(subprogram, &uri_to_source_table);
@@ -334,13 +334,14 @@ void KernelLoader::index_programs(
   subprogram_file_starts->Reverse();
 }
 
-RawString* KernelLoader::FindSourceForScript(const ExternalTypedData& kernel_td,
+RawString* KernelLoader::FindSourceForScript(const uint8_t* kernel_buffer,
+                                             intptr_t kernel_buffer_length,
                                              const String& uri) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   TranslationHelper translation_helper(thread);
-  KernelReaderHelper reader(zone, &translation_helper, Script::Handle(zone),
-                            kernel_td, 0);
+  KernelReaderHelper reader(zone, &translation_helper, kernel_buffer,
+                            kernel_buffer_length, 0);
   intptr_t source_table_size = reader.SourceTableSize();
   for (intptr_t i = 0; i < source_table_size; ++i) {
     const String& source_uri = reader.SourceTableUriFor(i);
@@ -359,7 +360,7 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
 
   // Copy the Kernel string offsets out of the binary and into the VM's heap.
   ASSERT(program_->string_table_offset() >= 0);
-  Reader reader(program_->kernel_data());
+  Reader reader(program_->kernel_data(), program_->kernel_data_size());
   reader.set_offset(program_->string_table_offset());
   intptr_t count = reader.ReadUInt() + 1;
   TypedData& offsets = TypedData::Handle(
@@ -371,18 +372,16 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
     offsets.SetUint32(i << 2, end_offset);
   }
 
-  const auto& kernel_data = *reader.typed_data();
-
   // Create view of the string data.
-  const auto& data = TypedDataBase::Handle(
-      Z, kernel_data.CreateUint8View(reader.offset(), end_offset));
+  const ExternalTypedData& data = ExternalTypedData::Handle(
+      Z,
+      reader.ExternalDataFromTo(reader.offset(), reader.offset() + end_offset));
 
   // Create a view of the constants table. The trailing ComponentIndex is
   // negligible in size.
-  const auto& constants_table = TypedDataBase::Handle(
-      Z, kernel_data.CreateUint8View(
-             program_->constant_table_offset(),
-             kernel_data.LengthInBytes() - program_->constant_table_offset()));
+  const ExternalTypedData& constants_table = ExternalTypedData::Handle(
+      Z, reader.ExternalDataFromTo(program_->constant_table_offset(),
+                                   program_->kernel_data_size()));
 
   // Copy the canonical names into the VM's heap.  Encode them as unsigned, so
   // the parent indexes are adjusted when extracted.
@@ -395,18 +394,15 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
   }
 
   // Create view of metadata payloads.
-  const auto& metadata_payloads = TypedDataBase::Handle(
-      Z, kernel_data.CreateUint8View(program_->metadata_payloads_offset(),
-                                     program_->metadata_mappings_offset() -
-                                         program_->metadata_payloads_offset()));
-
+  const ExternalTypedData& metadata_payloads = ExternalTypedData::Handle(
+      Z, reader.ExternalDataFromTo(program_->metadata_payloads_offset(),
+                                   program_->metadata_mappings_offset()));
   ASSERT(Utils::IsAligned(metadata_payloads.DataAddr(0), kWordSize));
 
   // Create view of metadata mappings.
-  const auto& metadata_mappings = TypedDataBase::Handle(
-      Z, kernel_data.CreateUint8View(program_->metadata_mappings_offset(),
-                                     program_->string_table_offset() -
-                                         program_->metadata_mappings_offset()));
+  const ExternalTypedData& metadata_mappings = ExternalTypedData::Handle(
+      Z, reader.ExternalDataFromTo(program_->metadata_mappings_offset(),
+                                   program_->string_table_offset()));
 
 #if defined(DEBUG)
   MetadataHelper::VerifyMetadataMappings(metadata_mappings);
@@ -439,7 +435,7 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
 }
 
 KernelLoader::KernelLoader(const Script& script,
-                           const TypedDataBase& kernel_data,
+                           const ExternalTypedData& kernel_data,
                            intptr_t data_program_offset)
     : program_(NULL),
       thread_(Thread::Current()),
@@ -449,7 +445,7 @@ KernelLoader::KernelLoader(const Script& script,
       library_kernel_offset_(data_program_offset),
       correction_offset_(0),
       loading_native_wrappers_library_(false),
-      library_kernel_data_(TypedDataBase::ZoneHandle(zone_)),
+      library_kernel_data_(ExternalTypedData::ZoneHandle(zone_)),
       kernel_program_info_(
           KernelProgramInfo::ZoneHandle(zone_, script.kernel_program_info())),
       translation_helper_(this, thread_, Heap::kOld),
@@ -767,7 +763,7 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
     //     c) update all scripts with the constants array
     ASSERT(kernel_program_info_.constants() == Array::null());
     kernel_program_info_.set_constants(constants);
-    kernel_program_info_.set_constants_table(TypedDataBase::Handle(Z));
+    kernel_program_info_.set_constants_table(ExternalTypedData::Handle(Z));
 
     //     d) evaluate pending field initializers
     Error& error = Error::Handle(Z);
@@ -833,8 +829,8 @@ RawObject* KernelLoader::LoadExpressionEvaluationFunction(
 
   // Make the expression evaluation function have the right kernel data and
   // parent.
-  auto& eval_data =
-      TypedDataBase::Handle(Z, expression_evaluation_library_.kernel_data());
+  auto& eval_data = ExternalTypedData::Handle(
+      Z, expression_evaluation_library_.kernel_data());
   auto& eval_script =
       Script::Handle(Z, expression_evaluation_function_.script());
   expression_evaluation_function_.SetKernelDataAndScript(
@@ -885,24 +881,18 @@ void KernelLoader::FindModifiedLibraries(Program* program,
       loader.walk_incremental_kernel(modified_libs, is_empty_program,
                                      p_num_classes, p_num_procedures);
     }
-
+    kernel::Reader reader(program->kernel_data(), program->kernel_data_size());
     GrowableArray<intptr_t> subprogram_file_starts;
-    {
-      kernel::Reader reader(program->kernel_data());
-      index_programs(&reader, &subprogram_file_starts);
-    }
+    index_programs(&reader, &subprogram_file_starts);
 
     // Create "fake programs" for each sub-program.
     intptr_t subprogram_count = subprogram_file_starts.length() - 1;
-    auto& subprogram_view = TypedDataView::Handle(zone);
     for (intptr_t i = 0; i < subprogram_count; ++i) {
       intptr_t subprogram_start = subprogram_file_starts.At(i);
       intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
-
-      subprogram_view = program->kernel_data().CreateUint8View(
-          subprogram_start, subprogram_end - subprogram_start);
-
-      kernel::Reader reader(subprogram_view);
+      reader.set_raw_buffer(program->kernel_data() + subprogram_start);
+      reader.set_size(subprogram_end - subprogram_start);
+      reader.set_offset(0);
       Program* subprogram = Program::ReadFrom(&reader);
       ASSERT(subprogram->is_single_program());
       KernelLoader loader(subprogram, /*uri_to_source_table=*/nullptr);
@@ -936,8 +926,8 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
     }
     if (collect_library_stats) {
       intptr_t library_end = library_offset(i + 1);
-      library_kernel_data_ = helper_.reader_.typed_data()->CreateUint8View(
-          kernel_offset, library_end - kernel_offset);
+      library_kernel_data_ =
+          helper_.reader_.ExternalDataFromTo(kernel_offset, library_end);
 
       LibraryIndex library_index(library_kernel_data_,
                                  program_->binary_version());
@@ -1026,8 +1016,8 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   ASSERT(!library_helper.IsExternal() || library.Loaded());
   if (library.Loaded()) return library.raw();
 
-  library_kernel_data_ = helper_.reader_.typed_data()->CreateUint8View(
-      library_kernel_offset_, library_size);
+  library_kernel_data_ = helper_.reader_.ExternalDataFromTo(
+      library_kernel_offset_, library_kernel_offset_ + library_size);
   library.set_kernel_data(library_kernel_data_);
   library.set_kernel_offset(library_kernel_offset_);
 
@@ -1403,8 +1393,8 @@ void KernelLoader::LoadClass(const Library& library,
                              intptr_t class_end,
                              Class* out_class) {
   intptr_t class_offset = helper_.ReaderOffset();
-  ClassIndex class_index(program_->kernel_data(), class_offset,
-                         class_end - class_offset);
+  ClassIndex class_index(program_->kernel_data(), program_->kernel_data_size(),
+                         class_offset, class_end - class_offset);
 
   ClassHelper class_helper(&helper_);
   class_helper.ReadUntilIncluding(ClassHelper::kCanonicalName);
@@ -1703,8 +1693,8 @@ void KernelLoader::FinishLoading(const Class& klass) {
   const Script& script = Script::Handle(zone, klass.script());
   const Library& library = Library::Handle(zone, klass.library());
   const Class& toplevel_class = Class::Handle(zone, library.toplevel_class());
-  const TypedDataBase& library_kernel_data =
-      TypedDataBase::Handle(zone, library.kernel_data());
+  const ExternalTypedData& library_kernel_data =
+      ExternalTypedData::Handle(zone, library.kernel_data());
   ASSERT(!library_kernel_data.IsNull());
   const intptr_t library_kernel_offset = library.kernel_offset();
   ASSERT(library_kernel_offset > 0);
@@ -1780,7 +1770,8 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
         // constants in the annotation list to later.
         *is_potential_native = true;
 
-        ASSERT(kernel_program_info_.constants_table() != TypedDataBase::null());
+        ASSERT(kernel_program_info_.constants_table() !=
+               ExternalTypedData::null());
 
         // For pragma annotations, we seek into the constants table and peek
         // into the Kernel representation of the constant.
@@ -1798,7 +1789,8 @@ void KernelLoader::ReadVMAnnotations(intptr_t annotation_count,
 
         AlternativeReadingScope scope(
             &helper_.reader_,
-            &TypedDataBase::Handle(Z, kernel_program_info_.constants_table()),
+            &ExternalTypedData::Handle(Z,
+                                       kernel_program_info_.constants_table()),
             0);
 
         // Seek into the position within the constant table where we can inspect
@@ -2278,7 +2270,7 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
       PatchClass::Handle(zone, PatchClass::New(field_owner, script));
   const Library& lib = Library::Handle(zone, field_owner.library());
   initializer_owner.set_library_kernel_data(
-      TypedDataBase::Handle(zone, lib.kernel_data()));
+      ExternalTypedData::Handle(zone, lib.kernel_data()));
   initializer_owner.set_library_kernel_offset(lib.kernel_offset());
 
   // Create a static initializer.

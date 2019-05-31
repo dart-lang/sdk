@@ -5047,14 +5047,9 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   // instead of freelists.
   BumpAllocateScope bump_allocate_scope(T);
 
-  // NOTE: We do not attach a finalizer for this object, because the embedder
-  // will free it once the isolate has shutdown.
-  const auto& td = ExternalTypedData::Handle(ExternalTypedData::New(
-      kExternalTypedDataUint8ArrayCid, const_cast<uint8_t*>(buffer),
-      buffer_size, Heap::kOld));
-
   const char* error = nullptr;
-  kernel::Program* program = kernel::Program::ReadFromTypedData(td, &error);
+  kernel::Program* program =
+      kernel::Program::ReadFromBuffer(buffer, buffer_size, &error);
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
@@ -5298,15 +5293,9 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   // instead of freelists.
   BumpAllocateScope bump_allocate_scope(T);
 
-  // NOTE: We do not attach a finalizer for this object, because the embedder
-  // will/should free it once the isolate has shutdown.
-  // See also http://dartbug.com/37030.
-  const auto& td = ExternalTypedData::Handle(ExternalTypedData::New(
-      kExternalTypedDataUint8ArrayCid, const_cast<uint8_t*>(buffer),
-      buffer_size, Heap::kOld));
-
   const char* error = nullptr;
-  kernel::Program* program = kernel::Program::ReadFromTypedData(td, &error);
+  kernel::Program* program =
+      kernel::Program::ReadFromBuffer(buffer, buffer_size, &error);
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
