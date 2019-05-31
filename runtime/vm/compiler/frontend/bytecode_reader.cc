@@ -12,6 +12,7 @@
 #include "vm/compiler/frontend/bytecode_scope_builder.h"
 #include "vm/constants_kbc.h"
 #include "vm/dart_entry.h"
+#include "vm/debugger.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/reusable_handles.h"
@@ -2230,6 +2231,10 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
     ActiveTypeParametersScope active_type_params(&active_class, function, zone);
 
     bytecode_metadata_helper.ReadMetadata(function);
+
+#if !defined(PRODUCT)
+    thread->isolate()->debugger()->NotifyBytecodeLoaded(function);
+#endif
 
     return Error::null();
   } else {

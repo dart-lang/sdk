@@ -309,12 +309,7 @@ class BytecodeSourcePositionsIterator : ValueObject {
     return true;
   }
 
-  intptr_t BytecodeInstructionIndex() const { return cur_bci_; }
-
-  uword PcOffset() const {
-    return KernelBytecode::BytecodePcToOffset(BytecodeInstructionIndex(),
-                                              /* is_return_address = */ true);
-  }
+  uword PcOffset() const { return cur_bci_; }
 
   TokenPosition TokenPos() const { return TokenPosition(cur_token_pos_); }
 

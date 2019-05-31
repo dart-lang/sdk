@@ -971,20 +971,12 @@ class KernelBytecode {
     }
   }
 
-  DART_FORCE_INLINE static bool IsCallOpcode(const KBCInstr* instr) {
+  DART_FORCE_INLINE static bool IsCallOpcode_Old(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kDirectCall_Old:
       case KernelBytecode::kInterfaceCall_Old:
       case KernelBytecode::kUncheckedInterfaceCall_Old:
       case KernelBytecode::kDynamicCall_Old:
-      case KernelBytecode::kDirectCall:
-      case KernelBytecode::kDirectCall_Wide:
-      case KernelBytecode::kInterfaceCall:
-      case KernelBytecode::kInterfaceCall_Wide:
-      case KernelBytecode::kUncheckedInterfaceCall:
-      case KernelBytecode::kUncheckedInterfaceCall_Wide:
-      case KernelBytecode::kDynamicCall:
-      case KernelBytecode::kDynamicCall_Wide:
         return true;
 
       default:
@@ -1014,7 +1006,7 @@ class KernelBytecode {
       // to new _GrowableList<E>(0).
       return kNativeCallToGrowableListArgc;
     }
-    ASSERT(IsCallOpcode(call));
+    ASSERT(IsCallOpcode_Old(call));
     return DecodeA(call);
   }
 
@@ -1030,6 +1022,7 @@ class KernelBytecode {
 
   // Converts bytecode PC into an offset.
   // For return addresses used in PcDescriptors, PC is also augmented by 1.
+  // TODO(regis): Eliminate this correction.
   static intptr_t BytecodePcToOffset(uint32_t pc, bool is_return_address) {
     return pc + (is_return_address ? 1 : 0);
   }

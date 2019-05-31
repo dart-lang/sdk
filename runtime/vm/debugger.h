@@ -7,6 +7,7 @@
 
 #include "include/dart_tools_api.h"
 
+#include "vm/constants_kbc.h"
 #include "vm/kernel_isolate.h"
 #include "vm/object.h"
 #include "vm/port.h"
@@ -140,12 +141,7 @@ class BreakpointLocation {
   intptr_t requested_line_number() const { return requested_line_number_; }
   intptr_t requested_column_number() const { return requested_column_number_; }
 
-  intptr_t LineNumber();
-  intptr_t ColumnNumber();
-
-  void GetCodeLocation(Library* lib,
-                       Script* script,
-                       TokenPosition* token_pos) const;
+  void GetCodeLocation(Script* script, TokenPosition* token_pos) const;
 
   Breakpoint* AddRepeated(Debugger* dbg);
   Breakpoint* AddSingleShot(Debugger* dbg);
@@ -154,13 +150,21 @@ class BreakpointLocation {
                             bool for_over_await);
 
   bool AnyEnabled() const;
-  bool IsResolved() const { return is_resolved_; }
+  bool IsResolved() const {
+    return bytecode_token_pos_.IsReal() || code_token_pos_.IsReal();
+  }
+  bool IsResolved(bool in_bytecode) const {
+    return in_bytecode ? bytecode_token_pos_.IsReal()
+                       : code_token_pos_.IsReal();
+  }
   bool IsLatent() const { return !token_pos_.IsReal(); }
 
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  void SetResolved(const Function& func, TokenPosition token_pos);
+  void SetResolved(bool in_bytecode,
+                   const Function& func,
+                   TokenPosition token_pos);
 
   BreakpointLocation* next() const { return this->next_; }
   void set_next(BreakpointLocation* value) { next_ = value; }
@@ -174,7 +178,6 @@ class BreakpointLocation {
   RawString* url_;
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
-  bool is_resolved_;
   BreakpointLocation* next_;
   Breakpoint* conditions_;
   intptr_t requested_line_number_;
@@ -182,22 +185,23 @@ class BreakpointLocation {
 
   // Valid for resolved breakpoints:
   RawFunction* function_;
-  intptr_t line_number_;
-  intptr_t column_number_;
+  TokenPosition bytecode_token_pos_;
+  TokenPosition code_token_pos_;
 
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(BreakpointLocation);
 };
 
-// CodeBreakpoint represents a location in compiled code. There may be
-// more than one CodeBreakpoint for one BreakpointLocation, e.g. when a
-// function gets compiled as a regular function and as a closure.
+// CodeBreakpoint represents a location in compiled or interpreted code.
+// There may be more than one CodeBreakpoint for one BreakpointLocation,
+// e.g. when a function gets compiled as a regular function and as a closure.
 class CodeBreakpoint {
  public:
   CodeBreakpoint(const Code& code,
                  TokenPosition token_pos,
                  uword pc,
                  RawPcDescriptors::Kind kind);
+  CodeBreakpoint(const Bytecode& bytecode, TokenPosition token_pos, uword pc);
   ~CodeBreakpoint();
 
   RawFunction* function() const;
@@ -211,6 +215,7 @@ class CodeBreakpoint {
   void Enable();
   void Disable();
   bool IsEnabled() const { return is_enabled_; }
+  bool IsInterpreted() const { return bytecode_ != Bytecode::null(); }
 
   RawCode* OrigStubAddress() const;
 
@@ -225,8 +230,11 @@ class CodeBreakpoint {
 
   void PatchCode();
   void RestoreCode();
+  void SetBytecodeBreak();
+  void UnsetBytecodeBreak();
 
   RawCode* code_;
+  RawBytecode* bytecode_;
   TokenPosition token_pos_;
   uword pc_;
   intptr_t line_number_;
@@ -271,6 +279,16 @@ class ActivationFrame : public ZoneAllocated {
 
   ActivationFrame(uword pc, const Code& code);
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  ActivationFrame(uword pc,
+                  uword fp,
+                  uword sp,
+                  const Bytecode& bytecode,
+                  Kind kind = kRegular);
+
+  ActivationFrame(uword pc, const Bytecode& bytecode);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   explicit ActivationFrame(Kind kind);
 
   explicit ActivationFrame(const Closure& async_activation);
@@ -286,7 +304,11 @@ class ActivationFrame : public ZoneAllocated {
     ASSERT(!code_.IsNull());
     return code_;
   }
-  bool is_interpreted() const { return is_interpreted_; }
+  const Bytecode& bytecode() const {
+    ASSERT(!bytecode_.IsNull());
+    return bytecode_;
+  }
+  bool IsInterpreted() const { return !bytecode_.IsNull(); }
 
   RawString* QualifiedFunctionName();
   RawString* SourceUrl();
@@ -398,6 +420,7 @@ class ActivationFrame : public ZoneAllocated {
   // The anchor of the context chain for this function.
   Context& ctx_;
   Code& code_;
+  Bytecode& bytecode_;
   Function& function_;
   bool live_frame_;  // Is this frame a live frame?
   bool token_pos_initialized_;
@@ -415,7 +438,6 @@ class ActivationFrame : public ZoneAllocated {
 
   Kind kind_;
 
-  bool is_interpreted_;  // Running under kernel bytecode interpreter.
   bool vars_initialized_;
   LocalVarDescriptors& var_descriptors_;
   ZoneGrowableArray<intptr_t> desc_indices_;
@@ -441,6 +463,7 @@ class DebuggerStackTrace : public ZoneAllocated {
   void AddActivation(ActivationFrame* frame);
   void AddMarker(ActivationFrame::Kind marker);
   void AddAsyncCausalFrame(uword pc, const Code& code);
+  void AddAsyncCausalFrame(uword pc, const Bytecode& bytecode);
 
   ZoneGrowableArray<ActivationFrame*> trace_;
 
@@ -475,7 +498,12 @@ class Debugger {
 
   void OnIsolateRunnable();
 
-  void NotifyCompilation(const Function& func);
+  void NotifyCompilation(const Function& func) {
+    HandleCodeChange(/* bytecode_loaded = */ false, func);
+  }
+  void NotifyBytecodeLoaded(const Function& func) {
+    HandleCodeChange(/* bytecode_loaded = */ true, func);
+  }
   void NotifyDoneLoading();
 
   RawFunction* ResolveFunction(const Library& library,
@@ -546,6 +574,7 @@ class Debugger {
   // debugger's zone.
   bool HasBreakpoint(const Function& func, Zone* zone);
   bool HasBreakpoint(const Code& code);
+  // A Bytecode version of HasBreakpoint is not needed.
 
   // Returns true if the call at address pc is patched to point to
   // a debugger stub.
@@ -597,6 +626,7 @@ class Debugger {
   void PrintSettingsToJSONObject(JSONObject* jsobj) const;
 
   static bool IsDebuggable(const Function& func);
+  static bool IsDebugging(Thread* thread, const Function& func);
 
   intptr_t limitBreakpointId() { return next_id_; }
 
@@ -625,19 +655,30 @@ class Debugger {
   void FindCompiledFunctions(const Script& script,
                              TokenPosition start_pos,
                              TokenPosition end_pos,
-                             GrowableObjectArray* function_list);
+                             GrowableObjectArray* bytecode_function_list,
+                             GrowableObjectArray* code_function_list);
   bool FindBestFit(const Script& script,
                    TokenPosition token_pos,
                    TokenPosition last_token_pos,
                    Function* best_fit);
   RawFunction* FindInnermostClosure(const Function& function,
                                     TokenPosition token_pos);
-  TokenPosition ResolveBreakpointPos(const Function& func,
+  TokenPosition ResolveBreakpointPos(bool in_bytecode,
+                                     const Function& func,
                                      TokenPosition requested_token_pos,
                                      TokenPosition last_token_pos,
                                      intptr_t requested_column,
                                      TokenPosition exact_token_pos);
   void DeoptimizeWorld();
+  BreakpointLocation* SetCodeBreakpoints(bool in_bytecode,
+                                         BreakpointLocation* loc,
+                                         const Script& script,
+                                         TokenPosition token_pos,
+                                         TokenPosition last_token_pos,
+                                         intptr_t requested_line,
+                                         intptr_t requested_column,
+                                         TokenPosition exact_token_pos,
+                                         const GrowableObjectArray& functions);
   BreakpointLocation* SetBreakpoint(const Script& script,
                                     TokenPosition token_pos,
                                     TokenPosition last_token_pos,
@@ -653,10 +694,13 @@ class Debugger {
                                           intptr_t column);
   void RegisterBreakpointLocation(BreakpointLocation* bpt);
   void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
-  BreakpointLocation* GetBreakpointLocation(const Script& script,
-                                            TokenPosition token_pos,
-                                            intptr_t requested_column,
-                                            bool is_resolved = false);
+  BreakpointLocation* GetBreakpointLocation(
+      const Script& script,
+      TokenPosition token_pos,
+      intptr_t requested_line,
+      intptr_t requested_column,
+      TokenPosition bytecode_token_pos = TokenPosition::kNoSource,
+      TokenPosition code_token_pos = TokenPosition::kNoSource);
   void MakeCodeBreakpointAt(const Function& func, BreakpointLocation* bpt);
   // Returns NULL if no breakpoint exists for the given address.
   CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);
@@ -664,6 +708,8 @@ class Debugger {
   void SyncBreakpointLocation(BreakpointLocation* loc);
   void PrintBreakpointsListToJSONArray(BreakpointLocation* sbpt,
                                        JSONArray* jsarr) const;
+
+  void HandleCodeChange(bool bytecode_loaded, const Function& func);
 
   ActivationFrame* TopDartFrame() const;
   static ActivationFrame* CollectDartFrame(
@@ -675,6 +721,12 @@ class Debugger {
       intptr_t deopt_frame_offset,
       ActivationFrame::Kind kind = ActivationFrame::kRegular);
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  static ActivationFrame* CollectDartFrame(
+      Isolate* isolate,
+      uword pc,
+      StackFrame* frame,
+      const Bytecode& bytecode,
+      ActivationFrame::Kind kind = ActivationFrame::kRegular);
   static RawArray* DeoptimizeToArray(Thread* thread,
                                      StackFrame* frame,
                                      const Code& code);

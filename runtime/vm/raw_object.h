@@ -1349,6 +1349,7 @@ class RawBytecode : public RawObject {
   VISIT_FROM(RawObject*, object_pool_);
   RawObjectPool* object_pool_;
   RawFunction* function_;
+  RawArray* closures_;
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
   NOT_IN_PRODUCT(RawLocalVarDescriptors* var_descriptors_);

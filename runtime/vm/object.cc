@@ -5727,9 +5727,10 @@ void Function::AttachBytecode(const Bytecode& value) const {
   StorePointer(&raw_ptr()->bytecode_, value.raw());
 
   // We should not have loaded the bytecode if the function had code.
-  ASSERT(!HasCode());
-
-  if (FLAG_enable_interpreter) {
+  // However, we may load the bytecode to access source positions (see
+  // ProcessBytecodeTokenPositionsEntry in kernel.cc).
+  // In that case, do not install InterpretCall stub below.
+  if (FLAG_enable_interpreter && !HasCode()) {
     // Set the code entry_point to InterpretCall stub.
     SetInstructions(StubCode::InterpretCall());
   }
@@ -15232,6 +15233,35 @@ TokenPosition Bytecode::GetTokenIndexOfPC(uword pc) const {
     token_pos = iter.TokenPos();
   }
   return token_pos;
+#endif
+}
+
+intptr_t Bytecode::GetTryIndexAtPc(uword return_address) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  intptr_t try_index = -1;
+  const uword pc_offset = return_address - PayloadStart();
+  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
+  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
+  while (iter.MoveNext()) {
+    // PC descriptors for try blocks in bytecode are generated in pairs,
+    // marking start and end of a try block.
+    // See BytecodeMetadataHelper::ReadExceptionsTable for details.
+    const intptr_t current_try_index = iter.TryIndex();
+    const uword start_pc = iter.PcOffset();
+    if (pc_offset < start_pc) {
+      break;
+    }
+    const bool has_next = iter.MoveNext();
+    ASSERT(has_next);
+    const uword end_pc = iter.PcOffset();
+    if (start_pc <= pc_offset && pc_offset < end_pc) {
+      ASSERT(try_index < current_try_index);
+      try_index = current_try_index;
+    }
+  }
+  return try_index;
 #endif
 }
 

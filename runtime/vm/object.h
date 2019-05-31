@@ -2182,6 +2182,8 @@ class Function : public Object {
   void AttachBytecode(const Bytecode& bytecode) const;
   RawBytecode* bytecode() const { return raw_ptr()->bytecode_; }
   inline bool HasBytecode() const;
+#else
+  inline bool HasBytecode() const { return false; }
 #endif
 
   virtual intptr_t Hash() const;
@@ -5501,6 +5503,7 @@ class Bytecode : public Object {
   RawTypedDataBase* GetBinary(Zone* zone) const;
 
   TokenPosition GetTokenIndexOfPC(uword pc) const;
+  intptr_t GetTryIndexAtPc(uword return_address) const;
 
   intptr_t instructions_binary_offset() const {
     return raw_ptr()->instructions_binary_offset_;

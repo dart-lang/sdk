@@ -976,6 +976,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
+  ASSERT(!caller_frame->is_interpreted());
   const Code& orig_stub = Code::Handle(
       zone, isolate->debugger()->GetPatchedStubAddress(caller_frame->pc()));
   const Error& error =
@@ -1964,13 +1965,13 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
 #ifndef DART_PRECOMPILED_RUNTIME
-      if (!frame->is_interpreted()) {
+      if (!frame->IsInterpreted()) {
         // Ensure that we have unoptimized code.
         frame->function().EnsureHasCompiledUnoptimizedCode();
       }
       // TODO(regis): Provide var descriptors in kernel bytecode.
       const int num_vars =
-          frame->is_interpreted() ? 0 : frame->NumLocalVariables();
+          frame->IsInterpreted() ? 0 : frame->NumLocalVariables();
 #else
       // Variable locations and number are unknown when precompiling.
       const int num_vars = 0;
@@ -2130,8 +2131,14 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(FLAG_enable_interpreter || optimizing_compilation);
   ASSERT((!optimizing_compilation) || function.HasCode());
 
-  if ((!optimizing_compilation) ||
+#if defined(PRODUCT)
+  if (!optimizing_compilation ||
       Compiler::CanOptimizeFunction(thread, function)) {
+#else
+  if ((!optimizing_compilation && !Debugger::IsDebugging(thread, function)) ||
+      (optimizing_compilation &&
+       Compiler::CanOptimizeFunction(thread, function))) {
+#endif  // defined(PRODUCT)
     if (FLAG_background_compilation) {
       if (FLAG_enable_inlining_annotations) {
         FATAL("Cannot enable inlining annotations and background compilation");

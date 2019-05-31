@@ -258,9 +258,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 
 bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
 #if !defined(PRODUCT)
-  Isolate* isolate = thread->isolate();
-  if (isolate->debugger()->IsStepping() ||
-      isolate->debugger()->HasBreakpoint(function, thread->zone())) {
+  if (Debugger::IsDebugging(thread, function)) {
     // We cannot set breakpoints and single step in optimized code,
     // so do not optimize the function. Bump usage counter down to avoid
     // repeatedly entering the runtime for an optimization attempt.

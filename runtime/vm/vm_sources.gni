@@ -85,6 +85,7 @@ vm_sources = [
   "debugger_arm64.cc",
   "debugger_dbc.cc",
   "debugger_ia32.cc",
+  "debugger_kbc.cc",
   "debugger_x64.cc",
   "deferred_objects.cc",
   "deferred_objects.h",

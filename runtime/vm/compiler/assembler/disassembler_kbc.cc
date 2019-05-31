@@ -8,6 +8,7 @@
 #include "vm/compiler/assembler/disassembler_kbc.h"
 
 #include "platform/assert.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/constants_kbc.h"
 #include "vm/cpu.h"
 #include "vm/instructions.h"
@@ -407,6 +408,22 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(zone, bytecode.pc_descriptors());
   THR_Print("%s}\n", descriptors.ToCString());
+
+  if (bytecode.HasSourcePositions()) {
+    THR_Print("Source positions for function '%s' {\n", function_fullname);
+    // 4 bits per hex digit + 2 for "0x".
+    const int addr_width = (kBitsPerWord / 4) + 2;
+    // "*" in a printf format specifier tells it to read the field width from
+    // the printf argument list.
+    THR_Print("%-*s\ttok-ix\n", addr_width, "pc");
+    kernel::BytecodeSourcePositionsIterator iter(zone, bytecode);
+    while (iter.MoveNext()) {
+      THR_Print("%#-*" Px "\t%s\n", addr_width,
+                bytecode.PayloadStart() + iter.PcOffset(),
+                iter.TokenPos().ToCString());
+    }
+    THR_Print("}\n");
+  }
 
   THR_Print("Exception Handlers for function '%s' {\n", function_fullname);
   const ExceptionHandlers& handlers =
