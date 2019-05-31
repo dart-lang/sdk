@@ -121,16 +121,14 @@ abstract class ServerStateMessageHandler {
       return handleUnknownMessage(message);
     }
 
+    if (message is! RequestMessage) {
+      return handler.handleMessage(message, _notCancelableToken);
+    }
+
     // Create a cancellation token that will allow us to cancel this request if
     // requested to save processing (the handler will need to specifically
     // check the token after `await` points).
-    //
-    // Notifications cannot be cancelled so they get a fake token that will never
-    // cancel so that they can share the same APIs with cancellable requests.
-    final token = message is RequestMessage
-        ? _cancelHandler.createToken(message)
-        : _notCancelableToken;
-
+    final token = _cancelHandler.createToken(message);
     try {
       final result = await handler.handleMessage(message, token);
       // Do a final check before returning the result, because if the request was
@@ -141,9 +139,7 @@ abstract class ServerStateMessageHandler {
       await Future.delayed(Duration.zero);
       return token.isCancellationRequested ? cancelled() : result;
     } finally {
-      if (message is RequestMessage) {
-        _cancelHandler.clearToken(message);
-      }
+      _cancelHandler.clearToken(message);
     }
   }
 
