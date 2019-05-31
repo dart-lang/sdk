@@ -71,8 +71,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (loopParts is ForPartsWithDeclarations) {
       _visitVariableDeclarationList(loopParts.variables);
     } else if (loopParts is ForEachPartsWithDeclaration) {
-      final staticType = loopParts.loopVariable.type;
-      if (staticType == null) {
+      final loopVariableType = loopParts.loopVariable.type;
+      final staticType = loopVariableType?.type;
+      if (staticType == null || staticType.isDynamic) {
         return;
       }
       final iterableType = loopParts.iterable.staticType;
@@ -82,8 +83,8 @@ class _Visitor extends SimpleAstVisitor<void> {
             .where((type) =>
                 DartTypeUtilities.isInterface(type, 'Iterable', 'dart.core'));
         if (iterableInterfaces.length == 1 &&
-            iterableInterfaces.first.typeArguments.first == staticType.type) {
-          rule.reportLint(staticType);
+            iterableInterfaces.first.typeArguments.first == staticType) {
+          rule.reportLint(loopVariableType);
         }
       }
     }
@@ -96,7 +97,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _visitVariableDeclarationList(VariableDeclarationList node) {
     final staticType = node?.type?.type;
-    if (staticType == null) {
+    if (staticType == null || staticType.isDynamic) {
       return;
     }
     for (final child in node.variables) {

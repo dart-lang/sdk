@@ -4,10 +4,24 @@
 
 // test w/ `pub run test -N omit_local_variable_types`
 
+// ignore_for_file: prefer_foreach
+
+f() {
+  dynamic x = 0; // OK
+  dynamic y = x; // OK
+  print(y);
+}
+
 abstract class StringIterator<E> implements Iterable<E> {}
 
 void printItems2(StringIterator<String> items) {
   for (String item in items) { // LINT
+    print(item);
+  }
+}
+
+void printItems2a(StringIterator<String> items) {
+  for (dynamic item in items) { // OK
     print(item);
   }
 }
