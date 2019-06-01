@@ -4318,14 +4318,6 @@ class ObjectPool : public Object {
            sizeof(RawObjectPool::Entry) * index;
   }
 
-  struct ArrayLayout {
-    static intptr_t elements_start_offset() {
-      return ObjectPool::data_offset();
-    }
-
-    static constexpr intptr_t kElementSize = sizeof(RawObjectPool::Entry);
-  };
-
   EntryType TypeAt(intptr_t index) const {
     return TypeBits::decode(raw_ptr()->entry_bits()[index]);
   }
@@ -6273,14 +6265,6 @@ class TypeArguments : public Instance {
   }
   void SetTypeAt(intptr_t index, const AbstractType& value) const;
 
-  struct ArrayLayout {
-    static intptr_t elements_start_offset() {
-      return TypeArguments::type_at_offset(0);
-    }
-
-    static constexpr intptr_t kElementSize = kWordSize;
-  };
-
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
   RawString* Name() const { return SubvectorName(0, Length(), kInternalName); }
 
@@ -8061,12 +8045,6 @@ class Array : public Instance {
   static intptr_t element_offset(intptr_t index) {
     return OFFSET_OF_RETURNED_VALUE(RawArray, data) + kWordSize * index;
   }
-
-  struct ArrayLayout {
-    static intptr_t elements_start_offset() { return Array::data_offset(); }
-
-    static constexpr intptr_t kElementSize = kWordSize;
-  };
 
   static bool Equals(RawArray* a, RawArray* b) {
     if (a == b) return true;
