@@ -133,9 +133,12 @@ class Search {
   Future<List<Declaration>> declarations(
       RegExp regExp, int maxResults, LinkedHashSet<String> files,
       {String onlyForFile}) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     List<Declaration> declarations = <Declaration>[];
+
+    // TODO(scheglov) Not implemented.
+    if (AnalysisDriver.useSummary2) {
+      return declarations;
+    }
 
     DeclarationKind getExecutableKind(
         UnlinkedExecutable executable, bool topLevel) {

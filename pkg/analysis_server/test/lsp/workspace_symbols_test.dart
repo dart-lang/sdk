@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -10,7 +11,9 @@ import 'server_abstract.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(WorkspaceSymbolsTest);
+    if (!AnalysisDriver.useSummary2) {
+      defineReflectiveTests(WorkspaceSymbolsTest);
+    }
   });
 }
 
