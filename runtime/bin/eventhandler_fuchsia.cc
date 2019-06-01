@@ -249,6 +249,7 @@ uint32_t IOHandle::WaitEnd(zx_signals_t observed) {
   MutexLocker ml(&mutex_);
   uint32_t events = 0;
   fdio_unsafe_wait_end(fdio_, observed, &events);
+  LOG_INFO("IOHandle::WaitEnd: fd = %ld, events = %x\n", fd_, events);
   return events;
 }
 
