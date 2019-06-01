@@ -21,6 +21,7 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
   final Map<int, AvailableSuggestionSet> idToSetMap = {};
   final Map<String, AvailableSuggestionSet> uriToSetMap = {};
   final Map<String, CompletionResultsParams> idToSuggestions = {};
+  final Map<String, ExistingImports> fileToExistingImports = {};
 
   void assertJsonText(Object object, String expected) {
     expected = expected.trimRight();
@@ -56,6 +57,13 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
     } else if (notification.event == COMPLETION_RESULTS) {
       var params = CompletionResultsParams.fromNotification(notification);
       idToSuggestions[params.id] = params;
+    } else if (notification.event == COMPLETION_NOTIFICATION_EXISTING_IMPORTS) {
+      var params = CompletionExistingImportsParams.fromNotification(
+        notification,
+      );
+      fileToExistingImports[params.file] = params.imports;
+    } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
+      fail('${notification.toJson()}');
     }
   }
 

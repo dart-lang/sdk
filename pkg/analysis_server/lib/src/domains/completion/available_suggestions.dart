@@ -91,7 +91,10 @@ protocol.Notification createExistingImportsNotification(
 
   var importElementList = resolvedUnit.libraryElement.imports;
   for (var import in importElementList) {
-    var importedUriStr = '${import.importedLibrary.librarySource.uri}';
+    var importedLibrary = import.importedLibrary;
+    if (importedLibrary == null) continue;
+
+    var importedUriStr = '${importedLibrary.librarySource.uri}';
 
     var existingImportElements = <int>[];
     for (var element in import.namespace.definedNames.values) {
