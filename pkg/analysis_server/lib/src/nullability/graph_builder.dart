@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/nullability/conditional_discard.dart';
-import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/node_builder.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -17,14 +17,14 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 
-/// Visitor that gathers nullability migration constraints from code to be
+/// Visitor that builds nullability graph edges by examining code to be
 /// migrated.
 ///
 /// The return type of each `visit...` method is a [DecoratedType] indicating
 /// the static type of the visited expression, along with the constraint
 /// variables that will determine its nullability.  For `visit...` methods that
 /// don't visit expressions, `null` will be returned.
-class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
+class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   /// The repository of constraint variables and decorated types (from a
   /// previous pass over the source code).
   final VariableRepository _variables;
@@ -73,7 +73,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   /// or expression.
   bool _inConditionalControlFlow = false;
 
-  ConstraintGatherer(TypeProvider typeProvider, this._variables, this._graph,
+  GraphBuilder(TypeProvider typeProvider, this._variables, this._graph,
       this._source, this._permissive)
       : _notNullType =
             DecoratedType(typeProvider.objectType, NullabilityNode.never),

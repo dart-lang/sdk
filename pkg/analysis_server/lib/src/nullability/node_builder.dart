@@ -14,14 +14,13 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/// Visitor that gathers constraint variables for nullability migration from
-/// code to be migrated.
+/// Visitor that builds nullability nodes based on visiting code to be migrated.
 ///
 /// The return type of each `visit...` method is a [DecoratedType] indicating
 /// the static type of the element declared by the visited node, along with the
 /// constraint variables that will determine its nullability.  For `visit...`
 /// methods that don't visit declarations, `null` will be returned.
-class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
+class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   /// Constraint variables and decorated types are stored here.
   final VariableRecorder _variables;
 
@@ -42,8 +41,8 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   final TypeProvider _typeProvider;
 
-  ConstraintVariableGatherer(this._variables, this._source, this._permissive,
-      this._graph, this._typeProvider);
+  NodeBuilder(this._variables, this._source, this._permissive, this._graph,
+      this._typeProvider);
 
   /// Creates and stores a [DecoratedType] object corresponding to the given
   /// [type] AST, and returns it.
@@ -195,7 +194,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 /// code being migrated.
 ///
 /// This data structure records the results of the first pass of migration
-/// ([ConstraintVariableGatherer], which finds all the variables that need to be
+/// ([NodeBuilder], which finds all the variables that need to be
 /// constrained).
 abstract class VariableRecorder {
   /// Associates decorated type information with the given [element].
@@ -217,7 +216,7 @@ abstract class VariableRecorder {
 ///
 /// This data structure allows the second pass of migration
 /// ([ConstraintGatherer], which builds all the constraints) to access the
-/// results of the first ([ConstraintVariableGatherer], which finds all the
+/// results of the first ([NodeBuilder], which finds all the
 /// variables that need to be constrained).
 abstract class VariableRepository {
   /// Retrieves the [DecoratedType] associated with the static type of the given

@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/nullability/conditional_discard.dart';
-import 'package:analysis_server/src/nullability/constraint_gatherer.dart';
-import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/graph_builder.dart';
+import 'package:analysis_server/src/nullability/node_builder.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -21,13 +21,23 @@ import '../../abstract_single_unit.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstraintGathererTest);
-    defineReflectiveTests(ConstraintVariableGathererTest);
+    defineReflectiveTests(GraphBuilderTest);
+    defineReflectiveTests(NodeBuilderTest);
   });
 }
 
 @reflectiveTest
-class ConstraintGathererTest extends ConstraintsTestBase {
+class GraphBuilderTest extends MigrationVisitorTestBase {
+  /// Analyzes the given source code, producing constraint variables and
+  /// constraints for it.
+  @override
+  Future<CompilationUnit> analyze(String code) async {
+    var unit = await super.analyze(code);
+    unit.accept(
+        GraphBuilder(typeProvider, _variables, graph, testSource, false));
+    return unit;
+  }
+
   void assertConditional(
       NullabilityNode node, NullabilityNode left, NullabilityNode right) {
     var conditionalNode = node as NullabilityNodeForLUB;
@@ -727,20 +737,79 @@ Type f() {
   }
 }
 
-abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
-  /// Analyzes the given source code, producing constraint variables and
-  /// constraints for it.
-  @override
+class MigrationVisitorTestBase extends AbstractSingleUnitTest {
+  final _Variables _variables;
+
+  FindNode findNode;
+
+  final NullabilityGraph graph;
+
+  MigrationVisitorTestBase() : this._(NullabilityGraph());
+
+  MigrationVisitorTestBase._(this.graph) : _variables = _Variables(graph);
+
+  NullabilityNode get always => NullabilityNode.always;
+
+  NullabilityNode get never => NullabilityNode.never;
+
+  TypeProvider get typeProvider => testAnalysisResult.typeProvider;
+
   Future<CompilationUnit> analyze(String code) async {
-    var unit = await super.analyze(code);
-    unit.accept(
-        ConstraintGatherer(typeProvider, _variables, graph, testSource, false));
-    return unit;
+    await resolveTestUnit(code);
+    testUnit.accept(
+        NodeBuilder(_variables, testSource, false, graph, typeProvider));
+    findNode = FindNode(code, testUnit);
+    return testUnit;
+  }
+
+  void assertEdge(NullabilityNode source, NullabilityNode destination,
+      {@required bool hard}) {
+    var edges = getEdges(source, destination);
+    if (edges.length == 0) {
+      fail('Expected edge $source -> $destination, found none');
+    } else if (edges.length != 1) {
+      fail('Found multiple edges $source -> $destination');
+    } else {
+      var edge = edges[0];
+      expect(edge.hard, hard);
+    }
+  }
+
+  void assertNoEdge(NullabilityNode source, NullabilityNode destination) {
+    var edges = getEdges(source, destination);
+    if (edges.isNotEmpty) {
+      fail('Expected no edge $source -> $destination, found ${edges.length}');
+    }
+  }
+
+  /// Gets the [DecoratedType] associated with the type annotation whose text
+  /// is [text].
+  DecoratedType decoratedTypeAnnotation(String text) {
+    return _variables.decoratedTypeAnnotation(
+        testSource, findNode.typeAnnotation(text));
+  }
+
+  List<NullabilityEdge> getEdges(
+          NullabilityNode source, NullabilityNode destination) =>
+      graph
+          .getUpstreamEdges(destination)
+          .where((e) => e.primarySource == source)
+          .toList();
+
+  NullabilityNode possiblyOptionalParameter(String text) {
+    return _variables
+        .possiblyOptionalParameter(findNode.defaultParameter(text));
+  }
+
+  /// Gets the [ConditionalDiscard] information associated with the statement
+  /// whose text is [text].
+  ConditionalDiscard statementDiscard(String text) {
+    return _variables.conditionalDiscard(findNode.statement(text));
   }
 }
 
 @reflectiveTest
-class ConstraintVariableGathererTest extends MigrationVisitorTestBase {
+class NodeBuilderTest extends MigrationVisitorTestBase {
   /// Gets the [DecoratedType] associated with the function declaration whose
   /// name matches [search].
   DecoratedType decoratedFunctionType(String search) =>
@@ -878,77 +947,6 @@ class C<T> {}
     var bound = decoratedTypeParameterBound('T');
     expect(bound.node.isNullable, isTrue);
     expect(bound.type, same(typeProvider.objectType));
-  }
-}
-
-class MigrationVisitorTestBase extends AbstractSingleUnitTest {
-  final _Variables _variables;
-
-  FindNode findNode;
-
-  final NullabilityGraph graph;
-
-  MigrationVisitorTestBase() : this._(NullabilityGraph());
-
-  MigrationVisitorTestBase._(this.graph) : _variables = _Variables(graph);
-
-  NullabilityNode get always => NullabilityNode.always;
-
-  NullabilityNode get never => NullabilityNode.never;
-
-  TypeProvider get typeProvider => testAnalysisResult.typeProvider;
-
-  Future<CompilationUnit> analyze(String code) async {
-    await resolveTestUnit(code);
-    testUnit.accept(ConstraintVariableGatherer(
-        _variables, testSource, false, graph, typeProvider));
-    findNode = FindNode(code, testUnit);
-    return testUnit;
-  }
-
-  void assertEdge(NullabilityNode source, NullabilityNode destination,
-      {@required bool hard}) {
-    var edges = getEdges(source, destination);
-    if (edges.length == 0) {
-      fail('Expected edge $source -> $destination, found none');
-    } else if (edges.length != 1) {
-      fail('Found multiple edges $source -> $destination');
-    } else {
-      var edge = edges[0];
-      expect(edge.hard, hard);
-    }
-  }
-
-  void assertNoEdge(NullabilityNode source, NullabilityNode destination) {
-    var edges = getEdges(source, destination);
-    if (edges.isNotEmpty) {
-      fail('Expected no edge $source -> $destination, found ${edges.length}');
-    }
-  }
-
-  /// Gets the [DecoratedType] associated with the type annotation whose text
-  /// is [text].
-  DecoratedType decoratedTypeAnnotation(String text) {
-    return _variables.decoratedTypeAnnotation(
-        testSource, findNode.typeAnnotation(text));
-  }
-
-  List<NullabilityEdge> getEdges(
-          NullabilityNode source, NullabilityNode destination) =>
-      graph
-          .getUpstreamEdges(destination)
-          .where((e) => e.primarySource == source)
-          .toList();
-
-  NullabilityNode possiblyOptionalParameter(String text) {
-    return _variables
-        .possiblyOptionalParameter(findNode.defaultParameter(text));
-  }
-
-  /// Gets the [ConditionalDiscard] information associated with the statement
-  /// whose text is [text].
-  ConditionalDiscard statementDiscard(String text) {
-    return _variables.conditionalDiscard(findNode.statement(text));
   }
 }
 

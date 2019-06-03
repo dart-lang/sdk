@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/nullability/conditional_discard.dart';
-import 'package:analysis_server/src/nullability/constraint_gatherer.dart';
-import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/graph_builder.dart';
+import 'package:analysis_server/src/nullability/node_builder.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -122,12 +122,12 @@ class NullabilityMigration {
   }
 
   void prepareInput(CompilationUnit unit, TypeProvider typeProvider) {
-    unit.accept(ConstraintVariableGatherer(_variables,
-        unit.declaredElement.source, _permissive, _graph, typeProvider));
+    unit.accept(NodeBuilder(_variables, unit.declaredElement.source,
+        _permissive, _graph, typeProvider));
   }
 
   void processInput(CompilationUnit unit, TypeProvider typeProvider) {
-    unit.accept(ConstraintGatherer(typeProvider, _variables, _graph,
+    unit.accept(GraphBuilder(typeProvider, _variables, _graph,
         unit.declaredElement.source, _permissive));
   }
 }
