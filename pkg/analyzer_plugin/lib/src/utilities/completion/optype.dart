@@ -82,6 +82,17 @@ class OpType {
   bool includeVarNameSuggestions = false;
 
   /**
+   * Indicates whether the completion location is in a field declaration.
+   */
+  bool inFieldDeclaration = false;
+
+  /**
+   * Indicates whether the completion location is in a top-level variable
+   * declaration.
+   */
+  bool inTopLevelVariableDeclaration = false;
+
+  /**
    * Indicates whether the completion location is in the body of a static method.
    */
   bool inStaticMethodBody = false;
@@ -149,6 +160,11 @@ class OpType {
         optype.inStaticMethodBody = parent.isStatic;
       }
     }
+
+    optype.inFieldDeclaration =
+        targetNode.thisOrAncestorOfType<FieldDeclaration>() != null;
+    optype.inTopLevelVariableDeclaration =
+        targetNode.thisOrAncestorOfType<TopLevelVariableDeclaration>() != null;
 
     // If a value should be suggested, suggest also constructors.
     if (optype.includeReturnValueSuggestions) {
@@ -648,28 +664,27 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         }
       }
     }
+
+    // Find the containing parameter.
+    var parameter = CompletionTarget.findFormalParameter(node, offset);
+    if (parameter == null) return;
+
     // Handle default normal parameter just as a normal parameter.
-    if (entity is DefaultFormalParameter) {
-      entity = entity.parameter;
+    if (parameter is DefaultFormalParameter) {
+      parameter = (parameter as DefaultFormalParameter).parameter;
     }
+
     // "(^ this.field)"
-    if (entity is FieldFormalParameter) {
-      if (offset < entity.thisKeyword.offset) {
+    if (parameter is FieldFormalParameter) {
+      if (offset < parameter.thisKeyword.offset) {
         optype.includeTypeNameSuggestions = true;
       }
+      return;
     }
+
     // "(Type name)"
-    if (entity is SimpleFormalParameter) {
-      // "(Type^)" is parsed as a parameter with the _name_ "Type".
-      if (entity.type == null) {
-        optype.includeTypeNameSuggestions = true;
-      }
-      // If inside of "Type" in "(Type^ name)", then include types.
-      if (entity.type != null &&
-          entity.type.offset <= offset &&
-          offset <= entity.type.end) {
-        optype.includeTypeNameSuggestions = true;
-      }
+    if (parameter is SimpleFormalParameter) {
+      visitSimpleFormalParameter(parameter);
     }
   }
 
@@ -970,6 +985,45 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    var type = node.type;
+    var name = node.identifier;
+
+    // "(Type^)" is parsed as a parameter with the _name_ "Type".
+    if (type == null &&
+        name != null &&
+        name.offset <= offset &&
+        offset <= name.end) {
+      optype.includeTypeNameSuggestions = true;
+      return;
+    }
+
+    // If "(^ Type)", then include types.
+    if (type == null && offset < name.offset) {
+      optype.includeTypeNameSuggestions = true;
+      return;
+    }
+
+    // If "(Type ^)", then include parameter names.
+    if (type == null && name.end < offset && offset <= name.token.next.offset) {
+      optype.includeVarNameSuggestions = true;
+      return;
+    }
+
+    // If inside of "Type" in "(Type^ name)", then include types.
+    if (type != null && type.offset <= offset && offset <= type.end) {
+      optype.includeTypeNameSuggestions = true;
+      return;
+    }
+
+    // If "(Type name^)", then include parameter names.
+    if (type != null && name.offset <= offset && offset <= name.end) {
+      optype.includeVarNameSuggestions = true;
+      return;
     }
   }
 

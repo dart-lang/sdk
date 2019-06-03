@@ -2131,23 +2131,35 @@ void f(int a, {int b}) {}
     await assertOpType(functionBody: true);
   }
 
-//
   test_SimpleFormalParameter_closure() async {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('mth() { PNGS.sort((String a, Str^) => a.compareTo(b)); }');
     await assertOpType(typeNames: true, functionBody: true);
   }
 
-  test_SimpleFormalParameter_name1() async {
-    // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
-    addTestSource('m(String na^) {}');
-    await assertOpType(typeNames: false);
+  test_SimpleFormalParameter_name_typed() async {
+    addTestSource('f(String ^, int b) {}');
+    await assertOpType(typeNames: false, varNames: true);
   }
 
-  test_SimpleFormalParameter_name2() async {
-    // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
-    addTestSource('m(int first, String na^) {}');
-    await assertOpType(typeNames: false);
+  test_SimpleFormalParameter_name_typed_hasName() async {
+    addTestSource('f(String n^, int b) {}');
+    await assertOpType(typeNames: false, varNames: true);
+  }
+
+  test_SimpleFormalParameter_name_typed_last() async {
+    addTestSource('f(String ^) {}');
+    await assertOpType(typeNames: false, varNames: true);
+  }
+
+  test_SimpleFormalParameter_name_typed_last_hasName() async {
+    addTestSource('f(String n^) {}');
+    await assertOpType(typeNames: false, varNames: true);
+  }
+
+  test_SimpleFormalParameter_type_named() async {
+    addTestSource('f(^ name) {}');
+    await assertOpType(typeNames: true, varNames: false);
   }
 
   test_SimpleFormalParameter_type_optionalNamed() async {
@@ -2184,6 +2196,11 @@ void f(int a, {int b}) {}
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('m(int first, Str^) {}');
     await assertOpType(typeNames: true);
+  }
+
+  test_SimpleFormalParameter_untyped() async {
+    addTestSource('main(final ^) {}');
+    await assertOpType(typeNames: true, varNames: false);
   }
 
   test_SwitchCase_before() async {

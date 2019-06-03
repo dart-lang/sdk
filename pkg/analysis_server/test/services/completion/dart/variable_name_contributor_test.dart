@@ -269,6 +269,30 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('_name');
   }
 
+  test_SimpleFormalParameter_FormalParameterList() async {
+    addTestSource('''
+f(A ^) {}
+''');
+    await computeSuggestions();
+    expect(replacementOffset, 4);
+    expect(replacementLength, 0);
+    assertSuggestName('a');
+    // private version
+    assertNotSuggested('_a');
+  }
+
+  test_SimpleFormalParameter_itself() async {
+    addTestSource('''
+f(A n^) {}
+''');
+    await computeSuggestions();
+    expect(replacementOffset, 4);
+    expect(replacementLength, 1);
+    assertSuggestName('a');
+    // private version
+    assertNotSuggested('_a');
+  }
+
   test_TopLevelVariableDeclaration_dont_suggest_type() async {
     addTestSource('''
     a ^

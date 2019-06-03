@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
     show DartCompletionRequestImpl;
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 /**
@@ -59,17 +60,25 @@ class VariableNameContributor extends DartCompletionContributor {
       // Resolution not needed for this completion
 
       AstNode node = request.target.containingNode;
+      int offset = request.target.offset;
+
+      // Use the refined node.
+      if (node is FormalParameterList) {
+        node = CompletionTarget.findFormalParameter(node, offset);
+      }
 
       String strName = null;
       if (node is ExpressionStatement) {
-        if (node.expression is Identifier) {
-          strName = _getStringName(node.expression as Identifier);
+        var expression = node.expression;
+        if (expression is Identifier) {
+          strName = _getStringName(expression);
         }
+      } else if (node is SimpleFormalParameter) {
+        var identifier = _formalParameterTypeIdentifier(node);
+        strName = _getStringName(identifier);
       } else if (node is VariableDeclarationList) {
-        TypeAnnotation typeAnnotation = node.type;
-        if (typeAnnotation is TypeName) {
-          strName = _getStringName(typeAnnotation.name);
-        }
+        var identifier = _typeAnnotationIdentifier(node.type);
+        strName = _getStringName(identifier);
       } else if (node is TopLevelVariableDeclaration) {
         // The parser parses 'Foo ' and 'Foo ;' differently, resulting in the
         // following.
@@ -79,9 +88,8 @@ class VariableNameContributor extends DartCompletionContributor {
         VariableDeclarationList varDeclarationList = node.variables;
         TypeAnnotation typeAnnotation = varDeclarationList.type;
         if (typeAnnotation != null) {
-          if (typeAnnotation is TypeName) {
-            strName = _getStringName(typeAnnotation.name);
-          }
+          var identifier = _typeAnnotationIdentifier(typeAnnotation);
+          strName = _getStringName(identifier);
         } else {
           NodeList<VariableDeclaration> varDeclarations =
               varDeclarationList.variables;
@@ -95,9 +103,8 @@ class VariableNameContributor extends DartCompletionContributor {
         return const <CompletionSuggestion>[];
       }
 
-      var doIncludePrivateVersion = !optype.inMethodBody &&
-          !optype.inFunctionBody &&
-          !optype.inConstructorBody;
+      var doIncludePrivateVersion =
+          optype.inFieldDeclaration || optype.inTopLevelVariableDeclaration;
 
       List<String> variableNameSuggestions = getCamelWordCombinations(strName);
       variableNameSuggestions.remove(strName);
@@ -118,5 +125,23 @@ class VariableNameContributor extends DartCompletionContributor {
       return suggestions;
     }
     return const <CompletionSuggestion>[];
+  }
+
+  static Identifier _formalParameterTypeIdentifier(FormalParameter node) {
+    if (node is SimpleFormalParameter) {
+      var type = node.type;
+      if (type != null) {
+        return _typeAnnotationIdentifier(type);
+      }
+      return node.identifier;
+    }
+    return null;
+  }
+
+  static Identifier _typeAnnotationIdentifier(TypeAnnotation type) {
+    if (type is TypeName) {
+      return type.name;
+    }
+    return null;
   }
 }
