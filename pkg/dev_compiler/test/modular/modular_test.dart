@@ -7,17 +7,20 @@
 /// This is a shell that runs multiple tests, one per folder under `data/`.
 import 'dart:io';
 
-import 'package:expect/expect.dart';
 import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/suite.dart';
 import 'package:modular_test/src/runner.dart';
 
+Uri sdkRoot = Platform.script.resolve("../../../../");
 Options _options;
 main(List<String> args) async {
   _options = Options.parse(args);
+  var suiteFolder = Platform.script.resolve('data/');
+  var suiteName = relativize(suiteFolder, sdkRoot).path;
   await runSuite(
-      Platform.script.resolve('data/'),
+      suiteFolder,
+      suiteName.substring(0, suiteName.length - 1), // remove trailing /
       _options,
       new IOPipeline([
         SourceToSummaryDillStep(),
@@ -66,7 +69,6 @@ class SourceToSummaryDillStep implements IOModularStep {
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
     _createPackagesFile(module, root, transitiveDependencies);
 
-    var sdkRoot = Platform.script.resolve("../../../../");
     List<String> sources;
     List<String> extraArgs;
     if (module.isSdk) {
@@ -215,8 +217,7 @@ class RunD8 implements IOModularStep {
     // would be to rename the import on all other .js files, but seems
     // overkill/unnecessary.
     if (await File.fromUri(root.resolve('dart_sdk.js')).exists()) {
-      print('error: dart_sdk.js already exists.');
-      exitCode = 1;
+      throw 'error: dart_sdk.js already exists.';
     }
 
     await File.fromUri(root.resolve('sdk.js'))
@@ -253,8 +254,9 @@ void _checkExitCode(ProcessResult result, IOModularStep step, Module module) {
     stderr.write(result.stderr);
   }
   if (result.exitCode != 0) {
-    exitCode = result.exitCode;
-    Expect.fail("${step.runtimeType} failed on $module");
+    throw "${step.runtimeType} failed on $module:\n\n"
+        "stdout:\n${result.stdout}\n\n"
+        "stderr:\n${result.stderr}";
   }
 }
 

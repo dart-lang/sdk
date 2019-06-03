@@ -8,7 +8,6 @@
 import 'dart:io';
 
 import 'package:compiler/src/commandline_options.dart';
-import 'package:expect/expect.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:modular_test/src/io_pipeline.dart';
@@ -16,11 +15,15 @@ import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/suite.dart';
 import 'package:modular_test/src/runner.dart';
 
+Uri sdkRoot = Platform.script.resolve("../../../../");
 Options _options;
 main(List<String> args) async {
   _options = Options.parse(args);
+  var suiteFolder = Platform.script.resolve('data/');
+  var suiteName = relativize(suiteFolder, sdkRoot).path;
   await runSuite(
-      Platform.script.resolve('data/'),
+      suiteFolder,
+      suiteName.substring(0, suiteName.length - 1), // remove trailing /
       _options,
       new IOPipeline([
         SourceToDillStep(),
@@ -61,7 +64,7 @@ class SourceToDillStep implements IOModularStep {
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose) print("step: source-to-dill on $module");
+    if (_options.verbose) print("\nstep: source-to-dill on $module");
 
     // We use non file-URI schemes for representeing source locations in a
     // root-agnostic way. This allows us to refer to file across modules and
@@ -159,7 +162,7 @@ class SourceToDillStep implements IOModularStep {
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose) print("cached step: source-to-dill on $module");
+    if (_options.verbose) print("\ncached step: source-to-dill on $module");
   }
 }
 
@@ -184,7 +187,7 @@ class GlobalAnalysisStep implements IOModularStep {
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose) print("step: dart2js global analysis on $module");
+    if (_options.verbose) print("\nstep: dart2js global analysis on $module");
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
     Iterable<String> dillDependencies =
         transitiveDependencies.map((m) => '${toUri(m, dillId)}');
@@ -207,7 +210,7 @@ class GlobalAnalysisStep implements IOModularStep {
   @override
   void notifyCached(Module module) {
     if (_options.verbose)
-      print("cached step: dart2js global analysis on $module");
+      print("\ncached step: dart2js global analysis on $module");
   }
 }
 
@@ -237,7 +240,7 @@ class Dart2jsCodegenStep implements IOModularStep {
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose) print("step: dart2js backend on $module");
+    if (_options.verbose) print("\nstep: dart2js backend on $module");
     var sdkRoot = Platform.script.resolve("../../../../");
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/.packages',
@@ -303,7 +306,7 @@ class Dart2jsEmissionStep implements IOModularStep {
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose) print("cached step: dart2js backend on $module");
+    if (_options.verbose) print("\ncached step: dart2js backend on $module");
   }
 }
 
@@ -327,7 +330,7 @@ class RunD8 implements IOModularStep {
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose) print("step: d8 on $module");
+    if (_options.verbose) print("\nstep: d8 on $module");
     var sdkRoot = Platform.script.resolve("../../../../");
     List<String> d8Args = [
       sdkRoot
@@ -346,7 +349,7 @@ class RunD8 implements IOModularStep {
 
   @override
   void notifyCached(Module module) {
-    if (_options.verbose) print("cached step: d8 on $module");
+    if (_options.verbose) print("\ncached step: d8 on $module");
   }
 }
 
@@ -356,8 +359,9 @@ void _checkExitCode(ProcessResult result, IOModularStep step, Module module) {
     stderr.write(result.stderr);
   }
   if (result.exitCode != 0) {
-    exitCode = result.exitCode;
-    Expect.fail("${step.runtimeType} failed on $module");
+    throw "${step.runtimeType} failed on $module:\n\n"
+        "stdout:\n${result.stdout}\n\n"
+        "stderr:\n${result.stderr}";
   }
 }
 
