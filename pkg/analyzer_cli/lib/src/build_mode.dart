@@ -511,10 +511,6 @@ class BuildMode with HasContextMixin {
     analysisOptions =
         createAnalysisOptionsForCommandLineOptions(options, rootPath);
 
-    if (consumeSummary2) {
-      AnalysisDriver.useSummary2 = true;
-    }
-
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
     analysisDriver = new AnalysisDriver(
         scheduler,
@@ -613,6 +609,11 @@ class BuildMode with HasContextMixin {
    */
   Future<void> _printErrors({String outputPath}) async {
     await logger.runAsync('Compute and print analysis errors', () async {
+      var wasUseSummary2 = AnalysisDriver.useSummary2;
+      if (consumeSummary2) {
+        AnalysisDriver.useSummary2 = true;
+      }
+
       StringBuffer buffer = new StringBuffer();
       var severityProcessor = (AnalysisError error) =>
           determineProcessedSeverity(error, options, analysisOptions);
@@ -637,6 +638,8 @@ class BuildMode with HasContextMixin {
       } else {
         new io.File(outputPath).writeAsStringSync(buffer.toString());
       }
+
+      AnalysisDriver.useSummary2 = wasUseSummary2;
     });
   }
 }
