@@ -5,6 +5,28 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 
+/// Data structure to keep track of the relationship from one [NullabilityNode]
+/// object to another [NullabilityNode] that is "downstream" from it (meaning
+/// that if the former node is nullable, then the latter node will either have
+/// to be nullable, or null checks will have to be added).
+class NullabilityEdge {
+  /// The node that is downstream.
+  final NullabilityNode destinationNode;
+
+  /// A set of source nodes.  By convention, the first node is the primary
+  /// source and the other nodes are "guards".  The destination node will only
+  /// need to be made nullable if all the source nodes are nullable.
+  final List<NullabilityNode> sources;
+
+  final bool hard;
+
+  NullabilityEdge(this.destinationNode, this.sources, this.hard);
+
+  Iterable<NullabilityNode> get guards => sources.skip(1);
+
+  NullabilityNode get primarySource => sources.first;
+}
+
 /// Data structure to keep track of the relationship between [NullabilityNode]
 /// objects.
 class NullabilityGraph {
@@ -12,21 +34,21 @@ class NullabilityGraph {
   /// `sourceNode` argument to [connect].
   final _allSourceNodes = Set<NullabilityNode>.identity();
 
-  /// List of [_NullabilityEdge] objects that are downstream from
+  /// List of [NullabilityEdge] objects that are downstream from
   /// [NullabilityNode.always].  (They can't be stored in
   /// [NullabilityNode.always] directly because it is immutable).
-  final _downstreamFromAlways = <_NullabilityEdge>[];
+  final _downstreamFromAlways = <NullabilityEdge>[];
 
-  /// List of [NullabilityNodes] that are "upstream" from
+  /// List of [NullabilityEdge] objects that are upstream from
   /// [NullabilityNode.never] due to unconditional control flow.  (They can't be
   /// stored in [NullabilityNode.never] directly because it is immutable).
-  final _unconditionalUpstreamFromNever = <NullabilityNode>[];
+  final _upstreamFromNever = <NullabilityEdge>[];
 
   /// Records that [sourceNode] is immediately upstream from [destinationNode].
   void connect(NullabilityNode sourceNode, NullabilityNode destinationNode,
-      {bool unconditional: false, List<NullabilityNode> guards: const []}) {
+      {bool hard: false, List<NullabilityNode> guards: const []}) {
     var sources = [sourceNode]..addAll(guards);
-    var edge = _NullabilityEdge(destinationNode, sources);
+    var edge = NullabilityEdge(destinationNode, sources, hard);
     for (var source in sources) {
       _allSourceNodes.add(source);
       if (source is NullabilityNodeMutable) {
@@ -39,16 +61,14 @@ class NullabilityGraph {
         assert(source == NullabilityNode.never);
       }
     }
-    if (unconditional) {
-      if (destinationNode is NullabilityNodeMutable) {
-        destinationNode._unconditionalUpstreamNodes.add(sourceNode);
-      } else if (destinationNode == NullabilityNode.never) {
-        _unconditionalUpstreamFromNever.add(sourceNode);
-      } else {
-        // We don't need to track nodes that are upstream from `always` because
-        // `always` will never have non-null intent.
-        assert(destinationNode == NullabilityNode.always);
-      }
+    if (destinationNode is NullabilityNodeMutable) {
+      destinationNode._upstreamEdges.add(edge);
+    } else if (destinationNode == NullabilityNode.never) {
+      _upstreamFromNever.add(edge);
+    } else {
+      // We don't need to track nodes that are upstream from `always` because
+      // `always` will never have non-null intent.
+      assert(destinationNode == NullabilityNode.always);
     }
   }
 
@@ -58,9 +78,8 @@ class NullabilityGraph {
       var destinations =
           edges.where((edge) => edge.primarySource == source).map((edge) {
         var suffixes = <Object>[];
-        if (getUnconditionalUpstreamNodes(edge.destinationNode)
-            .contains(source)) {
-          suffixes.add('unconditional');
+        if (edge.hard) {
+          suffixes.add('hard');
         }
         suffixes.addAll(edge.guards);
         var suffix = suffixes.isNotEmpty ? ' (${suffixes.join(', ')})' : '';
@@ -71,26 +90,15 @@ class NullabilityGraph {
     }
   }
 
-  /// Iterates through all nodes that are "downstream" of [node] (i.e. if
-  /// [node] is nullable, then all the iterated nodes will either have to be
-  /// nullable, or null checks will have to be added).
-  ///
-  /// There is no guarantee of uniqueness of the iterated nodes.
-  Iterable<NullabilityNode> getDownstreamNodes(NullabilityNode node) =>
-      _getDownstreamEdges(node)
-          .where((edge) => edge.primarySource == node)
-          .map((edge) => edge.destinationNode);
-
   /// Iterates through all nodes that are "upstream" of [node] due to
   /// unconditional control flow.
   ///
   /// There is no guarantee of uniqueness of the iterated nodes.
-  Iterable<NullabilityNode> getUnconditionalUpstreamNodes(
-      NullabilityNode node) {
+  Iterable<NullabilityEdge> getUpstreamEdges(NullabilityNode node) {
     if (node is NullabilityNodeMutable) {
-      return node._unconditionalUpstreamNodes;
+      return node._upstreamEdges;
     } else if (node == NullabilityNode.never) {
-      return _unconditionalUpstreamFromNever;
+      return _upstreamFromNever;
     } else {
       // No nodes are upstream from `always`.
       assert(node == NullabilityNode.always);
@@ -125,7 +133,7 @@ class NullabilityGraph {
     _propagateDownstream();
   }
 
-  Iterable<_NullabilityEdge> _getDownstreamEdges(NullabilityNode node) {
+  Iterable<NullabilityEdge> _getDownstreamEdges(NullabilityNode node) {
     if (node is NullabilityNodeMutable) {
       return node._downstreamEdges;
     } else if (node == NullabilityNode.always) {
@@ -139,7 +147,7 @@ class NullabilityGraph {
 
   /// Propagates nullability downstream.
   void _propagateDownstream() {
-    var pendingEdges = <_NullabilityEdge>[]..addAll(_downstreamFromAlways);
+    var pendingEdges = <NullabilityEdge>[]..addAll(_downstreamFromAlways);
     var pendingSubstitutions = <NullabilityNodeForSubstitution>[];
     while (true) {
       nextEdge:
@@ -175,27 +183,24 @@ class NullabilityGraph {
       }
       // Heuristically choose to propagate to the inner node since this seems
       // to lead to better quality migrations.
-      pendingEdges.add(_NullabilityEdge(node.innerNode, const []));
+      pendingEdges.add(NullabilityEdge(node.innerNode, const [], false));
     }
   }
 
   /// Propagates non-null intent upstream along unconditional control flow
   /// lines.
   void _propagateUpstream() {
-    var pendingNodes = <NullabilityNode>[]
-      ..addAll(_unconditionalUpstreamFromNever);
-    while (pendingNodes.isNotEmpty) {
-      var node = pendingNodes.removeLast();
-      if (node == NullabilityNode.always) {
-        // The "always" node cannot have non-null intent.
-        continue;
-      }
+    var pendingEdges = <NullabilityEdge>[]..addAll(_upstreamFromNever);
+    while (pendingEdges.isNotEmpty) {
+      var edge = pendingEdges.removeLast();
+      if (!edge.hard) continue;
+      var node = edge.primarySource;
       if (node is NullabilityNodeMutable &&
           node._state == _NullabilityState.undetermined) {
         node._state = _NullabilityState.nonNullable;
         // Was not previously in the set of non-null intent nodes, so we need to
         // propagate.
-        pendingNodes.addAll(node._unconditionalUpstreamNodes);
+        pendingEdges.addAll(node._upstreamEdges);
       }
     }
   }
@@ -232,7 +237,7 @@ abstract class NullabilityNode {
   factory NullabilityNode.forInferredDynamicType(
       NullabilityGraph graph, int offset) {
     var node = _NullabilityNodeSimple('inferredDynamic($offset)');
-    graph.connect(NullabilityNode.always, node, unconditional: true);
+    graph.connect(NullabilityNode.always, node, hard: true);
     return node;
   }
 
@@ -301,7 +306,7 @@ abstract class NullabilityNode {
 
   void recordNonNullIntent(
       List<NullabilityNode> guards, NullabilityGraph graph) {
-    graph.connect(this, NullabilityNode.never, unconditional: true);
+    graph.connect(this, NullabilityNode.never, hard: true);
   }
 
   String toString() {
@@ -346,7 +351,7 @@ abstract class NullabilityNode {
       NullabilityGraph graph,
       bool inConditionalControlFlow) {
     graph.connect(sourceNode, destinationNode,
-        guards: guards, unconditional: !inConditionalControlFlow);
+        guards: guards, hard: !inConditionalControlFlow);
   }
 }
 
@@ -398,42 +403,22 @@ class NullabilityNodeForSubstitution extends NullabilityNodeMutable {
 abstract class NullabilityNodeMutable extends NullabilityNode {
   _NullabilityState _state = _NullabilityState.undetermined;
 
-  /// List of [_NullabilityEdge] objects describing this node's relationship to
+  /// List of [NullabilityEdge] objects describing this node's relationship to
   /// other nodes that are "downstream" from it (meaning that if a key node is
   /// nullable, then all the nodes in the corresponding value will either have
   /// to be nullable, or null checks will have to be added).
-  final _downstreamEdges = <_NullabilityEdge>[];
+  final _downstreamEdges = <NullabilityEdge>[];
 
   /// List of nodes that are "upstream" from this node via unconditional control
   /// flow (meaning that if a node in the list is nullable, then there exists
   /// code that is unguarded by an "if" statement that indicates that this node
   /// will have to be nullable, or null checks will have to be added).
-  final _unconditionalUpstreamNodes = <NullabilityNode>[];
+  final _upstreamEdges = <NullabilityEdge>[];
 
   NullabilityNodeMutable._() : super._();
 
   @override
   bool get isNullable => _state.isNullable;
-}
-
-/// Data structure to keep track of the relationship from one [NullabilityNode]
-/// object to another [NullabilityNode] that is "downstream" from it (meaning
-/// that if the former node is nullable, then the latter node will either have
-/// to be nullable, or null checks will have to be added).
-class _NullabilityEdge {
-  /// The node that is downstream.
-  final NullabilityNode destinationNode;
-
-  /// A set of source nodes.  By convention, the first node is the primary
-  /// source and the other nodes are "guards".  The destination node will only
-  /// need to be made nullable if all the source nodes are nullable.
-  final List<NullabilityNode> sources;
-
-  _NullabilityEdge(this.destinationNode, this.sources);
-
-  Iterable<NullabilityNode> get guards => sources.skip(1);
-
-  NullabilityNode get primarySource => sources.first;
 }
 
 class _NullabilityNodeImmutable extends NullabilityNode {

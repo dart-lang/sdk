@@ -46,7 +46,8 @@ class DecoratedType {
     // Nullability.always.
     assert(!type.isDynamic ||
         graph
-            .getUnconditionalUpstreamNodes(node)
+            .getUpstreamEdges(node)
+            .map((e) => e.primarySource)
             .contains(NullabilityNode.always));
   }
 
