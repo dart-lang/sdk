@@ -35,6 +35,41 @@ class Point {
 }
 ```
 
+**BAD:**
+```
+class Point {
+  num x, y;
+  Point({num x, num y}) {
+    this.x = x;
+    this.y = y;
+  }
+}
+```
+
+**GOOD:**
+```
+class Point {
+  num x, y;
+  Point({this.x, this.y});
+}
+```
+
+**NOTE**
+Named parameters must match with the field name in order to be consider by the
+lint to avoid having to update either the field or the named argument and to
+allow for the API to accomodate for different guidelines for named arguments
+and fields currently proposed in https://dart.dev/guides/language/effective-dart
+thus the following example won't trigger the lint:
+
+```
+class Point {
+  bool isEnabled;
+  Point({bool enabled}) {
+    this.isEnabled = enable; // OK
+  }
+}
+```
+
 ''';
 
 Iterable<AssignmentExpression> _getAssignmentExpressionsInConstructorBody(
