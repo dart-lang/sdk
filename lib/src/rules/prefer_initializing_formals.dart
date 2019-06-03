@@ -55,9 +55,9 @@ class Point {
 ```
 
 **NOTE**
-Named parameters must match with the field name in order to be consider by the
+Named parameters must match with the field name in order to be considered by the
 lint to avoid having to update either the field or the named argument and to
-allow for the API to accomodate for different guidelines for named arguments
+allow for the API to accommodate for different guidelines for named arguments
 and fields currently proposed in https://dart.dev/guides/language/effective-dart
 thus the following example won't trigger the lint:
 
