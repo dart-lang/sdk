@@ -296,7 +296,7 @@ void f({int i = null}) {}
 ''');
 
     assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
-        hard: true);
+        hard: false);
   }
 
   test_functionDeclaration_parameter_named_no_default() async {
@@ -332,7 +332,7 @@ void f([int i = null]) {}
 ''');
 
     assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
-        hard: true);
+        hard: false);
   }
 
   test_functionDeclaration_parameter_positionalOptional_no_default() async {
@@ -600,7 +600,7 @@ void g(C<int/*3*/>/*4*/ c) {
 
     assertEdge(decoratedTypeAnnotation('int/*3*/').node,
         decoratedTypeAnnotation('int/*1*/').node,
-        hard: true);
+        hard: false);
     assertNullCheck(checkExpression('c/*check*/'),
         decoratedTypeAnnotation('C<int/*3*/>/*4*/').node,
         contextNode: decoratedTypeAnnotation('C<int/*1*/>/*2*/').node);
@@ -674,7 +674,7 @@ int f() {
 ''');
 
     assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
-        hard: true);
+        hard: false);
   }
 
   test_return_null() async {
@@ -686,6 +686,15 @@ int f() {
 
     assertNullCheck(checkExpression('null'), NullabilityNode.always,
         contextNode: decoratedTypeAnnotation('int').node);
+  }
+
+  test_soft_edge_for_non_variable_reference() async {
+    // Edges originating in things other than variable references should be
+    // soft.
+    await analyze('''
+int f() => null;
+''');
+    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
   }
 
   test_stringLiteral() async {

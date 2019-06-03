@@ -413,10 +413,9 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
         } else {
           throw new UnimplementedError('TODO(paulberry)');
         }
-        _checkAssignment(
-            bound,
-            _variables.decoratedTypeAnnotation(_source, typeArguments[i]),
-            null);
+        _checkAssignment(bound,
+            _variables.decoratedTypeAnnotation(_source, typeArguments[i]), null,
+            hard: true);
       }
     }
     return DecoratedType(typeName.type, NullabilityNode.never);
@@ -427,7 +426,8 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   /// [sourceType]; it is the expression we will have to null-check in the case
   /// where a nullable source is assigned to a non-nullable destination.
   void _checkAssignment(DecoratedType destinationType, DecoratedType sourceType,
-      Expression expression) {
+      Expression expression,
+      {bool hard}) {
     if (expression != null) {
       _variables.recordExpressionChecks(
           _source,
@@ -437,7 +437,9 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     }
     NullabilityNode.recordAssignment(
         sourceType.node, destinationType.node, _guards, _graph,
-        hard: !_inConditionalControlFlow);
+        hard: hard ??
+            (_isVariableOrParameterReference(expression) &&
+                !_inConditionalControlFlow));
     // TODO(paulberry): it's a cheat to pass in expression=null for the
     // recursive checks.  Really we want to unify all the checks in a single
     // ExpressionChecks object.
@@ -496,6 +498,15 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     if (type.type is! InterfaceType) return false;
     if ((type.type as InterfaceType).typeParameters.isNotEmpty) return false;
     return true;
+  }
+
+  bool _isVariableOrParameterReference(Expression expression) {
+    if (expression is SimpleIdentifier) {
+      var element = expression.staticElement;
+      if (element is LocalVariableElement) return true;
+      if (element is ParameterElement) return true;
+    }
+    return false;
   }
 }
 
