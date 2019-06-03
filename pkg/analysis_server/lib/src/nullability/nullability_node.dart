@@ -30,6 +30,10 @@ class NullabilityEdge {
 /// Data structure to keep track of the relationship between [NullabilityNode]
 /// objects.
 class NullabilityGraph {
+  /// Set this const to `true` to dump the nullability graph just before
+  /// propagation.
+  static const _debugBeforePropagation = false;
+
   /// Set containing all [NullabilityNode]s that have been passed as the
   /// `sourceNode` argument to [connect].
   final _allSourceNodes = Set<NullabilityNode>.identity();
@@ -129,6 +133,7 @@ class NullabilityGraph {
   /// Determines the nullability of each node in the graph by propagating
   /// nullability information from one node to another.
   void propagate() {
+    if (_debugBeforePropagation) debugDump();
     _propagateUpstream();
     _propagateDownstream();
   }
