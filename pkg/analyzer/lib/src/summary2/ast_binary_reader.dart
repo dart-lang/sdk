@@ -89,7 +89,7 @@ class AstBinaryReader {
         typeParameters[i] = astFactory.typeParameter(
           _readNode(data.annotatedNode_comment),
           _readNodeList(data.annotatedNode_metadata),
-          _declaredIdentifier(data),
+          _readNode(data.typeParameter_name),
           data.typeParameter_bound != null ? _Tokens.EXTENDS : null,
           null,
         );
@@ -124,13 +124,6 @@ class AstBinaryReader {
 
   DartType readType(LinkedNodeType data) {
     return _readType(data);
-  }
-
-  SimpleIdentifier _declaredIdentifier(LinkedNode data) {
-    return astFactory.simpleIdentifier(
-      TokenFactory.tokenFromString(data.name)..offset = data.nameOffset,
-      isDeclaration: true,
-    );
   }
 
   Element _elementOfComponents(
@@ -323,7 +316,7 @@ class AstBinaryReader {
         _readNodeListLazy(data.annotatedNode_metadata),
         AstBinaryFlags.isAbstract(data.flags) ? _Tokens.ABSTRACT : null,
         _Tokens.CLASS,
-        _declaredIdentifier(data),
+        _readNode(data.namedCompilationUnitMember_name),
         _readNode(data.classOrMixinDeclaration_typeParameters),
         _readNodeLazy(data.classDeclaration_extendsClause),
         _readNodeLazy(data.classDeclaration_withClause),
@@ -347,7 +340,7 @@ class AstBinaryReader {
         _readNodeLazy(data.annotatedNode_comment),
         _readNodeListLazy(data.annotatedNode_metadata),
         _Tokens.CLASS,
-        _declaredIdentifier(data),
+        _readNode(data.namedCompilationUnitMember_name),
         _readNode(data.classTypeAlias_typeParameters),
         _Tokens.EQ,
         AstBinaryFlags.isAbstract(data.flags) ? _Tokens.ABSTRACT : null,
@@ -426,25 +419,18 @@ class AstBinaryReader {
   }
 
   ConstructorDeclaration _read_constructorDeclaration(LinkedNode data) {
-    SimpleIdentifier returnType = _readNode(
-      data.constructorDeclaration_returnType,
-    );
-    returnType.token.offset = data.constructorDeclaration_returnTypeOffset;
-
+    var name = _readNode(data.constructorDeclaration_name);
     var node = astFactory.constructorDeclaration(
       _readNodeLazy(data.annotatedNode_comment),
       _readNodeListLazy(data.annotatedNode_metadata),
       AstBinaryFlags.isExternal(data.flags) ? _Tokens.EXTERNAL : null,
       AstBinaryFlags.isConst(data.flags) ? _Tokens.CONST : null,
       AstBinaryFlags.isFactory(data.flags) ? _Tokens.FACTORY : null,
-      returnType,
-      data.name.isNotEmpty
-          ? Token(
-              TokenType.PERIOD,
-              data.constructorDeclaration_periodOffset,
-            )
+      _readNode(data.constructorDeclaration_returnType),
+      name != null
+          ? Token(TokenType.PERIOD, data.constructorDeclaration_periodOffset)
           : null,
-      data.name.isNotEmpty ? _declaredIdentifier(data) : null,
+      name,
       _readNodeLazy(data.constructorDeclaration_parameters),
       _Tokens.choose(
         AstBinaryFlags.hasSeparatorColon(data.flags),
@@ -558,7 +544,7 @@ class AstBinaryReader {
     var node = astFactory.enumConstantDeclaration(
       _readNodeLazy(data.annotatedNode_comment),
       _readNodeListLazy(data.annotatedNode_metadata),
-      _declaredIdentifier(data),
+      _readNode(data.enumConstantDeclaration_name),
     );
     LazyEnumConstantDeclaration.setData(node, data);
     return node;
@@ -569,7 +555,7 @@ class AstBinaryReader {
       _readNodeLazy(data.annotatedNode_comment),
       _readNodeListLazy(data.annotatedNode_metadata),
       _Tokens.ENUM,
-      _declaredIdentifier(data),
+      _readNode(data.namedCompilationUnitMember_name),
       _Tokens.OPEN_CURLY_BRACKET,
       _readNodeListLazy(data.enumDeclaration_constants),
       _Tokens.CLOSE_CURLY_BRACKET,
@@ -649,7 +635,7 @@ class AstBinaryReader {
 
   FieldFormalParameter _read_fieldFormalParameter(LinkedNode data) {
     var node = astFactory.fieldFormalParameter2(
-      identifier: _declaredIdentifier(data),
+      identifier: _readNode(data.normalFormalParameter_identifier),
       period: _Tokens.PERIOD,
       thisKeyword: _Tokens.THIS,
       covariantKeyword:
@@ -767,7 +753,7 @@ class AstBinaryReader {
           AstBinaryFlags.isSet(data.flags),
           _Tokens.SET,
         ),
-        _declaredIdentifier(data),
+        _readNode(data.namedCompilationUnitMember_name),
         _readNodeLazy(data.functionDeclaration_functionExpression),
       );
       LazyFunctionDeclaration.setData(node, data);
@@ -809,7 +795,7 @@ class AstBinaryReader {
       _readNodeListLazy(data.annotatedNode_metadata),
       _Tokens.TYPEDEF,
       _readNodeLazy(data.functionTypeAlias_returnType),
-      _declaredIdentifier(data),
+      _readNode(data.namedCompilationUnitMember_name),
       _readNode(data.functionTypeAlias_typeParameters),
       _readNodeLazy(data.functionTypeAlias_formalParameters),
       _Tokens.SEMICOLON,
@@ -828,7 +814,7 @@ class AstBinaryReader {
       comment: _readNodeLazy(data.normalFormalParameter_comment),
       covariantKeyword:
           AstBinaryFlags.isCovariant(data.flags) ? _Tokens.COVARIANT : null,
-      identifier: _declaredIdentifier(data),
+      identifier: _readNode(data.normalFormalParameter_identifier),
       metadata: _readNodeListLazy(data.normalFormalParameter_metadata),
       parameters: _readNodeLazy(
         data.functionTypedFormalParameter_formalParameters,
@@ -854,7 +840,7 @@ class AstBinaryReader {
       _readNodeLazy(data.annotatedNode_comment),
       _readNodeListLazy(data.annotatedNode_metadata),
       _Tokens.TYPEDEF,
-      _declaredIdentifier(data),
+      _readNode(data.namedCompilationUnitMember_name),
       _readNode(data.genericTypeAlias_typeParameters),
       _Tokens.EQ,
       _readNodeLazy(data.genericTypeAlias_functionType),
@@ -1089,7 +1075,7 @@ class AstBinaryReader {
         _Tokens.SET,
       ),
       AstBinaryFlags.isOperator(data.flags) ? _Tokens.OPERATOR : null,
-      _declaredIdentifier(data),
+      _readNode(data.methodDeclaration_name),
       _readNode(data.methodDeclaration_typeParameters),
       _readNodeLazy(data.methodDeclaration_formalParameters),
       AstBinaryFlags.isAbstract(data.flags)
@@ -1122,7 +1108,7 @@ class AstBinaryReader {
         _readNodeLazy(data.annotatedNode_comment),
         _readNodeListLazy(data.annotatedNode_metadata),
         _Tokens.MIXIN,
-        _declaredIdentifier(data),
+        _readNode(data.namedCompilationUnitMember_name),
         _readNode(data.classOrMixinDeclaration_typeParameters),
         _readNodeLazy(data.mixinDeclaration_onClause),
         _readNodeLazy(data.classOrMixinDeclaration_implementsClause),
@@ -1320,7 +1306,7 @@ class AstBinaryReader {
 
   SimpleFormalParameter _read_simpleFormalParameter(LinkedNode data) {
     SimpleFormalParameterImpl node = astFactory.simpleFormalParameter2(
-      identifier: _declaredIdentifier(data),
+      identifier: _readNode(data.normalFormalParameter_identifier),
       type: _readNode(data.simpleFormalParameter_type),
       covariantKeyword:
           AstBinaryFlags.isCovariant(data.flags) ? _Tokens.COVARIANT : null,
@@ -1344,7 +1330,8 @@ class AstBinaryReader {
 
   SimpleIdentifier _read_simpleIdentifier(LinkedNode data) {
     return astFactory.simpleIdentifier(
-      TokenFactory.tokenFromString(data.name),
+      TokenFactory.tokenFromString(data.simpleIdentifier_name)
+        ..offset = data.simpleIdentifier_offset,
       isDeclaration: AstBinaryFlags.isDeclaration(data.flags),
     )
       ..staticElement = _elementOfComponents(
@@ -1498,7 +1485,7 @@ class AstBinaryReader {
     var node = astFactory.typeParameter(
       _readNodeLazy(data.annotatedNode_comment),
       _readNodeListLazy(data.annotatedNode_metadata),
-      _declaredIdentifier(data),
+      _readNode(data.typeParameter_name),
       _Tokens.EXTENDS,
       _readNodeLazy(data.typeParameter_bound),
     );
@@ -1516,7 +1503,7 @@ class AstBinaryReader {
 
   VariableDeclaration _read_variableDeclaration(LinkedNode data) {
     var node = astFactory.variableDeclaration(
-      _declaredIdentifier(data),
+      _readNode(data.variableDeclaration_name),
       _Tokens.EQ,
       _readNodeLazy(data.variableDeclaration_initializer),
     );

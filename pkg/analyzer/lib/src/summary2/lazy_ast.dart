@@ -513,12 +513,12 @@ class LazyDirective {
     return node.getProperty(_key);
   }
 
-  static int getNameOffset(Directive node) {
+  static int getKeywordOffset(Directive node) {
     var lazy = get(node);
     if (lazy != null) {
-      return lazy.data.nameOffset;
+      return lazy.data.directive_keywordOffset;
     } else {
-      return node.offset;
+      return node.keyword.offset;
     }
   }
 

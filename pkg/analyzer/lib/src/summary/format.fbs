@@ -1948,13 +1948,11 @@ table LinkedNode {
 
   variantField_36:[string] (id: 36);
 
-  name:string (id: 37);
-
   variantField_20:string (id: 20);
 
   variantField_31:bool (id: 31);
 
-  variantField_38:UnlinkedTokenType (id: 38);
+  variantField_37:UnlinkedTokenType (id: 37);
 
   variantField_34:TopLevelInferenceError (id: 34);
 
