@@ -81,7 +81,9 @@ class BottomTypeImpl extends TypeImpl {
    */
   BottomTypeImpl._(this.nullabilitySuffix)
       : super(new NeverElementImpl(), "Never") {
-    (element as NeverElementImpl).type = this;
+    if (nullabilitySuffix == NullabilitySuffix.none) {
+      (element as NeverElementImpl).type = this;
+    }
   }
 
   @override
@@ -2985,7 +2987,7 @@ abstract class TypeImpl implements DartType {
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix);
 
   void _appendNullability(StringBuffer buffer) {
-    if (isDynamic || isBottom || isVoid) {
+    if (isDynamic || isVoid) {
       // These types don't have nullability variations, so don't append
       // anything.
       return;
