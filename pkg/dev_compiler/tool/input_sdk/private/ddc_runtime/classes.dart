@@ -188,6 +188,7 @@ final _staticFieldSig = JS('', 'Symbol("sigStaticField")');
 final _staticGetterSig = JS('', 'Symbol("sigStaticGetter")');
 final _staticSetterSig = JS('', 'Symbol("sigStaticSetter")');
 final _genericTypeCtor = JS('', 'Symbol("genericType")');
+final _libraryUri = JS('', 'Symbol("libraryUri")');
 
 getConstructors(value) => _getMembers(value, _constructorSig);
 getMethods(value) => _getMembers(value, _methodSig);
@@ -204,6 +205,9 @@ getGenericTypeCtor(value) => JS('', '#[#]', value, _genericTypeCtor);
 /// Get the type of a method from an object using the stored signature
 getType(obj) =>
     JS('', '# == null ? # : #.__proto__.constructor', obj, Object, obj);
+
+getLibraryUri(value) => JS('', '#[#]', value, _libraryUri);
+setLibraryUri(f, uri) => JS('', '#[#] = #', f, _libraryUri, uri);
 
 bool isJsInterop(obj) {
   if (obj == null) return false;

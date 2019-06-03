@@ -2180,6 +2180,10 @@ class CodeGenerator extends Object
       emitSignature('Setter', instanceSetters);
       emitSignature('StaticGetter', staticGetters);
       emitSignature('StaticSetter', staticSetters);
+      body.add(runtimeStatement('setLibraryUri(#, #)', [
+        className,
+        js.escapedString(jsLibraryDebuggerName(classElem.library))
+      ]));
     }
 
     {
