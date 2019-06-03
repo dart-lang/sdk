@@ -621,6 +621,18 @@ void g(C c, int j) {
         contextNode: nullable_i);
   }
 
+  test_methodInvocation_return_type() async {
+    await analyze('''
+class C {
+  bool m() => true;
+}
+bool f(C c) => c.m();
+''');
+    assertEdge(decoratedTypeAnnotation('bool m').node,
+        decoratedTypeAnnotation('bool f').node,
+        hard: false);
+  }
+
   test_methodInvocation_target_check() async {
     await analyze('''
 class C {
@@ -663,6 +675,71 @@ int f() {
 
     assertNullCheck(checkExpression('(null)'), NullabilityNode.always,
         contextNode: decoratedTypeAnnotation('int').node);
+  }
+
+  test_prefixedIdentifier_return_type() async {
+    await analyze('''
+class C {
+  bool get b => true;
+}
+bool f(C c) => c.b;
+''');
+    assertEdge(decoratedTypeAnnotation('bool get').node,
+        decoratedTypeAnnotation('bool f').node,
+        hard: false);
+  }
+
+  test_prefixedIdentifier_target_check() async {
+    await analyze('''
+class C {
+  int get x => 1;
+}
+void test(C c) {
+  c.x;
+}
+''');
+
+    assertNullCheck(
+        checkExpression('c.x'), decoratedTypeAnnotation('C c').node);
+  }
+
+  test_prefixedIdentifier_target_demonstrates_non_null_intent() async {
+    await analyze('''
+class C {
+  int get x => 1;
+}
+void test(C c) {
+  c.x;
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true);
+  }
+
+  test_propertyAccess_return_type() async {
+    await analyze('''
+class C {
+  bool get b => true;
+}
+bool f(C c) => (c).b;
+''');
+    assertEdge(decoratedTypeAnnotation('bool get').node,
+        decoratedTypeAnnotation('bool f').node,
+        hard: false);
+  }
+
+  test_propertyAccess_target_check() async {
+    await analyze('''
+class C {
+  int get x => 1;
+}
+void test(C c) {
+  (c).x;
+}
+''');
+
+    assertNullCheck(
+        checkExpression('c).x'), decoratedTypeAnnotation('C c').node);
   }
 
   test_return_implicit_null() async {

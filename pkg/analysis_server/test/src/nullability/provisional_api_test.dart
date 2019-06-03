@@ -630,7 +630,7 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  test_unconditional_dereference_implies_non_null_intent() async {
+  test_unconditional_method_call_implies_non_null_intent() async {
     var content = '''
 void f(int i) {
   i.abs();
@@ -677,6 +677,32 @@ void g(bool b, int i, int? j) {
 }
 main() {
   g(false, 0, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_unconditional_property_access_implies_non_null_intent() async {
+    var content = '''
+void f(int i) {
+  i.isEven;
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(int i) {
+  i.isEven;
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);

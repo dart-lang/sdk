@@ -72,6 +72,8 @@ class DecoratedType {
     DecoratedType decoratedType;
     if (element is MethodElement) {
       decoratedType = decorate(element.type);
+    } else if (element is PropertyAccessorElement) {
+      decoratedType = decorate(element.type);
     } else {
       throw element.runtimeType; // TODO(paulberry)
     }

@@ -182,7 +182,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
         namedParameters: {});
     _currentFunctionType = functionType;
     try {
-      parameters.accept(this);
+      parameters?.accept(this);
     } finally {
       _currentFunctionType = previousFunctionType;
     }

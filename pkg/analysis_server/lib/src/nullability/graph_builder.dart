@@ -289,7 +289,7 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
-    node.parameters.accept(this);
+    node.parameters?.accept(this);
     assert(_currentFunctionType == null);
     _currentFunctionType =
         _variables.decoratedElementType(node.declaredElement);
@@ -306,12 +306,16 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitMethodInvocation(MethodInvocation node) {
     DecoratedType targetType;
     if (node.target != null) {
-      assert(node.operator.type == TokenType.PERIOD);
+      if (node.operator.type != TokenType.PERIOD) {
+        throw new UnimplementedError('TODO(paulberry)');
+      }
       _checkNonObjectMember(node.methodName.name); // TODO(paulberry)
       targetType = _handleAssignment(_notNullType, node.target);
     }
     var callee = node.methodName.staticElement;
-    assert(callee != null); // TODO(paulberry)
+    if (callee == null) {
+      throw new UnimplementedError('TODO(paulberry)');
+    }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
     var arguments = node.argumentList.arguments;
@@ -358,6 +362,20 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitParenthesizedExpression(ParenthesizedExpression node) {
     return node.expression.accept(this);
+  }
+
+  @override
+  DecoratedType visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (node.prefix.staticElement is ImportElement) {
+      throw new UnimplementedError('TODO(paulberry)');
+    } else {
+      return _handlePropertyAccess(node.prefix, node.period, node.identifier);
+    }
+  }
+
+  @override
+  DecoratedType visitPropertyAccess(PropertyAccess node) {
+    return _handlePropertyAccess(node.target, node.operator, node.propertyName);
   }
 
   @override
@@ -485,6 +503,22 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     _checkAssignment(
         destinationType, sourceType, canInsertChecks ? expression : null);
     return sourceType;
+  }
+
+  DecoratedType _handlePropertyAccess(
+      Expression target, Token operator, SimpleIdentifier propertyName) {
+    if (operator.type != TokenType.PERIOD) {
+      throw new UnimplementedError('TODO(paulberry)');
+    }
+    _checkNonObjectMember(propertyName.name); // TODO(paulberry)
+    var targetType = _handleAssignment(_notNullType, target);
+    var callee = propertyName.staticElement;
+    if (callee == null) {
+      throw new UnimplementedError('TODO(paulberry)');
+    }
+    var calleeType = getOrComputeElementType(callee, targetType: targetType);
+    // TODO(paulberry): substitute if necessary
+    return calleeType.returnType;
   }
 
   /// Double checks that [type] is sufficiently simple for this naive prototype
