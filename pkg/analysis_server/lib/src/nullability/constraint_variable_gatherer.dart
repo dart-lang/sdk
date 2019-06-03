@@ -58,8 +58,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
         ? new DecoratedType(
             DynamicTypeImpl.instance,
             NullabilityNode.forInferredDynamicType(
-                _graph, enclosingNode.offset),
-            _graph)
+                _graph, enclosingNode.offset))
         : type.accept(this);
   }
 
@@ -132,8 +131,8 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     assert(node is NamedType); // TODO(paulberry)
     var type = node.type;
     if (type.isVoid) {
-      return DecoratedType(type,
-          NullabilityNode.forTypeAnnotation(node.end, always: true), _graph);
+      return DecoratedType(
+          type, NullabilityNode.forTypeAnnotation(node.end, always: true));
     }
     assert(
         type is InterfaceType || type is TypeParameterType); // TODO(paulberry)
@@ -152,7 +151,6 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
         NullabilityNode.forTypeAnnotation(node.end,
             always: node.question != null),
         node.end,
-        _graph,
         typeArguments: typeArguments);
     _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType);
     return decoratedType;
@@ -165,10 +163,8 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitTypeParameter(TypeParameter node) {
     var element = node.declaredElement;
     var decoratedBound = node.bound?.accept(this) ??
-        DecoratedType(
-            element.bound ?? _typeProvider.objectType,
-            NullabilityNode.forInferredDynamicType(_graph, node.offset),
-            _graph);
+        DecoratedType(element.bound ?? _typeProvider.objectType,
+            NullabilityNode.forInferredDynamicType(_graph, node.offset));
     _variables.recordDecoratedElementType(element, decoratedBound);
     return null;
   }
@@ -184,7 +180,7 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
     // TODO(paulberry): test that it's correct to use `null` for the nullability
     // of the function type
     var functionType = DecoratedType(
-        declaredElement.type, NullabilityNode.never, _graph,
+        declaredElement.type, NullabilityNode.never,
         returnType: decoratedReturnType,
         positionalParameters: [],
         namedParameters: {});

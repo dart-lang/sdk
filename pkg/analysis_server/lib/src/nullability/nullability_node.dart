@@ -48,6 +48,12 @@ class NullabilityGraph {
   /// stored in [NullabilityNode.never] directly because it is immutable).
   final _upstreamFromNever = <NullabilityEdge>[];
 
+  /// List of [NullabilityNodeMutable] objects that were set into the nullable
+  /// state by a process other than nullability propagation.  The next time
+  /// nullability is propagated, the propagation algorithm will ensure that
+  /// edges originating at these nodes are examined.
+  final _pendingDownstreamNodes = <NullabilityNodeMutable>[];
+
   /// Records that [sourceNode] is immediately upstream from [destinationNode].
   void connect(NullabilityNode sourceNode, NullabilityNode destinationNode,
       {bool hard: false, List<NullabilityNode> guards: const []}) {
@@ -153,6 +159,10 @@ class NullabilityGraph {
   /// Propagates nullability downstream.
   void _propagateDownstream() {
     var pendingEdges = <NullabilityEdge>[]..addAll(_downstreamFromAlways);
+    for (var node in _pendingDownstreamNodes) {
+      pendingEdges.addAll(node._downstreamEdges);
+    }
+    _pendingDownstreamNodes.clear();
     var pendingSubstitutions = <NullabilityNodeForSubstitution>[];
     while (true) {
       nextEdge:
@@ -241,8 +251,9 @@ abstract class NullabilityNode {
   /// inferred type rather than assuming `dynamic`.
   factory NullabilityNode.forInferredDynamicType(
       NullabilityGraph graph, int offset) {
-    var node = _NullabilityNodeSimple('inferredDynamic($offset)');
-    graph.connect(NullabilityNode.always, node, hard: true);
+    var node = _NullabilityNodeSimple('inferredDynamic($offset)',
+        initialState: _NullabilityState.ordinaryNullable);
+    graph._pendingDownstreamNodes.add(node);
     return node;
   }
 
@@ -406,7 +417,7 @@ class NullabilityNodeForSubstitution extends NullabilityNodeMutable {
 /// Nearly all nullability nodes derive from this class; the only exceptions are
 /// the fixed nodes [NullabilityNode.always] and [NullabilityNode.never].
 abstract class NullabilityNodeMutable extends NullabilityNode {
-  _NullabilityState _state = _NullabilityState.undetermined;
+  _NullabilityState _state;
 
   /// List of [NullabilityEdge] objects describing this node's relationship to
   /// other nodes that are "downstream" from it (meaning that if a key node is
@@ -420,7 +431,10 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
   /// will have to be nullable, or null checks will have to be added).
   final _upstreamEdges = <NullabilityEdge>[];
 
-  NullabilityNodeMutable._() : super._();
+  NullabilityNodeMutable._(
+      {_NullabilityState initialState: _NullabilityState.undetermined})
+      : _state = initialState,
+        super._();
 
   @override
   bool get isNullable => _state.isNullable;
@@ -445,7 +459,9 @@ class _NullabilityNodeSimple extends NullabilityNodeMutable {
   @override
   final String _debugPrefix;
 
-  _NullabilityNodeSimple(this._debugPrefix) : super._();
+  _NullabilityNodeSimple(this._debugPrefix,
+      {_NullabilityState initialState: _NullabilityState.undetermined})
+      : super._(initialState: initialState);
 }
 
 /// State of a nullability node.

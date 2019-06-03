@@ -820,8 +820,7 @@ void f(x) {}
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
     expect(decoratedType.type.isDynamic, isTrue);
-    expect(graph.getUpstreamNodesForTesting(decoratedType.node),
-        contains(NullabilityNode.always));
+    expect(decoratedType.node.isNullable, isTrue);
   }
 
   test_topLevelFunction_parameterType_named_no_default() async {
@@ -892,8 +891,7 @@ f() {}
 ''');
     var decoratedType = decoratedFunctionType('f').returnType;
     expect(decoratedType.type.isDynamic, isTrue);
-    expect(graph.getUpstreamNodesForTesting(decoratedType.node),
-        contains(NullabilityNode.always));
+    expect(decoratedType.node.isNullable, isTrue);
   }
 
   test_topLevelFunction_returnType_simple() async {
@@ -924,7 +922,7 @@ class C<T extends Object> {}
 class C<T> {}
 ''');
     var bound = decoratedTypeParameterBound('T');
-    assertEdge(always, bound.node, hard: true);
+    expect(bound.node.isNullable, isTrue);
     expect(bound.type, same(typeProvider.objectType));
   }
 }

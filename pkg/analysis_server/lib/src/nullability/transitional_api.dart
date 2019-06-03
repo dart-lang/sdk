@@ -274,7 +274,7 @@ class Variables implements VariableRecorder, VariableRepository {
   @override
   DecoratedType decoratedElementType(Element element, {bool create: false}) =>
       _decoratedElementTypes[element] ??= create
-          ? DecoratedType.forElement(element, _graph)
+          ? DecoratedType.forElement(element)
           : throw StateError('No element found');
 
   @override
