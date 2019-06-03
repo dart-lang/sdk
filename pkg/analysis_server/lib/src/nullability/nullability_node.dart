@@ -66,15 +66,8 @@ class NullabilityGraph {
         var suffix = suffixes.isNotEmpty ? ' (${suffixes.join(', ')})' : '';
         return '${edge.destinationNode}$suffix';
       });
-      var suffixes = <String>[];
-      if (source.isNullable) {
-        suffixes.add('nullable');
-      }
-      if (source.hasNonNullIntent) {
-        suffixes.add('non-null intent');
-      }
-      var suffix = suffixes.isNotEmpty ? ' (${suffixes.join(', ')})' : '';
-      print('$source$suffix -> ${destinations.join(', ')}');
+      var state = source._state;
+      print('$source ($state) -> ${destinations.join(', ')}');
     }
   }
 
@@ -153,8 +146,8 @@ class NullabilityGraph {
       while (pendingEdges.isNotEmpty) {
         var edge = pendingEdges.removeLast();
         var node = edge.destinationNode;
-        if (node.hasNonNullIntent) {
-          // Non-null intent nodes are never made nullable; a null check will need
+        if (node._state == _NullabilityState.nonNullable) {
+          // Non-nullable nodes are never made nullable; a null check will need
           // to be added instead.
           continue;
         }
@@ -164,7 +157,8 @@ class NullabilityGraph {
             continue nextEdge;
           }
         }
-        if (node is NullabilityNodeMutable && node._becomeNullable()) {
+        if (node is NullabilityNodeMutable && !node.isNullable) {
+          node._state = _NullabilityState.ordinaryNullable;
           // Was not previously nullable, so we need to propagate.
           pendingEdges.addAll(node._downstreamEdges);
           if (node is NullabilityNodeForSubstitution) {
@@ -196,7 +190,9 @@ class NullabilityGraph {
         // The "always" node cannot have non-null intent.
         continue;
       }
-      if (node is NullabilityNodeMutable && node._setNonNullIntent()) {
+      if (node is NullabilityNodeMutable &&
+          node._state == _NullabilityState.undetermined) {
+        node._state = _NullabilityState.nonNullable;
         // Was not previously in the set of non-null intent nodes, so we need to
         // propagate.
         pendingNodes.addAll(node._unconditionalUpstreamNodes);
@@ -281,8 +277,6 @@ abstract class NullabilityNode {
   String get debugSuffix =>
       this == always ? '?' : this == never ? '' : '?($this)';
 
-  bool get hasNonNullIntent;
-
   /// After nullability propagation, this getter can be used to query whether
   /// the type associated with this node should be considered nullable.
   bool get isNullable;
@@ -292,6 +286,8 @@ abstract class NullabilityNode {
   bool get isPossiblyOptional => _isPossiblyOptional;
 
   String get _debugPrefix;
+
+  _NullabilityState get _state;
 
   /// Records the fact that an invocation was made to a function with named
   /// parameters, and the named parameter associated with this node was not
@@ -400,9 +396,7 @@ class NullabilityNodeForSubstitution extends NullabilityNodeMutable {
 /// Nearly all nullability nodes derive from this class; the only exceptions are
 /// the fixed nodes [NullabilityNode.always] and [NullabilityNode.never].
 abstract class NullabilityNodeMutable extends NullabilityNode {
-  bool _isNullable = false;
-
-  bool _hasNonNullIntent = false;
+  _NullabilityState _state = _NullabilityState.undetermined;
 
   /// List of [_NullabilityEdge] objects describing this node's relationship to
   /// other nodes that are "downstream" from it (meaning that if a key node is
@@ -419,31 +413,7 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
   NullabilityNodeMutable._() : super._();
 
   @override
-  bool get hasNonNullIntent => _hasNonNullIntent;
-
-  @override
-  bool get isNullable => _isNullable;
-
-  /// During nullability propagation, this method marks the type as nullable, or
-  /// does nothing if the type was already nullable.
-  ///
-  /// Return value indicates whether a change was made.
-  bool _becomeNullable() {
-    if (_isNullable) return false;
-    _isNullable = true;
-    return true;
-  }
-
-  /// During nullability propagation, this method marks the type as having
-  /// non-null intent, or does nothing if the type was already marked as having
-  /// non-null intent.
-  ///
-  /// Return value indicates whether a change was made.
-  bool _setNonNullIntent() {
-    if (_hasNonNullIntent) return false;
-    _hasNonNullIntent = true;
-    return true;
-  }
+  bool get isNullable => _state.isNullable;
 }
 
 /// Data structure to keep track of the relationship from one [NullabilityNode]
@@ -476,7 +446,9 @@ class _NullabilityNodeImmutable extends NullabilityNode {
   _NullabilityNodeImmutable(this._debugPrefix, this.isNullable) : super._();
 
   @override
-  bool get hasNonNullIntent => !isNullable;
+  _NullabilityState get _state => isNullable
+      ? _NullabilityState.ordinaryNullable
+      : _NullabilityState.nonNullable;
 }
 
 class _NullabilityNodeSimple extends NullabilityNodeMutable {
@@ -484,4 +456,38 @@ class _NullabilityNodeSimple extends NullabilityNodeMutable {
   final String _debugPrefix;
 
   _NullabilityNodeSimple(this._debugPrefix) : super._();
+}
+
+/// State of a nullability node.
+class _NullabilityState {
+  /// State of a nullability node whose nullability hasn't been decided yet.
+  static const undetermined = _NullabilityState._('undetermined', false);
+
+  /// State of a nullability node that has been determined to be non-nullable
+  /// by propagating upstream.
+  static const nonNullable = _NullabilityState._('non-nullable', false);
+
+  /// State of a nullability node that has been determined to be nullable by
+  /// propagating downstream.
+  static const ordinaryNullable =
+      _NullabilityState._('ordinary nullable', true);
+
+  /// State of a nullability node that has been determined to be nullable by
+  /// propagating upstream from a contravariant use of a generic.
+  static const exactNullable = _NullabilityState._('exact nullable', true);
+
+  /// Name of the state (for use in debugging).
+  final String name;
+
+  /// Indicates whether the given state should be considered nullable.
+  ///
+  /// After propagation, any nodes that remain in the undetermined state are
+  /// considered to be non-nullable, so this field is returns `false` for nodes
+  /// in that state.
+  final bool isNullable;
+
+  const _NullabilityState._(this.name, this.isNullable);
+
+  @override
+  String toString() => name;
 }
