@@ -217,12 +217,9 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       } else if (node.declaredElement.isOptionalPositional ||
           assumptions.namedNoDefaultParameterHeuristic ==
               NamedNoDefaultParameterHeuristic.assumeNullable) {
-        NullabilityNode.recordAssignment(
-            NullabilityNode.always,
-            getOrComputeElementType(node.declaredElement).node,
-            _guards,
-            _graph,
-            false);
+        NullabilityNode.recordAssignment(NullabilityNode.always,
+            getOrComputeElementType(node.declaredElement).node, _guards, _graph,
+            hard: false);
       } else {
         assert(assumptions.namedNoDefaultParameterHeuristic ==
             NamedNoDefaultParameterHeuristic.assumeRequired);
@@ -446,8 +443,9 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
           ExpressionChecks(
               expression.end, sourceType.node, destinationType.node, _guards));
     }
-    NullabilityNode.recordAssignment(sourceType.node, destinationType.node,
-        _guards, _graph, _inConditionalControlFlow);
+    NullabilityNode.recordAssignment(
+        sourceType.node, destinationType.node, _guards, _graph,
+        hard: !_inConditionalControlFlow);
     // TODO(paulberry): it's a cheat to pass in expression=null for the
     // recursive checks.  Really we want to unify all the checks in a single
     // ExpressionChecks object.

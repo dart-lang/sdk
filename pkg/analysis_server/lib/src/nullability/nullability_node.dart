@@ -365,9 +365,8 @@ abstract class NullabilityNode {
       NullabilityNode destinationNode,
       List<NullabilityNode> guards,
       NullabilityGraph graph,
-      bool inConditionalControlFlow) {
-    graph.connect(sourceNode, destinationNode,
-        guards: guards, hard: !inConditionalControlFlow);
+      {@required bool hard}) {
+    graph.connect(sourceNode, destinationNode, guards: guards, hard: hard);
   }
 }
 

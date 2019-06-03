@@ -298,7 +298,7 @@ void f({int i}) {}
                 NamedNoDefaultParameterHeuristic.assumeNullable));
 
     assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
-        hard: true);
+        hard: false);
   }
 
   test_functionDeclaration_parameter_named_no_default_assume_required() async {
@@ -361,7 +361,7 @@ void f([int i]) {}
 ''');
 
     assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
-        hard: true);
+        hard: false);
   }
 
   test_functionDeclaration_parameter_positionalOptional_no_default_assume_required() async {
@@ -375,7 +375,7 @@ void f([int i]) {}
                 NamedNoDefaultParameterHeuristic.assumeRequired));
 
     assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
-        hard: true);
+        hard: false);
   }
 
   test_functionDeclaration_resets_unconditional_control_flow() async {
