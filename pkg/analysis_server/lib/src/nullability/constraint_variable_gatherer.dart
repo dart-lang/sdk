@@ -6,7 +6,6 @@ import 'package:analysis_server/src/nullability/conditional_discard.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
-import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -39,14 +38,12 @@ class ConstraintVariableGatherer extends GeneralizingAstVisitor<DecoratedType> {
 
   final bool _permissive;
 
-  final NullabilityMigrationAssumptions assumptions;
-
   final NullabilityGraph _graph;
 
   final TypeProvider _typeProvider;
 
   ConstraintVariableGatherer(this._variables, this._source, this._permissive,
-      this.assumptions, this._graph, this._typeProvider);
+      this._graph, this._typeProvider);
 
   /// Creates and stores a [DecoratedType] object corresponding to the given
   /// [type] AST, and returns it.

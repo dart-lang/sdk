@@ -7,7 +7,6 @@ import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dar
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
-import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -31,8 +30,6 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   final VariableRepository _variables;
 
   final bool _permissive;
-
-  final NullabilityMigrationAssumptions assumptions;
 
   final NullabilityGraph _graph;
 
@@ -77,7 +74,7 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
   bool _inConditionalControlFlow = false;
 
   ConstraintGatherer(TypeProvider typeProvider, this._variables, this._graph,
-      this._source, this._permissive, this.assumptions)
+      this._source, this._permissive)
       : _notNullType =
             DecoratedType(typeProvider.objectType, NullabilityNode.never),
         _nonNullableBoolType =
@@ -214,15 +211,10 @@ class ConstraintGatherer extends GeneralizingAstVisitor<DecoratedType> {
       if (node.declaredElement.hasRequired) {
         // Nothing to do; the implicit default value of `null` will never be
         // reached.
-      } else if (node.declaredElement.isOptionalPositional ||
-          assumptions.namedNoDefaultParameterHeuristic ==
-              NamedNoDefaultParameterHeuristic.assumeNullable) {
+      } else {
         NullabilityNode.recordAssignment(NullabilityNode.always,
             getOrComputeElementType(node.declaredElement).node, _guards, _graph,
             hard: false);
-      } else {
-        assert(assumptions.namedNoDefaultParameterHeuristic ==
-            NamedNoDefaultParameterHeuristic.assumeRequired);
       }
     } else {
       _handleAssignment(

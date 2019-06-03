@@ -289,51 +289,21 @@ void f({int i = null}) {}
         hard: true);
   }
 
-  test_functionDeclaration_parameter_named_no_default_assume_nullable() async {
+  test_functionDeclaration_parameter_named_no_default() async {
     await analyze('''
 void f({int i}) {}
-''',
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeNullable));
+''');
 
     assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
         hard: false);
   }
 
-  test_functionDeclaration_parameter_named_no_default_assume_required() async {
-    await analyze('''
-void f({int i}) {}
-''',
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeRequired));
-
-    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
-  }
-
-  test_functionDeclaration_parameter_named_no_default_required_assume_nullable() async {
+  test_functionDeclaration_parameter_named_no_default_required() async {
     addMetaPackage();
     await analyze('''
 import 'package:meta/meta.dart';
 void f({@required int i}) {}
-''',
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeNullable));
-
-    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
-  }
-
-  test_functionDeclaration_parameter_named_no_default_required_assume_required() async {
-    addMetaPackage();
-    await analyze('''
-import 'package:meta/meta.dart';
-void f({@required int i}) {}
-''',
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeRequired));
+''');
 
     assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
@@ -359,20 +329,6 @@ void f([int i = null]) {}
     await analyze('''
 void f([int i]) {}
 ''');
-
-    assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
-        hard: false);
-  }
-
-  test_functionDeclaration_parameter_positionalOptional_no_default_assume_required() async {
-    // Note: the `assumeRequired` behavior shouldn't affect the behavior here
-    // because it only affects named parameters.
-    await analyze('''
-void f([int i]) {}
-''',
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeRequired));
 
     assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
         hard: false);
@@ -775,12 +731,10 @@ abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
   /// Analyzes the given source code, producing constraint variables and
   /// constraints for it.
   @override
-  Future<CompilationUnit> analyze(String code,
-      {NullabilityMigrationAssumptions assumptions:
-          const NullabilityMigrationAssumptions()}) async {
+  Future<CompilationUnit> analyze(String code) async {
     var unit = await super.analyze(code);
-    unit.accept(ConstraintGatherer(
-        typeProvider, _variables, graph, testSource, false, assumptions));
+    unit.accept(
+        ConstraintGatherer(typeProvider, _variables, graph, testSource, false));
     return unit;
   }
 }
@@ -944,12 +898,10 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
 
   TypeProvider get typeProvider => testAnalysisResult.typeProvider;
 
-  Future<CompilationUnit> analyze(String code,
-      {NullabilityMigrationAssumptions assumptions:
-          const NullabilityMigrationAssumptions()}) async {
+  Future<CompilationUnit> analyze(String code) async {
     await resolveTestUnit(code);
     testUnit.accept(ConstraintVariableGatherer(
-        _variables, testSource, false, assumptions, graph, typeProvider));
+        _variables, testSource, false, graph, typeProvider));
     findNode = FindNode(code, testUnit);
     return testUnit;
   }
