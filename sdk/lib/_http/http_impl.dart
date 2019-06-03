@@ -320,7 +320,7 @@ class _HttpClientResponse extends _HttpInboundMessage
   X509Certificate get certificate {
     var socket = _httpRequest._httpClientConnection._socket;
     if (socket is SecureSocket) return socket.peerCertificate;
-    throw new UnsupportedError("Socket is not a SecureSocket");
+    return null;
   }
 
   List<Cookie> get cookies {
