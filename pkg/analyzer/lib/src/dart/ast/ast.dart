@@ -5186,6 +5186,9 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   /// The parameters of the function-typed parameter.
   FormalParameterListImpl _parameters;
 
+  @override
+  Token question;
+
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute. The [returnType] can be `null` if no return type
@@ -5198,7 +5201,8 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
       TypeAnnotationImpl returnType,
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
-      FormalParameterListImpl parameters)
+      FormalParameterListImpl parameters,
+      this.question)
       : super(
             comment, metadata, covariantKeyword, requiredKeyword, identifier) {
     _returnType = _becomeParentOf(returnType);

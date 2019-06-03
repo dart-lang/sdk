@@ -600,7 +600,8 @@ class AstCloner
           returnType: cloneNode(node.returnType),
           identifier: cloneNode(node.identifier),
           typeParameters: cloneNode(node.typeParameters),
-          parameters: cloneNode(node.parameters));
+          parameters: cloneNode(node.parameters),
+          question: cloneToken(node.question));
 
   @override
   AstNode visitGenericFunctionType(GenericFunctionType node) =>
@@ -3009,7 +3010,8 @@ class IncrementalAstCloner
           returnType: _cloneNode(node.returnType),
           identifier: _cloneNode(node.identifier),
           typeParameters: _cloneNode(node.typeParameters),
-          parameters: _cloneNode(node.parameters));
+          parameters: _cloneNode(node.parameters),
+          question: _mapToken(node.question));
 
   @override
   AstNode visitGenericFunctionType(GenericFunctionType node) =>
@@ -7406,6 +7408,9 @@ class ToSourceVisitor
     _visitNode(node.identifier);
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
+    if (node.question != null) {
+      _writer.print('?');
+    }
   }
 
   @override
@@ -8705,6 +8710,9 @@ class ToSourceVisitor2
     safelyVisitNode(node.identifier);
     safelyVisitNode(node.typeParameters);
     safelyVisitNode(node.parameters);
+    if (node.question != null) {
+      sink.write('?');
+    }
   }
 
   @override

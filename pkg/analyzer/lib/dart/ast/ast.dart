@@ -2810,7 +2810,8 @@ abstract class FunctionTypeAlias implements TypeAlias {
 /// A function-typed formal parameter.
 ///
 ///    functionSignature ::=
-///        [TypeAnnotation]? [SimpleIdentifier] [TypeParameterList]? [FormalParameterList]
+///        [TypeAnnotation]? [SimpleIdentifier] [TypeParameterList]?
+///        [FormalParameterList] '?'?
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypedFormalParameter implements NormalFormalParameter {
@@ -2820,6 +2821,11 @@ abstract class FunctionTypedFormalParameter implements NormalFormalParameter {
   /// Set the parameters of the function-typed parameter to the given
   /// [parameters].
   void set parameters(FormalParameterList parameters);
+
+  /// Return the question mark indicating that the function type is nullable, or
+  /// `null` if there is no question mark. Having a nullable function type means
+  /// that the parameter can be null.
+  Token get question;
 
   /// Return the return type of the function, or `null` if the function does not
   /// have a return type.

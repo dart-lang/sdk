@@ -549,7 +549,8 @@ abstract class AstFactory {
       TypeAnnotation returnType,
       @required SimpleIdentifier identifier,
       TypeParameterList typeParameters,
-      @required FormalParameterList parameters});
+      @required FormalParameterList parameters,
+      Token question});
 
   /// Initialize a newly created generic function type.
   GenericFunctionType genericFunctionType(

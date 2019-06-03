@@ -2393,6 +2393,16 @@ class ToSourceVisitor2Test extends EngineTestCase {
         "f()", AstTestFactory.functionTypedFormalParameter(null, "f"));
   }
 
+  void test_visitFunctionTypedFormalParameter_nullable() {
+    _assertSource(
+        "T f()?",
+        astFactory.functionTypedFormalParameter2(
+            returnType: AstTestFactory.typeName4("T"),
+            identifier: AstTestFactory.identifier3('f'),
+            parameters: AstTestFactory.formalParameterList([]),
+            question: TokenFactory.tokenFromType(TokenType.QUESTION)));
+  }
+
   void test_visitFunctionTypedFormalParameter_type() {
     _assertSource(
         "T f()",
@@ -5147,6 +5157,16 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitFunctionTypedFormalParameter_noType() {
     _assertSource(
         "f()", AstTestFactory.functionTypedFormalParameter(null, "f"));
+  }
+
+  void test_visitFunctionTypedFormalParameter_nullable() {
+    _assertSource(
+        "T f()?",
+        astFactory.functionTypedFormalParameter2(
+            returnType: AstTestFactory.typeName4("T"),
+            identifier: AstTestFactory.identifier3('f'),
+            parameters: AstTestFactory.formalParameterList([]),
+            question: TokenFactory.tokenFromType(TokenType.QUESTION)));
   }
 
   void test_visitFunctionTypedFormalParameter_type() {
