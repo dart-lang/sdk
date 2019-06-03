@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/ast.dart';
 
 const _desc = r'Prefer const with constant constructors.';
 
@@ -86,21 +85,25 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      bool hasConstError;
-
-      // put a fake const keyword and check if there's const error
-      final oldKeyword = node.keyword;
-      node.keyword = new KeywordToken(Keyword.CONST, node.offset);
-      try {
-        hasConstError = hasErrorWithConstantVerifier(context, node);
-      } finally {
-        // restore old keyword
-        node.keyword = oldKeyword;
-      }
-
-      if (!hasConstError) {
+      if (context.canBeConst(node)) {
+        // A work-around to address: #1592; remove once fixed in analyzer.
+        final collector = new _Collector();
+        node.accept(collector);
+        if (collector.foundTypeParamElement) {
+          return;
+        }
         rule.reportLint(node);
       }
+    }
+  }
+}
+
+class _Collector extends RecursiveAstVisitor<void> {
+  bool foundTypeParamElement = false;
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.staticElement is TypeParameterElement) {
+      foundTypeParamElement = true;
     }
   }
 }
