@@ -177,3 +177,15 @@ group("kernel_platform_files") {
     ":vm_platform_stripped",
   ]
 }
+
+executable("offsets_extractor") {
+  configs += [
+    "..:dart_arch_config",
+    "..:dart_config",
+    ":libdart_vm_config",
+  ]
+  sources = [
+    "compiler/offsets_extractor.cc",
+  ]
+  include_dirs = [ ".." ]
+}
