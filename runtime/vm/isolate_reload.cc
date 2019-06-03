@@ -616,7 +616,7 @@ void IsolateReloadContext::Reload(bool force_reload,
       p_num_received_classes = &num_received_classes_;
       p_num_received_procedures = &num_received_procedures_;
     } else {
-      Dart_KernelCompilationResult retval;
+      Dart_KernelCompilationResult retval = {};
       if (kernel_buffer != NULL && kernel_buffer_size != 0) {
         retval.kernel = const_cast<uint8_t*>(kernel_buffer);
         retval.kernel_size = kernel_buffer_size;

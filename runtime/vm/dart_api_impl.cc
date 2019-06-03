@@ -5534,7 +5534,7 @@ Dart_CompileToKernel(const char* script_uri,
                      const char* package_config) {
   API_TIMELINE_DURATION(Thread::Current());
 
-  Dart_KernelCompilationResult result;
+  Dart_KernelCompilationResult result = {};
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileToKernel is unsupported.");
@@ -5566,7 +5566,7 @@ Dart_CompileSourcesToKernel(const char* script_uri,
                             const char* package_config,
                             const char* multiroot_filepaths,
                             const char* multiroot_scheme) {
-  Dart_KernelCompilationResult result;
+  Dart_KernelCompilationResult result = {};
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
@@ -5588,7 +5588,7 @@ Dart_CompileSourcesToKernel(const char* script_uri,
 }
 
 DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies() {
-  Dart_KernelCompilationResult result;
+  Dart_KernelCompilationResult result = {};
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_KernelListDependencies is unsupported.");
