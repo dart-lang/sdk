@@ -510,9 +510,12 @@ class Assembler : public AssemblerBase {
   void ldrex(Register rd, Register rn, Condition cond = AL);
   void strex(Register rd, Register rt, Register rn, Condition cond = AL);
 
-  // Requires two temporary registers 'scratch0' and 'scratch1' (in addition to
-  // TMP).
+  // Emit code to transition between generated and native modes.
+  //
+  // These require that CSP and SP are equal and aligned and require two scratch
+  // registers (in addition to TMP).
   void TransitionGeneratedToNative(Register destination_address,
+                                   Register exit_frame_fp,
                                    Register scratch0,
                                    Register scratch1);
   void TransitionNativeToGenerated(Register scratch0, Register scratch1);
@@ -917,6 +920,12 @@ class Assembler : public AssemblerBase {
   void PushRegisters(const RegisterSet& regs);
   void PopRegisters(const RegisterSet& regs);
 
+  // Push all registers which are callee-saved according to the ARM ABI.
+  void PushNativeCalleeSavedRegisters();
+
+  // Pop all registers which are callee-saved according to the ARM ABI.
+  void PopNativeCalleeSavedRegisters();
+
   void CompareRegisters(Register rn, Register rm) { cmp(rn, Operand(rm)); }
   void BranchIf(Condition condition, Label* label) { b(label, condition); }
 
@@ -1002,6 +1011,13 @@ class Assembler : public AssemblerBase {
   void LeaveFrame(RegList regs, bool allow_pop_pc = false);
   void Ret();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
+
+  // In debug mode, this generates code to check that:
+  //   FP + kExitLinkSlotFromEntryFp == SP
+  // or triggers breakpoint otherwise.
+  //
+  // Requires a scratch register in addition to the assembler temporary.
+  void EmitEntryFrameVerification(Register scratch);
 
   // Create a frame for calling into runtime that preserves all volatile
   // registers.  Frame's SP is guaranteed to be correctly aligned and

@@ -3960,17 +3960,6 @@ LocationSummary* NativeEntryInstr::MakeLocationSummary(Zone* zone,
   UNREACHABLE();
 }
 
-#if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_IA32) &&                 \
-    !defined(TARGET_ARCH_ARM64)
-void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
-}
-
-void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
-}
-#endif
-
 LocationSummary* OsrEntryInstr::MakeLocationSummary(Zone* zone,
                                                     bool optimizing) const {
   UNREACHABLE();
@@ -5531,11 +5520,6 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                           compiler::ffi::ResultHostRepresentation(signature_)));
 
   return summary;
-}
-
-LocationSummary* NativeReturnInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
-  UNREACHABLE();
 }
 
 #endif  // !defined(TARGET_ARCH_DBC)

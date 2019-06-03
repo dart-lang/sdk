@@ -548,10 +548,12 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
 }
 
 void Assembler::TransitionGeneratedToNative(Register destination_address,
+                                            Register exit_frame_fp,
                                             Register addr,
                                             Register state) {
   // Save exit frame information to enable stack walking.
-  StoreToOffset(kWord, FP, THR, Thread::top_exit_frame_info_offset());
+  StoreToOffset(kWord, exit_frame_fp, THR,
+                Thread::top_exit_frame_info_offset());
 
   // Mark that the thread is executing native code.
   StoreToOffset(kWord, destination_address, THR, Thread::vm_tag_offset());
@@ -2496,6 +2498,33 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
   }
 }
 
+void Assembler::PushNativeCalleeSavedRegisters() {
+  // Save new context and C++ ABI callee-saved registers.
+  PushList(kAbiPreservedCpuRegs);
+
+  const DRegister firstd = EvenDRegisterOf(kAbiFirstPreservedFpuReg);
+  if (TargetCPUFeatures::vfp_supported()) {
+    ASSERT(2 * kAbiPreservedFpuRegCount < 16);
+    // Save FPU registers. 2 D registers per Q register.
+    vstmd(DB_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
+  } else {
+    sub(SP, SP, Operand(kAbiPreservedFpuRegCount * kFpuRegisterSize));
+  }
+}
+
+void Assembler::PopNativeCalleeSavedRegisters() {
+  const DRegister firstd = EvenDRegisterOf(kAbiFirstPreservedFpuReg);
+  // Restore C++ ABI callee-saved registers.
+  if (TargetCPUFeatures::vfp_supported()) {
+    // Restore FPU registers. 2 D registers per Q register.
+    vldmd(IA_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
+  } else {
+    AddImmediate(SP, kAbiPreservedFpuRegCount * kFpuRegisterSize);
+  }
+  // Restore CPU registers.
+  PopList(kAbiPreservedCpuRegs);
+}
+
 void Assembler::MoveRegister(Register rd, Register rm, Condition cond) {
   if (rd != rm) {
     mov(rd, Operand(rm), cond);
@@ -3213,6 +3242,23 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   if (OS::ActivationFrameAlignment() > 1) {
     bic(SP, SP, Operand(OS::ActivationFrameAlignment() - 1));
   }
+}
+
+void Assembler::EmitEntryFrameVerification(Register scratch) {
+#if defined(DEBUG)
+  Label done;
+  ASSERT(!constant_pool_allowed());
+  LoadImmediate(scratch,
+                compiler::target::frame_layout.exit_link_slot_from_entry_fp *
+                    compiler::target::kWordSize);
+  add(scratch, scratch, Operand(FPREG));
+  cmp(scratch, Operand(SPREG));
+  b(&done, EQ);
+
+  Breakpoint();
+
+  Bind(&done);
+#endif
 }
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {

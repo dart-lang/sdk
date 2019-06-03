@@ -949,7 +949,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // The dummy return address is in LR, no need to pop it as on Intel.
 
-  // These can be anything besides the return register (R0).
+  // These can be anything besides the return register (R0) and THR (R26).
   const Register vm_tag_reg = R1, old_exit_frame_reg = R2, tmp = R3;
 
   __ Pop(old_exit_frame_reg);

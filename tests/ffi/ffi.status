@@ -24,9 +24,6 @@ negative_function_test: Skip
 [ $arch == x64 || $arch == arm64 || $arch == simdbc64 ]
 enable_structs_test: SkipByDesign  # Tests that structs don't work on 32-bit systems.
 
-[ $arch != x64 && $arch != ia32 && $arch != arm64 ]
-function_callbacks_test: Skip # Issue 35761
-
 [ $runtime == dart_precompiled ]
 *: Skip # AOT is not yet supported: dartbug.com/35765
 
@@ -44,3 +41,6 @@ function_callbacks_test: Skip # Issue 35761
 
 [ $system != android && $arch == arm ]
 *: Skip # "hardfp" calling convention is not yet supported (iOS is also supported but not tested): dartbug.com/36309
+
+[ $arch == simdbc64 ]
+function_callbacks_test: Skip  # Issue 37140

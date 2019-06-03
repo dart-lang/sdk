@@ -64,7 +64,8 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(UnaryInt64Op)                                                              \
   M(CheckedSmiOp)                                                              \
   M(CheckedSmiComparison)                                                      \
-  M(SimdOp)
+  M(SimdOp)                                                                    \
+  M(NativeReturn)
 
 // Location summaries actually are not used by the unoptimizing DBC compiler
 // because we don't allocate any registers.
@@ -2166,6 +2167,10 @@ EMIT_NATIVE_CODE(CheckArrayBound, 2) {
   compiler->EmitDeopt(deopt_id(), ICData::kDeoptCheckArrayBound,
                       (generalized_ ? ICData::kGeneralized : 0) |
                           (licm_hoisted_ ? ICData::kHoisted : 0));
+}
+
+void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
 }
 
 }  // namespace dart

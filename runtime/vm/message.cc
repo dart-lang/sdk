@@ -4,6 +4,8 @@
 
 #include "vm/message.h"
 
+#include <utility>
+
 #include "vm/dart_entry.h"
 #include "vm/json_stream.h"
 #include "vm/object.h"
@@ -11,7 +13,7 @@
 
 namespace dart {
 
-const Dart_Port Message::kIllegalPort;
+const Dart_Port Message::kIllegalPort = 0;
 
 Message::Message(Dart_Port dest_port,
                  uint8_t* snapshot,

@@ -6,6 +6,7 @@
 #define RUNTIME_VM_MESSAGE_H_
 
 #include <memory>
+#include <utility>
 
 #include "platform/assert.h"
 #include "vm/allocation.h"
@@ -42,7 +43,7 @@ class Message {
   } OOBMsgTag;
 
   // A port number which is never used.
-  static const Dart_Port kIllegalPort = 0;
+  static const Dart_Port kIllegalPort;
 
   // A new message to be sent between two isolates. The data handed to this
   // message will be disposed by calling free() once the message object is
