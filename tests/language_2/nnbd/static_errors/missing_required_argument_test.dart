@@ -12,14 +12,14 @@ class A {
   A({required int a}) {}
   A.named() : this(); //# 01: compile-time error
   void m1({required int a}) {}
-  F m2() => ({required String x}) => null;
+  F m2() => ({required String x}) => '';
 }
 
 class B extends A { B() : super(); } //# 02: compile-time error
 
 void f({required int a}) {}
 
-void Function({required int a}) g() => null;
+void Function({required int a}) g() => throw '';
 
 main() {
   A a = new A(); //# 03: compile-time error
