@@ -1203,6 +1203,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadImmediate(PP, 0);  // GC safe value into PP.
   }
 
+  // Load a GC-safe value for the arguments descriptor (unused but tagged).
+  __ LoadImmediate(ARGS_DESC_REG, 0);
+
   // Load a dummy return address which suggests that we are inside of
   // InvokeDartCodeStub. This is how the stack walker detects an entry frame.
   __ LoadFromOffset(kWord, LR, THR,

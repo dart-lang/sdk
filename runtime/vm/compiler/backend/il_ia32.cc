@@ -1066,6 +1066,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movl(Address(FPREG, kPcMarkerSlotFromFp * compiler::target::kWordSize),
           CODE_REG);
 
+  // Load a GC-safe value for the arguments descriptor (unused but tagged).
+  __ xorl(ARGS_DESC_REG, ARGS_DESC_REG);
+
   // Push a dummy return address which suggests that we are inside of
   // InvokeDartCodeStub. This is how the stack walker detects an entry frame.
   __ movl(

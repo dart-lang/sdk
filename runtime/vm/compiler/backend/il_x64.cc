@@ -1020,7 +1020,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Save a space for the code object.
   __ PushImmediate(Immediate(0));
 
-  // InvokoeDartCodeStub saves the arguments descriptor here. We don't have one,
+  // InvokeDartCodeStub saves the arguments descriptor here. We don't have one,
   // but we need to follow the same frame layout for the stack walker.
   __ PushImmediate(Immediate(0));
 
@@ -1094,6 +1094,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     __ xorq(PP, PP);  // GC-safe value into PP.
   }
+
+  // Load a GC-safe value for arguments descriptor (unused but tagged).
+  __ xorq(ARGS_DESC_REG, ARGS_DESC_REG);
 
   // Push a dummy return address which suggests that we are inside of
   // InvokeDartCodeStub. This is how the stack walker detects an entry frame.
