@@ -885,9 +885,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
 
-    userBuilders?.forEach(addBuilderAndInvalidateUris);
     if (userCode != null) {
+      // userCode already contains the builders from userBuilders.
       userCode.loader.builders.forEach(addBuilderAndInvalidateUris);
+    } else {
+      // userCode was null so we explicitly have to add the builders from
+      // userBuilders (which cannot be null as we checked initially that one of
+      // them was non-null).
+      userBuilders.forEach(addBuilderAndInvalidateUris);
     }
 
     recordInvalidatedImportUrisForTesting(invalidatedImportUris);
