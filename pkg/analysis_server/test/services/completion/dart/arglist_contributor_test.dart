@@ -582,16 +582,20 @@ foo({String children}) {}
     //
     addTestSource('main() { int.parse("16", ^);}');
     await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'radix': 'int', 'onError': '(String) → int'});
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'radix': 'int',
+      'onError': 'int Function(String)'
+    });
   }
 
   test_ArgumentList_imported_function_named_param1() async {
     //
     addTestSource('main() { int.parse("16", r^);}');
     await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'radix': 'int', 'onError': '(String) → int'});
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'radix': 'int',
+      'onError': 'int Function(String)'
+    });
   }
 
   test_ArgumentList_imported_function_named_param2() async {
@@ -599,7 +603,7 @@ foo({String children}) {}
     addTestSource('main() { int.parse("16", radix: 7, ^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'onError': '(String) → int'});
+        namedArgumentsWithTypes: {'onError': 'int Function(String)'});
   }
 
   test_ArgumentList_imported_function_named_param2a() async {
@@ -613,9 +617,10 @@ foo({String children}) {}
     //
     addTestSource('main() { int.parse("16", r^: 16);}');
     await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'radix': 'int', 'onError': '(String) → int'},
-        includeColon: false);
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'radix': 'int',
+      'onError': 'int Function(String)'
+    }, includeColon: false);
   }
 
   test_ArgumentList_imported_function_named_param_label2() async {
@@ -629,8 +634,10 @@ foo({String children}) {}
     //
     addTestSource('main() { int.parse("16", ^: 16);}');
     await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'radix': 'int', 'onError': '(String) → int'});
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'radix': 'int',
+      'onError': 'int Function(String)'
+    });
   }
 
   test_ArgumentList_local_constructor_named_fieldFormal_documentation() async {
@@ -886,8 +893,10 @@ main() { new A(^);}''');
 f(v,{int radix, int onError(String s)}){}
 main() { f("16", ^);}''');
     await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'radix': 'int', 'onError': '(String) → int'});
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'radix': 'int',
+      'onError': 'int Function(String)'
+    });
   }
 
   test_ArgumentList_local_function_named_param1() async {
@@ -896,8 +905,10 @@ main() { f("16", ^);}''');
 f(v,{int radix, int onError(String s)}){}
 main() { f("16", r^);}''');
     await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'radix': 'int', 'onError': '(String) → int'});
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'radix': 'int',
+      'onError': 'int Function(String)'
+    });
   }
 
   test_ArgumentList_local_function_named_param2() async {
@@ -907,7 +918,7 @@ f(v,{int radix, int onError(String s)}){}
 main() { f("16", radix: 7, ^);}''');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'onError': '(String) → int'});
+        namedArgumentsWithTypes: {'onError': 'int Function(String)'});
   }
 
   test_ArgumentList_local_function_named_param2a() async {

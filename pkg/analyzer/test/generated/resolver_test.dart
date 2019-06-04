@@ -170,7 +170,7 @@ class EnclosedScopeTest extends DriverResolutionTest {
 @reflectiveTest
 class ErrorResolverTest extends DriverResolutionTest {
   test_breakLabelOnSwitchMember() async {
-    assertErrorCodesInCode(r'''
+    assertErrorsInCode(r'''
 class A {
   void m(int i) {
     switch (i) {
@@ -180,11 +180,13 @@ class A {
         break l;
     }
   }
-}''', [ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER]);
+}''', [
+      error(ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 105, 1),
+    ]);
   }
 
   test_continueLabelOnSwitch() async {
-    assertErrorCodesInCode(r'''
+    assertErrorsInCode(r'''
 class A {
   void m(int i) {
     l: switch (i) {
@@ -192,7 +194,9 @@ class A {
         continue l;
     }
   }
-}''', [ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH]);
+}''', [
+      error(ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH, 79, 1),
+    ]);
   }
 
   test_enclosingElement_invalidLocalFunction() async {

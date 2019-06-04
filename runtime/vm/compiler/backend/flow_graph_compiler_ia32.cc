@@ -1182,6 +1182,8 @@ int FlowGraphCompiler::EmitTestAndCallCheckCid(Assembler* assembler,
 void FlowGraphCompiler::EmitMove(Location destination,
                                  Location source,
                                  TemporaryRegisterAllocator* tmp) {
+  if (destination.Equals(source)) return;
+
   if (source.IsRegister()) {
     if (destination.IsRegister()) {
       __ movl(destination.reg(), source.reg());
@@ -1192,6 +1194,9 @@ void FlowGraphCompiler::EmitMove(Location destination,
   } else if (source.IsStackSlot()) {
     if (destination.IsRegister()) {
       __ movl(destination.reg(), LocationToStackSlotAddress(source));
+    } else if (destination.IsFpuRegister()) {
+      // 32-bit float
+      __ movss(destination.fpu_reg(), LocationToStackSlotAddress(source));
     } else {
       ASSERT(destination.IsStackSlot());
       Register scratch = tmp->AllocateTemporary();

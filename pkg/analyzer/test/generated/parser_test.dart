@@ -1628,6 +1628,25 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(initializer.period, isNull);
   }
 
+  void test_parseGetter_identifier_colon_issue_36961() {
+    createParser('get a:');
+    MethodDeclaration method = parser.parseClassMember('C');
+    expect(method, isNotNull);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.MISSING_INITIALIZER, 5, 1),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 6, 0),
+    ]);
+    expect(method.body, isNotNull);
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.parameters, isNull);
+    expect(method.propertyKeyword, isNotNull);
+    expect(method.returnType, isNull);
+  }
+
   void test_parseGetter_nonStatic() {
     createParser('/// Doc\nT get a;');
     MethodDeclaration method = parser.parseClassMember('C');
@@ -3234,7 +3253,7 @@ class Foo {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.EXTERNAL_AFTER_FACTORY, 8, 8)]);
+        [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 8, 8)]);
   }
 
   void test_externalAfterStatic() {
@@ -4394,7 +4413,7 @@ class Wrong<T> {
 
   void test_missingClassBody() {
     parseCompilationUnit("class A class B {}",
-        errors: [expectedError(ParserErrorCode.MISSING_CLASS_BODY, 8, 5)]);
+        errors: [expectedError(ParserErrorCode.MISSING_CLASS_BODY, 6, 1)]);
   }
 
   void test_missingClosingParenthesis() {
@@ -5310,7 +5329,7 @@ m() {
         parseStatement('switch (a) return;', expectedEndOffset: 11);
     expect(statement, isNotNull);
     listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 6)]
+        ? [expectedError(ParserErrorCode.EXPECTED_BODY, 9, 1)]
         : [
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 6),
             expectedError(ParserErrorCode.EXPECTED_CASE_OR_DEFAULT, 11, 6),

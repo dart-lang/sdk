@@ -828,7 +828,7 @@ class KernelCompilationRequest : public ValueObject {
   KernelCompilationRequest* next_;
   KernelCompilationRequest* prev_;
 
-  Dart_KernelCompilationResult result_;
+  Dart_KernelCompilationResult result_ = {};
 };
 
 Monitor* KernelCompilationRequest::requests_monitor_ = new Monitor();
@@ -848,7 +848,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
   // to finish initialization.
   Dart_Port kernel_port = WaitForKernelPort();
   if (kernel_port == ILLEGAL_PORT) {
-    Dart_KernelCompilationResult result;
+    Dart_KernelCompilationResult result = {};
     result.status = Dart_KernelCompilationStatus_Unknown;
     result.error = strdup("Error while initializing Kernel isolate");
     return result;
@@ -865,7 +865,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
 Dart_KernelCompilationResult KernelIsolate::ListDependencies() {
   Dart_Port kernel_port = WaitForKernelPort();
   if (kernel_port == ILLEGAL_PORT) {
-    Dart_KernelCompilationResult result;
+    Dart_KernelCompilationResult result = {};
     result.status = Dart_KernelCompilationStatus_Unknown;
     result.error = strdup("Error while initializing Kernel isolate");
     return result;
@@ -882,7 +882,7 @@ Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
   // to finish initialization.
   Dart_Port kernel_port = WaitForKernelPort();
   if (kernel_port == ILLEGAL_PORT) {
-    Dart_KernelCompilationResult result;
+    Dart_KernelCompilationResult result = {};
     result.status = Dart_KernelCompilationStatus_Unknown;
     result.error = strdup("Error while initializing Kernel isolate");
     return result;
@@ -903,7 +903,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
     bool is_static) {
   Dart_Port kernel_port = WaitForKernelPort();
   if (kernel_port == ILLEGAL_PORT) {
-    Dart_KernelCompilationResult result;
+    Dart_KernelCompilationResult result = {};
     result.status = Dart_KernelCompilationStatus_Unknown;
     result.error = strdup("Error while initializing Kernel isolate");
     return result;
@@ -923,7 +923,7 @@ Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(
   // to finish initialization.
   Dart_Port kernel_port = WaitForKernelPort();
   if (kernel_port == ILLEGAL_PORT) {
-    Dart_KernelCompilationResult result;
+    Dart_KernelCompilationResult result = {};
     result.status = Dart_KernelCompilationStatus_Unknown;
     result.error = strdup("Error while initializing Kernel isolate");
     return result;

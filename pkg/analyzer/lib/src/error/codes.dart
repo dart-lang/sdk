@@ -2880,6 +2880,20 @@ class CompileTimeErrorCode extends ErrorCode {
           "Setters should declare exactly one required parameter.");
 
   /**
+   * Let `C` be a generic class that declares a formal type parameter `X`, and
+   * assume that `T` is a direct superinterface of `C`. It is a compile-time
+   * error if `X` occurs contravariantly or invariantly in `T`.
+   */
+  static const CompileTimeErrorCode
+      WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE =
+      const CompileTimeErrorCode(
+    'WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
+    "'{0}' can't be used contravariantly or invariantly in '{1}'.",
+    correction: "Try not using class type parameters in types of formal "
+        "parameters of function types.",
+  );
+
+  /**
    * ?? Yield: It is a compile-time error if a yield statement appears in a
    * function that is not a generator function.
    */

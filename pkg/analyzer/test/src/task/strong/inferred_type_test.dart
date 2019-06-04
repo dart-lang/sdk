@@ -60,10 +60,10 @@ var g = /*info:INFERRED_TYPE_CLOSURE*/() async => futureInt;
     expect(futureInt.type.toString(), 'Future<int>');
     var f = mainUnit.topLevelVariables[1];
     expect(f.name, 'f');
-    expect(f.type.toString(), '() → Future<int>');
+    expect(f.type.toString(), 'Future<int> Function()');
     var g = mainUnit.topLevelVariables[2];
     expect(g.name, 'g');
-    expect(g.type.toString(), '() → Future<int>');
+    expect(g.type.toString(), 'Future<int> Function()');
   }
 
   test_asyncClosureReturnType_future() async {
@@ -72,7 +72,7 @@ var f = /*info:INFERRED_TYPE_CLOSURE*/() async => 0;
 ''');
     var f = mainUnit.topLevelVariables[0];
     expect(f.name, 'f');
-    expect(f.type.toString(), '() → Future<int>');
+    expect(f.type.toString(), 'Future<int> Function()');
   }
 
   test_asyncClosureReturnType_futureOr() async {
@@ -87,10 +87,10 @@ var g = /*info:INFERRED_TYPE_CLOSURE*/() async => futureOrInt;
     expect(futureOrInt.type.toString(), 'FutureOr<int>');
     var f = mainUnit.topLevelVariables[1];
     expect(f.name, 'f');
-    expect(f.type.toString(), '() → FutureOr<int>');
+    expect(f.type.toString(), 'FutureOr<int> Function()');
     var g = mainUnit.topLevelVariables[2];
     expect(g.name, 'g');
-    expect(g.type.toString(), '() → Future<int>');
+    expect(g.type.toString(), 'Future<int> Function()');
   }
 
   test_blockBodiedLambdas_async_allReturnsAreFutures() async {
@@ -113,7 +113,7 @@ main() {
 }
 ''');
     var f = findLocalVariable(unit, 'f');
-    expect(f.type.toString(), '() → Future<num>');
+    expect(f.type.toString(), 'Future<num> Function()');
   }
 
   test_blockBodiedLambdas_async_allReturnsAreValues() async {
@@ -136,7 +136,7 @@ main() {
 }
 ''');
     var f = findLocalVariable(unit, 'f');
-    expect(f.type.toString(), '() → Future<num>');
+    expect(f.type.toString(), 'Future<num> Function()');
   }
 
   test_blockBodiedLambdas_async_mixOfValuesAndFutures() async {
@@ -159,7 +159,7 @@ main() {
 }
 ''');
     var f = findLocalVariable(unit, 'f');
-    expect(f.type.toString(), '() → Future<num>');
+    expect(f.type.toString(), 'Future<num> Function()');
   }
 
   test_blockBodiedLambdas_asyncStar() async {
@@ -179,7 +179,7 @@ main() {
 }
 ''');
     var f = findLocalVariable(unit, 'f');
-    expect(f.type.toString(), '() → Stream<num>');
+    expect(f.type.toString(), 'Stream<num> Function()');
   }
 
   test_blockBodiedLambdas_basic() async {
@@ -204,7 +204,7 @@ main() {
 }
 ''');
     var g = findLocalVariable(unit, 'g');
-    expect(g.type.toString(), '() → String');
+    expect(g.type.toString(), 'String Function()');
   }
 
   test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference_topLevel() async {
@@ -213,7 +213,7 @@ String f() => null;
 var g = f;
 ''');
     var g = unit.topLevelVariables[0];
-    expect(g.type.toString(), '() → String');
+    expect(g.type.toString(), 'String Function()');
   }
 
   test_blockBodiedLambdas_inferBottom_async() async {
@@ -230,7 +230,7 @@ main() async {
 }
 ''');
     var f = findLocalVariable(unit, 'f');
-    expect(f.type.toString(), '() → Future<Null>');
+    expect(f.type.toString(), 'Future<Null> Function()');
   }
 
   test_blockBodiedLambdas_inferBottom_asyncStar() async {
@@ -247,7 +247,7 @@ main() async {
 }
 ''');
     var f = findLocalVariable(unit, 'f');
-    expect(f.type.toString(), '() → Stream<Null>');
+    expect(f.type.toString(), 'Stream<Null> Function()');
   }
 
   test_blockBodiedLambdas_inferBottom_sync() async {
@@ -272,7 +272,7 @@ main() {
 ''');
 
     var f = findLocalVariable(unit, 'f');
-    expect(f.type.toString(), '(Object) → Null');
+    expect(f.type.toString(), 'Null Function(Object)');
   }
 
   test_blockBodiedLambdas_inferBottom_syncStar() async {
@@ -288,7 +288,7 @@ main() {
 }
 ''');
     var f = findLocalVariable(unit, 'f');
-    expect(f.type.toString(), '() → Iterable<Null>');
+    expect(f.type.toString(), 'Iterable<Null> Function()');
   }
 
   test_blockBodiedLambdas_LUB() async {
@@ -322,7 +322,7 @@ main() {
 }
 ''');
     var f = findLocalVariable(unit, 'f');
-    expect(f.type.toString(), '() → (int) → double');
+    expect(f.type.toString(), 'double Function(int) Function()');
   }
 
   test_blockBodiedLambdas_noReturn() async {
@@ -355,7 +355,7 @@ main() {
 }
 ''');
     var f = findLocalVariable(unit, 'f');
-    expect(f.type.toString(), '() → Iterable<num>');
+    expect(f.type.toString(), 'Iterable<num> Function()');
   }
 
   test_bottom() async {
@@ -368,9 +368,9 @@ var v = null;
     var v = mainUnit.topLevelVariables[0];
     expect(v.type.toString(), 'dynamic');
     if (AnalysisDriver.useSummary2) {
-      expect(v.initializer.type.toString(), '() → dynamic');
+      expect(v.initializer.type.toString(), 'dynamic Function()');
     } else {
-      expect(v.initializer.type.toString(), '() → Null');
+      expect(v.initializer.type.toString(), 'Null Function()');
     }
   }
 
@@ -381,8 +381,8 @@ var v = null;
 var v = /*info:INFERRED_TYPE_CLOSURE*/() => null;
 ''');
     var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), '() → Null');
-    expect(v.initializer.type.toString(), '() → () → Null');
+    expect(v.type.toString(), 'Null Function()');
+    expect(v.initializer.type.toString(), 'Null Function() Function()');
   }
 
   test_circularReference_viaClosures() async {
@@ -407,8 +407,8 @@ var y = /*info:INFERRED_TYPE_CLOSURE*/() => /*error:TOP_LEVEL_CYCLE*/x;
     var y = mainUnit.topLevelVariables[1];
     expect(x.name, 'x');
     expect(y.name, 'y');
-    expect(x.initializer.returnType.toString(), '() → dynamic');
-    expect(y.initializer.returnType.toString(), '() → dynamic');
+    expect(x.initializer.returnType.toString(), 'dynamic Function()');
+    expect(y.initializer.returnType.toString(), 'dynamic Function()');
   }
 
   test_conflictsCanHappen() async {
@@ -1985,7 +1985,7 @@ class D<T> {
 typedef void F<V>(V v);
 ''');
     var f = mainUnit.getType('C').methods[0];
-    expect(f.type.toString(), '<U>(U) → (U) → void');
+    expect(f.type.toString(), 'void Function(U) Function<U>(U)');
   }
 
   test_genericMethods_inferGenericFunctionParameterType2() async {
@@ -1999,7 +1999,7 @@ abstract class D<T> {
 typedef List<V> G<V>();
 ''');
     var f = mainUnit.getType('C').methods[0];
-    expect(f.type.toString(), '<U>(() → List<U>) → void');
+    expect(f.type.toString(), 'void Function<U>(List<U> Function())');
   }
 
   test_genericMethods_inferGenericFunctionReturnType() async {
@@ -2013,7 +2013,7 @@ class D<T> {
 typedef V F<V>();
 ''');
     var f = mainUnit.getType('C').methods[0];
-    expect(f.type.toString(), '<U>(U) → () → U');
+    expect(f.type.toString(), 'U Function() Function<U>(U)');
   }
 
   test_genericMethods_inferGenericInstantiation() async {
@@ -2192,7 +2192,7 @@ main() {
 }
 ''');
     var v = findLocalVariable(unit, 'v');
-    expect(v.type.toString(), '(num) → List<int>');
+    expect(v.type.toString(), 'List<int> Function(num)');
   }
 
   test_genericMethods_usesGreatestLowerBound_topLevel() async {
@@ -2205,7 +2205,7 @@ T generic<T>(a(T _), b(T _)) => null;
 var v = generic(/*info:INFERRED_TYPE_CLOSURE*/(F f) => null, /*info:INFERRED_TYPE_CLOSURE*/(G g) => null);
 ''');
     var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), '(num) → List<int>');
+    expect(v.type.toString(), 'List<int> Function(num)');
   }
 
   test_infer_assignToIndex() async {
@@ -2495,7 +2495,7 @@ String g() => null;
 var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
 ''');
     var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'List<() → Object>');
+    expect(v.type.toString(), 'List<Object Function()>');
   }
 
   test_inferedType_usesSyntheticFunctionType_functionTypedParam() async {
@@ -2505,7 +2505,7 @@ String g(int x(String y)) => null;
 var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
 ''');
     var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'List<((String) → int) → Object>');
+    expect(v.type.toString(), 'List<Object Function(int Function(String))>');
   }
 
   test_inferedType_usesSyntheticFunctionType_namedParam() async {
@@ -2515,7 +2515,7 @@ String g({int x}) => null;
 var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
 ''');
     var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'List<({x: int}) → Object>');
+    expect(v.type.toString(), 'List<Object Function({x: int})>');
   }
 
   test_inferedType_usesSyntheticFunctionType_positionalParam() async {
@@ -2525,7 +2525,7 @@ String g([int x]) => null;
 var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
 ''');
     var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'List<([int]) → Object>');
+    expect(v.type.toString(), 'List<Object Function([int])>');
   }
 
   test_inferedType_usesSyntheticFunctionType_requiredParam() async {
@@ -2535,7 +2535,7 @@ String g(int x) => null;
 var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
 ''');
     var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'List<(int) → Object>');
+    expect(v.type.toString(), 'List<Object Function(int)>');
   }
 
   test_inferFromComplexExpressionsIfOuterMostValueIsPrecise() async {
@@ -2783,20 +2783,25 @@ main() {
   f9 /*info:INFERRED_TYPE_CLOSURE*/() => f5();
 }
 ''');
-    expect(findLocalFunction(unit, 'f0').type.toString(), '() → int');
-    expect(findLocalFunction(unit, 'f1').type.toString(), '() → Future<int>');
+    expect(findLocalFunction(unit, 'f0').type.toString(), 'int Function()');
+    expect(findLocalFunction(unit, 'f1').type.toString(),
+        'Future<int> Function()');
 
-    expect(findLocalFunction(unit, 'f2').type.toString(), '() → int');
-    expect(findLocalFunction(unit, 'f3').type.toString(), '() → Future<int>');
-    expect(findLocalFunction(unit, 'f4').type.toString(), '() → Iterable<int>');
-    expect(findLocalFunction(unit, 'f5').type.toString(), '() → Stream<int>');
+    expect(findLocalFunction(unit, 'f2').type.toString(), 'int Function()');
+    expect(findLocalFunction(unit, 'f3').type.toString(),
+        'Future<int> Function()');
+    expect(findLocalFunction(unit, 'f4').type.toString(),
+        'Iterable<int> Function()');
+    expect(findLocalFunction(unit, 'f5').type.toString(),
+        'Stream<int> Function()');
 
-    expect(findLocalFunction(unit, 'f6').type.toString(), '() → num');
+    expect(findLocalFunction(unit, 'f6').type.toString(), 'num Function()');
 
     // Recursive cases: these infer in declaration order.
-    expect(findLocalFunction(unit, 'f7').type.toString(), '() → dynamic');
-    expect(findLocalFunction(unit, 'f8').type.toString(), '() → dynamic');
-    expect(findLocalFunction(unit, 'f9').type.toString(), '() → Stream<int>');
+    expect(findLocalFunction(unit, 'f7').type.toString(), 'dynamic Function()');
+    expect(findLocalFunction(unit, 'f8').type.toString(), 'dynamic Function()');
+    expect(findLocalFunction(unit, 'f9').type.toString(),
+        'Stream<int> Function()');
   }
 
   test_inferParameterType_setter_fromField() async {
@@ -2809,7 +2814,7 @@ class D {
 }
 ''');
     var f = mainUnit.getType('C').accessors[0];
-    expect(f.type.toString(), '(int) → void');
+    expect(f.type.toString(), 'void Function(int)');
   }
 
   test_inferParameterType_setter_fromSetter() async {
@@ -2822,7 +2827,7 @@ class D {
 }
 ''');
     var f = mainUnit.getType('C').accessors[0];
-    expect(f.type.toString(), '(int) → void');
+    expect(f.type.toString(), 'void Function(int)');
   }
 
   test_inferred_nonstatic_field_depends_on_static_field_complex() async {
@@ -2873,7 +2878,7 @@ main() {
 }
 ''');
     var f = findLocalVariable(unit, 'f');
-    expect(f.type.toString(), '() → Null');
+    expect(f.type.toString(), 'Null Function()');
   }
 
   test_inferredType_cascade() async {
@@ -2984,7 +2989,7 @@ var x = f().g;
 ''');
     var x = mainUnit.topLevelVariables[0];
     expect(x.name, 'x');
-    expect(x.type.toString(), '() → bool');
+    expect(x.type.toString(), 'bool Function()');
   }
 
   test_inferredType_extractMethodTearOff_viaInterface() async {
@@ -2998,7 +3003,7 @@ var x = f().g;
 ''');
     var x = mainUnit.topLevelVariables[0];
     expect(x.name, 'x');
-    expect(x.type.toString(), '() → bool');
+    expect(x.type.toString(), 'bool Function()');
   }
 
   test_inferredType_fromTopLevelExecutableTearoff() async {
@@ -3006,7 +3011,7 @@ var x = f().g;
 var v = print;
 ''');
     var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), '(Object) → void');
+    expect(v.type.toString(), 'void Function(Object)');
   }
 
   test_inferredType_invokeMethod() async {
@@ -3060,7 +3065,7 @@ typedef void F();
 final x = <String, F>{};
 ''');
     var x = mainUnit.topLevelVariables[0];
-    expect(x.type.toString(), 'Map<String, () → void>');
+    expect(x.type.toString(), 'Map<String, void Function()>');
   }
 
   test_inferredType_isTypedef_parameterized() async {
@@ -3069,7 +3074,7 @@ typedef T F<T>();
 final x = <String, F<int>>{};
 ''');
     var x = mainUnit.topLevelVariables[0];
-    expect(x.type.toString(), 'Map<String, () → int>');
+    expect(x.type.toString(), 'Map<String, int Function()>');
   }
 
   test_inferredType_viaClosure_multipleLevelsOfNesting() async {
@@ -3080,7 +3085,7 @@ class C {
 }
 ''');
     var f = mainUnit.getType('C').fields[0];
-    expect(f.type.toString(), '(bool) → (int) → Map<int, bool>');
+    expect(f.type.toString(), 'Map<int, bool> Function(int) Function(bool)');
   }
 
   test_inferredType_viaClosure_typeDependsOnArgs() async {
@@ -3090,7 +3095,7 @@ class C {
 }
 ''');
     var f = mainUnit.getType('C').fields[0];
-    expect(f.type.toString(), '(bool) → bool');
+    expect(f.type.toString(), 'bool Function(bool)');
   }
 
   test_inferredType_viaClosure_typeIndependentOfArgs_field() async {
@@ -3100,7 +3105,7 @@ class C {
 }
 ''');
     var f = mainUnit.getType('C').fields[0];
-    expect(f.type.toString(), '(bool) → int');
+    expect(f.type.toString(), 'int Function(bool)');
   }
 
   test_inferredType_viaClosure_typeIndependentOfArgs_topLevel() async {
@@ -3108,7 +3113,7 @@ class C {
 final f = /*info:INFERRED_TYPE_CLOSURE*/(bool b) => 1;
 ''');
     var f = mainUnit.topLevelVariables[0];
-    expect(f.type.toString(), '(bool) → int');
+    expect(f.type.toString(), 'int Function(bool)');
   }
 
   test_inferReturnOfStatementLambda() async {
@@ -4071,7 +4076,7 @@ class C {
 }
 ''');
     var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), '(String) → int');
+    expect(v.type.toString(), 'int Function(String)');
   }
 
   test_unsafeBlockClosureInference_closureCall() async {
@@ -4271,7 +4276,7 @@ main() {
 }
 ''');
     var v = findLocalVariable(unit, 'v');
-    expect(v.type.toString(), 'List<() → int>');
+    expect(v.type.toString(), 'List<int Function()>');
   }
 
   test_unsafeBlockClosureInference_inList_untyped() async {
@@ -4284,7 +4289,7 @@ main() {
 }
 ''');
     var v = findLocalVariable(unit, 'v');
-    expect(v.type.toString(), 'List<() → int>');
+    expect(v.type.toString(), 'List<int Function()>');
   }
 
   test_unsafeBlockClosureInference_inMap_dynamic() async {
@@ -4305,7 +4310,7 @@ main() {
 }
 ''');
     var v = findLocalVariable(unit, 'v');
-    expect(v.type.toString(), 'Map<int, () → int>');
+    expect(v.type.toString(), 'Map<int, int Function()>');
   }
 
   test_unsafeBlockClosureInference_inMap_untyped() async {
@@ -4318,7 +4323,7 @@ main() {
 }
 ''');
     var v = findLocalVariable(unit, 'v');
-    expect(v.type.toString(), 'Map<int, () → int>');
+    expect(v.type.toString(), 'Map<int, int Function()>');
   }
 
   test_unsafeBlockClosureInference_methodCall_explicitDynamicParam() async {

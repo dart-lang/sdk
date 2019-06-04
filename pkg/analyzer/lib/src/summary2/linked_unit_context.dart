@@ -223,7 +223,7 @@ class LinkedUnitContext {
   }
 
   int getDirectiveOffset(AstNode node) {
-    return LazyDirective.getNameOffset(node);
+    return LazyDirective.getKeywordOffset(node);
   }
 
   Comment getDocumentationComment(AstNode node) {
@@ -406,14 +406,6 @@ class LinkedUnitContext {
     }
   }
 
-  InterfaceType getInterfaceType(LinkedNodeType linkedType) {
-    var type = readType(linkedType);
-    if (type is InterfaceType && !type.element.isEnum) {
-      return type;
-    }
-    return null;
-  }
-
   Comment getLibraryDocumentationComment(CompilationUnit unit) {
     for (var directive in unit.directives) {
       if (directive is LibraryDirective) {
@@ -571,10 +563,6 @@ class LinkedUnitContext {
 
   String getSelectedUri(UriBasedDirective node) {
     return LazyDirective.getSelectedUri(node);
-  }
-
-  String getStringContent(LinkedNode node) {
-    return node.simpleStringLiteral_value;
   }
 
   TypeName getSuperclass(AstNode node) {
@@ -749,7 +737,9 @@ class LinkedUnitContext {
   }
 
   bool isExplicitlyCovariant(AstNode node) {
-    if (node is EnumConstantDeclaration) {
+    if (node is DefaultFormalParameter) {
+      return isExplicitlyCovariant(node.parameter);
+    } else if (node is EnumConstantDeclaration) {
       return false;
     } else if (node is FormalParameter) {
       return node.covariantKeyword != null;
@@ -782,10 +772,6 @@ class LinkedUnitContext {
       return parent.isFinal;
     }
     throw UnimplementedError('${node.runtimeType}');
-  }
-
-  bool isFunction(LinkedNode node) {
-    return node.kind == LinkedNodeKind.functionDeclaration;
   }
 
   bool isGenerator(AstNode node) {
@@ -826,10 +812,6 @@ class LinkedUnitContext {
     throw UnimplementedError('${node.runtimeType}');
   }
 
-  bool isMethod(LinkedNode node) {
-    return node.kind == LinkedNodeKind.methodDeclaration;
-  }
-
   bool isSetter(AstNode node) {
     if (node is FunctionDeclaration) {
       return node.isSetter;
@@ -866,10 +848,6 @@ class LinkedUnitContext {
     } else {
       throw StateError('${node.runtimeType}');
     }
-  }
-
-  AstNode readNode(LinkedNode linkedNode) {
-    return _astReader.readNode(linkedNode);
   }
 
   DartType readType(LinkedNodeType linkedType) {
@@ -946,7 +924,9 @@ class LinkedUnitContext {
   }
 
   void setInheritsCovariant(AstNode node, bool value) {
-    if (node is FormalParameter) {
+    if (node is DefaultFormalParameter) {
+      setInheritsCovariant(node.parameter, value);
+    } else if (node is FormalParameter) {
       LazyAst.setInheritsCovariant(node, value);
     } else if (node is VariableDeclaration) {
       LazyAst.setInheritsCovariant(node, value);
@@ -1036,34 +1016,6 @@ class LinkedUnitContext {
       }
     }
     throw StateError('Expected to find $indexInLibrary part directive.');
-  }
-
-  static List<LinkedNode> getTypeParameters(LinkedNode node) {
-    LinkedNode typeParameterList;
-    var kind = node.kind;
-    if (kind == LinkedNodeKind.classTypeAlias) {
-      typeParameterList = node.classTypeAlias_typeParameters;
-    } else if (kind == LinkedNodeKind.classDeclaration ||
-        kind == LinkedNodeKind.mixinDeclaration) {
-      typeParameterList = node.classOrMixinDeclaration_typeParameters;
-    } else if (kind == LinkedNodeKind.constructorDeclaration) {
-      return const [];
-    } else if (kind == LinkedNodeKind.functionDeclaration) {
-      return getTypeParameters(node.functionDeclaration_functionExpression);
-    } else if (kind == LinkedNodeKind.functionExpression) {
-      typeParameterList = node.functionExpression_typeParameters;
-    } else if (kind == LinkedNodeKind.functionTypeAlias) {
-      typeParameterList = node.functionTypeAlias_typeParameters;
-    } else if (kind == LinkedNodeKind.genericFunctionType) {
-      typeParameterList = node.genericFunctionType_typeParameters;
-    } else if (kind == LinkedNodeKind.genericTypeAlias) {
-      typeParameterList = node.genericTypeAlias_typeParameters;
-    } else if (kind == LinkedNodeKind.methodDeclaration) {
-      typeParameterList = node.methodDeclaration_typeParameters;
-    } else {
-      throw UnimplementedError('$kind');
-    }
-    return typeParameterList?.typeParameterList_typeParameters;
   }
 
   static NullabilitySuffix _nullabilitySuffix(EntityRefNullabilitySuffix data) {

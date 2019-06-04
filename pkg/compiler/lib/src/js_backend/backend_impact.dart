@@ -699,7 +699,7 @@ class BackendImpacts {
   BackendImpact _noSuchMethodSupport;
 
   BackendImpact get noSuchMethodSupport {
-    return _noSuchMethodSupport ??= new BackendImpact(staticUses: [
+    return _noSuchMethodSupport ??= new BackendImpact(globalUses: [
       _commonElements.createInvocationMirror,
       _commonElements.createUnmangledInvocationMirror
     ], dynamicUses: [

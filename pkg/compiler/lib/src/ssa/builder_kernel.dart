@@ -12,6 +12,7 @@ import '../common/names.dart';
 import '../common_elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
+import '../deferred_load.dart';
 import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
@@ -151,6 +152,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   StackFrame _currentFrame;
 
   final FunctionInlineCache _inlineCache;
+  final InlineDataCache _inlineDataCache;
 
   KernelSsaGraphBuilder(
       this.options,
@@ -167,7 +169,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       this._tracer,
       this._rtiEncoder,
       this._sourceInformationStrategy,
-      this._inlineCache)
+      this._inlineCache,
+      this._inlineDataCache)
       : this.targetElement = _effectiveTargetElementFor(_initialTargetElement),
         this._closureDataLookup = closedWorld.closureDataLookup {
     _enterFrame(targetElement, null);
@@ -620,17 +623,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     return _elementMap.getDartType(type);
   }
 
-  /// Pops the most recent instruction from the stack and 'boolifies' it.
-  ///
-  /// Boolification is checking if the value is '=== true'.
+  /// Pops the most recent instruction from the stack and ensures that it is a
+  /// non-null bool.
   HInstruction popBoolified() {
     HInstruction value = pop();
-    if (_typeBuilder.checkOrTrustTypes) {
-      return _typeBuilder.potentiallyCheckOrTrustTypeOfCondition(value);
-    }
-    HInstruction result = new HBoolify(value, _abstractValueDomain.boolType);
-    add(result);
-    return result;
+    return _typeBuilder.potentiallyCheckOrTrustTypeOfCondition(value);
   }
 
   /// Extend current method parameters with parameters for the class type
@@ -1364,7 +1361,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     }
 
     JGeneratorBody body = _elementMap.getGeneratorBody(function);
-    closedWorld.outputUnitData.registerColocatedMembers(function, body);
     push(new HInvokeGeneratorBody(
         body,
         inputs,
@@ -1740,11 +1736,13 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         _sourceInformationBuilder.buildGet(node);
     if (!closedWorld.outputUnitData
         .hasOnlyNonDeferredImportPathsToConstant(targetElement, value)) {
+      OutputUnit outputUnit =
+          closedWorld.outputUnitData.outputUnitForConstant(value);
+      ConstantValue deferredConstant =
+          new DeferredGlobalConstantValue(value, outputUnit);
+      registry.registerConstantUse(new ConstantUse.deferred(deferredConstant));
       stack.add(graph.addDeferredConstant(
-          value,
-          closedWorld.outputUnitData.outputUnitForConstant(value),
-          sourceInformation,
-          closedWorld));
+          deferredConstant, sourceInformation, closedWorld));
     } else {
       stack.add(graph.addConstant(value, closedWorld,
           sourceInformation: sourceInformation));
@@ -2403,8 +2401,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           expressionInstruction,
           localsHandler.substInContext(type),
           node.isTypeError
-              ? HTypeConversion.CHECKED_MODE_CHECK
-              : HTypeConversion.CAST_TYPE_CHECK,
+              ? HTypeConversion.TYPE_CHECK
+              : HTypeConversion.CAST_CHECK,
           sourceInformation: sourceInformation);
       if (converted != expressionInstruction) {
         add(converted);
@@ -3303,15 +3301,20 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         push(new HStatic(field, _typeInferenceMap.getInferredTypeOf(field),
             sourceInformation));
       } else if (fieldData.isEffectivelyConstant) {
-        var unit = closedWorld.outputUnitData.outputUnitForMember(field);
+        OutputUnit outputUnit =
+            closedWorld.outputUnitData.outputUnitForMember(field);
         // TODO(sigmund): this is not equivalent to what the old FE does: if
         // there is no prefix the old FE wouldn't treat this in any special
         // way. Also, if the prefix points to a constant in the main output
         // unit, the old FE would still generate a deferred wrapper here.
         if (!closedWorld.outputUnitData
             .hasOnlyNonDeferredImportPaths(targetElement, field)) {
+          ConstantValue deferredConstant = new DeferredGlobalConstantValue(
+              fieldData.initialValue, outputUnit);
+          registry
+              .registerConstantUse(new ConstantUse.deferred(deferredConstant));
           stack.add(graph.addDeferredConstant(
-              fieldData.initialValue, unit, sourceInformation, closedWorld));
+              deferredConstant, sourceInformation, closedWorld));
         } else {
           stack.add(graph.addConstant(fieldData.initialValue, closedWorld,
               sourceInformation: sourceInformation));
@@ -3816,9 +3819,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
               "Expected 1-2 argument, actual: $arguments."));
       HInstruction lengthInput = arguments.first;
       if (lengthInput.isNumber(_abstractValueDomain).isPotentiallyFalse) {
-        HTypeConversion conversion = new HTypeConversion(
+        HPrimitiveCheck conversion = new HPrimitiveCheck(
             _commonElements.numType,
-            HTypeConversion.ARGUMENT_TYPE_CHECK,
+            HPrimitiveCheck.ARGUMENT_TYPE_CHECK,
             _abstractValueDomain.numType,
             lengthInput,
             sourceInformation);
@@ -5552,6 +5555,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
     // Bail out early if the inlining decision is in the cache and we can't
     // inline (no need to check the hard constraints).
+    if (_inlineCache.markedAsNoInline(function)) return false;
     bool cachedCanBeInlined =
         _inlineCache.canInline(function, insideLoop: insideLoop);
     if (cachedCanBeInlined == false) return false;
@@ -5612,26 +5616,22 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       return true;
     }
 
-    bool doesNotContainCode() {
+    bool doesNotContainCode(InlineData inlineData) {
       // A function with size 1 does not contain any code.
-      return InlineWeeder.canBeInlined(_elementMap, function, 1,
-          enableUserAssertions: options.enableUserAssertions);
+      return inlineData.canBeInlined(maxInliningNodes: 1);
     }
 
-    bool reductiveHeuristic() {
+    bool reductiveHeuristic(InlineData inlineData) {
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
       if (_isCalledOnce(function)) {
-        return InlineWeeder.canBeInlined(_elementMap, function, null,
-            enableUserAssertions: options.enableUserAssertions);
+        return inlineData.canBeInlined();
       }
-      if (InlineReductiveWeeder.canBeInlined(
-          _elementMap, function, providedArguments.length,
-          enableUserAssertions: options.enableUserAssertions,
-          omitImplicitCasts: options.omitImplicitChecks)) {
+      if (inlineData.canBeInlinedReductive(
+          argumentCount: providedArguments.length)) {
         return true;
       }
-      return doesNotContainCode();
+      return doesNotContainCode(inlineData);
     }
 
     bool heuristicSayGoodToGo() {
@@ -5645,13 +5645,16 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       bool hasOnlyNonDeferredImportPaths = closedWorld.outputUnitData
           .hasOnlyNonDeferredImportPaths(_initialTargetElement, function);
 
+      InlineData inlineData =
+          _inlineDataCache.getInlineData(_elementMap, function);
+
       if (!hasOnlyNonDeferredImportPaths) {
-        return doesNotContainCode();
+        return doesNotContainCode(inlineData);
       }
 
       // Do not inline code that is rarely executed unless it reduces size.
       if (_inExpressionOfThrow || _inLazyInitializerExpression) {
-        return reductiveHeuristic();
+        return reductiveHeuristic(inlineData);
       }
 
       if (cachedCanBeInlined == true) {
@@ -5659,10 +5662,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         // if we can inline this method regardless of size.
         String reason;
         assert(
-            (reason = InlineWeeder.cannotBeInlinedReason(
-                    _elementMap, function, null,
-                    allowLoops: true,
-                    enableUserAssertions: options.enableUserAssertions)) ==
+            (reason = inlineData.cannotBeInlinedReason(allowLoops: true)) ==
                 null,
             failedAt(function, "Cannot inline $function: $reason"));
         return true;
@@ -5691,10 +5691,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         allowLoops = true;
       }
 
-      bool canInline = InlineWeeder.canBeInlined(
-          _elementMap, function, maxInliningNodes,
-          allowLoops: allowLoops,
-          enableUserAssertions: options.enableUserAssertions);
+      bool canInline = inlineData.canBeInlined(
+          maxInliningNodes: maxInliningNodes, allowLoops: allowLoops);
       if (markedTryInline) {
         if (canInline) {
           _inlineCache.markAsInlinable(function, insideLoop: true);
@@ -5710,7 +5708,12 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         if (canInline) {
           _inlineCache.markAsInlinable(function, insideLoop: insideLoop);
         } else {
-          _inlineCache.markAsNonInlinable(function, insideLoop: insideLoop);
+          if (_isFunctionCalledOnce(function)) {
+            // TODO(34203): We can't update the decision due to imprecision in
+            // the calledOnce data, described in Issue 34203.
+          } else {
+            _inlineCache.markAsNonInlinable(function, insideLoop: insideLoop);
+          }
         }
       }
       return canInline;
@@ -6110,8 +6113,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
   /// Generates type tests for the parameters of the inlined function.
   void _potentiallyCheckInlinedParameterTypes(FunctionEntity function) {
-    if (!_typeBuilder.checkOrTrustTypes) return;
-
     // TODO(sra): Incorporate properties of call site to help determine which
     // type parameters and value parameters need to be checked.
     bool trusted = false;
@@ -6217,517 +6218,10 @@ class KernelInliningState {
       this.oldLocalsHandler,
       this.inTryStatement,
       this.allFunctionsCalledOnce);
-}
-
-class InlineWeeder extends ir.Visitor {
-  // Invariant: *INSIDE_LOOP* > *OUTSIDE_LOOP*
-  static const INLINING_NODES_OUTSIDE_LOOP = 15;
-  static const INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR = 3;
-  static const INLINING_NODES_INSIDE_LOOP = 34;
-  static const INLINING_NODES_INSIDE_LOOP_ARG_FACTOR = 4;
-
-  static bool canBeInlined(
-      JsToElementMap elementMap, FunctionEntity function, int maxInliningNodes,
-      {bool allowLoops: false, bool enableUserAssertions: null}) {
-    return cannotBeInlinedReason(elementMap, function, maxInliningNodes,
-            allowLoops: allowLoops,
-            enableUserAssertions: enableUserAssertions) ==
-        null;
-  }
-
-  static String cannotBeInlinedReason(
-      JsToElementMap elementMap, FunctionEntity function, int maxInliningNodes,
-      {bool allowLoops: false, bool enableUserAssertions: null}) {
-    InlineWeeder visitor =
-        new InlineWeeder(maxInliningNodes, allowLoops, enableUserAssertions);
-    ir.FunctionNode node = getFunctionNode(elementMap, function);
-    node.accept(visitor);
-    if (function.isConstructor) {
-      MemberDefinition definition = elementMap.getMemberDefinition(function);
-      ir.Node node = definition.node;
-      if (node is ir.Constructor) {
-        node.initializers.forEach((n) => n.accept(visitor));
-      }
-    }
-    return visitor.tooDifficultReason;
-  }
-
-  final int maxInliningNodes; // `null` for unbounded.
-  final bool allowLoops;
-  final bool enableUserAssertions;
-
-  bool seenReturn = false;
-  int nodeCount = 0;
-  String tooDifficultReason;
-  bool get tooDifficult => tooDifficultReason != null;
-
-  InlineWeeder(
-      this.maxInliningNodes, this.allowLoops, this.enableUserAssertions);
-
-  bool registerNode() {
-    if (maxInliningNodes == null) return true;
-    if (nodeCount++ > maxInliningNodes) {
-      tooDifficultReason ??= 'too many nodes';
-      return false;
-    }
-    return true;
-  }
 
   @override
-  defaultNode(ir.Node node) {
-    if (tooDifficult) return;
-    if (!registerNode()) return;
-    if (seenReturn) {
-      tooDifficultReason ??= 'code after return';
-      return;
-    }
-    node.visitChildren(this);
-  }
-
-  @override
-  visitReturnStatement(ir.ReturnStatement node) {
-    if (!registerNode()) return;
-    if (seenReturn) {
-      tooDifficultReason ??= 'code after return';
-      return;
-    }
-    node.visitChildren(this);
-    seenReturn = true;
-  }
-
-  @override
-  visitThrow(ir.Throw node) {
-    if (!registerNode()) return;
-    if (seenReturn) {
-      tooDifficultReason ??= 'code after return';
-      return;
-    }
-    node.visitChildren(this);
-  }
-
-  _handleLoop(ir.Node node) {
-    // It's actually not difficult to inline a method with a loop, but our
-    // measurements show that it's currently better to not inline a method that
-    // contains a loop.
-    if (!allowLoops) tooDifficultReason ??= 'loop';
-    node.visitChildren(this);
-  }
-
-  @override
-  visitForStatement(ir.ForStatement node) {
-    _handleLoop(node);
-  }
-
-  @override
-  visitForInStatement(ir.ForInStatement node) {
-    _handleLoop(node);
-  }
-
-  @override
-  visitWhileStatement(ir.WhileStatement node) {
-    _handleLoop(node);
-  }
-
-  @override
-  visitDoStatement(ir.DoStatement node) {
-    _handleLoop(node);
-  }
-
-  @override
-  visitTryCatch(ir.TryCatch node) {
-    tooDifficultReason ??= 'try';
-  }
-
-  @override
-  visitTryFinally(ir.TryFinally node) {
-    tooDifficultReason ??= 'try';
-  }
-
-  @override
-  visitFunctionExpression(ir.FunctionExpression node) {
-    if (!registerNode()) return;
-    tooDifficultReason ??= 'closure';
-  }
-
-  @override
-  visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    if (!registerNode()) return;
-    tooDifficultReason ??= 'closure';
-  }
-
-  @override
-  visitFunctionNode(ir.FunctionNode node) {
-    if (node.asyncMarker != ir.AsyncMarker.Sync) {
-      tooDifficultReason ??= 'async/await';
-      return;
-    }
-    node.visitChildren(this);
-  }
-
-  @override
-  visitConditionalExpression(ir.ConditionalExpression node) {
-    // Heuristic: In "parameter ? A : B" there is a high probability that
-    // parameter is a constant. Assuming the parameter is constant, we can
-    // compute a count that is bounded by the largest arm rather than the sum of
-    // both arms.
-    ir.Expression condition = node.condition;
-    condition.accept(this);
-    if (tooDifficult) return;
-    int commonPrefixCount = nodeCount;
-
-    node.then.accept(this);
-    if (tooDifficult) return;
-    int thenCount = nodeCount - commonPrefixCount;
-
-    nodeCount = commonPrefixCount;
-    node.otherwise.accept(this);
-    if (tooDifficult) return;
-    int elseCount = nodeCount - commonPrefixCount;
-
-    nodeCount = commonPrefixCount + thenCount + elseCount;
-    if (condition is ir.VariableGet &&
-        condition.variable.parent is ir.FunctionNode) {
-      nodeCount =
-          commonPrefixCount + (thenCount > elseCount ? thenCount : elseCount);
-    }
-    // This is last so that [tooDifficult] is always updated.
-    if (!registerNode()) return;
-  }
-
-  @override
-  visitAssertInitializer(ir.AssertInitializer node) {
-    if (!enableUserAssertions) return;
-    node.visitChildren(this);
-  }
-
-  @override
-  visitAssertStatement(ir.AssertStatement node) {
-    if (!enableUserAssertions) return;
-    defaultNode(node);
-  }
-}
-
-/// Determines if inlining a function is very likely to reduce code size.
-class InlineReductiveWeeder extends ir.Visitor {
-  // We allow the body to be a single function call that does not have any more
-  // inputs than the inlinee.
-  //
-  // We allow the body to be the return of an 'eligible' constant. A constant is
-  // 'eligible' if it is not large (e.g. a long string).
-  //
-  // We skip 'e as{TypeError} T' when the checks are omitted.
-  //
-  //
-  // TODO(sra): Consider slightly expansive simple constructors where all we
-  // gain is a 'new' keyword, e.g. `new X.Foo(a)` vs `X.Foo$(a)`.
-  //
-  // TODO(25231): Make larger string constants eligible by sharing references.
-
-  static bool canBeInlined(
-      JsToElementMap elementMap, FunctionEntity function, int argumentCount,
-      {bool enableUserAssertions: null, bool omitImplicitCasts: null}) {
-    return cannotBeInlinedReason(elementMap, function, argumentCount,
-            enableUserAssertions: enableUserAssertions,
-            omitImplicitCasts: omitImplicitCasts) ==
-        null;
-  }
-
-  static String cannotBeInlinedReason(
-      JsToElementMap elementMap, FunctionEntity function, int argumentCount,
-      {bool enableUserAssertions: null, bool omitImplicitCasts: null}) {
-    assert(enableUserAssertions != null);
-    assert(omitImplicitCasts != null);
-    var visitor = new InlineReductiveWeeder(
-        argumentCount, enableUserAssertions, omitImplicitCasts);
-    ir.FunctionNode node = getFunctionNode(elementMap, function);
-    if (function.isConstructor) {
-      return visitor.tooDifficultReason ??= 'constructor';
-    }
-    node.accept(visitor);
-    return visitor.tooDifficultReason;
-  }
-
-  final int argumentCount;
-  final bool enableUserAssertions;
-  final bool omitImplicitCasts;
-  final int maxInliningNodes;
-
-  bool seenReturn = false;
-  int nodeCount = 0;
-  int callCount = 0;
-  String tooDifficultReason;
-  bool get tooDifficult => tooDifficultReason != null;
-
-  InlineReductiveWeeder(
-      this.argumentCount, this.enableUserAssertions, this.omitImplicitCasts)
-      :
-        // Node budget that covers one call and the passed-in arguments.
-        // The +1 also allows a top-level zero-argument to be inlined if it
-        // returns a constant.
-        maxInliningNodes = argumentCount + 1;
-
-  bool registerNode() {
-    if (++nodeCount > maxInliningNodes) {
-      tooDifficultReason ??= 'too many nodes';
-      return false;
-    }
-    return true;
-  }
-
-  bool registerCall() {
-    if (++callCount > 1) {
-      tooDifficultReason ??= 'too many calls';
-      return false;
-    }
-    return true;
-  }
-
-  @override
-  defaultNode(ir.Node node) {
-    if (tooDifficult) return;
-    if (seenReturn) {
-      tooDifficultReason ??= 'code after return';
-      return;
-    }
-    if (!registerNode()) return;
-    node.visitChildren(this);
-  }
-
-  @override
-  visitReturnStatement(ir.ReturnStatement node) {
-    if (seenReturn) {
-      tooDifficultReason ??= 'code after return';
-      return;
-    }
-    node.visitChildren(this);
-    seenReturn = true;
-  }
-
-  @override
-  visitThrow(ir.Throw node) {
-    tooDifficultReason ??= 'throw';
-  }
-
-  @override
-  visitEmptyStatement(ir.EmptyStatement node) {}
-
-  @override
-  visitExpressionStatement(ir.ExpressionStatement node) {
-    node.visitChildren(this);
-  }
-
-  @override
-  visitBlock(ir.Block node) {
-    node.visitChildren(this);
-  }
-
-  @override
-  visitStringLiteral(ir.StringLiteral node) {
-    registerNode();
-    // Avoid copying long strings into call site.
-    if (node.value.length > 14) tooDifficultReason ??= 'long string';
-  }
-
-  @override
-  visitPropertyGet(ir.PropertyGet node) {
-    if (!registerCall()) return;
-    if (!registerNode()) return;
-    node.receiver.accept(this);
-  }
-
-  @override
-  visitDirectPropertyGet(ir.DirectPropertyGet node) {
-    if (!registerCall()) return;
-    if (!registerNode()) return;
-    node.receiver.accept(this);
-  }
-
-  @override
-  visitPropertySet(ir.PropertySet node) {
-    if (!registerCall()) return;
-    if (!registerNode()) return;
-    node.receiver.accept(this);
-    node.value.accept(this);
-  }
-
-  @override
-  visitDirectPropertySet(ir.DirectPropertySet node) {
-    if (!registerCall()) return;
-    if (!registerNode()) return;
-    node.receiver.accept(this);
-    node.value.accept(this);
-  }
-
-  @override
-  visitVariableGet(ir.VariableGet node) {
-    registerNode();
-  }
-
-  @override
-  visitThisExpression(ir.ThisExpression node) {
-    registerNode();
-  }
-
-  @override
-  visitStaticGet(ir.StaticGet node) {
-    // Assume lazy-init static, loaded via a call: `$.$get$foo()`.
-    if (!registerCall()) return;
-    registerNode();
-  }
-
-  @override
-  visitConstructorInvocation(ir.ConstructorInvocation node) {
-    if (node.isConst) {
-      // A const constructor call compiles to a constant pool reference.
-      registerNode();
-      return;
-    }
-    if (!registerCall()) return;
-    if (!registerNode()) return;
-    _processArguments(node.arguments, node.target?.function);
-  }
-
-  @override
-  visitStaticInvocation(ir.StaticInvocation node) {
-    if (node.isConst) {
-      tooDifficultReason ??= 'external const constructor';
-      return;
-    }
-    if (!registerCall()) return;
-    if (!registerNode()) return;
-    _processArguments(node.arguments, node.target?.function);
-  }
-
-  @override
-  visitMethodInvocation(ir.MethodInvocation node) {
-    if (!registerCall()) return;
-    if (!registerNode()) return;
-    node.receiver.accept(this);
-    _processArguments(node.arguments, null);
-  }
-
-  _processArguments(ir.Arguments arguments, ir.FunctionNode target) {
-    if (arguments.types.isNotEmpty) {
-      tooDifficultReason ??= 'type arguments';
-      return;
-    }
-    int count = arguments.positional.length + arguments.named.length;
-    if (count > argumentCount) {
-      tooDifficultReason ??= 'increasing arguments';
-      return;
-    }
-
-    if (target != null) {
-      // Disallow defaulted optional arguments since they will be passed
-      // explicitly.
-      if (target.positionalParameters.length + target.namedParameters.length >
-          count) {
-        tooDifficultReason ??= 'argument defaulting';
-        return;
-      }
-    }
-
-    for (var e in arguments.positional) {
-      e.accept(this);
-      if (tooDifficult) return;
-    }
-    for (var e in arguments.named) {
-      e.value.accept(this);
-      if (tooDifficult) return;
-    }
-  }
-
-  @override
-  visitAsExpression(ir.AsExpression node) {
-    if (node.isTypeError && omitImplicitCasts) {
-      node.operand.accept(this);
-      return;
-    }
-    tooDifficultReason ??= 'cast';
-  }
-
-  @override
-  visitVariableDeclaration(ir.VariableDeclaration node) {
-    // A local variable is an alias for the initializer expression.
-    if (node.initializer != null) {
-      --nodeCount; // discount one reference to the variable.
-      node.initializer.accept(this);
-      return;
-    }
-  }
-
-  @override
-  visitForStatement(ir.ForStatement node) {
-    tooDifficultReason ??= 'loop';
-  }
-
-  @override
-  visitForInStatement(ir.ForInStatement node) {
-    tooDifficultReason ??= 'loop';
-  }
-
-  @override
-  visitWhileStatement(ir.WhileStatement node) {
-    tooDifficultReason ??= 'loop';
-  }
-
-  @override
-  visitDoStatement(ir.DoStatement node) {
-    tooDifficultReason ??= 'loop';
-  }
-
-  @override
-  visitTryCatch(ir.TryCatch node) {
-    tooDifficultReason ??= 'try';
-  }
-
-  @override
-  visitTryFinally(ir.TryFinally node) {
-    tooDifficultReason ??= 'try';
-  }
-
-  @override
-  visitIfStatement(ir.IfStatement node) {
-    tooDifficultReason ??= 'if';
-  }
-
-  @override
-  visitFunctionExpression(ir.FunctionExpression node) {
-    tooDifficultReason ??= 'closure';
-  }
-
-  @override
-  visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    tooDifficultReason ??= 'closure';
-  }
-
-  @override
-  visitFunctionNode(ir.FunctionNode node) {
-    if (node.asyncMarker != ir.AsyncMarker.Sync) {
-      tooDifficultReason ??= 'async/await';
-      return;
-    }
-    // TODO(sra): Cost of parameter checking?
-    node.body.accept(this);
-  }
-
-  @override
-  visitConditionalExpression(ir.ConditionalExpression node) {
-    if (!registerNode()) return;
-    node.visitChildren(this);
-  }
-
-  @override
-  visitAssertInitializer(ir.AssertInitializer node) {
-    if (!enableUserAssertions) return;
-    node.visitChildren(this);
-  }
-
-  @override
-  visitAssertStatement(ir.AssertStatement node) {
-    if (!enableUserAssertions) return;
-    defaultNode(node);
-  }
+  String toString() => 'KernelInliningState($function,'
+      'allFunctionsCalledOnce=$allFunctionsCalledOnce)';
 }
 
 /// Class in charge of building try, catch and/or finally blocks. This handles
@@ -7061,4 +6555,622 @@ class StaticType {
 
   @override
   String toString() => 'StaticType($type,$relation)';
+}
+
+class InlineData {
+  bool isConstructor = false;
+  bool codeAfterReturn = false;
+  bool hasLoop = false;
+  bool hasClosure = false;
+  bool hasTry = false;
+  bool hasAsyncAwait = false;
+  bool hasThrow = false;
+  bool hasLongString = false;
+  bool hasExternalConstantConstructorCall = false;
+  bool hasTypeArguments = false;
+  bool hasArgumentDefaulting = false;
+  bool hasCast = false;
+  bool hasIf = false;
+  List<int> argumentCounts = [];
+  int regularNodeCount = 0;
+  int callCount = 0;
+  int reductiveNodeCount = 0;
+
+  InlineData();
+
+  InlineData.internal(
+      {this.codeAfterReturn,
+      this.hasLoop,
+      this.hasClosure,
+      this.hasTry,
+      this.hasAsyncAwait,
+      this.hasThrow,
+      this.hasLongString,
+      this.regularNodeCount,
+      this.callCount});
+
+  bool canBeInlined({int maxInliningNodes, bool allowLoops: false}) {
+    return cannotBeInlinedReason(
+            maxInliningNodes: maxInliningNodes, allowLoops: allowLoops) ==
+        null;
+  }
+
+  String cannotBeInlinedReason({int maxInliningNodes, bool allowLoops: false}) {
+    if (hasLoop && !allowLoops) {
+      return 'loop';
+    } else if (hasTry) {
+      return 'try';
+    } else if (hasClosure) {
+      return 'closure';
+    } else if (codeAfterReturn) {
+      return 'code after return';
+    } else if (hasAsyncAwait) {
+      return 'async/await';
+    } else if (maxInliningNodes != null &&
+        regularNodeCount - 1 > maxInliningNodes) {
+      return 'too many nodes (${regularNodeCount - 1}>$maxInliningNodes)';
+    }
+    return null;
+  }
+
+  bool canBeInlinedReductive({int argumentCount}) {
+    return cannotBeInlinedReductiveReason(argumentCount: argumentCount) == null;
+  }
+
+  String cannotBeInlinedReductiveReason({int argumentCount}) {
+    if (hasTry) {
+      return 'try';
+    } else if (hasClosure) {
+      return 'closure';
+    } else if (codeAfterReturn) {
+      return 'code after return';
+    } else if (hasAsyncAwait) {
+      return 'async/await';
+    } else if (callCount > 1) {
+      return 'too many calls';
+    } else if (hasThrow) {
+      return 'throw';
+    } else if (hasLongString) {
+      return 'long string';
+    } else if (hasExternalConstantConstructorCall) {
+      return 'external const constructor';
+    } else if (hasTypeArguments) {
+      return 'type arguments';
+    } else if (hasArgumentDefaulting) {
+      return 'argument defaulting';
+    } else if (hasCast) {
+      return 'cast';
+    } else if (hasIf) {
+      return 'if';
+    } else if (isConstructor) {
+      return 'constructor';
+    }
+    for (int count in argumentCounts) {
+      if (count > argumentCount) {
+        return 'increasing arguments';
+      }
+    }
+    // Node budget that covers one call and the passed-in arguments.
+    // The +1 also allows a top-level zero-argument to be inlined if it
+    // returns a constant.
+    int maxInliningNodes = argumentCount + 1;
+    if (reductiveNodeCount > maxInliningNodes) {
+      return 'too many nodes (${reductiveNodeCount}>$maxInliningNodes)';
+    }
+
+    return null;
+  }
+
+  @override
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('InlineData(');
+    String comma = '';
+    if (isConstructor) {
+      sb.write('isConstructor');
+      comma = ',';
+    }
+    if (codeAfterReturn) {
+      sb.write(comma);
+      sb.write('codeAfterReturn');
+      comma = ',';
+    }
+    if (hasLoop) {
+      sb.write(comma);
+      sb.write('hasLoop');
+      comma = ',';
+    }
+    if (hasClosure) {
+      sb.write(comma);
+      sb.write('hasClosure');
+      comma = ',';
+    }
+    if (hasTry) {
+      sb.write(comma);
+      sb.write('hasTry');
+      comma = ',';
+    }
+    if (hasAsyncAwait) {
+      sb.write(comma);
+      sb.write('hasAsyncAwait');
+      comma = ',';
+    }
+    if (hasThrow) {
+      sb.write(comma);
+      sb.write('hasThrow');
+      comma = ',';
+    }
+    if (hasLongString) {
+      sb.write(comma);
+      sb.write('hasLongString');
+      comma = ',';
+    }
+    if (hasExternalConstantConstructorCall) {
+      sb.write(comma);
+      sb.write('hasExternalConstantConstructorCall');
+      comma = ',';
+    }
+    if (hasTypeArguments) {
+      sb.write(comma);
+      sb.write('hasTypeArguments');
+      comma = ',';
+    }
+    if (hasArgumentDefaulting) {
+      sb.write(comma);
+      sb.write('hasArgumentDefaulting');
+      comma = ',';
+    }
+    if (hasCast) {
+      sb.write(comma);
+      sb.write('hasCast');
+      comma = ',';
+    }
+    if (hasIf) {
+      sb.write(comma);
+      sb.write('hasIf');
+      comma = ',';
+    }
+    if (argumentCounts.isNotEmpty) {
+      sb.write(comma);
+      sb.write('argumentCounts={${argumentCounts.join(',')}}');
+      comma = ',';
+    }
+    sb.write(comma);
+    sb.write('regularNodeCount=$regularNodeCount,');
+    sb.write('callCount=$callCount,');
+    sb.write('reductiveNodeCount=$reductiveNodeCount');
+    sb.write(')');
+    return sb.toString();
+  }
+}
+
+class InlineDataCache {
+  final bool enableUserAssertions;
+  final bool omitImplicitCasts;
+
+  InlineDataCache(
+      {this.enableUserAssertions: false, this.omitImplicitCasts: false});
+
+  Map<FunctionEntity, InlineData> _cache = {};
+
+  InlineData getInlineData(JsToElementMap elementMap, FunctionEntity function) {
+    return _cache[function] ??= InlineWeeder.computeInlineData(
+        elementMap, function,
+        enableUserAssertions: enableUserAssertions,
+        omitImplicitCasts: omitImplicitCasts);
+  }
+}
+
+class InlineWeeder extends ir.Visitor {
+  // Invariant: *INSIDE_LOOP* > *OUTSIDE_LOOP*
+  static const INLINING_NODES_OUTSIDE_LOOP = 15;
+  static const INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR = 3;
+  static const INLINING_NODES_INSIDE_LOOP = 34;
+  static const INLINING_NODES_INSIDE_LOOP_ARG_FACTOR = 4;
+
+  final bool enableUserAssertions;
+  final bool omitImplicitCasts;
+
+  final InlineData data = new InlineData();
+  bool seenReturn = false;
+
+  /// Whether node-count is collector to determine if a function can be
+  /// inlined.
+  bool countRegularNode = true;
+
+  /// Whether node-count is collected to determine if inlining a function is
+  /// very likely to reduce code size.
+  ///
+  /// For the reductive analysis:
+  /// We allow the body to be a single function call that does not have any more
+  /// inputs than the inlinee.
+  ///
+  /// We allow the body to be the return of an 'eligible' constant. A constant
+  /// is 'eligible' if it is not large (e.g. a long string).
+  ///
+  /// We skip 'e as{TypeError} T' when the checks are omitted.
+  //
+  // TODO(sra): Consider slightly expansive simple constructors where all we
+  // gain is a 'new' keyword, e.g. `new X.Foo(a)` vs `X.Foo$(a)`.
+  //
+  // TODO(25231): Make larger string constants eligible by sharing references.
+  bool countReductiveNode = true;
+
+  InlineWeeder(
+      {this.enableUserAssertions: false, this.omitImplicitCasts: false});
+
+  static InlineData computeInlineData(
+      JsToElementMap elementMap, FunctionEntity function,
+      {bool enableUserAssertions: false, bool omitImplicitCasts: false}) {
+    InlineWeeder visitor = new InlineWeeder(
+        enableUserAssertions: enableUserAssertions,
+        omitImplicitCasts: omitImplicitCasts);
+    ir.FunctionNode node = getFunctionNode(elementMap, function);
+    node.accept(visitor);
+    if (function.isConstructor) {
+      visitor.data.isConstructor = true;
+      MemberDefinition definition = elementMap.getMemberDefinition(function);
+      visitor.skipReductiveNodes(() {
+        ir.Node node = definition.node;
+        if (node is ir.Constructor) {
+          visitor.visitList(node.initializers);
+        }
+      });
+    }
+    return visitor.data;
+  }
+
+  void skipRegularNodes(void f()) {
+    bool oldCountRegularNode = countRegularNode;
+    countRegularNode = false;
+    f();
+    countRegularNode = oldCountRegularNode;
+  }
+
+  void skipReductiveNodes(void f()) {
+    bool oldCountReductiveNode = countReductiveNode;
+    countReductiveNode = false;
+    f();
+    countReductiveNode = oldCountReductiveNode;
+  }
+
+  void registerRegularNode() {
+    if (countRegularNode) {
+      data.regularNodeCount++;
+      if (seenReturn) {
+        data.codeAfterReturn = true;
+      }
+    }
+  }
+
+  void registerReductiveNode() {
+    if (countReductiveNode) {
+      data.reductiveNodeCount++;
+      if (seenReturn) {
+        data.codeAfterReturn = true;
+      }
+    }
+  }
+
+  void unregisterReductiveNode() {
+    if (countReductiveNode) {
+      data.reductiveNodeCount--;
+    }
+  }
+
+  void visit(ir.Node node) => node?.accept(this);
+
+  void visitList(List<ir.Node> nodes) {
+    for (ir.Node node in nodes) {
+      visit(node);
+    }
+  }
+
+  @override
+  defaultNode(ir.Node node) {
+    registerRegularNode();
+    registerReductiveNode();
+    node.visitChildren(this);
+  }
+
+  @override
+  visitReturnStatement(ir.ReturnStatement node) {
+    registerRegularNode();
+    node.visitChildren(this);
+    seenReturn = true;
+  }
+
+  @override
+  visitThrow(ir.Throw node) {
+    registerRegularNode();
+    data.hasThrow = true;
+    node.visitChildren(this);
+  }
+
+  _handleLoop(ir.Node node) {
+    // It's actually not difficult to inline a method with a loop, but our
+    // measurements show that it's currently better to not inline a method that
+    // contains a loop.
+    data.hasLoop = true;
+    node.visitChildren(this);
+  }
+
+  @override
+  visitForStatement(ir.ForStatement node) {
+    _handleLoop(node);
+  }
+
+  @override
+  visitForInStatement(ir.ForInStatement node) {
+    _handleLoop(node);
+  }
+
+  @override
+  visitWhileStatement(ir.WhileStatement node) {
+    _handleLoop(node);
+  }
+
+  @override
+  visitDoStatement(ir.DoStatement node) {
+    _handleLoop(node);
+  }
+
+  @override
+  visitTryCatch(ir.TryCatch node) {
+    data.hasTry = true;
+  }
+
+  @override
+  visitTryFinally(ir.TryFinally node) {
+    data.hasTry = true;
+  }
+
+  @override
+  visitFunctionExpression(ir.FunctionExpression node) {
+    registerRegularNode();
+    data.hasClosure = true;
+  }
+
+  @override
+  visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    registerRegularNode();
+    data.hasClosure = true;
+  }
+
+  @override
+  visitFunctionNode(ir.FunctionNode node) {
+    if (node.asyncMarker != ir.AsyncMarker.Sync) {
+      data.hasAsyncAwait = true;
+    }
+    // TODO(sra): Cost of parameter checking?
+    skipReductiveNodes(() {
+      visitList(node.typeParameters);
+      visitList(node.positionalParameters);
+      visitList(node.namedParameters);
+      visit(node.returnType);
+    });
+    visit(node.body);
+  }
+
+  @override
+  visitConditionalExpression(ir.ConditionalExpression node) {
+    // Heuristic: In "parameter ? A : B" there is a high probability that
+    // parameter is a constant. Assuming the parameter is constant, we can
+    // compute a count that is bounded by the largest arm rather than the sum of
+    // both arms.
+    ir.Expression condition = node.condition;
+    visit(condition);
+    int commonPrefixCount = data.regularNodeCount;
+
+    visit(node.then);
+    int thenCount = data.regularNodeCount - commonPrefixCount;
+
+    data.regularNodeCount = commonPrefixCount;
+    visit(node.otherwise);
+    int elseCount = data.regularNodeCount - commonPrefixCount;
+
+    data.regularNodeCount = commonPrefixCount + thenCount + elseCount;
+    if (condition is ir.VariableGet &&
+        condition.variable.parent is ir.FunctionNode) {
+      data.regularNodeCount =
+          commonPrefixCount + (thenCount > elseCount ? thenCount : elseCount);
+    }
+    // This is last so that [tooDifficult] is always updated.
+    registerRegularNode();
+    registerReductiveNode();
+    skipRegularNodes(() => visit(node.staticType));
+  }
+
+  @override
+  visitAssertInitializer(ir.AssertInitializer node) {
+    if (!enableUserAssertions) return;
+    node.visitChildren(this);
+  }
+
+  @override
+  visitAssertStatement(ir.AssertStatement node) {
+    if (!enableUserAssertions) return;
+    defaultNode(node);
+  }
+
+  void registerCall() {
+    ++data.callCount;
+  }
+
+  @override
+  visitEmptyStatement(ir.EmptyStatement node) {
+    registerRegularNode();
+  }
+
+  @override
+  visitExpressionStatement(ir.ExpressionStatement node) {
+    registerRegularNode();
+    node.visitChildren(this);
+  }
+
+  @override
+  visitBlock(ir.Block node) {
+    registerRegularNode();
+    node.visitChildren(this);
+  }
+
+  @override
+  visitStringLiteral(ir.StringLiteral node) {
+    registerRegularNode();
+    registerReductiveNode();
+    // Avoid copying long strings into call site.
+    if (node.value.length > 14) {
+      data.hasLongString = true;
+    }
+  }
+
+  @override
+  visitPropertyGet(ir.PropertyGet node) {
+    registerCall();
+    registerRegularNode();
+    registerReductiveNode();
+    skipReductiveNodes(() => visit(node.name));
+    visit(node.receiver);
+  }
+
+  @override
+  visitDirectPropertyGet(ir.DirectPropertyGet node) {
+    registerCall();
+    registerRegularNode();
+    registerReductiveNode();
+    visit(node.receiver);
+  }
+
+  @override
+  visitPropertySet(ir.PropertySet node) {
+    registerCall();
+    registerRegularNode();
+    registerReductiveNode();
+    skipReductiveNodes(() => visit(node.name));
+    visit(node.receiver);
+    visit(node.value);
+  }
+
+  @override
+  visitDirectPropertySet(ir.DirectPropertySet node) {
+    registerCall();
+    registerRegularNode();
+    registerReductiveNode();
+    visit(node.receiver);
+    visit(node.value);
+  }
+
+  @override
+  visitVariableGet(ir.VariableGet node) {
+    registerRegularNode();
+    registerReductiveNode();
+    skipReductiveNodes(() => visit(node.promotedType));
+  }
+
+  @override
+  visitThisExpression(ir.ThisExpression node) {
+    registerRegularNode();
+    registerReductiveNode();
+  }
+
+  @override
+  visitStaticGet(ir.StaticGet node) {
+    // Assume lazy-init static, loaded via a call: `$.$get$foo()`.
+    registerCall();
+    registerRegularNode();
+    registerReductiveNode();
+  }
+
+  @override
+  visitConstructorInvocation(ir.ConstructorInvocation node) {
+    registerRegularNode();
+    registerReductiveNode();
+    if (node.isConst) {
+      // A const constructor call compiles to a constant pool reference.
+      skipReductiveNodes(() => node.visitChildren(this));
+    } else {
+      registerCall();
+      _processArguments(node.arguments, node.target?.function);
+    }
+  }
+
+  @override
+  visitStaticInvocation(ir.StaticInvocation node) {
+    registerRegularNode();
+    if (node.isConst) {
+      data.hasExternalConstantConstructorCall = true;
+      skipReductiveNodes(() => node.visitChildren(this));
+    } else {
+      registerCall();
+      registerReductiveNode();
+      _processArguments(node.arguments, node.target?.function);
+    }
+  }
+
+  @override
+  visitMethodInvocation(ir.MethodInvocation node) {
+    registerRegularNode();
+    registerReductiveNode();
+    registerCall();
+    visit(node.receiver);
+    skipReductiveNodes(() => visit(node.name));
+    _processArguments(node.arguments, null);
+  }
+
+  _processArguments(ir.Arguments arguments, ir.FunctionNode target) {
+    registerRegularNode();
+    if (arguments.types.isNotEmpty) {
+      data.hasTypeArguments = true;
+      skipReductiveNodes(() => visitList(arguments.types));
+    }
+    int count = arguments.positional.length + arguments.named.length;
+    data.argumentCounts.add(count);
+
+    if (target != null) {
+      // Disallow defaulted optional arguments since they will be passed
+      // explicitly.
+      if (target.positionalParameters.length + target.namedParameters.length >
+          count) {
+        data.hasArgumentDefaulting = true;
+      }
+    }
+
+    visitList(arguments.positional);
+    for (ir.NamedExpression expression in arguments.named) {
+      registerRegularNode();
+      expression.value.accept(this);
+    }
+  }
+
+  @override
+  visitAsExpression(ir.AsExpression node) {
+    registerRegularNode();
+    visit(node.operand);
+    skipReductiveNodes(() => visit(node.type));
+    if (!(node.isTypeError && omitImplicitCasts)) {
+      data.hasCast = true;
+    }
+  }
+
+  @override
+  visitVariableDeclaration(ir.VariableDeclaration node) {
+    registerRegularNode();
+    skipReductiveNodes(() {
+      visitList(node.annotations);
+      visit(node.type);
+    });
+    visit(node.initializer);
+
+    // A local variable is an alias for the initializer expression.
+    if (node.initializer != null) {
+      unregisterReductiveNode(); // discount one reference to the variable.
+    }
+  }
+
+  @override
+  visitIfStatement(ir.IfStatement node) {
+    registerRegularNode();
+    node.visitChildren(this);
+    data.hasIf = true;
+  }
 }

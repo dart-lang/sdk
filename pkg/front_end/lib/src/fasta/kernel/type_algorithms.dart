@@ -19,6 +19,8 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable;
 
+import 'package:kernel/src/bounds_checks.dart' show Variance;
+
 import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
 
 import 'kernel_builder.dart'
@@ -31,6 +33,7 @@ import 'kernel_builder.dart'
         KernelFormalParameterBuilder,
         KernelFunctionTypeBuilder,
         KernelNamedTypeBuilder,
+        KernelTypeAliasBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         NamedTypeBuilder,
@@ -50,6 +53,79 @@ import '../fasta_codes.dart'
         templateBoundIssueViaRawTypeWithNonSimpleBounds,
         templateNonSimpleBoundViaReference,
         templateNonSimpleBoundViaVariable;
+
+export 'package:kernel/src/bounds_checks.dart' show Variance;
+
+// Computes the variance of a variable in a type.  The function can be run
+// before the types are resolved to compute variances of typedefs' type
+// variables.  For that case if the type has its declaration set to null and its
+// name matches that of the variable, it's interpreted as an occurrence of a
+// type variable.
+int computeVariance(
+    KernelTypeVariableBuilder variable, KernelTypeBuilder type) {
+  if (type is KernelNamedTypeBuilder) {
+    TypeDeclarationBuilder declaration = type.declaration;
+    if (declaration == null || declaration is KernelTypeVariableBuilder) {
+      if (type.name == variable.name) {
+        return Variance.covariant;
+      } else {
+        return Variance.unrelated;
+      }
+    } else {
+      if (declaration is KernelClassBuilder) {
+        int result = Variance.unrelated;
+        if (type.arguments != null) {
+          for (KernelTypeBuilder argument in type.arguments) {
+            result = Variance.meet(result, computeVariance(variable, argument));
+          }
+        }
+        return result;
+      } else if (declaration is KernelTypeAliasBuilder) {
+        int result = Variance.unrelated;
+        if (type.arguments != null) {
+          for (int i = 0; i < type.arguments.length; ++i) {
+            result = Variance.meet(
+                result,
+                Variance.combine(
+                    computeVariance(variable, type.arguments[i]),
+                    computeVariance(
+                        declaration.typeVariables[i], declaration.type)));
+          }
+        }
+        return result;
+      }
+    }
+  } else if (type is KernelFunctionTypeBuilder) {
+    int result = Variance.unrelated;
+    if (type.returnType != null) {
+      result =
+          Variance.meet(result, computeVariance(variable, type.returnType));
+    }
+    if (type.typeVariables != null) {
+      for (KernelTypeVariableBuilder typeVariable in type.typeVariables) {
+        // If [variable] is referenced in the bound at all, it makes the
+        // variance of [variable] in the entire type invariant.  The invocation
+        // of [computeVariance] below is made to simply figure out if [variable]
+        // occurs in the bound.
+        if (typeVariable.bound != null &&
+            computeVariance(variable, typeVariable.bound) !=
+                Variance.unrelated) {
+          result = Variance.invariant;
+        }
+      }
+    }
+    if (type.formals != null) {
+      for (KernelFormalParameterBuilder formal in type.formals) {
+        result = Variance.meet(
+            result,
+            Variance.combine(Variance.contravariant,
+                computeVariance(variable, formal.type)));
+      }
+    }
+    return result;
+  }
+  return Variance.unrelated;
+}
 
 KernelTypeBuilder substituteRange(
     KernelTypeBuilder type,

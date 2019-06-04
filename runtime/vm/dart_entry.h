@@ -49,10 +49,20 @@ class ArgumentsDescriptor : public ValueObject {
   RawArray* GetArgumentNames() const;
 
   // Generated code support.
-  static intptr_t type_args_len_offset();
-  static intptr_t count_offset();
-  static intptr_t positional_count_offset();
-  static intptr_t first_named_entry_offset();
+  static intptr_t type_args_len_offset() {
+    return Array::element_offset(kTypeArgsLenIndex);
+  }
+
+  static intptr_t count_offset() { return Array::element_offset(kCountIndex); }
+
+  static intptr_t positional_count_offset() {
+    return Array::element_offset(kPositionalCountIndex);
+  }
+
+  static intptr_t first_named_entry_offset() {
+    return Array::element_offset(kFirstNamedEntryIndex);
+  }
+
   static intptr_t name_offset() { return kNameOffset * kWordSize; }
   static intptr_t position_offset() { return kPositionOffset * kWordSize; }
   static intptr_t named_entry_size() { return kNamedEntrySize * kWordSize; }

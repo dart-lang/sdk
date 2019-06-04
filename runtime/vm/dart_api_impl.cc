@@ -17,6 +17,8 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/dwarf.h"
+#include "vm/elf.h"
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/kernel_loader.h"
 #endif
@@ -5532,7 +5534,7 @@ Dart_CompileToKernel(const char* script_uri,
                      const char* package_config) {
   API_TIMELINE_DURATION(Thread::Current());
 
-  Dart_KernelCompilationResult result;
+  Dart_KernelCompilationResult result = {};
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileToKernel is unsupported.");
@@ -5564,7 +5566,7 @@ Dart_CompileSourcesToKernel(const char* script_uri,
                             const char* package_config,
                             const char* multiroot_filepaths,
                             const char* multiroot_scheme) {
-  Dart_KernelCompilationResult result;
+  Dart_KernelCompilationResult result = {};
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_CompileSourcesToKernel is unsupported.");
@@ -5586,7 +5588,7 @@ Dart_CompileSourcesToKernel(const char* script_uri,
 }
 
 DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies() {
-  Dart_KernelCompilationResult result;
+  Dart_KernelCompilationResult result = {};
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
   result.error = strdup("Dart_KernelListDependencies is unsupported.");
@@ -6050,12 +6052,67 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
   CHECK_NULL(callback);
 
   TIMELINE_DURATION(T, Isolate, "WriteVMAOTSnapshot");
-  AssemblyImageWriter image_writer(T, callback, callback_data, NULL, NULL);
-  uint8_t* vm_snapshot_data_buffer = NULL;
-  FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer, NULL,
-                            ApiReallocate, &image_writer, NULL);
+  AssemblyImageWriter image_writer(T, callback, callback_data, nullptr,
+                                   nullptr);
+  uint8_t* vm_snapshot_data_buffer = nullptr;
+  FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
+                            nullptr, ApiReallocate, &image_writer, nullptr);
 
   writer.WriteFullSnapshot();
+
+  return Api::Success();
+#endif
+}
+
+DART_EXPORT Dart_Handle
+Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
+                               void* callback_data) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("AOT compilation is not supported on IA32.");
+#elif defined(TARGET_ARCH_DBC)
+  return Api::NewError("AOT compilation is not supported on DBC.");
+#elif defined(TARGET_OS_WINDOWS)
+  return Api::NewError("Windows cannot load ELF.");
+#elif defined(TARGET_OS_MACOS)
+  return Api::NewError("macOS/iOS cannot load ELF.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+
+  uint8_t* vm_snapshot_data_buffer = nullptr;
+  uint8_t* vm_snapshot_instructions_buffer = nullptr;
+  uint8_t* isolate_snapshot_data_buffer = nullptr;
+  uint8_t* isolate_snapshot_instructions_buffer = nullptr;
+
+  NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
+                                            "WriteAppAOTSnapshot"));
+  StreamingWriteStream elf_stream(2 * MB, callback, callback_data);
+  Elf* elf = new (Z) Elf(Z, &elf_stream);
+  Dwarf* dwarf = new (Z) Dwarf(Z, nullptr, elf);
+
+  BlobImageWriter vm_image_writer(T, &vm_snapshot_instructions_buffer,
+                                  ApiReallocate, /* initial_size= */ 2 * MB,
+                                  nullptr, nullptr, nullptr, elf, dwarf);
+  BlobImageWriter isolate_image_writer(
+      T, &isolate_snapshot_instructions_buffer, ApiReallocate,
+      /* initial_size= */ 2 * MB, /* shared_data_image= */ nullptr,
+      /* shared_instructions_image= */ nullptr, nullptr, elf, dwarf);
+  FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
+                            &isolate_snapshot_data_buffer, ApiReallocate,
+                            &vm_image_writer, &isolate_image_writer);
+
+  writer.WriteFullSnapshot();
+  elf->AddROData("_kDartVmSnapshotData", vm_snapshot_data_buffer,
+                 writer.VmIsolateSnapshotSize());
+  elf->AddROData("_kDartIsolateSnapshotData", isolate_snapshot_data_buffer,
+                 writer.IsolateSnapshotSize());
+  // TODO(rmacnak): Generate .debug_frame / .eh_frame / .arm.exidx to
+  // providing unwinding information.
+  dwarf->Write();
+  elf->Finalize();
 
   return Api::Success();
 #endif

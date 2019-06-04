@@ -433,8 +433,10 @@ config("runtime_library") {
     ]
   }
 
-  # Android standard library setup.
-  if (is_android) {
+  if (is_linux) {
+    libs += [ "dl" ]
+  } else if (is_android) {
+    # Android standard library setup.
     if (is_clang) {
       # Work around incompatibilities between bionic and clang headers.
       defines += [ "__compiler_offsetof=__builtin_offsetof" ]

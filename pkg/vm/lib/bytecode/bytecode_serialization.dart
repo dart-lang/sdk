@@ -386,15 +386,42 @@ double intBitsToDouble(int bits) {
   return buf.getFloat64(0, Endian.little);
 }
 
-class NamedEntryStatistics {
-  final String name;
-  int size = 0;
-  int count = 0;
+class PackedUInt30DeltaEncoder {
+  int _last = 0;
 
-  NamedEntryStatistics(this.name);
+  void write(BufferedWriter write, int value) {
+    write.writePackedUInt30(value - _last);
+    _last = value;
+  }
+}
 
-  String toString() => "${name.padRight(40)}:    ${size.toString().padLeft(10)}"
-      "  (count: ${count.toString().padLeft(8)})";
+class PackedUInt30DeltaDecoder {
+  int _last = 0;
+
+  int read(BufferedReader reader) {
+    int value = reader.readPackedUInt30() + _last;
+    _last = value;
+    return value;
+  }
+}
+
+class SLEB128DeltaEncoder {
+  int _last = 0;
+
+  void write(BufferedWriter writer, int value) {
+    writer.writeSLEB128(value - _last);
+    _last = value;
+  }
+}
+
+class SLEB128DeltaDecoder {
+  int _last = 0;
+
+  int read(BufferedReader reader) {
+    int value = reader.readSLEB128() + _last;
+    _last = value;
+    return value;
+  }
 }
 
 class LinkWriter {
@@ -426,6 +453,17 @@ class LinkReader {
   T get<T>(int offset) {
     return _map[T][offset] ?? (throw 'No object at offset $T/$offset');
   }
+}
+
+class NamedEntryStatistics {
+  final String name;
+  int size = 0;
+  int count = 0;
+
+  NamedEntryStatistics(this.name);
+
+  String toString() => "${name.padRight(40)}:    ${size.toString().padLeft(10)}"
+      "  (count: ${count.toString().padLeft(8)})";
 }
 
 class BytecodeSizeStatistics {

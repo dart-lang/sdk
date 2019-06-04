@@ -271,7 +271,7 @@ class ModifierRecoveryContext {
       covariantToken = next;
 
       if (varToken != null) {
-        parser.reportRecoverableError(next, fasta.messageCovariantAfterVar);
+        reportModifierOutOfOrder(next, varToken.lexeme);
       } else if (finalToken != null) {
         reportModifierOutOfOrder(next, finalToken.lexeme);
       } else if (lateToken != null) {
@@ -303,11 +303,11 @@ class ModifierRecoveryContext {
       externalToken = next;
 
       if (afterFactory) {
-        parser.reportRecoverableError(next, fasta.messageExternalAfterFactory);
+        reportModifierOutOfOrder(next, 'factory');
       } else if (constToken != null) {
-        parser.reportRecoverableError(next, fasta.messageExternalAfterConst);
+        reportModifierOutOfOrder(next, constToken.lexeme);
       } else if (staticToken != null) {
-        parser.reportRecoverableError(next, fasta.messageExternalAfterStatic);
+        reportModifierOutOfOrder(next, staticToken.lexeme);
       } else if (lateToken != null) {
         reportModifierOutOfOrder(next, lateToken.lexeme);
       }
@@ -399,11 +399,11 @@ class ModifierRecoveryContext {
       staticToken = next;
 
       if (constToken != null) {
-        parser.reportRecoverableError(next, fasta.messageStaticAfterConst);
+        reportModifierOutOfOrder(next, constToken.lexeme);
       } else if (finalToken != null) {
-        parser.reportRecoverableError(next, fasta.messageStaticAfterFinal);
+        reportModifierOutOfOrder(next, finalToken.lexeme);
       } else if (varToken != null) {
-        parser.reportRecoverableError(next, fasta.messageStaticAfterVar);
+        reportModifierOutOfOrder(next, varToken.lexeme);
       } else if (lateToken != null) {
         reportModifierOutOfOrder(next, lateToken.lexeme);
       }

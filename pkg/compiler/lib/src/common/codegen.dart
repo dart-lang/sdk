@@ -6,18 +6,22 @@ library dart2js.common.codegen;
 
 import 'package:js_ast/src/precedence.dart' as js show PRIMARY;
 
+import '../common.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
 import '../deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
 import '../inferrer/abstract_value_domain.dart';
+import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
+import '../js_backend/backend.dart';
 import '../js_backend/namer.dart';
 import '../js_emitter/code_emitter_task.dart' show Emitter;
 import '../native/behavior.dart';
 import '../serialization/serialization.dart';
+import '../ssa/ssa.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
@@ -57,6 +61,8 @@ class CodegenImpact extends WorldImpact {
   Iterable<NativeBehavior> get nativeBehaviors => const [];
 
   Iterable<FunctionEntity> get nativeMethods => const [];
+
+  Iterable<Selector> get oneShotInterceptors => const [];
 }
 
 class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
@@ -70,6 +76,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   Set<GenericInstantiation> _genericInstantiations;
   List<NativeBehavior> _nativeBehaviors;
   Set<FunctionEntity> _nativeMethods;
+  Set<Selector> _oneShotInterceptors;
 
   _CodegenImpact();
 
@@ -85,7 +92,8 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
       this._asyncMarkers,
       this._genericInstantiations,
       this._nativeBehaviors,
-      this._nativeMethods)
+      this._nativeMethods,
+      this._oneShotInterceptors)
       : super.internal(dynamicUses, staticUses, typeUses, constantUses);
 
   factory _CodegenImpact.readFromDataSource(DataSource source) {
@@ -126,6 +134,9 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         emptyAsNull: true);
     Set<FunctionEntity> nativeMethods =
         source.readMembers<FunctionEntity>(emptyAsNull: true)?.toSet();
+    Set<Selector> oneShotInterceptors = source
+        .readList(() => Selector.readFromDataSource(source), emptyAsNull: true)
+        ?.toSet();
     source.end(tag);
     return new _CodegenImpact.internal(
         dynamicUses,
@@ -139,7 +150,8 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         asyncMarkers,
         genericInstantiations,
         nativeBehaviors,
-        nativeMethods);
+        nativeMethods,
+        oneShotInterceptors);
   }
 
   @override
@@ -172,6 +184,9 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         (NativeBehavior behavior) => behavior.writeToDataSink(sink),
         allowNull: true);
     sink.writeMembers(_nativeMethods, allowNull: true);
+    sink.writeList(_oneShotInterceptors,
+        (Selector selector) => selector.writeToDataSink(sink),
+        allowNull: true);
     sink.end(tag);
   }
 
@@ -267,6 +282,16 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     return _nativeMethods ?? const [];
   }
 
+  void registerOneShotInterceptor(Selector selector) {
+    _oneShotInterceptors ??= {};
+    _oneShotInterceptors.add(selector);
+  }
+
+  @override
+  Iterable<Selector> get oneShotInterceptors {
+    return _oneShotInterceptors ?? const [];
+  }
+
   @override
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -290,6 +315,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     add('genericInstantiations', genericInstantiations);
     add('nativeBehaviors', nativeBehaviors);
     add('nativeMethods', nativeMethods);
+    add('oneShotInterceptors', oneShotInterceptors);
 
     return sb.toString();
   }
@@ -348,6 +374,10 @@ class CodegenRegistry {
     _worldImpact.registerSpecializedGetInterceptor(classes);
   }
 
+  void registerOneShotInterceptor(Selector selector) {
+    _worldImpact.registerOneShotInterceptor(selector);
+  }
+
   void registerUseInterceptor() {
     _worldImpact.registerUseInterceptor();
   }
@@ -388,6 +418,58 @@ class CodegenRegistry {
   }
 }
 
+/// Interface for reading the code generation results for all [MemberEntity]s.
+abstract class CodegenResults {
+  GlobalTypeInferenceResults get globalTypeInferenceResults;
+  CodegenInputs get codegenInputs;
+  CodegenResult getCodegenResults(MemberEntity member);
+}
+
+/// Code generation results computed on-demand.
+///
+/// This is used in the non-modular codegen enqueuer driving code generation.
+class OnDemandCodegenResults extends CodegenResults {
+  @override
+  final GlobalTypeInferenceResults globalTypeInferenceResults;
+  @override
+  final CodegenInputs codegenInputs;
+  final SsaFunctionCompiler _functionCompiler;
+
+  OnDemandCodegenResults(this.globalTypeInferenceResults, this.codegenInputs,
+      this._functionCompiler);
+
+  @override
+  CodegenResult getCodegenResults(MemberEntity member) {
+    return _functionCompiler.compile(member);
+  }
+}
+
+/// Deserialized code generation results.
+///
+/// This is used for modular code generation.
+class DeserializedCodegenResults extends CodegenResults {
+  @override
+  final GlobalTypeInferenceResults globalTypeInferenceResults;
+  @override
+  final CodegenInputs codegenInputs;
+
+  final Map<MemberEntity, CodegenResult> _map;
+
+  DeserializedCodegenResults(
+      this.globalTypeInferenceResults, this.codegenInputs, this._map);
+
+  @override
+  CodegenResult getCodegenResults(MemberEntity member) {
+    CodegenResult result = _map[member];
+    if (result == null) {
+      failedAt(member,
+          "No codegen results from $member (${identityHashCode(member)}).");
+    }
+    return result;
+  }
+}
+
+/// The code generation result for a single [MemberEntity].
 class CodegenResult {
   static const String tag = 'codegen-result';
 
@@ -481,8 +563,8 @@ class CodegenResult {
         case ModularNameKind.nameForGetInterceptor:
           name.value = namer.nameForGetInterceptor(name.set);
           break;
-        case ModularNameKind.nameForGetOneShotInterceptor:
-          name.value = namer.nameForGetOneShotInterceptor(name.data, name.set);
+        case ModularNameKind.nameForOneShotInterceptor:
+          name.value = namer.nameForOneShotInterceptor(name.data, name.set);
           break;
         case ModularNameKind.asName:
           name.value = namer.asName(name.data);
@@ -556,7 +638,7 @@ enum ModularNameKind {
   globalPropertyNameForType,
   globalPropertyNameForMember,
   nameForGetInterceptor,
-  nameForGetOneShotInterceptor,
+  nameForOneShotInterceptor,
   asName,
 }
 
@@ -611,7 +693,7 @@ class ModularName extends js.Name implements js.AstContainer {
       case ModularNameKind.nameForGetInterceptor:
         set = source.readClasses().toSet();
         break;
-      case ModularNameKind.nameForGetOneShotInterceptor:
+      case ModularNameKind.nameForOneShotInterceptor:
         data = Selector.readFromDataSource(source);
         set = source.readClasses().toSet();
         break;
@@ -663,7 +745,7 @@ class ModularName extends js.Name implements js.AstContainer {
       case ModularNameKind.nameForGetInterceptor:
         sink.writeClasses(set);
         break;
-      case ModularNameKind.nameForGetOneShotInterceptor:
+      case ModularNameKind.nameForOneShotInterceptor:
         Selector selector = data;
         selector.writeToDataSink(sink);
         sink.writeClasses(set);
@@ -1014,7 +1096,10 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
   }
 
   void _writeInfo(js.Node node) {
-    SourceInformation.writeToDataSink(sink, node.sourceInformation);
+    sink.writeCached<SourceInformation>(node.sourceInformation,
+        (SourceInformation sourceInformation) {
+      SourceInformation.writeToDataSink(sink, sourceInformation);
+    });
   }
 
   @override
@@ -2009,7 +2094,9 @@ class JsNodeDeserializer {
         break;
     }
     SourceInformation sourceInformation =
-        SourceInformation.readFromDataSource(source);
+        source.readCached<SourceInformation>(() {
+      return SourceInformation.readFromDataSource(source);
+    });
     if (sourceInformation != null) {
       node = node.withSourceInformation(sourceInformation);
     }

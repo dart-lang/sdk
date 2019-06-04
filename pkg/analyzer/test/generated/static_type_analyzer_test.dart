@@ -138,7 +138,7 @@ main(p) {
 }
 """;
     await resolveTestUnit(code);
-    expectIdentifierType("p()", '() → dynamic');
+    expectIdentifierType("p()", 'dynamic Function()');
   }
 
   test_staticMethods_classTypeParameters() async {
@@ -151,7 +151,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectFunctionType('m);', '() → void');
+    expectFunctionType('m);', 'void Function()');
   }
 
   test_staticMethods_classTypeParameters_genericMethod() async {
@@ -170,29 +170,30 @@ main() {
     // C - m
     TypeParameterType typeS;
     {
-      FunctionTypeImpl type = expectFunctionType('m);', '<S>(S) → void',
+      FunctionTypeImpl type = expectFunctionType('m);', 'void Function<S>(S)',
           elementTypeParams: '[S]',
           typeFormals: '[S]',
-          identifierType: '<S>(S) → void');
+          identifierType: 'void Function<S>(S)');
 
       typeS = type.typeFormals[0].type;
       type = type.instantiate([DynamicTypeImpl.instance]);
-      expect(type.toString(), '(dynamic) → void');
+      expect(type.toString(), 'void Function(dynamic)');
       expect(type.typeParameters.toString(), '[S]');
       expect(type.typeArguments, [DynamicTypeImpl.instance]);
       expect(type.typeFormals, isEmpty);
     }
     // C - m - f
     {
-      FunctionTypeImpl type = expectFunctionType('f);', '<U>(S, U) → void',
+      FunctionTypeImpl type = expectFunctionType(
+          'f);', 'void Function<U>(S, U)',
           elementTypeParams: '[U]',
           typeParams: '[S]',
           typeArgs: '[S]',
           typeFormals: '[U]',
-          identifierType: '<U>(S, U) → void');
+          identifierType: 'void Function<U>(S, U)');
 
       type = type.instantiate([DynamicTypeImpl.instance]);
-      expect(type.toString(), '(S, dynamic) → void');
+      expect(type.toString(), 'void Function(S, dynamic)');
       expect(type.typeParameters.toString(), '[S, U]');
       expect(type.typeArguments, [typeS, DynamicTypeImpl.instance]);
       expect(type.typeFormals, isEmpty);

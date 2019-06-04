@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <utility>
+
 #include "vm/isolate.h"
 
 #include "include/dart_api.h"
@@ -2107,8 +2109,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   }
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
-  jsobj.AddFixedServiceId(ISOLATE_SERVICE_ID_FORMAT_STRING,
-                          static_cast<int64_t>(main_port()));
+  jsobj.AddServiceId(ISOLATE_SERVICE_ID_FORMAT_STRING,
+                     static_cast<int64_t>(main_port()));
 
   jsobj.AddProperty("name", name());
   jsobj.AddPropertyF("number", "%" Pd64 "", static_cast<int64_t>(main_port()));

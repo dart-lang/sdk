@@ -275,9 +275,10 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   bool _isStatic(Expression node) {
-    if (node is! StaticGet) return false;
-
-    return (node as StaticGet).target is Procedure;
+    if (node is StaticGet) {
+      return node.target is Procedure;
+    }
+    return node is ConstantExpression;
   }
 }
 

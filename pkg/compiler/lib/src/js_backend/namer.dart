@@ -1323,7 +1323,7 @@ class Namer extends ModularNamer {
   }
 
   @override
-  jsAst.Name nameForGetOneShotInterceptor(
+  jsAst.Name nameForOneShotInterceptor(
       Selector selector, Iterable<ClassEntity> classes) {
     // The one-shot name is a global name derived from the invocation name.  To
     // avoid instability we would like the names to be unique and not clash with
@@ -1884,8 +1884,13 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
-  void visitAbstractValue(AbstractValueConstantValue constant, [_]) {
-    add('dummy_receiver');
+  void visitDummyInterceptor(DummyInterceptorConstantValue constant, [_]) {
+    add('dummy_interceptor');
+  }
+
+  @override
+  void visitUnreachable(UnreachableConstantValue constant, [_]) {
+    add('unreachable');
   }
 
   @override
@@ -2012,10 +2017,18 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   }
 
   @override
-  int visitAbstractValue(AbstractValueConstantValue constant, [_]) {
+  int visitDummyInterceptor(DummyInterceptorConstantValue constant, [_]) {
     throw failedAt(
         NO_LOCATION_SPANNABLE,
-        'AbstractValueConstantValue should never be named and '
+        'DummyInterceptorConstantValue should never be named and '
+        'never be subconstant');
+  }
+
+  @override
+  int visitUnreachable(UnreachableConstantValue constant, [_]) {
+    throw failedAt(
+        NO_LOCATION_SPANNABLE,
+        'UnreachableConstantValue should never be named and '
         'never be subconstant');
   }
 
@@ -2352,7 +2365,7 @@ abstract class ModularNamer {
 
   /// Property name used for the one-shot interceptor method for the given
   /// [selector] and return-type specialization.
-  jsAst.Name nameForGetOneShotInterceptor(
+  jsAst.Name nameForOneShotInterceptor(
       Selector selector, Set<ClassEntity> classes);
 
   /// Returns the runtime name for [element].
@@ -2736,12 +2749,10 @@ class ModularNamerImpl extends ModularNamer {
   }
 
   @override
-  jsAst.Name nameForGetOneShotInterceptor(
+  jsAst.Name nameForOneShotInterceptor(
       Selector selector, Set<ClassEntity> classes) {
-    jsAst.Name name = new ModularName(
-        ModularNameKind.nameForGetOneShotInterceptor,
-        data: selector,
-        set: classes);
+    jsAst.Name name = new ModularName(ModularNameKind.nameForOneShotInterceptor,
+        data: selector, set: classes);
     _registry.registerModularName(name);
     return name;
   }

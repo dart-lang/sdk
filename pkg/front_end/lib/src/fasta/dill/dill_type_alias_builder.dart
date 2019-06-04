@@ -23,7 +23,7 @@ class DillTypeAliasBuilder extends KernelTypeAliasBuilder {
       : super(null, typedef.name, null, null, parent, typedef.fileOffset,
             typedef);
 
-  List<MetadataBuilder<KernelTypeBuilder>> get metadata {
+  List<MetadataBuilder> get metadata {
     return unimplemented("metadata", -1, null);
   }
 

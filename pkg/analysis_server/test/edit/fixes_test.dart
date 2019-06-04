@@ -40,6 +40,7 @@ main() {
 }
 ''');
     await waitForTasksFinished();
+    doAllDeclarationsTrackerWork();
     List<AnalysisErrorFixes> errorFixes =
         await _getFixesAt('Completer<String>');
     expect(errorFixes, hasLength(1));
@@ -133,17 +134,20 @@ print(1)
   }
 
   test_suggestImportFromDifferentAnalysisRoot() async {
-    String asFileUri(String input) =>
-        new Uri.file(convertPath(input)).toString();
     newFolder('/aaa');
     newFile('/aaa/.packages', content: '''
-aaa:${asFileUri('/aaa/lib')}
-bbb:${asFileUri('/bbb/lib')}
+aaa:${toUri('/aaa/lib')}
+bbb:${toUri('/bbb/lib')}
 ''');
-    // Ensure that the target is analyzed as an implicit source.
-    newFile('/aaa/lib/foo.dart', content: 'import "package:bbb/target.dart";');
+    newFile('/aaa/pubspec.yaml', content: r'''
+dependencies:
+  bbb: any
+''');
 
     newFolder('/bbb');
+    newFile('/bbb/.packages', content: '''
+bbb:${toUri('/bbb/lib')}
+''');
     newFile('/bbb/lib/target.dart', content: 'class Foo() {}');
 
     handleSuccessfulRequest(
@@ -157,6 +161,7 @@ bbb:${asFileUri('/bbb/lib')}
     _addOverlay(testFile, testCode);
 
     await waitForTasksFinished();
+    doAllDeclarationsTrackerWork();
 
     List<String> fixes = (await _getFixesAt('Foo()'))
         .single

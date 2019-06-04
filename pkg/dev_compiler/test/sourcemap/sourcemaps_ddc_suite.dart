@@ -70,7 +70,7 @@ class DevCompilerRunner implements CompilerRunner {
 
     var jsContent = File.fromUri(outputFile).readAsStringSync();
     File.fromUri(outputFile).writeAsStringSync(jsContent.replaceFirst(
-        "from 'dart_sdk'", "from '${uriPathForwardSlashed(jsSdkPath)}'"));
+        "from 'dart_sdk.js'", "from '${uriPathForwardSlashed(jsSdkPath)}'"));
 
     if (debugging) {
       createHtmlWrapper(

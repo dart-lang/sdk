@@ -96,7 +96,7 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.89",
+  "linter_tag": "0.1.90",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.0.3",
@@ -113,7 +113,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_rev": "7d34c9e4e552a4f66acce32e4344ae27756a1949",
-  "pub_rev": "8c363fe26f059c3063f1129adbb3c4e22a8ce954",
+  "pub_rev": "ecd5b413271f2699f8cd9e23aa4eebb5030c964f",
   "pub_semver_tag": "1.4.2",
   "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "2.1.5",
@@ -133,7 +133,7 @@ vars = {
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.8",
-  "test_tag": "test-v1.6.1",
+  "test_tag": "test-v1.6.4",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
@@ -168,7 +168,6 @@ deps = {
       }],
       "dep_type": "cipd",
   },
-
   Var("dart_root") + "/tests/co19_2/src": {
       "packages": [{
           "package": "dart/third_party/co19",
@@ -176,11 +175,16 @@ deps = {
       }],
       "dep_type": "cipd",
   },
-
   Var("dart_root") + "/third_party/markupsafe":
       Var("chromium_git") + "/chromium/src/third_party/markupsafe.git" +
       "@" + Var("markupsafe_rev"),
-
+  Var("dart_root") + "/third_party/babel": {
+      "packages": [{
+          "package": "dart/third_party/babel",
+          "version": "version:7.4.5",
+      }],
+      "dep_type": "cipd",
+  },
   Var("dart_root") + "/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
       "@" + Var("zlib_rev"),

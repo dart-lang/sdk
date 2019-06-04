@@ -64,7 +64,8 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(UnaryInt64Op)                                                              \
   M(CheckedSmiOp)                                                              \
   M(CheckedSmiComparison)                                                      \
-  M(SimdOp)
+  M(SimdOp)                                                                    \
+  M(NativeReturn)
 
 // Location summaries actually are not used by the unoptimizing DBC compiler
 // because we don't allocate any registers.
@@ -1002,6 +1003,10 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t sigdesc_kidx = __ AddConstant(signature_descriptor);
 
   __ FfiCall(sigdesc_kidx);
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
+                                 token_pos());
+  compiler->RecordAfterCallHelper(token_pos(), deopt_id(), 0,
+                                  FlowGraphCompiler::kHasResult, locs());
 }
 
 EMIT_NATIVE_CODE(NativeCall,
@@ -1392,17 +1397,22 @@ CompileType LoadIndexedInstr::ComputeType() const {
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
+
     case kOneByteStringCid:
     case kTwoByteStringCid:
     case kExternalOneByteStringCid:
-    case kExternalTwoByteStringCid:
       return CompileType::FromCid(kSmiCid);
 
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
       return CompileType::Int();
+
+    // These are unsupported on DBC and will cause a bailout during
+    // EmitNativeCode.
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kExternalTwoByteStringCid:
+      return CompileType::FromCid(kSmiCid);
 
     default:
       UNREACHABLE();
@@ -1414,18 +1424,16 @@ Representation LoadIndexedInstr::representation() const {
   switch (class_id_) {
     case kArrayCid:
     case kImmutableArrayCid:
+      return kTagged;
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
+    case kExternalOneByteStringCid:
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-    case kExternalOneByteStringCid:
-    case kExternalTwoByteStringCid:
-      return kTagged;
+      return kUnboxedIntPtr;
     case kTypedDataInt32ArrayCid:
       return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
@@ -1439,6 +1447,14 @@ Representation LoadIndexedInstr::representation() const {
       return kUnboxedFloat32x4;
     case kTypedDataFloat64x2ArrayCid:
       return kUnboxedFloat64x2;
+
+    // These are unsupported on DBC and will cause a bailout during
+    // EmitNativeCode.
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kExternalTwoByteStringCid:
+      return kUnboxedIntPtr;
+
     default:
       UNREACHABLE();
       return kTagged;
@@ -1457,18 +1473,13 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
+      return kTagged;
     case kOneByteStringCid:
-    case kTwoByteStringCid:
-    case kExternalOneByteStringCid:
-    case kExternalTwoByteStringCid:
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
+    case kExternalOneByteStringCid:
     case kExternalTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
-      return kTagged;
+      return kUnboxedIntPtr;
     case kTypedDataInt32ArrayCid:
       return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
@@ -1482,6 +1493,14 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kUnboxedInt32x4;
     case kTypedDataFloat64x2ArrayCid:
       return kUnboxedFloat64x2;
+
+    // These are unsupported on DBC and will cause a bailout during
+    // EmitNativeCode.
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+      return kUnboxedIntPtr;
     default:
       UNREACHABLE();
       return kTagged;
@@ -2148,6 +2167,10 @@ EMIT_NATIVE_CODE(CheckArrayBound, 2) {
   compiler->EmitDeopt(deopt_id(), ICData::kDeoptCheckArrayBound,
                       (generalized_ ? ICData::kGeneralized : 0) |
                           (licm_hoisted_ ? ICData::kHoisted : 0));
+}
+
+void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
 }
 
 }  // namespace dart

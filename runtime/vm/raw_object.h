@@ -1013,7 +1013,19 @@ class RawFfiTrampolineData : public RawObject {
   VISIT_FROM(RawObject*, signature_type_);
   RawType* signature_type_;
   RawFunction* c_signature_;
-  VISIT_TO(RawObject*, c_signature_);
+
+  // Target Dart method for callbacks, otherwise null.
+  RawFunction* callback_target_;
+
+  VISIT_TO(RawObject*, callback_target_);
+
+  // Callback id for callbacks, otherwise 0.
+  //
+  // The callbacks ids are used so that native callbacks can lookup their own
+  // code objects, since native code doesn't pass code objects into function
+  // calls. The callback id is also used to for verifying that callbacks are
+  // called on the correct isolate. See DLRT_VerifyCallbackIsolate for details.
+  uint32_t callback_id_;
 };
 
 class RawField : public RawObject {
@@ -1337,13 +1349,21 @@ class RawBytecode : public RawObject {
   VISIT_FROM(RawObject*, object_pool_);
   RawObjectPool* object_pool_;
   RawFunction* function_;
+  RawArray* closures_;
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
+  NOT_IN_PRODUCT(RawLocalVarDescriptors* var_descriptors_);
+#if defined(PRODUCT)
   VISIT_TO(RawObject*, pc_descriptors_);
+#else
+  VISIT_TO(RawObject*, var_descriptors_);
+#endif
+
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   int32_t instructions_binary_offset_;
   int32_t source_positions_binary_offset_;
+  NOT_IN_PRODUCT(int32_t local_variables_binary_offset_);
 
   static bool ContainsPC(RawObject* raw_obj, uword pc);
 
@@ -1384,15 +1404,14 @@ class RawInstructions : public RawObject {
   uint32_t size_and_flags_;
   uint32_t unchecked_entrypoint_pc_offset_;
 
-#if defined(DART_PRECOMPILER)
   // There is a gap between size_and_flags_ and the entry point
   // because we align entry point by 4 words on all platforms.
   // This allows us to have a free field here without affecting
   // the aligned size of the Instructions object header.
   // This also means that entry point offset is the same
   // whether this field is included or excluded.
+  // TODO(37103): This field should be removed.
   CodeStatistics* stats_;
-#endif
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }

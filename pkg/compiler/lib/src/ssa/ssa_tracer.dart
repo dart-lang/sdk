@@ -173,11 +173,6 @@ class HInstructionStringifier implements HVisitor<String> {
     return "LateValue: ${temporaryId(node.inputs[0])}";
   }
 
-  @override
-  String visitBoolify(HBoolify node) {
-    return "Boolify: ${temporaryId(node.inputs[0])}";
-  }
-
   String handleInvokeBinary(HInvokeBinary node, String opcode) {
     String left = temporaryId(node.left);
     String right = temporaryId(node.right);
@@ -609,19 +604,29 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String _typeConversionKind(HTypeConversion node) {
-    switch (node.kind) {
-      case HTypeConversion.CHECKED_MODE_CHECK:
-        return 'CHECKED_MODE';
-      case HTypeConversion.ARGUMENT_TYPE_CHECK:
-        return 'ARGUMENT';
-      case HTypeConversion.CAST_TYPE_CHECK:
-        return 'CAST';
-      case HTypeConversion.BOOLEAN_CONVERSION_CHECK:
-        return 'BOOLEAN_CONVERSION';
-      case HTypeConversion.RECEIVER_TYPE_CHECK:
-        return 'RECEIVER';
-    }
+    if (node.isTypeCheck) return 'TYPE_CHECK';
+    if (node.isCastCheck) return 'CAST_CHECK';
     return '?';
+  }
+
+  @override
+  String visitPrimitiveCheck(HPrimitiveCheck node) {
+    String checkedInput = temporaryId(node.checkedInput);
+    assert(node.inputs.length == 1);
+    String kind = _primitiveCheckKind(node);
+    return "PrimitiveCheck: $kind $checkedInput to ${node.instructionType}";
+  }
+
+  String _primitiveCheckKind(HPrimitiveCheck node) {
+    if (node.isReceiverTypeCheck) return 'RECEIVER';
+    if (node.isArgumentTypeCheck) return 'ARGUMENT';
+    return '?';
+  }
+
+  @override
+  String visitBoolConversion(HBoolConversion node) {
+    String checkedInput = temporaryId(node.checkedInput);
+    return "BoolConversion: $checkedInput";
   }
 
   @override

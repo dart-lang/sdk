@@ -1951,7 +1951,7 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
     }
 
     while (update_position &&
-           pc_ >= source_pos_iter.BytecodeInstructionIndex()) {
+           static_cast<uword>(pc_) >= source_pos_iter.PcOffset()) {
       position_ = source_pos_iter.TokenPos();
       update_position = source_pos_iter.MoveNext();
     }

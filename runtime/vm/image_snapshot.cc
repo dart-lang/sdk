@@ -7,6 +7,7 @@
 #include "platform/assert.h"
 #include "vm/compiler/backend/code_statistics.h"
 #include "vm/dwarf.h"
+#include "vm/elf.h"
 #include "vm/hash.h"
 #include "vm/hash_map.h"
 #include "vm/heap/heap.h"
@@ -359,10 +360,10 @@ AssemblyImageWriter::AssemblyImageWriter(Thread* thread,
                                          const void* shared_instructions)
     : ImageWriter(thread->heap(), shared_objects, shared_instructions, nullptr),
       assembly_stream_(512 * KB, callback, callback_data),
-      dwarf_(NULL) {
+      dwarf_(nullptr) {
 #if defined(DART_PRECOMPILER)
   Zone* zone = Thread::Current()->zone();
-  dwarf_ = new (zone) Dwarf(zone, &assembly_stream_);
+  dwarf_ = new (zone) Dwarf(zone, &assembly_stream_, /* elf= */ nullptr);
 #endif
 }
 
@@ -676,12 +677,20 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
                                  intptr_t initial_size,
                                  const void* shared_objects,
                                  const void* shared_instructions,
-                                 const void* reused_instructions)
+                                 const void* reused_instructions,
+                                 Elf* elf,
+                                 Dwarf* dwarf)
     : ImageWriter(thread->heap(),
                   shared_objects,
                   shared_instructions,
                   reused_instructions),
-      instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size) {
+      instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size),
+      elf_(elf),
+      dwarf_(dwarf) {
+#ifndef DART_PRECOMPILER
+  RELEASE_ASSERT(elf_ == nullptr);
+  RELEASE_ASSERT(dwarf_ == nullptr);
+#endif
 }
 
 intptr_t BlobImageWriter::WriteByteSequence(uword start, uword end) {
@@ -693,6 +702,13 @@ intptr_t BlobImageWriter::WriteByteSequence(uword start, uword end) {
 }
 
 void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
+#ifdef DART_PRECOMPILER
+  intptr_t segment_base = 0;
+  if (elf_ != nullptr) {
+    segment_base = elf_->NextMemoryOffset();
+  }
+#endif
+
   // This header provides the gap to make the instructions snapshot look like a
   // HeapPage.
   intptr_t instructions_length = next_text_offset_;
@@ -733,6 +749,15 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     ASSERT(Utils::IsAligned(beginning, sizeof(uword)));
     ASSERT(Utils::IsAligned(entry, sizeof(uword)));
 
+#ifdef DART_PRECOMPILER
+    const Code& code = *instructions_[i].code_;
+    if ((elf_ != nullptr) && !code.IsNull()) {
+      intptr_t segment_offset = instructions_blob_stream_.bytes_written() +
+                                Instructions::HeaderSize();
+      dwarf_->AddCode(code, segment_base + segment_offset);
+    }
+#endif
+
     // Write Instructions with the mark and read-only bits set.
     uword marked_tags = insns.raw_ptr()->tags_;
     marked_tags = RawObject::OldBit::update(true, marked_tags);
@@ -752,6 +777,17 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
     ASSERT((text_offset - instr_start) == insns.raw()->HeapSize());
   }
+
+#ifdef DART_PRECOMPILER
+  if (elf_ != nullptr) {
+    const char* instructions_symbol = vm ? "_kDartVmSnapshotInstructions"
+                                         : "_kDartIsolateSnapshotInstructions";
+    intptr_t segment_base2 =
+        elf_->AddText(instructions_symbol, instructions_blob_stream_.buffer(),
+                      instructions_blob_stream_.bytes_written());
+    ASSERT(segment_base == segment_base2);
+  }
+#endif
 }
 
 ImageReader::ImageReader(const uint8_t* data_image,

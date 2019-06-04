@@ -29,6 +29,8 @@ import '../kernel_generator_impl.dart' show generateKernel;
 import 'compiler_state.dart'
     show InitializedCompilerState, WorkerInputComponent, digestsEqual;
 
+import 'util.dart' show equalLists, equalMaps;
+
 export '../api_prototype/compiler_options.dart' show CompilerOptions;
 
 export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
@@ -79,29 +81,13 @@ Future<InitializedCompilerState> initializeCompiler(
     {FileSystem fileSystem,
     Map<ExperimentalFlag, bool> experiments}) async {
   inputSummaries.sort((a, b) => a.toString().compareTo(b.toString()));
-  bool listEqual(List<Uri> a, List<Uri> b) {
-    if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; ++i) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
-  }
-
-  bool mapEqual(Map<ExperimentalFlag, bool> a, Map<ExperimentalFlag, bool> b) {
-    if (a == null || b == null) return a == b;
-    if (a.length != b.length) return false;
-    for (var flag in a.keys) {
-      if (!b.containsKey(flag) || a[flag] != b[flag]) return false;
-    }
-    return true;
-  }
 
   if (oldState != null &&
       oldState.options.sdkSummary == sdkSummary &&
       oldState.options.packagesFileUri == packagesFile &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
-      listEqual(oldState.options.inputSummaries, inputSummaries) &&
-      mapEqual(oldState.options.experimentalFlags, experiments)) {
+      equalLists(oldState.options.inputSummaries, inputSummaries) &&
+      equalMaps(oldState.options.experimentalFlags, experiments)) {
     // Reuse old state.
 
     // These libraries are marked external when compiling. If not un-marking

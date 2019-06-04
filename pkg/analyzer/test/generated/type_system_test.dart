@@ -4,6 +4,7 @@
 
 // Tests related to the [TypeSystem] class.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' show astFactory;
 import 'package:analyzer/dart/ast/token.dart' show Keyword;
 import 'package:analyzer/dart/element/element.dart';
@@ -32,6 +33,7 @@ main() {
     defineReflectiveTests(ConstraintMatchingTest);
     defineReflectiveTests(StrongAssignabilityTest);
     defineReflectiveTests(StrongSubtypingTest);
+    defineReflectiveTests(NonNullableSubtypingTest);
     defineReflectiveTests(StrongGenericFunctionInferenceTest);
     defineReflectiveTests(StrongLeastUpperBoundTest);
     defineReflectiveTests(StrongGreatestLowerBoundTest);
@@ -78,6 +80,7 @@ abstract class BoundTestBase {
   InterfaceType get intType => typeProvider.intType;
   InterfaceType get iterableType => typeProvider.iterableType;
   InterfaceType get listType => typeProvider.listType;
+  InterfaceType get nullType => typeProvider.nullType;
   InterfaceType get numType => typeProvider.numType;
   InterfaceType get objectType => typeProvider.objectType;
   InterfaceType get stringType => typeProvider.stringType;
@@ -847,6 +850,94 @@ abstract class LeastUpperBoundTestBase extends BoundTestBase {
           _functionType([], returns: voidType));
     }
   }
+}
+
+@reflectiveTest
+class NonNullableSubtypingTest extends StrongSubtypingTestBase {
+  @override
+  void setUp() {
+    typeProvider = AnalysisContextFactory.contextWithCoreAndOptions(
+            new AnalysisOptionsImpl()
+              ..contextFeatures = FeatureSet.forTesting(
+                  additionalFeatures: [Feature.non_nullable]),
+            resourceProvider: new MemoryResourceProvider())
+        .typeProvider;
+
+    // TypeSystem should use the context type provider.
+    typeSystem = new Dart2TypeSystem(typeProvider);
+
+    LibraryElement coreLibrary = typeProvider.objectType.element.library;
+    LibraryElement asyncLibrary = typeProvider.streamType.element.library;
+
+    // Get a non-nullable type provider for convience during the test.
+    typeProvider = new NonNullableTypeProvider(coreLibrary, asyncLibrary);
+  }
+
+  void test_int_nullableTypes() {
+    List<DartType> equivalents = <DartType>[
+      intType,
+      _star(intType),
+    ];
+    List<DartType> supertypes = <DartType>[
+      _question(intType),
+      objectType,
+      _question(objectType),
+    ];
+    List<DartType> unrelated = <DartType>[doubleType, nullType];
+    _checkGroups(intType,
+        equivalents: equivalents, supertypes: supertypes, unrelated: unrelated);
+  }
+
+  void test_intQuestion_nullableTypes() {
+    List<DartType> equivalents = <DartType>[
+      _question(intType),
+      _star(intType),
+    ];
+    List<DartType> subtypes = <DartType>[
+      intType,
+      nullType,
+    ];
+    List<DartType> supertypes = <DartType>[
+      _question(numType),
+      _star(numType),
+      _question(objectType),
+      _star(objectType),
+    ];
+    List<DartType> unrelated = <DartType>[doubleType, numType, objectType];
+    _checkGroups(_question(intType),
+        equivalents: equivalents,
+        supertypes: supertypes,
+        unrelated: unrelated,
+        subtypes: subtypes);
+  }
+
+  void test_intStar_nullableTypes() {
+    List<DartType> equivalents = <DartType>[
+      intType,
+      _question(intType),
+      _star(intType),
+    ];
+    List<DartType> subtypes = <DartType>[nullType];
+    List<DartType> supertypes = <DartType>[
+      numType,
+      _question(numType),
+      _star(numType),
+      objectType,
+      _question(objectType),
+    ];
+    List<DartType> unrelated = <DartType>[doubleType];
+    _checkGroups(_star(intType),
+        equivalents: equivalents,
+        supertypes: supertypes,
+        unrelated: unrelated,
+        subtypes: subtypes);
+  }
+
+  DartType _question(DartType dartType) =>
+      (dartType as TypeImpl).withNullability(NullabilitySuffix.question);
+
+  DartType _star(DartType dartType) =>
+      (dartType as TypeImpl).withNullability(NullabilitySuffix.star);
 }
 
 @reflectiveTest
@@ -1852,29 +1943,7 @@ class StrongLeastUpperBoundTest extends LeastUpperBoundTestBase {
 }
 
 @reflectiveTest
-class StrongSubtypingTest {
-  TypeProvider typeProvider;
-  TypeSystem typeSystem;
-
-  DartType get bottomType => typeProvider.bottomType;
-  InterfaceType get doubleType => typeProvider.doubleType;
-  DartType get dynamicType => typeProvider.dynamicType;
-  InterfaceType get functionType => typeProvider.functionType;
-  InterfaceType get futureOrType => typeProvider.futureOrType;
-  InterfaceType get intType => typeProvider.intType;
-  InterfaceType get listType => typeProvider.listType;
-  InterfaceType get numType => typeProvider.numType;
-  InterfaceType get objectType => typeProvider.objectType;
-  InterfaceType get stringType => typeProvider.stringType;
-  DartType get voidType => VoidTypeImpl.instance;
-
-  void setUp() {
-    typeProvider = AnalysisContextFactory.contextWithCore(
-            resourceProvider: new MemoryResourceProvider())
-        .typeProvider;
-    typeSystem = new Dart2TypeSystem(typeProvider);
-  }
-
+class StrongSubtypingTest extends StrongSubtypingTestBase {
   void test_bottom_isBottom() {
     DartType interfaceType = ElementFactory.classElement2('A', []).type;
     List<DartType> equivalents = <DartType>[bottomType];
@@ -2184,6 +2253,31 @@ class StrongSubtypingTest {
     ];
     _checkGroups(voidType, equivalents: equivalents, subtypes: subtypes);
   }
+}
+
+class StrongSubtypingTestBase {
+  TypeProvider typeProvider;
+  TypeSystem typeSystem;
+
+  DartType get bottomType => typeProvider.bottomType;
+  InterfaceType get doubleType => typeProvider.doubleType;
+  DartType get dynamicType => typeProvider.dynamicType;
+  InterfaceType get functionType => typeProvider.functionType;
+  InterfaceType get futureOrType => typeProvider.futureOrType;
+  InterfaceType get intType => typeProvider.intType;
+  InterfaceType get listType => typeProvider.listType;
+  DartType get nullType => typeProvider.nullType;
+  InterfaceType get numType => typeProvider.numType;
+  InterfaceType get objectType => typeProvider.objectType;
+  InterfaceType get stringType => typeProvider.stringType;
+  DartType get voidType => VoidTypeImpl.instance;
+
+  void setUp() {
+    typeProvider = AnalysisContextFactory.contextWithCore(
+            resourceProvider: new MemoryResourceProvider())
+        .typeProvider;
+    typeSystem = new Dart2TypeSystem(typeProvider);
+  }
 
   void _checkEquivalent(DartType type1, DartType type2) {
     _checkIsSubtypeOf(type1, type2);
@@ -2218,7 +2312,8 @@ class StrongSubtypingTest {
   }
 
   void _checkIsNotSubtypeOf(DartType type1, DartType type2) {
-    expect(typeSystem.isSubtypeOf(type1, type2), false);
+    expect(typeSystem.isSubtypeOf(type1, type2), false,
+        reason: '$type1 was not supposed to be a subtype of $type2');
   }
 
   void _checkIsStrictSubtypeOf(DartType type1, DartType type2) {
@@ -2227,7 +2322,8 @@ class StrongSubtypingTest {
   }
 
   void _checkIsSubtypeOf(DartType type1, DartType type2) {
-    expect(typeSystem.isSubtypeOf(type1, type2), true);
+    expect(typeSystem.isSubtypeOf(type1, type2), true,
+        reason: '$type1 is not a subtype of $type2');
   }
 
   void _checkLattice(

@@ -141,12 +141,6 @@ abstract class TestSuite {
   Map<String, String> get environmentOverrides => _environmentOverrides;
 
   /**
-   * Whether or not binaries should be found in the root build directory or
-   * in the built SDK.
-   */
-  bool get useSdk => configuration.useSdk;
-
-  /**
    * The output directory for this suite's configuration.
    */
   String get buildDir => configuration.buildDirectory;
@@ -164,80 +158,6 @@ abstract class TestSuite {
     TestUtils.ensureExists(name, configuration);
     return name;
   }
-
-  /// Returns the name of the Dart VM executable.
-  String get dartVmBinaryFileName {
-    // Controlled by user with the option "--dart".
-    var dartExecutable = configuration.dartPath;
-
-    if (dartExecutable == null) {
-      dartExecutable = dartVmExecutableFileName;
-    }
-
-    TestUtils.ensureExists(dartExecutable, configuration);
-    return dartExecutable;
-  }
-
-  String get dartVmExecutableFileName {
-    return useSdk
-        ? '$buildDir/dart-sdk/bin/dart$executableBinarySuffix'
-        : '$buildDir/dart$executableBinarySuffix';
-  }
-
-  String get dartPrecompiledBinaryFileName {
-    // Controlled by user with the option "--dart_precompiled".
-    var dartExecutable = configuration.dartPrecompiledPath;
-
-    if (dartExecutable == null || dartExecutable == '') {
-      var suffix = executableBinarySuffix;
-      dartExecutable = '$buildDir/dart_precompiled_runtime$suffix';
-    }
-
-    TestUtils.ensureExists(dartExecutable, configuration);
-    return dartExecutable;
-  }
-
-  String get processTestBinaryFileName {
-    var suffix = executableBinarySuffix;
-    var processTestExecutable = '$buildDir/process_test$suffix';
-    TestUtils.ensureExists(processTestExecutable, configuration);
-    return processTestExecutable;
-  }
-
-  String get d8FileName {
-    var suffix = getExecutableSuffix('d8');
-    var d8Dir = Repository.dir.append('third_party/d8');
-    var d8Path = d8Dir.append('${Platform.operatingSystem}/d8$suffix');
-    var d8 = d8Path.toNativePath();
-    TestUtils.ensureExists(d8, configuration);
-    return d8;
-  }
-
-  String get jsShellFileName {
-    var executableSuffix = getExecutableSuffix('jsshell');
-    var executable = 'jsshell$executableSuffix';
-    var jsshellDir = '${Repository.dir.toNativePath()}/tools/testing/bin';
-    return '$jsshellDir/$executable';
-  }
-
-  /**
-   * The file extension (if any) that should be added to the given executable
-   * name for the current platform.
-   */
-  // TODO(ahe): Get rid of this. Use executableBinarySuffix instead.
-  String getExecutableSuffix(String executable) {
-    if (Platform.operatingSystem == 'windows') {
-      if (executable == 'd8' || executable == 'vm' || executable == 'none') {
-        return '.exe';
-      } else {
-        return '.bat';
-      }
-    }
-    return '';
-  }
-
-  String get executableBinarySuffix => Platform.isWindows ? '.exe' : '';
-  String get executableScriptSuffix => Platform.isWindows ? '.bat' : '';
 
   /**
    * Call the callback function onTest with a [TestCase] argument for each
@@ -585,7 +505,7 @@ class StandardTestSuite extends TestSuite {
         extraVmOptions = configuration.vmOptions,
         super(configuration, suiteName, statusFilePaths) {
     // Initialize _dart2JsBootstrapDependencies
-    if (!useSdk) {
+    if (!configuration.useSdk) {
       _dart2JsBootstrapDependencies = [];
     } else {
       _dart2JsBootstrapDependencies = [
@@ -933,7 +853,6 @@ class StandardTestSuite extends TestSuite {
 
     return commands
       ..addAll(configuration.runtimeConfiguration.computeRuntimeCommands(
-          this,
           compilationArtifact,
           runtimeArguments,
           environment,
@@ -1028,30 +947,28 @@ class StandardTestSuite extends TestSuite {
     var fileName = info.filePath.toNativePath();
     var optionsFromFile = info.optionsFromFile;
     var compilationTempDir = createCompilationOutputDirectory(info.filePath);
-    var jsWrapperFileName = '$compilationTempDir/test.js';
     var nameNoExt = info.filePath.filenameWithoutExtension;
+    var outputDir = compilationTempDir;
+    var commonArguments =
+        commonArgumentsFromFile(info.filePath, optionsFromFile);
 
     // Use existing HTML document if available.
     String content;
     var customHtml = new File(
         info.filePath.directoryPath.append('$nameNoExt.html').toNativePath());
     if (customHtml.existsSync()) {
-      jsWrapperFileName = '$tempDir/$nameNoExt.js';
+      outputDir = tempDir;
       content = customHtml.readAsStringSync().replaceAll(
           '%TEST_SCRIPTS%', '<script src="$nameNoExt.js"></script>');
     } else {
       // Synthesize an HTML file for the test.
       if (configuration.compiler == Compiler.dart2js) {
-        var scriptPath = _createUrlPathFromFile(new Path(jsWrapperFileName));
+        var scriptPath = _createUrlPathFromFile(
+            new Path('$compilationTempDir/$nameNoExt.js'));
         content = dart2jsHtml(fileName, scriptPath);
       } else {
         var jsDir =
             new Path(compilationTempDir).relativeTo(Repository.dir).toString();
-        jsWrapperFileName =
-            new Path('$compilationTempDir/$nameNoExt.js').toNativePath();
-        // Always run with synchronous starts of `async` functions.
-        // If we want to make this dependent on other parameters or flags,
-        // this flag could be become conditional.
         content = dartdevcHtml(nameNoExt, jsDir, configuration.compiler);
       }
     }
@@ -1062,36 +979,21 @@ class StandardTestSuite extends TestSuite {
     // Construct the command(s) that compile all the inputs needed by the
     // browser test.
     var commands = <Command>[];
+    const supportedCompilers = {
+      Compiler.dart2js,
+      Compiler.dartdevc,
+      Compiler.dartdevk
+    };
+    assert(supportedCompilers.contains(configuration.compiler));
+    var sharedOptions = optionsFromFile["sharedOptions"] as List<String>;
+    var dart2jsOptions = optionsFromFile["dart2jsOptions"] as List<String>;
+    var ddcOptions = optionsFromFile["ddcOptions"] as List<String>;
 
-    void addCompileCommand(String fileName, String toPath) {
-      switch (configuration.compiler) {
-        case Compiler.dart2js:
-          commands.add(_dart2jsCompileCommand(
-              fileName, toPath, tempDir, optionsFromFile));
-          break;
-
-        case Compiler.dartdevc:
-        case Compiler.dartdevk:
-          var ddcOptions = optionsFromFile["sharedOptions"] as List<String>;
-          ddcOptions.addAll(optionsFromFile["ddcOptions"] as List<String>);
-          commands.add(configuration.compilerConfiguration.createCommand(
-              fileName, toPath, ddcOptions, environmentOverrides));
-          break;
-
-        default:
-          assert(false);
-      }
-    }
-
-    addCompileCommand(fileName, jsWrapperFileName);
-
-    // Some tests require compiling multiple input scripts.
-    for (var name in optionsFromFile['otherScripts'] as List<String>) {
-      var namePath = new Path(name);
-      var fromPath = info.filePath.directoryPath.join(namePath).toNativePath();
-      var toPath = new Path('$tempDir/${namePath.filename}.js').toNativePath();
-      addCompileCommand(fromPath, toPath);
-    }
+    var args = configuration.compilerConfiguration.computeCompilerArguments(
+        null, sharedOptions, null, dart2jsOptions, ddcOptions, commonArguments);
+    var compilation = configuration.compilerConfiguration
+        .computeCompilationArtifact(outputDir, args, environmentOverrides);
+    commands.addAll(compilation.commands);
 
     if (info.optionsFromFile['isMultiHtmlTest'] as bool) {
       // Variables for browser multi-tests.
@@ -1128,43 +1030,6 @@ class StandardTestSuite extends TestSuite {
     enqueueNewTestCase(fullName, commands, expectations, info);
   }
 
-  /// Creates a [Command] to compile a single .dart file using dart2js.
-  Command _dart2jsCompileCommand(String inputFile, String outputFile,
-      String dir, Map<String, dynamic> optionsFromFile) {
-    var args = <String>[];
-
-    if (compilerPath.endsWith('.dart')) {
-      // Run the compiler script via the Dart VM.
-      args.add(compilerPath);
-    }
-
-    args.addAll(configuration.standardOptions);
-    args.addAll(configuration.dart2jsOptions);
-
-    var packages = packagesArgument(optionsFromFile['packageRoot'] as String,
-        optionsFromFile['packages'] as String);
-    if (packages != null) args.add(packages);
-
-    args.add('--out=$outputFile');
-    args.add(inputFile);
-
-    var options = optionsFromFile['sharedOptions'] as List<String>;
-    if (options != null) args.addAll(options);
-    options = optionsFromFile['dart2jsOptions'] as List<String>;
-    if (options != null) args.addAll(options);
-    if (configuration.compiler == Compiler.dart2js) {
-      if (configuration.noPreviewDart2) {
-        args.add("--no-preview-dart-2");
-      } else {
-        args.add("--preview-dart-2");
-      }
-    }
-
-    return Command.compilation(Compiler.dart2js.name, outputFile,
-        dart2JsBootstrapDependencies, compilerPath, args, environmentOverrides,
-        alwaysCompile: !useSdk);
-  }
-
   List<String> commonArgumentsFromFile(
       Path filePath, Map<String, dynamic> optionsFromFile) {
     var args = configuration.standardOptions.toList();
@@ -1182,14 +1047,6 @@ class StandardTestSuite extends TestSuite {
       if (filePath.filename.contains("dart2js") ||
           filePath.directoryPath.segments().last.contains('html_common')) {
         args.add("--use-dart2js-libraries");
-      }
-    }
-
-    if (configuration.compiler == Compiler.dart2js) {
-      if (configuration.noPreviewDart2) {
-        args.add("--no-preview-dart-2");
-      } else {
-        args.add("--preview-dart-2");
       }
     }
 
@@ -1241,12 +1098,6 @@ class StandardTestSuite extends TestSuite {
    *     // Environment=ENV_VAR1=foo bar
    *     // Environment=ENV_VAR2=bazz
    *
-   *   - For tests that depend on compiling other files with dart2js (e.g.
-   *   isolate tests that use multiple source scripts), you can specify
-   *   additional files to compile using a comment too, as follows:
-   *
-   *     // OtherScripts=file1.dart file2.dart
-   *
    *   - Most tests are not web tests, but can (and will be) wrapped within
    *   an HTML file and another script file to test them also on browser
    *   environments (e.g. language and corelib tests are run this way).
@@ -1272,7 +1123,6 @@ class StandardTestSuite extends TestSuite {
     }
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
     RegExp environmentRegExp = new RegExp(r"// Environment=(.*)");
-    RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
     RegExp otherResourcesRegExp = new RegExp(r"// OtherResources=(.*)");
     RegExp sharedObjectsRegExp = new RegExp(r"// SharedObjects=(.*)");
     RegExp packageRootRegExp = new RegExp(r"// PackageRoot=(.*)");
@@ -1365,12 +1215,6 @@ class StandardTestSuite extends TestSuite {
       }
     }
 
-    var otherScripts = <String>[];
-    matches = otherScriptsRegExp.allMatches(contents);
-    for (var match in matches) {
-      otherScripts.addAll(wordSplit(match[1]));
-    }
-
     var otherResources = <String>[];
     matches = otherResourcesRegExp.allMatches(contents);
     for (var match in matches) {
@@ -1438,7 +1282,6 @@ class StandardTestSuite extends TestSuite {
       "hasCompileError": hasCompileError,
       "hasRuntimeError": hasRuntimeError,
       "hasStaticWarning": hasStaticWarning,
-      "otherScripts": otherScripts,
       "otherResources": otherResources,
       "sharedObjects": sharedObjects,
       "isMultitest": isMultitest,
@@ -1461,7 +1304,6 @@ class StandardTestSuite extends TestSuite {
       "hasCompileError": false,
       "hasRuntimeError": false,
       "hasStaticWarning": false,
-      "otherScripts": const [],
       "isMultitest": false,
       "isMultiHtmlTest": false,
       "subtestNames": const [],

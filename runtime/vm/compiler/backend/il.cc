@@ -27,6 +27,7 @@
 #include "vm/regexp_assembler_ir.h"
 #include "vm/resolver.h"
 #include "vm/scopes.h"
+#include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/type_testing_stubs.h"
@@ -649,24 +650,75 @@ Cids* Cids::CreateMonomorphic(Zone* zone, intptr_t cid) {
   return cids;
 }
 
-Cids* Cids::Create(Zone* zone, const ICData& ic_data, int argument_number) {
+Cids* Cids::CreateAndExpand(Zone* zone,
+                            const ICData& ic_data,
+                            int argument_number) {
   Cids* cids = new (zone) Cids(zone);
   cids->CreateHelper(zone, ic_data, argument_number,
                      /* include_targets = */ false);
   cids->Sort(OrderById);
 
   // Merge adjacent class id ranges.
-  int dest = 0;
-  for (int src = 1; src < cids->length(); src++) {
-    if (cids->cid_ranges_[dest]->cid_end + 1 >=
-        cids->cid_ranges_[src]->cid_start) {
-      cids->cid_ranges_[dest]->cid_end = cids->cid_ranges_[src]->cid_end;
-    } else {
-      dest++;
-      if (src != dest) cids->cid_ranges_[dest] = cids->cid_ranges_[src];
+  {
+    int dest = 0;
+    for (int src = 1; src < cids->length(); src++) {
+      if (cids->cid_ranges_[dest]->cid_end + 1 >=
+          cids->cid_ranges_[src]->cid_start) {
+        cids->cid_ranges_[dest]->cid_end = cids->cid_ranges_[src]->cid_end;
+      } else {
+        dest++;
+        if (src != dest) cids->cid_ranges_[dest] = cids->cid_ranges_[src];
+      }
+    }
+    cids->SetLength(dest + 1);
+  }
+
+  // Merging/extending cid ranges is also done in CallTargets::CreateAndExpand.
+  // If changing this code, consider also adjusting CallTargets code.
+
+  if (cids->length() > 1 && argument_number == 0 && ic_data.HasOneTarget()) {
+    // Try harder to merge ranges if method lookups in the gaps result in the
+    // same target method.
+    const Function& target = Function::Handle(zone, ic_data.GetTargetAt(0));
+    if (!MethodRecognizer::PolymorphicTarget(target)) {
+      const auto& args_desc_array =
+          Array::Handle(zone, ic_data.arguments_descriptor());
+      ArgumentsDescriptor args_desc(args_desc_array);
+      const auto& name = String::Handle(zone, ic_data.target_name());
+      auto& fn = Function::Handle(zone);
+
+      intptr_t dest = 0;
+      for (intptr_t src = 1; src < cids->length(); src++) {
+        // Inspect all cids in the gap and see if they all resolve to the same
+        // target.
+        bool can_merge = true;
+        for (intptr_t cid = cids->cid_ranges_[dest]->cid_end + 1,
+                      end = cids->cid_ranges_[src]->cid_start;
+             cid < end; ++cid) {
+          bool class_is_abstract = false;
+          if (FlowGraphCompiler::LookupMethodFor(cid, name, args_desc, &fn,
+                                                 &class_is_abstract)) {
+            if (fn.raw() == target.raw()) {
+              continue;
+            }
+            if (class_is_abstract) {
+              continue;
+            }
+          }
+          can_merge = false;
+          break;
+        }
+
+        if (can_merge) {
+          cids->cid_ranges_[dest]->cid_end = cids->cid_ranges_[src]->cid_end;
+        } else {
+          dest++;
+          if (src != dest) cids->cid_ranges_[dest] = cids->cid_ranges_[src];
+        }
+      }
+      cids->SetLength(dest + 1);
     }
   }
-  cids->SetLength(dest + 1);
 
   return cids;
 }
@@ -2727,6 +2779,11 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       if (call->is_known_list_constructor() &&
           IsFixedLengthArrayCid(call->Type()->ToCid())) {
         return call->ArgumentAt(1);
+      } else if (call->function().recognized_kind() ==
+                 MethodRecognizer::kByteDataFactory) {
+        // Similarly, we check for the ByteData constructor and forward its
+        // explicit length argument appropriately.
+        return call->ArgumentAt(1);
       } else if (IsTypedDataViewFactory(call->function())) {
         // Typed data view factories all take three arguments (after
         // the implicit type arguments parameter):
@@ -2769,6 +2826,11 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     if (StaticCallInstr* call = array->AsStaticCall()) {
       if (IsTypedDataViewFactory(call->function())) {
         return call->ArgumentAt(2);
+      } else if (call->function().recognized_kind() ==
+                 MethodRecognizer::kByteDataFactory) {
+        // A _ByteDataView returned from the ByteData constructor always
+        // has an offset of 0.
+        return flow_graph->GetConstant(Smi::Handle(Smi::New(0)));
       }
     }
   } else if (slot().IsTypeArguments()) {
@@ -2776,9 +2838,15 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     if (StaticCallInstr* call = array->AsStaticCall()) {
       if (call->is_known_list_constructor()) {
         return call->ArgumentAt(0);
-      } else if (call->function().recognized_kind() ==
-                 MethodRecognizer::kLinkedHashMap_getData) {
+      } else if (IsTypedDataViewFactory(call->function())) {
         return flow_graph->constant_null();
+      }
+      switch (call->function().recognized_kind()) {
+        case MethodRecognizer::kByteDataFactory:
+        case MethodRecognizer::kLinkedHashMap_getData:
+          return flow_graph->constant_null();
+        default:
+          break;
       }
     } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
       return create_array->element_type()->definition();
@@ -3522,6 +3590,11 @@ Instruction* GuardFieldLengthInstr::Canonicalize(FlowGraph* flow_graph) {
   if (call->is_known_list_constructor() &&
       LoadFieldInstr::IsFixedLengthArrayCid(call->Type()->ToCid())) {
     length = call->ArgumentAt(1)->AsConstant();
+  } else if (call->function().recognized_kind() ==
+             MethodRecognizer::kByteDataFactory) {
+    length = call->ArgumentAt(1)->AsConstant();
+  } else if (LoadFieldInstr::IsTypedDataViewFactory(call->function())) {
+    length = call->ArgumentAt(3)->AsConstant();
   }
   if ((length != NULL) && length->value().IsSmi() &&
       Smi::Cast(length->value()).Value() == expected_length) {
@@ -3650,6 +3723,9 @@ CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
   Function& fn = Function::Handle(zone);
 
   intptr_t length = targets.length();
+
+  // Merging/extending cid ranges is also done in Cids::CreateAndExpand.
+  // If changing this code, consider also adjusting Cids code.
 
   // Spread class-ids to preceding classes where a lookup yields the same
   // method.  A polymorphic target is not really the same method since its
@@ -3825,7 +3901,9 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ nop();
   }
 #endif
-  __ Bind(compiler->GetJumpLabel(this));
+  if (tag() == Instruction::kFunctionEntry) {
+    __ Bind(compiler->GetJumpLabel(this));
+  }
 
 // In the AOT compiler we want to reduce code size, so generate no
 // fall-through code in [FlowGraphCompiler::CompileGraph()].
@@ -3875,6 +3953,11 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
+}
+
+LocationSummary* NativeEntryInstr::MakeLocationSummary(Zone* zone,
+                                                       bool optimizing) const {
+  UNREACHABLE();
 }
 
 LocationSummary* OsrEntryInstr::MakeLocationSummary(Zone* zone,
@@ -3980,6 +4063,43 @@ LocationSummary* ParameterInstr::MakeLocationSummary(Zone* zone,
 
 void ParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
+}
+
+void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#if !defined(TARGET_ARCH_DBC)
+  // The native entry frame has size -kExitLinkSlotFromFp. In order to access
+  // the top of stack from above the entry frame, we add a constant to account
+  // for the the two frame pointers and two return addresses of the entry frame.
+  constexpr intptr_t kEntryFramePadding = 4;
+  FrameRebase rebase(/*old_base=*/SPREG, /*new_base=*/FPREG,
+                     -kExitLinkSlotFromEntryFp + kEntryFramePadding);
+  const Location dst = locs()->out(0);
+  const Location src = rebase.Rebase(loc_);
+  NoTemporaryAllocator no_temp;
+  compiler->EmitMove(dst, src, &no_temp);
+#else
+  UNREACHABLE();
+#endif
+}
+
+LocationSummary* NativeParameterInstr::MakeLocationSummary(Zone* zone,
+                                                           bool opt) const {
+#if !defined(TARGET_ARCH_DBC)
+  ASSERT(opt);
+  Location input = Location::Any();
+  if (representation() == kUnboxedInt64 && compiler::target::kWordSize < 8) {
+    input = Location::Pair(Location::RequiresRegister(),
+                           Location::RequiresFpuRegister());
+  } else {
+    input = RegisterKindForResult() == Location::kRegister
+                ? Location::RequiresRegister()
+                : Location::RequiresFpuRegister();
+  }
+  return LocationSummary::Make(zone, /*num_inputs=*/0, input,
+                               LocationSummary::kNoCall);
+#else
+  UNREACHABLE();
+#endif
 }
 
 bool ParallelMoveInstr::IsRedundant() const {
@@ -5368,6 +5488,16 @@ Location FfiCallInstr::UnallocateStackSlots(Location in, bool is_atomic) {
     ASSERT(in.IsStackSlot());
     return Location::Any();
   }
+}
+
+LocationSummary* NativeReturnInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, result_location_);
+  return locs;
 }
 
 #undef Z

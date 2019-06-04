@@ -7,8 +7,11 @@
 enum ExperimentalFlag {
   constantUpdate2018,
   controlFlowCollections,
+  extensionMethods,
+  nonNullable,
   setLiterals,
   spreadCollections,
+  tripleShift,
 }
 
 ExperimentalFlag parseExperimentalFlag(String flag) {
@@ -17,10 +20,16 @@ ExperimentalFlag parseExperimentalFlag(String flag) {
       return ExperimentalFlag.constantUpdate2018;
     case "control-flow-collections":
       return ExperimentalFlag.controlFlowCollections;
+    case "extension-methods":
+      return ExperimentalFlag.extensionMethods;
+    case "non-nullable":
+      return ExperimentalFlag.nonNullable;
     case "set-literals":
       return ExperimentalFlag.setLiterals;
     case "spread-collections":
       return ExperimentalFlag.spreadCollections;
+    case "triple-shift":
+      return ExperimentalFlag.tripleShift;
   }
   return null;
 }
@@ -28,6 +37,9 @@ ExperimentalFlag parseExperimentalFlag(String flag) {
 const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.constantUpdate2018: false,
   ExperimentalFlag.controlFlowCollections: true,
+  ExperimentalFlag.extensionMethods: false,
+  ExperimentalFlag.nonNullable: false,
   ExperimentalFlag.setLiterals: true,
   ExperimentalFlag.spreadCollections: true,
+  ExperimentalFlag.tripleShift: false,
 };

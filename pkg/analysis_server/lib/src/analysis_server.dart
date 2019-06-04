@@ -42,6 +42,7 @@ import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
@@ -206,10 +207,12 @@ class AnalysisServer extends AbstractAnalysisServer {
     analysisDriverScheduler.status.listen(sendStatusNotificationNew);
     analysisDriverScheduler.start();
 
-    declarationsTracker = DeclarationsTracker(byteStore, resourceProvider);
-    declarationsTrackerData = DeclarationsTrackerData(declarationsTracker);
-    analysisDriverScheduler.outOfBandWorker =
-        CompletionLibrariesWorker(declarationsTracker);
+    if (options.featureSet.completion) {
+      declarationsTracker = DeclarationsTracker(byteStore, resourceProvider);
+      declarationsTrackerData = DeclarationsTrackerData(declarationsTracker);
+      analysisDriverScheduler.outOfBandWorker =
+          CompletionLibrariesWorker(declarationsTracker);
+    }
 
     contextManager = new ContextManagerImpl(
         resourceProvider,
@@ -485,7 +488,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// projects/contexts support.
   void setAnalysisRoots(String requestId, List<String> includedPaths,
       List<String> excludedPaths, Map<String, String> packageRoots) {
-    declarationsTracker.discardContexts();
+    declarationsTracker?.discardContexts();
     if (notificationManager != null) {
       notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
     }
@@ -739,6 +742,9 @@ class AnalysisServerOptions {
 
   /// Whether to enable parsing via the Fasta parser.
   bool useFastaParser = true;
+
+  /// The set of enabled features.
+  FeatureSet featureSet = FeatureSet();
 }
 
 class ServerContextManagerCallbacks extends ContextManagerCallbacks {
@@ -883,6 +889,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void afterWatchEvent(WatchEvent event) {
     analysisServer._onAnalysisSetChangedController.add(null);
+  }
+
+  @override
+  void analysisOptionsUpdated(nd.AnalysisDriver driver) {
+    analysisServer.updateContextInDeclarationsTracker(driver);
   }
 
   @override

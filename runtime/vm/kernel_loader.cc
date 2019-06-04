@@ -404,6 +404,10 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
       Z, reader.ExternalDataFromTo(program_->metadata_mappings_offset(),
                                    program_->string_table_offset()));
 
+#if defined(DEBUG)
+  MetadataHelper::VerifyMetadataMappings(metadata_mappings);
+#endif
+
   const Array& libraries_cache =
       Array::Handle(Z, HashTables::New<UnorderedHashMap<SmiTraits>>(
                            program_->library_count(), Heap::kOld));

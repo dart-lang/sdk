@@ -55,7 +55,8 @@ class CompletionHandler
   LspJsonHandler<CompletionParams> get jsonHandler =>
       CompletionParams.jsonHandler;
 
-  Future<ErrorOr<List<CompletionItem>>> handle(CompletionParams params) async {
+  Future<ErrorOr<List<CompletionItem>>> handle(
+      CompletionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }
@@ -82,6 +83,7 @@ class CompletionHandler
           includeSuggestionSets,
           unit.result,
           offset,
+          token,
         ));
   }
 
@@ -91,6 +93,7 @@ class CompletionHandler
     bool includeSuggestionSets,
     ResolvedUnitResult unit,
     int offset,
+    CancellationToken token,
   ) async {
     final performance = new CompletionPerformance();
     performance.path = unit.path;
@@ -114,6 +117,11 @@ class CompletionHandler
       );
       final suggestions =
           await contributor.computeSuggestions(completionRequest);
+
+      if (token.isCancellationRequested) {
+        return cancelled();
+      }
+
       final results = suggestions
           .map((item) => toCompletionItem(
                 completionCapabilities,

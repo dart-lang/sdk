@@ -195,6 +195,30 @@ class A<T> {
     assertType(findNode.typeName('T? b'), 'T?');
   }
 
+  test_member_potentiallyNullable_called() async {
+    addTestFile(r'''
+m<T extends Function>() {
+  List<T?> x;
+  x.first();
+}
+''');
+    await resolveTestFile();
+    // Do not assert no test errors. Deliberately invokes nullable type.
+    assertType(findNode.methodInvocation('first').methodName, 'Function?');
+  }
+
+  test_null_assertion_operator_changes_null_to_never() async {
+    addTestFile('''
+main() {
+  Null x = null;
+  x!;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.postfix('x!'), 'Never');
+  }
+
   test_null_assertion_operator_removes_nullability() async {
     addTestFile('''
 main() {
@@ -218,7 +242,7 @@ main() {
     await resolveTestFile();
     assertNoTestErrors();
 
-    assertType(findNode.typeName('F? a'), '(bool, String?) → int??');
+    assertType(findNode.typeName('F? a'), 'int? Function(bool, String?)?');
   }
 
   @failingTest
@@ -235,7 +259,7 @@ main() {
 
     assertType(
       findNode.typeName('F<String>'),
-      '(bool!, String!, String?) → int??',
+      'int? Function(bool!, String!, String?)?',
     );
   }
 }

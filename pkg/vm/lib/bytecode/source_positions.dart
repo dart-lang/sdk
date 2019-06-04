@@ -4,7 +4,14 @@
 
 library vm.bytecode.source_positions;
 
-import 'bytecode_serialization.dart' show BufferedWriter, BufferedReader;
+import 'bytecode_serialization.dart'
+    show
+        BufferedWriter,
+        BufferedReader,
+        PackedUInt30DeltaEncoder,
+        PackedUInt30DeltaDecoder,
+        SLEB128DeltaEncoder,
+        SLEB128DeltaDecoder;
 
 /// Maintains mapping between bytecode instructions and source positions.
 class SourcePositions {
@@ -51,43 +58,5 @@ class SourcePositions {
   Map<int, String> getBytecodeAnnotations() {
     return mapping.map((int pc, int fileOffset) =>
         new MapEntry(pc, 'source position $fileOffset'));
-  }
-}
-
-class PackedUInt30DeltaEncoder {
-  int _last = 0;
-
-  void write(BufferedWriter write, int value) {
-    write.writePackedUInt30(value - _last);
-    _last = value;
-  }
-}
-
-class PackedUInt30DeltaDecoder {
-  int _last = 0;
-
-  int read(BufferedReader reader) {
-    int value = reader.readPackedUInt30() + _last;
-    _last = value;
-    return value;
-  }
-}
-
-class SLEB128DeltaEncoder {
-  int _last = 0;
-
-  void write(BufferedWriter writer, int value) {
-    writer.writeSLEB128(value - _last);
-    _last = value;
-  }
-}
-
-class SLEB128DeltaDecoder {
-  int _last = 0;
-
-  int read(BufferedReader reader) {
-    int value = reader.readSLEB128() + _last;
-    _last = value;
-    return value;
   }
 }

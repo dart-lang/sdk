@@ -11,9 +11,12 @@ import 'package:kernel/kernel.dart' show Component, CanonicalName;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../api_prototype/compiler_options.dart' show CompilerOptions;
+import '../api_prototype/compiler_options.dart'
+    show CompilerOptions, parseExperimentalFlags;
 
 import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
+
+import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
 import '../api_prototype/file_system.dart' show FileSystem;
 
@@ -41,6 +44,8 @@ export '../fasta/severity.dart' show Severity;
 
 export 'compiler_state.dart' show InitializedCompilerState;
 
+import 'util.dart' show equalMaps;
+
 /// Initializes the compiler for a modular build.
 ///
 /// Re-uses cached components from [_workerInputCache], and reloads them
@@ -54,6 +59,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Map<Uri, List<int>> workerInputDigests,
     Target target,
     FileSystem fileSystem,
+    Iterable<String> experiments,
     bool outlineOnly) async {
   final List<int> sdkDigest = workerInputDigests[sdkSummary];
   if (sdkDigest == null) {
@@ -66,10 +72,13 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   Map<Uri, WorkerInputComponent> workerInputCache =
       oldState?.workerInputCache ?? new Map<Uri, WorkerInputComponent>();
   bool startOver = false;
+  Map<ExperimentalFlag, bool> experimentalFlags =
+      parseExperimentalFlags(experiments, (e) => throw e);
 
   if (oldState == null ||
       oldState.incrementalCompiler == null ||
-      oldState.incrementalCompiler.outlineOnly != outlineOnly) {
+      oldState.incrementalCompiler.outlineOnly != outlineOnly ||
+      !equalMaps(oldState.options.experimentalFlags, experimentalFlags)) {
     // No - or immediately not correct - previous state.
     startOver = true;
 
@@ -115,7 +124,17 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     for (var lib in sdkComponent.libraries) {
       lib.isExternal = cachedSdkInput.externalLibs.contains(lib.importUri);
     }
+
+    // Make sure the canonical name root knows about the sdk - otherwise we
+    // won't be able to link to it when loading more outlines.
     sdkComponent.adoptChildren();
+
+    // TODO(jensj): This is - at least currently - neccessary,
+    // although it's not entirely obvious why.
+    // It likely has to do with several outlines containing the same libraries.
+    // Once that stops (and we check for it) we can probably remove this,
+    // and instead only do it when about to reuse an outline in the
+    // 'inputSummaries.add(component);' line further down.
     for (WorkerInputComponent cachedInput in workerInputCache.values) {
       cachedInput.component.adoptChildren();
     }
@@ -148,8 +167,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       for (var lib in component.libraries) {
         lib.isExternal = cachedInput.externalLibs.contains(lib.importUri);
       }
-      component.adoptChildren();
-      component.computeCanonicalNames();
       inputSummaries.add(component);
     }
   }
@@ -184,7 +201,8 @@ Future<InitializedCompilerState> initializeCompiler(
     List<Uri> summaryInputs,
     List<Uri> linkedInputs,
     Target target,
-    FileSystem fileSystem) async {
+    FileSystem fileSystem,
+    Iterable<String> experiments) async {
   // TODO(sigmund): use incremental compiler when it supports our use case.
   // Note: it is common for the summary worker to invoke the compiler with the
   // same input summary URIs, but with different contents, so we'd need to be
@@ -198,7 +216,8 @@ Future<InitializedCompilerState> initializeCompiler(
     ..linkedDependencies = linkedInputs
     ..target = target
     ..fileSystem = fileSystem
-    ..environmentDefines = const {};
+    ..environmentDefines = const {}
+    ..experimentalFlags = parseExperimentalFlags(experiments, (e) => throw e);
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 

@@ -3,7 +3,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Run tests like on the given builder.
+// Run tests like on the given builder and/or named configuration.
 
 import 'dart:async';
 import 'dart:collection';
@@ -55,7 +55,7 @@ Future<ProcessResult> runProcess(String executable, List<String> arguments,
       await Process.run(executable, arguments, runInShell: runInShell);
   if (processResult.exitCode != 0) {
     final command =
-        ([executable]..addAll(arguments)).map(simpleShellSingleQuote).join(" ");
+        [executable, ...arguments].map(simpleShellSingleQuote).join(" ");
     throw new Exception("Command exited ${processResult.exitCode}: $command\n"
         "${processResult.stdout}\n${processResult.stderr}");
   }
@@ -73,7 +73,7 @@ Future<ProcessResult> runProcessInheritStdio(
   final processResult = new ProcessResult(process.pid, exitCode, "", "");
   if (processResult.exitCode != 0) {
     final command =
-        ([executable]..addAll(arguments)).map(simpleShellSingleQuote).join(" ");
+        [executable, ...arguments].map(simpleShellSingleQuote).join(" ");
     throw new Exception("Command exited ${processResult.exitCode}: $command");
   }
   return processResult;
@@ -319,12 +319,18 @@ Future<BuildSearchResult> searchForApproximateBuild(
 void main(List<String> args) async {
   final parser = new ArgParser();
   parser.addOption("builder",
-      abbr: "b", help: "Run tests like on the given buider");
+      abbr: "b", help: "Run tests like on the given builder");
   parser.addOption("branch",
       abbr: "B",
       help: "Select the builders building this branch",
       defaultsTo: "master");
   parser.addOption("commit", abbr: "C", help: "Compare with this commit");
+  parser.addFlag("deflake",
+      help: "Re-run failing newly tests $deflakingCount times.");
+  parser.addFlag("report-flakes",
+      help: "Report test failures for tests known to be flaky.\n"
+          "This ignores all flakiness data from CI but flakes\n"
+          "detected by --deflake will remain hidden");
   parser.addFlag("list-configurations",
       help: "Output list of configurations.", negatable: false);
   parser.addOption("named-configuration",
@@ -354,8 +360,8 @@ Usage: test.dart -b [BUILDER] -n [CONFIGURATION] [OPTION]... [--]
 
 Run tests and compare with the results on the given builder. Either the -n or
 the -b option, or both, must be used. Any options following -- and non-option
-arguments will be forwarded to test.py invocations. The results for the specified
-named configuration will be downloaded from the specified builder. If only a
+arguments will be forwarded to test.py invocations. The specified named
+configuration's results will be downloaded from the specified builder. If only a
 named configuration is specified, the results are downloaded from the
 appropriate builders. If only a builder is specified, the default named
 configuration is used if the builder only has a single named configuration.
@@ -404,7 +410,7 @@ ${parser.usage}""");
     exitCode = 1;
     return;
   }
-  if (2 <= namedConfigurations.length) {
+  if (namedConfigurations.length > 1) {
     final builder = builders.single;
     stderr.writeln(
         "error: The builder $builder is testing multiple named configurations");
@@ -418,7 +424,7 @@ ${parser.usage}""");
   }
   final namedConfiguration = namedConfigurations.single;
   final localConfiguration =
-      options["local-configuration"] ?? namedConfiguration;
+      options["local-configuration"] as String ?? namedConfiguration;
   for (final builder in builders) {
     if (localConfiguration != namedConfiguration) {
       print("Testing the named configuration $localConfiguration "
@@ -452,28 +458,34 @@ ${parser.usage}""");
             "as baseline instead of $commit for $builder");
         inexactBuilds[builder] = buildSearchResult.commit;
       }
-      final buildNumber = buildSearchResult.build;
+      final buildNumber = buildSearchResult.build.toString();
       print("Downloading results from builder $builder build $buildNumber...");
-      await cpGsutil(
-          buildFileCloudPath(builder, buildNumber.toString(), "results.json"),
+      await cpGsutil(buildFileCloudPath(builder, buildNumber, "results.json"),
           "${outDirectory.path}/previous.json");
-      await cpGsutil(
-          buildFileCloudPath(builder, buildNumber.toString(), "flaky.json"),
-          "${outDirectory.path}/flaky.json");
+      if (!options["report-flakes"]) {
+        await cpGsutil(buildFileCloudPath(builder, buildNumber, "flaky.json"),
+            "${outDirectory.path}/flaky.json");
+      }
       print("Downloaded baseline results from builder $builder");
       // Merge the results for the builders.
-      if (2 <= builders.length) {
+      if (builders.length > 1) {
         mergedResults
             .addAll(await loadResultsMap("${outDirectory.path}/previous.json"));
-        mergedFlaky
-            .addAll(await loadResultsMap("${outDirectory.path}/flaky.json"));
+        if (!options["report-flakes"]) {
+          mergedFlaky
+              .addAll(await loadResultsMap("${outDirectory.path}/flaky.json"));
+        }
       }
     }
 
     // Write out the merged results for the builders.
-    if (2 <= builders.length) {
+    if (builders.length > 1) {
       await new File("${outDirectory.path}/previous.json").writeAsString(
           mergedResults.values.map((data) => jsonEncode(data) + "\n").join(""));
+    }
+
+    // Ensure that there is a flaky.json even if it wasn't downloaded.
+    if (builders.length > 1 || options["report-flakes"]) {
       await new File("${outDirectory.path}/flaky.json").writeAsString(
           mergedFlaky.values.map((data) => jsonEncode(data) + "\n").join(""));
     }
@@ -502,61 +514,17 @@ ${parser.usage}""");
       "--silent-failures",
       "--write-results",
       "--write-logs",
-    ]..addAll(options.rest);
+      ...options.rest,
+    ];
     print("".padLeft(80, "="));
     print("Running tests");
     print("".padLeft(80, "="));
-    await runProcessInheritStdio("python", ["tools/test.py"]..addAll(arguments),
+    await runProcessInheritStdio("python", ["tools/test.py", ...arguments],
         runInShell: Platform.isWindows);
 
-    // Find the list of tests to deflake.
-    final deflakeListOutput = await runProcess(Platform.resolvedExecutable, [
-      "tools/bots/compare_results.dart",
-      "--changed",
-      "--failing",
-      "--passing",
-      "--flakiness-data=${outDirectory.path}/flaky.json",
-      "${outDirectory.path}/previous.json",
-      "${outDirectory.path}/results.json",
-    ]);
-    final deflakeListPath = "${outDirectory.path}/deflake.list";
-    final deflakeListFile = new File(deflakeListPath);
-    await deflakeListFile.writeAsString(deflakeListOutput.stdout);
-
-    // Deflake the changed tests.
-    final deflakingResultsPaths = <String>[];
-    for (int i = 1;
-        deflakeListOutput.stdout != "" && i <= deflakingCount;
-        i++) {
-      print("".padLeft(80, "="));
-      print("Running deflaking iteration $i");
-      print("".padLeft(80, "="));
-      final deflakeDirectory = new Directory("${outDirectory.path}/$i");
-      await deflakeDirectory.create();
-      final deflakeArguments = <String>[
-        "--named-configuration=$localConfiguration",
-        "--output-directory=${deflakeDirectory.path}",
-        "--clean-exit",
-        "--silent-failures",
-        "--write-results",
-        "--test-list=$deflakeListPath",
-      ]..addAll(options.rest);
-      await runProcessInheritStdio(
-          "python", ["tools/test.py"]..addAll(deflakeArguments),
-          runInShell: Platform.isWindows);
-      deflakingResultsPaths.add("${deflakeDirectory.path}/results.json");
+    if (options["deflake"]) {
+      await deflake(outDirectory, localConfiguration, options.rest);
     }
-
-    // Update the flakiness information based on what we've learned.
-    print("Updating flakiness information...");
-    await runProcess(
-        Platform.resolvedExecutable,
-        [
-          "tools/bots/update_flakiness.dart",
-          "--input=${outDirectory.path}/flaky.json",
-          "--output=${outDirectory.path}/flaky.json",
-          "${outDirectory.path}/results.json",
-        ]..addAll(deflakingResultsPaths));
 
     // Write out the final comparison.
     print("".padLeft(80, "="));
@@ -588,4 +556,54 @@ ${parser.usage}""");
   } finally {
     await outDirectory.delete(recursive: true);
   }
+}
+
+void deflake(Directory outDirectory, String localConfiguration,
+    List<String> testPyArgs) async {
+  // Find the list of tests to deflake.
+  final deflakeListOutput = await runProcess(Platform.resolvedExecutable, [
+    "tools/bots/compare_results.dart",
+    "--changed",
+    "--failing",
+    "--passing",
+    "--flakiness-data=${outDirectory.path}/flaky.json",
+    "${outDirectory.path}/previous.json",
+    "${outDirectory.path}/results.json",
+  ]);
+  final deflakeListPath = "${outDirectory.path}/deflake.list";
+  final deflakeListFile = new File(deflakeListPath);
+  await deflakeListFile.writeAsString(deflakeListOutput.stdout);
+
+  // Deflake the changed tests.
+  final deflakingResultsPaths = <String>[];
+  for (int i = 1; deflakeListOutput.stdout != "" && i <= deflakingCount; i++) {
+    print("".padLeft(80, "="));
+    print("Running deflaking iteration $i");
+    print("".padLeft(80, "="));
+    final deflakeDirectory = new Directory("${outDirectory.path}/$i");
+    await deflakeDirectory.create();
+    final deflakeArguments = <String>[
+      "--named-configuration=$localConfiguration",
+      "--output-directory=${deflakeDirectory.path}",
+      "--clean-exit",
+      "--silent-failures",
+      "--write-results",
+      "--test-list=$deflakeListPath",
+      ...testPyArgs,
+    ];
+    await runProcessInheritStdio(
+        "python", ["tools/test.py", ...deflakeArguments],
+        runInShell: Platform.isWindows);
+    deflakingResultsPaths.add("${deflakeDirectory.path}/results.json");
+  }
+
+  // Update the flakiness information based on what we've learned.
+  print("Updating flakiness information...");
+  await runProcess(Platform.resolvedExecutable, [
+    "tools/bots/update_flakiness.dart",
+    "--input=${outDirectory.path}/flaky.json",
+    "--output=${outDirectory.path}/flaky.json",
+    "${outDirectory.path}/results.json",
+    ...deflakingResultsPaths,
+  ]);
 }

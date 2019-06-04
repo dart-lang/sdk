@@ -136,7 +136,7 @@ abstract class AbstractAnalysisServer {
 
   void addContextsToDeclarationsTracker() {
     for (var driver in driverMap.values) {
-      declarationsTracker.addContext(driver.analysisContext);
+      declarationsTracker?.addContext(driver.analysisContext);
       driver.resetUriResolution();
     }
   }
@@ -189,7 +189,7 @@ abstract class AbstractAnalysisServer {
 
   DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result) {
     return declarationsTracker
-            .getContext(result.session.analysisContext)
+            ?.getContext(result.session.analysisContext)
             ?.dartdocDirectiveInfo ??
         new DartdocDirectiveInfo();
   }
@@ -288,7 +288,12 @@ abstract class AbstractAnalysisServer {
   /// Notify the declarations tracker that the file with the given [path] was
   /// changed - added, updated, or removed.  Schedule processing of the file.
   void notifyDeclarationsTracker(String path) {
-    declarationsTracker.changeFile(path);
+    declarationsTracker?.changeFile(path);
     analysisDriverScheduler.notify(null);
+  }
+
+  void updateContextInDeclarationsTracker(nd.AnalysisDriver driver) {
+    declarationsTracker?.discardContext(driver.analysisContext);
+    declarationsTracker?.addContext(driver.analysisContext);
   }
 }

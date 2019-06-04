@@ -28,7 +28,8 @@ abstract class PipelineTestStrategy<S extends ModularStep> {
   /// Creates a pipeline with the given sources and steps. Steps will be created
   /// by other methods in this strategy to ensure they are compatible with to
   /// the pipeline created here.
-  FutureOr<Pipeline<S>> createPipeline(Map<Uri, String> sources, List<S> steps);
+  FutureOr<Pipeline<S>> createPipeline(Map<Uri, String> sources, List<S> steps,
+      {bool cacheSharedModules: false});
 
   /// Create a step that applies [action] on all input files of the module, and
   /// emits a result with the given [id]
@@ -98,15 +99,16 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
   };
 
   var m1 = Module("a", const [], testStrategy.testRootUri,
-      [Uri.parse("a1.dart"), Uri.parse("a2.dart")]);
+      [Uri.parse("a1.dart"), Uri.parse("a2.dart")],
+      isShared: true);
   var m2 = Module("b", [m1], testStrategy.testRootUri,
       [Uri.parse("b/b1.dart"), Uri.parse("b/b2.dart")]);
   var m3 = Module("c", [m2], testStrategy.testRootUri, [Uri.parse("c.dart")],
       isMain: true);
 
-  var singleModuleInput = ModularTest([m1], m1);
-  var twoModuleInput = ModularTest([m1, m2], m2);
-  var threeModuleInput = ModularTest([m1, m2, m3], m3);
+  var singleModuleInput = ModularTest([m1], m1, []);
+  var twoModuleInput = ModularTest([m1, m2], m2, []);
+  var threeModuleInput = ModularTest([m1, m2, m3], m3, []);
 
   test('can read source data if requested', () async {
     var concatStep =
@@ -308,6 +310,106 @@ runPipelineTest<S extends ModularStep>(PipelineTestStrategy<S> testStrategy) {
     await pipeline.run(threeModuleInput);
     expect(testStrategy.getResult(pipeline, m1, _joinId), null);
     expect(testStrategy.getResult(pipeline, m3, _joinId), "null\nnull\nc c0\n");
+    await testStrategy.cleanup(pipeline);
+  });
+
+  test('no reuse of existing results if not caching', () async {
+    int i = 1;
+    const counterId = const DataId("counter");
+    const linkId = const DataId("link");
+    // This step is not idempotent, we do this purposely to test whether caching
+    // is taking place.
+    var counterStep = testStrategy.createSourceOnlyStep(
+        action: (_) => '${i++}', resultId: counterId);
+    var linkStep = testStrategy.createLinkStep(
+        action: (String m, List<String> deps) => "${deps.join(',')},$m",
+        inputId: counterId,
+        depId: counterId,
+        resultId: linkId,
+        requestDependenciesData: true);
+    var pipeline = await testStrategy.createPipeline(
+        sources, <S>[counterStep, linkStep],
+        cacheSharedModules: false);
+    await pipeline.run(twoModuleInput);
+    expect(testStrategy.getResult(pipeline, m1, counterId), "1");
+    expect(testStrategy.getResult(pipeline, m2, counterId), "2");
+    expect(testStrategy.getResult(pipeline, m2, linkId), "1,2");
+
+    await pipeline.run(threeModuleInput);
+    expect(testStrategy.getResult(pipeline, m1, counterId), "3");
+    expect(testStrategy.getResult(pipeline, m2, counterId), "4");
+    expect(testStrategy.getResult(pipeline, m2, linkId), "3,4");
+    expect(testStrategy.getResult(pipeline, m3, counterId), "5");
+    expect(testStrategy.getResult(pipeline, m3, linkId), "4,5");
+
+    await testStrategy.cleanup(pipeline);
+  });
+
+  test('caching reuses existing results for the same configuration', () async {
+    int i = 1;
+    const counterId = const DataId("counter");
+    const linkId = const DataId("link");
+    var counterStep = testStrategy.createSourceOnlyStep(
+        action: (_) => '${i++}', resultId: counterId);
+    var linkStep = testStrategy.createLinkStep(
+        action: (String m, List<String> deps) => "${deps.join(',')},$m",
+        inputId: counterId,
+        depId: counterId,
+        resultId: linkId,
+        requestDependenciesData: true);
+    var pipeline = await testStrategy.createPipeline(
+        sources, <S>[counterStep, linkStep],
+        cacheSharedModules: true);
+    await pipeline.run(twoModuleInput);
+    expect(testStrategy.getResult(pipeline, m1, counterId), "1");
+    expect(testStrategy.getResult(pipeline, m2, counterId), "2");
+    expect(testStrategy.getResult(pipeline, m2, linkId), "1,2");
+
+    await pipeline.run(threeModuleInput);
+    expect(testStrategy.getResult(pipeline, m1, counterId), "1"); // cached!
+    expect(testStrategy.getResult(pipeline, m2, counterId), "3");
+    expect(testStrategy.getResult(pipeline, m2, linkId), "1,3");
+    expect(testStrategy.getResult(pipeline, m3, counterId), "4");
+    expect(testStrategy.getResult(pipeline, m3, linkId), "3,4");
+
+    await testStrategy.cleanup(pipeline);
+  });
+
+  test('no reuse of existing results on different configurations', () async {
+    int i = 1;
+    const counterId = const DataId("counter");
+    const linkId = const DataId("link");
+    // This step is not idempotent, we do this purposely to test whether caching
+    // is taking place.
+    var counterStep = testStrategy.createSourceOnlyStep(
+        action: (_) => '${i++}', resultId: counterId);
+    var linkStep = testStrategy.createLinkStep(
+        action: (String m, List<String> deps) => "${deps.join(',')},$m",
+        inputId: counterId,
+        depId: counterId,
+        resultId: linkId,
+        requestDependenciesData: true);
+    var pipeline = await testStrategy.createPipeline(
+        sources, <S>[counterStep, linkStep],
+        cacheSharedModules: true);
+    var input1 = ModularTest([m1, m2], m2, []);
+    var input2 = ModularTest([m1, m2], m2, ['--foo']);
+    var input3 = ModularTest([m1, m2], m2, ['--foo']);
+    await pipeline.run(input1);
+    expect(testStrategy.getResult(pipeline, m1, counterId), "1");
+    expect(testStrategy.getResult(pipeline, m2, counterId), "2");
+    expect(testStrategy.getResult(pipeline, m2, linkId), "1,2");
+
+    await pipeline.run(input2);
+    expect(testStrategy.getResult(pipeline, m1, counterId), "3"); // no cache!
+    expect(testStrategy.getResult(pipeline, m2, counterId), "4");
+    expect(testStrategy.getResult(pipeline, m2, linkId), "3,4");
+
+    await pipeline.run(input3);
+    expect(testStrategy.getResult(pipeline, m1, counterId), "3"); // same config
+    expect(testStrategy.getResult(pipeline, m2, counterId), "5");
+    expect(testStrategy.getResult(pipeline, m2, linkId), "3,5");
+
     await testStrategy.cleanup(pipeline);
   });
 }

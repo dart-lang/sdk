@@ -238,7 +238,7 @@ class ClassElementImplTest {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String methodName = "m";
     MethodElementImpl method = ElementFactory.methodElement(methodName, null);
-    method.abstract = true;
+    method.isAbstract = true;
     classA.methods = <MethodElement>[method];
     (library.definingCompilationUnit as CompilationUnitElementImpl).types =
         <ClassElement>[classA];
@@ -260,7 +260,7 @@ class ClassElementImplTest {
     classA.methods = <MethodElement>[inheritedMethod];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     MethodElementImpl method = ElementFactory.methodElement(methodName, null);
-    method.abstract = true;
+    method.isAbstract = true;
     classB.methods = <MethodElement>[method];
     (library.definingCompilationUnit as CompilationUnitElementImpl).types =
         <ClassElement>[classA, classB];
@@ -298,11 +298,11 @@ class ClassElementImplTest {
     // }
     LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.abstract = true;
+    classA.isAbstract = true;
     String methodName = "m";
     MethodElementImpl inheritedMethod =
         ElementFactory.methodElement(methodName, null);
-    inheritedMethod.abstract = true;
+    inheritedMethod.isAbstract = true;
     classA.methods = <MethodElement>[inheritedMethod];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     MethodElement method = ElementFactory.methodElement(methodName, null);
@@ -485,7 +485,7 @@ class ClassElementImplTest {
     classA.methods = <MethodElement>[inheritedMethod];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     MethodElementImpl method = ElementFactory.methodElement(methodName, null);
-    method.abstract = true;
+    method.isAbstract = true;
     classB.methods = <MethodElement>[method];
     (library.definingCompilationUnit as CompilationUnitElementImpl).types =
         <ClassElement>[classA, classB];
@@ -524,11 +524,11 @@ class ClassElementImplTest {
     // }
     LibraryElementImpl library = _newLibrary();
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.abstract = true;
+    classA.isAbstract = true;
     String methodName = "m";
     MethodElementImpl inheritedMethod =
         ElementFactory.methodElement(methodName, null);
-    inheritedMethod.abstract = true;
+    inheritedMethod.isAbstract = true;
     classA.methods = <MethodElement>[inheritedMethod];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     MethodElement method = ElementFactory.methodElement(methodName, null);
@@ -558,7 +558,7 @@ class ClassElementImplTest {
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     MethodElementImpl abstractMethod =
         ElementFactory.methodElement(methodName, null);
-    abstractMethod.abstract = true;
+    abstractMethod.isAbstract = true;
     classB.methods = <MethodElement>[abstractMethod];
     ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
     MethodElementImpl method = ElementFactory.methodElement(methodName, null);
@@ -1834,14 +1834,14 @@ class FunctionTypeImplTest extends EngineTestCase {
     var s = ElementFactory.genericTypeAliasElement("s");
     t.function.returnType = s.type;
     s.function.returnType = t.type;
-    expect(t.type.toString(), '() \u2192 () \u2192 ...');
+    expect(t.type.toString(), '... Function() Function()');
   }
 
   void test_toString_recursive_via_interface_type() {
     var f = ElementFactory.genericTypeAliasElement('f');
     ClassElementImpl c = ElementFactory.classElement2('C', ['T']);
     f.function.returnType = c.type.instantiate([f.type]);
-    expect(f.type.toString(), '() \u2192 C<...>');
+    expect(f.type.toString(), 'C<...> Function()');
   }
 
   void test_typeParameters_genericLocalFunction_genericMethod_genericClass() {
@@ -3842,6 +3842,88 @@ class TypeParameterTypeImplTest extends EngineTestCase {
     element.bound = classS.type;
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
     expect(type.resolveToBound(null), same(classS.type));
+  }
+
+  void test_resolveToBound_bound_nullableInner() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl element =
+        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    element.bound =
+        (classS.type as TypeImpl).withNullability(NullabilitySuffix.question);
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+    expect(type.resolveToBound(null), same(element.bound));
+  }
+
+  void test_resolveToBound_bound_nullableInnerOuter() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl element =
+        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    element.bound =
+        (classS.type as TypeImpl).withNullability(NullabilitySuffix.question);
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element)
+        .withNullability(NullabilitySuffix.question);
+    expect(type.resolveToBound(null), same(element.bound));
+  }
+
+  void test_resolveToBound_bound_nullableInnerStarOuter() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl element =
+        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    element.bound =
+        (classS.type as TypeImpl).withNullability(NullabilitySuffix.star);
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element)
+        .withNullability(NullabilitySuffix.question);
+    expect(
+        type.resolveToBound(null),
+        equals((classS.type as TypeImpl)
+            .withNullability(NullabilitySuffix.question)));
+  }
+
+  void test_resolveToBound_bound_nullableOuter() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl element =
+        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    element.bound = classS.type;
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element)
+        .withNullability(NullabilitySuffix.question);
+    expect(
+        type.resolveToBound(null),
+        equals((classS.type as TypeImpl)
+            .withNullability(NullabilitySuffix.question)));
+  }
+
+  void test_resolveToBound_bound_starInner() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl element =
+        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    element.bound =
+        (classS.type as TypeImpl).withNullability(NullabilitySuffix.star);
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
+    expect(type.resolveToBound(null), same(element.bound));
+  }
+
+  void test_resolveToBound_bound_starInnerNullableOuter() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl element =
+        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    element.bound =
+        (classS.type as TypeImpl).withNullability(NullabilitySuffix.question);
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element)
+        .withNullability(NullabilitySuffix.star);
+    expect(type.resolveToBound(null), same(element.bound));
+  }
+
+  void test_resolveToBound_bound_starOuter() {
+    ClassElementImpl classS = ElementFactory.classElement2("A");
+    TypeParameterElementImpl element =
+        new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
+    element.bound = classS.type;
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element)
+        .withNullability(NullabilitySuffix.star);
+    expect(
+        type.resolveToBound(null),
+        same(
+            (classS.type as TypeImpl).withNullability(NullabilitySuffix.star)));
   }
 
   void test_resolveToBound_nestedBound() {

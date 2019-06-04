@@ -35,29 +35,26 @@ class DecoratedType {
   /// TODO(paulberry): how should we handle generic typedefs?
   final List<DecoratedType> typeArguments;
 
-  DecoratedType(this.type, this.node, NullabilityGraph graph,
+  DecoratedType(this.type, this.node,
       {this.returnType,
       this.positionalParameters = const [],
       this.namedParameters = const {},
       this.typeArguments = const []}) {
     assert(node != null);
     // The type system doesn't have a non-nullable version of `dynamic`.  So if
-    // the type is `dynamic`, verify that the node is directly downstream from
-    // Nullability.always.
-    assert(!type.isDynamic ||
-        graph
-            .getUnconditionalUpstreamNodes(node)
-            .contains(NullabilityNode.always));
+    // the type is `dynamic`, verify that the node was initially placed into a
+    // nullable state.
+    assert(!type.isDynamic || node.isNullable);
   }
 
   /// Creates a [DecoratedType] corresponding to the given [element], which is
   /// presumed to have come from code that is already migrated.
-  factory DecoratedType.forElement(Element element, NullabilityGraph graph) {
+  factory DecoratedType.forElement(Element element) {
     DecoratedType decorate(DartType type) {
       assert((type as TypeImpl).nullabilitySuffix ==
           NullabilitySuffix.star); // TODO(paulberry)
       if (type is FunctionType) {
-        var decoratedType = DecoratedType(type, NullabilityNode.never, graph,
+        var decoratedType = DecoratedType(type, NullabilityNode.never,
             returnType: decorate(type.returnType), positionalParameters: []);
         for (var parameter in type.parameters) {
           assert(parameter.isPositional); // TODO(paulberry)
@@ -66,7 +63,7 @@ class DecoratedType {
         return decoratedType;
       } else if (type is InterfaceType) {
         assert(type.typeParameters.isEmpty); // TODO(paulberry)
-        return DecoratedType(type, NullabilityNode.never, graph);
+        return DecoratedType(type, NullabilityNode.never);
       } else {
         throw type.runtimeType; // TODO(paulberry)
       }
@@ -74,6 +71,8 @@ class DecoratedType {
 
     DecoratedType decoratedType;
     if (element is MethodElement) {
+      decoratedType = decorate(element.type);
+    } else if (element is PropertyAccessorElement) {
       decoratedType = decorate(element.type);
     } else {
       throw element.runtimeType; // TODO(paulberry)
@@ -86,11 +85,10 @@ class DecoratedType {
   /// [undecoratedResult] is the result of the substitution, as determined by
   /// the normal type system.
   DecoratedType substitute(
-      NullabilityGraph graph,
       Map<TypeParameterElement, DecoratedType> substitution,
       DartType undecoratedResult) {
     if (substitution.isEmpty) return this;
-    return _substitute(graph, substitution, undecoratedResult);
+    return _substitute(substitution, undecoratedResult);
   }
 
   @override
@@ -121,7 +119,6 @@ class DecoratedType {
 
   /// Internal implementation of [_substitute], used as a recursion target.
   DecoratedType _substitute(
-      NullabilityGraph graph,
       Map<TypeParameterElement, DecoratedType> substitution,
       DartType undecoratedResult) {
     var type = this.type;
@@ -136,16 +133,16 @@ class DecoratedType {
             : undecoratedResult
                 .optionalParameterTypes[i - numRequiredParameters];
         newPositionalParameters.add(positionalParameters[i]
-            ._substitute(graph, substitution, undecoratedParameterType));
+            ._substitute(substitution, undecoratedParameterType));
       }
-      return DecoratedType(undecoratedResult, node, graph,
+      return DecoratedType(undecoratedResult, node,
           returnType: returnType._substitute(
-              graph, substitution, undecoratedResult.returnType),
+              substitution, undecoratedResult.returnType),
           positionalParameters: newPositionalParameters);
     } else if (type is TypeParameterType) {
       var inner = substitution[type.element];
       return DecoratedType(undecoratedResult,
-          NullabilityNode.forSubstitution(inner?.node, node), graph);
+          NullabilityNode.forSubstitution(inner?.node, node));
     } else if (type is VoidType) {
       return this;
     }
@@ -162,10 +159,10 @@ class DecoratedTypeAnnotation extends DecoratedType
     implements PotentialModification {
   final int _offset;
 
-  DecoratedTypeAnnotation(DartType type, NullabilityNode nullabilityNode,
-      this._offset, NullabilityGraph graph,
+  DecoratedTypeAnnotation(
+      DartType type, NullabilityNode nullabilityNode, this._offset,
       {List<DecoratedType> typeArguments = const []})
-      : super(type, nullabilityNode, graph, typeArguments: typeArguments);
+      : super(type, nullabilityNode, typeArguments: typeArguments);
 
   @override
   bool get isEmpty => !node.isNullable;

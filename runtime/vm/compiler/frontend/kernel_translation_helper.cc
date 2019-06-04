@@ -1367,6 +1367,55 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
   }
 }
 
+#if defined(DEBUG)
+
+void MetadataHelper::VerifyMetadataMappings(
+    const ExternalTypedData& metadata_mappings) {
+  const intptr_t kUInt32Size = 4;
+  Reader reader(metadata_mappings);
+  if (reader.size() == 0) {
+    return;
+  }
+
+  // Scan through metadata mappings in reverse direction.
+
+  // Read metadataMappings length.
+  intptr_t offset = reader.size() - kUInt32Size;
+  const intptr_t metadata_num = reader.ReadUInt32At(offset);
+
+  if (metadata_num == 0) {
+    ASSERT(metadata_mappings.LengthInBytes() == kUInt32Size);
+    return;
+  }
+
+  // Read metadataMappings elements.
+  for (intptr_t i = 0; i < metadata_num; ++i) {
+    // Read nodeOffsetToMetadataOffset length.
+    offset -= kUInt32Size;
+    const intptr_t mappings_num = reader.ReadUInt32At(offset);
+
+    // Skip nodeOffsetToMetadataOffset.
+    offset -= mappings_num * 2 * kUInt32Size;
+
+    // Verify that node offsets are sorted.
+    intptr_t prev_node_offset = -1;
+    reader.set_offset(offset);
+    for (intptr_t j = 0; j < mappings_num; ++j) {
+      const intptr_t node_offset = reader.ReadUInt32();
+      const intptr_t md_offset = reader.ReadUInt32();
+
+      ASSERT(node_offset >= 0 && md_offset >= 0);
+      ASSERT(node_offset > prev_node_offset);
+      prev_node_offset = node_offset;
+    }
+
+    // Skip tag.
+    offset -= kUInt32Size;
+  }
+}
+
+#endif  // defined(DEBUG)
+
 MetadataHelper::MetadataHelper(KernelReaderHelper* helper,
                                const char* tag,
                                bool precompiler_only)
@@ -1386,25 +1435,6 @@ void MetadataHelper::SetMetadataMappings(intptr_t mappings_offset,
   ASSERT((mappings_offset != 0) && (mappings_num != 0));
   mappings_offset_ = mappings_offset;
   mappings_num_ = mappings_num;
-
-#ifdef DEBUG
-  // Verify that node offsets are sorted.
-  {
-    Reader reader(H.metadata_mappings());
-    reader.set_offset(mappings_offset);
-
-    intptr_t prev_node_offset = -1;
-    for (intptr_t i = 0; i < mappings_num; ++i) {
-      intptr_t node_offset = reader.ReadUInt32();
-      intptr_t md_offset = reader.ReadUInt32();
-
-      ASSERT((node_offset >= 0) && (md_offset >= 0));
-      ASSERT(node_offset > prev_node_offset);
-      prev_node_offset = node_offset;
-    }
-  }
-#endif  // DEBUG
-
   last_node_offset_ = kIntptrMax;
   last_mapping_index_ = 0;
 }

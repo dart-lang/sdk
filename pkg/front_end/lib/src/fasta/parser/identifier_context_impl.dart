@@ -43,9 +43,9 @@ class CatchParameterIdentifierContext extends IdentifierContext {
   }
 }
 
-/// See [IdentifierContext.classOrMixinDeclaration].
-class ClassOrMixinIdentifierContext extends IdentifierContext {
-  const ClassOrMixinIdentifierContext()
+/// See [IdentifierContext.classOrMixinOrExtensionDeclaration].
+class ClassOrMixinOrExtensionIdentifierContext extends IdentifierContext {
+  const ClassOrMixinOrExtensionIdentifierContext()
       : super('classOrMixinDeclaration',
             inDeclaration: true, isBuiltInIdentifierAllowed: false);
 
@@ -59,8 +59,8 @@ class ClassOrMixinIdentifierContext extends IdentifierContext {
 
     // Recovery
     if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
-        isOneOfOrEof(
-            identifier, const ['<', '{', 'extends', 'with', 'implements'])) {
+        isOneOfOrEof(identifier,
+            const ['<', '{', 'extends', 'with', 'implements', 'on'])) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: fasta.templateExpectedIdentifier.withArguments(identifier));
     } else if (identifier.type.isBuiltIn) {
@@ -940,8 +940,6 @@ void checkAsyncAwaitYieldAsIdentifier(Token identifier, Parser parser) {
       parser.reportRecoverableError(identifier, fasta.messageAwaitAsIdentifier);
     } else if (optional('yield', identifier)) {
       parser.reportRecoverableError(identifier, fasta.messageYieldAsIdentifier);
-    } else if (optional('async', identifier)) {
-      parser.reportRecoverableError(identifier, fasta.messageAsyncAsIdentifier);
     }
   }
 }

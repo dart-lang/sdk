@@ -222,6 +222,15 @@ testModInverse() {
   test(mediumNumber, new BigInt.from(137), new BigInt.from(77));
   test(new BigInt.from(137), mediumNumber, new BigInt.from(540686667207353));
   test(bigNumber, new BigInt.from(137), new BigInt.from(128));
+  var x = BigInt.parse(
+      "28ea16430c1f1072754aa5ebbfda0d790605a507c6c9758e88697b0b5dd9e74c",
+      radix: 16);
+  var m = BigInt.parse(
+      "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f",
+      radix: 16);
+  var r = BigInt.parse("95929095851002583825372225918533539673793386278"
+                       "360575987103577151530201707061", radix: 10);
+  test(x, m, r);
 }
 
 testGcd() {

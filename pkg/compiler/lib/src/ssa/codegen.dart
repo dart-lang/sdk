@@ -21,7 +21,7 @@ import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/interceptor_data.dart';
-import '../js_backend/backend.dart' show CodegenInputs, SuperMemberData;
+import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart' show ModularNamer;
@@ -112,11 +112,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
           _options,
           emitter,
           codegen.checkedModeHelpers,
-          codegen.oneShotInterceptorData,
           codegen.rtiSubstitutions,
           codegen.rtiEncoder,
           namer,
-          codegen.superMemberData,
           codegen.tracer,
           closedWorld,
           registry);
@@ -143,11 +141,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
           _options,
           emitter,
           codegen.checkedModeHelpers,
-          codegen.oneShotInterceptorData,
           codegen.rtiSubstitutions,
           codegen.rtiEncoder,
           namer,
-          codegen.superMemberData,
           codegen.tracer,
           closedWorld,
           registry);
@@ -182,11 +178,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final CompilerOptions _options;
   final ModularEmitter _emitter;
   final CheckedModeHelpers _checkedModeHelpers;
-  final OneShotInterceptorData _oneShotInterceptorData;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
   final RuntimeTypesEncoder _rtiEncoder;
   final ModularNamer _namer;
-  final SuperMemberData _superMemberData;
   final Tracer _tracer;
   final JClosedWorld _closedWorld;
   final CodegenRegistry _registry;
@@ -238,11 +232,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       this._options,
       this._emitter,
       this._checkedModeHelpers,
-      this._oneShotInterceptorData,
       this._rtiSubstitutions,
       this._rtiEncoder,
       this._namer,
-      this._superMemberData,
       this._tracer,
       this._closedWorld,
       this._registry,
@@ -389,8 +381,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     runPhase(new SsaTypeKnownRemover());
     runPhase(new SsaTrustedCheckRemover(_options));
     runPhase(new SsaAssignmentChaining(_options, _closedWorld));
-    runPhase(new SsaInstructionMerger(
-        _abstractValueDomain, generateAtUseSite, _superMemberData));
+    runPhase(new SsaInstructionMerger(_abstractValueDomain, generateAtUseSite));
     runPhase(new SsaConditionMerger(generateAtUseSite, controlFlowOperators));
     runPhase(new SsaShareRegionConstants(_options));
 
@@ -628,6 +619,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   js.Expression generateExpressionAssignment(String variableName,
       js.Expression value, SourceInformation sourceInformation) {
+    // TODO(johnniwinther): Introduce a DeferredVariableUse to handle this
+    // in the SSA codegen or let the JS printer handle it fully and remove it
+    // here.
     if (value is js.Binary) {
       js.Binary binary = value;
       String op = binary.op;
@@ -699,11 +693,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // emit an assignment, because the intTypeCheck just returns its
     // argument.
     bool needsAssignment = true;
-    if (instruction is HTypeConversion) {
-      HTypeConversion typeConversion = instruction;
-      String inputName = variableNames.getName(typeConversion.checkedInput);
-      if (variableNames.getName(instruction) == inputName) {
-        needsAssignment = false;
+    if (instruction is HCheck) {
+      if (instruction is HTypeConversion ||
+          instruction is HPrimitiveCheck ||
+          instruction is HBoolConversion) {
+        String inputName = variableNames.getName(instruction.checkedInput);
+        if (variableNames.getName(instruction) == inputName) {
+          needsAssignment = false;
+        }
       }
     }
     if (instruction is HLocalValue) {
@@ -1567,15 +1564,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitGreaterEqual(HGreaterEqual node) => visitRelational(node, '>=');
 
   @override
-  visitBoolify(HBoolify node) {
-    assert(node.inputs.length == 1);
-    use(node.inputs[0]);
-    push(new js.Binary(
-            '===', pop(), newLiteralBool(true, node.sourceInformation))
-        .withSourceInformation(node.sourceInformation));
-  }
-
-  @override
   visitExit(HExit node) {
     // Don't do anything.
   }
@@ -1923,8 +1911,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Expression isolate =
         _namer.readGlobalObjectForLibrary(_commonElements.interceptorsLibrary);
     Selector selector = node.selector;
-    js.Name methodName = _oneShotInterceptorData.registerOneShotInterceptor(
-        selector, _namer, _closedWorld);
+    Set<ClassEntity> classes =
+        _interceptorData.getInterceptedClassesOn(selector.name, _closedWorld);
+    _registry.registerOneShotInterceptor(selector);
+    js.Name methodName = _namer.nameForOneShotInterceptor(selector, classes);
     push(js
         .propertyCall(isolate, methodName, arguments)
         .withSourceInformation(node.sourceInformation));
@@ -2137,8 +2127,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     MemberEntity superElement = node.element;
     ClassEntity superClass = superElement.enclosingClass;
     Selector selector = node.selector;
-    bool useAliasedSuper = _superMemberData.maybeRegisterAliasedSuperMember(
-        superElement, selector);
+    bool useAliasedSuper = canUseAliasedSuperMember(superElement, selector);
     if (selector.isGetter) {
       if (superElement.isField || superElement.isGetter) {
         _registry.registerStaticUse(new StaticUse.superGet(superElement));
@@ -2153,8 +2142,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         _registry.registerStaticUse(new StaticUse.superSetterSet(superElement));
       }
     } else {
-      if (_superMemberData.maybeRegisterAliasedSuperMember(
-          superElement, selector)) {
+      if (useAliasedSuper) {
         _registry.registerStaticUse(new StaticUse.superInvoke(
             superElement, new CallStructure.unnamed(node.inputs.length)));
       } else {
@@ -2432,11 +2420,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         use(input.inputs[0]);
       } else if (input is HIdentity) {
         emitIdentityComparison(input, sourceInformation, inverse: true);
-      } else if (input is HBoolify) {
-        use(input.inputs[0]);
-        push(new js.Binary(
-                "!==", pop(), newLiteralBool(true, input.sourceInformation))
-            .withSourceInformation(sourceInformation));
       } else if (canGenerateOptimizedComparison(input)) {
         HRelational relational = input;
         constant_system.BinaryOperation operation = relational.operation();
@@ -3124,55 +3107,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         negative: negative);
   }
 
-  js.Expression generateReceiverOrArgumentTypeTest(HTypeConversion node) {
-    DartType type = node.typeExpression;
-    HInstruction input = node.checkedInput;
-    AbstractValue checkedType = node.checkedType;
-    // This path is no longer used for indexable primitive types.
-    assert(_abstractValueDomain.isJsIndexable(checkedType).isPotentiallyFalse);
-    // Figure out if it is beneficial to use a null check.  V8 generally prefers
-    // 'typeof' checks, but for integers we cannot compile this test into a
-    // single typeof check so the null check is cheaper.
-    if (type == _commonElements.numType) {
-      // input is !num
-      checkNum(input, '!==', input.sourceInformation);
-      return pop();
-    } else if (type == _commonElements.boolType) {
-      // input is !bool
-      checkBool(input, '!==', input.sourceInformation);
-      return pop();
-    }
-    throw failedAt(input, 'Unexpected check: $type.');
-  }
-
   @override
   void visitTypeConversion(HTypeConversion node) {
-    if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
-      js.Expression test = generateReceiverOrArgumentTypeTest(node);
-      js.Block oldContainer = currentContainer;
-      js.Statement body = new js.Block.empty();
-      currentContainer = body;
-      if (node.isArgumentTypeCheck) {
-        generateThrowWithHelper(
-            _commonElements.throwIllegalArgumentException, node.checkedInput,
-            sourceInformation: node.sourceInformation);
-      } else if (node.isReceiverTypeCheck) {
-        use(node.checkedInput);
-        js.Name methodName =
-            _namer.invocationName(node.receiverTypeCheckSelector);
-        js.Expression call = js.propertyCall(pop(), methodName,
-            []).withSourceInformation(node.sourceInformation);
-        pushStatement(
-            new js.Return(call).withSourceInformation(node.sourceInformation));
-      }
-      currentContainer = oldContainer;
-      body = unwrapStatement(body);
-      pushStatement(new js.If.noElse(test, body)
-          .withSourceInformation(node.sourceInformation));
-      return;
-    }
-
-    assert(node.isCheckedModeCheck || node.isCastTypeCheck);
+    assert(node.isTypeCheck || node.isCastCheck);
     DartType type = node.typeExpression;
     assert(!type.isTypedef);
     assert(!type.isDynamic);
@@ -3185,14 +3122,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
     _registry.registerTypeUse(new TypeUse.isCheck(type));
 
-    CheckedModeHelper helper;
-    if (node.isBooleanConversionCheck) {
-      helper = const CheckedModeHelper('boolConversionCheck');
-    } else {
-      helper = _checkedModeHelpers.getCheckedModeHelper(
-          type, _closedWorld.commonElements,
-          typeCast: node.isCastTypeCheck);
-    }
+    CheckedModeHelper helper = _checkedModeHelpers.getCheckedModeHelper(
+        type, _closedWorld.commonElements,
+        typeCast: node.isCastCheck);
 
     StaticUse staticUse = helper.getStaticUse(_closedWorld.commonElements);
     _registry.registerStaticUse(staticUse);
@@ -3200,6 +3132,66 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.checkedInput);
     arguments.add(pop());
     helper.generateAdditionalArguments(this, _namer, node, arguments);
+    push(
+        new js.Call(_emitter.staticFunctionAccess(staticUse.element), arguments)
+            .withSourceInformation(node.sourceInformation));
+  }
+
+  @override
+  void visitPrimitiveCheck(HPrimitiveCheck node) {
+    js.Expression test = _generateReceiverOrArgumentTypeTest(node);
+    js.Block oldContainer = currentContainer;
+    js.Statement body = new js.Block.empty();
+    currentContainer = body;
+    if (node.isArgumentTypeCheck) {
+      generateThrowWithHelper(
+          _commonElements.throwIllegalArgumentException, node.checkedInput,
+          sourceInformation: node.sourceInformation);
+    } else if (node.isReceiverTypeCheck) {
+      use(node.checkedInput);
+      js.Name methodName =
+          _namer.invocationName(node.receiverTypeCheckSelector);
+      js.Expression call = js.propertyCall(
+          pop(), methodName, []).withSourceInformation(node.sourceInformation);
+      pushStatement(
+          new js.Return(call).withSourceInformation(node.sourceInformation));
+    }
+    currentContainer = oldContainer;
+    body = unwrapStatement(body);
+    pushStatement(new js.If.noElse(test, body)
+        .withSourceInformation(node.sourceInformation));
+  }
+
+  js.Expression _generateReceiverOrArgumentTypeTest(HPrimitiveCheck node) {
+    DartType type = node.typeExpression;
+    HInstruction input = node.checkedInput;
+    AbstractValue checkedType = node.checkedType;
+    // This path is no longer used for indexable primitive types.
+    assert(_abstractValueDomain.isJsIndexable(checkedType).isPotentiallyFalse);
+    // Figure out if it is beneficial to use a null check.  V8 generally prefers
+    // 'typeof' checks, but for integers we cannot compile this test into a
+    // single typeof check so the null check is cheaper.
+    if (type == _commonElements.numType) {
+      // input is !num
+      checkNum(input, '!==', input.sourceInformation);
+      return pop();
+    }
+    if (type == _commonElements.boolType) {
+      // input is !bool
+      checkBool(input, '!==', input.sourceInformation);
+      return pop();
+    }
+    throw failedAt(input, 'Unexpected check: $type.');
+  }
+
+  @override
+  void visitBoolConversion(HBoolConversion node) {
+    _registry.registerTypeUse(new TypeUse.isCheck(_commonElements.boolType));
+    CheckedModeHelper helper = const CheckedModeHelper('boolConversionCheck');
+    StaticUse staticUse = helper.getStaticUse(_commonElements);
+    _registry.registerStaticUse(staticUse);
+    use(node.checkedInput);
+    List<js.Expression> arguments = [pop()];
     push(
         new js.Call(_emitter.staticFunctionAccess(staticUse.element), arguments)
             .withSourceInformation(node.sourceInformation));

@@ -24,6 +24,7 @@ analyzer/test/src/dart/analysis/driver_kernel_test: Slow, Pass
 analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
 analyzer/test/src/task/strong/checker_test: Slow, Pass
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
+dev_compiler/test/modular/*: Slow, Pass
 dev_compiler/test/options/*: Skip # test needs fixes
 dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests
 dev_compiler/test/sourcemap/testfiles/*: SkipByDesign # Skip dev_compiler codegen tests
@@ -178,10 +179,10 @@ analyzer/tool/*: Skip # Issue 26813
 
 [ $compiler != dart2analyzer && $runtime != vm ]
 dev_compiler/test/*: Skip
-modular_test/test/dependency_parser_test: SkipByDesign
 modular_test/test/find_sdk_root1_test: SkipByDesign
 modular_test/test/io_pipeline_test: SkipByDesign
 modular_test/test/loader/loader_test: SkipByDesign
+modular_test/test/specification_parser_test: SkipByDesign
 modular_test/test/src/find_sdk_root2_test: SkipByDesign
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]

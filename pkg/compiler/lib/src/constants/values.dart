@@ -27,7 +27,8 @@ enum ConstantValueKind {
   TYPE,
   INTERCEPTOR,
   JS_NAME,
-  ABSTRACT_VALUE,
+  DUMMY_INTERCEPTOR,
+  UNREACHABLE,
   INSTANTIATION,
   DEFERRED_GLOBAL,
   NON_CONSTANT,
@@ -50,8 +51,10 @@ abstract class ConstantValueVisitor<R, A> {
   R visitType(covariant TypeConstantValue constant, covariant A arg);
   R visitInterceptor(
       covariant InterceptorConstantValue constant, covariant A arg);
-  R visitAbstractValue(
-      covariant AbstractValueConstantValue constant, covariant A arg);
+  R visitDummyInterceptor(
+      covariant DummyInterceptorConstantValue constant, covariant A arg);
+  R visitUnreachable(
+      covariant UnreachableConstantValue constant, covariant A arg);
   R visitJsName(covariant JsNameConstantValue constant, covariant A arg);
   R visitDeferredGlobal(
       covariant DeferredGlobalConstantValue constant, covariant A arg);
@@ -850,19 +853,19 @@ class JsNameConstantValue extends ConstantValue {
   String toStructuredText() => 'JsNameConstant(${name})';
 }
 
-/// An abstract value as a constant value. This is only used during code
-/// generation.
-class AbstractValueConstantValue extends ConstantValue {
+/// A constant used as the dummy interceptor value for intercepted calls with
+/// a known non-interceptor target.
+class DummyInterceptorConstantValue extends ConstantValue {
   final AbstractValue abstractValue;
 
-  AbstractValueConstantValue(this.abstractValue);
+  DummyInterceptorConstantValue(this.abstractValue);
 
   @override
   bool get isDummy => true;
 
   @override
   bool operator ==(other) {
-    return other is AbstractValueConstantValue &&
+    return other is DummyInterceptorConstantValue &&
         abstractValue == other.abstractValue;
   }
 
@@ -874,20 +877,49 @@ class AbstractValueConstantValue extends ConstantValue {
 
   @override
   accept(ConstantValueVisitor visitor, arg) {
-    return visitor.visitAbstractValue(this, arg);
+    return visitor.visitDummyInterceptor(this, arg);
   }
 
   @override
   DartType getType(CommonElements types) => types.dynamicType;
 
   @override
-  ConstantValueKind get kind => ConstantValueKind.ABSTRACT_VALUE;
+  ConstantValueKind get kind => ConstantValueKind.DUMMY_INTERCEPTOR;
 
   @override
-  String toDartText() => 'abstract_value($abstractValue)';
+  String toDartText() => 'dummy_interceptor($abstractValue)';
 
   @override
-  String toStructuredText() => 'AbstractValueConstant($abstractValue)';
+  String toStructuredText() => 'DummyInterceptorConstant($abstractValue)';
+}
+
+// A constant with an empty type used in [HInstruction]s of an expression
+// in an unreachable context.
+class UnreachableConstantValue extends ConstantValue {
+  const UnreachableConstantValue();
+
+  @override
+  bool get isDummy => true;
+
+  @override
+  List<ConstantValue> getDependencies() => const <ConstantValue>[];
+
+  @override
+  accept(ConstantValueVisitor visitor, arg) {
+    return visitor.visitUnreachable(this, arg);
+  }
+
+  @override
+  DartType getType(CommonElements types) => types.dynamicType;
+
+  @override
+  ConstantValueKind get kind => ConstantValueKind.UNREACHABLE;
+
+  @override
+  String toDartText() => 'unreachable()';
+
+  @override
+  String toStructuredText() => 'UnreachableConstant()';
 }
 
 class ConstructedConstantValue extends ObjectConstantValue {

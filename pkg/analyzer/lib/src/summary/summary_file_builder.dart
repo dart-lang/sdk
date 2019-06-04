@@ -11,7 +11,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -148,15 +147,10 @@ class _Builder {
   }
 
   void _link2() {
-    var rootReference = summary2.Reference.root();
-    var dartCoreRef = rootReference.getChild('dart:core');
-    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
-    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
-
     var elementFactory = summary2.LinkedElementFactory(
       context,
       null,
-      rootReference,
+      summary2.Reference.root(),
     );
 
     var linkResult = summary2.link(elementFactory, inputLibraries);

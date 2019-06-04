@@ -5730,9 +5730,10 @@ void Function::AttachBytecode(const Bytecode& value) const {
   StorePointer(&raw_ptr()->bytecode_, value.raw());
 
   // We should not have loaded the bytecode if the function had code.
-  ASSERT(!HasCode());
-
-  if (FLAG_enable_interpreter) {
+  // However, we may load the bytecode to access source positions (see
+  // ProcessBytecodeTokenPositionsEntry in kernel.cc).
+  // In that case, do not install InterpretCall stub below.
+  if (FLAG_enable_interpreter && !HasCode()) {
     // Set the code entry_point to InterpretCall stub.
     SetInstructions(StubCode::InterpretCall());
   }
@@ -6065,6 +6066,34 @@ RawFunction* Function::FfiCSignature() const {
   return FfiTrampolineData::Cast(obj).c_signature();
 }
 
+int32_t Function::FfiCallbackId() const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  return FfiTrampolineData::Cast(obj).callback_id();
+}
+
+void Function::SetFfiCallbackId(int32_t value) const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  FfiTrampolineData::Cast(obj).set_callback_id(value);
+}
+
+RawFunction* Function::FfiCallbackTarget() const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  return FfiTrampolineData::Cast(obj).callback_target();
+}
+
+void Function::SetFfiCallbackTarget(const Function& target) const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  FfiTrampolineData::Cast(obj).set_callback_target(target);
+}
+
 RawType* Function::SignatureType() const {
   Type& type = Type::Handle(ExistingSignatureType());
   if (type.IsNull()) {
@@ -6185,10 +6214,18 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
       break;
     case RawFunction::kDynamicInvocationForwarder:
       return "DynamicInvocationForwarder";
-    default:
-      UNREACHABLE();
-      return NULL;
+      break;
+    case RawFunction::kFfiTrampoline:
+      return "FfiTrampoline";
+      break;
   }
+  // When you add a case to this switch, please also update the observatory.
+  // - runtime/observatory/lib/src/models/objects/function.dart (FunctionKind)
+  // - runtime/observatory/lib/src/elements/function_view.dart
+  //   (_functionKindToString)
+  // - runtime/observatory/lib/src/service/object.dart (stringToFunctionKind)
+  UNREACHABLE();
+  return NULL;
 }
 
 void Function::SetRedirectionType(const Type& type) const {
@@ -7787,7 +7824,8 @@ bool Function::HasOptimizedCode() const {
 
 bool Function::ShouldCompilerOptimize() const {
   return !FLAG_enable_interpreter ||
-         ((unoptimized_code() != Object::null()) && WasCompiled());
+         ((unoptimized_code() != Object::null()) && WasCompiled()) ||
+         ForceOptimize();
 }
 
 RawString* Function::UserVisibleName() const {
@@ -8221,12 +8259,22 @@ void FfiTrampolineData::set_c_signature(const Function& value) const {
   StorePointer(&raw_ptr()->c_signature_, value.raw());
 }
 
+void FfiTrampolineData::set_callback_target(const Function& value) const {
+  StorePointer(&raw_ptr()->callback_target_, value.raw());
+}
+
+void FfiTrampolineData::set_callback_id(int32_t callback_id) const {
+  StoreNonPointer(&raw_ptr()->callback_id_, callback_id);
+}
+
 RawFfiTrampolineData* FfiTrampolineData::New() {
   ASSERT(Object::ffi_trampoline_data_class() != Class::null());
   RawObject* raw =
       Object::Allocate(FfiTrampolineData::kClassId,
                        FfiTrampolineData::InstanceSize(), Heap::kOld);
-  return reinterpret_cast<RawFfiTrampolineData*>(raw);
+  RawFfiTrampolineData* data = reinterpret_cast<RawFfiTrampolineData*>(raw);
+  data->ptr()->callback_id_ = -1;
+  return data;
 }
 
 const char* FfiTrampolineData::ToCString() const {
@@ -12236,6 +12284,39 @@ RawError* Library::CompileAll(bool ignore_error /* = false */) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+
+RawError* Library::FinalizeAllClasses() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  Zone* zone = thread->zone();
+  Error& error = Error::Handle(zone);
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      Isolate::Current()->object_store()->libraries());
+  Library& lib = Library::Handle(zone);
+  Class& cls = Class::Handle(zone);
+  for (int i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    if (!lib.Loaded()) {
+      String& uri = String::Handle(zone, lib.url());
+      String& msg = String::Handle(
+          zone,
+          String::NewFormatted("Library '%s' is not loaded. "
+                               "Did you forget to call Dart_FinalizeLoading?",
+                               uri.ToCString()));
+      return ApiError::New(msg);
+    }
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      error = cls.EnsureIsFinalized(thread);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
+    }
+  }
+  return Error::null();
+}
+
 RawError* Library::ReadAllBytecode() {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
@@ -15122,6 +15203,9 @@ RawBytecode* Bytecode::New(uword instructions,
     result.set_pc_descriptors(Object::empty_descriptors());
     result.set_instructions_binary_offset(instructions_offset);
     result.set_source_positions_binary_offset(0);
+#if !defined(PRODUCT)
+    result.set_local_variables_binary_offset(0);
+#endif
   }
   return result.raw();
 }
@@ -15157,6 +15241,35 @@ TokenPosition Bytecode::GetTokenIndexOfPC(uword pc) const {
     token_pos = iter.TokenPos();
   }
   return token_pos;
+#endif
+}
+
+intptr_t Bytecode::GetTryIndexAtPc(uword return_address) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  intptr_t try_index = -1;
+  const uword pc_offset = return_address - PayloadStart();
+  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
+  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
+  while (iter.MoveNext()) {
+    // PC descriptors for try blocks in bytecode are generated in pairs,
+    // marking start and end of a try block.
+    // See BytecodeMetadataHelper::ReadExceptionsTable for details.
+    const intptr_t current_try_index = iter.TryIndex();
+    const uword start_pc = iter.PcOffset();
+    if (pc_offset < start_pc) {
+      break;
+    }
+    const bool has_next = iter.MoveNext();
+    ASSERT(has_next);
+    const uword end_pc = iter.PcOffset();
+    if (start_pc <= pc_offset && pc_offset < end_pc) {
+      ASSERT(try_index < current_try_index);
+      try_index = current_try_index;
+    }
+  }
+  return try_index;
 #endif
 }
 
@@ -15219,6 +15332,25 @@ RawBytecode* Bytecode::FindCode(uword pc) {
     return static_cast<RawBytecode*>(needle);
   }
   return Bytecode::null();
+}
+
+RawLocalVarDescriptors* Bytecode::GetLocalVarDescriptors() const {
+#if defined(PRODUCT) || defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+  return LocalVarDescriptors::null();
+#else
+  Zone* zone = Thread::Current()->zone();
+  auto& var_descs = LocalVarDescriptors::Handle(zone, var_descriptors());
+  if (var_descs.IsNull()) {
+    const auto& func = Function::Handle(zone, function());
+    ASSERT(!func.IsNull());
+    var_descs =
+        kernel::BytecodeReader::ComputeLocalVarDescriptors(zone, func, *this);
+    ASSERT(!var_descs.IsNull());
+    set_var_descriptors(var_descs);
+  }
+  return var_descs.raw();
+#endif
 }
 
 RawContext* Context::New(intptr_t num_variables, Heap::Space space) {

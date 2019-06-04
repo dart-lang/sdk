@@ -2172,32 +2172,9 @@ void Precompiler::Obfuscate() {
 }
 
 void Precompiler::FinalizeAllClasses() {
-  Library& lib = Library::Handle(Z);
-  Class& cls = Class::Handle(Z);
-
-  for (intptr_t i = 0; i < libraries_.Length(); i++) {
-    lib ^= libraries_.At(i);
-    if (!lib.Loaded()) {
-      String& uri = String::Handle(Z, lib.url());
-      String& msg = String::Handle(
-          Z,
-          String::NewFormatted("Library '%s' is not loaded. "
-                               "Did you forget to call Dart_FinalizeLoading?",
-                               uri.ToCString()));
-      Jump(Error::Handle(Z, ApiError::New(msg)));
-    }
-
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-      error_ = cls.EnsureIsFinalized(T);
-      if (!error_.IsNull()) {
-        Jump(error_);
-      }
-    }
+  error_ = Library::FinalizeAllClasses();
+  if (!error_.IsNull()) {
+    Jump(error_);
   }
   I->set_all_classes_finalized(true);
 }

@@ -500,6 +500,14 @@ void JSONObject::AddFixedServiceId(const char* format, ...) const {
   va_end(args);
 }
 
+void JSONObject::AddServiceId(const char* format, ...) const {
+  // Add the id property.
+  va_list args;
+  va_start(args, format);
+  stream_->VPrintfProperty("id", format, args);
+  va_end(args);
+}
+
 void JSONObject::AddLocation(const Script& script,
                              TokenPosition token_pos,
                              TokenPosition end_token_pos) const {
@@ -516,10 +524,9 @@ void JSONObject::AddLocation(const BreakpointLocation* bpt_loc) const {
   ASSERT(bpt_loc->IsResolved());
 
   Zone* zone = Thread::Current()->zone();
-  Library& library = Library::Handle(zone);
   Script& script = Script::Handle(zone);
   TokenPosition token_pos = TokenPosition::kNoSource;
-  bpt_loc->GetCodeLocation(&library, &script, &token_pos);
+  bpt_loc->GetCodeLocation(&script, &token_pos);
   AddLocation(script, token_pos);
 }
 
@@ -528,10 +535,9 @@ void JSONObject::AddUnresolvedLocation(
   ASSERT(!bpt_loc->IsResolved());
 
   Zone* zone = Thread::Current()->zone();
-  Library& library = Library::Handle(zone);
   Script& script = Script::Handle(zone);
   TokenPosition token_pos = TokenPosition::kNoSource;
-  bpt_loc->GetCodeLocation(&library, &script, &token_pos);
+  bpt_loc->GetCodeLocation(&script, &token_pos);
 
   JSONObject location(this, "location");
   location.AddProperty("type", "UnresolvedSourceLocation");

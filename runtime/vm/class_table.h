@@ -39,14 +39,6 @@ class ClassAndSize {
   friend class IsolateReloadContext;  // For VisitObjectPointers.
 };
 
-#if defined(ARCH_IS_32_BIT)
-const int kSizeOfClassPairLog2 = 3;
-#else
-const int kSizeOfClassPairLog2 = 4;
-#endif
-
-COMPILE_ASSERT((1 << kSizeOfClassPairLog2) == sizeof(ClassAndSize));
-
 #ifndef PRODUCT
 template <typename T>
 class AllocStats {
@@ -261,6 +253,24 @@ class ClassTable {
   static intptr_t ClassOffsetFor(intptr_t cid);
 
 #ifndef PRODUCT
+  // Describes layout of heap stats for code generation. See offset_extractor.cc
+  struct ArrayLayout {
+    static intptr_t elements_start_offset() { return 0; }
+
+    static constexpr intptr_t kElementSize = sizeof(ClassHeapStats);
+  };
+#endif
+
+#if defined(ARCH_IS_32_BIT)
+  static constexpr int kSizeOfClassPairLog2 = 3;
+#else
+  static constexpr int kSizeOfClassPairLog2 = 4;
+#endif
+  static_assert(
+      (1 << kSizeOfClassPairLog2) == sizeof(ClassAndSize),
+      "Mismatch between sizeof(ClassAndSize) and kSizeOfClassPairLog2");
+
+#ifndef PRODUCT
   // Called whenever a class is allocated in the runtime.
   void UpdateAllocatedNew(intptr_t cid, intptr_t size) {
     ClassHeapStats* stats = PreliminaryStatsAt(cid);
@@ -284,6 +294,11 @@ class ClassTable {
   void ResetCountersNew();
   // Called immediately after a new GC.
   void UpdatePromoted();
+
+  // Used by the generated code.
+  static intptr_t class_heap_stats_table_offset() {
+    return OFFSET_OF(ClassTable, class_heap_stats_table_);
+  }
 
   // Used by the generated code.
   static intptr_t TableOffsetFor(intptr_t cid);

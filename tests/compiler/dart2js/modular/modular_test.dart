@@ -7,53 +7,40 @@
 /// This is a shell that runs multiple tests, one per folder under `data/`.
 import 'dart:io';
 
-import 'package:args/args.dart';
-import 'package:async_helper/async_helper.dart';
-import 'package:expect/expect.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:modular_test/src/io_pipeline.dart';
-import 'package:modular_test/src/loader.dart';
 import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/suite.dart';
+import 'package:modular_test/src/runner.dart';
 
-_Options _options;
-main(List<String> args) {
-  _options = _Options.parse(args);
-  asyncTest(() async {
-    var baseUri = Platform.script.resolve('data/');
-    var baseDir = Directory.fromUri(baseUri);
-    await for (var entry in baseDir.list(recursive: false)) {
-      if (entry is Directory) {
-        await _runTest(entry.uri, baseUri);
-      }
-    }
-  });
-}
-
-Future<void> _runTest(Uri uri, Uri baseDir) async {
-  var dirName = uri.path.substring(baseDir.path.length);
-  if (_options.filter != null && !dirName.contains(_options.filter)) {
-    if (_options.showSkipped) print("skipped: $dirName");
-    return;
-  }
-
-  print("testing: $dirName");
-  ModularTest test = await loadTest(uri);
-  if (_options.verbose) print(test.debugString());
-  var pipeline = new IOPipeline([
-    SourceToDillStep(),
-    GlobalAnalysisStep(),
-    Dart2jsBackendStep(),
-    RunD8(),
-  ]);
-
-  await pipeline.run(test);
+Uri sdkRoot = Platform.script.resolve("../../../../");
+Options _options;
+main(List<String> args) async {
+  _options = Options.parse(args);
+  var suiteFolder = Platform.script.resolve('data/');
+  var suiteName = relativize(suiteFolder, sdkRoot).path;
+  await runSuite(
+      suiteFolder,
+      suiteName.substring(0, suiteName.length - 1), // remove trailing /
+      _options,
+      new IOPipeline([
+        SourceToDillStep(),
+        GlobalAnalysisStep(),
+        Dart2jsCodegenStep(codeId0),
+        Dart2jsCodegenStep(codeId1),
+        Dart2jsEmissionStep(),
+        RunD8(),
+      ], cacheSharedModules: true));
 }
 
 const dillId = const DataId("dill");
 const updatedDillId = const DataId("udill");
 const globalDataId = const DataId("gdata");
+const codeId = const ShardsDataId("code", 2);
+const codeId0 = const ShardDataId(codeId, 0);
+const codeId1 = const ShardDataId(codeId, 1);
 const jsId = const DataId("js");
 const txtId = const DataId("txt");
 
@@ -75,9 +62,10 @@ class SourceToDillStep implements IOModularStep {
   bool get onlyOnMain => false;
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
-    if (_options.verbose) print("step: source-to-dill on $module");
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
+    if (_options.verbose) print("\nstep: source-to-dill on $module");
+
     // We use non file-URI schemes for representeing source locations in a
     // root-agnostic way. This allows us to refer to file across modules and
     // across steps without exposing the underlying temporary folders that are
@@ -86,7 +74,7 @@ class SourceToDillStep implements IOModularStep {
     //
     // Files in packages are defined in terms of `package:` URIs, while
     // non-package URIs are defined using the `dart-dev-app` scheme.
-    String rootScheme = 'dev-dart-app';
+    String rootScheme = module.isSdk ? 'dart-dev-sdk' : 'dev-dart-app';
     String sourceToImportUri(Uri relativeUri) {
       if (module.isPackage) {
         var basePath = module.packageBase.path;
@@ -126,10 +114,30 @@ class SourceToDillStep implements IOModularStep {
         .writeAsString('$packagesContents');
 
     var sdkRoot = Platform.script.resolve("../../../../");
-    var platform =
-        computePlatformBinariesLocation().resolve("dart2js_platform.dill");
+    List<String> sources;
+    List<String> extraArgs;
+    if (module.isSdk) {
+      // When no flags are passed, we can skip compilation and reuse the
+      // platform.dill created by build.py.
+      if (flags.isEmpty) {
+        var platform =
+            computePlatformBinariesLocation().resolve("dart2js_platform.dill");
+        var destination = root.resolveUri(toUri(module, dillId));
+        if (_options.verbose) {
+          print('command:\ncp $platform $destination');
+        }
+        await File.fromUri(platform).copy(destination.toFilePath());
+        return;
+      }
+      sources = ['dart:core'];
+      extraArgs = ['--libraries-file', '$rootScheme:///sdk/lib/libraries.json'];
+      assert(transitiveDependencies.isEmpty);
+    } else {
+      sources = module.sources.map(sourceToImportUri).toList();
+      extraArgs = ['--packages-file', '$rootScheme:/.packages'];
+    }
 
-    List<String> workerArgs = [
+    List<String> args = [
       sdkRoot.resolve("utils/bazel/kernel_worker.dart").toFilePath(),
       '--no-summary-only',
       '--target',
@@ -138,20 +146,23 @@ class SourceToDillStep implements IOModularStep {
       '$root',
       '--multi-root-scheme',
       rootScheme,
-      '--dart-sdk-summary',
-      '${platform}',
+      ...extraArgs,
       '--output',
       '${toUri(module, dillId)}',
-      '--packages-file',
-      '$rootScheme:/.packages',
       ...(transitiveDependencies
           .expand((m) => ['--input-linked', '${toUri(m, dillId)}'])),
-      ...(module.sources.expand((uri) => ['--source', sourceToImportUri(uri)])),
+      ...(sources.expand((String uri) => ['--source', uri])),
+      ...(flags.expand((String flag) => ['--enable-experiment', flag])),
     ];
 
-    var result = await _runProcess(
-        Platform.resolvedExecutable, workerArgs, root.toFilePath());
+    var result =
+        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
     _checkExitCode(result, this, module);
+  }
+
+  @override
+  void notifyCached(Module module) {
+    if (_options.verbose) print("\ncached step: source-to-dill on $module");
   }
 }
 
@@ -174,9 +185,9 @@ class GlobalAnalysisStep implements IOModularStep {
   bool get onlyOnMain => true;
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
-    if (_options.verbose) print("step: dart2js global analysis on $module");
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
+    if (_options.verbose) print("\nstep: dart2js global analysis on $module");
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
     Iterable<String> dillDependencies =
         transitiveDependencies.map((m) => '${toUri(m, dillId)}');
@@ -185,8 +196,9 @@ class GlobalAnalysisStep implements IOModularStep {
       '--packages=${sdkRoot.toFilePath()}/.packages',
       'package:compiler/src/dart2js.dart',
       '${toUri(module, dillId)}',
-      '--dill-dependencies=${dillDependencies.join(',')}',
-      '--write-data=${toUri(module, globalDataId)}',
+      for (String flag in flags) '--enable-experiment=$flag',
+      '${Flags.dillDependencies}=${dillDependencies.join(',')}',
+      '${Flags.writeData}=${toUri(module, globalDataId)}',
       '--out=${toUri(module, updatedDillId)}',
     ];
     var result =
@@ -194,13 +206,24 @@ class GlobalAnalysisStep implements IOModularStep {
 
     _checkExitCode(result, this, module);
   }
+
+  @override
+  void notifyCached(Module module) {
+    if (_options.verbose)
+      print("\ncached step: dart2js global analysis on $module");
+  }
 }
 
-// Step that invokes the dart2js backend on the main module given the results of
-// the global analysis step.
-class Dart2jsBackendStep implements IOModularStep {
+// Step that invokes the dart2js code generation on the main module given the
+// results of the global analysis step and produces one shard of the codegen
+// output.
+class Dart2jsCodegenStep implements IOModularStep {
+  final ShardDataId codeId;
+
+  Dart2jsCodegenStep(this.codeId);
+
   @override
-  List<DataId> get resultData => const [jsId];
+  List<DataId> get resultData => [codeId];
 
   @override
   bool get needsSources => false;
@@ -215,21 +238,75 @@ class Dart2jsBackendStep implements IOModularStep {
   bool get onlyOnMain => true;
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
+    if (_options.verbose) print("\nstep: dart2js backend on $module");
+    var sdkRoot = Platform.script.resolve("../../../../");
+    List<String> args = [
+      '--packages=${sdkRoot.toFilePath()}/.packages',
+      'package:compiler/src/dart2js.dart',
+      '${toUri(module, updatedDillId)}',
+      for (String flag in flags) '--enable-experiment=$flag',
+      '${Flags.readData}=${toUri(module, globalDataId)}',
+      '${Flags.writeCodegen}=${toUri(module, codeId.dataId)}',
+      '${Flags.codegenShard}=${codeId.shard}',
+      '${Flags.codegenShards}=${codeId.dataId.shards}',
+    ];
+    var result =
+        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
+
+    _checkExitCode(result, this, module);
+  }
+
+  @override
+  void notifyCached(Module module) {
+    if (_options.verbose) print("cached step: dart2js backend on $module");
+  }
+}
+
+// Step that invokes the dart2js codegen enqueuer and emitter on the main module
+// given the results of the global analysis step and codegen shards.
+class Dart2jsEmissionStep implements IOModularStep {
+  @override
+  List<DataId> get resultData => const [jsId];
+
+  @override
+  bool get needsSources => false;
+
+  @override
+  List<DataId> get dependencyDataNeeded => const [];
+
+  @override
+  List<DataId> get moduleDataNeeded =>
+      const [updatedDillId, globalDataId, codeId0, codeId1];
+
+  @override
+  bool get onlyOnMain => true;
+
+  @override
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
     if (_options.verbose) print("step: dart2js backend on $module");
     var sdkRoot = Platform.script.resolve("../../../../");
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/.packages',
       'package:compiler/src/dart2js.dart',
       '${toUri(module, updatedDillId)}',
-      '--read-data=${toUri(module, globalDataId)}',
+      for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
+      '${Flags.readData}=${toUri(module, globalDataId)}',
+      '${Flags.readCodegen}=${toUri(module, codeId)}',
+      '${Flags.codegenShards}=${codeId.shards}',
       '--out=${toUri(module, jsId)}',
     ];
     var result =
         await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
 
     _checkExitCode(result, this, module);
+  }
+
+  @override
+  void notifyCached(Module module) {
+    if (_options.verbose) print("\ncached step: dart2js backend on $module");
   }
 }
 
@@ -251,9 +328,9 @@ class RunD8 implements IOModularStep {
   bool get onlyOnMain => true;
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
-    if (_options.verbose) print("step: d8 on $module");
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
+    if (_options.verbose) print("\nstep: d8 on $module");
     var sdkRoot = Platform.script.resolve("../../../../");
     List<String> d8Args = [
       sdkRoot
@@ -269,6 +346,11 @@ class RunD8 implements IOModularStep {
     await File.fromUri(root.resolveUri(toUri(module, txtId)))
         .writeAsString(result.stdout);
   }
+
+  @override
+  void notifyCached(Module module) {
+    if (_options.verbose) print("\ncached step: d8 on $module");
+  }
 }
 
 void _checkExitCode(ProcessResult result, IOModularStep step, Module module) {
@@ -277,8 +359,9 @@ void _checkExitCode(ProcessResult result, IOModularStep step, Module module) {
     stderr.write(result.stderr);
   }
   if (result.exitCode != 0) {
-    exitCode = result.exitCode;
-    Expect.fail("${step.runtimeType} failed on $module");
+    throw "${step.runtimeType} failed on $module:\n\n"
+        "stdout:\n${result.stdout}\n\n"
+        "stderr:\n${result.stderr}";
   }
 }
 
@@ -301,26 +384,31 @@ String get _d8executable {
   throw new UnsupportedError('Unsupported platform.');
 }
 
-class _Options {
-  bool showSkipped = false;
-  bool verbose = false;
-  String filter = null;
+class ShardsDataId implements DataId {
+  @override
+  final String name;
+  final int shards;
 
-  static _Options parse(List<String> args) {
-    var parser = new ArgParser()
-      ..addFlag('verbose',
-          abbr: 'v',
-          defaultsTo: false,
-          help: "print detailed information about the test and modular steps")
-      ..addFlag('show-skipped',
-          defaultsTo: false,
-          help: "print the name of the tests skipped by the filtering option")
-      ..addOption('filter',
-          help: "only run tests containing this filter as a substring");
-    ArgResults argResults = parser.parse(args);
-    return _Options()
-      ..showSkipped = argResults['show-skipped']
-      ..verbose = argResults['verbose']
-      ..filter = argResults['filter'];
+  const ShardsDataId(this.name, this.shards);
+
+  @override
+  String toString() => name;
+}
+
+class ShardDataId implements DataId {
+  final ShardsDataId dataId;
+  final int _shard;
+
+  const ShardDataId(this.dataId, this._shard);
+
+  int get shard {
+    assert(0 <= _shard && _shard < dataId.shards);
+    return _shard;
   }
+
+  @override
+  String get name => '${dataId.name}${shard}';
+
+  @override
+  String toString() => name;
 }

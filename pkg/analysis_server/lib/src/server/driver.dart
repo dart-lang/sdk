@@ -14,6 +14,7 @@ import 'package:analysis_server/src/lsp/lsp_socket_server.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/dev_server.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/lsp_stdio_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
@@ -29,6 +30,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:args/args.dart';
+import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
@@ -195,6 +197,18 @@ class Driver implements ServerStarter {
   static const String DARTPAD_OPTION = "dartpad";
 
   /**
+   * The name of the option to disable the completion feature.
+   */
+  static const String DISABLE_SERVER_FEATURE_COMPLETION =
+      "disable-server-feature-completion";
+
+  /**
+   * The name of the option to disable the search feature.
+   */
+  static const String DISABLE_SERVER_FEATURE_SEARCH =
+      "disable-server-feature-search";
+
+  /**
    * The name of the option used to enable instrumentation.
    */
   static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
@@ -354,6 +368,17 @@ class Driver implements ServerStarter {
       UriContributor.suggestFilePaths = false;
     }
 
+    {
+      bool disableCompletion = results[DISABLE_SERVER_FEATURE_COMPLETION];
+      bool disableSearch = results[DISABLE_SERVER_FEATURE_SEARCH];
+      if (disableCompletion || disableSearch) {
+        analysisServerOptions.featureSet = FeatureSet(
+          completion: !disableCompletion,
+          search: !disableSearch,
+        );
+      }
+    }
+
     if (results[HELP_OPTION]) {
       _printUsage(parser.parser, analytics, fromHelp: true);
       return null;
@@ -404,19 +429,21 @@ class Driver implements ServerStarter {
       }
     }
 
-    if (analysisServerOptions.useLanguageServerProtocol) {
-      startLspServer(results, analysisServerOptions, dartSdkManager,
-          instrumentationService, diagnosticServerPort);
-    } else {
-      startAnalysisServer(
-          results,
-          analysisServerOptions,
-          parser,
-          dartSdkManager,
-          instrumentationService,
-          analytics,
-          diagnosticServerPort);
-    }
+    CompilerContext.runWithDefaultOptions((_) async {
+      if (analysisServerOptions.useLanguageServerProtocol) {
+        startLspServer(results, analysisServerOptions, dartSdkManager,
+            instrumentationService, diagnosticServerPort);
+      } else {
+        startAnalysisServer(
+            results,
+            analysisServerOptions,
+            parser,
+            dartSdkManager,
+            instrumentationService,
+            analytics,
+            diagnosticServerPort);
+      }
+    });
   }
 
   void startAnalysisServer(
@@ -632,6 +659,10 @@ class Driver implements ServerStarter {
         help: 'enable DartPad specific functionality',
         defaultsTo: false,
         hide: true);
+    parser.addFlag(DISABLE_SERVER_FEATURE_COMPLETION,
+        help: 'disable all completion features', defaultsTo: false, hide: true);
+    parser.addFlag(DISABLE_SERVER_FEATURE_SEARCH,
+        help: 'disable all search features', defaultsTo: false, hide: true);
     parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,

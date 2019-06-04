@@ -15,7 +15,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _EXTERNAL_ENUM,
   _PREFIX_AFTER_COMBINATOR,
   _TYPEDEF_IN_CLASS,
-  _COVARIANT_AFTER_VAR,
+  _EXPECTED_BODY,
   _INVALID_AWAIT_IN_FOR,
   _IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
   _WITH_BEFORE_EXTENDS,
@@ -25,9 +25,9 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _SWITCH_HAS_MULTIPLE_DEFAULT_CASES,
   _SWITCH_HAS_CASE_AFTER_DEFAULT_CASE,
   _STATIC_OPERATOR,
-  _STATIC_AFTER_VAR,
-  _STATIC_AFTER_FINAL,
-  _STATIC_AFTER_CONST,
+  _INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER,
+  _STACK_OVERFLOW,
+  _MISSING_CATCH_OR_FINALLY,
   _REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR,
   _REDIRECTING_CONSTRUCTOR_WITH_BODY,
   _NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
@@ -53,9 +53,9 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _IMPLEMENTS_BEFORE_ON,
   _IMPLEMENTS_BEFORE_EXTENDS,
   _ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE,
-  _EXTERNAL_AFTER_CONST,
-  _EXTERNAL_AFTER_FACTORY,
-  _EXTERNAL_AFTER_STATIC,
+  _EXPECTED_ELSE_OR_COMMA,
+  _INVALID_SUPER_IN_INITIALIZER,
+  _EXPERIMENT_NOT_ENABLED,
   _EXTERNAL_METHOD_WITH_BODY,
   _EXTERNAL_FIELD,
   _ABSTRACT_CLASS_MEMBER,
@@ -97,12 +97,6 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _EXTERNAL_CONSTRUCTOR_WITH_BODY,
   _FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS,
   _VAR_AND_TYPE,
-  _INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER,
-  _STACK_OVERFLOW,
-  _MISSING_CATCH_OR_FINALLY,
-  _EXPERIMENT_NOT_ENABLED,
-  _EXPECTED_ELSE_OR_COMMA,
-  _INVALID_SUPER_IN_INITIALIZER,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -174,11 +168,6 @@ const ParserErrorCode _CONTINUE_WITHOUT_LABEL_IN_CASE = const ParserErrorCode(
     correction:
         "Try adding a label associated with one of the case clauses to the continue statement.");
 
-const ParserErrorCode _COVARIANT_AFTER_VAR = const ParserErrorCode(
-    'COVARIANT_AFTER_VAR',
-    r"The modifier 'covariant' should be before the modifier 'var'.",
-    correction: "Try re-ordering the modifiers.");
-
 const ParserErrorCode _COVARIANT_AND_STATIC = const ParserErrorCode(
     'COVARIANT_AND_STATIC',
     r"Members can't be declared to be both 'covariant' and 'static'.",
@@ -227,6 +216,10 @@ const ParserErrorCode _EQUALITY_CANNOT_BE_EQUALITY_OPERAND = const ParserErrorCo
     r"An equality expression can't be an operand of another equality expression.",
     correction: "Try re-writing the expression.");
 
+const ParserErrorCode _EXPECTED_BODY = const ParserErrorCode(
+    'EXPECTED_BODY', r"A #string must have a body, even if it is empty.",
+    correction: "Try adding an empty body.");
+
 const ParserErrorCode _EXPECTED_ELSE_OR_COMMA = const ParserErrorCode(
     'EXPECTED_ELSE_OR_COMMA', r"Expected 'else' or comma.");
 
@@ -244,21 +237,6 @@ const ParserErrorCode _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
         r"Export directives must precede part directives.",
         correction:
             "Try moving the export directives before the part directives.");
-
-const ParserErrorCode _EXTERNAL_AFTER_CONST = const ParserErrorCode(
-    'EXTERNAL_AFTER_CONST',
-    r"The modifier 'external' should be before the modifier 'const'.",
-    correction: "Try re-ordering the modifiers.");
-
-const ParserErrorCode _EXTERNAL_AFTER_FACTORY = const ParserErrorCode(
-    'EXTERNAL_AFTER_FACTORY',
-    r"The modifier 'external' should be before the modifier 'factory'.",
-    correction: "Try re-ordering the modifiers.");
-
-const ParserErrorCode _EXTERNAL_AFTER_STATIC = const ParserErrorCode(
-    'EXTERNAL_AFTER_STATIC',
-    r"The modifier 'external' should be before the modifier 'static'.",
-    correction: "Try re-ordering the modifiers.");
 
 const ParserErrorCode _EXTERNAL_CLASS = const ParserErrorCode(
     'EXTERNAL_CLASS', r"Classes can't be declared to be 'external'.",
@@ -491,21 +469,6 @@ const ParserErrorCode _REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR =
 const ParserErrorCode _STACK_OVERFLOW = const ParserErrorCode('STACK_OVERFLOW',
     r"The file has too many nested expressions or statements.",
     correction: "Try simplifying the code.");
-
-const ParserErrorCode _STATIC_AFTER_CONST = const ParserErrorCode(
-    'STATIC_AFTER_CONST',
-    r"The modifier 'static' should be before the modifier 'const'.",
-    correction: "Try re-ordering the modifiers.");
-
-const ParserErrorCode _STATIC_AFTER_FINAL = const ParserErrorCode(
-    'STATIC_AFTER_FINAL',
-    r"The modifier 'static' should be before the modifier 'final'.",
-    correction: "Try re-ordering the modifiers.");
-
-const ParserErrorCode _STATIC_AFTER_VAR = const ParserErrorCode(
-    'STATIC_AFTER_VAR',
-    r"The modifier 'static' should be before the modifier 'var'.",
-    correction: "Try re-ordering the modifiers.");
 
 const ParserErrorCode _STATIC_CONSTRUCTOR = const ParserErrorCode(
     'STATIC_CONSTRUCTOR', r"Constructors can't be static.",

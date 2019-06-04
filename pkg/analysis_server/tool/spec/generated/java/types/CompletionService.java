@@ -16,10 +16,12 @@ package org.dartlang.analysis.server.protocol;
 public class CompletionService {
 
   /**
-   * The client will receive notifications once subscribed with completion suggestion sets from the
-   * libraries of interest. The client should keep an up-to-date record of these in memory so that it
-   * will be able to union these candidates with other completion suggestions when applicable at
-   * completion time.
+   * The client will receive availableSuggestions notifications once subscribed with completion
+   * suggestion sets from the libraries of interest. The client should keep an up-to-date record of
+   * these in memory so that it will be able to union these candidates with other completion
+   * suggestions when applicable at completion time.
+   *
+   * The client will also receive existingImports notifications.
    */
   public static final String AVAILABLE_SUGGESTION_SETS = "AVAILABLE_SUGGESTION_SETS";
 

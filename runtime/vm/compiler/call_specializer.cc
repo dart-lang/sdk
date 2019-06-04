@@ -366,7 +366,8 @@ void CallSpecializer::AddCheckClass(Definition* to_check,
 void CallSpecializer::AddChecksForArgNr(InstanceCallInstr* call,
                                         Definition* instr,
                                         int argument_number) {
-  const Cids* cids = Cids::Create(Z, *call->ic_data(), argument_number);
+  const Cids* cids =
+      Cids::CreateAndExpand(Z, *call->ic_data(), argument_number);
   AddCheckClass(instr, *cids, call->deopt_id(), call->env(), call);
 }
 
@@ -1502,7 +1503,7 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
                 new (Z) Value(call->ArgumentAt(1)), call->deopt_id(),
                 result_cid);
             const Cids* cids =
-                Cids::Create(Z, ic_data, /* argument_number =*/0);
+                Cids::CreateAndExpand(Z, ic_data, /* argument_number =*/0);
             AddCheckClass(min_max->left()->definition(), *cids,
                           call->deopt_id(), call->env(), call);
             AddCheckClass(min_max->right()->definition(), *cids,

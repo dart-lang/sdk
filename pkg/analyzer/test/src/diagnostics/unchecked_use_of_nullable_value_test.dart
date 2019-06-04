@@ -48,6 +48,24 @@ m() {
 ''');
   }
 
+  test_assert_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+m() {
+  bool x = true;
+  assert(x);
+}
+''');
+  }
+
+  test_assert_nullable() async {
+    await assertErrorCodesInCode(r'''
+m() {
+  bool? x;
+  assert(x);
+}
+''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+  }
+
   test_await_nonNullable() async {
     await assertNoErrorsInCode(r'''
 m() async {
@@ -201,6 +219,15 @@ m() {
 ''');
   }
 
+  test_member_dynamic_nullable() async {
+    await assertNoErrorsInCode(r'''
+m() {
+  dynamic x;
+  x.foo;
+}
+''');
+  }
+
   test_member_hashCode_nullable() async {
     await assertNoErrorsInCode(r'''
 m() {
@@ -255,6 +282,24 @@ m() {
 ''');
   }
 
+  test_member_potentiallyNullable() async {
+    await assertErrorCodesInCode(r'''
+m<T extends int?>() {
+  T x;
+  x.isEven;
+}
+''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+  }
+
+  test_member_potentiallyNullable_called() async {
+    await assertErrorCodesInCode(r'''
+m<T extends Function>() {
+  List<T?> x;
+  x.first();
+}
+''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+  }
+
   test_member_questionDot_nullable() async {
     await assertNoErrorsInCode(r'''
 m() {
@@ -286,7 +331,7 @@ m() {
     await assertNoErrorsInCode(r'''
 m() {
   int x;
-  x.noSuchMethod(null);
+  x.noSuchMethod(throw '');
 }
 ''');
   }

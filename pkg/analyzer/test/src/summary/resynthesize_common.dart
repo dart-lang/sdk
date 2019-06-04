@@ -1202,6 +1202,22 @@ class C {
 ''');
   }
 
+  test_class_method_namedAsSupertype() async {
+    var library = await checkLibrary(r'''
+class A {}
+class B extends A {
+  void A() {}
+}
+''');
+    checkElementText(library, r'''
+class A {
+}
+class B extends A {
+  void A() {}
+}
+''');
+  }
+
   test_class_method_params() async {
     var library = await checkLibrary('class C { f(x, y) {} }');
     checkElementText(library, r'''
@@ -2519,6 +2535,66 @@ class C {
   const C();
 }
 ''');
+  }
+
+  test_const_inference_downward_list() async {
+    var library = await checkLibrary('''
+class P<T> {
+  const P();
+}
+
+class P1<T> extends P<T> {
+  const P1();
+}
+
+class P2<T> extends P<T> {
+  const P2();
+}
+
+const List<P> values = [
+  P1(),
+  P2<int>(),
+];
+''');
+    if (isAstBasedSummary) {
+      checkElementText(
+          library,
+          '''
+class P<T> {
+  const P();
+}
+class P1<T> extends P<T> {
+  const P1();
+}
+class P2<T> extends P<T> {
+  const P2();
+}
+const List<P<dynamic>> values = /*typeArgs=P<dynamic>*/[/*typeArgs=dynamic*/
+        P1/*location: test.dart;P1*/(),
+        P2/*location: test.dart;P2*/<
+        int/*location: dart:core;int*/>()];
+''',
+          withTypes: true);
+    } else {
+      checkElementText(
+          library,
+          '''
+class P<T> {
+  const P();
+}
+class P1<T> extends P<T> {
+  const P1();
+}
+class P2<T> extends P<T> {
+  const P2();
+}
+const List<P<dynamic>> values = const /*typeArgs=dynamic*/[const /*typeArgs=dynamic*/
+        P1/*location: test.dart;P1*/(), const
+        P2/*location: test.dart;P2*/<
+        int/*location: dart:core;int*/>()];
+''',
+          withTypes: true);
+    }
   }
 
   test_const_invalid_field_const() async {
@@ -8666,6 +8742,22 @@ mixin M on Object {
 ''');
   }
 
+  test_mixin_method_namedAsConstraint() async {
+    var library = await checkLibrary(r'''
+class A {}
+mixin B on A {
+  void A() {}
+}
+''');
+    checkElementText(library, r'''
+class A {
+}
+mixin B on A {
+  void A() {}
+}
+''');
+  }
+
   test_nameConflict_exportedAndLocal() async {
     addLibrarySource('/a.dart', 'class C {}');
     addLibrarySource('/c.dart', '''
@@ -8955,11 +9047,41 @@ void main@5(int p@14) {}
         withOffsets: true);
   }
 
-  test_parameter_covariant() async {
-    var library = await checkLibrary('class C { void m(covariant C c) {} }');
+  test_parameter_covariant_explicit_named() async {
+    var library = await checkLibrary('''
+class A {
+  void m({covariant A a}) {}
+}
+''');
     checkElementText(library, r'''
-class C {
-  void m(covariant C c) {}
+class A {
+  void m({covariant A a}) {}
+}
+''');
+  }
+
+  test_parameter_covariant_explicit_positional() async {
+    var library = await checkLibrary('''
+class A {
+  void m([covariant A a]) {}
+}
+''');
+    checkElementText(library, r'''
+class A {
+  void m([covariant A a]) {}
+}
+''');
+  }
+
+  test_parameter_covariant_explicit_required() async {
+    var library = await checkLibrary('''
+class A {
+  void m(covariant A a) {}
+}
+''');
+    checkElementText(library, r'''
+class A {
+  void m(covariant A a) {}
 }
 ''');
   }
@@ -8979,6 +9101,25 @@ class A<T> {
 }
 class B<T> extends A<T> {
   void f(covariant T t) {}
+}
+''');
+  }
+
+  test_parameter_covariant_inherited_named() async {
+    var library = await checkLibrary('''
+class A {
+  void m({covariant A a}) {}
+}
+class B extends A {
+  void m({B a}) {}
+}
+''');
+    checkElementText(library, r'''
+class A {
+  void m({covariant A a}) {}
+}
+class B extends A {
+  void m({covariant B a}) {}
 }
 ''');
   }

@@ -896,7 +896,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
   } while (0)
 #endif
 
-// Fetch next operation from PC, increment program counter and dispatch.
+// Fetch next operation from PC and dispatch.
 #define DISPATCH() DISPATCH_OP(*pc)
 
 // Load target of a jump instruction into PC.

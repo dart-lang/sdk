@@ -46,7 +46,7 @@ class FunctionTypeTest {
 
   void basicChecks(FunctionType f,
       {element,
-      displayName: '() → dynamic',
+      displayName: 'dynamic Function()',
       returnType,
       namedParameterTypes: isEmpty,
       normalParameterNames: isEmpty,
@@ -148,7 +148,7 @@ class FunctionTypeTest {
     var e = new MockGenericTypeAliasElement('F');
     basicChecks(e.type, element: same(e), displayName: 'F', name: 'F');
     basicChecks(e.function.type,
-        element: same(e.function), displayName: '() → dynamic');
+        element: same(e.function), displayName: 'dynamic Function()');
   }
 
   test_forTypedef_innerAndOuterTypeParameter() {
@@ -172,7 +172,7 @@ class FunctionTypeTest {
         typeFormals: [same(t)]);
     basicChecks(e.function.type,
         element: same(e.function),
-        displayName: '<U>(U) → T',
+        displayName: 'T Function<U>(U)',
         returnType: same(t.type),
         typeArguments: [same(t.type)],
         typeParameters: [same(t)],
@@ -223,7 +223,7 @@ class FunctionTypeTest {
         returnType: same(t.type));
     basicChecks(e.function.type,
         element: same(e.function),
-        displayName: '<T>() → T',
+        displayName: 'T Function<T>()',
         returnType: same(t.type),
         typeFormals: [same(t)]);
   }
@@ -240,7 +240,7 @@ class FunctionTypeTest {
         parameters: [same(p)]);
     basicChecks(e.function.type,
         element: same(e.function),
-        displayName: '(dynamic) → dynamic',
+        displayName: 'dynamic Function(dynamic)',
         normalParameterNames: ['p'],
         normalParameterTypes: [same(dynamicType)],
         parameters: [same(p)]);
@@ -260,7 +260,7 @@ class FunctionTypeTest {
     if (bug_33302_fixed) {
       expect(fReturn.displayName, 'List<G>');
     } else {
-      expect(fReturn.displayName, 'List<() → List<...>>');
+      expect(fReturn.displayName, 'List<List<...> Function()>');
     }
     var fReturnArg = (fReturn as InterfaceType).typeArguments[0];
     expect(fReturnArg.element, same(g.function));
@@ -271,9 +271,10 @@ class FunctionTypeTest {
     basicChecks(f.function.type,
         element: same(f.function), displayName: isNotNull, returnType: fReturn);
     if (bug_33302_fixed) {
-      expect(f.function.type.displayName, '() → List<G>');
+      expect(f.function.type.displayName, 'List<G> Function()');
     } else {
-      expect(f.function.type.displayName, '() → List<() → List<...>>');
+      expect(
+          f.function.type.displayName, 'List<List<...> Function()> Function()');
     }
     basicChecks(g.type,
         element: same(g), displayName: 'G', name: 'G', returnType: isNotNull);
@@ -282,7 +283,7 @@ class FunctionTypeTest {
     if (bug_33302_fixed) {
       expect(gReturn.displayName, 'List<F>');
     } else {
-      expect(gReturn.displayName, 'List<() → List<...>>');
+      expect(gReturn.displayName, 'List<List<...> Function()>');
     }
     var gReturnArg = (gReturn as InterfaceType).typeArguments[0];
     expect(gReturnArg.element, same(f.function));
@@ -293,9 +294,10 @@ class FunctionTypeTest {
     basicChecks(g.function.type,
         element: same(g.function), displayName: isNotNull, returnType: gReturn);
     if (bug_33302_fixed) {
-      expect(g.function.type.displayName, '() → F');
+      expect(g.function.type.displayName, 'F Function()');
     } else {
-      expect(g.function.type.displayName, '() → List<() → List<...>>');
+      expect(
+          g.function.type.displayName, 'List<List<...> Function()> Function()');
     }
   }
 
@@ -326,9 +328,9 @@ class FunctionTypeTest {
         normalParameterNames: ['g'],
         returnType: same(voidType));
     if (bug_33302_fixed) {
-      expect(f.function.type.displayName, '(G) → void');
+      expect(f.function.type.displayName, 'void Function(G)');
     } else {
-      expect(f.function.type.displayName, '((...) → void) → void');
+      expect(f.function.type.displayName, 'void Function(void Function(...))');
     }
     basicChecks(g.type,
         element: same(g),
@@ -350,9 +352,9 @@ class FunctionTypeTest {
         normalParameterNames: ['f'],
         returnType: same(voidType));
     if (bug_33302_fixed) {
-      expect(g.function.type.displayName, '(F) → void');
+      expect(g.function.type.displayName, 'void Function(F)');
     } else {
-      expect(g.function.type.displayName, '((...) → void) → void');
+      expect(g.function.type.displayName, 'void Function(void Function(...))');
     }
   }
 
@@ -372,9 +374,9 @@ class FunctionTypeTest {
     basicChecks(f.function.type,
         element: same(f.function), displayName: isNotNull, returnType: fReturn);
     if (bug_33302_fixed) {
-      expect(f.function.type.displayName, '() → G');
+      expect(f.function.type.displayName, 'G Function()');
     } else {
-      expect(f.function.type.displayName, '() → () → ...');
+      expect(f.function.type.displayName, '... Function() Function()');
     }
     basicChecks(g.type,
         element: same(g), displayName: 'G', name: 'G', returnType: isNotNull);
@@ -385,9 +387,9 @@ class FunctionTypeTest {
     basicChecks(g.function.type,
         element: same(g.function), displayName: isNotNull, returnType: gReturn);
     if (bug_33302_fixed) {
-      expect(g.function.type.displayName, '() → F');
+      expect(g.function.type.displayName, 'F Function()');
     } else {
-      expect(g.function.type.displayName, '() → () → ...');
+      expect(g.function.type.displayName, '... Function() Function()');
     }
   }
 
@@ -397,7 +399,7 @@ class FunctionTypeTest {
         element: same(e), displayName: 'F', name: 'F', returnType: objectType);
     basicChecks(e.function.type,
         element: same(e.function),
-        displayName: '() → Object',
+        displayName: 'Object Function()',
         returnType: objectType);
   }
 
@@ -405,7 +407,7 @@ class FunctionTypeTest {
     var e = new MockGenericTypeAliasElement.withNullReturn('F');
     basicChecks(e.type, element: same(e), displayName: 'F', name: 'F');
     basicChecks(e.function.type,
-        element: same(e.function), displayName: '() → dynamic');
+        element: same(e.function), displayName: 'dynamic Function()');
   }
 
   test_forTypedef_typeParameter() {
@@ -421,7 +423,7 @@ class FunctionTypeTest {
         typeFormals: [same(t)]);
     basicChecks(e.function.type,
         element: same(e.function),
-        displayName: '() → T',
+        displayName: 'T Function()',
         returnType: same(t.type),
         typeArguments: [same(t.type)],
         typeParameters: [same(t)]);
@@ -440,7 +442,7 @@ class FunctionTypeTest {
     FunctionType instantiated = f.instantiate([objectType]);
     basicChecks(instantiated,
         element: isNull,
-        displayName: '(Object) → Object',
+        displayName: 'Object Function(Object)',
         returnType: same(objectType),
         normalParameterNames: ['x'],
         normalParameterTypes: [same(objectType)],
@@ -467,7 +469,7 @@ class FunctionTypeTest {
     FunctionType instantiated = f.instantiate([objectType]);
     basicChecks(instantiated,
         element: isNull,
-        displayName: '(int) → Object',
+        displayName: 'Object Function(int)',
         returnType: same(objectType),
         normalParameterNames: ['x'],
         normalParameterTypes: [same(intType)],
@@ -480,7 +482,7 @@ class FunctionTypeTest {
     FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [p]);
     basicChecks(f,
         element: isNull,
-        displayName: '({x: Object}) → dynamic',
+        displayName: 'dynamic Function({x: Object})',
         namedParameterTypes: {'x': same(objectType)},
         parameters: hasLength(1));
     expect(f.parameters[0].isNamed, isTrue);
@@ -493,7 +495,7 @@ class FunctionTypeTest {
     FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [p]);
     basicChecks(f,
         element: isNull,
-        displayName: '(Object) → dynamic',
+        displayName: 'dynamic Function(Object)',
         normalParameterNames: ['x'],
         normalParameterTypes: [same(objectType)],
         parameters: hasLength(1));
@@ -508,7 +510,7 @@ class FunctionTypeTest {
     FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [p]);
     basicChecks(f,
         element: isNull,
-        displayName: '([Object]) → dynamic',
+        displayName: 'dynamic Function([Object])',
         optionalParameterNames: ['x'],
         optionalParameterTypes: [same(objectType)],
         parameters: hasLength(1));
@@ -521,7 +523,7 @@ class FunctionTypeTest {
     FunctionType f = new FunctionTypeImpl.synthetic(objectType, [], []);
     basicChecks(f,
         element: isNull,
-        displayName: '() → Object',
+        displayName: 'Object Function()',
         returnType: same(objectType));
   }
 
@@ -537,7 +539,7 @@ class FunctionTypeTest {
     var uSubstituted = substituted.typeFormals[0];
     basicChecks(substituted,
         element: isNull,
-        displayName: '<U extends Object>(Object, U) → Map<Object, U>',
+        displayName: 'Map<Object, U> Function<U extends Object>(Object, U)',
         returnType: mapOf(objectType, uSubstituted.type),
         typeFormals: [uSubstituted],
         normalParameterNames: ['x', 'y'],
@@ -562,7 +564,7 @@ class FunctionTypeTest {
     FunctionType substituted = f.substitute2([objectType], [t.type]);
     basicChecks(substituted,
         element: isNull,
-        displayName: '<U extends Object>(int) → int',
+        displayName: 'int Function<U extends Object>(int)',
         returnType: same(f.returnType),
         typeFormals: hasLength(1),
         normalParameterNames: ['x'],
@@ -582,7 +584,7 @@ class FunctionTypeTest {
     FunctionType substituted = f.substitute2([objectType], [t.type]);
     basicChecks(substituted,
         element: isNull,
-        displayName: '<U>(Object, U) → int',
+        displayName: 'int Function<U>(Object, U)',
         returnType: same(f.returnType),
         typeFormals: same(f.typeFormals),
         normalParameterNames: ['x', 'y'],
@@ -599,7 +601,7 @@ class FunctionTypeTest {
     FunctionType substituted = f.substitute2([objectType], [t.type]);
     basicChecks(substituted,
         element: isNull,
-        displayName: '<U>(U) → Object',
+        displayName: 'Object Function<U>(U)',
         returnType: same(objectType),
         typeFormals: same(f.typeFormals),
         normalParameterNames: ['x'],
@@ -622,7 +624,7 @@ class FunctionTypeTest {
     FunctionType f = new FunctionTypeImpl.synthetic(t.type, [t], []);
     basicChecks(f,
         element: isNull,
-        displayName: '<T>() → T',
+        displayName: 'T Function<T>()',
         returnType: same(t.type),
         typeFormals: [same(t)]);
   }
@@ -648,7 +650,7 @@ class FunctionTypeTest {
     var instantiated = f.instantiate([t.type]);
     basicChecks(instantiated,
         element: same(e),
-        displayName: '(T) → dynamic',
+        displayName: 'dynamic Function(T)',
         typeArguments: hasLength(1),
         typeParameters: [same(t)],
         normalParameterNames: ['x'],
@@ -671,7 +673,7 @@ class FunctionTypeTest {
     var instantiated = f.instantiate([objectType]);
     basicChecks(instantiated,
         element: same(e),
-        displayName: '(Object) → dynamic',
+        displayName: 'dynamic Function(Object)',
         typeArguments: hasLength(1),
         typeParameters: [same(t)],
         normalParameterNames: ['x'],
@@ -690,7 +692,7 @@ class FunctionTypeTest {
     var instantiated = f.instantiate([objectType]);
     basicChecks(instantiated,
         element: same(e),
-        displayName: '() → Object',
+        displayName: 'Object Function()',
         typeArguments: hasLength(1),
         typeParameters: [same(t)],
         returnType: same(objectType));
@@ -703,7 +705,7 @@ class FunctionTypeTest {
     FunctionType f = new FunctionTypeImpl(e);
     basicChecks(f,
         element: same(e),
-        displayName: '({x: dynamic}) → dynamic',
+        displayName: 'dynamic Function({x: dynamic})',
         namedParameterTypes: {'x': same(dynamicType)},
         parameters: [same(p)]);
   }
@@ -715,7 +717,7 @@ class FunctionTypeTest {
     FunctionType f = new FunctionTypeImpl(e);
     basicChecks(f,
         element: same(e),
-        displayName: '({x: Object}) → dynamic',
+        displayName: 'dynamic Function({x: Object})',
         namedParameterTypes: {'x': same(objectType)},
         parameters: [same(p)]);
   }
@@ -735,7 +737,7 @@ class FunctionTypeTest {
         element: same(e),
         typeArguments: [same(t.type)],
         typeParameters: [same(t)],
-        displayName: '() → T',
+        displayName: 'T Function()',
         returnType: same(t.type));
   }
 
@@ -745,7 +747,7 @@ class FunctionTypeTest {
     FunctionType f = new FunctionTypeImpl(e);
     basicChecks(f,
         element: same(e),
-        displayName: '(dynamic) → dynamic',
+        displayName: 'dynamic Function(dynamic)',
         normalParameterNames: ['x'],
         normalParameterTypes: [same(dynamicType)],
         parameters: [same(p)]);
@@ -757,7 +759,7 @@ class FunctionTypeTest {
     FunctionType f = new FunctionTypeImpl(e);
     basicChecks(f,
         element: same(e),
-        displayName: '(Object) → dynamic',
+        displayName: 'dynamic Function(Object)',
         normalParameterNames: ['x'],
         normalParameterTypes: [same(objectType)],
         parameters: [same(p)]);
@@ -770,7 +772,7 @@ class FunctionTypeTest {
     FunctionType f = new FunctionTypeImpl(e);
     basicChecks(f,
         element: same(e),
-        displayName: '([dynamic]) → dynamic',
+        displayName: 'dynamic Function([dynamic])',
         optionalParameterNames: ['x'],
         optionalParameterTypes: [same(dynamicType)],
         parameters: [same(p)]);
@@ -783,7 +785,7 @@ class FunctionTypeTest {
     FunctionType f = new FunctionTypeImpl(e);
     basicChecks(f,
         element: same(e),
-        displayName: '([Object]) → dynamic',
+        displayName: 'dynamic Function([Object])',
         optionalParameterNames: ['x'],
         optionalParameterTypes: [same(objectType)],
         parameters: [same(p)]);
@@ -795,7 +797,7 @@ class FunctionTypeTest {
     basicChecks(f,
         element: same(e),
         returnType: same(objectType),
-        displayName: '() → Object');
+        displayName: 'Object Function()');
   }
 
   test_unnamedConstructor_returnType_null() {
@@ -804,7 +806,7 @@ class FunctionTypeTest {
     basicChecks(f,
         element: same(e),
         returnType: same(dynamicType),
-        displayName: '() → dynamic');
+        displayName: 'dynamic Function()');
   }
 
   test_unnamedConstructor_staticMethod_ignores_enclosing_type_params() {
@@ -854,10 +856,10 @@ class FunctionTypeTest {
         typeArguments: [same(objectType)]);
     if (bug_33300_fixed) {
       expect(substituted.displayName,
-          '<S extends T,T extends Object,V extends T>() → Map<S, V>');
+          'Map<S, V> Function<S extends T,T extends Object,V extends T>()');
     } else {
       expect(substituted.displayName,
-          '<S extends T extends Object,T extends Object,V extends T>() → Map<S, V>');
+          'Map<S, V> Function<S extends T extends Object,T extends Object,V extends T>()');
     }
     var s2 = substituted.typeFormals[0];
     var t2 = substituted.typeFormals[1];
@@ -908,12 +910,10 @@ class FunctionTypeTest {
         typeArguments: [same(objectType)]);
     if (bug_33300_fixed) {
       expect(substituted.displayName,
-          '<S extends T,T extends Object,V extends T>(S, V) → void');
+          'void Function<S extends T,T extends Object,V extends T>(S, V)');
     } else {
-      expect(
-          substituted.displayName,
-          '<S extends T extends Object,T extends Object,V extends T>(S, V) '
-          '→ void');
+      expect(substituted.displayName,
+          'void Function<S extends T extends Object,T extends Object,V extends T>(S, V)');
     }
     var s2 = substituted.typeFormals[0];
     var t2 = substituted.typeFormals[1];
@@ -944,7 +944,7 @@ class FunctionTypeTest {
     var substituted = f.substitute2([objectType], [t.type]);
     basicChecks(substituted,
         element: same(e),
-        displayName: '<U extends Object>() → U',
+        displayName: 'U Function<U extends Object>()',
         typeArguments: [same(objectType)],
         typeParameters: [same(t)],
         returnType: isNotNull,
@@ -961,7 +961,9 @@ class FunctionTypeTest {
     FunctionType f = new FunctionTypeImpl(e);
     var substituted = f.substitute2([t.type], [t.type]);
     basicChecks(substituted,
-        element: same(e), displayName: '() → T', returnType: same(t.type));
+        element: same(e),
+        displayName: 'T Function()',
+        returnType: same(t.type));
     // TODO(paulberry): test substitute length mismatch
   }
 
@@ -974,7 +976,7 @@ class FunctionTypeTest {
     var substituted = f.substitute2([objectType], [t.type]);
     basicChecks(substituted,
         element: same(e),
-        displayName: '(Object) → dynamic',
+        displayName: 'dynamic Function(Object)',
         normalParameterNames: ['x'],
         normalParameterTypes: [same(objectType)],
         parameters: hasLength(1),
@@ -993,7 +995,7 @@ class FunctionTypeTest {
     var substituted = f.substitute2([objectType], [t.type]);
     basicChecks(substituted,
         element: same(e),
-        displayName: '() → Object',
+        displayName: 'Object Function()',
         returnType: same(objectType),
         typeArguments: [same(objectType)],
         typeParameters: [same(t)]);
@@ -1005,7 +1007,7 @@ class FunctionTypeTest {
     FunctionType f = new FunctionTypeImpl(e);
     basicChecks(f,
         element: same(e),
-        displayName: '<T>() → dynamic',
+        displayName: 'dynamic Function<T>()',
         typeFormals: [same(t)]);
     // TODO(paulberry): test pruning of bounds
   }
@@ -1019,7 +1021,7 @@ class FunctionTypeTest {
     FunctionType f = new FunctionTypeImpl(e);
     basicChecks(f,
         element: same(e),
-        displayName: '<U extends T>() → U',
+        displayName: 'U Function<U extends T>()',
         typeArguments: [same(t.type)],
         typeParameters: [same(t)],
         returnType: same(u.type),
@@ -1038,7 +1040,7 @@ class FunctionTypeTest {
     FunctionType f = new FunctionTypeImpl(e);
     basicChecks(f,
         element: same(e),
-        displayName: '() → T',
+        displayName: 'T Function()',
         returnType: same(t.type),
         typeArguments: [same(t.type)],
         typeParameters: [same(t)]);

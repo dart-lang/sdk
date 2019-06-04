@@ -43,6 +43,7 @@
       "tests/standalone/",
       "tests/standalone_2/",
       "tests/ffi/",
+      "third_party/babel/babel.min.js",
       "third_party/d8/",
       "third_party/observatory_pub_packages/packages/web_components/",
       "third_party/pkg/",
@@ -245,7 +246,12 @@
       "options": {
         "use-sdk": true
     }},
-    "dart2js-win-(ie11|edge)": {
+    "dart2js-win-ie11": {
+      "options": {
+        "use-sdk": true,
+        "babel": "{\"presets\":[\"es2015\"]}"
+    }},
+    "dart2js-win-edge": {
       "options": {
         "use-sdk": true
     }},
@@ -274,9 +280,9 @@
       "options": {
         "host-checked": true
     }},
-    "dartkp-android-(debug|product|release)-arm": {
+    "dartkp-android-(debug|product|release)-(arm|arm64)": {
       "options": {
-        "use-blobs": true
+        "use-elf": true
     }},
     "dartk-android-(debug|product|release)-(arm|arm64)": {},
     "dartkp-linux-(debug|product|release)-(simarm|simarm64)": {
@@ -868,7 +874,8 @@
             "-ndartdevc-checked-${system}-release-chrome",
             "language_2",
             "corelib_2",
-            "lib_2"
+            "lib_2",
+            "dartdevc_native"
           ]
         },
         {
@@ -877,7 +884,8 @@
             "-ndartdevk-checked-${system}-release-chrome",
             "language_2",
             "corelib_2",
-            "lib_2"
+            "lib_2",
+            "dartdevc_native"
           ]
         },
         {
@@ -918,6 +926,27 @@
           "arguments": [
             "pkg/dev_compiler/test/worker/worker_test.dart",
             "-rnone"
+          ]
+        },
+        {
+          "name": "ddc self host test",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "--enable-asserts",
+            "pkg/dev_compiler/bin/dartdevc.dart",
+            "-o=out/ReleaseX64/dartdevc.js",
+            "pkg/dev_compiler/bin/dartdevc.dart"
+          ]
+        },
+        {
+          "name": "ddk self host test",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "--enable-asserts",
+            "pkg/dev_compiler/bin/dartdevc.dart",
+            "-k",
+            "-o=out/ReleaseX64/dartdevk.js",
+            "pkg/dev_compiler/bin/dartdevc.dart"
           ]
         }
       ]
@@ -941,7 +970,8 @@
             "-ndartdevc-checked-mac-release-chrome",
             "language_2",
             "corelib_2",
-            "lib_2"
+            "lib_2",
+            "dartdevc_native"
           ]
         },
         {
@@ -950,7 +980,8 @@
             "-ndartdevk-checked-mac-release-chrome",
             "language_2",
             "corelib_2",
-            "lib_2"
+            "lib_2",
+            "dartdevc_native"
           ]
         },
         {
@@ -991,6 +1022,27 @@
           "arguments": [
             "pkg/dev_compiler/test/worker/worker_test.dart",
             "-rnone"
+          ]
+        },
+        {
+          "name": "ddc self host test",
+          "script": "xcodebuild/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "--enable-asserts",
+            "pkg/dev_compiler/bin/dartdevc.dart",
+            "-o=xcodebuild/ReleaseX64/dartdevc.js",
+            "pkg/dev_compiler/bin/dartdevc.dart"
+          ]
+        },
+        {
+          "name": "ddk self host test",
+          "script": "xcodebuild/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "--enable-asserts",
+            "pkg/dev_compiler/bin/dartdevc.dart",
+            "-k",
+            "-o=xcodebuild/ReleaseX64/dartdevk.js",
+            "pkg/dev_compiler/bin/dartdevc.dart"
           ]
         }
       ]

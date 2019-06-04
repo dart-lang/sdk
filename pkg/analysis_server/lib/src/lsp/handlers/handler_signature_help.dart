@@ -21,7 +21,7 @@ class SignatureHelpHandler
       TextDocumentPositionParams.jsonHandler;
 
   Future<ErrorOr<SignatureHelp>> handle(
-      TextDocumentPositionParams params) async {
+      TextDocumentPositionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(null);
     }

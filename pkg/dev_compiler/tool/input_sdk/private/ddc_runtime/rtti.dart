@@ -117,6 +117,7 @@ getReifiedType(obj) {
 String getModuleName(Object module) => JS('', '#[#]', module, _moduleName);
 
 final _loadedModules = JS('', 'new Map()');
+final _loadedPartMaps = JS('', 'new Map()');
 final _loadedSourceMaps = JS('', 'new Map()');
 
 List<String> getModuleNames() {
@@ -135,26 +136,87 @@ getModuleLibraries(String name) {
   return module;
 }
 
+/// Return the part map for a specific module.
+getModulePartMap(String name) => JS('', '#.get(#)', _loadedPartMaps, name);
+
 /// Track all libraries
-void trackLibraries(String moduleName, Object libraries, String sourceMap) {
+void trackLibraries(
+    String moduleName, Object libraries, Object parts, String sourceMap) {
+  if (parts is String) {
+    // Added for backwards compatibility.
+    // package:build_web_compilers currently invokes this without [parts]
+    // in its bootstrap code.
+    sourceMap = parts as String;
+    parts = JS('', '{}');
+  }
   JS('', '#.set(#, #)', _loadedSourceMaps, moduleName, sourceMap);
   JS('', '#.set(#, #)', _loadedModules, moduleName, libraries);
+  JS('', '#.set(#, #)', _loadedPartMaps, moduleName, parts);
 }
 
 List<String> _libraries;
+Map<String, Object> _libraryObjects;
+Map<String, List<String>> _parts;
+
+_computeLibraryMetadata() {
+  _libraries = [];
+  _libraryObjects = {};
+  _parts = {};
+  var modules = getModuleNames();
+  for (var name in modules) {
+    // Add libraries from each module.
+    var module = getModuleLibraries(name);
+    var libraries = getOwnPropertyNames(module).cast<String>();
+    _libraries.addAll(libraries);
+    for (var library in libraries) {
+      _libraryObjects[library] = JS('', '#.#', module, library);
+    }
+
+    // Add parts from each module.
+    var partMap = getModulePartMap(name);
+    libraries = getOwnPropertyNames(partMap).cast<String>();
+    for (var library in libraries) {
+      _parts[library] = List.from(JS('List', '#.#', partMap, library));
+    }
+  }
+}
+
+/// Returns the JS library object for a given library [uri] or
+/// undefined / null if it isn't loaded.  Top-level types and
+/// methods are available on this object.
+Object getLibrary(String uri) {
+  if (_libraryObjects == null) {
+    _computeLibraryMetadata();
+  }
+  return _libraryObjects[uri];
+}
 
 /// Returns a JSArray of library uris (e.g,
 /// ['dart:core', 'dart:_internal', ..., 'package:foo/bar.dart', ... 'main.dart'])
 /// loaded in this application.
 List<String> getLibraries() {
   if (_libraries == null) {
-    _libraries = [];
-    var modules = getModuleNames();
-    for (var name in modules) {
-      var module = getModuleLibraries(name);
-      List props = getOwnPropertyNames(module);
-      _libraries.addAll(props.whereType());
-    }
+    _computeLibraryMetadata();
   }
   return _libraries;
+}
+
+/// Returns a JSArray of part uris for a given [libraryUri].
+/// The part uris will be relative to the [libraryUri].
+///
+/// E.g., invoking `getParts('package:intl/intl.dart')` returns (as of this
+/// writing): ```
+/// ["src/intl/bidi_formatter.dart", "src/intl/bidi_utils.dart",
+///  "src/intl/compact_number_format.dart", "src/intl/date_format.dart",
+///  "src/intl/date_format_field.dart", "src/intl/date_format_helpers.dart",
+///  "src/intl/number_format.dart"]
+/// ```
+///
+/// If [libraryUri] doesn't map to a library or maps to a library with no
+/// parts, an empty list is returned.
+List<String> getParts(String libraryUri) {
+  if (_parts == null) {
+    _computeLibraryMetadata();
+  }
+  return _parts[libraryUri] ?? [];
 }

@@ -21,7 +21,7 @@
 import 'dart:async';
 
 Future<int> f1() async {
-  int async = 1; //# 01: syntax error
+  int async = 1;
   int await = 1; //# 02: syntax error
   int yield = 1; //# 03: syntax error
 
@@ -32,7 +32,7 @@ Future<int> f1() async {
 }
 
 Stream<int> f2() async* {
-  int async = 1; //# 04: syntax error
+  int async = 1;
   int await = 1; //# 05: syntax error
   int yield = 1; //# 06: syntax error
 
@@ -43,7 +43,7 @@ Stream<int> f2() async* {
 }
 
 Iterable<int> f3() sync* {
-  int async = 1; //# 07: syntax error
+  int async = 1;
   int await = 1; //# 08: syntax error
   int yield = 1; //# 09: syntax error
 

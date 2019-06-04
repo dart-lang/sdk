@@ -195,10 +195,12 @@ class ClassHierarchyImpl implements ClassHierarchy {
         getClassHierarchyNode(_commonElements.objectClass);
     node.forEachSubclass((ClassEntity cls) {
       getClassHierarchyNode(cls).writeToDataSink(sink);
+      return null;
     }, ClassHierarchyNode.ALL);
     ClassSet set = getClassSet(_commonElements.objectClass);
     set.forEachSubclass((ClassEntity cls) {
       getClassSet(cls).writeToDataSink(sink);
+      return null;
     }, ClassHierarchyNode.ALL);
     sink.end(tag);
   }
@@ -836,6 +838,7 @@ class _InheritedInSubtypeCache {
         if (builder._isSubtypeOf(z, y)) {
           classes.add(z);
         }
+        return null;
       }, ClassHierarchyNode.ALL, strict: strict);
     }
 

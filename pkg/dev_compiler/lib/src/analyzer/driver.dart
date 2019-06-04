@@ -81,10 +81,10 @@ class CompilerAnalysisDriver {
     var resourceProvider = options.resourceProvider;
     var contextBuilder = options.createContextBuilder();
 
-    var analysisOptions =
-        contextBuilder.getAnalysisOptions(options.analysisRoot);
+    var analysisOptions = contextBuilder
+        .getAnalysisOptions(options.analysisRoot) as AnalysisOptionsImpl;
 
-    (analysisOptions as AnalysisOptionsImpl).enabledExperiments =
+    analysisOptions.enabledExperiments =
         experiments.entries.where((e) => e.value).map((e) => e.key).toList();
 
     var dartSdk = contextBuilder.findSdk(null, analysisOptions);
@@ -336,7 +336,7 @@ class LinkedAnalysisDriver {
 
     var libraryFile = _fsState.getFileForUri(Uri.parse(libraryUri));
     var analyzer = LibraryAnalyzer(
-        analysisOptions,
+        analysisOptions as AnalysisOptionsImpl,
         declaredVariables,
         resynthesizer.sourceFactory,
         (uri) => _isLibraryUri('$uri'),

@@ -79,21 +79,21 @@ class CompileTimeErrorCodeTest extends CompileTimeErrorCodeTestBase {
 class CompileTimeErrorCodeTest_WithUIAsCode extends DriverResolutionTest {
   test_defaultValueInFunctionTypeAlias_new_named() async {
     // This test used to fail with UI as code enabled. Test the fix here.
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 typedef F = int Function({Map<String, String> m: const {}});
 ''', [
-      ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
+      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 47, 1),
     ]);
   }
 
   test_defaultValueInFunctionTypeAlias_new_named_ambiguous() async {
     // Test that the strong checker does not crash when given an ambiguous
     // set or map literal.
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 typedef F = int Function({Object m: const {1, 2: 3}});
 ''', [
-      ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
-      CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH,
+      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 34, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 36, 15),
     ]);
   }
 }
@@ -101,236 +101,298 @@ typedef F = int Function({Object m: const {1, 2: 3}});
 @reflectiveTest
 class ControlFlowCollectionsTest extends DriverResolutionTest {
   test_awaitForIn_declaredVariableWrongType() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<String> stream;
   await for (int i in stream) {}
 }
-''', [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 75, 1),
+      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 80, 6),
+    ]);
   }
 
   test_awaitForIn_existingVariableWrongType() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 import 'dart:async';
 f() async {
   Stream<String> stream;
   int i;
   await for (i in stream) {}
 }
-''', [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 64, 1),
+      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 85, 6),
+    ]);
   }
 
   test_awaitForIn_notStream() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 f() async {
   await for (var i in true) {}
 }
-''', [StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE, 34, 4),
+    ]);
   }
 
   test_duplicateDefinition_for_initializers() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 f() {
   for (int i = 0, i = 0; i < 5;) {}
 }
-''', [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 24, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 24, 1),
+    ]);
   }
 
   test_expectedOneListTypeArgument() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   <int, int>[];
-}''', [StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS]);
+}''', [
+      error(StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 11, 10),
+    ]);
   }
 
   test_expectedOneSetTypeArgument() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   <int, int, int>{2, 3};
-}''', [StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS]);
+}''', [
+      error(StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS, 11, 15),
+    ]);
   }
 
   test_expectedTwoMapTypeArguments_three_ambiguous() async {
     // TODO(brianwilkerson) We probably need a new error code for "expected
     //  either one or two type arguments" to handle the ambiguous case.
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   <int, int, int>{};
-}''', [StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
+}''', [
+      error(StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15),
+    ]);
   }
 
   test_expectedTwoMapTypeArguments_three_map() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   <int, int, int>{1:2};
-}''', [StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
+}''', [
+      error(StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15),
+    ]);
   }
 
   test_forIn_declaredVariableWrongType() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 f() {
   for (int i in <String>[]) {}
 }
-''', [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10),
+    ]);
   }
 
   test_forIn_existingVariableWrongType() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 f() {
   int i;
   for (i in <String>[]) {}
 }
-''', [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
+    ]);
   }
 
   test_forIn_notIterable() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 f() {
   for (var i in true) {}
 }
-''', [StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE, 22, 4),
+    ]);
   }
 
   test_forIn_typeBoundBad() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class Foo<T extends Iterable<int>> {
   void method(T iterable) {
     for (String i in iterable) {}
   }
 }
-''', [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 1),
+      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
+    ]);
   }
 
   test_forInWithConstVariable_forEach_identifier() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 f() {
   const x = 0;
   for (x in [0, 1, 2]) {}
 }
-''', [CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
+      error(CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE, 28, 1),
+    ]);
   }
 
   test_forInWithConstVariable_forEach_loopVariable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 f() {
   for (const x in [0, 1, 2]) {}
 }
-''', [CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE]);
+''', [
+      error(CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE, 13, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+    ]);
   }
 
   test_generalizedVoid_useOfInForeachIterableError() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 void main() {
   void x;
   for (var v in x) {}
 }
-''', [StaticWarningCode.USE_OF_VOID_RESULT]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 40, 1),
+    ]);
   }
 
   test_generalizedVoid_useOfVoidInForeachVariableError() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 void main() {
   void x;
   var y;
   for (y in x) {}
 }
-''', [StaticWarningCode.USE_OF_VOID_RESULT]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 1),
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 45, 1),
+    ]);
   }
 
   test_invalidTypeArgumentInConstList() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A<E> {
   m() {
     return const <E>[];
   }
 }
-''', [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
+''', [
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST, 39, 1),
+    ]);
   }
 
   test_invalidTypeArgumentInConstMap_key() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A<E> {
   m() {
     return const <E, String>{};
   }
 }
-''', [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
+''', [
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP, 39, 1),
+    ]);
   }
 
   test_invalidTypeArgumentInConstMap_value() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A<E> {
   m() {
     return const <String, E>{};
   }
 }
-''', [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
+''', [
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP, 47, 1),
+    ]);
   }
 
   test_invalidTypeArgumentInConstSet_class() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A<E> {
   m() {
     return const <E>{};
   }
 }
-''', [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET]);
+''', [
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET, 39, 1),
+    ]);
   }
 
   test_listElementTypeNotAssignable_const() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var v = const <String>[42];
-''', [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+''', [
+      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 23, 2),
+    ]);
   }
 
   test_mapValueTypeNotAssignable_const() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var v = const <String, String>{'a' : 2};
-''', [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE]);
+''', [
+      error(StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 37, 1),
+    ]);
   }
 
   test_nonBoolCondition_for_declaration() async {
     // https://github.com/dart-lang/sdk/issues/24713
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 f() {
   for (int i = 0; 3;) {}
 }
-''', [StaticTypeWarningCode.NON_BOOL_CONDITION]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(StaticTypeWarningCode.NON_BOOL_CONDITION, 24, 1),
+    ]);
   }
 
   test_nonBoolCondition_for_expression() async {
     // https://github.com/dart-lang/sdk/issues/24713
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 f() {
   int i;
   for (i = 0; 3;) {}
-}''', [StaticTypeWarningCode.NON_BOOL_CONDITION]);
+}''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
+      error(StaticTypeWarningCode.NON_BOOL_CONDITION, 29, 1),
+    ]);
   }
 
   test_nonConstMapAsExpressionStatement_begin() async {
     // TODO(danrubel) Fasta is not recovering well.
     // Ideally we would produce a single diagnostic:
     // CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 f() {
   {'a' : 0, 'b' : 1}.length;
 }
 ''', [
-      ParserErrorCode.UNEXPECTED_TOKEN,
-      ParserErrorCode.UNEXPECTED_TOKEN,
-      ParserErrorCode.UNEXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER
+      error(ParserErrorCode.EXPECTED_TOKEN, 9, 3),
+      error(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
+      error(ParserErrorCode.UNEXPECTED_TOKEN, 13, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 15, 1),
+      error(ParserErrorCode.UNEXPECTED_TOKEN, 16, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 16, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 18, 3),
+      error(ParserErrorCode.UNEXPECTED_TOKEN, 22, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 22, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 22, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 24, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
     ]);
   }
 
@@ -338,43 +400,47 @@ f() {
     // TODO(danrubel) Fasta is not recovering well.
     // Ideally we would produce a single diagnostic:
     // CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 f() {
   {'a' : 0, 'b' : 1};
 }
 ''', [
-      ParserErrorCode.UNEXPECTED_TOKEN,
-      ParserErrorCode.UNEXPECTED_TOKEN,
-      ParserErrorCode.UNEXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER
+      error(ParserErrorCode.EXPECTED_TOKEN, 9, 3),
+      error(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
+      error(ParserErrorCode.UNEXPECTED_TOKEN, 13, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 15, 1),
+      error(ParserErrorCode.UNEXPECTED_TOKEN, 16, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 16, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 18, 3),
+      error(ParserErrorCode.UNEXPECTED_TOKEN, 22, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 22, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 22, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 24, 1),
     ]);
   }
 
   test_setElementTypeNotAssignable_const() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var v = const <String>{42};
-''', [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE]);
+''', [
+      error(StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 23, 2),
+    ]);
   }
 }
 
 @reflectiveTest
 class InvalidTypeArgumentInConstSetTest extends DriverResolutionTest {
   test_class() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A<E> {
   m() {
     return const <E>{};
   }
 }
-''', [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET]);
+''', [
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET, 39, 1),
+    ]);
   }
 }

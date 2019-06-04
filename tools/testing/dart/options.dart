@@ -181,6 +181,9 @@ test options, specifying how tests should be run.''',
     new _Option.bool(
         'use_blobs', 'Use mmap instead of shared libraries for precompilation.',
         hide: true),
+    new _Option.bool(
+        'use_elf', 'Directly generate an ELF shared libraries for precompilation.',
+        hide: true),
     new _Option.bool('keep_generated_files', 'Keep any generated files.',
         abbr: 'k'),
     new _Option.int('timeout', 'Timeout in seconds.', abbr: 't'),
@@ -222,7 +225,7 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
     new _Option.bool(
         'silent_failures',
         "Don't complain about failing tests. This is useful when in "
-        "combination with --write-results.",
+            "combination with --write-results.",
         hide: true),
     new _Option.bool('report_in_json',
         'When listing with --list, output result summary in JSON.',
@@ -250,12 +253,12 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
     new _Option.bool(
         'write_results',
         'Write results to a "${TestUtils.resultsFileName}" json file '
-        'located at the debug_output_directory.',
+            'located at the debug_output_directory.',
         hide: true),
     new _Option.bool(
         'write_logs',
         'Include the stdout and stderr of tests that don\'t match expectations '
-        'in the "${TestUtils.logsFileName}" file',
+            'in the "${TestUtils.logsFileName}" file',
         hide: true),
     new _Option.bool(
         'reset_browser_configuration',
@@ -299,6 +302,11 @@ options. Used to be able to make sane updates to the status files.''',
         'dart2js_options', 'Extra options for dart2js compilation step.',
         hide: true),
     new _Option('shared_options', 'Extra shared options.', hide: true),
+    new _Option(
+        'babel',
+        '''Transforms dart2js output with Babel. The value must be
+Babel options JSON.''',
+        hide: true),
     new _Option(
         'suite_dir', 'Additional directory to add to the testing matrix.',
         hide: true),
@@ -688,6 +696,7 @@ compiler.''',
                     useAnalyzerFastaParser:
                         data["analyzer_use_fasta_parser"] as bool,
                     useBlobs: data["use_blobs"] as bool,
+                    useElf: data["use_elf"] as bool,
                     useSdk: data["use_sdk"] as bool,
                     useHotReload: data["hot_reload"] as bool,
                     useHotReloadRollback: data["hot_reload_rollback"] as bool,
@@ -696,6 +705,7 @@ compiler.''',
                     isMinified: data["minified"] as bool,
                     vmOptions: vmOptions,
                     dart2jsOptions: dart2jsOptions,
+                    babel: data['babel'] as String,
                     builderTag: data["builder_tag"] as String,
                     previewDart2: true);
             var configuration = new TestConfiguration(

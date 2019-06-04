@@ -13,8 +13,11 @@ typedef ModuleDataProvider = Object Function(Module, DataId);
 typedef SourceProvider = String Function(Uri);
 
 abstract class MemoryModularStep extends ModularStep {
-  Future<Map<DataId, Object>> execute(Module module,
-      SourceProvider sourceProvider, ModuleDataProvider dataProvider);
+  Future<Map<DataId, Object>> execute(
+      Module module,
+      SourceProvider sourceProvider,
+      ModuleDataProvider dataProvider,
+      List<String> flags);
 }
 
 class MemoryPipeline extends Pipeline<MemoryModularStep> {
@@ -27,20 +30,60 @@ class MemoryPipeline extends Pipeline<MemoryModularStep> {
   /// A copy of [_result] at the time the pipeline last finished running.
   Map<Module, Map<DataId, Object>> resultsForTesting;
 
-  MemoryPipeline(this._sources, List<MemoryModularStep> steps) : super(steps);
+  final ConfigurationRegistry _registry;
+
+  /// Cache of results when [cacheSharedModules] is true
+  final List<Map<Module, Map<DataId, Object>>> _resultCache;
+
+  MemoryPipeline(this._sources, List<MemoryModularStep> steps,
+      {bool cacheSharedModules: false})
+      : _registry = cacheSharedModules ? new ConfigurationRegistry() : null,
+        _resultCache = cacheSharedModules ? [] : null,
+        super(steps, cacheSharedModules);
 
   @override
   Future<void> run(ModularTest test) async {
-    assert(_results == null);
     _results = {};
+    Map<Module, Map<DataId, Object>> cache = null;
+    if (cacheSharedModules) {
+      int id = _registry.computeConfigurationId(test);
+      if (id < _resultCache.length) {
+        cache = _resultCache[id];
+      } else {
+        assert(id == _resultCache.length);
+        _resultCache.add(cache = {});
+      }
+      _results.addAll(cache);
+    }
     await super.run(test);
     resultsForTesting = _results;
+    if (cacheSharedModules) {
+      for (var module in _results.keys) {
+        if (module.isShared) {
+          cache[module] = _results[module];
+        }
+      }
+    }
     _results = null;
   }
 
   @override
   Future<void> runStep(MemoryModularStep step, Module module,
-      Map<Module, Set<DataId>> visibleData) async {
+      Map<Module, Set<DataId>> visibleData, List<String> flags) async {
+    if (cacheSharedModules && module.isShared) {
+      bool allCachedResultsFound = true;
+      for (var dataId in step.resultData) {
+        if (_results[module] == null || _results[module][dataId] == null) {
+          allCachedResultsFound = false;
+          break;
+        }
+      }
+      if (allCachedResultsFound) {
+        step.notifyCached(module);
+        return;
+      }
+    }
+
     Map<Module, Map<DataId, Object>> inputData = {};
     visibleData.forEach((module, dataIdSet) {
       inputData[module] = {};
@@ -58,7 +101,8 @@ class MemoryPipeline extends Pipeline<MemoryModularStep> {
     Map<DataId, Object> result = await step.execute(
         module,
         (Uri uri) => inputSources[uri],
-        (Module m, DataId id) => inputData[m][id]);
+        (Module m, DataId id) => inputData[m][id],
+        flags);
     for (var dataId in step.resultData) {
       (_results[module] ??= {})[dataId] = result[dataId];
     }

@@ -399,6 +399,10 @@ abstract class DataSink {
   /// This feature is only available a [CodegenWriter] has been registered.
   void writeJsNodeOrNull(js.Node value);
 
+  /// Register an [EntityWriter] with this data sink for non-default encoding
+  /// of entity references.
+  void registerEntityWriter(EntityWriter writer);
+
   /// Register a [CodegenWriter] with this data sink to support serialization
   /// of codegen only data.
   void registerCodegenWriter(CodegenWriter writer);
@@ -426,13 +430,21 @@ abstract class DataSource {
   /// deserialization of references to indexed entities.
   void registerEntityLookup(EntityLookup entityLookup);
 
+  /// Registers an [EntityReader] with this data source for non-default encoding
+  /// of entity references.
+  void registerEntityReader(EntityReader reader);
+
   /// Registers a [LocalLookup] object with this data source to support
   /// deserialization of references to locals.
   void registerLocalLookup(LocalLookup localLookup);
 
   /// Registers a [CodegenReader] with this data source to support
   /// deserialization of codegen only data.
-  void registerCodegenReader(CodegenReader read);
+  void registerCodegenReader(CodegenReader reader);
+
+  /// Unregisters the [CodegenReader] from this data source to remove support
+  /// for deserialization of codegen only data.
+  void deregisterCodegenReader(CodegenReader reader);
 
   /// Reads a reference to an [E] value from this data source. If the value has
   /// not yet been deserialized, [f] is called to deserialize the value itself.
@@ -769,6 +781,61 @@ abstract class EntityLookup {
 
   /// Returns the indexed type variable corresponding to [index].
   IndexedTypeVariable getTypeVariableByIndex(int index);
+}
+
+/// Decoding strategy for entity references.
+class EntityReader {
+  const EntityReader();
+
+  IndexedLibrary readLibraryFromDataSource(
+      DataSource source, EntityLookup entityLookup) {
+    return entityLookup.getLibraryByIndex(source.readInt());
+  }
+
+  IndexedClass readClassFromDataSource(
+      DataSource source, EntityLookup entityLookup) {
+    return entityLookup.getClassByIndex(source.readInt());
+  }
+
+  IndexedTypedef readTypedefFromDataSource(
+      DataSource source, EntityLookup entityLookup) {
+    return entityLookup.getTypedefByIndex(source.readInt());
+  }
+
+  IndexedMember readMemberFromDataSource(
+      DataSource source, EntityLookup entityLookup) {
+    return entityLookup.getMemberByIndex(source.readInt());
+  }
+
+  IndexedTypeVariable readTypeVariableFromDataSource(
+      DataSource source, EntityLookup entityLookup) {
+    return entityLookup.getTypeVariableByIndex(source.readInt());
+  }
+}
+
+/// Encoding strategy for entity references.
+class EntityWriter {
+  const EntityWriter();
+
+  void writeLibraryToDataSink(DataSink sink, IndexedLibrary value) {
+    sink.writeInt(value.libraryIndex);
+  }
+
+  void writeClassToDataSink(DataSink sink, IndexedClass value) {
+    sink.writeInt(value.classIndex);
+  }
+
+  void writeTypedefToDataSink(DataSink sink, IndexedTypedef value) {
+    sink.writeInt(value.typedefIndex);
+  }
+
+  void writeMemberToDataSink(DataSink sink, IndexedMember value) {
+    sink.writeInt(value.memberIndex);
+  }
+
+  void writeTypeVariableToDataSink(DataSink sink, IndexedTypeVariable value) {
+    sink.writeInt(value.typeVariableIndex);
+  }
 }
 
 /// Interface used for looking up locals by index during deserialization.

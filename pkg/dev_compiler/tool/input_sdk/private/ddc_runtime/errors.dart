@@ -33,9 +33,13 @@ throwUnimplementedError(String message) {
   throw UnimplementedError(message);
 }
 
-assertFailed(message) {
+// TODO(nshahan) Cleanup embeded strings and extract file location at runtime
+// from the stacktrace.
+assertFailed(String message,
+    [String fileUri, int line, int column, String conditionSource]) {
   if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-  throw AssertionErrorImpl(message);
+
+  throw AssertionErrorImpl(message, fileUri, line, column, conditionSource);
 }
 
 throwCyclicInitializationError([Object field]) {

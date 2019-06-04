@@ -135,6 +135,7 @@ class JavaScriptIntConstant extends DoubleConstant {
 }
 
 class ConstantsTransformer extends Transformer {
+  final ConstantsBackend backend;
   final ConstantEvaluator constantEvaluator;
   final TypeEnvironment typeEnvironment;
 
@@ -146,7 +147,7 @@ class ConstantsTransformer extends Transformer {
   final bool errorOnUnevaluatedConstant;
 
   ConstantsTransformer(
-      ConstantsBackend backend,
+      this.backend,
       Map<String, String> environmentDefines,
       this.keepFields,
       this.keepVariables,
@@ -300,18 +301,11 @@ class ConstantsTransformer extends Transformer {
       if (node.isConst) {
         final Constant constant = evaluateWithContext(node, node.initializer);
         constantEvaluator.env.addVariableValue(node, constant);
+        node.initializer = makeConstantExpression(constant, node.initializer)
+          ..parent = node;
 
-        if (keepVariables) {
-          // So the value of the variable is still available for debugging
-          // purposes we convert the constant variable to be a final variable
-          // initialized to the evaluated constant expression.
-          node.initializer = makeConstantExpression(constant, node.initializer)
-            ..parent = node;
-          node.isFinal = true;
-          node.isConst = false;
-        } else {
-          // Since we convert all use-sites of constants, the constant
-          // [VariableDeclaration] is unused and we'll therefore remove it.
+        // If this constant is inlined, remove it.
+        if (!keepVariables && shouldInline(node.initializer)) {
           return null;
         }
       } else {
@@ -324,19 +318,16 @@ class ConstantsTransformer extends Transformer {
   visitField(Field node) {
     return constantEvaluator.withNewEnvironment(() {
       if (node.isConst) {
-        // Since we convert all use-sites of constants, the constant [Field]
-        // cannot be referenced anymore.  We therefore get rid of it if
-        // [keepFields] was not specified.
-        if (!keepFields) {
-          return null;
-        }
-
-        // Otherwise we keep the constant [Field] and convert it's initializer.
         transformAnnotations(node.annotations, node);
         if (node.initializer != null) {
           node.initializer =
               evaluateAndTransformWithContext(node, node.initializer)
                 ..parent = node;
+        }
+
+        // If this constant is inlined, remove it.
+        if (!keepFields && shouldInline(node.initializer)) {
+          return null;
         }
       } else {
         transformAnnotations(node.annotations, node);
@@ -357,7 +348,15 @@ class ConstantsTransformer extends Transformer {
   visitStaticGet(StaticGet node) {
     final Member target = node.target;
     if (target is Field && target.isConst) {
-      return evaluateAndTransformWithContext(node, node);
+      if (target.initializer != null) {
+        // Make sure the initializer is evaluated first.
+        target.initializer =
+            evaluateAndTransformWithContext(target, target.initializer)
+              ..parent = target;
+        if (shouldInline(target.initializer)) {
+          return evaluateAndTransformWithContext(node, node);
+        }
+      }
     } else if (target is Procedure && target.kind == ProcedureKind.Method) {
       return evaluateAndTransformWithContext(node, node);
     }
@@ -370,8 +369,14 @@ class ConstantsTransformer extends Transformer {
   }
 
   visitVariableGet(VariableGet node) {
-    if (node.variable.isConst) {
-      return evaluateAndTransformWithContext(node, node);
+    final VariableDeclaration variable = node.variable;
+    if (variable.isConst) {
+      variable.initializer =
+          evaluateAndTransformWithContext(variable, variable.initializer)
+            ..parent = variable;
+      if (shouldInline(variable.initializer)) {
+        return evaluateAndTransformWithContext(node, node);
+      }
     }
     return super.visitVariableGet(node);
   }
@@ -455,6 +460,13 @@ class ConstantsTransformer extends Transformer {
     }
     return new ConstantExpression(constant, node.getStaticType(typeEnvironment))
       ..fileOffset = node.fileOffset;
+  }
+
+  bool shouldInline(Expression initializer) {
+    if (initializer is ConstantExpression) {
+      return backend.shouldInlineConstant(initializer);
+    }
+    return true;
   }
 }
 
@@ -1591,6 +1603,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       } else {
         reportInvalid(
             node, 'No support for ${target.runtimeType} in a static-get.');
+        return null;
       }
     });
   }

@@ -22,8 +22,10 @@ class MemoryPipelineTestStrategy
 
   @override
   FutureOr<Pipeline<MemoryModularStep>> createPipeline(
-      Map<Uri, String> sources, List<MemoryModularStep> steps) {
-    return new MemoryPipeline(sources, steps);
+      Map<Uri, String> sources, List<MemoryModularStep> steps,
+      {bool cacheSharedModules: false}) {
+    return new MemoryPipeline(sources, steps,
+        cacheSharedModules: cacheSharedModules);
   }
 
   @override
@@ -87,14 +89,20 @@ class SourceOnlyStep implements MemoryModularStep {
 
   SourceOnlyStep(this.action, this.resultId, this.needsSources);
 
-  Future<Map<DataId, Object>> execute(Module module,
-      SourceProvider sourceProvider, ModuleDataProvider dataProvider) {
+  Future<Map<DataId, Object>> execute(
+      Module module,
+      SourceProvider sourceProvider,
+      ModuleDataProvider dataProvider,
+      List<String> flags) {
     Map<Uri, String> sources = {};
     for (var uri in module.sources) {
       sources[uri] = sourceProvider(module.rootUri.resolveUri(uri));
     }
     return Future.value({resultId: action(sources)});
   }
+
+  @override
+  void notifyCached(Module module) {}
 }
 
 class ModuleDataStep implements MemoryModularStep {
@@ -110,13 +118,19 @@ class ModuleDataStep implements MemoryModularStep {
   ModuleDataStep(this.action, this.inputId, this.resultId, bool requestInput)
       : moduleDataNeeded = requestInput ? [inputId] : [];
 
-  Future<Map<DataId, Object>> execute(Module module,
-      SourceProvider sourceProvider, ModuleDataProvider dataProvider) {
+  Future<Map<DataId, Object>> execute(
+      Module module,
+      SourceProvider sourceProvider,
+      ModuleDataProvider dataProvider,
+      List<String> flags) {
     var inputData = dataProvider(module, inputId) as String;
     if (inputData == null)
       return Future.value({resultId: "data for $module was null"});
     return Future.value({resultId: action(inputData)});
   }
+
+  @override
+  void notifyCached(Module module) {}
 }
 
 class TwoOutputStep implements MemoryModularStep {
@@ -134,8 +148,11 @@ class TwoOutputStep implements MemoryModularStep {
   TwoOutputStep(
       this.action1, this.action2, this.inputId, this.result1Id, this.result2Id);
 
-  Future<Map<DataId, Object>> execute(Module module,
-      SourceProvider sourceProvider, ModuleDataProvider dataProvider) {
+  Future<Map<DataId, Object>> execute(
+      Module module,
+      SourceProvider sourceProvider,
+      ModuleDataProvider dataProvider,
+      List<String> flags) {
     var inputData = dataProvider(module, inputId) as String;
     if (inputData == null)
       return Future.value({
@@ -145,6 +162,9 @@ class TwoOutputStep implements MemoryModularStep {
     return Future.value(
         {result1Id: action1(inputData), result2Id: action2(inputData)});
   }
+
+  @override
+  void notifyCached(Module module) {}
 }
 
 class LinkStep implements MemoryModularStep {
@@ -162,14 +182,20 @@ class LinkStep implements MemoryModularStep {
       bool requestDependencies)
       : dependencyDataNeeded = requestDependencies ? [depId] : [];
 
-  Future<Map<DataId, Object>> execute(Module module,
-      SourceProvider sourceProvider, ModuleDataProvider dataProvider) {
+  Future<Map<DataId, Object>> execute(
+      Module module,
+      SourceProvider sourceProvider,
+      ModuleDataProvider dataProvider,
+      List<String> flags) {
     List<String> depsData = module.dependencies
         .map((d) => dataProvider(d, depId) as String)
         .toList();
     var inputData = dataProvider(module, inputId) as String;
     return Future.value({resultId: action(inputData, depsData)});
   }
+
+  @override
+  void notifyCached(Module module) {}
 }
 
 class MainOnlyStep implements MemoryModularStep {
@@ -187,12 +213,18 @@ class MainOnlyStep implements MemoryModularStep {
       bool requestDependencies)
       : dependencyDataNeeded = requestDependencies ? [depId] : [];
 
-  Future<Map<DataId, Object>> execute(Module module,
-      SourceProvider sourceProvider, ModuleDataProvider dataProvider) {
+  Future<Map<DataId, Object>> execute(
+      Module module,
+      SourceProvider sourceProvider,
+      ModuleDataProvider dataProvider,
+      List<String> flags) {
     List<String> depsData = computeTransitiveDependencies(module)
         .map((d) => dataProvider(d, depId) as String)
         .toList();
     var inputData = dataProvider(module, inputId) as String;
     return Future.value({resultId: action(inputData, depsData)});
   }
+
+  @override
+  void notifyCached(Module module) {}
 }

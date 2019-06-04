@@ -117,7 +117,7 @@ StreamInfo Service::debug_stream("Debug");
 StreamInfo Service::gc_stream("GC");
 StreamInfo Service::echo_stream("_Echo");
 StreamInfo Service::graph_stream("_Graph");
-StreamInfo Service::logging_stream("_Logging");
+StreamInfo Service::logging_stream("Logging");
 StreamInfo Service::extension_stream("Extension");
 StreamInfo Service::timeline_stream("Timeline");
 

@@ -81,4 +81,20 @@ main() {
 }
 ''');
   }
+
+  test_expressionFunctionBody() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() => /*caret*/Container();
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/widgets.dart';
+class FakeFlutter {
+  main() => Center(child: Container());
+}
+''');
+  }
 }

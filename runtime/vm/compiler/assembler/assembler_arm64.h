@@ -438,6 +438,12 @@ class Assembler : public AssemblerBase {
   void PushRegisters(const RegisterSet& registers);
   void PopRegisters(const RegisterSet& registers);
 
+  // Push all registers which are callee-saved according to the ARM64 ABI.
+  void PushNativeCalleeSavedRegisters();
+
+  // Pop all registers which are callee-saved according to the ARM64 ABI.
+  void PopNativeCalleeSavedRegisters();
+
   void MoveRegister(Register rd, Register rn) {
     if (rd != rn) {
       mov(rd, rn);
@@ -480,6 +486,11 @@ class Assembler : public AssemblerBase {
   }
 
   void ReserveAlignedFrameSpace(intptr_t frame_space);
+
+  // In debug mode, this generates code to check that:
+  //   FP + kExitLinkSlotFromEntryFp == SP
+  // or triggers breakpoint otherwise.
+  void EmitEntryFrameVerification();
 
   // Instruction pattern from entrypoint is used in Dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
@@ -1524,9 +1535,13 @@ class Assembler : public AssemblerBase {
   void LeaveFrame();
   void Ret() { ret(LR); }
 
-  // These require that CSP and SP are equal and aligned.
-  // These require a scratch register (in addition to TMP/TMP2).
+  // Emit code to transition between generated mode and native mode.
+  //
+  // These require that CSP and SP are equal and aligned and require a scratch
+  // register (in addition to TMP/TMP2).
+
   void TransitionGeneratedToNative(Register destination_address,
+                                   Register new_exit_frame,
                                    Register scratch);
   void TransitionNativeToGenerated(Register scratch);
 

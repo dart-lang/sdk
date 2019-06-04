@@ -645,6 +645,7 @@ class NoSuchMethodError {
   final List _arguments;
   final Map<Symbol, dynamic> _namedArguments;
   final List _existingArgumentNames;
+  final Invocation _invocation;
 
   @patch
   NoSuchMethodError(Object receiver, Symbol memberName,
@@ -654,7 +655,8 @@ class NoSuchMethodError {
         _memberName = memberName,
         _arguments = positionalArguments,
         _namedArguments = namedArguments,
-        _existingArgumentNames = existingArgumentNames;
+        _existingArgumentNames = existingArgumentNames,
+        _invocation = null;
 
   @patch
   NoSuchMethodError.withInvocation(Object receiver, Invocation invocation)
@@ -662,7 +664,8 @@ class NoSuchMethodError {
         _memberName = invocation.memberName,
         _arguments = invocation.positionalArguments,
         _namedArguments = invocation.namedArguments,
-        _existingArgumentNames = null;
+        _existingArgumentNames = null,
+        _invocation = invocation;
 
   @patch
   String toString() {
@@ -687,8 +690,12 @@ class NoSuchMethodError {
     String memberName = _symbolToString(_memberName);
     String receiverText = Error.safeToString(_receiver);
     String actualParameters = '$sb';
+    var failureMessage = (_invocation is dart.InvocationImpl)
+        ? (_invocation as dart.InvocationImpl).failureMessage
+        : 'method not found';
     if (_existingArgumentNames == null) {
-      return "NoSuchMethodError: method not found: '$memberName'\n"
+      return "NoSuchMethodError: '$memberName'\n"
+          "$failureMessage\n"
           "Receiver: ${receiverText}\n"
           "Arguments: [$actualParameters]";
     } else {
@@ -2316,6 +2323,7 @@ class _BigIntImpl implements BigInt {
         _rsh(uDigits, maxUsed, 1, uDigits);
         if (ac) {
           if (((aDigits[0] & 1) == 1) || ((bDigits[0] & 1) == 1)) {
+            // a += y
             if (aIsNegative) {
               if ((aDigits[maxUsed] != 0) ||
                   (_compareDigits(aDigits, maxUsed, yDigits, maxUsed)) > 0) {
@@ -2327,6 +2335,7 @@ class _BigIntImpl implements BigInt {
             } else {
               _absAdd(aDigits, abcdUsed, yDigits, maxUsed, aDigits);
             }
+            // b -= x
             if (bIsNegative) {
               _absAdd(bDigits, abcdUsed, xDigits, maxUsed, bDigits);
             } else if ((bDigits[maxUsed] != 0) ||
@@ -2339,6 +2348,7 @@ class _BigIntImpl implements BigInt {
           }
           _rsh(aDigits, abcdUsed, 1, aDigits);
         } else if ((bDigits[0] & 1) == 1) {
+          // b -= x
           if (bIsNegative) {
             _absAdd(bDigits, abcdUsed, xDigits, maxUsed, bDigits);
           } else if ((bDigits[maxUsed] != 0) ||
@@ -2355,6 +2365,7 @@ class _BigIntImpl implements BigInt {
         _rsh(vDigits, maxUsed, 1, vDigits);
         if (ac) {
           if (((cDigits[0] & 1) == 1) || ((dDigits[0] & 1) == 1)) {
+            // c += y
             if (cIsNegative) {
               if ((cDigits[maxUsed] != 0) ||
                   (_compareDigits(cDigits, maxUsed, yDigits, maxUsed) > 0)) {
@@ -2366,6 +2377,7 @@ class _BigIntImpl implements BigInt {
             } else {
               _absAdd(cDigits, abcdUsed, yDigits, maxUsed, cDigits);
             }
+            // d -= x
             if (dIsNegative) {
               _absAdd(dDigits, abcdUsed, xDigits, maxUsed, dDigits);
             } else if ((dDigits[maxUsed] != 0) ||
@@ -2378,6 +2390,7 @@ class _BigIntImpl implements BigInt {
           }
           _rsh(cDigits, abcdUsed, 1, cDigits);
         } else if ((dDigits[0] & 1) == 1) {
+          // d -= x
           if (dIsNegative) {
             _absAdd(dDigits, abcdUsed, xDigits, maxUsed, dDigits);
           } else if ((dDigits[maxUsed] != 0) ||
@@ -2391,8 +2404,10 @@ class _BigIntImpl implements BigInt {
         _rsh(dDigits, abcdUsed, 1, dDigits);
       }
       if (_compareDigits(uDigits, maxUsed, vDigits, maxUsed) >= 0) {
+        // u -= v
         _absSub(uDigits, maxUsed, vDigits, maxUsed, uDigits);
         if (ac) {
+          // a -= c
           if (aIsNegative == cIsNegative) {
             var a_cmp_c = _compareDigits(aDigits, abcdUsed, cDigits, abcdUsed);
             if (a_cmp_c > 0) {
@@ -2405,6 +2420,7 @@ class _BigIntImpl implements BigInt {
             _absAdd(aDigits, abcdUsed, cDigits, abcdUsed, aDigits);
           }
         }
+        // b -= d
         if (bIsNegative == dIsNegative) {
           var b_cmp_d = _compareDigits(bDigits, abcdUsed, dDigits, abcdUsed);
           if (b_cmp_d > 0) {
@@ -2417,8 +2433,10 @@ class _BigIntImpl implements BigInt {
           _absAdd(bDigits, abcdUsed, dDigits, abcdUsed, bDigits);
         }
       } else {
+        // v -= u
         _absSub(vDigits, maxUsed, uDigits, maxUsed, vDigits);
         if (ac) {
+          // c -= a
           if (cIsNegative == aIsNegative) {
             var c_cmp_a = _compareDigits(cDigits, abcdUsed, aDigits, abcdUsed);
             if (c_cmp_a > 0) {
@@ -2431,6 +2449,7 @@ class _BigIntImpl implements BigInt {
             _absAdd(cDigits, abcdUsed, aDigits, abcdUsed, cDigits);
           }
         }
+        // d -= b
         if (dIsNegative == bIsNegative) {
           var d_cmp_b = _compareDigits(dDigits, abcdUsed, bDigits, abcdUsed);
           if (d_cmp_b > 0) {
@@ -2462,25 +2481,18 @@ class _BigIntImpl implements BigInt {
     }
 
     if (dIsNegative) {
-      if ((dDigits[maxUsed] != 0) ||
+      while ((dDigits[maxUsed] != 0) ||
           (_compareDigits(dDigits, maxUsed, xDigits, maxUsed) > 0)) {
+        // d += x, d still negative
         _absSub(dDigits, abcdUsed, xDigits, maxUsed, dDigits);
-        if ((dDigits[maxUsed] != 0) ||
-            (_compareDigits(dDigits, maxUsed, xDigits, maxUsed) > 0)) {
-          _absSub(dDigits, abcdUsed, xDigits, maxUsed, dDigits);
-        } else {
-          _absSub(xDigits, maxUsed, dDigits, maxUsed, dDigits);
-          dIsNegative = false;
-        }
-      } else {
-        _absSub(xDigits, maxUsed, dDigits, maxUsed, dDigits);
-        dIsNegative = false;
       }
-    } else if ((dDigits[maxUsed] != 0) ||
-        (_compareDigits(dDigits, maxUsed, xDigits, maxUsed) > 0)) {
-      _absSub(dDigits, abcdUsed, xDigits, maxUsed, dDigits);
-      if ((dDigits[maxUsed] != 0) ||
-          (_compareDigits(dDigits, maxUsed, xDigits, maxUsed) > 0)) {
+      // d += x
+      _absSub(xDigits, maxUsed, dDigits, maxUsed, dDigits);
+      dIsNegative = false;
+    } else {
+      while ((dDigits[maxUsed] != 0) ||
+          (_compareDigits(dDigits, maxUsed, xDigits, maxUsed) >= 0)) {
+        // d -= x
         _absSub(dDigits, abcdUsed, xDigits, maxUsed, dDigits);
       }
     }

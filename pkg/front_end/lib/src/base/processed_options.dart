@@ -316,7 +316,6 @@ class ProcessedOptions {
     assert(defaultExperimentalFlags.containsKey(flag),
         "No default value for $flag.");
     // TODO(askesc): Determine default flag value from specification file.
-    if (flag == ExperimentalFlag.setLiterals) return true;
     return _raw.experimentalFlags[flag] ?? defaultExperimentalFlags[flag];
   }
 

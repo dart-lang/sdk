@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
+import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
@@ -21,4 +22,10 @@ abstract class DartFixContext implements FixContext {
    * The workspace in which the fix contributor operates.
    */
   ChangeWorkspace get workspace;
+
+  /**
+   * Return top-level declarations with the [name] in libraries that are
+   * available to this context.
+   */
+  List<TopLevelDeclaration> getTopLevelDeclarations(String name);
 }

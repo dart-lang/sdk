@@ -1606,6 +1606,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
             typeSystem.isAssignableTo(staticType, _typeProvider.boolType)) {
           // If the static type is not assignable, then we will have already
           // reported this error.
+          // TODO(mfairhurst) get the FeatureSet to suppress this for nnbd too.
           _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, condition);
         }

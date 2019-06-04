@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
+import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
@@ -49,7 +50,8 @@ Future runTest() async {
   Selector callSelector = new Selector.callClosure(0);
   closedWorld.classHierarchy.forEachStrictSubclassOf(
       closedWorld.commonElements.objectClass, (ClassEntity cls) {
-    if (cls.library.canonicalUri.scheme != 'memory') return;
+    if (cls.library.canonicalUri.scheme != 'memory')
+      return IterationStep.CONTINUE;
 
     TypeMask mask = new TypeMask.nonNullSubclass(cls, closedWorld);
     TypeMask receiverType = closedWorld.computeReceiverType(callSelector, mask);
@@ -65,6 +67,7 @@ Future runTest() async {
       Expect.equals(expected, '$receiverType',
           "Unexpected receiver type for $callSelector on $mask");
     }
+    return IterationStep.CONTINUE;
   });
 
   Expect.equals(2, closureCount);

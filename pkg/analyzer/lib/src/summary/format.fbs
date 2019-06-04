@@ -1914,15 +1914,17 @@ table LinkedNode {
 
   variantField_13:LinkedNode (id: 13);
 
-  variantField_34:uint (id: 34);
-
   variantField_33:uint (id: 33);
 
-  variantField_36:[string] (id: 36);
+  variantField_32:uint (id: 32);
+
+  variantField_35:[string] (id: 35);
 
   variantField_29:LinkedNodeCommentType (id: 29);
 
   variantField_3:[LinkedNode] (id: 3);
+
+  variantField_19:uint (id: 19);
 
   variantField_10:LinkedNode (id: 10);
 
@@ -1944,21 +1946,17 @@ table LinkedNode {
 
   kind:LinkedNodeKind (id: 0);
 
-  name:string (id: 37);
+  variantField_36:[string] (id: 36);
 
   variantField_20:string (id: 20);
 
   variantField_31:bool (id: 31);
 
-  variantField_38:UnlinkedTokenType (id: 38);
+  variantField_37:UnlinkedTokenType (id: 37);
 
-  variantField_35:TopLevelInferenceError (id: 35);
+  variantField_34:TopLevelInferenceError (id: 34);
 
   variantField_22:string (id: 22);
-
-  variantField_19:uint (id: 19);
-
-  variantField_32:LinkedNodeVariablesDeclaration (id: 32);
 }
 
 /// Information about a group of libraries linked together, for example because
@@ -2044,6 +2042,8 @@ table LinkedNodeUnit {
   /// AST in declaration resolver.
   genericFunctionTypes:[LinkedNode] (id: 5);
 
+  isNNBD:bool (id: 6);
+
   isSynthetic:bool (id: 3);
 
   /// Offsets of the first character of each line in the source code.
@@ -2054,22 +2054,6 @@ table LinkedNodeUnit {
   tokens:UnlinkedTokens (id: 1);
 
   uriStr:string (id: 0);
-
-  isNNBD:bool (id: 6);
-}
-
-/// Information about a top-level declaration, or a field declaration that
-/// contributes information to [LinkedNodeKind.variableDeclaration].
-table LinkedNodeVariablesDeclaration {
-  comment:LinkedNode (id: 0);
-
-  isConst:bool (id: 1);
-
-  isCovariant:bool (id: 2);
-
-  isFinal:bool (id: 3);
-
-  isStatic:bool (id: 4);
 }
 
 /// Information about the resolution of an [UnlinkedReference].

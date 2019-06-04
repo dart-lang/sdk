@@ -2726,7 +2726,6 @@ class A {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 5),
-      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 32, 5),
     ]);
   }
 
@@ -5134,12 +5133,17 @@ typedef A B();
   }
 
   test_typeAliasCannotReferenceItself_typeVariableBounds() async {
+    var errors = [
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 30),
+    ];
+    if (!AnalysisDriver.useSummary2) {
+      errors.add(
+        error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 22, 3),
+      );
+    }
     await assertErrorsInCode('''
 typedef A<T extends A<int>>();
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 30),
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 22, 3),
-    ]);
+''', errors);
   }
 
   test_typeArgumentNotMatchingBounds_const() async {

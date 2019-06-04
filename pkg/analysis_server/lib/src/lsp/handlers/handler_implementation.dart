@@ -23,7 +23,7 @@ class ImplementationHandler
 
   @override
   Future<ErrorOr<List<Location>>> handle(
-      TextDocumentPositionParams params) async {
+      TextDocumentPositionParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }
@@ -33,13 +33,16 @@ class ImplementationHandler
     final unit = await path.mapResult(requireResolvedUnit);
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
     return offset
-        .mapResult((offset) => _getImplementations(path.result, offset));
+        .mapResult((offset) => _getImplementations(path.result, offset, token));
   }
 
   Future<ErrorOr<List<Location>>> _getImplementations(
-      String file, int offset) async {
+      String file, int offset, CancelableToken token) async {
     final element = await server.getElementAtOffset(file, offset);
     final computer = new TypeHierarchyComputer(server.searchEngine, element);
+    if (token.isCancellationRequested) {
+      return cancelled();
+    }
     final items = await computer.compute();
 
     if (items == null || items.isEmpty) {

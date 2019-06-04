@@ -17,11 +17,11 @@
 ///       [defaultPackagesInput]. The list of packages provided is expected to
 ///       be disjoint with those in [defaultPackagesInput].
 ///   * a modules.yaml file: a specification of dependencies between modules.
-///     The format is described in `dependencies_parser.dart`.
+///     The format is described in `test_specification_parser.dart`.
 import 'dart:io';
 import 'dart:convert';
 import 'suite.dart';
-import 'dependency_parser.dart';
+import 'test_specification_parser.dart';
 import 'find_sdk_root.dart';
 
 import 'package:package_config/packages_file.dart' as package_config;
@@ -39,16 +39,25 @@ Future<ModularTest> loadTest(Uri uri) async {
   Uri root = await findRoot();
   Map<String, Uri> defaultPackages =
       package_config.parse(_defaultPackagesInput, root);
-  Map<String, Module> modules = {};
-  String spec;
+  Module sdkModule = await _createSdkModule(root);
+  Map<String, Module> modules = {'sdk': sdkModule};
+  String specString;
   Module mainModule;
   Map<String, Uri> packages = {};
-  await for (var entry in folder.list(recursive: false)) {
+  var entries = folder.listSync(recursive: false).toList()
+    // Sort to avoid dependency on file system order.
+    ..sort(_compareFileSystemEntity);
+  for (var entry in entries) {
     var entryUri = entry.uri;
     if (entry is File) {
       var fileName = entryUri.path.substring(testUri.path.length);
       if (fileName.endsWith('.dart')) {
         var moduleName = fileName.substring(0, fileName.indexOf('.dart'));
+        if (moduleName == 'sdk') {
+          return _invalidTest("The file '$fileName' defines a module called "
+              "'$moduleName' which conflicts with the sdk module "
+              "that is provided by default.");
+        }
         if (defaultPackages.containsKey(moduleName)) {
           return _invalidTest("The file '$fileName' defines a module called "
               "'$moduleName' which conflicts with a package by the same name "
@@ -69,12 +78,17 @@ Future<ModularTest> loadTest(Uri uri) async {
         List<int> packagesBytes = await entry.readAsBytes();
         packages = package_config.parse(packagesBytes, entryUri);
       } else if (fileName == 'modules.yaml') {
-        spec = await entry.readAsString();
+        specString = await entry.readAsString();
       }
     } else {
       assert(entry is Directory);
       var path = entryUri.path;
       var moduleName = path.substring(testUri.path.length, path.length - 1);
+      if (moduleName == 'sdk') {
+        return _invalidTest("The folder '$moduleName' defines a module "
+            "which conflicts with the sdk module "
+            "that is provided by default.");
+      }
       if (defaultPackages.containsKey(moduleName)) {
         return _invalidTest("The folder '$moduleName' defines a module "
             "which conflicts with a package by the same name "
@@ -88,7 +102,7 @@ Future<ModularTest> loadTest(Uri uri) async {
           packageBase: Uri.parse('$moduleName/'));
     }
   }
-  if (spec == null) {
+  if (specString == null) {
     return _invalidTest("modules.yaml file is missing");
   }
   if (mainModule == null) {
@@ -97,12 +111,16 @@ Future<ModularTest> loadTest(Uri uri) async {
 
   _addDefaultPackageEntries(packages, defaultPackages);
   await _addModulePerPackage(packages, modules);
-  _attachDependencies(parseDependencyMap(spec), modules);
-  _attachDependencies(parseDependencyMap(_defaultPackagesSpec), modules);
+  TestSpecification spec = parseTestSpecification(specString);
+  _attachDependencies(spec.dependencies, modules);
+  _attachDependencies(
+      parseTestSpecification(_defaultPackagesSpec).dependencies, modules);
+  _addSdkDependencies(modules, sdkModule);
   _detectCyclesAndRemoveUnreachable(modules, mainModule);
   var sortedModules = modules.values.toList()
     ..sort((a, b) => a.name.compareTo(b.name));
-  return new ModularTest(sortedModules, mainModule);
+  var sortedFlags = spec.flags.toList()..sort();
+  return new ModularTest(sortedModules, mainModule, sortedFlags);
 }
 
 /// Returns all source files recursively found in a folder as relative URIs.
@@ -142,6 +160,15 @@ void _attachDependencies(
   });
 }
 
+/// Make every module depend on the sdk module.
+void _addSdkDependencies(Map<String, Module> modules, Module sdkModule) {
+  for (var module in modules.values) {
+    if (module != sdkModule) {
+      module.dependencies.add(sdkModule);
+    }
+  }
+}
+
 void _addDefaultPackageEntries(
     Map<String, Uri> packages, Map<String, Uri> defaultPackages) {
   for (var name in defaultPackages.keys) {
@@ -169,9 +196,33 @@ Future<void> _addModulePerPackage(
       // module that is part of the test (package name and module name should
       // match).
       modules[packageName] = Module(packageName, [], rootUri, sources,
-          isPackage: true, packageBase: Uri.parse('lib/'));
+          isPackage: true, packageBase: Uri.parse('lib/'), isShared: true);
     }
   }
+}
+
+Future<Module> _createSdkModule(Uri root) async {
+  List<Uri> sources = [Uri.parse('sdk/lib/libraries.json')];
+
+  // Include all dart2js, ddc, vm library sources and patch files.
+  // Note: we don't extract the list of files from the libraries.json because
+  // it doesn't list files that are transitively imported.
+  var sdkLibrariesAndPatchesRoots = [
+    'sdk/lib/',
+    'runtime/lib/',
+    'runtime/bin/',
+    'pkg/dev_compiler/tool/input_sdk/',
+  ];
+  for (var path in sdkLibrariesAndPatchesRoots) {
+    var dir = Directory.fromUri(root.resolve(path));
+    await for (var file in dir.list(recursive: true)) {
+      if (file is File && file.path.endsWith(".dart")) {
+        sources.add(Uri.parse(file.uri.path.substring(root.path.length)));
+      }
+    }
+  }
+  sources..sort((a, b) => a.path.compareTo(b.path));
+  return Module('sdk', [], root, sources, isSdk: true, isShared: true);
 }
 
 /// Trim the set of modules, and detect cycles while we are at it.
@@ -243,4 +294,21 @@ class InvalidTestError extends Error {
   final String message;
   InvalidTestError(this.message);
   String toString() => "Invalid test: $message";
+}
+
+/// Comparator to sort directories before files.
+int _compareFileSystemEntity(FileSystemEntity a, FileSystemEntity b) {
+  if (a is Directory) {
+    if (b is Directory) {
+      return a.path.compareTo(b.path);
+    } else {
+      return -1;
+    }
+  } else {
+    if (b is Directory) {
+      return 1;
+    } else {
+      return a.path.compareTo(b.path);
+    }
+  }
 }

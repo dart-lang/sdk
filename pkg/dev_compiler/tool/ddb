@@ -77,11 +77,21 @@ void main(List<String> args) async {
   var summaries = options['summary'] as List;
   var port = int.parse(options['port'] as String);
 
+  // By default (no `-d`), we use the `dartdevc` binary on the user's path to
+  // compute the SDK we use for execution.  I.e., we assume that `dart` is
+  // under `$DART_SDK/bin/dart` and use that to find `dartdevc` and related
+  // artifacts.  In this mode, this script can run against any installed SDK.
+  // If you want to run against a freshly built SDK, that must be first on
+  // your path.
   var dartBinary = Platform.resolvedExecutable;
-  var dartPath = path.dirname(dartBinary);
-  var dartSdk = path.dirname(dartPath);
+  var dartSdk = path.dirname(path.dirname(dartBinary));
+
+  // In debug mode (`-d`), we run from the `pkg/dev_compiler` sources.  We
+  // determine the location via this actual script (i.e., `-d` assumes
+  // this script remains under to `tool` sub-directory).
   var toolPath = Platform.script.normalizePath().toFilePath();
   var ddcPath = path.dirname(path.dirname(toolPath));
+  var dartCheckoutPath = path.dirname(path.dirname(ddcPath));
 
   ProcessResult runDdc(String command, List<String> args) {
     if (debug) {
@@ -91,7 +101,7 @@ void main(List<String> args) async {
       command = dartBinary;
     } else {
       // Use built snapshot.
-      command = path.join(dartPath, command);
+      command = path.join(dartSdk, 'bin', command);
     }
     return Process.runSync(command, args);
   }
@@ -236,6 +246,15 @@ void main(List<String> args) async {
         nodeBinary, ['--inspect=localhost:$port', nodeFile],
         environment: {'NODE_PATH': nodePath});
   } else if (d8) {
+    // Fix SDK import.  `d8` doesn't let us set paths, so we need a full path
+    // to the SDK.
+
+    var jsFile = File('$libRoot/$basename.js');
+    var jsContents = jsFile.readAsStringSync();
+    jsContents = jsContents.replaceFirst(
+        "from 'dart_sdk.js'", "from '$sdkJsPath/dart_sdk.js'");
+    jsFile.writeAsStringSync(jsContents);
+
     var runjs = '''
     import { dart, _isolate_helper } from '$sdkJsPath/dart_sdk.js';
     import { $basename } from '$basename.js';
@@ -248,10 +267,21 @@ void main(List<String> args) async {
       console.error(e);
     }
     ''';
-    var d8File = '$libRoot/$basename.d8.js';
+    var d8File = path.join(libRoot, '$basename.d8.js');
     new File(d8File).writeAsStringSync(runjs);
-    var d8Binary = binary ?? 'd8';
+    var d8Binary = binary ?? path.join(dartCheckoutPath, _d8executable);
     result = Process.runSync(d8Binary, ['--module', d8File]);
   }
   await echoResult(result);
+}
+
+String get _d8executable {
+  if (Platform.isWindows) {
+    return path.join('third_party', 'd8', 'windows', 'd8.exe');
+  } else if (Platform.isLinux) {
+    return path.join('third_party', 'd8', 'linux', 'd8');
+  } else if (Platform.isMacOS) {
+    return path.join('third_party', 'd8', 'macos', 'd8');
+  }
+  throw new UnsupportedError('Unsupported platform.');
 }

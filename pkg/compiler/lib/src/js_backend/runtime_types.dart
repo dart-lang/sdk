@@ -22,6 +22,7 @@ import '../js_emitter/js_emitter.dart' show ModularEmitter;
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../universe/class_hierarchy.dart';
+import '../universe/class_set.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
@@ -1525,6 +1526,7 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         closedWorld.classHierarchy.forEachStrictSubtypeOf(cls,
             (ClassEntity sub) {
           potentiallyNeedTypeArguments(sub);
+          return IterationStep.CONTINUE;
         });
       } else if (entity is FunctionEntity) {
         methodsNeedingTypeArguments.add(entity);

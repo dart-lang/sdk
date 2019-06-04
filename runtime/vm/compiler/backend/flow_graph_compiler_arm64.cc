@@ -1160,8 +1160,8 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   }
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
-  GenerateStaticDartCall(deopt_id, token_pos,
-                         RawPcDescriptors::kOther, locs, function);
+  GenerateStaticDartCall(deopt_id, token_pos, RawPcDescriptors::kOther, locs,
+                         function);
   __ Drop(count_with_type_args);
 }
 
@@ -1297,6 +1297,8 @@ int FlowGraphCompiler::EmitTestAndCallCheckCid(Assembler* assembler,
 void FlowGraphCompiler::EmitMove(Location destination,
                                  Location source,
                                  TemporaryRegisterAllocator* allocator) {
+  if (destination.Equals(source)) return;
+
   if (source.IsRegister()) {
     if (destination.IsRegister()) {
       __ mov(destination.reg(), source.reg());
@@ -1309,6 +1311,10 @@ void FlowGraphCompiler::EmitMove(Location destination,
     if (destination.IsRegister()) {
       const intptr_t source_offset = source.ToStackSlotOffset();
       __ LoadFromOffset(destination.reg(), source.base_reg(), source_offset);
+    } else if (destination.IsFpuRegister()) {
+      const intptr_t src_offset = source.ToStackSlotOffset();
+      VRegister dst = destination.fpu_reg();
+      __ LoadDFromOffset(dst, source.base_reg(), src_offset);
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t source_offset = source.ToStackSlotOffset();

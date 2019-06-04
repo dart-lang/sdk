@@ -9,6 +9,7 @@ part of 'serialization.dart';
 abstract class AbstractDataSource extends DataSourceMixin
     implements DataSource {
   final bool useDataKinds;
+  EntityReader _entityReader = const EntityReader();
   ComponentLookup _componentLookup;
   EntityLookup _entityLookup;
   LocalLookup _localLookup;
@@ -66,6 +67,12 @@ abstract class AbstractDataSource extends DataSourceMixin
     _localLookup = localLookup;
   }
 
+  @override
+  void registerEntityReader(EntityReader reader) {
+    assert(reader != null);
+    _entityReader = reader;
+  }
+
   LocalLookup get localLookup {
     assert(_localLookup != null);
     return _localLookup;
@@ -79,6 +86,12 @@ abstract class AbstractDataSource extends DataSourceMixin
   }
 
   @override
+  void deregisterCodegenReader(CodegenReader reader) {
+    assert(_codegenReader == reader);
+    _codegenReader = null;
+  }
+
+  @override
   E readCached<E>(E f()) {
     IndexedSource source = _generalCaches[E] ??= new IndexedSource<E>(this);
     return source.read(f);
@@ -86,38 +99,27 @@ abstract class AbstractDataSource extends DataSourceMixin
 
   @override
   IndexedLibrary readLibrary() {
-    return getIndexedLibrary(readInt());
+    return _entityReader.readLibraryFromDataSource(this, entityLookup);
   }
 
   @override
   IndexedClass readClass() {
-    return getIndexedClass(readInt());
+    return _entityReader.readClassFromDataSource(this, entityLookup);
   }
 
   @override
   IndexedTypedef readTypedef() {
-    return getIndexedTypedef(readInt());
+    return _entityReader.readTypedefFromDataSource(this, entityLookup);
   }
 
   @override
   IndexedMember readMember() {
-    return getIndexedMember(readInt());
+    return _entityReader.readMemberFromDataSource(this, entityLookup);
   }
 
-  IndexedLibrary getIndexedLibrary(int libraryIndex) =>
-      entityLookup.getLibraryByIndex(libraryIndex);
-
-  IndexedClass getIndexedClass(int classIndex) =>
-      entityLookup.getClassByIndex(classIndex);
-
-  IndexedTypedef getIndexedTypedef(int typedefIndex) =>
-      entityLookup.getTypedefByIndex(typedefIndex);
-
-  IndexedMember getIndexedMember(int memberIndex) =>
-      entityLookup.getMemberByIndex(memberIndex);
-
-  IndexedTypeVariable getIndexedTypeVariable(int typeVariableIndex) =>
-      entityLookup.getTypeVariableByIndex(typeVariableIndex);
+  IndexedTypeVariable readTypeVariable() {
+    return _entityReader.readTypeVariableFromDataSource(this, entityLookup);
+  }
 
   List<DartType> _readDartTypes(
       List<FunctionTypeVariable> functionTypeVariables) {
@@ -164,7 +166,7 @@ abstract class AbstractDataSource extends DataSourceMixin
       case DartTypeKind.voidType:
         return const VoidType();
       case DartTypeKind.typeVariable:
-        return new TypeVariableType(getIndexedTypeVariable(readInt()));
+        return new TypeVariableType(readTypeVariable());
       case DartTypeKind.functionTypeVariable:
         int index = readInt();
         assert(0 <= index && index < functionTypeVariables.length);
@@ -200,11 +202,11 @@ abstract class AbstractDataSource extends DataSourceMixin
             typeVariables);
 
       case DartTypeKind.interfaceType:
-        IndexedClass cls = getIndexedClass(readInt());
+        IndexedClass cls = readClass();
         List<DartType> typeArguments = _readDartTypes(functionTypeVariables);
         return new InterfaceType(cls, typeArguments);
       case DartTypeKind.typedef:
-        IndexedTypedef typedef = getIndexedTypedef(readInt());
+        IndexedTypedef typedef = readTypedef();
         List<DartType> typeArguments = _readDartTypes(functionTypeVariables);
         DartType unaliased = _readDartType(functionTypeVariables);
         return new TypedefType(typedef, typeArguments, unaliased);
@@ -510,9 +512,11 @@ abstract class AbstractDataSource extends DataSourceMixin
         ConstantValue constant = readConstant();
         OutputUnit unit = readOutputUnitReference();
         return new DeferredGlobalConstantValue(constant, unit);
-      case ConstantValueKind.ABSTRACT_VALUE:
+      case ConstantValueKind.DUMMY_INTERCEPTOR:
         AbstractValue abstractValue = readAbstractValue();
-        return new AbstractValueConstantValue(abstractValue);
+        return new DummyInterceptorConstantValue(abstractValue);
+      case ConstantValueKind.UNREACHABLE:
+        return const UnreachableConstantValue();
       case ConstantValueKind.JS_NAME:
         js.LiteralString name = readJsNode();
         return new JsNameConstantValue(name);

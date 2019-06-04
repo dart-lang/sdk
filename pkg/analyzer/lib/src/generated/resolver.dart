@@ -92,15 +92,6 @@ class AstRewriteVisitor extends ScopedVisitor {
         InstanceCreationExpression instanceCreationExpression =
             astFactory.instanceCreationExpression(
                 _getKeyword(node), constructorName, node.argumentList);
-        InterfaceType type = getType(typeSystem, element, node.typeArguments);
-        ConstructorElement constructorElement =
-            type.lookUpConstructor(null, definingLibrary);
-        methodName.staticElement = element;
-        methodName.staticType = type;
-        typeName.type = type;
-        constructorName.staticElement = constructorElement;
-        instanceCreationExpression.staticType = type;
-        instanceCreationExpression.staticElement = constructorElement;
         NodeReplacer.replace(node, instanceCreationExpression);
       }
     } else if (target is SimpleIdentifier) {
@@ -130,17 +121,6 @@ class AstRewriteVisitor extends ScopedVisitor {
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList,
                   typeArguments: typeArguments);
-          InterfaceType type = getType(typeSystem, element, null);
-          constructorElement =
-              type.lookUpConstructor(methodName.name, definingLibrary);
-          methodName.staticElement = element;
-          methodName.staticType = type;
-          target.staticElement = element;
-          target.staticType = type; // TODO(scheglov) remove this
-          typeName.type = type;
-          constructorName.staticElement = constructorElement;
-          instanceCreationExpression.staticType = type;
-          instanceCreationExpression.staticElement = constructorElement;
           NodeReplacer.replace(node, instanceCreationExpression);
         }
       } else if (element is PrefixElement) {
@@ -160,16 +140,6 @@ class AstRewriteVisitor extends ScopedVisitor {
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList);
-          InterfaceType type =
-              getType(typeSystem, prefixedElement, node.typeArguments);
-          ConstructorElement constructorElement =
-              type.lookUpConstructor(null, definingLibrary);
-          methodName.staticElement = element;
-          methodName.staticType = type;
-          typeName.type = type;
-          constructorName.staticElement = constructorElement;
-          instanceCreationExpression.staticType = type;
-          instanceCreationExpression.staticElement = constructorElement;
           NodeReplacer.replace(node, instanceCreationExpression);
         }
       }
@@ -197,16 +167,6 @@ class AstRewriteVisitor extends ScopedVisitor {
             InstanceCreationExpression instanceCreationExpression =
                 astFactory.instanceCreationExpression(
                     _getKeyword(node), constructorName, node.argumentList);
-            InterfaceType type = getType(typeSystem, element, typeArguments);
-            constructorElement =
-                type.lookUpConstructor(methodName.name, definingLibrary);
-            methodName.staticElement = element;
-            methodName.staticType = type;
-            target.identifier.staticElement = element;
-            typeName.type = type;
-            constructorName.staticElement = constructorElement;
-            instanceCreationExpression.staticType = type;
-            instanceCreationExpression.staticElement = constructorElement;
             NodeReplacer.replace(node, instanceCreationExpression);
           }
         }
@@ -510,6 +470,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
     }
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    if (node.parent is! FunctionDeclaration) {
+      _checkForMissingReturn(null, node.body, node.element, node);
+    }
+    super.visitFunctionExpression(node);
   }
 
   @override
@@ -1074,7 +1042,27 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       var flattenedType =
           body.isAsynchronous ? _typeSystem.flatten(returnType) : returnType;
 
-      // dynamic/Null/void are allowed to omit a return.
+      // Function expressions without a return will have their return type set
+      // to `Null` regardless of their context type. So we need to figure out
+      // if a return type was expected from the original downwards context.
+      //
+      // This helps detect hint cases like `int Function() f = () {}`.
+      // See https://github.com/dart-lang/sdk/issues/28233 for context.
+      if (flattenedType.isDartCoreNull && functionNode is FunctionExpression) {
+        var contextType = InferenceContext.getContext(functionNode);
+        if (contextType is FunctionType) {
+          returnType = contextType.returnType;
+          flattenedType = body.isAsynchronous
+              ? returnType.flattenFutures(_typeSystem)
+              : returnType;
+        }
+      }
+
+      // dynamic, Null, void, and FutureOr<T> where T is (dynamic, Null, void)
+      // are allowed to omit a return.
+      if (flattenedType.isDartAsyncFutureOr) {
+        flattenedType = (flattenedType as InterfaceType).typeArguments[0];
+      }
       if (flattenedType.isDynamic ||
           flattenedType.isDartCoreNull ||
           flattenedType.isVoid) {

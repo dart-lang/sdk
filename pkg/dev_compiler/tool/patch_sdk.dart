@@ -271,7 +271,7 @@ class PatchApplier extends GeneralizingAstVisitor {
   void _maybePatch(Declaration node) {
     if (node is FieldDeclaration) return;
 
-    Token externalKeyword = (node as dynamic).externalKeyword;
+    var externalKeyword = (node as dynamic).externalKeyword as Token;
     if (externalKeyword == null) return;
 
     var name = _qualifiedName(node);
@@ -361,7 +361,7 @@ String _qualifiedName(Declaration node) {
     result = "${parent.name.name}.";
   }
 
-  SimpleIdentifier name = (node as dynamic).name;
+  var name = (node as dynamic).name as SimpleIdentifier;
   if (name != null) result += name.name;
 
   // Make sure setters and getters don't collide.

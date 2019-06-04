@@ -207,7 +207,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
       if (node is FunctionExpression) {
         super.visitFunctionExpression(node);
       } else {
-        super.visitClassExpression(node);
+        super.visitClassExpression(node as ClassExpression);
       }
       _finishScopes();
       scope = scope.parent;

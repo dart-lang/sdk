@@ -307,6 +307,7 @@ class JSONObject : public ValueObject {
   void AddServiceId(const Object& o) const { stream_->PrintServiceId(o); }
 
   void AddFixedServiceId(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
+  void AddServiceId(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 
   void AddLocation(
       const Script& script,

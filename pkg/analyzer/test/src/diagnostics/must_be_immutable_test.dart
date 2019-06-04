@@ -22,34 +22,40 @@ class MustBeImmutableTest extends DriverResolutionTest with PackageMixin {
   }
 
   test_directAnnotation() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @immutable
 class A {
   int x;
 }
-''', [HintCode.MUST_BE_IMMUTABLE]);
+''', [
+      error(HintCode.MUST_BE_IMMUTABLE, 50, 1),
+    ]);
   }
 
   test_directMixinAnnotation() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @immutable
 mixin A {
   int x;
 }
-''', [HintCode.MUST_BE_IMMUTABLE]);
+''', [
+      error(HintCode.MUST_BE_IMMUTABLE, 50, 1),
+    ]);
   }
 
   test_extendsClassWithAnnotation() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @immutable
 class A {}
 class B extends A {
   int x;
 }
-''', [HintCode.MUST_BE_IMMUTABLE]);
+''', [
+      error(HintCode.MUST_BE_IMMUTABLE, 61, 1),
+    ]);
   }
 
   test_finalField() async {
@@ -64,7 +70,7 @@ class A {
   }
 
   test_fromMixinWithAnnotation() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @immutable
 class A {}
@@ -72,11 +78,13 @@ class B {
   int x;
 }
 class C extends A with B {}
-''', [HintCode.MUST_BE_IMMUTABLE]);
+''', [
+      error(HintCode.MUST_BE_IMMUTABLE, 82, 1),
+    ]);
   }
 
   test_mixinApplication() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @immutable
 class A {}
@@ -84,11 +92,13 @@ class B {
   int x;
 }
 class C = A with B;
-''', [HintCode.MUST_BE_IMMUTABLE]);
+''', [
+      error(HintCode.MUST_BE_IMMUTABLE, 82, 1),
+    ]);
   }
 
   test_mixinApplicationBase() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   int x;
@@ -96,7 +106,9 @@ class A {
 class B {}
 @immutable
 class C = A with B;
-''', [HintCode.MUST_BE_IMMUTABLE]);
+''', [
+      error(HintCode.MUST_BE_IMMUTABLE, 82, 1),
+    ]);
   }
 
   test_staticField() async {

@@ -274,8 +274,13 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers);
+
+  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ ReserveAlignedFrameSpace(0);
   __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
   __ blx(R0);
+  __ LeaveFrame((1 << FP) | (1 << LR), 0);
+
   __ PopRegisters(all_registers);
   __ Ret();
 }
@@ -284,9 +289,32 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers);
+
+  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ ReserveAlignedFrameSpace(0);
   __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ blx(R0);
+  __ LeaveFrame((1 << FP) | (1 << LR), 0);
+
   __ PopRegisters(all_registers);
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
+  __ EnterFrame(1 << FP | 1 << LR, 0);
+  __ ReserveAlignedFrameSpace(0);
+
+  // First argument is already set up by the caller.
+  //
+  // Second argument is the return address of the caller.
+  __ mov(CallingConventions::ArgumentRegisters[1], Operand(LR));
+  ASSERT(R2 != CallingConventions::ArgumentRegisters[0] &&
+         R2 != CallingConventions::ArgumentRegisters[1]);
+  __ LoadFromOffset(kWord, R2, THR,
+                    kVerifyCallbackIsolateRuntimeEntry.OffsetFromThread());
+  __ blx(R2);
+
+  __ LeaveFrame(1 << FP | 1 << LR);
   __ Ret();
 }
 
@@ -1031,17 +1059,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ ldr(IP, Address(R3, target::Thread::invoke_dart_code_stub_offset()));
   __ Push(IP);
 
-  // Save new context and C++ ABI callee-saved registers.
-  __ PushList(kAbiPreservedCpuRegs);
-
-  const DRegister firstd = EvenDRegisterOf(kAbiFirstPreservedFpuReg);
-  if (TargetCPUFeatures::vfp_supported()) {
-    ASSERT(2 * kAbiPreservedFpuRegCount < 16);
-    // Save FPU registers. 2 D registers per Q register.
-    __ vstmd(DB_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
-  } else {
-    __ sub(SP, SP, Operand(kAbiPreservedFpuRegCount * kFpuRegisterSize));
-  }
+  __ PushNativeCalleeSavedRegisters();
 
   // Set up THR, which caches the current thread in Dart code.
   if (THR != R3) {
@@ -1071,6 +1089,8 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -27);
 #endif
   __ Push(R9);
+
+  __ EmitEntryFrameVerification(R9);
 
   // Mark that the thread is executing Dart code. Do this after initializing the
   // exit link for the profiler.
@@ -1135,15 +1155,8 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Pop(R4);
   __ StoreToOffset(kWord, R4, THR, target::Thread::vm_tag_offset());
 
-  // Restore C++ ABI callee-saved registers.
-  if (TargetCPUFeatures::vfp_supported()) {
-    // Restore FPU registers. 2 D registers per Q register.
-    __ vldmd(IA_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
-  } else {
-    __ AddImmediate(SP, kAbiPreservedFpuRegCount * kFpuRegisterSize);
-  }
-  // Restore CPU registers.
-  __ PopList(kAbiPreservedCpuRegs);
+  __ PopNativeCalleeSavedRegisters();
+
   __ set_constant_pool_allowed(false);
 
   // Restore the frame pointer and return.
@@ -1748,7 +1761,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
     EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
   }
 
-  __ LeaveDartFrameAndReturn();         // Restores correct SP.
+  __ LeaveDartFrameAndReturn();  // Restores correct SP.
 }
 
 // Called for invoking "dynamic noSuchMethod(Invocation invocation)" function

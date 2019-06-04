@@ -901,8 +901,11 @@ class ConstantUse {
   /// Type constant used for registration of custom elements.
   ConstantUse.customElements(TypeConstantValue value) : this._(value);
 
-  /// Constant literal used on code.
+  /// Constant literal used in code.
   ConstantUse.literal(ConstantValue value) : this._(value);
+
+  /// Deferred constant used in code.
+  ConstantUse.deferred(DeferredGlobalConstantValue value) : this._(value);
 
   @override
   bool operator ==(other) {

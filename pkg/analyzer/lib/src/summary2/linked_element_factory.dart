@@ -23,10 +23,21 @@ class LinkedElementFactory {
   CoreTypes _coreTypes;
 
   LinkedElementFactory(
-      this.analysisContext, this.analysisSession, this.rootReference);
+    this.analysisContext,
+    this.analysisSession,
+    this.rootReference,
+  ) {
+    var dartCoreRef = rootReference.getChild('dart:core');
+    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
+    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
+  }
 
   CoreTypes get coreTypes {
     return _coreTypes ??= CoreTypes(this);
+  }
+
+  Reference get dynamicRef {
+    return rootReference.getChild('dart:core').getChild('dynamic');
   }
 
   bool get hasDartCore {

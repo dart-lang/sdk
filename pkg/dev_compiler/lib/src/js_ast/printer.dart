@@ -133,7 +133,7 @@ class Printer implements NodeVisitor {
   String lastAddedString;
   int get lastCharCode {
     if (lastAddedString == null) return 0;
-    assert(lastAddedString.length != "");
+    assert(lastAddedString.isNotEmpty);
     return lastAddedString.codeUnitAt(lastAddedString.length - 1);
   }
 
@@ -1284,7 +1284,7 @@ class Printer implements NodeVisitor {
   nameSpecifierListOut(List<NameSpecifier> names, bool export) {
     if (names == null) return;
 
-    if (names.length == 1 && names[0].name == '*') {
+    if (names.length == 1 && names[0].name.name == '*') {
       nameSpecifierOut(names[0], export);
       return;
     }
@@ -1306,7 +1306,7 @@ class Printer implements NodeVisitor {
     if (from != null) {
       out(' from');
       spaceOut();
-      visit(from);
+      out("'${from.valueWithoutQuotes}.js'");
     }
   }
 

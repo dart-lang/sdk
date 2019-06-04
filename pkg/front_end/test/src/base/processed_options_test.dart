@@ -22,6 +22,7 @@ main() {
     defineReflectiveSuite(() {
       defineReflectiveTests(ProcessedOptionsTest);
     });
+    return Future<void>.value();
   });
 }
 

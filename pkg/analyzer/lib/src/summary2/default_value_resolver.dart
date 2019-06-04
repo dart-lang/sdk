@@ -27,25 +27,33 @@ class DefaultValueResolver {
 
   void resolve() {
     for (CompilationUnitElementImpl unit in _libraryElement.units) {
+      for (var classElement in unit.mixins) {
+        _class(classElement);
+      }
+
       for (var classElement in unit.types) {
-        _classElement = classElement;
-
-        for (var element in classElement.constructors) {
-          _constructor(element);
-        }
-
-        for (var element in classElement.methods) {
-          _setScopeFromElement(element);
-          _method(element);
-        }
-
-        _classElement = null;
+        _class(classElement);
       }
 
       for (var element in unit.functions) {
         _function(element);
       }
     }
+  }
+
+  void _class(ClassElement classElement) {
+    _classElement = classElement;
+
+    for (var element in classElement.constructors) {
+      _constructor(element);
+    }
+
+    for (var element in classElement.methods) {
+      _setScopeFromElement(element);
+      _method(element);
+    }
+
+    _classElement = null;
   }
 
   void _constructor(ConstructorElementImpl element) {

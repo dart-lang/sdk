@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_IA32.
 #if defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -131,6 +132,65 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 #endif
   __ LeaveFrame();
+  __ ret();
+}
+
+void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  bool return_in_st0 = false;
+  if (result_representation_ == kUnboxedFloat ||
+      result_representation_ == kUnboxedDouble) {
+    ASSERT(locs()->in(0).IsFpuRegister() && locs()->in(0).fpu_reg() == XMM0);
+    return_in_st0 = true;
+  }
+
+  // Leave Dart frame.
+  __ LeaveFrame();
+
+  // EDI is the only sane choice for a temporary register here because:
+  //
+  // EDX is used for large return values.
+  // ESI == THR.
+  // Could be EBX or ECX, but that would make code below confusing.
+  const Register tmp = EDI;
+
+  // Pop dummy return address.
+  __ popl(tmp);
+
+  // Anything besides the return register(s!). Callee-saved registers will be
+  // restored later.
+  const Register vm_tag_reg = EBX, old_exit_frame_reg = ECX;
+
+  __ popl(old_exit_frame_reg);
+
+  // Restore top_resource.
+  __ popl(tmp);
+  __ movl(Address(THR, compiler::target::Thread::top_resource_offset()), tmp);
+
+  __ popl(vm_tag_reg);
+
+  // This will reset the exit frame info to old_exit_frame_reg *before* entering
+  // the safepoint.
+  __ TransitionGeneratedToNative(vm_tag_reg, old_exit_frame_reg, tmp);
+
+  // Move XMM0 into ST0 if needed.
+  if (return_in_st0) {
+    if (result_representation_ == kUnboxedDouble) {
+      __ movsd(Address(SPREG, -8), XMM0);
+      __ fldl(Address(SPREG, -8));
+    } else {
+      __ movss(Address(SPREG, -4), XMM0);
+      __ flds(Address(SPREG, -4));
+    }
+  }
+
+  // Restore C++ ABI callee-saved registers.
+  __ popl(EDI);
+  __ popl(ESI);
+  __ popl(EBX);
+
+  // Leave the entry frame.
+  __ LeaveFrame();
+
   __ ret();
 }
 
@@ -886,38 +946,135 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popl(tmp);
   __ movl(Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), tmp);
 
-  __ TransitionGeneratedToNative(branch, tmp);
+  __ TransitionGeneratedToNative(branch, FPREG, tmp);
   __ call(branch);
 
   // The x86 calling convention requires floating point values to be returned on
   // the "floating-point stack" (aka. register ST0). We don't use the
   // floating-point stack in Dart, so we need to move the return value back into
   // an XMM register.
-  if (representation() == kUnboxedDouble || representation() == kUnboxedFloat) {
-    __ subl(SPREG, Immediate(8));
-    __ fstpl(Address(SPREG, 0));
-    __ TransitionNativeToGenerated(tmp);
-    __ fldl(Address(SPREG, 0));
-    __ addl(SPREG, Immediate(8));
-  } else {
-    __ TransitionNativeToGenerated(tmp);
+  if (representation() == kUnboxedDouble) {
+    __ fstpl(Address(SPREG, -kDoubleSize));
+    __ movsd(XMM0, Address(SPREG, -kDoubleSize));
+  } else if (representation() == kUnboxedFloat) {
+    __ fstps(Address(SPREG, -kFloatSize));
+    __ movss(XMM0, Address(SPREG, -kFloatSize));
   }
 
-  if (representation() == kUnboxedDouble) {
-    __ subl(SPREG, Immediate(8));
-    __ fstpl(Address(SPREG, 0));
-    __ movsd(XMM0, Address(SPREG, 0));
-  } else if (representation() == kUnboxedFloat) {
-    __ subl(SPREG, Immediate(4));
-    __ fstps(Address(SPREG, 0));
-    __ movss(XMM0, Address(SPREG, 0));
-  }
+  __ TransitionNativeToGenerated(tmp);
 
   // Leave dummy exit frame.
   __ LeaveFrame();
 
   // Instead of returning to the "fake" return address, we just pop it.
   __ popl(tmp);
+}
+
+void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
+                                    Location loc) const {
+  if (loc.IsPairLocation()) {
+    // Save the components in reverse order so that they will be in
+    // little-endian order on the stack.
+    for (intptr_t i : {1, 0}) {
+      SaveArgument(compiler, loc.Component(i));
+    }
+    return;
+  }
+
+  if (loc.HasStackIndex()) return;
+
+  if (loc.IsRegister()) {
+    __ pushl(loc.reg());
+  } else if (loc.IsFpuRegister()) {
+    __ subl(SPREG, Immediate(8));
+    __ movsd(Address(SPREG, 0), loc.fpu_reg());
+  } else {
+    UNREACHABLE();
+  }
+}
+
+void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetJumpLabel(this));
+
+  // Enter the entry frame.
+  __ EnterFrame(0);
+
+  // Save a space for the code object.
+  __ xorl(EAX, EAX);
+  __ pushl(EAX);
+
+  // Save ABI callee-saved registers.
+  __ pushl(EBX);
+  __ pushl(ESI);
+  __ pushl(EDI);
+
+  // Load the thread object.
+  // TOOD(35934): Exclude native callbacks from snapshots.
+  // Linking in AOT is not relevant here since we don't support AOT for IA32.
+  // Create another frame to align the frame before continuing in "native" code.
+  {
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ movl(
+        EAX,
+        Immediate(reinterpret_cast<int64_t>(DLRT_GetThreadForNativeCallback)));
+    __ call(EAX);
+    __ movl(THR, EAX);
+
+    __ LeaveFrame();
+  }
+
+  // Save the current VMTag on the stack.
+  __ movl(ECX, Assembler::VMTagAddress());
+  __ pushl(ECX);
+
+  // Save top resource.
+  __ pushl(Address(THR, compiler::target::Thread::top_resource_offset()));
+  __ movl(Address(THR, compiler::target::Thread::top_resource_offset()),
+          Immediate(0));
+
+  // Save top exit frame info. Stack walker expects it to be here.
+  __ pushl(
+      Address(THR, compiler::target::Thread::top_exit_frame_info_offset()));
+
+  // In debug mode, verify that we've pushed the top exit frame info at the
+  // correct offset from FP.
+  __ EmitEntryFrameVerification();
+
+  // TransitionNativeToGenerated will reset top exit frame info to 0 *after*
+  // leaving the safepoint.
+  __ TransitionNativeToGenerated(EAX);
+
+  // Now that the safepoint has ended, we can hold Dart objects with bare hands.
+  // TODO(35934): fix linking issue
+  __ pushl(Immediate(callback_id_));
+  __ movl(EAX, Address(THR, compiler::target::Thread::
+                                verify_callback_isolate_entry_point_offset()));
+  __ call(EAX);
+  __ popl(EAX);
+
+  // Load the code object.
+  __ movl(EAX, Address(THR, compiler::target::Thread::callback_code_offset()));
+  __ movl(EAX, FieldAddress(
+                   EAX, compiler::target::GrowableObjectArray::data_offset()));
+  __ movl(CODE_REG,
+          FieldAddress(EAX, compiler::target::Array::data_offset() +
+                                callback_id_ * compiler::target::kWordSize));
+
+  // Put the code object in the reserved slot.
+  __ movl(Address(FPREG, kPcMarkerSlotFromFp * compiler::target::kWordSize),
+          CODE_REG);
+
+  // Push a dummy return address which suggests that we are inside of
+  // InvokeDartCodeStub. This is how the stack walker detects an entry frame.
+  __ movl(
+      EAX,
+      Address(THR, compiler::target::Thread::invoke_dart_code_stub_offset()));
+  __ pushl(FieldAddress(EAX, compiler::target::Code::entry_point_offset()));
+
+  // Continue with Dart frame setup.
+  FunctionEntryInstr::EmitNativeCode(compiler);
 }
 
 static bool CanBeImmediateIndex(Value* value, intptr_t cid) {
@@ -1575,10 +1732,10 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label ok, fail_label;
 
-  Label* deopt =
-      compiler->is_optimizing()
-          ? compiler->AddDeoptStub(deopt_id(), ICData::kDeoptGuardField)
-          : NULL;
+  Label* deopt = nullptr;
+  if (compiler->is_optimizing()) {
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptGuardField);
+  }
 
   Label* fail = (deopt != NULL) ? deopt : &fail_label;
 
@@ -3732,9 +3889,10 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   const Register temp = CanDeoptimize() ? locs()->temp(0).reg() : kNoRegister;
-  Label* deopt = CanDeoptimize() ? compiler->AddDeoptStub(
-                                       GetDeoptId(), ICData::kDeoptUnboxInteger)
-                                 : NULL;
+  Label* deopt = nullptr;
+  if (CanDeoptimize()) {
+    deopt = compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnboxInteger);
+  }
   Label* out_of_range = !is_truncating() ? deopt : NULL;
 
   const intptr_t lo_offset = Mint::value_offset();

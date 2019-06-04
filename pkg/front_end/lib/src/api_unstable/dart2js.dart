@@ -32,6 +32,8 @@ import '../fasta/scanner.dart' show ErrorToken, StringToken, Token;
 
 import 'compiler_state.dart' show InitializedCompilerState;
 
+import 'util.dart' show equalLists, equalMaps;
+
 export '../api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags;
 
@@ -116,30 +118,13 @@ InitializedCompilerState initializeCompiler(
     Map<ExperimentalFlag, bool> experimentalFlags,
     bool verify: false,
     bool enableAsserts: false}) {
-  bool mapEqual(Map<ExperimentalFlag, bool> a, Map<ExperimentalFlag, bool> b) {
-    if (a == null || b == null) return a == b;
-    if (a.length != b.length) return false;
-    for (var flag in a.keys) {
-      if (!b.containsKey(flag) || a[flag] != b[flag]) return false;
-    }
-    return true;
-  }
-
-  bool listEqual(List<Uri> a, List<Uri> b) {
-    if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; ++i) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
-  }
-
   linkedDependencies.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&
       oldState.options.packagesFileUri == packagesFileUri &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
-      listEqual(oldState.options.linkedDependencies, linkedDependencies) &&
-      mapEqual(oldState.options.experimentalFlags, experimentalFlags)) {
+      equalLists(oldState.options.linkedDependencies, linkedDependencies) &&
+      equalMaps(oldState.options.experimentalFlags, experimentalFlags)) {
     return oldState;
   }
 

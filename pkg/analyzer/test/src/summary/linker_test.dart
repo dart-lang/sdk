@@ -225,7 +225,7 @@ class B implements A {
     ClassElementForLink_Class B = library.getContainedName('B');
     expect(B.fields, hasLength(1));
     FieldElementForLink f = B.fields[0];
-    expect(f.type.toString(), '(num) → int');
+    expect(f.type.toString(), 'int Function(num)');
   }
 
   void test_getContainedName_nonStaticField() {
@@ -267,7 +267,7 @@ var y = x;
 ''');
     LibraryElementForLink library = linker.getLibrary(testDartUri);
     expect(_getVariable(library.getContainedName('y')).inferredType.toString(),
-        '() → Null');
+        'Null Function()');
   }
 
   void test_inferredType_closure_fromBundle_identifierSequence() {
@@ -287,7 +287,7 @@ var y = C.x;
 ''');
     LibraryElementForLink library = linker.getLibrary(testDartUri);
     expect(_getVariable(library.getContainedName('y')).inferredType.toString(),
-        '(D) → E');
+        'E Function(D)');
   }
 
   void test_inferredType_implicitFunctionTypeIndices() {
@@ -327,7 +327,7 @@ class C {
     ClassElementForLink_Class cls = library.getContainedName('C');
     expect(cls.fields, hasLength(1));
     var field = cls.fields[0];
-    expect(field.type.toString(), '(Never) → int');
+    expect(field.type.toString(), 'int Function(Never)');
   }
 
   void test_inferredType_instanceField_dynamic() {
@@ -379,7 +379,7 @@ class B<V> extends A {
     var method = cls.methods[0];
     expect(method.parameters, hasLength(1));
     var pType = method.parameters[0].type;
-    expect(pType.toString(), '<T,U>(T, U) → Map<T, List<U>>');
+    expect(pType.toString(), 'Map<T, List<U>> Function<T,U>(T, U)');
   }
 
   void test_inferredType_methodReturnType_dynamic() {

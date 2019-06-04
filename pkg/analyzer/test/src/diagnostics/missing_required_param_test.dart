@@ -248,12 +248,12 @@ class D extends C {
 
   test_functionInvocation() async {
     await assertErrorsInCode(r'''
-void Function({required int a}) f() => null;
+void Function({required int a}) f() => throw '';
 g() {
   f()();
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 53, 5),
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 57, 5),
     ]);
   }
 
@@ -305,7 +305,7 @@ String test(C c) => c.m()();
 typedef String F({required String x});
 
 class C {
-  F m() => ({required String x}) => null;
+  F m() => ({required String x}) => throw '';
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 20, 7),

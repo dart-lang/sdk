@@ -12,6 +12,7 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js/js.dart' as jsAst;
 import '../serialization/serialization.dart';
+import '../universe/class_set.dart';
 import '../universe/selector.dart';
 import '../world.dart' show JClosedWorld;
 import 'namer.dart' show ModularNamer, suffixForGetInterceptor;
@@ -252,6 +253,7 @@ class InterceptorDataImpl implements InterceptorData {
           if (result == null) result = new Set<ClassEntity>();
           result.add(subclass);
         }
+        return IterationStep.CONTINUE;
       });
     }
     return result;
@@ -388,11 +390,11 @@ class OneShotInterceptorData {
     String key = suffixForGetInterceptor(_commonElements, _nativeData, classes);
     Map<String, OneShotInterceptor> interceptors =
         _oneShotInterceptors[selector] ??= {};
-    OneShotInterceptor interceptor = interceptors.putIfAbsent(
-        key, () => new OneShotInterceptor(key, selector));
+    OneShotInterceptor interceptor =
+        interceptors[key] ??= new OneShotInterceptor(key, selector);
     interceptor.classes.addAll(classes);
     registerSpecializedGetInterceptor(classes, namer);
-    return namer.nameForGetOneShotInterceptor(selector, classes);
+    return namer.nameForOneShotInterceptor(selector, classes);
   }
 
   void registerSpecializedGetInterceptor(

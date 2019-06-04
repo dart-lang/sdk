@@ -10,6 +10,7 @@ import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../js_backend/interceptor_data.dart' show OneShotInterceptorData;
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../js_model/elements.dart';
 import '../util/enumset.dart';
@@ -87,11 +88,17 @@ abstract class CodegenWorld extends BuiltWorld {
   /// an ordering that is less sensitive to perturbations in the source code.
   Iterable<ConstantValue> getConstantsForEmission(
       [Comparator<ConstantValue> preSortCompare]);
+
+  /// Returns `true` if [member] is called from a subclass via `super`.
+  bool isAliasedSuperMember(MemberEntity member);
+
+  OneShotInterceptorData get oneShotInterceptorData;
 }
 
 class CodegenWorldBuilderImpl extends WorldBuilderBase
     implements CodegenWorldBuilder {
   final JClosedWorld _closedWorld;
+  final OneShotInterceptorData _oneShotInterceptorData;
 
   /// The set of all directly instantiated classes, that is, classes with a
   /// generative constructor that has been called directly and not only through
@@ -154,7 +161,8 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   final Set<DartType> _constTypeLiterals = new Set<DartType>();
   final Set<DartType> _liveTypeArguments = new Set<DartType>();
 
-  CodegenWorldBuilderImpl(this._closedWorld, this._selectorConstraintsStrategy);
+  CodegenWorldBuilderImpl(this._closedWorld, this._selectorConstraintsStrategy,
+      this._oneShotInterceptorData);
 
   ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
 
@@ -582,7 +590,8 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
         invokedGetters: _invokedGetters,
         invokedSetters: _invokedSetters,
         staticTypeArgumentDependencies: staticTypeArgumentDependencies,
-        dynamicTypeArgumentDependencies: dynamicTypeArgumentDependencies);
+        dynamicTypeArgumentDependencies: dynamicTypeArgumentDependencies,
+        oneShotInterceptorData: _oneShotInterceptorData);
   }
 }
 
@@ -624,6 +633,9 @@ class CodegenWorldImpl implements CodegenWorld {
 
   final Map<Selector, Set<DartType>> _dynamicTypeArgumentDependencies;
 
+  @override
+  final OneShotInterceptorData oneShotInterceptorData;
+
   CodegenWorldImpl(this._closedWorld, this._liveMemberUsage,
       {this.constTypeLiterals,
       this.directlyInstantiatedClasses,
@@ -637,7 +649,8 @@ class CodegenWorldImpl implements CodegenWorld {
       Map<String, Map<Selector, SelectorConstraints>> invokedGetters,
       Map<String, Map<Selector, SelectorConstraints>> invokedSetters,
       Map<Entity, Set<DartType>> staticTypeArgumentDependencies,
-      Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies})
+      Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies,
+      this.oneShotInterceptorData})
       : _compiledConstants = compiledConstants,
         _invokedNames = invokedNames,
         _invokedGetters = invokedGetters,
@@ -865,5 +878,13 @@ class CodegenWorldImpl implements CodegenWorld {
       _compiledConstants.forEach(addConstant);
     }
     return result;
+  }
+
+  @override
+  bool isAliasedSuperMember(MemberEntity member) {
+    MemberUsage usage = _liveMemberUsage[member];
+    if (usage == null) return false;
+    return usage.invokes.contains(Access.superAccess) ||
+        usage.writes.contains(Access.superAccess);
   }
 }

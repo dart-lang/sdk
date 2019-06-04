@@ -18,15 +18,15 @@ mov   rbx,  rdi        /* Save argument in scratch register. */
 /* Copy stack arguments. */
 mov   rax,  [rbx+0x78] /* Load number of stack arguments. */
 cmp   rax,  0x0        /* Check if number of stack arguments is 0. */
-jz    2f               /* Skip loop if no stack arguments. */
+jz    .done            /* Skip loop if no stack arguments. */
 add   rbx,  0x78       /* Offset RBX to point to stack arguments */
-1:                     /* Copy stack arguments loop. */
+.loop:                 /* Copy stack arguments loop. */
 push  [rbx+0x8*rax]    /* Push stack argument. */
 sub   rax,  0x1        /* Decrement stack argument iterator. */
 cmp   rax,  0x0        /* Compare iterator with 0 */
-jnz   1b               /* Loop while iterator is not 0 */
+jnz   .loop            /* Loop while iterator is not 0 */
 sub   rbx,  0x78       /* Restore RBX to original value. */
-2:                     /* End stack arguments loop. */
+.done:                 /* End stack arguments loop. */
 
 /* Copy registers and fpu registers. */
 mov   rdi,  [rbx+0x8]  /* kArg1Reg */

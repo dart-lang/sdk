@@ -83,6 +83,7 @@ enum SnapshotKind {
   kAppJIT,
   kAppAOTBlobs,
   kAppAOTAssembly,
+  kAppAOTElf,
   kVMAOTAssembly,
 };
 static SnapshotKind snapshot_kind = kCore;
@@ -96,6 +97,7 @@ static const char* kSnapshotKindNames[] = {
     "app-jit",
     "app-aot-blobs",
     "app-aot-assembly",
+    "app-aot-elf",
     "vm-aot-assembly",
     NULL,
     // clang-format on
@@ -146,7 +148,7 @@ DEFINE_CB_OPTION(ProcessEnvironmentOption);
 
 static bool IsSnapshottingForPrecompilation() {
   return (snapshot_kind == kAppAOTBlobs) ||
-         (snapshot_kind == kAppAOTAssembly) ||
+         (snapshot_kind == kAppAOTAssembly) || (snapshot_kind == kAppAOTElf) ||
          (snapshot_kind == kVMAOTAssembly);
 }
 
@@ -315,7 +317,8 @@ static int ParseArguments(int argc,
       }
       break;
     }
-    case kAppAOTAssembly: {
+    case kAppAOTAssembly:
+    case kAppAOTElf: {
       if (assembly_filename == NULL) {
         Syslog::PrintErr(
             "Building an AOT snapshot as assembly requires specifying "
@@ -420,10 +423,18 @@ static void MaybeLoadCode() {
 
   if ((load_compilation_trace_filename != NULL) &&
       ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT))) {
+    // Finalize all classes. This ensures that there are no non-finalized
+    // classes in the gaps between cid ranges. Such classes prevent merging of
+    // cid ranges.
+    Dart_Handle result = Dart_FinalizeAllClasses();
+    CHECK_RESULT(result);
+    // Sort classes to have better cid ranges.
+    result = Dart_SortClasses();
+    CHECK_RESULT(result);
     uint8_t* buffer = NULL;
     intptr_t size = 0;
     ReadFile(load_compilation_trace_filename, &buffer, &size);
-    Dart_Handle result = Dart_LoadCompilationTrace(buffer, size);
+    result = Dart_LoadCompilationTrace(buffer, size);
     free(buffer);
     CHECK_RESULT(result);
   }
@@ -613,16 +624,17 @@ static void CreateAndWritePrecompiledSnapshot() {
   CHECK_RESULT(result);
 
   // Create a precompiled snapshot.
-  bool as_assembly = assembly_filename != NULL;
-  if (as_assembly) {
-    ASSERT(snapshot_kind == kAppAOTAssembly);
+  if (snapshot_kind == kAppAOTAssembly) {
     File* file = OpenFile(assembly_filename);
     RefCntReleaseScope<File> rs(file);
     result = Dart_CreateAppAOTSnapshotAsAssembly(StreamingWriteCallback, file);
     CHECK_RESULT(result);
-  } else {
-    ASSERT(snapshot_kind == kAppAOTBlobs);
-
+  } else if (snapshot_kind == kAppAOTElf) {
+    File* file = OpenFile(assembly_filename);
+    RefCntReleaseScope<File> rs(file);
+    result = Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file);
+    CHECK_RESULT(result);
+  } else if (snapshot_kind == kAppAOTBlobs) {
     const uint8_t* shared_data = NULL;
     const uint8_t* shared_instructions = NULL;
     std::unique_ptr<MappedMemory> mapped_shared_data;
@@ -686,6 +698,8 @@ static void CreateAndWritePrecompiledSnapshot() {
                 isolate_snapshot_instructions_buffer,
                 isolate_snapshot_instructions_size);
     }
+  } else {
+    UNREACHABLE();
   }
 
   // Serialize obfuscation map if requested.
@@ -777,8 +791,9 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
     case kAppJIT:
       CreateAndWriteAppJITSnapshot();
       break;
-    case kAppAOTBlobs:
     case kAppAOTAssembly:
+    case kAppAOTBlobs:
+    case kAppAOTElf:
       CreateAndWritePrecompiledSnapshot();
       break;
     case kVMAOTAssembly: {

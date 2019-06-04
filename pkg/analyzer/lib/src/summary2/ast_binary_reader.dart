@@ -33,6 +33,13 @@ class AstBinaryReader {
   /// Set to `true` when this reader is used to lazily read its unit.
   bool isLazy = false;
 
+  /// Whether we are reading a directive.
+  ///
+  /// [StringLiteral]s in directives are not actual expressions, and don't need
+  /// a type. Moreover, when we are reading `dart:core` imports, the type
+  /// provider is not ready yet, so we cannot access type `String`.
+  bool _isReadingDirective = false;
+
   AstBinaryReader(this._unitContext);
 
   InterfaceType get _boolType => _unitContext.typeProvider.boolType;
@@ -82,7 +89,7 @@ class AstBinaryReader {
         typeParameters[i] = astFactory.typeParameter(
           _readNode(data.annotatedNode_comment),
           _readNodeList(data.annotatedNode_metadata),
-          _declaredIdentifier(data),
+          _readNode(data.typeParameter_name),
           data.typeParameter_bound != null ? _Tokens.EXTENDS : null,
           null,
         );
@@ -119,13 +126,6 @@ class AstBinaryReader {
     return _readType(data);
   }
 
-  SimpleIdentifier _declaredIdentifier(LinkedNode data) {
-    return astFactory.simpleIdentifier(
-      TokenFactory.tokenFromString(data.name)..offset = data.nameOffset,
-      isDeclaration: true,
-    );
-  }
-
   Element _elementOfComponents(
     int rawElementIndex,
     LinkedNodeType definingTypeNode,
@@ -151,9 +151,13 @@ class AstBinaryReader {
   }
 
   AdjacentStrings _read_adjacentStrings(LinkedNode data) {
-    return astFactory.adjacentStrings(
+    var node = astFactory.adjacentStrings(
       _readNodeList(data.adjacentStrings_strings),
-    )..staticType = _stringType;
+    );
+    if (!_isReadingDirective) {
+      node.staticType = _stringType;
+    }
+    return node;
   }
 
   Annotation _read_annotation(LinkedNode data) {
@@ -312,7 +316,7 @@ class AstBinaryReader {
         _readNodeListLazy(data.annotatedNode_metadata),
         AstBinaryFlags.isAbstract(data.flags) ? _Tokens.ABSTRACT : null,
         _Tokens.CLASS,
-        _declaredIdentifier(data),
+        _readNode(data.namedCompilationUnitMember_name),
         _readNode(data.classOrMixinDeclaration_typeParameters),
         _readNodeLazy(data.classDeclaration_extendsClause),
         _readNodeLazy(data.classDeclaration_withClause),
@@ -336,7 +340,7 @@ class AstBinaryReader {
         _readNodeLazy(data.annotatedNode_comment),
         _readNodeListLazy(data.annotatedNode_metadata),
         _Tokens.CLASS,
-        _declaredIdentifier(data),
+        _readNode(data.namedCompilationUnitMember_name),
         _readNode(data.classTypeAlias_typeParameters),
         _Tokens.EQ,
         AstBinaryFlags.isAbstract(data.flags) ? _Tokens.ABSTRACT : null,
@@ -415,6 +419,7 @@ class AstBinaryReader {
   }
 
   ConstructorDeclaration _read_constructorDeclaration(LinkedNode data) {
+    var name = _readNode(data.constructorDeclaration_name);
     var node = astFactory.constructorDeclaration(
       _readNodeLazy(data.annotatedNode_comment),
       _readNodeListLazy(data.annotatedNode_metadata),
@@ -422,8 +427,10 @@ class AstBinaryReader {
       AstBinaryFlags.isConst(data.flags) ? _Tokens.CONST : null,
       AstBinaryFlags.isFactory(data.flags) ? _Tokens.FACTORY : null,
       _readNode(data.constructorDeclaration_returnType),
-      data.name.isNotEmpty ? _Tokens.PERIOD : null,
-      _declaredIdentifier(data),
+      name != null
+          ? Token(TokenType.PERIOD, data.constructorDeclaration_periodOffset)
+          : null,
+      name,
       _readNodeLazy(data.constructorDeclaration_parameters),
       _Tokens.choose(
         AstBinaryFlags.hasSeparatorColon(data.flags),
@@ -537,7 +544,7 @@ class AstBinaryReader {
     var node = astFactory.enumConstantDeclaration(
       _readNodeLazy(data.annotatedNode_comment),
       _readNodeListLazy(data.annotatedNode_metadata),
-      _declaredIdentifier(data),
+      _readNode(data.enumConstantDeclaration_name),
     );
     LazyEnumConstantDeclaration.setData(node, data);
     return node;
@@ -548,7 +555,7 @@ class AstBinaryReader {
       _readNodeLazy(data.annotatedNode_comment),
       _readNodeListLazy(data.annotatedNode_metadata),
       _Tokens.ENUM,
-      _declaredIdentifier(data),
+      _readNode(data.namedCompilationUnitMember_name),
       _Tokens.OPEN_CURLY_BRACKET,
       _readNodeListLazy(data.enumDeclaration_constants),
       _Tokens.CLOSE_CURLY_BRACKET,
@@ -559,6 +566,7 @@ class AstBinaryReader {
 
   ExportDirective _read_exportDirective(LinkedNode data) {
     timerAstBinaryReaderDirective.start();
+    _isReadingDirective = true;
     try {
       var node = astFactory.exportDirective(
         _readNode(data.annotatedNode_comment),
@@ -572,6 +580,7 @@ class AstBinaryReader {
       LazyDirective.setData(node, data);
       return node;
     } finally {
+      _isReadingDirective = false;
       timerAstBinaryReaderDirective.stop();
     }
   }
@@ -626,7 +635,7 @@ class AstBinaryReader {
 
   FieldFormalParameter _read_fieldFormalParameter(LinkedNode data) {
     var node = astFactory.fieldFormalParameter2(
-      identifier: _declaredIdentifier(data),
+      identifier: _readNode(data.normalFormalParameter_identifier),
       period: _Tokens.PERIOD,
       thisKeyword: _Tokens.THIS,
       covariantKeyword:
@@ -744,7 +753,7 @@ class AstBinaryReader {
           AstBinaryFlags.isSet(data.flags),
           _Tokens.SET,
         ),
-        _declaredIdentifier(data),
+        _readNode(data.namedCompilationUnitMember_name),
         _readNodeLazy(data.functionDeclaration_functionExpression),
       );
       LazyFunctionDeclaration.setData(node, data);
@@ -786,7 +795,7 @@ class AstBinaryReader {
       _readNodeListLazy(data.annotatedNode_metadata),
       _Tokens.TYPEDEF,
       _readNodeLazy(data.functionTypeAlias_returnType),
-      _declaredIdentifier(data),
+      _readNode(data.namedCompilationUnitMember_name),
       _readNode(data.functionTypeAlias_typeParameters),
       _readNodeLazy(data.functionTypeAlias_formalParameters),
       _Tokens.SEMICOLON,
@@ -805,7 +814,7 @@ class AstBinaryReader {
       comment: _readNodeLazy(data.normalFormalParameter_comment),
       covariantKeyword:
           AstBinaryFlags.isCovariant(data.flags) ? _Tokens.COVARIANT : null,
-      identifier: _declaredIdentifier(data),
+      identifier: _readNode(data.normalFormalParameter_identifier),
       metadata: _readNodeListLazy(data.normalFormalParameter_metadata),
       parameters: _readNodeLazy(
         data.functionTypedFormalParameter_formalParameters,
@@ -831,7 +840,7 @@ class AstBinaryReader {
       _readNodeLazy(data.annotatedNode_comment),
       _readNodeListLazy(data.annotatedNode_metadata),
       _Tokens.TYPEDEF,
-      _declaredIdentifier(data),
+      _readNode(data.namedCompilationUnitMember_name),
       _readNode(data.genericTypeAlias_typeParameters),
       _Tokens.EQ,
       _readNodeLazy(data.genericTypeAlias_functionType),
@@ -887,6 +896,7 @@ class AstBinaryReader {
 
   ImportDirective _read_importDirective(LinkedNode data) {
     timerAstBinaryReaderDirective.start();
+    _isReadingDirective = true;
     try {
       SimpleIdentifier prefix;
       if (data.importDirective_prefix.isNotEmpty) {
@@ -911,6 +921,7 @@ class AstBinaryReader {
       LazyDirective.setData(node, data);
       return node;
     } finally {
+      _isReadingDirective = false;
       timerAstBinaryReaderDirective.stop();
     }
   }
@@ -1003,6 +1014,7 @@ class AstBinaryReader {
 
   LibraryDirective _read_libraryDirective(LinkedNode data) {
     timerAstBinaryReaderDirective.start();
+    _isReadingDirective = true;
     try {
       var node = astFactory.libraryDirective(
         _readNode(data.annotatedNode_comment),
@@ -1014,6 +1026,7 @@ class AstBinaryReader {
       LazyDirective.setData(node, data);
       return node;
     } finally {
+      _isReadingDirective = false;
       timerAstBinaryReaderDirective.stop();
     }
   }
@@ -1062,7 +1075,7 @@ class AstBinaryReader {
         _Tokens.SET,
       ),
       AstBinaryFlags.isOperator(data.flags) ? _Tokens.OPERATOR : null,
-      _declaredIdentifier(data),
+      _readNode(data.methodDeclaration_name),
       _readNode(data.methodDeclaration_typeParameters),
       _readNodeLazy(data.methodDeclaration_formalParameters),
       AstBinaryFlags.isAbstract(data.flags)
@@ -1095,7 +1108,7 @@ class AstBinaryReader {
         _readNodeLazy(data.annotatedNode_comment),
         _readNodeListLazy(data.annotatedNode_metadata),
         _Tokens.MIXIN,
-        _declaredIdentifier(data),
+        _readNode(data.namedCompilationUnitMember_name),
         _readNode(data.classOrMixinDeclaration_typeParameters),
         _readNodeLazy(data.mixinDeclaration_onClause),
         _readNodeLazy(data.classOrMixinDeclaration_implementsClause),
@@ -1156,6 +1169,7 @@ class AstBinaryReader {
 
   PartDirective _read_partDirective(LinkedNode data) {
     timerAstBinaryReaderDirective.start();
+    _isReadingDirective = true;
     try {
       var node = astFactory.partDirective(
         _readNode(data.annotatedNode_comment),
@@ -1167,12 +1181,14 @@ class AstBinaryReader {
       LazyDirective.setData(node, data);
       return node;
     } finally {
+      _isReadingDirective = false;
       timerAstBinaryReaderDirective.stop();
     }
   }
 
   PartOfDirective _read_partOfDirective(LinkedNode data) {
     timerAstBinaryReaderDirective.start();
+    _isReadingDirective = true;
     try {
       var node = astFactory.partOfDirective(
         _readNode(data.annotatedNode_comment),
@@ -1186,6 +1202,7 @@ class AstBinaryReader {
       LazyDirective.setData(node, data);
       return node;
     } finally {
+      _isReadingDirective = false;
       timerAstBinaryReaderDirective.stop();
     }
   }
@@ -1289,7 +1306,7 @@ class AstBinaryReader {
 
   SimpleFormalParameter _read_simpleFormalParameter(LinkedNode data) {
     SimpleFormalParameterImpl node = astFactory.simpleFormalParameter2(
-      identifier: _declaredIdentifier(data),
+      identifier: _readNode(data.normalFormalParameter_identifier),
       type: _readNode(data.simpleFormalParameter_type),
       covariantKeyword:
           AstBinaryFlags.isCovariant(data.flags) ? _Tokens.COVARIANT : null,
@@ -1313,7 +1330,8 @@ class AstBinaryReader {
 
   SimpleIdentifier _read_simpleIdentifier(LinkedNode data) {
     return astFactory.simpleIdentifier(
-      TokenFactory.tokenFromString(data.name),
+      TokenFactory.tokenFromString(data.simpleIdentifier_name)
+        ..offset = data.simpleIdentifier_offset,
       isDeclaration: AstBinaryFlags.isDeclaration(data.flags),
     )
       ..staticElement = _elementOfComponents(
@@ -1324,10 +1342,11 @@ class AstBinaryReader {
   }
 
   SimpleStringLiteral _read_simpleStringLiteral(LinkedNode data) {
-    // TODO(scheglov) restore staticType
-    return AstTestFactory.string2(data.simpleStringLiteral_value)
-//      ..staticType = _stringType
-        ;
+    var node = AstTestFactory.string2(data.simpleStringLiteral_value);
+    if (!_isReadingDirective) {
+      node.staticType = _stringType;
+    }
+    return node;
   }
 
   SpreadElement _read_spreadElement(LinkedNode data) {
@@ -1466,7 +1485,7 @@ class AstBinaryReader {
     var node = astFactory.typeParameter(
       _readNodeLazy(data.annotatedNode_comment),
       _readNodeListLazy(data.annotatedNode_metadata),
-      _declaredIdentifier(data),
+      _readNode(data.typeParameter_name),
       _Tokens.EXTENDS,
       _readNodeLazy(data.typeParameter_bound),
     );
@@ -1484,7 +1503,7 @@ class AstBinaryReader {
 
   VariableDeclaration _read_variableDeclaration(LinkedNode data) {
     var node = astFactory.variableDeclaration(
-      _declaredIdentifier(data),
+      _readNode(data.variableDeclaration_name),
       _Tokens.EQ,
       _readNodeLazy(data.variableDeclaration_initializer),
     );

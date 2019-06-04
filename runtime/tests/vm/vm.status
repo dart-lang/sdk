@@ -259,18 +259,6 @@ dart/generic_field_invocation_test: SkipByDesign # DBC and KBC interpreters do n
 [ $compiler == dart2analyzer || $compiler == dart2js ]
 dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
 
-# Tests that use functionality not supported in Dart 2.
-[ ($compiler == dartk || $compiler == dartkb) || $compiler == dartkp ]
-cc/DartAPI_IsolateSetCheckedMode: SkipByDesign # Checked mode is not relevant for dart 2?
-cc/CompileFunction: SkipByDesign
-cc/InvokeDynamic_CompileError: SkipByDesign
-cc/InvokeStatic_CompileError: SkipByDesign
-cc/DartEntry: SkipByDesign
-cc/FindCodeObject: SkipByDesign
-cc/DartDynamicResolve: SkipByDesign
-cc/DartStaticResolve: SkipByDesign
-cc/CompileScript: SkipByDesign
-
 [ $compiler == precompiler || $mode == product ]
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors

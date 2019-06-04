@@ -1,3 +1,70 @@
+## 2.3.2-dev.0.1
+(Add new changes here, and they will be copied to the change section for the
+ next dev version)
+
+### Language
+
+*   **Breaking change:** Covariance of type variables used in super-interfaces
+    is now enforced (issue [35097][]).  For example, the following code was
+    previously accepted and will now be rejected:
+
+```dart
+class A<X> {};
+class B<X> extends A<void Function(X)> {};
+```
+
+* The identifier `async` can now be used in asynchronous and generator
+  functions.
+
+[35097]: https://github.com/dart-lang/sdk/issues/35097
+
+### Core libraries
+
+#### `dart:developer`
+* Exposed `result`, `errorCode` and `errorDetail` getters in
+  `ServiceExtensionResponse` to allow for better debugging of VM service
+  extension RPC results.
+
+#### `dart:io`
+
+* Fixed `Cookie` class interoperability with certain websites by allowing the
+  cookie values to be the empty string (Issue [35804][]) and not stripping
+  double quotes from the value (Issue [33327][]) in accordance with RFC 6265.
+
+  [33327]: https://github.com/dart-lang/sdk/issues/33327
+  [35804]: https://github.com/dart-lang/sdk/issues/35804
+
+* The `HttpClientResponse` interface has been extended with the addition of a
+  new `compressionState` getter, which specifies whether the body of a
+  response was compressed when it was received and whether it has been
+  automatically uncompressed via `HttpClient.autoUncompress` (Issue [36971][]).
+
+  As part of this change, a corresponding new enum was added to `dart:io`:
+  `HttpClientResponseCompressionState`.
+
+  [36971]: https://github.com/dart-lang/sdk/issues/36971
+
+  * **Breaking change**: For those implementing the `HttpClientResponse`
+    interface, this is a breaking change, as implementing classes will need to
+    implement the new getter.
+
+### Dart VM
+
+### Tools
+
+#### Linter
+
+The Linter was updated to `0.1.90`, which includes the following changes:
+
+* fixed null-reference in `unrelated_type_equality_checks`
+* new lint: `unsafe_html`
+
+#### Pub
+
+* `pub publish` will no longer warn about missing dependencies for import
+   statements in `example/`.
+* OAuth2 authentication will explicitely ask for the `openid` scope.
+
 ## 2.3.2-dev.0.0
 
 ### Tools
@@ -285,7 +352,7 @@ The Linter was updated to `0.1.86`, which includes the following changes:
   `.g.dart`, etc.).
 *   Fixed false positives in `unnecessary_parenthesis`.
 
-#### Pub client
+#### Pub
 
 *   Added a CHANGELOG validator that complains if you `pub publish` without
     mentioning the current version.

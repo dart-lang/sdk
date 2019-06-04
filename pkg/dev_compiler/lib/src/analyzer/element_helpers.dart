@@ -124,7 +124,7 @@ bool inInvocationContext(Expression node) {
   if (node == null) return false;
   var parent = node.parent;
   while (parent is ParenthesizedExpression) {
-    node = parent;
+    node = parent as Expression;
     parent = node.parent;
   }
   return parent is InvocationExpression && identical(node, parent.function) ||

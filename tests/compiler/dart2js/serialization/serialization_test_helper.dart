@@ -60,7 +60,7 @@ runTest(
 
   Map<OutputType, Map<String, String>> output = collector1.clear();
 
-  compiler.emitJavaScriptCode(newGlobalInferenceResults);
+  compiler.generateJavaScriptCode(newGlobalInferenceResults);
   Map<OutputType, Map<String, String>> newOutput = collector2.clear();
 
   Expect.setEquals(output.keys, newOutput.keys, "Output type mismatch.");

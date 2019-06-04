@@ -370,6 +370,30 @@ class AstFactoryImpl extends AstFactory {
       new ExtendsClauseImpl(extendsKeyword, superclass);
 
   @override
+  ExtensionDeclaration extensionDeclaration(
+          {Comment comment,
+          List<Annotation> metadata,
+          Token extensionKeyword,
+          @required SimpleIdentifier name,
+          TypeParameterList typeParameters,
+          Token onKeyword,
+          @required TypeAnnotation extendedType,
+          Token leftBracket,
+          List<ClassMember> members,
+          Token rightBracket}) =>
+      new ExtensionDeclarationImpl(
+          comment,
+          metadata,
+          extensionKeyword,
+          name,
+          typeParameters,
+          onKeyword,
+          extendedType,
+          leftBracket,
+          members,
+          rightBracket);
+
+  @override
   FieldDeclaration fieldDeclaration(
           Comment comment,
           List<Annotation> metadata,
@@ -564,7 +588,7 @@ class AstFactoryImpl extends AstFactory {
           TypeParameterList typeParameters,
           FormalParameterList parameters) =>
       new FunctionTypedFormalParameterImpl(comment, metadata, null, null,
-          returnType, identifier, typeParameters, parameters);
+          returnType, identifier, typeParameters, parameters, null);
 
   @override
   FunctionTypedFormalParameter functionTypedFormalParameter2(
@@ -575,9 +599,18 @@ class AstFactoryImpl extends AstFactory {
           TypeAnnotation returnType,
           @required SimpleIdentifier identifier,
           TypeParameterList typeParameters,
-          @required FormalParameterList parameters}) =>
-      new FunctionTypedFormalParameterImpl(comment, metadata, covariantKeyword,
-          requiredKeyword, returnType, identifier, typeParameters, parameters);
+          @required FormalParameterList parameters,
+          Token question}) =>
+      new FunctionTypedFormalParameterImpl(
+          comment,
+          metadata,
+          covariantKeyword,
+          requiredKeyword,
+          returnType,
+          identifier,
+          typeParameters,
+          parameters,
+          question);
 
   @override
   GenericFunctionType genericFunctionType(

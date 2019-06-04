@@ -29,7 +29,8 @@ class CompletionResolveHandler
   @override
   LspJsonHandler<CompletionItem> get jsonHandler => CompletionItem.jsonHandler;
 
-  Future<ErrorOr<CompletionItem>> handle(CompletionItem item) async {
+  Future<ErrorOr<CompletionItem>> handle(
+      CompletionItem item, CancellationToken token) async {
     // If this isn't an item with resolution data, return the same item back.
     if (item.data == null) {
       return success(item);
@@ -80,6 +81,10 @@ class CompletionResolveHandler
 
         var resolvedLibrary = await session.getResolvedLibrary(libraryPath);
 
+        if (token.isCancellationRequested) {
+          return cancelled();
+        }
+
         analyzer.LibraryElement requestedLibraryElement;
         try {
           requestedLibraryElement = await session.getLibraryByUri(
@@ -91,6 +96,10 @@ class CompletionResolveHandler
             'Invalid library URI: ${library.uriStr}',
             '$e',
           );
+        }
+
+        if (token.isCancellationRequested) {
+          return cancelled();
         }
 
         var requestedElement =
@@ -117,6 +126,10 @@ class CompletionResolveHandler
             newLabel = '${result.prefix}.$newLabel';
           }
         });
+
+        if (token.isCancellationRequested) {
+          return cancelled();
+        }
 
         final changes = builder.sourceChange;
         final thisFilesChanges =

@@ -198,7 +198,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var getter = findElement.topGet(name);
     assertElement(ref, getter);
 
-    var type = getter.returnType.toString();
+    var type = typeString(getter.returnType);
     assertType(ref, type);
   }
 
@@ -206,7 +206,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var setter = findElement.topSet(name);
     assertElement(ref, setter);
 
-    var type = setter.parameters[0].type.toString();
+    var type = typeString(setter.parameters[0].type);
     assertType(ref, type);
   }
 
@@ -263,8 +263,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertInvokeType(InvocationExpression node, String expected) {
-    DartType actual = node.staticInvokeType;
-    expect(actual?.toString(), expected);
+    TypeImpl actual = node.staticInvokeType;
+    expect(typeString(actual), expected);
   }
 
   void assertInvokeTypeDynamic(InvocationExpression node) {
@@ -275,7 +275,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertMember(
       Expression node, String expectedDefiningType, Element expectedBase) {
     Member actual = getNodeElement(node);
-    expect(actual.definingType.toString(), expectedDefiningType);
+    expect(typeString(actual.definingType), expectedDefiningType);
     expect(actual.baseElement, same(expectedBase));
   }
 
@@ -373,15 +373,14 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }
-    expect(actual?.toString(withNullability: typeToStringWithNullability),
-        expected);
+    expect(typeString(actual), expected);
   }
 
   void assertTypeArgumentTypes(
     InvocationExpression node,
     List<String> expected,
   ) {
-    var actual = node.typeArgumentTypes.map((t) => '$t').toList();
+    var actual = node.typeArgumentTypes.map((t) => typeString(t)).toList();
     expect(actual, expected);
   }
 
@@ -460,6 +459,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     findElement = new FindElement(result.unit);
   }
 
+  /// Return a textual representation of the [type] that is appropriate for
+  /// tests.
+  String typeString(DartType type) => (type as TypeImpl)
+      ?.toString(withNullability: typeToStringWithNullability);
+
   Element _unwrapHandle(Element element) {
     if (element is ElementHandle && element is! Member) {
       return element.actualElement;
@@ -468,8 +472,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   static String _extractReturnType(String invokeType) {
-    int arrowIndex = invokeType.indexOf('→');
-    expect(arrowIndex, isNonNegative);
-    return invokeType.substring(arrowIndex + 1).trim();
+    int functionIndex = invokeType.indexOf(' Function');
+    expect(functionIndex, isNonNegative);
+    return invokeType.substring(0, functionIndex);
   }
 }

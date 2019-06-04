@@ -3629,56 +3629,6 @@ static Dart_Handle LoadScript(const char* url_str, const char* source) {
   return Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
 }
 
-VM_UNIT_TEST_CASE(DartAPI_IsolateSetCheckedMode) {
-  const char* kScriptChars =
-      "int bad1() {\n"
-      "  int foo = 'string';\n"
-      "  return foo;\n"
-      "}\n"
-      "\n"
-      "int good1() {\n"
-      "  int five = 5;\n"
-      "  return five;"
-      "}\n";
-
-  // Create an isolate with checked mode flags.
-  Dart_IsolateFlags api_flags;
-  Isolate::FlagsInitialize(&api_flags);
-  api_flags.enable_asserts = true;
-  char* err;
-  Dart_Isolate isolate =
-      Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                         bin::core_isolate_snapshot_instructions, NULL, NULL,
-                         &api_flags, NULL, &err);
-  if (isolate == NULL) {
-    OS::PrintErr("Creation of isolate failed '%s'\n", err);
-    free(err);
-  }
-  EXPECT(isolate != NULL);
-
-  {
-    Dart_Handle result;
-    Dart_EnterScope();
-    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-    EXPECT_VALID(lib);
-    result = Dart_FinalizeLoading(false);
-    EXPECT_VALID(result);
-    result = Dart_Invoke(lib, NewString("bad1"), 0, NULL);
-    EXPECT_ERROR(result,
-                 "Unhandled exception:\n"
-                 "type 'String' is not a subtype of type 'int' of 'foo'");
-
-    result = Dart_Invoke(lib, NewString("good1"), 0, NULL);
-    EXPECT_VALID(result);
-    Dart_ExitScope();
-  }
-
-  EXPECT(isolate != NULL);
-
-  // Shutdown the isolate.
-  Dart_ShutdownIsolate();
-}
-
 TEST_CASE(DartAPI_DebugName) {
   Dart_Handle debug_name = Dart_DebugName();
   EXPECT_VALID(debug_name);

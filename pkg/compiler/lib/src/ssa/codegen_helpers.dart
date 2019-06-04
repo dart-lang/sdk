@@ -5,13 +5,21 @@
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
-import '../js_backend/js_backend.dart' show SuperMemberData;
 import '../js_backend/interceptor_data.dart';
 import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
 import 'codegen.dart' show CodegenPhase;
 import 'nodes.dart';
+
+/// Returns `true` if the invocation of [selector] on [member] can use an
+/// aliased member.
+///
+/// Invoking a super getter isn't supported, this would require changes to
+/// compact field descriptors in the emitter.
+bool canUseAliasedSuperMember(MemberEntity member, Selector selector) {
+  return !selector.isGetter;
+}
 
 /// Replaces some instructions with specialized versions to make codegen easier.
 /// Caches codegen information on nodes.
@@ -191,7 +199,7 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
           !_interceptorData.isInterceptedMixinSelector(
               selector, mask, _closedWorld)) {
         ConstantValue constant =
-            new AbstractValueConstantValue(receiverArgument.instructionType);
+            new DummyInterceptorConstantValue(receiverArgument.instructionType);
         HConstant dummy = graph.addConstant(constant, _closedWorld);
         receiverArgument.usedBy.remove(node);
         node.inputs[1] = dummy;
@@ -372,6 +380,8 @@ class SsaTypeKnownRemover extends HBaseVisitor with CodegenPhase {
     for (HInstruction user in instruction.usedBy) {
       if (user is HTypeConversion) {
         user.inputType = instruction.instructionType;
+      } else if (user is HPrimitiveCheck) {
+        user.inputType = instruction.instructionType;
       }
     }
     instruction.block.rewrite(instruction, instruction.checkedInput);
@@ -379,7 +389,7 @@ class SsaTypeKnownRemover extends HBaseVisitor with CodegenPhase {
   }
 }
 
-/// Remove [HTypeConversion] instructions from the graph in '--trust-primitives'
+/// Remove [HPrimitiveCheck] instructions from the graph in '--trust-primitives'
 /// mode.
 class SsaTrustedCheckRemover extends HBaseVisitor with CodegenPhase {
   final CompilerOptions _options;
@@ -403,11 +413,15 @@ class SsaTrustedCheckRemover extends HBaseVisitor with CodegenPhase {
   }
 
   @override
-  void visitTypeConversion(HTypeConversion instruction) {
-    if (instruction.isReceiverTypeCheck || instruction.isArgumentTypeCheck) {
-      instruction.block.rewrite(instruction, instruction.checkedInput);
-      instruction.block.remove(instruction);
-    }
+  void visitPrimitiveCheck(HPrimitiveCheck instruction) {
+    instruction.block.rewrite(instruction, instruction.checkedInput);
+    instruction.block.remove(instruction);
+  }
+
+  @override
+  void visitBoolConversion(HBoolConversion instruction) {
+    instruction.block.rewrite(instruction, instruction.checkedInput);
+    instruction.block.remove(instruction);
   }
 }
 
@@ -589,7 +603,6 @@ class SsaAssignmentChaining extends HBaseVisitor with CodegenPhase {
 ///   t2 = add(4, 3);
 class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
   final AbstractValueDomain _abstractValueDomain;
-  final SuperMemberData _superMemberData;
 
   /// List of [HInstruction] that the instruction merger expects in
   /// order when visiting the inputs of an instruction.
@@ -606,8 +619,7 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
     generateAtUseSite.add(instruction);
   }
 
-  SsaInstructionMerger(
-      this._abstractValueDomain, this.generateAtUseSite, this._superMemberData);
+  SsaInstructionMerger(this._abstractValueDomain, this.generateAtUseSite);
 
   @override
   void visitGraph(HGraph graph) {
@@ -693,7 +705,7 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
     // after first access if we use lazy initialization.
     // In this case, we therefore don't allow the receiver (the first argument)
     // to be generated at use site, and only analyze all other arguments.
-    if (!_superMemberData.canUseAliasedSuperMember(superMethod, selector)) {
+    if (!canUseAliasedSuperMember(superMethod, selector)) {
       analyzeInputs(instruction, 1);
     } else {
       super.visitInvokeSuper(instruction);
@@ -737,14 +749,13 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
 
   @override
   void visitTypeConversion(HTypeConversion instruction) {
-    if (!instruction.isArgumentTypeCheck && !instruction.isReceiverTypeCheck) {
-      assert(instruction.isCheckedModeCheck || instruction.isCastTypeCheck);
-      // Checked mode checks and cast checks compile to code that
-      // only use their input once, so we can safely visit them
-      // and try to merge the input.
-      visitInstruction(instruction);
-    }
+    // Type checks and cast checks compile to code that only use their input
+    // once, so we can safely visit them and try to merge the input.
+    visitInstruction(instruction);
   }
+
+  @override
+  void visitPrimitiveCheck(HPrimitiveCheck instruction) {}
 
   @override
   void visitTypeKnown(HTypeKnown instruction) {

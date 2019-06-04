@@ -108,6 +108,7 @@ class JsClosedWorldBuilder {
         .getClassHierarchyNode(closedWorld.commonElements.objectClass)
         .forEachSubclass((ClassEntity cls) {
       convertClassSet(closedWorld.classHierarchy.getClassSet(cls));
+      return IterationStep.CONTINUE;
     }, ClassHierarchyNode.ALL);
 
     Set<MemberEntity> liveInstanceMembers =
@@ -485,6 +486,9 @@ class JsClosedWorldBuilder {
         if (entity is KLocalFunction) {
           var closureInfo = closureDataLookup.getClosureInfo(entity.node);
           result[closureInfo.callMethod] = unit;
+          if (closureInfo.signatureMethod != null) {
+            result[closureInfo.signatureMethod] = unit;
+          }
         }
       });
       return result;
@@ -846,7 +850,11 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   @override
   ConstantValue visitString(StringConstantValue constant, _) => constant;
   @override
-  ConstantValue visitAbstractValue(AbstractValueConstantValue constant, _) =>
+  ConstantValue visitDummyInterceptor(
+          DummyInterceptorConstantValue constant, _) =>
+      constant;
+  @override
+  ConstantValue visitUnreachable(UnreachableConstantValue constant, _) =>
       constant;
   @override
   ConstantValue visitJsName(JsNameConstantValue constant, _) => constant;

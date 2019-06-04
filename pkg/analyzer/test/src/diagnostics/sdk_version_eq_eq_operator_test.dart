@@ -22,7 +22,7 @@ class SdkVersionEqEqOperatorTest extends SdkConstraintVerifierTest {
     ..enabledExperiments = [EnableString.constant_update_2018];
 
   test_left_equals() {
-    verifyVersion('2.2.2', '''
+    verifyVersion('2.3.2', '''
 class A {
   const A();
 }
@@ -42,7 +42,7 @@ const c = a == null;
   }
 
   test_right_equals() {
-    verifyVersion('2.2.2', '''
+    verifyVersion('2.3.2', '''
 class A {
   const A();
 }

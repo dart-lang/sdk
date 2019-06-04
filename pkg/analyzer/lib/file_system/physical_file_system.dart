@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -193,7 +194,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
   }
 
   @override
-  List<int> readAsBytesSync() {
+  Uint8List readAsBytesSync() {
     _throwIfWindowsDeviceDriver();
     try {
       return _file.readAsBytesSync();

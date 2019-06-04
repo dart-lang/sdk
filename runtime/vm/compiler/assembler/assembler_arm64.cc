@@ -1164,6 +1164,23 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   }
 }
 
+void Assembler::EmitEntryFrameVerification() {
+#if defined(DEBUG)
+  Label done;
+  ASSERT(!constant_pool_allowed());
+  LoadImmediate(TMP,
+                compiler::target::frame_layout.exit_link_slot_from_entry_fp *
+                    compiler::target::kWordSize);
+  add(TMP, TMP, Operand(FPREG));
+  cmp(TMP, Operand(SPREG));
+  b(&done, EQ);
+
+  Breakpoint();
+
+  Bind(&done);
+#endif
+}
+
 void Assembler::RestoreCodePointer() {
   ldr(CODE_REG, Address(FP, compiler::target::frame_layout.code_from_fp *
                                 target::kWordSize));
@@ -1295,11 +1312,12 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
 }
 
 void Assembler::TransitionGeneratedToNative(Register destination,
+                                            Register new_exit_rame,
                                             Register state) {
   Register addr = TMP2;
 
   // Save exit frame information to enable stack walking.
-  StoreToOffset(FPREG, THR,
+  StoreToOffset(new_exit_rame, THR,
                 compiler::target::Thread::top_exit_frame_info_offset());
 
   // Mark that the thread is executing native code.
@@ -1823,6 +1841,41 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
         PopQuad(fpu_reg);
       }
     }
+  }
+}
+
+void Assembler::PushNativeCalleeSavedRegisters() {
+  // Save the callee-saved registers.
+  for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
+    const Register r = static_cast<Register>(i);
+    // We use str instead of the Push macro because we will be pushing the PP
+    // register when it is not holding a pool-pointer since we are coming from
+    // C++ code.
+    str(r, Address(SP, -1 * target::kWordSize, Address::PreIndex));
+  }
+
+  // Save the bottom 64-bits of callee-saved V registers.
+  for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
+    const VRegister r = static_cast<VRegister>(i);
+    PushDouble(r);
+  }
+}
+
+void Assembler::PopNativeCalleeSavedRegisters() {
+  // Restore the bottom 64-bits of callee-saved V registers.
+  for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {
+    const VRegister r = static_cast<VRegister>(i);
+    PopDouble(r);
+  }
+
+  // Restore C++ ABI callee-saved registers.
+  for (int i = kAbiLastPreservedCpuReg; i >= kAbiFirstPreservedCpuReg; i--) {
+    Register r = static_cast<Register>(i);
+    // We use ldr instead of the Pop macro because we will be popping the PP
+    // register when it is not holding a pool-pointer since we are returning to
+    // C++ code. We also skip the dart stack pointer SP, since we are still
+    // using it as the stack pointer.
+    ldr(r, Address(SP, 1 * target::kWordSize, Address::PostIndex));
   }
 }
 

@@ -648,9 +648,23 @@ class Assembler : public AssemblerBase {
 
   void MonomorphicCheckedEntry() {}
 
+  // In debug mode, this generates code to check that:
+  //   FP + kExitLinkSlotFromEntryFp == SP
+  // or triggers breakpoint otherwise.
+  //
+  // Clobbers EAX.
+  void EmitEntryFrameVerification();
+
+  // Transitions safepoint and Thread state between generated and native code.
+  // Updates top-exit-frame info, VM tag and execution-state. Leaves/enters a
+  // safepoint.
+  //
   // Require a temporary register 'tmp'.
   // Clobber all non-CPU registers (e.g. XMM registers and the "FPU stack").
+  // However XMM0 is saved for convenience.
+
   void TransitionGeneratedToNative(Register destination_address,
+                                   Register new_exit_frame,
                                    Register scratch);
   void TransitionNativeToGenerated(Register scratch);
 

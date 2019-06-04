@@ -258,9 +258,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 
 bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
 #if !defined(PRODUCT)
-  Isolate* isolate = thread->isolate();
-  if (isolate->debugger()->IsStepping() ||
-      isolate->debugger()->HasBreakpoint(function, thread->zone())) {
+  if (Debugger::IsDebugging(thread, function)) {
     // We cannot set breakpoints and single step in optimized code,
     // so do not optimize the function. Bump usage counter down to avoid
     // repeatedly entering the runtime for an optimization attempt.
@@ -1110,16 +1108,27 @@ RawError* Compiler::CompileParsedFunction(ParsedFunction* parsed_function) {
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(!code.is_optimized());
   const Function& function = Function::Handle(code.function());
-  ParsedFunction* parsed_function = new ParsedFunction(
-      Thread::Current(), Function::ZoneHandle(function.raw()));
   ASSERT(code.var_descriptors() == Object::null());
   // IsIrregexpFunction have eager var descriptors generation.
   ASSERT(!function.IsIrregexpFunction());
+  if (function.is_declared_in_bytecode()) {
+    auto& var_descs = LocalVarDescriptors::Handle();
+    if (function.HasBytecode()) {
+      const auto& bytecode = Bytecode::Handle(function.bytecode());
+      var_descs = bytecode.GetLocalVarDescriptors();
+    } else {
+      var_descs = Object::empty_var_descriptors().raw();
+    }
+    code.set_var_descriptors(var_descs);
+    return;
+  }
   // In background compilation, parser can produce 'errors": bailouts
   // if state changed while compiling in background.
   CompilerState state(Thread::Current());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    ParsedFunction* parsed_function = new ParsedFunction(
+        Thread::Current(), Function::ZoneHandle(function.raw()));
     ZoneGrowableArray<const ICData*>* ic_data_array =
         new ZoneGrowableArray<const ICData*>();
     ZoneGrowableArray<intptr_t>* context_level_array =

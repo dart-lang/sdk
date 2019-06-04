@@ -264,6 +264,14 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
   @override
   Response handleRequest(Request request) {
+    if (!server.options.featureSet.completion) {
+      return Response.invalidParameter(
+        request,
+        'request',
+        'The completion feature is not enabled',
+      );
+    }
+
     return runZoned(() {
       String requestName = request.method;
 
@@ -335,8 +343,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
    * Process a `completion.getSuggestions` request.
    */
   Future<void> processRequest(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     performance = new CompletionPerformance();
 
     // extract and validate params
@@ -389,8 +395,13 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       includedElementKinds,
       includedSuggestionRelevanceTags,
     ).then((CompletionResult result) {
+      String libraryFile;
       List<IncludedSuggestionSet> includedSuggestionSets;
       if (includedElementKinds != null && resolvedUnit != null) {
+        libraryFile = resolvedUnit.libraryElement.source.fullName;
+        server.sendNotification(
+          createExistingImportsNotification(resolvedUnit),
+        );
         includedSuggestionSets = computeIncludedSetList(
           server.declarationsTracker,
           resolvedUnit,
@@ -406,6 +417,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         result.replacementOffset,
         result.replacementLength,
         result.suggestions,
+        libraryFile,
         includedSuggestionSets,
         includedElementKinds?.toList(),
         includedSuggestionRelevanceTags,
@@ -444,6 +456,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     int replacementOffset,
     int replacementLength,
     Iterable<CompletionSuggestion> results,
+    String libraryFile,
     List<IncludedSuggestionSet> includedSuggestionSets,
     List<ElementKind> includedElementKinds,
     List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
@@ -455,6 +468,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         replacementLength,
         results,
         true,
+        libraryFile: libraryFile,
         includedSuggestionSets: includedSuggestionSets,
         includedElementKinds: includedElementKinds,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,

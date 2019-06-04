@@ -56,15 +56,34 @@ typedef List<DartType> TypeArgumentsComputer();
  */
 class BottomTypeImpl extends TypeImpl {
   /**
-   * The unique instance of this class.
+   * The unique instance of this class, nullable.
+   *
+   * This behaves equivalently to the `Null` type, but we distinguish it for two
+   * reasons: (1) there are circumstances where we need access to this type, but
+   * we don't have access to the type provider, so using `Never?` is a
+   * convenient solution.  (2) we may decide that the distinction is convenient
+   * in diagnostic messages (this is TBD).
    */
-  static final BottomTypeImpl instance = new BottomTypeImpl._();
+  static final BottomTypeImpl instanceNullable =
+      new BottomTypeImpl._(NullabilitySuffix.question);
+
+  /**
+   * The unique instance of this class, non-nullable.
+   */
+  static final BottomTypeImpl instance =
+      new BottomTypeImpl._(NullabilitySuffix.none);
+
+  @override
+  final NullabilitySuffix nullabilitySuffix;
 
   /**
    * Prevent the creation of instances of this class.
    */
-  BottomTypeImpl._() : super(new NeverElementImpl(), "Never") {
-    (element as NeverElementImpl).type = this;
+  BottomTypeImpl._(this.nullabilitySuffix)
+      : super(new NeverElementImpl(), "Never") {
+    if (nullabilitySuffix == NullabilitySuffix.none) {
+      (element as NeverElementImpl).type = this;
+    }
   }
 
   @override
@@ -74,7 +93,10 @@ class BottomTypeImpl extends TypeImpl {
   bool get isBottom => true;
 
   @override
-  NullabilitySuffix get nullabilitySuffix => NullabilitySuffix.none;
+  bool get isDartCoreNull {
+    // `Never?` is equivalent to `Null`, so make sure it behaves the same.
+    return nullabilitySuffix == NullabilitySuffix.question;
+  }
 
   @override
   bool operator ==(Object object) => identical(object, this);
@@ -119,8 +141,22 @@ class BottomTypeImpl extends TypeImpl {
 
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
-    // The bottom type is always non-nullable.
-    return this;
+    switch (nullabilitySuffix) {
+      case NullabilitySuffix.question:
+        return instanceNullable;
+      case NullabilitySuffix.star:
+        // This should never happen.  Converting `Never` to a legacy type should
+        // yield `Null`, because prior to NNBD, `Null` was at the bottom of the
+        // type hierarchy.
+        //
+        // However, due to bugs elsewhere in the analyzer, this does still
+        // happen sometimes, so for now just coerce to `Never?`.
+        // TODO(paulberry): change this to throw an exception.
+        return instanceNullable;
+      case NullabilitySuffix.none:
+        return instance;
+    }
+    throw StateError('Unexpected nullabilitySuffix: $nullabilitySuffix');
   }
 }
 
@@ -242,6 +278,12 @@ class CircularFunctionTypeImpl extends DynamicTypeImpl
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) => this;
 
   @override
+  void _appendToWithTypeParameters(StringBuffer buffer,
+      Set<TypeImpl> visitedTypes, bool withNullability, String typeParameters) {
+    throw StateError('We should never get here.');
+  }
+
+  @override
   void _forEachParameterType(
       ParameterKind kind, callback(String name, DartType type)) {
     // There are no parameters.
@@ -309,8 +351,10 @@ class DeferredFunctionTypeImpl extends _FunctionTypeImplLazy {
 
   DeferredFunctionTypeImpl(this._computeElement, String name,
       List<DartType> typeArguments, bool isInstantiated,
-      {NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star})
-      : super._(null, name, null, typeArguments, null, null, isInstantiated,
+      {NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
+      FunctionTypedElement computedElement})
+      : _computedElement = computedElement,
+        super._(null, name, null, typeArguments, null, null, isInstantiated,
             nullabilitySuffix: nullabilitySuffix);
 
   @override
@@ -327,6 +371,7 @@ class DeferredFunctionTypeImpl extends _FunctionTypeImplLazy {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
     return DeferredFunctionTypeImpl(
         _computeElement, name, typeArguments, isInstantiated,
+        computedElement: _computedElement,
         nullabilitySuffix: nullabilitySuffix);
   }
 }
@@ -680,11 +725,11 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes,
       {bool withNullability = false}) {
-    // TODO(paulberry): update to use the new "Function" syntax to avoid
-    // ambiguity with NNBD, and eliminate code duplication with
+    // TODO(paulberry): eliminate code duplication with
     // _ElementWriter.writeType.  See issue #35818.
     if (visitedTypes.add(this)) {
       if (typeFormals.isNotEmpty) {
+        StringBuffer typeParametersBuffer = StringBuffer();
         // To print a type with type variables, first make sure we have unique
         // variable names to print.
         Set<TypeParameterType> freeVariables = new HashSet<TypeParameterType>();
@@ -699,10 +744,10 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
         List<DartType> instantiateTypeArgs = <DartType>[];
         List<DartType> variables = <DartType>[];
-        buffer.write("<");
+        typeParametersBuffer.write('<');
         for (TypeParameterElement e in typeFormals) {
           if (e != typeFormals[0]) {
-            buffer.write(",");
+            typeParametersBuffer.write(',');
           }
           String name = e.name;
           int counter = 0;
@@ -717,89 +762,27 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
           }
           TypeParameterTypeImpl t =
               new TypeParameterTypeImpl(new TypeParameterElementImpl(name, -1));
-          t.appendTo(buffer, visitedTypes, withNullability: withNullability);
+          t.appendTo(typeParametersBuffer, visitedTypes,
+              withNullability: withNullability);
           instantiateTypeArgs.add(t);
           variables.add(e.type);
           if (e.bound != null) {
-            buffer.write(" extends ");
+            typeParametersBuffer.write(' extends ');
             TypeImpl renamed =
                 e.bound.substitute2(instantiateTypeArgs, variables);
-            renamed.appendTo(buffer, visitedTypes);
+            renamed.appendTo(typeParametersBuffer, visitedTypes);
           }
         }
-        buffer.write(">");
+        typeParametersBuffer.write('>');
 
-        // Instantiate it and print the resulting type. After instantiation, it
-        // will no longer have typeFormals, so we will continue below.
-        this
-            .instantiate(instantiateTypeArgs)
-            .appendTo(buffer, visitedTypes, withNullability: withNullability);
-        return;
-      }
-
-      List<DartType> normalParameterTypes = this.normalParameterTypes;
-      List<DartType> optionalParameterTypes = this.optionalParameterTypes;
-      Map<String, DartType> namedParameterTypes = this.namedParameterTypes;
-      DartType returnType = this.returnType;
-
-      bool needsComma = false;
-      void writeSeparator() {
-        if (needsComma) {
-          buffer.write(", ");
-        } else {
-          needsComma = true;
-        }
-      }
-
-      void startOptionalParameters() {
-        if (needsComma) {
-          buffer.write(", ");
-          needsComma = false;
-        }
-      }
-
-      buffer.write("(");
-      if (normalParameterTypes.isNotEmpty) {
-        for (DartType type in normalParameterTypes) {
-          writeSeparator();
-          (type as TypeImpl)
-              .appendTo(buffer, visitedTypes, withNullability: withNullability);
-        }
-      }
-      if (optionalParameterTypes.isNotEmpty) {
-        startOptionalParameters();
-        buffer.write("[");
-        for (DartType type in optionalParameterTypes) {
-          writeSeparator();
-          (type as TypeImpl)
-              .appendTo(buffer, visitedTypes, withNullability: withNullability);
-        }
-        buffer.write("]");
-        needsComma = true;
-      }
-      if (namedParameterTypes.isNotEmpty) {
-        startOptionalParameters();
-        buffer.write("{");
-        namedParameterTypes.forEach((String name, DartType type) {
-          writeSeparator();
-          buffer.write(name);
-          buffer.write(": ");
-          (type as TypeImpl)
-              .appendTo(buffer, visitedTypes, withNullability: withNullability);
-        });
-        buffer.write("}");
-        needsComma = true;
-      }
-      buffer.write(")");
-      buffer.write(ElementImpl.RIGHT_ARROW);
-      if (returnType == null) {
-        buffer.write("null");
+        // Instantiate it and print the resulting type.
+        this.instantiate(instantiateTypeArgs)._appendToWithTypeParameters(
+            buffer,
+            visitedTypes,
+            withNullability,
+            typeParametersBuffer.toString());
       } else {
-        (returnType as TypeImpl)
-            .appendTo(buffer, visitedTypes, withNullability: withNullability);
-      }
-      if (withNullability) {
-        _appendNullability(buffer);
+        _appendToWithTypeParameters(buffer, visitedTypes, withNullability, '');
       }
       visitedTypes.remove(this);
     } else {
@@ -901,6 +884,76 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   FunctionTypeImpl substitute3(List<DartType> argumentTypes) =>
       substitute2(argumentTypes, typeArguments);
+
+  void _appendToWithTypeParameters(StringBuffer buffer,
+      Set<TypeImpl> visitedTypes, bool withNullability, String typeParameters) {
+    List<DartType> normalParameterTypes = this.normalParameterTypes;
+    List<DartType> optionalParameterTypes = this.optionalParameterTypes;
+    Map<String, DartType> namedParameterTypes = this.namedParameterTypes;
+    DartType returnType = this.returnType;
+
+    if (returnType == null) {
+      buffer.write('null');
+    } else {
+      (returnType as TypeImpl)
+          .appendTo(buffer, visitedTypes, withNullability: withNullability);
+    }
+    buffer.write(' Function');
+    buffer.write(typeParameters);
+    bool needsComma = false;
+
+    void writeSeparator() {
+      if (needsComma) {
+        buffer.write(', ');
+      } else {
+        needsComma = true;
+      }
+    }
+
+    void startOptionalParameters() {
+      if (needsComma) {
+        buffer.write(', ');
+        needsComma = false;
+      }
+    }
+
+    buffer.write('(');
+    if (normalParameterTypes.isNotEmpty) {
+      for (DartType type in normalParameterTypes) {
+        writeSeparator();
+        (type as TypeImpl)
+            .appendTo(buffer, visitedTypes, withNullability: withNullability);
+      }
+    }
+    if (optionalParameterTypes.isNotEmpty) {
+      startOptionalParameters();
+      buffer.write('[');
+      for (DartType type in optionalParameterTypes) {
+        writeSeparator();
+        (type as TypeImpl)
+            .appendTo(buffer, visitedTypes, withNullability: withNullability);
+      }
+      buffer.write(']');
+      needsComma = true;
+    }
+    if (namedParameterTypes.isNotEmpty) {
+      startOptionalParameters();
+      buffer.write('{');
+      namedParameterTypes.forEach((String name, DartType type) {
+        writeSeparator();
+        buffer.write(name);
+        buffer.write(': ');
+        (type as TypeImpl)
+            .appendTo(buffer, visitedTypes, withNullability: withNullability);
+      });
+      buffer.write('}');
+      needsComma = true;
+    }
+    buffer.write(')');
+    if (withNullability) {
+      _appendNullability(buffer);
+    }
+  }
 
   /**
    * Invokes [callback] for each parameter of [kind] with the parameter's [name]
@@ -2924,11 +2977,17 @@ abstract class TypeImpl implements DartType {
    *
    * If the nullability of `this` already matches [nullabilitySuffix], `this`
    * is returned.
+   *
+   * Note: this method just does low-level manipulations of the underlying type,
+   * so it is what you want if you are constructing a fresh type and want it to
+   * have the correct nullability suffix, but it is generally *not* what you
+   * want if you're manipulating existing types.  For manipulating existing
+   * types, please use the methods in [TypeSystem].
    */
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix);
 
   void _appendNullability(StringBuffer buffer) {
-    if (isDynamic || isBottom || isVoid) {
+    if (isDynamic || isVoid) {
       // These types don't have nullability variations, so don't append
       // anything.
       return;
@@ -3181,7 +3240,21 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       return objectType;
     }
 
-    return element.bound.resolveToBound(objectType);
+    NullabilitySuffix newNullabilitySuffix;
+    if (nullabilitySuffix == NullabilitySuffix.question ||
+        (element.bound as TypeImpl).nullabilitySuffix ==
+            NullabilitySuffix.question) {
+      newNullabilitySuffix = NullabilitySuffix.question;
+    } else if (nullabilitySuffix == NullabilitySuffix.star ||
+        (element.bound as TypeImpl).nullabilitySuffix ==
+            NullabilitySuffix.star) {
+      newNullabilitySuffix = NullabilitySuffix.star;
+    } else {
+      newNullabilitySuffix = NullabilitySuffix.none;
+    }
+
+    return (element.bound.resolveToBound(objectType) as TypeImpl)
+        .withNullability(newNullabilitySuffix);
   }
 
   @override
@@ -3190,7 +3263,8 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       [List<FunctionTypeAliasElement> prune]) {
     int length = parameterTypes.length;
     for (int i = 0; i < length; i++) {
-      if (parameterTypes[i] == this) {
+      var parameterType = parameterTypes[i];
+      if (parameterType is TypeParameterTypeImpl && parameterType == this) {
         TypeImpl argumentType = argumentTypes[i];
 
         // TODO(scheglov) It should not happen, but sometimes arguments are null.
@@ -3200,15 +3274,29 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
         // TODO(scheglov) Proposed substitution rules for nullability.
         NullabilitySuffix resultNullability;
+        NullabilitySuffix parameterNullability =
+            parameterType.nullabilitySuffix;
         NullabilitySuffix argumentNullability = argumentType.nullabilitySuffix;
-        if (argumentNullability == NullabilitySuffix.question ||
-            nullabilitySuffix == NullabilitySuffix.question) {
-          resultNullability = NullabilitySuffix.question;
-        } else if (argumentNullability == NullabilitySuffix.star ||
-            nullabilitySuffix == NullabilitySuffix.star) {
-          resultNullability = NullabilitySuffix.star;
+        if (parameterNullability == NullabilitySuffix.none) {
+          if (argumentNullability == NullabilitySuffix.question ||
+              nullabilitySuffix == NullabilitySuffix.question) {
+            resultNullability = NullabilitySuffix.question;
+          } else if (argumentNullability == NullabilitySuffix.star ||
+              nullabilitySuffix == NullabilitySuffix.star) {
+            resultNullability = NullabilitySuffix.star;
+          } else {
+            resultNullability = NullabilitySuffix.none;
+          }
+        } else if (parameterNullability == NullabilitySuffix.star) {
+          if (argumentNullability == NullabilitySuffix.question ||
+              nullabilitySuffix == NullabilitySuffix.question) {
+            resultNullability = NullabilitySuffix.question;
+          } else {
+            resultNullability = argumentNullability;
+          }
         } else {
-          resultNullability = NullabilitySuffix.none;
+          // We should never be substituting for `T?`.
+          throw new StateError('Tried to substitute for T?');
         }
 
         return argumentType.withNullability(resultNullability);

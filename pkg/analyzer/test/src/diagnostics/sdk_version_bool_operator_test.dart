@@ -22,7 +22,7 @@ class SdkVersionBoolOperatorTest extends SdkConstraintVerifierTest {
     ..enabledExperiments = [EnableString.constant_update_2018];
 
   test_and_const_equals() {
-    verifyVersion('2.2.2', '''
+    verifyVersion('2.3.2', '''
 const c = true & false;
 ''');
   }
@@ -46,7 +46,7 @@ var c = true & false;
   }
 
   test_or_const_equals() {
-    verifyVersion('2.2.2', '''
+    verifyVersion('2.3.2', '''
 const c = true | false;
 ''');
   }
@@ -70,7 +70,7 @@ var c = true | false;
   }
 
   test_xor_const_equals() {
-    verifyVersion('2.2.2', '''
+    verifyVersion('2.3.2', '''
 const c = true ^ false;
 ''');
   }

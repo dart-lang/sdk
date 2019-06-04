@@ -19,7 +19,8 @@ class InitializeMessageHandler
   LspJsonHandler<InitializeParams> get jsonHandler =>
       InitializeParams.jsonHandler;
 
-  ErrorOr<InitializeResult> handle(InitializeParams params) {
+  ErrorOr<InitializeResult> handle(
+      InitializeParams params, CancellationToken token) {
     final openWorkspacePaths = <String>[];
 
     // The onlyAnalyzeProjectsWithOpenFiles flag allows opening huge folders
@@ -69,6 +70,12 @@ class InitializeMessageHandler
     final renameOptionsSupport =
         params.capabilities.textDocument?.rename?.prepareSupport ?? false;
 
+    // When adding new capabilities to the server that may apply to specific file
+    // types, it's important to update
+    // [IntializedMessageHandler._performDynamicRegistration()] to notify
+    // supporting clients of this. This avoids clients needing to hard-code the
+    // list of what files types we support (and allows them to avoid sending
+    // requests where we have only partial support for some types).
     server.capabilities = new ServerCapabilities(
         Either2<TextDocumentSyncOptions, num>.t1(new TextDocumentSyncOptions(
           true,
@@ -80,33 +87,10 @@ class InitializeMessageHandler
         true, // hoverProvider
         new CompletionOptions(
           true, // resolveProvider
-          // Set the characters that will cause the editor to automatically
-          // trigger completion.
-          // TODO(dantup): There are several characters that we want to conditionally
-          // allow to trigger completion, but they can only be added when the completion
-          // provider is able to handle them in context:
-          //
-          //    {   trigger if being typed in a string immediately after a $
-          //    '   trigger if the opening quote for an import/export
-          //    "   trigger if the opening quote for an import/export
-          //    /   trigger if as part of a path in an import/export
-          //    \   trigger if as part of a path in an import/export
-          //    :   don't trigger when typing case expressions (`case x:`)
-          //
-          // Additionally, we need to prefix `filterText` on completion items
-          // with spaces for those that can follow whitespace (eg. `foo` in
-          // `myArg: foo`) to ensure they're not filtered away when the user
-          // types space.
-          //
-          // See https://github.com/Dart-Code/Dart-Code/blob/68d1cd271e88a785570257d487adbdec17abd6a3/src/providers/dart_completion_item_provider.ts#L36-L64
-          // for the VS Code implementation of this.
-          r'''.=($'''.split(''),
+          dartCompletionTriggerCharacters,
         ),
         new SignatureHelpOptions(
-          // TODO(dantup): Signature help triggering is even more sensitive to
-          // bad chars, so we'll need to implement the logic described here:
-          // https://github.com/dart-lang/sdk/issues/34241
-          [],
+          dartSignatureHelpTriggerCharacters,
         ),
         true, // definitionProvider
         null,
@@ -125,7 +109,8 @@ class InitializeMessageHandler
         null,
         true, // documentFormattingProvider
         false, // documentRangeFormattingProvider
-        new DocumentOnTypeFormattingOptions('}', [';']),
+        new DocumentOnTypeFormattingOptions(dartTypeFormattingCharacters.first,
+            dartTypeFormattingCharacters.skip(1).toList()),
         renameOptionsSupport
             ? Either2<bool, RenameOptions>.t2(new RenameOptions(true))
             : Either2<bool, RenameOptions>.t1(true),

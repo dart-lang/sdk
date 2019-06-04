@@ -29,6 +29,9 @@ import 'package:analyzer/src/generated/type_system.dart' show TypeSystem;
 abstract class DartType {
   /// Return the name of this type as it should appear when presented to users
   /// in contexts such as error messages.
+  ///
+  /// Clients should not depend on the content of the returned value as it will
+  /// be changed if doing so would improve the UX.
   String get displayName;
 
   /// Return the element representing the declaration of this type, or `null` if

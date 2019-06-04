@@ -106,7 +106,6 @@ io/file_fuzz_test: RuntimeError, Pass
 io/http_client_connect_test: Skip # Flaky.
 io/http_close_test: Crash
 io/http_content_length_test: Skip # Flaky.
-io/http_cookie_test: Skip # Flaky
 io/http_proxy_advanced_test: Skip # Flaky
 io/http_proxy_test: Skip # Flaky.
 io/http_response_deadline_test: Skip # Flaky.

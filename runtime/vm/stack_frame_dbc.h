@@ -81,6 +81,10 @@ static const int kExitLinkSlotFromEntryFp = 0;
 // on all other architectures.
 static const uword kInterruptStackLimit = 0;
 
+// TODO(37140): For FFI native -> Dart callbacks, the number of stack slots
+// between arguments passed on stack and arguments saved in callback prologue.
+constexpr intptr_t kCallbackSlotsBeforeSavedArguments = -1;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_STACK_FRAME_DBC_H_

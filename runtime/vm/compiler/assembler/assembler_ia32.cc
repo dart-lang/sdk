@@ -2084,10 +2084,23 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   }
 }
 
+void Assembler::EmitEntryFrameVerification() {
+#if defined(DEBUG)
+  Label ok;
+  leal(EAX, Address(EBP, target::frame_layout.exit_link_slot_from_entry_fp *
+                             target::kWordSize));
+  cmpl(EAX, ESP);
+  j(EQUAL, &ok);
+  Stop("target::frame_layout.exit_link_slot_from_entry_fp mismatch");
+  Bind(&ok);
+#endif
+}
+
 void Assembler::TransitionGeneratedToNative(Register destination_address,
+                                            Register new_exit_frame,
                                             Register scratch) {
   // Save exit frame information to enable stack walking.
-  movl(Address(THR, Thread::top_exit_frame_info_offset()), FPREG);
+  movl(Address(THR, Thread::top_exit_frame_info_offset()), new_exit_frame);
 
   // Mark that the thread is executing native code.
   movl(VMTagAddress(), destination_address);

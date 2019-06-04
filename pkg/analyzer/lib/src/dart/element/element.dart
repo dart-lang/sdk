@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptionsImpl;
@@ -479,9 +480,9 @@ class ClassElementImpl extends AbstractClassElementImpl
       : super.forSerialized(enclosingUnit);
 
   /// Set whether this class is abstract.
+  @Deprecated('Use isAbstract instead')
   void set abstract(bool isAbstract) {
-    _assertNotResynthesized(_unlinkedClass);
-    setModifier(Modifier.ABSTRACT, isAbstract);
+    this.isAbstract = isAbstract;
   }
 
   @override
@@ -822,6 +823,12 @@ class ClassElementImpl extends AbstractClassElementImpl
       return _unlinkedClass.isAbstract;
     }
     return hasModifier(Modifier.ABSTRACT);
+  }
+
+  /// Set whether this class is abstract.
+  void set isAbstract(bool isAbstract) {
+    _assertNotResynthesized(_unlinkedClass);
+    setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
   @override
@@ -2608,6 +2615,15 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   int get nameEnd {
+    if (linkedNode != null) {
+      var node = linkedNode as ConstructorDeclaration;
+      if (node.name != null) {
+        return node.name.end;
+      } else {
+        return node.returnType.end;
+      }
+    }
+
     if (serializedExecutable != null) {
       if (serializedExecutable.name.isNotEmpty) {
         return serializedExecutable.nameEnd;
@@ -2625,6 +2641,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   int get periodOffset {
+    if (linkedNode != null) {
+      var node = linkedNode as ConstructorDeclaration;
+      return node.period?.offset;
+    }
+
     if (serializedExecutable != null) {
       if (serializedExecutable.name.isNotEmpty) {
         return serializedExecutable.periodOffset;
@@ -2703,6 +2724,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   void appendTo(StringBuffer buffer) {
+    String name;
     if (enclosingElement == null) {
       String message;
       String name = displayName;
@@ -2713,16 +2735,15 @@ class ConstructorElementImpl extends ExecutableElementImpl
         message = 'Found unnamed constructor element with no enclosing element';
       }
       AnalysisEngine.instance.logger.logError(message);
-      buffer.write('<unknown class>');
+      name = '<unknown class>';
     } else {
-      buffer.write(enclosingElement.displayName);
+      name = enclosingElement.displayName;
     }
-    String name = displayName;
-    if (name != null && !name.isEmpty) {
-      buffer.write(".");
-      buffer.write(name);
+    String constructorName = displayName;
+    if (constructorName != null && !constructorName.isEmpty) {
+      name = '$name.$constructorName';
     }
-    super.appendTo(buffer);
+    appendToWithName(buffer, name);
   }
 
   @deprecated
@@ -3207,6 +3228,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
 /// A base class for concrete implementations of an [Element].
 abstract class ElementImpl implements Element {
   /// An Unicode right arrow.
+  @deprecated
   static final String RIGHT_ARROW = " \u2192 ";
 
   static int _NEXT_ID = 0;
@@ -4016,6 +4038,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
       : super.forSerialized(enclosingUnit);
 
   /// Set whether this class is abstract.
+  @Deprecated('This setter will be removed')
   void set abstract(bool isAbstract) {
     _assertNotResynthesized(_unlinkedEnum);
   }
@@ -4617,6 +4640,23 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   void appendTo(StringBuffer buffer) {
+    appendToWithName(buffer, displayName);
+  }
+
+  /// Append a textual representation of this element to the given [buffer]. The
+  /// [name] is the name of the executable element or `null` if the element has
+  /// no name. If [includeType] is `true` then the return type will be included.
+  void appendToWithName(StringBuffer buffer, String name) {
+    FunctionType functionType = type;
+    if (functionType != null) {
+      buffer.write(functionType.returnType);
+      if (name != null) {
+        buffer.write(' ');
+        buffer.write(name);
+      }
+    } else if (name != null) {
+      buffer.write(name);
+    }
     if (this.kind != ElementKind.GETTER) {
       int typeParameterCount = typeParameters.length;
       if (typeParameterCount > 0) {
@@ -4664,10 +4704,6 @@ abstract class ExecutableElementImpl extends ElementImpl
         buffer.write(closing);
       }
       buffer.write(')');
-    }
-    if (type != null) {
-      buffer.write(ElementImpl.RIGHT_ARROW);
-      buffer.write(type.returnType);
     }
   }
 
@@ -5177,15 +5213,6 @@ class FunctionElementImpl extends ExecutableElementImpl
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
-
-  @override
-  void appendTo(StringBuffer buffer) {
-    String name = displayName;
-    if (name != null) {
-      buffer.write(name);
-    }
-    super.appendTo(buffer);
-  }
 
   @deprecated
   @override
@@ -5795,15 +5822,23 @@ class GenericTypeAliasElementImpl extends ElementImpl
       return null;
     }
     FunctionType functionType = function.type;
+
     List<TypeParameterElement> parameterElements = element.typeParameters;
-    List<DartType> parameterTypes =
-        TypeParameterTypeImpl.getTypes(parameterElements);
-    int parameterCount = parameterTypes.length;
+    int parameterCount = parameterElements.length;
+
     if (typeArguments == null ||
         parameterElements.length != typeArguments.length) {
       DartType dynamicType = DynamicElementImpl.instance.type;
       typeArguments = new List<DartType>.filled(parameterCount, dynamicType);
     }
+
+    if (element is GenericTypeAliasElementImpl && element.linkedNode != null) {
+      return Substitution.fromPairs(parameterElements, typeArguments)
+          .substituteType(functionType);
+    }
+
+    List<DartType> parameterTypes =
+        TypeParameterTypeImpl.getTypes(parameterElements);
     return functionType.substitute2(typeArguments, parameterTypes);
   }
 }
@@ -7185,9 +7220,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
       : super.forSerialized(serializedExecutable, enclosingClass);
 
   /// Set whether this method is abstract.
+  @Deprecated('Use isAbstract instead')
   void set abstract(bool isAbstract) {
-    _assertNotResynthesized(serializedExecutable);
-    setModifier(Modifier.ABSTRACT, isAbstract);
+    this.isAbstract = isAbstract;
   }
 
   @override
@@ -7205,6 +7240,12 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext =>
       super.enclosingElement as ClassElementImpl;
+
+  /// Set whether this class is abstract.
+  void set isAbstract(bool isAbstract) {
+    _assertNotResynthesized(serializedExecutable);
+    setModifier(Modifier.ABSTRACT, isAbstract);
+  }
 
   @override
   bool get isOperator {
@@ -7250,12 +7291,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
-
-  @override
-  void appendTo(StringBuffer buffer) {
-    buffer.write(displayName);
-    super.appendTo(buffer);
-  }
 
   @deprecated
   @override
@@ -8897,9 +8932,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   /// Set whether this accessor is abstract.
+  @Deprecated('Use isAbstract instead')
   void set abstract(bool isAbstract) {
-    _assertNotResynthesized(serializedExecutable);
-    setModifier(Modifier.ABSTRACT, isAbstract);
+    this.isAbstract = isAbstract;
   }
 
   @override
@@ -8944,6 +8979,12 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     String name = displayName;
     String suffix = isGetter ? "?" : "=";
     return "$name$suffix";
+  }
+
+  /// Set whether this class is abstract.
+  void set isAbstract(bool isAbstract) {
+    _assertNotResynthesized(serializedExecutable);
+    setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
   @override
@@ -9024,9 +9065,8 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   void appendTo(StringBuffer buffer) {
-    buffer.write(isGetter ? "get " : "set ");
-    buffer.write(variable.displayName);
-    super.appendTo(buffer);
+    super.appendToWithName(
+        buffer, (isGetter ? 'get ' : 'set ') + variable.displayName);
   }
 
   @deprecated

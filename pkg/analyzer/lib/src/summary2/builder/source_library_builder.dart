@@ -65,6 +65,7 @@ class SourceLibraryBuilder {
             var nameList = node.hiddenNames.map((i) => i.name).toList();
             return Combinator.hide(nameList);
           }
+          return null;
         }).toList();
 
         var exported = linker.builders[uri];

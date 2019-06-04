@@ -29,14 +29,17 @@ class IOPipelineTestStrategy implements PipelineTestStrategy<IOModularStep> {
 
   @override
   Future<Pipeline<IOModularStep>> createPipeline(
-      Map<Uri, String> sources, List<IOModularStep> steps) async {
+      Map<Uri, String> sources, List<IOModularStep> steps,
+      {bool cacheSharedModules: false}) async {
     await Directory.fromUri(testRootUri).create();
     for (var uri in sources.keys) {
       var file = new File.fromUri(uri);
       await file.create(recursive: true);
       await file.writeAsStringSync(sources[uri]);
     }
-    return new IOPipeline(steps, saveFoldersForTesting: true);
+    return new IOPipeline(steps,
+        saveIntermediateResultsForTesting: true,
+        cacheSharedModules: cacheSharedModules);
   }
 
   @override
@@ -83,17 +86,15 @@ class IOPipelineTestStrategy implements PipelineTestStrategy<IOModularStep> {
 
   @override
   String getResult(covariant IOPipeline pipeline, Module m, DataId dataId) {
-    var folderUri = pipeline.tmpFoldersForTesting[dataId];
-    var file = File.fromUri(folderUri.resolve("${m.name}.${dataId.name}"));
+    var folderUri = pipeline.resultFolderUriForTesting;
+    var file = File.fromUri(folderUri
+        .resolve(pipeline.configSpecificResultFileNameForTesting(m, dataId)));
     return file.existsSync() ? file.readAsStringSync() : null;
   }
 
   @override
-  Future<void> cleanup(Pipeline<IOModularStep> pipeline) async {
-    var folders = (pipeline as IOPipeline).tmpFoldersForTesting.values;
-    for (var folder in folders) {
-      await Directory.fromUri(folder).delete(recursive: true);
-    }
+  Future<void> cleanup(covariant IOPipeline pipeline) async {
+    pipeline.cleanup();
     await Directory.fromUri(testRootUri).delete(recursive: true);
   }
 }
@@ -110,8 +111,8 @@ class SourceOnlyStep implements IOModularStep {
   SourceOnlyStep(this.action, this.resultId, this.needsSources);
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
     Map<Uri, String> sources = {};
 
     for (var uri in module.sources) {
@@ -122,6 +123,9 @@ class SourceOnlyStep implements IOModularStep {
     await File.fromUri(root.resolveUri(toUri(module, resultId)))
         .writeAsString(action(sources));
   }
+
+  @override
+  void notifyCached(Module module) {}
 }
 
 class ModuleDataStep implements IOModularStep {
@@ -138,14 +142,17 @@ class ModuleDataStep implements IOModularStep {
       : moduleDataNeeded = requestInput ? [inputId] : [];
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
     var inputData = await _readHelper(module, root, inputId, toUri);
     var result =
         inputData == null ? "data for $module was null" : action(inputData);
     await File.fromUri(root.resolveUri(toUri(module, resultId)))
         .writeAsString(result);
   }
+
+  @override
+  void notifyCached(Module module) {}
 }
 
 class TwoOutputStep implements IOModularStep {
@@ -164,8 +171,8 @@ class TwoOutputStep implements IOModularStep {
       this.action1, this.action2, this.inputId, this.result1Id, this.result2Id);
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
     var inputData = await _readHelper(module, root, inputId, toUri);
     var result1 =
         inputData == null ? "data for $module was null" : action1(inputData);
@@ -176,6 +183,9 @@ class TwoOutputStep implements IOModularStep {
     await File.fromUri(root.resolveUri(toUri(module, result2Id)))
         .writeAsString(result2);
   }
+
+  @override
+  void notifyCached(Module module) {}
 }
 
 class LinkStep implements IOModularStep {
@@ -194,8 +204,8 @@ class LinkStep implements IOModularStep {
       : dependencyDataNeeded = requestDependencies ? [depId] : [];
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
     List<String> depsData = [];
     for (var dependency in module.dependencies) {
       var depData = await _readHelper(dependency, root, depId, toUri);
@@ -205,6 +215,9 @@ class LinkStep implements IOModularStep {
     await File.fromUri(root.resolveUri(toUri(module, resultId)))
         .writeAsString(action(inputData, depsData));
   }
+
+  @override
+  void notifyCached(Module module) {}
 }
 
 class MainOnlyStep implements IOModularStep {
@@ -223,8 +236,8 @@ class MainOnlyStep implements IOModularStep {
       : dependencyDataNeeded = requestDependencies ? [depId] : [];
 
   @override
-  Future<void> execute(
-      Module module, Uri root, ModuleDataToRelativeUri toUri) async {
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
     List<String> depsData = [];
     for (var dependency in computeTransitiveDependencies(module)) {
       var depData = await _readHelper(dependency, root, depId, toUri);
@@ -234,6 +247,9 @@ class MainOnlyStep implements IOModularStep {
     await File.fromUri(root.resolveUri(toUri(module, resultId)))
         .writeAsString(action(inputData, depsData));
   }
+
+  @override
+  void notifyCached(Module module) {}
 }
 
 Future<String> _readHelper(Module module, Uri root, DataId dataId,

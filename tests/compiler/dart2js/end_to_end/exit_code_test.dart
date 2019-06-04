@@ -11,6 +11,7 @@ import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler_new.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/common/work.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
@@ -110,10 +111,15 @@ class TestBackend extends JavaScriptBackend {
             useNewSourceInfo: compiler.options.useNewSourceInfo);
 
   @override
-  WorldImpact generateCode(WorkItem work, JClosedWorld closedWorld,
-      EntityLookup entityLookup, ComponentLookup componentLookup) {
+  WorldImpact generateCode(
+      WorkItem work,
+      JClosedWorld closedWorld,
+      CodegenResults codegenResults,
+      EntityLookup entityLookup,
+      ComponentLookup componentLookup) {
     compiler.test('Compiler.codegen');
-    return super.generateCode(work, closedWorld, entityLookup, componentLookup);
+    return super.generateCode(
+        work, closedWorld, codegenResults, entityLookup, componentLookup);
   }
 }
 

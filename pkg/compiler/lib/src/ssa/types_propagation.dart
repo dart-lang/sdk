@@ -222,24 +222,29 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     HInstruction input = instruction.checkedInput;
     AbstractValue inputType = input.instructionType;
     AbstractValue checkedType = instruction.checkedType;
-    if (instruction.isArgumentTypeCheck || instruction.isReceiverTypeCheck) {
-      // We must make sure a type conversion for receiver or argument check
-      // does not try to do an int check, because an int check is not enough.
-      // We only do an int check if the input is integer or null.
-      if (abstractValueDomain.isNumberOrNull(checkedType).isDefinitelyTrue &&
-          abstractValueDomain.isDoubleOrNull(checkedType).isDefinitelyFalse &&
-          input.isIntegerOrNull(abstractValueDomain).isDefinitelyTrue) {
-        instruction.checkedType = abstractValueDomain.intType;
-      } else if (abstractValueDomain
-              .isIntegerOrNull(checkedType)
-              .isDefinitelyTrue &&
-          input.isIntegerOrNull(abstractValueDomain).isPotentiallyFalse) {
-        instruction.checkedType = abstractValueDomain.numType;
-      }
-    }
-
     AbstractValue outputType =
         abstractValueDomain.intersection(checkedType, inputType);
+    outputType = _numericFixup(outputType, inputType, checkedType);
+    if (inputType != outputType) {
+      // Replace dominated uses of input with uses of this HTypeConversion so
+      // the uses benefit from the stronger type.
+      //
+      // The dependency on the checked value also improves the generated
+      // JavaScript. Many checks are compiled to a function call expression that
+      // returns the checked result, so the check can be generated as a
+      // subexpression rather than a separate statement.
+      //
+      // Do not replace local accesses, since the local must be a HLocalValue,
+      // not a HTypeConversion.
+      if (!(input is HParameterValue && input.usedAsVariable())) {
+        input.replaceAllUsersDominatedBy(instruction.next, instruction);
+      }
+    }
+    return outputType;
+  }
+
+  AbstractValue _numericFixup(AbstractValue outputType, AbstractValue inputType,
+      AbstractValue checkedType) {
     if (abstractValueDomain.isEmpty(outputType).isDefinitelyTrue) {
       // Intersection of double and integer conflicts (is empty), but JS numbers
       // can be both int and double at the same time.  For example, the input
@@ -257,17 +262,38 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         }
       }
     }
+    return outputType;
+  }
+
+  @override
+  AbstractValue visitPrimitiveCheck(HPrimitiveCheck instruction) {
+    HInstruction input = instruction.checkedInput;
+    AbstractValue inputType = input.instructionType;
+    AbstractValue checkedType = instruction.checkedType;
+
+    // We must make sure a receiver or argument check does not try to do an int
+    // check, because an int check is not enough.  We only do an int check if
+    // the input is integer or null.
+    if (abstractValueDomain.isNumberOrNull(checkedType).isDefinitelyTrue &&
+        abstractValueDomain.isDoubleOrNull(checkedType).isDefinitelyFalse &&
+        input.isIntegerOrNull(abstractValueDomain).isDefinitelyTrue) {
+      instruction.checkedType = abstractValueDomain.intType;
+    } else if (abstractValueDomain
+            .isIntegerOrNull(checkedType)
+            .isDefinitelyTrue &&
+        input.isIntegerOrNull(abstractValueDomain).isPotentiallyFalse) {
+      instruction.checkedType = abstractValueDomain.numType;
+    }
+
+    AbstractValue outputType =
+        abstractValueDomain.intersection(checkedType, inputType);
+    outputType = _numericFixup(outputType, inputType, checkedType);
     if (inputType != outputType) {
-      // Replace dominated uses of input with uses of this HTypeConversion so
+      // Replace dominated uses of input with uses of this HPrimitiveCheck so
       // the uses benefit from the stronger type.
       //
-      // The dependency on the checked value also improves the generated
-      // JavaScript. Many checks are compiled to a function call expression that
-      // returns the checked result, so the check can be generated as a
-      // subexpression rather than a separate statement.
-      //
-      // Do not replace local accesses, since the local must be a HLocalValue,
-      // not a HTypeConversion.
+      // Do not replace local variable accesses, since the local must be a
+      // HLocalValue, not another kind of instruction.
       if (!(input is HParameterValue && input.usedAsVariable())) {
         input.replaceAllUsersDominatedBy(instruction.next, instruction);
       }
@@ -289,15 +315,17 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
   void convertInput(HInvokeDynamic instruction, HInstruction input,
       AbstractValue type, int kind, DartType typeExpression) {
-    Selector selector = (kind == HTypeConversion.RECEIVER_TYPE_CHECK)
+    assert(kind == HPrimitiveCheck.RECEIVER_TYPE_CHECK ||
+        kind == HPrimitiveCheck.ARGUMENT_TYPE_CHECK);
+    Selector selector = (kind == HPrimitiveCheck.RECEIVER_TYPE_CHECK)
         ? instruction.selector
         : null;
-    HTypeConversion converted = new HTypeConversion(
+    HPrimitiveCheck converted = new HPrimitiveCheck(
         typeExpression, kind, type, input, instruction.sourceInformation,
         receiverTypeCheckSelector: selector);
     instruction.block.addBefore(instruction, converted);
     input.replaceAllUsersDominatedBy(instruction, converted);
-    _log?.registerTypeConversion(instruction, converted);
+    _log?.registerPrimitiveCheck(instruction, converted);
   }
 
   bool isCheckEnoughForNsmOrAe(HInstruction instruction, AbstractValue type) {
@@ -327,7 +355,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           instruction,
           receiver,
           abstractValueDomain.excludeNull(receiver.instructionType),
-          HTypeConversion.RECEIVER_TYPE_CHECK,
+          HPrimitiveCheck.RECEIVER_TYPE_CHECK,
           commonElements.numType);
       return true;
     } else if (instruction.element == null) {
@@ -353,7 +381,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
         if (!isCheckEnoughForNsmOrAe(receiver, type)) return false;
         instruction.element = target;
         convertInput(instruction, receiver, type,
-            HTypeConversion.RECEIVER_TYPE_CHECK, typeExpression);
+            HPrimitiveCheck.RECEIVER_TYPE_CHECK, typeExpression);
         return true;
       }
     }
@@ -382,7 +410,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       // still add a check because it allows to GVN these operations,
       // but we should find a better way.
       convertInput(instruction, right, type,
-          HTypeConversion.ARGUMENT_TYPE_CHECK, commonElements.numType);
+          HPrimitiveCheck.ARGUMENT_TYPE_CHECK, commonElements.numType);
       return true;
     }
     return false;

@@ -8,7 +8,6 @@ import '../closure.dart';
 import '../common.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
@@ -31,7 +30,6 @@ abstract class HVisitor<R> {
   R visitBitNot(HBitNot node);
   R visitBitOr(HBitOr node);
   R visitBitXor(HBitXor node);
-  R visitBoolify(HBoolify node);
   R visitBoundsCheck(HBoundsCheck node);
   R visitBreak(HBreak node);
   R visitConstant(HConstant node);
@@ -97,6 +95,8 @@ abstract class HVisitor<R> {
   R visitTruncatingDivide(HTruncatingDivide node);
   R visitTry(HTry node);
   R visitTypeConversion(HTypeConversion node);
+  R visitPrimitiveCheck(HPrimitiveCheck node);
+  R visitBoolConversion(HBoolConversion node);
   R visitTypeKnown(HTypeKnown node);
   R visitYield(HYield node);
 
@@ -284,11 +284,9 @@ class HGraph {
     return result;
   }
 
-  HConstant addDeferredConstant(ConstantValue constant, OutputUnit unit,
+  HConstant addDeferredConstant(DeferredGlobalConstantValue constant,
       SourceInformation sourceInformation, JClosedWorld closedWorld) {
-    ConstantValue wrapper = new DeferredGlobalConstantValue(constant, unit);
-    closedWorld.outputUnitData.registerConstantDeferredUse(wrapper, unit);
-    return addConstant(wrapper, closedWorld,
+    return addConstant(constant, closedWorld,
         sourceInformation: sourceInformation);
   }
 
@@ -326,10 +324,7 @@ class HGraph {
   HConstant addConstantUnreachable(JClosedWorld closedWorld) {
     // A constant with an empty type used as the HInstruction of an expression
     // in an unreachable context.
-    return addConstant(
-        new AbstractValueConstantValue(
-            closedWorld.abstractValueDomain.emptyType),
-        closedWorld);
+    return addConstant(const UnreachableConstantValue(), closedWorld);
   }
 
   void finalize(AbstractValueDomain domain) {
@@ -435,8 +430,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitBitOr(HBitOr node) => visitBinaryBitOp(node);
   @override
   visitBitXor(HBitXor node) => visitBinaryBitOp(node);
-  @override
-  visitBoolify(HBoolify node) => visitInstruction(node);
   @override
   visitBoundsCheck(HBoundsCheck node) => visitCheck(node);
   @override
@@ -575,6 +568,10 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIsViaInterceptor(HIsViaInterceptor node) => visitInstruction(node);
   @override
   visitTypeConversion(HTypeConversion node) => visitCheck(node);
+  @override
+  visitBoolConversion(HBoolConversion node) => visitCheck(node);
+  @override
+  visitPrimitiveCheck(HPrimitiveCheck node) => visitCheck(node);
   @override
   visitTypeKnown(HTypeKnown node) => visitCheck(node);
   @override
@@ -1022,7 +1019,6 @@ abstract class HInstruction implements Spannable {
 
   // Type codes.
   static const int UNDEFINED_TYPECODE = -1;
-  static const int BOOLIFY_TYPECODE = 0;
   static const int TYPE_GUARD_TYPECODE = 1;
   static const int BOUNDS_CHECK_TYPECODE = 2;
   static const int INTEGER_CHECK_TYPECODE = 3;
@@ -1065,6 +1061,8 @@ abstract class HInstruction implements Spannable {
   static const int REMAINDER_TYPECODE = 42;
   static const int GET_LENGTH_TYPECODE = 43;
   static const int ABS_TYPECODE = 44;
+  static const int BOOL_CONVERSION_TYPECODE = 45;
+  static const int PRIMITIVE_CHECK_TYPECODE = 46;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++,
@@ -1371,11 +1369,7 @@ abstract class HInstruction implements Spannable {
           closedWorld.abstractValueDomain.dynamicType, this, sourceInformation);
     }
     assert(type.isInterfaceType);
-    if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
-      // Boolean conversion checks work on non-nullable booleans.
-      return new HTypeConversion(type, kind,
-          closedWorld.abstractValueDomain.boolType, this, sourceInformation);
-    } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.treatAsRaw) {
+    if (kind == HTypeConversion.TYPE_CHECK && !type.treatAsRaw) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
       InterfaceType interfaceType = type;
@@ -1559,23 +1553,6 @@ class HRef extends HInstruction {
 abstract class HLateInstruction extends HInstruction {
   HLateInstruction(List<HInstruction> inputs, AbstractValue type)
       : super(inputs, type);
-}
-
-class HBoolify extends HInstruction {
-  HBoolify(HInstruction value, AbstractValue type)
-      : super(<HInstruction>[value], type) {
-    setUseGvn();
-    sourceInformation = value.sourceInformation;
-  }
-
-  @override
-  accept(HVisitor visitor) => visitor.visitBoolify(this);
-  @override
-  int typeCode() => HInstruction.BOOLIFY_TYPECODE;
-  @override
-  bool typeEquals(other) => other is HBoolify;
-  @override
-  bool dataEquals(HInstruction other) => true;
 }
 
 /// A [HCheck] instruction is an instruction that might do a dynamic
@@ -3514,55 +3491,30 @@ class HLateValue extends HLateInstruction {
 
 class HTypeConversion extends HCheck {
   // Values for [kind].
-  static const int CHECKED_MODE_CHECK = 0;
-  static const int ARGUMENT_TYPE_CHECK = 1;
-  static const int CAST_TYPE_CHECK = 2;
-  static const int BOOLEAN_CONVERSION_CHECK = 3;
-  static const int RECEIVER_TYPE_CHECK = 4;
+  static const int TYPE_CHECK = 0;
+  static const int CAST_CHECK = 1;
 
   final DartType typeExpression;
   final int kind;
-  // [receiverTypeCheckSelector] is the selector used for a receiver type check
-  // on open-coded operators, e.g. the not-null check on `x` in `x + 1` would be
-  // compiled to the following, for which we need the selector `$add`.
-  //
-  //     if (typeof x != "number") x.$add();
-  //
-  final Selector receiverTypeCheckSelector;
 
   AbstractValue checkedType; // Not final because we refine it.
   AbstractValue
       inputType; // Holds input type for codegen after HTypeKnown removal.
 
   HTypeConversion(this.typeExpression, this.kind, AbstractValue type,
-      HInstruction input, SourceInformation sourceInformation,
-      {this.receiverTypeCheckSelector})
+      HInstruction input, SourceInformation sourceInformation)
       : checkedType = type,
         super(<HInstruction>[input], type) {
-    assert(!isReceiverTypeCheck || receiverTypeCheckSelector != null);
     assert(typeExpression == null || !typeExpression.isTypedef);
-    assert(!isControlFlow() || typeExpression != null);
-    sourceElement = input.sourceElement;
+    this.sourceElement = input.sourceElement;
     this.sourceInformation = sourceInformation;
   }
 
   HTypeConversion.withTypeRepresentation(this.typeExpression, this.kind,
       AbstractValue type, HInstruction input, HInstruction typeRepresentation)
       : checkedType = type,
-        receiverTypeCheckSelector = null,
         super(<HInstruction>[input, typeRepresentation], type) {
     assert(!typeExpression.isTypedef);
-    sourceElement = input.sourceElement;
-  }
-
-  HTypeConversion.viaMethodOnType(this.typeExpression, this.kind,
-      AbstractValue type, HInstruction reifiedType, HInstruction input)
-      : checkedType = type,
-        receiverTypeCheckSelector = null,
-        super(<HInstruction>[reifiedType, input], type) {
-    // This form is currently used only for function types.
-    assert(typeExpression.isFunctionType);
-    assert(kind == CHECKED_MODE_CHECK || kind == CAST_TYPE_CHECK);
     sourceElement = input.sourceElement;
   }
 
@@ -3580,23 +3532,13 @@ class HTypeConversion extends HCheck {
   @override
   HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
     if (typeExpression == type) {
-      // Don't omit a boolean conversion (which doesn't allow `null`) unless
-      // this type conversion is already a boolean conversion.
-      if (kind != BOOLEAN_CONVERSION_CHECK || isBooleanConversionCheck) {
-        return this;
-      }
+      return this;
     }
     return super.convertType(closedWorld, type, kind);
   }
 
-  bool get isCheckedModeCheck {
-    return kind == CHECKED_MODE_CHECK || kind == BOOLEAN_CONVERSION_CHECK;
-  }
-
-  bool get isArgumentTypeCheck => kind == ARGUMENT_TYPE_CHECK;
-  bool get isReceiverTypeCheck => kind == RECEIVER_TYPE_CHECK;
-  bool get isCastTypeCheck => kind == CAST_TYPE_CHECK;
-  bool get isBooleanConversionCheck => kind == BOOLEAN_CONVERSION_CHECK;
+  bool get isTypeCheck => kind == TYPE_CHECK;
+  bool get isCastCheck => kind == CAST_CHECK;
 
   @override
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
@@ -3604,7 +3546,7 @@ class HTypeConversion extends HCheck {
   @override
   bool isJsStatement() => isControlFlow();
   @override
-  bool isControlFlow() => isArgumentTypeCheck || isReceiverTypeCheck;
+  bool isControlFlow() => false;
 
   @override
   int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
@@ -3617,8 +3559,7 @@ class HTypeConversion extends HCheck {
   bool dataEquals(HTypeConversion other) {
     return kind == other.kind &&
         typeExpression == other.typeExpression &&
-        checkedType == other.checkedType &&
-        receiverTypeCheckSelector == other.receiverTypeCheckSelector;
+        checkedType == other.checkedType;
   }
 
   bool isRedundant(JClosedWorld closedWorld) {
@@ -3664,6 +3605,130 @@ class HTypeConversion extends HCheck {
   String toString() => 'HTypeConversion(type=$typeExpression, kind=$kind, '
       '${hasTypeRepresentation ? 'representation=$typeRepresentation, ' : ''}'
       'checkedInput=$checkedInput)';
+}
+
+/// Check for receiver or argument type when lowering operation to a primitive,
+/// e.g. lowering `+` to [HAdd].
+///
+/// After NNBD, `a + b` will require `a` and `b` are non-nullable and these
+/// checks will become explicit in the source (e.g. `a! + b!`). At that time,
+/// this check should be removed.  If needed, the `!` check can be optimized
+/// give the same signals to the JavaScript VM.
+class HPrimitiveCheck extends HCheck {
+  // Values for [kind].
+  static const int ARGUMENT_TYPE_CHECK = 1;
+  static const int RECEIVER_TYPE_CHECK = 3;
+
+  final DartType typeExpression;
+  final int kind;
+
+  // [receiverTypeCheckSelector] is the selector used for a receiver type check
+  // on open-coded operators, e.g. the not-null check on `x` in `x + 1` would be
+  // compiled to the following, for which we need the selector `$add`.
+  //
+  //     if (typeof x != "number") x.$add();
+  //
+  final Selector receiverTypeCheckSelector;
+
+  AbstractValue checkedType; // Not final because we refine it.
+  AbstractValue
+      inputType; // Holds input type for codegen after HTypeKnown removal.
+
+  HPrimitiveCheck(this.typeExpression, this.kind, AbstractValue type,
+      HInstruction input, SourceInformation sourceInformation,
+      {this.receiverTypeCheckSelector})
+      : checkedType = type,
+        super(<HInstruction>[input], type) {
+    assert(isReceiverTypeCheck == (receiverTypeCheckSelector != null));
+    this.sourceElement = input.sourceElement;
+    this.sourceInformation = sourceInformation;
+  }
+
+  @override
+  HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
+    if (typeExpression == type) {
+      return this;
+    }
+    return super.convertType(closedWorld, type, kind);
+  }
+
+  bool get isArgumentTypeCheck => kind == ARGUMENT_TYPE_CHECK;
+  bool get isReceiverTypeCheck => kind == RECEIVER_TYPE_CHECK;
+
+  @override
+  accept(HVisitor visitor) => visitor.visitPrimitiveCheck(this);
+
+  @override
+  bool isJsStatement() => true;
+  @override
+  bool isControlFlow() => true;
+
+  @override
+  int typeCode() => HInstruction.PRIMITIVE_CHECK_TYPECODE;
+  @override
+  bool typeEquals(HInstruction other) => other is HPrimitiveCheck;
+  @override
+  bool isCodeMotionInvariant() => false;
+
+  @override
+  bool dataEquals(HPrimitiveCheck other) {
+    return kind == other.kind &&
+        checkedType == other.checkedType &&
+        receiverTypeCheckSelector == other.receiverTypeCheckSelector;
+  }
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    // Type is refined from `dynamic`, so it might become non-redundant.
+    if (abstractValueDomain.containsAll(checkedType).isPotentiallyTrue) {
+      return false;
+    }
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain.isIn(inputType, checkedType).isDefinitelyTrue;
+  }
+
+  @override
+  String toString() => 'HPrimitiveCheck(checkedType=$checkedType, kind=$kind, '
+      'checkedInput=$checkedInput)';
+}
+
+/// A check that the input to a condition (if, ?:, while, etc) is non-null. The
+/// front-end generates 'as bool' checks, but until the transition to NNBD is
+/// complete, this allows `null` to be passed to the condition.
+///
+// TODO(sra): Once NNDB is far enough along that the front-end can generate `as
+// bool!` checks and the backend checks them correctly, this instruction will
+// become unnecessary and should be removed.
+class HBoolConversion extends HCheck {
+  HBoolConversion(HInstruction input, AbstractValue type)
+      : super(<HInstruction>[input], type);
+
+  @override
+  bool isJsStatement() => false;
+
+  @override
+  bool isCodeMotionInvariant() => false;
+
+  @override
+  accept(HVisitor visitor) => visitor.visitBoolConversion(this);
+
+  @override
+  int typeCode() => HInstruction.BOOL_CONVERSION_TYPECODE;
+  @override
+  bool typeEquals(HInstruction other) => other is HBoolConversion;
+  @override
+  bool dataEquals(HBoolConversion other) => true;
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain
+        .isIn(inputType, instructionType)
+        .isDefinitelyTrue;
+  }
+
+  @override
+  toString() => 'HBoolConversion($checkedInput)';
 }
 
 /// The [HTypeKnown] instruction marks a value with a refined type.

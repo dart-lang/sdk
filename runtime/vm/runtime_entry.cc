@@ -26,6 +26,7 @@
 #include "vm/service_isolate.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/thread.h"
 #include "vm/thread_registry.h"
 #include "vm/type_testing_stubs.h"
 
@@ -975,6 +976,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
+  ASSERT(!caller_frame->is_interpreted());
   const Code& orig_stub = Code::Handle(
       zone, isolate->debugger()->GetPatchedStubAddress(caller_frame->pc()));
   const Error& error =
@@ -1963,13 +1965,13 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
 #ifndef DART_PRECOMPILED_RUNTIME
-      if (!frame->is_interpreted()) {
+      if (!frame->IsInterpreted()) {
         // Ensure that we have unoptimized code.
         frame->function().EnsureHasCompiledUnoptimizedCode();
       }
       // TODO(regis): Provide var descriptors in kernel bytecode.
       const int num_vars =
-          frame->is_interpreted() ? 0 : frame->NumLocalVariables();
+          frame->IsInterpreted() ? 0 : frame->NumLocalVariables();
 #else
       // Variable locations and number are unknown when precompiling.
       const int num_vars = 0;
@@ -2129,8 +2131,14 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(FLAG_enable_interpreter || optimizing_compilation);
   ASSERT((!optimizing_compilation) || function.HasCode());
 
-  if ((!optimizing_compilation) ||
+#if defined(PRODUCT)
+  if (!optimizing_compilation ||
       Compiler::CanOptimizeFunction(thread, function)) {
+#else
+  if ((!optimizing_compilation && !Debugger::IsDebugging(thread, function)) ||
+      (optimizing_compilation &&
+       Compiler::CanOptimizeFunction(thread, function))) {
+#endif  // defined(PRODUCT)
     if (FLAG_background_compilation) {
       if (FLAG_enable_inlining_annotations) {
         FATAL("Cannot enable inlining annotations and background compilation");
@@ -2764,5 +2772,30 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
   thread->ExitSafepoint();
 }
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepoint, 0, false, &DFLRT_ExitSafepoint);
+
+// Not registered as a runtime entry because we can't use Thread to look it up.
+extern "C" Thread* DLRT_GetThreadForNativeCallback() {
+  Thread* const thread = Thread::Current();
+  if (thread == nullptr) {
+    FATAL("Cannot invoke native callback outside an isolate.");
+  }
+  if (thread->no_callback_scope_depth() != 0) {
+    FATAL("Cannot invoke native callback when API callbacks are prohibited.");
+  }
+  if (!thread->IsMutatorThread()) {
+    FATAL("Native callbacks must be invoked on the mutator thread.");
+  }
+  return thread;
+}
+
+extern "C" void DLRT_VerifyCallbackIsolate(int32_t callback_id,
+                                           uword return_address) {
+  Thread::Current()->VerifyCallbackIsolate(callback_id, return_address);
+}
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(
+    VerifyCallbackIsolate,
+    1,
+    false /* is_float */,
+    reinterpret_cast<RuntimeFunction>(&DLRT_VerifyCallbackIsolate));
 
 }  // namespace dart

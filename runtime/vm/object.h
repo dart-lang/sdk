@@ -2000,6 +2000,20 @@ class Function : public Object {
   // Can only be used on FFI trampolines.
   RawFunction* FfiCSignature() const;
 
+  // Can only be called on FFI trampolines.
+  // -1 for Dart -> native calls.
+  int32_t FfiCallbackId() const;
+
+  // Can only be called on FFI trampolines.
+  void SetFfiCallbackId(int32_t value) const;
+
+  // Can only be called on FFI trampolines.
+  // Null for Dart -> native calls.
+  RawFunction* FfiCallbackTarget() const;
+
+  // Can only be called on FFI trampolines.
+  void SetFfiCallbackTarget(const Function& target) const;
+
   // Return a new function with instantiated result and parameter types.
   RawFunction* InstantiateSignatureFrom(
       const TypeArguments& instantiator_type_arguments,
@@ -2169,6 +2183,8 @@ class Function : public Object {
   void AttachBytecode(const Bytecode& bytecode) const;
   RawBytecode* bytecode() const { return raw_ptr()->bytecode_; }
   inline bool HasBytecode() const;
+#else
+  inline bool HasBytecode() const { return false; }
 #endif
 
   virtual intptr_t Hash() const;
@@ -3131,6 +3147,12 @@ class FfiTrampolineData : public Object {
   RawFunction* c_signature() const { return raw_ptr()->c_signature_; }
   void set_c_signature(const Function& value) const;
 
+  RawFunction* callback_target() const { return raw_ptr()->callback_target_; }
+  void set_callback_target(const Function& value) const;
+
+  int32_t callback_id() const { return raw_ptr()->callback_id_; }
+  void set_callback_id(int32_t value) const;
+
   static RawFfiTrampolineData* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(FfiTrampolineData, Object);
@@ -4027,6 +4049,8 @@ class Library : public Object {
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll(bool ignore_error = false);
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  // Finalize all classes in all libraries.
+  static RawError* FinalizeAllClasses();
   // Eagerly read all bytecode.
   static RawError* ReadAllBytecode();
 #endif
@@ -4293,6 +4317,14 @@ class ObjectPool : public Object {
     return OFFSET_OF_RETURNED_VALUE(RawObjectPool, data) +
            sizeof(RawObjectPool::Entry) * index;
   }
+
+  struct ArrayLayout {
+    static intptr_t elements_start_offset() {
+      return ObjectPool::data_offset();
+    }
+
+    static constexpr intptr_t kElementSize = sizeof(RawObjectPool::Entry);
+  };
 
   EntryType TypeAt(intptr_t index) const {
     return TypeBits::decode(raw_ptr()->entry_bits()[index]);
@@ -5001,7 +5033,7 @@ class Code : public Object {
     return ContainsInstructionAt(raw(), addr);
   }
 
-  static bool ContainsInstructionAt(RawCode* code, uword addr) {
+  static bool ContainsInstructionAt(const RawCode* code, uword addr) {
     return Instructions::ContainsPc(code->ptr()->instructions_, addr);
   }
 
@@ -5201,7 +5233,7 @@ class Code : public Object {
 #endif
   }
 
-  // Will compute local var descriptors is necessary.
+  // Will compute local var descriptors if necessary.
   RawLocalVarDescriptors* GetLocalVarDescriptors() const;
 
   RawExceptionHandlers* exception_handlers() const {
@@ -5474,6 +5506,7 @@ class Bytecode : public Object {
   RawExternalTypedData* GetBinary(Zone* zone) const;
 
   TokenPosition GetTokenIndexOfPC(uword pc) const;
+  intptr_t GetTryIndexAtPc(uword return_address) const;
 
   intptr_t instructions_binary_offset() const {
     return raw_ptr()->instructions_binary_offset_;
@@ -5491,6 +5524,38 @@ class Bytecode : public Object {
   bool HasSourcePositions() const {
     return (source_positions_binary_offset() != 0);
   }
+
+#if !defined(PRODUCT)
+  intptr_t local_variables_binary_offset() const {
+    return raw_ptr()->local_variables_binary_offset_;
+  }
+  void set_local_variables_binary_offset(intptr_t value) const {
+    StoreNonPointer(&raw_ptr()->local_variables_binary_offset_, value);
+  }
+  bool HasLocalVariablesInfo() const {
+    return (local_variables_binary_offset() != 0);
+  }
+#endif  // !defined(PRODUCT)
+
+  RawLocalVarDescriptors* var_descriptors() const {
+#if defined(PRODUCT)
+    UNREACHABLE();
+    return nullptr;
+#else
+    return raw_ptr()->var_descriptors_;
+#endif
+  }
+  void set_var_descriptors(const LocalVarDescriptors& value) const {
+#if defined(PRODUCT)
+    UNREACHABLE();
+#else
+    ASSERT(value.IsOld());
+    StorePointer(&raw_ptr()->var_descriptors_, value.raw());
+#endif
+  }
+
+  // Will compute local var descriptors if necessary.
+  RawLocalVarDescriptors* GetLocalVarDescriptors() const;
 
   const char* Name() const;
   const char* QualifiedName() const;
@@ -6207,6 +6272,14 @@ class TypeArguments : public Instance {
            index * kWordSize;
   }
   void SetTypeAt(intptr_t index, const AbstractType& value) const;
+
+  struct ArrayLayout {
+    static intptr_t elements_start_offset() {
+      return TypeArguments::type_at_offset(0);
+    }
+
+    static constexpr intptr_t kElementSize = kWordSize;
+  };
 
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
   RawString* Name() const { return SubvectorName(0, Length(), kInternalName); }
@@ -7989,6 +8062,12 @@ class Array : public Instance {
     return OFFSET_OF_RETURNED_VALUE(RawArray, data) + kWordSize * index;
   }
 
+  struct ArrayLayout {
+    static intptr_t elements_start_offset() { return Array::data_offset(); }
+
+    static constexpr intptr_t kElementSize = kWordSize;
+  };
+
   static bool Equals(RawArray* a, RawArray* b) {
     if (a == b) return true;
     if (a->IsRawNull() || b->IsRawNull()) return false;
@@ -8267,6 +8346,14 @@ class GrowableObjectArray : public Instance {
                                      Heap::Space space = Heap::kNew);
   static RawGrowableObjectArray* New(const Array& array,
                                      Heap::Space space = Heap::kNew);
+
+  static RawSmi* NoSafepointLength(const RawGrowableObjectArray* array) {
+    return array->ptr()->length_;
+  }
+
+  static RawArray* NoSafepointData(const RawGrowableObjectArray* array) {
+    return array->ptr()->data_;
+  }
 
  private:
   RawArray* DataArray() const { return data()->ptr(); }

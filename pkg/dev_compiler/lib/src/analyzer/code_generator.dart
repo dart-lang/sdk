@@ -24,7 +24,6 @@ import 'package:analyzer/src/generated/constant.dart'
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, NamespaceBuilder;
 import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart';
 import 'package:path/path.dart' as path;
@@ -428,7 +427,7 @@ class CodeGenerator extends Object
   String jsLibraryName(LibraryElement library) {
     var uri = library.source.uri;
     if (uri.scheme == 'dart') {
-      return uri.path;
+      return isSdkInternalRuntime(library) ? 'dart' : uri.path;
     }
     // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
     var encodedSeparator = '__';
@@ -465,6 +464,10 @@ class CodeGenerator extends Object
     var uri = l.source.uri;
     return uri.scheme == 'dart' && uri.path == '_runtime';
   }
+
+  @override
+  Iterable<String> jsPartDebuggerNames(LibraryElement library) =>
+      library.parts.map((part) => part.uri);
 
   @override
   String libraryToModule(LibraryElement library) {
@@ -610,7 +613,7 @@ class CodeGenerator extends Object
 
   @override
   visitExportDirective(ExportDirective node) {
-    ExportElement element = node.element;
+    var element = node.element as ExportElement;
     var currentLibrary = element.library;
 
     var currentNames = currentLibrary.publicNamespace.definedNames;
@@ -696,7 +699,7 @@ class CodeGenerator extends Object
         // TODO(jmesserly): fuse this with notNull check.
         // TODO(jmesserly): this does not correctly distinguish user casts from
         // required-for-soundness casts.
-        return runtimeCall('asInt(#)', jsFrom);
+        return runtimeCall('asInt(#)', [jsFrom]);
       }
 
       // A no-op in JavaScript.
@@ -1544,7 +1547,7 @@ class CodeGenerator extends Object
           param = covariantParams.lookup(param) as ParameterElement;
 
           if (param == null) continue;
-          if (param.kind == ParameterKind.NAMED) {
+          if (param.isNamed) {
             foundNamedParams = true;
 
             var name = propertyName(param.name);
@@ -1557,10 +1560,12 @@ class CodeGenerator extends Object
             var jsParam = _emitParameter(param);
             jsParams.add(jsParam);
 
-            if (param.kind == ParameterKind.POSITIONAL) {
+            if (param.isPositional) {
               body.add(js.statement('if (# !== void 0) #;',
                   [jsParam, _emitCast(param.type, jsParam)]));
             } else {
+              //TODO(nshahan) Cleanup this logic. Do we need this else branch?
+              // https://github.com/dart-lang/sdk/issues/37123
               body.add(_emitCast(param.type, jsParam).toStatement());
             }
           }
@@ -1834,8 +1839,8 @@ class CodeGenerator extends Object
       ClassElement classElem, String jsPeerName, List<JS.Statement> body) {
     var className = _emitTopLevelName(classElem);
     if (jsTypeRep.isPrimitive(classElem.type)) {
-      body.add(
-          runtimeStatement('definePrimitiveHashCode(#.prototype)', className));
+      body.add(runtimeStatement(
+          'definePrimitiveHashCode(#.prototype)', [className]));
     }
     body.add(runtimeStatement(
         'registerExtension(#, #)', [js.string(jsPeerName), className]));
@@ -2175,6 +2180,10 @@ class CodeGenerator extends Object
       emitSignature('Setter', instanceSetters);
       emitSignature('StaticGetter', staticGetters);
       emitSignature('StaticSetter', staticSetters);
+      body.add(runtimeStatement('setLibraryUri(#, #)', [
+        className,
+        js.escapedString(jsLibraryDebuggerName(classElem.library))
+      ]));
     }
 
     {
@@ -2275,7 +2284,7 @@ class CodeGenerator extends Object
   JS.Block _emitConstructorBody(ConstructorDeclaration node,
       List<VariableDeclaration> fields, JS.Expression className) {
     var body = <JS.Statement>[];
-    ClassDeclaration cls = node.parent;
+    var cls = node.parent as ClassDeclaration;
 
     // Generate optional/named argument value assignment. These can not have
     // side effects, and may be used by the constructor's initializers, so it's
@@ -2574,7 +2583,7 @@ class CodeGenerator extends Object
     }
 
     if (node.isGetter || node.isSetter) {
-      PropertyAccessorElement element = node.declaredElement;
+      var element = node.declaredElement as PropertyAccessorElement;
       var pairAccessor = node.isGetter
           ? element.correspondingSetter
           : element.correspondingGetter;
@@ -2718,7 +2727,7 @@ class CodeGenerator extends Object
 
     // Simplify `=> { return e; }` to `=> e`
     if (body is JS.Block) {
-      JS.Block block = body;
+      var block = body as JS.Block;
       if (block.statements.length == 1) {
         JS.Statement s = block.statements[0];
         if (s is JS.Return && s.value != null) body = s.value;
@@ -3044,7 +3053,7 @@ class CodeGenerator extends Object
       // If the type is a type literal expression in Dart code, wrap the raw
       // runtime type in a "Type" instance.
       if (!_isInForeignJS && _isTypeLiteral(node)) {
-        typeName = runtimeCall('wrapType(#)', typeName);
+        typeName = runtimeCall('wrapType(#)', [typeName]);
       }
 
       return typeName;
@@ -3283,7 +3292,7 @@ class CodeGenerator extends Object
     if (_isExternal(member)) {
       var nativeName = _extensionTypes.getNativePeers(c);
       if (nativeName.isNotEmpty) {
-        return runtimeCall('global.#', nativeName[0]);
+        return runtimeCall('global.#', [nativeName[0]]);
       }
     }
     return _emitTopLevelName(c);
@@ -3321,7 +3330,8 @@ class CodeGenerator extends Object
     // Anonymous JS types do not have a corresponding concrete JS type so we
     // have to use a helper to define them.
     if (_isObjectLiteral(element)) {
-      return runtimeCall('anonymousJSType(#)', js.escapedString(element.name));
+      return runtimeCall(
+          'anonymousJSType(#)', [js.escapedString(element.name)]);
     }
     var jsName = _getJSNameWithoutGlobal(element);
     if (jsName != null) {
@@ -3772,7 +3782,8 @@ class CodeGenerator extends Object
     // Handle Object methods that are supported by `null`.
     if (_isObjectMethodCall(name, argumentList.arguments) &&
         isNullable(target)) {
-      assert(typeArgs == null); // Object methods don't take type args.
+      assert(typeArgs == null ||
+          typeArgs.isEmpty); // Object methods don't take type args.
       return runtimeCall('#(#, #)', [name, jsTarget, args]);
     }
 
@@ -4142,16 +4153,26 @@ class CodeGenerator extends Object
     if (conditionType is FunctionType &&
         conditionType.parameters.isEmpty &&
         conditionType.returnType == types.boolType) {
-      jsCondition = runtimeCall('test(#())', jsCondition);
+      jsCondition = runtimeCall('test(#())', [jsCondition]);
     } else if (conditionType != types.boolType) {
-      jsCondition = runtimeCall('dassert(#)', jsCondition);
+      jsCondition = runtimeCall('dassert(#)', [jsCondition]);
     } else if (isNullable(condition)) {
-      jsCondition = runtimeCall('test(#)', jsCondition);
+      jsCondition = runtimeCall('test(#)', [jsCondition]);
     }
-    return js.statement(' if (!#) #.assertFailed(#);', [
+
+    var location = _getLocation(condition.offset);
+    return js.statement(' if (!#) #.assertFailed(#, #, #, #, #);', [
       jsCondition,
       runtimeModule,
-      message != null ? [_visitExpression(message)] : []
+      if (message == null)
+        JS.LiteralNull()
+      else
+        _visitExpression(message),
+      js.escapedString(location.sourceUrl.toString()),
+      // Lines and columns are typically printed with 1 based indexing.
+      js.number(location.line + 1),
+      js.number(location.column + 1),
+      js.escapedString(condition.toSource()),
     ]);
   }
 
@@ -4552,7 +4573,7 @@ class CodeGenerator extends Object
     if (expr == null) return null;
     var jsExpr = _visitExpression(expr);
     if (!isNullable(expr)) return jsExpr;
-    return runtimeCall('notNull(#)', jsExpr);
+    return runtimeCall('notNull(#)', [jsExpr]);
   }
 
   JS.Expression _emitEqualityOperator(BinaryExpression node, Token op) {
@@ -5036,6 +5057,11 @@ class CodeGenerator extends Object
     var op = node.operator;
     var expr = node.operand;
 
+    if (op.type == TokenType.BANG) {
+      // If the expression is non-nullable already, this is a no-op.
+      return isNullable(expr) ? notNull(expr) : _visitExpression(expr);
+    }
+
     var dispatchType = getStaticType(expr);
     if (jsTypeRep.unaryOperationIsPrimitive(dispatchType)) {
       if (!isNullable(expr)) {
@@ -5362,12 +5388,13 @@ class CodeGenerator extends Object
 
   @override
   JS.Expression visitThrowExpression(ThrowExpression node) {
-    return runtimeCall('throw(#)', _visitExpression(node.expression));
+    return runtimeCall('throw(#)', [_visitExpression(node.expression)]);
   }
 
   @override
   JS.Expression visitRethrowExpression(RethrowExpression node) {
-    return runtimeCall('rethrow(#)', _emitSimpleIdentifier(_rethrowParameter));
+    return runtimeCall(
+        'rethrow(#)', [_emitSimpleIdentifier(_rethrowParameter)]);
   }
 
   /// Visits a statement, and ensures the resulting AST handles block scope
@@ -5774,7 +5801,7 @@ class CodeGenerator extends Object
         var jsExpr = _visitExpression(e);
         parts.add(e.staticType == types.stringType && !isNullable(e)
             ? jsExpr
-            : runtimeCall('str(#)', jsExpr));
+            : runtimeCall('str(#)', [jsExpr]));
       }
     }
     if (parts.isEmpty) return js.string('');
@@ -5843,8 +5870,7 @@ class CodeGenerator extends Object
     /// fucntion, call it, and yield the result of [yieldType].
     /// TODO(nshahan) Move to share between compilers. Need to work out a common
     /// emitLibraryName().
-    JS.Expression detectYieldAndCall(
-        JS.Statement body, InterfaceType yieldType) {
+    JS.Expression detectYieldAndCall(JS.Block body, InterfaceType yieldType) {
       var finder = YieldFinder();
       body.accept(finder);
       if (finder.hasYield) {
@@ -5871,7 +5897,7 @@ class CodeGenerator extends Object
         // a function call that returns the list.
         var functionBody = JS.Block([
           items,
-          node.accept<JS.Node>(this),
+          node.accept<JS.Node>(this) as JS.Statement,
           JS.Return(_currentCollectionVariable)
         ]);
         var functionCall = detectYieldAndCall(functionBody, arrayType);
@@ -5902,7 +5928,7 @@ class CodeGenerator extends Object
       ]);
     }
 
-    return pushToCurrentCollection(node);
+    return pushToCurrentCollection(node as Expression);
   }
 
   /// Returns `true` if [node] is a UI-as-Code [CollectionElement].
@@ -6019,10 +6045,10 @@ class CodeGenerator extends Object
     }
     if (node is AsExpression && CoercionReifier.isImplicit(node)) {
       assert(node.staticType == types.boolType);
-      return runtimeCall('dtest(#)', _visitExpression(node.expression));
+      return runtimeCall('dtest(#)', [_visitExpression(node.expression)]);
     }
     var result = _visitExpression(node);
-    if (isNullable(node)) result = runtimeCall('test(#)', result);
+    if (isNullable(node)) result = runtimeCall('test(#)', [result]);
     return result;
   }
 
@@ -6291,9 +6317,9 @@ class CodeGenerator extends Object
   }
 
   JS.Expression _throwUnsafe(String message) => runtimeCall(
-      'throw(Error(#))', js.escapedString("compile error: $message"));
+      'throw(Error(#))', [js.escapedString("compile error: $message")]);
 
-  JS.Node _unreachable(Object node) {
+  Null _unreachable(Object node) {
     throw UnsupportedError('tried to generate an unreachable node: `$node`');
   }
 
@@ -6489,7 +6515,7 @@ class CodeGenerator extends Object
   @override
   JS.Statement visitForElement(ForElement node) {
     var jsBody = _isUiAsCodeElement(node.body)
-        ? node.body.accept(this)
+        ? node.body.accept(this) as JS.Statement
         : _visitNestedCollectionElement(node.body);
     return _forAdaptor(node.forLoopParts, node.awaitKeyword, jsBody);
   }
@@ -6497,13 +6523,13 @@ class CodeGenerator extends Object
   @override
   JS.Statement visitIfElement(IfElement node) {
     var thenElement = _isUiAsCodeElement(node.thenElement)
-        ? node.thenElement.accept(this)
+        ? node.thenElement.accept(this) as JS.Statement
         : _visitNestedCollectionElement(node.thenElement);
 
     JS.Statement elseElement;
     if (node.elseElement != null) {
       if (_isUiAsCodeElement(node.elseElement)) {
-        elseElement = node.elseElement.accept<JS.Node>(this);
+        elseElement = node.elseElement.accept<JS.Node>(this) as JS.Statement;
       } else {
         elseElement = _visitNestedCollectionElement(node.elseElement);
       }
@@ -6583,7 +6609,8 @@ class CodeGenerator extends Object
     /// Returns [expression] wrapped in an implict cast to [castType] or
     /// [expression] as provided if [castType] is `null` signifying that
     /// no cast is needed.
-    JS.Expression wrapInImplicitCast(JS.Expression expression, castType) =>
+    JS.Expression wrapInImplicitCast(
+            JS.Expression expression, DartType castType) =>
         castType == null ? expression : _emitCast(castType, expression);
 
     /// Returns a statement spreading the elements of [expression] into
@@ -6673,6 +6700,9 @@ class CodeGenerator extends Object
   @override
   visitForPartsWithExpression(ForPartsWithExpression node) =>
       _unreachable(node);
+
+  @override
+  visitExtensionDeclaration(ExtensionDeclaration node) => _unreachable(node);
 }
 
 // TODO(jacobr): we would like to do something like the following

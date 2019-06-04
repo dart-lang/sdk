@@ -602,8 +602,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     var context = InferenceContext.getContext(
         (node as IntegerLiteralImpl).immediatelyNegated ? node.parent : node);
     if (context == null ||
-        _typeSystem.isAssignableTo(_typeProvider.intType, context) ||
-        !_typeSystem.isAssignableTo(_typeProvider.doubleType, context)) {
+        _typeSystem.isAssignableTo(_typeProvider.intType, context,
+            featureSet: _featureSet) ||
+        !_typeSystem.isAssignableTo(_typeProvider.doubleType, context,
+            featureSet: _featureSet)) {
       _recordStaticType(node, _nonNullable(_typeProvider.intType));
     } else {
       _recordStaticType(node, _nonNullable(_typeProvider.doubleType));
@@ -776,9 +778,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     TypeImpl staticType = _getStaticType(operand, read: true);
 
     if (node.operator.type == TokenType.BANG) {
-      // TODO(paulberry): This does the wrong thing if staticType is a type
-      // parameter type.
-      staticType = staticType.withNullability(NullabilitySuffix.none);
+      staticType = _typeSystem.promoteToNonNull(staticType);
     } else {
       // No need to check for `intVar++`, the result is `int`.
       if (!staticType.isDartCoreInt) {
@@ -914,8 +914,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     if (node.operator.type == TokenType.QUESTION_PERIOD &&
         _nonNullableEnabled) {
-      staticType =
-          (staticType as TypeImpl).withNullability(NullabilitySuffix.question);
+      staticType = _typeSystem.makeNullable(staticType);
     }
     staticType = _inferGenericInstantiationFromContext(node, staticType);
 
@@ -1165,7 +1164,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void _checkForInvalidAssignmentIncDec(
       AstNode node, Expression operand, DartType type) {
     var operandWriteType = _getStaticType(operand);
-    if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
+    if (!_typeSystem.isAssignableTo(type, operandWriteType,
+        featureSet: _featureSet)) {
       _resolver.errorReporter.reportTypeErrorForNode(
         StaticTypeWarningCode.INVALID_ASSIGNMENT,
         node,
@@ -1232,22 +1232,24 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * Compute the return type of the method or function represented by the given
    * type that is being invoked.
    */
-  DartType _computeInvokeReturnType(DartType type,
+  DartType /*!*/ _computeInvokeReturnType(DartType type,
       {@required bool isNullableInvoke}) {
-    TypeImpl returnType;
+    TypeImpl /*!*/ returnType;
     if (type is InterfaceType) {
       MethodElement callMethod = type.lookUpMethod(
           FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
-      returnType = callMethod?.type?.returnType;
+      returnType = callMethod?.type?.returnType ?? _dynamicType;
     } else if (type is FunctionType) {
-      returnType = type.returnType;
+      returnType = type.returnType ?? _dynamicType;
+    } else {
+      returnType = _dynamicType;
     }
 
     if (isNullableInvoke && _nonNullableEnabled) {
-      returnType = returnType?.withNullability(NullabilitySuffix.question);
+      returnType = _typeSystem.makeNullable(returnType);
     }
 
-    return returnType ?? _dynamicType;
+    return returnType;
   }
 
   /**

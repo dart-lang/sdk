@@ -13,9 +13,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 
-export 'package:analysis_server/src/nullability/transitional_api.dart'
-    show NamedNoDefaultParameterHeuristic, NullabilityMigrationAssumptions;
-
 /// Kinds of fixes that might be performed by nullability migration.
 class NullabilityFixKind {
   /// An import needs to be added.
@@ -73,12 +70,9 @@ class NullabilityMigration {
   /// as far as possible even though the migration algorithm is not yet
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
-  NullabilityMigration(this.listener,
-      {bool permissive: false,
-      analyzer.NullabilityMigrationAssumptions assumptions:
-          const analyzer.NullabilityMigrationAssumptions()})
-      : _analyzerMigration = analyzer.NullabilityMigration(
-            permissive: permissive, assumptions: assumptions);
+  NullabilityMigration(this.listener, {bool permissive: false})
+      : _analyzerMigration =
+            analyzer.NullabilityMigration(permissive: permissive);
 
   void finish() {
     for (var entry in _analyzerMigration.finish().entries) {

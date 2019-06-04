@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -193,7 +194,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         changes,
       ),
     );
-    sendNotificationToServer(notification);
+    await sendNotificationToServer(notification);
   }
 
   Future changeWorkspaceFolders({List<Uri> add, List<Uri> remove}) async {
@@ -206,7 +207,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         ),
       ),
     );
-    sendNotificationToServer(notification);
+    await sendNotificationToServer(notification);
   }
 
   Future closeFile(Uri uri) async {
@@ -215,7 +216,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       new DidCloseTextDocumentParams(
           new TextDocumentIdentifier(uri.toString())),
     );
-    sendNotificationToServer(notification);
+    await sendNotificationToServer(notification);
   }
 
   Future<Object> executeCommand(Command command) async {
@@ -567,7 +568,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     if (response.error == null) {
       final notification =
           makeNotification(Method.initialized, new InitializedParams());
-      sendNotificationToServer(notification);
+      await sendNotificationToServer(notification);
       await pumpEventQueue();
     } else if (throwOnFailure) {
       throw 'Error during initialize request: '
@@ -604,7 +605,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       new DidOpenTextDocumentParams(new TextDocumentItem(
           uri.toString(), dartLanguageId, version, content)),
     );
-    sendNotificationToServer(notification);
+    await sendNotificationToServer(notification);
     await pumpEventQueue();
   }
 
@@ -886,7 +887,12 @@ mixin ClientCapabilitiesHelperMixin {
     TextDocumentClientCapabilities source,
     Map<String, dynamic> textDocumentCapabilities,
   ) {
-    final json = source.toJson();
+    // TODO(dantup): Figure out why we need to do this to get a map...
+    // source.toJson() doesn't recursively called toJson() so we end up with
+    // objects (instead of maps) in child properties, which means multiple
+    // calls to this function do not work correctly. For now, calling jsonEncode
+    // then jsonDecode will force recursive serialisation.
+    final json = jsonDecode(jsonEncode(source));
     if (textDocumentCapabilities != null) {
       textDocumentCapabilities.keys.forEach((key) {
         json[key] = textDocumentCapabilities[key];
@@ -899,7 +905,9 @@ mixin ClientCapabilitiesHelperMixin {
     WorkspaceClientCapabilities source,
     Map<String, dynamic> workspaceCapabilities,
   ) {
-    final json = source.toJson();
+    // TODO(dantup): As above - it seems like this round trip should be
+    // unnecessary.
+    final json = jsonDecode(jsonEncode(source));
     if (workspaceCapabilities != null) {
       workspaceCapabilities.keys.forEach((key) {
         json[key] = workspaceCapabilities[key];
@@ -963,6 +971,14 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  TextDocumentClientCapabilities withHoverDynamicRegistration(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'hover': {'dynamicRegistration': true}
+    });
+  }
+
   TextDocumentClientCapabilities withSignatureHelpContentFormat(
     TextDocumentClientCapabilities source,
     List<MarkupKind> formats,
@@ -973,6 +989,14 @@ mixin ClientCapabilitiesHelperMixin {
           'documentationFormat': formats.map((k) => k.toJson()).toList()
         }
       }
+    });
+  }
+
+  TextDocumentClientCapabilities withTextSyncDynamicRegistration(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'synchronization': {'dynamicRegistration': true}
     });
   }
 

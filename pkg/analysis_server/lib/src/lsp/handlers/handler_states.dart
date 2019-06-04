@@ -41,7 +41,7 @@ class FailureStateMessageHandler extends ServerStateMessageHandler {
 
   @override
   FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
-    return failure(
+    return error(
         ErrorCodes.InternalError,
         'An unrecoverable error occurred and the server cannot process messages',
         null);
@@ -117,7 +117,7 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
     if (message is! RequestMessage) {
       return success();
     }
-    return failure(
+    return error(
         ErrorCodes.ServerNotInitialized,
         'Unable to handle ${message.method} before the server is initialized '
         'and the client has sent the initialized notification');
@@ -137,7 +137,7 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
     if (message is! RequestMessage) {
       return success();
     }
-    return failure(ErrorCodes.ServerNotInitialized,
+    return error(ErrorCodes.ServerNotInitialized,
         'Unable to handle ${message.method} before client has sent initialize request');
   }
 }
@@ -154,7 +154,7 @@ class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
     if (message is! RequestMessage) {
       return success();
     }
-    return failure(ErrorCodes.InvalidRequest,
+    return error(ErrorCodes.InvalidRequest,
         'Unable to handle ${message.method} after shutdown request');
   }
 }

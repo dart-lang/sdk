@@ -66,8 +66,15 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     ClassElementImpl element = reference.element;
     node.name.staticElement = element;
+
     _createTypeParameterElements(node.typeParameters);
     scope = new TypeParameterScope(scope, element);
+
+    node.typeParameters?.accept(this);
+    node.extendsClause?.accept(this);
+    node.implementsClause?.accept(this);
+    node.withClause?.accept(this);
+
     scope = new ClassScope(scope, element);
     LinkingNodeContext(node, scope);
 
@@ -79,10 +86,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       }
     }
 
-    node.typeParameters?.accept(this);
-    node.extendsClause?.accept(this);
-    node.implementsClause?.accept(this);
-    node.withClause?.accept(this);
     node.members.accept(this);
     nodesToBuildType.addDeclaration(node);
 
@@ -359,8 +362,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     LinkingNodeContext(node, scope);
 
     node.returnType?.accept(this);
-    node.parameters?.accept(this);
     node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -377,14 +380,17 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     MixinElementImpl element = reference.element;
     node.name.staticElement = element;
+
     _createTypeParameterElements(node.typeParameters);
     scope = new TypeParameterScope(scope, element);
-    scope = new ClassScope(scope, element);
-    LinkingNodeContext(node, scope);
 
     node.typeParameters?.accept(this);
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
+
+    scope = new ClassScope(scope, element);
+    LinkingNodeContext(node, scope);
+
     node.members.accept(this);
     nodesToBuildType.addDeclaration(node);
 

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -19,7 +20,7 @@ import 'package:watcher/watcher.dart';
 class MemoryResourceProvider implements ResourceProvider {
   final Map<String, _MemoryResource> _pathToResource =
       new HashMap<String, _MemoryResource>();
-  final Map<String, List<int>> _pathToBytes = new HashMap<String, List<int>>();
+  final Map<String, Uint8List> _pathToBytes = new HashMap<String, Uint8List>();
   final Map<String, int> _pathToTimestamp = new HashMap<String, int>();
   final Map<String, List<StreamController<WatchEvent>>> _pathToWatchers =
       new HashMap<String, List<StreamController<WatchEvent>>>();
@@ -128,7 +129,7 @@ class MemoryResourceProvider implements ResourceProvider {
 
   void modifyFile(String path, String content) {
     _checkFileAtPath(path);
-    _pathToBytes[path] = utf8.encode(content);
+    _pathToBytes[path] = utf8.encode(content) as Uint8List;
     _pathToTimestamp[path] = nextStamp++;
     _notifyWatchers(path, ChangeType.MODIFY);
   }
@@ -150,7 +151,7 @@ class MemoryResourceProvider implements ResourceProvider {
   File newFile(String path, String content, [int stamp]) {
     _ensureAbsoluteAndNormalized(path);
     _MemoryFile file = _newFile(path);
-    _pathToBytes[path] = utf8.encode(content);
+    _pathToBytes[path] = utf8.encode(content) as Uint8List;
     _pathToTimestamp[path] = stamp ?? nextStamp++;
     _notifyWatchers(path, ChangeType.ADD);
     return file;
@@ -159,7 +160,7 @@ class MemoryResourceProvider implements ResourceProvider {
   File newFileWithBytes(String path, List<int> bytes, [int stamp]) {
     _ensureAbsoluteAndNormalized(path);
     _MemoryFile file = _newFile(path);
-    _pathToBytes[path] = bytes;
+    _pathToBytes[path] = Uint8List.fromList(bytes);
     _pathToTimestamp[path] = stamp ?? nextStamp++;
     _notifyWatchers(path, ChangeType.ADD);
     return file;
@@ -196,7 +197,7 @@ class MemoryResourceProvider implements ResourceProvider {
     newFolder(pathContext.dirname(path));
     _MemoryFile file = new _MemoryFile(this, path);
     _pathToResource[path] = file;
-    _pathToBytes[path] = utf8.encode(content);
+    _pathToBytes[path] = utf8.encode(content) as Uint8List;
     _pathToTimestamp[path] = stamp ?? nextStamp++;
     _notifyWatchers(path, ChangeType.MODIFY);
     return file;
@@ -300,7 +301,7 @@ class MemoryResourceProvider implements ResourceProvider {
   void _setFileContent(_MemoryFile file, List<int> bytes) {
     String path = file.path;
     _pathToResource[path] = file;
-    _pathToBytes[path] = bytes;
+    _pathToBytes[path] = Uint8List.fromList(bytes);
     _pathToTimestamp[path] = nextStamp++;
     _notifyWatchers(path, ChangeType.MODIFY);
   }
@@ -357,7 +358,7 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   }
 
   @override
-  List<int> readAsBytesSync() {
+  Uint8List readAsBytesSync() {
     throw new FileSystemException(path, 'File could not be read');
   }
 
@@ -436,8 +437,8 @@ class _MemoryFile extends _MemoryResource implements File {
   }
 
   @override
-  List<int> readAsBytesSync() {
-    List<int> content = _provider._pathToBytes[path];
+  Uint8List readAsBytesSync() {
+    Uint8List content = _provider._pathToBytes[path];
     if (content == null) {
       throw new FileSystemException(path, 'File "$path" does not exist.');
     }
@@ -446,7 +447,7 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   String readAsStringSync() {
-    List<int> content = _provider._pathToBytes[path];
+    Uint8List content = _provider._pathToBytes[path];
     if (content == null) {
       throw new FileSystemException(path, 'File "$path" does not exist.');
     }

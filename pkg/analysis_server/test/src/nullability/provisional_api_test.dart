@@ -36,15 +36,13 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
   /// Verifies that migration of the files in [input] produces the output in
   /// [expectedOutput].
   Future<void> _checkMultipleFileChanges(
-      Map<String, String> input, Map<String, String> expectedOutput,
-      {NullabilityMigrationAssumptions assumptions:
-          const NullabilityMigrationAssumptions()}) async {
+      Map<String, String> input, Map<String, String> expectedOutput) async {
     for (var path in input.keys) {
       newFile(path, content: input[path]);
     }
     var listener = new _TestMigrationListener();
-    var migration = NullabilityMigration(listener,
-        permissive: _usePermissiveMode, assumptions: assumptions);
+    var migration =
+        NullabilityMigration(listener, permissive: _usePermissiveMode);
     for (var path in input.keys) {
       migration.prepareInput(await session.getResolvedUnit(path));
     }
@@ -69,13 +67,10 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
 
   /// Verifies that migraiton of the single file with the given [content]
   /// produces the [expected] output.
-  Future<void> _checkSingleFileChanges(String content, String expected,
-      {NullabilityMigrationAssumptions assumptions:
-          const NullabilityMigrationAssumptions()}) async {
+  Future<void> _checkSingleFileChanges(String content, String expected) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     await _checkMultipleFileChanges(
-        {sourcePath: content}, {sourcePath: expected},
-        assumptions: assumptions);
+        {sourcePath: content}, {sourcePath: expected});
   }
 }
 
@@ -318,7 +313,7 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected);
   }
 
-  test_named_parameter_no_default_unused_option2_assume_nullable() async {
+  test_named_parameter_no_default_unused() async {
     var content = '''
 void f({String s}) {}
 main() {
@@ -331,13 +326,10 @@ main() {
   f();
 }
 ''';
-    await _checkSingleFileChanges(content, expected,
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeNullable));
+    await _checkSingleFileChanges(content, expected);
   }
 
-  test_named_parameter_no_default_unused_option2_assume_nullable_propagate() async {
+  test_named_parameter_no_default_unused_propagate() async {
     var content = '''
 void f(String s) {}
 void g({String s}) {
@@ -356,57 +348,10 @@ main() {
   g();
 }
 ''';
-    await _checkSingleFileChanges(content, expected,
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeNullable));
+    await _checkSingleFileChanges(content, expected);
   }
 
-  test_named_parameter_no_default_unused_option2_assume_required() async {
-    var content = '''
-void f({String s}) {}
-main() {
-  f();
-}
-''';
-    var expected = '''
-void f({String? s}) {}
-main() {
-  f();
-}
-''';
-    await _checkSingleFileChanges(content, expected,
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeRequired));
-  }
-
-  test_named_parameter_no_default_unused_option2_assume_required_propagate() async {
-    var content = '''
-void f(String s) {}
-void g({String s}) {
-  f(s);
-}
-main() {
-  g();
-}
-''';
-    var expected = '''
-void f(String? s) {}
-void g({String? s}) {
-  f(s);
-}
-main() {
-  g();
-}
-''';
-    await _checkSingleFileChanges(content, expected,
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeRequired));
-  }
-
-  test_named_parameter_no_default_unused_required_option2_assume_nullable() async {
+  test_named_parameter_no_default_unused_required() async {
     // The `@required` annotation overrides the assumption of nullability.
     // The call at `f()` is presumed to be in error.
     addMetaPackage();
@@ -424,38 +369,10 @@ main() {
   f();
 }
 ''';
-    await _checkSingleFileChanges(content, expected,
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeNullable));
+    await _checkSingleFileChanges(content, expected);
   }
 
-  test_named_parameter_no_default_unused_required_option2_assume_required() async {
-    // Since the `@required` annotation is already present, it is not added
-    // again.
-    // The call at `f()` is presumed to be in error.
-    addMetaPackage();
-    var content = '''
-import 'package:meta/meta.dart';
-void f({@required String s}) {}
-main() {
-  f();
-}
-''';
-    var expected = '''
-import 'package:meta/meta.dart';
-void f({@required String s}) {}
-main() {
-  f();
-}
-''';
-    await _checkSingleFileChanges(content, expected,
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeRequired));
-  }
-
-  test_named_parameter_no_default_used_non_null_option2_assume_nullable() async {
+  test_named_parameter_no_default_used_non_null() async {
     var content = '''
 void f({String s}) {}
 main() {
@@ -468,13 +385,10 @@ main() {
   f(s: 'x');
 }
 ''';
-    await _checkSingleFileChanges(content, expected,
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeNullable));
+    await _checkSingleFileChanges(content, expected);
   }
 
-  test_named_parameter_no_default_used_non_null_option2_assume_nullable_propagate() async {
+  test_named_parameter_no_default_used_non_null_propagate() async {
     var content = '''
 void f(String s) {}
 void g({String s}) {
@@ -493,80 +407,7 @@ main() {
   g(s: 'x');
 }
 ''';
-    await _checkSingleFileChanges(content, expected,
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeNullable));
-  }
-
-  test_named_parameter_no_default_used_non_null_option2_assume_required() async {
-    var content = '''
-void f({String s}) {}
-main() {
-  f(s: 'x');
-}
-''';
-    var expected = '''
-import 'package:meta/meta.dart';
-void f({@required String s}) {}
-main() {
-  f(s: 'x');
-}
-''';
-    await _checkSingleFileChanges(content, expected,
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeRequired));
-  }
-
-  test_named_parameter_no_default_used_non_null_option2_assume_required_propagate() async {
-    var content = '''
-void f(String s) {}
-void g({String s}) {
-  f(s);
-}
-main() {
-  g(s: 'x');
-}
-''';
-    var expected = '''
-import 'package:meta/meta.dart';
-void f(String s) {}
-void g({@required String s}) {
-  f(s);
-}
-main() {
-  g(s: 'x');
-}
-''';
-    await _checkSingleFileChanges(content, expected,
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeRequired));
-  }
-
-  test_named_parameter_no_default_used_non_null_required_option2_assume_required() async {
-    // Even if we are using the "assumeRequired" heuristic, we should not add a
-    // duplicate `@required` annotation.
-    addMetaPackage();
-    var content = '''
-import 'package:meta/meta.dart';
-void f({@required String s}) {}
-main() {
-  f(s: 'x');
-}
-''';
-    var expected = '''
-import 'package:meta/meta.dart';
-void f({@required String s}) {}
-main() {
-  f(s: 'x');
-}
-''';
-    await _checkSingleFileChanges(content, expected,
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeRequired));
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_named_parameter_no_default_used_null_option2() async {
@@ -585,7 +426,7 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  test_named_parameter_no_default_used_null_required_option2_assume_nullable() async {
+  test_named_parameter_no_default_used_null_required() async {
     // Explicitly passing `null` forces the parameter to be nullable even though
     // it is required.
     addMetaPackage();
@@ -603,34 +444,7 @@ main() {
   f(s: null);
 }
 ''';
-    await _checkSingleFileChanges(content, expected,
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeNullable));
-  }
-
-  test_named_parameter_no_default_used_null_required_option2_assume_required() async {
-    // Explicitly passing `null` forces the parameter to be nullable even though
-    // it is required.
-    addMetaPackage();
-    var content = '''
-import 'package:meta/meta.dart';
-void f({@required String s}) {}
-main() {
-  f(s: null);
-}
-''';
-    var expected = '''
-import 'package:meta/meta.dart';
-void f({@required String? s}) {}
-main() {
-  f(s: null);
-}
-''';
-    await _checkSingleFileChanges(content, expected,
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeRequired));
+    await _checkSingleFileChanges(content, expected);
   }
 
   test_named_parameter_with_non_null_default_unused_option2() async {
@@ -816,7 +630,7 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  test_unconditional_dereference_implies_non_null_intent() async {
+  test_unconditional_method_call_implies_non_null_intent() async {
     var content = '''
 void f(int i) {
   i.abs();
@@ -863,6 +677,32 @@ void g(bool b, int i, int? j) {
 }
 main() {
   g(false, 0, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_unconditional_property_access_implies_non_null_intent() async {
+    var content = '''
+void f(int i) {
+  i.isEven;
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(int i) {
+  i.isEven;
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);

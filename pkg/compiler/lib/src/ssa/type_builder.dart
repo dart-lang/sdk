@@ -85,6 +85,19 @@ abstract class TypeBuilder {
     return other;
   }
 
+  /// Produces code that checks the runtime type is actually the type specified
+  /// by attempting a type conversion.
+  HInstruction _checkBoolConverion(HInstruction original) {
+    var checkInstruction =
+        HBoolConversion(original, _abstractValueDomain.boolType);
+    if (checkInstruction.isRedundant(_closedWorld)) {
+      return original;
+    }
+    DartType boolType = _closedWorld.commonElements.boolType;
+    builder.registry?.registerTypeUse(new TypeUse.isCheck(boolType));
+    return checkInstruction;
+  }
+
   HInstruction trustTypeOfParameter(HInstruction original, DartType type) {
     if (type == null) return original;
     HInstruction trusted = _trustType(original, type);
@@ -103,8 +116,7 @@ abstract class TypeBuilder {
     if (builder.options.parameterCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, type);
     } else if (builder.options.parameterCheckPolicy.isEmitted) {
-      checkedOrTrusted =
-          _checkType(original, type, HTypeConversion.CHECKED_MODE_CHECK);
+      checkedOrTrusted = _checkType(original, type, HTypeConversion.TYPE_CHECK);
     }
     if (checkedOrTrusted == original) return original;
     builder.add(checkedOrTrusted);
@@ -116,7 +128,7 @@ abstract class TypeBuilder {
   /// trusts the written type.
   HInstruction potentiallyCheckOrTrustTypeOfAssignment(
       HInstruction original, DartType type,
-      {int kind: HTypeConversion.CHECKED_MODE_CHECK}) {
+      {int kind: HTypeConversion.TYPE_CHECK}) {
     if (type == null) return original;
     HInstruction checkedOrTrusted = original;
     if (builder.options.assignmentCheckPolicy.isTrusted) {
@@ -135,8 +147,7 @@ abstract class TypeBuilder {
     if (builder.options.conditionCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, boolType);
     } else if (builder.options.conditionCheckPolicy.isEmitted) {
-      checkedOrTrusted = _checkType(
-          original, boolType, HTypeConversion.BOOLEAN_CONVERSION_CHECK);
+      checkedOrTrusted = _checkBoolConverion(original);
     }
     if (checkedOrTrusted == original) return original;
     builder.add(checkedOrTrusted);
@@ -261,8 +272,6 @@ abstract class TypeBuilder {
     builder.add(result);
     return result;
   }
-
-  bool get checkOrTrustTypes => true;
 
   /// Build a [HTypeConversion] for converting [original] to type [type].
   ///

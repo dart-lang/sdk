@@ -19,15 +19,17 @@ main() {
 @reflectiveTest
 class NonBoolConditionTest extends DriverResolutionTest {
   test_ifElement() async {
-    assertErrorCodesInCode(
+    assertErrorsInCode(
         '''
 const c = [if (3) 1];
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [StaticTypeWarningCode.NON_BOOL_CONDITION]
+            ? [
+                error(StaticTypeWarningCode.NON_BOOL_CONDITION, 15, 1),
+              ]
             : [
-                StaticTypeWarningCode.NON_BOOL_CONDITION,
-                CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 11, 8),
+                error(StaticTypeWarningCode.NON_BOOL_CONDITION, 15, 1),
               ]);
   }
 }

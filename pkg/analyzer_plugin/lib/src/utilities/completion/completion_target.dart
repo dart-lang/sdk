@@ -393,6 +393,34 @@ class CompletionTarget {
     return parameterElement?.type is FunctionType;
   }
 
+  /**
+   * Given that the [node] contains the [offset], return the [FormalParameter]
+   * that encloses the [offset], or `null`.
+   */
+  static FormalParameter findFormalParameter(
+    FormalParameterList node,
+    int offset,
+  ) {
+    assert(node.offset < offset && offset < node.end);
+    var parameters = node.parameters;
+    for (var i = 0; i < parameters.length; i++) {
+      var parameter = parameters[i];
+      if (i == 0 && offset < parameter.offset) {
+        return parameter;
+      }
+      if (parameter.offset <= offset) {
+        if (i < parameters.length - 1) {
+          if (offset < parameters[i + 1].offset) {
+            return parameter;
+          }
+        } else if (offset <= node.rightParenthesis.offset) {
+          return parameter;
+        }
+      }
+    }
+    return null;
+  }
+
   static int _computeArgIndex(AstNode containingNode, Object entity) {
     var argList = containingNode;
     if (argList is NamedExpression) {

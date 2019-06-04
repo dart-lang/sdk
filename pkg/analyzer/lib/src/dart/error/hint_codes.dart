@@ -571,7 +571,7 @@ class HintCode extends ErrorCode {
   static const HintCode SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT = const HintCode(
       'SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT',
       "The use of an as expression in a constant expression wasn't "
-          "supported until version 2.2.2, but this code is required to be able "
+          "supported until version 2.3.2, but this code is required to be able "
           "to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
 
@@ -582,7 +582,7 @@ class HintCode extends ErrorCode {
   static const HintCode SDK_VERSION_BOOL_OPERATOR = const HintCode(
       'SDK_VERSION_BOOL_OPERATOR',
       "Using the operator '{0}' for 'bool's was not supported until version "
-          "2.2.2, but this code is required to be able to run on earlier versions.",
+          "2.3.2, but this code is required to be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
 
   /**
@@ -592,7 +592,7 @@ class HintCode extends ErrorCode {
   static const HintCode SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT = const HintCode(
       'SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT',
       "Using the operator '==' for non-primitive types was not supported until "
-          "version 2.2.2, but this code is required to be able to run on earlier "
+          "version 2.3.2, but this code is required to be able to run on earlier "
           "versions.",
       correction: "Try updating the SDK constraints.");
 
@@ -602,7 +602,7 @@ class HintCode extends ErrorCode {
    */
   static const HintCode SDK_VERSION_GT_GT_GT_OPERATOR = const HintCode(
       'SDK_VERSION_GT_GT_GT_OPERATOR',
-      "The operator '>>>' was not supported until version 2.2.2, but this code "
+      "The operator '>>>' was not supported until version 2.3.2, but this code "
           "is required to be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
 
@@ -613,7 +613,7 @@ class HintCode extends ErrorCode {
   static const HintCode SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT = const HintCode(
       'SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT',
       "The use of an is expression in a constant expression wasn't "
-          "supported until version 2.2.2, but this code is required to be able "
+          "supported until version 2.3.2, but this code is required to be able "
           "to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
 

@@ -82,6 +82,7 @@ import '../kernel/kernel_builder.dart'
         KernelProcedureBuilder,
         KernelTypeBuilder,
         LibraryBuilder,
+        MemberBuilder,
         NamedTypeBuilder,
         TypeBuilder;
 
@@ -947,6 +948,23 @@ class SourceLoader extends Loader<Library> {
     ticker.logMs("Checked mixin declaration applications");
   }
 
+  void buildAnnotations() {
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library.loader == this) {
+        library.buildAnnotations();
+        Iterator<Declaration> iterator = library.iterator;
+        while (iterator.moveNext()) {
+          Declaration declaration = iterator.current;
+          if (declaration is ClassBuilder) {
+            declaration.buildAnnotations(library);
+          } else if (declaration is MemberBuilder) {
+            declaration.buildAnnotations(library);
+          }
+        }
+      }
+    });
+  }
+
   ClassHierarchyBuilder buildClassHierarchy(
       List<SourceClassBuilder> sourceClasses, ClassBuilder objectClass) {
     ClassHierarchyBuilder hierarchy = ClassHierarchyBuilder.build(
@@ -1036,17 +1054,17 @@ class SourceLoader extends Loader<Library> {
 
   void transformListPostInference(List<TreeNode> list,
       bool transformSetLiterals, bool transformCollections) {
-    if (transformSetLiterals) {
-      SetLiteralTransformer transformer = setLiteralTransformer ??=
-          new SetLiteralTransformer(this,
-              transformConst: !target.enableConstantUpdate2018);
+    if (transformCollections) {
+      CollectionTransformer transformer =
+          collectionTransformer ??= new CollectionTransformer(this);
       for (int i = 0; i < list.length; ++i) {
         list[i] = list[i].accept(transformer);
       }
     }
-    if (transformCollections) {
-      CollectionTransformer transformer =
-          collectionTransformer ??= new CollectionTransformer(this);
+    if (transformSetLiterals) {
+      SetLiteralTransformer transformer = setLiteralTransformer ??=
+          new SetLiteralTransformer(this,
+              transformConst: !target.enableConstantUpdate2018);
       for (int i = 0; i < list.length; ++i) {
         list[i] = list[i].accept(transformer);
       }

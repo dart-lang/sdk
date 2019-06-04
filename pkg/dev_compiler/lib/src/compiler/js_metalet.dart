@@ -59,8 +59,7 @@ class MetaLet extends Expression {
     var block = toStatement();
     var s = block.statements;
     if (s.length == 1 && s.first is ExpressionStatement) {
-      ExpressionStatement es = s.first;
-      return es.expression;
+      return (s.first as ExpressionStatement).expression;
     }
 
     return _toInvokedFunction(block);
@@ -114,8 +113,7 @@ class MetaLet extends Expression {
     var block = toReturn();
     var s = block.statements;
     if (s.length == 1 && s.first is Return) {
-      Return es = s.first;
-      return _expression = es.value;
+      return _expression = (s.first as Return).value;
     }
     // Wrap it in an immediately called function to get in expression context.
     return _expression = _toInvokedFunction(block);
@@ -280,7 +278,7 @@ class MetaLet extends Expression {
       }
 
       assert(body.isNotEmpty);
-      Binary newBody = Expression.binary([assign]..addAll(body), ',');
+      var newBody = Expression.binary([assign]..addAll(body), ',') as Binary;
       newBody = _substitute(newBody, {result: left});
       return MetaLet(vars, newBody.commaToExpressionList(),
           statelessResult: statelessResult);

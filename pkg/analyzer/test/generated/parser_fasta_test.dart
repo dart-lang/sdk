@@ -36,6 +36,7 @@ import 'test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassMemberParserTest_Fasta);
+    defineReflectiveTests(ExtensionMethodsParserTest_Fasta);
     defineReflectiveTests(CollectionLiteralParserTest);
     defineReflectiveTests(ComplexParserTest_Fasta);
     defineReflectiveTests(ErrorParserTest_Fasta);
@@ -1435,6 +1436,163 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
   }
 }
 
+@reflectiveTest
+class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
+  @override
+  CompilationUnit parseCompilationUnit(String content,
+      {List<ErrorCode> codes,
+      List<ExpectedError> errors,
+      FeatureSet featureSet}) {
+    return super.parseCompilationUnit(content,
+        codes: codes,
+        errors: errors,
+        featureSet: featureSet ??
+            FeatureSet.forTesting(
+              sdkVersion: '2.3.0',
+              additionalFeatures: [Feature.extension_methods],
+            ));
+  }
+
+  void test_complex_extends() {
+    var unit = parseCompilationUnit(
+        'extension E extends A with B, C implements D { }',
+        errors: [
+          expectedError(ParserErrorCode.EXPECTED_INSTEAD, 12, 7),
+          expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 22, 4),
+          expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 28, 1),
+          expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 32, 10),
+        ]);
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'extends');
+    expect((extension.extendedType as NamedType).name.name, 'A');
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_complex_implements() {
+    var unit = parseCompilationUnit('extension E implements C, D { }', errors: [
+      expectedError(ParserErrorCode.EXPECTED_INSTEAD, 12, 10),
+      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 24, 1),
+    ]);
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'implements');
+    expect((extension.extendedType as NamedType).name.name, 'C');
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_complex_type() {
+    var unit = parseCompilationUnit('extension E on C<T> { }');
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'on');
+    var namedType = (extension.extendedType as NamedType);
+    expect(namedType.name.name, 'C');
+    expect(namedType.typeArguments.arguments, hasLength(1));
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_missing_on() {
+    var unit = parseCompilationUnit('extension E', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 11, 0),
+      expectedError(ParserErrorCode.MISSING_CLASS_BODY, 11, 0),
+    ]);
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'on');
+    expect((extension.extendedType as NamedType).name.name, '');
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_missing_on_withBlock() {
+    var unit = parseCompilationUnit('extension E {}', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
+    ]);
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'on');
+    expect((extension.extendedType as NamedType).name.name, '');
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_missing_on_withClassAndBlock() {
+    var unit = parseCompilationUnit('extension E C {}', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
+    ]);
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'on');
+    expect((extension.extendedType as NamedType).name.name, 'C');
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_simple() {
+    var unit = parseCompilationUnit('extension E on C { }');
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'on');
+    expect((extension.extendedType as NamedType).name.name, 'C');
+    var namedType = (extension.extendedType as NamedType);
+    expect(namedType.name.name, 'C');
+    expect(namedType.typeArguments, isNull);
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_simple_extends() {
+    var unit = parseCompilationUnit('extension E extends C { }', errors: [
+      expectedError(ParserErrorCode.EXPECTED_INSTEAD, 12, 7),
+    ]);
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'extends');
+    expect((extension.extendedType as NamedType).name.name, 'C');
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_simple_implements() {
+    var unit = parseCompilationUnit('extension E implements C { }', errors: [
+      expectedError(ParserErrorCode.EXPECTED_INSTEAD, 12, 10),
+    ]);
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'implements');
+    expect((extension.extendedType as NamedType).name.name, 'C');
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_simple_not_enabled() {
+    parseCompilationUnit('extension E on C { }',
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 0, 9),
+          expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 15, 1)
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.3.0'));
+  }
+
+  void test_simple_with() {
+    var unit = parseCompilationUnit('extension E with C { }', errors: [
+      expectedError(ParserErrorCode.EXPECTED_INSTEAD, 12, 4),
+    ]);
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'with');
+    expect((extension.extendedType as NamedType).name.name, 'C');
+    expect(extension.members, hasLength(0));
+  }
+}
+
 /**
  * Implementation of [AbstractParserTestCase] specialized for testing the
  * Fasta parser.
@@ -2131,19 +2289,24 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
  */
 @reflectiveTest
 class NNBDParserTest_Fasta extends FastaParserTestCase {
+  @override
+  CompilationUnit parseCompilationUnit(String content,
+          {List<ErrorCode> codes,
+          List<ExpectedError> errors,
+          FeatureSet featureSet}) =>
+      super.parseCompilationUnit(content,
+          codes: codes, errors: errors, featureSet: featureSet ?? nonNullable);
+
   void test_assignment_complex() {
-    parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x + bar(7); }',
-        featureSet: nonNullable);
+    parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x + bar(7); }');
   }
 
   void test_assignment_simple() {
-    parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }');
   }
 
   void test_binary_expression_statement() {
-    final unit = parseCompilationUnit('D? foo(X? x) { X ?? x2; }',
-        featureSet: nonNullable);
+    final unit = parseCompilationUnit('D? foo(X? x) { X ?? x2; }');
     FunctionDeclaration funct = unit.declarations[0];
     BlockFunctionBody body = funct.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
@@ -2156,13 +2319,11 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
   }
 
   void test_conditional() {
-    parseCompilationUnit('D? foo(X? x) { X ? 7 : y; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('D? foo(X? x) { X ? 7 : y; }');
   }
 
   void test_conditional_complex() {
-    parseCompilationUnit('D? foo(X? x) { X ? x2 = x + bar(7) : y; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('D? foo(X? x) { X ? x2 = x + bar(7) : y; }');
   }
 
   void test_conditional_error() {
@@ -2171,74 +2332,62 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
           expectedError(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
           expectedError(ParserErrorCode.EXPECTED_TOKEN, 40, 1),
           expectedError(ParserErrorCode.MISSING_IDENTIFIER, 40, 1),
-        ],
-        featureSet: nonNullable);
+        ]);
   }
 
   void test_conditional_simple() {
-    parseCompilationUnit('D? foo(X? x) { X ? x2 = x : y; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('D? foo(X? x) { X ? x2 = x : y; }');
   }
 
   void test_enableNonNullable_false() {
     parseCompilationUnit('main() { x is String? ? (x + y) : z; }',
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 20, 1)]);
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 20, 1)],
+        featureSet: preNonNullable);
   }
 
   void test_for() {
-    parseCompilationUnit('main() { for(int x = 0; x < 7; ++x) { } }',
-        featureSet: nonNullable);
+    parseCompilationUnit('main() { for(int x = 0; x < 7; ++x) { } }');
   }
 
   void test_for_conditional() {
-    parseCompilationUnit('main() { for(x ? y = 7 : y = 8; y < 10; ++y) { } }',
-        featureSet: nonNullable);
+    parseCompilationUnit('main() { for(x ? y = 7 : y = 8; y < 10; ++y) { } }');
   }
 
   void test_for_nullable() {
-    parseCompilationUnit('main() { for(int? x = 0; x < 7; ++x) { } }',
-        featureSet: nonNullable);
+    parseCompilationUnit('main() { for(int? x = 0; x < 7; ++x) { } }');
   }
 
   void test_foreach() {
-    parseCompilationUnit('main() { for(int x in [7]) { } }',
-        featureSet: nonNullable);
+    parseCompilationUnit('main() { for(int x in [7]) { } }');
   }
 
   void test_foreach_nullable() {
-    parseCompilationUnit('main() { for(int? x in [7, null]) { } }',
-        featureSet: nonNullable);
+    parseCompilationUnit('main() { for(int? x in [7, null]) { } }');
   }
 
   void test_gft_nullable() {
-    parseCompilationUnit('main() { C? Function() x = 7; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('main() { C? Function() x = 7; }');
   }
 
   void test_gft_nullable_1() {
-    parseCompilationUnit('main() { C Function()? x = 7; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('main() { C Function()? x = 7; }');
   }
 
   void test_gft_nullable_2() {
-    parseCompilationUnit('main() { C? Function()? x = 7; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('main() { C? Function()? x = 7; }');
   }
 
   void test_gft_nullable_3() {
-    parseCompilationUnit('main() { C? Function()? Function()? x = 7; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('main() { C? Function()? Function()? x = 7; }');
   }
 
   void test_gft_nullable_prefixed() {
-    parseCompilationUnit('main() { C.a? Function()? x = 7; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('main() { C.a? Function()? x = 7; }');
   }
 
   void test_is_nullable() {
-    CompilationUnit unit = parseCompilationUnit(
-        'main() { x is String? ? (x + y) : z; }',
-        featureSet: nonNullable);
+    CompilationUnit unit =
+        parseCompilationUnit('main() { x is String? ? (x + y) : z; }');
     FunctionDeclaration function = unit.declarations[0];
     BlockFunctionBody body = function.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
@@ -2253,9 +2402,8 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
   }
 
   void test_is_nullable_parenthesis() {
-    CompilationUnit unit = parseCompilationUnit(
-        'main() { (x is String?) ? (x + y) : z; }',
-        featureSet: nonNullable);
+    CompilationUnit unit =
+        parseCompilationUnit('main() { (x is String?) ? (x + y) : z; }');
     FunctionDeclaration function = unit.declarations[0];
     BlockFunctionBody body = function.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
@@ -2274,9 +2422,7 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
     parseCompilationUnit('''
 // @dart = 2.2
 main() { (x is String?) ? (x + y) : z; }
-''',
-        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 36, 1)],
-        featureSet: nonNullable);
+''', errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 36, 1)]);
   }
 
   void test_late_as_identifier() {
@@ -2309,12 +2455,11 @@ void f(C c) {
 main() {
   f(new C());
 }
-''', featureSet: nonNullable);
+''');
   }
 
   void test_nullCheck() {
-    var unit = parseCompilationUnit('f(int? y) { var x = y!; }',
-        featureSet: nonNullable);
+    var unit = parseCompilationUnit('f(int? y) { var x = y!; }');
     FunctionDeclaration function = unit.declarations[0];
     BlockFunctionBody body = function.functionExpression.body;
     VariableDeclarationStatement statement = body.block.statements[0];
@@ -2338,23 +2483,36 @@ main() {
     expect(identifier.name, 'y');
   }
 
+  void test_nullCheckAfterGetterAccess() {
+    parseCompilationUnit('f() { var x = g.x!.y + 7; }');
+  }
+
+  void test_nullCheckAfterMethodCall() {
+    parseCompilationUnit('f() { var x = g.m()!.y + 7; }');
+  }
+
+  void test_nullCheckBeforeGetterAccess() {
+    parseCompilationUnit('f() { var x = g!.x + 7; }');
+  }
+
+  void test_nullCheckBeforeMethodCall() {
+    parseCompilationUnit('f() { var x = g!.m() + 7; }');
+  }
+
   void test_nullCheckFunctionResult() {
-    parseCompilationUnit('f() { var x = g()! + 7; }', featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = g()! + 7; }');
   }
 
   void test_nullCheckIndexedValue() {
-    parseCompilationUnit('f(int? y) { var x = y[0]! + 7; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('f(int? y) { var x = y[0]! + 7; }');
   }
 
   void test_nullCheckIndexedValue2() {
-    parseCompilationUnit('f(int? y) { var x = super.y[0]! + 7; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('f(int? y) { var x = super.y[0]! + 7; }');
   }
 
   void test_nullCheckInExpression() {
-    parseCompilationUnit('f(int? y) { var x = y! + 7; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('f(int? y) { var x = y! + 7; }');
   }
 
   void test_nullCheckInExpression_disabled() {
@@ -2367,28 +2525,23 @@ main() {
   }
 
   void test_nullCheckMethodResult() {
-    parseCompilationUnit('f() { var x = g.m()! + 7; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = g.m()! + 7; }');
   }
 
   void test_nullCheckMethodResult2() {
-    parseCompilationUnit('f() { var x = g?.m()! + 7; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = g?.m()! + 7; }');
   }
 
   void test_nullCheckMethodResult3() {
-    parseCompilationUnit('f() { var x = super.m()! + 7; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = super.m()! + 7; }');
   }
 
   void test_nullCheckOnConstConstructor() {
-    parseCompilationUnit('f() { var x = const Foo()!; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = const Foo()!; }');
   }
 
   void test_nullCheckOnConstructor() {
-    parseCompilationUnit('f() { var x = new Foo()!; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = new Foo()!; }');
   }
 
   void test_nullCheckOnLiteral_disabled() {
@@ -2399,47 +2552,46 @@ main() {
 
   void test_nullCheckOnLiteralDouble() {
     // Issues like this should be caught during later analysis
-    parseCompilationUnit('f() { var x = 1.2!; }', featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = 1.2!; }');
   }
 
   void test_nullCheckOnLiteralInt() {
     // Issues like this should be caught during later analysis
-    parseCompilationUnit('f() { var x = 0!; }', featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = 0!; }');
   }
 
   void test_nullCheckOnLiteralList() {
     // Issues like this should be caught during later analysis
-    parseCompilationUnit('f() { var x = [1,2]!; }', featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = [1,2]!; }');
   }
 
   void test_nullCheckOnLiteralMap() {
     // Issues like this should be caught during later analysis
-    parseCompilationUnit('f() { var x = {1:2}!; }', featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = {1:2}!; }');
   }
 
   void test_nullCheckOnLiteralSet() {
     // Issues like this should be caught during later analysis
-    parseCompilationUnit('f() { var x = {1,2}!; }', featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = {1,2}!; }');
   }
 
   void test_nullCheckOnLiteralString() {
     // Issues like this should be caught during later analysis
-    parseCompilationUnit('f() { var x = "seven"!; }', featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = "seven"!; }');
   }
 
   void test_nullCheckOnNull() {
     // Issues like this should be caught during later analysis
-    parseCompilationUnit('f() { var x = null!; }', featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = null!; }');
   }
 
   void test_nullCheckOnSymbol() {
     // Issues like this should be caught during later analysis
-    parseCompilationUnit('f() { var x = #seven!; }', featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = #seven!; }');
   }
 
   void test_nullCheckOnValue() {
-    parseCompilationUnit('f(Point p) { var x = p.y! + 7; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('f(Point p) { var x = p.y! + 7; }');
   }
 
   void test_nullCheckOnValue_disabled() {
@@ -2449,27 +2601,24 @@ main() {
   }
 
   void test_nullCheckParenthesizedExpression() {
-    parseCompilationUnit('f(int? y) { var x = (y)! + 7; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('f(int? y) { var x = (y)! + 7; }');
   }
 
   void test_nullCheckPropertyAccess() {
-    parseCompilationUnit('f() { var x = g.p! + 7; }', featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = g.p! + 7; }');
   }
 
   void test_nullCheckPropertyAccess2() {
-    parseCompilationUnit('f() { var x = g?.p! + 7; }', featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = g?.p! + 7; }');
   }
 
   void test_nullCheckPropertyAccess3() {
-    parseCompilationUnit('f() { var x = super.p! + 7; }',
-        featureSet: nonNullable);
+    parseCompilationUnit('f() { var x = super.p! + 7; }');
   }
 
   void test_postfix_null_assertion_and_unary_prefix_operator_precedence() {
     // -x! is parsed as -(x!).
-    var unit =
-        parseCompilationUnit('void main() { -x!; }', featureSet: nonNullable);
+    var unit = parseCompilationUnit('void main() { -x!; }');
     var function = unit.declarations[0] as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
@@ -2481,8 +2630,7 @@ main() {
 
   void test_postfix_null_assertion_of_postfix_expression() {
     // x++! is parsed as (x++)!.
-    var unit =
-        parseCompilationUnit('void main() { x++!; }', featureSet: nonNullable);
+    var unit = parseCompilationUnit('void main() { x++!; }');
     var function = unit.declarations[0] as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;

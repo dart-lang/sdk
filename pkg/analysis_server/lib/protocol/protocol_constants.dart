@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.26.1';
+const String PROTOCOL_VERSION = '1.27.0';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -116,6 +116,10 @@ const String COMPLETION_NOTIFICATION_AVAILABLE_SUGGESTIONS_CHANGED_LIBRARIES =
     'changedLibraries';
 const String COMPLETION_NOTIFICATION_AVAILABLE_SUGGESTIONS_REMOVED_LIBRARIES =
     'removedLibraries';
+const String COMPLETION_NOTIFICATION_EXISTING_IMPORTS =
+    'completion.existingImports';
+const String COMPLETION_NOTIFICATION_EXISTING_IMPORTS_FILE = 'file';
+const String COMPLETION_NOTIFICATION_EXISTING_IMPORTS_IMPORTS = 'imports';
 const String COMPLETION_NOTIFICATION_RESULTS = 'completion.results';
 const String COMPLETION_NOTIFICATION_RESULTS_ID = 'id';
 const String COMPLETION_NOTIFICATION_RESULTS_INCLUDED_ELEMENT_KINDS =
@@ -126,6 +130,7 @@ const String
 const String COMPLETION_NOTIFICATION_RESULTS_INCLUDED_SUGGESTION_SETS =
     'includedSuggestionSets';
 const String COMPLETION_NOTIFICATION_RESULTS_IS_LAST = 'isLast';
+const String COMPLETION_NOTIFICATION_RESULTS_LIBRARY_FILE = 'libraryFile';
 const String COMPLETION_NOTIFICATION_RESULTS_REPLACEMENT_LENGTH =
     'replacementLength';
 const String COMPLETION_NOTIFICATION_RESULTS_REPLACEMENT_OFFSET =

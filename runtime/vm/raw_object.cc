@@ -537,7 +537,7 @@ bool RawBytecode::ContainsPC(RawObject* raw_obj, uword pc) {
     RawBytecode* raw_bytecode = static_cast<RawBytecode*>(raw_obj);
     uword start = raw_bytecode->ptr()->instructions_;
     uword size = raw_bytecode->ptr()->instructions_size_;
-    return (pc - start) < size;
+    return (pc - start) <= size;  // pc may point past last instruction.
   }
   return false;
 }

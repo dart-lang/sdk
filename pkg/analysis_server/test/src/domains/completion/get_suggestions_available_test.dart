@@ -10,12 +10,50 @@ import 'available_suggestions_base.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ExistingImportsNotification);
     defineReflectiveTests(GetSuggestionAvailableTest);
   });
 }
 
 @reflectiveTest
-class GetSuggestionAvailableTest extends AvailableSuggestionsBase {
+class ExistingImportsNotification extends GetSuggestionsBase {
+  test_dart() async {
+    addTestFile(r'''
+import 'dart:math';
+''');
+    await _getSuggestions(testFile, 0);
+    _assertHasImport('dart:math', 'dart:math', 'Random');
+  }
+
+  test_invalidUri() async {
+    addTestFile(r'''
+import 'ht:';
+''');
+    await _getSuggestions(testFile, 0);
+    // We should not get 'server.error' notification.
+  }
+
+  void _assertHasImport(String exportingUri, String declaringUri, String name) {
+    var existingImports = fileToExistingImports[testFile];
+    expect(existingImports, isNotNull);
+
+    var existingImport = existingImports.imports.singleWhere((import) =>
+        existingImports.elements.strings[import.uri] == exportingUri);
+
+    var elements = existingImport.elements.map((index) {
+      var uriIndex = existingImports.elements.uris[index];
+      var nameIndex = existingImports.elements.names[index];
+      var uri = existingImports.elements.strings[uriIndex];
+      var name = existingImports.elements.strings[nameIndex];
+      return '$uri::$name';
+    }).toList();
+
+    expect(elements, contains('$declaringUri::$name'));
+  }
+}
+
+@reflectiveTest
+class GetSuggestionAvailableTest extends GetSuggestionsBase {
   test_dart() async {
     addTestFile('');
     var mathSet = await waitForSetWithUri('dart:math');
@@ -284,7 +322,9 @@ main() {
 ]
 ''');
   }
+}
 
+abstract class GetSuggestionsBase extends AvailableSuggestionsBase {
   Future<CompletionResultsParams> _getSuggestions(
     String path,
     int offset,

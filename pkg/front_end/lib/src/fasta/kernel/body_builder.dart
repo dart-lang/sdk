@@ -509,7 +509,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
 
       ConstantContext savedConstantContext = pop();
-      if (expression is! StaticAccessGenerator) {
+      if (expression is! StaticAccessGenerator &&
+          expression is! VariableUseGenerator) {
         push(wrapInProblem(
             toValue(expression), fasta.messageExpressionNotMetadata, noLength));
       } else {
@@ -600,25 +601,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // `invalid-type`.
       buildDartType(pop()); // Type.
     }
-    List<Expression> annotations = pop();
-    // Fields with duplicate names are sorted out in the else branch of the
-    // `declaration.next == null` above.
-    if (annotations != null && fields.isNotEmpty) {
-      inferAnnotations(annotations);
-      Field field = fields.first.target;
-      // The first (and often only field) will not get a clone.
-      for (int i = 0; i < annotations.length; i++) {
-        field.addAnnotation(annotations[i]);
-      }
-      for (int i = 1; i < fields.length; i++) {
-        // We have to clone the annotations on the remaining fields.
-        field = fields[i].target;
-        cloner ??= new CloneVisitor();
-        for (Expression annotation in annotations) {
-          field.addAnnotation(cloner.clone(annotation));
-        }
-      }
-    }
+    pop(); // Annotations.
 
     resolveRedirectingFactoryTargets();
     finishVariableMetadata();
@@ -750,8 +733,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void finishFunction(List<Expression> annotations, FormalParameters formals,
-      AsyncMarker asyncModifier, Statement body) {
+  void finishFunction(
+      FormalParameters formals, AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
     typePromoter?.finished();
 
@@ -901,11 +884,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         ])
           ..fileOffset = body.fileOffset;
       }
-    }
-    Member target = builder.target;
-    inferAnnotations(annotations);
-    for (Expression annotation in annotations ?? const []) {
-      target.addAnnotation(annotation);
     }
     if (builder is KernelConstructorBuilder) {
       finishConstructor(builder, asyncModifier);
@@ -1152,6 +1130,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Expression expression = popForValue();
     checkEmpty(token.charOffset);
     return expression;
+  }
+
+  Expression parseAnnotation(Token token) {
+    Parser parser = new Parser(this);
+    token = parser.parseMetadata(parser.syntheticPreviousToken(token));
+    Expression annotation = pop();
+    checkEmpty(token.charOffset);
+    return annotation;
   }
 
   void finishConstructor(

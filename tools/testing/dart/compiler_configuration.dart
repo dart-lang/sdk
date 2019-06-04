@@ -118,8 +118,6 @@ abstract class CompilerConfiguration {
     }
   }
 
-  // TODO(ahe): It shouldn't be necessary to pass [buildDir] to any of these
-  // functions. It is fixed for a given configuration.
   String computeCompilerPath() {
     throw "Unknown compiler for: $runtimeType";
   }
@@ -129,15 +127,6 @@ abstract class CompilerConfiguration {
   String get executableScriptSuffix => Platform.isWindows ? '.bat' : '';
 
   List<Uri> bootstrapDependencies() => const <Uri>[];
-
-  /// Creates a [Command] to compile [inputFile] to [outputFile].
-  Command createCommand(String inputFile, String outputFile,
-      List<String> sharedOptions, Map<String, String> environment) {
-    // TODO(rnystrom): See if this method can be unified with
-    // computeCompilationArtifact() and/or computeCompilerArguments() for the
-    // other compilers.
-    throw new UnsupportedError("$this does not support createCommand().");
-  }
 
   CommandArtifact computeCompilationArtifact(
 
@@ -188,6 +177,11 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     var args = <String>[];
+    if (_isDebug) {
+      // Temporarily disable background compilation to avoid flaky crashes
+      // (see http://dartbug.com/30016 for details).
+      args.add('--no-background-compilation');
+    }
     if (_useEnableAsserts) {
       args.add('--enable_asserts');
     }
@@ -481,10 +475,26 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       List<String> arguments, Map<String, String> environmentOverrides) {
     var compilerArguments = arguments.toList()
       ..addAll(_configuration.dart2jsOptions);
-    return new CommandArtifact([
-      computeCompilationCommand(
-          '$tempDir/out.js', compilerArguments, environmentOverrides)
-    ], '$tempDir/out.js', 'application/javascript');
+
+    var commands = <Command>[];
+    // TODO(athom): input filename extraction is copied from DDC. Maybe this
+    // should be passed to computeCompilationArtifact, instead?
+    var inputFile = arguments.last;
+    var inputFilename = (new Uri.file(inputFile)).pathSegments.last;
+    var out = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
+    var babel = _configuration.babel;
+    var babelOut = out;
+    if (babel != null && babel.isNotEmpty) {
+      out = out.replaceAll('.js', '.raw.js');
+    }
+    commands.add(computeCompilationCommand(
+        out, compilerArguments, environmentOverrides));
+
+    if (babel != null && babel.isNotEmpty) {
+      commands.add(computeBabelCommand(out, babelOut, babel));
+    }
+
+    return new CommandArtifact(commands, babelOut, 'application/javascript');
   }
 
   List<String> computeRuntimeArguments(
@@ -501,6 +511,22 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
     Uri preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
       ..add(artifact.filename);
+  }
+
+  Command computeBabelCommand(String input, String output, String options) {
+    var uri = Repository.uri;
+    var babelTransform =
+        uri.resolve('tools/testing/dart/babel_transform.js').toFilePath();
+    var babelStandalone =
+        uri.resolve('third_party/babel/babel.min.js').toFilePath();
+    return Command.compilation(
+        'babel',
+        output,
+        [],
+        _configuration.runtimeConfiguration.d8FileName,
+        [babelTransform, "--", babelStandalone, options, input],
+        {},
+        alwaysCompile: true); // TODO(athom): ensure dependency tracking works.
   }
 }
 
@@ -532,7 +558,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     return result;
   }
 
-  Command createCommand(String inputFile, String outputFile,
+  Command _createCommand(String inputFile, String outputFile,
       List<String> sharedOptions, Map<String, String> environment) {
     /// This can be disabled to test DDC's hybrid mode (automatically converting
     /// Analyzer summaries to Kernel files).
@@ -624,7 +650,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     var outputFile = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
 
     return new CommandArtifact(
-        [createCommand(inputFile, outputFile, sharedOptions, environment)],
+        [_createCommand(inputFile, outputFile, sharedOptions, environment)],
         outputFile,
         "application/javascript");
   }
@@ -668,7 +694,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
           tempDir, arguments, environmentOverrides));
     }
 
-    if (!_configuration.useBlobs) {
+    if (!_configuration.useBlobs && !_configuration.useElf) {
       commands.add(
           computeAssembleCommand(tempDir, arguments, environmentOverrides));
       if (!_configuration.keepGeneratedFiles) {
@@ -724,6 +750,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     if (_configuration.useBlobs) {
       args.add("--snapshot-kind=app-aot-blobs");
       args.add("--blobs_container_filename=$tempDir/out.aotsnapshot");
+    } else if (_configuration.useElf) {
+      args.add("--snapshot-kind=app-aot-elf");
+      args.add("--assembly=$tempDir/out.aotsnapshot");
     } else {
       args.add("--snapshot-kind=app-aot-assembly");
       args.add("--assembly=$tempDir/out.S");
@@ -1153,6 +1182,7 @@ abstract class VMKernelCompilerMixin {
       args.add('--gen-bytecode');
       args.add('--drop-ast');
       args.add('--emit-bytecode-source-positions');
+      args.add('--emit-bytecode-local-var-info');
     }
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
@@ -1197,12 +1227,6 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 
   @override
   List<Uri> bootstrapDependencies() => [_platformDill];
-
-  @override
-  Command createCommand(String inputFile, String outputFile,
-      List<String> sharedOptions, Map<String, String> environment) {
-    throw new UnimplementedError();
-  }
 
   @override
   CommandArtifact computeCompilationArtifact(String tempDir,

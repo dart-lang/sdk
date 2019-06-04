@@ -451,6 +451,8 @@ class FunctionViewElement extends CustomElement implements Renderable {
         return 'collected';
       case M.FunctionKind.native:
         return 'native';
+      case M.FunctionKind.ffiTrampoline:
+        return 'ffi trampoline';
       case M.FunctionKind.stub:
         return 'stub';
       case M.FunctionKind.tag:

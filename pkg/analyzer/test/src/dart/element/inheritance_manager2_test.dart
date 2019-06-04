@@ -47,7 +47,7 @@ class X extends B {
     _assertGetInherited(
       className: 'X',
       name: 'foo',
-      expected: 'B.foo: () → void',
+      expected: 'B.foo: void Function()',
     );
   }
 
@@ -70,7 +70,7 @@ class X implements I, J {
     _assertGetInherited(
       className: 'X',
       name: 'foo',
-      expected: 'J.foo: () → void',
+      expected: 'J.foo: void Function()',
     );
   }
 
@@ -93,7 +93,7 @@ class X extends A with M {
     _assertGetInherited(
       className: 'X',
       name: 'foo',
-      expected: 'M.foo: () → void',
+      expected: 'M.foo: void Function()',
     );
   }
 
@@ -116,7 +116,7 @@ class X extends A implements I {
     _assertGetInherited(
       className: 'X',
       name: 'foo',
-      expected: 'A.foo: () → void',
+      expected: 'A.foo: void Function()',
     );
   }
 
@@ -131,7 +131,7 @@ class B extends A {}
     await resolveTestFile();
 
     _assertInheritedConcreteMap('B', r'''
-A.foo: () → int
+A.foo: int Function()
 ''');
   }
 
@@ -158,7 +158,7 @@ class B extends Object with A {}
     await resolveTestFile();
 
     _assertInheritedConcreteMap('B', r'''
-A.foo: () → int
+A.foo: int Function()
 ''');
   }
 
@@ -181,7 +181,7 @@ class B extends A {}
     await resolveTestFile();
 
     _assertInheritedConcreteMap('B', r'''
-A.foo: () → void
+A.foo: void Function()
 ''');
   }
 
@@ -214,7 +214,7 @@ class C extends A implements I {}
     await resolveTestFile();
 
     _assertInheritedConcreteMap('C', r'''
-A.foo: (int) → void
+A.foo: void Function(int)
 ''');
   }
 
@@ -242,7 +242,7 @@ class B extends Object with A {}
     await resolveTestFile();
 
     _assertInheritedConcreteMap('B', r'''
-A.foo: () → void
+A.foo: void Function()
 ''');
   }
 
@@ -261,8 +261,8 @@ class C extends Object with A, B {}
     await resolveTestFile();
 
     _assertInheritedConcreteMap('C', r'''
-A.foo: () → void
-B.bar: () → void
+A.foo: void Function()
+B.bar: void Function()
 ''');
   }
 
@@ -277,7 +277,7 @@ class B extends A {}
     await resolveTestFile();
 
     _assertInheritedMap('B', r'''
-A.foo: () → int
+A.foo: int Function()
 ''');
   }
 
@@ -292,7 +292,7 @@ abstract class B implements A {}
     await resolveTestFile();
 
     _assertInheritedMap('B', r'''
-A.foo: () → int
+A.foo: int Function()
 ''');
   }
 
@@ -307,7 +307,7 @@ class B extends Object with A {}
     await resolveTestFile();
 
     _assertInheritedMap('B', r'''
-A.foo: () → int
+A.foo: int Function()
 ''');
   }
 
@@ -326,7 +326,7 @@ class X extends B {}
     await resolveTestFile();
 
     _assertInheritedMap('X', r'''
-B.foo: () → void
+B.foo: void Function()
 ''');
   }
 
@@ -341,8 +341,8 @@ class B extends A {}
     await resolveTestFile();
 
     _assertInheritedMap('B', r'''
-A.foo: () → int
-A.foo=: (int) → void
+A.foo: int Function()
+A.foo=: void Function(int)
 ''');
   }
 
@@ -357,8 +357,8 @@ abstract class B implements A {}
     await resolveTestFile();
 
     _assertInheritedMap('B', r'''
-A.foo: () → int
-A.foo=: (int) → void
+A.foo: int Function()
+A.foo=: void Function(int)
 ''');
   }
 
@@ -373,8 +373,8 @@ class B extends Object with A {}
     await resolveTestFile();
 
     _assertInheritedMap('B', r'''
-A.foo: () → int
-A.foo=: (int) → void
+A.foo: int Function()
+A.foo=: void Function(int)
 ''');
   }
 
@@ -398,7 +398,7 @@ class B extends A {}
     await resolveTestFile();
 
     _assertInheritedMap('B', r'''
-A.foo: () → void
+A.foo: void Function()
 ''');
   }
 
@@ -413,7 +413,7 @@ abstract class B implements A {}
     await resolveTestFile();
 
     _assertInheritedMap('B', r'''
-A.foo: () → void
+A.foo: void Function()
 ''');
   }
 
@@ -428,7 +428,7 @@ class B extends Object with A {}
     await resolveTestFile();
 
     _assertInheritedMap('B', r'''
-A.foo: () → void
+A.foo: void Function()
 ''');
   }
 
@@ -449,7 +449,7 @@ class X extends A implements I {
     await resolveTestFile();
 
     _assertInheritedMap('X', r'''
-A.foo: () → void
+A.foo: void Function()
 ''');
   }
 
@@ -470,7 +470,7 @@ abstract class A implements I, J {}
     await resolveTestFile();
 
     _assertInheritedMap('A', r'''
-J.bar: () → void
+J.bar: void Function()
 ''');
   }
 
@@ -489,8 +489,8 @@ abstract class A implements I, J {}
     await resolveTestFile();
 
     _assertInheritedMap('A', r'''
-I.foo: () → int
-J.bar: () → double
+I.foo: int Function()
+J.bar: double Function()
 ''');
   }
 
@@ -509,7 +509,7 @@ abstract class A implements I, J {}
     await resolveTestFile();
 
     _assertInheritedMap('A', r'''
-J.foo: () → int
+J.foo: int Function()
 ''');
   }
 
@@ -528,7 +528,7 @@ abstract class A implements I, J {}
     await resolveTestFile();
 
     _assertInheritedMap('A', r'''
-J.foo: () → void
+J.foo: void Function()
 ''');
   }
 
@@ -548,11 +548,11 @@ abstract class B implements J, I {}
     await resolveTestFile();
 
     _assertInheritedMap('A', r'''
-I.foo=: (num) → void
+I.foo=: void Function(num)
 ''');
 
     _assertInheritedMap('B', r'''
-I.foo=: (num) → void
+I.foo=: void Function(num)
 ''');
   }
 
@@ -580,11 +580,11 @@ abstract class E implements I3, I2, I1 {}
     await resolveTestFile();
 
     _assertInheritedMap('D', r'''
-I3.foo: () → C
+I3.foo: C Function()
 ''');
 
     _assertInheritedMap('E', r'''
-I3.foo: () → C
+I3.foo: C Function()
 ''');
   }
 
@@ -612,7 +612,7 @@ abstract class E implements I3, I2, I1 {}
     await resolveTestFile();
 
     _assertInheritedMap('D', r'''
-I1.foo: (A) → void
+I1.foo: void Function(A)
 ''');
   }
 
@@ -640,11 +640,11 @@ abstract class E implements I3, I2, I1 {}
     await resolveTestFile();
 
     _assertInheritedMap('D', r'''
-I1.foo=: (A) → void
+I1.foo=: void Function(A)
 ''');
 
     _assertInheritedMap('E', r'''
-I1.foo=: (A) → void
+I1.foo=: void Function(A)
 ''');
   }
 
@@ -664,11 +664,11 @@ abstract class B implements I2, I1 {}
     await resolveTestFile();
 
     _assertInheritedMap('A', r'''
-I2.foo: ([int]) → int
+I2.foo: int Function([int])
 ''');
 
     _assertInheritedMap('B', r'''
-I2.foo: ([int]) → int
+I2.foo: int Function([int])
 ''');
   }
 
@@ -692,11 +692,11 @@ abstract class B implements I3, I2, I1 {}
     await resolveTestFile();
 
     _assertInheritedMap('A', r'''
-I3.foo: ([int, int]) → int
+I3.foo: int Function([int, int])
 ''');
 
     _assertInheritedMap('B', r'''
-I3.foo: ([int, int]) → int
+I3.foo: int Function([int, int])
 ''');
   }
 
@@ -717,7 +717,7 @@ abstract class C implements I1, I2 {}
     _assertGetMember(
       className: 'C',
       name: 'f',
-      expected: 'I2.f: (Object) → void',
+      expected: 'I2.f: void Function(Object)',
     );
   }
 
@@ -733,7 +733,7 @@ class A {
       className: 'A',
       name: 'foo',
       concrete: true,
-      expected: 'A.foo: () → void',
+      expected: 'A.foo: void Function()',
     );
   }
 
@@ -766,7 +766,7 @@ class X with A {}
       className: 'X',
       name: 'foo',
       concrete: true,
-      expected: 'A.foo: () → void',
+      expected: 'A.foo: void Function()',
     );
   }
 
@@ -786,7 +786,7 @@ class X with B {}
       className: 'X',
       name: 'foo',
       concrete: true,
-      expected: 'A.foo: () → void',
+      expected: 'A.foo: void Function()',
     );
   }
 
@@ -806,7 +806,7 @@ class X extends A with B {}
       className: 'X',
       name: 'toString',
       concrete: true,
-      expected: 'A.toString: () → String',
+      expected: 'A.toString: String Function()',
     );
   }
 
@@ -824,7 +824,7 @@ class X with M {}
       className: 'X',
       name: 'foo',
       concrete: true,
-      expected: 'M.foo: () → void',
+      expected: 'M.foo: void Function()',
     );
   }
 
@@ -844,14 +844,14 @@ abstract class C extends B {}
       className: 'B',
       name: 'foo',
       concrete: true,
-      expected: 'A.foo: () → void',
+      expected: 'A.foo: void Function()',
     );
 
     _assertGetMember(
       className: 'C',
       name: 'foo',
       concrete: true,
-      expected: 'A.foo: () → void',
+      expected: 'A.foo: void Function()',
     );
   }
 
@@ -886,14 +886,14 @@ abstract class C extends B {}
       className: 'B',
       name: 'foo',
       concrete: true,
-      expected: 'A.foo: () → void',
+      expected: 'A.foo: void Function()',
     );
 
     _assertGetMember(
       className: 'C',
       name: 'foo',
       concrete: true,
-      expected: 'A.foo: () → void',
+      expected: 'A.foo: void Function()',
     );
   }
 
@@ -938,7 +938,7 @@ class C extends B {
       className: 'C',
       name: 'foo',
       concrete: true,
-      expected: 'C.foo: ([int]) → void',
+      expected: 'C.foo: void Function([int])',
     );
   }
 
@@ -967,7 +967,7 @@ class X extends A with M1, M2 implements I {}
     _assertGetMember(
       className: 'X',
       name: 'foo',
-      expected: 'M2.foo: () → void',
+      expected: 'M2.foo: void Function()',
     );
   }
 
@@ -992,7 +992,7 @@ class X extends B implements I {}
     _assertGetMember(
       className: 'X',
       name: 'foo',
-      expected: 'B.foo: () → void',
+      expected: 'B.foo: void Function()',
     );
   }
 
@@ -1015,7 +1015,7 @@ class X extends A implements I {
     _assertGetMember(
       className: 'X',
       name: 'foo',
-      expected: 'X.foo: () → void',
+      expected: 'X.foo: void Function()',
     );
   }
 
@@ -1069,7 +1069,7 @@ mixin M on A {}
       className: 'M',
       name: 'foo',
       forSuper: true,
-      expected: 'A.foo: () → void',
+      expected: 'A.foo: void Function()',
     );
   }
 
@@ -1089,7 +1089,7 @@ class X extends Object with M {
       className: 'X',
       name: 'foo',
       forSuper: true,
-      expected: 'M.foo: () → void',
+      expected: 'M.foo: void Function()',
     );
   }
 
@@ -1109,7 +1109,7 @@ class B extends A {
       className: 'B',
       name: 'foo',
       forSuper: true,
-      expected: 'A.foo: () → void',
+      expected: 'A.foo: void Function()',
     );
   }
 
@@ -1145,7 +1145,7 @@ class B extends A {
       className: 'B',
       name: 'foo',
       forSuper: true,
-      expected: 'A.foo: () → void',
+      expected: 'A.foo: void Function()',
     );
   }
 

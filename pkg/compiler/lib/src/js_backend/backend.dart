@@ -30,11 +30,9 @@ import '../tracer.dart';
 import '../universe/class_hierarchy.dart'
     show ClassHierarchyBuilder, ClassQueries;
 import '../universe/codegen_world_builder.dart';
-import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
-import '../util/util.dart';
 import '../world.dart' show JClosedWorld;
 import 'field_analysis.dart';
 import 'annotations.dart';
@@ -84,11 +82,12 @@ class FunctionInlineCache {
   final Map<FunctionEntity, int> _cachedDecisions =
       new Map<FunctionEntity, int>();
 
+  final Set<FunctionEntity> _noInlineFunctions = new Set<FunctionEntity>();
   final Set<FunctionEntity> _tryInlineFunctions = new Set<FunctionEntity>();
 
   FunctionInlineCache(AnnotationsData annotationsData) {
     annotationsData.forEachNoInline((FunctionEntity function) {
-      markAsNonInlinable(function);
+      markAsNoInline(function);
     });
     annotationsData.forEachTryInline((FunctionEntity function) {
       markAsTryInline(function);
@@ -174,7 +173,7 @@ class FunctionInlineCache {
         case _mustNotInline:
           throw failedAt(
               element,
-              "Can't mark a function as non-inlinable and inlinable at the "
+              "Can't mark $element as non-inlinable and inlinable at the "
               "same time.");
 
         case _unknown:
@@ -200,7 +199,7 @@ class FunctionInlineCache {
         case _canInlineInLoopMustNotOutside:
           throw failedAt(
               element,
-              "Can't mark a function as non-inlinable and inlinable at the "
+              "Can't mark $element as non-inlinable and inlinable at the "
               "same time.");
 
         case _unknown:
@@ -230,7 +229,7 @@ class FunctionInlineCache {
         case _canInline:
           throw failedAt(
               element,
-              "Can't mark a function as non-inlinable and inlinable at the "
+              "Can't mark $element as non-inlinable and inlinable at the "
               "same time.");
 
         case _mayInlineInLoopMustNotOutside:
@@ -247,7 +246,7 @@ class FunctionInlineCache {
         case _canInline:
           throw failedAt(
               element,
-              "Can't mark a function as non-inlinable and inlinable at the "
+              "Can't mark $element as non-inlinable and inlinable at the "
               "same time.");
 
         case _unknown:
@@ -270,6 +269,16 @@ class FunctionInlineCache {
           break;
       }
     }
+  }
+
+  void markAsNoInline(FunctionEntity element) {
+    assert(checkFunction(element), failedAt(element));
+    _noInlineFunctions.add(element);
+  }
+
+  bool markedAsNoInline(FunctionEntity element) {
+    assert(checkFunction(element), failedAt(element));
+    return _noInlineFunctions.contains(element);
   }
 
   void markAsTryInline(FunctionEntity element) {
@@ -537,7 +546,14 @@ class JavaScriptBackend {
       Compiler compiler,
       JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults,
-      CodegenInputs codegen) {
+      CodegenInputs codegen,
+      CodegenResults codegenResults) {
+    OneShotInterceptorData oneShotInterceptorData = new OneShotInterceptorData(
+        closedWorld.interceptorData,
+        closedWorld.commonElements,
+        closedWorld.nativeData);
+    _onCodegenEnqueuerStart(
+        globalInferenceResults, codegen, oneShotInterceptorData);
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
     BackendImpacts impacts = new BackendImpacts(commonElements);
@@ -549,8 +565,10 @@ class JavaScriptBackend {
         compiler.backendStrategy.createCodegenWorldBuilder(
             closedWorld.nativeData,
             closedWorld,
-            compiler.abstractValueStrategy.createSelectorStrategy()),
-        compiler.backendStrategy.createCodegenWorkItemBuilder(closedWorld),
+            compiler.abstractValueStrategy.createSelectorStrategy(),
+            oneShotInterceptorData),
+        compiler.backendStrategy
+            .createCodegenWorkItemBuilder(closedWorld, codegenResults),
         new CodegenEnqueuerListener(
             elementEnvironment,
             commonElements,
@@ -563,10 +581,14 @@ class JavaScriptBackend {
 
   Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
 
-  WorldImpact generateCode(WorkItem work, JClosedWorld closedWorld,
-      EntityLookup entityLookup, ComponentLookup componentLookup) {
+  WorldImpact generateCode(
+      WorkItem work,
+      JClosedWorld closedWorld,
+      CodegenResults codegenResults,
+      EntityLookup entityLookup,
+      ComponentLookup componentLookup) {
     MemberEntity member = work.element;
-    CodegenResult result = functionCompiler.compile(member);
+    CodegenResult result = codegenResults.getCodegenResults(member);
     if (compiler.options.testMode) {
       bool useDataKinds = true;
       List<Object> data = [];
@@ -594,7 +616,6 @@ class JavaScriptBackend {
         _codegenImpactTransformer.transformCodegenImpact(result.impact);
     compiler.dumpInfoTask.registerImpact(member, worldImpact);
     result.applyModularState(_namer, emitterTask.emitter);
-    //print('$member:$result');
     return worldImpact;
   }
 
@@ -613,9 +634,9 @@ class JavaScriptBackend {
 
   /// Generates the output and returns the total size of the generated code.
   int assembleProgram(JClosedWorld closedWorld, InferredData inferredData,
-      CodegenInputs codegen, CodegenWorld codegenWorld) {
+      CodegenInputs codegenInputs, CodegenWorld codegenWorld) {
     int programSize = emitterTask.assembleProgram(
-        _namer, closedWorld, inferredData, codegen, codegenWorld);
+        _namer, closedWorld, inferredData, codegenInputs, codegenWorld);
     closedWorld.noSuchMethodData.emitDiagnostic(reporter);
     return programSize;
   }
@@ -646,10 +667,6 @@ class JavaScriptBackend {
         ? const MinifiedFixedNames()
         : const FixedNames();
 
-    OneShotInterceptorData oneShotInterceptorData = new OneShotInterceptorData(
-        closedWorld.interceptorData,
-        closedWorld.commonElements,
-        closedWorld.nativeData);
     Tracer tracer = new Tracer(closedWorld, compiler.outputProvider);
     RuntimeTypesEncoder rtiEncoder = new RuntimeTypesEncoderImpl(
         rtiTags,
@@ -668,7 +685,7 @@ class JavaScriptBackend {
       rtiSubstitutions = runtimeTypesImpl;
     }
 
-    CodegenInputs codegen = new CodegenInputsImpl(oneShotInterceptorData,
+    CodegenInputs codegen = new CodegenInputsImpl(
         rtiSubstitutions, rtiEncoder, tracer, rtiTags, fixedNames);
 
     functionCompiler.initialize(globalTypeInferenceResults, codegen);
@@ -676,9 +693,10 @@ class JavaScriptBackend {
   }
 
   /// Called before the compiler starts running the codegen enqueuer.
-  void onCodegenEnqueuerStart(
+  void _onCodegenEnqueuerStart(
       GlobalTypeInferenceResults globalTypeInferenceResults,
-      CodegenInputs codegen) {
+      CodegenInputs codegen,
+      OneShotInterceptorData oneShotInterceptorData) {
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
     RuntimeTypeTags rtiTags = codegen.rtiTags;
     FixedNames fixedNames = codegen.fixedNames;
@@ -702,6 +720,7 @@ class JavaScriptBackend {
 
     _codegenImpactTransformer = new CodegenImpactTransformer(
         compiler.options,
+        closedWorld,
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
         impacts,
@@ -710,7 +729,7 @@ class JavaScriptBackend {
         closedWorld.rtiNeed,
         nativeCodegenEnqueuer,
         _namer,
-        codegen.oneShotInterceptorData,
+        oneShotInterceptorData,
         rtiChecksBuilder,
         emitterTask.nativeEmitter);
   }
@@ -771,38 +790,11 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
   }
 }
 
-class SuperMemberData {
-  /// A set of member that are called from subclasses via `super`.
-  final Set<MemberEntity> _aliasedSuperMembers = new Setlet<MemberEntity>();
-
-  /// Record that [member] is called from a subclass via `super`.
-  bool maybeRegisterAliasedSuperMember(MemberEntity member, Selector selector) {
-    if (!canUseAliasedSuperMember(member, selector)) {
-      // Invoking a super getter isn't supported, this would require changes to
-      // compact field descriptors in the emitter.
-      return false;
-    }
-    _aliasedSuperMembers.add(member);
-    return true;
-  }
-
-  bool canUseAliasedSuperMember(MemberEntity member, Selector selector) {
-    return !selector.isGetter;
-  }
-
-  /// Returns `true` if [member] is called from a subclass via `super`.
-  bool isAliasedSuperMember(MemberEntity member) {
-    return _aliasedSuperMembers.contains(member);
-  }
-}
-
 /// Interface for resources only used during code generation.
 abstract class CodegenInputs {
   CheckedModeHelpers get checkedModeHelpers;
-  OneShotInterceptorData get oneShotInterceptorData;
   RuntimeTypesSubstitutions get rtiSubstitutions;
   RuntimeTypesEncoder get rtiEncoder;
-  SuperMemberData get superMemberData;
   Tracer get tracer;
   RuntimeTypeTags get rtiTags;
   FixedNames get fixedNames;
@@ -813,16 +805,10 @@ class CodegenInputsImpl implements CodegenInputs {
   final CheckedModeHelpers checkedModeHelpers = new CheckedModeHelpers();
 
   @override
-  final OneShotInterceptorData oneShotInterceptorData;
-
-  @override
   final RuntimeTypesSubstitutions rtiSubstitutions;
 
   @override
   final RuntimeTypesEncoder rtiEncoder;
-
-  @override
-  final SuperMemberData superMemberData = new SuperMemberData();
 
   @override
   final Tracer tracer;
@@ -833,6 +819,6 @@ class CodegenInputsImpl implements CodegenInputs {
   @override
   final FixedNames fixedNames;
 
-  CodegenInputsImpl(this.oneShotInterceptorData, this.rtiSubstitutions,
-      this.rtiEncoder, this.tracer, this.rtiTags, this.fixedNames);
+  CodegenInputsImpl(this.rtiSubstitutions, this.rtiEncoder, this.tracer,
+      this.rtiTags, this.fixedNames);
 }

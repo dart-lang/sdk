@@ -113,6 +113,9 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false);
   args.addFlag('emit-bytecode-source-positions',
       help: 'Emit source positions in bytecode', defaultsTo: false);
+  args.addFlag('emit-bytecode-local-var-info',
+      help: 'Emit information about local variables in bytecode',
+      defaultsTo: false);
   args.addFlag('emit-bytecode-annotations',
       help: 'Emit Dart annotations in bytecode', defaultsTo: false);
   args.addFlag('drop-ast',
@@ -166,6 +169,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool genBytecode = options['gen-bytecode'];
   final bool emitBytecodeSourcePositions =
       options['emit-bytecode-source-positions'];
+  final bool emitBytecodeLocalVarInfo = options['emit-bytecode-local-var-info'];
   final bool emitBytecodeAnnotations = options['emit-bytecode-annotations'];
   final bool dropAST = options['drop-ast'];
   final bool useFutureBytecodeFormat = options['use-future-bytecode-format'];
@@ -226,6 +230,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
       emitBytecodeSourcePositions: emitBytecodeSourcePositions,
+      emitBytecodeLocalVarInfo: emitBytecodeLocalVarInfo,
       emitBytecodeAnnotations: emitBytecodeAnnotations,
       dropAST: dropAST && !splitOutputByPackages,
       useFutureBytecodeFormat: useFutureBytecodeFormat,
@@ -266,6 +271,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       genBytecode: genBytecode,
       enableAsserts: enableAsserts,
       emitBytecodeSourcePositions: emitBytecodeSourcePositions,
+      emitBytecodeLocalVarInfo: emitBytecodeLocalVarInfo,
       emitBytecodeAnnotations: emitBytecodeAnnotations,
       dropAST: dropAST,
       showBytecodeSizeStat: showBytecodeSizeStat,
@@ -287,6 +293,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     Map<String, String> environmentDefines,
     bool genBytecode: false,
     bool emitBytecodeSourcePositions: false,
+    bool emitBytecodeLocalVarInfo: false,
     bool emitBytecodeAnnotations: false,
     bool dropAST: false,
     bool useFutureBytecodeFormat: false,
@@ -320,6 +327,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
       generateBytecode(component,
           enableAsserts: enableAsserts,
           emitSourcePositions: emitBytecodeSourcePositions,
+          emitLocalVarInfo: emitBytecodeLocalVarInfo,
           emitAnnotations: emitBytecodeAnnotations,
           useFutureBytecodeFormat: useFutureBytecodeFormat,
           environmentDefines: environmentDefines);
@@ -656,6 +664,7 @@ Future writeOutputSplitByPackages(
   bool genBytecode: false,
   bool enableAsserts: true,
   bool emitBytecodeSourcePositions: false,
+  bool emitBytecodeLocalVarInfo: false,
   bool emitBytecodeAnnotations: false,
   bool dropAST: false,
   bool showBytecodeSizeStat: false,
@@ -718,6 +727,7 @@ Future writeOutputSplitByPackages(
             hierarchy: hierarchy,
             enableAsserts: enableAsserts,
             emitSourcePositions: emitBytecodeSourcePositions,
+            emitLocalVarInfo: emitBytecodeLocalVarInfo,
             emitAnnotations: emitBytecodeAnnotations,
             useFutureBytecodeFormat: useFutureBytecodeFormat,
             environmentDefines: environmentDefines);

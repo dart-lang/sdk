@@ -685,8 +685,6 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
     val = lib.EvaluateCompiledExpression(kernel_bytes, kernel_length,
                                          Array::empty_array(), param_values,
                                          TypeArguments::null_type_arguments());
-
-    free(const_cast<uint8_t*>(kernel_bytes));
   }
   return Api::NewHandle(thread, val.raw());
 }

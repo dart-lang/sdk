@@ -12,6 +12,7 @@ import '../js/js.dart' as js;
 import '../js/js_debug.dart';
 import '../js/js_source_mapping.dart';
 import '../serialization/serialization.dart';
+import '../util/util.dart';
 import 'code_output.dart' show BufferedCodeOutput;
 import 'source_information.dart';
 
@@ -34,8 +35,10 @@ class PositionSourceInformation extends SourceInformation {
 
   factory PositionSourceInformation.readFromDataSource(DataSource source) {
     source.begin(tag);
-    SourceLocation startPosition = SourceLocation.readFromDataSource(source);
-    SourceLocation innerPosition = SourceLocation.readFromDataSource(source);
+    SourceLocation startPosition = source.readCached<SourceLocation>(
+        () => SourceLocation.readFromDataSource(source));
+    SourceLocation innerPosition = source.readCached<SourceLocation>(
+        () => SourceLocation.readFromDataSource(source));
     List<FrameContext> inliningContext = source.readList(
         () => FrameContext.readFromDataSource(source),
         emptyAsNull: true);
@@ -46,8 +49,14 @@ class PositionSourceInformation extends SourceInformation {
 
   void writeToDataSinkInternal(DataSink sink) {
     sink.begin(tag);
-    SourceLocation.writeToDataSink(sink, startPosition);
-    SourceLocation.writeToDataSink(sink, innerPosition);
+    sink.writeCached(
+        startPosition,
+        (SourceLocation sourceLocation) =>
+            SourceLocation.writeToDataSink(sink, sourceLocation));
+    sink.writeCached(
+        innerPosition,
+        (SourceLocation sourceLocation) =>
+            SourceLocation.writeToDataSink(sink, sourceLocation));
     sink.writeList(inliningContext,
         (FrameContext context) => context.writeToDataSink(sink),
         allowNull: true);
@@ -77,16 +86,17 @@ class PositionSourceInformation extends SourceInformation {
 
   @override
   int get hashCode {
-    return 0x7FFFFFFF &
-        (startPosition.hashCode * 17 + innerPosition.hashCode * 19);
+    return Hashing.listHash(
+        inliningContext, Hashing.objectsHash(startPosition, innerPosition));
   }
 
   @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    if (other is! PositionSourceInformation) return false;
-    return startPosition == other.startPosition &&
-        innerPosition == other.innerPosition;
+    return other is PositionSourceInformation &&
+        startPosition == other.startPosition &&
+        innerPosition == other.innerPosition &&
+        equalElements(inliningContext, other.inliningContext);
   }
 
   /// Create a textual representation of the source information using [uriText]

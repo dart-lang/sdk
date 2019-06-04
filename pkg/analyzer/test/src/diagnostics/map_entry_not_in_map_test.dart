@@ -16,14 +16,18 @@ main() {
 @reflectiveTest
 class MapEntryNotInMapTest extends DriverResolutionTest {
   test_set() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var c = <int>{1:2};
-''', [CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP]);
+''', [
+      error(CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP, 14, 3),
+    ]);
   }
 
   test_set_const() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var c = const <int>{1:2};
-''', [CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP]);
+''', [
+      error(CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP, 20, 3),
+    ]);
   }
 }

@@ -4,6 +4,15 @@
   `featureSet` parameter.
 * Refined the return type of the getter `TypeParameter.declaredElement`.  It is
   always guaranteed to return a `TypeParameterElement`.
+* Deprecated the `abstract` setter in `ClassElementImpl`, `EnumElementImpl`,
+  `MethodElementImpl`, and `PropertyAccessorElementImpl`.  `isAbstract` should
+  be used instead.
+* Changed the way function types are displayed from e.g. `(int) -> void` to
+  `void Function(int)`. This is more consistent with the syntax of Dart, and it
+  will avoid ambiguities when nullability is added to the type system. This
+  impacts to value returned by `FunctionType.displayName` and
+  `FunctionType.toString` and `ExecutableElement.toString`. Client code might be
+  broken if it depends on the content of the returned value.
 
 ## 0.36.3
 * Deprecated `AstFactory.compilationUnit`.  In a future analyzer release, this

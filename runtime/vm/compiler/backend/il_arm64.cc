@@ -916,7 +916,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ mov(CSP, SP);
 
   // Update information in the thread object and enter a safepoint.
-  __ TransitionGeneratedToNative(branch, temp);
+  __ TransitionGeneratedToNative(branch, FPREG, temp);
 
   __ blr(branch);
 
@@ -942,6 +942,177 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ set_constant_pool_allowed(true);
+}
+
+void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ LeaveDartFrame();
+
+  // The dummy return address is in LR, no need to pop it as on Intel.
+
+  // These can be anything besides the return register (R0) and THR (R26).
+  const Register vm_tag_reg = R1, old_exit_frame_reg = R2, tmp = R3;
+
+  __ Pop(old_exit_frame_reg);
+
+  // Restore top_resource.
+  __ Pop(tmp);
+  __ StoreToOffset(tmp, THR, compiler::target::Thread::top_resource_offset());
+
+  __ Pop(vm_tag_reg);
+
+  // Reset the exit frame info to
+  // old_exit_frame_reg *before* entering the safepoint.
+  __ TransitionGeneratedToNative(vm_tag_reg, old_exit_frame_reg, tmp);
+
+  __ PopNativeCalleeSavedRegisters();
+
+  // Leave the entry frame.
+  __ LeaveFrame();
+
+  // Leave the dummy frame holding the pushed arguments.
+  __ LeaveFrame();
+
+  // Restore the actual stack pointer from SPREG.
+  __ RestoreCSP();
+
+  __ Ret();
+
+  // For following blocks.
+  __ set_constant_pool_allowed(true);
+}
+
+void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
+                                    Location loc) const {
+  ASSERT(!loc.IsPairLocation());
+
+  if (loc.HasStackIndex()) return;
+
+  if (loc.IsRegister()) {
+    __ Push(loc.reg());
+  } else if (loc.IsFpuRegister()) {
+    __ PushDouble(loc.fpu_reg());
+  } else {
+    UNREACHABLE();
+  }
+}
+
+void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (FLAG_precompiled_mode) {
+    UNREACHABLE();
+  }
+
+  // Constant pool cannot be used until we enter the actual Dart frame.
+  __ set_constant_pool_allowed(false);
+
+  __ Bind(compiler->GetJumpLabel(this));
+
+  // We don't use the regular stack pointer in ARM64, so we have to copy the
+  // native stack pointer into the Dart stack pointer.
+  __ SetupDartSP();
+
+  // Create a dummy frame holding the pushed arguments. This simplifies
+  // NativeReturnInstr::EmitNativeCode.
+  __ EnterFrame(0);
+
+  // Save the argument registers, in reverse order.
+  for (intptr_t i = argument_locations_->length(); i-- > 0;) {
+    SaveArgument(compiler, argument_locations_->At(i));
+  }
+
+  // Enter the entry frame.
+  __ EnterFrame(0);
+
+  // Save a space for the code object.
+  __ PushImmediate(0);
+
+  __ PushNativeCalleeSavedRegisters();
+
+  // Load the thread object.
+  // TODO(35765): Fix linking issue on AOT.
+  // TOOD(35934): Exclude native callbacks from snapshots.
+  //
+  // Create another frame to align the frame before continuing in "native" code.
+  {
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ LoadImmediate(
+        R0, reinterpret_cast<int64_t>(DLRT_GetThreadForNativeCallback));
+    __ blr(R0);
+    __ mov(THR, R0);
+
+    __ LeaveFrame();
+  }
+
+  // Refresh write barrier mask.
+  __ ldr(BARRIER_MASK,
+         Address(THR, compiler::target::Thread::write_barrier_mask_offset()));
+
+  // Save the current VMTag on the stack.
+  __ LoadFromOffset(R0, THR, compiler::target::Thread::vm_tag_offset());
+  __ Push(R0);
+
+  // Save the top resource.
+  __ LoadFromOffset(R0, THR, compiler::target::Thread::top_resource_offset());
+  __ Push(R0);
+  __ StoreToOffset(ZR, THR, compiler::target::Thread::top_resource_offset());
+
+  // Save the top exit frame info. We don't set it to 0 yet in Thread because we
+  // need to leave the safepoint first.
+  __ LoadFromOffset(R0, THR,
+                    compiler::target::Thread::top_exit_frame_info_offset());
+  __ Push(R0);
+
+  // In debug mode, verify that we've pushed the top exit frame info at the
+  // correct offset from FP.
+  __ EmitEntryFrameVerification();
+
+  // TransitionNativeToGenerated will reset top exit frame info to 0 *after*
+  // leaving the safepoint.
+  __ TransitionNativeToGenerated(R0);
+
+  // Now that the safepoint has ended, we can touch Dart objects without
+  // handles.
+
+  // Otherwise we'll clobber the argument sent from the caller.
+  ASSERT(CallingConventions::ArgumentRegisters[0] != TMP &&
+         CallingConventions::ArgumentRegisters[0] != TMP2 &&
+         CallingConventions::ArgumentRegisters[0] != R1);
+  __ LoadImmediate(CallingConventions::ArgumentRegisters[0], callback_id_);
+  __ LoadFromOffset(
+      R1, THR,
+      compiler::target::Thread::verify_callback_isolate_entry_point_offset());
+  __ blr(R1);
+
+  // Load the code object.
+  __ LoadFromOffset(R0, THR, compiler::target::Thread::callback_code_offset());
+  __ LoadFieldFromOffset(R0, R0,
+                         compiler::target::GrowableObjectArray::data_offset());
+  __ LoadFieldFromOffset(CODE_REG, R0,
+                         compiler::target::Array::data_offset() +
+                             callback_id_ * compiler::target::kWordSize);
+
+  // Put the code object in the reserved slot.
+  __ StoreToOffset(CODE_REG, FPREG,
+                   kPcMarkerSlotFromFp * compiler::target::kWordSize);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ ldr(PP,
+           Address(THR, compiler::target::Thread::global_object_pool_offset()));
+    __ sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
+  } else {
+    // We now load the pool pointer (PP) with a GC safe value as we are about to
+    // invoke dart code. We don't need a real object pool here.
+    // Smi zero does not work because ARM64 assumes PP to be untagged.
+    __ LoadObject(PP, compiler::NullObject());
+  }
+
+  // Load a dummy return address which suggests that we are inside of
+  // InvokeDartCodeStub. This is how the stack walker detects an entry frame.
+  __ LoadFromOffset(LR, THR,
+                    compiler::target::Thread::invoke_dart_code_stub_offset());
+  __ LoadFieldFromOffset(LR, LR, compiler::target::Code::entry_point_offset());
+
+  FunctionEntryInstr::EmitNativeCode(compiler);
 }
 
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(

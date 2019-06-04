@@ -226,6 +226,51 @@ enum E {v}
 
 @reflectiveTest
 class ChangeFileTest extends _Base {
+  disabled_test_updated_library_parted() async {
+    // TODO(scheglov) Figure out why this fails on Windows.
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+
+    newFile(a, content: r'''
+class A {}
+''');
+    newFile(b, content: r'''
+part 'a.dart';
+class B {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasNoLibrary('package:test/a.dart');
+    _assertHasLibrary('package:test/b.dart', declarations: [
+      _ExpectedDeclaration.class_('A', [
+        _ExpectedDeclaration.constructor(''),
+      ]),
+      _ExpectedDeclaration.class_('B', [
+        _ExpectedDeclaration.constructor(''),
+      ]),
+    ]);
+
+    newFile(a, content: r'''
+class A2 {}
+''');
+    tracker.changeFile(a);
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/a.dart', declarations: [
+      _ExpectedDeclaration.class_('A2', [
+        _ExpectedDeclaration.constructor(''),
+      ]),
+    ]);
+    _assertHasLibrary('package:test/b.dart', declarations: [
+      _ExpectedDeclaration.class_('A2', [
+        _ExpectedDeclaration.constructor(''),
+      ]),
+      _ExpectedDeclaration.class_('B', [
+        _ExpectedDeclaration.constructor(''),
+      ]),
+    ]);
+  }
+
   test_added_exported() async {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
@@ -849,51 +894,6 @@ class A2 {}
       ]),
     ]);
     _assertHasLibrary('package:test/b.dart', declarations: [
-      _ExpectedDeclaration.class_('B', [
-        _ExpectedDeclaration.constructor(''),
-      ]),
-    ]);
-  }
-
-  disabled_test_updated_library_parted() async {
-    // TODO(scheglov) Figure out why this fails on Windows.
-    var a = convertPath('/home/test/lib/a.dart');
-    var b = convertPath('/home/test/lib/b.dart');
-
-    newFile(a, content: r'''
-class A {}
-''');
-    newFile(b, content: r'''
-part 'a.dart';
-class B {}
-''');
-    tracker.addContext(testAnalysisContext);
-
-    await _doAllTrackerWork();
-    _assertHasNoLibrary('package:test/a.dart');
-    _assertHasLibrary('package:test/b.dart', declarations: [
-      _ExpectedDeclaration.class_('A', [
-        _ExpectedDeclaration.constructor(''),
-      ]),
-      _ExpectedDeclaration.class_('B', [
-        _ExpectedDeclaration.constructor(''),
-      ]),
-    ]);
-
-    newFile(a, content: r'''
-class A2 {}
-''');
-    tracker.changeFile(a);
-    await _doAllTrackerWork();
-    _assertHasLibrary('package:test/a.dart', declarations: [
-      _ExpectedDeclaration.class_('A2', [
-        _ExpectedDeclaration.constructor(''),
-      ]),
-    ]);
-    _assertHasLibrary('package:test/b.dart', declarations: [
-      _ExpectedDeclaration.class_('A2', [
-        _ExpectedDeclaration.constructor(''),
-      ]),
       _ExpectedDeclaration.class_('B', [
         _ExpectedDeclaration.constructor(''),
       ]),
@@ -1605,6 +1605,101 @@ typedef A = ;
 
     var library = _getLibrary('package:test/test.dart');
     _assertNoDeclaration(library, 'A');
+  }
+
+  test_FUNCTION_TYPE_ALIAS_old() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+typedef void A();
+
+@deprecated
+typedef void B();
+
+/// aaa
+///
+/// bbb bbb
+typedef void C();
+
+typedef int D(int p1, [double p2, String p3]);
+
+typedef void E(int p1, double p2, {String p3});
+
+typedef void F<T extends num, U>();
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'A'),
+      'A',
+      DeclarationKind.FUNCTION_TYPE_ALIAS,
+      parameters: '()',
+      parameterNames: [],
+      parameterTypes: [],
+      relevanceTags: ['package:test/test.dart::A'],
+      requiredParameterCount: 0,
+      returnType: 'void',
+    );
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'B'),
+      'B',
+      DeclarationKind.FUNCTION_TYPE_ALIAS,
+      isDeprecated: true,
+      parameters: '()',
+      parameterNames: [],
+      parameterTypes: [],
+      relevanceTags: ['package:test/test.dart::B'],
+      requiredParameterCount: 0,
+      returnType: 'void',
+    );
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'C'),
+      'C',
+      DeclarationKind.FUNCTION_TYPE_ALIAS,
+      docSummary: 'aaa',
+      docComplete: 'aaa\n\nbbb bbb',
+      parameters: '()',
+      parameterNames: [],
+      parameterTypes: [],
+      relevanceTags: ['package:test/test.dart::C'],
+      requiredParameterCount: 0,
+      returnType: 'void',
+    );
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'D'),
+      'D',
+      DeclarationKind.FUNCTION_TYPE_ALIAS,
+      parameters: '(int p1, [double p2, String p3])',
+      parameterNames: ['p1', 'p2', 'p3'],
+      parameterTypes: ['int', 'double', 'String'],
+      relevanceTags: ['package:test/test.dart::D'],
+      requiredParameterCount: 1,
+      returnType: 'int',
+    );
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'E'),
+      'E',
+      DeclarationKind.FUNCTION_TYPE_ALIAS,
+      parameters: '(int p1, double p2, {String p3})',
+      parameterNames: ['p1', 'p2', 'p3'],
+      parameterTypes: ['int', 'double', 'String'],
+      relevanceTags: ['package:test/test.dart::E'],
+      requiredParameterCount: 2,
+      returnType: 'void',
+    );
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'F'),
+      'F',
+      DeclarationKind.FUNCTION_TYPE_ALIAS,
+      parameters: '()',
+      parameterNames: [],
+      parameterTypes: [],
+      requiredParameterCount: 0,
+      relevanceTags: ['package:test/test.dart::F'],
+      returnType: 'void',
+      typeParameters: '<T extends num, U>',
+    );
   }
 
   test_GETTER() async {

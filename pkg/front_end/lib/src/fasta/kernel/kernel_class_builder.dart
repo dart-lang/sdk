@@ -105,6 +105,7 @@ import 'kernel_builder.dart'
         Declaration,
         KernelFunctionBuilder,
         KernelLibraryBuilder,
+        KernelMetadataBuilder,
         KernelNamedTypeBuilder,
         KernelProcedureBuilder,
         KernelRedirectingFactoryBuilder,
@@ -222,6 +223,19 @@ abstract class KernelClassBuilder
               cls.typeParameters.length, const UnknownType(),
               growable: true));
     }
+  }
+
+  @override
+  void buildAnnotations(LibraryBuilder library) {
+    void build(String ignore, Declaration declaration) {
+      MemberBuilder member = declaration;
+      member.buildAnnotations(library);
+    }
+
+    KernelMetadataBuilder.buildAnnotations(
+        isPatch ? origin.target : cls, metadata, library, this, null, null);
+    constructors.forEach(build);
+    scope.forEach(build);
   }
 
   void checkSupertypes(CoreTypes coreTypes) {

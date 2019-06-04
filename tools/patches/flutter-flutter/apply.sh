@@ -23,3 +23,9 @@ patch=src/third_party/dart/tools/patches/flutter-flutter/${pinned_engine_version
 if [ -e "$patch" ]; then
   (cd flutter && git apply ../$patch)
 fi
+
+pinned_dart_sdk=$(get_pinned_dart_version)
+patch=src/third_party/dart/tools/patches/flutter-flutter/${pinned_dart_sdk}.patch
+if [ -e "$patch" ]; then
+  (cd flutter && git apply ../$patch)
+fi

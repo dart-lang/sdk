@@ -139,6 +139,43 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(true);
 }
 
+void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ LeaveDartFrame();
+
+  // Pop dummy return address.
+  __ popq(TMP);
+
+  // Anything besides the return register.
+  const Register vm_tag_reg = RBX, old_exit_frame_reg = RCX;
+
+  __ popq(old_exit_frame_reg);
+
+  // Restore top_resource.
+  __ popq(TMP);
+  __ movq(Address(THR, compiler::target::Thread::top_resource_offset()), TMP);
+
+  __ popq(vm_tag_reg);
+
+  // TransitionGeneratedToNative will reset the exit frame info to
+  // old_exit_frame_reg *before* entering the safepoint.
+  __ TransitionGeneratedToNative(vm_tag_reg, old_exit_frame_reg);
+
+  // Restore C++ ABI callee-saved registers.
+  __ PopRegisters(CallingConventions::kCalleeSaveCpuRegisters,
+                  CallingConventions::kCalleeSaveXmmRegisters);
+
+  // Leave the entry frame.
+  __ LeaveFrame();
+
+  // Leave the dummy frame holding the pushed arguments.
+  __ LeaveFrame();
+
+  __ ret();
+
+  // For following blocks.
+  __ set_constant_pool_allowed(true);
+}
+
 static Condition NegateCondition(Condition condition) {
   switch (condition) {
     case EQUAL:
@@ -921,7 +958,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movq(Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), TMP);
 
   // Update information in the thread object and enter a safepoint.
-  __ TransitionGeneratedToNative(target_address);
+  __ TransitionGeneratedToNative(target_address, FPREG);
 
   __ CallCFunction(target_address);
 
@@ -941,6 +978,132 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Instead of returning to the "fake" return address, we just pop it.
   __ popq(TMP);
+}
+
+void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
+                                    Location loc) const {
+  ASSERT(!loc.IsPairLocation());
+
+  if (loc.HasStackIndex()) return;
+
+  if (loc.IsRegister()) {
+    __ pushq(loc.reg());
+  } else if (loc.IsFpuRegister()) {
+    __ movq(TMP, loc.fpu_reg());
+    __ pushq(TMP);
+  } else {
+    UNREACHABLE();
+  }
+}
+
+void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (FLAG_precompiled_mode) {
+    UNREACHABLE();
+  }
+
+  __ Bind(compiler->GetJumpLabel(this));
+
+  // Create a dummy frame holding the pushed arguments. This simplifies
+  // NativeReturnInstr::EmitNativeCode.
+  __ EnterFrame(0);
+
+  // Save the argument registers, in reverse order.
+  for (intptr_t i = argument_locations_->length(); i-- > 0;) {
+    SaveArgument(compiler, argument_locations_->At(i));
+  }
+
+  // Enter the entry frame. Push a dummy return address for consistency with
+  // EnterFrame on ARM(64).
+  __ PushImmediate(Immediate(0));
+  __ EnterFrame(0);
+
+  // Save a space for the code object.
+  __ PushImmediate(Immediate(0));
+
+  // InvokoeDartCodeStub saves the arguments descriptor here. We don't have one,
+  // but we need to follow the same frame layout for the stack walker.
+  __ PushImmediate(Immediate(0));
+
+  // Save ABI callee-saved registers.
+  __ PushRegisters(CallingConventions::kCalleeSaveCpuRegisters,
+                   CallingConventions::kCalleeSaveXmmRegisters);
+
+  // Load the thread object.
+  // TODO(35765): Fix linking issue on AOT.
+  // TOOD(35934): Exclude native callbacks from snapshots.
+  //
+  // Create another frame to align the frame before continuing in "native" code.
+  {
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ movq(
+        RAX,
+        Immediate(reinterpret_cast<int64_t>(DLRT_GetThreadForNativeCallback)));
+    __ call(RAX);
+    __ movq(THR, RAX);
+
+    __ LeaveFrame();
+  }
+
+  // Save the current VMTag on the stack.
+  __ movq(RAX, Assembler::VMTagAddress());
+  __ pushq(RAX);
+
+  // Save top resource.
+  __ pushq(Address(THR, compiler::target::Thread::top_resource_offset()));
+  __ movq(Address(THR, compiler::target::Thread::top_resource_offset()),
+          Immediate(0));
+
+  // Save top exit frame info. Stack walker expects it to be here.
+  __ pushq(
+      Address(THR, compiler::target::Thread::top_exit_frame_info_offset()));
+
+  // In debug mode, verify that we've pushed the top exit frame info at the
+  // correct offset from FP.
+  __ EmitEntryFrameVerification();
+
+  // TransitionNativeToGenerated will reset top exit frame info to 0 *after*
+  // leaving the safepoint.
+  __ TransitionNativeToGenerated();
+
+  // Now that the safepoint has ended, we can touch Dart objects without
+  // handles.
+  // Otherwise we'll clobber the argument sent from the caller.
+  COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
+  __ movq(CallingConventions::kArg1Reg, Immediate(callback_id_));
+  __ movq(RAX, Address(THR, compiler::target::Thread::
+                                verify_callback_isolate_entry_point_offset()));
+  __ call(RAX);
+
+  // Load the code object.
+  __ movq(RAX, Address(THR, compiler::target::Thread::callback_code_offset()));
+  __ movq(RAX, FieldAddress(
+                   RAX, compiler::target::GrowableObjectArray::data_offset()));
+  __ movq(CODE_REG,
+          FieldAddress(RAX, compiler::target::Array::data_offset() +
+                                callback_id_ * compiler::target::kWordSize));
+
+  // Put the code object in the reserved slot.
+  __ movq(Address(FPREG, kPcMarkerSlotFromFp * compiler::target::kWordSize),
+          CODE_REG);
+
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    __ movq(PP, Address(THR,
+                        compiler::target::Thread::global_object_pool_offset()));
+  } else {
+    __ xorq(PP, PP);  // GC-safe value into PP.
+  }
+
+  // Push a dummy return address which suggests that we are inside of
+  // InvokeDartCodeStub. This is how the stack walker detects an entry frame.
+  __ movq(
+      RAX,
+      Address(THR, compiler::target::Thread::invoke_dart_code_stub_offset()));
+  __ pushq(FieldAddress(RAX, compiler::target::Code::entry_point_offset()));
+
+  // Continue with Dart frame setup.
+  FunctionEntryInstr::EmitNativeCode(compiler);
 }
 
 static bool CanBeImmediateIndex(Value* index, intptr_t cid) {
@@ -1665,10 +1828,10 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label ok, fail_label;
 
-  Label* deopt =
-      compiler->is_optimizing()
-          ? compiler->AddDeoptStub(deopt_id(), ICData::kDeoptGuardField)
-          : NULL;
+  Label* deopt = NULL;
+  if (compiler->is_optimizing()) {
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptGuardField);
+  }
 
   Label* fail = (deopt != NULL) ? deopt : &fail_label;
 

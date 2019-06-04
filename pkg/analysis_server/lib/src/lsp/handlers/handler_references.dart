@@ -28,7 +28,8 @@ class ReferencesHandler
       ReferenceParams.jsonHandler;
 
   @override
-  Future<ErrorOr<List<Location>>> handle(ReferenceParams params) async {
+  Future<ErrorOr<List<Location>>> handle(
+      ReferenceParams params, CancellationToken token) async {
     if (!isDartDocument(params.textDocument)) {
       return success(const []);
     }

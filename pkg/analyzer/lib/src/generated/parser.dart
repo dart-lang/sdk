@@ -6976,8 +6976,7 @@ class Parser {
   SimpleIdentifier _parseSimpleIdentifierUnchecked(
       {bool isDeclaration: false}) {
     String lexeme = _currentToken.lexeme;
-    if ((_inAsync || _inGenerator) &&
-        (lexeme == ASYNC || lexeme == _AWAIT || lexeme == _YIELD)) {
+    if ((_inAsync || _inGenerator) && (lexeme == _AWAIT || lexeme == _YIELD)) {
       _reportErrorForCurrentToken(
           ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER);
     }

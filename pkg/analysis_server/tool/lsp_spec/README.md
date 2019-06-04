@@ -36,14 +36,14 @@ Below is a list of LSP methods and their implementation status.
 | initialize | ✅ | ✅ | ✅ | ✅ | trace and other options NYI
 | initialized | ✅ | ✅ | ✅ | ✅ |
 | shutdown | ✅ | ✅ | ✅ | ✅ | supported but does nothing |
-| exit | | | | | |
-| $/cancelRequest | | | | | ignored (unsupported) |
+| exit | ✅ | ✅ | ✅ | ✅ |
+| $/cancelRequest | ✅ | ✅ | ✅ | ✅ |
 | window/showMessage | ✅ | | | |
 | window/showMessageRequest | | | | |
 | window/logMessage | ✅ | | | |
 | telemetry/event | | | | |
-| client/registerCapability | | | | | unused, but should be used for DocumentSelector at least
-| client/unregisterCapability | | | | |
+| client/registerCapability | ✅ | ✅ | ✅ | ✅ |
+| client/unregisterCapability | | | | | (unused, capabilities don't change currently)
 | workspace/workspaceFolders | | | | |
 | workspace/didChangeWorkspaceFolders | ✅ | ✅ | ✅ | ✅ |
 | workspace/configuration | | | | |

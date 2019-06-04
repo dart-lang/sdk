@@ -3,16 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/nullability/conditional_discard.dart';
-import 'package:analysis_server/src/nullability/constraint_gatherer.dart';
-import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/graph_builder.dart';
+import 'package:analysis_server/src/nullability/node_builder.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,35 +21,28 @@ import '../../abstract_single_unit.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstraintGathererTest);
-    defineReflectiveTests(ConstraintVariableGathererTest);
+    defineReflectiveTests(GraphBuilderTest);
+    defineReflectiveTests(NodeBuilderTest);
   });
 }
 
 @reflectiveTest
-class ConstraintGathererTest extends ConstraintsTestBase {
+class GraphBuilderTest extends MigrationVisitorTestBase {
+  /// Analyzes the given source code, producing constraint variables and
+  /// constraints for it.
+  @override
+  Future<CompilationUnit> analyze(String code) async {
+    var unit = await super.analyze(code);
+    unit.accept(
+        GraphBuilder(typeProvider, _variables, graph, testSource, false));
+    return unit;
+  }
+
   void assertConditional(
       NullabilityNode node, NullabilityNode left, NullabilityNode right) {
     var conditionalNode = node as NullabilityNodeForLUB;
     expect(conditionalNode.left, same(left));
     expect(conditionalNode.right, same(right));
-  }
-
-  /// Checks that there is a connection from [sourceNode] to [destinationNode].
-  void assertConnection(
-      NullabilityNode sourceNode, NullabilityNode destinationNode) {
-    expect(graph.getDownstreamNodes(sourceNode).toList(),
-        contains(destinationNode));
-  }
-
-  void assertNonNullIntent(NullabilityNode node, bool expected) {
-    if (expected) {
-      expect(graph.getUnconditionalUpstreamNodes(NullabilityNode.never),
-          contains(node));
-    } else {
-      expect(graph.getUnconditionalUpstreamNodes(NullabilityNode.never),
-          isNot(contains(node)));
-    }
   }
 
   /// Checks that there are no nullability nodes upstream from [node] that could
@@ -112,7 +106,7 @@ void f(int i) {
 }
 ''');
 
-    assertNonNullIntent(decoratedTypeAnnotation('int i').node, true);
+    assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
   }
 
   test_binaryExpression_add_left_check() async {
@@ -301,55 +295,25 @@ void f({int i = 1}) {}
 void f({int i = null}) {}
 ''');
 
-    assertConnection(
-        NullabilityNode.always, decoratedTypeAnnotation('int').node);
+    assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
+        hard: false);
   }
 
-  test_functionDeclaration_parameter_named_no_default_assume_nullable() async {
+  test_functionDeclaration_parameter_named_no_default() async {
     await analyze('''
 void f({int i}) {}
-''',
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeNullable));
+''');
 
-    assertConnection(
-        NullabilityNode.always, decoratedTypeAnnotation('int').node);
+    assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
+        hard: false);
   }
 
-  test_functionDeclaration_parameter_named_no_default_assume_required() async {
-    await analyze('''
-void f({int i}) {}
-''',
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeRequired));
-
-    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
-  }
-
-  test_functionDeclaration_parameter_named_no_default_required_assume_nullable() async {
+  test_functionDeclaration_parameter_named_no_default_required() async {
     addMetaPackage();
     await analyze('''
 import 'package:meta/meta.dart';
 void f({@required int i}) {}
-''',
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeNullable));
-
-    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
-  }
-
-  test_functionDeclaration_parameter_named_no_default_required_assume_required() async {
-    addMetaPackage();
-    await analyze('''
-import 'package:meta/meta.dart';
-void f({@required int i}) {}
-''',
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeRequired));
+''');
 
     assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
@@ -367,8 +331,8 @@ void f([int i = 1]) {}
 void f([int i = null]) {}
 ''');
 
-    assertConnection(
-        NullabilityNode.always, decoratedTypeAnnotation('int').node);
+    assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
+        hard: false);
   }
 
   test_functionDeclaration_parameter_positionalOptional_no_default() async {
@@ -376,22 +340,8 @@ void f([int i = null]) {}
 void f([int i]) {}
 ''');
 
-    assertConnection(
-        NullabilityNode.always, decoratedTypeAnnotation('int').node);
-  }
-
-  test_functionDeclaration_parameter_positionalOptional_no_default_assume_required() async {
-    // Note: the `assumeRequired` behavior shouldn't affect the behavior here
-    // because it only affects named parameters.
-    await analyze('''
-void f([int i]) {}
-''',
-        assumptions: NullabilityMigrationAssumptions(
-            namedNoDefaultParameterHeuristic:
-                NamedNoDefaultParameterHeuristic.assumeRequired));
-
-    assertConnection(
-        NullabilityNode.always, decoratedTypeAnnotation('int').node);
+    assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
+        hard: false);
   }
 
   test_functionDeclaration_resets_unconditional_control_flow() async {
@@ -405,9 +355,9 @@ void g(int k) {
   assert(k != null);
 }
 ''');
-    assertNonNullIntent(decoratedTypeAnnotation('int i').node, true);
-    assertNonNullIntent(decoratedTypeAnnotation('int j').node, false);
-    assertNonNullIntent(decoratedTypeAnnotation('int k').node, true);
+    assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
+    assertNoEdge(always, decoratedTypeAnnotation('int j').node);
+    assertEdge(decoratedTypeAnnotation('int k').node, never, hard: true);
   }
 
   test_functionInvocation_parameter_fromLocalParameter() async {
@@ -422,8 +372,7 @@ void test(int/*2*/ i) {
     var int_2 = decoratedTypeAnnotation('int/*2*/');
     var i_3 = checkExpression('i/*3*/');
     assertNullCheck(i_3, int_2.node, contextNode: int_1.node);
-    expect(
-        graph.getUnconditionalUpstreamNodes(int_1.node), contains(int_2.node));
+    assertEdge(int_2.node, int_1.node, hard: true);
   }
 
   test_functionInvocation_parameter_named() async {
@@ -447,7 +396,7 @@ void g() {
 }
 ''');
     var optional_i = possiblyOptionalParameter('int i');
-    assertConnection(NullabilityNode.always, optional_i);
+    expect(getEdges(NullabilityNode.always, optional_i), isNotEmpty);
   }
 
   test_functionInvocation_parameter_named_missing_required() async {
@@ -513,7 +462,7 @@ void f(bool b, int i) {
 }
 ''');
 
-    assertNonNullIntent(decoratedTypeAnnotation('int i').node, false);
+    assertNoEdge(always, decoratedTypeAnnotation('int i').node);
   }
 
   test_if_conditional_control_flow_within() async {
@@ -528,7 +477,7 @@ void f(bool b, int i) {
 }
 ''');
 
-    assertNonNullIntent(decoratedTypeAnnotation('int i').node, false);
+    assertNoEdge(always, decoratedTypeAnnotation('int i').node);
   }
 
   test_if_guard_equals_null() async {
@@ -613,9 +562,9 @@ class C {
   }
 }
 ''');
-    assertNonNullIntent(decoratedTypeAnnotation('int i').node, true);
-    assertNonNullIntent(decoratedTypeAnnotation('int j').node, false);
-    assertNonNullIntent(decoratedTypeAnnotation('int k').node, true);
+    assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
+    assertNoEdge(always, decoratedTypeAnnotation('int j').node);
+    assertEdge(decoratedTypeAnnotation('int k').node, never, hard: true);
   }
 
   test_methodInvocation_parameter_contravariant() async {
@@ -649,8 +598,9 @@ void g(C<int/*3*/>/*4*/ c) {
 }
 ''');
 
-    assertConnection(decoratedTypeAnnotation('int/*3*/').node,
-        decoratedTypeAnnotation('int/*1*/').node);
+    assertEdge(decoratedTypeAnnotation('int/*3*/').node,
+        decoratedTypeAnnotation('int/*1*/').node,
+        hard: false);
     assertNullCheck(checkExpression('c/*check*/'),
         decoratedTypeAnnotation('C<int/*3*/>/*4*/').node,
         contextNode: decoratedTypeAnnotation('C<int/*1*/>/*2*/').node);
@@ -669,6 +619,18 @@ void g(C c, int j) {
     var nullable_j = decoratedTypeAnnotation('int j').node;
     assertNullCheck(checkExpression('j/*check*/'), nullable_j,
         contextNode: nullable_i);
+  }
+
+  test_methodInvocation_return_type() async {
+    await analyze('''
+class C {
+  bool m() => true;
+}
+bool f(C c) => c.m();
+''');
+    assertEdge(decoratedTypeAnnotation('bool m').node,
+        decoratedTypeAnnotation('bool f').node,
+        hard: false);
   }
 
   test_methodInvocation_target_check() async {
@@ -695,7 +657,7 @@ void test(C c) {
 }
 ''');
 
-    assertNonNullIntent(decoratedTypeAnnotation('C c').node, true);
+    assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true);
   }
 
   test_never() async {
@@ -715,6 +677,71 @@ int f() {
         contextNode: decoratedTypeAnnotation('int').node);
   }
 
+  test_prefixedIdentifier_return_type() async {
+    await analyze('''
+class C {
+  bool get b => true;
+}
+bool f(C c) => c.b;
+''');
+    assertEdge(decoratedTypeAnnotation('bool get').node,
+        decoratedTypeAnnotation('bool f').node,
+        hard: false);
+  }
+
+  test_prefixedIdentifier_target_check() async {
+    await analyze('''
+class C {
+  int get x => 1;
+}
+void test(C c) {
+  c.x;
+}
+''');
+
+    assertNullCheck(
+        checkExpression('c.x'), decoratedTypeAnnotation('C c').node);
+  }
+
+  test_prefixedIdentifier_target_demonstrates_non_null_intent() async {
+    await analyze('''
+class C {
+  int get x => 1;
+}
+void test(C c) {
+  c.x;
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true);
+  }
+
+  test_propertyAccess_return_type() async {
+    await analyze('''
+class C {
+  bool get b => true;
+}
+bool f(C c) => (c).b;
+''');
+    assertEdge(decoratedTypeAnnotation('bool get').node,
+        decoratedTypeAnnotation('bool f').node,
+        hard: false);
+  }
+
+  test_propertyAccess_target_check() async {
+    await analyze('''
+class C {
+  int get x => 1;
+}
+void test(C c) {
+  (c).x;
+}
+''');
+
+    assertNullCheck(
+        checkExpression('c).x'), decoratedTypeAnnotation('C c').node);
+  }
+
   test_return_implicit_null() async {
     verifyNoTestUnitErrors = false;
     await analyze('''
@@ -723,8 +750,8 @@ int f() {
 }
 ''');
 
-    assertConnection(
-        NullabilityNode.always, decoratedTypeAnnotation('int').node);
+    assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
+        hard: false);
   }
 
   test_return_null() async {
@@ -736,6 +763,15 @@ int f() {
 
     assertNullCheck(checkExpression('null'), NullabilityNode.always,
         contextNode: decoratedTypeAnnotation('int').node);
+  }
+
+  test_soft_edge_for_non_variable_reference() async {
+    // Edges originating in things other than variable references should be
+    // soft.
+    await analyze('''
+int f() => null;
+''');
+    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
   }
 
   test_stringLiteral() async {
@@ -772,8 +808,9 @@ int f() {
 class C<T extends Object> {}
 void f(C<int> c) {}
 ''');
-    assertConnection(decoratedTypeAnnotation('int>').node,
-        decoratedTypeAnnotation('Object>').node);
+    assertEdge(decoratedTypeAnnotation('int>').node,
+        decoratedTypeAnnotation('Object>').node,
+        hard: true);
   }
 
   test_typeName() async {
@@ -786,22 +823,79 @@ Type f() {
   }
 }
 
-abstract class ConstraintsTestBase extends MigrationVisitorTestBase {
-  /// Analyzes the given source code, producing constraint variables and
-  /// constraints for it.
-  @override
-  Future<CompilationUnit> analyze(String code,
-      {NullabilityMigrationAssumptions assumptions:
-          const NullabilityMigrationAssumptions()}) async {
-    var unit = await super.analyze(code);
-    unit.accept(ConstraintGatherer(
-        typeProvider, _variables, graph, testSource, false, assumptions));
-    return unit;
+class MigrationVisitorTestBase extends AbstractSingleUnitTest {
+  final _Variables _variables;
+
+  FindNode findNode;
+
+  final NullabilityGraph graph;
+
+  MigrationVisitorTestBase() : this._(NullabilityGraph());
+
+  MigrationVisitorTestBase._(this.graph) : _variables = _Variables(graph);
+
+  NullabilityNode get always => NullabilityNode.always;
+
+  NullabilityNode get never => NullabilityNode.never;
+
+  TypeProvider get typeProvider => testAnalysisResult.typeProvider;
+
+  Future<CompilationUnit> analyze(String code) async {
+    await resolveTestUnit(code);
+    testUnit.accept(
+        NodeBuilder(_variables, testSource, false, graph, typeProvider));
+    findNode = FindNode(code, testUnit);
+    return testUnit;
+  }
+
+  void assertEdge(NullabilityNode source, NullabilityNode destination,
+      {@required bool hard}) {
+    var edges = getEdges(source, destination);
+    if (edges.length == 0) {
+      fail('Expected edge $source -> $destination, found none');
+    } else if (edges.length != 1) {
+      fail('Found multiple edges $source -> $destination');
+    } else {
+      var edge = edges[0];
+      expect(edge.hard, hard);
+    }
+  }
+
+  void assertNoEdge(NullabilityNode source, NullabilityNode destination) {
+    var edges = getEdges(source, destination);
+    if (edges.isNotEmpty) {
+      fail('Expected no edge $source -> $destination, found ${edges.length}');
+    }
+  }
+
+  /// Gets the [DecoratedType] associated with the type annotation whose text
+  /// is [text].
+  DecoratedType decoratedTypeAnnotation(String text) {
+    return _variables.decoratedTypeAnnotation(
+        testSource, findNode.typeAnnotation(text));
+  }
+
+  List<NullabilityEdge> getEdges(
+          NullabilityNode source, NullabilityNode destination) =>
+      graph
+          .getUpstreamEdges(destination)
+          .where((e) => e.primarySource == source)
+          .toList();
+
+  NullabilityNode possiblyOptionalParameter(String text) {
+    return _variables
+        .possiblyOptionalParameter(findNode.defaultParameter(text));
+  }
+
+  /// Gets the [ConditionalDiscard] information associated with the statement
+  /// whose text is [text].
+  ConditionalDiscard statementDiscard(String text) {
+    return _variables.conditionalDiscard(findNode.statement(text));
   }
 }
 
 @reflectiveTest
-class ConstraintVariableGathererTest extends MigrationVisitorTestBase {
+class NodeBuilderTest extends MigrationVisitorTestBase {
   /// Gets the [DecoratedType] associated with the function declaration whose
   /// name matches [search].
   DecoratedType decoratedFunctionType(String search) =>
@@ -835,8 +929,7 @@ void f(x) {}
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
     expect(decoratedType.type.isDynamic, isTrue);
-    expect(graph.getUpstreamNodesForTesting(decoratedType.node),
-        contains(NullabilityNode.always));
+    expect(decoratedType.node.isNullable, isTrue);
   }
 
   test_topLevelFunction_parameterType_named_no_default() async {
@@ -907,8 +1000,7 @@ f() {}
 ''');
     var decoratedType = decoratedFunctionType('f').returnType;
     expect(decoratedType.type.isDynamic, isTrue);
-    expect(graph.getUpstreamNodesForTesting(decoratedType.node),
-        contains(NullabilityNode.always));
+    expect(decoratedType.node.isNullable, isTrue);
   }
 
   test_topLevelFunction_returnType_simple() async {
@@ -939,51 +1031,8 @@ class C<T extends Object> {}
 class C<T> {}
 ''');
     var bound = decoratedTypeParameterBound('T');
-    expect(graph.getUnconditionalUpstreamNodes(bound.node),
-        contains(NullabilityNode.always));
+    expect(bound.node.isNullable, isTrue);
     expect(bound.type, same(typeProvider.objectType));
-  }
-}
-
-class MigrationVisitorTestBase extends AbstractSingleUnitTest {
-  final _Variables _variables;
-
-  FindNode findNode;
-
-  final NullabilityGraph graph;
-
-  MigrationVisitorTestBase() : this._(NullabilityGraph());
-
-  MigrationVisitorTestBase._(this.graph) : _variables = _Variables(graph);
-
-  TypeProvider get typeProvider => testAnalysisResult.typeProvider;
-
-  Future<CompilationUnit> analyze(String code,
-      {NullabilityMigrationAssumptions assumptions:
-          const NullabilityMigrationAssumptions()}) async {
-    await resolveTestUnit(code);
-    testUnit.accept(ConstraintVariableGatherer(
-        _variables, testSource, false, assumptions, graph, typeProvider));
-    findNode = FindNode(code, testUnit);
-    return testUnit;
-  }
-
-  /// Gets the [DecoratedType] associated with the type annotation whose text
-  /// is [text].
-  DecoratedType decoratedTypeAnnotation(String text) {
-    return _variables.decoratedTypeAnnotation(
-        testSource, findNode.typeAnnotation(text));
-  }
-
-  NullabilityNode possiblyOptionalParameter(String text) {
-    return _variables
-        .possiblyOptionalParameter(findNode.defaultParameter(text));
-  }
-
-  /// Gets the [ConditionalDiscard] information associated with the statement
-  /// whose text is [text].
-  ConditionalDiscard statementDiscard(String text) {
-    return _variables.conditionalDiscard(findNode.statement(text));
   }
 }
 

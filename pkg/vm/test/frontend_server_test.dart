@@ -83,11 +83,12 @@ Future<int> main() async {
           new StreamController<List<int>>();
       final ReceivePort compileCalled = new ReceivePort();
       when(compiler.compile(any, any, generator: anyNamed('generator')))
-          .thenAnswer((Invocation invocation) {
+          .thenAnswer((Invocation invocation) async {
         expect(invocation.positionalArguments[0], equals('server.dart'));
         expect(
             invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
         compileCalled.sendPort.send(true);
+        return true;
       });
 
       Future<int> result = starter(
@@ -116,11 +117,12 @@ Future<int> main() async {
           new StreamController<List<int>>();
       final ReceivePort compileCalled = new ReceivePort();
       when(compiler.compile(any, any, generator: anyNamed('generator')))
-          .thenAnswer((Invocation invocation) {
+          .thenAnswer((Invocation invocation) async {
         expect(invocation.positionalArguments[0], equals('server.dart'));
         expect(
             invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
         compileCalled.sendPort.send(true);
+        return true;
       });
 
       Future<int> result = starter(
@@ -141,12 +143,13 @@ Future<int> main() async {
       final ReceivePort compileCalled = new ReceivePort();
       int counter = 1;
       when(compiler.compile(any, any, generator: anyNamed('generator')))
-          .thenAnswer((Invocation invocation) {
+          .thenAnswer((Invocation invocation) async {
         expect(invocation.positionalArguments[0],
             equals('server${counter++}.dart'));
         expect(
             invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
         compileCalled.sendPort.send(true);
+        return true;
       });
 
       Future<int> result = starter(
@@ -180,7 +183,7 @@ Future<int> main() async {
       final ReceivePort recompileCalled = new ReceivePort();
 
       when(compiler.recompileDelta(entryPoint: null))
-          .thenAnswer((Invocation invocation) {
+          .thenAnswer((Invocation invocation) async {
         recompileCalled.sendPort.send(true);
       });
       Future<int> result = starter(
@@ -208,7 +211,7 @@ Future<int> main() async {
       final ReceivePort recompileCalled = new ReceivePort();
 
       when(compiler.recompileDelta(entryPoint: 'file2.dart'))
-          .thenAnswer((Invocation invocation) {
+          .thenAnswer((Invocation invocation) async {
         recompileCalled.sendPort.send(true);
       });
       Future<int> result = starter(
@@ -275,7 +278,7 @@ Future<int> main() async {
       final ReceivePort recompileCalled = new ReceivePort();
 
       when(compiler.recompileDelta(entryPoint: null))
-          .thenAnswer((Invocation invocation) {
+          .thenAnswer((Invocation invocation) async {
         recompileCalled.sendPort.send(true);
       });
       Future<int> result = starter(

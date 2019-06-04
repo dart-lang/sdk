@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/nullability/conditional_discard.dart';
-import 'package:analysis_server/src/nullability/constraint_gatherer.dart';
-import 'package:analysis_server/src/nullability/constraint_variable_gatherer.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
+import 'package:analysis_server/src/nullability/graph_builder.dart';
+import 'package:analysis_server/src/nullability/node_builder.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -89,38 +89,6 @@ class ConditionalModification extends PotentialModification {
   }
 }
 
-/// Enum encapsulating the various options proposed at
-/// https://github.com/dart-lang/language/issues/156#issuecomment-460525075
-enum DefaultParameterHandling {
-  /// Option 2: Add required named parameters
-  ///
-  /// - `{int x}` implicitly means `x` is required
-  ///   - required-ness goes into the function type:
-  ///     `int Function({required int x})`
-  /// - `{required int? x}` is allowed
-  ///   - means that something must be passed
-  ///   - passing null is allowed
-  /// - `{int x = 3}` is allowed
-  ///   - `x` is optional
-  ///   - passing null to it is an error
-  ///   - passing nothing to it results in it getting the default value
-  /// - `[int x]` is an error
-  /// - `[int x = 3]` is allowed
-  option2_addRequiredNamedParameters,
-}
-
-/// Enum representing the possible heuristics for handling named parameters with
-/// no default value.
-enum NamedNoDefaultParameterHeuristic {
-  /// Assume that the parameter should be considered nullable, unless the user
-  /// has explicitly marked it as `@required`.
-  assumeNullable,
-
-  /// Assume that the parameter should be considered required, unless the user
-  /// has explicitly marked it as nullable.
-  assumeRequired,
-}
-
 /// Transitional migration API.
 ///
 /// Usage: pass each input source file to [prepareInput].  Then pass each input
@@ -132,8 +100,6 @@ enum NamedNoDefaultParameterHeuristic {
 class NullabilityMigration {
   final bool _permissive;
 
-  final NullabilityMigrationAssumptions assumptions;
-
   final Variables _variables;
 
   final NullabilityGraph _graph;
@@ -144,13 +110,10 @@ class NullabilityMigration {
   /// as far as possible even though the migration algorithm is not yet
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
-  NullabilityMigration(
-      {bool permissive: false,
-      NullabilityMigrationAssumptions assumptions:
-          const NullabilityMigrationAssumptions()})
-      : this._(permissive, assumptions, NullabilityGraph());
+  NullabilityMigration({bool permissive: false})
+      : this._(permissive, NullabilityGraph());
 
-  NullabilityMigration._(this._permissive, this.assumptions, this._graph)
+  NullabilityMigration._(this._permissive, this._graph)
       : _variables = Variables(_graph);
 
   Map<Source, List<PotentialModification>> finish() {
@@ -159,40 +122,14 @@ class NullabilityMigration {
   }
 
   void prepareInput(CompilationUnit unit, TypeProvider typeProvider) {
-    unit.accept(ConstraintVariableGatherer(
-        _variables,
-        unit.declaredElement.source,
-        _permissive,
-        assumptions,
-        _graph,
-        typeProvider));
+    unit.accept(NodeBuilder(_variables, unit.declaredElement.source,
+        _permissive, _graph, typeProvider));
   }
 
   void processInput(CompilationUnit unit, TypeProvider typeProvider) {
-    unit.accept(ConstraintGatherer(typeProvider, _variables, _graph,
-        unit.declaredElement.source, _permissive, assumptions));
+    unit.accept(GraphBuilder(typeProvider, _variables, _graph,
+        unit.declaredElement.source, _permissive));
   }
-}
-
-/// Assumptions affecting the behavior of the nullability migration tool.
-///
-/// These options generally reflect design decisions that have not yet been
-/// made.  They don't reflect behavioral differences we would want to expose to
-/// the user.
-///
-/// TODO(paulberry): hardcode these assumptions once decisions have been made.
-class NullabilityMigrationAssumptions {
-  /// Handling of default parameters.
-  final DefaultParameterHandling defaultParameterHandling;
-
-  /// Heuristic for handling named parameters with no default value.
-  final NamedNoDefaultParameterHeuristic namedNoDefaultParameterHeuristic;
-
-  const NullabilityMigrationAssumptions(
-      {this.defaultParameterHandling:
-          DefaultParameterHandling.option2_addRequiredNamedParameters,
-      this.namedNoDefaultParameterHeuristic:
-          NamedNoDefaultParameterHeuristic.assumeNullable});
 }
 
 /// Records information about the possible addition of an import
@@ -274,7 +211,7 @@ class Variables implements VariableRecorder, VariableRepository {
   @override
   DecoratedType decoratedElementType(Element element, {bool create: false}) =>
       _decoratedElementTypes[element] ??= create
-          ? DecoratedType.forElement(element, _graph)
+          ? DecoratedType.forElement(element)
           : throw StateError('No element found');
 
   @override

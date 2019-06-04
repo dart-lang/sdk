@@ -70,7 +70,8 @@ class DevCompilerRunner implements CompilerRunner {
     bool succeeded = false;
     try {
       var result = await compile(args, compilerState: context.compilerState);
-      context.compilerState = result.compilerState;
+      context.compilerState =
+          result.compilerState as fe.InitializedCompilerState;
       succeeded = result.success;
     } catch (e, s) {
       print('Unhandled exception:');
@@ -88,7 +89,7 @@ class DevCompilerRunner implements CompilerRunner {
 
     var jsContent = File.fromUri(outputFile).readAsStringSync();
     File.fromUri(outputFile).writeAsStringSync(jsContent.replaceFirst(
-        "from 'dart_sdk'", "from '${uriPathForwardSlashed(jsSdkPath)}'"));
+        "from 'dart_sdk.js'", "from '${uriPathForwardSlashed(jsSdkPath)}'"));
 
     if (debugging) {
       createHtmlWrapper(
