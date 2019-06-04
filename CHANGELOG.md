@@ -54,10 +54,12 @@ class B<X> extends A<void Function(X)> {};
 
 #### Linter
 
-The Linter was updated to `0.1.90`, which includes the following changes:
+The Linter was updated to `0.1.91`, which includes the following changes:
 
-* fixed null-reference in `unrelated_type_equality_checks`
-* new lint: `unsafe_html`
+* fixed missed cases in `prefer_const_constructors`
+* fixed `prefer_initializing_formals` to no longer suggest API breaking changes
+* updated `omit_local_variable_types` to allow explicit `dynamic`s
+* (internal) migration from deprecated analyzer APIs
 
 #### Pub
 
