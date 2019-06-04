@@ -456,7 +456,7 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     if (initializer == null) {
       throw UnimplementedError('TODO(paulberry)');
     } else {
-      _handleAssignment(destinationType, initializer);
+      return _handleAssignment(destinationType, initializer);
     }
   }
 
