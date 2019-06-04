@@ -31,7 +31,6 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:meta/meta.dart';
 
-var counterInputLibrariesFiles = 0;
 var counterLinkedLibraries = 0;
 var counterLoadedLibraries = 0;
 var timerBundleToBytes = Stopwatch();
@@ -255,88 +254,100 @@ class LibraryContext {
     timerLoad2.start();
     var inputBundles = <LinkedNodeBundle>[];
 
+    var librariesTotal = 0;
+    var librariesLoaded = 0;
+    var librariesLinked = 0;
+    var librariesLinkedTimer = Stopwatch();
+    var bytesGet = 0;
+    var bytesPut = 0;
+
     void loadBundle(LibraryCycle cycle) {
       if (!loadedBundles.add(cycle)) return;
 
-      logger.run('Prepare linked bundle', () {
-        logger.writeln('Libraries: ${cycle.libraries}');
-        cycle.directDependencies.forEach(loadBundle);
+      librariesTotal += cycle.libraries.length;
 
-        var key = cycle.transitiveSignature + '.linked_bundle';
-        var bytes = byteStore.get(key);
+      cycle.directDependencies.forEach(loadBundle);
 
-        if (bytes == null) {
-          timerInputLibraries.start();
-          var inputLibraries = <link2.LinkInputLibrary>[];
-          logger.run('Prepare input libraries', () {
-            for (var libraryFile in cycle.libraries) {
-              counterInputLibrariesFiles++;
-              var librarySource = libraryFile.source;
-              if (librarySource == null) continue;
+      var key = cycle.transitiveSignature + '.linked_bundle';
+      var bytes = byteStore.get(key);
 
-              var inputUnits = <link2.LinkInputUnit>[];
-              for (var file in libraryFile.libraryFiles) {
-                var isSynthetic = !file.exists;
-                var unit = file.takeUnitForLinking();
-                inputUnits.add(
-                  link2.LinkInputUnit(file.source, isSynthetic, unit),
-                );
-              }
+      if (bytes == null) {
+        librariesLinkedTimer.start();
 
-              inputLibraries.add(
-                link2.LinkInputLibrary(librarySource, inputUnits),
-              );
-            }
-            logger.writeln('Prepared ${inputLibraries.length} libraries.');
-          });
-          timerInputLibraries.stop();
+        timerInputLibraries.start();
+        var inputLibraries = <link2.LinkInputLibrary>[];
+        for (var libraryFile in cycle.libraries) {
+          var librarySource = libraryFile.source;
+          if (librarySource == null) continue;
 
-          timerLinking.start();
-          link2.LinkResult linkResult;
-          logger.run('Link libraries', () {
-            linkResult = link2.link(elementFactory, inputLibraries);
-            logger.writeln('Linked ${inputLibraries.length} libraries.');
-          });
-          timerLinking.stop();
-          counterLinkedLibraries += linkResult.bundle.libraries.length;
+          var inputUnits = <link2.LinkInputUnit>[];
+          for (var file in libraryFile.libraryFiles) {
+            var isSynthetic = !file.exists;
+            var unit = file.takeUnitForLinking();
+            inputUnits.add(
+              link2.LinkInputUnit(file.source, isSynthetic, unit),
+            );
+          }
 
-          timerBundleToBytes.start();
-          bytes = linkResult.bundle.toBuffer();
-          timerBundleToBytes.stop();
-          byteStore.put(key, bytes);
-          logger.writeln('Stored ${bytes.length} bytes.');
-          counterUnlinkedLinkedBytes += bytes.length;
-        } else {
-          // TODO(scheglov) Take / clear parsed units in files.
-          logger.writeln('Loaded ${bytes.length} bytes.');
+          inputLibraries.add(
+            link2.LinkInputLibrary(librarySource, inputUnits),
+          );
         }
+        timerInputLibraries.stop();
 
-        // We are about to load dart:core, but if we have just linked it, the
-        // linker might have set the type provider. So, clear it, and recreate
-        // the element factory - it is empty anyway.
-        var hasDartCoreBeforeBundle = elementFactory.hasDartCore;
-        if (!hasDartCoreBeforeBundle) {
-          analysisContext.clearTypeProvider();
-          _createElementFactory();
-        }
+        timerLinking.start();
+        var linkResult = link2.link(elementFactory, inputLibraries);
+        librariesLinked += cycle.libraries.length;
+        counterLinkedLibraries += linkResult.bundle.libraries.length;
+        timerLinking.stop();
 
-        var bundle = LinkedNodeBundle.fromBuffer(bytes);
-        inputBundles.add(bundle);
-        elementFactory.addBundle(
-          LinkedBundleContext(elementFactory, bundle),
-        );
-        counterLoadedLibraries += bundle.libraries.length;
+        timerBundleToBytes.start();
+        bytes = linkResult.bundle.toBuffer();
+        timerBundleToBytes.stop();
 
-        // If the first bundle, with dart:core, create the type provider.
-        if (!hasDartCoreBeforeBundle && elementFactory.hasDartCore) {
-          _createElementFactoryTypeProvider();
-        }
-      });
+        byteStore.put(key, bytes);
+        bytesPut += bytes.length;
+        counterUnlinkedLinkedBytes += bytes.length;
+
+        librariesLinkedTimer.stop();
+      } else {
+        // TODO(scheglov) Take / clear parsed units in files.
+        bytesGet += bytes.length;
+        librariesLoaded += cycle.libraries.length;
+      }
+
+      // We are about to load dart:core, but if we have just linked it, the
+      // linker might have set the type provider. So, clear it, and recreate
+      // the element factory - it is empty anyway.
+      var hasDartCoreBeforeBundle = elementFactory.hasDartCore;
+      if (!hasDartCoreBeforeBundle) {
+        analysisContext.clearTypeProvider();
+        _createElementFactory();
+      }
+
+      var bundle = LinkedNodeBundle.fromBuffer(bytes);
+      inputBundles.add(bundle);
+      elementFactory.addBundle(
+        LinkedBundleContext(elementFactory, bundle),
+      );
+      counterLoadedLibraries += bundle.libraries.length;
+
+      // If the first bundle, with dart:core, create the type provider.
+      if (!hasDartCoreBeforeBundle && elementFactory.hasDartCore) {
+        _createElementFactoryTypeProvider();
+      }
     }
 
     logger.run('Prepare linked bundles', () {
       var libraryCycle = targetLibrary.libraryCycle;
       loadBundle(libraryCycle);
+      logger.writeln(
+        '[librariesTotal: $librariesTotal]'
+        '[librariesLoaded: $librariesLoaded]'
+        '[librariesLinked: $librariesLinked]'
+        '[librariesLinkedTimer: ${librariesLinkedTimer.elapsedMilliseconds} ms]'
+        '[bytesGet: $bytesGet][bytesPut: $bytesPut]',
+      );
     });
 
     timerLoad2.stop();

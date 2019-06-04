@@ -25,6 +25,7 @@ import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -284,6 +285,11 @@ class Driver implements ServerStarter {
   static const String USE_LSP = "lsp";
 
   /**
+   * The name of the flag to use summary2.
+   */
+  static const String USE_SUMMARY2 = "use-summary2";
+
+  /**
    * A directory to analyze in order to train an analysis server snapshot.
    */
   static const String TRAIN_USING = "train-using";
@@ -333,6 +339,7 @@ class Driver implements ServerStarter {
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
     analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
+    AnalysisDriver.useSummary2 = results[USE_SUMMARY2];
 
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
     if (results.wasParsed(TRAIN_USING)) {
@@ -715,6 +722,8 @@ class Driver implements ServerStarter {
         help: "Whether to enable parsing via the Fasta parser");
     parser.addFlag(USE_LSP,
         defaultsTo: false, help: "Whether to use the Language Server Protocol");
+    parser.addFlag(USE_SUMMARY2,
+        defaultsTo: false, help: "Whether to use summary2");
     parser.addOption(TRAIN_USING,
         help: "Pass in a directory to analyze for purposes of training an "
             "analysis server snapshot.");
