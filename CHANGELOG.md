@@ -1,3 +1,10 @@
+# 0.1.91
+
+* fixed missed cases in `prefer_const_constructors`
+* fixed `prefer_initializing_formals` to no longer suggest API breaking changes
+* updated `omit_local_variable_types` to allow explicit `dynamic`s
+* (internal) migration from deprecated analyzer APIs
+
 # 0.1.90
 
 * fixed null-reference in `unrelated_type_equality_checks`
