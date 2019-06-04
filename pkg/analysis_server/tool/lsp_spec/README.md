@@ -99,6 +99,14 @@ Returns: `{ port: number }`
 
 Starts the analzyer diagnostics server (if not already running) and returns the port number it's listening on.
 
+### dart/textDocument/super Method
+
+Direction: Client -> Server
+Params: `TextDocumentPositionParams`
+Returns: `Location | null`
+
+Returns the location of the super definition of the class or method at the provided position or `null` if there isn't one.
+
 ### $/analyzerStatus Notification
 
 Direction: Server -> Client

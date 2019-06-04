@@ -486,6 +486,20 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo<SignatureHelp>(request);
   }
 
+  Future<Location> getSuper(
+    Uri uri,
+    Position pos,
+  ) {
+    final request = makeRequest(
+      CustomMethods.Super,
+      new TextDocumentPositionParams(
+        new TextDocumentIdentifier(uri.toString()),
+        pos,
+      ),
+    );
+    return expectSuccessfulResponseTo<Location>(request);
+  }
+
   /// Executes [f] then waits for a request of type [method] from the server which
   /// is passed to [handler] to process, then waits for (and returns) the
   /// response to the original request.

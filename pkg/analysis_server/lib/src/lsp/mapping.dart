@@ -650,6 +650,16 @@ List<lsp.DocumentHighlight> toHighlights(
       .toList();
 }
 
+lsp.Location toLocation(server.Location location, server.LineInfo lineInfo) =>
+    lsp.Location(
+      Uri.file(location.file).toString(),
+      toRange(
+        lineInfo,
+        location.offset,
+        location.length,
+      ),
+    );
+
 ErrorOr<int> toOffset(
   server.LineInfo lineInfo,
   lsp.Position pos, {

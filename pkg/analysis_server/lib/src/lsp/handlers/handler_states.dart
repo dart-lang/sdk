@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_diagnostic_server.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/handler_super.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion_resolve.dart';
@@ -79,6 +80,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(new CompletionResolveHandler(server));
     registerHandler(new SignatureHelpHandler(server));
     registerHandler(new DefinitionHandler(server));
+    registerHandler(new SuperHandler(server));
     registerHandler(new ReferencesHandler(server));
     registerHandler(new ImplementationHandler(server));
     registerHandler(new FormattingHandler(server));

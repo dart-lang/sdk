@@ -344,6 +344,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   void logException(String message, exception, stackTrace) {
     if (exception is CaughtException) {
       stackTrace ??= exception.stackTrace;
+      message = '$message: ${exception.exception}';
+    } else if (exception != null) {
+      message = '$message: $exception';
     }
 
     final fullError = stackTrace == null ? message : '$message\n$stackTrace';

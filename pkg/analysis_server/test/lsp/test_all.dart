@@ -20,6 +20,7 @@ import 'document_symbols_test.dart' as document_symbols;
 import 'file_modification_test.dart' as file_modification;
 import 'folding_test.dart' as folding;
 import 'format_test.dart' as format;
+import 'super_test.dart' as get_super;
 import 'hover_test.dart' as hover;
 import 'implementation_test.dart' as implementation;
 import 'initialization_test.dart' as initialization;
@@ -48,6 +49,7 @@ main() {
     file_modification.main();
     folding.main();
     format.main();
+    get_super.main();
     hover.main();
     implementation.main();
     initialization.main();
