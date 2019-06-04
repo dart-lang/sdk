@@ -306,6 +306,30 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_data_flow_local_reference() async {
+    var content = '''
+void f(int i) {}
+void g(int i) {
+  int j = i;
+  f(i);
+}
+main() {
+  g(null);
+}
+''';
+    var expected = '''
+void f(int? i) {}
+void g(int? i) {
+  int? j = i;
+  f(i);
+}
+main() {
+  g(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_data_flow_outward() async {
     var content = '''
 int f(int i) => null;

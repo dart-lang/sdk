@@ -391,7 +391,8 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitSimpleIdentifier(SimpleIdentifier node) {
     var staticElement = node.staticElement;
-    if (staticElement is ParameterElement) {
+    if (staticElement is ParameterElement ||
+        staticElement is LocalVariableElement) {
       return getOrComputeElementType(staticElement);
     } else if (staticElement is ClassElement) {
       return _nonNullableTypeType;

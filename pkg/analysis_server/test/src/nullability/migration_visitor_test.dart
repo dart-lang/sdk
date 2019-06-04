@@ -765,6 +765,19 @@ int f() {
         contextNode: decoratedTypeAnnotation('int').node);
   }
 
+  test_simpleIdentifier_local() async {
+    await analyze('''
+main() {
+  int i = 0;
+  int j = i;
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int j').node,
+        hard: true);
+  }
+
   test_soft_edge_for_non_variable_reference() async {
     // Edges originating in things other than variable references should be
     // soft.
