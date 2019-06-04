@@ -10,7 +10,6 @@ analyzer:
     - test/codegen/**
     - test/samples/**
     - test/transformer/hello_app/**
-    - tool/input_sdk/**
 
 linter:
   rules:

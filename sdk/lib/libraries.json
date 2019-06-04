@@ -273,30 +273,30 @@
   "dartdevc": {
     "libraries": {
       "async": {
-        "patches": "../../pkg/dev_compiler/tool/input_sdk/patch/async_patch.dart",
+        "patches": "_internal/js_dev_runtime/patch/async_patch.dart",
         "uri": "async/async.dart"
       },
       "_runtime": {
-        "uri": "../../pkg/dev_compiler/tool/input_sdk/private/ddc_runtime/runtime.dart"
+        "uri": "_internal/js_dev_runtime/private/ddc_runtime/runtime.dart"
       },
       "_interceptors": {
-        "uri": "../../pkg/dev_compiler/tool/input_sdk/private/interceptors.dart"
+        "uri": "_internal/js_dev_runtime/private/interceptors.dart"
       },
       "mirrors": {
-        "patches": "../../pkg/dev_compiler/tool/input_sdk/patch/mirrors_patch.dart",
+        "patches": "_internal/js_dev_runtime/patch/mirrors_patch.dart",
         "supported": false,
         "uri": "mirrors/mirrors.dart"
       },
       "_debugger": {
-        "uri": "../../pkg/dev_compiler/tool/input_sdk/private/debugger.dart"
+        "uri": "_internal/js_dev_runtime/private/debugger.dart"
       },
       "io": {
-        "patches": "../../pkg/dev_compiler/tool/input_sdk/patch/io_patch.dart",
+        "patches": "_internal/js_dev_runtime/patch/io_patch.dart",
         "supported": false,
         "uri": "io/io.dart"
       },
       "_internal": {
-        "patches": "../../pkg/dev_compiler/tool/input_sdk/patch/internal_patch.dart",
+        "patches": "_internal/js_dev_runtime/patch/internal_patch.dart",
         "uri": "internal/internal.dart"
       },
       "_metadata": {
@@ -306,36 +306,36 @@
         "uri": "_http/http.dart"
       },
       "_js_primitives": {
-        "uri": "../../pkg/dev_compiler/tool/input_sdk/private/js_primitives.dart"
+        "uri": "_internal/js_dev_runtime/private/js_primitives.dart"
       },
       "_js_helper": {
-        "uri": "../../pkg/dev_compiler/tool/input_sdk/private/js_helper.dart"
+        "uri": "_internal/js_dev_runtime/private/js_helper.dart"
       },
       "js": {
-        "uri": "../../pkg/dev_compiler/tool/input_sdk/lib/js/dart2js/js_dart2js.dart"
+        "uri": "_internal/js_dev_runtime/lib/js/dart2js/js_dart2js.dart"
       },
       "_js_mirrors": {
-        "uri": "../../pkg/dev_compiler/tool/input_sdk/private/js_mirrors.dart"
+        "uri": "_internal/js_dev_runtime/private/js_mirrors.dart"
       },
       "html_common": {
         "uri": "html/html_common/html_common_dart2js.dart"
       },
       "_native_typed_data": {
-        "uri": "../../pkg/dev_compiler/tool/input_sdk/private/native_typed_data.dart"
+        "uri": "_internal/js_dev_runtime/private/native_typed_data.dart"
       },
       "core": {
-        "patches": "../../pkg/dev_compiler/tool/input_sdk/patch/core_patch.dart",
+        "patches": "_internal/js_dev_runtime/patch/core_patch.dart",
         "uri": "core/core.dart"
       },
       "js_util": {
-        "uri": "../../pkg/dev_compiler/tool/input_sdk/lib/js_util/dart2js/js_util_dart2js.dart"
+        "uri": "_internal/js_dev_runtime/lib/js_util/dart2js/js_util_dart2js.dart"
       },
       "collection": {
-        "patches": "../../pkg/dev_compiler/tool/input_sdk/patch/collection_patch.dart",
+        "patches": "_internal/js_dev_runtime/patch/collection_patch.dart",
         "uri": "collection/collection.dart"
       },
       "typed_data": {
-        "patches": "../../pkg/dev_compiler/tool/input_sdk/patch/typed_data_patch.dart",
+        "patches": "_internal/js_dev_runtime/patch/typed_data_patch.dart",
         "uri": "typed_data/typed_data.dart"
       },
       "web_audio": {
@@ -345,11 +345,11 @@
         "uri": "html/dart2js/html_dart2js.dart"
       },
       "developer": {
-        "patches": "../../pkg/dev_compiler/tool/input_sdk/patch/developer_patch.dart",
+        "patches": "_internal/js_dev_runtime/patch/developer_patch.dart",
         "uri": "developer/developer.dart"
       },
       "isolate": {
-        "patches": "../../pkg/dev_compiler/tool/input_sdk/patch/isolate_patch.dart",
+        "patches": "_internal/js_dev_runtime/patch/isolate_patch.dart",
         "supported": false,
         "uri": "isolate/isolate.dart"
       },
@@ -360,18 +360,18 @@
         "uri": "indexed_db/dart2js/indexed_db_dart2js.dart"
       },
       "convert": {
-        "patches": "../../pkg/dev_compiler/tool/input_sdk/patch/convert_patch.dart",
+        "patches": "_internal/js_dev_runtime/patch/convert_patch.dart",
         "uri": "convert/convert.dart"
       },
       "_isolate_helper": {
-        "uri": "../../pkg/dev_compiler/tool/input_sdk/private/isolate_helper.dart"
+        "uri": "_internal/js_dev_runtime/private/isolate_helper.dart"
       },
       "math": {
-        "patches": "../../pkg/dev_compiler/tool/input_sdk/patch/math_patch.dart",
+        "patches": "_internal/js_dev_runtime/patch/math_patch.dart",
         "uri": "math/math.dart"
       },
       "_foreign_helper": {
-        "uri": "../../pkg/dev_compiler/tool/input_sdk/private/foreign_helper.dart"
+        "uri": "_internal/js_dev_runtime/private/foreign_helper.dart"
       },
       "web_sql": {
         "uri": "web_sql/dart2js/web_sql_dart2js.dart"

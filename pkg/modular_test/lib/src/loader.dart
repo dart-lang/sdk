@@ -211,7 +211,6 @@ Future<Module> _createSdkModule(Uri root) async {
     'sdk/lib/',
     'runtime/lib/',
     'runtime/bin/',
-    'pkg/dev_compiler/tool/input_sdk/',
   ];
   for (var path in sdkLibrariesAndPatchesRoots) {
     var dir = Directory.fromUri(root.resolve(path));

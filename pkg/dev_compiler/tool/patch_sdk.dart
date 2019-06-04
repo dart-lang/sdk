@@ -22,9 +22,12 @@ void main(List<String> argv) {
   var self = path.relative(path.fromUri(Platform.script));
   if (argv.length < 3) {
     var toolDir = path.relative(path.dirname(path.fromUri(Platform.script)));
+    var dartDir = path.dirname(path
+        .dirname(path.dirname(path.dirname(path.fromUri(Platform.script)))));
 
     var repoExample = path.join(toolDir, '..', '..', '..');
-    var patchExample = path.join(toolDir, 'input_sdk');
+    var patchExample =
+        path.join(dartDir, 'sdk', 'lib', '_internal', 'js_dev_runtime');
     var outExample =
         path.relative(path.normalize(path.join('gen', 'patched_sdk')));
 
