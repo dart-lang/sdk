@@ -55,11 +55,11 @@ class Point {
 ```
 
 **NOTE**
-Named parameters must match with the field name in order to be considered by the
-lint to avoid having to update either the field or the named argument and to
-allow for the API to accommodate for different guidelines for named arguments
-and fields currently proposed in https://dart.dev/guides/language/effective-dart
-thus the following example won't trigger the lint:
+This rule will not generate a lint for named parameters unless the parameter
+name and the field name are the same. The reason for this is that resolving
+such a lint would require either renaming the field or renaming the parameter,
+and both of those actions would potentially be a breaking change. For example,
+the following will not generate a lint:
 
 ```
 class Point {
