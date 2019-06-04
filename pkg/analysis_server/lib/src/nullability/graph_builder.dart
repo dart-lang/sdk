@@ -139,6 +139,15 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitAssignmentExpression(AssignmentExpression node) {
+    if (node.operator.type != TokenType.EQ) {
+      throw UnimplementedError('TODO(paulberry)');
+    }
+    var leftType = node.leftHandSide.accept(this);
+    return _handleAssignment(leftType, node.rightHandSide);
+  }
+
+  @override
   DecoratedType visitBinaryExpression(BinaryExpression node) {
     switch (node.operator.type) {
       case TokenType.EQ_EQ:

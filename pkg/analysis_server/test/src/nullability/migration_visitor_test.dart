@@ -109,6 +109,29 @@ void f(int i) {
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
   }
 
+  test_assignmentExpression_operands() async {
+    await analyze('''
+void f(int i, int j) {
+  i = j;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int j').node,
+        decoratedTypeAnnotation('int i').node,
+        hard: true);
+  }
+
+  test_assignmentExpression_value() async {
+    await analyze('''
+void f(int i, int j) {
+  g(i = j);
+}
+void g(int k) {}
+''');
+    assertEdge(decoratedTypeAnnotation('int j').node,
+        decoratedTypeAnnotation('int k').node,
+        hard: false);
+  }
+
   test_binaryExpression_add_left_check() async {
     await analyze('''
 int f(int i, int j) => i + j;

@@ -210,6 +210,22 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_data_flow_assignment() async {
+    var content = '''
+void main() {
+  int i = 0;
+  i = null;
+}
+''';
+    var expected = '''
+void main() {
+  int? i = 0;
+  i = null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_data_flow_generic_inward() async {
     var content = '''
 class C<T> {
