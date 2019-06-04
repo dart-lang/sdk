@@ -678,7 +678,7 @@ class ProcessStarter {
 
   zx_status_t AddPipe(int target_fd, int* local_fd,
                       fdio_spawn_action_t* action) {
-    zx_status_t status = fdio_pipe_half2(local_fd, &action->h.handle);
+    zx_status_t status = fdio_pipe_half(local_fd, &action->h.handle);
     if (status != ZX_OK) return status;
     action->action = FDIO_SPAWN_ACTION_ADD_HANDLE;
     action->h.id = PA_HND(PA_HND_TYPE(PA_FD), target_fd);
