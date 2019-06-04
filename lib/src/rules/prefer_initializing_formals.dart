@@ -35,6 +35,41 @@ class Point {
 }
 ```
 
+**BAD:**
+```
+class Point {
+  num x, y;
+  Point({num x, num y}) {
+    this.x = x;
+    this.y = y;
+  }
+}
+```
+
+**GOOD:**
+```
+class Point {
+  num x, y;
+  Point({this.x, this.y});
+}
+```
+
+**NOTE**
+This rule will not generate a lint for named parameters unless the parameter
+name and the field name are the same. The reason for this is that resolving
+such a lint would require either renaming the field or renaming the parameter,
+and both of those actions would potentially be a breaking change. For example,
+the following will not generate a lint:
+
+```
+class Point {
+  bool isEnabled;
+  Point({bool enabled}) {
+    this.isEnabled = enable; // OK
+  }
+}
+```
+
 ''';
 
 Iterable<AssignmentExpression> _getAssignmentExpressionsInConstructorBody(
@@ -102,7 +137,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           leftElement.enclosingElement ==
               node.declaredElement.enclosingElement &&
           parameters.contains(rightElement) &&
-          (!parametersUsedMoreThanOnce.contains(rightElement) ||
+          (!parametersUsedMoreThanOnce.contains(rightElement) &&
+                  !(rightElement as ParameterElement).isNamed ||
               leftElement.name == rightElement.name);
     }
 
@@ -113,9 +149,10 @@ class _Visitor extends SimpleAstVisitor<void> {
               true) &&
           expression is SimpleIdentifier &&
           parameters.contains(expression.staticElement) &&
-          (!parametersUsedMoreThanOnce.contains(expression.staticElement) ||
-              constructorFieldInitializer.fieldName.staticElement?.name ==
-                  expression.staticElement.name);
+          (!parametersUsedMoreThanOnce.contains(expression.staticElement) &&
+                  !(expression.staticElement as ParameterElement).isNamed ||
+              (constructorFieldInitializer.fieldName.staticElement?.name ==
+                  expression.staticElement.name));
     }
 
     void processElement(Element element) {

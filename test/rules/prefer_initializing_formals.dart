@@ -198,3 +198,33 @@ class GoodCaseWithOneParameterToTwoFieldsBecauseTheyHaveDifferentNames {
       : a = c, // OK
         b = c; // OK
 }
+
+class BadCaseWithNamedArgs {
+  num x, y;
+  BadCaseWithNamedArgs({num x, num y = 1}) {
+    this.x = x; // LINT
+    this.y = y; // LINT
+  }
+}
+
+class GoodCaseWithDifferentNamedArgs {
+  num x, y;
+  GoodCaseWithDifferentNamedArgs({num a, num b = 1}) {
+    this.x = a; // OK
+    this.y = b; // OK
+  }
+}
+
+class BadCaseWithNamedArgsInitializer {
+  num x, y;
+  BadCaseWithNamedArgsInitializer({num x, num y = 1})
+      : this.x = x, // LINT
+        this.y = y; // LINT
+}
+
+class GoodCaseWithDifferentNamedArgsInitializer {
+  num x, y;
+  GoodCaseWithDifferentNamedArgsInitializer({num a, num b = 1})
+      : this.x = a, // OK
+        this.y = b; // OK
+}
