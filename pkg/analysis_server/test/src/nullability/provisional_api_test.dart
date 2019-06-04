@@ -630,6 +630,32 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_unconditional_binary_expression_implies_non_null_intent() async {
+    var content = '''
+void f(int i) {
+  i + 1;
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(int i) {
+  i + 1;
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_unconditional_method_call_implies_non_null_intent() async {
     var content = '''
 void f(int i) {
