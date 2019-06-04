@@ -439,6 +439,17 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     return DecoratedType(typeName.type, NullabilityNode.never);
   }
 
+  @override
+  DecoratedType visitVariableDeclaration(VariableDeclaration node) {
+    var destinationType = getOrComputeElementType(node.declaredElement);
+    var initializer = node.initializer;
+    if (initializer == null) {
+      throw UnimplementedError('TODO(paulberry)');
+    } else {
+      _handleAssignment(destinationType, initializer);
+    }
+  }
+
   /// Creates the necessary constraint(s) for an assignment from [sourceType] to
   /// [destinationType].  [expression] is the expression whose type is
   /// [sourceType]; it is the expression we will have to null-check in the case

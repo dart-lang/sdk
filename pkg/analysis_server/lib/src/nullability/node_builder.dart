@@ -85,14 +85,14 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitFunctionDeclaration(FunctionDeclaration node) {
     _handleExecutableDeclaration(node.declaredElement, node.returnType,
-        node.functionExpression.parameters, node);
+        node.functionExpression.parameters, node.functionExpression.body, node);
     return null;
   }
 
   @override
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
-    _handleExecutableDeclaration(
-        node.declaredElement, node.returnType, node.parameters, node);
+    _handleExecutableDeclaration(node.declaredElement, node.returnType,
+        node.parameters, node.body, node);
     return null;
   }
 
@@ -169,11 +169,21 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     return null;
   }
 
+  @override
+  DecoratedType visitVariableDeclarationList(VariableDeclarationList node) {
+    var type = decorateType(node.type, node);
+    for (var variable in node.variables) {
+      _variables.recordDecoratedElementType(variable.declaredElement, type);
+    }
+    return null;
+  }
+
   /// Common handling of function and method declarations.
   void _handleExecutableDeclaration(
       ExecutableElement declaredElement,
       TypeAnnotation returnType,
       FormalParameterList parameters,
+      FunctionBody body,
       AstNode enclosingNode) {
     var decoratedReturnType = decorateType(returnType, enclosingNode);
     var previousFunctionType = _currentFunctionType;
@@ -187,6 +197,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     _currentFunctionType = functionType;
     try {
       parameters?.accept(this);
+      body?.accept(this);
     } finally {
       _currentFunctionType = previousFunctionType;
     }

@@ -821,6 +821,17 @@ Type f() {
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('Type').node);
   }
+
+  test_variableDeclaration() async {
+    await analyze('''
+void f(int i) {
+  int j = i;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int j').node,
+        hard: true);
+  }
 }
 
 class MigrationVisitorTestBase extends AbstractSingleUnitTest {
@@ -1040,6 +1051,16 @@ class C<T> {}
     var bound = decoratedTypeParameterBound('T');
     expect(bound.node.isNullable, isTrue);
     expect(bound.type, same(typeProvider.objectType));
+  }
+
+  test_variableDeclaration_type_simple() async {
+    await analyze('''
+main() {
+  int i;
+}
+''');
+    var decoratedType = decoratedTypeAnnotation('int');
+    expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 }
 
