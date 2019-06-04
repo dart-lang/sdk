@@ -55,6 +55,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
   ClientCapabilities _clientCapabilities;
 
+  /// Initialization options provided by the LSP client. Allows opting in/out of
+  /// specific server functionality. Will be null prior to initialization.
+  LspInitializationOptions _initializationOptions;
+
   /**
    * The channel from which messages are received and to which responses should
    * be sent.
@@ -196,6 +200,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   Future<void> get exited => channel.closed;
 
+  /// Initialization options provided by the LSP client. Allows opting in/out of
+  /// specific server functionality. Will be null prior to initialization.
+  LspInitializationOptions get initializationOptions => _initializationOptions;
+
   RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
       new RefactoringWorkspace(driverMap.values, searchEngine);
 
@@ -240,8 +248,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
             null, new Uri.file(path).toString());
   }
 
-  void handleClientConnection(ClientCapabilities capabilities) {
+  void handleClientConnection(
+      ClientCapabilities capabilities, dynamic initializationOptions) {
     _clientCapabilities = capabilities;
+    _initializationOptions = LspInitializationOptions(initializationOptions);
 
     performanceAfterStartup = new ServerPerformance();
     performance = performanceAfterStartup;
@@ -516,6 +526,18 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       driver.priorityFiles = priorityFiles.toList();
     });
   }
+}
+
+class LspInitializationOptions {
+  final bool onlyAnalyzeProjectsWithOpenFiles;
+  final bool suggestFromUnimportedLibraries;
+  LspInitializationOptions(dynamic options)
+      : onlyAnalyzeProjectsWithOpenFiles = options != null &&
+            options['onlyAnalyzeProjectsWithOpenFiles'] == true,
+        // suggestFromUnimportedLibraries defaults to true, so must be
+        // explicitly passed as false to disable.
+        suggestFromUnimportedLibraries = options == null ||
+            options['suggestFromUnimportedLibraries'] != false;
 }
 
 class LspPerformance {

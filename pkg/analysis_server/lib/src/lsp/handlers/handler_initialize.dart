@@ -21,25 +21,16 @@ class InitializeMessageHandler
 
   ErrorOr<InitializeResult> handle(
       InitializeParams params, CancellationToken token) {
-    final openWorkspacePaths = <String>[];
+    server.handleClientConnection(
+      params.capabilities,
+      params.initializationOptions,
+    );
 
+    final openWorkspacePaths = <String>[];
     // The onlyAnalyzeProjectsWithOpenFiles flag allows opening huge folders
     // without setting them as analysis roots. Instead, analysis roots will be
     // based only on the open files.
-    final onlyAnalyzeProjectsWithOpenFiles = params.initializationOptions !=
-            null
-        ? params.initializationOptions['onlyAnalyzeProjectsWithOpenFiles'] ==
-            true
-        : false;
-
-    // The suggestFromUnimportedLibraries flag allows clients to opt-out of
-    // behaviour of including suggestions that are not imported. Defaults to true,
-    // so must be explicitly passed as false to disable.
-    final suggestFromUnimportedLibraries = params.initializationOptions ==
-            null ||
-        params.initializationOptions['suggestFromUnimportedLibraries'] != false;
-
-    if (!onlyAnalyzeProjectsWithOpenFiles) {
+    if (!server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles) {
       if (params.workspaceFolders != null) {
         params.workspaceFolders.forEach((wf) {
           openWorkspacePaths.add(Uri.parse(wf.uri).toFilePath());
@@ -56,12 +47,9 @@ class InitializeMessageHandler
       }
     }
 
-    server.handleClientConnection(params.capabilities);
     server.messageHandler = new InitializingStateMessageHandler(
       server,
       openWorkspacePaths,
-      onlyAnalyzeProjectsWithOpenFiles,
-      suggestFromUnimportedLibraries,
     );
 
     final codeActionLiteralSupport =
