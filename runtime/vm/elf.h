@@ -74,7 +74,8 @@ class Elf : public ZoneAllocated {
   intptr_t section_table_file_size_;
   intptr_t program_table_file_offset_;
   intptr_t program_table_file_size_;
-  StringTable* strtab_;
+  StringTable* shstrtab_;
+  StringTable* symstrtab_;
   SymbolTable* symtab_;
   DynamicTable* dynamic_;
 };
