@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:front_end/src/scanner/token.dart';
 
 /// Visitor that builds nullability nodes based on visiting code to be migrated.
 ///
@@ -149,6 +150,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
         node.end,
         typeArguments: typeArguments);
     _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType);
+    if (_isBangComment(node.endToken.next.precedingComments)) {
+      _graph.connect(decoratedType.node, NullabilityNode.never, hard: true);
+    }
     return decoratedType;
   }
 
@@ -187,6 +191,13 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       _currentFunctionType = previousFunctionType;
     }
     _variables.recordDecoratedElementType(declaredElement, functionType);
+  }
+
+  bool _isBangComment(Token token) {
+    if (token is CommentToken) {
+      if (token.lexeme == '/*!*/') return true;
+    }
+    return false;
   }
 }
 

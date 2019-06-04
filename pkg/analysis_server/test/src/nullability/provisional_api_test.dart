@@ -76,6 +76,28 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
 
 /// Mixin containing test cases for the provisional API.
 mixin _ProvisionalApiTestCases on _ProvisionalApiTestBase {
+  test_comment_bang_implies_non_null_intent() async {
+    var content = '''
+void f(int/*!*/ i) {}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(int/*!*/ i) {}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_conditional_assert_statement_does_not_imply_non_null_intent() async {
     var content = '''
 void f(bool b, int i) {

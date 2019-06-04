@@ -1013,6 +1013,13 @@ int f() => 0;
     expect(decoratedType.node, isNot(NullabilityNode.never));
   }
 
+  test_type_comment_bang() async {
+    await analyze('''
+void f(int/*!*/ i) {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
+  }
+
   test_type_parameter_explicit_bound() async {
     await analyze('''
 class C<T extends Object> {}
