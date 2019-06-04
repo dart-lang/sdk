@@ -420,9 +420,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForUseOfVoidResult(node.rightOperand);
       _checkForNullableDereference(node.leftOperand);
       _checkForNullableDereference(node.rightOperand);
-    } else if (type != TokenType.EQ_EQ &&
-        type != TokenType.BANG_EQ &&
-        type != TokenType.QUESTION_QUESTION) {
+    } else if (type == TokenType.EQ_EQ || type == TokenType.BANG_EQ) {
+      _checkForArgumentTypeNotAssignableForArgument(node.rightOperand,
+          promoteParameterToNullable: true);
+    } else if (type != TokenType.QUESTION_QUESTION) {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
       _checkForNullableDereference(node.leftOperand);
     } else {
@@ -2264,13 +2265,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    *
    * See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
    */
-  void _checkForArgumentTypeNotAssignableForArgument(Expression argument) {
+  void _checkForArgumentTypeNotAssignableForArgument(Expression argument,
+      {bool promoteParameterToNullable = false}) {
     if (argument == null) {
       return;
     }
 
     ParameterElement staticParameterElement = argument.staticParameterElement;
     DartType staticParameterType = staticParameterElement?.type;
+    if (promoteParameterToNullable && staticParameterType != null) {
+      staticParameterType = _typeSystem.makeNullable(staticParameterType);
+    }
     _checkForArgumentTypeNotAssignableWithExpectedTypes(argument,
         staticParameterType, StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
   }
