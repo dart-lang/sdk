@@ -20,6 +20,7 @@ Note: In LSP the client makes the first request so there is no obvious confirmat
 
 - `onlyAnalyzeProjectsWithOpenFiles`: When set to `true`, analysis will only be performed for projects that have open files rather than the root workspace folder. Defaults to `false`.
 - `suggestFromUnimportedLibraries`: When set to `false`, completion will not include synbols that are not already imported into the current file. Defaults to `true`, though the client must additionally support `workspace/applyEdit` for these completions to be included.
+- `closingLabels`: When set to `true`, `dart/textDocument/publishClosingLabels` notifications will be sent with information to render editor closing labels.
 
 ## Method Status
 
@@ -104,3 +105,10 @@ Direction: Server -> Client
 Params: `{ isAnalyzing: boolean }`
 
 Notifies the client when analysis starts/completes.
+
+### dart/textDocument/publishClosingLabels Notification
+
+Direction: Server -> Client
+Params: `{ uri: string, abels: { label: string, range: Range }[] }`
+
+Notifies the client when closing label information is available (or updated) for a file.

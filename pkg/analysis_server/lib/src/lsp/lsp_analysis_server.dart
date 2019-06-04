@@ -13,6 +13,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/collections.dart';
+import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_completion.dart'
     show CompletionDomainHandler;
@@ -360,6 +361,17 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ));
   }
 
+  void publishClosingLabels(String path, List<ClosingLabel> labels) {
+    final params =
+        new PublishClosingLabelsParams(Uri.file(path).toString(), labels);
+    final message = new NotificationMessage(
+      CustomMethods.PublishClosingLabels,
+      params,
+      jsonRpcVersion,
+    );
+    sendNotification(message);
+  }
+
   void publishDiagnostics(String path, List<Diagnostic> errors) {
     final params =
         new PublishDiagnosticsParams(Uri.file(path).toString(), errors);
@@ -465,6 +477,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     addContextsToDeclarationsTracker();
   }
 
+  /// Returns `true` if closing labels should be sent for [file] with the given
+  /// absolute path.
+  bool shouldSendClosingLabelsFor(String file) {
+    // Closing labels should only be sent for open (priority) files in the workspace.
+    return initializationOptions.closingLabels &&
+        priorityFiles.contains(file) &&
+        contextManager.isInAnalysisRoot(file);
+  }
+
   /**
    * Returns `true` if errors should be reported for [file] with the given
    * absolute path.
@@ -531,13 +552,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 class LspInitializationOptions {
   final bool onlyAnalyzeProjectsWithOpenFiles;
   final bool suggestFromUnimportedLibraries;
+  final bool closingLabels;
   LspInitializationOptions(dynamic options)
       : onlyAnalyzeProjectsWithOpenFiles = options != null &&
             options['onlyAnalyzeProjectsWithOpenFiles'] == true,
         // suggestFromUnimportedLibraries defaults to true, so must be
         // explicitly passed as false to disable.
         suggestFromUnimportedLibraries = options == null ||
-            options['suggestFromUnimportedLibraries'] != false;
+            options['suggestFromUnimportedLibraries'] != false,
+        closingLabels = options != null && options['closingLabels'] == true;
 }
 
 class LspPerformance {
@@ -579,6 +602,17 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
             toDiagnostic);
 
         analysisServer.publishDiagnostics(result.path, serverErrors);
+      }
+      if (result.unit != null) {
+        if (analysisServer.shouldSendClosingLabelsFor(path)) {
+          final labels =
+              new DartUnitClosingLabelsComputer(result.lineInfo, result.unit)
+                  .compute()
+                  .map((l) => toClosingLabel(result.lineInfo, l))
+                  .toList();
+
+          analysisServer.publishClosingLabels(result.path, labels);
+        }
       }
     });
     analysisDriver.exceptions.listen((nd.ExceptionResult result) {

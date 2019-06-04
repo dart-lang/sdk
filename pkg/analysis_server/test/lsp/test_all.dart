@@ -9,6 +9,7 @@ import 'analyzer_status_test.dart' as analyzer_status;
 import 'cancel_request_test.dart' as cancel_request;
 import 'change_workspace_folders_test.dart' as change_workspace_folders;
 import 'code_actions_assists_test.dart' as code_actions_assists;
+import 'closing_labels_test.dart' as closing_labels;
 import 'code_actions_fixes_test.dart' as code_actions_fixes;
 import 'code_actions_source_test.dart' as code_actions_source;
 import 'completion_test.dart' as completion;
@@ -35,6 +36,7 @@ main() {
     analyzer_status.main();
     cancel_request.main();
     change_workspace_folders.main();
+    closing_labels.main();
     code_actions_assists.main();
     code_actions_fixes.main();
     code_actions_source.main();

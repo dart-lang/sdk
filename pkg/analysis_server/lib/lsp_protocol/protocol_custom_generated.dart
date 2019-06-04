@@ -10,11 +10,12 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 // ignore_for_file: unnecessary_brace_in_string_interps
 // ignore_for_file: unused_import
+// ignore_for_file: unused_shown_name
 
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
-
+import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;
@@ -63,6 +64,62 @@ class AnalyzerStatusParams implements ToJsonable {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, isAnalyzing.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class ClosingLabel implements ToJsonable {
+  static const jsonHandler =
+      const LspJsonHandler(ClosingLabel.canParse, ClosingLabel.fromJson);
+
+  ClosingLabel(this.range, this.label) {
+    if (range == null) {
+      throw 'range is required but was not provided';
+    }
+    if (label == null) {
+      throw 'label is required but was not provided';
+    }
+  }
+  static ClosingLabel fromJson(Map<String, dynamic> json) {
+    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+    final label = json['label'];
+    return new ClosingLabel(range, label);
+  }
+
+  final String label;
+  final Range range;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    __result['range'] = range ?? (throw 'range is required but was not set');
+    __result['label'] = label ?? (throw 'label is required but was not set');
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('range') &&
+        Range.canParse(obj['range']) &&
+        obj.containsKey('label') &&
+        obj['label'] is String;
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is ClosingLabel) {
+      return range == other.range && label == other.label && true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, range.hashCode);
+    hash = JenkinsSmiHash.combine(hash, label.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 
@@ -193,6 +250,69 @@ class DartDiagnosticServer implements ToJsonable {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, port.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+}
+
+class PublishClosingLabelsParams implements ToJsonable {
+  static const jsonHandler = const LspJsonHandler(
+      PublishClosingLabelsParams.canParse, PublishClosingLabelsParams.fromJson);
+
+  PublishClosingLabelsParams(this.uri, this.labels) {
+    if (uri == null) {
+      throw 'uri is required but was not provided';
+    }
+    if (labels == null) {
+      throw 'labels is required but was not provided';
+    }
+  }
+  static PublishClosingLabelsParams fromJson(Map<String, dynamic> json) {
+    final uri = json['uri'];
+    final labels = json['labels']
+        ?.map((item) => item != null ? ClosingLabel.fromJson(item) : null)
+        ?.cast<ClosingLabel>()
+        ?.toList();
+    return new PublishClosingLabelsParams(uri, labels);
+  }
+
+  final List<ClosingLabel> labels;
+  final String uri;
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> __result = {};
+    __result['uri'] = uri ?? (throw 'uri is required but was not set');
+    __result['labels'] = labels ?? (throw 'labels is required but was not set');
+    return __result;
+  }
+
+  static bool canParse(Object obj) {
+    return obj is Map<String, dynamic> &&
+        obj.containsKey('uri') &&
+        obj['uri'] is String &&
+        obj.containsKey('labels') &&
+        (obj['labels'] is List &&
+            (obj['labels'].every((item) => ClosingLabel.canParse(item))));
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is PublishClosingLabelsParams) {
+      return uri == other.uri &&
+          listEqual(labels, other.labels,
+              (ClosingLabel a, ClosingLabel b) => a == b) &&
+          true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, labels.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 

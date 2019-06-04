@@ -528,6 +528,11 @@ lsp.CompletionItemKind suggestionKindToCompletionItemKind(
   return getKindPreferences().firstWhere(isSupported, orElse: () => null);
 }
 
+lsp.ClosingLabel toClosingLabel(
+        server.LineInfo lineInfo, server.ClosingLabel label) =>
+    lsp.ClosingLabel(
+        toRange(lineInfo, label.offset, label.length), label.label);
+
 lsp.CompletionItem toCompletionItem(
   lsp.TextDocumentClientCapabilitiesCompletion completionCapabilities,
   HashSet<lsp.CompletionItemKind> supportedCompletionItemKinds,

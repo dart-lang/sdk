@@ -34,8 +34,7 @@ bool enumClassAllowsAnyValue(String name) {
       name != 'ResourceOperationKind';
 }
 
-String generateDartForTypes(List<AstNode> types) {
-  // Keep maps of items we may need to look up quickly later.
+void recordTypes(List<AstNode> types) {
   types
       .whereType<TypeAlias>()
       .forEach((alias) => _typeAliases[alias.name] = alias);
@@ -51,6 +50,9 @@ String generateDartForTypes(List<AstNode> types) {
   types
       .whereType<Namespace>()
       .forEach((namespace) => _namespaces[namespace.name] = namespace);
+}
+
+String generateDartForTypes(List<AstNode> types) {
   final buffer = new IndentableStringBuffer();
   _getSorted(types).forEach((t) => _writeType(buffer, t));
   final formattedCode = _formatCode(buffer.toString());
