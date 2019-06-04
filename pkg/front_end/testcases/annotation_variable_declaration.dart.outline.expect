@@ -19,6 +19,6 @@ class Baz extends core::Object {
   method hest({dynamic named}) → dynamic
     ;
 }
-static const field core::int foo;
+static const field core::int foo = 42;
 static method main() → dynamic
   ;

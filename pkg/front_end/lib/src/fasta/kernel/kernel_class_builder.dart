@@ -226,10 +226,10 @@ abstract class KernelClassBuilder
   }
 
   @override
-  void buildAnnotations(LibraryBuilder library) {
+  void buildOutlineExpressions(LibraryBuilder library) {
     void build(String ignore, Declaration declaration) {
       MemberBuilder member = declaration;
-      member.buildAnnotations(library);
+      member.buildOutlineExpressions(library);
     }
 
     KernelMetadataBuilder.buildAnnotations(

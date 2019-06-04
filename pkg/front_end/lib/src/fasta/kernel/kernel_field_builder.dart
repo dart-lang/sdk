@@ -7,9 +7,17 @@ library fasta.kernel_field_builder;
 import 'package:kernel/ast.dart'
     show Class, DartType, DynamicType, Expression, Field, Name, NullLiteral;
 
+import '../constant_context.dart' show ConstantContext;
+
 import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 
 import '../problems.dart' show internalProblem, unsupported;
+
+import '../scanner.dart' show Token;
+
+import '../scope.dart' show Scope;
+
+import '../source/source_loader.dart' show SourceLoader;
 
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersCovariantly;
@@ -34,6 +42,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   final ShadowField field;
   final List<MetadataBuilder> metadata;
   final KernelTypeBuilder type;
+  Token constInitializerToken;
 
   KernelFieldBuilder(this.metadata, this.type, String name, int modifiers,
       Declaration compilationUnit, int charOffset, int charEndOffset)
@@ -94,10 +103,29 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   }
 
   @override
-  void buildAnnotations(LibraryBuilder library) {
+  void buildOutlineExpressions(LibraryBuilder library) {
     ClassBuilder classBuilder = isClassMember ? parent : null;
     KernelMetadataBuilder.buildAnnotations(
         field, metadata, library, classBuilder, this, null);
+    if (constInitializerToken != null) {
+      Scope scope = classBuilder?.scope ?? library.scope;
+      KernelBodyBuilder bodyBuilder =
+          new KernelBodyBuilder.forOutlineExpression(
+              library, classBuilder, this, scope, null, fileUri);
+      bodyBuilder.constantContext =
+          isConst ? ConstantContext.inferred : ConstantContext.none;
+      initializer = bodyBuilder.parseFieldInitializer(constInitializerToken)
+        ..parent = field;
+      constInitializerToken = null;
+      bodyBuilder.typeInferrer
+          ?.inferFieldInitializer(bodyBuilder, field.type, field.initializer);
+      if (library.loader is SourceLoader) {
+        SourceLoader loader = library.loader;
+        loader.transformPostInference(field, bodyBuilder.transformSetLiterals,
+            bodyBuilder.transformCollections);
+      }
+      bodyBuilder.resolveRedirectingFactoryTargets();
+    }
   }
 
   Field get target => field;
@@ -116,8 +144,12 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       }
       ImplicitFieldType type = field.type;
       field.type = const DynamicType();
-      initializer = new KernelBodyBuilder.forField(this, typeInferrer)
-          .parseFieldInitializer(type.initializerToken);
+      KernelBodyBuilder bodyBuilder =
+          new KernelBodyBuilder.forField(this, typeInferrer);
+      bodyBuilder.constantContext =
+          isConst ? ConstantContext.inferred : ConstantContext.none;
+      initializer = bodyBuilder.parseFieldInitializer(type.initializerToken);
+      type.initializerToken = null;
     }
   }
 

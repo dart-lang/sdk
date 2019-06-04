@@ -363,7 +363,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   }
 
   @override
-  void buildAnnotations(LibraryBuilder library) {
+  void buildOutlineExpressions(LibraryBuilder library) {
     ClassBuilder classBuilder = isClassMember ? parent : null;
     KernelMetadataBuilder.buildAnnotations(
         target,
@@ -497,7 +497,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   }
 
   @override
-  void buildAnnotations(LibraryBuilder library) {
+  void buildOutlineExpressions(LibraryBuilder library) {
     ClassBuilder classBuilder = isClassMember ? parent : null;
     KernelMetadataBuilder.buildAnnotations(
         target,

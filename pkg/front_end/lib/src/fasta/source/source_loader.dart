@@ -948,17 +948,17 @@ class SourceLoader extends Loader<Library> {
     ticker.logMs("Checked mixin declaration applications");
   }
 
-  void buildAnnotations() {
+  void buildOutlineExpressions() {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
-        library.buildAnnotations();
+        library.buildOutlineExpressions();
         Iterator<Declaration> iterator = library.iterator;
         while (iterator.moveNext()) {
           Declaration declaration = iterator.current;
           if (declaration is ClassBuilder) {
-            declaration.buildAnnotations(library);
+            declaration.buildOutlineExpressions(library);
           } else if (declaration is MemberBuilder) {
-            declaration.buildAnnotations(library);
+            declaration.buildOutlineExpressions(library);
           }
         }
       }

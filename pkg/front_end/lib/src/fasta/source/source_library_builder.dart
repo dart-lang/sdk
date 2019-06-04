@@ -34,6 +34,8 @@ import '../builder/builder.dart'
 
 import '../combinator.dart' show Combinator;
 
+import '../configuration.dart' show Configuration;
+
 import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
@@ -69,7 +71,7 @@ import '../fasta_codes.dart'
 
 import '../import.dart' show Import;
 
-import '../configuration.dart' show Configuration;
+import '../modifier.dart' show constMask;
 
 import '../problems.dart' show unexpected, unhandled;
 
@@ -390,14 +392,18 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String name,
       int charOffset,
       int charEndOffset,
-      Token initializerTokenForInference,
-      bool hasInitializer);
+      Token initializerToken,
+      bool hasInitializer,
+      {Token constInitializerToken});
 
   void addFields(String documentationComment, List<MetadataBuilder> metadata,
       int modifiers, T type, List<FieldInfo> fieldInfos) {
     for (FieldInfo info in fieldInfos) {
-      Token startToken =
-          type != null || legacyMode ? null : info.initializerTokenForInference;
+      bool isConst = modifiers & constMask != 0;
+      Token startToken;
+      if (isConst || (type == null && !legacyMode)) {
+        startToken = info.initializerToken;
+      }
       if (startToken != null) {
         // Extract only the tokens for the initializer expression from the
         // token stream.
@@ -405,9 +411,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         endToken.setNext(new Token.eof(endToken.next.offset));
         new Token.eof(startToken.previous.offset).setNext(startToken);
       }
-      bool hasInitializer = info.initializerTokenForInference != null;
+      bool hasInitializer = info.initializerToken != null;
       addField(documentationComment, metadata, modifiers, type, info.name,
-          info.charOffset, info.charEndOffset, startToken, hasInitializer);
+          info.charOffset, info.charEndOffset, startToken, hasInitializer,
+          constInitializerToken: isConst ? startToken : null);
     }
   }
 
@@ -1013,10 +1020,10 @@ class DeclarationBuilder<T extends TypeBuilder> {
 class FieldInfo {
   final String name;
   final int charOffset;
-  final Token initializerTokenForInference;
+  final Token initializerToken;
   final Token beforeLast;
   final int charEndOffset;
 
-  const FieldInfo(this.name, this.charOffset, this.initializerTokenForInference,
+  const FieldInfo(this.name, this.charOffset, this.initializerToken,
       this.beforeLast, this.charEndOffset);
 }

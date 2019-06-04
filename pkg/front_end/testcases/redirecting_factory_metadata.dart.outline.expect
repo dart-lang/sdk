@@ -10,8 +10,8 @@ class Foo extends core::Object {
   static factory •(dynamic p) → self::Foo
     let dynamic #redirecting_factory = self::Foo::named in invalid-expression;
 }
-static const field dynamic forParameter;
-static const field dynamic forFactoryItself;
-static const field dynamic anotherForParameter;
+static const field dynamic forParameter = 1;
+static const field dynamic forFactoryItself = 2;
+static const field dynamic anotherForParameter = 3;
 static method main() → dynamic
   ;
