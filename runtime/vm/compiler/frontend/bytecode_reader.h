@@ -24,10 +24,6 @@ class BytecodeMetadataHelper : public MetadataHelper {
   explicit BytecodeMetadataHelper(KernelReaderHelper* helper,
                                   ActiveClass* active_class);
 
-  bool HasBytecode(intptr_t node_offset);
-
-  void ReadMetadata(const Function& function);
-
   void ParseBytecodeFunction(ParsedFunction* parsed_function);
   void ParseBytecodeImplicitClosureFunction(ParsedFunction* parsed_function);
 
@@ -35,9 +31,6 @@ class BytecodeMetadataHelper : public MetadataHelper {
   // Discards fields if [discard_fields] is true.
   // Returns true if class members are loaded.
   bool ReadMembers(intptr_t node_offset, const Class& cls, bool discard_fields);
-
-  // Read annotation at given offset.
-  RawObject* ReadAnnotation(intptr_t annotation_offset);
 
   RawLibrary* GetMainLibrary();
 
@@ -53,9 +46,11 @@ class BytecodeMetadataHelper : public MetadataHelper {
 // Helper class for reading bytecode.
 class BytecodeReaderHelper : public ValueObject {
  public:
-  explicit BytecodeReaderHelper(KernelReaderHelper* helper,
+  explicit BytecodeReaderHelper(TranslationHelper* translation_helper,
                                 ActiveClass* active_class,
                                 BytecodeComponentData* bytecode_component);
+
+  Reader& reader() { return reader_; }
 
   void ReadCode(const Function& function, intptr_t code_offset);
 
@@ -196,9 +191,10 @@ class BytecodeReaderHelper : public ValueObject {
                               const Function& function,
                               const Function& target);
 
-  KernelReaderHelper* const helper_;
+  Reader reader_;
   TranslationHelper& translation_helper_;
   ActiveClass* const active_class_;
+  Thread* const thread_;
   Zone* const zone_;
   BytecodeComponentData* const bytecode_component_;
   Array* closures_ = nullptr;

@@ -672,18 +672,18 @@ void ReadParameterCovariance(const Function& function,
   TranslationHelper translation_helper(thread);
   translation_helper.InitFromScript(script);
 
-  KernelReaderHelper reader_helper(
-      zone, &translation_helper, script,
-      ExternalTypedData::Handle(zone, function.KernelData()),
-      function.KernelDataProgramOffset());
-
   if (function.is_declared_in_bytecode()) {
-    BytecodeReaderHelper bytecode_reader_helper(&reader_helper, nullptr,
+    BytecodeReaderHelper bytecode_reader_helper(&translation_helper, nullptr,
                                                 nullptr);
     bytecode_reader_helper.ReadParameterCovariance(function, is_covariant,
                                                    is_generic_covariant_impl);
     return;
   }
+
+  KernelReaderHelper reader_helper(
+      zone, &translation_helper, script,
+      ExternalTypedData::Handle(zone, function.KernelData()),
+      function.KernelDataProgramOffset());
 
   reader_helper.SetOffset(function.kernel_offset());
   reader_helper.ReadUntilFunctionNode();

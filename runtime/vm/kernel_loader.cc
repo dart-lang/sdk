@@ -965,13 +965,6 @@ void KernelLoader::CheckForInitializer(const Field& field) {
       return;
     }
   }
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    if (bytecode_metadata_helper_.HasBytecode(field.kernel_offset() +
-                                              library_kernel_offset_)) {
-      field.set_has_initializer(true);
-      return;
-    }
-  }
   field.set_has_initializer(false);
 }
 
@@ -2071,12 +2064,6 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
 
   if (field_helper->IsStatic()) {
     bool has_initializer = (tag == kSomething);
-
-    if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-      has_initializer = has_initializer ||
-                        bytecode_metadata_helper_.HasBytecode(
-                            field.kernel_offset() + library_kernel_offset_);
-    }
 
     if (!has_initializer) {
       // Static fields without an initializer are implicitly initialized to
