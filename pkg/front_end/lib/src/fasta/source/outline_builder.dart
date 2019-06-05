@@ -1211,13 +1211,14 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter(Token nameToken) {
+  void endFunctionTypedFormalParameter(Token nameToken, Token question) {
     debugEvent("FunctionTypedFormalParameter");
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     TypeBuilder returnType = pop();
     List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeVariables =
         pop();
+    reportErrorIfNullableType(question);
     push(library.addFunctionType(
         returnType, typeVariables, formals, formalsOffset));
   }

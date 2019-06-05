@@ -2282,6 +2282,38 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     expect(defaultParameter.defaultValue, isNotNull);
     expect(defaultParameter.isNamed, isTrue);
   }
+
+  void test_parseNormalFormalParameter_function_named_nullable() {
+    ParameterKind kind = ParameterKind.NAMED;
+    var defaultParameter =
+        parseFormalParameter('a()? : null', kind) as DefaultFormalParameter;
+    var functionParameter =
+        defaultParameter.parameter as FunctionTypedFormalParameter;
+    assertNoErrors();
+    expect(functionParameter.returnType, isNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.isNamed, isTrue);
+    expect(functionParameter.question, isNotNull);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+
+  void test_parseNormalFormalParameter_function_noType_nullable() {
+    NormalFormalParameter parameter =
+        parseNNBDFormalParameter('a()?', ParameterKind.REQUIRED);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, isFunctionTypedFormalParameter);
+    FunctionTypedFormalParameter functionParameter = parameter;
+    expect(functionParameter.returnType, isNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNotNull);
+  }
 }
 
 /**

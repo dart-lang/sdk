@@ -5172,7 +5172,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
 ///
 ///    functionSignature ::=
 ///        [TypeName]? [SimpleIdentifier] [TypeParameterList]?
-///        [FormalParameterList]
+///        [FormalParameterList] '?'?
 class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     implements FunctionTypedFormalParameter {
   /// The return type of the function, or `null` if the function does not have a

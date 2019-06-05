@@ -908,7 +908,8 @@ class AstBuilder extends StackListener {
             requiredKeyword: requiredKeyword,
             returnType: typeOrFunctionTypedParameter.returnType,
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
-            parameters: typeOrFunctionTypedParameter.parameters);
+            parameters: typeOrFunctionTypedParameter.parameters,
+            question: typeOrFunctionTypedParameter.question);
       } else {
         node = ast.fieldFormalParameter2(
             identifier: name,
@@ -1089,7 +1090,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter(Token nameToken) {
+  void endFunctionTypedFormalParameter(Token nameToken, Token question) {
     debugEvent("FunctionTypedFormalParameter");
 
     FormalParameterList formalParameters = pop();
@@ -1102,7 +1103,8 @@ class AstBuilder extends StackListener {
         identifier: null,
         returnType: returnType,
         typeParameters: typeParameters,
-        parameters: formalParameters));
+        parameters: formalParameters,
+        question: question));
   }
 
   @override

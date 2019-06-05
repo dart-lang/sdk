@@ -677,7 +677,7 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endFunctionTypedFormalParameter(Token nameToken) {
+  void endFunctionTypedFormalParameter(Token nameToken, Token question) {
     debugEvent("FunctionTypedFormalParameter", nameToken);
   }
 
