@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.27.0
+  1.27.1
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -3076,6 +3076,13 @@ a:focus, a:hover {
         
         <p>
           The identifier to present to the user for code completion.
+        </p>
+      </dd><dt class="field"><b>declaringLibraryUri: String</b></dt><dd>
+        
+        <p>
+          The URI of the library that declares the element being suggested,
+          not the URI of the library associated with the enclosing
+          <tt>AvailableSuggestionSet</tt>.
         </p>
       </dd><dt class="field"><b>element: <a href="#type_Element">Element</a></b></dt><dd>
         

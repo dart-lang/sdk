@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.27.0</version>
+  <version>1.27.1</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -3596,6 +3596,14 @@
         <ref>String</ref>
         <p>
           The identifier to present to the user for code completion.
+        </p>
+      </field>
+      <field name="declaringLibraryUri">
+        <ref>String</ref>
+        <p>
+          The URI of the library that declares the element being suggested,
+          not the URI of the library associated with the enclosing
+          <tt>AvailableSuggestionSet</tt>.
         </p>
       </field>
       <field name="element">
