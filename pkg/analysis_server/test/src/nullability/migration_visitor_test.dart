@@ -1101,6 +1101,13 @@ void f(int/*!*/ i) {}
     assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
   }
 
+  test_type_comment_question() async {
+    await analyze('''
+void f(int/*?*/ i) {}
+''');
+    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
+  }
+
   test_type_parameter_explicit_bound() async {
     await analyze('''
 class C<T extends Object> {}

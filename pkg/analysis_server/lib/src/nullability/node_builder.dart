@@ -150,8 +150,15 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
         node.end,
         typeArguments: typeArguments);
     _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType);
-    if (_isBangComment(node.endToken.next.precedingComments)) {
-      _graph.connect(decoratedType.node, NullabilityNode.never, hard: true);
+    switch (_classifyComment(node.endToken.next.precedingComments)) {
+      case _NullabilityComment.bang:
+        _graph.connect(decoratedType.node, NullabilityNode.never, hard: true);
+        break;
+      case _NullabilityComment.question:
+        _graph.connect(NullabilityNode.always, decoratedType.node);
+        break;
+      case _NullabilityComment.none:
+        break;
     }
     return decoratedType;
   }
@@ -178,6 +185,14 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     return null;
   }
 
+  _NullabilityComment _classifyComment(Token token) {
+    if (token is CommentToken) {
+      if (token.lexeme == '/*!*/') return _NullabilityComment.bang;
+      if (token.lexeme == '/*?*/') return _NullabilityComment.question;
+    }
+    return _NullabilityComment.none;
+  }
+
   /// Common handling of function and method declarations.
   void _handleExecutableDeclaration(
       ExecutableElement declaredElement,
@@ -202,13 +217,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       _currentFunctionType = previousFunctionType;
     }
     _variables.recordDecoratedElementType(declaredElement, functionType);
-  }
-
-  bool _isBangComment(Token token) {
-    if (token is CommentToken) {
-      if (token.lexeme == '/*!*/') return true;
-    }
-    return false;
   }
 }
 
@@ -269,4 +277,18 @@ abstract class VariableRepository {
   /// Associates a set of nullability checks with the given expression [node].
   void recordExpressionChecks(
       Source source, Expression expression, ExpressionChecks checks);
+}
+
+/// Types of comments that can influence nullability
+enum _NullabilityComment {
+  /// The comment `/*!*/`, which indicates that the type should not have a `?`
+  /// appended.
+  bang,
+
+  /// The comment `/*?*/`, which indicates that the type should have a `?`
+  /// appended.
+  question,
+
+  /// No special comment.
+  none,
 }

@@ -98,6 +98,20 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_comment_question_implies_nullable() async {
+    var content = '''
+void _f() {
+  int/*?*/ i = 0;
+}
+''';
+    var expected = '''
+void _f() {
+  int?/*?*/ i = 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_conditional_assert_statement_does_not_imply_non_null_intent() async {
     var content = '''
 void f(bool b, int i) {
