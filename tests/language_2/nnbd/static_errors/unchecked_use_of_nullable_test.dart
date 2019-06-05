@@ -82,7 +82,7 @@ void typeParametersNullableBounds<IQ extends int?, BQ extends bool?, LQ extends 
   list[0]; //# 51: compile-time error
   list[0] = 0; //# 52: compile-time error
   x += 1; //# 53: compile-time error
-  x ??= null; //# 54: ok
+  x ??= x; //# 54: ok
   x.round; //# 55: compile-time error
   x.toString; //# 56: ok
   x.noSuchMethod; //# 57: ok
