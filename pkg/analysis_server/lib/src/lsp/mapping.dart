@@ -183,22 +183,18 @@ lsp.CompletionItem declarationToCompletionItem(
     null, // filterText uses label if not set
     null, // insertText is deprecated, but also uses label if not set
     null, // insertTextFormat (we always use plain text so can ommit this)
-    new lsp.TextEdit(
-      // TODO(dantup): If `clientSupportsSnippets == true` then we should map
-      // `selection` in to a snippet (see how Dart Code does this).
-      toRange(lineInfo, replacementOffset, replacementLength),
-      label,
-    ),
+    null, // textEdit - added on during resolve
     null, // additionalTextEdits, used for adding imports, etc.
     null, // commitCharacters
     null, // command
     // data, used for completionItem/resolve.
     new lsp.CompletionItemResolutionInfo(
-      file,
-      offset,
-      includedSuggestionSet.id,
-      includedSuggestionSet.displayUri ?? library.uri?.toString(),
-    ),
+        file,
+        offset,
+        includedSuggestionSet.id,
+        includedSuggestionSet.displayUri ?? library.uri?.toString(),
+        replacementOffset,
+        replacementLength),
   );
 }
 

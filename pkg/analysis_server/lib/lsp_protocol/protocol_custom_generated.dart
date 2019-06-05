@@ -132,43 +132,56 @@ class CompletionItemResolutionInfo implements ToJsonable {
       CompletionItemResolutionInfo.canParse,
       CompletionItemResolutionInfo.fromJson);
 
-  CompletionItemResolutionInfo(
-      this.file, this.offset, this.libraryId, this.autoImportDisplayUri) {
+  CompletionItemResolutionInfo(this.file, this.offset, this.libId,
+      this.displayUri, this.rOffset, this.rLength) {
     if (file == null) {
       throw 'file is required but was not provided';
     }
     if (offset == null) {
       throw 'offset is required but was not provided';
     }
-    if (libraryId == null) {
-      throw 'libraryId is required but was not provided';
+    if (libId == null) {
+      throw 'libId is required but was not provided';
     }
-    if (autoImportDisplayUri == null) {
-      throw 'autoImportDisplayUri is required but was not provided';
+    if (displayUri == null) {
+      throw 'displayUri is required but was not provided';
+    }
+    if (rOffset == null) {
+      throw 'rOffset is required but was not provided';
+    }
+    if (rLength == null) {
+      throw 'rLength is required but was not provided';
     }
   }
   static CompletionItemResolutionInfo fromJson(Map<String, dynamic> json) {
     final file = json['file'];
     final offset = json['offset'];
-    final libraryId = json['libraryId'];
-    final autoImportDisplayUri = json['autoImportDisplayUri'];
+    final libId = json['libId'];
+    final displayUri = json['displayUri'];
+    final rOffset = json['rOffset'];
+    final rLength = json['rLength'];
     return new CompletionItemResolutionInfo(
-        file, offset, libraryId, autoImportDisplayUri);
+        file, offset, libId, displayUri, rOffset, rLength);
   }
 
-  final String autoImportDisplayUri;
+  final String displayUri;
   final String file;
-  final num libraryId;
+  final num libId;
   final num offset;
+  final num rLength;
+  final num rOffset;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> __result = {};
     __result['file'] = file ?? (throw 'file is required but was not set');
     __result['offset'] = offset ?? (throw 'offset is required but was not set');
-    __result['libraryId'] =
-        libraryId ?? (throw 'libraryId is required but was not set');
-    __result['autoImportDisplayUri'] = autoImportDisplayUri ??
-        (throw 'autoImportDisplayUri is required but was not set');
+    __result['libId'] = libId ?? (throw 'libId is required but was not set');
+    __result['displayUri'] =
+        displayUri ?? (throw 'displayUri is required but was not set');
+    __result['rOffset'] =
+        rOffset ?? (throw 'rOffset is required but was not set');
+    __result['rLength'] =
+        rLength ?? (throw 'rLength is required but was not set');
     return __result;
   }
 
@@ -178,10 +191,14 @@ class CompletionItemResolutionInfo implements ToJsonable {
         obj['file'] is String &&
         obj.containsKey('offset') &&
         obj['offset'] is num &&
-        obj.containsKey('libraryId') &&
-        obj['libraryId'] is num &&
-        obj.containsKey('autoImportDisplayUri') &&
-        obj['autoImportDisplayUri'] is String;
+        obj.containsKey('libId') &&
+        obj['libId'] is num &&
+        obj.containsKey('displayUri') &&
+        obj['displayUri'] is String &&
+        obj.containsKey('rOffset') &&
+        obj['rOffset'] is num &&
+        obj.containsKey('rLength') &&
+        obj['rLength'] is num;
   }
 
   @override
@@ -189,8 +206,10 @@ class CompletionItemResolutionInfo implements ToJsonable {
     if (other is CompletionItemResolutionInfo) {
       return file == other.file &&
           offset == other.offset &&
-          libraryId == other.libraryId &&
-          autoImportDisplayUri == other.autoImportDisplayUri &&
+          libId == other.libId &&
+          displayUri == other.displayUri &&
+          rOffset == other.rOffset &&
+          rLength == other.rLength &&
           true;
     }
     return false;
@@ -201,8 +220,10 @@ class CompletionItemResolutionInfo implements ToJsonable {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, libraryId.hashCode);
-    hash = JenkinsSmiHash.combine(hash, autoImportDisplayUri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, libId.hashCode);
+    hash = JenkinsSmiHash.combine(hash, displayUri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, rOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, rLength.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 

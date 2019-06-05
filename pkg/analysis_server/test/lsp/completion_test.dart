@@ -252,8 +252,9 @@ main() {
     final completion = res.singleWhere((c) => c.label == 'InOtherFile');
     expect(completion, isNotNull);
 
-    // Expect no docs, since these are added during resolve.
+    // Expect no docs or text edit, since these are added during resolve.
     expect(completion.documentation, isNull);
+    expect(completion.textEdit, isNull);
 
     // Resolve the completion item (via server) to get its edits. This is the
     // LSP's equiv of getSuggestionDetails() and is invoked by LSP clients to
@@ -271,6 +272,9 @@ main() {
       resolved.documentation.valueEquals('This class is in another file.'),
       isTrue,
     );
+
+    // Ensure the edit was added on.
+    expect(resolved.textEdit, isNotNull);
 
     // There should be no command for this item because it doesn't need imports
     // in other files. Same-file completions are in additionalEdits.

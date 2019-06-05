@@ -109,8 +109,10 @@ List<AstNode> getCustomClasses() {
       [
         field('file', type: 'string'),
         field('offset', type: 'number'),
-        field('libraryId', type: 'number'),
-        field('autoImportDisplayUri', type: 'string')
+        field('libId', type: 'number'),
+        field('displayUri', type: 'string'),
+        field('rOffset', type: 'number'),
+        field('rLength', type: 'number')
       ],
     ),
   ];
