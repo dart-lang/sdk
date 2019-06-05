@@ -240,6 +240,22 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_data_flow_field_read() async {
+    var content = '''
+class C {
+  int/*?*/ f = 0;
+}
+int f(C c) => c.f;
+''';
+    var expected = '''
+class C {
+  int?/*?*/ f = 0;
+}
+int? f(C c) => c.f;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_data_flow_generic_inward() async {
     var content = '''
 class C<T> {

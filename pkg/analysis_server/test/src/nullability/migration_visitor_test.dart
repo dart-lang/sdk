@@ -734,7 +734,19 @@ int f() {
         contextNode: decoratedTypeAnnotation('int').node);
   }
 
-  test_prefixedIdentifier_return_type() async {
+  test_prefixedIdentifier_field_type() async {
+    await analyze('''
+class C {
+  bool b = true;
+}
+bool f(C c) => c.b;
+''');
+    assertEdge(decoratedTypeAnnotation('bool b').node,
+        decoratedTypeAnnotation('bool f').node,
+        hard: false);
+  }
+
+  test_prefixedIdentifier_getter_type() async {
     await analyze('''
 class C {
   bool get b => true;
@@ -985,6 +997,20 @@ class NodeBuilderTest extends MigrationVisitorTestBase {
 
   DecoratedType decoratedTypeParameterBound(String search) => _variables
       .decoratedElementType(findNode.typeParameter(search).declaredElement);
+
+  test_field_type_simple() async {
+    await analyze('''
+class C {
+  int f = 0;
+}
+''');
+    var decoratedType = decoratedTypeAnnotation('int');
+    expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(
+        _variables.decoratedElementType(
+            findNode.fieldDeclaration('f').fields.variables[0].declaredElement),
+        same(decoratedType));
+  }
 
   test_interfaceType_typeParameter() async {
     await analyze('''

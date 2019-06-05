@@ -109,8 +109,23 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     } else {
       baseElement = element;
     }
-    var decoratedBaseType =
-        _variables.decoratedElementType(baseElement, create: true);
+    DecoratedType decoratedBaseType;
+    if (baseElement is PropertyAccessorElement &&
+        baseElement.isSynthetic &&
+        !baseElement.variable.isSynthetic) {
+      var variable = baseElement.variable;
+      if (baseElement.isGetter) {
+        decoratedBaseType = DecoratedType(
+            baseElement.type, NullabilityNode.never,
+            returnType:
+                _variables.decoratedElementType(variable, create: true));
+      } else {
+        throw UnimplementedError('TODO(paulberry)');
+      }
+    } else {
+      decoratedBaseType =
+          _variables.decoratedElementType(baseElement, create: true);
+    }
     if (substitution != null) {
       DartType elementType;
       if (element is MethodElement) {
