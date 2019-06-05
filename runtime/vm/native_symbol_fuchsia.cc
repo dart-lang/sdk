@@ -79,7 +79,7 @@ class NativeSymbols {
 
   NativeSymbols* next_;
   const char* const dso_name_;
-  uint32_t num_entries_;
+  intptr_t num_entries_;
   Entry* entries_;
   const char* name_table_;
 
