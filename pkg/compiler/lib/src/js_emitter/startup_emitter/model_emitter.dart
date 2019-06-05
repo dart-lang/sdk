@@ -201,21 +201,25 @@ class ModelEmitter {
     program.finalizers.forEach((js.TokenFinalizer f) => f.finalizeTokens());
 
     // TODO(sra): This is where we know if the types (and potentially other
-    // deferred ASTs inside the parts) have any contents. We shoudl wait until
+    // deferred ASTs inside the parts) have any contents. We should wait until
     // this point to decide if a part is empty.
 
     Map<DeferredFragment, String> hunkHashes =
-        writeDeferredFragments(deferredFragmentsCode);
+        _task.measureSubtask('write fragments', () {
+      return writeDeferredFragments(deferredFragmentsCode);
+    });
 
     // Now that we have written the deferred hunks, we can create the deferred
     // loading data.
     fragmentEmitter.finalizeDeferredLoadingData(
         program.loadMap, hunkHashes, deferredLoadingState);
 
-    writeMainFragment(mainFragment, mainCode,
-        isSplit: program.deferredFragments.isNotEmpty ||
-            program.hasSoftDeferredClasses ||
-            _options.experimentalTrackAllocations);
+    _task.measureSubtask('write fragments', () {
+      writeMainFragment(mainFragment, mainCode,
+          isSplit: program.deferredFragments.isNotEmpty ||
+              program.hasSoftDeferredClasses ||
+              _options.experimentalTrackAllocations);
+    });
 
     if (_closedWorld.backendUsage.requiresPreamble &&
         !_closedWorld.backendUsage.isHtmlLoaded) {
@@ -295,9 +299,12 @@ class ModelEmitter {
       code
     ]);
 
-    mainOutput.addBuffer(js.createCodeBuffer(
+    CodeBuffer buffer = js.createCodeBuffer(
         program, _options, _sourceInformationStrategy,
-        monitor: _dumpInfoTask));
+        monitor: _dumpInfoTask);
+    _task.measureSubtask('emit buffers', () {
+      mainOutput.addBuffer(buffer);
+    });
 
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
@@ -365,9 +372,12 @@ class ModelEmitter {
       js.js.statement('$deferredInitializersGlobal.current = #', code)
     ]);
 
-    output.addBuffer(js.createCodeBuffer(
+    CodeBuffer buffer = js.createCodeBuffer(
         program, _options, _sourceInformationStrategy,
-        monitor: _dumpInfoTask));
+        monitor: _dumpInfoTask);
+    _task.measureSubtask('emit buffers', () {
+      output.addBuffer(buffer);
+    });
 
     // Make a unique hash of the code (before the sourcemaps are added)
     // This will be used to retrieve the initializing function from the global
@@ -424,7 +434,7 @@ class ModelEmitter {
     mapping.addAll(_closedWorld.outputUnitData.computeDeferredMap(
         _options, _closedWorld.elementEnvironment,
         omittedUnits:
-            omittedFragments.map((fragemnt) => fragemnt.outputUnit).toSet()));
+            omittedFragments.map((fragment) => fragment.outputUnit).toSet()));
     _outputProvider.createOutputSink(
         _options.deferredMapUri.path, '', OutputType.deferredMap)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
