@@ -223,7 +223,7 @@ class LinkedUnitContext {
   }
 
   int getDirectiveOffset(AstNode node) {
-    return LazyDirective.getKeywordOffset(node);
+    return LazyDirective.getNameOffset(node);
   }
 
   Comment getDocumentationComment(AstNode node) {

@@ -1104,9 +1104,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(2, variant: LinkedNodeKind.constructorDeclaration)
   List<LinkedNode> get constructorDeclaration_initializers;
 
-  @VariantId(7, variant: LinkedNodeKind.constructorDeclaration)
-  LinkedNode get constructorDeclaration_name;
-
   @VariantId(8, variant: LinkedNodeKind.constructorDeclaration)
   LinkedNode get constructorDeclaration_parameters;
 
@@ -1119,6 +1116,10 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(10, variant: LinkedNodeKind.constructorDeclaration)
   LinkedNode get constructorDeclaration_returnType;
+
+  @VariantId(17, variant: LinkedNodeKind.constructorDeclaration)
+  @informative
+  int get constructorDeclaration_returnTypeOffset;
 
   @VariantId(6, variant: LinkedNodeKind.constructorFieldInitializer)
   LinkedNode get constructorFieldInitializer_expression;
@@ -1156,16 +1157,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.defaultFormalParameter)
   LinkedNode get defaultFormalParameter_parameter;
 
-  @VariantId(17, variantList: [
-    LinkedNodeKind.exportDirective,
-    LinkedNodeKind.importDirective,
-    LinkedNodeKind.libraryDirective,
-    LinkedNodeKind.partDirective,
-    LinkedNodeKind.partOfDirective,
-  ])
-  @informative
-  int get directive_keywordOffset;
-
   @VariantId(6, variant: LinkedNodeKind.doStatement)
   LinkedNode get doStatement_body;
 
@@ -1183,9 +1174,6 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(15, variant: LinkedNodeKind.emptyStatement)
   int get emptyStatement_fake;
-
-  @VariantId(6, variant: LinkedNodeKind.enumConstantDeclaration)
-  LinkedNode get enumConstantDeclaration_name;
 
   @VariantId(2, variant: LinkedNodeKind.enumDeclaration)
   List<LinkedNode> get enumDeclaration_constants;
@@ -1469,9 +1457,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.methodDeclaration)
   LinkedNode get methodDeclaration_formalParameters;
 
-  @VariantId(10, variant: LinkedNodeKind.methodDeclaration)
-  LinkedNode get methodDeclaration_name;
-
   @VariantId(8, variant: LinkedNodeKind.methodDeclaration)
   LinkedNode get methodDeclaration_returnType;
 
@@ -1490,22 +1475,37 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(36, variant: LinkedNodeKind.mixinDeclaration)
   List<String> get mixinDeclaration_superInvokedNames;
 
-  @VariantId(10, variantList: [
-    LinkedNodeKind.classDeclaration,
-    LinkedNodeKind.classTypeAlias,
-    LinkedNodeKind.enumDeclaration,
-    LinkedNodeKind.functionDeclaration,
-    LinkedNodeKind.functionTypeAlias,
-    LinkedNodeKind.genericTypeAlias,
-    LinkedNodeKind.mixinDeclaration,
-  ])
-  LinkedNode get namedCompilationUnitMember_name;
+  @Id(37)
+  String get name;
 
   @VariantId(6, variant: LinkedNodeKind.namedExpression)
   LinkedNode get namedExpression_expression;
 
   @VariantId(7, variant: LinkedNodeKind.namedExpression)
   LinkedNode get namedExpression_name;
+
+  @VariantId(16, variantList: [
+    LinkedNodeKind.classDeclaration,
+    LinkedNodeKind.classTypeAlias,
+    LinkedNodeKind.constructorDeclaration,
+    LinkedNodeKind.enumConstantDeclaration,
+    LinkedNodeKind.enumDeclaration,
+    LinkedNodeKind.exportDirective,
+    LinkedNodeKind.fieldFormalParameter,
+    LinkedNodeKind.functionDeclaration,
+    LinkedNodeKind.functionTypedFormalParameter,
+    LinkedNodeKind.functionTypeAlias,
+    LinkedNodeKind.genericTypeAlias,
+    LinkedNodeKind.importDirective,
+    LinkedNodeKind.methodDeclaration,
+    LinkedNodeKind.mixinDeclaration,
+    LinkedNodeKind.partDirective,
+    LinkedNodeKind.simpleFormalParameter,
+    LinkedNodeKind.typeParameter,
+    LinkedNodeKind.variableDeclaration,
+  ])
+  @informative
+  int get nameOffset;
 
   @VariantId(36, variantList: [
     LinkedNodeKind.hideCombinator,
@@ -1545,13 +1545,6 @@ abstract class LinkedNode extends base.SummaryClass {
   ])
   @informative
   LinkedNode get normalFormalParameter_comment;
-
-  @VariantId(9, variantList: [
-    LinkedNodeKind.fieldFormalParameter,
-    LinkedNodeKind.functionTypedFormalParameter,
-    LinkedNodeKind.simpleFormalParameter,
-  ])
-  LinkedNode get normalFormalParameter_identifier;
 
   @VariantId(4, variantList: [
     LinkedNodeKind.fieldFormalParameter,
@@ -1641,13 +1634,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(23, variant: LinkedNodeKind.simpleIdentifier)
   LinkedNodeType get simpleIdentifier_elementType;
 
-  @VariantId(20, variant: LinkedNodeKind.simpleIdentifier)
-  String get simpleIdentifier_name;
-
-  @VariantId(16, variant: LinkedNodeKind.simpleIdentifier)
-  @informative
-  int get simpleIdentifier_offset;
-
   @VariantId(20, variant: LinkedNodeKind.simpleStringLiteral)
   String get simpleStringLiteral_value;
 
@@ -1663,7 +1649,7 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.spreadElement)
   LinkedNode get spreadElement_expression;
 
-  @VariantId(37, variant: LinkedNodeKind.spreadElement)
+  @VariantId(38, variant: LinkedNodeKind.spreadElement)
   UnlinkedTokenType get spreadElement_spreadOperator;
 
   @VariantId(2, variant: LinkedNodeKind.stringInterpolation)
@@ -1753,9 +1739,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(23, variant: LinkedNodeKind.typeParameter)
   LinkedNodeType get typeParameter_defaultType;
 
-  @VariantId(7, variant: LinkedNodeKind.typeParameter)
-  LinkedNode get typeParameter_name;
-
   @VariantId(2, variant: LinkedNodeKind.typeParameterList)
   List<LinkedNode> get typeParameterList_typeParameters;
 
@@ -1782,9 +1765,6 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(6, variant: LinkedNodeKind.variableDeclaration)
   LinkedNode get variableDeclaration_initializer;
-
-  @VariantId(7, variant: LinkedNodeKind.variableDeclaration)
-  LinkedNode get variableDeclaration_name;
 
   @VariantId(6, variant: LinkedNodeKind.variableDeclarationList)
   LinkedNode get variableDeclarationList_type;
