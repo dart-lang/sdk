@@ -230,8 +230,8 @@ class CodeBreakpoint {
 
   void PatchCode();
   void RestoreCode();
-  void SetBytecodeBreak();
-  void UnsetBytecodeBreak();
+  void SetBytecodeBreakpoint();
+  void UnsetBytecodeBreakpoint();
 
   RawCode* code_;
   RawBytecode* bytecode_;
@@ -552,6 +552,10 @@ class Debugger {
     ignore_breakpoints_ = ignore_breakpoints;
   }
 
+  bool HasEnabledBytecodeBreakpoints() const;
+  // Called from the interpreter. Note that pc already points to next bytecode.
+  bool HasBytecodeBreakpointAt(const KBCInstr* next_pc) const;
+
   // Put the isolate into single stepping mode when Dart code next runs.
   //
   // This is used by the vm service to allow the user to step while
@@ -671,6 +675,7 @@ class Debugger {
                                      intptr_t requested_column,
                                      TokenPosition exact_token_pos);
   void DeoptimizeWorld();
+  void NotifySingleStepping(bool value) const;
   BreakpointLocation* SetCodeBreakpoints(bool in_bytecode,
                                          BreakpointLocation* loc,
                                          const Script& script,

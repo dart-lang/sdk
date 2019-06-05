@@ -122,6 +122,11 @@ class Interpreter {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
   void MajorGC() { lookup_cache_.Clear(); }
 
+#ifndef PRODUCT
+  void set_is_debugging(bool value) { is_debugging_ = value; }
+  bool is_debugging() const { return is_debugging_; }
+#endif  // !PRODUCT
+
  private:
   uintptr_t* stack_;
   uword stack_base_;
@@ -273,6 +278,10 @@ class Interpreter {
   void set_last_setjmp_buffer(InterpreterSetjmpBuffer* buffer) {
     last_setjmp_buffer_ = buffer;
   }
+
+#ifndef PRODUCT
+  bool is_debugging_;
+#endif  // !PRODUCT
 
   friend class InterpreterSetjmpBuffer;
   DISALLOW_COPY_AND_ASSIGN(Interpreter);

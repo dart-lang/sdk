@@ -995,6 +995,22 @@ class KernelBytecode {
     }
   }
 
+  // The interpreter and this function must agree on the opcodes.
+  DART_FORCE_INLINE static bool IsDebugBreakCheckedOpcode(
+      const KBCInstr* instr) {
+    switch (DecodeOpcode(instr)) {
+      case KernelBytecode::kCheckStack:
+      case KernelBytecode::kDirectCall:
+      case KernelBytecode::kInterfaceCall:
+      case KernelBytecode::kUncheckedInterfaceCall:
+      case KernelBytecode::kDynamicCall:
+      case KernelBytecode::kReturnTOS:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   static const uint8_t kNativeCallToGrowableListArgc = 2;
 
   DART_FORCE_INLINE static uint8_t DecodeArgc_Old(const KBCInstr* ret_addr) {

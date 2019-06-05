@@ -7,24 +7,47 @@
 
 #include "vm/debugger.h"
 #include "vm/instructions_kbc.h"
+#include "vm/interpreter.h"
 
 namespace dart {
 
 #ifndef PRODUCT
-
-void CodeBreakpoint::SetBytecodeBreak() {
+void CodeBreakpoint::SetBytecodeBreakpoint() {
   ASSERT(!is_enabled_);
-  ASSERT(!Isolate::Current()->is_using_old_bytecode_instructions());
-  // TODO(regis): Register pc_ (or the token pos range including pc_) with the
-  // interpreter as a debug break address.
   is_enabled_ = true;
+  Interpreter::Current()->set_is_debugging(true);
 }
 
-void CodeBreakpoint::UnsetBytecodeBreak() {
+void CodeBreakpoint::UnsetBytecodeBreakpoint() {
   ASSERT(is_enabled_);
-  // TODO(regis): Unregister pc_ (or the token pos range including pc_) with the
-  // interpreter as a debug break address.
   is_enabled_ = false;
+  if (!Isolate::Current()->single_step() &&
+      !Isolate::Current()->debugger()->HasEnabledBytecodeBreakpoints()) {
+    Interpreter::Current()->set_is_debugging(false);
+  }
+}
+
+bool Debugger::HasEnabledBytecodeBreakpoints() const {
+  CodeBreakpoint* cbpt = code_breakpoints_;
+  while (cbpt != nullptr) {
+    if (cbpt->IsEnabled() && cbpt->IsInterpreted()) {
+      return true;
+    }
+    cbpt = cbpt->next();
+  }
+  return false;
+}
+
+bool Debugger::HasBytecodeBreakpointAt(const KBCInstr* next_pc) const {
+  CodeBreakpoint* cbpt = code_breakpoints_;
+  while (cbpt != nullptr) {
+    if ((reinterpret_cast<uword>(next_pc)) == cbpt->pc_ && cbpt->IsEnabled()) {
+      ASSERT(cbpt->IsInterpreted());
+      return true;
+    }
+    cbpt = cbpt->next();
+  }
+  return false;
 }
 #endif  // !PRODUCT
 

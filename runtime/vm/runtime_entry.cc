@@ -976,9 +976,10 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
-  ASSERT(!caller_frame->is_interpreted());
-  const Code& orig_stub = Code::Handle(
-      zone, isolate->debugger()->GetPatchedStubAddress(caller_frame->pc()));
+  Code& orig_stub = Code::Handle(zone);
+  if (!caller_frame->is_interpreted()) {
+    orig_stub = isolate->debugger()->GetPatchedStubAddress(caller_frame->pc());
+  }
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseBreakpoint());
   ThrowIfError(error);
