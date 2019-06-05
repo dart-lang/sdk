@@ -128,7 +128,7 @@ DartSdkManager createDartSdkManager(
         return !context.isWithin(sdkPath, sourcePath);
       });
   return new DartSdkManager(
-      sdkPath ?? FolderBasedDartSdk.defaultSdkDirectory(resourceProvider),
+      sdkPath ?? FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path,
       canUseSummaries);
 }
 

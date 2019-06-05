@@ -84,7 +84,7 @@ class ArgumentsTest with ResourceProviderMixin {
         createDartSdkManager(resourceProvider, false, result);
     expect(manager, isNotNull);
     expect(manager.defaultSdkDirectory,
-        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
+        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path);
     expect(manager.canUseSummaries, false);
   }
 
@@ -96,8 +96,9 @@ class ArgumentsTest with ResourceProviderMixin {
     DartSdkManager manager =
         createDartSdkManager(resourceProvider, true, result);
     expect(manager, isNotNull);
+
     expect(manager.defaultSdkDirectory,
-        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
+        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path);
     expect(manager.canUseSummaries, true);
   }
 
