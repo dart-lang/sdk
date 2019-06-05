@@ -62,7 +62,7 @@ Error: Expected the text in the 'analyzerCode:' field to contain
 """;
 
 const shouldRunFastaGenerateMessagesFirst = """
-Error: After modifying message.yaml, run this first:
+Error: After modifying messages.yaml, run this first:
        pkg/front_end/tool/fasta generate-messages
 """;
 

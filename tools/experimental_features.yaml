@@ -77,7 +77,7 @@ triple-shift:
 
 control-flow-collections:
   help: "Control Flow Collections"
-  enabledIn: 2.3
+  enabledIn: '2.2.2'
   expired: true
 
 set-literals:
@@ -87,5 +87,5 @@ set-literals:
 
 spread-collections:
   help: "Spread Collections"
-  enabledIn: 2.3
+  enabledIn: '2.2.2'
   expired: true
