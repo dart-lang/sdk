@@ -472,8 +472,9 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     if (initializer == null) {
       throw UnimplementedError('TODO(paulberry)');
     } else {
-      return _handleAssignment(destinationType, initializer);
+      _handleAssignment(destinationType, initializer);
     }
+    return null;
   }
 
   /// Creates the necessary constraint(s) for an assignment from [sourceType] to
