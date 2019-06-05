@@ -563,6 +563,40 @@ int f(bool b, int i) {
         contextNode: nullable_return);
   }
 
+  test_indexExpression_index() async {
+    await analyze('''
+class C {
+  int operator[](int i) => 1;
+}
+int f(C c, int j) => c[j];
+''');
+    assertEdge(decoratedTypeAnnotation('int j').node,
+        decoratedTypeAnnotation('int i').node,
+        hard: true);
+  }
+
+  test_indexExpression_return_type() async {
+    await analyze('''
+class C {
+  int operator[](int i) => 1;
+}
+int f(C c) => c[0];
+''');
+    assertEdge(decoratedTypeAnnotation('int operator').node,
+        decoratedTypeAnnotation('int f').node,
+        hard: false);
+  }
+
+  test_indexExpression_target_check() async {
+    await analyze('''
+class C {
+  int operator[](int i) => 1;
+}
+int f(C c) => c[0];
+''');
+    assertNullCheck(checkExpression('c['), decoratedTypeAnnotation('C c').node);
+  }
+
   test_intLiteral() async {
     await analyze('''
 int f() {

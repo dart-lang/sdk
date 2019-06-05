@@ -264,6 +264,38 @@ void test(C<int> c) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_data_flow_indexed_get_index_value() async {
+    var content = '''
+class C {
+  int operator[](int i) => 1;
+}
+int f(C c) => c[null];
+''';
+    var expected = '''
+class C {
+  int operator[](int? i) => 1;
+}
+int f(C c) => c[null];
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_data_flow_indexed_get_value() async {
+    var content = '''
+class C {
+  int operator[](int i) => null;
+}
+int f(C c) => c[0];
+''';
+    var expected = '''
+class C {
+  int? operator[](int i) => null;
+}
+int? f(C c) => c[0];
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_data_flow_inward() async {
     var content = '''
 int f(int i) => 0;

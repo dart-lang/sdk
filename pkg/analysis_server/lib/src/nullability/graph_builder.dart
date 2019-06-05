@@ -292,6 +292,22 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitIndexExpression(IndexExpression node) {
+    DecoratedType targetType;
+    if (node.target != null) {
+      targetType = _handleAssignment(_notNullType, node.target);
+    }
+    var callee = node.staticElement;
+    if (callee == null) {
+      throw new UnimplementedError('TODO(paulberry)');
+    }
+    var calleeType = getOrComputeElementType(callee, targetType: targetType);
+    // TODO(paulberry): substitute if necessary
+    _handleAssignment(calleeType.positionalParameters[0], node.index);
+    return calleeType.returnType;
+  }
+
+  @override
   DecoratedType visitIntegerLiteral(IntegerLiteral node) {
     return DecoratedType(node.staticType, NullabilityNode.never);
   }
