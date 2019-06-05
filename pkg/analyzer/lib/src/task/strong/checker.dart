@@ -1184,11 +1184,12 @@ class CodeChecker extends RecursiveAstVisitor {
           if (expr.isMap) {
             _recordMessage(
                 expr, StrongModeCode.INVALID_CAST_LITERAL_MAP, [from, to]);
-          } else {
-            // Ambiguity should be resolved by now
-            assert(expr.isSet);
+          } else if (expr.isSet) {
             _recordMessage(
                 expr, StrongModeCode.INVALID_CAST_LITERAL_SET, [from, to]);
+          } else {
+            // This should only happen when the code is invalid, in which case
+            // the error should have been reported elsewhere.
           }
         } else {
           _recordMessage(
