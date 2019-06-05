@@ -228,7 +228,10 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
   test_suggestionSets() async {
     newFile(
       join(projectFolderPath, 'other_file.dart'),
-      content: 'class InOtherFile {}',
+      content: '''
+      /// This class is in another file.
+      class InOtherFile {}
+      ''',
     );
 
     final content = '''
@@ -249,6 +252,9 @@ main() {
     final completion = res.singleWhere((c) => c.label == 'InOtherFile');
     expect(completion, isNotNull);
 
+    // Expect no docs, since these are added during resolve.
+    expect(completion.documentation, isNull);
+
     // Resolve the completion item (via server) to get its edits. This is the
     // LSP's equiv of getSuggestionDetails() and is invoked by LSP clients to
     // populate additional info (in our case, the additional edits for inserting
@@ -259,6 +265,12 @@ main() {
     // Ensure the detail field was update to show this will auto-import.
     expect(
         resolved.detail, startsWith("Auto import from '../other_file.dart'"));
+
+    // Ensure the doc comment was added.
+    expect(
+      resolved.documentation.valueEquals('This class is in another file.'),
+      isTrue,
+    );
 
     // There should be no command for this item because it doesn't need imports
     // in other files. Same-file completions are in additionalEdits.

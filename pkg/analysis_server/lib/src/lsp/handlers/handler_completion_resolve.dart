@@ -12,6 +12,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart' as analyzer;
+import 'package:analyzer/src/util/comment.dart' as analyzer;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 
 class CompletionResolveHandler
@@ -146,6 +147,13 @@ class CompletionResolveHandler
               'Add import', Commands.sendWorkspaceEdit, [workspaceEdit]);
         }
 
+        // Documentation is added on during resolve for LSP.
+        final formats = server.clientCapabilities?.textDocument?.completion
+            ?.completionItem?.documentationFormat;
+        final dartDoc =
+            analyzer.getDartDocPlainText(requestedElement.documentationComment);
+        final documentation = asStringOrMarkupContent(formats, dartDoc);
+
         return success(CompletionItem(
           newLabel,
           item.kind,
@@ -153,7 +161,7 @@ class CompletionResolveHandler
               ? "Auto import from '${data.autoImportDisplayUri}'\n\n${item.detail ?? ''}"
                   .trim()
               : item.detail,
-          item.documentation,
+          documentation,
           item.deprecated,
           item.preselect,
           item.sortText,

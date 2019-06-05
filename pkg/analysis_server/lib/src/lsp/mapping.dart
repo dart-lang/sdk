@@ -155,7 +155,6 @@ lsp.CompletionItem declarationToCompletionItem(
 
   final useDeprecated =
       completionCapabilities?.completionItem?.deprecatedSupport == true;
-  final formats = completionCapabilities?.completionItem?.documentationFormat;
 
   final completionKind = declarationKindToCompletionItemKind(
       supportedCompletionItemKinds, declaration.kind);
@@ -172,7 +171,7 @@ lsp.CompletionItem declarationToCompletionItem(
     label,
     completionKind,
     getDeclarationCompletionDetail(declaration, completionKind, useDeprecated),
-    asStringOrMarkupContent(formats, cleanDartdoc(declaration.docComplete)),
+    null, // documentation - will be added during resolve.
     useDeprecated && declaration.isDeprecated ? true : null,
     null, // preselect
     // Relevance is a number, highest being best. LSP does text sort so subtract
