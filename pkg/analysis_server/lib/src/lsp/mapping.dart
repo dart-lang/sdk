@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
     as lsp;
@@ -159,10 +160,11 @@ lsp.CompletionItem declarationToCompletionItem(
   final completionKind = declarationKindToCompletionItemKind(
       supportedCompletionItemKinds, declaration.kind);
 
-  var itemRelevance = includedSuggestionSet.relevance;
+  var relevanceBoost = 0;
   if (declaration.relevanceTags != null)
-    declaration.relevanceTags
-        .forEach((t) => itemRelevance += (tagBoosts[t] ?? 0));
+    declaration.relevanceTags.forEach(
+        (t) => relevanceBoost = max(relevanceBoost, tagBoosts[t] ?? 0));
+  final itemRelevance = includedSuggestionSet.relevance + relevanceBoost;
 
   // Because we potentially send thousands of these items, we should minimise
   // the generated JSON as much as possible - for example using nulls in place
