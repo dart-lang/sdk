@@ -165,13 +165,16 @@ lsp.CompletionItem declarationToCompletionItem(
     declaration.relevanceTags
         .forEach((t) => itemRelevance += (tagBoosts[t] ?? 0));
 
+  // Because we potentially send thousands of these items, we should minimise
+  // the generated JSON as much as possible - for example using nulls in place
+  // of empty lists/false where possible.
   return new lsp.CompletionItem(
     label,
     completionKind,
     getDeclarationCompletionDetail(declaration, completionKind, useDeprecated),
     asStringOrMarkupContent(formats, cleanDartdoc(declaration.docComplete)),
-    useDeprecated ? declaration.isDeprecated : null,
-    false, // preselect
+    useDeprecated && declaration.isDeprecated ? true : null,
+    null, // preselect
     // Relevance is a number, highest being best. LSP does text sort so subtract
     // from a large number so that a text sort will result in the correct order.
     // 555 -> 999455
@@ -180,16 +183,15 @@ lsp.CompletionItem declarationToCompletionItem(
     (1000000 - itemRelevance).toString(),
     null, // filterText uses label if not set
     null, // insertText is deprecated, but also uses label if not set
-    // We don't have completions that use snippets, so we always return PlainText.
-    lsp.InsertTextFormat.PlainText,
+    null, // insertTextFormat (we always use plain text so can ommit this)
     new lsp.TextEdit(
       // TODO(dantup): If `clientSupportsSnippets == true` then we should map
       // `selection` in to a snippet (see how Dart Code does this).
       toRange(lineInfo, replacementOffset, replacementLength),
       label,
     ),
-    [], // additionalTextEdits, used for adding imports, etc.
-    [], // commitCharacters
+    null, // additionalTextEdits, used for adding imports, etc.
+    null, // commitCharacters
     null, // command
     // data, used for completionItem/resolve.
     new lsp.CompletionItemResolutionInfo(
@@ -375,7 +377,7 @@ String getCompletionDetail(
   } else if (hasParameterType) {
     return '$prefix${suggestion.parameterType}';
   } else {
-    return prefix;
+    return prefix.isNotEmpty ? prefix : null;
   }
 }
 
@@ -414,7 +416,7 @@ String getDeclarationCompletionDetail(
   } else if (hasReturnType) {
     return '$prefix${declaration.returnType}';
   } else {
-    return prefix;
+    return prefix.isNotEmpty ? prefix : null;
   }
 }
 
@@ -555,13 +557,16 @@ lsp.CompletionItem toCompletionItem(
       : suggestionKindToCompletionItemKind(
           supportedCompletionItemKinds, suggestion.kind, label);
 
+  // Because we potentially send thousands of these items, we should minimise
+  // the generated JSON as much as possible - for example using nulls in place
+  // of empty lists/false where possible.
   return new lsp.CompletionItem(
     label,
     completionKind,
     getCompletionDetail(suggestion, completionKind, useDeprecated),
     asStringOrMarkupContent(formats, cleanDartdoc(suggestion.docComplete)),
-    useDeprecated ? suggestion.isDeprecated : null,
-    false, // preselect
+    useDeprecated && suggestion.isDeprecated ? true : null,
+    null, // preselect
     // Relevance is a number, highest being best. LSP does text sort so subtract
     // from a large number so that a text sort will result in the correct order.
     // 555 -> 999455
@@ -570,16 +575,15 @@ lsp.CompletionItem toCompletionItem(
     (1000000 - suggestion.relevance).toString(),
     null, // filterText uses label if not set
     null, // insertText is deprecated, but also uses label if not set
-    // We don't have completions that use snippets, so we always return PlainText.
-    lsp.InsertTextFormat.PlainText,
+    null, // insertTextFormat (we always use plain text so can ommit this)
     new lsp.TextEdit(
       // TODO(dantup): If `clientSupportsSnippets == true` then we should map
       // `selection` in to a snippet (see how Dart Code does this).
       toRange(lineInfo, replacementOffset, replacementLength),
       suggestion.completion,
     ),
-    [], // additionalTextEdits, used for adding imports, etc.
-    [], // commitCharacters
+    null, // additionalTextEdits, used for adding imports, etc.
+    null, // commitCharacters
     null, // command
     null, // data, useful for if using lazy resolve, this comes back to us
   );
