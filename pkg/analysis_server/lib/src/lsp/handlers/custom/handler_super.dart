@@ -11,7 +11,6 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
-import 'package:analyzer/dart/element/element.dart';
 
 class SuperHandler
     extends MessageHandler<TextDocumentPositionParams, Location> {
