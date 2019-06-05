@@ -46,18 +46,6 @@ String keyToIdentifier(String key) {
 class _ExperimentsGenerator {
   final Map experimentsYaml;
 
-  var keysInIndexOrder = [
-// TODO(danrubel): Cleanup this hardcoded list of keys
-// once all lists indexed by ExperimentalFeature.index are generated.
-    'constant-update-2018',
-    'non-nullable',
-    'control-flow-collections',
-    'spread-collections',
-    'set-literals',
-    'triple-shift',
-    'extension-methods',
-  ];
-
   List<String> keysSorted;
 
   final out = new StringBuffer('''
@@ -88,7 +76,7 @@ part of 'experiments.dart';
 
 List<bool> _buildExperimentalFlagsArray() => <bool>[
 ''');
-    for (var key in keysInIndexOrder) {
+    for (var key in keysSorted) {
       var id = keyToIdentifier(key);
       var entry = experimentsYaml[key] as YamlMap;
       bool shipped = entry['enabledIn'] != null;
@@ -161,7 +149,7 @@ class EnableString {
 class ExperimentalFeatures {
 ''');
     int index = 0;
-    for (var key in keysInIndexOrder) {
+    for (var key in keysSorted) {
       var id = keyToIdentifier(key);
       var help = (experimentsYaml[key] as YamlMap)['help'] ?? '';
       var enabledIn = (experimentsYaml[key] as YamlMap)['enabledIn'];

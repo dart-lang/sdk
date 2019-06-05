@@ -22,12 +22,12 @@ const _knownFeatures = <String, ExperimentalFeature>{
 
 List<bool> _buildExperimentalFlagsArray() => <bool>[
       IsEnabledByDefault.constant_update_2018,
-      IsEnabledByDefault.non_nullable,
       true, // control-flow-collections
-      true, // spread-collections
-      true, // set-literals
-      IsEnabledByDefault.triple_shift,
       IsEnabledByDefault.extension_methods,
+      IsEnabledByDefault.non_nullable,
+      true, // set-literals
+      true, // spread-collections
+      IsEnabledByDefault.triple_shift,
       false, // bogus-disabled
       true, // bogus-enabled
     ];
@@ -71,28 +71,27 @@ class ExperimentalFeatures {
       IsExpired.constant_update_2018,
       'Enhanced constant expressions');
 
-  static const non_nullable = const ExperimentalFeature(
-      1,
-      EnableString.non_nullable,
-      IsEnabledByDefault.non_nullable,
-      IsExpired.non_nullable,
-      'Non Nullable by default');
-
   static const control_flow_collections = const ExperimentalFeature(
-      2,
+      1,
       EnableString.control_flow_collections,
       IsEnabledByDefault.control_flow_collections,
       IsExpired.control_flow_collections,
       'Control Flow Collections',
       firstSupportedVersion: '2.2.2');
 
-  static const spread_collections = const ExperimentalFeature(
+  static const extension_methods = const ExperimentalFeature(
+      2,
+      EnableString.extension_methods,
+      IsEnabledByDefault.extension_methods,
+      IsExpired.extension_methods,
+      'Extension Methods');
+
+  static const non_nullable = const ExperimentalFeature(
       3,
-      EnableString.spread_collections,
-      IsEnabledByDefault.spread_collections,
-      IsExpired.spread_collections,
-      'Spread Collections',
-      firstSupportedVersion: '2.2.2');
+      EnableString.non_nullable,
+      IsEnabledByDefault.non_nullable,
+      IsExpired.non_nullable,
+      'Non Nullable by default');
 
   static const set_literals = const ExperimentalFeature(
       4,
@@ -102,19 +101,20 @@ class ExperimentalFeatures {
       'Set Literals',
       firstSupportedVersion: '2.2.0');
 
-  static const triple_shift = const ExperimentalFeature(
+  static const spread_collections = const ExperimentalFeature(
       5,
+      EnableString.spread_collections,
+      IsEnabledByDefault.spread_collections,
+      IsExpired.spread_collections,
+      'Spread Collections',
+      firstSupportedVersion: '2.2.2');
+
+  static const triple_shift = const ExperimentalFeature(
+      6,
       EnableString.triple_shift,
       IsEnabledByDefault.triple_shift,
       IsExpired.triple_shift,
       'Triple-shift operator');
-
-  static const extension_methods = const ExperimentalFeature(
-      6,
-      EnableString.extension_methods,
-      IsEnabledByDefault.extension_methods,
-      IsExpired.extension_methods,
-      'Extension Methods');
 
   static const bogus_disabled = const ExperimentalFeature(
       7,
