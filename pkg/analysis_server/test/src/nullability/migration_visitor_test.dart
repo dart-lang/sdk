@@ -109,6 +109,58 @@ void f(int i) {
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
   }
 
+  test_assignmentExpression_indexExpression_index() async {
+    await analyze('''
+class C {
+  void operator[]=(int a, int b) {}
+}
+void f(C c, int i, int j) {
+  c[i] = j;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int a').node,
+        hard: true);
+  }
+
+  test_assignmentExpression_indexExpression_return_value() async {
+    await analyze('''
+class C {
+  void operator[]=(int a, int b) {}
+}
+int f(C c, int i, int j) => c[i] = j;
+''');
+    assertEdge(decoratedTypeAnnotation('int j').node,
+        decoratedTypeAnnotation('int f').node,
+        hard: false);
+  }
+
+  test_assignmentExpression_indexExpression_target_check() async {
+    await analyze('''
+class C {
+  void operator[]=(int a, int b) {}
+}
+void f(C c, int i, int j) {
+  c[i] = j;
+}
+''');
+    assertNullCheck(checkExpression('c['), decoratedTypeAnnotation('C c').node);
+  }
+
+  test_assignmentExpression_indexExpression_value() async {
+    await analyze('''
+class C {
+  void operator[]=(int a, int b) {}
+}
+void f(C c, int i, int j) {
+  c[i] = j;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int j').node,
+        decoratedTypeAnnotation('int b').node,
+        hard: true);
+  }
+
   test_assignmentExpression_operands() async {
     await analyze('''
 void f(int i, int j) {
@@ -120,7 +172,7 @@ void f(int i, int j) {
         hard: true);
   }
 
-  test_assignmentExpression_value() async {
+  test_assignmentExpression_return_value() async {
     await analyze('''
 void f(int i, int j) {
   g(i = j);

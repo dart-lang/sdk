@@ -319,7 +319,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
     _handleAssignment(calleeType.positionalParameters[0], node.index);
-    return calleeType.returnType;
+    if (node.inSetterContext()) {
+      return calleeType.positionalParameters[1];
+    } else {
+      return calleeType.returnType;
+    }
   }
 
   @override
