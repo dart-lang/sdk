@@ -475,7 +475,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
-      _checkForMissingReturn(null, node.body, node.element, node);
+      _checkForMissingReturn(null, node.body, node.declaredElement, node);
     }
     super.visitFunctionExpression(node);
   }
@@ -3395,6 +3395,13 @@ class NonNullableTypeProvider extends TypeProviderImpl {
   NonNullableTypeProvider(
       LibraryElement coreLibrary, LibraryElement asyncLibrary)
       : super(coreLibrary, asyncLibrary);
+
+  /// Return a type provider initialized from the same library elements as the
+  /// [baseProvider].
+  factory NonNullableTypeProvider.from(TypeProvider baseProvider) {
+    return NonNullableTypeProvider(baseProvider.boolType.element.library,
+        baseProvider.streamType.element.library);
+  }
 
   @override
   InterfaceType _getType(Namespace namespace, String typeName) {
@@ -7411,6 +7418,13 @@ class TypeProviderImpl extends TypeProviderBase {
   /// the given [coreLibrary] and [asyncLibrary].
   TypeProviderImpl(LibraryElement coreLibrary, LibraryElement asyncLibrary) {
     _initializeFrom(coreLibrary, asyncLibrary);
+  }
+
+  /// Return a type provider initialized from the same library elements as the
+  /// [baseProvider].
+  factory TypeProviderImpl.from(TypeProvider baseProvider) {
+    return TypeProviderImpl(baseProvider.boolType.element.library,
+        baseProvider.streamType.element.library);
   }
 
   @override

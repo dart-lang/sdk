@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -62,7 +63,7 @@ class LibraryAnalyzer {
   final AnalysisContext _context;
   final ElementResynthesizer _resynthesizer;
   final LinkedElementFactory _elementFactory;
-  final TypeProvider _typeProvider;
+  TypeProvider _typeProvider;
 
   final TypeSystem _typeSystem;
   LibraryElement _libraryElement;
@@ -97,8 +98,7 @@ class LibraryAnalyzer {
       this._inheritance,
       this._library,
       this._resourceProvider)
-      : _typeProvider = _context.typeProvider,
-        _typeSystem = _context.typeSystem;
+      : _typeSystem = _context.typeSystem;
 
   /**
    * Compute analysis results for all units of the library.
@@ -124,7 +124,19 @@ class LibraryAnalyzer {
     timerLibraryAnalyzerFreshUnit.stop();
 
     // Resolve URIs in directives to corresponding sources.
+    FeatureSet featureSet = units[_library].featureSet;
+    _typeProvider = _context.typeProvider;
+    if (featureSet.isEnabled(Feature.non_nullable)) {
+      if (_typeProvider is! NonNullableTypeProvider) {
+        _typeProvider = NonNullableTypeProvider.from(_typeProvider);
+      }
+    } else {
+      if (_typeProvider is NonNullableTypeProvider) {
+        _typeProvider = TypeProviderImpl.from(_typeProvider);
+      }
+    }
     units.forEach((file, unit) {
+      _validateFeatureSet(unit, featureSet);
       _resolveUriBasedDirectives(file, unit);
     });
 
@@ -721,6 +733,15 @@ class LibraryAnalyzer {
             file, directive is ImportDirective, uriLiteral, uriContent);
         directive.uriSource = defaultSource;
       }
+    }
+  }
+
+  /// Validate that the feature set associated with the compilation [unit] is
+  /// the same as the [expectedSet] of features supported by the library.
+  void _validateFeatureSet(CompilationUnit unit, FeatureSet expectedSet) {
+    FeatureSet actualSet = unit.featureSet;
+    if (actualSet != expectedSet) {
+      // TODO(brianwilkerson) Generate a diagnostic.
     }
   }
 
