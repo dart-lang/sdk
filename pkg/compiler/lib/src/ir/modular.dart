@@ -11,8 +11,16 @@ import 'package:kernel/type_environment.dart' as ir;
 import '../js_backend/annotations.dart';
 import '../util/enumset.dart';
 import 'annotations.dart';
+import 'constants.dart';
 import 'impact.dart';
 import 'scope.dart';
+
+class ModularCore {
+  final ir.Component component;
+  final Dart2jsConstantEvaluator constantEvaluator;
+
+  ModularCore(this.component, this.constantEvaluator);
+}
 
 class ModularMemberData {
   final ScopeModel scopeModel;
