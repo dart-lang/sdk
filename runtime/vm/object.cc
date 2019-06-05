@@ -533,8 +533,8 @@ void Object::Init(Isolate* isolate) {
     cls.set_id(Class::kClassId);
     cls.set_state_bits(0);
     cls.set_is_finalized();
+    cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
-    cls.set_is_cycle_free();
     cls.set_type_arguments_field_offset_in_words(Class::kNoTypeArguments);
     cls.set_num_type_arguments(0);
     cls.set_num_own_type_arguments(0);
@@ -555,16 +555,16 @@ void Object::Init(Isolate* isolate) {
   cls.set_num_type_arguments(0);
   cls.set_num_own_type_arguments(0);
   cls.set_is_finalized();
+  cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
-  cls.set_is_cycle_free();
 
   // Allocate and initialize the forwarding corpse class.
   cls = Class::New<ForwardingCorpse::FakeInstance>(kForwardingCorpse);
   cls.set_num_type_arguments(0);
   cls.set_num_own_type_arguments(0);
   cls.set_is_finalized();
+  cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
-  cls.set_is_cycle_free();
 
   // Allocate and initialize the sentinel values of Null class.
   {
@@ -832,22 +832,22 @@ void Object::Init(Isolate* isolate) {
   cls.set_num_type_arguments(0);
   cls.set_num_own_type_arguments(0);
   cls.set_is_finalized();
+  cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
-  cls.set_is_cycle_free();
   dynamic_class_ = cls.raw();
 
   cls = Class::New<Instance>(kVoidCid);
   cls.set_num_type_arguments(0);
   cls.set_num_own_type_arguments(0);
   cls.set_is_finalized();
+  cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
-  cls.set_is_cycle_free();
   void_class_ = cls.raw();
 
   cls = Class::New<Type>();
   cls.set_is_finalized();
+  cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
-  cls.set_is_cycle_free();
 
   cls = dynamic_class_;
   *dynamic_type_ = Type::NewNonParameterizedType(cls);
@@ -1604,7 +1604,6 @@ RawError* Object::Init(Isolate* isolate,
     // Class that represents the Dart class _Closure and C++ class Closure.
     cls = Class::New<Closure>();
     object_store->set_closure_class(cls);
-    cls.ResetFinalization();  // To calculate field offsets from Dart source.
     RegisterPrivateClass(cls, Symbols::_Closure(), core_lib);
     pending_classes.Add(cls);
 
@@ -2309,8 +2308,10 @@ RawClass* Class::New() {
       (FakeObject::kClassId == kTypeArgumentsCid)) {
     // VM internal classes are done. There is no finalization needed or
     // possible in this case.
+    result.set_is_declaration_loaded();
+    result.set_is_type_finalized();
     result.set_is_finalized();
-  } else {
+  } else if (FakeObject::kClassId != kClosureCid) {
     // VM backed classes are almost ready: run checks and resolve class
     // references, but do not recompute size.
     result.set_is_prefinalized();
@@ -3739,9 +3740,9 @@ RawClass* Class::NewNativeWrapper(const Library& library,
     cls.set_next_field_offset(instance_size);
     cls.set_num_native_fields(field_count);
     cls.set_is_finalized();
+    cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
     cls.set_is_synthesized_class();
-    cls.set_is_cycle_free();
     cls.set_kernel_offset(-1);
     library.AddClass(cls);
     return cls.raw();
@@ -4069,8 +4070,17 @@ void Class::set_is_abstract() const {
   set_state_bits(AbstractBit::update(true, raw_ptr()->state_bits_));
 }
 
+void Class::set_is_declaration_loaded() const {
+  ASSERT(!is_declaration_loaded());
+  set_state_bits(ClassLoadingBits::update(RawClass::kDeclarationLoaded,
+                                          raw_ptr()->state_bits_));
+}
+
 void Class::set_is_type_finalized() const {
-  set_state_bits(TypeFinalizedBit::update(true, raw_ptr()->state_bits_));
+  ASSERT(is_declaration_loaded());
+  ASSERT(!is_type_finalized());
+  set_state_bits(ClassLoadingBits::update(RawClass::kTypeFinalized,
+                                          raw_ptr()->state_bits_));
 }
 
 void Class::set_is_patch() const {
@@ -4098,11 +4108,6 @@ void Class::set_is_fields_marked_nullable() const {
   set_state_bits(FieldsMarkedNullableBit::update(true, raw_ptr()->state_bits_));
 }
 
-void Class::set_is_cycle_free() const {
-  ASSERT(!is_cycle_free());
-  set_state_bits(CycleFreeBit::update(true, raw_ptr()->state_bits_));
-}
-
 void Class::set_is_allocated(bool value) const {
   set_state_bits(IsAllocatedBit::update(value, raw_ptr()->state_bits_));
 }
@@ -4115,13 +4120,6 @@ void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
   set_state_bits(
       ClassFinalizedBits::update(RawClass::kFinalized, raw_ptr()->state_bits_));
-}
-
-void Class::ResetFinalization() const {
-  ASSERT(IsTopLevel() || IsClosureClass());
-  set_state_bits(
-      ClassFinalizedBits::update(RawClass::kAllocated, raw_ptr()->state_bits_));
-  set_state_bits(TypeFinalizedBit::update(false, raw_ptr()->state_bits_));
 }
 
 void Class::set_is_prefinalized() const {

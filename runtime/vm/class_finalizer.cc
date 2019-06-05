@@ -191,15 +191,15 @@ bool ClassFinalizer::ProcessPendingClasses() {
     class_array = object_store->pending_classes();
     ASSERT(!class_array.IsNull());
     Class& cls = Class::Handle();
-    // Mark all classes as cycle-free (should be checked by front-end).
-    // TODO(alexmarkov): Cleanup is_cycle_free bit on classes.
+
+#if defined(DEBUG)
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
-      if (!cls.is_cycle_free()) {
-        cls.set_is_cycle_free();
-      }
+      ASSERT(cls.is_declaration_loaded());
     }
-    // Finalize all classes.
+#endif
+
+    // Finalize types in all classes.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
       FinalizeTypesInClass(cls);
@@ -1005,6 +1005,7 @@ static void MarkImplemented(Zone* zone, const Class& iface) {
 void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
+  ASSERT(cls.is_declaration_loaded());
   if (cls.is_type_finalized()) {
     return;
   }

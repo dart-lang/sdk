@@ -735,6 +735,19 @@ class RawClass : public RawObject {
     kPreFinalized,          // VM classes: size precomputed, but no checks done.
     kFinalized,             // Class parsed, finalized and ready for use.
   };
+  enum ClassLoadingState {
+    // Class object is created, but it is not filled up.
+    // At this state class can only be used as a forward reference during
+    // class loading.
+    kNameOnly = 0,
+    // Class declaration information such as type parameters, supertype and
+    // implemented interfaces are loaded. However, types in the class are
+    // not finalized yet.
+    kDeclarationLoaded,
+    // Types in the class are finalized. At this point, members can be loaded
+    // and class can be finalized.
+    kTypeFinalized,
+  };
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Class);

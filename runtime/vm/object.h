@@ -950,7 +950,10 @@ class Class : public Object {
   }
 
   // The super type of this class, Object type if not explicitly specified.
-  RawAbstractType* super_type() const { return raw_ptr()->super_type_; }
+  RawAbstractType* super_type() const {
+    ASSERT(is_declaration_loaded());
+    return raw_ptr()->super_type_;
+  }
   void set_super_type(const AbstractType& value) const;
   static intptr_t super_type_offset() {
     return OFFSET_OF(RawClass, super_type_);
@@ -1117,8 +1120,17 @@ class Class : public Object {
   }
   void set_is_abstract() const;
 
+  RawClass::ClassLoadingState class_loading_state() const {
+    return ClassLoadingBits::decode(raw_ptr()->state_bits_);
+  }
+
+  bool is_declaration_loaded() const {
+    return class_loading_state() >= RawClass::kDeclarationLoaded;
+  }
+  void set_is_declaration_loaded() const;
+
   bool is_type_finalized() const {
-    return TypeFinalizedBit::decode(raw_ptr()->state_bits_);
+    return class_loading_state() >= RawClass::kTypeFinalized;
   }
   void set_is_type_finalized() const;
 
@@ -1146,8 +1158,6 @@ class Class : public Object {
 
   void set_is_prefinalized() const;
 
-  void ResetFinalization() const;
-
   bool is_const() const { return ConstBit::decode(raw_ptr()->state_bits_); }
   void set_is_const() const;
 
@@ -1166,11 +1176,6 @@ class Class : public Object {
     return FieldsMarkedNullableBit::decode(raw_ptr()->state_bits_);
   }
   void set_is_fields_marked_nullable() const;
-
-  bool is_cycle_free() const {
-    return CycleFreeBit::decode(raw_ptr()->state_bits_);
-  }
-  void set_is_cycle_free() const;
 
   bool is_allocated() const {
     return IsAllocatedBit::decode(raw_ptr()->state_bits_);
@@ -1334,16 +1339,16 @@ class Class : public Object {
   enum StateBits {
     kConstBit = 0,
     kImplementedBit = 1,
-    kTypeFinalizedBit = 2,
-    kClassFinalizedPos = 3,
+    kClassFinalizedPos = 2,
     kClassFinalizedSize = 2,
-    kAbstractBit = kClassFinalizedPos + kClassFinalizedSize,  // = 5
-    kPatchBit = 6,
+    kClassLoadingPos = kClassFinalizedPos + kClassFinalizedSize,  // = 4
+    kClassLoadingSize = 2,
+    kAbstractBit = kClassLoadingPos + kClassLoadingSize,  // = 6
+    kPatchBit,
     kSynthesizedClassBit,
     kMixinAppAliasBit,
     kMixinTypeAppliedBit,
     kFieldsMarkedNullableBit,
-    kCycleFreeBit,
     kEnumBit,
     kTransformedMixinApplicationBit,
     kIsAllocatedBit,
@@ -1351,19 +1356,20 @@ class Class : public Object {
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint16_t, bool, kImplementedBit, 1> {};
-  class TypeFinalizedBit
-      : public BitField<uint16_t, bool, kTypeFinalizedBit, 1> {};
   class ClassFinalizedBits : public BitField<uint16_t,
                                              RawClass::ClassFinalizedState,
                                              kClassFinalizedPos,
                                              kClassFinalizedSize> {};
+  class ClassLoadingBits : public BitField<uint16_t,
+                                           RawClass::ClassLoadingState,
+                                           kClassLoadingPos,
+                                           kClassLoadingSize> {};
   class AbstractBit : public BitField<uint16_t, bool, kAbstractBit, 1> {};
   class PatchBit : public BitField<uint16_t, bool, kPatchBit, 1> {};
   class SynthesizedClassBit
       : public BitField<uint16_t, bool, kSynthesizedClassBit, 1> {};
   class FieldsMarkedNullableBit
       : public BitField<uint16_t, bool, kFieldsMarkedNullableBit, 1> {};
-  class CycleFreeBit : public BitField<uint16_t, bool, kCycleFreeBit, 1> {};
   class EnumBit : public BitField<uint16_t, bool, kEnumBit, 1> {};
   class TransformedMixinApplicationBit
       : public BitField<uint16_t, bool, kTransformedMixinApplicationBit, 1> {};
