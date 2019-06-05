@@ -5,12 +5,14 @@
 import 'package:analysis_server/protocol/protocol_generated.dart'
     show HoverInformation;
 import 'package:analysis_server/src/computer/computer_overrides.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:path/path.dart' as path;
 
 /**
  * A computer for the hover at the specified offset of a Dart [CompilationUnit].
@@ -74,10 +76,20 @@ class DartUnitHoverComputer {
           if (library != null) {
             Uri uri = library.source.uri;
             if (uri.scheme != '' && uri.scheme == 'file') {
-              // for 'file:' URIs, use the path (contents after 'file:///')
-              hover.containingLibraryName = _unit
-                  .declaredElement.session.resourceProvider.pathContext
-                  .fromUri(uri);
+              // for 'file:' URIs, use the path after the project root
+              AnalysisSession analysisSession = _unit.declaredElement.session;
+              path.Context context =
+                  analysisSession.resourceProvider.pathContext;
+              String projectRootDir =
+                  analysisSession.analysisContext.contextRoot.root.path;
+              String relativePath =
+                  context.relative(context.fromUri(uri), from: projectRootDir);
+              if (context.style == path.Style.windows) {
+                List<String> pathList = context.split(relativePath);
+                hover.containingLibraryName = pathList.join('/');
+              } else {
+                hover.containingLibraryName = relativePath;
+              }
             } else {
               hover.containingLibraryName = uri.toString();
             }
