@@ -3635,6 +3635,15 @@ TEST_CASE(DartAPI_DebugName) {
   EXPECT(Dart_IsString(debug_name));
 }
 
+TEST_CASE(DartAPI_IsolateServiceID) {
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+  const char* id = Dart_IsolateServiceId(isolate);
+  EXPECT(id != NULL);
+  int64_t main_port = Dart_GetMainPortId();
+  EXPECT_STREQ(ZONE_STR("isolates/%" Pd64, main_port), id);
+  free(const_cast<char*>(id));
+}
+
 static void MyMessageNotifyCallback(Dart_Isolate dest_isolate) {}
 
 VM_UNIT_TEST_CASE(DartAPI_SetMessageCallbacks) {
