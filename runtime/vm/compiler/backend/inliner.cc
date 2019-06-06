@@ -1731,6 +1731,11 @@ bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
           BlockEntryInstr* block = old_target->dominated_blocks()[j];
           new_join->AddDominatedBlock(block);
         }
+        // Since we are reusing the same inlined body across multiple cids,
+        // reset the type information on the redefinition of the receiver
+        // in case it was originally given a concrete type.
+        ASSERT(new_join->next()->IsRedefinition());
+        new_join->next()->AsRedefinition()->UpdateType(CompileType::Dynamic());
         // Create a new target with the join as unconditional successor.
         TargetEntryInstr* new_target = new TargetEntryInstr(
             AllocateBlockId(), old_target->try_index(), DeoptId::kNone);
