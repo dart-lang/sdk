@@ -10,6 +10,7 @@
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/hash_map.h"
+#include "vm/hash_table.h"
 #include "vm/json_writer.h"
 #include "vm/object.h"
 
@@ -201,7 +202,12 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
   DirectChainedHashMap<StringToIntMapTraits> node_types_;
   DirectChainedHashMap<StringToIntMapTraits> edge_types_;
   DirectChainedHashMap<StringToIntMapTraits> strings_;
-  ZoneGrowableArray<ObjectId> roots_;
+
+  // We don't have a zone-allocated hash set, so we just re-use the type for
+  // nodes_ even though we don't need to access the node info (and fill it with
+  // dummy values).
+  DirectChainedHashMap<ObjectIdToNodeInfoTraits> roots_;
+
   size_t edge_count_ = 0;
 #endif
 };
