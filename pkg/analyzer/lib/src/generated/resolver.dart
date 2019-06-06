@@ -6916,7 +6916,11 @@ class TypeNameResolver {
       if (node.question != null) {
         _reportInvalidNullableType(node);
       }
-      nullabilitySuffix = NullabilitySuffix.none;
+      if (isNonNullableUnit) {
+        nullabilitySuffix = NullabilitySuffix.none;
+      } else {
+        nullabilitySuffix = NullabilitySuffix.star;
+      }
     } else {
       nullabilitySuffix = _getNullability(node.question != null);
     }
