@@ -36,7 +36,7 @@ class Driver {
     Context testContext,
     Logger testLogger,
   }) async {
-    final Options options = Options.parse(args);
+    final Options options = Options.parse(args, testContext, testLogger);
 
     force = options.force;
     overwrite = options.overwrite;
@@ -48,7 +48,7 @@ class Driver {
 
     // Start showing progress before we start the analysis server.
     Progress progress;
-    if (options.listFixes) {
+    if (options.showHelp) {
       progress = logger.progress('${ansi.emphasized('Listing fixes')}');
     } else {
       progress = logger.progress('${ansi.emphasized('Calculating fixes')}');
@@ -63,26 +63,26 @@ class Driver {
       context.exit(1);
     }
 
-    if (options.listFixes) {
+    if (options.showHelp) {
       try {
         await showListOfFixes(progress: progress);
       } finally {
         await server.stop();
       }
-    } else {
-      Future serverStopped;
+      context.exit(1);
+    }
 
-      try {
-        await setupFixesAnalysis(options);
-        result = await requestFixes(options, progress: progress);
-        serverStopped = server.stop();
-        await applyFixes();
-        await serverStopped;
-      } finally {
-        // If we didn't already try to stop the server, then stop it now.
-        if (serverStopped == null) {
-          await server.stop();
-        }
+    Future serverStopped;
+    try {
+      await setupFixesAnalysis(options);
+      result = await requestFixes(options, progress: progress);
+      serverStopped = server.stop();
+      await applyFixes();
+      await serverStopped;
+    } finally {
+      // If we didn't already try to stop the server, then stop it now.
+      if (serverStopped == null) {
+        await server.stop();
       }
     }
   }
@@ -122,12 +122,11 @@ class Driver {
       unsupportedOption(includeOption);
       return false;
     }
-    if (options.listFixes) {
-      unsupportedOption(listOption);
-      return false;
-    }
     if (options.requiredFixes) {
       unsupportedOption(requiredOption);
+      return false;
+    }
+    if (options.showHelp) {
       return false;
     }
     return true;

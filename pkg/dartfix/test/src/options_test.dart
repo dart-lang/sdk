@@ -26,7 +26,7 @@ main() {
     bool force = false,
     List<String> includeFixes = const <String>[],
     List<String> excludeFixes = const <String>[],
-    bool listFixes = false,
+    bool showHelp = false,
     String normalOut,
     bool requiredFixes = false,
     bool overwrite = false,
@@ -36,7 +36,7 @@ main() {
     Options options;
     int actualExitCode;
     try {
-      options = Options.parse(args, context: context, logger: logger);
+      options = Options.parse(args, context, logger);
     } on TestExit catch (e) {
       actualExitCode = e.code;
     }
@@ -53,7 +53,7 @@ main() {
     expect(options.force, force);
     expect(options.requiredFixes, requiredFixes);
     expect(options.overwrite, overwrite);
-    expect(options.listFixes, listFixes);
+    expect(options.showHelp, showHelp);
     expect(options.includeFixes, includeFixes);
     expect(options.excludeFixes, excludeFixes);
     expect(options.verbose, verbose);
@@ -79,8 +79,12 @@ main() {
     parse(['--force', 'foo'], force: true, targetSuffixes: ['foo']);
   });
 
-  test('help', () {
-    parse(['--help'], errorOut: 'Display this help message', exitCode: 1);
+  test('help explicit', () {
+    parse(['--help'], errorOut: 'Display this help message', showHelp: true);
+  });
+
+  test('help implicit', () {
+    parse([], errorOut: 'Display this help message', showHelp: true);
   });
 
   test('include fix', () {
@@ -95,7 +99,7 @@ main() {
 
   test('invalid option no logger', () {
     try {
-      Options.parse(['--foo'], context: context);
+      Options.parse(['--foo'], context, null);
       fail('Expected exception');
     } on TestExit catch (e) {
       expect(e.code, 15, reason: 'exit code');
@@ -105,10 +109,6 @@ main() {
   test('invalid target', () {
     parse(['foo.dart'],
         errorOut: 'Expected directory, but found', exitCode: 15);
-  });
-
-  test('list fixes', () {
-    parse(['--list'], normalOut: '', listFixes: true);
   });
 
   test('overwrite', () {
