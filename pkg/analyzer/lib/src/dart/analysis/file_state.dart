@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -659,7 +660,7 @@ class FileState {
         CompilationUnit unit = parse();
         _unitForLinking = unit;
         _fsState._logger.run('Create unlinked for $path', () {
-          var unlinkedUnit = serializeAstUnlinked2(contentSignature, unit);
+          var unlinkedUnit = serializeAstUnlinked2(unit);
           var definedNames = computeDefinedNames(unit);
           var referencedNames = computeReferencedNames(unit).toList();
           var subtypedNames = computeSubtypedNames(unit).toList();
@@ -759,8 +760,7 @@ class FileState {
     return apiSignatureChanged;
   }
 
-  static UnlinkedUnit2Builder serializeAstUnlinked2(
-      List<int> contentSignature, CompilationUnit unit) {
+  static UnlinkedUnit2Builder serializeAstUnlinked2(CompilationUnit unit) {
     var exports = <String>[];
     var imports = <String>['dart:core'];
     var parts = <String>[];
@@ -784,7 +784,7 @@ class FileState {
     }
     var informativeData = createInformativeData(unit);
     return UnlinkedUnit2Builder(
-      apiSignature: contentSignature,
+      apiSignature: computeUnlinkedApiSignature(unit),
       exports: exports,
       imports: imports,
       parts: parts,
