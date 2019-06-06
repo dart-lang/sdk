@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--deterministic --optimization-counter-threshold=500 --verbose-gc
-// VMOptions=--deterministic --optimization-counter-threshold=-1 --verbose-gc
+// VMOptions=--deterministic --optimization-counter-threshold=500 --enable-testing-pragmas
+// VMOptions=--deterministic --optimization-counter-threshold=-1 --enable-testing-pragmas
 //
 // Dart test program for stress-testing boxing and GC in return paths from FFI
 // trampolines.
@@ -16,45 +16,14 @@
 import 'dart:ffi' as ffi;
 import 'dylib_utils.dart';
 import "package:expect/expect.dart";
-import 'gc_helper.dart';
-
-test(GCWatcher watcher, Function testee,
-    {bool mustTriggerGC: true, bool batched: false}) async {
-  // Warmup.
-  for (int i = 0; i < 1000; ++i) {
-    batched ? testee(1) : testee();
-  }
-  int size = await watcher.size();
-  for (int i = 0; i < 1000000;) {
-    if (batched) {
-      testee(1000);
-      i += 1000;
-    } else {
-      testee();
-      i++;
-    }
-  }
-  int new_size = await watcher.size();
-  if (mustTriggerGC) {
-    print("Expect $new_size > $size.");
-    Expect.isTrue(new_size > size);
-  }
-}
 
 main() async {
-  final watcher = GCWatcher.ifAvailable();
-  try {
-    await test(watcher, testBoxInt64);
-    // On 64-bit platforms this won't trigger GC because the result fits into a
-    // Smi.
-    await test(watcher, testBoxInt32, mustTriggerGC: false);
-    await test(watcher, testBoxDouble);
-    await test(watcher, testBoxPointer);
-    await test(watcher, testAllocateMints, batched: true);
-    await test(watcher, testAllocationsInDart, batched: true);
-  } finally {
-    watcher.dispose();
-  }
+  testBoxInt64();
+  testBoxInt32();
+  testBoxDouble();
+  testBoxPointer();
+  testAllocateInNative();
+  testAllocateInDart();
 }
 
 ffi.DynamicLibrary ffiTestFunctions =
@@ -64,11 +33,13 @@ typedef NativeNullaryOp64 = ffi.Int64 Function();
 typedef NativeNullaryOp32 = ffi.Int32 Function();
 typedef NativeNullaryOpDouble = ffi.Double Function();
 typedef NativeNullaryOpPtr = ffi.Pointer<ffi.Void> Function();
+typedef NativeNullaryOp = ffi.Void Function();
 typedef NativeUnaryOp = ffi.Void Function(ffi.Uint64);
 typedef NullaryOp = int Function();
 typedef NullaryOpDbl = double Function();
 typedef NullaryOpPtr = ffi.Pointer<ffi.Void> Function();
 typedef UnaryOp = void Function(int);
+typedef NullaryOpVoid = void Function();
 
 //// These functions return values that require boxing into different types.
 
@@ -111,33 +82,19 @@ void testBoxPointer() {
   }
 }
 
-final allocateMint =
-    ffiTestFunctions.lookupFunction<NativeUnaryOp, UnaryOp>("AllocateMints");
+final triggerGc = ffiTestFunctions
+    .lookupFunction<NativeNullaryOp, NullaryOpVoid>("TriggerGC");
 
-// Test GC in the FFI call path by calling a C function which allocates through
-// the Dart API.
-void testAllocateMints(int batchSize) {
-  allocateMint(batchSize);
-}
+// Test GC in the FFI call path by calling a C function which triggers GC
+// directly.
+void testAllocateInNative() => triggerGc();
 
-class C {
-  final int i;
-  C(this.i);
-}
-
-C c = null;
 @pragma("vm:entry-point", "call")
-void testAllocationsInDartHelper(int count) {
-  for (int i = 0; i < count; ++i) {
-    c = C(i);
-  }
-}
+void testAllocationsInDartHelper() => triggerGc();
 
 final allocateThroughDart = ffiTestFunctions
-    .lookupFunction<NativeUnaryOp, UnaryOp>("AllocateThroughDart");
+    .lookupFunction<NativeNullaryOp, NullaryOpVoid>("AllocateThroughDart");
 
 // Test GC in the FFI call path by calling a C function which allocates by
 // calling back into Dart ('testAllocationsInDartHelper').
-void testAllocationsInDart(int batchSize) {
-  allocateThroughDart(batchSize * 10);
-}
+void testAllocateInDart() => allocateThroughDart();
