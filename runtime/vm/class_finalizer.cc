@@ -1243,75 +1243,31 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
                                       ->object_store()
                                       ->pending_unevaluated_const_fields());
 
-  if (enum_cls.kernel_offset() > 0) {
-    Error& error = Error::Handle(zone);
-    for (intptr_t i = 0; i < fields.Length(); i++) {
-      field = Field::RawCast(fields.At(i));
-      if (!field.is_static() || !field.is_const() ||
-          (sentinel.raw() == field.raw())) {
-        continue;
-      }
-      // The eager evaluation of the enum values is required for hot-reload (see
-      // commit e3ecc87). However, while busy loading the constant table, we
-      // need to postpone this evaluation until table is done.
-      if (!FLAG_precompiled_mode) {
-        if (field.IsUninitialized()) {
-          if (pending_unevaluated_const_fields.IsNull()) {
-            // Evaluate right away.
-            error = field.Initialize();
-            if (!error.IsNull()) {
-              ReportError(error);
-            }
-          } else {
-            // Postpone evaluation until we have a constant table.
-            pending_unevaluated_const_fields.Add(field);
+  ASSERT(enum_cls.kernel_offset() > 0);
+  Error& error = Error::Handle(zone);
+  for (intptr_t i = 0; i < fields.Length(); i++) {
+    field = Field::RawCast(fields.At(i));
+    if (!field.is_static() || !field.is_const() ||
+        (sentinel.raw() == field.raw())) {
+      continue;
+    }
+    // The eager evaluation of the enum values is required for hot-reload (see
+    // commit e3ecc87). However, while busy loading the constant table, we
+    // need to postpone this evaluation until table is done.
+    if (!FLAG_precompiled_mode) {
+      if (field.IsUninitialized()) {
+        if (pending_unevaluated_const_fields.IsNull()) {
+          // Evaluate right away.
+          error = field.Initialize();
+          if (!error.IsNull()) {
+            ReportError(error);
           }
+        } else {
+          // Postpone evaluation until we have a constant table.
+          pending_unevaluated_const_fields.Add(field);
         }
       }
     }
-  } else {
-    const String& name_prefix =
-        String::Handle(String::Concat(enum_name, Symbols::Dot()));
-    Instance& ordinal_value = Instance::Handle(zone);
-    Array& values_list = Array::Handle(zone);
-    const Field& values_field =
-        Field::Handle(zone, enum_cls.LookupStaticField(Symbols::Values()));
-    ASSERT(!values_field.IsNull());
-    ASSERT(Instance::Handle(zone, values_field.StaticValue()).IsArray());
-    values_list = Array::RawCast(values_field.StaticValue());
-    const Array& fields = Array::Handle(zone, enum_cls.fields());
-    for (intptr_t i = 0; i < fields.Length(); i++) {
-      field = Field::RawCast(fields.At(i));
-      if (!field.is_static()) continue;
-      ordinal_value = field.StaticValue();
-      // The static fields that need to be initialized with enum instances
-      // contain the smi value of the ordinal number, which was stored in
-      // the field by the parser. Other fields contain non-smi values.
-      if (!ordinal_value.IsSmi()) continue;
-      enum_ident = field.name();
-      // Construct the string returned by toString.
-      ASSERT(!enum_ident.IsNull());
-      // For the user-visible name of the enumeration value, we need to
-      // unmangle private names.
-      if (enum_ident.CharAt(0) == '_') {
-        enum_ident = String::ScrubName(enum_ident);
-      }
-      enum_ident = Symbols::FromConcat(thread, name_prefix, enum_ident);
-      enum_value = Instance::New(enum_cls, Heap::kOld);
-      enum_value.SetField(index_field, ordinal_value);
-      enum_value.SetField(name_field, enum_ident);
-      enum_value = enum_value.CheckAndCanonicalize(thread, &error_msg);
-      ASSERT(!enum_value.IsNull());
-      ASSERT(enum_value.IsCanonical());
-      field.SetStaticValue(enum_value, true);
-      field.RecordStore(enum_value);
-      intptr_t ord = Smi::Cast(ordinal_value).Value();
-      ASSERT(ord < values_list.Length());
-      values_list.SetAt(ord, enum_value);
-    }
-    values_list.MakeImmutable();
-    values_list ^= values_list.CheckAndCanonicalize(thread, &error_msg);
-    ASSERT(!values_list.IsNull());
   }
 }
 
