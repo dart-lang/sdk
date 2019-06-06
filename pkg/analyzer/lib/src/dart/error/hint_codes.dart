@@ -824,8 +824,10 @@ class HintCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const HintCode(String name, String message, {String correction})
-      : super.temporary(name, message, correction: correction);
+  const HintCode(String name, String message,
+      {String correction, bool hasPublishedDocs})
+      : super.temporary(name, message,
+            correction: correction, hasPublishedDocs: hasPublishedDocs);
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.HINT.severity;

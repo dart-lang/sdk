@@ -83,8 +83,9 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
    * given [correction] template.
    */
   const CheckedModeCompileTimeErrorCode(String name, String message,
-      {String correction})
-      : super.temporary(name, message, correction: correction);
+      {String correction, bool hasPublishedDocs})
+      : super.temporary(name, message,
+            correction: correction, hasPublishedDocs: hasPublishedDocs);
 
   @override
   ErrorSeverity get errorSeverity =>
@@ -2924,9 +2925,12 @@ class CompileTimeErrorCode extends ErrorCode {
    * given [correction] template.
    */
   const CompileTimeErrorCode(String name, String message,
-      {String correction, bool isUnresolvedIdentifier: false})
+      {String correction,
+      bool hasPublishedDocs,
+      bool isUnresolvedIdentifier: false})
       : super.temporary(name, message,
             correction: correction,
+            hasPublishedDocs: hasPublishedDocs,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
 
   @override
@@ -3556,9 +3560,12 @@ class StaticTypeWarningCode extends ErrorCode {
    * given [correction] template.
    */
   const StaticTypeWarningCode(String name, String message,
-      {String correction, bool isUnresolvedIdentifier: false})
+      {String correction,
+      bool hasPublishedDocs,
+      bool isUnresolvedIdentifier: false})
       : super.temporary(name, message,
             correction: correction,
+            hasPublishedDocs: hasPublishedDocs,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
 
   @override
@@ -4632,10 +4639,12 @@ class StaticWarningCode extends ErrorCode {
    */
   const StaticWarningCode(String name, String message,
       {String correction,
-      this.errorSeverity: ErrorSeverity.ERROR,
+      this.errorSeverity = ErrorSeverity.ERROR,
+      bool hasPublishedDocs,
       bool isUnresolvedIdentifier: false})
       : super.temporary(name, message,
             correction: correction,
+            hasPublishedDocs: hasPublishedDocs,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
 
   @override
@@ -4904,9 +4913,10 @@ class StrongModeCode extends ErrorCode {
    * created from the optional [correction] template.
    */
   const StrongModeCode(ErrorType type, String name, String message,
-      {String correction})
+      {String correction, bool hasPublishedDocs})
       : type = type,
-        super.temporary('STRONG_MODE_$name', message, correction: correction);
+        super.temporary('STRONG_MODE_$name', message,
+            correction: correction, hasPublishedDocs: hasPublishedDocs);
 
   @override
   ErrorSeverity get errorSeverity => type.severity;

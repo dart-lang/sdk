@@ -3659,8 +3659,10 @@ class ResolverErrorCode extends ErrorCode {
   /// message associated with the error will be created from the given [message]
   /// template. The correction associated with the error will be created from
   /// the given [correction] template.
-  const ResolverErrorCode(String name, String message, {String correction})
-      : super.temporary(name, message, correction: correction);
+  const ResolverErrorCode(String name, String message,
+      {String correction, bool hasPublishedDocs})
+      : super.temporary(name, message,
+            correction: correction, hasPublishedDocs: hasPublishedDocs);
 
   @override
   ErrorSeverity get errorSeverity => type.severity;
