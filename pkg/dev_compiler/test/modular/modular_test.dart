@@ -62,7 +62,7 @@ class SourceToSummaryDillStep implements IOModularStep {
     //
     // Files in packages are defined in terms of `package:` URIs, while
     // non-package URIs are defined using the `dart-dev-app` scheme.
-    String rootScheme = module.isSdk ? 'dart-dev-sdk' : 'dev-dart-app';
+    String rootScheme = module.isSdk ? 'dev-dart-sdk' : 'dev-dart-app';
     String sourceToImportUri(Uri relativeUri) =>
         _sourceToImportUri(module, rootScheme, relativeUri);
 
@@ -134,55 +134,50 @@ class DDKStep implements IOModularStep {
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
     _createPackagesFile(module, root, transitiveDependencies);
 
-    List<String> args;
+    String rootScheme = module.isSdk ? 'dev-dart-sdk' : 'dev-dart-app';
+    List<String> sources;
+    List<String> extraArgs;
     if (module.isSdk) {
-      // TODO(sigmund): this produces an error because kernel_sdk doesn't have a
-      // way to provide a .packages file. Technically is not needed, but it
-      // would be nice to proceed without any error messages.
-      args = [
-        '--packages=${sdkRoot.toFilePath()}/.packages',
-        sdkRoot.resolve('pkg/dev_compiler/tool/kernel_sdk.dart').toFilePath(),
-        '--libraries',
-        'sdk/lib/libraries.json',
-        '--output',
-        '${toUri(module, jsId)}.ignored_dill',
-      ];
-      var result = await _runProcess(
-          Platform.resolvedExecutable, args, root.toFilePath());
-      _checkExitCode(result, this, module);
-      await File.fromUri(root.resolve('es6/dart_sdk.js'))
-          .copy(root.resolveUri(toUri(module, jsId)).toFilePath());
+      sources = ['dart:core'];
+      extraArgs = ['--compile-sdk'];
+      assert(transitiveDependencies.isEmpty);
     } else {
-      Uri output = toUri(module, jsId);
       Module sdkModule = module.dependencies.firstWhere((m) => m.isSdk);
-      String sourceToImportUri(Uri relativeUri) =>
-          _sourceToImportUri(module, 'dev-dart-app', relativeUri);
-
-      args = [
-        '--packages=${sdkRoot.toFilePath()}/.packages',
-        sdkRoot.resolve('pkg/dev_compiler/bin/dartdevc.dart').toFilePath(),
-        '--kernel',
-        '--modules=es6',
-        '--no-summarize',
-        '--no-source-map',
-        '--multi-root-scheme',
-        'dev-dart-app',
+      sources = module.sources
+          .map((relativeUri) =>
+              _sourceToImportUri(module, rootScheme, relativeUri))
+          .toList();
+      extraArgs = [
         '--dart-sdk-summary',
         '${toUri(sdkModule, dillId)}',
         '--packages',
         '.packages',
-        ...module.sources.map(sourceToImportUri),
-        for (String flag in flags) '--enable-experiment=$flag',
-        ...(transitiveDependencies
-            .where((m) => !m.isSdk)
-            .expand((m) => ['-s', '${toUri(m, dillId)}=${m.name}'])),
-        '-o',
-        '$output',
       ];
-      var result = await _runProcess(
-          Platform.resolvedExecutable, args, root.toFilePath());
-      _checkExitCode(result, this, module);
     }
+
+    Uri output = toUri(module, jsId);
+
+    List<String> args = [
+      '--packages=${sdkRoot.toFilePath()}/.packages',
+      sdkRoot.resolve('pkg/dev_compiler/bin/dartdevc.dart').toFilePath(),
+      '--kernel',
+      '--modules=es6',
+      '--no-summarize',
+      '--no-source-map',
+      '--multi-root-scheme',
+      rootScheme,
+      ...sources,
+      ...extraArgs,
+      for (String flag in flags) '--enable-experiment=$flag',
+      ...(transitiveDependencies
+          .where((m) => !m.isSdk)
+          .expand((m) => ['-s', '${toUri(m, dillId)}=${m.name}'])),
+      '-o',
+      '$output',
+    ];
+    var result =
+        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
+    _checkExitCode(result, this, module);
   }
 
   @override

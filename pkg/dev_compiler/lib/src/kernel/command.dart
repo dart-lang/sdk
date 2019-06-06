@@ -93,7 +93,9 @@ Future<CompilerResult> _compile(List<String> args,
             'specified multi-root scheme.',
         defaultsTo: [Uri.base.path])
     ..addOption('dart-sdk',
-        help: '(unsupported with --kernel) path to the Dart SDK.', hide: true);
+        help: '(unsupported with --kernel) path to the Dart SDK.', hide: true)
+    ..addFlag('compile-sdk',
+        help: 'Build an SDK module.', defaultsTo: false, hide: true);
   SharedCompilerOptions.addArguments(argParser);
 
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
@@ -217,6 +219,7 @@ Future<CompilerResult> _compile(List<String> args,
   bool trackWidgetCreation =
       argResults['track-widget-creation'] as bool ?? false;
 
+  var compileSdk = argResults['compile-sdk'] == true;
   var oldCompilerState = compilerState;
   List<Component> doneInputSummaries;
   fe.IncrementalCompiler incrementalCompiler;
@@ -224,7 +227,9 @@ Future<CompilerResult> _compile(List<String> args,
   if (useAnalyzer || !useIncrementalCompiler) {
     compilerState = await fe.initializeCompiler(
         oldCompilerState,
-        sourcePathToUri(sdkSummaryPath),
+        compileSdk,
+        sourcePathToUri(getSdkPath()),
+        compileSdk ? null : sourcePathToUri(sdkSummaryPath),
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
         summaryModules.keys.toList(),
@@ -237,7 +242,9 @@ Future<CompilerResult> _compile(List<String> args,
     compilerState = await fe.initializeIncrementalCompiler(
         oldCompilerState,
         doneInputSummaries,
-        sourcePathToUri(sdkSummaryPath),
+        compileSdk,
+        sourcePathToUri(getSdkPath()),
+        compileSdk ? null : sourcePathToUri(sdkSummaryPath),
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
         summaryModules.keys.toList(),
@@ -456,7 +463,7 @@ final defaultAnalyzerSdkSummaryPath =
 
 bool _checkForDartMirrorsImport(Component component) {
   for (var library in component.libraries) {
-    if (library.isExternal) continue;
+    if (library.isExternal || library.importUri.scheme == 'dart') continue;
     for (var dep in library.dependencies) {
       var uri = dep.targetLibrary.importUri;
       if (uri.scheme == 'dart' && uri.path == 'mirrors') {
