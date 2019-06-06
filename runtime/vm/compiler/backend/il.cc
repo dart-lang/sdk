@@ -1312,6 +1312,7 @@ void Definition::ReplaceUsesWith(Definition* other) {
     while (next != NULL) {
       current = next;
       current->set_definition(other);
+      current->RefineReachingType(other->Type());
       next = current->next_use();
     }
 
@@ -1330,6 +1331,7 @@ void Definition::ReplaceUsesWith(Definition* other) {
     while (next != NULL) {
       current = next;
       current->set_definition(other);
+      current->RefineReachingType(other->Type());
       next = current->next_use();
     }
     next = other->env_use_list();

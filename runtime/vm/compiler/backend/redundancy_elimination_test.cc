@@ -679,7 +679,33 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
   Invoke(root_library, "main");
 
   TestPipeline pipeline(function, CompilerPass::kJIT);
-  FlowGraph* flow_graph = pipeline.RunPasses({});
+  // Recent changes actually compile the function into a single basic
+  // block, so we need to test right after the load optimizer has been run.
+  // Have checked that this test still fails appropriately using the load
+  // optimizer prior to the fix (commit 2a237327).
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+      CompilerPass::kApplyICData,
+      CompilerPass::kTryOptimizePatterns,
+      CompilerPass::kSetOuterInliningId,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyClassIds,
+      CompilerPass::kInlining,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyClassIds,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyICData,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kBranchSimplify,
+      CompilerPass::kIfConvert,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kConstantPropagation,
+      CompilerPass::kOptimisticallySpecializeSmiPhis,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kWidenSmiToInt32,
+      CompilerPass::kSelectRepresentations,
+      CompilerPass::kCSE,
+  });
 
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
@@ -697,6 +723,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
           {kMatchAndMoveStaticCall, &list_factory},
           kMatchAndMoveBranchTrue,
           kMatchAndMoveBranchTrue,
+          kMatchAndMoveBranchFalse,
           kMatchAndMoveBranchFalse,
           {kMatchAndMoveUnboxedConstant, &double_one},
           {kMatchAndMoveStoreIndexed, &first_store},
