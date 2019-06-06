@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-cc/Dart2JSCompileAll: Fail, Crash # Issue 27369
-cc/Dart2JSCompilerStats: Fail, Crash # Issue 27369
 cc/Fail0: Fail # These tests are expected to crash on all platforms.
 cc/Fail1: Fail # These tests are expected to crash on all platforms.
 cc/Fail2: Fail # These tests are expected to crash on all platforms.
@@ -126,9 +124,6 @@ dart/data_uri_import_test/nomime: Crash
 dart/data_uri_import_test/percentencoded: Crash
 dart/data_uri_import_test/utf16: Crash
 dart/data_uri_import_test/wrongmime: Crash
-
-[ $builder_tag == asan && $mode == debug && ($runtime == dart_precompiled || $runtime == vm) ]
-cc/Dart2JSCompileAll: SkipSlow # Timeout.
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of

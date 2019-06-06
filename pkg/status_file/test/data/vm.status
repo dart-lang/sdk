@@ -17,9 +17,6 @@ cc/Fail0: Fail # These tests are expected to crash on all platforms.
 cc/Fail1: Fail # These tests are expected to crash on all platforms.
 cc/Fail2: Fail # These tests are expected to crash on all platforms.
 
-cc/Dart2JSCompileAll: Fail, Crash # Issue 27369
-cc/Dart2JSCompilerStats: Fail, Crash # Issue 27369
-
 cc/Profiler_InliningIntervalBoundry: Skip # Differences in ia32, debug, release
 
 cc/Sleep: Skip # Flaky # Flaky on buildbot. Issue 5133 and 10409.
@@ -137,9 +134,6 @@ dart/snapshot_version_test: SkipByDesign  # Spawns processes
 dart/spawn_infinite_loop_test: Skip  # VM shutdown test
 dart/spawn_shutdown_test: Skip  # VM Shutdown test
 dart/hello_fuchsia_test: SkipByDesign # This is a test for fuchsia OS
-
-[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
-cc/Dart2JSCompileAll: SkipSlow  # Timeout.
 
 [ $builder_tag == asan ]
 cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.

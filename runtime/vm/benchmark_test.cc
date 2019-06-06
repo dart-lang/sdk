@@ -26,62 +26,6 @@ Benchmark* Benchmark::first_ = NULL;
 Benchmark* Benchmark::tail_ = NULL;
 const char* Benchmark::executable_ = NULL;
 
-//
-// Measure compile of all dart2js(compiler) functions.
-//
-static char* ComputeDart2JSPath(const char* arg) {
-  char buffer[2048];
-  char* dart2js_path = strdup(File::GetCanonicalPath(NULL, arg));
-  const char* compiler_path = "%s%spkg%scompiler%slib%scompiler.dart";
-  const char* path_separator = File::PathSeparator();
-  ASSERT(path_separator != NULL && strlen(path_separator) == 1);
-  char* ptr = strrchr(dart2js_path, *path_separator);
-  while (ptr != NULL) {
-    *ptr = '\0';
-    Utils::SNPrint(buffer, 2048, compiler_path, dart2js_path, path_separator,
-                   path_separator, path_separator, path_separator,
-                   path_separator);
-    if (File::Exists(NULL, buffer)) {
-      break;
-    }
-    ptr = strrchr(dart2js_path, *path_separator);
-  }
-  if (ptr == NULL) {
-    free(dart2js_path);
-    dart2js_path = NULL;
-  }
-  return dart2js_path;
-}
-
-static void func(Dart_NativeArguments args) {}
-
-static Dart_NativeFunction NativeResolver(Dart_Handle name,
-                                          int arg_count,
-                                          bool* auto_setup_scope) {
-  ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = false;
-  return &func;
-}
-
-static void SetupDart2JSPackagePath() {
-  bool worked = bin::DartUtils::SetOriginalWorkingDirectory();
-  EXPECT(worked);
-
-  Dart_Handle result = bin::DartUtils::PrepareForScriptLoading(false, false);
-  EXPECT_VALID(result);
-
-  // Setup package root.
-  char buffer[2048];
-  char* executable_path =
-      strdup(File::GetCanonicalPath(NULL, Benchmark::Executable()));
-  const char* packages_path = "%s%s..%spackages";
-  const char* path_separator = File::PathSeparator();
-  Utils::SNPrint(buffer, 2048, packages_path, executable_path, path_separator,
-                 path_separator);
-  result = bin::DartUtils::SetupPackageRoot(buffer, NULL);
-  EXPECT_VALID(result);
-}
-
 void Benchmark::RunAll(const char* executable) {
   SetExecutable(executable);
   Benchmark* benchmark = first_;
@@ -112,6 +56,32 @@ BENCHMARK(CorelibCompileAll) {
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
+}
+
+// This file is created by the target //runtime/bin:dart_kernel_platform_cc
+// which is depended on by run_vm_tests.
+static char* ComputeKernelServicePath(const char* arg) {
+  char buffer[2048];
+  char* kernel_service_path = strdup(File::GetCanonicalPath(NULL, arg));
+  EXPECT(kernel_service_path != NULL);
+  const char* compiler_path = "%s%sgen%skernel_service.dill";
+  const char* path_separator = File::PathSeparator();
+  ASSERT(path_separator != NULL && strlen(path_separator) == 1);
+  char* ptr = strrchr(kernel_service_path, *path_separator);
+  while (ptr != NULL) {
+    *ptr = '\0';
+    Utils::SNPrint(buffer, ARRAY_SIZE(buffer), compiler_path,
+                   kernel_service_path, path_separator, path_separator);
+    if (File::Exists(NULL, buffer)) {
+      break;
+    }
+    ptr = strrchr(kernel_service_path, *path_separator);
+  }
+  free(kernel_service_path);
+  if (ptr == NULL) {
+    return NULL;
+  }
+  return strdup(buffer);
 }
 
 // This file is created by the target //runtime/bin:gen_kernel_bytecode_dill
@@ -380,33 +350,51 @@ BENCHMARK(DartStringAccess) {
   benchmark->set_score(elapsed_time);
 }
 
-BENCHMARK(Dart2JSCompileAll) {
+static void vmservice_resolver(Dart_NativeArguments args) {}
+
+static Dart_NativeFunction NativeResolver(Dart_Handle name,
+                                          int arg_count,
+                                          bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = false;
+  return &vmservice_resolver;
+}
+
+//
+// Measure compile of all kernel Service(CFE) functions.
+//
+BENCHMARK(KernelServiceCompileAll) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
-  SetupDart2JSPackagePath();
-  char* dart_root = ComputeDart2JSPath(Benchmark::Executable());
-  char* script = NULL;
-  if (dart_root != NULL) {
-    HANDLESCOPE(thread);
-    script = OS::SCreate(NULL, "import '%s/pkg/compiler/lib/compiler.dart';",
-                         dart_root);
-    Dart_Handle lib = TestCase::LoadTestScript(
-        script, reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
-    EXPECT_VALID(lib);
-  } else {
-    Dart_Handle lib = TestCase::LoadTestScript(
-        "import 'pkg/compiler/lib/compiler.dart';",
-        reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
-    EXPECT_VALID(lib);
-  }
-  Timer timer(true, "Compile all of dart2js benchmark");
+  char* dill_path = ComputeKernelServicePath(Benchmark::Executable());
+  File* file = File::Open(NULL, dill_path, File::kRead);
+  EXPECT(file != NULL);
+  bin::RefCntReleaseScope<File> rs(file);
+  intptr_t kernel_buffer_size = file->Length();
+  uint8_t* kernel_buffer =
+      reinterpret_cast<uint8_t*>(malloc(kernel_buffer_size));
+  EXPECT(kernel_buffer != NULL);
+  bool read_fully = file->ReadFully(kernel_buffer, kernel_buffer_size);
+  EXPECT(read_fully);
+  Dart_Handle result =
+      Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
+  EXPECT_VALID(result);
+  Dart_Handle service_lib = Dart_LookupLibrary(NewString("dart:vmservice_io"));
+  ASSERT(!Dart_IsError(service_lib));
+  Dart_SetNativeResolver(
+      service_lib, reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver),
+      NULL);
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
+
+  Timer timer(true, "Compile all of kernel service benchmark");
   timer.Start();
 #if !defined(PRODUCT)
   const bool old_flag = FLAG_background_compilation;
   FLAG_background_compilation = false;
 #endif
-  Dart_Handle result = Dart_CompileAll();
+  result = Dart_CompileAll();
 #if !defined(PRODUCT)
   FLAG_background_compilation = old_flag;
 #endif
@@ -414,8 +402,8 @@ BENCHMARK(Dart2JSCompileAll) {
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
-  free(dart_root);
-  free(script);
+  free(dill_path);
+  free(kernel_buffer);
 }
 
 //
