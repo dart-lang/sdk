@@ -107,11 +107,11 @@ main() {
   final a = Assoc("*");
   Expect.equals("((~*)>>>(~*))", "${~a >>> ~a}");
   Expect.equals("((*+*)>>>(*+*))", "${a + a >>> a + a}");
-  Expect.equals("((*/*)>>>(*/*))", "${a / a >>> a / *}");
-  Expect.equals("((*>>*)>>>*)>>*)", "${a >> a >>> a >> *}");
-  Expect.equals("((*&(*>>>*))&*)", "${a & a >>> a & *}");
-  Expect.equals("((*|(*>>>*)|)*)", "${a | a >>> a | *}");
-  Expect.equals("((*^(*>>>*)^)*)", "${a ^ a >>> a ^ *}");
+  Expect.equals("((*/*)>>>(*/*))", "${a / a >>> a / a}");
+  Expect.equals("((*>>*)>>>*)>>*)", "${a >> a >>> a >> a}");
+  Expect.equals("((*&(*>>>*))&*)", "${a & a >>> a & a}");
+  Expect.equals("((*|(*>>>*)|)*)", "${a | a >>> a | a}");
+  Expect.equals("((*^(*>>>*)^)*)", "${a ^ a >>> a ^ a}");
   Expect.equals("(*<(*>>>*))", "${a < a >>> a}");
   Expect.equals("((*>>>*)<*)", "${a >>> a < a}");
 
@@ -125,10 +125,10 @@ main() {
   E4<List<List<List<int>>>>();
   E5<List<List<List<List<int>>>>>();
   E6<List<List<List<List<List<int>>>>>>();
-  Expect.type(F3<Null>, () => null);
-  Expect.type(F4<Null>, () => null);
-  Expect.type(F5<Null>, () => null);
-  Expect.type(F6<Null>, () => null);
+  Expect.type<F3<Null>>(() => null);
+  Expect.type<F4<Null>>(() => null);
+  Expect.type<F5<Null>>(() => null);
+  Expect.type<F6<Null>>(() => null);
 }
 
 /// Class with a simple overridden `operator>>>`.
@@ -183,7 +183,7 @@ class Async {
 /// Helper class to record precedence and associativity of operators.
 class Assoc {
   final String ops;
-  Assoc(this.ops)
+  Assoc(this.ops);
   Assoc operator~() => Assoc("(~${this}}");
   Assoc operator+(Assoc other) => Assoc("(${this}+$other)");
   Assoc operator/(Assoc other) => Assoc("(${this}/$other)");
