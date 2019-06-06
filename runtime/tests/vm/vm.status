@@ -55,6 +55,9 @@ dart/redirection_type_shuffling_test/none: RuntimeError
 [ $runtime != vm && $runtime != dart_precompiled ]
 dart/catch_entry_state: SkipByDesign
 
+[ $builder_tag == asan ]
+dart/transferable_throws_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
+
 [ $compiler != dartk && $compiler != dartkb ]
 cc/IsolateReload_KernelIncrementalCompile: SkipByDesign
 cc/IsolateReload_KernelIncrementalCompileAppAndLib: SkipByDesign
