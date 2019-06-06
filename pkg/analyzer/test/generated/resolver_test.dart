@@ -26,6 +26,7 @@ import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1183,7 +1184,7 @@ class TypeProviderImplTest extends EngineTestCase {
       symbolType.element,
       typeType.element
     ];
-    coreUnit.source = new TestSource('dart:core');
+    coreUnit.source = new StringSource('', null, uri: Uri.parse('dart:core'));
     coreUnit.librarySource = coreUnit.source;
     CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     asyncUnit.types = <ClassElement>[
@@ -1191,7 +1192,8 @@ class TypeProviderImplTest extends EngineTestCase {
       futureOrType.element,
       streamType.element
     ];
-    asyncUnit.source = new TestSource('dart:async');
+
+    asyncUnit.source = new StringSource('', null, uri: Uri.parse('dart:async'));
     asyncUnit.librarySource = asyncUnit.source;
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
         null, null, AstTestFactory.libraryIdentifier2(["dart.core"]), true);
