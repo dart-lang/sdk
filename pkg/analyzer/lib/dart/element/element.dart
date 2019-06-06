@@ -941,7 +941,7 @@ abstract class ElementLocation {
 ///
 /// Clients may not extend, implement or mix-in this class. There are classes
 /// that implement this interface that provide useful default behaviors in
-/// `package:analyzer/dart/ast/visitor.dart`. A couple of the most useful
+/// `package:analyzer/dart/element/visitor.dart`. A couple of the most useful
 /// include
 /// * SimpleElementVisitor which implements every visit method by doing nothing,
 /// * RecursiveElementVisitor which will cause every node in a structure to be
