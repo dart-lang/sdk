@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(askesc): Generate this file from a flag specification.
+// NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
+//
+// Instead modify 'tools/experimental_features.yaml' and run
+// 'pkg/front_end/tool/fasta generate-experimental-flags' to update.
 
 enum ExperimentalFlag {
   constantUpdate2018,
