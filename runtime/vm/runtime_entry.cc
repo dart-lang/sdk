@@ -2759,7 +2759,6 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
 }
 
 extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
-  CHECK_STACK_ALIGNMENT;
   Thread* thread = Thread::Current();
   ASSERT(thread->top_exit_frame_info() != 0);
   ASSERT(thread->execution_state() == Thread::kThreadInNative);
@@ -2768,7 +2767,6 @@ extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(EnterSafepoint, 0, false, &DFLRT_EnterSafepoint);
 
 extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
-  CHECK_STACK_ALIGNMENT;
   Thread* thread = Thread::Current();
   ASSERT(thread->top_exit_frame_info() != 0);
   ASSERT(thread->execution_state() == Thread::kThreadInNative);

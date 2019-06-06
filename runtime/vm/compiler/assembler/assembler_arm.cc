@@ -24,7 +24,6 @@ namespace dart {
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, precompiled_mode);
-DECLARE_FLAG(bool, use_slow_path);
 
 namespace compiler {
 
@@ -561,7 +560,7 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   LoadImmediate(state, compiler::target::Thread::native_execution_state());
   StoreToOffset(kWord, state, THR, Thread::execution_state_offset());
 
-  if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
     EnterSafepointSlowly();
   } else {
     Label slow_path, done, retry;
@@ -593,7 +592,7 @@ void Assembler::EnterSafepointSlowly() {
 }
 
 void Assembler::TransitionNativeToGenerated(Register addr, Register state) {
-  if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
     ExitSafepointSlowly();
   } else {
     Label slow_path, done, retry;
@@ -1390,9 +1389,7 @@ void Assembler::vdup(OperandSize sz, QRegister qd, DRegister dm, int idx) {
       code = 4 | (idx << 3);
       break;
     }
-    default: {
-      break;
-    }
+    default: { break; }
   }
 
   EmitSIMDddd(B24 | B23 | B11 | B10 | B6, kWordPair,

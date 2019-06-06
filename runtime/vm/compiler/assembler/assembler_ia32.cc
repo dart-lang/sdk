@@ -16,7 +16,6 @@ namespace dart {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 DECLARE_FLAG(bool, inline_alloc);
-DECLARE_FLAG(bool, use_slow_path);
 #endif
 
 namespace compiler {
@@ -2110,17 +2109,16 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
 
   // Compare and swap the value at Thread::safepoint_state from unacquired to
   // acquired. On success, jump to 'success'; otherwise, fallthrough.
+  pushl(EAX);
+  movl(EAX, Immediate(Thread::safepoint_state_unacquired()));
+  movl(scratch, Immediate(Thread::safepoint_state_acquired()));
+  LockCmpxchgl(Address(THR, Thread::safepoint_state_offset()), scratch);
+  movl(scratch, EAX);
+  popl(EAX);
+  cmpl(scratch, Immediate(Thread::safepoint_state_unacquired()));
+
   Label done;
-  if (!FLAG_use_slow_path) {
-    pushl(EAX);
-    movl(EAX, Immediate(Thread::safepoint_state_unacquired()));
-    movl(scratch, Immediate(Thread::safepoint_state_acquired()));
-    LockCmpxchgl(Address(THR, Thread::safepoint_state_offset()), scratch);
-    movl(scratch, EAX);
-    popl(EAX);
-    cmpl(scratch, Immediate(Thread::safepoint_state_unacquired()));
-    j(EQUAL, &done);
-  }
+  j(EQUAL, &done);
 
   movl(scratch,
        Address(THR, compiler::target::Thread::enter_safepoint_stub_offset()));
@@ -2134,20 +2132,18 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
 void Assembler::TransitionNativeToGenerated(Register scratch) {
   // Compare and swap the value at Thread::safepoint_state from acquired to
   // unacquired. On success, jump to 'success'; otherwise, fallthrough.
+  pushl(EAX);
+  movl(EAX, Immediate(compiler::target::Thread::safepoint_state_acquired()));
+  movl(scratch,
+       Immediate(compiler::target::Thread::safepoint_state_unacquired()));
+  LockCmpxchgl(Address(THR, compiler::target::Thread::safepoint_state_offset()),
+               scratch);
+  movl(scratch, EAX);
+  popl(EAX);
+  cmpl(scratch, Immediate(Thread::safepoint_state_acquired()));
+
   Label done;
-  if (!FLAG_use_slow_path) {
-    pushl(EAX);
-    movl(EAX, Immediate(compiler::target::Thread::safepoint_state_acquired()));
-    movl(scratch,
-         Immediate(compiler::target::Thread::safepoint_state_unacquired()));
-    LockCmpxchgl(
-        Address(THR, compiler::target::Thread::safepoint_state_offset()),
-        scratch);
-    movl(scratch, EAX);
-    popl(EAX);
-    cmpl(scratch, Immediate(Thread::safepoint_state_acquired()));
-    j(EQUAL, &done);
-  }
+  j(EQUAL, &done);
 
   movl(scratch,
        Address(THR, compiler::target::Thread::exit_safepoint_stub_offset()));
