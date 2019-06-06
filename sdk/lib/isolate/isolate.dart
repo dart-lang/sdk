@@ -17,6 +17,7 @@
 library dart.isolate;
 
 import "dart:async";
+import "dart:_internal" show Since;
 
 part "capability.dart";
 
@@ -123,6 +124,7 @@ class Isolate {
    * `Dart_DebugName` in the C embedding API and the `debugName` property in
    * [IsolateMirror].
    */
+  @Since("2.3")
   external String get debugName;
 
   /**
@@ -249,7 +251,7 @@ class Isolate {
       bool errorsAreFatal,
       SendPort onExit,
       SendPort onError,
-      String debugName});
+      @Since("2.3") String debugName});
 
   /**
    * Creates and spawns an isolate that runs the code from the library with
@@ -337,7 +339,8 @@ class Isolate {
           Uri packageRoot,
       Uri packageConfig,
       bool automaticPackageResolution: false,
-      String debugName});
+      @Since("2.3")
+          String debugName});
 
   /**
    * Requests the isolate to pause.
