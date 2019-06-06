@@ -283,7 +283,7 @@ class LibraryContext {
           var inputUnits = <link2.LinkInputUnit>[];
           for (var file in libraryFile.libraryFiles) {
             var isSynthetic = !file.exists;
-            var unit = file.takeUnitForLinking();
+            var unit = file.parse();
             inputUnits.add(
               link2.LinkInputUnit(file.source, isSynthetic, unit),
             );

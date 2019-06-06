@@ -121,7 +121,6 @@ class FileState {
   List<int> _apiSignature;
 
   UnlinkedUnit2 _unlinked2;
-  CompilationUnit _unitForLinking;
 
   List<FileState> _importedFiles;
   List<FileState> _exportedFiles;
@@ -535,18 +534,6 @@ class FileState {
     return apiSignatureChanged;
   }
 
-  /// If the file has a parsed unit from computing unlinked data, return it.
-  /// Otherwise, parse it afresh now.
-  CompilationUnit takeUnitForLinking() {
-    if (_unitForLinking != null) {
-      var result = _unitForLinking;
-      _unitForLinking = null;
-      return result;
-    } else {
-      return parse();
-    }
-  }
-
   @override
   String toString() => path ?? '<unresolved>';
 
@@ -658,7 +645,6 @@ class FileState {
       bytes = _fsState._byteStore.get(_unlinkedKey);
       if (bytes == null || bytes.isEmpty) {
         CompilationUnit unit = parse();
-        _unitForLinking = unit;
         _fsState._logger.run('Create unlinked for $path', () {
           var unlinkedUnit = serializeAstUnlinked2(unit);
           var definedNames = computeDefinedNames(unit);
