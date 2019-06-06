@@ -1031,6 +1031,16 @@ void Heap::PrintStatsToTimeline(TimelineEventScope* event, GCReason reason) {
 #endif  // !defined(PRODUCT)
 }
 
+Heap::Space Heap::SpaceForExternal(intptr_t size) const {
+  // If 'size' would be a significant fraction of new space, then use old.
+  static const int kExtNewRatio = 16;
+  if (size > (CapacityInWords(Heap::kNew) * kWordSize) / kExtNewRatio) {
+    return Heap::kOld;
+  } else {
+    return Heap::kNew;
+  }
+}
+
 NoHeapGrowthControlScope::NoHeapGrowthControlScope()
     : ThreadStackResource(Thread::Current()) {
   Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();

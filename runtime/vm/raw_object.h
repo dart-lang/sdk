@@ -723,6 +723,7 @@ class RawObject {
   friend class ObjectOffsetTrait;   // GetClassId
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
+  friend class RawTransferableTypedData;  // GetClassId
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -2409,6 +2410,11 @@ class RawReceivePort : public RawInstance {
   RawSendPort* send_port_;
   RawInstance* handler_;
   VISIT_TO(RawObject*, handler_)
+};
+
+class RawTransferableTypedData : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(TransferableTypedData);
+  VISIT_NOTHING();
 };
 
 // VM type for capturing stacktraces when exceptions are thrown,

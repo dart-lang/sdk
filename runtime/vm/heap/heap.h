@@ -301,6 +301,7 @@ class Heap {
   }
   void MakeTLABIterable(Thread* thread);
   void AbandonRemainingTLAB(Thread* thread);
+  Space SpaceForExternal(intptr_t size) const;
 
   void CollectOnNextAllocation();
 

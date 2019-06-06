@@ -45,7 +45,8 @@ static bool IsBootstrapedClassId(intptr_t class_id) {
           RawObject::IsStringClassId(class_id) ||
           RawObject::IsTypedDataClassId(class_id) ||
           RawObject::IsExternalTypedDataClassId(class_id) ||
-          RawObject::IsTypedDataViewClassId(class_id) || class_id == kNullCid);
+          RawObject::IsTypedDataViewClassId(class_id) || class_id == kNullCid ||
+          class_id == kTransferableTypedDataCid);
 }
 
 static bool IsObjectStoreTypeId(intptr_t index) {
@@ -1483,6 +1484,8 @@ std::unique_ptr<Message> MessageWriter::WriteMessage(
   }
   if (has_exception) {
     ThrowException(exception_type(), exception_msg());
+  } else {
+    finalizable_data_->SerializationSucceeded();
   }
 
   MessageFinalizableData* finalizable_data = finalizable_data_;

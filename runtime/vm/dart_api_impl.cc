@@ -274,17 +274,6 @@ static Dart_Handle GetNativeFieldsOfArgument(NativeArguments* arguments,
                        current_func, field_count, num_fields);
 }
 
-Heap::Space SpaceForExternal(Thread* thread, intptr_t size) {
-  Heap* heap = thread->heap();
-  // If 'size' would be a significant fraction of new space, then use old.
-  static const int kExtNewRatio = 16;
-  if (size > (heap->CapacityInWords(Heap::kNew) * kWordSize) / kExtNewRatio) {
-    return Heap::kOld;
-  } else {
-    return Heap::kNew;
-  }
-}
-
 static RawObject* Send0Arg(const Instance& receiver, const String& selector) {
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 1;
@@ -2527,7 +2516,7 @@ Dart_NewExternalLatin1String(const uint8_t* latin1_array,
   return Api::NewHandle(
       T,
       String::NewExternal(latin1_array, length, peer, external_allocation_size,
-                          callback, SpaceForExternal(T, length)));
+                          callback, T->heap()->SpaceForExternal(length)));
 }
 
 DART_EXPORT Dart_Handle
@@ -2549,7 +2538,7 @@ Dart_NewExternalUTF16String(const uint16_t* utf16_array,
   return Api::NewHandle(
       T,
       String::NewExternal(utf16_array, length, peer, external_allocation_size,
-                          callback, SpaceForExternal(T, bytes)));
+                          callback, T->heap()->SpaceForExternal(bytes)));
 }
 
 DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
@@ -3433,8 +3422,9 @@ static Dart_Handle NewExternalTypedData(
   Zone* zone = thread->zone();
   intptr_t bytes = length * ExternalTypedData::ElementSizeInBytes(cid);
   const ExternalTypedData& result = ExternalTypedData::Handle(
-      zone, ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data),
-                                   length, SpaceForExternal(thread, bytes)));
+      zone,
+      ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data), length,
+                             thread->heap()->SpaceForExternal(bytes)));
   if (callback != NULL) {
     AllocateFinalizableHandle(thread, result, peer, external_allocation_size,
                               callback);

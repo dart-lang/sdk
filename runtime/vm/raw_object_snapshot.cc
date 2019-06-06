@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/dart_api_state.h"
 #include "vm/message.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
@@ -2131,6 +2132,68 @@ void RawSendPort::WriteTo(SnapshotWriter* writer,
 
   writer->Write<uint64_t>(ptr()->id_);
   writer->Write<uint64_t>(ptr()->origin_id_);
+}
+
+RawTransferableTypedData* TransferableTypedData::ReadFrom(
+    SnapshotReader* reader,
+    intptr_t object_id,
+    intptr_t tags,
+    Snapshot::Kind kind,
+    bool as_reference) {
+  ASSERT(reader != nullptr);
+
+  ASSERT(!Snapshot::IsFull(kind));
+  const intptr_t length = reader->Read<int32_t>();
+
+  const FinalizableData finalizable_data =
+      static_cast<MessageSnapshotReader*>(reader)->finalizable_data()->Take();
+  uint8_t* data = reinterpret_cast<uint8_t*>(finalizable_data.data);
+  auto& transferableTypedData = TransferableTypedData::ZoneHandle(
+      reader->zone(), TransferableTypedData::New(data, length));
+  reader->AddBackRef(object_id, &transferableTypedData, kIsDeserialized);
+  return transferableTypedData.raw();
+}
+
+void RawTransferableTypedData::WriteTo(SnapshotWriter* writer,
+                                       intptr_t object_id,
+                                       Snapshot::Kind kind,
+                                       bool as_reference) {
+  ASSERT(writer != nullptr);
+  ASSERT(GetClassId() == kTransferableTypedDataCid);
+  void* peer = writer->thread()->heap()->GetPeer(this);
+  // Assume that object's Peer is only used to track transferrability state.
+  ASSERT(peer != nullptr);
+  TransferableTypedDataPeer* tpeer =
+      reinterpret_cast<TransferableTypedDataPeer*>(peer);
+  intptr_t length = tpeer->length();  // In bytes.
+  void* data = tpeer->data();
+  if (data == nullptr) {
+    writer->SetWriteException(
+        Exceptions::kArgument,
+        "Illegal argument in isolate message"
+        " : (TransferableTypedData has been transferred already)");
+    return;
+  }
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  writer->WriteIndexedObject(GetClassId());
+  writer->WriteTags(writer->GetObjectTags(this));
+  writer->Write<int32_t>(length);
+
+  static_cast<MessageWriter*>(writer)->finalizable_data()->Put(
+      length, data, tpeer,
+      // Finalizer does nothing - in case of failure to serialize,
+      // [data] remains wrapped in sender's [TransferableTypedData].
+      [](void* data, Dart_WeakPersistentHandle handle, void* peer) {},
+      // This is invoked on successful serialization of the message
+      [](void* data, Dart_WeakPersistentHandle handle, void* peer) {
+        TransferableTypedDataPeer* tpeer =
+            reinterpret_cast<TransferableTypedDataPeer*>(peer);
+        tpeer->handle()->EnsureFreeExternal(Isolate::Current());
+        tpeer->ClearData();
+      });
 }
 
 RawStackTrace* StackTrace::ReadFrom(SnapshotReader* reader,

@@ -8522,10 +8522,20 @@ class TypedDataBase : public Instance {
     }
   }
 
+  void* DataAddr(intptr_t byte_offset) const {
+    ASSERT((byte_offset == 0) ||
+           ((byte_offset > 0) && (byte_offset < LengthInBytes())));
+    return reinterpret_cast<void*>(Validate(raw_ptr()->data_) + byte_offset);
+  }
+
  protected:
   void SetLength(intptr_t value) const {
     ASSERT(value <= Smi::kMaxValue);
     StoreSmi(&raw_ptr()->length_, Smi::New(value));
+  }
+
+  virtual uint8_t* Validate(uint8_t* data) const {
+    return UnsafeMutableNonPointer(data);
   }
 
  private:
@@ -8550,13 +8560,6 @@ class TypedData : public TypedDataBase {
   // 64-bit architecture stay in Smi range when loaded on a 32-bit
   // architecture.
   static const intptr_t kHashBits = 30;
-
-  void* DataAddr(intptr_t byte_offset) const {
-    ASSERT((byte_offset == 0) ||
-           ((byte_offset > 0) && (byte_offset < LengthInBytes())));
-    return reinterpret_cast<void*>(UnsafeMutableNonPointer(raw_ptr()->data()) +
-                                   byte_offset);
-  }
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const;
@@ -8698,12 +8701,6 @@ class ExternalTypedData : public TypedDataBase {
   // snapshot. Should be independent of word size.
   static const int kDataSerializationAlignment = 8;
 
-  void* DataAddr(intptr_t byte_offset) const {
-    ASSERT((byte_offset == 0) ||
-           ((byte_offset > 0) && (byte_offset < LengthInBytes())));
-    return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
-  }
-
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
     return ReadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
@@ -8757,6 +8754,8 @@ class ExternalTypedData : public TypedDataBase {
   }
 
  protected:
+  virtual uint8_t* Validate(uint8_t* data) const { return data; }
+
   void SetLength(intptr_t value) const {
     ASSERT(value <= Smi::kMaxValue);
     StoreSmi(&raw_ptr()->length_, Smi::New(value));
@@ -8828,6 +8827,9 @@ class TypedDataView : public TypedDataBase {
   }
 
   RawSmi* offset_in_bytes() const { return raw_ptr()->offset_in_bytes_; }
+
+ protected:
+  virtual uint8_t* Validate(uint8_t* data) const { return data; }
 
  private:
   void RecomputeDataField() { raw()->RecomputeDataField(); }
@@ -9192,6 +9194,50 @@ class SendPort : public Instance {
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SendPort, Instance);
+  friend class Class;
+};
+
+// This is allocated when new instance of TransferableTypedData is created in
+// [TransferableTypedData::New].
+class TransferableTypedDataPeer {
+ public:
+  // [data] backing store should be malloc'ed, not new'ed.
+  TransferableTypedDataPeer(uint8_t* data, intptr_t length)
+      : data_(data), length_(length), handle_(nullptr) {}
+
+  ~TransferableTypedDataPeer() { free(data_); }
+
+  uint8_t* data() const { return data_; }
+  intptr_t length() const { return length_; }
+  FinalizablePersistentHandle* handle() const { return handle_; }
+  void set_handle(FinalizablePersistentHandle* handle) { handle_ = handle; }
+
+  void ClearData() {
+    data_ = nullptr;
+    length_ = 0;
+    handle_ = nullptr;
+  }
+
+ private:
+  uint8_t* data_;
+  intptr_t length_;
+  FinalizablePersistentHandle* handle_;
+
+  DISALLOW_COPY_AND_ASSIGN(TransferableTypedDataPeer);
+};
+
+class TransferableTypedData : public Instance {
+ public:
+  static RawTransferableTypedData* New(uint8_t* data,
+                                       intptr_t len,
+                                       Heap::Space space = Heap::kNew);
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawTransferableTypedData));
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TransferableTypedData, Instance);
   friend class Class;
 };
 

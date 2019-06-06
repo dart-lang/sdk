@@ -1527,6 +1527,11 @@ RawError* Object::Init(Isolate* isolate,
     RegisterPrivateClass(cls, Symbols::_SendPortImpl(), isolate_lib);
     pending_classes.Add(cls);
 
+    cls = Class::New<TransferableTypedData>();
+    RegisterPrivateClass(cls, Symbols::_TransferableTypedDataImpl(),
+                         isolate_lib);
+    pending_classes.Add(cls);
+
     const Class& stacktrace_cls = Class::Handle(zone, Class::New<StackTrace>());
     RegisterPrivateClass(stacktrace_cls, Symbols::_StackTrace(), core_lib);
     pending_classes.Add(stacktrace_cls);
@@ -2059,6 +2064,8 @@ RawError* Object::Init(Isolate* isolate,
 
     cls = Class::New<MirrorReference>();
     cls = Class::New<UserTag>();
+
+    cls = Class::New<TransferableTypedData>();
   }
   return Error::null();
 }
@@ -21408,6 +21415,40 @@ RawSendPort* SendPort::New(Dart_Port id,
 
 const char* SendPort::ToCString() const {
   return "SendPort";
+}
+
+static void TransferableTypedDataFinalizer(void* isolate_callback_data,
+                                           Dart_WeakPersistentHandle handle,
+                                           void* peer) {
+  delete (reinterpret_cast<TransferableTypedDataPeer*>(peer));
+}
+
+RawTransferableTypedData* TransferableTypedData::New(uint8_t* data,
+                                                     intptr_t length,
+                                                     Heap::Space space) {
+  TransferableTypedDataPeer* peer = new TransferableTypedDataPeer(data, length);
+
+  Thread* thread = Thread::Current();
+  TransferableTypedData& result = TransferableTypedData::Handle();
+  {
+    RawObject* raw =
+        Object::Allocate(TransferableTypedData::kClassId,
+                         TransferableTypedData::InstanceSize(), space);
+    NoSafepointScope no_safepoint;
+    thread->heap()->SetPeer(raw, peer);
+    result ^= raw;
+  }
+  // Set up finalizer so it frees allocated memory if handle is
+  // garbage-collected.
+  peer->set_handle(FinalizablePersistentHandle::New(
+      thread->isolate(), result, peer, &TransferableTypedDataFinalizer,
+      length));
+
+  return result.raw();
+}
+
+const char* TransferableTypedData::ToCString() const {
+  return "TransferableTypedData";
 }
 
 const char* Closure::ToCString() const {

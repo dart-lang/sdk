@@ -442,6 +442,7 @@ class SnapshotReader : public BaseReader {
   friend class Script;
   friend class SignatureData;
   friend class SubtypeTestCache;
+  friend class TransferableTypedData;
   friend class Type;
   friend class TypedDataView;
   friend class TypeArguments;
@@ -715,6 +716,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawScript;
   friend class RawStackTrace;
   friend class RawSubtypeTestCache;
+  friend class RawTransferableTypedData;
   friend class RawType;
   friend class RawTypedDataView;
   friend class RawTypeRef;

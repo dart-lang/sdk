@@ -78,7 +78,8 @@ namespace dart {
   V(WeakProperty)                                                              \
   V(MirrorReference)                                                           \
   V(LinkedHashMap)                                                             \
-  V(UserTag)
+  V(UserTag)                                                                   \
+  V(TransferableTypedData)
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
   V(Array)                                                                     \

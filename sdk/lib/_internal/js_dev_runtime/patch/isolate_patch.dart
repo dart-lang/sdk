@@ -116,6 +116,13 @@ class Capability {
   factory Capability() => _unsupported();
 }
 
+@patch
+abstract class TransferableTypedData {
+  @patch
+  factory TransferableTypedData.fromList(List<TypedData> list) =>
+      _unsupported();
+}
+
 @NoReifyGeneric()
 T _unsupported<T>() {
   throw UnsupportedError('dart:isolate is not supported on dart4web');

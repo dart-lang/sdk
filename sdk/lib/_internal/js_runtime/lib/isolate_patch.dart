@@ -7,6 +7,7 @@
 import "dart:async";
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper' show patch;
+import "dart:typed_data" show ByteData, TypedData, Uint8List;
 
 @patch
 class Isolate {
@@ -143,6 +144,14 @@ class Capability {
   @patch
   factory Capability() {
     throw new UnsupportedError('new Capability');
+  }
+}
+
+@patch
+abstract class TransferableTypedData {
+  @patch
+  factory TransferableTypedData.fromList(List<TypedData> list) {
+    throw new UnsupportedError('TransferableTypedData.fromList');
   }
 }
 

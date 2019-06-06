@@ -434,4 +434,120 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
   return Object::null();
 }
 
+static void ExternalTypedDataFinalizer(void* isolate_callback_data,
+                                       Dart_WeakPersistentHandle handle,
+                                       void* peer) {
+  free(peer);
+}
+
+static intptr_t GetUint8SizeOrThrow(const Instance& instance) {
+  // From the Dart side we are guaranteed that the type of [instance] is a
+  // subtype of TypedData.
+  if (instance.IsTypedDataBase()) {
+    return TypedDataBase::Cast(instance).LengthInBytes();
+  }
+
+  // This can happen if [instance] is `null` or an instance of a 3rd party class
+  // which implements [TypedData].
+  Exceptions::ThrowArgumentError(instance);
+}
+
+DEFINE_NATIVE_ENTRY(TransferableTypedData_factory, 0, 2) {
+  ASSERT(
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
+
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, array_instance,
+                               arguments->NativeArgAt(1));
+
+  Array& array = Array::Handle();
+  intptr_t array_length;
+  if (array_instance.IsGrowableObjectArray()) {
+    const auto& growable_array = GrowableObjectArray::Cast(array_instance);
+    array ^= growable_array.data();
+    array_length = growable_array.Length();
+  } else if (array_instance.IsArray()) {
+    array ^= Array::Cast(array_instance).raw();
+    array_length = array.Length();
+  } else {
+    Exceptions::ThrowArgumentError(array_instance);
+    UNREACHABLE();
+  }
+  Instance& instance = Instance::Handle();
+  unsigned long long total_bytes = 0;
+  const unsigned long kMaxBytes =
+      TypedData::MaxElements(kTypedDataUint8ArrayCid);
+  for (intptr_t i = 0; i < array_length; i++) {
+    instance ^= array.At(i);
+    total_bytes += GetUint8SizeOrThrow(instance);
+    if (total_bytes > kMaxBytes) {
+      const Array& error_args = Array::Handle(Array::New(3));
+      error_args.SetAt(0, array);
+      error_args.SetAt(1, String::Handle(String::New("data")));
+      error_args.SetAt(2,
+                       String::Handle(String::NewFormatted(
+                           "Aggregated list exceeds max size %ld", kMaxBytes)));
+      Exceptions::ThrowByType(Exceptions::kArgumentValue, error_args);
+      UNREACHABLE();
+    }
+  }
+
+  uint8_t* data = reinterpret_cast<uint8_t*>(malloc(total_bytes));
+  if (data == nullptr) {
+    const Instance& exception =
+        Instance::Handle(thread->isolate()->object_store()->out_of_memory());
+    Exceptions::Throw(thread, exception);
+    UNREACHABLE();
+  }
+  intptr_t offset = 0;
+  for (intptr_t i = 0; i < array_length; i++) {
+    instance ^= array.At(i);
+
+    {
+      NoSafepointScope no_safepoint;
+      const auto& typed_data = TypedDataBase::Cast(instance);
+      const intptr_t length_in_bytes = typed_data.LengthInBytes();
+
+      void* source = typed_data.DataAddr(0);
+      // The memory does not overlap.
+      memcpy(data + offset, source, length_in_bytes);
+      offset += length_in_bytes;
+    }
+  }
+  ASSERT(static_cast<unsigned long>(offset) == total_bytes);
+  return TransferableTypedData::New(data, total_bytes);
+}
+
+DEFINE_NATIVE_ENTRY(TransferableTypedData_materialize, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(TransferableTypedData, t,
+                               arguments->NativeArgAt(0));
+
+  void* peer;
+  {
+    NoSafepointScope no_safepoint;
+    peer = thread->heap()->GetPeer(t.raw());
+    // Assume that object's Peer is only used to track transferrability state.
+    ASSERT(peer != nullptr);
+  }
+
+  TransferableTypedDataPeer* tpeer =
+      reinterpret_cast<TransferableTypedDataPeer*>(peer);
+  const intptr_t length = tpeer->length();
+  uint8_t* data = tpeer->data();
+  if (data == nullptr) {
+    const auto& error = String::Handle(String::New(
+        "Attempt to materialize object that was transferred already."));
+    Exceptions::ThrowArgumentError(error);
+    UNREACHABLE();
+  }
+  tpeer->ClearData();
+
+  const ExternalTypedData& typed_data = ExternalTypedData::Handle(
+      ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, data, length,
+                             thread->heap()->SpaceForExternal(length)));
+  FinalizablePersistentHandle::New(thread->isolate(), typed_data,
+                                   /* peer= */ data,
+                                   &ExternalTypedDataFinalizer, length);
+  return typed_data.raw();
+}
+
 }  // namespace dart

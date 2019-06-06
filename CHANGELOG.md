@@ -1,4 +1,12 @@
 ## 2.3.2-dev.XX.0
+
+### Core library changes
+
+#### `dart:isolate`
+
+* `TransferableTypedData` class was added to facilitate faster cross-isolate
+communication of `Uint8List` data.
+
 (Add new changes here, and they will be copied to the change section for the
  next dev version)
 
