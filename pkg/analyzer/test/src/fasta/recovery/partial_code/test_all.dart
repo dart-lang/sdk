@@ -13,6 +13,7 @@ import 'continue_statement_test.dart' as continue_statement;
 import 'do_statement_test.dart' as do_statement;
 import 'enum_declaration_test.dart' as enum_declaration;
 import 'export_directive_test.dart' as export_directive;
+import 'extension_declaration_test.dart' as extension_declaration;
 import 'field_declaration_test.dart' as field_declaration;
 import 'forEach_statement_test.dart' as forEach_statement;
 import 'for_statement_test.dart' as for_statement;
@@ -46,6 +47,7 @@ main() {
     do_statement.main();
     enum_declaration.main();
     export_directive.main();
+    extension_declaration.main();
     field_declaration.main();
     for_statement.main();
     forEach_statement.main();
