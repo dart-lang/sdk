@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/core_types.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
@@ -100,6 +101,23 @@ class LinkedElementFactory {
     for (var uriStr in context.libraryMap.keys) {
       libraryMap.remove(uriStr);
       rootReference.removeChild(uriStr);
+    }
+  }
+
+  /// Set optional informative data for the unit.
+  void setInformativeData(
+    String libraryUriStr,
+    String unitUriStr,
+    List<UnlinkedInformativeData> informativeData,
+  ) {
+    var libraryContext = libraryMap[libraryUriStr];
+    if (libraryContext != null) {
+      for (var unitContext in libraryContext.units) {
+        if (unitContext.uriStr == unitUriStr) {
+          unitContext.informativeData = informativeData;
+          return;
+        }
+      }
     }
   }
 }

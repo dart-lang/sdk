@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -11,6 +12,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
@@ -27,6 +29,9 @@ class LinkedUnitContext {
   final Reference reference;
   final bool isSynthetic;
   final LinkedNodeUnit data;
+
+  /// Optional informative data for the unit.
+  List<UnlinkedInformativeData> informativeData;
 
   AstBinaryReader _astReader;
 
@@ -83,7 +88,8 @@ class LinkedUnitContext {
     if (_unit == null) {
       _unit = _astReader.readNode(data.node);
 
-      var lineStarts = data.lineStarts;
+      var informativeData = getInformativeData(data.node);
+      var lineStarts = informativeData?.compilationUnit_lineStarts ?? [];
       if (lineStarts.isEmpty) {
         lineStarts = [0];
       }
@@ -115,6 +121,19 @@ class LinkedUnitContext {
     node.declaredElement = element;
   }
 
+  Comment createComment(LinkedNode data) {
+    var informativeData = getInformativeData(data);
+    var tokenStringList = informativeData?.documentationComment_tokens;
+    if (tokenStringList == null || tokenStringList.isEmpty) {
+      return null;
+    }
+
+    var tokens = tokenStringList
+        .map((lexeme) => TokenFactory.tokenFromString(lexeme))
+        .toList();
+    return astFactory.documentationComment(tokens);
+  }
+
   /// Return the [LibraryElement] referenced in the [node].
   LibraryElement directiveLibrary(UriBasedDirective node) {
     var uriStr = LazyDirective.getSelectedUri(node);
@@ -124,66 +143,66 @@ class LinkedUnitContext {
 
   int getCodeLength(AstNode node) {
     if (node is ClassDeclaration) {
-      return LazyClassDeclaration.getCodeLength(_astReader, node);
+      return LazyClassDeclaration.getCodeLength(this, node);
     } else if (node is ClassTypeAlias) {
-      return LazyClassTypeAlias.getCodeLength(_astReader, node);
+      return LazyClassTypeAlias.getCodeLength(this, node);
     } else if (node is CompilationUnit) {
       if (data != null) {
-        return data.node.codeLength;
+        return getInformativeData(data.node)?.codeLength ?? 0;
       } else {
         return node.length;
       }
     } else if (node is ConstructorDeclaration) {
-      return LazyConstructorDeclaration.getCodeLength(_astReader, node);
+      return LazyConstructorDeclaration.getCodeLength(this, node);
     } else if (node is EnumDeclaration) {
-      return LazyEnumDeclaration.getCodeLength(_astReader, node);
+      return LazyEnumDeclaration.getCodeLength(this, node);
     } else if (node is FormalParameter) {
-      return LazyFormalParameter.getCodeLength(_astReader, node);
+      return LazyFormalParameter.getCodeLength(this, node);
     } else if (node is FunctionDeclaration) {
-      return LazyFunctionDeclaration.getCodeLength(_astReader, node);
+      return LazyFunctionDeclaration.getCodeLength(this, node);
     } else if (node is FunctionTypeAliasImpl) {
-      return LazyFunctionTypeAlias.getCodeLength(_astReader, node);
+      return LazyFunctionTypeAlias.getCodeLength(this, node);
     } else if (node is GenericTypeAlias) {
-      return LazyGenericTypeAlias.getCodeLength(_astReader, node);
+      return LazyGenericTypeAlias.getCodeLength(this, node);
     } else if (node is MethodDeclaration) {
-      return LazyMethodDeclaration.getCodeLength(_astReader, node);
+      return LazyMethodDeclaration.getCodeLength(this, node);
     } else if (node is MixinDeclaration) {
-      return LazyMixinDeclaration.getCodeLength(_astReader, node);
+      return LazyMixinDeclaration.getCodeLength(this, node);
     } else if (node is TypeParameter) {
-      return LazyTypeParameter.getCodeLength(_astReader, node);
+      return LazyTypeParameter.getCodeLength(this, node);
     } else if (node is VariableDeclaration) {
-      return LazyVariableDeclaration.getCodeLength(_astReader, node);
+      return LazyVariableDeclaration.getCodeLength(this, node);
     }
     throw UnimplementedError('${node.runtimeType}');
   }
 
   int getCodeOffset(AstNode node) {
     if (node is ClassDeclaration) {
-      return LazyClassDeclaration.getCodeOffset(_astReader, node);
+      return LazyClassDeclaration.getCodeOffset(this, node);
     } else if (node is ClassTypeAlias) {
-      return LazyClassTypeAlias.getCodeOffset(_astReader, node);
+      return LazyClassTypeAlias.getCodeOffset(this, node);
     } else if (node is CompilationUnit) {
       return 0;
     } else if (node is ConstructorDeclaration) {
-      return LazyConstructorDeclaration.getCodeOffset(_astReader, node);
+      return LazyConstructorDeclaration.getCodeOffset(this, node);
     } else if (node is EnumDeclaration) {
-      return LazyEnumDeclaration.getCodeOffset(_astReader, node);
+      return LazyEnumDeclaration.getCodeOffset(this, node);
     } else if (node is FormalParameter) {
-      return LazyFormalParameter.getCodeOffset(_astReader, node);
+      return LazyFormalParameter.getCodeOffset(this, node);
     } else if (node is FunctionDeclaration) {
-      return LazyFunctionDeclaration.getCodeOffset(_astReader, node);
+      return LazyFunctionDeclaration.getCodeOffset(this, node);
     } else if (node is FunctionTypeAliasImpl) {
-      return LazyFunctionTypeAlias.getCodeOffset(_astReader, node);
+      return LazyFunctionTypeAlias.getCodeOffset(this, node);
     } else if (node is GenericTypeAlias) {
-      return LazyGenericTypeAlias.getCodeOffset(_astReader, node);
+      return LazyGenericTypeAlias.getCodeOffset(this, node);
     } else if (node is MethodDeclaration) {
-      return LazyMethodDeclaration.getCodeOffset(_astReader, node);
+      return LazyMethodDeclaration.getCodeOffset(this, node);
     } else if (node is MixinDeclaration) {
-      return LazyMixinDeclaration.getCodeOffset(_astReader, node);
+      return LazyMixinDeclaration.getCodeOffset(this, node);
     } else if (node is TypeParameter) {
-      return LazyTypeParameter.getCodeOffset(_astReader, node);
+      return LazyTypeParameter.getCodeOffset(this, node);
     } else if (node is VariableDeclaration) {
-      return LazyVariableDeclaration.getCodeOffset(_astReader, node);
+      return LazyVariableDeclaration.getCodeOffset(this, node);
     }
     throw UnimplementedError('${node.runtimeType}');
   }
@@ -223,49 +242,49 @@ class LinkedUnitContext {
     return null;
   }
 
-  int getDirectiveOffset(AstNode node) {
-    return LazyDirective.getNameOffset(node);
+  int getDirectiveOffset(Directive node) {
+    return node.keyword.offset;
   }
 
   Comment getDocumentationComment(AstNode node) {
     if (node is ClassDeclaration) {
-      LazyClassDeclaration.readDocumentationComment(_astReader, node);
+      LazyClassDeclaration.readDocumentationComment(this, node);
       return node.documentationComment;
     } else if (node is ClassTypeAlias) {
-      LazyClassTypeAlias.readDocumentationComment(_astReader, node);
+      LazyClassTypeAlias.readDocumentationComment(this, node);
       return node.documentationComment;
     } else if (node is ConstructorDeclaration) {
-      LazyConstructorDeclaration.readDocumentationComment(_astReader, node);
+      LazyConstructorDeclaration.readDocumentationComment(this, node);
       return node.documentationComment;
     } else if (node is EnumConstantDeclaration) {
-      LazyEnumConstantDeclaration.readDocumentationComment(_astReader, node);
+      LazyEnumConstantDeclaration.readDocumentationComment(this, node);
       return node.documentationComment;
     } else if (node is EnumDeclaration) {
-      LazyEnumDeclaration.readDocumentationComment(_astReader, node);
+      LazyEnumDeclaration.readDocumentationComment(this, node);
       return node.documentationComment;
     } else if (node is FunctionDeclaration) {
-      LazyFunctionDeclaration.readDocumentationComment(_astReader, node);
+      LazyFunctionDeclaration.readDocumentationComment(this, node);
       return node.documentationComment;
     } else if (node is FunctionTypeAlias) {
-      LazyFunctionTypeAlias.readDocumentationComment(_astReader, node);
+      LazyFunctionTypeAlias.readDocumentationComment(this, node);
       return node.documentationComment;
     } else if (node is GenericTypeAlias) {
-      LazyGenericTypeAlias.readDocumentationComment(_astReader, node);
+      LazyGenericTypeAlias.readDocumentationComment(this, node);
       return node.documentationComment;
     } else if (node is MethodDeclaration) {
-      LazyMethodDeclaration.readDocumentationComment(_astReader, node);
+      LazyMethodDeclaration.readDocumentationComment(this, node);
       return node.documentationComment;
     } else if (node is MixinDeclaration) {
-      LazyMixinDeclaration.readDocumentationComment(_astReader, node);
+      LazyMixinDeclaration.readDocumentationComment(this, node);
       return node.documentationComment;
     } else if (node is VariableDeclaration) {
       var parent2 = node.parent.parent;
       if (parent2 is FieldDeclaration) {
-        LazyFieldDeclaration.readDocumentationComment(_astReader, parent2);
+        LazyFieldDeclaration.readDocumentationComment(this, parent2);
         return parent2.documentationComment;
       } else if (parent2 is TopLevelVariableDeclaration) {
         LazyTopLevelVariableDeclaration.readDocumentationComment(
-          _astReader,
+          this,
           parent2,
         );
         return parent2.documentationComment;
@@ -371,6 +390,15 @@ class LinkedUnitContext {
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
+  }
+
+  UnlinkedInformativeData getInformativeData(LinkedNode data) {
+    if (informativeData == null) return null;
+
+    var id = data.informativeId;
+    if (id == 0) return null;
+
+    return informativeData[id - 1];
   }
 
   bool getInheritsCovariant(AstNode node) {

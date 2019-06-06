@@ -29,6 +29,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
@@ -338,6 +339,11 @@ class FileState {
    * The [UnlinkedUnit] of the file.
    */
   UnlinkedUnit get unlinked => _unlinked;
+
+  /**
+   * The [UnlinkedUnit2] of the file.
+   */
+  UnlinkedUnit2 get unlinked2 => _unlinked2;
 
   /**
    * Return the [uri] string.
@@ -776,6 +782,7 @@ class FileState {
         hasPartOfDirective = true;
       }
     }
+    var informativeData = createInformativeData(unit);
     return UnlinkedUnit2Builder(
       apiSignature: contentSignature,
       exports: exports,
@@ -784,6 +791,7 @@ class FileState {
       hasLibraryDirective: hasLibraryDirective,
       hasPartOfDirective: hasPartOfDirective,
       lineStarts: unit.lineInfo.lineStarts,
+      informativeData: informativeData,
     );
   }
 

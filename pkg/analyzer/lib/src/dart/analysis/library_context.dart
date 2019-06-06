@@ -332,6 +332,17 @@ class LibraryContext {
       );
       counterLoadedLibraries += bundle.libraries.length;
 
+      // Set informative data.
+      for (var libraryFile in cycle.libraries) {
+        for (var unitFile in libraryFile.libraryFiles) {
+          elementFactory.setInformativeData(
+            libraryFile.uriStr,
+            unitFile.uriStr,
+            unitFile.unlinked2.informativeData,
+          );
+        }
+      }
+
       // If the first bundle, with dart:core, create the type provider.
       if (!hasDartCoreBeforeBundle && elementFactory.hasDartCore) {
         _createElementFactoryTypeProvider();
