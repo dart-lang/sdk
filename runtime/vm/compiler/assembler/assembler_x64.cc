@@ -18,6 +18,7 @@ namespace dart {
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, precompiled_mode);
+DECLARE_FLAG(bool, use_slow_path);
 #endif
 
 namespace compiler {
@@ -176,14 +177,16 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   // Compare and swap the value at Thread::safepoint_state from unacquired to
   // acquired. If the CAS fails, go to a slow-path stub.
   Label done;
-  pushq(RAX);
-  movq(RAX, Immediate(Thread::safepoint_state_unacquired()));
-  movq(TMP, Immediate(Thread::safepoint_state_acquired()));
-  LockCmpxchgq(Address(THR, Thread::safepoint_state_offset()), TMP);
-  movq(TMP, RAX);
-  popq(RAX);
-  cmpq(TMP, Immediate(Thread::safepoint_state_unacquired()));
-  j(EQUAL, &done);
+  if (!FLAG_use_slow_path) {
+    pushq(RAX);
+    movq(RAX, Immediate(Thread::safepoint_state_unacquired()));
+    movq(TMP, Immediate(Thread::safepoint_state_acquired()));
+    LockCmpxchgq(Address(THR, Thread::safepoint_state_offset()), TMP);
+    movq(TMP, RAX);
+    popq(RAX);
+    cmpq(TMP, Immediate(Thread::safepoint_state_unacquired()));
+    j(EQUAL, &done);
+  }
 
   movq(TMP,
        Address(THR, compiler::target::Thread::enter_safepoint_stub_offset()));
@@ -197,14 +200,16 @@ void Assembler::TransitionNativeToGenerated() {
   // Compare and swap the value at Thread::safepoint_state from acquired to
   // unacquired. On success, jump to 'success'; otherwise, fallthrough.
   Label done;
-  pushq(RAX);
-  movq(RAX, Immediate(Thread::safepoint_state_acquired()));
-  movq(TMP, Immediate(Thread::safepoint_state_unacquired()));
-  LockCmpxchgq(Address(THR, Thread::safepoint_state_offset()), TMP);
-  movq(TMP, RAX);
-  popq(RAX);
-  cmpq(TMP, Immediate(Thread::safepoint_state_acquired()));
-  j(EQUAL, &done);
+  if (!FLAG_use_slow_path) {
+    pushq(RAX);
+    movq(RAX, Immediate(Thread::safepoint_state_acquired()));
+    movq(TMP, Immediate(Thread::safepoint_state_unacquired()));
+    LockCmpxchgq(Address(THR, Thread::safepoint_state_offset()), TMP);
+    movq(TMP, RAX);
+    popq(RAX);
+    cmpq(TMP, Immediate(Thread::safepoint_state_acquired()));
+    j(EQUAL, &done);
+  }
 
   movq(TMP,
        Address(THR, compiler::target::Thread::exit_safepoint_stub_offset()));

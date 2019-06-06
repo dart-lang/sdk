@@ -18,6 +18,7 @@ namespace dart {
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, precompiled_mode);
+DECLARE_FLAG(bool, use_slow_path);
 
 DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 
@@ -1326,17 +1327,20 @@ void Assembler::TransitionGeneratedToNative(Register destination,
   StoreToOffset(state, THR, compiler::target::Thread::execution_state_offset());
 
   Label slow_path, done, retry;
-  movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()), 0);
-  add(addr, THR, Operand(addr));
-  Bind(&retry);
-  ldxr(state, addr);
-  cmp(state, Operand(Thread::safepoint_state_unacquired()));
-  b(&slow_path, NE);
+  if (!FLAG_use_slow_path) {
+    movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()),
+         0);
+    add(addr, THR, Operand(addr));
+    Bind(&retry);
+    ldxr(state, addr);
+    cmp(state, Operand(Thread::safepoint_state_unacquired()));
+    b(&slow_path, NE);
 
-  movz(state, Immediate(Thread::safepoint_state_acquired()), 0);
-  stxr(TMP, state, addr);
-  cbz(&done, TMP);  // 0 means stxr was successful.
-  b(&retry);
+    movz(state, Immediate(Thread::safepoint_state_acquired()), 0);
+    stxr(TMP, state, addr);
+    cbz(&done, TMP);  // 0 means stxr was successful.
+    b(&retry);
+  }
 
   Bind(&slow_path);
   ldr(addr,
@@ -1351,17 +1355,20 @@ void Assembler::TransitionNativeToGenerated(Register state) {
   Register addr = TMP2;
 
   Label slow_path, done, retry;
-  movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()), 0);
-  add(addr, THR, Operand(addr));
-  Bind(&retry);
-  ldxr(state, addr);
-  cmp(state, Operand(Thread::safepoint_state_acquired()));
-  b(&slow_path, NE);
+  if (!FLAG_use_slow_path) {
+    movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()),
+         0);
+    add(addr, THR, Operand(addr));
+    Bind(&retry);
+    ldxr(state, addr);
+    cmp(state, Operand(Thread::safepoint_state_acquired()));
+    b(&slow_path, NE);
 
-  movz(state, Immediate(Thread::safepoint_state_unacquired()), 0);
-  stxr(TMP, state, addr);
-  cbz(&done, TMP);  // 0 means stxr was successful.
-  b(&retry);
+    movz(state, Immediate(Thread::safepoint_state_unacquired()), 0);
+    stxr(TMP, state, addr);
+    cbz(&done, TMP);  // 0 means stxr was successful.
+    b(&retry);
+  }
 
   Bind(&slow_path);
   ldr(addr,
