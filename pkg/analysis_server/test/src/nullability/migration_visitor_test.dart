@@ -12,7 +12,6 @@ import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -971,8 +970,6 @@ void f(int i) {
 class MigrationVisitorTestBase extends AbstractSingleUnitTest {
   final _Variables _variables;
 
-  FindNode findNode;
-
   final NullabilityGraph graph;
 
   MigrationVisitorTestBase() : this._(NullabilityGraph());
@@ -989,7 +986,6 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
     await resolveTestUnit(code);
     testUnit.accept(
         NodeBuilder(_variables, testSource, false, graph, typeProvider));
-    findNode = FindNode(code, testUnit);
     return testUnit;
   }
 

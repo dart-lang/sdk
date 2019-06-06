@@ -82,6 +82,26 @@ main() {
 ''');
   }
 
+  test_assignment() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main() {
+  Widget w;
+  w = /*caret*/Container();
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/widgets.dart';
+
+main() {
+  Widget w;
+  w = Center(child: Container());
+}
+''');
+  }
+
   test_expressionFunctionBody() async {
     addFlutterPackage();
     await resolveTestUnit('''
