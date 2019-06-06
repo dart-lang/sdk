@@ -245,6 +245,9 @@ dart2js:
     _js_helper:
       uri: "_internal/js_runtime/lib/js_helper.dart"
 
+    _rti:
+      uri: "_internal/js_runtime/lib/rti.dart"
+
     _interceptors:
       uri: "_internal/js_runtime/lib/interceptors.dart"
 
@@ -334,6 +337,9 @@ dart2js_server:
     _js_helper:
       uri: "_internal/js_runtime/lib/js_helper.dart"
 
+    _rti:
+      uri: "_internal/js_runtime/lib/rti.dart"
+
     _interceptors:
       uri: "_internal/js_runtime/lib/interceptors.dart"
 
@@ -351,6 +357,7 @@ dart2js_server:
 
     _async_await_error_codes:
       uri: "_internal/js_runtime/lib/shared/async_await_error_codes.dart"
+
 dartdevc:
     libraries:
       _runtime:

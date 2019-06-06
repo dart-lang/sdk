@@ -265,6 +265,9 @@
       "web_sql": {
         "uri": "web_sql/dart2js/web_sql_dart2js.dart"
       },
+      "_rti": {
+        "uri": "_internal/js_runtime/lib/rti.dart"
+      },
       "svg": {
         "uri": "svg/dart2js/svg_dart2js.dart"
       }
@@ -463,6 +466,9 @@
       },
       "_js_helper": {
         "uri": "_internal/js_runtime/lib/js_helper.dart"
+      },
+      "_rti": {
+        "uri": "_internal/js_runtime/lib/rti.dart"
       },
       "js": {
         "uri": "js/dart2js/js_dart2js.dart"
