@@ -108,6 +108,33 @@ void f(int i) {
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
   }
 
+  test_assignmentExpression_field() async {
+    await analyze('''
+class C {
+  int x = 0;
+}
+void f(C c, int i) {
+  c.x = i;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
+  test_assignmentExpression_field_target_check() async {
+    await analyze('''
+class C {
+  int x = 0;
+}
+void f(C c, int i) {
+  c.x = i;
+}
+''');
+    assertNullCheck(
+        checkExpression('c.x'), decoratedTypeAnnotation('C c').node);
+  }
+
   test_assignmentExpression_indexExpression_index() async {
     await analyze('''
 class C {
@@ -181,6 +208,33 @@ void g(int k) {}
     assertEdge(decoratedTypeAnnotation('int j').node,
         decoratedTypeAnnotation('int k').node,
         hard: false);
+  }
+
+  test_assignmentExpression_setter() async {
+    await analyze('''
+class C {
+  void set s(int value) {}
+}
+void f(C c, int i) {
+  c.s = i;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int value').node,
+        hard: true);
+  }
+
+  test_assignmentExpression_setter_target_check() async {
+    await analyze('''
+class C {
+  void set s(int value) {}
+}
+void f(C c, int i) {
+  c.s = i;
+}
+''');
+    assertNullCheck(
+        checkExpression('c.s'), decoratedTypeAnnotation('C c').node);
   }
 
   test_binaryExpression_add_left_check() async {

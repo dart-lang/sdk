@@ -114,13 +114,17 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
         baseElement.isSynthetic &&
         !baseElement.variable.isSynthetic) {
       var variable = baseElement.variable;
+      var decoratedElementType =
+          _variables.decoratedElementType(variable, create: true);
       if (baseElement.isGetter) {
         decoratedBaseType = DecoratedType(
             baseElement.type, NullabilityNode.never,
-            returnType:
-                _variables.decoratedElementType(variable, create: true));
+            returnType: decoratedElementType);
       } else {
-        throw UnimplementedError('TODO(paulberry)');
+        assert(baseElement.isSetter);
+        decoratedBaseType = DecoratedType(
+            baseElement.type, NullabilityNode.never,
+            positionalParameters: [decoratedElementType]);
       }
     } else {
       decoratedBaseType =
@@ -575,7 +579,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
-    return calleeType.returnType;
+    if (propertyName.inSetterContext()) {
+      return calleeType.positionalParameters[0];
+    } else {
+      return calleeType.returnType;
+    }
   }
 
   /// Double checks that [type] is sufficiently simple for this naive prototype

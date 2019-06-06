@@ -224,7 +224,27 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  test_data_flow_assignment() async {
+  test_data_flow_assignment_field() async {
+    var content = '''
+class C {
+  int x = 0;
+}
+void f(C c) {
+  c.x = null;
+}
+''';
+    var expected = '''
+class C {
+  int? x = 0;
+}
+void f(C c) {
+  c.x = null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_data_flow_assignment_local() async {
     var content = '''
 void main() {
   int i = 0;
@@ -235,6 +255,26 @@ void main() {
 void main() {
   int? i = 0;
   i = null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_data_flow_assignment_setter() async {
+    var content = '''
+class C {
+  void set s(int value) {}
+}
+void f(C c) {
+  c.s = null;
+}
+''';
+    var expected = '''
+class C {
+  void set s(int? value) {}
+}
+void f(C c) {
+  c.s = null;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
