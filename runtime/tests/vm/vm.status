@@ -178,6 +178,7 @@ cc/ScriptSnapshotsUpdateSubclasses: Fail, Crash, OK # Script snapshots not suppo
 
 [ ($compiler == dartk || $compiler == dartkb) && ($arch == simarm || $arch == simarm64 || $arch == simdbc || $arch == simdbc64) ]
 dart/appjit*: SkipSlow # DFE too slow
+dart/issue_31959_31960_test: SkipSlow
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
