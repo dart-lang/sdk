@@ -83,7 +83,7 @@ dart/issue32950_test: SkipByDesign # uses spawnUri.
 [ $runtime == vm && $mode == product && $compiler == dartk ]
 cc/CorelibIsolateStartup: Timeout, Pass
 
-[ $runtime != vm ]
+[ $runtime != vm && $runtime != dart_precompiled ]
 dart/*: SkipByDesign # VM specific tests
 
 [ $runtime != dart_precompiled  || $system == android ]
