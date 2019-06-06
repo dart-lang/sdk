@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -89,6 +90,8 @@ class DefaultValueResolver {
       defaultValue = node.defaultValue;
     }
     if (defaultValue == null) return;
+
+    defaultValue.accept(LocalElementBuilder(ElementHolder(), null));
 
     var contextType = TypeVariableEliminator(_linker.typeProvider)
         .substituteType(parameter.type);
