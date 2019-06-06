@@ -21,12 +21,13 @@ main() {
       );
       fail('expected exception');
     } on TestExit catch (e) {
-      expect(e.code, 1);
+      expect(e.code, 0);
     }
     final errText = testLogger.stderrBuffer.toString();
     final outText = testLogger.stdoutBuffer.toString();
-    expect(errText, contains('--$excludeOption'));
-    expect(errText, isNot(contains('Use --help to display the fixes')));
+    expect(errText, isEmpty);
+    expect(outText, contains('--$excludeOption'));
+    expect(outText, isNot(contains('Use --help to display the fixes')));
     expect(outText, contains('use-mixin'));
   });
 
@@ -42,14 +43,15 @@ main() {
       );
       fail('expected exception');
     } on TestExit catch (e) {
-      expect(e.code, 1);
+      expect(e.code, 0);
     }
     final errText = testLogger.stderrBuffer.toString();
     final outText = testLogger.stdoutBuffer.toString();
     print(errText);
     print(outText);
-    expect(errText, contains('--$excludeOption'));
-    expect(errText, isNot(contains('Use --help to display the fixes')));
+    expect(errText, isEmpty);
+    expect(outText, contains('--$excludeOption'));
+    expect(outText, isNot(contains('Use --help to display the fixes')));
     expect(outText, contains('use-mixin'));
   });
 }

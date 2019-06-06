@@ -69,7 +69,7 @@ class Driver {
       } finally {
         await server.stop();
       }
-      context.exit(1);
+      context.exit(0);
     }
 
     Future serverStopped;
@@ -269,21 +269,32 @@ Please upgrade to a newer version of the Dart SDK to use this option.''');
     final fixes = new List<DartFix>.from(result.fixes)
       ..sort((f1, f2) => f1.name.compareTo(f2.name));
 
-    for (DartFix fix in fixes) {
-      String line = fix.name;
-      if (fix.isRequired == true) {
-        line = '$line (required)';
-      }
-      logger.stdout('');
-      logger.stdout(line);
-      if (fix.description != null) {
-        for (String line in indentAndWrapDescription(fix.description)) {
-          logger.stdout(line);
-        }
-      }
-    }
+    logger.stdout('''
+
+These fixes are automatically applied unless at least one
+--$includeOption option is specified and --$requiredOption is not specified.
+They may be individually disabled using --$excludeOption.''');
+
+    fixes.where((fix) => fix.isRequired).forEach(showFix);
+
+    logger.stdout('''
+
+These fixes are NOT automatically applied, but may be enabled using --$includeOption.''');
+
+    fixes.where((fix) => !fix.isRequired).forEach(showFix);
 
     return result;
+  }
+
+  void showFix(DartFix fix) {
+    logger.stdout('''
+
+* ${fix.name}''');
+    if (fix.description != null) {
+      for (String line in indentAndWrapDescription(fix.description)) {
+        logger.stdout(line);
+      }
+    }
   }
 
   List<String> indentAndWrapDescription(String description) =>

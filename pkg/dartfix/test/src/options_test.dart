@@ -80,11 +80,11 @@ main() {
   });
 
   test('help explicit', () {
-    parse(['--help'], errorOut: 'Display this help message', showHelp: true);
+    parse(['--help'], normalOut: 'Display this help message', showHelp: true);
   });
 
   test('help implicit', () {
-    parse([], errorOut: 'Display this help message', showHelp: true);
+    parse([], normalOut: 'Display this help message', showHelp: true);
   });
 
   test('include fix', () {

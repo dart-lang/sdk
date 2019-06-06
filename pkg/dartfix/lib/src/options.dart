@@ -173,20 +173,17 @@ class Options {
 
   static _showUsage(ArgParser parser, Logger logger,
       {bool showHelpHint = true}) {
-    logger.stderr('Usage: $_binaryName [options...] <directory paths>');
-    logger.stderr('');
-    logger.stderr(parser.usage);
-    logger.stderr('''
-
-If neither --$includeOption nor --$requiredOption is specified, then all fixes will be
-applied. Any fixes specified using --$excludeOption will not be applied regardless
-of whether they are required or specifed using --$includeOption.''');
-    if (showHelpHint) {
-      logger.stderr('''
-
+    Function(String message) out = showHelpHint ? logger.stderr : logger.stdout;
+    // show help on stdout when showHelp is true and showHelpHint is false
+    out('''
+Usage: $_binaryName [options...] <directory paths>
+''');
+    out(parser.usage);
+    out(showHelpHint
+        ? '''
 Use --$_helpOption to display the fixes that can be specified using either
---$includeOption or --$excludeOption.''');
-    }
+--$includeOption or --$excludeOption.'''
+        : '');
   }
 }
 
