@@ -19,88 +19,146 @@ main() {
 @reflectiveTest
 class NonConstantListElementTest extends DriverResolutionTest {
   test_const_forElement() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 const Set set = {};
 var v = const [for(final x in set) x];
-''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 35, 21),
+    ]);
   }
 
   test_const_ifElement_thenElseFalse_finalElse() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode(
+        '''
 final dynamic a = 0;
 var v = const [if (1 < 0) 0 else a];
-''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 54, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 19),
+              ]);
   }
 
   test_const_ifElement_thenElseFalse_finalThen() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode(
+        '''
 final dynamic a = 0;
 var v = const [if (1 < 0) a else 0];
-''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 19),
+              ]);
   }
 
   test_const_ifElement_thenElseTrue_finalElse() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode(
+        '''
 final dynamic a = 0;
 var v = const [if (1 > 0) 0 else a];
-''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 54, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 19),
+              ]);
   }
 
   test_const_ifElement_thenElseTrue_finalThen() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode(
+        '''
 final dynamic a = 0;
 var v = const [if (1 > 0) a else 0];
-''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 19),
+              ]);
   }
 
   test_const_ifElement_thenFalse_constThen() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 const dynamic a = 0;
 var v = const [if (1 < 0) a];
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 12),
+              ]);
   }
 
   test_const_ifElement_thenFalse_finalThen() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode(
+        '''
 final dynamic a = 0;
 var v = const [if (1 < 0) a];
-''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 12),
+              ]);
   }
 
   test_const_ifElement_thenTrue_constThen() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 const dynamic a = 0;
 var v = const [if (1 > 0) a];
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 12),
+              ]);
   }
 
   test_const_ifElement_thenTrue_finalThen() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode(
+        '''
 final dynamic a = 0;
 var v = const [if (1 > 0) a];
-''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 12),
+              ]);
   }
 
   test_const_topVar() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 final dynamic a = 0;
 var v = const [a];
-''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 1),
+    ]);
   }
 
   test_const_topVar_nested() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 final dynamic a = 0;
 var v = const [a + 1];
-''', [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 1),
+    ]);
   }
 
   test_nonConst_topVar() async {
