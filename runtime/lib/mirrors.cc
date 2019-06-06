@@ -331,6 +331,23 @@ static RawInstance* CreateClassMirror(const Class& cls,
   return CreateMirror(Symbols::_LocalClassMirror(), args);
 }
 
+static bool IsCensoredLibrary(const String& url) {
+  static const char* const censored_libraries[] = {
+      "dart:_builtin",
+      "dart:_vmservice",
+      "dart:vmservice_io",
+  };
+  for (const char* censored_library : censored_libraries) {
+    if (url.Equals(censored_library)) {
+      return true;
+    }
+  }
+  if (!Api::IsFfiEnabled() && url.Equals(Symbols::DartFfi())) {
+    return true;
+  }
+  return false;
+}
+
 static RawInstance* CreateLibraryMirror(Thread* thread, const Library& lib) {
   Zone* zone = thread->zone();
   ASSERT(!lib.IsNull());
@@ -340,17 +357,9 @@ static RawInstance* CreateLibraryMirror(Thread* thread, const Library& lib) {
   str = lib.name();
   args.SetAt(1, str);
   str = lib.url();
-  const char* censored_libraries[] = {
-      "dart:_builtin",
-      "dart:_vmservice",
-      "dart:vmservice_io",
-      NULL,
-  };
-  for (intptr_t i = 0; censored_libraries[i] != NULL; i++) {
-    if (str.Equals(censored_libraries[i])) {
-      // Censored library (grumble).
-      return Instance::null();
-    }
+  if (IsCensoredLibrary(str)) {
+    // Censored library (grumble).
+    return Instance::null();
   }
   args.SetAt(2, str);
   return CreateMirror(Symbols::_LocalLibraryMirror(), args);
