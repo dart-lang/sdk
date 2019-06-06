@@ -9,7 +9,11 @@ import 'dart:async' show Future;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/binary/ast_from_binary.dart'
-    show BinaryBuilder, CanonicalNameError, InvalidKernelVersionError;
+    show
+        BinaryBuilder,
+        CanonicalNameError,
+        CanonicalNameSdkError,
+        InvalidKernelVersionError;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -161,7 +165,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               bytesLength =
                   prepareSummary(summaryBytes, uriTranslator, c, data);
 
-              if (e is InvalidKernelVersionError || e is PackageChangedError) {
+              if (e is InvalidKernelVersionError ||
+                  e is PackageChangedError ||
+                  e is CanonicalNameSdkError) {
                 // Don't report any warning.
               } else {
                 Uri gzInitializedFrom;
