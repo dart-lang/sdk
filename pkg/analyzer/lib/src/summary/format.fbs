@@ -2036,15 +2036,7 @@ table LinkedNodeTypeTypeParameter {
 
 /// Information about a single library in a [LinkedNodeLibrary].
 table LinkedNodeUnit {
-  /// All generic function types in the unit - in generic type aliases, or used
-  /// directly as type annotations.
-  ///
-  /// They are requested in two cases: when we are reading a node that contains
-  /// them (e.g. a return type of a method), or when we run over unresolved
-  /// AST in declaration resolver.
-  genericFunctionTypes:[LinkedNode] (id: 5);
-
-  isNNBD:bool (id: 6);
+  isNNBD:bool (id: 5);
 
   isSynthetic:bool (id: 3);
 

@@ -28,10 +28,6 @@ class LinkedUnitContext {
   final bool isSynthetic;
   final LinkedNodeUnit data;
 
-  /// This list is filled lazily with [GenericFunctionType] nodes as they
-  /// are requested by [getGenericFunctionType].
-  List<GenericFunctionType> _genericFunctionTypeNodeList;
-
   AstBinaryReader _astReader;
 
   CompilationUnit _unit;
@@ -56,12 +52,6 @@ class LinkedUnitContext {
       {CompilationUnit unit}) {
     _astReader = AstBinaryReader(this);
     _astReader.isLazy = unit == null;
-
-    if (data != null) {
-      _genericFunctionTypeNodeList = List<GenericFunctionType>(
-        data.genericFunctionTypes.length,
-      );
-    }
 
     _unit = unit;
     _hasDirectivesRead = _unit != null;
@@ -112,6 +102,17 @@ class LinkedUnitContext {
       _hasDirectivesRead = true;
     }
     return _unit;
+  }
+
+  void createGenericFunctionTypeElement(int id, GenericFunctionTypeImpl node) {
+    var containerRef = this.reference.getChild('@genericFunctionType');
+    var reference = containerRef.getChild('$id');
+    var element = GenericFunctionTypeElementImpl.forLinkedNode(
+      this.reference.element,
+      reference,
+      node,
+    );
+    node.declaredElement = element;
   }
 
   /// Return the [LibraryElement] referenced in the [node].
@@ -335,28 +336,6 @@ class LinkedUnitContext {
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
-  }
-
-  GenericFunctionTypeImpl getGenericFunctionType(int id) {
-    GenericFunctionTypeImpl node = _genericFunctionTypeNodeList[id];
-    if (node == null) {
-      var data = this.data.genericFunctionTypes[id];
-      node = _astReader.readGenericFunctionTypeShallow(data);
-      LazyAst.setGenericFunctionTypeId(node, id);
-      _genericFunctionTypeNodeList[id] = node;
-
-      var containerRef = this.reference.getChild('@genericFunctionType');
-      var reference = containerRef.getChild('$id');
-      var element = GenericFunctionTypeElementImpl.forLinkedNode(
-        this.reference.element,
-        reference,
-        node,
-      );
-      node.declaredElement = element;
-
-      _astReader.readGenericFunctionTypeFinish(data, node);
-    }
-    return node;
   }
 
   Reference getGenericFunctionTypeReference(GenericFunctionType node) {

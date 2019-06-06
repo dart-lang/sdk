@@ -498,4 +498,13 @@ class ImportFindElement {
     }
     throw StateError('Not found: $name');
   }
+
+  TopLevelVariableElement topVar(String name) {
+    for (var variable in definingUnit.topLevelVariables) {
+      if (variable.name == name) {
+        return variable;
+      }
+    }
+    throw StateError('Not found: $name');
+  }
 }

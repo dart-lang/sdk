@@ -28,9 +28,6 @@ var timerAstBinaryWriterTypedef = Stopwatch();
 class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   final LinkingBundleContext _linkingContext;
 
-  /// The list stored [GenericFunctionType]s, as visited in depth-first order.
-  final List<LinkedNodeBuilder> genericFunctionTypes = [];
-
   /// Is `true` if the current [ClassDeclaration] has a const constructor,
   /// so initializers of final fields should be written.
   bool _hasConstConstructor = false;
@@ -682,10 +679,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   LinkedNodeBuilder visitGenericFunctionType(GenericFunctionType node) {
     var id = LazyAst.getGenericFunctionTypeId(node);
     assert(id != null);
-    assert(genericFunctionTypes.length == id);
-    genericFunctionTypes.add(null);
 
     var builder = LinkedNodeBuilder.genericFunctionType(
+      genericFunctionType_id: id,
       genericFunctionType_returnType: node.returnType?.accept(this),
       genericFunctionType_typeParameters: node.typeParameters?.accept(this),
       genericFunctionType_formalParameters: node.parameters.accept(this),
@@ -696,12 +692,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     );
     _writeActualReturnType(builder, node);
 
-    builder.genericFunctionType_id = id;
-    genericFunctionTypes[id] = builder;
-
-    return LinkedNodeBuilder.genericFunctionType(
-      genericFunctionType_id: id,
-    );
+    return builder;
   }
 
   @override

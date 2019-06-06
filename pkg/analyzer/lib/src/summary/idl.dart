@@ -2036,16 +2036,7 @@ abstract class LinkedNodeTypeTypeParameter extends base.SummaryClass {
 
 /// Information about a single library in a [LinkedNodeLibrary].
 abstract class LinkedNodeUnit extends base.SummaryClass {
-  /// All generic function types in the unit - in generic type aliases, or used
-  /// directly as type annotations.
-  ///
-  /// They are requested in two cases: when we are reading a node that contains
-  /// them (e.g. a return type of a method), or when we run over unresolved
-  /// AST in declaration resolver.
   @Id(5)
-  List<LinkedNode> get genericFunctionTypes;
-
-  @Id(6)
   bool get isNNBD;
 
   @Id(3)
