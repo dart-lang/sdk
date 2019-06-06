@@ -188,7 +188,9 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   movq(TMP,
        Address(THR, compiler::target::Thread::enter_safepoint_stub_offset()));
   movq(TMP, FieldAddress(TMP, compiler::target::Code::entry_point_offset()));
-  CallCFunction(TMP);
+  // Use call instead of CFunctionCall to prevent having to clean up shadow
+  // space afterwards. This is possible because safepoint stub has no arguments.
+  call(TMP);
 
   Bind(&done);
 }
@@ -209,7 +211,9 @@ void Assembler::TransitionNativeToGenerated() {
   movq(TMP,
        Address(THR, compiler::target::Thread::exit_safepoint_stub_offset()));
   movq(TMP, FieldAddress(TMP, compiler::target::Code::entry_point_offset()));
-  CallCFunction(TMP);
+  // Use call instead of CFunctionCall to prevent having to clean up shadow
+  // space afterwards. This is possible because safepoint stub has no arguments.
+  call(TMP);
 
   Bind(&done);
 
