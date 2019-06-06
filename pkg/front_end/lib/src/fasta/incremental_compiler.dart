@@ -228,17 +228,26 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<LibraryBuilder> reusedLibraries = computeReusedLibraries(
           invalidatedUris, uriTranslator,
           notReused: notReusedLibraries);
-      Set<Uri> reusedLibraryUris =
-          new Set<Uri>.from(reusedLibraries.map((b) => b.uri));
-      bool removedBuilders = false;
-      for (Uri uri in new Set<Uri>.from(dillLoadedData.loader.builders.keys)
-        ..removeAll(reusedLibraryUris)) {
-        LibraryBuilder builder = dillLoadedData.loader.builders.remove(uri);
-        userBuilders?.remove(uri);
+
+      bool removedDillBuilders = false;
+      for (LibraryBuilder builder in notReusedLibraries) {
         CompilerContext.current.uriToSource.remove(builder.fileUri);
-        removedBuilders = true;
+
+        LibraryBuilder dillBuilder =
+            dillLoadedData.loader.builders.remove(builder.uri);
+        if (dillBuilder != null) {
+          removedDillBuilders = true;
+          userBuilders?.remove(builder.uri);
+        }
+
+        // Remove component problems for libraries we don't reuse.
+        if (remainingComponentProblems.isNotEmpty) {
+          Library lib = builder.target;
+          removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
+        }
       }
-      if (removedBuilders) {
+
+      if (removedDillBuilders) {
         dillLoadedData.loader.libraries.clear();
         for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
           dillLoadedData.loader.libraries.add(builder.target);
@@ -264,16 +273,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             .addAll(oldDillLoadedData.loader.libraries);
       }
 
-      for (LibraryBuilder builder in notReusedLibraries) {
-        Library lib = builder.target;
-        CompilerContext.current.uriToSource.remove(builder.fileUri);
-
-        // Remove component problems for libraries we don't reuse.
-        if (remainingComponentProblems.isNotEmpty) {
-          removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
-        }
-      }
-
       if (hierarchy != null) {
         List<Library> removedLibraries = new List<Library>();
         for (LibraryBuilder builder in notReusedLibraries) {
@@ -289,7 +288,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             " of ${userCode.loader.builders.length} libraries");
       }
 
-      await loadEnsureLoadedComponents(reusedLibraryUris, reusedLibraries);
+      await loadEnsureLoadedComponents(reusedLibraries);
 
       KernelTarget userCodeOld = userCode;
       userCode = new KernelTarget(
@@ -407,13 +406,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Internal method.
   Future loadEnsureLoadedComponents(
-      Set<Uri> reusedLibraryUris, List<LibraryBuilder> reusedLibraries) async {
+      List<LibraryBuilder> reusedLibraries) async {
     if (modulesToLoad != null) {
       bool loadedAnything = false;
       for (Component module in modulesToLoad) {
         bool usedComponent = false;
         for (Library lib in module.libraries) {
-          if (!reusedLibraryUris.contains(lib.importUri)) {
+          if (!dillLoadedData.loader.builders.containsKey(lib.importUri)) {
             dillLoadedData.loader.libraries.add(lib);
             dillLoadedData.addLibrary(lib);
             reusedLibraries.add(dillLoadedData.loader.read(lib.importUri, -1));
