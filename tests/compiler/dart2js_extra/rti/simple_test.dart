@@ -6,5 +6,14 @@ import 'dart:_rti' as rti;
 import "package:expect/expect.dart";
 
 main() {
-  Expect.equals('Rti', rti.testingRtiToString(null));
+  var universe = rti.testingCreateUniverse();
+
+  // TODO(sra): Add call: rti.testingAddRules(universe, ???);
+
+  var dynamicRti1 = rti.testingUniverseEval(universe, 'dynamic');
+  var dynamicRti2 = rti.testingUniverseEval(universe, 'dynamic');
+
+  Expect.isTrue(identical(dynamicRti1, dynamicRti2));
+  Expect.isFalse(dynamicRti1 is String);
+  Expect.equals('dynamic', rti.testingRtiToString(dynamicRti1));
 }

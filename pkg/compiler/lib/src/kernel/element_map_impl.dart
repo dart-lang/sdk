@@ -888,6 +888,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       type ??= findIn(Uris.dart_web_sql);
       type ??= findIn(Uris.dart_indexed_db);
       type ??= findIn(Uris.dart_typed_data);
+      type ??= findIn(Uris.dart__rti);
       type ??= findIn(Uris.dart_mirrors);
       if (type == null && required) {
         reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
