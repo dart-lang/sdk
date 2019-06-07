@@ -6653,16 +6653,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       entryPoint != null && isOrImportsBrowserLibrary;
 
   @override
-  bool get isDartAsync {
-    var uri = definingCompilationUnit.source?.uri;
-    return uri != null && DartUriResolver.isDartUri(uri) && uri.path == 'async';
-  }
+  bool get isDartAsync => name == "dart.async";
 
   @override
-  bool get isDartCore {
-    var uri = definingCompilationUnit.source?.uri;
-    return uri != null && DartUriResolver.isDartUri(uri) && uri.path == 'core';
-  }
+  bool get isDartCore => name == "dart.core";
 
   @override
   bool get isInSdk {
