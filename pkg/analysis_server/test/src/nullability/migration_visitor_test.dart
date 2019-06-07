@@ -122,6 +122,20 @@ void f(C c, int i) {
         hard: true);
   }
 
+  test_assignmentExpression_field_cascaded() async {
+    await analyze('''
+class C {
+  int x = 0;
+}
+void f(C c, int i) {
+  c..x = i;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
   test_assignmentExpression_field_target_check() async {
     await analyze('''
 class C {
@@ -133,6 +147,19 @@ void f(C c, int i) {
 ''');
     assertNullCheck(
         checkExpression('c.x'), decoratedTypeAnnotation('C c').node);
+  }
+
+  test_assignmentExpression_field_target_check_cascaded() async {
+    await analyze('''
+class C {
+  int x = 0;
+}
+void f(C c, int i) {
+  c..x = i;
+}
+''');
+    assertNullCheck(
+        checkExpression('c..x'), decoratedTypeAnnotation('C c').node);
   }
 
   test_assignmentExpression_indexExpression_index() async {
@@ -316,6 +343,18 @@ bool f() {
 }
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
+  }
+
+  test_cascadeExpression() async {
+    await analyze('''
+class C {
+  int x = 0;
+}
+C f(C c, int i) => c..x = i;
+''');
+    assertEdge(decoratedTypeAnnotation('C c').node,
+        decoratedTypeAnnotation('C f').node,
+        hard: false);
   }
 
   test_conditionalExpression_condition_check() async {
@@ -680,6 +719,18 @@ int f(C c, int j) => c[j];
         hard: true);
   }
 
+  test_indexExpression_index_cascaded() async {
+    await analyze('''
+class C {
+  int operator[](int i) => 1;
+}
+C f(C c, int j) => c..[j];
+''');
+    assertEdge(decoratedTypeAnnotation('int j').node,
+        decoratedTypeAnnotation('int i').node,
+        hard: true);
+  }
+
   test_indexExpression_return_type() async {
     await analyze('''
 class C {
@@ -700,6 +751,37 @@ class C {
 int f(C c) => c[0];
 ''');
     assertNullCheck(checkExpression('c['), decoratedTypeAnnotation('C c').node);
+  }
+
+  test_indexExpression_target_check_cascaded() async {
+    await analyze('''
+class C {
+  int operator[](int i) => 1;
+}
+C f(C c) => c..[0];
+''');
+    assertNullCheck(
+        checkExpression('c..['), decoratedTypeAnnotation('C c').node);
+  }
+
+  test_indexExpression_target_demonstrates_non_null_intent() async {
+    await analyze('''
+class C {
+  int operator[](int i) => 1;
+}
+int f(C c) => c[0];
+''');
+    assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true);
+  }
+
+  test_indexExpression_target_demonstrates_non_null_intent_cascaded() async {
+    await analyze('''
+class C {
+  int operator[](int i) => 1;
+}
+C f(C c) => c..[0];
+''');
+    assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true);
   }
 
   test_intLiteral() async {
@@ -809,6 +891,20 @@ void test(C c) {
         checkExpression('c.m'), decoratedTypeAnnotation('C c').node);
   }
 
+  test_methodInvocation_target_check_cascaded() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(C c) {
+  c..m();
+}
+''');
+
+    assertNullCheck(
+        checkExpression('c..m'), decoratedTypeAnnotation('C c').node);
+  }
+
   test_methodInvocation_target_demonstrates_non_null_intent() async {
     await analyze('''
 class C {
@@ -816,6 +912,19 @@ class C {
 }
 void test(C c) {
   c.m();
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true);
+  }
+
+  test_methodInvocation_target_demonstrates_non_null_intent_cascaded() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(C c) {
+  c..m();
 }
 ''');
 

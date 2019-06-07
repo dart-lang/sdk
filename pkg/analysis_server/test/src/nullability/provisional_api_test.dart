@@ -244,6 +244,26 @@ void f(C c) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_data_flow_assignment_field_in_cascade() async {
+    var content = '''
+class C {
+  int x = 0;
+}
+void f(C c) {
+  c..x = null;
+}
+''';
+    var expected = '''
+class C {
+  int? x = 0;
+}
+void f(C c) {
+  c..x = null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_data_flow_assignment_local() async {
     var content = '''
 void main() {
@@ -386,6 +406,26 @@ void f(C c) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_data_flow_indexed_set_index_value_in_cascade() async {
+    var content = '''
+class C {
+  void operator[]=(int i, int j) {}
+}
+void f(C c) {
+  c..[null] = 0;
+}
+''';
+    var expected = '''
+class C {
+  void operator[]=(int? i, int j) {}
+}
+void f(C c) {
+  c..[null] = 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_data_flow_indexed_set_value() async {
     var content = '''
 class C {
@@ -483,6 +523,26 @@ void g(int? i) {
 }
 main() {
   g(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_data_flow_method_call_in_cascade() async {
+    var content = '''
+class C {
+  void m(int x) {}
+}
+void f(C c) {
+  c..m(null);
+}
+''';
+    var expected = '''
+class C {
+  void m(int? x) {}
+}
+void f(C c) {
+  c..m(null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -872,6 +932,96 @@ void f(int i) {
 }
 void g(bool b, int? i) {
   if (b) f(i!);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_unconditional_cascaded_indexed_set_implies_non_null_intent() async {
+    var content = '''
+class C {
+  operator[]=(int i, int j) {}
+}
+void f(C c) {
+  c..[1] = 2;
+}
+void g(bool b, C c) {
+  if (b) f(c);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+class C {
+  operator[]=(int i, int j) {}
+}
+void f(C c) {
+  c..[1] = 2;
+}
+void g(bool b, C? c) {
+  if (b) f(c!);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_unconditional_cascaded_method_call_implies_non_null_intent() async {
+    var content = '''
+void f(int i) {
+  i..abs();
+}
+void g(bool b, int i) {
+  if (b) f(i);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void f(int i) {
+  i..abs();
+}
+void g(bool b, int? i) {
+  if (b) f(i!);
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_unconditional_cascaded_property_set_implies_non_null_intent() async {
+    var content = '''
+class C {
+  int x = 0;
+}
+void f(C c) {
+  c..x = 1;
+}
+void g(bool b, C c) {
+  if (b) f(c);
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+class C {
+  int x = 0;
+}
+void f(C c) {
+  c..x = 1;
+}
+void g(bool b, C? c) {
+  if (b) f(c!);
 }
 main() {
   g(false, null);

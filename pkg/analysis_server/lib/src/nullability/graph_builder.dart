@@ -213,6 +213,13 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitCascadeExpression(CascadeExpression node) {
+    var type = node.target.accept(this);
+    node.cascadeSections.accept(this);
+    return type;
+  }
+
+  @override
   DecoratedType visitClassDeclaration(ClassDeclaration node) {
     node.members.accept(this);
     return null;
@@ -313,8 +320,9 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitIndexExpression(IndexExpression node) {
     DecoratedType targetType;
-    if (node.target != null) {
-      targetType = _handleAssignment(_notNullType, node.target);
+    var target = node.realTarget;
+    if (target != null) {
+      targetType = _handleAssignment(_notNullType, target);
     }
     var callee = node.staticElement;
     if (callee == null) {
@@ -353,12 +361,17 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitMethodInvocation(MethodInvocation node) {
     DecoratedType targetType;
-    if (node.target != null) {
-      if (node.operator.type != TokenType.PERIOD) {
-        throw new UnimplementedError('TODO(paulberry)');
+    var target = node.realTarget;
+    if (target != null) {
+      switch (node.operator.type) {
+        case TokenType.PERIOD:
+        case TokenType.PERIOD_PERIOD:
+          _checkNonObjectMember(node.methodName.name); // TODO(paulberry)
+          targetType = _handleAssignment(_notNullType, target);
+          break;
+        default:
+          throw new UnimplementedError('TODO(paulberry)');
       }
-      _checkNonObjectMember(node.methodName.name); // TODO(paulberry)
-      targetType = _handleAssignment(_notNullType, node.target);
     }
     var callee = node.methodName.staticElement;
     if (callee == null) {
@@ -423,7 +436,8 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitPropertyAccess(PropertyAccess node) {
-    return _handlePropertyAccess(node.target, node.operator, node.propertyName);
+    return _handlePropertyAccess(
+        node.realTarget, node.operator, node.propertyName);
   }
 
   @override
@@ -568,21 +582,24 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   DecoratedType _handlePropertyAccess(
       Expression target, Token operator, SimpleIdentifier propertyName) {
-    if (operator.type != TokenType.PERIOD) {
-      throw new UnimplementedError('TODO(paulberry)');
-    }
-    _checkNonObjectMember(propertyName.name); // TODO(paulberry)
-    var targetType = _handleAssignment(_notNullType, target);
-    var callee = propertyName.staticElement;
-    if (callee == null) {
-      throw new UnimplementedError('TODO(paulberry)');
-    }
-    var calleeType = getOrComputeElementType(callee, targetType: targetType);
-    // TODO(paulberry): substitute if necessary
-    if (propertyName.inSetterContext()) {
-      return calleeType.positionalParameters[0];
-    } else {
-      return calleeType.returnType;
+    switch (operator.type) {
+      case TokenType.PERIOD:
+      case TokenType.PERIOD_PERIOD:
+        _checkNonObjectMember(propertyName.name); // TODO(paulberry)
+        var targetType = _handleAssignment(_notNullType, target);
+        var callee = propertyName.staticElement;
+        if (callee == null) {
+          throw new UnimplementedError('TODO(paulberry)');
+        }
+        var calleeType =
+            getOrComputeElementType(callee, targetType: targetType);
+        // TODO(paulberry): substitute if necessary
+        if (propertyName.inSetterContext()) {
+          return calleeType.positionalParameters[0];
+        }
+        return calleeType.returnType;
+      default:
+        throw new UnimplementedError('TODO(paulberry)');
     }
   }
 
