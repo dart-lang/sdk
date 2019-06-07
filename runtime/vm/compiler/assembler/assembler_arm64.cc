@@ -18,6 +18,7 @@ namespace dart {
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, precompiled_mode);
+DECLARE_FLAG(bool, use_slow_path);
 
 DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 
@@ -1312,12 +1313,13 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
 }
 
 void Assembler::TransitionGeneratedToNative(Register destination,
-                                            Register new_exit_rame,
+                                            Register new_exit_frame,
                                             Register state) {
   Register addr = TMP2;
+  ASSERT(addr != state);
 
   // Save exit frame information to enable stack walking.
-  StoreToOffset(new_exit_rame, THR,
+  StoreToOffset(new_exit_frame, THR,
                 compiler::target::Thread::top_exit_frame_info_offset());
 
   // Mark that the thread is executing native code.
@@ -1326,17 +1328,20 @@ void Assembler::TransitionGeneratedToNative(Register destination,
   StoreToOffset(state, THR, compiler::target::Thread::execution_state_offset());
 
   Label slow_path, done, retry;
-  movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()), 0);
-  add(addr, THR, Operand(addr));
-  Bind(&retry);
-  ldxr(state, addr);
-  cmp(state, Operand(Thread::safepoint_state_unacquired()));
-  b(&slow_path, NE);
+  if (!FLAG_use_slow_path) {
+    movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()),
+         0);
+    add(addr, THR, Operand(addr));
+    Bind(&retry);
+    ldxr(state, addr);
+    cmp(state, Operand(Thread::safepoint_state_unacquired()));
+    b(&slow_path, NE);
 
-  movz(state, Immediate(Thread::safepoint_state_acquired()), 0);
-  stxr(TMP, state, addr);
-  cbz(&done, TMP);  // 0 means stxr was successful.
-  b(&retry);
+    movz(state, Immediate(Thread::safepoint_state_acquired()), 0);
+    stxr(TMP, state, addr);
+    cbz(&done, TMP);  // 0 means stxr was successful.
+    b(&retry);
+  }
 
   Bind(&slow_path);
   ldr(addr,
@@ -1349,24 +1354,28 @@ void Assembler::TransitionGeneratedToNative(Register destination,
 
 void Assembler::TransitionNativeToGenerated(Register state) {
   Register addr = TMP2;
+  ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()), 0);
-  add(addr, THR, Operand(addr));
-  Bind(&retry);
-  ldxr(state, addr);
-  cmp(state, Operand(Thread::safepoint_state_acquired()));
-  b(&slow_path, NE);
+  if (!FLAG_use_slow_path) {
+    movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()),
+         0);
+    add(addr, THR, Operand(addr));
+    Bind(&retry);
+    ldxr(state, addr);
+    cmp(state, Operand(Thread::safepoint_state_acquired()));
+    b(&slow_path, NE);
 
-  movz(state, Immediate(Thread::safepoint_state_unacquired()), 0);
-  stxr(TMP, state, addr);
-  cbz(&done, TMP);  // 0 means stxr was successful.
-  b(&retry);
+    movz(state, Immediate(Thread::safepoint_state_unacquired()), 0);
+    stxr(TMP, state, addr);
+    cbz(&done, TMP);  // 0 means stxr was successful.
+    b(&retry);
+  }
 
   Bind(&slow_path);
   ldr(addr,
       Address(THR, compiler::target::Thread::exit_safepoint_stub_offset()));
-  ldr(addr, FieldAddress(TMP, compiler::target::Code::entry_point_offset()));
+  ldr(addr, FieldAddress(addr, compiler::target::Code::entry_point_offset()));
   blr(addr);
 
   Bind(&done);
