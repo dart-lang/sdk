@@ -2,8 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS) &&                  \
-    !defined(TARGET_OS_ANDROID)
+#include "include/dart_api.h"
+#include "vm/bootstrap_natives.h"
+#include "vm/exceptions.h"
+#include "vm/globals.h"
+#include "vm/native_entry.h"
+
+#if !defined(HOST_OS_LINUX) && !defined(HOST_OS_MACOS) &&                      \
+    !defined(HOST_OS_ANDROID)
 // TODO(dacoharkes): Implement dynamic libraries for other targets & merge the
 // implementation with:
 // - runtime/bin/extensions.h
@@ -13,16 +19,11 @@
 #else
 #include <dlfcn.h>
 #endif
-#include "include/dart_api.h"
-#include "vm/bootstrap_natives.h"
-#include "vm/exceptions.h"
-#include "vm/native_entry.h"
 
 namespace dart {
 
 static void* LoadExtensionLibrary(const char* library_file) {
-#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS) ||                    \
-    defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
   void* handle = dlopen(library_file, RTLD_LAZY);
   if (handle == nullptr) {
     char* error = dlerror();
@@ -32,7 +33,7 @@ static void* LoadExtensionLibrary(const char* library_file) {
   }
 
   return handle;
-#elif defined(TARGET_OS_WINDOWS)
+#elif defined(HOST_OS_WINDOWS)
   SetLastError(0);  // Clear any errors.
 
   // Convert to wchar_t string.
@@ -70,8 +71,7 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_open, 0, 1) {
 }
 
 static void* ResolveSymbol(void* handle, const char* symbol) {
-#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS) ||                    \
-    defined(TARGET_OS_ANDROID)
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
   dlerror();  // Clear any errors.
   void* pointer = dlsym(handle, symbol);
   if (pointer == nullptr) {
@@ -81,7 +81,7 @@ static void* ResolveSymbol(void* handle, const char* symbol) {
     Exceptions::ThrowArgumentError(msg);
   }
   return pointer;
-#elif defined(TARGET_OS_WINDOWS)
+#elif defined(HOST_OS_WINDOWS)
   SetLastError(0);
   void* pointer = GetProcAddress(reinterpret_cast<HMODULE>(handle), symbol);
   if (pointer == nullptr) {
