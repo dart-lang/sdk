@@ -17,8 +17,11 @@ import 'package:modular_test/src/runner.dart';
 
 Uri sdkRoot = Platform.script.resolve("../../../");
 Options _options;
+String _dart2jsScript;
+String _kernelWorkerScript;
 main(List<String> args) async {
   _options = Options.parse(args);
+  await _resolveScripts();
   await runSuite(
       sdkRoot.resolve('tests/modular/'),
       'tests/modular',
@@ -135,7 +138,7 @@ class SourceToDillStep implements IOModularStep {
     }
 
     List<String> args = [
-      sdkRoot.resolve("utils/bazel/kernel_worker.dart").toFilePath(),
+      _kernelWorkerScript,
       '--no-summary-only',
       '--target',
       'dart2js',
@@ -190,7 +193,10 @@ class GlobalAnalysisStep implements IOModularStep {
         transitiveDependencies.map((m) => '${toUri(m, dillId)}');
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/.packages',
-      'package:compiler/src/dart2js.dart',
+      _dart2jsScript,
+      // TODO(sigmund): remove this dependency on libraries.json
+      if (_options.useSdk)
+        '--libraries-spec=$_librarySpecForSnapshot',
       '${toUri(module, dillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.dillDependencies}=${dillDependencies.join(',')}',
@@ -239,7 +245,8 @@ class Dart2jsCodegenStep implements IOModularStep {
     if (_options.verbose) print("\nstep: dart2js backend on $module");
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/.packages',
-      'package:compiler/src/dart2js.dart',
+      _dart2jsScript,
+      if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       '${toUri(module, updatedDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.readData}=${toUri(module, globalDataId)}',
@@ -282,10 +289,10 @@ class Dart2jsEmissionStep implements IOModularStep {
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
     if (_options.verbose) print("step: dart2js backend on $module");
-    var sdkRoot = Platform.script.resolve("../../../../");
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/.packages',
-      'package:compiler/src/dart2js.dart',
+      _dart2jsScript,
+      if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
       '${toUri(module, updatedDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
       '${Flags.readData}=${toUri(module, globalDataId)}',
@@ -406,3 +413,30 @@ class ShardDataId implements DataId {
   @override
   String toString() => name;
 }
+
+Future<void> _resolveScripts() async {
+  Future<String> resolve(
+      String sourceUriOrPath, String relativeSnapshotPath) async {
+    Uri sourceUri = sdkRoot.resolve(sourceUriOrPath);
+    String result =
+        sourceUri.scheme == 'file' ? sourceUri.toFilePath() : sourceUriOrPath;
+    if (_options.useSdk) {
+      String snapshot = Uri.file(Platform.resolvedExecutable)
+          .resolve(relativeSnapshotPath)
+          .toFilePath();
+      if (await File(snapshot).exists()) {
+        return snapshot;
+      }
+    }
+    return result;
+  }
+
+  _dart2jsScript = await resolve(
+      'package:compiler/src/dart2js.dart', 'snapshots/dart2js.dart.snapshot');
+  _kernelWorkerScript = await resolve('utils/bazel/kernel_worker.dart',
+      'snapshots/kernel_worker.dart.snapshot');
+}
+
+String _librarySpecForSnapshot = Uri.file(Platform.resolvedExecutable)
+    .resolve('../lib/libraries.json')
+    .toFilePath();

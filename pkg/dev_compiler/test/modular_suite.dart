@@ -14,8 +14,11 @@ import 'package:modular_test/src/runner.dart';
 
 Uri sdkRoot = Platform.script.resolve("../../../");
 Options _options;
+String _dartdevcScript;
+String _kernelWorkerScript;
 main(List<String> args) async {
   _options = Options.parse(args);
+  await _resolveScripts();
   await runSuite(
       sdkRoot.resolve('tests/modular/'),
       'tests/modular',
@@ -79,7 +82,7 @@ class SourceToSummaryDillStep implements IOModularStep {
     }
 
     List<String> args = [
-      sdkRoot.resolve("utils/bazel/kernel_worker.dart").toFilePath(),
+      _kernelWorkerScript,
       '--summary-only',
       '--target',
       'ddc',
@@ -156,7 +159,7 @@ class DDKStep implements IOModularStep {
 
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/.packages',
-      sdkRoot.resolve('pkg/dev_compiler/bin/dartdevc.dart').toFilePath(),
+      _dartdevcScript,
       '--kernel',
       '--modules=es6',
       '--no-summarize',
@@ -308,4 +311,25 @@ String _sourceToImportUri(Module module, String rootScheme, Uri relativeUri) {
   } else {
     return '$rootScheme:/$relativeUri';
   }
+}
+
+Future<void> _resolveScripts() async {
+  Future<String> resolve(
+      String sdkSourcePath, String relativeSnapshotPath) async {
+    String result = sdkRoot.resolve(sdkSourcePath).toFilePath();
+    if (_options.useSdk) {
+      String snapshot = Uri.file(Platform.resolvedExecutable)
+          .resolve(relativeSnapshotPath)
+          .toFilePath();
+      if (await File(snapshot).exists()) {
+        return snapshot;
+      }
+    }
+    return result;
+  }
+
+  _dartdevcScript = await resolve(
+      'pkg/dev_compiler/bin/dartdevc.dart', 'snapshots/dartdevc.dart.snapshot');
+  _kernelWorkerScript = await resolve('utils/bazel/kernel_worker.dart',
+      'snapshots/kernel_worker.dart.snapshot');
 }
