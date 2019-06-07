@@ -6,6 +6,7 @@
 
 import 'dart:_js_helper' show patch, NoReifyGeneric;
 import 'dart:async';
+import "dart:typed_data" show TypedData;
 
 @patch
 class Isolate {
