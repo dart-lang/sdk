@@ -15,15 +15,13 @@ import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/suite.dart';
 import 'package:modular_test/src/runner.dart';
 
-Uri sdkRoot = Platform.script.resolve("../../../../");
+Uri sdkRoot = Platform.script.resolve("../../../");
 Options _options;
 main(List<String> args) async {
   _options = Options.parse(args);
-  var suiteFolder = Platform.script.resolve('data/');
-  var suiteName = relativize(suiteFolder, sdkRoot).path;
   await runSuite(
-      suiteFolder,
-      suiteName.substring(0, suiteName.length - 1), // remove trailing /
+      sdkRoot.resolve('tests/modular/'),
+      'tests/modular',
       _options,
       new IOPipeline([
         SourceToDillStep(),
@@ -113,7 +111,6 @@ class SourceToDillStep implements IOModularStep {
     await File.fromUri(root.resolve('.packages'))
         .writeAsString('$packagesContents');
 
-    var sdkRoot = Platform.script.resolve("../../../../");
     List<String> sources;
     List<String> extraArgs;
     if (module.isSdk) {
@@ -191,7 +188,6 @@ class GlobalAnalysisStep implements IOModularStep {
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
     Iterable<String> dillDependencies =
         transitiveDependencies.map((m) => '${toUri(m, dillId)}');
-    var sdkRoot = Platform.script.resolve("../../../../");
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/.packages',
       'package:compiler/src/dart2js.dart',
@@ -241,7 +237,6 @@ class Dart2jsCodegenStep implements IOModularStep {
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
     if (_options.verbose) print("\nstep: dart2js backend on $module");
-    var sdkRoot = Platform.script.resolve("../../../../");
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/.packages',
       'package:compiler/src/dart2js.dart',
@@ -331,7 +326,6 @@ class RunD8 implements IOModularStep {
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
     if (_options.verbose) print("\nstep: d8 on $module");
-    var sdkRoot = Platform.script.resolve("../../../../");
     List<String> d8Args = [
       sdkRoot
           .resolve('sdk/lib/_internal/js_runtime/lib/preambles/d8.js')

@@ -12,15 +12,13 @@ import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/suite.dart';
 import 'package:modular_test/src/runner.dart';
 
-Uri sdkRoot = Platform.script.resolve("../../../../");
+Uri sdkRoot = Platform.script.resolve("../../../");
 Options _options;
 main(List<String> args) async {
   _options = Options.parse(args);
-  var suiteFolder = Platform.script.resolve('data/');
-  var suiteName = relativize(suiteFolder, sdkRoot).path;
   await runSuite(
-      suiteFolder,
-      suiteName.substring(0, suiteName.length - 1), // remove trailing /
+      sdkRoot.resolve('tests/modular/'),
+      'tests/modular',
       _options,
       new IOPipeline([
         SourceToSummaryDillStep(),
@@ -129,7 +127,6 @@ class DDKStep implements IOModularStep {
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
     if (_options.verbose) print("\nstep: ddk on $module");
-    var sdkRoot = Platform.script.resolve("../../../../");
 
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
     _createPackagesFile(module, root, transitiveDependencies);
@@ -206,7 +203,6 @@ class RunD8 implements IOModularStep {
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
     if (_options.verbose) print("\nstep: d8 on $module");
-    var sdkRoot = Platform.script.resolve("../../../../");
 
     // Rename sdk.js to dart_sdk.js (the alternative, but more hermetic solution
     // would be to rename the import on all other .js files, but seems
