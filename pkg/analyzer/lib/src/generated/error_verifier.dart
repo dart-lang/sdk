@@ -4443,7 +4443,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForMustCallSuper(MethodDeclaration node) {
-    if (node.isStatic) {
+    if (node.isStatic || node.isAbstract) {
       return;
     }
     MethodElement element = _findOverriddenMemberThatMustCallSuper(node);

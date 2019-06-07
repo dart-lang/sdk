@@ -54,7 +54,7 @@ class B extends A {
     ]);
   }
 
-  test_fromExtendingClass_abstractImplementation() async {
+  test_fromExtendingClass_abstractInSuperclass() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 abstract class A {
@@ -64,6 +64,20 @@ abstract class A {
 class B extends A {
   @override
   void a() {}
+}
+''');
+  }
+
+  test_fromExtendingClass_abstractInSubclass() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+abstract class A {
+  @mustCallSuper
+  void a() {}
+}
+class B extends A {
+  @override
+  void a();
 }
 ''');
   }
