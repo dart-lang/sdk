@@ -378,8 +378,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitDefaultFormalParameter(DefaultFormalParameter node) {
+    var defaultValue = node.defaultValue;
+    if (!_isSerializableExpression(defaultValue)) {
+      defaultValue = null;
+    }
+
     var builder = LinkedNodeBuilder.defaultFormalParameter(
-      defaultFormalParameter_defaultValue: node.defaultValue?.accept(this),
+      defaultFormalParameter_defaultValue: defaultValue?.accept(this),
       defaultFormalParameter_kind: _toParameterKind(node),
       defaultFormalParameter_parameter: node.parameter.accept(this),
       informativeId: getInformativeId(node),
@@ -1616,6 +1621,20 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     return _linkingContext.writeType(type);
   }
 
+  /// Return `true` if the expression might be successfully serialized.
+  ///
+  /// This does not mean that the expression is constant, it just means that
+  /// we know that it might be serialized and deserialized. For example
+  /// function expressions are problematic, and are not necessary to
+  /// deserialize, so we choose not to do this.
+  static bool _isSerializableExpression(Expression node) {
+    if (node == null) return false;
+
+    var visitor = _IsSerializableExpressionVisitor();
+    node.accept(visitor);
+    return visitor.result;
+  }
+
   static LinkedNodeFormalParameterKind _toParameterKind(FormalParameter node) {
     if (node.isRequiredPositional) {
       return LinkedNodeFormalParameterKind.requiredPositional;
@@ -1637,4 +1656,13 @@ class _ElementComponents {
   final LinkedNodeType definingType;
 
   _ElementComponents(this.rawElement, this.definingType);
+}
+
+class _IsSerializableExpressionVisitor extends RecursiveAstVisitor<void> {
+  bool result = true;
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    result = false;
+  }
 }
