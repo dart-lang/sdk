@@ -58,6 +58,9 @@ dart/catch_entry_state: SkipByDesign
 [ $builder_tag == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 
+[ $system == macos ]
+dart/transferable_throws_oom_test: SkipByDesign # Allocating too much memory to cause OOM doesn't work on mac
+
 [ $compiler != dartk && $compiler != dartkb ]
 cc/IsolateReload_KernelIncrementalCompile: SkipByDesign
 cc/IsolateReload_KernelIncrementalCompileAppAndLib: SkipByDesign
