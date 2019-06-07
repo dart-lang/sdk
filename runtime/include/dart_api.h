@@ -3306,7 +3306,8 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
-                               void* callback_data);
+                               void* callback_data,
+                               bool stripped);
 
 /**
  *  Like Dart_CreateAppAOTSnapshotAsAssembly, but only includes

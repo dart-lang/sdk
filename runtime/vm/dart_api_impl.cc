@@ -6065,7 +6065,8 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
 
 DART_EXPORT Dart_Handle
 Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
-                               void* callback_data) {
+                               void* callback_data,
+                               bool strip) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
@@ -6089,8 +6090,12 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppAOTSnapshot"));
   StreamingWriteStream elf_stream(2 * MB, callback, callback_data);
+
   Elf* elf = new (Z) Elf(Z, &elf_stream);
-  Dwarf* dwarf = new (Z) Dwarf(Z, nullptr, elf);
+  Dwarf* dwarf = nullptr;
+  if (!strip) {
+    dwarf = new (Z) Dwarf(Z, nullptr, elf);
+  }
 
   BlobImageWriter vm_image_writer(T, &vm_snapshot_instructions_buffer,
                                   ApiReallocate, /* initial_size= */ 2 * MB,
@@ -6108,9 +6113,11 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
                  writer.VmIsolateSnapshotSize());
   elf->AddROData("_kDartIsolateSnapshotData", isolate_snapshot_data_buffer,
                  writer.IsolateSnapshotSize());
-  // TODO(rmacnak): Generate .debug_frame / .eh_frame / .arm.exidx to
-  // providing unwinding information.
-  dwarf->Write();
+  if (!strip) {
+    // TODO(rmacnak): Generate .debug_frame / .eh_frame / .arm.exidx to
+    // provide unwinding information.
+    dwarf->Write();
+  }
   elf->Finalize();
 
   return Api::Success();

@@ -540,7 +540,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
 #ifdef DART_PRECOMPILER
     // Create a label for use by DWARF.
-    if (!code.IsNull()) {
+    if ((dwarf_ != nullptr) && !code.IsNull()) {
       const intptr_t dwarf_index = dwarf_->AddCode(code);
       assembly_stream_.Print(".Lcode%" Pd ":\n", dwarf_index);
     }
@@ -751,7 +751,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
 #ifdef DART_PRECOMPILER
     const Code& code = *instructions_[i].code_;
-    if ((elf_ != nullptr) && !code.IsNull()) {
+    if ((elf_ != nullptr) && (dwarf_ != nullptr) && !code.IsNull()) {
       intptr_t segment_offset = instructions_blob_stream_.bytes_written() +
                                 Instructions::HeaderSize();
       dwarf_->AddCode(code, segment_base + segment_offset);

@@ -752,7 +752,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       args.add("--blobs_container_filename=$tempDir/out.aotsnapshot");
     } else if (_configuration.useElf) {
       args.add("--snapshot-kind=app-aot-elf");
-      args.add("--assembly=$tempDir/out.aotsnapshot");
+      args.add("--elf=$tempDir/out.aotsnapshot");
     } else {
       args.add("--snapshot-kind=app-aot-assembly");
       args.add("--assembly=$tempDir/out.S");
