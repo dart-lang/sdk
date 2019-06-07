@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that ensures correct exception is thrown when attempting to use
-// transferred transferables.
+// Test that ensures correct exceptions are thrown when misusing
+// [TransferableTypedData].
 
 import 'dart:async';
 import 'dart:collection';
@@ -15,20 +15,30 @@ import 'dart:math';
 
 import "package:expect/expect.dart";
 
-throwsIfMaterializeAfterSend() {
-  final rp = ReceivePort();
+throwsIfMaterializeAfterSend() async {
+  final completer = Completer<bool>();
+  final rp = ReceivePort()
+    ..listen((e) {
+      completer.complete(true);
+    });
   final transferable = TransferableTypedData.fromList([Uint8List(1024)]);
   rp.sendPort.send(transferable);
   Expect.throwsArgumentError(() => transferable.materialize());
+  await completer.future;
   rp.close();
 }
 
-throwsIfSendMoreThanOnce() {
-  final rp = ReceivePort();
+throwsIfSendMoreThanOnce() async {
+  final completer = Completer<bool>();
+  final rp = ReceivePort()
+    ..listen((e) {
+      completer.complete(true);
+    });
   final bytes = Uint8List(1024);
   final transferable = TransferableTypedData.fromList([bytes]);
   rp.sendPort.send(transferable);
   Expect.throwsArgumentError(() => rp.sendPort.send(transferable));
+  await completer.future;
   rp.close();
 }
 
@@ -39,7 +49,6 @@ throwsIfMaterializeMoreThanOnce() {
 }
 
 throwsIfReceiverMaterializesMoreThanOnce() async {
-  final rp = ReceivePort();
   final completer = Completer<List>();
   final isolateErrors = ReceivePort()..listen((e) => completer.complete(e));
   await Isolate.spawn(
@@ -51,7 +60,6 @@ throwsIfReceiverMaterializesMoreThanOnce() async {
       "Invalid argument(s): Attempt to materialize object that was"
       " transferred already.");
   isolateErrors.close();
-  rp.close();
 }
 
 void receiver(final transferable) {
@@ -74,15 +82,6 @@ throwsIfCummulativeListIsTooLargeOn32bitPlatform() {
       () => TransferableTypedData.fromList([halfmax, halfmax, Uint8List(2)]));
 }
 
-throwsIfCummulativeListCantBeAllocated() {
-  // Attempt to create total 1tb uint8list which should fail on 32 and 64-bit
-  // platforms.
-  final bytes100MB = Uint8List(100 * 1024 * 1024);
-  final total1TB = List<Uint8List>.filled(10000, bytes100MB);
-  // Try to make a 1 TB transferable.
-  Expect.throws(() => TransferableTypedData.fromList(total1TB));
-}
-
 class MyList<T> extends ListBase<T> {
   @override
   int length;
@@ -97,16 +96,12 @@ class MyTypedData implements TypedData {
   noSuchMethod(_) {}
 }
 
-main() {
-  throwsIfMaterializeAfterSend();
-  throwsIfSendMoreThanOnce();
+main() async {
+  await throwsIfMaterializeAfterSend();
+  await throwsIfSendMoreThanOnce();
   throwsIfMaterializeMoreThanOnce();
-  throwsIfReceiverMaterializesMoreThanOnce();
+  await throwsIfReceiverMaterializesMoreThanOnce();
   throwsIfCummulativeListIsTooLargeOn32bitPlatform();
-  if (!Platform.isMacOS) {
-    // this test crashes the process on mac.
-    throwsIfCummulativeListCantBeAllocated();
-  }
 
   Expect.throwsArgumentError(() => TransferableTypedData.fromList(null));
   Expect.throwsArgumentError(() => TransferableTypedData.fromList([null]));
