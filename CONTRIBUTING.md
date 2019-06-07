@@ -44,7 +44,7 @@ Contributing code is easy.
  * If you haven't configured your machine with an SSH key that's known to github then follow the directions here: https://help.github.com/articles/generating-ssh-keys/.
  * `git clone git@github.com:<your_name_here>/linter.git`
  * `cd linter`
- * `git remote add upstream git@github.com:dart-lang/linter/linter.git` (So that you fetch from the master repository, not your clone, when running git fetch et al.)
+ * `git remote add upstream git@github.com:dart-lang/linter.git` (So that you fetch from the master repository, not your clone, when running git fetch et al.)
 
 To start working on a patch:
 
