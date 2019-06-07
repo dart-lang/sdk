@@ -289,7 +289,6 @@ bool invalidVariableName(String keyword, {bool strictMode = true}) {
     case "import":
     case "in":
     case "instanceof":
-    case "let":
     case "new":
     case "return":
     case "super":
