@@ -258,6 +258,7 @@ class LibraryContext {
     var librariesLoaded = 0;
     var librariesLinked = 0;
     var librariesLinkedTimer = Stopwatch();
+    var inputsTimer = Stopwatch();
     var bytesGet = 0;
     var bytesPut = 0;
 
@@ -275,6 +276,7 @@ class LibraryContext {
         librariesLinkedTimer.start();
 
         timerInputLibraries.start();
+        inputsTimer.start();
         var inputLibraries = <link2.LinkInputLibrary>[];
         for (var libraryFile in cycle.libraries) {
           var librarySource = libraryFile.source;
@@ -293,6 +295,7 @@ class LibraryContext {
             link2.LinkInputLibrary(librarySource, inputUnits),
           );
         }
+        inputsTimer.stop();
         timerInputLibraries.stop();
 
         timerLinking.start();
@@ -355,6 +358,7 @@ class LibraryContext {
       logger.writeln(
         '[librariesTotal: $librariesTotal]'
         '[librariesLoaded: $librariesLoaded]'
+        '[inputsTimer: ${inputsTimer.elapsedMilliseconds} ms]'
         '[librariesLinked: $librariesLinked]'
         '[librariesLinkedTimer: ${librariesLinkedTimer.elapsedMilliseconds} ms]'
         '[bytesGet: $bytesGet][bytesPut: $bytesPut]',
