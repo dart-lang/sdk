@@ -116,7 +116,15 @@ Future<void> runSuite<T>(List<Test> tests, RunnerOptions options) async {
     testOutcomes.add(outcome);
   }
 
-  if (options.logDir == null) return;
+  if (options.logDir == null) {
+    // TODO(sigmund): delete. This is only added to ensure the bots show test
+    // failures until support for `--output-directory` is added to the test
+    // matrix.
+    if (testOutcomes.any((o) => !o.matchedExpectations)) {
+      exitCode = 1;
+    }
+    return;
+  }
 
   List<String> results = [];
   List<String> logs = [];
