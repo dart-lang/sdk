@@ -46,6 +46,14 @@ For example, the fact that the Dart VM currently uses a generational garbage col
 
 **A:** No, unless there is a need for the operations performed by the series of RPCs to be performed atomically or there is a significant performance benefit of performing work in a single RPC.
 
+**_Q: I'd like to do an experiment that requires changes to the service protocol. How can I do this?_**
+
+**A:** Assuming there's no significant performance impact anticipated by an experimental RPC, it's possible to add experimental functionality to the service protocol. Any experimental functionality should either be marked as private or be documented as being experimental and that it may be deprecated without notice. Experimental RPCs should have a short lifespan and be documented with an expected expiration date.
+
+Any experimental changes that are intended to be permanent must adhere to the principles described in the first section of this document.
+
+If you require assistance in adding experimental functionality to the protocol, please reach out to the maintainers at dart-service-protocol@google.com. Changes required to the Dart VM service implementation can also be handled by members of dart-service-protocol@google.com or dart-vm-team@google.com.
+
 **_Q: There's a private RPC that performs functionality that I'm looking for. Can I use it?_**
 
 **A: No, private RPCs and their responses should not be used outside of the Dart SDK.** The implementations of these RPCs and responses are subject to change without warning and unauthorized private RPC requests may be discarded in the future.
