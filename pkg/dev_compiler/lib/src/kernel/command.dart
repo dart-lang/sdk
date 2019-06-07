@@ -95,7 +95,9 @@ Future<CompilerResult> _compile(List<String> args,
     ..addOption('dart-sdk',
         help: '(unsupported with --kernel) path to the Dart SDK.', hide: true)
     ..addFlag('compile-sdk',
-        help: 'Build an SDK module.', defaultsTo: false, hide: true);
+        help: 'Build an SDK module.', defaultsTo: false, hide: true)
+    ..addOption('libraries-file',
+        help: 'The path to the libraries.json file for the sdk.');
   SharedCompilerOptions.addArguments(argParser);
 
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
@@ -157,15 +159,17 @@ Future<CompilerResult> _compile(List<String> args,
       summaryPaths.map(sourcePathToUri), options.summaryModules.values);
   var useAnalyzer = summaryPaths.any((s) => !s.endsWith('.dill'));
   var sdkSummaryPath = argResults['dart-sdk-summary'] as String;
-  String librarySpecPath;
+  var librarySpecPath = argResults['libraries-file'] as String;
   if (sdkSummaryPath == null) {
     sdkSummaryPath =
         useAnalyzer ? defaultAnalyzerSdkSummaryPath : defaultSdkSummaryPath;
-    librarySpecPath = defaultLibrarySpecPath;
-  } else {
+    librarySpecPath ??= defaultLibrarySpecPath;
+  }
+
+  if (librarySpecPath == null) {
     // TODO(jmesserly): the `isSupported` bit should be included in the SDK
     // summary, but front_end requires a separate file, so we have to work
-    // around that, while avoiding yet another command line option.
+    // around that, while not requiring yet another command line option.
     //
     // Right now we search two locations: one level above the SDK summary
     // (this works for the build and SDK layouts) or next to the SDK summary
