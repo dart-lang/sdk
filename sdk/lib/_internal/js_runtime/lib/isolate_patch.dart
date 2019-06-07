@@ -33,11 +33,7 @@ class Isolate {
 
   @patch
   static Future<Uri> resolvePackageUri(Uri packageUri) {
-    if (packageUri.scheme != 'package') {
-      return new Future<Uri>.value(packageUri);
-    }
-    return new Future<Uri>.value(
-        _packagesBase.resolveUri(packageUri.replace(scheme: '')));
+    throw new UnsupportedError("Isolate.resolvePackageUri");
   }
 
   @patch
@@ -154,10 +150,3 @@ abstract class TransferableTypedData {
     throw new UnsupportedError('TransferableTypedData.fromList');
   }
 }
-
-/// Returns the base path added to Uri.base to resolve `package:` Uris.
-///
-/// This is used by `Isolate.resolvePackageUri` to load resources. The default
-/// value is `packages/` but users can override this by using the
-/// `defaultPackagesBase` hook.
-Uri _packagesBase = Uri.base.resolve(JS('String', r'self.defaultPackagesBase'));

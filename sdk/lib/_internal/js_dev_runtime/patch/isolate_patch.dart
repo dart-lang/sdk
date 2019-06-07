@@ -23,13 +23,8 @@ class Isolate {
   @patch
   static Future<Uri> get packageConfig => _unsupported();
 
-  static Uri _packageBase = Uri.base.resolve('packages/');
-
   @patch
-  static Future<Uri> resolvePackageUri(Uri packageUri) async {
-    if (packageUri.scheme != 'package') return packageUri;
-    return _packageBase.resolveUri(packageUri.replace(scheme: ''));
-  }
+  static Future<Uri> resolvePackageUri(Uri packageUri) => _unsupported();
 
   @patch
   static Future<Isolate> spawn<T>(void entryPoint(T message), T message,

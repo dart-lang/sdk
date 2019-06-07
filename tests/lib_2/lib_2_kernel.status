@@ -29,7 +29,6 @@ mirrors/method_mirror_location_test: Crash # runtime/lib/mirrors.cc: 1634: error
 
 [ $compiler == fasta ]
 html/*: Skip # TODO(ahe): Make dart:html available.
-isolate/browser/*: Skip # TODO(ahe): Make dart:html available.
 isolate/isolate_stress_test: CompileTimeError
 js/*: Skip # TODO(ahe): Make dart:js available.
 mirrors/deferred_type_test: CompileTimeError
@@ -221,7 +220,6 @@ mirrors/library_uri_package_test: Skip # Timeout
 
 [ $compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 html/*: SkipByDesign
-isolate/browser/*: SkipByDesign
 js/*: SkipByDesign
 
 [ $compiler == dartk || $compiler == dartkb ]

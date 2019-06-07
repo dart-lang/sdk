@@ -56,6 +56,17 @@ class B<X> extends A<void Function(X)> {};
     interface, this is a breaking change, as implementing classes will need to
     implement the new getter.
 
+#### `dart:isolate`
+
+* **Breaking change**: `Isolate.resolvePackageUri` will always throw an
+  `UnsupportedError` when compiled with dart2js or DDC. This was the only
+  remaining API in `dart:isolate` that didn't automatically throw since we
+  dropped support for this library in [Dart 2.0.0][1]. Note that the API already
+  throws in dart2js if the API is used directly without setting up manually a
+  `defaultPackagesBase` hook.
+
+[1]: https://github.com/dart-lang/sdk/blob/master/CHANGELOG.md#200---2018-08-07
+
 ### Dart VM
 
 ### Tools
