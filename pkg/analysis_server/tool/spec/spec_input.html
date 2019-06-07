@@ -2253,6 +2253,18 @@
           A list of source edits to apply the recommended changes.
         </p>
       </field>
+      <field name="details" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          Messages that should be displayed to the user that describe details of
+          the fix generation. This could be details that users might want to
+          explore before committing the changes to descriptions of exceptions
+          that were thrown but that did not stop the fixes from being produced.
+          The list will be omitted if it is empty.
+        </p>
+      </field>
     </result>
   </request>
   <request method="getFixes">

@@ -2456,6 +2456,7 @@ final Matcher isEditDartfixParams =
  *   "otherSuggestions": List<DartFixSuggestion>
  *   "hasErrors": bool
  *   "edits": List<SourceFileEdit>
+ *   "details": optional List<String>
  * }
  */
 final Matcher isEditDartfixResult =
@@ -2464,6 +2465,8 @@ final Matcher isEditDartfixResult =
           "otherSuggestions": isListOf(isDartFixSuggestion),
           "hasErrors": isBool,
           "edits": isListOf(isSourceFileEdit)
+        }, optionalFields: {
+          "details": isListOf(isString)
         }));
 
 /**

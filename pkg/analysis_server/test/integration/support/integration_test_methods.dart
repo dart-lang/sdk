@@ -1775,6 +1775,14 @@ abstract class IntegrationTestMixin {
    * edits: List<SourceFileEdit>
    *
    *   A list of source edits to apply the recommended changes.
+   *
+   * details: List<String> (optional)
+   *
+   *   Messages that should be displayed to the user that describe details of
+   *   the fix generation. This could be details that users might want to
+   *   explore before committing the changes to descriptions of exceptions that
+   *   were thrown but that did not stop the fixes from being produced. The
+   *   list will be omitted if it is empty.
    */
   Future<EditDartfixResult> sendEditDartfix(List<String> included,
       {List<String> includedFixes,

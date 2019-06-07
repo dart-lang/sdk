@@ -218,6 +218,7 @@ const String EDIT_REQUEST_ORGANIZE_DIRECTIVES = 'edit.organizeDirectives';
 const String EDIT_REQUEST_ORGANIZE_DIRECTIVES_FILE = 'file';
 const String EDIT_REQUEST_SORT_MEMBERS = 'edit.sortMembers';
 const String EDIT_REQUEST_SORT_MEMBERS_FILE = 'file';
+const String EDIT_RESPONSE_DARTFIX_DETAILS = 'details';
 const String EDIT_RESPONSE_DARTFIX_EDITS = 'edits';
 const String EDIT_RESPONSE_DARTFIX_HAS_ERRORS = 'hasErrors';
 const String EDIT_RESPONSE_DARTFIX_OTHER_SUGGESTIONS = 'otherSuggestions';
