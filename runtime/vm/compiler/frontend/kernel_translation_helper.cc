@@ -922,14 +922,11 @@ void VariableDeclarationHelper::ReadUntilExcluding(Field field) {
 }
 
 FieldHelper::FieldHelper(KernelReaderHelper* helper, intptr_t offset)
-    : helper_(helper),
-      next_read_(kStart),
-      has_function_literal_initializer_(false) {
+    : helper_(helper), next_read_(kStart) {
   helper_->SetOffset(offset);
 }
 
-void FieldHelper::ReadUntilExcluding(Field field,
-                                     bool detect_function_literal_initializer) {
+void FieldHelper::ReadUntilExcluding(Field field) {
   if (field <= next_read_) return;
 
   // Ordered with fall-through.
@@ -982,20 +979,6 @@ void FieldHelper::ReadUntilExcluding(Field field,
       FALL_THROUGH;
     case kInitializer:
       if (helper_->ReadTag() == kSomething) {
-        if (detect_function_literal_initializer &&
-            helper_->PeekTag() == kFunctionExpression) {
-          AlternativeReadingScope alt(&helper_->reader_);
-          Tag tag = helper_->ReadTag();
-          ASSERT(tag == kFunctionExpression);
-          helper_->ReadPosition();  // read position.
-
-          FunctionNodeHelper helper(helper_);
-          helper.ReadUntilIncluding(FunctionNodeHelper::kEndPosition);
-
-          has_function_literal_initializer_ = true;
-          function_literal_start_ = helper.position_;
-          function_literal_end_ = helper.end_position_;
-        }
         helper_->SkipExpression();  // read initializer.
       }
       if (++next_read_ == field) return;

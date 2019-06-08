@@ -17,25 +17,6 @@
 namespace dart {
 namespace kernel {
 
-bool FieldHasFunctionLiteralInitializer(const Field& field,
-                                        TokenPosition* start,
-                                        TokenPosition* end) {
-  Zone* zone = Thread::Current()->zone();
-  const Script& script = Script::Handle(zone, field.Script());
-
-  TranslationHelper translation_helper(Thread::Current());
-  translation_helper.InitFromScript(script);
-
-  KernelReaderHelper kernel_reader_helper(
-      zone, &translation_helper, Script::Handle(zone, field.Script()),
-      ExternalTypedData::Handle(zone, field.KernelData()),
-      field.KernelDataProgramOffset());
-  kernel_reader_helper.SetOffset(field.kernel_offset());
-  kernel::FieldHelper field_helper(&kernel_reader_helper);
-  field_helper.ReadUntilExcluding(kernel::FieldHelper::kEnd, true);
-  return field_helper.FieldHasFunctionLiteralInitializer(start, end);
-}
-
 KernelLineStartsReader::KernelLineStartsReader(
     const dart::TypedData& line_starts_data,
     dart::Zone* zone)
