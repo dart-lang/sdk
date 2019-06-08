@@ -1166,6 +1166,13 @@ class _ProvisionalApiTestWithReset extends _ProvisionalApiTestBase
 class _TestMigrationListener implements NullabilityMigrationListener {
   final _edits = <Source, List<SourceEdit>>{};
 
+  List<String> details = [];
+
+  @override
+  void addDetail(String detail) {
+    details.add(detail);
+  }
+
   @override
   void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
     (_edits[fix.source] ??= []).add(edit);

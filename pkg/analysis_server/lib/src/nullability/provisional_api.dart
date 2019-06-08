@@ -72,7 +72,7 @@ class NullabilityMigration {
   /// is fully implemented.
   NullabilityMigration(this.listener, {bool permissive: false})
       : _analyzerMigration =
-            analyzer.NullabilityMigration(permissive: permissive);
+            analyzer.NullabilityMigration(permissive ? listener : null);
 
   void finish() {
     for (var entry in _analyzerMigration.finish().entries) {
@@ -99,6 +99,10 @@ class NullabilityMigration {
 /// [NullabilityMigrationListener] is used by [NullabilityMigration]
 /// to communicate source changes or "fixes" to the client.
 abstract class NullabilityMigrationListener {
+  /// Add the given [detail] to the list of details to be returned to the
+  /// client.
+  void addDetail(String detail);
+
   /// [addEdit] is called once for each source edit, in the order in which they
   /// appear in the source file.
   void addEdit(SingleNullabilityFix fix, SourceEdit edit);

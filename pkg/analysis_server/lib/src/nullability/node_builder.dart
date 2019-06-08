@@ -6,6 +6,7 @@ import 'package:analysis_server/src/nullability/conditional_discard.dart';
 import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
+import 'package:analysis_server/src/nullability/provisional_api.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -36,13 +37,13 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   /// parameters?
   DecoratedType _currentFunctionType;
 
-  final bool _permissive;
+  final NullabilityMigrationListener /*?*/ listener;
 
   final NullabilityGraph _graph;
 
   final TypeProvider _typeProvider;
 
-  NodeBuilder(this._variables, this._source, this._permissive, this._graph,
+  NodeBuilder(this._variables, this._source, this.listener, this._graph,
       this._typeProvider);
 
   /// Creates and stores a [DecoratedType] object corresponding to the given
@@ -98,10 +99,14 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitNode(AstNode node) {
-    if (_permissive) {
+    if (listener != null) {
       try {
         return super.visitNode(node);
-      } catch (_) {
+      } catch (exception, stackTrace) {
+        listener.addDetail('''
+$exception
+
+$stackTrace''');
         return null;
       }
     } else {

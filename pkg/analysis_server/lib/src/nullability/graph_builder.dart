@@ -7,6 +7,7 @@ import 'package:analysis_server/src/nullability/decorated_type.dart';
 import 'package:analysis_server/src/nullability/expression_checks.dart';
 import 'package:analysis_server/src/nullability/node_builder.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
+import 'package:analysis_server/src/nullability/provisional_api.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -29,7 +30,7 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   /// previous pass over the source code).
   final VariableRepository _variables;
 
-  final bool _permissive;
+  final NullabilityMigrationListener /*?*/ listener;
 
   final NullabilityGraph _graph;
 
@@ -74,7 +75,7 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   bool _inConditionalControlFlow = false;
 
   GraphBuilder(TypeProvider typeProvider, this._variables, this._graph,
-      this._source, this._permissive)
+      this._source, this.listener)
       : _notNullType =
             DecoratedType(typeProvider.objectType, NullabilityNode.never),
         _nonNullableBoolType =
@@ -404,10 +405,14 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitNode(AstNode node) {
-    if (_permissive) {
+    if (listener != null) {
       try {
         return super.visitNode(node);
-      } catch (_) {
+      } catch (exception, stackTrace) {
+        listener.addDetail('''
+$exception
+
+$stackTrace''');
         return null;
       }
     } else {

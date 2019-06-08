@@ -8,6 +8,7 @@ import 'package:analysis_server/src/nullability/expression_checks.dart';
 import 'package:analysis_server/src/nullability/graph_builder.dart';
 import 'package:analysis_server/src/nullability/node_builder.dart';
 import 'package:analysis_server/src/nullability/nullability_node.dart';
+import 'package:analysis_server/src/nullability/provisional_api.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -98,7 +99,7 @@ class ConditionalModification extends PotentialModification {
 /// TODO(paulberry): this implementation keeps a lot of CompilationUnit objects
 /// around.  Can we do better?
 class NullabilityMigration {
-  final bool _permissive;
+  final NullabilityMigrationListener /*?*/ listener;
 
   final Variables _variables;
 
@@ -110,10 +111,10 @@ class NullabilityMigration {
   /// as far as possible even though the migration algorithm is not yet
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
-  NullabilityMigration({bool permissive: false})
-      : this._(permissive, NullabilityGraph());
+  NullabilityMigration(NullabilityMigrationListener /*?*/ listener)
+      : this._(listener, NullabilityGraph());
 
-  NullabilityMigration._(this._permissive, this._graph)
+  NullabilityMigration._(this.listener, this._graph)
       : _variables = Variables(_graph);
 
   Map<Source, List<PotentialModification>> finish() {
@@ -122,13 +123,13 @@ class NullabilityMigration {
   }
 
   void prepareInput(CompilationUnit unit, TypeProvider typeProvider) {
-    unit.accept(NodeBuilder(_variables, unit.declaredElement.source,
-        _permissive, _graph, typeProvider));
+    unit.accept(NodeBuilder(_variables, unit.declaredElement.source, listener,
+        _graph, typeProvider));
   }
 
   void processInput(CompilationUnit unit, TypeProvider typeProvider) {
     unit.accept(GraphBuilder(typeProvider, _variables, _graph,
-        unit.declaredElement.source, _permissive));
+        unit.declaredElement.source, listener));
   }
 }
 

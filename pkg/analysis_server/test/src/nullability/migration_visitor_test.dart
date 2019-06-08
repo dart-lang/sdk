@@ -33,7 +33,7 @@ class GraphBuilderTest extends MigrationVisitorTestBase {
   Future<CompilationUnit> analyze(String code) async {
     var unit = await super.analyze(code);
     unit.accept(
-        GraphBuilder(typeProvider, _variables, graph, testSource, false));
+        GraphBuilder(typeProvider, _variables, graph, testSource, null));
     return unit;
   }
 
@@ -1147,8 +1147,8 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
 
   Future<CompilationUnit> analyze(String code) async {
     await resolveTestUnit(code);
-    testUnit.accept(
-        NodeBuilder(_variables, testSource, false, graph, typeProvider));
+    testUnit
+        .accept(NodeBuilder(_variables, testSource, null, graph, typeProvider));
     return testUnit;
   }
 

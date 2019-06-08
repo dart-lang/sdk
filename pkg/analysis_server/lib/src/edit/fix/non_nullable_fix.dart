@@ -11,8 +11,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:yaml/yaml.dart';
 import 'package:source_span/source_span.dart';
+import 'package:yaml/yaml.dart';
 
 /// [NonNullableFix] visits each named type in a resolved compilation unit
 /// and determines whether the associated variable or parameter can be null
@@ -143,20 +143,6 @@ analyzer:
     }
   }
 
-  void processYamlException(String action, String optionsFilePath, error) {
-    listener.addRecommendation('''Failed to $action options file
-  $optionsFilePath
-  $error
-
-  Manually update this file to enable non-nullable by adding:
-
-    analyzer:
-      enable-experiment:
-        - non-nullable
-''');
-    _packageIsNNBD = false;
-  }
-
   @override
   Future<void> processUnit(int phase, ResolvedUnitResult result) async {
     if (!_packageIsNNBD) {
@@ -174,6 +160,20 @@ analyzer:
     }
   }
 
+  void processYamlException(String action, String optionsFilePath, error) {
+    listener.addRecommendation('''Failed to $action options file
+  $optionsFilePath
+  $error
+
+  Manually update this file to enable non-nullable by adding:
+
+    analyzer:
+      enable-experiment:
+        - non-nullable
+''');
+    _packageIsNNBD = false;
+  }
+
   static void task(DartFixRegistrar registrar, DartFixListener listener) {
     registrar.registerCodeTask(new NonNullableFix(listener));
   }
@@ -183,6 +183,11 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
   final DartFixListener listener;
 
   NullabilityMigrationAdapter(this.listener);
+
+  @override
+  void addDetail(String detail) {
+    listener.addDetail(detail);
+  }
 
   @override
   void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
