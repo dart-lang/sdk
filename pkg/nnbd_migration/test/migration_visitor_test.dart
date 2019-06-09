@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/nullability/conditional_discard.dart';
-import 'package:analysis_server/src/nullability/decorated_type.dart';
-import 'package:analysis_server/src/nullability/expression_checks.dart';
-import 'package:analysis_server/src/nullability/graph_builder.dart';
-import 'package:analysis_server/src/nullability/node_builder.dart';
-import 'package:analysis_server/src/nullability/nullability_node.dart';
-import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/src/conditional_discard.dart';
+import 'package:nnbd_migration/src/decorated_type.dart';
+import 'package:nnbd_migration/src/expression_checks.dart';
+import 'package:nnbd_migration/src/graph_builder.dart';
+import 'package:nnbd_migration/src/node_builder.dart';
+import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/transitional_api.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../abstract_single_unit.dart';
+import 'abstract_single_unit.dart';
 
 main() {
   defineReflectiveSuite(() {

@@ -4,12 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'api_test.dart' as api_test;
 import 'migration_visitor_test.dart' as migration_visitor_test;
-import 'provisional_api_test.dart' as provisional_api_test;
 
 main() {
   defineReflectiveSuite(() {
     migration_visitor_test.main();
-    provisional_api_test.main();
+    api_test.main();
   });
 }

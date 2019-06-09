@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/nullability/decorated_type.dart';
-import 'package:analysis_server/src/nullability/node_builder.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis.dart';
+import 'package:nnbd_migration/src/decorated_type.dart';
+import 'package:nnbd_migration/src/node_builder.dart';
 
 /// [TypeOperations] that works with [DecoratedType]s.
 class DecoratedTypeOperations implements TypeOperations<DecoratedType> {

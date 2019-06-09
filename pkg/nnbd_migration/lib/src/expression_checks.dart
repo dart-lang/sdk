@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/nullability/nullability_node.dart';
-import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/transitional_api.dart';
 
 /// Container for information gathered during nullability migration about the
 /// set of runtime checks that might need to be performed on the value of an

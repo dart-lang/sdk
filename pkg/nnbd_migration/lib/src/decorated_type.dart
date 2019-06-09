@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/nullability/nullability_node.dart';
-import 'package:analysis_server/src/nullability/transitional_api.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
+import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/transitional_api.dart';
 
 /// Representation of a type in the code to be migrated.  In addition to
 /// tracking the (unmigrated) [DartType], we track the [ConstraintVariable]s

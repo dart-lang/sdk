@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/nullability/nullability_node.dart';
+import 'package:nnbd_migration/src/nullability_node.dart';
 
 /// Container for information gathered during nullability migration about a
 /// conditional check that might need to be discarded.

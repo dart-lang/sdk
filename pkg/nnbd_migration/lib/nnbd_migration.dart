@@ -2,16 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/nullability/decorated_type.dart'
-    as analyzer;
-import 'package:analysis_server/src/nullability/expression_checks.dart'
-    as analyzer;
-import 'package:analysis_server/src/nullability/transitional_api.dart'
-    as analyzer;
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/src/decorated_type.dart' as analyzer;
+import 'package:nnbd_migration/src/expression_checks.dart' as analyzer;
+import 'package:nnbd_migration/src/transitional_api.dart' as analyzer;
 
 /// Kinds of fixes that might be performed by nullability migration.
 class NullabilityFixKind {

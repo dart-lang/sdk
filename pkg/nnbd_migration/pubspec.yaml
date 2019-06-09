@@ -1,0 +1,6 @@
+name: nnbd_migration
+publish_to: none
+environment:
+  sdk: '>=2.2.2 <3.0.0'
+dependencies:
+  analyzer: ^0.36.3
