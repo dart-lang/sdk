@@ -1137,7 +1137,7 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
 
   MigrationVisitorTestBase() : this._(NullabilityGraph());
 
-  MigrationVisitorTestBase._(this.graph) : _variables = _Variables(graph);
+  MigrationVisitorTestBase._(this.graph) : _variables = _Variables();
 
   NullabilityNode get always => NullabilityNode.always;
 
@@ -1387,8 +1387,6 @@ class _Variables extends Variables {
   final _expressionChecks = <Expression, ExpressionChecks>{};
 
   final _possiblyOptional = <DefaultFormalParameter, NullabilityNode>{};
-
-  _Variables(NullabilityGraph graph) : super(graph);
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
   ExpressionChecks checkExpression(Expression expression) =>

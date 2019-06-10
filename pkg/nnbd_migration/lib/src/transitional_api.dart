@@ -114,8 +114,7 @@ class NullabilityMigration {
   NullabilityMigration(NullabilityMigrationListener /*?*/ listener)
       : this._(listener, NullabilityGraph());
 
-  NullabilityMigration._(this.listener, this._graph)
-      : _variables = Variables(_graph);
+  NullabilityMigration._(this.listener, this._graph) : _variables = Variables();
 
   Map<Source, List<PotentialModification>> finish() {
     _graph.propagate();
@@ -204,10 +203,6 @@ class Variables implements VariableRecorder, VariableRepository {
       <Source, Map<int, DecoratedTypeAnnotation>>{};
 
   final _potentialModifications = <Source, List<PotentialModification>>{};
-
-  final NullabilityGraph _graph;
-
-  Variables(this._graph);
 
   @override
   DecoratedType decoratedElementType(Element element, {bool create: false}) =>
