@@ -2694,7 +2694,8 @@ abstract class FunctionExpression implements Expression {
   /// Set the element associated with the function to the given [element].
   void set element(ExecutableElement element);
 
-  /// Return the parameters associated with the function.
+  /// Return the parameters associated with the function, or `null` if the
+  /// function is part of a top-level getter.
   FormalParameterList get parameters;
 
   /// Set the parameters associated with the function to the given list of

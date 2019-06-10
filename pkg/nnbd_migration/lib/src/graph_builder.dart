@@ -278,7 +278,7 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitFunctionDeclaration(FunctionDeclaration node) {
-    node.functionExpression.parameters.accept(this);
+    node.functionExpression.parameters?.accept(this);
     assert(_currentFunctionType == null);
     _currentFunctionType =
         _variables.decoratedElementType(node.declaredElement);

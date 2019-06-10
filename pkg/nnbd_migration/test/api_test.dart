@@ -629,6 +629,16 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_getter_topLevel() async {
+    var content = '''
+int get g => 0;
+''';
+    var expected = '''
+int get g => 0;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_named_parameter_no_default_unused() async {
     var content = '''
 void f({String s}) {}
