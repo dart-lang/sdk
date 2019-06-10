@@ -844,6 +844,82 @@ int f(int i, [int? j]) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_null_aware_getter_invocation() async {
+    var content = '''
+bool f(int i) => i?.isEven;
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+bool? f(int? i) => i?.isEven;
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_null_aware_method_invocation() async {
+    var content = '''
+int f(int i) => i?.abs();
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+int? f(int? i) => i?.abs();
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_null_aware_setter_invocation_null_target() async {
+    var content = '''
+class C {
+  void set x(int value);
+}
+int f(C c) => c?.x = 1;
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+class C {
+  void set x(int value);
+}
+int? f(C? c) => c?.x = 1;
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_null_aware_setter_invocation_null_value() async {
+    var content = '''
+class C {
+  void set x(int value);
+}
+int f(C c) => c?.x = 1;
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+class C {
+  void set x(int value);
+}
+int? f(C? c) => c?.x = 1;
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_single_file_multiple_changes() async {
     var content = '''
 int f() => null;

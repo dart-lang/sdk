@@ -74,6 +74,8 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   /// or expression.
   bool _inConditionalControlFlow = false;
 
+  NullabilityNode _lastConditionalNode;
+
   GraphBuilder(TypeProvider typeProvider, this._variables, this._graph,
       this._source, this.listener)
       : _notNullType =
@@ -164,7 +166,15 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
       throw UnimplementedError('TODO(paulberry)');
     }
     var leftType = node.leftHandSide.accept(this);
-    return _handleAssignment(leftType, node.rightHandSide);
+    var conditionalNode = _lastConditionalNode;
+    _lastConditionalNode = null;
+    var expressionType = _handleAssignment(leftType, node.rightHandSide);
+    if (_isConditionalExpression(node.leftHandSide)) {
+      expressionType = expressionType.withNode(
+          NullabilityNode.forLUB(conditionalNode, expressionType.node));
+      _variables.recordDecoratedExpressionType(node, expressionType);
+    }
+    return expressionType;
   }
 
   @override
@@ -363,15 +373,13 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitMethodInvocation(MethodInvocation node) {
     DecoratedType targetType;
     var target = node.realTarget;
+    bool isConditional = _isConditionalExpression(node);
     if (target != null) {
-      switch (node.operator.type) {
-        case TokenType.PERIOD:
-        case TokenType.PERIOD_PERIOD:
-          _checkNonObjectMember(node.methodName.name); // TODO(paulberry)
-          targetType = _handleAssignment(_notNullType, target);
-          break;
-        default:
-          throw new UnimplementedError('TODO(paulberry)');
+      if (isConditional) {
+        targetType = target.accept(this);
+      } else {
+        _checkNonObjectMember(node.methodName.name); // TODO(paulberry)
+        targetType = _handleAssignment(_notNullType, target);
       }
     }
     var callee = node.methodName.staticElement;
@@ -400,7 +408,13 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
       if (suppliedNamedParameters.contains(entry.key)) continue;
       entry.value.node.recordNamedParameterNotSupplied(_guards, _graph);
     }
-    return calleeType.returnType;
+    var expressionType = calleeType.returnType;
+    if (isConditional) {
+      expressionType = expressionType.withNode(
+          NullabilityNode.forLUB(targetType.node, expressionType.node));
+      _variables.recordDecoratedExpressionType(node, expressionType);
+    }
+    return expressionType;
   }
 
   @override
@@ -435,14 +449,13 @@ $stackTrace''');
     if (node.prefix.staticElement is ImportElement) {
       throw new UnimplementedError('TODO(paulberry)');
     } else {
-      return _handlePropertyAccess(node.prefix, node.period, node.identifier);
+      return _handlePropertyAccess(node, node.prefix, node.identifier);
     }
   }
 
   @override
   DecoratedType visitPropertyAccess(PropertyAccess node) {
-    return _handlePropertyAccess(
-        node.realTarget, node.operator, node.propertyName);
+    return _handlePropertyAccess(node, node.realTarget, node.propertyName);
   }
 
   @override
@@ -586,23 +599,53 @@ $stackTrace''');
   }
 
   DecoratedType _handlePropertyAccess(
-      Expression target, Token operator, SimpleIdentifier propertyName) {
-    switch (operator.type) {
+      Expression node, Expression target, SimpleIdentifier propertyName) {
+    DecoratedType targetType;
+    bool isConditional = _isConditionalExpression(node);
+    if (isConditional) {
+      targetType = target.accept(this);
+    } else {
+      _checkNonObjectMember(propertyName.name); // TODO(paulberry)
+      targetType = _handleAssignment(_notNullType, target);
+    }
+    var callee = propertyName.staticElement;
+    if (callee == null) {
+      throw new UnimplementedError('TODO(paulberry)');
+    }
+    var calleeType = getOrComputeElementType(callee, targetType: targetType);
+    // TODO(paulberry): substitute if necessary
+    if (propertyName.inSetterContext()) {
+      if (isConditional) {
+        _lastConditionalNode = targetType.node;
+      }
+      return calleeType.positionalParameters[0];
+    } else {
+      var expressionType = calleeType.returnType;
+      if (isConditional) {
+        expressionType = expressionType.withNode(
+            NullabilityNode.forLUB(targetType.node, expressionType.node));
+        _variables.recordDecoratedExpressionType(node, expressionType);
+      }
+      return expressionType;
+    }
+  }
+
+  bool _isConditionalExpression(Expression expression) {
+    Token token;
+    if (expression is MethodInvocation) {
+      token = expression.operator;
+      if (token == null) return false;
+    } else if (expression is PropertyAccess) {
+      token = expression.operator;
+    } else {
+      return false;
+    }
+    switch (token.type) {
       case TokenType.PERIOD:
       case TokenType.PERIOD_PERIOD:
-        _checkNonObjectMember(propertyName.name); // TODO(paulberry)
-        var targetType = _handleAssignment(_notNullType, target);
-        var callee = propertyName.staticElement;
-        if (callee == null) {
-          throw new UnimplementedError('TODO(paulberry)');
-        }
-        var calleeType =
-            getOrComputeElementType(callee, targetType: targetType);
-        // TODO(paulberry): substitute if necessary
-        if (propertyName.inSetterContext()) {
-          return calleeType.positionalParameters[0];
-        }
-        return calleeType.returnType;
+        return false;
+      case TokenType.QUESTION_PERIOD:
+        return true;
       default:
         throw new UnimplementedError('TODO(paulberry)');
     }

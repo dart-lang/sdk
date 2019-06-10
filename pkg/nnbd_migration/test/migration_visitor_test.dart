@@ -251,6 +251,20 @@ void f(C c, int i) {
         hard: true);
   }
 
+  test_assignmentExpression_setter_null_aware() async {
+    await analyze('''
+class C {
+  void set s(int value) {}
+}
+int f(C c, int i) => (c?.s = i);
+''');
+    var lubNode =
+        decoratedExpressionType('(c?.s = i)').node as NullabilityNodeForLUB;
+    expect(lubNode.left, same(decoratedTypeAnnotation('C c').node));
+    expect(lubNode.right, same(decoratedTypeAnnotation('int i').node));
+    assertEdge(lubNode, decoratedTypeAnnotation('int f').node, hard: false);
+  }
+
   test_assignmentExpression_setter_target_check() async {
     await analyze('''
 class C {
@@ -877,6 +891,20 @@ bool f(C c) => c.m();
         hard: false);
   }
 
+  test_methodInvocation_return_type_null_aware() async {
+    await analyze('''
+class C {
+  bool m() => true;
+}
+bool f(C c) => (c?.m());
+''');
+    var lubNode =
+        decoratedExpressionType('(c?.m())').node as NullabilityNodeForLUB;
+    expect(lubNode.left, same(decoratedTypeAnnotation('C c').node));
+    expect(lubNode.right, same(decoratedTypeAnnotation('bool m').node));
+    assertEdge(lubNode, decoratedTypeAnnotation('bool f').node, hard: false);
+  }
+
   test_methodInvocation_target_check() async {
     await analyze('''
 class C {
@@ -1009,6 +1037,20 @@ bool f(C c) => (c).b;
     assertEdge(decoratedTypeAnnotation('bool get').node,
         decoratedTypeAnnotation('bool f').node,
         hard: false);
+  }
+
+  test_propertyAccess_return_type_null_aware() async {
+    await analyze('''
+class C {
+  bool get b => true;
+}
+bool f(C c) => (c?.b);
+''');
+    var lubNode =
+        decoratedExpressionType('(c?.b)').node as NullabilityNodeForLUB;
+    expect(lubNode.left, same(decoratedTypeAnnotation('C c').node));
+    expect(lubNode.right, same(decoratedTypeAnnotation('bool get b').node));
+    assertEdge(lubNode, decoratedTypeAnnotation('bool f').node, hard: false);
   }
 
   test_propertyAccess_target_check() async {

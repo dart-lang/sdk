@@ -117,6 +117,13 @@ class DecoratedType {
     }
   }
 
+  /// Creates a shallow copy of `this`, replacing the nullability node.
+  DecoratedType withNode(NullabilityNode node) => DecoratedType(type, node,
+      returnType: returnType,
+      positionalParameters: positionalParameters,
+      namedParameters: namedParameters,
+      typeArguments: typeArguments);
+
   /// Internal implementation of [_substitute], used as a recursion target.
   DecoratedType _substitute(
       Map<TypeParameterElement, DecoratedType> substitution,
