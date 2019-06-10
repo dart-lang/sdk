@@ -12,7 +12,7 @@ import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/graph_builder.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
-import 'package:nnbd_migration/src/transitional_api.dart';
+import 'package:nnbd_migration/src/variables.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

@@ -7,7 +7,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
 import 'package:nnbd_migration/src/nullability_node.dart';
-import 'package:nnbd_migration/src/transitional_api.dart';
+import 'package:nnbd_migration/src/potential_modification.dart';
 
 /// Representation of a type in the code to be migrated.  In addition to
 /// tracking the (unmigrated) [DartType], we track the [ConstraintVariable]s

@@ -8,6 +8,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/decorated_type.dart' as analyzer;
 import 'package:nnbd_migration/src/expression_checks.dart' as analyzer;
+import 'package:nnbd_migration/src/potential_modification.dart' as analyzer;
 import 'package:nnbd_migration/src/transitional_api.dart' as analyzer;
 
 /// Kinds of fixes that might be performed by nullability migration.
