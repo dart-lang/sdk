@@ -6,13 +6,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
-import 'package:nnbd_migration/src/decorated_type.dart' as analyzer;
-import 'package:nnbd_migration/src/expression_checks.dart' as analyzer;
-import 'package:nnbd_migration/src/graph_builder.dart';
-import 'package:nnbd_migration/src/node_builder.dart';
-import 'package:nnbd_migration/src/nullability_node.dart';
-import 'package:nnbd_migration/src/potential_modification.dart' as analyzer;
-import 'package:nnbd_migration/src/variables.dart';
+import 'package:nnbd_migration/src/nullability_migration_impl.dart';
 
 /// Kinds of fixes that might be performed by nullability migration.
 class NullabilityFixKind {
@@ -58,49 +52,21 @@ class NullabilityFixKind {
 /// Usage: pass each input source file to [prepareInput].  Then pass each input
 /// source file to [processInput].  Then call [finish] to obtain the
 /// modifications that need to be made to each source file.
-class NullabilityMigration {
-  final NullabilityMigrationListener listener;
-
-  final _variables = Variables();
-
-  final _graph = NullabilityGraph();
-
-  final bool _permissive;
-
+abstract class NullabilityMigration {
   /// Prepares to perform nullability migration.
   ///
   /// If [permissive] is `true`, exception handling logic will try to proceed
   /// as far as possible even though the migration algorithm is not yet
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
-  NullabilityMigration(this.listener, {bool permissive: false})
-      : _permissive = permissive;
+  factory NullabilityMigration(NullabilityMigrationListener listener,
+      {bool permissive}) = NullabilityMigrationImpl;
 
-  void finish() {
-    _graph.propagate();
-    for (var entry in _variables.getPotentialModifications().entries) {
-      var source = entry.key;
-      for (var potentialModification in entry.value) {
-        var fix = _SingleNullabilityFix(source, potentialModification);
-        listener.addFix(fix);
-        for (var edit in potentialModification.modifications) {
-          listener.addEdit(fix, edit);
-        }
-      }
-    }
-  }
+  void finish();
 
-  void prepareInput(ResolvedUnitResult result) {
-    var unit = result.unit;
-    unit.accept(NodeBuilder(_variables, unit.declaredElement.source,
-        _permissive ? listener : null, _graph, result.typeProvider));
-  }
+  void prepareInput(ResolvedUnitResult result);
 
-  void processInput(ResolvedUnitResult result) {
-    var unit = result.unit;
-    unit.accept(GraphBuilder(result.typeProvider, _variables, _graph,
-        unit.declaredElement.source, _permissive ? listener : null));
-  }
+  void processInput(ResolvedUnitResult result);
 }
 
 /// [NullabilityMigrationListener] is used by [NullabilityMigration]
@@ -130,44 +96,4 @@ abstract class SingleNullabilityFix {
 
   /// File to change.
   Source get source;
-}
-
-/// Implementation of [SingleNullabilityFix] used internally by
-/// [NullabilityMigration].
-class _SingleNullabilityFix extends SingleNullabilityFix {
-  @override
-  final Source source;
-
-  @override
-  final NullabilityFixKind kind;
-
-  factory _SingleNullabilityFix(
-      Source source, analyzer.PotentialModification potentialModification) {
-    // TODO(paulberry): once everything is migrated into the analysis server,
-    // the migration engine can just create SingleNullabilityFix objects
-    // directly and set their kind appropriately; we won't need to translate the
-    // kinds using a bunch of `is` checks.
-    NullabilityFixKind kind;
-    if (potentialModification is analyzer.ExpressionChecks) {
-      kind = NullabilityFixKind.checkExpression;
-    } else if (potentialModification is analyzer.DecoratedTypeAnnotation) {
-      kind = NullabilityFixKind.makeTypeNullable;
-    } else if (potentialModification is analyzer.ConditionalModification) {
-      kind = potentialModification.discard.keepFalse
-          ? NullabilityFixKind.discardThen
-          : NullabilityFixKind.discardElse;
-    } else if (potentialModification is analyzer.PotentiallyAddImport) {
-      kind = NullabilityFixKind.addImport;
-    } else if (potentialModification is analyzer.PotentiallyAddRequired) {
-      kind = NullabilityFixKind.addRequired;
-    } else {
-      throw new UnimplementedError('TODO(paulberry)');
-    }
-    return _SingleNullabilityFix._(source, kind);
-  }
-
-  _SingleNullabilityFix._(this.source, this.kind);
-
-  /// TODO(paulberry): do something better
-  Location get location => null;
 }
