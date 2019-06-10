@@ -33,6 +33,8 @@ const c = a is int;
     verifyVersion('2.2.0', '''
 const dynamic a = 2;
 const c = a is int;
-''', errorCodes: [HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT]);
+''', expectedErrors: [
+      error(HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT, 31, 8),
+    ]);
   }
 }

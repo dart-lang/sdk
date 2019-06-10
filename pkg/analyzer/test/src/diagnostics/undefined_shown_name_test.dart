@@ -17,15 +17,20 @@ main() {
 class UndefinedShownNameTest extends DriverResolutionTest {
   test_export() async {
     newFile('/test/lib/lib1.dart');
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 export 'lib1.dart' show a;
-''', [HintCode.UNDEFINED_SHOWN_NAME]);
+''', [
+      error(HintCode.UNDEFINED_SHOWN_NAME, 24, 1),
+    ]);
   }
 
   test_import() async {
     newFile('/test/lib/lib1.dart');
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'lib1.dart' show a;
-''', [HintCode.UNUSED_IMPORT, HintCode.UNDEFINED_SHOWN_NAME]);
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
+      error(HintCode.UNDEFINED_SHOWN_NAME, 24, 1),
+    ]);
   }
 }

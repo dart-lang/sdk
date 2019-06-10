@@ -20,10 +20,12 @@ class UnusedShownNameTest extends DriverResolutionTest {
 class A {}
 class B {}
 ''');
-    assertErrorCodesInCode(r'''
+    assertErrorsInCode(r'''
 import 'lib1.dart' show A, B;
 A a;
-''', [HintCode.UNUSED_SHOWN_NAME]);
+''', [
+      error(HintCode.UNUSED_SHOWN_NAME, 27, 1),
+    ]);
   }
 
   test_unusedShownName_as() async {
@@ -31,10 +33,12 @@ A a;
 class A {}
 class B {}
 ''');
-    assertErrorCodesInCode(r'''
+    assertErrorsInCode(r'''
 import 'lib1.dart' as p show A, B;
 p.A a;
-''', [HintCode.UNUSED_SHOWN_NAME]);
+''', [
+      error(HintCode.UNUSED_SHOWN_NAME, 32, 1),
+    ]);
   }
 
   test_unusedShownName_duplicates() async {
@@ -44,12 +48,15 @@ class B {}
 class C {}
 class D {}
 ''');
-    assertErrorCodesInCode(r'''
+    assertErrorsInCode(r'''
 import 'lib1.dart' show A, B;
 import 'lib1.dart' show C, D;
 A a;
 C c;
-''', [HintCode.UNUSED_SHOWN_NAME, HintCode.UNUSED_SHOWN_NAME]);
+''', [
+      error(HintCode.UNUSED_SHOWN_NAME, 27, 1),
+      error(HintCode.UNUSED_SHOWN_NAME, 57, 1),
+    ]);
   }
 
   test_unusedShownName_topLevelVariable() async {
@@ -59,12 +66,14 @@ const int var2 = 2;
 const int var3 = 3;
 const int var4 = 4;
 ''');
-    assertErrorCodesInCode(r'''
+    assertErrorsInCode(r'''
 import 'lib1.dart' show var1, var2;
 import 'lib1.dart' show var3, var4;
 int a = var1;
 int b = var2;
 int c = var3;
-''', [HintCode.UNUSED_SHOWN_NAME]);
+''', [
+      error(HintCode.UNUSED_SHOWN_NAME, 66, 4),
+    ]);
   }
 }

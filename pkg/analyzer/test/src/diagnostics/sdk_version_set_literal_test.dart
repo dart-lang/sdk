@@ -30,6 +30,8 @@ Set<int> zero() => <int>{0};
   test_lessThan() async {
     await verifyVersion('2.1.0', '''
 Set<int> zero() => <int>{0};
-''', errorCodes: [HintCode.SDK_VERSION_SET_LITERAL]);
+''', expectedErrors: [
+      error(HintCode.SDK_VERSION_SET_LITERAL, 19, 8),
+    ]);
   }
 }

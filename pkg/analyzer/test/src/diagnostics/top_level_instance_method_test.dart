@@ -16,12 +16,14 @@ main() {
 @reflectiveTest
 class TopLevelInstanceMethodTest extends DriverResolutionTest {
   test_noParameter() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   f() => 0;
 }
 var x = new A().f();
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, 32, 11),
+    ]);
   }
 
   test_parameter() async {
@@ -34,12 +36,14 @@ var x = new A().f(0);
   }
 
   test_parameter_generic() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   int f<T>(v) => 0;
 }
 var x = new A().f(0);
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, 40, 12),
+    ]);
   }
 
   test_parameter_generic_explicit() async {
@@ -61,21 +65,25 @@ var x = A.f();
   }
 
   test_tearOff() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   f() => 0;
 }
 var x = new A().f;
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, 40, 1),
+    ]);
   }
 
   test_tearOff_parameter() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   int f(v) => 0;
 }
 var x = new A().f;
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, 45, 1),
+    ]);
   }
 
   test_tearoff_static() async {

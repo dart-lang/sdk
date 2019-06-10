@@ -30,6 +30,8 @@ List<int> zero() => [...[0]];
   test_lessThan() async {
     await verifyVersion('2.2.1', '''
 List<int> zero() => [if (0 < 1) 0];
-''', errorCodes: [HintCode.SDK_VERSION_UI_AS_CODE]);
+''', expectedErrors: [
+      error(HintCode.SDK_VERSION_UI_AS_CODE, 21, 12),
+    ]);
   }
 }

@@ -19,37 +19,45 @@ main() {
 @reflectiveTest
 class NonConstantMapValueTest extends DriverResolutionTest {
   test_const_ifTrue_elseFinal() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 'a': 'b', 'c' : a};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]
+            ? [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 81, 1),
+              ]
             : [
-                CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
-                CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 55, 18),
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 81, 1),
               ]);
   }
 
   test_const_ifTrue_thenFinal() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 'a' : a};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+            ? [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 71, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 55, 17),
+              ]);
   }
 
   test_const_topLevel() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 final dynamic a = 0;
 var v = const {'a' : a};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 42, 1),
+    ]);
   }
 }
 

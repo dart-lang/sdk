@@ -29,30 +29,39 @@ var v = [...?null];
   }
 
   test_notIterable_direct() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var a = 0;
 var v = [...a];
-''', [CompileTimeErrorCode.NOT_ITERABLE_SPREAD]);
+''', [
+      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 23, 1),
+    ]);
   }
 
   test_notIterable_forElement() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var a = 0;
 var v = [for (var i in []) ...a];
-''', [CompileTimeErrorCode.NOT_ITERABLE_SPREAD]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 41, 1),
+    ]);
   }
 
   test_notIterable_ifElement_else() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var a = 0;
 var v = [if (1 > 0) ...[] else ...a];
-''', [CompileTimeErrorCode.NOT_ITERABLE_SPREAD]);
+''', [
+      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 45, 1),
+    ]);
   }
 
   test_notIterable_ifElement_then() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var a = 0;
 var v = [if (1 > 0) ...a];
-''', [CompileTimeErrorCode.NOT_ITERABLE_SPREAD]);
+''', [
+      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 34, 1),
+    ]);
   }
 }

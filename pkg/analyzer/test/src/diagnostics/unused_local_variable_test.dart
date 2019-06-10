@@ -31,23 +31,27 @@ main() {
   }
 
   test_inFunction() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var v = 1;
   v = 2;
 }
-''', [HintCode.UNUSED_LOCAL_VARIABLE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
   }
 
   test_inMethod() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   foo() {
     var v = 1;
     v = 2;
   }
 }
-''', [HintCode.UNUSED_LOCAL_VARIABLE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 28, 1),
+    ]);
   }
 
   test_isInvoked() async {
@@ -72,30 +76,36 @@ doSomething() => 42;
   }
 
   test_isRead_notUsed_compoundAssign() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var v = 1;
   v += 2;
 }
-''', [HintCode.UNUSED_LOCAL_VARIABLE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
   }
 
   test_isRead_notUsed_postfixExpr() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var v = 1;
   v++;
 }
-''', [HintCode.UNUSED_LOCAL_VARIABLE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
   }
 
   test_isRead_notUsed_prefixExpr() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   var v = 1;
   ++v;
 }
-''', [HintCode.UNUSED_LOCAL_VARIABLE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
   }
 
   test_isRead_usedArgument() async {

@@ -16,51 +16,63 @@ main() {
 @reflectiveTest
 class NullAwareInLogicalOperatorTest extends DriverResolutionTest {
   test_conditionalAnd_first() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x?.a && x.b;
 }
-''', [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
+''', [
+      error(HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 9, 4),
+    ]);
   }
 
   test_conditionalAnd_second() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x.a && x?.b;
 }
-''', [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
+''', [
+      error(HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 16, 4),
+    ]);
   }
 
   test_conditionalAnd_third() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x.a && x.b && x?.c;
 }
-''', [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
+''', [
+      error(HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 23, 4),
+    ]);
   }
 
   test_conditionalOr_first() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x?.a || x.b;
 }
-''', [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
+''', [
+      error(HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 9, 4),
+    ]);
   }
 
   test_conditionalOr_second() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x.a || x?.b;
 }
-''', [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
+''', [
+      error(HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 16, 4),
+    ]);
   }
 
   test_conditionalOr_third() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x.a || x.b || x?.c;
 }
-''', [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
+''', [
+      error(HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 23, 4),
+    ]);
   }
 
   test_for_noCondition() async {
@@ -80,10 +92,12 @@ m(x) {
   }
 
   test_not() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   !x?.a;
 }
-''', [HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR]);
+''', [
+      error(HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR, 10, 4),
+    ]);
   }
 }

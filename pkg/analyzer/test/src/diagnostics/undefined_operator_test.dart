@@ -16,18 +16,20 @@ main() {
 @reflectiveTest
 class UndefinedOperatorTest extends DriverResolutionTest {
   test_binaryExpression() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 f(var a) {
   if (a is A) {
     a + 1;
   }
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 44, 1),
+    ]);
   }
 
   test_binaryExpression_inSubtype() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 class B extends A {
   operator +(B b) {}
@@ -37,11 +39,13 @@ f(var a) {
     a + 1;
   }
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 87, 1),
+    ]);
   }
 
   test_indexBoth() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 f(var a) {
   if (a is A) {
@@ -49,13 +53,13 @@ f(var a) {
   }
 }
 ''', [
-      StaticTypeWarningCode.UNDEFINED_OPERATOR,
-      StaticTypeWarningCode.UNDEFINED_OPERATOR,
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 43, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 43, 3),
     ]);
   }
 
   test_indexBoth_inSubtype() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 class B extends A {
   operator [](int index) {}
@@ -66,24 +70,26 @@ f(var a) {
   }
 }
 ''', [
-      StaticTypeWarningCode.UNDEFINED_OPERATOR,
-      StaticTypeWarningCode.UNDEFINED_OPERATOR,
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 93, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 93, 3),
     ]);
   }
 
   test_indexGetter() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 f(var a) {
   if (a is A) {
     a[0];
   }
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 43, 3),
+    ]);
   }
 
   test_indexGetter_inSubtype() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 class B extends A {
   operator [](int index) {}
@@ -93,22 +99,26 @@ f(var a) {
     a[0];
   }
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 93, 3),
+    ]);
   }
 
   test_indexSetter() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 f(var a) {
   if (a is A) {
     a[0] = 1;
   }
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 43, 3),
+    ]);
   }
 
   test_indexSetter_inSubtype() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 class B extends A {
   operator []=(i, v) {}
@@ -118,7 +128,9 @@ f(var a) {
     a[0] = 1;
   }
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 89, 3),
+    ]);
   }
 
   test_postfixExpression() async {

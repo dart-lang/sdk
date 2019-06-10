@@ -105,40 +105,48 @@ print(x) {}
   }
 
   test_unusedField_notUsed_compoundAssign() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   int _f;
   main() {
     _f += 2;
   }
 }
-''', [HintCode.UNUSED_FIELD]);
+''', [
+      error(HintCode.UNUSED_FIELD, 16, 2),
+    ]);
   }
 
   test_unusedField_notUsed_constructorFieldInitializers() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   int _f;
   A() : _f = 0;
 }
-''', [HintCode.UNUSED_FIELD]);
+''', [
+      error(HintCode.UNUSED_FIELD, 16, 2),
+    ]);
   }
 
   test_unusedField_notUsed_fieldFormalParameter() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   int _f;
   A(this._f);
 }
-''', [HintCode.UNUSED_FIELD]);
+''', [
+      error(HintCode.UNUSED_FIELD, 16, 2),
+    ]);
   }
 
   test_unusedField_notUsed_noReference() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   int _f;
 }
-''', [HintCode.UNUSED_FIELD]);
+''', [
+      error(HintCode.UNUSED_FIELD, 16, 2),
+    ]);
   }
 
   test_unusedField_notUsed_nullAssign() async {
@@ -154,29 +162,33 @@ doSomething() => 0;
   }
 
   test_unusedField_notUsed_postfixExpr() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   int _f = 0;
   main() {
     _f++;
   }
 }
-''', [HintCode.UNUSED_FIELD]);
+''', [
+      error(HintCode.UNUSED_FIELD, 16, 2),
+    ]);
   }
 
   test_unusedField_notUsed_prefixExpr() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   int _f = 0;
   main() {
     ++_f;
   }
 }
-''', [HintCode.UNUSED_FIELD]);
+''', [
+      error(HintCode.UNUSED_FIELD, 16, 2),
+    ]);
   }
 
   test_unusedField_notUsed_simpleAssignment() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   int _f;
   m() {
@@ -186,6 +198,8 @@ class A {
 main(A a) {
   a._f = 2;
 }
-''', [HintCode.UNUSED_FIELD]);
+''', [
+      error(HintCode.UNUSED_FIELD, 16, 2),
+    ]);
   }
 }

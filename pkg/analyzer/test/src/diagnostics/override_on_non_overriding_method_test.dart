@@ -65,12 +65,14 @@ class B extends A {
   }
 
   test_invalid() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
 }
 class B extends A {
   @override
   int m() => 1;
-}''', [HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD]);
+}''', [
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD, 50, 1),
+    ]);
   }
 }

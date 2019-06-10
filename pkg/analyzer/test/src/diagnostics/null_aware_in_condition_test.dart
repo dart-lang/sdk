@@ -16,58 +16,72 @@ main() {
 @reflectiveTest
 class NullAwareInConditionTest extends DriverResolutionTest {
   test_assert() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   assert (x?.a);
 }
-''', [HintCode.NULL_AWARE_IN_CONDITION]);
+''', [
+      error(HintCode.NULL_AWARE_IN_CONDITION, 17, 4),
+    ]);
   }
 
   test_conditionalExpression() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   return x?.a ? 0 : 1;
 }
-''', [HintCode.NULL_AWARE_IN_CONDITION]);
+''', [
+      error(HintCode.NULL_AWARE_IN_CONDITION, 16, 4),
+    ]);
   }
 
   test_do() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   do {} while (x?.a);
 }
-''', [HintCode.NULL_AWARE_IN_CONDITION]);
+''', [
+      error(HintCode.NULL_AWARE_IN_CONDITION, 22, 4),
+    ]);
   }
 
   test_for() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   for (var v = x; v?.a; v = v.next) {}
 }
-''', [HintCode.NULL_AWARE_IN_CONDITION]);
+''', [
+      error(HintCode.NULL_AWARE_IN_CONDITION, 25, 4),
+    ]);
   }
 
   test_if() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   if (x?.a) {}
 }
-''', [HintCode.NULL_AWARE_IN_CONDITION]);
+''', [
+      error(HintCode.NULL_AWARE_IN_CONDITION, 13, 4),
+    ]);
   }
 
   test_if_parenthesized() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   if ((x?.a)) {}
 }
-''', [HintCode.NULL_AWARE_IN_CONDITION]);
+''', [
+      error(HintCode.NULL_AWARE_IN_CONDITION, 13, 6),
+    ]);
   }
 
   test_while() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   while (x?.a) {}
 }
-''', [HintCode.NULL_AWARE_IN_CONDITION]);
+''', [
+      error(HintCode.NULL_AWARE_IN_CONDITION, 16, 4),
+    ]);
   }
 }
