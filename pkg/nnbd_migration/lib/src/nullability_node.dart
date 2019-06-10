@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 
 /// Data structure to keep track of the relationship from one [NullabilityNode]
@@ -273,8 +272,8 @@ abstract class NullabilityNode {
   /// [joinNullabilities] callback.  TODO(paulberry): this should become
   /// unnecessary once constraint solving is performed directly using
   /// [NullabilityNode] objects.
-  factory NullabilityNode.forLUB(Expression conditionalExpression,
-      NullabilityNode a, NullabilityNode b) = NullabilityNodeForLUB._;
+  factory NullabilityNode.forLUB(NullabilityNode a, NullabilityNode b) =
+      NullabilityNodeForLUB._;
 
   /// Creates a [NullabilityNode] representing the nullability of a type
   /// substitution where [outerNode] is the nullability node for the type
@@ -383,7 +382,7 @@ class NullabilityNodeForLUB extends _NullabilityNodeCompound {
 
   final NullabilityNode right;
 
-  NullabilityNodeForLUB._(Expression expression, this.left, this.right);
+  NullabilityNodeForLUB._(this.left, this.right);
 
   @override
   Iterable<NullabilityNode> get _components => [left, right];

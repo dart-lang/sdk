@@ -234,8 +234,8 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     assert(_isSimple(thenType)); // TODO(paulberry)
     var elseType = node.elseExpression.accept(this);
     assert(_isSimple(elseType)); // TODO(paulberry)
-    var overallType = DecoratedType(node.staticType,
-        NullabilityNode.forLUB(node, thenType.node, elseType.node));
+    var overallType = DecoratedType(
+        node.staticType, NullabilityNode.forLUB(thenType.node, elseType.node));
     _variables.recordDecoratedExpressionType(node, overallType);
     return overallType;
   }
