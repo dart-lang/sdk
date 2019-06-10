@@ -224,6 +224,22 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_constructorDeclaration_namedParameter() async {
+    var content = '''
+class C {
+  C({Key key});
+}
+class Key {}
+''';
+    var expected = '''
+class C {
+  C({Key? key});
+}
+class Key {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_data_flow_assignment_field() async {
     var content = '''
 class C {
