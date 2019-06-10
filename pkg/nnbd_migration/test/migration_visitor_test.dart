@@ -1048,6 +1048,19 @@ int f() {
         contextNode: decoratedTypeAnnotation('int').node);
   }
 
+  test_return_null_generic() async {
+    await analyze('''
+class C<T> {
+  T f() {
+    return null;
+  }
+}
+''');
+    var tNode = decoratedTypeAnnotation('T f').node;
+    assertEdge(always, tNode, hard: false);
+    assertNullCheck(checkExpression('null'), always, contextNode: tNode);
+  }
+
   test_simpleIdentifier_local() async {
     await analyze('''
 main() {

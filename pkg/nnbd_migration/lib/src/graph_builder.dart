@@ -235,7 +235,7 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     var elseType = node.elseExpression.accept(this);
     assert(_isSimple(elseType)); // TODO(paulberry)
     var overallType = DecoratedType(node.staticType,
-        NullabilityNode.forLUB(node, thenType.node, elseType.node, _graph));
+        NullabilityNode.forLUB(node, thenType.node, elseType.node));
     _variables.recordDecoratedExpressionType(node, overallType);
     return overallType;
   }
@@ -616,6 +616,7 @@ $stackTrace''');
   bool _isSimple(DecoratedType type) {
     if (type.type.isBottom) return true;
     if (type.type.isVoid) return true;
+    if (type.type is TypeParameterType) return true;
     if (type.type is! InterfaceType) return false;
     if ((type.type as InterfaceType).typeParameters.isNotEmpty) return false;
     return true;

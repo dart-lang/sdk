@@ -316,7 +316,7 @@ int? f(C c) => c.f;
     await _checkSingleFileChanges(content, expected);
   }
 
-  test_data_flow_generic_inward() async {
+  test_data_flow_generic_contravariant_inward() async {
     var content = '''
 class C<T> {
   void f(T t) {}
@@ -350,6 +350,38 @@ void g(C<int?> c, int? i) {
 void test(C<int> c) {
   g(c, null);
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_data_flow_generic_covariant_outward() async {
+    var content = '''
+class C<T> {
+  T getValue() => null;
+}
+int f(C<int> x) => x.getValue();
+''';
+    var expected = '''
+class C<T> {
+  T? getValue() => null;
+}
+int? f(C<int> x) => x.getValue();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_data_flow_generic_covariant_substituted() async {
+    var content = '''
+abstract class C<T> {
+  T getValue();
+}
+int f(C<int/*?*/> x) => x.getValue();
+''';
+    var expected = '''
+abstract class C<T> {
+  T getValue();
+}
+int? f(C<int?/*?*/> x) => x.getValue();
 ''';
     await _checkSingleFileChanges(content, expected);
   }

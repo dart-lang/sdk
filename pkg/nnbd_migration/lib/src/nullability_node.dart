@@ -60,16 +60,7 @@ class NullabilityGraph {
     var sources = [sourceNode]..addAll(guards);
     var edge = NullabilityEdge(destinationNode, sources, hard);
     for (var source in sources) {
-      _allSourceNodes.add(source);
-      if (source is NullabilityNodeMutable) {
-        source._downstreamEdges.add(edge);
-      } else if (source == NullabilityNode.always) {
-        _downstreamFromAlways.add(edge);
-      } else {
-        // We don't need to track nodes that are downstream from `never` because
-        // `never` will never be nullable.
-        assert(source == NullabilityNode.never);
-      }
+      _connectDownstream(source, edge);
     }
     if (destinationNode is NullabilityNodeMutable) {
       destinationNode._upstreamEdges.add(edge);
@@ -144,6 +135,24 @@ class NullabilityGraph {
     _propagateDownstream();
   }
 
+  void _connectDownstream(NullabilityNode source, NullabilityEdge edge) {
+    _allSourceNodes.add(source);
+    if (source is NullabilityNodeMutable) {
+      source._downstreamEdges.add(edge);
+      if (source is _NullabilityNodeCompound) {
+        for (var component in source._components) {
+          _connectDownstream(component, edge);
+        }
+      }
+    } else if (source == NullabilityNode.always) {
+      _downstreamFromAlways.add(edge);
+    } else {
+      // We don't need to track nodes that are downstream from `never` because
+      // `never` will never be nullable.
+      assert(source == NullabilityNode.never);
+    }
+  }
+
   Iterable<NullabilityEdge> _getDownstreamEdges(NullabilityNode node) {
     if (node is NullabilityNodeMutable) {
       return node._downstreamEdges;
@@ -176,7 +185,7 @@ class NullabilityGraph {
         }
         for (var source in edge.sources) {
           if (!source.isNullable) {
-            // Note all sources are nullable, so this edge doesn't apply yet.
+            // Not all sources are nullable, so this edge doesn't apply yet.
             continue nextEdge;
           }
         }
@@ -264,11 +273,8 @@ abstract class NullabilityNode {
   /// [joinNullabilities] callback.  TODO(paulberry): this should become
   /// unnecessary once constraint solving is performed directly using
   /// [NullabilityNode] objects.
-  factory NullabilityNode.forLUB(
-      Expression conditionalExpression,
-      NullabilityNode a,
-      NullabilityNode b,
-      NullabilityGraph graph) = NullabilityNodeForLUB._;
+  factory NullabilityNode.forLUB(Expression conditionalExpression,
+      NullabilityNode a, NullabilityNode b) = NullabilityNodeForLUB._;
 
   /// Creates a [NullabilityNode] representing the nullability of a type
   /// substitution where [outerNode] is the nullability node for the type
@@ -372,17 +378,15 @@ abstract class NullabilityNode {
 
 /// Derived class for nullability nodes that arise from the least-upper-bound
 /// implied by a conditional expression.
-class NullabilityNodeForLUB extends NullabilityNodeMutable {
+class NullabilityNodeForLUB extends _NullabilityNodeCompound {
   final NullabilityNode left;
 
   final NullabilityNode right;
 
-  NullabilityNodeForLUB._(
-      Expression expression, this.left, this.right, NullabilityGraph graph)
-      : super._() {
-    graph.connect(left, this);
-    graph.connect(right, this);
-  }
+  NullabilityNodeForLUB._(Expression expression, this.left, this.right);
+
+  @override
+  Iterable<NullabilityNode> get _components => [left, right];
 
   @override
   String get _debugPrefix => 'LUB($left, $right)';
@@ -390,7 +394,7 @@ class NullabilityNodeForLUB extends NullabilityNodeMutable {
 
 /// Derived class for nullability nodes that arise from type variable
 /// substitution.
-class NullabilityNodeForSubstitution extends NullabilityNodeMutable {
+class NullabilityNodeForSubstitution extends _NullabilityNodeCompound {
   /// Nullability node representing the inner type of the substitution.
   ///
   /// For example, if this NullabilityNode arose from substituting `int*` for
@@ -405,7 +409,10 @@ class NullabilityNodeForSubstitution extends NullabilityNodeMutable {
   /// `*` in `T*`.
   final NullabilityNode outerNode;
 
-  NullabilityNodeForSubstitution._(this.innerNode, this.outerNode) : super._();
+  NullabilityNodeForSubstitution._(this.innerNode, this.outerNode);
+
+  @override
+  Iterable<NullabilityNode> get _components => [innerNode, outerNode];
 
   @override
   String get _debugPrefix => 'Substituted($innerNode, $outerNode)';
@@ -437,6 +444,15 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
 
   @override
   bool get isNullable => _state.isNullable;
+}
+
+abstract class _NullabilityNodeCompound extends NullabilityNodeMutable {
+  _NullabilityNodeCompound() : super._();
+
+  @override
+  bool get isNullable => _components.any((c) => c.isNullable);
+
+  Iterable<NullabilityNode> get _components;
 }
 
 class _NullabilityNodeImmutable extends NullabilityNode {
