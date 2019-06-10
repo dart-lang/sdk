@@ -8,8 +8,11 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/decorated_type.dart' as analyzer;
 import 'package:nnbd_migration/src/expression_checks.dart' as analyzer;
+import 'package:nnbd_migration/src/graph_builder.dart';
+import 'package:nnbd_migration/src/node_builder.dart';
+import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/potential_modification.dart' as analyzer;
-import 'package:nnbd_migration/src/transitional_api.dart' as analyzer;
+import 'package:nnbd_migration/src/variables.dart';
 
 /// Kinds of fixes that might be performed by nullability migration.
 class NullabilityFixKind {
@@ -55,12 +58,14 @@ class NullabilityFixKind {
 /// Usage: pass each input source file to [prepareInput].  Then pass each input
 /// source file to [processInput].  Then call [finish] to obtain the
 /// modifications that need to be made to each source file.
-///
-/// TODO(paulberry): figure out whether this API is what we want, and figure out
-/// what file/folder it belongs in.
 class NullabilityMigration {
-  final analyzer.NullabilityMigration _analyzerMigration;
   final NullabilityMigrationListener listener;
+
+  final _variables = Variables();
+
+  final _graph = NullabilityGraph();
+
+  final bool _permissive;
 
   /// Prepares to perform nullability migration.
   ///
@@ -69,11 +74,11 @@ class NullabilityMigration {
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
   NullabilityMigration(this.listener, {bool permissive: false})
-      : _analyzerMigration =
-            analyzer.NullabilityMigration(permissive ? listener : null);
+      : _permissive = permissive;
 
   void finish() {
-    for (var entry in _analyzerMigration.finish().entries) {
+    _graph.propagate();
+    for (var entry in _variables.getPotentialModifications().entries) {
       var source = entry.key;
       for (var potentialModification in entry.value) {
         var fix = _SingleNullabilityFix(source, potentialModification);
@@ -86,11 +91,15 @@ class NullabilityMigration {
   }
 
   void prepareInput(ResolvedUnitResult result) {
-    _analyzerMigration.prepareInput(result.unit, result.typeProvider);
+    var unit = result.unit;
+    unit.accept(NodeBuilder(_variables, unit.declaredElement.source,
+        _permissive ? listener : null, _graph, result.typeProvider));
   }
 
   void processInput(ResolvedUnitResult result) {
-    _analyzerMigration.processInput(result.unit, result.typeProvider);
+    var unit = result.unit;
+    unit.accept(GraphBuilder(result.typeProvider, _variables, _graph,
+        unit.declaredElement.source, _permissive ? listener : null));
   }
 }
 
