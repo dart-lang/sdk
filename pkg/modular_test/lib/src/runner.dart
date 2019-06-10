@@ -24,7 +24,7 @@ Future<void> runSuite(Uri suiteFolder, String suiteName, Options options,
       .map((e) => new _PipelineTest(e.uri, suiteFolder, options, pipeline))
       .toList();
 
-  generic.runSuite(
+  await generic.runSuite(
       entries,
       new generic.RunnerOptions()
         ..suiteName = suiteName

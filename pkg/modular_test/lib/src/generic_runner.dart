@@ -152,8 +152,13 @@ Future<void> runSuite<T>(List<Test> tests, RunnerOptions options) async {
     }
   }
 
-  File.fromUri(options.logDir.resolve('results.json'))
-      .writeAsStringSync(results.map((s) => '$s\n').join());
-  File.fromUri(options.logDir.resolve('logs.json'))
-      .writeAsStringSync(logs.map((s) => '$s\n').join());
+  // Ensure the directory URI ends with a path separator.
+  var logDir = Directory.fromUri(options.logDir).uri;
+  var resultJsonUri = logDir.resolve('results.json');
+  var logsJsonUri = logDir.resolve('logs.json');
+  File.fromUri(resultJsonUri)
+      .writeAsStringSync(results.map((s) => '$s\n').join(), flush: true);
+  File.fromUri(logsJsonUri)
+      .writeAsStringSync(logs.map((s) => '$s\n').join(), flush: true);
+  print('log files emitted to ${resultJsonUri} and ${logsJsonUri}');
 }
