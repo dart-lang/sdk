@@ -494,7 +494,7 @@ void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
   Label overflow;
   TestBothArgumentsSmis(assembler, normal_ir_body);
   // Shift value is in RAX. Compare with tagged Smi.
-  __ cmpq(RAX, Immediate(target::ToRawSmi(target::Smi::kBits)));
+  __ cmpq(RAX, Immediate(target::ToRawSmi(target::kSmiBits)));
   __ j(ABOVE_EQUAL, normal_ir_body, Assembler::kNearJump);
 
   __ SmiUntag(RAX);
@@ -1465,7 +1465,7 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ movq(RCX, RAX);
   __ shrq(RCX, Immediate(32));
   __ xorq(RAX, RCX);
-  __ andq(RAX, Immediate(kSmiMax));
+  __ andq(RAX, Immediate(target::kSmiMax));
   __ SmiTag(RAX);
   __ ret();
 
@@ -1623,8 +1623,7 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   // Object is neither double, nor integer, nor string.
   __ Bind(&use_declaration_type);
   __ LoadClassById(RDI, RCX);
-  __ movzxw(RCX, FieldAddress(
-                     RDI, target::Class::num_type_arguments_offset_in_bytes()));
+  __ movzxw(RCX, FieldAddress(RDI, target::Class::num_type_arguments_offset()));
   __ cmpq(RCX, Immediate(0));
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
   __ movq(RAX, FieldAddress(RDI, target::Class::declaration_type_offset()));
@@ -1659,8 +1658,7 @@ void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
   // Check if there are no type arguments. In this case we can return true.
   // Otherwise fall through into the runtime to handle comparison.
   __ LoadClassById(RDI, RCX);
-  __ movzxw(RCX, FieldAddress(
-                     RDI, target::Class::num_type_arguments_offset_in_bytes()));
+  __ movzxw(RCX, FieldAddress(RDI, target::Class::num_type_arguments_offset()));
   __ cmpq(RCX, Immediate(0));
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
 

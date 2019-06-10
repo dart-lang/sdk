@@ -824,7 +824,8 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
 
     RegisterSet* registers = locs->live_registers();
     ASSERT(registers != NULL);
-    const intptr_t kFpuRegisterSpillFactor = kFpuRegisterSize / kWordSize;
+    const intptr_t kFpuRegisterSpillFactor =
+        kFpuRegisterSize / compiler::target::kWordSize;
     intptr_t saved_registers_size = 0;
     const bool using_shared_stub = locs->call_on_shared_slow_path();
     if (using_shared_stub) {
@@ -965,7 +966,8 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
   RegisterSet* regs = instruction->locs()->live_registers();
   intptr_t fpu_reg_slots[kNumberOfFpuRegisters];
   intptr_t cpu_reg_slots[kNumberOfCpuRegisters];
-  const intptr_t kFpuRegisterSpillFactor = kFpuRegisterSize / kWordSize;
+  const intptr_t kFpuRegisterSpillFactor =
+      kFpuRegisterSize / compiler::target::kWordSize;
   // FPU registers are spilled first from highest to lowest register number.
   for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
     FpuRegister reg = static_cast<FpuRegister>(i);
@@ -1234,7 +1236,7 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
         if (field.is_instance() &&
             (FLAG_precompiled_mode || !IsPotentialUnboxedField(field))) {
           SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-          GenerateGetterIntrinsic(field.Offset());
+          GenerateGetterIntrinsic(compiler::target::Field::OffsetOf(field));
           SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
           return !isolate()->use_field_guards();
         }
@@ -1253,7 +1255,7 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
           if (field.is_instance() &&
               (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
             SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-            GenerateSetterIntrinsic(field.Offset());
+            GenerateSetterIntrinsic(compiler::target::Field::OffsetOf(field));
             SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
             return !isolate()->use_field_guards();
           }
@@ -1267,8 +1269,9 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
             parsed_function().function().extracted_method_closure());
         auto& klass = Class::Handle(extracted_method.Owner());
         const intptr_t type_arguments_field_offset =
-            klass.NumTypeArguments() > 0
-                ? (klass.type_arguments_field_offset() - kHeapObjectTag)
+            compiler::target::Class::HasTypeArgumentsField(klass)
+                ? (compiler::target::Class::TypeArgumentsFieldOffset(klass) -
+                   kHeapObjectTag)
                 : 0;
 
         SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
@@ -2308,8 +2311,9 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     __ CompareObject(kTypeArgumentsReg, Object::null_object());
     __ BranchIf(EQUAL, done);
     __ LoadField(dst_type_reg,
-                 FieldAddress(kTypeArgumentsReg, TypeArguments::type_at_offset(
-                                                     type_param.index())));
+                 FieldAddress(kTypeArgumentsReg,
+                              compiler::target::TypeArguments::type_at_offset(
+                                  type_param.index())));
     if (type_usage_info != NULL) {
       type_usage_info->UseTypeInAssertAssignable(dst_type);
     }

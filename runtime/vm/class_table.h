@@ -301,16 +301,13 @@ class ClassTable {
   }
 
   // Used by the generated code.
-  static intptr_t TableOffsetFor(intptr_t cid);
-
-  // Used by the generated code.
-  static intptr_t CounterOffsetFor(intptr_t cid, bool is_new_space);
+  static intptr_t NewSpaceCounterOffsetFor(intptr_t cid);
 
   // Used by the generated code.
   static intptr_t StateOffsetFor(intptr_t cid);
 
   // Used by the generated code.
-  static intptr_t SizeOffsetFor(intptr_t cid, bool is_new_space);
+  static intptr_t NewSpaceSizeOffsetFor(intptr_t cid);
 
   ClassHeapStats* StatsWithUpdatedSize(intptr_t cid);
 

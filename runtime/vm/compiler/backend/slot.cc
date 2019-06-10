@@ -54,7 +54,8 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
 #define FIELD_VAR (0)
 #define DEFINE_NATIVE_FIELD(ClassName, FieldName, cid, mutability)             \
   Slot(Kind::k##ClassName##_##FieldName, FIELD_##mutability, k##cid##Cid,      \
-       ClassName::FieldName##_offset(), #ClassName "." #FieldName, nullptr),
+       compiler::target::ClassName::FieldName##_offset(),                      \
+       #ClassName "." #FieldName, nullptr),
 
       NATIVE_SLOTS_LIST(DEFINE_NATIVE_FIELD)
 
@@ -102,7 +103,8 @@ const Slot& Slot::GetTypeArgumentsSlotAt(Thread* thread, intptr_t offset) {
 }
 
 const Slot& Slot::GetTypeArgumentsSlotFor(Thread* thread, const Class& cls) {
-  return GetTypeArgumentsSlotAt(thread, cls.type_arguments_field_offset());
+  return GetTypeArgumentsSlotAt(
+      thread, compiler::target::Class::TypeArgumentsFieldOffset(cls));
 }
 
 const Slot& Slot::GetContextVariableSlotFor(Thread* thread,
@@ -115,7 +117,8 @@ const Slot& Slot::GetContextVariableSlotFor(Thread* thread,
   return SlotCache::Instance(thread).Canonicalize(Slot(
       Kind::kCapturedVariable,
       IsImmutableBit::encode(variable.is_final()) | IsNullableBit::encode(true),
-      kDynamicCid, Context::variable_offset(variable.index().value()),
+      kDynamicCid,
+      compiler::target::Context::variable_offset(variable.index().value()),
       &variable.name(), /*static_type=*/nullptr));
 }
 
@@ -156,7 +159,7 @@ const Slot& Slot::Get(const Field& field,
            IsImmutableBit::encode(field.is_final() || field.is_const()) |
                IsNullableBit::encode(is_nullable) |
                IsGuardedBit::encode(used_guarded_state),
-           nullable_cid, field.Offset(), &field,
+           nullable_cid, compiler::target::Field::OffsetOf(field), &field,
            &AbstractType::ZoneHandle(zone, field.type())));
 
   // If properties of this slot were based on the guarded state make sure

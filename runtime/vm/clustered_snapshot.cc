@@ -1818,7 +1818,8 @@ class RODataSerializationCluster : public SerializationCluster {
       s->TraceDataOffset(offset);
       ASSERT(Utils::IsAligned(offset, kObjectAlignment));
       ASSERT(offset > running_offset);
-      s->WriteUnsigned((offset - running_offset) >> kObjectAlignmentLog2);
+      s->WriteUnsigned((offset - running_offset) >>
+                       compiler::target::ObjectAlignment::kObjectAlignmentLog2);
       running_offset = offset;
       s->TraceEndWritingObject();
     }

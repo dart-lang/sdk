@@ -539,8 +539,9 @@ Fragment BaseFlowGraphBuilder::StoreIndexed(intptr_t class_id) {
       value->BindsToConstant() ? kNoStoreBarrier : kEmitStoreBarrier;
   StoreIndexedInstr* store = new (Z) StoreIndexedInstr(
       Pop(),  // Array.
-      index, value, emit_store_barrier, Instance::ElementSizeFor(class_id),
-      class_id, kAlignedAccess, DeoptId::kNone, TokenPosition::kNoSource);
+      index, value, emit_store_barrier,
+      compiler::target::Instance::ElementSizeFor(class_id), class_id,
+      kAlignedAccess, DeoptId::kNone, TokenPosition::kNoSource);
   return Fragment(store);
 }
 

@@ -59,7 +59,8 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
     case MethodRecognizer::kUint64ArrayGetIndexed:
     case MethodRecognizer::kUint64ArraySetIndexed:
       // TODO(ajcbik): consider 32-bit as well.
-      if (kBitsPerWord == 64 && FlowGraphCompiler::SupportsUnboxedInt64()) {
+      if (target::kBitsPerWord == 64 &&
+          FlowGraphCompiler::SupportsUnboxedInt64()) {
         break;
       }
       if (FLAG_trace_intrinsifier) {
@@ -186,7 +187,7 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     return compiler->intrinsic_slow_path_label()->IsUnused();
   }
 
-#if !defined(HASH_IN_OBJECT_HEADER)
+#if !defined(TARGET_HASH_IN_OBJECT_HEADER)
   // These two are more complicated on 32 bit platforms, where the
   // identity hash is not stored in the header of the object.  We
   // therefore don't intrinsify them, falling back on the native C++

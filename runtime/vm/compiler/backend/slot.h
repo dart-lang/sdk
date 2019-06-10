@@ -168,6 +168,8 @@ class Slot : public ZoneAllocated {
   bool Equals(const Slot* other) const;
   intptr_t Hashcode() const;
 
+  bool IsIdentical(const Slot& other) const { return this == &other; }
+
  private:
   Slot(Kind kind,
        int8_t bits,

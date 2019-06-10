@@ -5634,7 +5634,7 @@ class Context : public Object {
   }
 
   static bool IsValidLength(intptr_t len) {
-    return 0 <= len && len <= kMaxElements;
+    return 0 <= len && len <= compiler::target::Array::kMaxElements;
   }
 
   static intptr_t InstanceSize() {

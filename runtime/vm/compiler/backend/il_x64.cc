@@ -1072,8 +1072,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Otherwise we'll clobber the argument sent from the caller.
   COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
   __ movq(CallingConventions::kArg1Reg, Immediate(callback_id_));
-  __ movq(RAX, Address(THR, compiler::target::Thread::
-                                verify_callback_isolate_entry_point_offset()));
+  __ movq(
+      RAX,
+      Address(THR, compiler::target::Thread::verify_callback_entry_offset()));
   __ call(RAX);
 
   // Load the code object.

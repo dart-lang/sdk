@@ -1191,7 +1191,7 @@ void Assembler::LoadObjectHelper(Register dst,
                                  bool is_unique) {
   ASSERT(IsOriginalObject(object));
 
-  target::word offset_from_thread;
+  intptr_t offset_from_thread;
   if (target::CanLoadFromThread(object, &offset_from_thread)) {
     movq(dst, Address(THR, offset_from_thread));
   } else if (CanLoadFromObjectPool(object)) {
@@ -1216,7 +1216,7 @@ void Assembler::LoadUniqueObject(Register dst, const Object& object) {
 void Assembler::StoreObject(const Address& dst, const Object& object) {
   ASSERT(IsOriginalObject(object));
 
-  target::word offset_from_thread;
+  intptr_t offset_from_thread;
   if (target::CanLoadFromThread(object, &offset_from_thread)) {
     movq(TMP, Address(THR, offset_from_thread));
     movq(dst, TMP);
@@ -1232,7 +1232,7 @@ void Assembler::StoreObject(const Address& dst, const Object& object) {
 void Assembler::PushObject(const Object& object) {
   ASSERT(IsOriginalObject(object));
 
-  target::word offset_from_thread;
+  intptr_t offset_from_thread;
   if (target::CanLoadFromThread(object, &offset_from_thread)) {
     pushq(Address(THR, offset_from_thread));
   } else if (CanLoadFromObjectPool(object)) {
@@ -1247,7 +1247,7 @@ void Assembler::PushObject(const Object& object) {
 void Assembler::CompareObject(Register reg, const Object& object) {
   ASSERT(IsOriginalObject(object));
 
-  target::word offset_from_thread;
+  intptr_t offset_from_thread;
   if (target::CanLoadFromThread(object, &offset_from_thread)) {
     cmpq(reg, Address(THR, offset_from_thread));
   } else if (CanLoadFromObjectPool(object)) {
@@ -1786,8 +1786,8 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   intptr_t state_offset = ClassTable::StateOffsetFor(cid);
   Register temp_reg = TMP;
   LoadIsolate(temp_reg);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  intptr_t table_offset = Isolate::class_table_offset() +
+                          ClassTable::class_heap_stats_table_offset();
   movq(temp_reg, Address(temp_reg, table_offset));
   testb(Address(temp_reg, state_offset),
         Immediate(target::ClassHeapStats::TraceAllocationMask()));
@@ -1798,12 +1798,11 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 
 void Assembler::UpdateAllocationStats(intptr_t cid) {
   ASSERT(cid > 0);
-  intptr_t counter_offset =
-      ClassTable::CounterOffsetFor(cid, /*is_new_space=*/true);
+  intptr_t counter_offset = ClassTable::NewSpaceCounterOffsetFor(cid);
   Register temp_reg = TMP;
   LoadIsolate(temp_reg);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  intptr_t table_offset = Isolate::class_table_offset() +
+                          ClassTable::class_heap_stats_table_offset();
   movq(temp_reg, Address(temp_reg, table_offset));
   incq(Address(temp_reg, counter_offset));
 }
@@ -1813,7 +1812,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid, Register size_reg) {
   ASSERT(cid < kNumPredefinedCids);
   UpdateAllocationStats(cid);
   Register temp_reg = TMP;
-  intptr_t size_offset = ClassTable::SizeOffsetFor(cid, /*is_new_space=*/true);
+  intptr_t size_offset = ClassTable::NewSpaceSizeOffsetFor(cid);
   addq(Address(temp_reg, size_offset), size_reg);
 }
 
@@ -1823,7 +1822,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   ASSERT(cid < kNumPredefinedCids);
   UpdateAllocationStats(cid);
   Register temp_reg = TMP;
-  intptr_t size_offset = ClassTable::SizeOffsetFor(cid, /*is_new_space=*/true);
+  intptr_t size_offset = ClassTable::NewSpaceSizeOffsetFor(cid);
   addq(Address(temp_reg, size_offset), Immediate(size_in_bytes));
 }
 #endif  // !PRODUCT

@@ -2300,8 +2300,8 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   intptr_t state_offset = ClassTable::StateOffsetFor(cid);
   ASSERT(temp_reg != kNoRegister);
   LoadIsolate(temp_reg);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  intptr_t table_offset = Isolate::class_table_offset() +
+                          ClassTable::class_heap_stats_table_offset();
   movl(temp_reg, Address(temp_reg, table_offset));
   state_address = Address(temp_reg, state_offset);
   testb(state_address,
@@ -2313,12 +2313,11 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 
 void Assembler::UpdateAllocationStats(intptr_t cid, Register temp_reg) {
   ASSERT(cid > 0);
-  intptr_t counter_offset =
-      ClassTable::CounterOffsetFor(cid, /*is_new_space=*/true);
+  intptr_t counter_offset = ClassTable::NewSpaceCounterOffsetFor(cid);
   ASSERT(temp_reg != kNoRegister);
   LoadIsolate(temp_reg);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  intptr_t table_offset = Isolate::class_table_offset() +
+                          ClassTable::class_heap_stats_table_offset();
   movl(temp_reg, Address(temp_reg, table_offset));
   incl(Address(temp_reg, counter_offset));
 }
@@ -2329,7 +2328,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   ASSERT(cid > 0);
   ASSERT(cid < kNumPredefinedCids);
   UpdateAllocationStats(cid, temp_reg);
-  intptr_t size_offset = ClassTable::SizeOffsetFor(cid, /*is_new_space=*/true);
+  intptr_t size_offset = ClassTable::NewSpaceSizeOffsetFor(cid);
   addl(Address(temp_reg, size_offset), size_reg);
 }
 
@@ -2339,7 +2338,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   ASSERT(cid > 0);
   ASSERT(cid < kNumPredefinedCids);
   UpdateAllocationStats(cid, temp_reg);
-  intptr_t size_offset = ClassTable::SizeOffsetFor(cid, /*is_new_space=*/true);
+  intptr_t size_offset = ClassTable::NewSpaceSizeOffsetFor(cid);
   addl(Address(temp_reg, size_offset), Immediate(size_in_bytes));
 }
 #endif  // !PRODUCT

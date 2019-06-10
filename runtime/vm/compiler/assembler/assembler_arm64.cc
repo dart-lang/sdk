@@ -1495,8 +1495,8 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   ASSERT(cid > 0);
   intptr_t state_offset = ClassTable::StateOffsetFor(cid);
   LoadIsolate(temp_reg);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  intptr_t table_offset = Isolate::class_table_offset() +
+                          ClassTable::class_heap_stats_table_offset();
   ldr(temp_reg, Address(temp_reg, table_offset));
   AddImmediate(temp_reg, state_offset);
   ldr(temp_reg, Address(temp_reg, 0));
@@ -1506,10 +1506,10 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 
 void Assembler::UpdateAllocationStats(intptr_t cid) {
   ASSERT(cid > 0);
-  intptr_t counter_offset = ClassTable::CounterOffsetFor(cid, /*is_new=*/true);
+  intptr_t counter_offset = target::ClassTable::NewSpaceCounterOffsetFor(cid);
   LoadIsolate(TMP2);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  intptr_t table_offset = Isolate::class_table_offset() +
+                          ClassTable::class_heap_stats_table_offset();
   ldr(TMP, Address(TMP2, table_offset));
   AddImmediate(TMP2, TMP, counter_offset);
   ldr(TMP, Address(TMP2, 0));
@@ -1525,8 +1525,8 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid, Register size_reg) {
   const uword size_field_offset =
       ClassHeapStats::allocated_size_since_gc_new_space_offset();
   LoadIsolate(TMP2);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  intptr_t table_offset = Isolate::class_table_offset() +
+                          ClassTable::class_heap_stats_table_offset();
   ldr(TMP, Address(TMP2, table_offset));
   AddImmediate(TMP2, TMP, class_offset);
   ldr(TMP, Address(TMP2, count_field_offset));

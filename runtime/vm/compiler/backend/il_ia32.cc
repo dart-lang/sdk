@@ -1049,8 +1049,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Now that the safepoint has ended, we can hold Dart objects with bare hands.
   // TODO(35934): fix linking issue
   __ pushl(Immediate(callback_id_));
-  __ movl(EAX, Address(THR, compiler::target::Thread::
-                                verify_callback_isolate_entry_point_offset()));
+  __ movl(
+      EAX,
+      Address(THR, compiler::target::Thread::verify_callback_entry_offset()));
   __ call(EAX);
   __ popl(EAX);
 

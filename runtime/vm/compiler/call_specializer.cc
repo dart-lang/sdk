@@ -510,7 +510,7 @@ bool CallSpecializer::TryStringLengthOneEquality(InstanceCallInstr* call,
 }
 
 static bool SmiFitsInDouble() {
-  return kSmiBits < 53;
+  return compiler::target::kSmiBits < 53;
 }
 
 bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
@@ -1836,8 +1836,9 @@ Definition* TypedDataSpecializer::AppendLoadIndexed(TemplateDartCall<0>* call,
   const intptr_t element_size = TypedDataBase::ElementSizeFor(cid);
   const intptr_t index_scale = element_size;
 
-  auto data = new (Z) LoadUntaggedInstr(new (Z) Value(array),
-                                        TypedDataBase::data_field_offset());
+  auto data = new (Z)
+      LoadUntaggedInstr(new (Z) Value(array),
+                        compiler::target::TypedDataBase::data_field_offset());
   flow_graph_->InsertBefore(call, data, call->env(), FlowGraph::kValue);
 
   Definition* load = new (Z)
@@ -1913,8 +1914,9 @@ void TypedDataSpecializer::AppendStoreIndexed(TemplateDartCall<0>* call,
       break;
   }
 
-  auto data = new (Z) LoadUntaggedInstr(new (Z) Value(array),
-                                        TypedDataBase::data_field_offset());
+  auto data = new (Z)
+      LoadUntaggedInstr(new (Z) Value(array),
+                        compiler::target::TypedDataBase::data_field_offset());
   flow_graph_->InsertBefore(call, data, call->env(), FlowGraph::kValue);
 
   auto store = new (Z) StoreIndexedInstr(

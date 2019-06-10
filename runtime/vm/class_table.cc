@@ -464,19 +464,14 @@ void ClassTable::UpdatePromoted() {
   }
 }
 
-intptr_t ClassTable::TableOffsetFor(intptr_t cid) {
-  return OFFSET_OF(ClassTable, class_heap_stats_table_);
-}
-
 intptr_t ClassTable::ClassOffsetFor(intptr_t cid) {
   return cid * sizeof(ClassHeapStats);  // NOLINT
 }
 
-intptr_t ClassTable::CounterOffsetFor(intptr_t cid, bool is_new_space) {
+intptr_t ClassTable::NewSpaceCounterOffsetFor(intptr_t cid) {
   const intptr_t class_offset = ClassOffsetFor(cid);
   const intptr_t count_field_offset =
-      is_new_space ? ClassHeapStats::allocated_since_gc_new_space_offset()
-                   : ClassHeapStats::allocated_since_gc_old_space_offset();
+      ClassHeapStats::allocated_since_gc_new_space_offset();
   return class_offset + count_field_offset;
 }
 
@@ -484,11 +479,10 @@ intptr_t ClassTable::StateOffsetFor(intptr_t cid) {
   return ClassOffsetFor(cid) + ClassHeapStats::state_offset();
 }
 
-intptr_t ClassTable::SizeOffsetFor(intptr_t cid, bool is_new_space) {
+intptr_t ClassTable::NewSpaceSizeOffsetFor(intptr_t cid) {
   const uword class_offset = ClassOffsetFor(cid);
   const uword size_field_offset =
-      is_new_space ? ClassHeapStats::allocated_size_since_gc_new_space_offset()
-                   : ClassHeapStats::allocated_size_since_gc_old_space_offset();
+      ClassHeapStats::allocated_size_since_gc_new_space_offset();
   return class_offset + size_field_offset;
 }
 

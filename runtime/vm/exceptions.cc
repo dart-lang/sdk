@@ -371,15 +371,15 @@ class ExceptionHandlerFinder : public StackResource {
 };
 
 CatchEntryMove CatchEntryMove::ReadFrom(ReadStream* stream) {
-  using Reader = ReadStream::Raw<sizeof(intptr_t), intptr_t>;
-  const intptr_t src = Reader::Read(stream);
-  const intptr_t dest_and_kind = Reader::Read(stream);
+  using Reader = ReadStream::Raw<sizeof(int32_t), int32_t>;
+  const int32_t src = Reader::Read(stream);
+  const int32_t dest_and_kind = Reader::Read(stream);
   return CatchEntryMove(src, dest_and_kind);
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void CatchEntryMove::WriteTo(WriteStream* stream) {
-  using Writer = WriteStream::Raw<sizeof(intptr_t), intptr_t>;
+  using Writer = WriteStream::Raw<sizeof(int32_t), int32_t>;
   Writer::Write(stream, src_);
   Writer::Write(stream, dest_and_kind_);
 }

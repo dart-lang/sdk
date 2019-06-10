@@ -13,6 +13,7 @@
 #include "platform/atomic.h"
 #include "vm/class_id.h"
 #include "vm/compiler/method_recognizer.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/object_graph.h"
@@ -150,8 +151,10 @@ class RawObject {
   // Encodes the object size in the tag in units of object alignment.
   class SizeTag {
    public:
-    static const intptr_t kMaxSizeTag = ((1 << RawObject::kSizeTagSize) - 1)
-                                        << kObjectAlignmentLog2;
+    static constexpr intptr_t kMaxSizeTagInUnitsOfAlignment =
+        ((1 << RawObject::kSizeTagSize) - 1);
+    static constexpr intptr_t kMaxSizeTag =
+        kMaxSizeTagInUnitsOfAlignment * kObjectAlignment;
 
     static uword encode(intptr_t size) {
       return SizeBits::encode(SizeToTagValue(size));
@@ -171,11 +174,15 @@ class RawObject {
         : public BitField<uint32_t, intptr_t, kSizeTagPos, kSizeTagSize> {};
 
     static intptr_t SizeToTagValue(intptr_t size) {
-      ASSERT(Utils::IsAligned(size, kObjectAlignment));
-      return (size > kMaxSizeTag) ? 0 : (size >> kObjectAlignmentLog2);
+      ASSERT(Utils::IsAligned(
+          size, compiler::target::ObjectAlignment::kObjectAlignment));
+      return (size > kMaxSizeTag)
+                 ? 0
+                 : (size >>
+                    compiler::target::ObjectAlignment::kObjectAlignmentLog2);
     }
     static intptr_t TagValueToSize(intptr_t value) {
-      return value << kObjectAlignmentLog2;
+      return value << compiler::target::ObjectAlignment::kObjectAlignmentLog2;
     }
   };
 
@@ -1464,19 +1471,19 @@ class RawPcDescriptors : public RawObject {
    public:
     // Most of the time try_index will be small and merged field will fit into
     // one byte.
-    static intptr_t Encode(intptr_t kind, intptr_t try_index) {
+    static int32_t Encode(intptr_t kind, intptr_t try_index) {
       intptr_t kind_shift = Utils::ShiftForPowerOfTwo(kind);
       ASSERT(Utils::IsUint(kKindShiftSize, kind_shift));
       ASSERT(Utils::IsInt(kTryIndexSize, try_index));
       return (try_index << kTryIndexPos) | (kind_shift << kKindShiftPos);
     }
 
-    static intptr_t DecodeKind(intptr_t merged_kind_try) {
+    static intptr_t DecodeKind(int32_t merged_kind_try) {
       const intptr_t kKindShiftMask = (1 << kKindShiftSize) - 1;
       return 1 << (merged_kind_try & kKindShiftMask);
     }
 
-    static intptr_t DecodeTryIndex(intptr_t merged_kind_try) {
+    static intptr_t DecodeTryIndex(int32_t merged_kind_try) {
       // Arithmetic shift.
       return merged_kind_try >> kTryIndexPos;
     }
@@ -1488,7 +1495,7 @@ class RawPcDescriptors : public RawObject {
     COMPILE_ASSERT(kLastKind <= 1 << ((1 << kKindShiftSize) - 1));
 
     static const intptr_t kTryIndexPos = kKindShiftSize;
-    static const intptr_t kTryIndexSize = kBitsPerWord - kKindShiftSize;
+    static const intptr_t kTryIndexSize = 32 - kKindShiftSize;
   };
 
  private:

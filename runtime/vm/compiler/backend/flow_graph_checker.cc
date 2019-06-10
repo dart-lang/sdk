@@ -340,8 +340,8 @@ void FlowGraphChecker::VisitConstant(ConstantInstr* constant) {
   const Object& value = constant->value();
   if (value.IsSmi()) {
     const int64_t smi_value = Integer::Cast(value).AsInt64Value();
-    ASSERT(kSmiMin <= smi_value);
-    ASSERT(smi_value <= kSmiMax);
+    ASSERT(compiler::target::kSmiMin <= smi_value);
+    ASSERT(smi_value <= compiler::target::kSmiMax);
   }
   // Any constant involved in SSA should appear in the entry (making it more
   // likely it was inserted by the utility that avoids duplication).

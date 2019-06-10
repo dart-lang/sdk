@@ -2391,7 +2391,8 @@ static bool ShouldInlineInt64ArrayOps() {
 static bool CanUnboxInt32() {
   // Int32/Uint32 can be unboxed if it fits into a smi or the platform
   // supports unboxed mints.
-  return (kSmiBits >= 32) || FlowGraphCompiler::SupportsUnboxedInt64();
+  return (compiler::target::kSmiBits >= 32) ||
+         FlowGraphCompiler::SupportsUnboxedInt64();
 }
 
 // Quick access to the current one.
@@ -2423,8 +2424,9 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
     *array = elements;
     array_cid = kArrayCid;
   } else if (RawObject::IsExternalTypedDataClassId(array_cid)) {
-    LoadUntaggedInstr* elements = new (Z) LoadUntaggedInstr(
-        new (Z) Value(*array), ExternalTypedData::data_offset());
+    LoadUntaggedInstr* elements = new (Z)
+        LoadUntaggedInstr(new (Z) Value(*array),
+                          compiler::target::TypedDataBase::data_field_offset());
     *cursor = flow_graph->AppendTo(*cursor, elements, NULL, FlowGraph::kValue);
     *array = elements;
   }
@@ -2456,11 +2458,12 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
   if ((array_cid == kTypedDataInt32ArrayCid) ||
       (array_cid == kTypedDataUint32ArrayCid)) {
     // Deoptimization may be needed if result does not always fit in a Smi.
-    deopt_id = (kSmiBits >= 32) ? DeoptId::kNone : call->deopt_id();
+    deopt_id =
+        (compiler::target::kSmiBits >= 32) ? DeoptId::kNone : call->deopt_id();
   }
 
   // Array load and return.
-  intptr_t index_scale = Instance::ElementSizeFor(array_cid);
+  intptr_t index_scale = compiler::target::Instance::ElementSizeFor(array_cid);
   LoadIndexedInstr* load = new (Z)
       LoadIndexedInstr(new (Z) Value(array), new (Z) Value(index), index_scale,
                        array_cid, kAlignedAccess, deopt_id, call->token_pos());
@@ -2679,7 +2682,8 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
                                   FlowGraph::kValue);
   }
 
-  const intptr_t index_scale = Instance::ElementSizeFor(array_cid);
+  const intptr_t index_scale =
+      compiler::target::Instance::ElementSizeFor(array_cid);
   *last = new (Z) StoreIndexedInstr(
       new (Z) Value(array), new (Z) Value(index), new (Z) Value(stored_value),
       needs_store_barrier, index_scale, array_cid, kAlignedAccess,
@@ -2835,7 +2839,7 @@ static void PrepareInlineTypedArrayBoundsCheck(FlowGraph* flow_graph,
       call->token_pos());
   *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
 
-  intptr_t element_size = Instance::ElementSizeFor(array_cid);
+  intptr_t element_size = compiler::target::Instance::ElementSizeFor(array_cid);
   ConstantInstr* bytes_per_element =
       flow_graph->GetConstant(Smi::Handle(Z, Smi::New(element_size)));
   BinarySmiOpInstr* len_in_bytes = new (Z)
@@ -2846,7 +2850,8 @@ static void PrepareInlineTypedArrayBoundsCheck(FlowGraph* flow_graph,
 
   // adjusted_length = len_in_bytes - (element_size - 1).
   Definition* adjusted_length = len_in_bytes;
-  intptr_t adjustment = Instance::ElementSizeFor(view_cid) - 1;
+  intptr_t adjustment =
+      compiler::target::Instance::ElementSizeFor(view_cid) - 1;
   if (adjustment > 0) {
     ConstantInstr* length_adjustment =
         flow_graph->GetConstant(Smi::Handle(Z, Smi::New(adjustment)));
@@ -2887,8 +2892,9 @@ static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
   if (array_cid == kDynamicCid ||
       RawObject::IsExternalTypedDataClassId(array_cid)) {
     // Internal or External typed data: load untagged.
-    auto elements = new (Z) LoadUntaggedInstr(
-        new (Z) Value(*array), TypedDataBase::data_field_offset());
+    auto elements = new (Z)
+        LoadUntaggedInstr(new (Z) Value(*array),
+                          compiler::target::TypedDataBase::data_field_offset());
     *cursor = flow_graph->AppendTo(*cursor, elements, NULL, FlowGraph::kValue);
     *array = elements;
   } else {
@@ -3045,7 +3051,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
       // On 64-bit platforms assume that stored value is always a smi.
-      if (kSmiBits >= 32) {
+      if (compiler::target::kSmiBits >= 32) {
         value_check = Cids::CreateMonomorphic(Z, kSmiCid);
       }
       break;
@@ -3209,18 +3215,21 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
 
   // For external strings: Load backing store.
   if (cid == kExternalOneByteStringCid) {
-    str = new LoadUntaggedInstr(new Value(str),
-                                ExternalOneByteString::external_data_offset());
+    str = new LoadUntaggedInstr(
+        new Value(str),
+        compiler::target::ExternalOneByteString::external_data_offset());
     cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
   } else if (cid == kExternalTwoByteStringCid) {
-    str = new LoadUntaggedInstr(new Value(str),
-                                ExternalTwoByteString::external_data_offset());
+    str = new LoadUntaggedInstr(
+        new Value(str),
+        compiler::target::ExternalTwoByteString::external_data_offset());
     cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
   }
 
-  LoadIndexedInstr* load_indexed = new (Z) LoadIndexedInstr(
-      new (Z) Value(str), new (Z) Value(index), Instance::ElementSizeFor(cid),
-      cid, kAlignedAccess, DeoptId::kNone, call->token_pos());
+  LoadIndexedInstr* load_indexed = new (Z)
+      LoadIndexedInstr(new (Z) Value(str), new (Z) Value(index),
+                       compiler::target::Instance::ElementSizeFor(cid), cid,
+                       kAlignedAccess, DeoptId::kNone, call->token_pos());
   cursor = flow_graph->AppendTo(cursor, load_indexed, NULL, FlowGraph::kValue);
 
   auto box = BoxInstr::Create(kUnboxedIntPtr, new Value(load_indexed));

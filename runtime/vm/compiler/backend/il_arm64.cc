@@ -1079,9 +1079,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
          CallingConventions::ArgumentRegisters[0] != TMP2 &&
          CallingConventions::ArgumentRegisters[0] != R1);
   __ LoadImmediate(CallingConventions::ArgumentRegisters[0], callback_id_);
-  __ LoadFromOffset(
-      R1, THR,
-      compiler::target::Thread::verify_callback_isolate_entry_point_offset());
+  __ LoadFromOffset(R1, THR,
+                    compiler::target::Thread::verify_callback_entry_offset());
   __ blr(R1);
 
   // Load the code object.

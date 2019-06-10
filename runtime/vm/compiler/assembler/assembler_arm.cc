@@ -1602,9 +1602,9 @@ void Assembler::LoadObjectHelper(Register rd,
   } else if (CanLoadFromObjectPool(object)) {
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
-    const int32_t offset = ObjectPool::element_offset(
-        is_unique ? object_pool_builder().AddObject(object)
-                  : object_pool_builder().FindObject(object));
+    const auto index = is_unique ? object_pool_builder().AddObject(object)
+                                 : object_pool_builder().FindObject(object);
+    const int32_t offset = ObjectPool::element_offset(index);
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, pp, cond);
   } else {
     UNREACHABLE();
@@ -3433,8 +3433,8 @@ void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
   ASSERT(cid > 0);
   const intptr_t class_offset = ClassTable::ClassOffsetFor(cid);
   LoadIsolate(dest);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  intptr_t table_offset = Isolate::class_table_offset() +
+                          ClassTable::class_heap_stats_table_offset();
   ldr(dest, Address(dest, table_offset));
   AddImmediate(dest, class_offset);
 }

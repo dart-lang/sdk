@@ -816,8 +816,8 @@ class BoundsCheckGeneralizer {
     // AOT should only see non-deopting GenericCheckBound.
     ASSERT(!FLAG_precompiled_mode);
 
-    ConstantInstr* max_smi =
-        flow_graph_->GetConstant(Smi::Handle(Smi::New(Smi::kMaxValue)));
+    ConstantInstr* max_smi = flow_graph_->GetConstant(
+        Smi::Handle(Smi::New(compiler::target::kSmiMax)));
     for (intptr_t i = 0; i < non_positive_symbols.length(); i++) {
       CheckArrayBoundInstr* precondition = new CheckArrayBoundInstr(
           new Value(max_smi), new Value(non_positive_symbols[i]),
@@ -1075,7 +1075,7 @@ class BoundsCheckGeneralizer {
 
         c = left_const + right_const;
         if (Utils::WillAddOverflow(left_const, right_const) ||
-            !Smi::IsValid(c)) {
+            !compiler::target::IsSmi(c)) {
           return false;  // Abort.
         }
 
@@ -1120,7 +1120,7 @@ class BoundsCheckGeneralizer {
 
         c = (left_const - right_const);
         if (Utils::WillSubOverflow(left_const, right_const) ||
-            !Smi::IsValid(c)) {
+            !compiler::target::IsSmi(c)) {
           return false;  // Abort.
         }
 
@@ -1180,7 +1180,7 @@ class BoundsCheckGeneralizer {
       }
     } else if ((*defn)->IsConstant()) {
       ConstantInstr* constant_defn = (*defn)->AsConstant();
-      if ((constant != NULL) && constant_defn->value().IsSmi()) {
+      if ((constant != NULL) && constant_defn->IsSmi()) {
         *defn = NULL;
         *constant = Smi::Cast(constant_defn->value()).Value();
       }
@@ -1195,7 +1195,7 @@ class BoundsCheckGeneralizer {
                               Definition* defn) {
     if (defn->IsConstant()) {
       const Object& value = defn->AsConstant()->value();
-      return value.IsSmi() && (Smi::Cast(value).Value() >= 0);
+      return compiler::target::IsSmi(value) && (Smi::Cast(value).Value() >= 0);
     } else if (defn->HasSSATemp()) {
       if (!RangeUtils::IsPositive(defn->range())) {
         symbols->Add(defn);
@@ -1683,7 +1683,7 @@ void IntegerInstructionSelector::ReplaceInstructions() {
 }
 
 RangeBoundary RangeBoundary::FromDefinition(Definition* defn, int64_t offs) {
-  if (defn->IsConstant() && defn->AsConstant()->value().IsSmi()) {
+  if (defn->IsConstant() && defn->AsConstant()->IsSmi()) {
     return FromConstant(Smi::Cast(defn->AsConstant()->value()).Value() + offs);
   }
   ASSERT(IsValidOffsetForSymbolicRangeBoundary(offs));
@@ -2289,7 +2289,8 @@ void Range::Mul(const Range* left_range,
 
   const int64_t left_max = ConstantAbsMax(left_range);
   const int64_t right_max = ConstantAbsMax(right_range);
-  if ((left_max <= -kSmiMin) && (right_max <= -kSmiMin) &&
+  if ((left_max <= -compiler::target::kSmiMin) &&
+      (right_max <= -compiler::target::kSmiMin) &&
       ((left_max == 0) || (right_max <= kMaxInt64 / left_max))) {
     // Product of left and right max values stays in 64 bit range.
     const int64_t mul_max = left_max * right_max;
@@ -2625,8 +2626,9 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   switch (slot().kind()) {
     case Slot::Kind::kArray_length:
     case Slot::Kind::kGrowableObjectArray_length:
-      *range = Range(RangeBoundary::FromConstant(0),
-                     RangeBoundary::FromConstant(Array::kMaxElements));
+      *range = Range(
+          RangeBoundary::FromConstant(0),
+          RangeBoundary::FromConstant(compiler::target::Array::kMaxElements));
       break;
 
     case Slot::Kind::kTypedDataBase_length:
@@ -2635,8 +2637,9 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       break;
 
     case Slot::Kind::kString_length:
-      *range = Range(RangeBoundary::FromConstant(0),
-                     RangeBoundary::FromConstant(String::kMaxElements));
+      *range = Range(
+          RangeBoundary::FromConstant(0),
+          RangeBoundary::FromConstant(compiler::target::String::kMaxElements));
       break;
 
     case Slot::Kind::kDartField:
@@ -2929,7 +2932,8 @@ bool CheckArrayBoundInstr::IsRedundant(const RangeBoundary& length) {
 
   // Range of the index is unknown can't decide if the check is redundant.
   if (index_range == NULL) {
-    if (!(index()->BindsToConstant() && index()->BoundConstant().IsSmi())) {
+    if (!(index()->BindsToConstant() &&
+          compiler::target::IsSmi(index()->BoundConstant()))) {
       return false;
     }
 

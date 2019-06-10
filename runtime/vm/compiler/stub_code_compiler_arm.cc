@@ -1098,7 +1098,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ StoreToOffset(kWord, R9, THR, target::Thread::vm_tag_offset());
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
-  __ ldr(R4, Address(R1, VMHandles::kOffsetOfRawPtrInHandle));
+  __ ldr(R4, Address(R1, target::VMHandles::kOffsetOfRawPtrInHandle));
 
   // Load number of arguments into R9 and adjust count for type arguments.
   __ ldr(R3,
@@ -1110,7 +1110,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ SmiUntag(R9);
 
   // Compute address of 'arguments array' data area into R2.
-  __ ldr(R2, Address(R2, VMHandles::kOffsetOfRawPtrInHandle));
+  __ ldr(R2, Address(R2, target::VMHandles::kOffsetOfRawPtrInHandle));
   __ AddImmediate(R2, target::Array::data_offset() - kHeapObjectTag);
 
   // Set up arguments for the Dart call.
@@ -1134,7 +1134,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   } else {
     __ LoadImmediate(PP, 0);  // GC safe value into PP.
   }
-  __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
+  __ ldr(CODE_REG, Address(R0, target::VMHandles::kOffsetOfRawPtrInHandle));
   __ ldr(R0, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   __ blx(R0);  // R4 is the arguments descriptor array.
 
@@ -1668,7 +1668,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   // when the object initialization should be done as a loop or as
   // straight line code.
   const int kInlineInstanceSize = 12;
-  const intptr_t instance_size = target::Class::InstanceSize(cls);
+  const intptr_t instance_size = target::Class::GetInstanceSize(cls);
   ASSERT(instance_size > 0);
   ASSERT(instance_size % target::ObjectAlignment::kObjectAlignment == 0);
   if (is_cls_parameterized) {

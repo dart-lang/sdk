@@ -181,6 +181,8 @@ class ImageWriter : public ValueObject {
 
   void TraceInstructions(const Instructions& instructions);
 
+  static intptr_t SizeInSnapshot(RawObject* object);
+
  protected:
   void WriteROData(WriteStream* stream);
   virtual void WriteText(WriteStream* clustered_stream, bool vm) = 0;
