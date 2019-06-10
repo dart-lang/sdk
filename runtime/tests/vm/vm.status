@@ -26,7 +26,6 @@ dart/appjit*: SkipByDesign # Test needs to a particular opt-counter value
 dart/kernel_determinism_test: SkipSlow
 
 [ $compiler == app_jitk ]
-dart/data_uri_import_test/utf16: MissingRuntimeError
 dart/redirection_type_shuffling_test/none: RuntimeError
 dart/snapshot_version_test: RuntimeError
 
@@ -154,7 +153,6 @@ cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
 cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
-dart/data_uri_import_test/utf16: MissingRuntimeError
 dart/spawn_shutdown_test: SkipSlow
 
 [ ($compiler == dartk || $compiler == dartkb) && $runtime == vm && $system == macos ]
@@ -197,7 +195,6 @@ dart/appjit*: SkipByDesign # Test needs to run from source
 dart/kernel_determinism_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
-dart/data_uri_import_test/utf16: MissingRuntimeError # UTF-16 data URIs work in dartk
 dart/issue32950_test: SkipByDesign # uses spawnUri.
 dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
 dart/spawn_shutdown_test: SkipSlow
