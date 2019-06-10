@@ -1779,10 +1779,10 @@ abstract class IntegrationTestMixin {
    * details: List<String> (optional)
    *
    *   Messages that should be displayed to the user that describe details of
-   *   the fix generation. This could be details that users might want to
-   *   explore before committing the changes to descriptions of exceptions that
-   *   were thrown but that did not stop the fixes from being produced. The
-   *   list will be omitted if it is empty.
+   *   the fix generation. For example, the messages might (a) point out
+   *   details that users might want to explore before committing the changes
+   *   or (b) describe exceptions that were thrown but that did not stop the
+   *   fixes from being produced. The list will be omitted if it is empty.
    */
   Future<EditDartfixResult> sendEditDartfix(List<String> included,
       {List<String> includedFixes,

@@ -8296,19 +8296,19 @@ class EditDartfixResult implements ResponseResult {
 
   /**
    * Messages that should be displayed to the user that describe details of the
-   * fix generation. This could be details that users might want to explore
-   * before committing the changes to descriptions of exceptions that were
-   * thrown but that did not stop the fixes from being produced. The list will
-   * be omitted if it is empty.
+   * fix generation. For example, the messages might (a) point out details that
+   * users might want to explore before committing the changes or (b) describe
+   * exceptions that were thrown but that did not stop the fixes from being
+   * produced. The list will be omitted if it is empty.
    */
   List<String> get details => _details;
 
   /**
    * Messages that should be displayed to the user that describe details of the
-   * fix generation. This could be details that users might want to explore
-   * before committing the changes to descriptions of exceptions that were
-   * thrown but that did not stop the fixes from being produced. The list will
-   * be omitted if it is empty.
+   * fix generation. For example, the messages might (a) point out details that
+   * users might want to explore before committing the changes or (b) describe
+   * exceptions that were thrown but that did not stop the fixes from being
+   * produced. The list will be omitted if it is empty.
    */
   void set details(List<String> value) {
     this._details = value;
