@@ -18,6 +18,8 @@ dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-g
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/use_bare_instructions_flag_test: Pass, Slow # Spawns several subprocesses
 
+cc/Profiler_StringInterpolation: Fail # Issue 37208
+
 [ $mode == debug ]
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
 
