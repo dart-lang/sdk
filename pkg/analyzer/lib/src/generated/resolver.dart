@@ -3404,6 +3404,9 @@ class NonNullableTypeProvider extends TypeProviderImpl {
   }
 
   @override
+  DartType get bottomType => BottomTypeImpl.instance;
+
+  @override
   InterfaceType _getType(Namespace namespace, String typeName) {
     InterfaceType type = super._getType(namespace, typeName);
     if (type == null) {
@@ -7437,7 +7440,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get boolType => _boolType;
 
   @override
-  DartType get bottomType => BottomTypeImpl.instance;
+  DartType get bottomType => BottomTypeImpl.instanceLegacy;
 
   @override
   InterfaceType get deprecatedType => _deprecatedType;
