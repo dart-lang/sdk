@@ -41,10 +41,6 @@ class DecoratedType {
       this.namedParameters = const {},
       this.typeArguments = const []}) {
     assert(node != null);
-    // The type system doesn't have a non-nullable version of `dynamic`.  So if
-    // the type is `dynamic`, verify that the node was initially placed into a
-    // nullable state.
-    assert(!type.isDynamic || node.isNullable);
   }
 
   /// Creates a [DecoratedType] corresponding to the given [element], which is

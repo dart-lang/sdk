@@ -292,8 +292,7 @@ abstract class NullabilityNode {
 
   /// Creates a [NullabilityNode] representing the nullability of a type
   /// annotation appearing explicitly in the user's program.
-  factory NullabilityNode.forTypeAnnotation(int endOffset,
-          {@required bool always}) =>
+  factory NullabilityNode.forTypeAnnotation(int endOffset) =>
       _NullabilityNodeSimple('type($endOffset)');
 
   NullabilityNode._();

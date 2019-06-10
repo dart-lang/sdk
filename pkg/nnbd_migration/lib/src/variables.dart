@@ -50,8 +50,9 @@ class Variables implements VariableRecorder, VariableRepository {
   void recordDecoratedExpressionType(Expression node, DecoratedType type) {}
 
   void recordDecoratedTypeAnnotation(
-      Source source, TypeAnnotation node, DecoratedTypeAnnotation type) {
-    _addPotentialModification(source, type);
+      Source source, TypeAnnotation node, DecoratedTypeAnnotation type,
+      {bool potentialModification: true}) {
+    if (potentialModification) _addPotentialModification(source, type);
     (_decoratedTypeAnnotations[source] ??=
         {})[_uniqueOffsetForTypeAnnotation(node)] = type;
   }

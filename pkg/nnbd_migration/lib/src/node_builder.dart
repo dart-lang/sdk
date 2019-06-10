@@ -132,9 +132,14 @@ $stackTrace''');
     assert(node != null); // TODO(paulberry)
     assert(node is NamedType); // TODO(paulberry)
     var type = node.type;
-    if (type.isVoid) {
-      return DecoratedType(
-          type, NullabilityNode.forTypeAnnotation(node.end, always: true));
+    if (type.isVoid || type.isDynamic) {
+      var nullabilityNode = NullabilityNode.forTypeAnnotation(node.end);
+      _graph.connect(NullabilityNode.always, nullabilityNode);
+      var decoratedType =
+          DecoratedTypeAnnotation(type, nullabilityNode, node.offset);
+      _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType,
+          potentialModification: false);
+      return decoratedType;
     }
     assert(
         type is InterfaceType || type is TypeParameterType); // TODO(paulberry)
@@ -149,10 +154,7 @@ $stackTrace''');
       }
     }
     var decoratedType = DecoratedTypeAnnotation(
-        type,
-        NullabilityNode.forTypeAnnotation(node.end,
-            always: node.question != null),
-        node.end,
+        type, NullabilityNode.forTypeAnnotation(node.end), node.end,
         typeArguments: typeArguments);
     _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType);
     switch (_classifyComment(node.endToken.next.precedingComments)) {
@@ -237,7 +239,8 @@ abstract class VariableRecorder {
 
   /// Associates decorated type information with the given [type] node.
   void recordDecoratedTypeAnnotation(
-      Source source, TypeAnnotation node, DecoratedTypeAnnotation type);
+      Source source, TypeAnnotation node, DecoratedTypeAnnotation type,
+      {bool potentialModification: true});
 
   /// Records that [node] is associated with the question of whether the named
   /// [parameter] should be optional (should not have a `required`

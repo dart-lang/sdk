@@ -1264,6 +1264,15 @@ class NodeBuilderTest extends MigrationVisitorTestBase {
   DecoratedType decoratedTypeParameterBound(String search) => _variables
       .decoratedElementType(findNode.typeParameter(search).declaredElement);
 
+  test_dynamic_type() async {
+    await analyze('''
+dynamic f() {}
+''');
+    var decoratedType = decoratedTypeAnnotation('dynamic');
+    expect(decoratedFunctionType('f').returnType, same(decoratedType));
+    assertEdge(always, decoratedType.node, hard: false);
+  }
+
   test_field_type_simple() async {
     await analyze('''
 class C {
@@ -1430,6 +1439,15 @@ main() {
 ''');
     var decoratedType = decoratedTypeAnnotation('int');
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
+  }
+
+  test_void_type() async {
+    await analyze('''
+void f() {}
+''');
+    var decoratedType = decoratedTypeAnnotation('void');
+    expect(decoratedFunctionType('f').returnType, same(decoratedType));
+    assertEdge(always, decoratedType.node, hard: false);
   }
 }
 
