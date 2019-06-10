@@ -130,7 +130,6 @@ $stackTrace''');
   @override
   DecoratedType visitTypeAnnotation(TypeAnnotation node) {
     assert(node != null); // TODO(paulberry)
-    assert(node is NamedType); // TODO(paulberry)
     var type = node.type;
     if (type.isVoid || type.isDynamic) {
       var nullabilityNode = NullabilityNode.forTypeAnnotation(node.end);
@@ -141,9 +140,10 @@ $stackTrace''');
           potentialModification: false);
       return decoratedType;
     }
-    assert(
-        type is InterfaceType || type is TypeParameterType); // TODO(paulberry)
     var typeArguments = const <DecoratedType>[];
+    DecoratedType returnType;
+    var positionalParameters = const <DecoratedType>[];
+    var namedParameters = const <String, DecoratedType>{};
     if (type is InterfaceType && type.typeParameters.isNotEmpty) {
       if (node is TypeName) {
         assert(node.typeArguments != null);
@@ -153,10 +153,30 @@ $stackTrace''');
         assert(false); // TODO(paulberry): is this possible?
       }
     }
+    if (node is GenericFunctionType) {
+      returnType = decorateType(node.returnType, node);
+      if (node.typeParameters != null) {
+        throw UnimplementedError('TODO(paulberry)');
+      }
+      positionalParameters = <DecoratedType>[];
+      namedParameters = <String, DecoratedType>{};
+    }
     var decoratedType = DecoratedTypeAnnotation(
         type, NullabilityNode.forTypeAnnotation(node.end), node.end,
-        typeArguments: typeArguments);
+        typeArguments: typeArguments,
+        returnType: returnType,
+        positionalParameters: positionalParameters,
+        namedParameters: namedParameters);
     _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType);
+    if (node is GenericFunctionType) {
+      var previousFunctionType = _currentFunctionType;
+      try {
+        _currentFunctionType = decoratedType;
+        node.parameters.accept(this);
+      } finally {
+        _currentFunctionType = previousFunctionType;
+      }
+    }
     switch (_classifyComment(node.endToken.next.precedingComments)) {
       case _NullabilityComment.bang:
         _graph.connect(decoratedType.node, NullabilityNode.never, hard: true);

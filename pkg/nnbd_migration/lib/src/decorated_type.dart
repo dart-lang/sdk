@@ -164,8 +164,15 @@ class DecoratedTypeAnnotation extends DecoratedType
 
   DecoratedTypeAnnotation(
       DartType type, NullabilityNode nullabilityNode, this._offset,
-      {List<DecoratedType> typeArguments = const []})
-      : super(type, nullabilityNode, typeArguments: typeArguments);
+      {List<DecoratedType> typeArguments = const [],
+      DecoratedType returnType,
+      List<DecoratedType> positionalParameters = const [],
+      Map<String, DecoratedType> namedParameters = const {}})
+      : super(type, nullabilityNode,
+            typeArguments: typeArguments,
+            returnType: returnType,
+            positionalParameters: positionalParameters,
+            namedParameters: namedParameters);
 
   @override
   bool get isEmpty => !node.isNullable;

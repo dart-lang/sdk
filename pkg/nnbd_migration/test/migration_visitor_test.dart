@@ -1227,6 +1227,13 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
     }
   }
 
+  /// Gets the [DecoratedType] associated with the generic function type
+  /// annotation whose text is [text].
+  DecoratedType decoratedGenericFunctionTypeAnnotation(String text) {
+    return _variables.decoratedTypeAnnotation(
+        testSource, findNode.genericFunctionType(text));
+  }
+
   /// Gets the [DecoratedType] associated with the type annotation whose text
   /// is [text].
   DecoratedType decoratedTypeAnnotation(String text) {
@@ -1285,6 +1292,51 @@ class C {
         _variables.decoratedElementType(
             findNode.fieldDeclaration('f').fields.variables[0].declaredElement),
         same(decoratedType));
+  }
+
+  test_genericFunctionType_namedParameterType() async {
+    await analyze('''
+void f(void Function({int y}) x) {}
+''');
+    var decoratedType =
+        decoratedGenericFunctionTypeAnnotation('void Function({int y})');
+    expect(decoratedFunctionType('f').positionalParameters[0],
+        same(decoratedType));
+    expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
+    var decoratedIntType = decoratedTypeAnnotation('int');
+    expect(decoratedType.namedParameters['y'], same(decoratedIntType));
+    expect(decoratedIntType.node, isNotNull);
+    expect(decoratedIntType.node, isNot(NullabilityNode.never));
+  }
+
+  test_genericFunctionType_returnType() async {
+    await analyze('''
+void f(int Function() x) {}
+''');
+    var decoratedType =
+        decoratedGenericFunctionTypeAnnotation('int Function()');
+    expect(decoratedFunctionType('f').positionalParameters[0],
+        same(decoratedType));
+    expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
+    var decoratedIntType = decoratedTypeAnnotation('int');
+    expect(decoratedType.returnType, same(decoratedIntType));
+    expect(decoratedIntType.node, isNotNull);
+    expect(decoratedIntType.node, isNot(NullabilityNode.never));
+  }
+
+  test_genericFunctionType_unnamedParameterType() async {
+    await analyze('''
+void f(void Function(int) x) {}
+''');
+    var decoratedType =
+        decoratedGenericFunctionTypeAnnotation('void Function(int)');
+    expect(decoratedFunctionType('f').positionalParameters[0],
+        same(decoratedType));
+    expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
+    var decoratedIntType = decoratedTypeAnnotation('int');
+    expect(decoratedType.positionalParameters[0], same(decoratedIntType));
+    expect(decoratedIntType.node, isNotNull);
+    expect(decoratedIntType.node, isNot(NullabilityNode.never));
   }
 
   test_interfaceType_typeParameter() async {

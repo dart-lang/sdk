@@ -920,6 +920,20 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_parameter_genericFunctionType() async {
+    var content = '''
+int f(int x, int Function(int i) g) {
+  return g(x);
+}
+''';
+    var expected = '''
+int f(int x, int Function(int i) g) {
+  return g(x);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_single_file_multiple_changes() async {
     var content = '''
 int f() => null;
