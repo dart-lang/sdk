@@ -103,6 +103,14 @@ abstract class HVisitor<R> {
   R visitTypeInfoReadRaw(HTypeInfoReadRaw node);
   R visitTypeInfoReadVariable(HTypeInfoReadVariable node);
   R visitTypeInfoExpression(HTypeInfoExpression node);
+
+  // Instructions for 'dart:_rti'.
+  R visitIsTest(HIsTest node);
+  R visitAsCheck(HAsCheck node);
+  R visitSubtypeCheck(HSubtypeCheck node);
+  R visitLoadType(HLoadType node);
+  R visitTypeEval(HTypeEval node);
+  R visitTypeBind(HTypeBind node);
 }
 
 abstract class HGraphVisitor {
@@ -584,8 +592,22 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   @override
   visitTypeInfoReadVariable(HTypeInfoReadVariable node) =>
       visitInstruction(node);
+
   @override
   visitTypeInfoExpression(HTypeInfoExpression node) => visitInstruction(node);
+
+  @override
+  visitIsTest(HIsTest node) => visitInstruction(node);
+  @override
+  visitAsCheck(HAsCheck node) => visitCheck(node);
+  @override
+  visitSubtypeCheck(HSubtypeCheck node) => visitCheck(node);
+  @override
+  visitLoadType(HLoadType node) => visitInstruction(node);
+  @override
+  visitTypeEval(HTypeEval node) => visitInstruction(node);
+  @override
+  visitTypeBind(HTypeBind node) => visitInstruction(node);
 }
 
 class SubGraph {
@@ -1064,6 +1086,13 @@ abstract class HInstruction implements Spannable {
   static const int BOOL_CONVERSION_TYPECODE = 45;
   static const int PRIMITIVE_CHECK_TYPECODE = 46;
 
+  static const int IS_TEST_TYPECODE = 47;
+  static const int AS_CHECK_TYPECODE = 48;
+  static const int SUBTYPE_CHECK_TYPECODE = 49;
+  static const int LOAD_TYPE_TYPECODE = 50;
+  static const int TYPE_EVAL_TYPECODE = 51;
+  static const int TYPE_BIND_TYPECODE = 52;
+
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++,
         usedBy = <HInstruction>[] {
@@ -1384,6 +1413,9 @@ abstract class HInstruction implements Spannable {
   bool hasSameLoopHeaderAs(HInstruction other) {
     return block.enclosingLoopHeader == other.block.enclosingLoopHeader;
   }
+
+  @override
+  String toString() => '${this.runtimeType}()';
 }
 
 /// The set of uses of [source] that are dominated by [dominator].
@@ -3342,6 +3374,7 @@ class HIndexAssign extends HInstruction {
       receiver.isNull(domain).isPotentiallyTrue;
 }
 
+/// Is-test using legacy constructor based typ representation.
 class HIs extends HInstruction {
   /// A check against a raw type: 'o is int', 'o is A'.
   static const int RAW_CHECK = 0;
@@ -3476,7 +3509,7 @@ class HIsViaInterceptor extends HLateInstruction {
 ///
 /// HLateValue is useful for naming values that would otherwise be generated at
 /// use site, for example, if 'this' is used many times, replacing uses of
-/// 'this' with HLateValhe(HThis) will have the effect of copying 'this' to a
+/// 'this' with HLateValue(HThis) will have the effect of copying 'this' to a
 /// temporary will reduce the size of minified code.
 class HLateValue extends HLateInstruction {
   HLateValue(HInstruction target) : super([target], target.instructionType);
@@ -3489,6 +3522,7 @@ class HLateValue extends HLateInstruction {
   toString() => 'HLateValue($target)';
 }
 
+/// Type check or cast using legacy constructor-based type representation.
 class HTypeConversion extends HCheck {
   // Values for [kind].
   static const int TYPE_CHECK = 0;
@@ -4298,4 +4332,180 @@ class HTypeInfoExpression extends HInstruction {
         return 'INSTANCE';
     }
   }
+}
+
+// -----------------------------------------------------------------------------
+
+/// Is-test using Rti form of type expression.
+///
+/// This instruction can be used for any type. Tests for simple types are
+/// lowered to other instructions, so this instruction remains for types that
+/// depend on type variables and complex types.
+class HIsTest extends HInstruction {
+  HIsTest(HInstruction checked, HInstruction rti, AbstractValue type)
+      : super([rti, checked], type) {
+    setUseGvn();
+  }
+
+  // The type input is first to facilitate the `type.is(value)` codegen pattern.
+  HInstruction get typeInput => inputs[0];
+  HInstruction get checkedInput => inputs[1];
+
+  @override
+  accept(HVisitor visitor) => visitor.visitIsTest(this);
+
+  @override
+  int typeCode() => HInstruction.IS_TEST_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HIsTest;
+
+  @override
+  bool dataEquals(HIsTest other) => true;
+
+  @override
+  String toString() => 'HIsTest()';
+}
+
+/// Type cast or type check using Rti form of type expression.
+class HAsCheck extends HCheck {
+  final bool isTypeError;
+
+  HAsCheck(HInstruction checked, HInstruction rti, this.isTypeError,
+      AbstractValue type)
+      : super([rti, checked], type) {}
+
+  // The type input is first to facilitate the `type.as(value)` codegen pattern.
+  HInstruction get typeInput => inputs[0];
+  @override
+  HInstruction get checkedInput => inputs[1];
+
+  @override
+  accept(HVisitor visitor) => visitor.visitAsCheck(this);
+
+  @override
+  int typeCode() => HInstruction.AS_CHECK_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HAsCheck;
+
+  @override
+  bool dataEquals(HAsCheck other) {
+    return isTypeError == other.isTypeError;
+  }
+
+  @override
+  String toString() {
+    String error = isTypeError ? 'TypeError' : 'CastError';
+    return 'HAsCheck($error)';
+  }
+}
+
+/// Subtype check comparing two Rti types.
+class HSubtypeCheck extends HCheck {
+  HSubtypeCheck(
+      HInstruction subtype, HInstruction supertype, AbstractValue type)
+      : super([subtype, supertype], type) {
+    setUseGvn();
+  }
+
+  HInstruction get typeInput => inputs[1];
+
+  @override
+  accept(HVisitor visitor) => visitor.visitSubtypeCheck(this);
+
+  @override
+  int typeCode() => HInstruction.SUBTYPE_CHECK_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HSubtypeCheck;
+
+  @override
+  bool dataEquals(HSubtypeCheck other) => true;
+
+  @override
+  String toString() => 'HSubtypeCheck()';
+}
+
+/// Common superclass for instructions that generate Rti values.
+abstract class HRtiInstruction extends HInstruction {
+  HRtiInstruction(List<HInstruction> inputs, AbstractValue type)
+      : super(inputs, type);
+}
+
+/// Evaluates an Rti type recipe in the global environment.
+class HLoadType extends HRtiInstruction {
+  DartType typeExpression; // TODO(sra): Allow a type environment expression.
+
+  HLoadType(this.typeExpression, AbstractValue type) : super([], type) {
+    setUseGvn();
+  }
+
+  @override
+  accept(HVisitor visitor) => visitor.visitLoadType(this);
+
+  @override
+  int typeCode() => HInstruction.LOAD_TYPE_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HLoadType;
+
+  @override
+  bool dataEquals(HLoadType other) {
+    return typeExpression == other.typeExpression;
+  }
+
+  @override
+  String toString() => 'HLoadType($typeExpression)';
+}
+
+/// Evaluates an Rti type recipe in an Rti environment.
+class HTypeEval extends HRtiInstruction {
+  DartType typeExpression; // TODO(sra); Allow a type environment expression.
+
+  HTypeEval(HInstruction environment, this.typeExpression, AbstractValue type)
+      : super([environment], type) {
+    setUseGvn();
+  }
+
+  @override
+  accept(HVisitor visitor) => visitor.visitTypeEval(this);
+
+  @override
+  int typeCode() => HInstruction.TYPE_EVAL_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HTypeEval;
+
+  @override
+  bool dataEquals(HTypeEval other) {
+    return typeExpression == other.typeExpression;
+  }
+
+  @override
+  String toString() => 'HTypeEval($typeExpression)';
+}
+
+/// Extends an Rti type environment with generic function types.
+class HTypeBind extends HRtiInstruction {
+  HTypeBind(
+      HInstruction environment, HInstruction typeArguments, AbstractValue type)
+      : super([environment, typeArguments], type) {
+    setUseGvn();
+  }
+
+  @override
+  accept(HVisitor visitor) => visitor.visitTypeBind(this);
+
+  @override
+  int typeCode() => HInstruction.TYPE_BIND_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HTypeBind;
+
+  @override
+  bool dataEquals(HTypeBind other) => true;
+
+  @override
+  String toString() => 'HTypeBind()';
 }
