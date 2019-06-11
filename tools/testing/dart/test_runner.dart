@@ -432,7 +432,6 @@ class RunningProcess {
   int pid;
   OutputLog stdout;
   OutputLog stderr = OutputLog();
-  StreamConsumer stdoutConsumer;
   List<String> diagnostics = <String>[];
   bool compilationSkipped = false;
   Completer<CommandOutput> completer;
