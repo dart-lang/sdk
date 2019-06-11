@@ -62,6 +62,8 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   /// [../kernel/kernel_library_builder.dart].
   Map<String, String> unserializableExports;
 
+  bool exportsAlreadyFinalized = false;
+
   DillLibraryBuilder(this.library, this.loader)
       : super(library.fileUri, new Scope.top(), new Scope.top());
 
@@ -173,6 +175,8 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   }
 
   void finalizeExports() {
+    if (exportsAlreadyFinalized) return;
+    exportsAlreadyFinalized = true;
     unserializableExports?.forEach((String name, String messageText) {
       Declaration declaration;
       switch (name) {
