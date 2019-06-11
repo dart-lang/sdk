@@ -101,16 +101,25 @@ main() {
     });
 
     test('canParse returns false for out-of-spec (restricted) enum values', () {
-      expect(MarkupKind.canParse('NotAMarkupKind'), isFalse);
+      expect(
+        MarkupKind.canParse('NotAMarkupKind', nullLspJsonReporter),
+        isFalse,
+      );
     });
 
     test('canParse returns true for in-spec (restricted) enum values', () {
-      expect(MarkupKind.canParse('plaintext'), isTrue);
+      expect(
+        MarkupKind.canParse('plaintext', nullLspJsonReporter),
+        isTrue,
+      );
     });
 
     test('canParse returns true for out-of-spec (unrestricted) enum values',
         () {
-      expect(SymbolKind.canParse(-1), isTrue);
+      expect(
+        SymbolKind.canParse(-1, nullLspJsonReporter),
+        isTrue,
+      );
     });
 
     test('canParse allows nulls in nullable and undefinable fields', () {
@@ -120,22 +129,36 @@ main() {
         'processId': null,
         'rootUri': null,
         'capabilities': <String, Object>{}
-      });
+      }, nullLspJsonReporter);
       expect(canParse, isTrue);
     });
 
     test('canParse validates optional fields', () {
-      expect(RenameFileOptions.canParse(<String, Object>{}), isTrue);
-      expect(RenameFileOptions.canParse({'overwrite': true}), isTrue);
-      expect(RenameFileOptions.canParse({'overwrite': 1}), isFalse);
+      expect(
+        RenameFileOptions.canParse(<String, Object>{}, nullLspJsonReporter),
+        isTrue,
+      );
+      expect(
+        RenameFileOptions.canParse({'overwrite': true}, nullLspJsonReporter),
+        isTrue,
+      );
+      expect(
+        RenameFileOptions.canParse({'overwrite': 1}, nullLspJsonReporter),
+        isFalse,
+      );
     });
 
     test('canParse ignores fields not in the spec', () {
       expect(
-          RenameFileOptions.canParse({'overwrite': true, 'invalidField': true}),
-          isTrue);
-      expect(RenameFileOptions.canParse({'overwrite': 1, 'invalidField': true}),
-          isFalse);
+        RenameFileOptions.canParse(
+            {'overwrite': true, 'invalidField': true}, nullLspJsonReporter),
+        isTrue,
+      );
+      expect(
+        RenameFileOptions.canParse(
+            {'overwrite': 1, 'invalidField': true}, nullLspJsonReporter),
+        isFalse,
+      );
     });
 
     test('canParse records undefined fields', () {
