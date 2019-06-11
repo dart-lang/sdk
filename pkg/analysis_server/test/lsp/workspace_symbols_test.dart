@@ -88,7 +88,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     expect(
       response.error.message,
       equals('Invalid params for workspace/symbol:\n'
-          'params.query may not be undefined'),
+          'params.query must not be undefined'),
     );
   }
 

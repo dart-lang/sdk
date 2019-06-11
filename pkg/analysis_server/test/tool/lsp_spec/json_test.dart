@@ -165,14 +165,15 @@ main() {
       final reporter = LspJsonReporter('params');
       expect(CreateFile.canParse(<String, dynamic>{}, reporter), isFalse);
       expect(reporter.errors, hasLength(1));
-      expect(reporter.errors.first, equals("params.kind may not be undefined"));
+      expect(
+          reporter.errors.first, equals("params.kind must not be undefined"));
     });
 
     test('canParse records null fields', () {
       final reporter = LspJsonReporter('params');
       expect(CreateFile.canParse({'kind': null}, reporter), isFalse);
       expect(reporter.errors, hasLength(1));
-      expect(reporter.errors.first, equals("params.kind may not be null"));
+      expect(reporter.errors.first, equals("params.kind must not be null"));
     });
 
     test('canParse records fields of the wrong type', () {
@@ -191,7 +192,7 @@ main() {
           isFalse);
       expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
       expect(reporter.errors.first,
-          equals("params.textDocument.uri may not be undefined"));
+          equals("params.textDocument.uri must not be undefined"));
     });
 
     test('canParse records nested null fields', () {
@@ -203,7 +204,7 @@ main() {
           isFalse);
       expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
       expect(reporter.errors.first,
-          equals("params.textDocument.uri may not be null"));
+          equals("params.textDocument.uri must not be null"));
     });
 
     test('canParse records nested fields of the wrong type', () {

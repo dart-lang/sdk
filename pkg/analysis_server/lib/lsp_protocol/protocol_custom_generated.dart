@@ -52,11 +52,11 @@ class AnalyzerStatusParams implements ToJsonable {
       reporter.push('isAnalyzing');
       try {
         if (!obj.containsKey('isAnalyzing')) {
-          reporter.reportError("may not be undefined");
+          reporter.reportError("must not be undefined");
           return false;
         }
         if (obj['isAnalyzing'] == null) {
-          reporter.reportError("may not be null");
+          reporter.reportError("must not be null");
           return false;
         }
         if (obj['isAnalyzing'] != null && !(obj['isAnalyzing'] is bool)) {
@@ -125,11 +125,11 @@ class ClosingLabel implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("may not be undefined");
+          reporter.reportError("must not be undefined");
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("may not be null");
+          reporter.reportError("must not be null");
           return false;
         }
         if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
@@ -142,11 +142,11 @@ class ClosingLabel implements ToJsonable {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
-          reporter.reportError("may not be undefined");
+          reporter.reportError("must not be undefined");
           return false;
         }
         if (obj['label'] == null) {
-          reporter.reportError("may not be null");
+          reporter.reportError("must not be null");
           return false;
         }
         if (obj['label'] != null && !(obj['label'] is String)) {
@@ -246,11 +246,11 @@ class CompletionItemResolutionInfo implements ToJsonable {
       reporter.push('file');
       try {
         if (!obj.containsKey('file')) {
-          reporter.reportError("may not be undefined");
+          reporter.reportError("must not be undefined");
           return false;
         }
         if (obj['file'] == null) {
-          reporter.reportError("may not be null");
+          reporter.reportError("must not be null");
           return false;
         }
         if (obj['file'] != null && !(obj['file'] is String)) {
@@ -263,11 +263,11 @@ class CompletionItemResolutionInfo implements ToJsonable {
       reporter.push('offset');
       try {
         if (!obj.containsKey('offset')) {
-          reporter.reportError("may not be undefined");
+          reporter.reportError("must not be undefined");
           return false;
         }
         if (obj['offset'] == null) {
-          reporter.reportError("may not be null");
+          reporter.reportError("must not be null");
           return false;
         }
         if (obj['offset'] != null && !(obj['offset'] is num)) {
@@ -280,11 +280,11 @@ class CompletionItemResolutionInfo implements ToJsonable {
       reporter.push('libId');
       try {
         if (!obj.containsKey('libId')) {
-          reporter.reportError("may not be undefined");
+          reporter.reportError("must not be undefined");
           return false;
         }
         if (obj['libId'] == null) {
-          reporter.reportError("may not be null");
+          reporter.reportError("must not be null");
           return false;
         }
         if (obj['libId'] != null && !(obj['libId'] is num)) {
@@ -297,11 +297,11 @@ class CompletionItemResolutionInfo implements ToJsonable {
       reporter.push('displayUri');
       try {
         if (!obj.containsKey('displayUri')) {
-          reporter.reportError("may not be undefined");
+          reporter.reportError("must not be undefined");
           return false;
         }
         if (obj['displayUri'] == null) {
-          reporter.reportError("may not be null");
+          reporter.reportError("must not be null");
           return false;
         }
         if (obj['displayUri'] != null && !(obj['displayUri'] is String)) {
@@ -314,11 +314,11 @@ class CompletionItemResolutionInfo implements ToJsonable {
       reporter.push('rOffset');
       try {
         if (!obj.containsKey('rOffset')) {
-          reporter.reportError("may not be undefined");
+          reporter.reportError("must not be undefined");
           return false;
         }
         if (obj['rOffset'] == null) {
-          reporter.reportError("may not be null");
+          reporter.reportError("must not be null");
           return false;
         }
         if (obj['rOffset'] != null && !(obj['rOffset'] is num)) {
@@ -331,11 +331,11 @@ class CompletionItemResolutionInfo implements ToJsonable {
       reporter.push('rLength');
       try {
         if (!obj.containsKey('rLength')) {
-          reporter.reportError("may not be undefined");
+          reporter.reportError("must not be undefined");
           return false;
         }
         if (obj['rLength'] == null) {
-          reporter.reportError("may not be null");
+          reporter.reportError("must not be null");
           return false;
         }
         if (obj['rLength'] != null && !(obj['rLength'] is num)) {
@@ -409,11 +409,11 @@ class DartDiagnosticServer implements ToJsonable {
       reporter.push('port');
       try {
         if (!obj.containsKey('port')) {
-          reporter.reportError("may not be undefined");
+          reporter.reportError("must not be undefined");
           return false;
         }
         if (obj['port'] == null) {
-          reporter.reportError("may not be null");
+          reporter.reportError("must not be null");
           return false;
         }
         if (obj['port'] != null && !(obj['port'] is num)) {
@@ -485,11 +485,11 @@ class PublishClosingLabelsParams implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("may not be undefined");
+          reporter.reportError("must not be undefined");
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("may not be null");
+          reporter.reportError("must not be null");
           return false;
         }
         if (obj['uri'] != null && !(obj['uri'] is String)) {
@@ -502,11 +502,11 @@ class PublishClosingLabelsParams implements ToJsonable {
       reporter.push('labels');
       try {
         if (!obj.containsKey('labels')) {
-          reporter.reportError("may not be undefined");
+          reporter.reportError("must not be undefined");
           return false;
         }
         if (obj['labels'] == null) {
-          reporter.reportError("may not be null");
+          reporter.reportError("must not be null");
           return false;
         }
         if (obj['labels'] != null &&

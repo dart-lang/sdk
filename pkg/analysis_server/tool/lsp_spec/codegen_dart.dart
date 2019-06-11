@@ -166,7 +166,7 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
     ..indent()
     ..writeIndentedln('if (obj is Map<String, dynamic>) {')
     ..indent();
-  // In order to consider this valid for parsing, all fields that may not be
+  // In order to consider this valid for parsing, all fields that must not be
   // undefined must be present and also type check for the correct type.
   // Any fields that are optional but present, must still type check.
   final fields = _getAllFields(interface);
@@ -179,7 +179,7 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
       buffer
         ..writeIndentedln("if (!obj.containsKey('${field.name}')) {")
         ..indent()
-        ..writeIndentedln('reporter.reportError("may not be undefined");')
+        ..writeIndentedln('reporter.reportError("must not be undefined");')
         ..writeIndentedln('return false;')
         ..outdent()
         ..writeIndentedln('}');
@@ -188,7 +188,7 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
       buffer
         ..writeIndentedln("if (obj['${field.name}'] == null) {")
         ..indent()
-        ..writeIndentedln('reporter.reportError("may not be null");')
+        ..writeIndentedln('reporter.reportError("must not be null");')
         ..writeIndentedln('return false;')
         ..outdent()
         ..writeIndentedln('}');
