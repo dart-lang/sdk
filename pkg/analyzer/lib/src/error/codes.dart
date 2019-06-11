@@ -942,7 +942,7 @@ class CompileTimeErrorCode extends ErrorCode {
   /**
    * No parameters.
    */
-  // #### Description
+  /* #### Description
   //
   // The analyzer produces this diagnostic when a named parameter has both the
   // `required` modifier and a default value. If the parameter is required, then
@@ -970,7 +970,7 @@ class CompileTimeErrorCode extends ErrorCode {
   //
   // ```dart
   // void log({String message = 'no message'}) {}
-  // ```
+  // ``` */
   static const CompileTimeErrorCode DEFAULT_VALUE_ON_REQUIRED_PARAMETER =
       const CompileTimeErrorCode('DEFAULT_VALUE_ON_REQUIRED_PARAMETER',
           "Required named parameters can't have a default value.",
@@ -1882,7 +1882,7 @@ class CompileTimeErrorCode extends ErrorCode {
   /**
    * No parameters.
    */
-  // #### Description
+  /* #### Description
   //
   // The analyzer produces this diagnostic when an optional parameter doesn't
   // have a default value, but has a
@@ -1919,7 +1919,7 @@ class CompileTimeErrorCode extends ErrorCode {
   //
   // ```dart
   // void log({required String message}) {}
-  // ```
+  // ``` */
   static const CompileTimeErrorCode MISSING_DEFAULT_VALUE_FOR_PARAMETER =
       const CompileTimeErrorCode(
           'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
@@ -2518,7 +2518,7 @@ class CompileTimeErrorCode extends ErrorCode {
   /**
    * No parameters.
    */
-  // #### Description
+  /* #### Description
   //
   // The analyzer produces this diagnostic when a class declaration uses an
   // extends clause to specify a superclass, and the type that's specified is a
@@ -2545,7 +2545,7 @@ class CompileTimeErrorCode extends ErrorCode {
   //
   // ```dart
   // class Invalid extends Duration {}
-  // ```
+  // ``` */
   static const CompileTimeErrorCode NULLABLE_TYPE_IN_EXTENDS_CLAUSE =
       const CompileTimeErrorCode('NULLABLE_TYPE_IN_EXTENDS_CLAUSE',
           "A class can't extend a nullable type.",
