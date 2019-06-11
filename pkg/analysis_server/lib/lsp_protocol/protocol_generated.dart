@@ -86,7 +86,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ApplyWorkspaceEditParams");
       return false;
     }
   }
@@ -174,7 +174,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ApplyWorkspaceEditResponse");
       return false;
     }
   }
@@ -249,7 +249,7 @@ class CancelParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CancelParams");
       return false;
     }
   }
@@ -348,7 +348,7 @@ class ClientCapabilities implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ClientCapabilities");
       return false;
     }
   }
@@ -505,7 +505,7 @@ class CodeAction implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CodeAction");
       return false;
     }
   }
@@ -616,7 +616,7 @@ class CodeActionContext implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CodeActionContext");
       return false;
     }
   }
@@ -762,7 +762,7 @@ class CodeActionOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CodeActionOptions");
       return false;
     }
   }
@@ -889,7 +889,7 @@ class CodeActionParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CodeActionParams");
       return false;
     }
   }
@@ -988,7 +988,7 @@ class CodeActionRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CodeActionRegistrationOptions");
       return false;
     }
   }
@@ -1102,7 +1102,7 @@ class CodeLens implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CodeLens");
       return false;
     }
   }
@@ -1167,7 +1167,7 @@ class CodeLensOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CodeLensOptions");
       return false;
     }
   }
@@ -1238,7 +1238,7 @@ class CodeLensParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CodeLensParams");
       return false;
     }
   }
@@ -1324,7 +1324,7 @@ class CodeLensRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CodeLensRegistrationOptions");
       return false;
     }
   }
@@ -1471,7 +1471,7 @@ class Color implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type Color");
       return false;
     }
   }
@@ -1571,7 +1571,7 @@ class ColorInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ColorInformation");
       return false;
     }
   }
@@ -1686,7 +1686,7 @@ class ColorPresentation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ColorPresentation");
       return false;
     }
   }
@@ -1813,7 +1813,7 @@ class ColorPresentationParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ColorPresentationParams");
       return false;
     }
   }
@@ -1860,7 +1860,7 @@ class ColorProviderOptions implements ToJsonable {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ColorProviderOptions");
       return false;
     }
   }
@@ -1972,7 +1972,7 @@ class Command implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type Command");
       return false;
     }
   }
@@ -2069,7 +2069,7 @@ class CompletionContext implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CompletionContext");
       return false;
     }
   }
@@ -2464,7 +2464,7 @@ class CompletionItem implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CompletionItem");
       return false;
     }
   }
@@ -2645,7 +2645,7 @@ class CompletionList implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CompletionList");
       return false;
     }
   }
@@ -2731,7 +2731,7 @@ class CompletionOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CompletionOptions");
       return false;
     }
   }
@@ -2854,7 +2854,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CompletionParams");
       return false;
     }
   }
@@ -3005,7 +3005,7 @@ class CompletionRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CompletionRegistrationOptions");
       return false;
     }
   }
@@ -3128,7 +3128,7 @@ class ConfigurationItem implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ConfigurationItem");
       return false;
     }
   }
@@ -3201,7 +3201,7 @@ class ConfigurationParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ConfigurationParams");
       return false;
     }
   }
@@ -3316,7 +3316,7 @@ class CreateFile implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CreateFile");
       return false;
     }
   }
@@ -3396,7 +3396,7 @@ class CreateFileOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CreateFileOptions");
       return false;
     }
   }
@@ -3512,7 +3512,7 @@ class DeleteFile implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DeleteFile");
       return false;
     }
   }
@@ -3593,7 +3593,7 @@ class DeleteFileOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DeleteFileOptions");
       return false;
     }
   }
@@ -3770,7 +3770,7 @@ class Diagnostic implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type Diagnostic");
       return false;
     }
   }
@@ -3886,7 +3886,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DiagnosticRelatedInformation");
       return false;
     }
   }
@@ -3981,7 +3981,7 @@ class DidChangeConfigurationParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DidChangeConfigurationParams");
       return false;
     }
   }
@@ -4091,7 +4091,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DidChangeTextDocumentParams");
       return false;
     }
   }
@@ -4174,7 +4174,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DidChangeWatchedFilesParams");
       return false;
     }
   }
@@ -4253,7 +4253,8 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type DidChangeWatchedFilesRegistrationOptions");
       return false;
     }
   }
@@ -4326,7 +4327,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DidChangeWorkspaceFoldersParams");
       return false;
     }
   }
@@ -4397,7 +4398,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DidCloseTextDocumentParams");
       return false;
     }
   }
@@ -4468,7 +4469,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DidOpenTextDocumentParams");
       return false;
     }
   }
@@ -4556,7 +4557,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DidSaveTextDocumentParams");
       return false;
     }
   }
@@ -4659,7 +4660,7 @@ class DocumentFilter implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DocumentFilter");
       return false;
     }
   }
@@ -4763,7 +4764,7 @@ class DocumentFormattingParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DocumentFormattingParams");
       return false;
     }
   }
@@ -4856,7 +4857,7 @@ class DocumentHighlight implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DocumentHighlight");
       return false;
     }
   }
@@ -4991,7 +4992,7 @@ class DocumentLink implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DocumentLink");
       return false;
     }
   }
@@ -5056,7 +5057,7 @@ class DocumentLinkOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DocumentLinkOptions");
       return false;
     }
   }
@@ -5127,7 +5128,7 @@ class DocumentLinkParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DocumentLinkParams");
       return false;
     }
   }
@@ -5214,7 +5215,7 @@ class DocumentLinkRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DocumentLinkRegistrationOptions");
       return false;
     }
   }
@@ -5312,7 +5313,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DocumentOnTypeFormattingOptions");
       return false;
     }
   }
@@ -5470,7 +5471,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DocumentOnTypeFormattingParams");
       return false;
     }
   }
@@ -5598,7 +5599,8 @@ class DocumentOnTypeFormattingRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type DocumentOnTypeFormattingRegistrationOptions");
       return false;
     }
   }
@@ -5729,7 +5731,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DocumentRangeFormattingParams");
       return false;
     }
   }
@@ -5947,7 +5949,7 @@ class DocumentSymbol implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DocumentSymbol");
       return false;
     }
   }
@@ -6032,7 +6034,7 @@ class DocumentSymbolParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DocumentSymbolParams");
       return false;
     }
   }
@@ -6140,7 +6142,7 @@ class ExecuteCommandOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ExecuteCommandOptions");
       return false;
     }
   }
@@ -6230,7 +6232,7 @@ class ExecuteCommandParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ExecuteCommandParams");
       return false;
     }
   }
@@ -6307,7 +6309,7 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ExecuteCommandRegistrationOptions");
       return false;
     }
   }
@@ -6481,7 +6483,7 @@ class FileEvent implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type FileEvent");
       return false;
     }
   }
@@ -6581,7 +6583,7 @@ class FileSystemWatcher implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type FileSystemWatcher");
       return false;
     }
   }
@@ -6735,7 +6737,7 @@ class FoldingRange implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type FoldingRange");
       return false;
     }
   }
@@ -6846,7 +6848,7 @@ class FoldingRangeParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type FoldingRangeParams");
       return false;
     }
   }
@@ -6889,7 +6891,7 @@ class FoldingRangeProviderOptions implements ToJsonable {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type FoldingRangeProviderOptions");
       return false;
     }
   }
@@ -6984,7 +6986,7 @@ class FormattingOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type FormattingOptions");
       return false;
     }
   }
@@ -7082,7 +7084,7 @@ class Hover implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type Hover");
       return false;
     }
   }
@@ -7279,7 +7281,7 @@ class InitializeParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type InitializeParams");
       return false;
     }
   }
@@ -7364,7 +7366,7 @@ class InitializeResult implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type InitializeResult");
       return false;
     }
   }
@@ -7405,7 +7407,7 @@ class InitializedParams implements ToJsonable {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type InitializedParams");
       return false;
     }
   }
@@ -7533,7 +7535,7 @@ class Location implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type Location");
       return false;
     }
   }
@@ -7688,7 +7690,7 @@ class LocationLink implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type LocationLink");
       return false;
     }
   }
@@ -7790,7 +7792,7 @@ class LogMessageParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type LogMessageParams");
       return false;
     }
   }
@@ -7907,7 +7909,7 @@ class MarkupContent implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type MarkupContent");
       return false;
     }
   }
@@ -8022,7 +8024,7 @@ class Message implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type Message");
       return false;
     }
   }
@@ -8090,7 +8092,7 @@ class MessageActionItem implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type MessageActionItem");
       return false;
     }
   }
@@ -8423,7 +8425,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type NotificationMessage");
       return false;
     }
   }
@@ -8536,7 +8538,7 @@ class ParameterInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ParameterInformation");
       return false;
     }
   }
@@ -8638,7 +8640,7 @@ class Position implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type Position");
       return false;
     }
   }
@@ -8738,7 +8740,7 @@ class PublishDiagnosticsParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type PublishDiagnosticsParams");
       return false;
     }
   }
@@ -8836,7 +8838,7 @@ class Range implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type Range");
       return false;
     }
   }
@@ -8928,7 +8930,7 @@ class RangeAndPlaceholder implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type RangeAndPlaceholder");
       return false;
     }
   }
@@ -8998,7 +9000,7 @@ class ReferenceContext implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ReferenceContext");
       return false;
     }
   }
@@ -9123,7 +9125,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ReferenceParams");
       return false;
     }
   }
@@ -9239,7 +9241,7 @@ class Registration implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type Registration");
       return false;
     }
   }
@@ -9317,7 +9319,7 @@ class RegistrationParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type RegistrationParams");
       return false;
     }
   }
@@ -9457,7 +9459,7 @@ class RenameFile implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type RenameFile");
       return false;
     }
   }
@@ -9539,7 +9541,7 @@ class RenameFileOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type RenameFileOptions");
       return false;
     }
   }
@@ -9602,7 +9604,7 @@ class RenameOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type RenameOptions");
       return false;
     }
   }
@@ -9727,7 +9729,7 @@ class RenameParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type RenameParams");
       return false;
     }
   }
@@ -9817,7 +9819,7 @@ class RenameRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type RenameRegistrationOptions");
       return false;
     }
   }
@@ -9958,7 +9960,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type RequestMessage");
       return false;
     }
   }
@@ -10113,7 +10115,7 @@ class ResponseError<D> implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ResponseError<D>");
       return false;
     }
   }
@@ -10246,7 +10248,7 @@ class ResponseMessage implements Message, ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ResponseMessage");
       return false;
     }
   }
@@ -10312,7 +10314,7 @@ class SaveOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type SaveOptions");
       return false;
     }
   }
@@ -10882,7 +10884,7 @@ class ServerCapabilities implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ServerCapabilities");
       return false;
     }
   }
@@ -10999,7 +11001,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ServerCapabilitiesWorkspace");
       return false;
     }
   }
@@ -11082,7 +11084,8 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter
+          .reportError("must be of type ServerCapabilitiesWorkspaceFolders");
       return false;
     }
   }
@@ -11180,7 +11183,7 @@ class ShowMessageParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ShowMessageParams");
       return false;
     }
   }
@@ -11298,7 +11301,7 @@ class ShowMessageRequestParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ShowMessageRequestParams");
       return false;
     }
   }
@@ -11425,7 +11428,7 @@ class SignatureHelp implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type SignatureHelp");
       return false;
     }
   }
@@ -11495,7 +11498,7 @@ class SignatureHelpOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type SignatureHelpOptions");
       return false;
     }
   }
@@ -11589,7 +11592,7 @@ class SignatureHelpRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type SignatureHelpRegistrationOptions");
       return false;
     }
   }
@@ -11715,7 +11718,7 @@ class SignatureInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type SignatureInformation");
       return false;
     }
   }
@@ -11781,7 +11784,7 @@ class StaticRegistrationOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type StaticRegistrationOptions");
       return false;
     }
   }
@@ -11949,7 +11952,7 @@ class SymbolInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type SymbolInformation");
       return false;
     }
   }
@@ -12110,7 +12113,8 @@ class TextDocumentChangeRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter
+          .reportError("must be of type TextDocumentChangeRegistrationOptions");
       return false;
     }
   }
@@ -12662,7 +12666,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type TextDocumentClientCapabilities");
       return false;
     }
   }
@@ -12792,7 +12796,8 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesCodeAction");
       return false;
     }
   }
@@ -12873,7 +12878,8 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesCodeActionKind");
       return false;
     }
   }
@@ -12953,7 +12959,8 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesCodeActionLiteralSupport");
       return false;
     }
   }
@@ -13014,7 +13021,8 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesCodeLens");
       return false;
     }
   }
@@ -13078,7 +13086,8 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesColorProvider");
       return false;
     }
   }
@@ -13200,7 +13209,8 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesCompletion");
       return false;
     }
   }
@@ -13356,7 +13366,8 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesCompletionItem");
       return false;
     }
   }
@@ -13438,7 +13449,8 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesCompletionItemKind");
       return false;
     }
   }
@@ -13524,7 +13536,8 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesDeclaration");
       return false;
     }
   }
@@ -13606,7 +13619,8 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesDefinition");
       return false;
     }
   }
@@ -13671,7 +13685,8 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesDocumentHighlight");
       return false;
     }
   }
@@ -13732,7 +13747,8 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesDocumentLink");
       return false;
     }
   }
@@ -13835,7 +13851,8 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesDocumentSymbol");
       return false;
     }
   }
@@ -13946,7 +13963,8 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesFoldingRange");
       return false;
     }
   }
@@ -14012,7 +14030,8 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesFormatting");
       return false;
     }
   }
@@ -14098,7 +14117,8 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter
+          .reportError("must be of type TextDocumentClientCapabilitiesHover");
       return false;
     }
   }
@@ -14186,7 +14206,8 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesImplementation");
       return false;
     }
   }
@@ -14251,7 +14272,8 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesOnTypeFormatting");
       return false;
     }
   }
@@ -14316,7 +14338,8 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesParameterInformation");
       return false;
     }
   }
@@ -14378,7 +14401,8 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesPublishDiagnostics");
       return false;
     }
   }
@@ -14440,7 +14464,8 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesRangeFormatting");
       return false;
     }
   }
@@ -14501,7 +14526,8 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesReferences");
       return false;
     }
   }
@@ -14581,7 +14607,8 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter
+          .reportError("must be of type TextDocumentClientCapabilitiesRename");
       return false;
     }
   }
@@ -14670,7 +14697,8 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesSignatureHelp");
       return false;
     }
   }
@@ -14764,7 +14792,8 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesSignatureInformation");
       return false;
     }
   }
@@ -14839,7 +14868,8 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesSymbolKind");
       return false;
     }
   }
@@ -14955,7 +14985,8 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesSynchronization");
       return false;
     }
   }
@@ -15046,7 +15077,8 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type TextDocumentClientCapabilitiesTypeDefinition");
       return false;
     }
   }
@@ -15153,7 +15185,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type TextDocumentContentChangeEvent");
       return false;
     }
   }
@@ -15261,7 +15293,7 @@ class TextDocumentEdit implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type TextDocumentEdit");
       return false;
     }
   }
@@ -15335,7 +15367,7 @@ class TextDocumentIdentifier implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type TextDocumentIdentifier");
       return false;
     }
   }
@@ -15481,7 +15513,7 @@ class TextDocumentItem implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type TextDocumentItem");
       return false;
     }
   }
@@ -15592,7 +15624,7 @@ class TextDocumentPositionParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type TextDocumentPositionParams");
       return false;
     }
   }
@@ -15693,7 +15725,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type TextDocumentRegistrationOptions");
       return false;
     }
   }
@@ -15812,7 +15844,8 @@ class TextDocumentSaveRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter
+          .reportError("must be of type TextDocumentSaveRegistrationOptions");
       return false;
     }
   }
@@ -15985,7 +16018,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type TextDocumentSyncOptions");
       return false;
     }
   }
@@ -16089,7 +16122,7 @@ class TextEdit implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type TextEdit");
       return false;
     }
   }
@@ -16185,7 +16218,7 @@ class Unregistration implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type Unregistration");
       return false;
     }
   }
@@ -16259,7 +16292,7 @@ class UnregistrationParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type UnregistrationParams");
       return false;
     }
   }
@@ -16356,7 +16389,7 @@ class VersionedTextDocumentIdentifier
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type VersionedTextDocumentIdentifier");
       return false;
     }
   }
@@ -16484,7 +16517,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type WillSaveTextDocumentParams");
       return false;
     }
   }
@@ -16713,7 +16746,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type WorkspaceClientCapabilities");
       return false;
     }
   }
@@ -16790,7 +16823,8 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type WorkspaceClientCapabilitiesDidChangeConfiguration");
       return false;
     }
   }
@@ -16854,7 +16888,8 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type WorkspaceClientCapabilitiesDidChangeWatchedFiles");
       return false;
     }
   }
@@ -16915,7 +16950,8 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type WorkspaceClientCapabilitiesExecuteCommand");
       return false;
     }
   }
@@ -16998,7 +17034,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type WorkspaceClientCapabilitiesSymbol");
       return false;
     }
   }
@@ -17072,7 +17108,8 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter
+          .reportError("must be of type WorkspaceClientCapabilitiesSymbolKind");
       return false;
     }
   }
@@ -17181,7 +17218,8 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError(
+          "must be of type WorkspaceClientCapabilitiesWorkspaceEdit");
       return false;
     }
   }
@@ -17315,7 +17353,7 @@ class WorkspaceEdit implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type WorkspaceEdit");
       return false;
     }
   }
@@ -17413,7 +17451,7 @@ class WorkspaceFolder implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type WorkspaceFolder");
       return false;
     }
   }
@@ -17520,7 +17558,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type WorkspaceFoldersChangeEvent");
       return false;
     }
   }
@@ -17594,7 +17632,7 @@ class WorkspaceSymbolParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type WorkspaceSymbolParams");
       return false;
     }
   }

@@ -220,7 +220,8 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
     ..outdent()
     ..writeIndentedln('} else {')
     ..indent()
-    ..writeIndentedln('reporter.reportError("must be a JavaScript object");')
+    ..writeIndentedln(
+        'reporter.reportError("must be of type ${interface.nameWithTypeArgs}");')
     ..writeIndentedln('return false;')
     ..outdent()
     ..writeIndentedln('}')

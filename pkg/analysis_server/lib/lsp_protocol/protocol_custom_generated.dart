@@ -68,7 +68,7 @@ class AnalyzerStatusParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type AnalyzerStatusParams");
       return false;
     }
   }
@@ -158,7 +158,7 @@ class ClosingLabel implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type ClosingLabel");
       return false;
     }
   }
@@ -347,7 +347,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type CompletionItemResolutionInfo");
       return false;
     }
   }
@@ -425,7 +425,7 @@ class DartDiagnosticServer implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type DartDiagnosticServer");
       return false;
     }
   }
@@ -520,7 +520,7 @@ class PublishClosingLabelsParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be a JavaScript object");
+      reporter.reportError("must be of type PublishClosingLabelsParams");
       return false;
     }
   }
