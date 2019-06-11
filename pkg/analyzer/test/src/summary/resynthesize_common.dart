@@ -5720,6 +5720,14 @@ Exports:
         withExportScope: true);
   }
 
+  test_export_uri() async {
+    allowMissingFiles = true;
+    var library = await checkLibrary('''
+export 'foo.dart';
+''');
+    expect(library.exports[0].uri, 'foo.dart');
+  }
+
   test_export_variable() async {
     addLibrarySource('/a.dart', 'var x;');
     var library = await checkLibrary('export "a.dart";');
@@ -6717,6 +6725,14 @@ import 'dart:async' show Future, Stream;
 Future<dynamic> f;
 Stream<dynamic> s;
 ''');
+  }
+
+  test_import_uri() async {
+    allowMissingFiles = true;
+    var library = await checkLibrary('''
+import 'foo.dart';
+''');
+    expect(library.imports[0].uri, 'foo.dart');
   }
 
   test_imports() async {
@@ -9225,6 +9241,14 @@ void named({x: 1}) {}
 void positional([dynamic x = 1]) {}
 void named({dynamic x: 1}) {}
 ''');
+  }
+
+  test_part_uri() async {
+    allowMissingFiles = true;
+    var library = await checkLibrary('''
+part 'foo.dart';
+''');
+    expect(library.parts[0].uri, 'foo.dart');
   }
 
   test_parts() async {

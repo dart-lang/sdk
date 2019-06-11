@@ -398,7 +398,7 @@ class BuildMode with HasContextMixin {
 
         var inputUnits = <summary2.LinkInputUnit>[];
         inputUnits.add(
-          summary2.LinkInputUnit(librarySource, false, unit),
+          summary2.LinkInputUnit(null, librarySource, false, unit),
         );
 
         for (var directive in unit.directives) {
@@ -411,7 +411,12 @@ class BuildMode with HasContextMixin {
               throw ArgumentError('No parsed unit for part $partPath in $path');
             }
             inputUnits.add(
-              summary2.LinkInputUnit(partSource, false, partParseResult.unit),
+              summary2.LinkInputUnit(
+                partUri,
+                partSource,
+                false,
+                partParseResult.unit,
+              ),
             );
           }
         }

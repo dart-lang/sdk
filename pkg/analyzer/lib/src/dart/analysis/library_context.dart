@@ -283,11 +283,24 @@ class LibraryContext {
           if (librarySource == null) continue;
 
           var inputUnits = <link2.LinkInputUnit>[];
+          var partIndex = -1;
           for (var file in libraryFile.libraryFiles) {
             var isSynthetic = !file.exists;
             var unit = file.parse();
+
+            String partUriStr;
+            if (partIndex >= 0) {
+              partUriStr = libraryFile.unlinked2.parts[partIndex];
+            }
+            partIndex++;
+
             inputUnits.add(
-              link2.LinkInputUnit(file.source, isSynthetic, unit),
+              link2.LinkInputUnit(
+                partUriStr,
+                file.source,
+                isSynthetic,
+                unit,
+              ),
             );
           }
 

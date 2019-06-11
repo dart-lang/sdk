@@ -4851,6 +4851,11 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   String get uri {
+    if (linkedNode != null) {
+      ExportDirective node = linkedNode;
+      return node.uri.stringValue;
+    }
+
     if (_unlinkedExportPublic != null) {
       return _selectedUri ??= _selectUri(
           _unlinkedExportPublic.uri, _unlinkedExportPublic.configurations);
@@ -6123,6 +6128,11 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   String get uri {
+    if (linkedNode != null) {
+      ImportDirective node = linkedNode;
+      return node.uri.stringValue;
+    }
+
     if (_unlinkedImport != null) {
       if (_unlinkedImport.isImplicit) {
         return null;

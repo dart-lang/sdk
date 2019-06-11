@@ -2040,8 +2040,13 @@ table LinkedNodeUnit {
 
   node:LinkedNode (id: 2);
 
+  /// If the unit is a part, the URI specified in the `part` directive.
+  /// Otherwise empty.
+  partUriStr:string (id: 5);
+
   tokens:UnlinkedTokens (id: 1);
 
+  /// The absolute URI.
   uriStr:string (id: 0);
 }
 
@@ -2745,19 +2750,19 @@ table UnlinkedInformativeData {
 
   variantField_3:uint (id: 3);
 
+  /// Offsets of the first character of each line in the source code.
+  variantField_7:[uint] (id: 7);
+
+  variantField_6:uint (id: 6);
+
+  variantField_5:uint (id: 5);
+
   variantField_1:uint (id: 1);
 
   variantField_4:[string] (id: 4);
 
   /// The kind of the node.
   kind:LinkedNodeKind (id: 0);
-
-  variantField_5:uint (id: 5);
-
-  variantField_6:uint (id: 6);
-
-  /// Offsets of the first character of each line in the source code.
-  variantField_7:[uint] (id: 7);
 }
 
 /// Unlinked summary information about a function parameter.

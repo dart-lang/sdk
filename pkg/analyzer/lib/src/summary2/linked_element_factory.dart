@@ -302,6 +302,7 @@ class _ElementRequest {
       unitElement.lineInfo = unitNode.lineInfo;
       unitElement.source = unitSource;
       unitElement.librarySource = librarySource;
+      unitElement.uri = unitContext.partUriStr;
       units.add(unitElement);
       unitContainerRef.getChild(unitContext.uriStr).element = unitElement;
     }

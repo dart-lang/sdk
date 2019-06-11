@@ -25,6 +25,7 @@ class LinkedUnitContext {
   final LinkedBundleContext bundleContext;
   final LinkedLibraryContext libraryContext;
   final int indexInLibrary;
+  final String partUriStr;
   final String uriStr;
   final Reference reference;
   final bool isSynthetic;
@@ -50,6 +51,7 @@ class LinkedUnitContext {
       this.bundleContext,
       this.libraryContext,
       this.indexInLibrary,
+      this.partUriStr,
       this.uriStr,
       this.reference,
       this.isSynthetic,

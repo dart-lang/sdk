@@ -115,7 +115,7 @@ class _Builder {
     CompilationUnit definingUnit = _parse(source);
     _addUnlinked(source, definingUnit);
     inputUnits.add(
-      summary2.LinkInputUnit(source, false, definingUnit),
+      summary2.LinkInputUnit(null, source, false, definingUnit),
     );
 
     for (Directive directive in definingUnit.directives) {
@@ -129,7 +129,7 @@ class _Builder {
         CompilationUnit partUnit = _parse(partSource);
         _addUnlinked(partSource, partUnit);
         inputUnits.add(
-          summary2.LinkInputUnit(partSource, false, partUnit),
+          summary2.LinkInputUnit(partUri, partSource, false, partUnit),
         );
       }
     }
