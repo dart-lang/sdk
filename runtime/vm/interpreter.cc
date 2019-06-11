@@ -381,7 +381,7 @@ Interpreter::~Interpreter() {
 Interpreter* Interpreter::Current() {
   Thread* thread = Thread::Current();
   Interpreter* interpreter = thread->interpreter();
-  if (interpreter == NULL) {
+  if (interpreter == nullptr) {
     TransitionGeneratedToVM transition(thread);
     interpreter = new Interpreter();
     Thread::Current()->set_interpreter(interpreter);
@@ -1167,6 +1167,25 @@ static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
     }                                                                          \
   }
 
+#ifdef PRODUCT
+#define DEBUG_CHECK
+#else
+#define DEBUG_CHECK                                                            \
+  if (is_debugging()) {                                                        \
+    /* Check for debug breakpoint or if single stepping. */                    \
+    if (thread->isolate()->debugger()->HasBytecodeBreakpointAt(pc)) {          \
+      SP[1] = null_value;                                                      \
+      Exit(thread, FP, SP + 2, pc);                                            \
+      NativeArguments args(thread, 0, NULL, SP + 1);                           \
+      INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler, args)                       \
+    } else if (thread->isolate()->single_step()) {                             \
+      Exit(thread, FP, SP + 1, pc);                                            \
+      NativeArguments args(thread, 0, NULL, NULL);                             \
+      INVOKE_RUNTIME(DRT_SingleStepHandler, args);                             \
+    }                                                                          \
+  }
+#endif  // PRODUCT
+
 bool Interpreter::AssertAssignable(Thread* thread,
                                    const KBCInstr* pc,
                                    RawObject** FP,
@@ -1762,6 +1781,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CheckStack, A);
+    DEBUG_CHECK;
     {
       // Check the interpreter's own stack limit for actual interpreter's stack
       // overflows, and also the thread's stack limit for scheduled interrupts.
@@ -1956,16 +1976,7 @@ SwitchDispatch:
 
   {
     BYTECODE(DirectCall, D_F);
-
-#ifndef PRODUCT
-    // Check if single stepping.
-    if (thread->isolate()->single_step()) {
-      Exit(thread, FP, SP + 1, pc);
-      NativeArguments args(thread, 0, NULL, NULL);
-      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
-    }
-#endif  // !PRODUCT
-
+    DEBUG_CHECK;
     // Invoke target function.
     {
       const uint32_t argc = rF;
@@ -1986,16 +1997,7 @@ SwitchDispatch:
 
   {
     BYTECODE(InterfaceCall, D_F);
-
-#ifndef PRODUCT
-    // Check if single stepping.
-    if (thread->isolate()->single_step()) {
-      Exit(thread, FP, SP + 1, pc);
-      NativeArguments args(thread, 0, NULL, NULL);
-      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
-    }
-#endif  // !PRODUCT
-
+    DEBUG_CHECK;
     {
       const uint32_t argc = rF;
       const uint32_t kidx = rD;
@@ -2018,16 +2020,7 @@ SwitchDispatch:
 
   {
     BYTECODE(UncheckedInterfaceCall, D_F);
-
-#ifndef PRODUCT
-    // Check if single stepping.
-    if (thread->isolate()->single_step()) {
-      Exit(thread, FP, SP + 1, pc);
-      NativeArguments args(thread, 0, NULL, NULL);
-      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
-    }
-#endif  // !PRODUCT
-
+    DEBUG_CHECK;
     {
       const uint32_t argc = rF;
       const uint32_t kidx = rD;
@@ -2050,16 +2043,7 @@ SwitchDispatch:
 
   {
     BYTECODE(DynamicCall, D_F);
-
-#ifndef PRODUCT
-    // Check if single stepping.
-    if (thread->isolate()->single_step()) {
-      Exit(thread, FP, SP + 1, pc);
-      NativeArguments args(thread, 0, NULL, NULL);
-      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
-    }
-#endif  // !PRODUCT
-
+    DEBUG_CHECK;
     {
       const uint32_t argc = rF;
       const uint32_t kidx = rD;
@@ -2275,6 +2259,7 @@ SwitchDispatch:
     RawObject* result;  // result to return to the caller.
 
     BYTECODE(ReturnTOS, 0);
+    DEBUG_CHECK;
     result = *SP;
     // Restore caller PC.
     pc = SavedCallerPC(FP);

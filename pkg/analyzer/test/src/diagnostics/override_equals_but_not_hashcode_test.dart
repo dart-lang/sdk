@@ -25,9 +25,11 @@ class A {
 
   @failingTest
   test_overrideEquals_andNotHashCode() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   bool operator ==(x) {}
-}''', [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE]);
+}''', [
+      error(HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE, 6, 1),
+    ]);
   }
 }

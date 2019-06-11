@@ -83,8 +83,9 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
    * given [correction] template.
    */
   const CheckedModeCompileTimeErrorCode(String name, String message,
-      {String correction})
-      : super.temporary(name, message, correction: correction);
+      {String correction, bool hasPublishedDocs})
+      : super.temporary(name, message,
+            correction: correction, hasPublishedDocs: hasPublishedDocs);
 
   @override
   ErrorSeverity get errorSeverity =>
@@ -141,22 +142,142 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the export of one of the libraries, or "
               "explicitly hiding the name in one of the export directives.");
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // Because map and set literals use the same delimiters (`{` and `}`), the
+  // analyzer looks at the type arguments and the elements to determine which
+  // kind of literal you meant. When there are no type arguments and all of the
+  // elements are spread elements (which are allowed in both kinds of literals),
+  // then the analyzer uses the types of the expressions that are being spread.
+  // If all of the expressions have the type `Iterable`, then it's a set
+  // literal; if they all have the type `Map`, then it's a map literal.
+  //
+  // The analyzer produces this diagnostic when some of the expressions being
+  // spread have the type `Iterable` and others have the type `Map`, making it
+  // impossible for the analyzer to determine whether you are writing a map
+  // literal or a set literal.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // union(Map<String, String> a, List<String> b, Map<String, String> c) =>
+  //     {...a, ...b, ...c};
+  // ```
+  //
+  // The list `b` can only be spread into a set, and the maps `a` and `c` can
+  // only be spread into a map, and the literal can't be both.
+  //
+  // #### Common fixes
+  //
+  // There are two common ways to fix this problem. The first is to remove all
+  // of the spread elements of one kind or the other, so that the elements are
+  // consistent. In this case, that likely means removing the list (and
+  // deciding what to do about the now unused parameter):
+  //
+  // ```dart
+  // union(Map<String, String> a, List<String> b, Map<String, String> c) =>
+  //     {...a, ...c};
+  // ```
+  //
+  // The second fix is to change the elements of one kind into elements that are
+  // consistent with the other elements. For example, you could add the elements
+  // of the list as keys that map to themselves:
+  //
+  // ```dart
+  // union(Map<String, String> a, List<String> b, Map<String, String> c) =>
+  //     {...a, for (String s in b) s: s, ...c};
+  // ```
   static const CompileTimeErrorCode AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH =
       const CompileTimeErrorCode(
           'AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH',
-          "This literal must be both a map and a set, because some elements "
-              "spread a 'Map' and others spread an 'Iterable', but that isn't "
-              "allowed.",
+          "This literal contains both 'Map' and 'Iterable' spreads, "
+              "which makes it impossible to determine whether the literal is "
+              "a map or a set.",
           correction:
               "Try removing or changing some of the elements so that all of "
               "the elements are consistent.");
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // Because map and set literals use the same delimiters (`‘{` and `}`), the
+  // analyzer looks at the type arguments and the elements to determine which
+  // kind of literal you meant. When there are no type arguments and all of the
+  // elements are spread elements (which are allowed in both kinds of literals)
+  // then the analyzer uses the types of the expressions that are being spread
+  // to decide. If all of the expressions have the type `Iterable`, then it's a
+  // set literal, if they all have the type `Map`, then it's a map literal.
+  //
+  // This diagnostic is produced when none of the expressions being spread has a
+  // type that allows the analyzer to decide whether you were writing a map
+  // literal or a set literal.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // union(a, b) => !{...a, ...b}!;
+  // ```
+  //
+  // The problem occurs because there are no type arguments, and there is no
+  // information about the type of either `a` or `b`.
+  //
+  // #### Common fixes
+  //
+  // There are three common ways to fix this problem. The first is to add type
+  // arguments to the literal. For example, if the literal is intended to be a
+  // map literal, you might write something like this:
+  //
+  // ```dart
+  // union(a, b) => <String, String>{...a, ...b};
+  // ```
+  //
+  // The second fix is to add type information so that the expressions have
+  // either the type `Iterable` or the type `Map`. You could add an explicit
+  // cast or, in this case, add types to the declarations of the two parameters:
+  //
+  // ```dart
+  // union(List<int> a, List<int> b) => {...a, ...b};
+  // ```
+  //
+  // The third fix is to add context information. In this case, that means
+  // adding a return type to the function:
+  //
+  // ```dart
+  // Set<String> union(a, b) => {...a, ...b};
+  // ```
+  //
+  // In other cases, you might add a type somewhere else. For example, say the
+  // original code looks like this:
+  //
+  // ```dart
+  // union(a, b) {
+  //   var x = {...a, ...b};
+  //   return x;
+  // }
+  // ```
+  //
+  // You might add a type annotation on `x`, like this:
+  //
+  // ```dart
+  // union(a, b) {
+  //   Map<String, String> x = {...a, ...b};
+  //   return x;
+  // }
+  // ```
   static const CompileTimeErrorCode AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER =
       const CompileTimeErrorCode(
           'AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER',
-          "This literal must be either a map or a set, but none of the "
-              "elements have enough type information to know which, and that isn't "
-              "allowed.",
+          "This literal must be either a map or a set, but the elements don't "
+              "have enough type information for type inference to work.",
           correction:
               "Try adding type arguments to the literal (one for sets, two "
               "for maps).");
@@ -819,11 +940,40 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the default value.");
 
   /**
-   * It is an error if a required named parameter has a default value.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a named parameter has both the
+  // `required` modifier and a default value. If the parameter is required, then
+  // a value for the parameter is always provided at the call sites, so the
+  // default value can never be used.
+  //
+  // #### Example
+  //
+  // The following code generates this diagnostic:
+  //
+  // ```dart
+  // void log({required String !message! = 'no message'}) {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the parameter is really required, then remove the default value:
+  //
+  // ```dart
+  // void log({required String message}) {}
+  // ```
+  //
+  // If the parameter isn't always required, then remove the `required`
+  // modifier:
+  //
+  // ```dart
+  // void log({String message = 'no message'}) {}
+  // ```
   static const CompileTimeErrorCode DEFAULT_VALUE_ON_REQUIRED_PARAMETER =
       const CompileTimeErrorCode('DEFAULT_VALUE_ON_REQUIRED_PARAMETER',
-          "Required named parameters cannot have a default value.",
+          "Required named parameters can't have a default value.",
           correction: "Try removing either the default value or the 'required' "
               "modifier.");
 
@@ -931,9 +1081,33 @@ class CompileTimeErrorCode extends ErrorCode {
           "The exported library '{0}' can't have a part-of directive.",
           correction: "Try exporting the library that the part is a part of.");
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the analyzer finds an
+  // expression, rather than a map entry, in what appears to be a map literal.
+  //
+  // #### Example
+  //
+  // The following code generates this diagnostic:
+  //
+  // ```dart
+  // var map = <String, int>{'a': 0, 'b': 1, !'c'!};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the expression is intended to compute either a key or a value in an
+  // entry, fix the issue by completing the code:
+  //
+  // ```dart
+  // var map = <String, int>{'a': 0, 'b': 1, 'c': 2};
+  // ```
   static const CompileTimeErrorCode EXPRESSION_IN_MAP =
       const CompileTimeErrorCode(
-          'EXPRESSION_IN_MAP', "Expressions cannot be used in a map literal.",
+          'EXPRESSION_IN_MAP', "Expressions can't be used in a map literal.",
           correction:
               "Try removing the expression or converting it to be a map entry.");
 
@@ -1706,13 +1880,50 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Check your Dart SDK installation for completeness.");
 
   /**
-   * It is an error if an optional parameter (named or otherwise) with no
-   * default value has a potentially non-nullable type.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an optional parameter doesn't
+  // have a default value, but has a
+  // <a href=”#potentially-non-nullable”>potentially non-nullable</a> type.
+  // Optional parameters that have no explicit default value have an implicit
+  // default value of `null`. If the type of the parameter doesn't allow the
+  // parameter to have a value of null, then the implicit default value is not
+  // valid.
+  //
+  // #### Example
+  //
+  // The following code generates this diagnostic:
+  //
+  // ```dart
+  // void log({String !message!}) {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the parameter can have the value `null`, then add a question mark after
+  // the type annotation:
+  //
+  // ```dart
+  // void log({String? message}) {}
+  // ```
+  //
+  // If the parameter can't be null, then either provide a default value:
+  //
+  // ```dart
+  // void log({String message = ''}) {}
+  // ```
+  //
+  // or add the `required` modifier to the parameter:
+  //
+  // ```dart
+  // void log({required String message}) {}
+  // ```
   static const CompileTimeErrorCode MISSING_DEFAULT_VALUE_FOR_PARAMETER =
       const CompileTimeErrorCode(
           'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
-          "The parameter '{0}' cannot have a value of 'null' because of its "
+          "The parameter '{0}' can't have a value of 'null' because of its "
               "type, so it must either be a required parameter or have a "
               "default value.",
           correction:
@@ -2240,6 +2451,33 @@ class CompileTimeErrorCode extends ErrorCode {
           "{0} required argument(s) expected, but {1} found.",
           correction: "Try adding the missing arguments.");
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the static type of the
+  // expression of a spread element that appears in either a list literal or a
+  // set literal doesn't implement the type `Iterable`.
+  //
+  // #### Example
+  //
+  // The following code generates this diagnostic:
+  //
+  // ```dart
+  // var m = <String, int>{'a': 0, 'b': 1};
+  // var s = <String>{...m};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // The most common fix is to replace the expression with one that produces an
+  // iterable object:
+  //
+  // ```dart
+  // var m = <String, int>{'a': 0, 'b': 1};
+  // var s = <String>{...m.keys};
+  // ```
   static const CompileTimeErrorCode NOT_ITERABLE_SPREAD =
       const CompileTimeErrorCode('NOT_ITERABLE_SPREAD',
           "Spread elements in list or set literals must implement 'Iterable'.");
@@ -2278,12 +2516,39 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the question mark.");
 
   /**
-   * It is a compile-time error for a class to extend, implement, or mixin a
-   * type of the form T? for any T.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a class declaration uses an
+  // extends clause to specify a superclass, and the type that's specified is a
+  // nullable type.
+  //
+  // The reason the supertype is a _type_ rather than a class name is to allow
+  // you to control the signatures of the members to be inherited from the
+  // supertype, such as by specifying type arguments. However, the nullability
+  // of a type doesn't change the signatures of any members, so there isn't any
+  // reason to allow the nullability to be specified when used in the extends
+  // clause.
+  //
+  // #### Example
+  //
+  // The following code generates this diagnostic:
+  //
+  // ```dart
+  // class Invalid extends !Duration?! {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // The most common fix is to remove the question mark:
+  //
+  // ```dart
+  // class Invalid extends Duration {}
+  // ```
   static const CompileTimeErrorCode NULLABLE_TYPE_IN_EXTENDS_CLAUSE =
       const CompileTimeErrorCode('NULLABLE_TYPE_IN_EXTENDS_CLAUSE',
-          "A class cannot extend a nullable type.",
+          "A class can't extend a nullable type.",
           correction: "Try removing the question mark.");
 
   /**
@@ -2924,9 +3189,12 @@ class CompileTimeErrorCode extends ErrorCode {
    * given [correction] template.
    */
   const CompileTimeErrorCode(String name, String message,
-      {String correction, bool isUnresolvedIdentifier: false})
+      {String correction,
+      bool hasPublishedDocs,
+      bool isUnresolvedIdentifier: false})
       : super.temporary(name, message,
             correction: correction,
+            hasPublishedDocs: hasPublishedDocs,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
 
   @override
@@ -3556,9 +3824,12 @@ class StaticTypeWarningCode extends ErrorCode {
    * given [correction] template.
    */
   const StaticTypeWarningCode(String name, String message,
-      {String correction, bool isUnresolvedIdentifier: false})
+      {String correction,
+      bool hasPublishedDocs,
+      bool isUnresolvedIdentifier: false})
       : super.temporary(name, message,
             correction: correction,
+            hasPublishedDocs: hasPublishedDocs,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
 
   @override
@@ -4632,10 +4903,12 @@ class StaticWarningCode extends ErrorCode {
    */
   const StaticWarningCode(String name, String message,
       {String correction,
-      this.errorSeverity: ErrorSeverity.ERROR,
+      this.errorSeverity = ErrorSeverity.ERROR,
+      bool hasPublishedDocs,
       bool isUnresolvedIdentifier: false})
       : super.temporary(name, message,
             correction: correction,
+            hasPublishedDocs: hasPublishedDocs,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
 
   @override
@@ -4904,9 +5177,10 @@ class StrongModeCode extends ErrorCode {
    * created from the optional [correction] template.
    */
   const StrongModeCode(ErrorType type, String name, String message,
-      {String correction})
+      {String correction, bool hasPublishedDocs})
       : type = type,
-        super.temporary('STRONG_MODE_$name', message, correction: correction);
+        super.temporary('STRONG_MODE_$name', message,
+            correction: correction, hasPublishedDocs: hasPublishedDocs);
 
   @override
   ErrorSeverity get errorSeverity => type.severity;

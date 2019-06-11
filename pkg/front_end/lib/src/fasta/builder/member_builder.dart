@@ -37,7 +37,7 @@ abstract class MemberBuilder extends ModifierBuilder {
     }
   }
 
-  void buildAnnotations(LibraryBuilder library) {}
+  void buildOutlineExpressions(LibraryBuilder library) {}
 
   @override
   String get fullNameForErrors => name;

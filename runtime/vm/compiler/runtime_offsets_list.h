@@ -262,6 +262,12 @@
   SIZEOF(Mint, InstanceSize, RawMint)                                          \
   SIZEOF(NativeArguments, StructSize, NativeArguments)                         \
   SIZEOF(String, InstanceSize, RawString)                                      \
-  SIZEOF(TypedData, InstanceSize, RawTypedData)
+  SIZEOF(TypedData, InstanceSize, RawTypedData)                                \
+  SIZEOF(Object, InstanceSize, RawObject)                                      \
+  SIZEOF(TypedDataBase, InstanceSize, RawTypedDataBase)                        \
+  SIZEOF(Closure, InstanceSize, RawClosure)                                    \
+  SIZEOF(GrowableObjectArray, InstanceSize, RawGrowableObjectArray)            \
+  SIZEOF(Instance, InstanceSize, RawInstance)                                  \
+  SIZEOF(LinkedHashMap, InstanceSize, RawLinkedHashMap)
 
 #endif  // RUNTIME_VM_COMPILER_RUNTIME_OFFSETS_LIST_H_

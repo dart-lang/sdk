@@ -42,6 +42,12 @@ public class AvailableSuggestion {
   private final String label;
 
   /**
+   * The URI of the library that declares the element being suggested, not the URI of the library
+   * associated with the enclosing AvailableSuggestionSet.
+   */
+  private final String declaringLibraryUri;
+
+  /**
    * Information about the element reference being suggested.
    */
   private final Element element;
@@ -96,8 +102,9 @@ public class AvailableSuggestion {
   /**
    * Constructor for {@link AvailableSuggestion}.
    */
-  public AvailableSuggestion(String label, Element element, String defaultArgumentListString, int[] defaultArgumentListTextRanges, String docComplete, String docSummary, List<String> parameterNames, List<String> parameterTypes, List<String> relevanceTags, Integer requiredParameterCount) {
+  public AvailableSuggestion(String label, String declaringLibraryUri, Element element, String defaultArgumentListString, int[] defaultArgumentListTextRanges, String docComplete, String docSummary, List<String> parameterNames, List<String> parameterTypes, List<String> relevanceTags, Integer requiredParameterCount) {
     this.label = label;
+    this.declaringLibraryUri = declaringLibraryUri;
     this.element = element;
     this.defaultArgumentListString = defaultArgumentListString;
     this.defaultArgumentListTextRanges = defaultArgumentListTextRanges;
@@ -115,6 +122,7 @@ public class AvailableSuggestion {
       AvailableSuggestion other = (AvailableSuggestion) obj;
       return
         ObjectUtilities.equals(other.label, label) &&
+        ObjectUtilities.equals(other.declaringLibraryUri, declaringLibraryUri) &&
         ObjectUtilities.equals(other.element, element) &&
         ObjectUtilities.equals(other.defaultArgumentListString, defaultArgumentListString) &&
         Arrays.equals(other.defaultArgumentListTextRanges, defaultArgumentListTextRanges) &&
@@ -130,6 +138,7 @@ public class AvailableSuggestion {
 
   public static AvailableSuggestion fromJson(JsonObject jsonObject) {
     String label = jsonObject.get("label").getAsString();
+    String declaringLibraryUri = jsonObject.get("declaringLibraryUri").getAsString();
     Element element = Element.fromJson(jsonObject.get("element").getAsJsonObject());
     String defaultArgumentListString = jsonObject.get("defaultArgumentListString") == null ? null : jsonObject.get("defaultArgumentListString").getAsString();
     int[] defaultArgumentListTextRanges = jsonObject.get("defaultArgumentListTextRanges") == null ? null : JsonUtilities.decodeIntArray(jsonObject.get("defaultArgumentListTextRanges").getAsJsonArray());
@@ -139,7 +148,7 @@ public class AvailableSuggestion {
     List<String> parameterTypes = jsonObject.get("parameterTypes") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("parameterTypes").getAsJsonArray());
     List<String> relevanceTags = jsonObject.get("relevanceTags") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("relevanceTags").getAsJsonArray());
     Integer requiredParameterCount = jsonObject.get("requiredParameterCount") == null ? null : jsonObject.get("requiredParameterCount").getAsInt();
-    return new AvailableSuggestion(label, element, defaultArgumentListString, defaultArgumentListTextRanges, docComplete, docSummary, parameterNames, parameterTypes, relevanceTags, requiredParameterCount);
+    return new AvailableSuggestion(label, declaringLibraryUri, element, defaultArgumentListString, defaultArgumentListTextRanges, docComplete, docSummary, parameterNames, parameterTypes, relevanceTags, requiredParameterCount);
   }
 
   public static List<AvailableSuggestion> fromJsonArray(JsonArray jsonArray) {
@@ -152,6 +161,14 @@ public class AvailableSuggestion {
       list.add(fromJson(iterator.next().getAsJsonObject()));
     }
     return list;
+  }
+
+  /**
+   * The URI of the library that declares the element being suggested, not the URI of the library
+   * associated with the enclosing AvailableSuggestionSet.
+   */
+  public String getDeclaringLibraryUri() {
+    return declaringLibraryUri;
   }
 
   /**
@@ -235,6 +252,7 @@ public class AvailableSuggestion {
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
     builder.append(label);
+    builder.append(declaringLibraryUri);
     builder.append(element);
     builder.append(defaultArgumentListString);
     builder.append(defaultArgumentListTextRanges);
@@ -250,6 +268,7 @@ public class AvailableSuggestion {
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("label", label);
+    jsonObject.addProperty("declaringLibraryUri", declaringLibraryUri);
     jsonObject.add("element", element.toJson());
     if (defaultArgumentListString != null) {
       jsonObject.addProperty("defaultArgumentListString", defaultArgumentListString);
@@ -300,6 +319,8 @@ public class AvailableSuggestion {
     builder.append("[");
     builder.append("label=");
     builder.append(label + ", ");
+    builder.append("declaringLibraryUri=");
+    builder.append(declaringLibraryUri + ", ");
     builder.append("element=");
     builder.append(element + ", ");
     builder.append("defaultArgumentListString=");

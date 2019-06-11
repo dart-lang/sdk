@@ -976,9 +976,10 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
-  ASSERT(!caller_frame->is_interpreted());
-  const Code& orig_stub = Code::Handle(
-      zone, isolate->debugger()->GetPatchedStubAddress(caller_frame->pc()));
+  Code& orig_stub = Code::Handle(zone);
+  if (!caller_frame->is_interpreted()) {
+    orig_stub = isolate->debugger()->GetPatchedStubAddress(caller_frame->pc());
+  }
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseBreakpoint());
   ThrowIfError(error);
@@ -2758,6 +2759,7 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
 }
 
 extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
+  CHECK_STACK_ALIGNMENT;
   Thread* thread = Thread::Current();
   ASSERT(thread->top_exit_frame_info() != 0);
   ASSERT(thread->execution_state() == Thread::kThreadInNative);
@@ -2766,6 +2768,7 @@ extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(EnterSafepoint, 0, false, &DFLRT_EnterSafepoint);
 
 extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
+  CHECK_STACK_ALIGNMENT;
   Thread* thread = Thread::Current();
   ASSERT(thread->top_exit_frame_info() != 0);
   ASSERT(thread->execution_state() == Thread::kThreadInNative);

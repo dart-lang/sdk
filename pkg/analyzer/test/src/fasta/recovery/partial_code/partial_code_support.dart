@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -47,6 +48,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
   static final List<TestSuffix> declarationSuffixes = <TestSuffix>[
     new TestSuffix('class', 'class A {}'),
     new TestSuffix('enum', 'enum E { v }'),
+//    new TestSuffix('extension', 'extension E on A {}'),
     new TestSuffix('mixin', 'mixin M {}'),
     new TestSuffix('typedef', 'typedef A = B Function(C, D);'),
     new TestSuffix('functionVoid', 'void f() {}'),
@@ -107,16 +109,21 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    */
   buildTests(String groupName, List<TestDescriptor> descriptors,
       List<TestSuffix> suffixes,
-      {String head, bool includeEof: true, String tail}) {
+      {FeatureSet featureSet,
+      String head,
+      bool includeEof: true,
+      String tail}) {
     group(groupName, () {
       for (TestDescriptor descriptor in descriptors) {
         if (includeEof) {
           _buildTestForDescriptorAndSuffix(
-              descriptor, TestSuffix.eof, 0, head, tail);
+              descriptor, TestSuffix.eof, 0, head, tail,
+              featureSet: featureSet);
         }
         for (int i = 0; i < suffixes.length; i++) {
           _buildTestForDescriptorAndSuffix(
-              descriptor, suffixes[i], i + 1, head, tail);
+              descriptor, suffixes[i], i + 1, head, tail,
+              featureSet: featureSet);
         }
         if (descriptor.failing != null) {
           test('${descriptor.name}_failingList', () {
@@ -138,7 +145,8 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    * Build a single test based on the given [descriptor] and [suffix].
    */
   _buildTestForDescriptorAndSuffix(TestDescriptor descriptor, TestSuffix suffix,
-      int suffixIndex, String head, String tail) {
+      int suffixIndex, String head, String tail,
+      {FeatureSet featureSet}) {
     test('${descriptor.name}_${suffix.name}', () {
       //
       // Compose the invalid and valid pieces of code.
@@ -172,7 +180,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       //
       GatheringErrorListener listener =
           new GatheringErrorListener(checkRanges: true);
-      parseCompilationUnit2(base.toString(), listener);
+      parseCompilationUnit2(base.toString(), listener, featureSet: featureSet);
       var baseErrorCodes = <ErrorCode>[];
       listener.errors.forEach((AnalysisError error) {
         if (error.errorCode == ParserErrorCode.BREAK_OUTSIDE_OF_LOOP ||
@@ -218,7 +226,8 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
             invalid.toString(), expectedInvalidCodeErrors, valid.toString(),
             adjustValidUnitBeforeComparison:
                 descriptor.adjustValidUnitBeforeComparison,
-            expectedErrorsInValidCode: expectedValidCodeErrors);
+            expectedErrorsInValidCode: expectedValidCodeErrors,
+            featureSet: featureSet);
       }
     });
   }

@@ -46,7 +46,11 @@ const bool kDontAssertNoSafepointScope = false;
 class MutexLocker : public ValueObject {
  public:
   explicit MutexLocker(Mutex* mutex, bool no_safepoint_scope = true)
-      : mutex_(mutex), no_safepoint_scope_(no_safepoint_scope) {
+      :
+#if defined(DEBUG)
+        no_safepoint_scope_(no_safepoint_scope),
+#endif
+        mutex_(mutex) {
     ASSERT(mutex != NULL);
 #if defined(DEBUG)
     if (no_safepoint_scope_) {
@@ -88,8 +92,8 @@ class MutexLocker : public ValueObject {
   }
 
  private:
+  DEBUG_ONLY(bool no_safepoint_scope_;)
   Mutex* const mutex_;
-  bool no_safepoint_scope_;
 
   DISALLOW_COPY_AND_ASSIGN(MutexLocker);
 };

@@ -889,6 +889,18 @@
           ]
         },
         {
+          "name": "ddc kernel modular tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/modular_suite.dart",
+            "--configuration-name",
+            "dartdevk-${system}-release",
+            "--verbose",
+            "--use-sdk"
+          ]
+        },
+        {
           "name": "ddc sourcemap tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
@@ -982,6 +994,18 @@
             "corelib_2",
             "lib_2",
             "dartdevc_native"
+          ]
+        },
+        {
+          "name": "ddc kernel modular tests",
+          "script": "xcodebuild/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/modular_suite.dart",
+            "--configuration-name",
+            "dartdevk-${system}-release",
+            "--verbose",
+            "--use-sdk"
           ]
         },
         {
@@ -1132,6 +1156,18 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": ["create_sdk"]
+        },
+        {
+          "name": "dart2js modular tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/compiler/tool/modular_test_suite.dart",
+            "--configuration-name",
+            "dart2js-${system}-release-d8",
+            "--verbose",
+            "--use-sdk"
+          ]
         },
         {
           "name": "dart2js unit tests",

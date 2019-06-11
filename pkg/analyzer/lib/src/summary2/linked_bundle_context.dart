@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
@@ -72,6 +73,7 @@ class LinkedBundleContext {
       var source = inputUnit.source;
       var uriStr = source != null ? '${source.uri}' : '';
       var reference = unitRef.getChild(uriStr);
+      createInformativeData(inputUnit.unit);
       libraryContext.units.add(
         LinkedUnitContext(
           this,

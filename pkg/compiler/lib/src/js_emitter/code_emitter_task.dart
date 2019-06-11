@@ -110,7 +110,9 @@ class CodeEmitterTask extends CompilerTask {
       CodegenInputs codegenInputs,
       CodegenWorld codegenWorld) {
     return measure(() {
-      _finalizeRti(codegenInputs, codegenWorld);
+      measureSubtask('finalize rti', () {
+        _finalizeRti(codegenInputs, codegenWorld);
+      });
       ProgramBuilder programBuilder = new ProgramBuilder(
           _compiler.options,
           _compiler.reporter,

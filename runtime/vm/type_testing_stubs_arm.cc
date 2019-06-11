@@ -23,8 +23,10 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStub(
   BuildOptimizedTypeTestStubFastCases(assembler, hi, type, type_class,
                                       kInstanceReg, kClassIdReg);
 
-  __ ldr(CODE_REG, Address(THR, Thread::slow_type_test_stub_offset()));
-  __ Branch(FieldAddress(CODE_REG, Code::entry_point_offset()));
+  __ ldr(CODE_REG,
+         Address(THR, compiler::target::Thread::slow_type_test_stub_offset()));
+  __ Branch(
+      FieldAddress(CODE_REG, compiler::target::Code::entry_point_offset()));
 }
 
 void TypeTestingStubGenerator::

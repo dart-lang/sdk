@@ -107,7 +107,7 @@ void ImageWriter::PrepareForSerialization(
           RawInstructions* instructions = Code::InstructionsOf(code);
           const intptr_t offset = next_text_offset_;
           instructions_.Add(InstructionsData(instructions, code, offset));
-          next_text_offset_ += instructions->HeapSize();
+          next_text_offset_ += SizeInSnapshot(instructions);
           ASSERT(heap_->GetObjectId(instructions) == 0);
           heap_->SetObjectId(instructions, offset);
           break;
@@ -142,7 +142,7 @@ void ImageWriter::SetupShared(ObjectOffsetMap* map, const void* shared_image) {
     pair.object = raw_obj;
     pair.offset = offset;
     map->Insert(pair);
-    obj_addr += raw_obj->HeapSize();
+    obj_addr += SizeInSnapshot(raw_obj);
   }
   ASSERT(obj_addr == end_addr);
 }
@@ -175,11 +175,15 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
 
   offset = next_text_offset_;
   heap_->SetObjectId(instructions, offset);
-  next_text_offset_ += instructions->HeapSize();
+  next_text_offset_ += SizeInSnapshot(instructions);
   instructions_.Add(InstructionsData(instructions, code, offset));
 
   ASSERT(offset != 0);
   return offset;
+}
+
+intptr_t ImageWriter::SizeInSnapshot(RawObject* raw_object) {
+  return raw_object->HeapSize();
 }
 
 bool ImageWriter::GetSharedDataOffsetFor(RawObject* raw_object,
@@ -193,9 +197,9 @@ bool ImageWriter::GetSharedDataOffsetFor(RawObject* raw_object,
 }
 
 uint32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
-  intptr_t heap_size = raw_object->HeapSize();
+  intptr_t snap_size = SizeInSnapshot(raw_object);
   intptr_t offset = next_data_offset_;
-  next_data_offset_ += heap_size;
+  next_data_offset_ += snap_size;
   objects_.Add(ObjectData(raw_object));
   return offset;
 }
@@ -238,7 +242,7 @@ void ImageWriter::DumpInstructionsSizes() {
       js.PrintPropertyStr("c", name);
     }
     js.PrintProperty("n", data.code_->QualifiedName());
-    js.PrintProperty("s", data.insns_->raw()->HeapSize());
+    js.PrintProperty("s", SizeInSnapshot(data.insns_->raw()));
     js.CloseObject();
   }
   js.CloseArray();
@@ -473,7 +477,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
                                             "Instructions",
                                             /*name=*/nullptr);
       profile_writer_->AttributeBytesTo({offset_space_, offset},
-                                        insns.raw()->HeapSize());
+                                        SizeInSnapshot(insns.raw()));
     }
 
     ASSERT(insns.raw()->HeapSize() % sizeof(uint64_t) == 0);
@@ -540,7 +544,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
 #ifdef DART_PRECOMPILER
     // Create a label for use by DWARF.
-    if (!code.IsNull()) {
+    if ((dwarf_ != nullptr) && !code.IsNull()) {
       const intptr_t dwarf_index = dwarf_->AddCode(code);
       assembly_stream_.Print(".Lcode%" Pd ":\n", dwarf_index);
     }
@@ -751,7 +755,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
 #ifdef DART_PRECOMPILER
     const Code& code = *instructions_[i].code_;
-    if ((elf_ != nullptr) && !code.IsNull()) {
+    if ((elf_ != nullptr) && (dwarf_ != nullptr) && !code.IsNull()) {
       intptr_t segment_offset = instructions_blob_stream_.bytes_written() +
                                 Instructions::HeaderSize();
       dwarf_->AddCode(code, segment_base + segment_offset);
@@ -775,7 +779,8 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     beginning += sizeof(uword);
     text_offset += WriteByteSequence(beginning, end);
 
-    ASSERT((text_offset - instr_start) == insns.raw()->HeapSize());
+    ASSERT((text_offset - instr_start) ==
+           ImageWriter::SizeInSnapshot(insns.raw()));
   }
 
 #ifdef DART_PRECOMPILER

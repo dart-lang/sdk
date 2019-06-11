@@ -85,7 +85,35 @@ class V8SnapshotProfile extends Graph<int> {
     Expect.equals(snapshot["node_count"], _parseNodes(top["nodes"]));
     Expect.equals(snapshot["edge_count"], _parseEdges(top["edges"]));
 
+    _verifyRoot();
+
     _calculateFromEdges();
+  }
+
+  void _verifyRoot() {
+    // HeapSnapshotWorker.HeapSnapshot.calculateDistances (from HeapSnapshot.js)
+    // assumes that the root does not have more than one edge to any other node
+    // (most likely an oversight).
+    final Set<int> roots = <int>{};
+    for (final edge in _toEdges[root]) {
+      final int to = edge.nodeOffset;
+      Expect.isTrue(!roots.contains(to));
+      roots.add(to);
+    }
+
+    // Check that all nodes are reachable from the root (offset 0).
+    final Set<int> enqueued = {root};
+    final dfs = <int>[root];
+    while (!dfs.isEmpty) {
+      final next = dfs.removeLast();
+      for (final edge in _toEdges[next]) {
+        if (!enqueued.contains(edge.nodeOffset)) {
+          enqueued.add(edge.nodeOffset);
+          dfs.add(edge.nodeOffset);
+        }
+      }
+    }
+    Expect.equals(enqueued.length, nodeCount);
   }
 
   void _parseMetadata(Map meta) {
@@ -160,7 +188,8 @@ class V8SnapshotProfile extends Graph<int> {
         final int nameOrIndex = edges[edgeOffset + nameOrIndexIndex];
         if (_edgeTypes[type] == "property") {
           Expect.isTrue(0 <= nameOrIndex && nameOrIndex < _strings.length);
-        } else if (_edgeTypes[type] == "element") {
+        } else if (_edgeTypes[type] == "element" ||
+            _edgeTypes[type] == "context") {
           Expect.isTrue(nameOrIndex >= 0);
         }
 

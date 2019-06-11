@@ -172,6 +172,7 @@ final Matcher isAnalysisStatus = new LazyMatcher(() => new MatchesJsonObject(
  *
  * {
  *   "label": String
+ *   "declaringLibraryUri": String
  *   "element": Element
  *   "defaultArgumentListString": optional String
  *   "defaultArgumentListTextRanges": optional List<int>
@@ -186,6 +187,7 @@ final Matcher isAnalysisStatus = new LazyMatcher(() => new MatchesJsonObject(
 final Matcher isAvailableSuggestion =
     new LazyMatcher(() => new MatchesJsonObject("AvailableSuggestion", {
           "label": isString,
+          "declaringLibraryUri": isString,
           "element": isElement
         }, optionalFields: {
           "defaultArgumentListString": isString,
@@ -2454,6 +2456,7 @@ final Matcher isEditDartfixParams =
  *   "otherSuggestions": List<DartFixSuggestion>
  *   "hasErrors": bool
  *   "edits": List<SourceFileEdit>
+ *   "details": optional List<String>
  * }
  */
 final Matcher isEditDartfixResult =
@@ -2462,6 +2465,8 @@ final Matcher isEditDartfixResult =
           "otherSuggestions": isListOf(isDartFixSuggestion),
           "hasErrors": isBool,
           "edits": isListOf(isSourceFileEdit)
+        }, optionalFields: {
+          "details": isListOf(isString)
         }));
 
 /**

@@ -203,21 +203,21 @@ class CatchEntryMove {
 #endif
 
  private:
-  CatchEntryMove(intptr_t src, intptr_t dest_and_kind)
+  CatchEntryMove(int32_t src, int32_t dest_and_kind)
       : src_(src), dest_and_kind_(dest_and_kind) {}
 
   // Note: BitField helper does not work with signed values of size that does
   // not match the destination size - thus we don't use BitField for declaring
   // DestinationField and instead encode and decode it manually.
-  using SourceKindField = BitField<intptr_t, SourceKind, 0, 4>;
+  using SourceKindField = BitField<int32_t, SourceKind, 0, 4>;
 
-  static constexpr intptr_t kHalfSourceBits = kBitsPerWord / 2;
-  using LoSourceSlot = BitField<intptr_t, intptr_t, 0, kHalfSourceBits>;
+  static constexpr intptr_t kHalfSourceBits = 16;
+  using LoSourceSlot = BitField<int32_t, int32_t, 0, kHalfSourceBits>;
   using HiSourceSlot =
-      BitField<intptr_t, intptr_t, kHalfSourceBits, kHalfSourceBits>;
+      BitField<int32_t, int32_t, kHalfSourceBits, kHalfSourceBits>;
 
-  intptr_t src_;
-  intptr_t dest_and_kind_;
+  int32_t src_;
+  int32_t dest_and_kind_;
 };
 
 // A sequence of moves that needs to be executed to create a state expected

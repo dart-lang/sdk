@@ -1049,8 +1049,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Now that the safepoint has ended, we can hold Dart objects with bare hands.
   // TODO(35934): fix linking issue
   __ pushl(Immediate(callback_id_));
-  __ movl(EAX, Address(THR, compiler::target::Thread::
-                                verify_callback_isolate_entry_point_offset()));
+  __ movl(
+      EAX,
+      Address(THR, compiler::target::Thread::verify_callback_entry_offset()));
   __ call(EAX);
   __ popl(EAX);
 
@@ -1065,6 +1066,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Put the code object in the reserved slot.
   __ movl(Address(FPREG, kPcMarkerSlotFromFp * compiler::target::kWordSize),
           CODE_REG);
+
+  // Load a GC-safe value for the arguments descriptor (unused but tagged).
+  __ xorl(ARGS_DESC_REG, ARGS_DESC_REG);
 
   // Push a dummy return address which suggests that we are inside of
   // InvokeDartCodeStub. This is how the stack walker detects an entry frame.

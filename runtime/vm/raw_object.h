@@ -13,6 +13,7 @@
 #include "platform/atomic.h"
 #include "vm/class_id.h"
 #include "vm/compiler/method_recognizer.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/object_graph.h"
@@ -150,8 +151,10 @@ class RawObject {
   // Encodes the object size in the tag in units of object alignment.
   class SizeTag {
    public:
-    static const intptr_t kMaxSizeTag = ((1 << RawObject::kSizeTagSize) - 1)
-                                        << kObjectAlignmentLog2;
+    static constexpr intptr_t kMaxSizeTagInUnitsOfAlignment =
+        ((1 << RawObject::kSizeTagSize) - 1);
+    static constexpr intptr_t kMaxSizeTag =
+        kMaxSizeTagInUnitsOfAlignment * kObjectAlignment;
 
     static uword encode(intptr_t size) {
       return SizeBits::encode(SizeToTagValue(size));
@@ -171,11 +174,15 @@ class RawObject {
         : public BitField<uint32_t, intptr_t, kSizeTagPos, kSizeTagSize> {};
 
     static intptr_t SizeToTagValue(intptr_t size) {
-      ASSERT(Utils::IsAligned(size, kObjectAlignment));
-      return (size > kMaxSizeTag) ? 0 : (size >> kObjectAlignmentLog2);
+      ASSERT(Utils::IsAligned(
+          size, compiler::target::ObjectAlignment::kObjectAlignment));
+      return (size > kMaxSizeTag)
+                 ? 0
+                 : (size >>
+                    compiler::target::ObjectAlignment::kObjectAlignmentLog2);
     }
     static intptr_t TagValueToSize(intptr_t value) {
-      return value << kObjectAlignmentLog2;
+      return value << compiler::target::ObjectAlignment::kObjectAlignmentLog2;
     }
   };
 
@@ -723,6 +730,7 @@ class RawObject {
   friend class ObjectOffsetTrait;   // GetClassId
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
+  friend class RawTransferableTypedData;  // GetClassId
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -734,6 +742,19 @@ class RawClass : public RawObject {
     kAllocated = 0,         // Initial state.
     kPreFinalized,          // VM classes: size precomputed, but no checks done.
     kFinalized,             // Class parsed, finalized and ready for use.
+  };
+  enum ClassLoadingState {
+    // Class object is created, but it is not filled up.
+    // At this state class can only be used as a forward reference during
+    // class loading.
+    kNameOnly = 0,
+    // Class declaration information such as type parameters, supertype and
+    // implemented interfaces are loaded. However, types in the class are
+    // not finalized yet.
+    kDeclarationLoaded,
+    // Types in the class are finalized. At this point, members can be loaded
+    // and class can be finalized.
+    kTypeFinalized,
   };
 
  private:
@@ -784,13 +805,8 @@ class RawClass : public RawObject {
   int32_t next_field_offset_in_words_;  // Offset of the next instance field.
   classid_t id_;                // Class Id, also index in the class table.
   int16_t num_type_arguments_;  // Number of type arguments in flattened vector.
-
-  // Bitfields with number of non-overlapping type arguments and 'has_pragma'
-  // bit.
-  uint16_t has_pragma_and_num_own_type_arguments_;
-
   uint16_t num_native_fields_;
-  uint16_t state_bits_;
+  uint32_t state_bits_;
   NOT_IN_PRECOMPILED(intptr_t kernel_offset_);
 
   friend class Instance;
@@ -1450,19 +1466,19 @@ class RawPcDescriptors : public RawObject {
    public:
     // Most of the time try_index will be small and merged field will fit into
     // one byte.
-    static intptr_t Encode(intptr_t kind, intptr_t try_index) {
+    static int32_t Encode(intptr_t kind, intptr_t try_index) {
       intptr_t kind_shift = Utils::ShiftForPowerOfTwo(kind);
       ASSERT(Utils::IsUint(kKindShiftSize, kind_shift));
       ASSERT(Utils::IsInt(kTryIndexSize, try_index));
       return (try_index << kTryIndexPos) | (kind_shift << kKindShiftPos);
     }
 
-    static intptr_t DecodeKind(intptr_t merged_kind_try) {
+    static intptr_t DecodeKind(int32_t merged_kind_try) {
       const intptr_t kKindShiftMask = (1 << kKindShiftSize) - 1;
       return 1 << (merged_kind_try & kKindShiftMask);
     }
 
-    static intptr_t DecodeTryIndex(intptr_t merged_kind_try) {
+    static intptr_t DecodeTryIndex(int32_t merged_kind_try) {
       // Arithmetic shift.
       return merged_kind_try >> kTryIndexPos;
     }
@@ -1474,7 +1490,7 @@ class RawPcDescriptors : public RawObject {
     COMPILE_ASSERT(kLastKind <= 1 << ((1 << kKindShiftSize) - 1));
 
     static const intptr_t kTryIndexPos = kKindShiftSize;
-    static const intptr_t kTryIndexSize = kBitsPerWord - kKindShiftSize;
+    static const intptr_t kTryIndexSize = 32 - kKindShiftSize;
   };
 
  private:
@@ -2396,6 +2412,11 @@ class RawReceivePort : public RawInstance {
   RawSendPort* send_port_;
   RawInstance* handler_;
   VISIT_TO(RawObject*, handler_)
+};
+
+class RawTransferableTypedData : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(TransferableTypedData);
+  VISIT_NOTHING();
 };
 
 // VM type for capturing stacktraces when exceptions are thrown,

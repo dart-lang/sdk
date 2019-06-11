@@ -27,4 +27,8 @@ class LintCode extends ErrorCode {
    * subclass the lint's code is defined in.
    */
   String get uniqueName => "LintCode.$name";
+
+  @override
+  String get url =>
+      'https://dart-lang.github.io/linter/lints/${name.toLowerCase()}.html';
 }

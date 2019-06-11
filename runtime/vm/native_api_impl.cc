@@ -237,4 +237,17 @@ DART_EXPORT Dart_Handle Dart_FinalizeAllClasses() {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
+DART_EXPORT void Dart_ExecuteInternalCommand(const char* command) {
+  if (!FLAG_enable_testing_pragmas) return;
+
+  TransitionNativeToVM _(Thread::Current());
+  if (!strcmp(command, "gc-on-next-allocation")) {
+    Isolate::Current()->heap()->CollectOnNextAllocation();
+  } else if (!strcmp(command, "gc-now")) {
+    Isolate::Current()->heap()->CollectAllGarbage(Heap::kDebugging);
+  } else {
+    UNREACHABLE();
+  }
+}
+
 }  // namespace dart

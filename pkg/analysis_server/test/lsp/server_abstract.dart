@@ -486,6 +486,20 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo<SignatureHelp>(request);
   }
 
+  Future<Location> getSuper(
+    Uri uri,
+    Position pos,
+  ) {
+    final request = makeRequest(
+      CustomMethods.Super,
+      new TextDocumentPositionParams(
+        new TextDocumentIdentifier(uri.toString()),
+        pos,
+      ),
+    );
+    return expectSuccessfulResponseTo<Location>(request);
+  }
+
   /// Executes [f] then waits for a request of type [method] from the server which
   /// is passed to [handler] to process, then waits for (and returns) the
   /// response to the original request.
@@ -739,19 +753,38 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
           message.method == Method.textDocument_publishDiagnostics) {
-        // This helper method is used both in in-process tests where we'll get
-        // the real type back, and out-of-process integration tests where
-        // params is `Map<String, dynamic>` so for convenience just
-        // handle either here.
-        diagnosticParams = message.params is PublishDiagnosticsParams
-            ? message.params
-            : PublishDiagnosticsParams.fromJson(message.params);
-
+        diagnosticParams =
+            _convertParams(message, PublishDiagnosticsParams.fromJson);
         return diagnosticParams.uri == uri.toString();
       }
       return false;
     });
     return diagnosticParams.diagnostics;
+  }
+
+  /// A helper to simplify processing of results for both in-process tests (where
+  /// we'll get the real type back), and out-of-process integration tests (where
+  /// params is `Map<String, dynamic>` and needs to be fromJson'd).
+  T _convertParams<T>(
+    IncomingMessage message,
+    T Function(Map<String, dynamic>) fromJson,
+  ) {
+    return message.params is T ? message.params : fromJson(message.params);
+  }
+
+  Future<List<ClosingLabel>> waitForClosingLabels(Uri uri) async {
+    PublishClosingLabelsParams closingLabelsParams;
+    await serverToClient.firstWhere((message) {
+      if (message is NotificationMessage &&
+          message.method == CustomMethods.PublishClosingLabels) {
+        closingLabelsParams =
+            _convertParams(message, PublishClosingLabelsParams.fromJson);
+
+        return closingLabelsParams.uri == uri.toString();
+      }
+      return false;
+    });
+    return closingLabelsParams.labels;
   }
 
   Future<AnalyzerStatusParams> waitForAnalysisStart() =>
@@ -765,13 +798,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
           message.method == CustomMethods.AnalyzerStatus) {
-        // This helper method is used both in in-process tests where we'll get
-        // the real type back, and out-of-process integration tests where
-        // params is `Map<String, dynamic>` so for convenience just
-        // handle either here.
-        params = message.params is AnalyzerStatusParams
-            ? message.params
-            : AnalyzerStatusParams.fromJson(message.params);
+        params = _convertParams(message, AnalyzerStatusParams.fromJson);
         return params.isAnalyzing == analyzing;
       }
       return false;

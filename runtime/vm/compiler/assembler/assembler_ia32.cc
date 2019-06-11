@@ -16,6 +16,7 @@ namespace dart {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 DECLARE_FLAG(bool, inline_alloc);
+DECLARE_FLAG(bool, use_slow_path);
 #endif
 
 namespace compiler {
@@ -2109,16 +2110,17 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
 
   // Compare and swap the value at Thread::safepoint_state from unacquired to
   // acquired. On success, jump to 'success'; otherwise, fallthrough.
-  pushl(EAX);
-  movl(EAX, Immediate(Thread::safepoint_state_unacquired()));
-  movl(scratch, Immediate(Thread::safepoint_state_acquired()));
-  LockCmpxchgl(Address(THR, Thread::safepoint_state_offset()), scratch);
-  movl(scratch, EAX);
-  popl(EAX);
-  cmpl(scratch, Immediate(Thread::safepoint_state_unacquired()));
-
   Label done;
-  j(EQUAL, &done);
+  if (!FLAG_use_slow_path) {
+    pushl(EAX);
+    movl(EAX, Immediate(Thread::safepoint_state_unacquired()));
+    movl(scratch, Immediate(Thread::safepoint_state_acquired()));
+    LockCmpxchgl(Address(THR, Thread::safepoint_state_offset()), scratch);
+    movl(scratch, EAX);
+    popl(EAX);
+    cmpl(scratch, Immediate(Thread::safepoint_state_unacquired()));
+    j(EQUAL, &done);
+  }
 
   movl(scratch,
        Address(THR, compiler::target::Thread::enter_safepoint_stub_offset()));
@@ -2132,18 +2134,20 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
 void Assembler::TransitionNativeToGenerated(Register scratch) {
   // Compare and swap the value at Thread::safepoint_state from acquired to
   // unacquired. On success, jump to 'success'; otherwise, fallthrough.
-  pushl(EAX);
-  movl(EAX, Immediate(compiler::target::Thread::safepoint_state_acquired()));
-  movl(scratch,
-       Immediate(compiler::target::Thread::safepoint_state_unacquired()));
-  LockCmpxchgl(Address(THR, compiler::target::Thread::safepoint_state_offset()),
-               scratch);
-  movl(scratch, EAX);
-  popl(EAX);
-  cmpl(scratch, Immediate(Thread::safepoint_state_acquired()));
-
   Label done;
-  j(EQUAL, &done);
+  if (!FLAG_use_slow_path) {
+    pushl(EAX);
+    movl(EAX, Immediate(compiler::target::Thread::safepoint_state_acquired()));
+    movl(scratch,
+         Immediate(compiler::target::Thread::safepoint_state_unacquired()));
+    LockCmpxchgl(
+        Address(THR, compiler::target::Thread::safepoint_state_offset()),
+        scratch);
+    movl(scratch, EAX);
+    popl(EAX);
+    cmpl(scratch, Immediate(Thread::safepoint_state_acquired()));
+    j(EQUAL, &done);
+  }
 
   movl(scratch,
        Address(THR, compiler::target::Thread::exit_safepoint_stub_offset()));
@@ -2296,8 +2300,8 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   intptr_t state_offset = ClassTable::StateOffsetFor(cid);
   ASSERT(temp_reg != kNoRegister);
   LoadIsolate(temp_reg);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  intptr_t table_offset = Isolate::class_table_offset() +
+                          ClassTable::class_heap_stats_table_offset();
   movl(temp_reg, Address(temp_reg, table_offset));
   state_address = Address(temp_reg, state_offset);
   testb(state_address,
@@ -2309,12 +2313,11 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 
 void Assembler::UpdateAllocationStats(intptr_t cid, Register temp_reg) {
   ASSERT(cid > 0);
-  intptr_t counter_offset =
-      ClassTable::CounterOffsetFor(cid, /*is_new_space=*/true);
+  intptr_t counter_offset = ClassTable::NewSpaceCounterOffsetFor(cid);
   ASSERT(temp_reg != kNoRegister);
   LoadIsolate(temp_reg);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  intptr_t table_offset = Isolate::class_table_offset() +
+                          ClassTable::class_heap_stats_table_offset();
   movl(temp_reg, Address(temp_reg, table_offset));
   incl(Address(temp_reg, counter_offset));
 }
@@ -2325,7 +2328,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   ASSERT(cid > 0);
   ASSERT(cid < kNumPredefinedCids);
   UpdateAllocationStats(cid, temp_reg);
-  intptr_t size_offset = ClassTable::SizeOffsetFor(cid, /*is_new_space=*/true);
+  intptr_t size_offset = ClassTable::NewSpaceSizeOffsetFor(cid);
   addl(Address(temp_reg, size_offset), size_reg);
 }
 
@@ -2335,7 +2338,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   ASSERT(cid > 0);
   ASSERT(cid < kNumPredefinedCids);
   UpdateAllocationStats(cid, temp_reg);
-  intptr_t size_offset = ClassTable::SizeOffsetFor(cid, /*is_new_space=*/true);
+  intptr_t size_offset = ClassTable::NewSpaceSizeOffsetFor(cid);
   addl(Address(temp_reg, size_offset), Immediate(size_in_bytes));
 }
 #endif  // !PRODUCT

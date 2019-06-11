@@ -282,6 +282,7 @@ class BytecodeAssembler {
   }
 
   void emitJump(Label label) {
+    emitSourcePosition();
     _emitJumpInstruction(Opcode.kJump, label);
     isUnreachable = true;
   }
@@ -319,6 +320,7 @@ class BytecodeAssembler {
   }
 
   void emitReturnTOS() {
+    emitSourcePosition();
     _emitInstruction0(Opcode.kReturnTOS);
     isUnreachable = true;
   }
@@ -352,10 +354,12 @@ class BytecodeAssembler {
   }
 
   void emitStoreLocal(int rx) {
+    emitSourcePosition();
     _emitInstructionX(Opcode.kStoreLocal, rx);
   }
 
   void emitPopLocal(int rx) {
+    emitSourcePosition();
     _emitInstructionX(Opcode.kPopLocal, rx);
   }
 

@@ -283,6 +283,17 @@ class Flutter {
     for (; node != null; node = node.parent) {
       if (isWidgetExpression(node)) {
         var parent = node.parent;
+
+        if (node is AssignmentExpression) {
+          return null;
+        }
+        if (parent is AssignmentExpression) {
+          if (parent.rightHandSide == node) {
+            return node;
+          }
+          return null;
+        }
+
         if (parent is ArgumentList ||
             parent is ExpressionFunctionBody && parent.expression == node ||
             parent is ListLiteral ||

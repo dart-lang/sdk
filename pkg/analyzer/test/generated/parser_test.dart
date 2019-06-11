@@ -9118,6 +9118,7 @@ class C {
     expect(functionParameter.typeParameters, isNull);
     expect(functionParameter.parameters, isNotNull);
     expect(functionParameter.isNamed, isTrue);
+    expect(functionParameter.question, isNull);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
     expect(defaultParameter.isNamed, isTrue);
@@ -9133,6 +9134,7 @@ class C {
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);
     expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNull);
   }
 
   void test_parseNormalFormalParameter_function_noType_covariant() {
@@ -9147,6 +9149,7 @@ class C {
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);
     expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNull);
   }
 
   void test_parseNormalFormalParameter_function_noType_typeParameters() {
@@ -9159,6 +9162,7 @@ class C {
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNotNull);
     expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNull);
   }
 
   void test_parseNormalFormalParameter_function_type() {
@@ -9171,6 +9175,7 @@ class C {
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);
     expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNull);
   }
 
   void test_parseNormalFormalParameter_function_type_typeParameters() {
@@ -9183,6 +9188,7 @@ class C {
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNotNull);
     expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNull);
   }
 
   void test_parseNormalFormalParameter_function_typeVoid_covariant() {
@@ -9197,6 +9203,7 @@ class C {
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);
     expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNull);
   }
 
   void test_parseNormalFormalParameter_function_void() {
@@ -9209,6 +9216,7 @@ class C {
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);
     expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNull);
   }
 
   void test_parseNormalFormalParameter_function_void_typeParameters() {
@@ -9221,6 +9229,7 @@ class C {
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNotNull);
     expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNull);
   }
 
   void test_parseNormalFormalParameter_function_withDocComment() {

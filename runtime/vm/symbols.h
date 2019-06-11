@@ -287,6 +287,7 @@ class ObjectPointerVisitor;
   V(ThrowNewInvocation, "_throwNewInvocation")                                 \
   V(TopLevel, "::")                                                            \
   V(TruncDivOperator, "~/")                                                    \
+  V(TransferableTypedData, "TransferableTypedData")                            \
   V(TryFinallyReturnValue, ":try_finally_return_value")                        \
   V(TwoByteString, "_TwoByteString")                                           \
   V(TwoNewlines, "\n\n")                                                       \
@@ -403,6 +404,7 @@ class ObjectPointerVisitor;
   V(_RawReceivePortImpl, "_RawReceivePortImpl")                                \
   V(_RegExp, "_RegExp")                                                        \
   V(_SendPortImpl, "_SendPortImpl")                                            \
+  V(_TransferableTypedDataImpl, "_TransferableTypedDataImpl")                  \
   V(_Smi, "_Smi")                                                              \
   V(_SourceLocation, "_SourceLocation")                                        \
   V(_SpecialTypeMirror, "_SpecialTypeMirror")                                  \

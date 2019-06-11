@@ -339,6 +339,9 @@ class BuildMode with HasContextMixin {
    * add them to  the [assembler].
    */
   void _computeLinkedLibraries(Set<String> libraryUris) {
+    // Ensure that summary1 linking is done with summary1 rules.
+    AnalysisDriver.useSummary2 = false;
+
     logger.run('Link output summary', () {
       void trackDependency(String absoluteUri) {
         if (dependencyTracker != null) {
@@ -375,6 +378,7 @@ class BuildMode with HasContextMixin {
    * [inputParsedUnitResults] to produce linked libraries in [assembler].
    */
   void _computeLinkedLibraries2() {
+    AnalysisDriver.useSummary2 = consumeSummary2;
     logger.run('Link output summary2', () {
       var inputLibraries = <summary2.LinkInputLibrary>[];
 
@@ -511,6 +515,9 @@ class BuildMode with HasContextMixin {
     analysisOptions =
         createAnalysisOptionsForCommandLineOptions(options, rootPath);
 
+    // Ensure that FileState prepare summary2 information if necessary.
+    AnalysisDriver.useSummary2 = consumeSummary2;
+
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
     analysisDriver = new AnalysisDriver(
         scheduler,
@@ -608,12 +615,9 @@ class BuildMode with HasContextMixin {
    * is sent to a new file at that path.
    */
   Future<void> _printErrors({String outputPath}) async {
-    await logger.runAsync('Compute and print analysis errors', () async {
-      var wasUseSummary2 = AnalysisDriver.useSummary2;
-      if (consumeSummary2) {
-        AnalysisDriver.useSummary2 = true;
-      }
+    AnalysisDriver.useSummary2 = consumeSummary2;
 
+    await logger.runAsync('Compute and print analysis errors', () async {
       StringBuffer buffer = new StringBuffer();
       var severityProcessor = (AnalysisError error) =>
           determineProcessedSeverity(error, options, analysisOptions);
@@ -638,8 +642,6 @@ class BuildMode with HasContextMixin {
       } else {
         new io.File(outputPath).writeAsStringSync(buffer.toString());
       }
-
-      AnalysisDriver.useSummary2 = wasUseSummary2;
     });
   }
 }

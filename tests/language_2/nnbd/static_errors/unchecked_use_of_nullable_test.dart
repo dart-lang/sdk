@@ -17,7 +17,7 @@ void main() async {
   x.toString(); //# 02: ok
   x.hashCode; //# 03: ok
   x.runtimeType; //# 04: ok
-  x.noSuchMethod(null); //# 05: ok
+  x.noSuchMethod(Invocation.method(#toString, [])); //# 05: ok
   x + 1; //# 06: compile-time error
   -x; //# 06: compile-time error
   x++; //# 07: compile-time error
@@ -73,7 +73,7 @@ void typeParametersNullableBounds<IQ extends int?, BQ extends bool?, LQ extends 
   x.toString(); //# 42: ok
   x.hashCode; //# 43: ok
   x.runtimeType; //# 44: ok
-  x.noSuchMethod(null); //# 45: ok
+  x.noSuchMethod(Invocation.method(#toString, [])); //# 45: ok
   x + 1; //# 46: compile-time error
   -x; //# 47: compile-time error
   x++; //# 48: compile-time error
@@ -82,7 +82,7 @@ void typeParametersNullableBounds<IQ extends int?, BQ extends bool?, LQ extends 
   list[0]; //# 51: compile-time error
   list[0] = 0; //# 52: compile-time error
   x += 1; //# 53: compile-time error
-  x ??= null; //# 54: ok
+  x ??= x; //# 54: ok
   x.round; //# 55: compile-time error
   x.toString; //# 56: ok
   x.noSuchMethod; //# 57: ok
@@ -124,7 +124,7 @@ void typeParametersNullableUses<I extends int, B extends bool, L extends List, F
   x.toString(); //# 82: ok
   x.hashCode; //# 83: ok
   x.runtimeType; //# 84: ok
-  x.noSuchMethod(null); //# 85: ok
+  x.noSuchMethod(Invocation.method(#toString, [])); //# 85: ok
   x + 1; //# 86: compile-time error
   -x; //# 87: compile-time error
   x++; //# 88: compile-time error

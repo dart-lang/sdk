@@ -965,13 +965,6 @@ void KernelLoader::CheckForInitializer(const Field& field) {
       return;
     }
   }
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    if (bytecode_metadata_helper_.HasBytecode(field.kernel_offset() +
-                                              library_kernel_offset_)) {
-      field.set_has_initializer(true);
-      return;
-    }
-  }
   field.set_has_initializer(false);
 }
 
@@ -1066,8 +1059,8 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   Class& toplevel_class =
       Class::Handle(Z, Class::New(library, Symbols::TopLevel(), script,
                                   TokenPosition::kNoSource, register_class));
+  toplevel_class.set_is_declaration_loaded();
   toplevel_class.set_is_type_finalized();
-  toplevel_class.set_is_cycle_free();
   library.set_toplevel_class(toplevel_class);
 
   library_helper.ReadUntilExcluding(LibraryHelper::kDependencies);
@@ -1386,6 +1379,8 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   if (class_helper->is_transformed_mixin_application()) {
     klass->set_is_transformed_mixin_application();
   }
+
+  klass->set_is_declaration_loaded();
 }
 
 void KernelLoader::LoadClass(const Library& library,
@@ -1438,10 +1433,9 @@ void KernelLoader::LoadClass(const Library& library,
       helper_.ReadListLength();  // read type_parameters list length.
 
   ActiveClassScope active_class_scope(&active_class_, out_class);
-  if (!out_class->is_cycle_free()) {
+  if (!out_class->is_declaration_loaded()) {
     LoadPreliminaryClass(&class_helper, type_parameter_counts);
   } else {
-    // do not use type parameters with cycle_free
     ASSERT(type_parameter_counts == 0);
     class_helper.SetJustRead(ClassHelper::kTypeParameters);
   }
@@ -2070,12 +2064,6 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
 
   if (field_helper->IsStatic()) {
     bool has_initializer = (tag == kSomething);
-
-    if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-      has_initializer = has_initializer ||
-                        bytecode_metadata_helper_.HasBytecode(
-                            field.kernel_offset() + library_kernel_offset_);
-    }
 
     if (!has_initializer) {
       // Static fields without an initializer are implicitly initialized to

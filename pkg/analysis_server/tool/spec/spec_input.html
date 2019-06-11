@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.27.0</version>
+  <version>1.27.1</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -2253,6 +2253,18 @@
           A list of source edits to apply the recommended changes.
         </p>
       </field>
+      <field name="details" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          Messages that should be displayed to the user that describe details of
+          the fix generation. For example, the messages might (a) point out
+          details that users might want to explore before committing the changes
+          or (b) describe exceptions that were thrown but that did not stop the
+          fixes from being produced. The list will be omitted if it is empty.
+        </p>
+      </field>
     </result>
   </request>
   <request method="getFixes">
@@ -3596,6 +3608,14 @@
         <ref>String</ref>
         <p>
           The identifier to present to the user for code completion.
+        </p>
+      </field>
+      <field name="declaringLibraryUri">
+        <ref>String</ref>
+        <p>
+          The URI of the library that declares the element being suggested,
+          not the URI of the library associated with the enclosing
+          <tt>AvailableSuggestionSet</tt>.
         </p>
       </field>
       <field name="element">

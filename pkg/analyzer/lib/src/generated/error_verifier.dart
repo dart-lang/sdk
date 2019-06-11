@@ -2340,7 +2340,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         featureSet: _featureSet)) {
       return;
     }
-    _errorReporter.reportErrorForNode(errorCode, expression, arguments);
+    if (expressionType.element == type.element) {
+      _errorReporter.reportErrorForNode(
+          StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, expression);
+    } else {
+      _errorReporter.reportErrorForNode(errorCode, expression, arguments);
+    }
   }
 
   bool _checkForAssignableExpression(
@@ -4438,7 +4443,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForMustCallSuper(MethodDeclaration node) {
-    if (node.isStatic) {
+    if (node.isStatic || node.isAbstract) {
       return;
     }
     MethodElement element = _findOverriddenMemberThatMustCallSuper(node);
@@ -4570,8 +4575,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /**
    * Verify that the given [assertion] has either a 'bool' or '() -> bool'
    * condition.
-   *
-   * See [StaticTypeWarningCode.NON_BOOL_EXPRESSION].
    */
   void _checkForNonBoolExpression(Assertion assertion) {
     Expression expression = assertion.condition;
@@ -4579,8 +4582,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (type is InterfaceType) {
       if (!_typeSystem.isAssignableTo(type, _boolType,
           featureSet: _featureSet)) {
-        _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
+        if (type.element == _boolType.element) {
+          _errorReporter.reportErrorForNode(
+              StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, expression);
+        } else {
+          _errorReporter.reportErrorForNode(
+              StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
+        }
       }
     } else if (type is FunctionType) {
       _errorReporter.reportErrorForNode(
@@ -4590,16 +4598,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   /**
    * Checks to ensure that the given [expression] is assignable to bool.
-   *
-   * See [StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION].
    */
   void _checkForNonBoolNegationExpression(Expression expression) {
     DartType conditionType = getStaticType(expression);
     if (conditionType != null &&
         !_typeSystem.isAssignableTo(conditionType, _boolType,
             featureSet: _featureSet)) {
-      _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION, expression);
+      if (conditionType.element == _boolType.element) {
+        _errorReporter.reportErrorForNode(
+            StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, expression);
+      } else {
+        _errorReporter.reportErrorForNode(
+            StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION, expression);
+      }
     }
   }
 
@@ -4677,8 +4688,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * Check for illegal derefences of nullables, ie, "unchecked" usages of
    * nullable values. Note that *any* usage of a null value is an "unchecked"
    * usage, because proper checks will promote the type to a non-nullable value.
-   *
-   * See [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]
    */
   bool _checkForNullableDereference(Expression expression) {
     if (expression == null ||

@@ -636,18 +636,18 @@ class KernelLibraryBuilder
       String name,
       int charOffset,
       int charEndOffset,
-      Token initializerTokenForInference,
-      bool hasInitializer) {
+      Token initializerToken,
+      bool hasInitializer,
+      {Token constInitializerToken}) {
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
     KernelFieldBuilder field = new KernelFieldBuilder(
         metadata, type, name, modifiers, this, charOffset, charEndOffset);
+    field.constInitializerToken = constInitializerToken;
     addBuilder(name, field, charOffset);
-    if (initializerTokenForInference != null) {
-      assert(type == null);
-      field.target.type =
-          new ImplicitFieldType(field, initializerTokenForInference);
+    if (!legacyMode && type == null && initializerToken != null) {
+      field.target.type = new ImplicitFieldType(field, initializerToken);
     }
     loader.target.metadataCollector
         ?.setDocumentationComment(field.target, documentationComment);
@@ -903,7 +903,7 @@ class KernelLibraryBuilder
   }
 
   @override
-  void buildAnnotations() {
+  void buildOutlineExpressions() {
     KernelMetadataBuilder.buildAnnotations(
         library, metadata, this, null, null, null);
   }

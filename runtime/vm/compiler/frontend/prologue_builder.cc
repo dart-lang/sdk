@@ -190,8 +190,9 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
   for (; param < num_fixed_params; ++param) {
     copy_args_prologue += LoadLocal(optional_count_var);
     copy_args_prologue += LoadFpRelativeSlot(
-        kWordSize * (compiler::target::frame_layout.param_end_from_fp +
-                     num_fixed_params - param),
+        compiler::target::kWordSize *
+            (compiler::target::frame_layout.param_end_from_fp +
+             num_fixed_params - param),
         ParameterType(ParameterVariable(param)));
     copy_args_prologue +=
         StoreLocalRaw(TokenPosition::kNoSource, ParameterVariable(param));
@@ -211,8 +212,9 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
       Fragment good(supplied);
       good += LoadLocal(optional_count_var);
       good += LoadFpRelativeSlot(
-          kWordSize * (compiler::target::frame_layout.param_end_from_fp +
-                       num_fixed_params - param),
+          compiler::target::kWordSize *
+              (compiler::target::frame_layout.param_end_from_fp +
+               num_fixed_params - param),
           ParameterType(ParameterVariable(param)));
       good += StoreLocalRaw(TokenPosition::kNoSource, ParameterVariable(param));
       good += Drop();
@@ -249,7 +251,8 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
     ASSERT(num_opt_named_params > 0);
 
     const intptr_t first_name_offset =
-        ArgumentsDescriptor::first_named_entry_offset() - Array::data_offset();
+        compiler::target::ArgumentsDescriptor::first_named_entry_offset() -
+        compiler::target::Array::data_offset();
 
     // Start by alphabetically sorting the names of the optional parameters.
     int* opt_param_position = Z->Alloc<int>(num_opt_named_params);
@@ -266,19 +269,23 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
     for (intptr_t i = 0; param < num_params; ++param, ++i) {
       JoinEntryInstr* join = BuildJoinEntry();
 
-      copy_args_prologue +=
-          IntConstant(ArgumentsDescriptor::named_entry_size() / kWordSize);
+      copy_args_prologue += IntConstant(
+          compiler::target::ArgumentsDescriptor::named_entry_size() /
+          compiler::target::kWordSize);
       copy_args_prologue += LoadLocal(optional_count_vars_processed);
       copy_args_prologue += SmiBinaryOp(Token::kMUL, /* truncate= */ true);
       LocalVariable* tuple_diff = MakeTemporary();
 
       // name = arg_desc[names_offset + arg_desc_name_index + nameOffset]
       copy_args_prologue += LoadArgDescriptor();
-      copy_args_prologue += IntConstant(
-          (first_name_offset + ArgumentsDescriptor::name_offset()) / kWordSize);
+      copy_args_prologue +=
+          IntConstant((first_name_offset +
+                       compiler::target::ArgumentsDescriptor::name_offset()) /
+                      compiler::target::kWordSize);
       copy_args_prologue += LoadLocal(tuple_diff);
       copy_args_prologue += SmiBinaryOp(Token::kADD, /* truncate= */ true);
-      copy_args_prologue += LoadIndexed(/* index_scale = */ kWordSize);
+      copy_args_prologue +=
+          LoadIndexed(/* index_scale = */ compiler::target::kWordSize);
 
       // first name in sorted list of all names
       const String& param_name = String::ZoneHandle(
@@ -303,15 +310,17 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
           // pos = arg_desc[names_offset + arg_desc_name_index + positionOffset]
           good += LoadArgDescriptor();
           good += IntConstant(
-              (first_name_offset + ArgumentsDescriptor::position_offset()) /
-              kWordSize);
+              (first_name_offset +
+               compiler::target::ArgumentsDescriptor::position_offset()) /
+              compiler::target::kWordSize);
           good += LoadLocal(tuple_diff);
           good += SmiBinaryOp(Token::kADD, /* truncate= */ true);
-          good += LoadIndexed(/* index_scale = */ kWordSize);
+          good += LoadIndexed(/* index_scale = */ compiler::target::kWordSize);
         }
         good += SmiBinaryOp(Token::kSUB, /* truncate= */ true);
         good += LoadFpRelativeSlot(
-            kWordSize * compiler::target::frame_layout.param_end_from_fp,
+            compiler::target::kWordSize *
+                compiler::target::frame_layout.param_end_from_fp,
             ParameterType(ParameterVariable(opt_param_position[i])));
 
         // Copy down.
@@ -417,7 +426,8 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
   store_type_args += LoadArgDescriptor();
   store_type_args += LoadNativeField(Slot::ArgumentsDescriptor_count());
   store_type_args += LoadFpRelativeSlot(
-      kWordSize * (1 + compiler::target::frame_layout.param_end_from_fp),
+      compiler::target::kWordSize *
+          (1 + compiler::target::frame_layout.param_end_from_fp),
       CompileType::CreateNullable(/*is_nullable=*/true, kTypeArgumentsCid));
   store_type_args += StoreLocal(TokenPosition::kNoSource, type_args_var);
   store_type_args += Drop();

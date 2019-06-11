@@ -145,7 +145,7 @@ Address LocationToStackSlotAddress(Location loc) {
 
 template <class Register, class FpuRegister>
 intptr_t TemplateLocation<Register, FpuRegister>::ToStackSlotOffset() const {
-  return stack_index() * kWordSize;
+  return stack_index() * compiler::target::kWordSize;
 }
 
 template <class Register, class FpuRegister>

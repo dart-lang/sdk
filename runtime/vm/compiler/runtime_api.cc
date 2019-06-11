@@ -4,8 +4,19 @@
 
 #include "vm/compiler/runtime_api.h"
 
+namespace dart {
+namespace compiler {
+namespace target {
+
+#include "vm/compiler/runtime_offsets_extracted.h"
+
+}  // namespace target
+}  // namespace compiler
+}  // namespace dart
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
+#include "vm/compiler/runtime_offsets_list.h"
 #include "vm/dart_entry.h"
 #include "vm/longjump.h"
 #include "vm/native_arguments.h"
@@ -20,6 +31,11 @@ namespace dart {
 namespace compiler {
 
 bool IsSameObject(const Object& a, const Object& b) {
+  if (a.IsMint() && b.IsMint()) {
+    return Mint::Cast(a).value() == Mint::Cast(b).value();
+  } else if (a.IsDouble() && b.IsDouble()) {
+    return Double::Cast(a).value() == Double::Cast(b).value();
+  }
   return a.raw() == b.raw();
 }
 
@@ -49,7 +65,7 @@ CLASS_LIST_FOR_HANDLES(DO)
 #undef DO
 
 bool IsInOldSpace(const Object& obj) {
-  return obj.IsOld();
+  return obj.IsSmi() || obj.IsOld();
 }
 
 intptr_t ObjectHash(const Object& obj) {
@@ -162,7 +178,8 @@ word TypedDataElementSizeInBytes(classid_t cid) {
 }
 
 word TypedDataMaxNewSpaceElements(classid_t cid) {
-  return dart::TypedData::MaxNewSpaceElements(cid);
+  return (dart::Heap::kNewAllocatableSize - target::TypedData::InstanceSize()) /
+         TypedDataElementSizeInBytes(cid);
 }
 
 const Field& LookupMathRandomStateFieldOffset() {
@@ -215,23 +232,29 @@ void BailoutWithBranchOffsetError() {
 }
 
 word RuntimeEntry::OffsetFromThread() const {
-  return dart::Thread::OffsetFromThread(runtime_entry_);
+  return target::Thread::OffsetFromThread(runtime_entry_);
 }
 
 namespace target {
 
 const word kPageSize = dart::kPageSize;
-const word kPageSizeInWords = dart::kPageSizeInWords;
+const word kPageSizeInWords = dart::kPageSize / kWordSize;
 const word kPageMask = dart::kPageMask;
 
+static word TranslateOffsetInWordsToHost(word offset) {
+  RELEASE_ASSERT((offset % kWordSize) == 0);
+  return (offset / kWordSize) * dart::kWordSize;
+}
+
 uint32_t MakeTagWordForNewSpaceObject(classid_t cid, uword instance_size) {
-  return dart::RawObject::SizeTag::encode(instance_size) |
+  return dart::RawObject::SizeTag::encode(
+             TranslateOffsetInWordsToHost(instance_size)) |
          dart::RawObject::ClassIdTag::encode(cid) |
          dart::RawObject::NewBit::encode(true);
 }
 
 word Object::tags_offset() {
-  return dart::Object::tags_offset();
+  return 0;
 }
 
 const word RawObject::kCardRememberedBit = dart::RawObject::kCardRememberedBit;
@@ -247,7 +270,8 @@ const word RawObject::kClassIdTagPos = dart::RawObject::kClassIdTagPos;
 const word RawObject::kClassIdTagSize = dart::RawObject::kClassIdTagSize;
 
 const word RawObject::kSizeTagMaxSizeTag =
-    dart::RawObject::SizeTag::kMaxSizeTag;
+    dart::RawObject::SizeTag::kMaxSizeTagInUnitsOfAlignment *
+    ObjectAlignment::kObjectAlignment;
 
 const word RawObject::kTagBitsSizeTagPos =
     dart::RawObject::TagBits::kSizeTagPos;
@@ -262,21 +286,6 @@ bool RawObject::IsTypedDataClassId(intptr_t cid) {
   return dart::RawObject::IsTypedDataClassId(cid);
 }
 
-intptr_t ObjectPool::element_offset(intptr_t index) {
-  return dart::ObjectPool::element_offset(index);
-}
-
-word Class::type_arguments_field_offset_in_words_offset() {
-  return dart::Class::type_arguments_field_offset_in_words_offset();
-}
-
-word Class::declaration_type_offset() {
-  return dart::Class::declaration_type_offset();
-}
-
-word Class::num_type_arguments_offset_in_bytes() {
-  return dart::Class::num_type_arguments_offset();
-}
 
 const word Class::kNoTypeArguments = dart::Class::kNoTypeArguments;
 
@@ -284,8 +293,59 @@ classid_t Class::GetId(const dart::Class& handle) {
   return handle.id();
 }
 
+static word TranslateOffsetInWords(word offset) {
+  RELEASE_ASSERT((offset % dart::kWordSize) == 0);
+  return (offset / dart::kWordSize) * kWordSize;
+}
+
+static uword GetInstanceSizeImpl(const dart::Class& handle) {
+  switch (handle.id()) {
+    case kMintCid:
+      return Mint::InstanceSize();
+    case kDoubleCid:
+      return Double::InstanceSize();
+    case kInt32x4Cid:
+      return Int32x4::InstanceSize();
+    case kFloat32x4Cid:
+      return Float32x4::InstanceSize();
+    case kFloat64x2Cid:
+      return Float64x2::InstanceSize();
+    case kObjectCid:
+      return Object::InstanceSize();
+    case kInstanceCid:
+      return Instance::InstanceSize();
+    case kGrowableObjectArrayCid:
+      return GrowableObjectArray::InstanceSize();
+    case kClosureCid:
+      return Closure::InstanceSize();
+    case kTypedDataBaseCid:
+      return TypedDataBase::InstanceSize();
+    case kLinkedHashMapCid:
+      return LinkedHashMap::InstanceSize();
+    case kByteBufferCid:
+    case kByteDataViewCid:
+    case kFfiPointerCid:
+#define HANDLE_CASE(clazz)                                                     \
+  case kTypedData##clazz##Cid:                                                 \
+  case kTypedData##clazz##ViewCid:                                             \
+  case kExternalTypedData##clazz##Cid:
+      CLASS_LIST_TYPED_DATA(HANDLE_CASE)
+#undef HANDLE_CASE
+      return TranslateOffsetInWords(handle.instance_size());
+    default:
+      if (handle.id() >= kNumPredefinedCids) {
+        return TranslateOffsetInWords(handle.instance_size());
+      }
+  }
+  FATAL3("Unsupported class for size translation: %s (id=%" Pd
+         ", kNumPredefinedCids=%d)\n",
+         handle.ToCString(), handle.id(), kNumPredefinedCids);
+  return -1;
+}
+
 uword Class::GetInstanceSize(const dart::Class& handle) {
-  return handle.instance_size();
+  return Utils::RoundUp(GetInstanceSizeImpl(handle),
+                        ObjectAlignment::kObjectAlignment);
 }
 
 intptr_t Class::NumTypeArguments(const dart::Class& klass) {
@@ -297,11 +357,7 @@ bool Class::HasTypeArgumentsField(const dart::Class& klass) {
 }
 
 intptr_t Class::TypeArgumentsFieldOffset(const dart::Class& klass) {
-  return klass.type_arguments_field_offset();
-}
-
-intptr_t Class::InstanceSize(const dart::Class& klass) {
-  return klass.instance_size();
+  return TranslateOffsetInWords(klass.type_arguments_field_offset());
 }
 
 bool Class::TraceAllocation(const dart::Class& klass) {
@@ -309,55 +365,58 @@ bool Class::TraceAllocation(const dart::Class& klass) {
 }
 
 word Instance::first_field_offset() {
-  return dart::Instance::NextFieldOffset();
+  return TranslateOffsetInWords(dart::Instance::NextFieldOffset());
 }
 
 word Instance::DataOffsetFor(intptr_t cid) {
-  return dart::Instance::DataOffsetFor(cid);
+  if (dart::RawObject::IsExternalTypedDataClassId(cid) ||
+      dart::RawObject::IsExternalStringClassId(cid)) {
+    // Elements start at offset 0 of the external data.
+    return 0;
+  }
+  if (dart::RawObject::IsTypedDataClassId(cid)) {
+    return TypedData::data_offset();
+  }
+  switch (cid) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return Array::data_offset();
+    case kOneByteStringCid:
+      return OneByteString::data_offset();
+    case kTwoByteStringCid:
+      return TwoByteString::data_offset();
+    default:
+      UNIMPLEMENTED();
+      return Array::data_offset();
+  }
 }
 
 word Instance::ElementSizeFor(intptr_t cid) {
-  return dart::Instance::ElementSizeFor(cid);
-}
-
-word Function::code_offset() {
-  return dart::Function::code_offset();
-}
-
-word Function::entry_point_offset() {
-  return dart::Function::entry_point_offset();
-}
-
-word Function::usage_counter_offset() {
-  return dart::Function::usage_counter_offset();
-}
-
-word Function::unchecked_entry_point_offset() {
-  return dart::Function::unchecked_entry_point_offset();
+  if (dart::RawObject::IsExternalTypedDataClassId(cid) ||
+      dart::RawObject::IsTypedDataClassId(cid) ||
+      dart::RawObject::IsTypedDataViewClassId(cid)) {
+    return dart::TypedDataBase::ElementSizeInBytes(cid);
+  }
+  switch (cid) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return kWordSize;
+    case kOneByteStringCid:
+      return dart::OneByteString::kBytesPerElement;
+    case kTwoByteStringCid:
+      return dart::TwoByteString::kBytesPerElement;
+    case kExternalOneByteStringCid:
+      return dart::ExternalOneByteString::kBytesPerElement;
+    case kExternalTwoByteStringCid:
+      return dart::ExternalTwoByteString::kBytesPerElement;
+    default:
+      UNIMPLEMENTED();
+      return 0;
+  }
 }
 
 word ICData::CodeIndexFor(word num_args) {
   return dart::ICData::CodeIndexFor(num_args);
-}
-
-word ICData::owner_offset() {
-  return dart::ICData::owner_offset();
-}
-
-word ICData::arguments_descriptor_offset() {
-  return dart::ICData::arguments_descriptor_offset();
-}
-
-word ICData::entries_offset() {
-  return dart::ICData::entries_offset();
-}
-
-word ICData::receivers_static_type_offset() {
-  return dart::ICData::receivers_static_type_offset();
-}
-
-word ICData::state_bits_offset() {
-  return dart::ICData::state_bits_offset();
 }
 
 word ICData::CountIndexFor(word num_args) {
@@ -380,144 +439,74 @@ word ICData::EntryPointIndexFor(word num_args) {
   return dart::ICData::EntryPointIndexFor(num_args);
 }
 
-word ICData::NumArgsTestedShift() {
-  return dart::ICData::NumArgsTestedShift();
-}
-
-word ICData::NumArgsTestedMask() {
-  return dart::ICData::NumArgsTestedMask();
-}
-
 const word MegamorphicCache::kSpreadFactor =
     dart::MegamorphicCache::kSpreadFactor;
 
-word MegamorphicCache::mask_offset() {
-  return dart::MegamorphicCache::mask_offset();
-}
-word MegamorphicCache::buckets_offset() {
-  return dart::MegamorphicCache::buckets_offset();
-}
-word MegamorphicCache::arguments_descriptor_offset() {
-  return dart::MegamorphicCache::arguments_descriptor_offset();
-}
-
-word SingleTargetCache::lower_limit_offset() {
-  return dart::SingleTargetCache::lower_limit_offset();
-}
-word SingleTargetCache::upper_limit_offset() {
-  return dart::SingleTargetCache::upper_limit_offset();
-}
-word SingleTargetCache::entry_point_offset() {
-  return dart::SingleTargetCache::entry_point_offset();
-}
-word SingleTargetCache::target_offset() {
-  return dart::SingleTargetCache::target_offset();
-}
-
-const word Array::kMaxNewSpaceElements = dart::Array::kMaxNewSpaceElements;
-
 word Context::InstanceSize(word n) {
-  return dart::Context::InstanceSize(n);
+  return TranslateOffsetInWords(dart::Context::InstanceSize(n));
 }
 
 word Context::variable_offset(word n) {
-  return dart::Context::variable_offset(n);
+  return TranslateOffsetInWords(dart::Context::variable_offset(n));
 }
 
-word TypedData::InstanceSize() {
-  return sizeof(RawTypedData);
+#define DEFINE_FIELD(clazz, name)                                              \
+  word clazz::name() { return clazz##_##name; }
+
+#define DEFINE_ARRAY(clazz, name)                                              \
+  word clazz::name(intptr_t index) {                                           \
+    return clazz##_elements_start_offset + index * clazz##_element_size;       \
+  }
+
+#define DEFINE_ARRAY_STRUCTFIELD(clazz, name, element_offset, field_offset)
+
+#define DEFINE_SIZEOF(clazz, name, what)                                       \
+  word clazz::name() { return clazz##_##name; }
+
+#define DEFINE_RANGE(Class, Getter, Type, First, Last, Filter)                 \
+  word Class::Getter(Type index) {                                             \
+    return Class##_##Getter[static_cast<intptr_t>(index) -                     \
+                            static_cast<intptr_t>(First)];                     \
+  }
+
+#define DEFINE_CONSTANT(Class, Name) const word Class::Name = Class##_##Name;
+
+#define PRECOMP_NO_CHECK(Code) Code
+
+OFFSETS_LIST(DEFINE_FIELD,
+             DEFINE_ARRAY,
+             DEFINE_ARRAY_STRUCTFIELD,
+             DEFINE_SIZEOF,
+             DEFINE_RANGE,
+             DEFINE_CONSTANT,
+             PRECOMP_NO_CHECK)
+
+#undef DEFINE_FIELD
+#undef DEFINE_ARRAY
+#undef DEFINE_ARRAY_STRUCTFIELD
+#undef DEFINE_SIZEOF
+#undef DEFINE_RANGE
+#undef DEFINE_CONSTANT
+#undef PRECOMP_NO_CHECK
+
+const word StoreBufferBlock::kSize = dart::StoreBufferBlock::kSize;
+
+const word MarkingStackBlock::kSize = dart::MarkingStackBlock::kSize;
+
+word Instructions::HeaderSize() {
+  intptr_t alignment = OS::PreferredCodeAlignment();
+  intptr_t aligned_size =
+      Utils::RoundUp(Instructions::UnalignedHeaderSize(), alignment);
+  ASSERT(aligned_size == alignment);
+  return aligned_size;
 }
 
-word Array::header_size() {
-  return sizeof(dart::RawArray);
+#if !defined(TARGET_ARCH_DBC)
+word Thread::stack_overflow_shared_stub_entry_point_offset(bool fpu_regs) {
+  return fpu_regs ? stack_overflow_shared_with_fpu_regs_entry_point_offset()
+                  : stack_overflow_shared_without_fpu_regs_entry_point_offset();
 }
-
-#define CLASS_NAME_LIST(V)                                                     \
-  V(AbstractType, type_test_stub_entry_point_offset)                           \
-  V(ArgumentsDescriptor, count_offset)                                         \
-  V(ArgumentsDescriptor, type_args_len_offset)                                 \
-  V(Array, data_offset)                                                        \
-  V(Array, length_offset)                                                      \
-  V(Array, tags_offset)                                                        \
-  V(Array, type_arguments_offset)                                              \
-  V(ClassTable, table_offset)                                                  \
-  V(Closure, context_offset)                                                   \
-  V(Closure, delayed_type_arguments_offset)                                    \
-  V(Closure, function_offset)                                                  \
-  V(Closure, function_type_arguments_offset)                                   \
-  V(Closure, instantiator_type_arguments_offset)                               \
-  V(Code, object_pool_offset)                                                  \
-  V(Code, saved_instructions_offset)                                           \
-  V(Context, num_variables_offset)                                             \
-  V(Context, parent_offset)                                                    \
-  V(Double, value_offset)                                                      \
-  V(Float32x4, value_offset)                                                   \
-  V(Float64x2, value_offset)                                                   \
-  V(GrowableObjectArray, data_offset)                                          \
-  V(GrowableObjectArray, length_offset)                                        \
-  V(GrowableObjectArray, type_arguments_offset)                                \
-  V(HeapPage, card_table_offset)                                               \
-  V(Isolate, class_table_offset)                                               \
-  V(Isolate, current_tag_offset)                                               \
-  V(Isolate, default_tag_offset)                                               \
-  V(Isolate, ic_miss_code_offset)                                              \
-  V(Isolate, object_store_offset)                                              \
-  V(Isolate, user_tag_offset)                                                  \
-  V(MarkingStackBlock, pointers_offset)                                        \
-  V(MarkingStackBlock, top_offset)                                             \
-  V(Mint, value_offset)                                                        \
-  V(NativeArguments, argc_tag_offset)                                          \
-  V(NativeArguments, argv_offset)                                              \
-  V(NativeArguments, retval_offset)                                            \
-  V(NativeArguments, thread_offset)                                            \
-  V(ObjectStore, double_type_offset)                                           \
-  V(ObjectStore, int_type_offset)                                              \
-  V(ObjectStore, string_type_offset)                                           \
-  V(OneByteString, data_offset)                                                \
-  V(StoreBufferBlock, pointers_offset)                                         \
-  V(StoreBufferBlock, top_offset)                                              \
-  V(String, hash_offset)                                                       \
-  V(String, length_offset)                                                     \
-  V(SubtypeTestCache, cache_offset)                                            \
-  V(Thread, active_exception_offset)                                           \
-  V(Thread, active_stacktrace_offset)                                          \
-  V(Thread, async_stack_trace_offset)                                          \
-  V(Thread, auto_scope_native_wrapper_entry_point_offset)                      \
-  V(Thread, bool_false_offset)                                                 \
-  V(Thread, bool_true_offset)                                                  \
-  V(Thread, dart_stream_offset)                                                \
-  V(Thread, end_offset)                                                        \
-  V(Thread, global_object_pool_offset)                                         \
-  V(Thread, isolate_offset)                                                    \
-  V(Thread, marking_stack_block_offset)                                        \
-  V(Thread, no_scope_native_wrapper_entry_point_offset)                        \
-  V(Thread, object_null_offset)                                                \
-  V(Thread, predefined_symbols_address_offset)                                 \
-  V(Thread, resume_pc_offset)                                                  \
-  V(Thread, store_buffer_block_offset)                                         \
-  V(Thread, top_exit_frame_info_offset)                                        \
-  V(Thread, top_offset)                                                        \
-  V(Thread, top_resource_offset)                                               \
-  V(Thread, vm_tag_offset)                                                     \
-  V(Thread, safepoint_state_offset)                                            \
-  V(Thread, callback_code_offset)                                              \
-  V(TimelineStream, enabled_offset)                                            \
-  V(TwoByteString, data_offset)                                                \
-  V(Type, arguments_offset)                                                    \
-  V(TypedDataBase, data_field_offset)                                          \
-  V(TypedDataBase, length_offset)                                              \
-  V(TypedData, data_offset)                                                    \
-  V(Type, hash_offset)                                                         \
-  V(TypeRef, type_offset)                                                      \
-  V(Type, signature_offset)                                                    \
-  V(Type, type_state_offset)                                                   \
-  V(UserTag, tag_offset)
-
-#define DEFINE_FORWARDER(clazz, name)                                          \
-  word clazz::name() { return dart::clazz::name(); }
-
-CLASS_NAME_LIST(DEFINE_FORWARDER)
-#undef DEFINE_FORWARDER
+#endif  // !defined(TARGET_ARCH_DBC)
 
 uword Thread::safepoint_state_unacquired() {
   return dart::Thread::safepoint_state_unacquired();
@@ -527,285 +516,83 @@ uword Thread::safepoint_state_acquired() {
   return dart::Thread::safepoint_state_acquired();
 }
 
-const word HeapPage::kBytesPerCardLog2 = dart::HeapPage::kBytesPerCardLog2;
-
-const word String::kHashBits = dart::String::kHashBits;
-
-word String::InstanceSize() {
-  return sizeof(dart::RawString);
-}
-
-bool Heap::IsAllocatableInNewSpace(intptr_t instance_size) {
-  return dart::Heap::IsAllocatableInNewSpace(instance_size);
-}
-
-#if !defined(TARGET_ARCH_DBC)
-word Thread::write_barrier_code_offset() {
-  return dart::Thread::write_barrier_code_offset();
-}
-
-word Thread::array_write_barrier_code_offset() {
-  return dart::Thread::array_write_barrier_code_offset();
-}
-
-word Thread::fix_callers_target_code_offset() {
-  return dart::Thread::fix_callers_target_code_offset();
-}
-
-word Thread::fix_allocation_stub_code_offset() {
-  return dart::Thread::fix_allocation_stub_code_offset();
-}
-
-word Thread::call_to_runtime_entry_point_offset() {
-  return dart::Thread::call_to_runtime_entry_point_offset();
-}
-
-word Thread::null_error_shared_with_fpu_regs_entry_point_offset() {
-  return dart::Thread::null_error_shared_with_fpu_regs_entry_point_offset();
-}
-
-word Thread::null_error_shared_without_fpu_regs_entry_point_offset() {
-  return dart::Thread::null_error_shared_without_fpu_regs_entry_point_offset();
-}
-
-word Thread::monomorphic_miss_entry_offset() {
-  return dart::Thread::monomorphic_miss_entry_offset();
-}
-
-word Thread::write_barrier_mask_offset() {
-  return dart::Thread::write_barrier_mask_offset();
-}
-
-word Thread::write_barrier_entry_point_offset() {
-  return dart::Thread::write_barrier_entry_point_offset();
-}
-
-word Thread::array_write_barrier_entry_point_offset() {
-  return dart::Thread::array_write_barrier_entry_point_offset();
-}
-
-word Thread::verify_callback_isolate_entry_point_offset() {
-  return dart::Thread::verify_callback_entry_offset();
-}
-#endif  // !defined(TARGET_ARCH_DBC)
-
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_X64)
-word Thread::write_barrier_wrappers_thread_offset(intptr_t regno) {
-  return dart::Thread::write_barrier_wrappers_thread_offset(
-      static_cast<Register>(regno));
-}
-#endif
-
-#if !defined(TARGET_ARCH_DBC)
-
-word Thread::monomorphic_miss_stub_offset() {
-  return dart::Thread::monomorphic_miss_stub_offset();
-}
-
-word Thread::ic_lookup_through_code_stub_offset() {
-  return dart::Thread::ic_lookup_through_code_stub_offset();
-}
-
-word Thread::lazy_specialize_type_test_stub_offset() {
-  return dart::Thread::lazy_specialize_type_test_stub_offset();
-}
-
-word Thread::slow_type_test_stub_offset() {
-  return dart::Thread::slow_type_test_stub_offset();
-}
-
-word Thread::call_to_runtime_stub_offset() {
-  return dart::Thread::call_to_runtime_stub_offset();
-}
-
-word Thread::invoke_dart_code_stub_offset() {
-  return dart::Thread::invoke_dart_code_stub_offset();
-}
-
-word Thread::interpret_call_entry_point_offset() {
-  return dart::Thread::interpret_call_entry_point_offset();
-}
-
-word Thread::invoke_dart_code_from_bytecode_stub_offset() {
-  return dart::Thread::invoke_dart_code_from_bytecode_stub_offset();
-}
-
-word Thread::null_error_shared_without_fpu_regs_stub_offset() {
-  return dart::Thread::null_error_shared_without_fpu_regs_stub_offset();
-}
-
-word Thread::null_error_shared_with_fpu_regs_stub_offset() {
-  return dart::Thread::null_error_shared_with_fpu_regs_stub_offset();
-}
-
-word Thread::stack_overflow_shared_without_fpu_regs_stub_offset() {
-  return dart::Thread::stack_overflow_shared_without_fpu_regs_stub_offset();
-}
-
-word Thread::stack_overflow_shared_with_fpu_regs_stub_offset() {
-  return dart::Thread::stack_overflow_shared_with_fpu_regs_stub_offset();
-}
-
-word Thread::lazy_deopt_from_return_stub_offset() {
-  return dart::Thread::lazy_deopt_from_return_stub_offset();
-}
-
-word Thread::lazy_deopt_from_throw_stub_offset() {
-  return dart::Thread::lazy_deopt_from_throw_stub_offset();
-}
-
-word Thread::deoptimize_stub_offset() {
-  return dart::Thread::deoptimize_stub_offset();
-}
-
-word Thread::enter_safepoint_stub_offset() {
-  return dart::Thread::enter_safepoint_stub_offset();
-}
-
-word Thread::exit_safepoint_stub_offset() {
-  return dart::Thread::exit_safepoint_stub_offset();
-}
-
-word Thread::execution_state_offset() {
-  return dart::Thread::execution_state_offset();
+uword Thread::generated_execution_state() {
+  return dart::Thread::ExecutionState::kThreadInGenerated;
 }
 
 uword Thread::native_execution_state() {
   return dart::Thread::ExecutionState::kThreadInNative;
 }
 
-uword Thread::generated_execution_state() {
-  return dart::Thread::ExecutionState::kThreadInGenerated;
-}
-
 uword Thread::vm_tag_compiled_id() {
   return dart::VMTag::kDartCompiledTagId;
 }
 
-#endif  // !defined(TARGET_ARCH_DBC)
-
-#define DECLARE_CONSTANT_OFFSET_GETTER(name)                                   \
-  word Thread::name##_address_offset() {                                       \
-    return dart::Thread::name##_address_offset();                              \
-  }
-THREAD_XMM_CONSTANT_LIST(DECLARE_CONSTANT_OFFSET_GETTER)
-#undef DECLARE_CONSTANT_OFFSET_GETTER
-
 word Thread::OffsetFromThread(const dart::Object& object) {
-  return dart::Thread::OffsetFromThread(object);
+  auto host_offset = dart::Thread::OffsetFromThread(object);
+  return object_null_offset() +
+         TranslateOffsetInWords(host_offset -
+                                dart::Thread::object_null_offset());
 }
 
-const word StoreBufferBlock::kSize = dart::StoreBufferBlock::kSize;
+intptr_t Thread::OffsetFromThread(const dart::RuntimeEntry* runtime_entry) {
+  auto host_offset = dart::Thread::OffsetFromThread(runtime_entry);
+  return AllocateArray_entry_point_offset() +
+         TranslateOffsetInWords(
+             host_offset - dart::Thread::AllocateArray_entry_point_offset());
+}
 
-const word MarkingStackBlock::kSize = dart::MarkingStackBlock::kSize;
+bool CanLoadFromThread(const dart::Object& object,
+                       intptr_t* offset /* = nullptr */) {
+  if (dart::Thread::CanLoadFromThread(object)) {
+    if (offset != nullptr) {
+      *offset = Thread::OffsetFromThread(object);
+    }
+    return true;
+  }
+  return false;
+}
 
 #if !defined(PRODUCT)
-word Isolate::single_step_offset() {
-  return dart::Isolate::single_step_offset();
-}
-#endif  // !defined(PRODUCT)
-
-#if !defined(PRODUCT)
-word ClassTable::ClassOffsetFor(intptr_t cid) {
-  return dart::ClassTable::ClassOffsetFor(cid);
-}
-
 word ClassTable::StateOffsetFor(intptr_t cid) {
   return dart::ClassTable::StateOffsetFor(cid);
 }
 
-word ClassTable::TableOffsetFor(intptr_t cid) {
-  return dart::ClassTable::TableOffsetFor(cid);
+word ClassTable::NewSpaceCounterOffsetFor(intptr_t index) {
+  return ClassOffsetFor(index) +
+         ClassHeapStats::allocated_since_gc_new_space_offset();
 }
 
-word ClassTable::CounterOffsetFor(intptr_t cid, bool is_new) {
-  return dart::ClassTable::CounterOffsetFor(cid, is_new);
-}
-
-word ClassTable::SizeOffsetFor(intptr_t cid, bool is_new) {
-  return dart::ClassTable::SizeOffsetFor(cid, is_new);
+word ClassTable::NewSpaceSizeOffsetFor(intptr_t index) {
+  return ClassOffsetFor(index) +
+         ClassHeapStats::allocated_size_since_gc_new_space_offset();
 }
 #endif  // !defined(PRODUCT)
 
-const word ClassTable::kSizeOfClassPairLog2 =
-    dart::ClassTable::kSizeOfClassPairLog2;
+static_assert(
+    kSmiBits <= dart::kSmiBits,
+    "Expected that size of Smi on HOST is at least as large as on target.");
 
-const intptr_t Instructions::kPolymorphicEntryOffset =
-    dart::Instructions::kPolymorphicEntryOffset;
-
-const intptr_t Instructions::kMonomorphicEntryOffset =
-    dart::Instructions::kMonomorphicEntryOffset;
-
-intptr_t Instructions::HeaderSize() {
-  return dart::Instructions::HeaderSize();
-}
-
-intptr_t Code::entry_point_offset(CodeEntryKind kind) {
-  return dart::Code::entry_point_offset(kind);
-}
-
-const word SubtypeTestCache::kTestEntryLength =
-    dart::SubtypeTestCache::kTestEntryLength;
-const word SubtypeTestCache::kInstanceClassIdOrFunction =
-    dart::SubtypeTestCache::kInstanceClassIdOrFunction;
-const word SubtypeTestCache::kInstanceTypeArguments =
-    dart::SubtypeTestCache::kInstanceTypeArguments;
-const word SubtypeTestCache::kInstantiatorTypeArguments =
-    dart::SubtypeTestCache::kInstantiatorTypeArguments;
-const word SubtypeTestCache::kFunctionTypeArguments =
-    dart::SubtypeTestCache::kFunctionTypeArguments;
-const word SubtypeTestCache::kInstanceParentFunctionTypeArguments =
-    dart::SubtypeTestCache::kInstanceParentFunctionTypeArguments;
-const word SubtypeTestCache::kInstanceDelayedFunctionTypeArguments =
-    dart::SubtypeTestCache::kInstanceDelayedFunctionTypeArguments;
-const word SubtypeTestCache::kTestResult = dart::SubtypeTestCache::kTestResult;
-
-word Context::header_size() {
-  return sizeof(dart::RawContext);
-}
-
-#if !defined(PRODUCT)
-word ClassHeapStats::TraceAllocationMask() {
-  return dart::ClassHeapStats::TraceAllocationMask();
-}
-
-word ClassHeapStats::state_offset() {
-  return dart::ClassHeapStats::state_offset();
-}
-
-word ClassHeapStats::allocated_since_gc_new_space_offset() {
-  return dart::ClassHeapStats::allocated_since_gc_new_space_offset();
-}
-
-word ClassHeapStats::allocated_size_since_gc_new_space_offset() {
-  return dart::ClassHeapStats::allocated_size_since_gc_new_space_offset();
-}
-#endif  // !defined(PRODUCT)
-
-const word Smi::kBits = dart::Smi::kBits;
 bool IsSmi(const dart::Object& a) {
-  return a.IsSmi();
+  return a.IsSmi() && Utils::IsInt(kSmiBits + 1, dart::Smi::Cast(a).Value());
+}
+
+bool IsSmi(int64_t v) {
+  return Utils::IsInt(kSmiBits + 1, v);
 }
 
 word ToRawSmi(const dart::Object& a) {
-  ASSERT(a.IsSmi());
-  return reinterpret_cast<word>(a.raw());
+  RELEASE_ASSERT(IsSmi(a));
+  return static_cast<word>(reinterpret_cast<intptr_t>(a.raw()));
 }
 
 word ToRawSmi(intptr_t value) {
   return dart::Smi::RawValue(value);
 }
 
-bool CanLoadFromThread(const dart::Object& object,
-                       word* offset /* = nullptr */) {
-  if (dart::Thread::CanLoadFromThread(object)) {
-    if (offset != nullptr) {
-      *offset = dart::Thread::OffsetFromThread(object);
-    }
-    return true;
-  }
-  return false;
+word SmiValue(const dart::Object& a) {
+  RELEASE_ASSERT(IsSmi(a));
+  return static_cast<word>(dart::Smi::Cast(a).Value());
 }
 
 #if defined(TARGET_ARCH_IA32)
@@ -828,21 +615,36 @@ word ToRawPointer(const dart::Object& a) {
 }
 #endif  // defined(TARGET_ARCH_IA32)
 
-const word NativeEntry::kNumCallWrapperArguments =
-    dart::NativeEntry::kNumCallWrapperArguments;
-
-word NativeArguments::StructSize() {
-  return sizeof(dart::NativeArguments);
-}
-
 word RegExp::function_offset(classid_t cid, bool sticky) {
-  return dart::RegExp::function_offset(cid, sticky);
+  return TranslateOffsetInWords(dart::RegExp::function_offset(cid, sticky));
 }
 
 const word Symbols::kNumberOfOneCharCodeSymbols =
     dart::Symbols::kNumberOfOneCharCodeSymbols;
 const word Symbols::kNullCharCodeSymbolOffset =
     dart::Symbols::kNullCharCodeSymbolOffset;
+
+const word String::kHashBits = dart::String::kHashBits;
+
+bool Heap::IsAllocatableInNewSpace(intptr_t instance_size) {
+  return dart::Heap::IsAllocatableInNewSpace(instance_size);
+}
+
+word Field::OffsetOf(const dart::Field& field) {
+  return TranslateOffsetInWords(field.Offset());
+}
+
+}  // namespace target
+}  // namespace compiler
+}  // namespace dart
+
+#else
+
+namespace dart {
+namespace compiler {
+namespace target {
+
+const word Array::kMaxElements = Array_kMaxElements;
 
 }  // namespace target
 }  // namespace compiler

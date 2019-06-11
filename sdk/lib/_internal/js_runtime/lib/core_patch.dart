@@ -740,15 +740,6 @@ class _Uri {
   }
 }
 
-Uri _resolvePackageUri(Uri packageUri) {
-  assert(packageUri.scheme == "package");
-  if (packageUri.hasAuthority) {
-    throw new ArgumentError("Package-URI must not have a host: $packageUri");
-  }
-  var resolved = Uri.base.resolve("packages/${packageUri.path}");
-  return resolved;
-}
-
 bool _hasErrorStackProperty = JS('bool', 'new Error().stack != void 0');
 
 @patch

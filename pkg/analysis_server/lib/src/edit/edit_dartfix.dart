@@ -132,6 +132,7 @@ class EditDartFix
         listener.otherSuggestions,
         hasErrors,
         listener.sourceChange.edits,
+        details: listener.details,
       ).toResponse(request.id);
     } finally {
       server.contextManager.driverMap.values
@@ -143,6 +144,7 @@ class EditDartFix
       listener.otherSuggestions,
       hasErrors,
       listener.sourceChange.edits,
+      details: listener.details,
     ).toResponse(request.id);
   }
 

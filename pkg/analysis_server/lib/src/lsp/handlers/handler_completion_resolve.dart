@@ -12,6 +12,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart' as analyzer;
+import 'package:analyzer/src/util/comment.dart' as analyzer;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 
 class CompletionResolveHandler
@@ -50,12 +51,12 @@ class CompletionResolveHandler
     // extracting (with support for the different types of responses between
     // the servers). Where is an appropriate place to put it?
 
-    var library = server.declarationsTracker.getLibrary(data.libraryId);
+    var library = server.declarationsTracker.getLibrary(data.libId);
     if (library == null) {
       return error(
         ErrorCodes.InvalidParams,
-        'Library ID is not valid: ${data.libraryId}',
-        data.libraryId.toString(),
+        'Library ID is not valid: ${data.libId}',
+        data.libId.toString(),
       );
     }
 
@@ -146,21 +147,33 @@ class CompletionResolveHandler
               'Add import', Commands.sendWorkspaceEdit, [workspaceEdit]);
         }
 
+        // Documentation is added on during resolve for LSP.
+        final formats = server.clientCapabilities?.textDocument?.completion
+            ?.completionItem?.documentationFormat;
+        final dartDoc =
+            analyzer.getDartDocPlainText(requestedElement.documentationComment);
+        final documentation = asStringOrMarkupContent(formats, dartDoc);
+
         return success(CompletionItem(
           newLabel,
           item.kind,
-          data.autoImportDisplayUri != null
-              ? "Auto import from '${data.autoImportDisplayUri}'\n\n${item.detail ?? ''}"
+          data.displayUri != null
+              ? "Auto import from '${data.displayUri}'\n\n${item.detail ?? ''}"
                   .trim()
               : item.detail,
-          item.documentation,
+          documentation,
           item.deprecated,
           item.preselect,
           item.sortText,
           item.filterText,
           newLabel,
           item.insertTextFormat,
-          item.textEdit,
+          new TextEdit(
+            // TODO(dantup): If `clientSupportsSnippets == true` then we should map
+            // `selection` in to a snippet (see how Dart Code does this).
+            toRange(lineInfo, item.data.rOffset, item.data.rLength),
+            newLabel,
+          ),
           thisFilesChanges
               .expand((change) =>
                   change.edits.map((edit) => toTextEdit(lineInfo, edit)))

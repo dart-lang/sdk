@@ -387,7 +387,9 @@ namespace dart {
   V(Ffi_fromFunction, 1)                                                       \
   V(Ffi_dl_open, 1)                                                            \
   V(Ffi_dl_lookup, 2)                                                          \
-  V(Ffi_dl_getHandle, 1)
+  V(Ffi_dl_getHandle, 1)                                                       \
+  V(TransferableTypedData_factory, 2)                                          \
+  V(TransferableTypedData_materialize, 1)
 
 // List of bootstrap native entry points used in the dart:mirror library.
 #define MIRRORS_BOOTSTRAP_NATIVE_LIST(V)                                       \

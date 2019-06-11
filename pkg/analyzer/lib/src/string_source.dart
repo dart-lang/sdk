@@ -23,9 +23,9 @@ class StringSource extends Source {
   @override
   final int modificationStamp;
 
-  StringSource(this._contents, String fullName)
+  StringSource(this._contents, String fullName, {Uri uri})
       : this.fullName = fullName,
-        uri = fullName == null ? null : new Uri.file(fullName),
+        uri = uri ?? (fullName == null ? null : new Uri.file(fullName)),
         modificationStamp = new DateTime.now().millisecondsSinceEpoch;
 
   @override

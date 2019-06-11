@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=control-flow-collections
-
 void main() {
   // Non-Boolean if condition.
   var _ = <int>[if (1) 2]; //# 00: compile-time error

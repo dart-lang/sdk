@@ -57,11 +57,30 @@ class HintCode extends ErrorCode {
           "removing the unreachable catch clause.");
 
   /**
-   * Deprecated members should not be invoked or used.
-   *
    * Parameters:
    * 0: the name of the member
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a deprecated library or class
+  // member is used in a different package.
+  //
+  // #### Example
+  //
+  // If the method `m` in the class `C` is annotated with `@deprecated`, then
+  // the following code produces this diagnostic:
+  //
+  // ```dart
+  // void f(C c) {
+  //   c.!m!();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // The documentation for declarations that are annotated with `@deprecated`
+  // should have documentation to indicate what code to use in place of the
+  // deprecated code.
   static const HintCode DEPRECATED_MEMBER_USE = const HintCode(
       'DEPRECATED_MEMBER_USE', "'{0}' is deprecated and shouldn't be used.",
       correction:
@@ -244,12 +263,32 @@ class HintCode extends ErrorCode {
       "Only classes can be annotated as being immutable.");
 
   /**
-   * This hint is generated anywhere a @literal annotation is associated with
-   * anything other than a const constructor.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The meaning of the `@literal` annotation is only defined when it's applied
+  // to a const constructor.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // !@literal!
+  // var x;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the annotation:
+  //
+  // ```dart
+  // var x;
+  // ```
   static const HintCode INVALID_LITERAL_ANNOTATION = const HintCode(
       'INVALID_LITERAL_ANNOTATION',
-      "Only const constructors can be annotated as being literal.");
+      "Only const constructors can have the `@literal` annotation.");
 
   /**
    * This hint is generated anywhere where `@required` annotates a non named
@@ -618,13 +657,51 @@ class HintCode extends ErrorCode {
       correction: "Try updating the SDK constraints.");
 
   /**
-   * A set literal is being used in code that is expected to run on versions of
-   * the SDK that did not support them.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a set literal is found in code
+  // that has an SDK constraint whose lower bound is less than 2.2. Set literals
+  // were not supported in earlier versions, so this code won't be able to run
+  // against earlier versions of the SDK.
+  //
+  // #### Example
+  //
+  // In a package that defines SDK constraints in the `pubspec.yaml` file that
+  // have a lower bound that's less than 2.2:
+  //
+  // ```yaml
+  // environment:
+  //   sdk: '>=2.1.0 <2.4.0'
+  // ```
+  //
+  // The following code generates this diagnostic:
+  //
+  // ```dart
+  // var s = !<int>{}!;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need to support older versions of the SDK, then you can
+  // increase the SDK constraint to allow the syntax to be used:
+  //
+  // ```yaml
+  // environment:
+  //   sdk: '>=2.2.0 <2.4.0'
+  // ```
+  //
+  // If you do need to support older versions of the SDK, then replace the set
+  // literal with code that creates the set without the use of a literal:
+  //
+  // ```dart
+  // var s = new Set<int>();
+  // ```
   static const HintCode SDK_VERSION_SET_LITERAL = const HintCode(
       'SDK_VERSION_SET_LITERAL',
-      "Set literals were not supported until version 2.2, "
-          "but this code is required to be able to run on earlier versions.",
+      "Set literals weren't supported until version 2.2, "
+          "but this code must be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
 
   /**
@@ -824,8 +901,10 @@ class HintCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const HintCode(String name, String message, {String correction})
-      : super.temporary(name, message, correction: correction);
+  const HintCode(String name, String message,
+      {String correction, bool hasPublishedDocs})
+      : super.temporary(name, message,
+            correction: correction, hasPublishedDocs: hasPublishedDocs);
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.HINT.severity;

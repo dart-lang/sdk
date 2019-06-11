@@ -31,11 +31,13 @@ import 'lib1.dart';
     newFile('/test/lib/lib1.dart', content: r'''
 class A {}
 ''');
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'lib1.dart';
 import 'lib1.dart' as one;
 one.A a;
-''', [HintCode.UNUSED_IMPORT]);
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
+    ]);
   }
 
   test_as_equalPrefixes_referenced() async {
@@ -63,11 +65,13 @@ class A {}
     newFile('/test/lib/lib2.dart', content: r'''
 class B {}
 ''');
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'lib1.dart' as one;
 import 'lib2.dart' as one;
 one.A a;
-''', [HintCode.UNUSED_IMPORT]);
+''', [
+      error(HintCode.UNUSED_IMPORT, 32, 11),
+    ]);
   }
 
   test_core_library() async {
@@ -131,11 +135,13 @@ Two two;
     newFile('/test/lib/lib1.dart', content: r'''
 class A {}
 ''');
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'lib1.dart';
 import 'lib1.dart' hide A;
 A a;
-''', [HintCode.UNUSED_IMPORT]);
+''', [
+      error(HintCode.UNUSED_IMPORT, 27, 11),
+    ]);
   }
 
   test_inComment_libraryDirective() async {
@@ -200,17 +206,21 @@ class A {
 class A {}
 class B {}
 ''');
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'lib1.dart' show A;
 import 'lib1.dart' show B;
 A a;
-''', [HintCode.UNUSED_IMPORT]);
+''', [
+      error(HintCode.UNUSED_IMPORT, 34, 11),
+    ]);
   }
 
   test_unusedImport() async {
     newFile('/test/lib/lib1.dart');
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'lib1.dart';
-''', [HintCode.UNUSED_IMPORT]);
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
+    ]);
   }
 }

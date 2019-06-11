@@ -673,4 +673,41 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitYield(HYield node) {
     return "Yield${node.hasStar ? "*" : ""}: ${temporaryId(node.inputs[0])}";
   }
+
+  @override
+  visitIsTest(HIsTest node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "IsTest: $inputs";
+  }
+
+  @override
+  visitAsCheck(HAsCheck node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    String error = node.isTypeError ? 'TypeError' : 'CastError';
+    return "AsCheck: $error $inputs";
+  }
+
+  @override
+  visitSubtypeCheck(HSubtypeCheck node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "SubtypeCheck: $inputs";
+  }
+
+  @override
+  visitLoadType(HLoadType node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "LoadType: $inputs";
+  }
+
+  @override
+  visitTypeEval(HTypeEval node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "TypeEval: $inputs";
+  }
+
+  @override
+  visitTypeBind(HTypeBind node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "TypeBind: $inputs";
+  }
 }

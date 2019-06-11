@@ -24,6 +24,7 @@ namespace dart {
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, precompiled_mode);
+DECLARE_FLAG(bool, use_slow_path);
 
 namespace compiler {
 
@@ -560,7 +561,7 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   LoadImmediate(state, compiler::target::Thread::native_execution_state());
   StoreToOffset(kWord, state, THR, Thread::execution_state_offset());
 
-  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+  if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
     EnterSafepointSlowly();
   } else {
     Label slow_path, done, retry;
@@ -592,7 +593,7 @@ void Assembler::EnterSafepointSlowly() {
 }
 
 void Assembler::TransitionNativeToGenerated(Register addr, Register state) {
-  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+  if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
     ExitSafepointSlowly();
   } else {
     Label slow_path, done, retry;
@@ -1389,7 +1390,9 @@ void Assembler::vdup(OperandSize sz, QRegister qd, DRegister dm, int idx) {
       code = 4 | (idx << 3);
       break;
     }
-    default: { break; }
+    default: {
+      break;
+    }
   }
 
   EmitSIMDddd(B24 | B23 | B11 | B10 | B6, kWordPair,
@@ -1599,9 +1602,9 @@ void Assembler::LoadObjectHelper(Register rd,
   } else if (CanLoadFromObjectPool(object)) {
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
-    const int32_t offset = ObjectPool::element_offset(
-        is_unique ? object_pool_builder().AddObject(object)
-                  : object_pool_builder().FindObject(object));
+    const auto index = is_unique ? object_pool_builder().AddObject(object)
+                                 : object_pool_builder().FindObject(object);
+    const int32_t offset = ObjectPool::element_offset(index);
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, pp, cond);
   } else {
     UNREACHABLE();
@@ -3430,8 +3433,8 @@ void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
   ASSERT(cid > 0);
   const intptr_t class_offset = ClassTable::ClassOffsetFor(cid);
   LoadIsolate(dest);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  intptr_t table_offset = Isolate::class_table_offset() +
+                          ClassTable::class_heap_stats_table_offset();
   ldr(dest, Address(dest, table_offset));
   AddImmediate(dest, class_offset);
 }

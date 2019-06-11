@@ -26,10 +26,10 @@ abstract class ErrorCode {
   final String correction;
 
   /**
-   * The URL of a page containing documentation for errors with this code, or
-   * `null` if there is no known documentation.
+   * Return `true` if diagnostics with this code have documentation for them
+   * that has been published.
    */
-  final String url;
+  final bool hasPublishedDocs;
 
   /**
    * Whether this error is caused by an unresolved identifier.
@@ -42,7 +42,8 @@ abstract class ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ErrorCode(this.name, this.message, [this.correction, this.url])
+  const ErrorCode(this.name, this.message,
+      [this.correction, this.hasPublishedDocs = false])
       : isUnresolvedIdentifier = false;
 
   /**
@@ -52,7 +53,9 @@ abstract class ErrorCode {
    * given [correction] template.
    */
   const ErrorCode.temporary(this.name, this.message,
-      {this.correction, this.isUnresolvedIdentifier: false, this.url});
+      {this.correction,
+      this.isUnresolvedIdentifier: false,
+      this.hasPublishedDocs = false});
 
   /**
    * The severity of the error.
@@ -68,6 +71,12 @@ abstract class ErrorCode {
    * The unique name of this error code.
    */
   String get uniqueName => "$runtimeType.$name";
+
+  /**
+   * Return a URL that can be used to access documentation for diagnostics with
+   * this code, or `null` if there is no published documentation.
+   */
+  String get url => null;
 
   @override
   String toString() => uniqueName;

@@ -3018,6 +3018,8 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   const Object& value() const { return value_; }
 
+  bool IsSmi() const { return compiler::target::IsSmi(value()); }
+
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
@@ -4775,7 +4777,11 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
 
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
-  intptr_t index_scale() const { return Instance::ElementSizeFor(class_id_); }
+
+  intptr_t index_scale() const {
+    return compiler::target::Instance::ElementSizeFor(class_id_);
+  }
+
   intptr_t class_id() const { return class_id_; }
   intptr_t element_count() const { return element_count_; }
 
@@ -6137,7 +6143,10 @@ class CaseInsensitiveCompareInstr
   const RuntimeEntry& TargetFunction() const { return entry_; }
   bool IsExternal() const { return cid_ == kExternalTwoByteStringCid; }
   intptr_t class_id() const { return cid_; }
-  intptr_t index_scale() const { return Instance::ElementSizeFor(cid_); }
+
+  intptr_t index_scale() const {
+    return compiler::target::Instance::ElementSizeFor(cid_);
+  }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 

@@ -39,6 +39,10 @@ class CanonicalNameError {
   CanonicalNameError(this.message);
 }
 
+class CanonicalNameSdkError extends CanonicalNameError {
+  CanonicalNameSdkError(String message) : super(message);
+}
+
 class _ComponentIndex {
   static const numberOfFixedFields = 9;
 
@@ -528,8 +532,8 @@ class BinaryBuilder {
               // OK then.
               checkReferenceNode = false;
             } else {
-              throw new CanonicalNameError(
-                  "Null reference (${child.name}) ($child).");
+              throw buildCanonicalNameError(
+                  "Null reference (${child.name}) ($child).", child);
             }
           }
           if (checkReferenceNode) {
@@ -538,14 +542,25 @@ class BinaryBuilder {
                   "Canonical name and reference doesn't agree.");
             }
             if (child.reference.node == null) {
-              throw new CanonicalNameError(
-                  "Reference is null (${child.name}) ($child).");
+              throw buildCanonicalNameError(
+                  "Reference is null (${child.name}) ($child).", child);
             }
           }
         }
         _checkCanonicalNameChildren(child);
       }
     }
+  }
+
+  CanonicalNameError buildCanonicalNameError(
+      String message, CanonicalName problemNode) {
+    // Special-case missing sdk entries as that is probably a change to the
+    // platform - that's something we might want to react differently to.
+    String libraryUri = problemNode?.nonRootTop?.name ?? "";
+    if (libraryUri.startsWith("dart:")) {
+      return new CanonicalNameSdkError(message);
+    }
+    return new CanonicalNameError(message);
   }
 
   _ComponentIndex _readComponentIndex(int componentFileSize) {

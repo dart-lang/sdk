@@ -17,7 +17,18 @@ class DartFixListener {
   final List<DartFixSuggestion> otherSuggestions = <DartFixSuggestion>[];
   final SourceChange sourceChange = new SourceChange('dartfix');
 
+  /// The details to be returned to the client.
+  List<String> details = [];
+
   DartFixListener(this.server);
+
+  /// Add the given [detail] to the list of details to be returned to the
+  /// client.
+  void addDetail(String detail) {
+    if (details.length < 200) {
+      details.add(detail);
+    }
+  }
 
   /// Record an edit to be sent to the client.
   ///

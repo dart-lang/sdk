@@ -119,17 +119,19 @@ static const char* kSnapshotKindNames[] = {
   V(reused_instructions, reused_instructions_filename)                         \
   V(blobs_container_filename, blobs_container_filename)                        \
   V(assembly, assembly_filename)                                               \
+  V(elf, elf_filename)                                                         \
   V(load_compilation_trace, load_compilation_trace_filename)                   \
   V(load_type_feedback, load_type_feedback_filename)                           \
   V(save_obfuscation_map, obfuscation_map_filename)
 
 #define BOOL_OPTIONS_LIST(V)                                                   \
-  V(read_all_bytecode, read_all_bytecode)                                      \
   V(compile_all, compile_all)                                                  \
+  V(help, help)                                                                \
   V(obfuscate, obfuscate)                                                      \
+  V(read_all_bytecode, read_all_bytecode)                                      \
+  V(strip, strip)                                                              \
   V(verbose, verbose)                                                          \
-  V(version, version)                                                          \
-  V(help, help)
+  V(version, version)
 
 #define STRING_OPTION_DEFINITION(flag, variable)                               \
   static const char* variable = NULL;                                          \
@@ -184,6 +186,14 @@ static void PrintUsage() {
 "as a static or dynamic library:                                             \n"
 "--snapshot_kind=app-aot-assembly                                            \n"
 "--assembly=<output-file>                                                    \n"
+"[--obfuscate]                                                               \n"
+"[--save-obfuscation-map=<map-filename>]                                     \n"
+"<dart-kernel-file>                                                          \n"
+"                                                                            \n"
+"To create an AOT application snapshot as an ELF shared library:             \n"
+"--snapshot_kind=app-aot-elf                                                 \n"
+"--elf=<output-file>                                                         \n"
+"[--strip]                                                                   \n"
 "[--obfuscate]                                                               \n"
 "[--save-obfuscation-map=<map-filename>]                                     \n"
 "<dart-kernel-file>                                                          \n"
@@ -317,16 +327,16 @@ static int ParseArguments(int argc,
       }
       break;
     }
-    case kAppAOTAssembly:
     case kAppAOTElf: {
-      if (assembly_filename == NULL) {
+      if (elf_filename == NULL) {
         Syslog::PrintErr(
             "Building an AOT snapshot as assembly requires specifying "
-            "an output file for --assembly.\n\n");
+            "an output file for --elf.\n\n");
         return -1;
       }
       break;
     }
+    case kAppAOTAssembly:
     case kVMAOTAssembly: {
       if (assembly_filename == NULL) {
         Syslog::PrintErr(
@@ -630,9 +640,15 @@ static void CreateAndWritePrecompiledSnapshot() {
     result = Dart_CreateAppAOTSnapshotAsAssembly(StreamingWriteCallback, file);
     CHECK_RESULT(result);
   } else if (snapshot_kind == kAppAOTElf) {
-    File* file = OpenFile(assembly_filename);
+    if (strip) {
+      Syslog::PrintErr(
+          "Warning: Generating ELF library without DWARF debugging"
+          " information.\n");
+    }
+    File* file = OpenFile(elf_filename);
     RefCntReleaseScope<File> rs(file);
-    result = Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file);
+    result =
+        Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file, strip);
     CHECK_RESULT(result);
   } else if (snapshot_kind == kAppAOTBlobs) {
     const uint8_t* shared_data = NULL;

@@ -60,10 +60,14 @@ class TimelineStream {
 
   bool enabled() {
 #if defined(HOST_OS_FUCHSIA) && !defined(FUCHSIA_SDK)
+#ifdef PRODUCT
     return trace_is_category_enabled(fuchsia_name_);
 #else
+    return trace_is_category_enabled(fuchsia_name_) || enabled_ != 0;
+#endif  // PRODUCT
+#else
     return enabled_ != 0;
-#endif
+#endif  // defined(HOST_OS_FUCHSIA) && !defined(FUCHSIA_SDK)
   }
 
   void set_enabled(bool enabled) { enabled_ = enabled ? 1 : 0; }

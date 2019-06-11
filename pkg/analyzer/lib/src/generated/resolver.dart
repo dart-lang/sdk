@@ -475,7 +475,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
-      _checkForMissingReturn(null, node.body, node.element, node);
+      _checkForMissingReturn(null, node.body, node.declaredElement, node);
     }
     super.visitFunctionExpression(node);
   }
@@ -3396,6 +3396,16 @@ class NonNullableTypeProvider extends TypeProviderImpl {
       LibraryElement coreLibrary, LibraryElement asyncLibrary)
       : super(coreLibrary, asyncLibrary);
 
+  /// Return a type provider initialized from the same library elements as the
+  /// [baseProvider].
+  factory NonNullableTypeProvider.from(TypeProvider baseProvider) {
+    return NonNullableTypeProvider(baseProvider.boolType.element.library,
+        baseProvider.streamType.element.library);
+  }
+
+  @override
+  DartType get bottomType => BottomTypeImpl.instance;
+
   @override
   InterfaceType _getType(Namespace namespace, String typeName) {
     InterfaceType type = super._getType(namespace, typeName);
@@ -3652,8 +3662,10 @@ class ResolverErrorCode extends ErrorCode {
   /// message associated with the error will be created from the given [message]
   /// template. The correction associated with the error will be created from
   /// the given [correction] template.
-  const ResolverErrorCode(String name, String message, {String correction})
-      : super.temporary(name, message, correction: correction);
+  const ResolverErrorCode(String name, String message,
+      {String correction, bool hasPublishedDocs})
+      : super.temporary(name, message,
+            correction: correction, hasPublishedDocs: hasPublishedDocs);
 
   @override
   ErrorSeverity get errorSeverity => type.severity;
@@ -6907,7 +6919,11 @@ class TypeNameResolver {
       if (node.question != null) {
         _reportInvalidNullableType(node);
       }
-      nullabilitySuffix = NullabilitySuffix.none;
+      if (isNonNullableUnit) {
+        nullabilitySuffix = NullabilitySuffix.none;
+      } else {
+        nullabilitySuffix = NullabilitySuffix.star;
+      }
     } else {
       nullabilitySuffix = _getNullability(node.question != null);
     }
@@ -7413,11 +7429,18 @@ class TypeProviderImpl extends TypeProviderBase {
     _initializeFrom(coreLibrary, asyncLibrary);
   }
 
+  /// Return a type provider initialized from the same library elements as the
+  /// [baseProvider].
+  factory TypeProviderImpl.from(TypeProvider baseProvider) {
+    return TypeProviderImpl(baseProvider.boolType.element.library,
+        baseProvider.streamType.element.library);
+  }
+
   @override
   InterfaceType get boolType => _boolType;
 
   @override
-  DartType get bottomType => BottomTypeImpl.instance;
+  DartType get bottomType => BottomTypeImpl.instanceLegacy;
 
   @override
   InterfaceType get deprecatedType => _deprecatedType;

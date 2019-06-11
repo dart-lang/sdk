@@ -16,6 +16,6 @@ class E extends core::Object {
   synthetic constructor •() → self::E
     ;
 }
-static const field dynamic a;
+static const field dynamic a = null;
 static method main() → dynamic
   ;

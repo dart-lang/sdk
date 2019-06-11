@@ -430,7 +430,7 @@ void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
   ASSERT(kSmiTagShift == 1);
   ASSERT(kSmiTag == 0);
   TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ CompareImmediate(R0, target::ToRawSmi(target::Smi::kBits));
+  __ CompareImmediate(R0, target::ToRawSmi(target::kSmiBits));
   __ b(normal_ir_body, HI);
 
   __ SmiUntag(R0);
@@ -1450,7 +1450,7 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ ldr(R0, FieldAddress(R1, target::Double::value_offset()));
   __ ldr(R1, FieldAddress(R1, target::Double::value_offset() + 4));
   __ eor(R0, R0, Operand(R1));
-  __ AndImmediate(R0, R0, kSmiMax);
+  __ AndImmediate(R0, R0, target::kSmiMax);
   __ SmiTag(R0);
   __ Ret();
 
@@ -1495,7 +1495,7 @@ void AsmIntrinsifier::Random_nextState(Assembler* assembler,
   // Receiver.
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
   // Field '_state'.
-  __ ldr(R1, FieldAddress(R0, LookupFieldOffsetInBytes(state_field)));
+  __ ldr(R1, FieldAddress(R0, target::Field::OffsetOf(state_field)));
   // Addresses of _state[0] and _state[1].
 
   const int64_t disp_0 =
@@ -1608,8 +1608,7 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
 
   __ Bind(&use_declaration_type);
   __ LoadClassById(R2, R1);  // Overwrites R1.
-  __ ldrh(R3, FieldAddress(
-                  R2, target::Class::num_type_arguments_offset_in_bytes()));
+  __ ldrh(R3, FieldAddress(R2, target::Class::num_type_arguments_offset()));
   __ CompareImmediate(R3, 0);
   __ b(normal_ir_body, NE);
 
@@ -1644,8 +1643,7 @@ void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
   // Check if there are no type arguments. In this case we can return true.
   // Otherwise fall through into the runtime to handle comparison.
   __ LoadClassById(R3, R1);
-  __ ldrh(R3, FieldAddress(
-                  R3, target::Class::num_type_arguments_offset_in_bytes()));
+  __ ldrh(R3, FieldAddress(R3, target::Class::num_type_arguments_offset()));
   __ CompareImmediate(R3, 0);
   __ b(normal_ir_body, NE);
 

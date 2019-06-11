@@ -371,15 +371,19 @@ Elf::Elf(Zone* zone, StreamingWriteStream* stream)
   // Assumed by various offset logic in this file.
   ASSERT(stream_->position() == 0);
 
-  // We don't bother with a separate .shstrtab since all our strings will fit
-  // in a single page.
-  strtab_ = new (zone_) StringTable();
-  strtab_->section_name = strtab_->AddString(".dynstr");
-  AddSection(strtab_);
+  // All our strings would fit in a single page. However, we use separate
+  // .shstrtab and .dynstr to work around a bug in Android's strip utility.
+  shstrtab_ = new (zone_) StringTable();
+  shstrtab_->section_name = shstrtab_->AddString(".shstrtab");
+  AddSection(shstrtab_);
+
+  symstrtab_ = new (zone_) StringTable();
+  symstrtab_->section_name = shstrtab_->AddString(".dynstr");
+  AddSection(symstrtab_);
 
   symtab_ = new (zone_) SymbolTable();
-  symtab_->section_name = strtab_->AddString(".dynsym");
-  symtab_->section_link = strtab_->section_index;
+  symtab_->section_name = shstrtab_->AddString(".dynsym");
+  symtab_->section_link = symstrtab_->section_index;
   AddSection(symtab_);
 
   // dlsym gets confused if a symbol's value is dso offset 0, treating this as a
@@ -413,13 +417,13 @@ intptr_t Elf::NextMemoryOffset() {
 
 intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
   ProgramBits* image = new (zone_) ProgramBits(true, true, bytes, size);
-  image->section_name = strtab_->AddString(".text");
+  image->section_name = shstrtab_->AddString(".text");
   AddSection(image);
   AddSegment(image);
 
   Symbol* symbol = new (zone_) Symbol();
   symbol->cstr = name;
-  symbol->name = strtab_->AddString(name);
+  symbol->name = symstrtab_->AddString(name);
   symbol->info = (STB_GLOBAL << 4) | STT_FUNC;
   symbol->section = image->section_index;
   // For shared libraries, this is the offset from the DSO base. For static
@@ -433,13 +437,13 @@ intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
 
 intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
   ProgramBits* image = new (zone_) ProgramBits(true, false, bytes, size);
-  image->section_name = strtab_->AddString(".rodata");
+  image->section_name = shstrtab_->AddString(".rodata");
   AddSection(image);
   AddSegment(image);
 
   Symbol* symbol = new (zone_) Symbol();
   symbol->cstr = name;
-  symbol->name = strtab_->AddString(name);
+  symbol->name = symstrtab_->AddString(name);
   symbol->info = (STB_GLOBAL << 4) | STT_OBJECT;
   symbol->section = image->section_index;
   // For shared libraries, this is the offset from the DSO base. For static
@@ -453,24 +457,25 @@ intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
 
 void Elf::AddDebug(const char* name, const uint8_t* bytes, intptr_t size) {
   ProgramBits* image = new (zone_) ProgramBits(false, false, bytes, size);
-  image->section_name = strtab_->AddString(name);
+  image->section_name = shstrtab_->AddString(name);
   AddSection(image);
 }
 
 void Elf::Finalize() {
-  SymbolHashTable* hash = new (zone_) SymbolHashTable(strtab_, symtab_);
-  hash->section_name = strtab_->AddString(".hash");
+  SymbolHashTable* hash = new (zone_) SymbolHashTable(symstrtab_, symtab_);
+  hash->section_name = shstrtab_->AddString(".hash");
   AddSection(hash);
   AddSegment(hash);
 
   // Before finalizing the string table's memory size:
-  intptr_t name_dynamic = strtab_->AddString(".dynamic");
+  intptr_t name_dynamic = shstrtab_->AddString(".dynamic");
 
   // Finalizes memory size of string and symbol tables.
-  AddSegment(strtab_);
+  AddSegment(shstrtab_);
+  AddSegment(symstrtab_);
   AddSegment(symtab_);
 
-  dynamic_ = new (zone_) DynamicTable(strtab_, symtab_, hash);
+  dynamic_ = new (zone_) DynamicTable(symstrtab_, symtab_, hash);
   dynamic_->section_name = name_dynamic;
   AddSection(dynamic_);
   AddSegment(dynamic_);
@@ -551,7 +556,7 @@ void Elf::WriteHeader() {
   WriteHalf(segments_.length() + kNumImplicitSegments);
   WriteHalf(kElfSectionTableEntrySize);
   WriteHalf(sections_.length() + kNumInvalidSections);
-  WriteHalf(strtab_->section_index);
+  WriteHalf(shstrtab_->section_index);
 
   ASSERT(stream_->position() == kElfHeaderSize);
 }

@@ -46,7 +46,7 @@ import java.util.Stack;
     return !errorHasOccurred;
   }
 
-  // Enable the parser to treat ASYNC/AWAIT/YIELD as keywords in the body of an
+  // Enable the parser to treat AWAIT/YIELD as keywords in the body of an
   // `async`, `async*`, or `sync*` function. Access via methods below.
   private Stack<Boolean> asyncEtcAreKeywords = new Stack<Boolean>();
   { asyncEtcAreKeywords.push(false); }
@@ -62,9 +62,9 @@ import java.util.Stack;
   // Use this to indicate that we are now leaving any funciton.
   void endFunction() { asyncEtcAreKeywords.pop(); }
 
-  // Whether we can recognize ASYNC/AWAIT/YIELD as an identifier/typeIdentifier.
+  // Whether we can recognize AWAIT/YIELD as an identifier/typeIdentifier.
   boolean asyncEtcPredicate(int tokenId) {
-    if (tokenId == ASYNC || tokenId == AWAIT || tokenId == YIELD) {
+    if (tokenId == AWAIT || tokenId == YIELD) {
       return !asyncEtcAreKeywords.peek();
     }
     return false;
@@ -261,12 +261,12 @@ defaultNamedParameter
     :    normalFormalParameter ((':' | '=') expression)?
     ;
 
-typeApplication
+typeWithParameters
     :    typeIdentifier typeParameters?
     ;
 
 classDeclaration
-    :    ABSTRACT? CLASS typeApplication (superclass mixins?)? interfaces?
+    :    ABSTRACT? CLASS typeWithParameters superclass? mixins? interfaces?
          LBRACE (metadata classMemberDefinition)* RBRACE
     |    ABSTRACT? CLASS mixinApplicationClass
     ;
@@ -419,7 +419,7 @@ interfaces
     ;
 
 mixinApplicationClass
-    :    typeApplication '=' mixinApplication ';'
+    :    typeWithParameters '=' mixinApplication ';'
     ;
 
 mixinApplication
@@ -545,7 +545,7 @@ spreadElement
     ;
 
 ifElement
-    : IF '(' expression ')' element ('else' element)?
+    : IF '(' expression ')' element (ELSE element)?
     ;
 
 forElement
@@ -648,6 +648,7 @@ compoundAssignmentOperator
     |    '+='
     |    '-='
     |    '<<='
+    |    '>' '>' '>' '='
     |    '>' '>' '='
     |    '&='
     |    '^='
@@ -723,6 +724,7 @@ shiftExpression
 
 shiftOperator
     :    '<<'
+    |    '>' '>' '>'
     |    '>' '>'
     ;
 
@@ -778,10 +780,6 @@ awaitExpression
     :    AWAIT unaryExpression
     ;
 
-// The `(selector)` predicate ensures that the parser commits to the longest
-// possible chain of selectors, e.g., `a<b,c>(d)` as a call rather than as a
-// sequence of two relational expressions.
-
 postfixExpression
     :    assignableExpression postfixOperator
     |    constructorInvocation selector*
@@ -810,17 +808,9 @@ incrementOperator
     |    '--'
     ;
 
-// The `(assignableSelectorPart)` predicate ensures that the parser
-// commits to the longest possible chain, e.g., `a<b,c>(d).e` as one rather
-// than two expressions. The first `identifier` alternative handles all
-// the simple cases; the final `identifier` alternative at the end catches
-// the case where we have `identifier '<'` and the '<' is used as a
-// relationalOperator, not the beginning of typeArguments.
-
 assignableExpression
     :    SUPER unconditionalAssignableSelector
     |    constructorInvocation assignableSelectorPart+
-    |    identifier
     |    primary assignableSelectorPart+
     |    identifier
     ;
@@ -860,12 +850,13 @@ identifierNotFUNCTION
     |    SET // Built-in identifier.
     |    STATIC // Built-in identifier.
     |    TYPEDEF // Built-in identifier.
+    |    ASYNC // Not a built-in identifier.
     |    HIDE // Not a built-in identifier.
     |    OF // Not a built-in identifier.
     |    ON // Not a built-in identifier.
     |    SHOW // Not a built-in identifier.
     |    SYNC // Not a built-in identifier.
-    |    { asyncEtcPredicate(getCurrentToken().getType()) }? (ASYNC|AWAIT|YIELD)
+    |    { asyncEtcPredicate(getCurrentToken().getType()) }? (AWAIT|YIELD)
     ;
 
 identifier
@@ -882,12 +873,13 @@ qualified
 typeIdentifier
     :    IDENTIFIER
     |    DYNAMIC // Built-in identifier that can be used as a type.
+    |    ASYNC // Not a built-in identifier.
     |    HIDE // Not a built-in identifier.
     |    OF // Not a built-in identifier.
     |    ON // Not a built-in identifier.
     |    SHOW // Not a built-in identifier.
     |    SYNC // Not a built-in identifier.
-    |    { asyncEtcPredicate(getCurrentToken().getType()) }? (ASYNC|AWAIT|YIELD)
+    |    { asyncEtcPredicate(getCurrentToken().getType()) }? (AWAIT|YIELD)
     ;
 
 typeTest

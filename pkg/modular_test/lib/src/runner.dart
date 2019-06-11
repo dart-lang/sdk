@@ -24,7 +24,7 @@ Future<void> runSuite(Uri suiteFolder, String suiteName, Options options,
       .map((e) => new _PipelineTest(e.uri, suiteFolder, options, pipeline))
       .toList();
 
-  generic.runSuite(
+  await generic.runSuite(
       entries,
       new generic.RunnerOptions()
         ..suiteName = suiteName
@@ -64,6 +64,7 @@ class Options {
   int shard = 1;
   String configurationName;
   Uri outputDirectory;
+  bool useSdk = false;
 
   static Options parse(List<String> args) {
     var parser = new ArgParser()
@@ -74,6 +75,8 @@ class Options {
       ..addFlag('show-skipped',
           defaultsTo: false,
           help: 'print the name of the tests skipped by the filtering option')
+      ..addFlag('use-sdk',
+          defaultsTo: false, help: 'whether to use snapshots from a built sdk')
       ..addOption('filter',
           help: 'only run tests containing this filter as a substring')
       ..addOption('shards',
@@ -101,6 +104,7 @@ class Options {
     return Options()
       ..showSkipped = argResults['show-skipped']
       ..verbose = argResults['verbose']
+      ..useSdk = argResults['use-sdk']
       ..filter = argResults['filter']
       ..shards = shards
       ..shard = shard

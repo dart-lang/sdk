@@ -38,7 +38,7 @@ class KernelMetadataBuilder extends MetadataBuilder {
     Scope scope = parent is Library || parent is Class || classBuilder == null
         ? library.scope
         : classBuilder.scope;
-    KernelBodyBuilder bodyBuilder = new KernelBodyBuilder.forAnnotation(
+    KernelBodyBuilder bodyBuilder = new KernelBodyBuilder.forOutlineExpression(
         library, classBuilder, member, scope, parameterScope, fileUri);
     for (int i = 0; i < metadata.length; ++i) {
       KernelMetadataBuilder annotationBuilder = metadata[i];

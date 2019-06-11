@@ -78,6 +78,7 @@ compiler/tool/*: SkipByDesign # Only meant to run on vm
 dartfix/test/*: SkipByDesign # Only meant to run on vm
 front_end/test/*: SkipByDesign # Only meant to run on vm, most use dart:mirrors and dart:io
 front_end/tool/*: SkipByDesign # Only meant to run on vm
+nnbd_migration/test/*: SkipByDesign # Uses mirrors
 smith/test/*: SkipByDesign # Only meant to run on vm
 status_file/test/normalize_test: SkipByDesign # Uses dart:io
 status_file/test/parse_and_normalize_test: SkipByDesign # Uses dart:io

@@ -36,7 +36,7 @@ class Driver {
     Context testContext,
     Logger testLogger,
   }) async {
-    final Options options = Options.parse(args);
+    final Options options = Options.parse(args, testContext, testLogger);
 
     force = options.force;
     overwrite = options.overwrite;
@@ -48,7 +48,7 @@ class Driver {
 
     // Start showing progress before we start the analysis server.
     Progress progress;
-    if (options.listFixes) {
+    if (options.showHelp) {
       progress = logger.progress('${ansi.emphasized('Listing fixes')}');
     } else {
       progress = logger.progress('${ansi.emphasized('Calculating fixes')}');
@@ -63,26 +63,26 @@ class Driver {
       context.exit(1);
     }
 
-    if (options.listFixes) {
+    if (options.showHelp) {
       try {
         await showListOfFixes(progress: progress);
       } finally {
         await server.stop();
       }
-    } else {
-      Future serverStopped;
+      context.exit(0);
+    }
 
-      try {
-        await setupFixesAnalysis(options);
-        result = await requestFixes(options, progress: progress);
-        serverStopped = server.stop();
-        await applyFixes();
-        await serverStopped;
-      } finally {
-        // If we didn't already try to stop the server, then stop it now.
-        if (serverStopped == null) {
-          await server.stop();
-        }
+    Future serverStopped;
+    try {
+      await setupFixesAnalysis(options);
+      result = await requestFixes(options, progress: progress);
+      serverStopped = server.stop();
+      await applyFixes();
+      await serverStopped;
+    } finally {
+      // If we didn't already try to stop the server, then stop it now.
+      if (serverStopped == null) {
+        await server.stop();
       }
     }
   }
@@ -122,12 +122,11 @@ class Driver {
       unsupportedOption(includeOption);
       return false;
     }
-    if (options.listFixes) {
-      unsupportedOption(listOption);
-      return false;
-    }
     if (options.requiredFixes) {
       unsupportedOption(requiredOption);
+      return false;
+    }
+    if (options.showHelp) {
       return false;
     }
     return true;
@@ -270,21 +269,32 @@ Please upgrade to a newer version of the Dart SDK to use this option.''');
     final fixes = new List<DartFix>.from(result.fixes)
       ..sort((f1, f2) => f1.name.compareTo(f2.name));
 
-    for (DartFix fix in fixes) {
-      String line = fix.name;
-      if (fix.isRequired == true) {
-        line = '$line (required)';
-      }
-      logger.stdout('');
-      logger.stdout(line);
-      if (fix.description != null) {
-        for (String line in indentAndWrapDescription(fix.description)) {
-          logger.stdout(line);
-        }
-      }
-    }
+    logger.stdout('''
+
+These fixes are automatically applied unless at least one
+--$includeOption option is specified and --$requiredOption is not specified.
+They may be individually disabled using --$excludeOption.''');
+
+    fixes.where((fix) => fix.isRequired).forEach(showFix);
+
+    logger.stdout('''
+
+These fixes are NOT automatically applied, but may be enabled using --$includeOption.''');
+
+    fixes.where((fix) => !fix.isRequired).forEach(showFix);
 
     return result;
+  }
+
+  void showFix(DartFix fix) {
+    logger.stdout('''
+
+* ${fix.name}''');
+    if (fix.description != null) {
+      for (String line in indentAndWrapDescription(fix.description)) {
+        logger.stdout(line);
+      }
+    }
   }
 
   List<String> indentAndWrapDescription(String description) =>

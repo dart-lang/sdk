@@ -13,6 +13,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/collections.dart';
+import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_completion.dart'
     show CompletionDomainHandler;
@@ -54,6 +55,10 @@ import 'package:watcher/watcher.dart';
 class LspAnalysisServer extends AbstractAnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
   ClientCapabilities _clientCapabilities;
+
+  /// Initialization options provided by the LSP client. Allows opting in/out of
+  /// specific server functionality. Will be null prior to initialization.
+  LspInitializationOptions _initializationOptions;
 
   /**
    * The channel from which messages are received and to which responses should
@@ -196,6 +201,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   Future<void> get exited => channel.closed;
 
+  /// Initialization options provided by the LSP client. Allows opting in/out of
+  /// specific server functionality. Will be null prior to initialization.
+  LspInitializationOptions get initializationOptions => _initializationOptions;
+
   RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
       new RefactoringWorkspace(driverMap.values, searchEngine);
 
@@ -240,8 +249,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
             null, new Uri.file(path).toString());
   }
 
-  void handleClientConnection(ClientCapabilities capabilities) {
+  void handleClientConnection(
+      ClientCapabilities capabilities, dynamic initializationOptions) {
     _clientCapabilities = capabilities;
+    _initializationOptions = LspInitializationOptions(initializationOptions);
 
     performanceAfterStartup = new ServerPerformance();
     performance = performanceAfterStartup;
@@ -333,6 +344,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   void logException(String message, exception, stackTrace) {
     if (exception is CaughtException) {
       stackTrace ??= exception.stackTrace;
+      message = '$message: ${exception.exception}';
+    } else if (exception != null) {
+      message = '$message: $exception';
     }
 
     final fullError = stackTrace == null ? message : '$message\n$stackTrace';
@@ -348,6 +362,17 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       stackTrace is StackTrace ? stackTrace : null,
       false,
     ));
+  }
+
+  void publishClosingLabels(String path, List<ClosingLabel> labels) {
+    final params =
+        new PublishClosingLabelsParams(Uri.file(path).toString(), labels);
+    final message = new NotificationMessage(
+      CustomMethods.PublishClosingLabels,
+      params,
+      jsonRpcVersion,
+    );
+    sendNotification(message);
   }
 
   void publishDiagnostics(String path, List<Diagnostic> errors) {
@@ -455,6 +480,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     addContextsToDeclarationsTracker();
   }
 
+  /// Returns `true` if closing labels should be sent for [file] with the given
+  /// absolute path.
+  bool shouldSendClosingLabelsFor(String file) {
+    // Closing labels should only be sent for open (priority) files in the workspace.
+    return initializationOptions.closingLabels &&
+        priorityFiles.contains(file) &&
+        contextManager.isInAnalysisRoot(file);
+  }
+
   /**
    * Returns `true` if errors should be reported for [file] with the given
    * absolute path.
@@ -518,6 +552,20 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 }
 
+class LspInitializationOptions {
+  final bool onlyAnalyzeProjectsWithOpenFiles;
+  final bool suggestFromUnimportedLibraries;
+  final bool closingLabels;
+  LspInitializationOptions(dynamic options)
+      : onlyAnalyzeProjectsWithOpenFiles = options != null &&
+            options['onlyAnalyzeProjectsWithOpenFiles'] == true,
+        // suggestFromUnimportedLibraries defaults to true, so must be
+        // explicitly passed as false to disable.
+        suggestFromUnimportedLibraries = options == null ||
+            options['suggestFromUnimportedLibraries'] != false,
+        closingLabels = options != null && options['closingLabels'] == true;
+}
+
 class LspPerformance {
   /// A list of code completion performance measurements for the latest
   /// completion operation up to [performanceListMaxLength] measurements.
@@ -557,6 +605,17 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
             toDiagnostic);
 
         analysisServer.publishDiagnostics(result.path, serverErrors);
+      }
+      if (result.unit != null) {
+        if (analysisServer.shouldSendClosingLabelsFor(path)) {
+          final labels =
+              new DartUnitClosingLabelsComputer(result.lineInfo, result.unit)
+                  .compute()
+                  .map((l) => toClosingLabel(result.lineInfo, l))
+                  .toList();
+
+          analysisServer.publishClosingLabels(result.path, labels);
+        }
       }
     });
     analysisDriver.exceptions.listen((nd.ExceptionResult result) {

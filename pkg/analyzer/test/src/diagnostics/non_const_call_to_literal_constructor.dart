@@ -62,7 +62,7 @@ void main() {
   }
 
   test_namedConstructor() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @literal
@@ -71,11 +71,14 @@ class A {
 void main() {
   var a = A.named();
 }
-''', [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 95, 1),
+      error(HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 99, 9),
+    ]);
   }
 
   test_nonConstContext() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @literal
@@ -84,7 +87,10 @@ class A {
 void main() {
   var a = A();
 }
-''', [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 1),
+      error(HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 93, 3),
+    ]);
   }
 
   test_unconstableCreation() async {
@@ -102,7 +108,7 @@ void main() {
   }
 
   test_usingNew() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @literal
@@ -111,6 +117,9 @@ class A {
 void main() {
   var a = new A();
 }
-''', [HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 1),
+      error(HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW, 93, 7),
+    ]);
   }
 }

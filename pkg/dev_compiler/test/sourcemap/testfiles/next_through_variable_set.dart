@@ -4,7 +4,7 @@
 
 /*Debugger:stepOver*/
 
-main() {
+void main() {
   /*bl*/
   /*sl:1*/ var x = 0;
   x = /*bc:2*/ foo();

@@ -71,7 +71,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   void registerLoadedLibraries(KernelResult kernelResult) {
     _elementMap.addComponent(kernelResult.component);
     if (_options.useCFEConstants) {
-      _irAnnotationData = processAnnotations(kernelResult.component);
+      _irAnnotationData = processAnnotations(new ModularCore(
+          kernelResult.component, _elementMap.constantEvaluator));
     }
     _annotationProcessor = new KernelAnnotationProcessor(
         elementMap, nativeBasicDataBuilder, _irAnnotationData);

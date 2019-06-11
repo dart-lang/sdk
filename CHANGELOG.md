@@ -1,6 +1,22 @@
+## 2.3.3-dev.0.0
+
+### Core libraries
+
+#### `dart:isolate`
+
+* `TransferableTypedData` class was added to facilitate faster cross-isolate
+communication of `Uint8List` data.
+
+#### Linter
+
+The Linter was updated to `0.1.91`, which includes the following changes:
+
+* fixed missed cases in `prefer_const_constructors`
+* fixed `prefer_initializing_formals` to no longer suggest API breaking changes
+* updated `omit_local_variable_types` to allow explicit `dynamic`s
+* (internal) migration from deprecated analyzer APIs
+
 ## 2.3.2-dev.0.1
-(Add new changes here, and they will be copied to the change section for the
- next dev version)
 
 ### Language
 
@@ -47,6 +63,17 @@ class B<X> extends A<void Function(X)> {};
   * **Breaking change**: For those implementing the `HttpClientResponse`
     interface, this is a breaking change, as implementing classes will need to
     implement the new getter.
+
+#### `dart:isolate`
+
+* **Breaking change**: `Isolate.resolvePackageUri` will always throw an
+  `UnsupportedError` when compiled with dart2js or DDC. This was the only
+  remaining API in `dart:isolate` that didn't automatically throw since we
+  dropped support for this library in [Dart 2.0.0][1]. Note that the API already
+  throws in dart2js if the API is used directly without setting up manually a
+  `defaultPackagesBase` hook.
+
+[1]: https://github.com/dart-lang/sdk/blob/master/CHANGELOG.md#200---2018-08-07
 
 ### Dart VM
 
@@ -114,6 +141,37 @@ Updated the linter to `0.1.89`, which includes the following changes:
 
 * **Breaking change:** The `await for` allowed `null` as a stream due to a bug
   in `StreamIterator` class. This bug has now been fixed.
+
+## 2.3.2 - 2019-06-11
+
+This is a patch version release with a security improvement.
+
+### Security vulnerability
+
+*  **Security improvement:** On Linux and Android, starting a process with
+   `Process.run`, `Process.runSync`, or `Process.start` would first search the
+   current directory before searching `PATH` (Issue [37101][]). This behavior
+   effectively put the current working directory in the front of `PATH`, even if
+   it wasn't in the `PATH`. This release changes that behavior to only searching
+   the directories in the `PATH` environment variable. Operating systems other
+   than Linux and Android didn't have this behavior and aren't affected by this
+   vulnerability.
+
+   This vulnerability could result in execution of untrusted code if a command
+   without a slash in its name was run inside an untrusted directory containing
+   an executable file with that name:
+
+   ```dart
+   Process.run("ls", workingDirectory: "/untrusted/directory")
+   ```
+
+   This would attempt to run `/untrusted/directory/ls` if it existed, even
+   though it is not in the `PATH`. It was always safe to instead use an absolute
+   path or a path containing a slash.
+
+   This vulnerability was introduced in Dart 2.0.0.
+
+[37101]: https://github.com/dart-lang/sdk/issues/37101
 
 ## 2.3.1 - 2019-05-21
 

@@ -1,6 +1,6 @@
 library;
 import self as self;
 
-static const field dynamic c;
+static const field dynamic c = 1;
 static method main() → dynamic
   ;

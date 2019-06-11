@@ -3330,4 +3330,34 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitRef(HRef node) {
     visit(node.value);
   }
+
+  @override
+  visitIsTest(HIsTest node) {
+    throw UnimplementedError('SsaCodeGenerator.visitIsTest');
+  }
+
+  @override
+  visitAsCheck(HAsCheck node) {
+    throw UnimplementedError('SsaCodeGenerator.visitAsCheck');
+  }
+
+  @override
+  visitSubtypeCheck(HSubtypeCheck node) {
+    throw UnimplementedError('SsaCodeGenerator.visitSubtypeCheck');
+  }
+
+  @override
+  visitLoadType(HLoadType node) {
+    throw UnimplementedError('SsaCodeGenerator.visitLoadType');
+  }
+
+  @override
+  visitTypeEval(HTypeEval node) {
+    throw UnimplementedError('SsaCodeGenerator.visitTypeEval');
+  }
+
+  @override
+  visitTypeBind(HTypeBind node) {
+    throw UnimplementedError('SsaCodeGenerator.visitTypeBind');
+  }
 }

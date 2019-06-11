@@ -3127,6 +3127,8 @@ class ProgramCompiler extends Object
       // TODO(jmesserly): figure out why this is throwing. Perhaps the file URI
       // and offset are mismatched and don't correspond to the same source?
       return null;
+    } on RangeError catch (_) {
+      return null;
     }
   }
 

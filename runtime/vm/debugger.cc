@@ -16,6 +16,7 @@
 #include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
+#include "vm/interpreter.h"
 #include "vm/json_stream.h"
 #include "vm/kernel.h"
 #include "vm/longjump.h"
@@ -1484,7 +1485,7 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj) {
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function());
   if (IsInterpreted()) {
-    jsobj->AddProperty("bytecode", bytecode());
+    jsobj->AddProperty("code", bytecode());
   } else {
     jsobj->AddProperty("code", code());
   }
@@ -1528,7 +1529,7 @@ void ActivationFrame::PrintToJSONObjectAsyncCausal(JSONObject* jsobj) {
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function());
   if (IsInterpreted()) {
-    jsobj->AddProperty("bytecode", bytecode());
+    jsobj->AddProperty("code", bytecode());
   } else {
     jsobj->AddProperty("code", code());
   }
@@ -1549,7 +1550,7 @@ void ActivationFrame::PrintToJSONObjectAsyncActivation(JSONObject* jsobj) {
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function());
   if (IsInterpreted()) {
-    jsobj->AddProperty("bytecode", bytecode());
+    jsobj->AddProperty("code", bytecode());
   } else {
     jsobj->AddProperty("code", code());
   }
@@ -1683,7 +1684,7 @@ void CodeBreakpoint::Enable() {
   if (!is_enabled_) {
     if (IsInterpreted()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      SetBytecodeBreak();
+      SetBytecodeBreakpoint();
 #else
       UNREACHABLE();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -1698,7 +1699,7 @@ void CodeBreakpoint::Disable() {
   if (is_enabled_) {
     if (IsInterpreted()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      UnsetBytecodeBreak();
+      UnsetBytecodeBreakpoint();
 #else
       UNREACHABLE();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -1908,6 +1909,18 @@ void Debugger::DeoptimizeWorld() {
       function.SwitchToUnoptimizedCode();
     }
   }
+}
+
+void Debugger::NotifySingleStepping(bool value) const {
+  isolate_->set_single_step(value);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Do not call Interpreter::Current(), which may allocate an interpreter.
+  Interpreter* interpreter = Thread::Current()->interpreter();
+  if (interpreter != nullptr) {
+    // Do not reset is_debugging to false if bytecode debug breaks are enabled.
+    interpreter->set_is_debugging(value || HasEnabledBytecodeBreakpoints());
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
@@ -2406,23 +2419,29 @@ ActivationFrame* Debugger::TopDartFrame() const {
   StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = iterator.NextFrame();
-  while ((frame != NULL) && !frame->IsDartFrame()) {
+  StackFrame* frame;
+  while (true) {
     frame = iterator.NextFrame();
-  }
-  ASSERT(frame != NULL);
+    RELEASE_ASSERT(frame != nullptr);
+    if (!frame->IsDartFrame()) {
+      continue;
+    }
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (frame->is_interpreted()) {
-    Bytecode& bytecode = Bytecode::Handle(frame->LookupDartBytecode());
-    ActivationFrame* activation =
-        new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), bytecode);
+    if (frame->is_interpreted()) {
+      Bytecode& bytecode = Bytecode::Handle(frame->LookupDartBytecode());
+      if (bytecode.function() == Function::null()) {
+        continue;  // Skip bytecode stub frame.
+      }
+      ActivationFrame* activation =
+          new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), bytecode);
+      return activation;
+    }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    Code& code = Code::Handle(frame->LookupDartCode());
+    ActivationFrame* activation = new ActivationFrame(
+        frame->pc(), frame->fp(), frame->sp(), code, Object::null_array(), 0);
     return activation;
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  Code& code = Code::Handle(frame->LookupDartCode());
-  ActivationFrame* activation = new ActivationFrame(
-      frame->pc(), frame->fp(), frame->sp(), code, Object::null_array(), 0);
-  return activation;
 }
 
 DebuggerStackTrace* Debugger::StackTrace() {
@@ -2885,6 +2904,24 @@ TokenPosition Debugger::ResolveBreakpointPos(bool in_bytecode,
   return TokenPosition::kNoSource;
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+// Find a 'debug break checked' bytecode in the range [pc..end_pc[ and return
+// the pc after it or nullptr.
+static const KBCInstr* FindBreakpointCheckedInstr(const KBCInstr* pc,
+                                                  const KBCInstr* end_pc) {
+  while ((pc < end_pc) && !KernelBytecode::IsDebugBreakCheckedOpcode(pc)) {
+    pc = KernelBytecode::Next(pc);
+  }
+  if (pc < end_pc) {
+    ASSERT(KernelBytecode::IsDebugBreakCheckedOpcode(pc));
+    // The checked debug break pc must point to the next bytecode.
+    return KernelBytecode::Next(pc);
+  }
+  // No 'debug break checked' bytecode in the range.
+  return nullptr;
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 void Debugger::MakeCodeBreakpointAt(const Function& func,
                                     BreakpointLocation* loc) {
   ASSERT(loc->token_pos_.IsReal());
@@ -2895,24 +2932,45 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
   if (func.HasBytecode()) {
     Bytecode& bytecode = Bytecode::Handle(func.bytecode());
     ASSERT(!bytecode.IsNull());
-    uword lowest_pc_offset = kUwordMax;
+    const KBCInstr* pc = nullptr;
     if (bytecode.HasSourcePositions()) {
       kernel::BytecodeSourcePositionsIterator iter(Thread::Current()->zone(),
                                                    bytecode);
+      bool check_range = false;
       while (iter.MoveNext()) {
-        if (iter.TokenPos() == loc->token_pos_) {
-          if (iter.PcOffset() < lowest_pc_offset) {
-            lowest_pc_offset = iter.PcOffset();
+        if (check_range) {
+          const KBCInstr* end_pc =
+              reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart()) +
+              iter.PcOffset();
+          check_range = false;
+          // Find a 'debug break checked' bytecode in the range [pc..end_pc[.
+          pc = FindBreakpointCheckedInstr(pc, end_pc);
+          if (pc != nullptr) {
+            // TODO(regis): We may want to find all PCs for a token position,
+            // e.g. in the case of duplicated bytecode in finally clauses.
+            break;
           }
         }
+        if (iter.TokenPos() == loc->token_pos_) {
+          pc = reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart()) +
+               iter.PcOffset();
+          check_range = true;
+        }
+      }
+      if (check_range) {
+        ASSERT(pc != nullptr);
+        // Use the end of the bytecode as the end of the range to check.
+        pc = FindBreakpointCheckedInstr(
+            pc, reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart()) +
+                    bytecode.Size());
       }
     }
-    if (lowest_pc_offset != kUwordMax) {
-      uword lowest_pc = bytecode.PayloadStart() + lowest_pc_offset;
-      CodeBreakpoint* code_bpt = GetCodeBreakpoint(lowest_pc);
+    if (pc != nullptr) {
+      CodeBreakpoint* code_bpt = GetCodeBreakpoint(reinterpret_cast<uword>(pc));
       if (code_bpt == NULL) {
         // No code breakpoint for this code exists; create one.
-        code_bpt = new CodeBreakpoint(bytecode, loc->token_pos_, lowest_pc);
+        code_bpt = new CodeBreakpoint(bytecode, loc->token_pos_,
+                                      reinterpret_cast<uword>(pc));
         RegisterCodeBreakpoint(code_bpt);
       }
       code_bpt->set_bpt_location(loc);
@@ -3575,7 +3633,7 @@ void Debugger::Pause(ServiceEvent* event) {
 void Debugger::EnterSingleStepMode() {
   ResetSteppingFramePointers();
   DeoptimizeWorld();
-  isolate_->set_single_step(true);
+  NotifySingleStepping(true);
 }
 
 void Debugger::ResetSteppingFramePointers() {
@@ -3637,7 +3695,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     // as well.  We need to deoptimize the world in case we are about
     // to call an optimized function.
     DeoptimizeWorld();
-    isolate_->set_single_step(true);
+    NotifySingleStepping(true);
     skip_next_step_ = skip_next_step;
     SetAsyncSteppingFramePointer(stack_trace);
     if (FLAG_verbose_debug) {
@@ -3645,7 +3703,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     }
   } else if (resume_action_ == kStepOver) {
     DeoptimizeWorld();
-    isolate_->set_single_step(true);
+    NotifySingleStepping(true);
     skip_next_step_ = skip_next_step;
     SetSyncSteppingFramePointer(stack_trace);
     SetAsyncSteppingFramePointer(stack_trace);
@@ -3669,7 +3727,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     }
     // Fall through to synchronous stepping.
     DeoptimizeWorld();
-    isolate_->set_single_step(true);
+    NotifySingleStepping(true);
     // Find topmost caller that is debuggable.
     for (intptr_t i = 1; i < stack_trace->Length(); i++) {
       ActivationFrame* frame = stack_trace->FrameAt(i);
@@ -3959,7 +4017,7 @@ bool Debugger::IsDebugging(Thread* thread, const Function& func) {
 void Debugger::SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt) {
   resume_action_ = kContinue;
   ResetSteppingFramePointers();
-  isolate_->set_single_step(false);
+  NotifySingleStepping(false);
   ASSERT(!IsPaused());
   if ((bpt != NULL) && bpt->IsSingleShot()) {
     RemoveBreakpoint(bpt->id());
@@ -4695,7 +4753,7 @@ void Debugger::Continue() {
   SetResumeAction(kContinue);
   stepping_fp_ = 0;
   async_stepping_fp_ = 0;
-  isolate_->set_single_step(false);
+  NotifySingleStepping(false);
 }
 
 BreakpointLocation* Debugger::GetLatentBreakpoint(const String& url,

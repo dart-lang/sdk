@@ -5075,6 +5075,7 @@ class AnalyticsSendTimingResult implements ResponseResult {
  *
  * {
  *   "label": String
+ *   "declaringLibraryUri": String
  *   "element": Element
  *   "defaultArgumentListString": optional String
  *   "defaultArgumentListTextRanges": optional List<int>
@@ -5090,6 +5091,8 @@ class AnalyticsSendTimingResult implements ResponseResult {
  */
 class AvailableSuggestion implements HasToJson {
   String _label;
+
+  String _declaringLibraryUri;
 
   Element _element;
 
@@ -5120,6 +5123,21 @@ class AvailableSuggestion implements HasToJson {
   void set label(String value) {
     assert(value != null);
     this._label = value;
+  }
+
+  /**
+   * The URI of the library that declares the element being suggested, not the
+   * URI of the library associated with the enclosing AvailableSuggestionSet.
+   */
+  String get declaringLibraryUri => _declaringLibraryUri;
+
+  /**
+   * The URI of the library that declares the element being suggested, not the
+   * URI of the library associated with the enclosing AvailableSuggestionSet.
+   */
+  void set declaringLibraryUri(String value) {
+    assert(value != null);
+    this._declaringLibraryUri = value;
   }
 
   /**
@@ -5255,7 +5273,7 @@ class AvailableSuggestion implements HasToJson {
     this._requiredParameterCount = value;
   }
 
-  AvailableSuggestion(String label, Element element,
+  AvailableSuggestion(String label, String declaringLibraryUri, Element element,
       {String defaultArgumentListString,
       List<int> defaultArgumentListTextRanges,
       String docComplete,
@@ -5265,6 +5283,7 @@ class AvailableSuggestion implements HasToJson {
       List<String> relevanceTags,
       int requiredParameterCount}) {
     this.label = label;
+    this.declaringLibraryUri = declaringLibraryUri;
     this.element = element;
     this.defaultArgumentListString = defaultArgumentListString;
     this.defaultArgumentListTextRanges = defaultArgumentListTextRanges;
@@ -5287,6 +5306,13 @@ class AvailableSuggestion implements HasToJson {
         label = jsonDecoder.decodeString(jsonPath + ".label", json["label"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "label");
+      }
+      String declaringLibraryUri;
+      if (json.containsKey("declaringLibraryUri")) {
+        declaringLibraryUri = jsonDecoder.decodeString(
+            jsonPath + ".declaringLibraryUri", json["declaringLibraryUri"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "declaringLibraryUri");
       }
       Element element;
       if (json.containsKey("element")) {
@@ -5339,7 +5365,7 @@ class AvailableSuggestion implements HasToJson {
             jsonPath + ".requiredParameterCount",
             json["requiredParameterCount"]);
       }
-      return new AvailableSuggestion(label, element,
+      return new AvailableSuggestion(label, declaringLibraryUri, element,
           defaultArgumentListString: defaultArgumentListString,
           defaultArgumentListTextRanges: defaultArgumentListTextRanges,
           docComplete: docComplete,
@@ -5357,6 +5383,7 @@ class AvailableSuggestion implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["label"] = label;
+    result["declaringLibraryUri"] = declaringLibraryUri;
     result["element"] = element.toJson();
     if (defaultArgumentListString != null) {
       result["defaultArgumentListString"] = defaultArgumentListString;
@@ -5392,6 +5419,7 @@ class AvailableSuggestion implements HasToJson {
   bool operator ==(other) {
     if (other is AvailableSuggestion) {
       return label == other.label &&
+          declaringLibraryUri == other.declaringLibraryUri &&
           element == other.element &&
           defaultArgumentListString == other.defaultArgumentListString &&
           listEqual(defaultArgumentListTextRanges,
@@ -5413,6 +5441,7 @@ class AvailableSuggestion implements HasToJson {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
+    hash = JenkinsSmiHash.combine(hash, declaringLibraryUri.hashCode);
     hash = JenkinsSmiHash.combine(hash, element.hashCode);
     hash = JenkinsSmiHash.combine(hash, defaultArgumentListString.hashCode);
     hash = JenkinsSmiHash.combine(hash, defaultArgumentListTextRanges.hashCode);
@@ -8193,6 +8222,7 @@ class EditDartfixParams implements RequestParams {
  *   "otherSuggestions": List<DartFixSuggestion>
  *   "hasErrors": bool
  *   "edits": List<SourceFileEdit>
+ *   "details": optional List<String>
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -8205,6 +8235,8 @@ class EditDartfixResult implements ResponseResult {
   bool _hasErrors;
 
   List<SourceFileEdit> _edits;
+
+  List<String> _details;
 
   /**
    * A list of recommended changes that can be automatically made by applying
@@ -8262,15 +8294,37 @@ class EditDartfixResult implements ResponseResult {
     this._edits = value;
   }
 
+  /**
+   * Messages that should be displayed to the user that describe details of the
+   * fix generation. For example, the messages might (a) point out details that
+   * users might want to explore before committing the changes or (b) describe
+   * exceptions that were thrown but that did not stop the fixes from being
+   * produced. The list will be omitted if it is empty.
+   */
+  List<String> get details => _details;
+
+  /**
+   * Messages that should be displayed to the user that describe details of the
+   * fix generation. For example, the messages might (a) point out details that
+   * users might want to explore before committing the changes or (b) describe
+   * exceptions that were thrown but that did not stop the fixes from being
+   * produced. The list will be omitted if it is empty.
+   */
+  void set details(List<String> value) {
+    this._details = value;
+  }
+
   EditDartfixResult(
       List<DartFixSuggestion> suggestions,
       List<DartFixSuggestion> otherSuggestions,
       bool hasErrors,
-      List<SourceFileEdit> edits) {
+      List<SourceFileEdit> edits,
+      {List<String> details}) {
     this.suggestions = suggestions;
     this.otherSuggestions = otherSuggestions;
     this.hasErrors = hasErrors;
     this.edits = edits;
+    this.details = details;
   }
 
   factory EditDartfixResult.fromJson(
@@ -8316,8 +8370,14 @@ class EditDartfixResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edits");
       }
+      List<String> details;
+      if (json.containsKey("details")) {
+        details = jsonDecoder.decodeList(
+            jsonPath + ".details", json["details"], jsonDecoder.decodeString);
+      }
       return new EditDartfixResult(
-          suggestions, otherSuggestions, hasErrors, edits);
+          suggestions, otherSuggestions, hasErrors, edits,
+          details: details);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.dartfix result", json);
     }
@@ -8341,6 +8401,9 @@ class EditDartfixResult implements ResponseResult {
     result["hasErrors"] = hasErrors;
     result["edits"] =
         edits.map((SourceFileEdit value) => value.toJson()).toList();
+    if (details != null) {
+      result["details"] = details;
+    }
     return result;
   }
 
@@ -8361,7 +8424,8 @@ class EditDartfixResult implements ResponseResult {
               (DartFixSuggestion a, DartFixSuggestion b) => a == b) &&
           hasErrors == other.hasErrors &&
           listEqual(edits, other.edits,
-              (SourceFileEdit a, SourceFileEdit b) => a == b);
+              (SourceFileEdit a, SourceFileEdit b) => a == b) &&
+          listEqual(details, other.details, (String a, String b) => a == b);
     }
     return false;
   }
@@ -8373,6 +8437,7 @@ class EditDartfixResult implements ResponseResult {
     hash = JenkinsSmiHash.combine(hash, otherSuggestions.hashCode);
     hash = JenkinsSmiHash.combine(hash, hasErrors.hashCode);
     hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    hash = JenkinsSmiHash.combine(hash, details.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

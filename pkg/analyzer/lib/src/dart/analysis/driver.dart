@@ -93,7 +93,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 80;
+  static const int DATA_VERSION = 81;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -172,13 +172,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * The salt to mix into all hashes used as keys for unlinked data.
    */
   final Uint32List _unlinkedSalt =
-      new Uint32List(2 + AnalysisOptionsImpl.unlinkedSignatureLength);
+      new Uint32List(3 + AnalysisOptionsImpl.unlinkedSignatureLength);
 
   /**
    * The salt to mix into all hashes used as keys for linked data.
    */
   final Uint32List _linkedSalt =
-      new Uint32List(2 + AnalysisOptions.signatureLength);
+      new Uint32List(3 + AnalysisOptions.signatureLength);
 
   /**
    * The set of priority files, that should be analyzed sooner.
@@ -1635,11 +1635,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   void _fillSalt() {
     _unlinkedSalt[0] = DATA_VERSION;
     _unlinkedSalt[1] = enableIndex ? 1 : 0;
-    _unlinkedSalt.setAll(2, _analysisOptions.unlinkedSignature);
+    _unlinkedSalt[2] = useSummary2 ? 1 : 0;
+    _unlinkedSalt.setAll(3, _analysisOptions.unlinkedSignature);
 
     _linkedSalt[0] = DATA_VERSION;
     _linkedSalt[1] = enableIndex ? 1 : 0;
-    _linkedSalt.setAll(2, _analysisOptions.signature);
+    _linkedSalt[2] = useSummary2 ? 1 : 0;
+    _linkedSalt.setAll(3, _analysisOptions.signature);
   }
 
   /**

@@ -270,7 +270,6 @@ abstract class Compiler {
       GlobalTypeInferenceResults globalTypeInferenceResults) async {
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
     backendStrategy.registerJClosedWorld(closedWorld);
-    if (options.showInternalProgress) reporter.log('Compiling...');
     phase = PHASE_COMPILING;
     CodegenInputs codegenInputs =
         backend.onCodegenStart(globalTypeInferenceResults);
@@ -279,8 +278,10 @@ abstract class Compiler {
       CodegenResults codegenResults =
           await serializationTask.deserializeCodegen(
               backendStrategy, globalTypeInferenceResults, codegenInputs);
+      reporter.log('Compiling methods');
       runCodegenEnqueuer(codegenResults);
     } else {
+      reporter.log('Compiling methods');
       CodegenResults codegenResults = new OnDemandCodegenResults(
           globalTypeInferenceResults, codegenInputs, backend.functionCompiler);
       if (options.writeCodegenUri != null) {
@@ -349,7 +350,7 @@ abstract class Compiler {
 
     phase = PHASE_RESOLVING;
     resolutionEnqueuer.applyImpact(mainImpact);
-    if (options.showInternalProgress) reporter.log('Resolving...');
+    if (options.showInternalProgress) reporter.log('Computing closed world');
 
     processQueue(
         frontendStrategy.elementEnvironment, resolutionEnqueuer, mainFunction,
@@ -376,7 +377,7 @@ abstract class Compiler {
   GlobalTypeInferenceResults performGlobalTypeInference(
       JClosedWorld closedWorld) {
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
-    if (options.showInternalProgress) reporter.log('Inferring types...');
+    reporter.log('Performing global type inference');
     InferredDataBuilder inferredDataBuilder =
         new InferredDataBuilderImpl(closedWorld.annotationsData);
     return globalInference.runGlobalTypeInference(
@@ -400,6 +401,7 @@ abstract class Compiler {
     if (retainDataForTesting) {
       codegenWorldForTesting = codegenWorld;
     }
+    reporter.log('Emitting JavaScript');
     int programSize = backend.assembleProgram(closedWorld,
         globalInferenceResults.inferredData, codegenInputs, codegenWorld);
 

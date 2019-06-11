@@ -187,10 +187,6 @@ class KernelLineStartsReader {
   DISALLOW_COPY_AND_ASSIGN(KernelLineStartsReader);
 };
 
-bool FieldHasFunctionLiteralInitializer(const Field& field,
-                                        TokenPosition* start,
-                                        TokenPosition* end);
-
 void CollectTokenPositionsFor(const Script& script);
 
 RawObject* EvaluateMetadata(const Field& metadata_field,

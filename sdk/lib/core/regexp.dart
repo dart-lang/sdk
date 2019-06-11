@@ -68,8 +68,8 @@ abstract class RegExp implements Pattern {
   external factory RegExp(String source,
       {bool multiLine = false,
       bool caseSensitive = true,
-      bool unicode = false,
-      bool dotAll = false});
+      @Since("2.4") bool unicode = false,
+      @Since("2.4") bool dotAll = false});
 
   /**
    * Returns a regular expression that matches [text].
@@ -142,6 +142,7 @@ abstract class RegExp implements Pattern {
    * some pattern features, like Unicode property escapes, are only available in
    * this mode.
    */
+  @Since("2.4")
   bool get isUnicode;
 
   /**
@@ -155,6 +156,7 @@ abstract class RegExp implements Pattern {
    * of different pattern characters, and so they can be used together or
    * separately.
    */
+  @Since("2.4")
   bool get isDotAll;
 }
 
@@ -165,6 +167,7 @@ abstract class RegExp implements Pattern {
  * to retrieve the names for any named capture groups and to retrieve
  * matches for named capture groups by name instead of their index.
  */
+@Since("2.3")
 abstract class RegExpMatch implements Match {
   /**
    * The string matched by the group named [name].

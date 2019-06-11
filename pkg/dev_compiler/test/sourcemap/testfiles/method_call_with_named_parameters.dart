@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-main() {
+void main() {
   foo(/*bc:1*/ bar(), baz: /*bc:2*/ baz());
   /*nbb:0:4*/
 }

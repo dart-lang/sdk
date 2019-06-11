@@ -205,6 +205,6 @@ String getWrapperHtmlContent(String jsRootDart, String outFileRootBuild) {
 Uri selfUri = currentMirrorSystem()
     .findLibrary(#dev_compiler.test.sourcemap.ddc_common)
     .uri;
-String d8Preambles = File.fromUri(
-        selfUri.resolve('../../tool/input_sdk/private/preambles/d8.js'))
+String d8Preambles = File.fromUri(selfUri.resolve(
+        '../../../../sdk/lib/_internal/js_dev_runtime/private/preambles/d8.js'))
     .readAsStringSync();

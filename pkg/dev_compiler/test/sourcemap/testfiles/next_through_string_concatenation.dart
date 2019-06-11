@@ -4,7 +4,7 @@
 
 /*Debugger:stepOver*/
 
-main() {
+void main() {
   var qux;
   qux = "${/*bc:1*/ foo()} x ${/*bc:2*/ bar()} x ${/*bc:3*/ baz()}";
   print(qux);

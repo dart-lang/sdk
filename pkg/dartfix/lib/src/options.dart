@@ -22,12 +22,12 @@ class Options {
   final List<String> excludeFixes;
 
   final bool force;
-  final bool listFixes;
+  final bool showHelp;
   final bool overwrite;
   final bool useColor;
   final bool verbose;
 
-  static Options parse(List<String> args, {Context context, Logger logger}) {
+  static Options parse(List<String> args, Context context, Logger logger) {
     final parser = new ArgParser(allowTrailingOptions: true)
       ..addSeparator('Choosing fixes to be applied:')
       ..addMultiOption(includeOption,
@@ -37,11 +37,6 @@ class Options {
       ..addFlag(requiredOption,
           abbr: 'r',
           help: 'Apply required fixes.',
-          defaultsTo: false,
-          negatable: false)
-      ..addFlag(listOption,
-          abbr: 'l',
-          help: 'Display a list of fixes that can be applied.',
           defaultsTo: false,
           negatable: false)
       ..addSeparator('Modifying files:')
@@ -99,13 +94,9 @@ class Options {
     }
     options.logger = logger;
 
-    if (results[_helpOption] as bool) {
-      _showUsage(parser, logger);
-      context.exit(1);
-    }
-
-    // For '--list', we short circuit the logic to validate the sdk and project.
-    if (options.listFixes) {
+    // For '--help', we short circuit the logic to validate the sdk and project.
+    if (options.showHelp) {
+      _showUsage(parser, logger, showHelpHint: false);
       return options;
     }
 
@@ -157,10 +148,10 @@ class Options {
             (results[includeOption] as List ?? []).cast<String>().toList(),
         excludeFixes =
             (results[excludeOption] as List ?? []).cast<String>().toList(),
-        listFixes = results[listOption] as bool,
         overwrite = results[overwriteOption] as bool,
         requiredFixes = results[requiredOption] as bool,
         sdkPath = _getSdkPath(),
+        showHelp = results[_helpOption] as bool || results.arguments.isEmpty,
         targets = results.rest,
         useColor = results.wasParsed(_colorOption)
             ? results[_colorOption] as bool
@@ -181,21 +172,18 @@ class Options {
   }
 
   static _showUsage(ArgParser parser, Logger logger,
-      {bool showListHint = true}) {
-    logger.stderr('Usage: $_binaryName [options...] <directory paths>');
-    logger.stderr('');
-    logger.stderr(parser.usage);
-    logger.stderr('''
-
-If neither --$includeOption nor --$requiredOption is specified, then all fixes will be
-applied. Any fixes specified using --$excludeOption will not be applied regardless
-of whether they are required or specifed using --$includeOption.''');
-    if (showListHint) {
-      logger.stderr('''
-
-Use --list to display the fixes that can be specified using either
---$includeOption or --$excludeOption.''');
-    }
+      {bool showHelpHint = true}) {
+    Function(String message) out = showHelpHint ? logger.stderr : logger.stdout;
+    // show help on stdout when showHelp is true and showHelpHint is false
+    out('''
+Usage: $_binaryName [options...] <directory paths>
+''');
+    out(parser.usage);
+    out(showHelpHint
+        ? '''
+Use --$_helpOption to display the fixes that can be specified using either
+--$includeOption or --$excludeOption.'''
+        : '');
   }
 }
 
@@ -209,5 +197,4 @@ const _verboseOption = 'verbose';
 // options only supported by server 1.22.2 and greater
 const excludeOption = 'exclude';
 const includeOption = 'include';
-const listOption = 'list';
 const requiredOption = 'required';

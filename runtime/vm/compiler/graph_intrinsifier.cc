@@ -169,12 +169,12 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
 
   if (RawObject::IsExternalTypedDataClassId(array_cid)) {
     array = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(array), ExternalTypedData::data_offset()));
+        new Value(array), target::TypedDataBase::data_field_offset()));
   }
 
   Definition* result = builder.AddDefinition(new LoadIndexedInstr(
       new Value(array), new Value(index),
-      Instance::ElementSizeFor(array_cid),  // index scale
+      target::Instance::ElementSizeFor(array_cid),  // index scale
       array_cid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
 
   // We don't perform [RangeAnalysis] for graph intrinsics. To inform the
@@ -347,14 +347,14 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
 
   if (RawObject::IsExternalTypedDataClassId(array_cid)) {
     array = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(array), ExternalTypedData::data_offset()));
+        new Value(array), target::TypedDataBase::data_field_offset()));
   }
   // No store barrier.
   ASSERT(RawObject::IsExternalTypedDataClassId(array_cid) ||
          RawObject::IsTypedDataClassId(array_cid));
   builder.AddInstruction(new StoreIndexedInstr(
       new Value(array), new Value(index), new Value(value), kNoStoreBarrier,
-      Instance::ElementSizeFor(array_cid),  // index scale
+      target::Instance::ElementSizeFor(array_cid),  // index scale
       array_cid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
@@ -482,15 +482,15 @@ static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
   // For external strings: Load external data.
   if (cid == kExternalOneByteStringCid) {
     str = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(str), ExternalOneByteString::external_data_offset()));
+        new Value(str), target::ExternalOneByteString::external_data_offset()));
   } else if (cid == kExternalTwoByteStringCid) {
     str = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(str), ExternalTwoByteString::external_data_offset()));
+        new Value(str), target::ExternalTwoByteString::external_data_offset()));
   }
 
   Definition* load = builder.AddDefinition(new LoadIndexedInstr(
-      new Value(str), new Value(index), Instance::ElementSizeFor(cid), cid,
-      kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+      new Value(str), new Value(index), target::Instance::ElementSizeFor(cid),
+      cid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
 
   // We don't perform [RangeAnalysis] for graph intrinsics. To inform the
   // following boxing instruction about a more precise range we attach it here
@@ -687,7 +687,7 @@ bool GraphIntrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
                          Slot::GrowableObjectArray_data(), builder.TokenPos()));
   Definition* result = builder.AddDefinition(new LoadIndexedInstr(
       new Value(backing_store), new Value(index),
-      Instance::ElementSizeFor(kArrayCid),  // index scale
+      target::Instance::ElementSizeFor(kArrayCid),  // index scale
       kArrayCid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
   builder.AddReturn(new Value(result));
   return true;
@@ -716,7 +716,7 @@ bool GraphIntrinsifier::Build_ObjectArraySetIndexedUnchecked(
 
   builder.AddInstruction(new StoreIndexedInstr(
       new Value(array), new Value(index), new Value(value), kEmitStoreBarrier,
-      Instance::ElementSizeFor(kArrayCid),  // index scale
+      target::Instance::ElementSizeFor(kArrayCid),  // index scale
       kArrayCid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
@@ -751,7 +751,7 @@ bool GraphIntrinsifier::Build_GrowableArraySetIndexedUnchecked(
   builder.AddInstruction(new StoreIndexedInstr(
       new Value(backing_store), new Value(index), new Value(value),
       kEmitStoreBarrier,
-      Instance::ElementSizeFor(kArrayCid),  // index scale
+      target::Instance::ElementSizeFor(kArrayCid),  // index scale
       kArrayCid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();

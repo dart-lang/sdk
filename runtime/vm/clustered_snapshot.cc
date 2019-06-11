@@ -182,11 +182,10 @@ class ClassSerializationCluster : public SerializationCluster {
     s->Write<int32_t>(cls->ptr()->instance_size_in_words_);
     s->Write<int32_t>(cls->ptr()->next_field_offset_in_words_);
     s->Write<int32_t>(cls->ptr()->type_arguments_field_offset_in_words_);
-    s->Write<uint16_t>(cls->ptr()->num_type_arguments_);
-    s->Write<uint16_t>(cls->ptr()->has_pragma_and_num_own_type_arguments_);
+    s->Write<int16_t>(cls->ptr()->num_type_arguments_);
     s->Write<uint16_t>(cls->ptr()->num_native_fields_);
     s->WriteTokenPosition(cls->ptr()->token_pos_);
-    s->Write<uint16_t>(cls->ptr()->state_bits_);
+    s->Write<uint32_t>(cls->ptr()->state_bits_);
   }
 
  private:
@@ -244,11 +243,10 @@ class ClassDeserializationCluster : public DeserializationCluster {
         d->Read<int32_t>();  // Skip.
       }
       cls->ptr()->type_arguments_field_offset_in_words_ = d->Read<int32_t>();
-      cls->ptr()->num_type_arguments_ = d->Read<uint16_t>();
-      cls->ptr()->has_pragma_and_num_own_type_arguments_ = d->Read<uint16_t>();
+      cls->ptr()->num_type_arguments_ = d->Read<int16_t>();
       cls->ptr()->num_native_fields_ = d->Read<uint16_t>();
       cls->ptr()->token_pos_ = d->ReadTokenPosition();
-      cls->ptr()->state_bits_ = d->Read<uint16_t>();
+      cls->ptr()->state_bits_ = d->Read<uint32_t>();
     }
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
@@ -271,11 +269,10 @@ class ClassDeserializationCluster : public DeserializationCluster {
       cls->ptr()->instance_size_in_words_ = d->Read<int32_t>();
       cls->ptr()->next_field_offset_in_words_ = d->Read<int32_t>();
       cls->ptr()->type_arguments_field_offset_in_words_ = d->Read<int32_t>();
-      cls->ptr()->num_type_arguments_ = d->Read<uint16_t>();
-      cls->ptr()->has_pragma_and_num_own_type_arguments_ = d->Read<uint16_t>();
+      cls->ptr()->num_type_arguments_ = d->Read<int16_t>();
       cls->ptr()->num_native_fields_ = d->Read<uint16_t>();
       cls->ptr()->token_pos_ = d->ReadTokenPosition();
-      cls->ptr()->state_bits_ = d->Read<uint16_t>();
+      cls->ptr()->state_bits_ = d->Read<uint32_t>();
 
       table->AllocateIndex(class_id);
       table->SetAt(class_id, cls);
@@ -1818,7 +1815,8 @@ class RODataSerializationCluster : public SerializationCluster {
       s->TraceDataOffset(offset);
       ASSERT(Utils::IsAligned(offset, kObjectAlignment));
       ASSERT(offset > running_offset);
-      s->WriteUnsigned((offset - running_offset) >> kObjectAlignmentLog2);
+      s->WriteUnsigned((offset - running_offset) >>
+                       compiler::target::ObjectAlignment::kObjectAlignmentLog2);
       running_offset = offset;
       s->TraceEndWritingObject();
     }

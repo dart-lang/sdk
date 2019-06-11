@@ -73,6 +73,8 @@ class DdcResult {
 
 Future<InitializedCompilerState> initializeCompiler(
     InitializedCompilerState oldState,
+    bool compileSdk,
+    Uri sdkRoot,
     Uri sdkSummary,
     Uri packagesFile,
     Uri librariesSpecificationUri,
@@ -83,6 +85,7 @@ Future<InitializedCompilerState> initializeCompiler(
   inputSummaries.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&
+      oldState.options.compileSdk == compileSdk &&
       oldState.options.sdkSummary == sdkSummary &&
       oldState.options.packagesFileUri == packagesFile &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
@@ -104,6 +107,8 @@ Future<InitializedCompilerState> initializeCompiler(
   }
 
   CompilerOptions options = new CompilerOptions()
+    ..compileSdk = compileSdk
+    ..sdkRoot = sdkRoot
     ..sdkSummary = sdkSummary
     ..packagesFileUri = packagesFile
     ..inputSummaries = inputSummaries
@@ -120,6 +125,8 @@ Future<InitializedCompilerState> initializeCompiler(
 Future<InitializedCompilerState> initializeIncrementalCompiler(
     InitializedCompilerState oldState,
     List<Component> doneInputSummaries,
+    bool compileSdk,
+    Uri sdkRoot,
     Uri sdkSummary,
     Uri packagesFile,
     Uri librariesSpecificationUri,
@@ -140,9 +147,12 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
   if (oldState == null ||
       oldState.incrementalCompiler == null ||
+      oldState.options.compileSdk != compileSdk ||
       cachedSdkInput == null) {
     // No previous state.
     options = new CompilerOptions()
+      ..compileSdk = compileSdk
+      ..sdkRoot = sdkRoot
       ..sdkSummary = sdkSummary
       ..packagesFileUri = packagesFile
       ..inputSummaries = inputSummaries

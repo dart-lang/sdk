@@ -217,7 +217,8 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     expect(res.any((c) => c.label == 'abcdefghij'), isTrue);
     final item = res.singleWhere((c) => c.label == 'abcdefghij');
-    expect(item.insertTextFormat, equals(InsertTextFormat.PlainText));
+    expect(item.insertTextFormat,
+        anyOf(equals(InsertTextFormat.PlainText), isNull));
     // ignore: deprecated_member_use_from_same_package
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
     final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
@@ -227,7 +228,10 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
   test_suggestionSets() async {
     newFile(
       join(projectFolderPath, 'other_file.dart'),
-      content: 'class InOtherFile {}',
+      content: '''
+      /// This class is in another file.
+      class InOtherFile {}
+      ''',
     );
 
     final content = '''
@@ -248,6 +252,10 @@ main() {
     final completion = res.singleWhere((c) => c.label == 'InOtherFile');
     expect(completion, isNotNull);
 
+    // Expect no docs or text edit, since these are added during resolve.
+    expect(completion.documentation, isNull);
+    expect(completion.textEdit, isNull);
+
     // Resolve the completion item (via server) to get its edits. This is the
     // LSP's equiv of getSuggestionDetails() and is invoked by LSP clients to
     // populate additional info (in our case, the additional edits for inserting
@@ -258,6 +266,15 @@ main() {
     // Ensure the detail field was update to show this will auto-import.
     expect(
         resolved.detail, startsWith("Auto import from '../other_file.dart'"));
+
+    // Ensure the doc comment was added.
+    expect(
+      resolved.documentation.valueEquals('This class is in another file.'),
+      isTrue,
+    );
+
+    // Ensure the edit was added on.
+    expect(resolved.textEdit, isNotNull);
 
     // There should be no command for this item because it doesn't need imports
     // in other files. Same-file completions are in additionalEdits.
@@ -445,7 +462,8 @@ main() {
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     expect(res.any((c) => c.label == 'abcdefghij'), isTrue);
     final item = res.singleWhere((c) => c.label == 'abcdefghij');
-    expect(item.insertTextFormat, equals(InsertTextFormat.PlainText));
+    expect(item.insertTextFormat,
+        anyOf(equals(InsertTextFormat.PlainText), isNull));
     // ignore: deprecated_member_use_from_same_package
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
     final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);

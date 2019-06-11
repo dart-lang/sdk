@@ -68,6 +68,18 @@ class BottomTypeImpl extends TypeImpl {
       new BottomTypeImpl._(NullabilitySuffix.question);
 
   /**
+   * The unique instance of this class, starred.
+   *
+   * This behaves like a version of the Null* type that could be conceivably
+   * migrated to be of type Never. Therefore, it's the bottom of all legacy
+   * types, and also assignable to the true bottom. Note that Never? and Never*
+   * are not the same type, as Never* is a subtype of Never, while Never? is
+   * not.
+   */
+  static final BottomTypeImpl instanceLegacy =
+      new BottomTypeImpl._(NullabilitySuffix.star);
+
+  /**
    * The unique instance of this class, non-nullable.
    */
   static final BottomTypeImpl instance =
@@ -145,14 +157,7 @@ class BottomTypeImpl extends TypeImpl {
       case NullabilitySuffix.question:
         return instanceNullable;
       case NullabilitySuffix.star:
-        // This should never happen.  Converting `Never` to a legacy type should
-        // yield `Null`, because prior to NNBD, `Null` was at the bottom of the
-        // type hierarchy.
-        //
-        // However, due to bugs elsewhere in the analyzer, this does still
-        // happen sometimes, so for now just coerce to `Never?`.
-        // TODO(paulberry): change this to throw an exception.
-        return instanceNullable;
+        return instanceLegacy;
       case NullabilitySuffix.none:
         return instance;
     }

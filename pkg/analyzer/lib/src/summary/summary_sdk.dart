@@ -148,7 +148,7 @@ class SummaryTypeProvider extends TypeProviderBase {
   }
 
   @override
-  DartType get bottomType => BottomTypeImpl.instance;
+  DartType get bottomType => BottomTypeImpl.instanceLegacy;
 
   @override
   InterfaceType get deprecatedType {

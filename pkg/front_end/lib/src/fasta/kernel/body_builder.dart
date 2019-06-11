@@ -171,7 +171,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   final Uri uri;
 
-  final TypeInferrer _typeInferrer;
+  final TypeInferrer typeInferrer;
 
   @override
   final TypePromoter typePromoter;
@@ -262,7 +262,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       this.classBuilder,
       this.isInstanceMember,
       this.uri,
-      this._typeInferrer)
+      this.typeInferrer)
       : enableNative =
             library.loader.target.backendTarget.enableNative(library.uri),
         stringExpectedAfterNative =
@@ -271,7 +271,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             (library.uri.path == "_builtin" || library.uri.path == "ui"),
         needsImplicitSuperInitializer =
             coreTypes?.objectClass != classBuilder?.cls,
-        typePromoter = _typeInferrer?.typePromoter,
+        typePromoter = typeInferrer?.typePromoter,
         legacyMode = library.legacyMode,
         super(enclosingScope);
 
@@ -306,7 +306,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     return isInstanceMember || member is KernelConstructorBuilder;
   }
 
-  TypeEnvironment get typeEnvironment => _typeInferrer?.typeSchemaEnvironment;
+  TypeEnvironment get typeEnvironment => typeInferrer?.typeSchemaEnvironment;
 
   DartType get implicitTypeArgument =>
       legacyMode ? const DynamicType() : const ImplicitTypeArgument();
@@ -463,7 +463,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   void inferAnnotations(List<Expression> annotations) {
     if (annotations != null) {
-      _typeInferrer?.inferMetadata(this, annotations);
+      typeInferrer?.inferMetadata(this, annotations);
       library.loader.transformListPostInference(
           annotations, transformSetLiterals, transformCollections);
     }
@@ -582,9 +582,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           // Duplicate definition. The field might not be the correct one,
           // so we skip inference of the initializer.
           // Error reporting and recovery is handled elsewhere.
+        } else if (field.target.initializer != null) {
+          // The initializer was already compiled (e.g., if it appear in the
+          // outline, like constant field initializers) so we do not need to
+          // perform type inference or transformations.
         } else {
           field.initializer = initializer;
-          _typeInferrer?.inferFieldInitializer(
+          typeInferrer?.inferFieldInitializer(
               this, field.builtType, initializer);
           library.loader.transformPostInference(
               field.target, transformSetLiterals, transformCollections);
@@ -711,7 +715,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       initializer = buildInvalidInitializer(node, token.charOffset);
     }
-    _typeInferrer?.inferInitializer(this, initializer);
+    typeInferrer?.inferInitializer(this, initializer);
     if (member is KernelConstructorBuilder && !member.isExternal) {
       member.addInitializer(initializer, this);
     } else {
@@ -752,7 +756,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
                 null);
           }
           realParameter.initializer = initializer..parent = realParameter;
-          _typeInferrer?.inferParameterInitializer(
+          typeInferrer?.inferParameterInitializer(
               this, initializer, realParameter.type);
           library.loader.transformPostInference(
               realParameter, transformSetLiterals, transformCollections);
@@ -760,7 +764,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
 
-    _typeInferrer?.inferFunctionBody(
+    typeInferrer?.inferFunctionBody(
         this, _computeReturnTypeContext(member), asyncModifier, body);
     if (body != null) {
       library.loader.transformPostInference(
@@ -907,7 +911,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // set its inferredType field.  If type inference is disabled, reach to
       // the outtermost parent to check if the node is a dead code.
       if (invocation.parent == null) continue;
-      if (_typeInferrer != null) {
+      if (typeInferrer != null) {
         if (invocation is FactoryConstructorInvocationJudgment &&
             invocation.inferredType == null) {
           continue;
@@ -1118,7 +1122,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
     ReturnJudgment fakeReturn = new ReturnJudgment(null, expression);
 
-    _typeInferrer?.inferFunctionBody(
+    typeInferrer?.inferFunctionBody(
         this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
 
     return fakeReturn.expression;
@@ -2983,7 +2987,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endFunctionTypedFormalParameter(Token nameToken) {
+  void endFunctionTypedFormalParameter(Token nameToken, Token question) {
     debugEvent("FunctionTypedFormalParameter");
     if (inCatchClause || functionNestingLevel != 0) {
       exitLocalScope();
@@ -2991,6 +2995,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     FormalParameters formals = pop();
     UnresolvedType<KernelTypeBuilder> returnType = pop();
     List<KernelTypeVariableBuilder> typeVariables = pop();
+    reportErrorIfNullableType(question);
     UnresolvedType<KernelTypeBuilder> type =
         formals.toFunctionType(returnType, typeVariables);
     exitLocalScope();

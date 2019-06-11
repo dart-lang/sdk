@@ -48,11 +48,13 @@ m(x) {
   }
 
   test_minus() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m(x) {
   x?.a - '';
 }
-''', [HintCode.NULL_AWARE_BEFORE_OPERATOR]);
+''', [
+      error(HintCode.NULL_AWARE_BEFORE_OPERATOR, 9, 4),
+    ]);
   }
 
   test_not_equal() async {

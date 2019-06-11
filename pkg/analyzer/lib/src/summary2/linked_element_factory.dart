@@ -5,10 +5,10 @@
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/core_types.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
@@ -103,6 +103,23 @@ class LinkedElementFactory {
       rootReference.removeChild(uriStr);
     }
   }
+
+  /// Set optional informative data for the unit.
+  void setInformativeData(
+    String libraryUriStr,
+    String unitUriStr,
+    List<UnlinkedInformativeData> informativeData,
+  ) {
+    var libraryContext = libraryMap[libraryUriStr];
+    if (libraryContext != null) {
+      for (var unitContext in libraryContext.units) {
+        if (unitContext.uriStr == unitUriStr) {
+          unitContext.informativeData = informativeData;
+          return;
+        }
+      }
+    }
+  }
 }
 
 class _ElementRequest {
@@ -146,14 +163,6 @@ class _ElementRequest {
     if (parentName == '@function') {
       CompilationUnitElementImpl enclosing = elementOfReference(parent2);
       return _function(enclosing, reference);
-    }
-
-    if (parentName == '@genericFunctionType') {
-      CompilationUnitElementImpl enclosing = elementOfReference(parent2);
-      var context = enclosing.linkedContext;
-      var id = int.parse(reference.name);
-      GenericFunctionTypeImpl node = context.getGenericFunctionType(id);
-      return node.declaredElement as GenericFunctionTypeElementImpl;
     }
 
     if (parentName == '@getter' || parentName == '@setter') {

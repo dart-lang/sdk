@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
@@ -102,6 +103,23 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     elementFactory.addBundle(
       LinkedBundleContext(elementFactory, linkResult.bundle),
     );
+
+    // Set informative data.
+    for (var inputLibrary in inputLibraries) {
+      var libraryUriStr = '${inputLibrary.source.uri}';
+      for (var inputUnit in inputLibrary.units) {
+        var unitSource = inputUnit.source;
+        if (unitSource != null) {
+          var unitUriStr = '${unitSource.uri}';
+          var informativeData = createInformativeData(inputUnit.unit);
+          elementFactory.setInformativeData(
+            libraryUriStr,
+            unitUriStr,
+            informativeData,
+          );
+        }
+      }
+    }
 
     if (analysisContext.typeProvider == null) {
       var dartCore = elementFactory.libraryOfUri('dart:core');

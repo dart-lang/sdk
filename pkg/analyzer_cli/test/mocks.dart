@@ -87,6 +87,9 @@ class MockErrorCode implements ErrorCode {
   }
 
   @override
+  bool get hasPublishedDocs => false;
+
+  @override
   bool get isUnresolvedIdentifier => false;
 
   @override

@@ -274,17 +274,6 @@ static Dart_Handle GetNativeFieldsOfArgument(NativeArguments* arguments,
                        current_func, field_count, num_fields);
 }
 
-Heap::Space SpaceForExternal(Thread* thread, intptr_t size) {
-  Heap* heap = thread->heap();
-  // If 'size' would be a significant fraction of new space, then use old.
-  static const int kExtNewRatio = 16;
-  if (size > (heap->CapacityInWords(Heap::kNew) * kWordSize) / kExtNewRatio) {
-    return Heap::kOld;
-  } else {
-    return Heap::kNew;
-  }
-}
-
 static RawObject* Send0Arg(const Instance& receiver, const String& selector) {
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 1;
@@ -1232,6 +1221,15 @@ DART_EXPORT Dart_Handle Dart_DebugName() {
   return Api::NewHandle(
       T, String::NewFormatted("(%" Pd64 ") '%s'",
                               static_cast<int64_t>(I->main_port()), I->name()));
+}
+
+DART_EXPORT const char* Dart_IsolateServiceId(Dart_Isolate isolate) {
+  if (isolate == NULL) {
+    FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
+  }
+  Isolate* I = reinterpret_cast<Isolate*>(isolate);
+  int64_t main_port = static_cast<int64_t>(I->main_port());
+  return OS::SCreate(NULL, "isolates/%" Pd64, main_port);
 }
 
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
@@ -2518,7 +2516,7 @@ Dart_NewExternalLatin1String(const uint8_t* latin1_array,
   return Api::NewHandle(
       T,
       String::NewExternal(latin1_array, length, peer, external_allocation_size,
-                          callback, SpaceForExternal(T, length)));
+                          callback, T->heap()->SpaceForExternal(length)));
 }
 
 DART_EXPORT Dart_Handle
@@ -2540,7 +2538,7 @@ Dart_NewExternalUTF16String(const uint16_t* utf16_array,
   return Api::NewHandle(
       T,
       String::NewExternal(utf16_array, length, peer, external_allocation_size,
-                          callback, SpaceForExternal(T, bytes)));
+                          callback, T->heap()->SpaceForExternal(bytes)));
 }
 
 DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
@@ -3424,8 +3422,9 @@ static Dart_Handle NewExternalTypedData(
   Zone* zone = thread->zone();
   intptr_t bytes = length * ExternalTypedData::ElementSizeInBytes(cid);
   const ExternalTypedData& result = ExternalTypedData::Handle(
-      zone, ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data),
-                                   length, SpaceForExternal(thread, bytes)));
+      zone,
+      ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data), length,
+                             thread->heap()->SpaceForExternal(bytes)));
   if (callback != NULL) {
     AllocateFinalizableHandle(thread, result, peer, external_allocation_size,
                               callback);
@@ -6066,7 +6065,8 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
 
 DART_EXPORT Dart_Handle
 Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
-                               void* callback_data) {
+                               void* callback_data,
+                               bool strip) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
@@ -6090,8 +6090,12 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   NOT_IN_PRODUCT(TimelineDurationScope tds2(T, Timeline::GetIsolateStream(),
                                             "WriteAppAOTSnapshot"));
   StreamingWriteStream elf_stream(2 * MB, callback, callback_data);
+
   Elf* elf = new (Z) Elf(Z, &elf_stream);
-  Dwarf* dwarf = new (Z) Dwarf(Z, nullptr, elf);
+  Dwarf* dwarf = nullptr;
+  if (!strip) {
+    dwarf = new (Z) Dwarf(Z, nullptr, elf);
+  }
 
   BlobImageWriter vm_image_writer(T, &vm_snapshot_instructions_buffer,
                                   ApiReallocate, /* initial_size= */ 2 * MB,
@@ -6109,9 +6113,11 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
                  writer.VmIsolateSnapshotSize());
   elf->AddROData("_kDartIsolateSnapshotData", isolate_snapshot_data_buffer,
                  writer.IsolateSnapshotSize());
-  // TODO(rmacnak): Generate .debug_frame / .eh_frame / .arm.exidx to
-  // providing unwinding information.
-  dwarf->Write();
+  if (!strip) {
+    // TODO(rmacnak): Generate .debug_frame / .eh_frame / .arm.exidx to
+    // provide unwinding information.
+    dwarf->Write();
+  }
   elf->Finalize();
 
   return Api::Success();

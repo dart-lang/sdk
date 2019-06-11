@@ -13,7 +13,7 @@ class Class2 {
   }
 }
 
-main() {
+void main() {
   /*bl*/ /*sl:1*/ Class2 c = Class2();
   c /*sl:2*/ [42];
   c /*sl:3*/ .code();

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
     as lsp;
@@ -155,23 +156,26 @@ lsp.CompletionItem declarationToCompletionItem(
 
   final useDeprecated =
       completionCapabilities?.completionItem?.deprecatedSupport == true;
-  final formats = completionCapabilities?.completionItem?.documentationFormat;
 
   final completionKind = declarationKindToCompletionItemKind(
       supportedCompletionItemKinds, declaration.kind);
 
-  var itemRelevance = includedSuggestionSet.relevance;
+  var relevanceBoost = 0;
   if (declaration.relevanceTags != null)
-    declaration.relevanceTags
-        .forEach((t) => itemRelevance += (tagBoosts[t] ?? 0));
+    declaration.relevanceTags.forEach(
+        (t) => relevanceBoost = max(relevanceBoost, tagBoosts[t] ?? 0));
+  final itemRelevance = includedSuggestionSet.relevance + relevanceBoost;
 
+  // Because we potentially send thousands of these items, we should minimise
+  // the generated JSON as much as possible - for example using nulls in place
+  // of empty lists/false where possible.
   return new lsp.CompletionItem(
     label,
     completionKind,
     getDeclarationCompletionDetail(declaration, completionKind, useDeprecated),
-    asStringOrMarkupContent(formats, cleanDartdoc(declaration.docComplete)),
-    useDeprecated ? declaration.isDeprecated : null,
-    false, // preselect
+    null, // documentation - will be added during resolve.
+    useDeprecated && declaration.isDeprecated ? true : null,
+    null, // preselect
     // Relevance is a number, highest being best. LSP does text sort so subtract
     // from a large number so that a text sort will result in the correct order.
     // 555 -> 999455
@@ -180,24 +184,19 @@ lsp.CompletionItem declarationToCompletionItem(
     (1000000 - itemRelevance).toString(),
     null, // filterText uses label if not set
     null, // insertText is deprecated, but also uses label if not set
-    // We don't have completions that use snippets, so we always return PlainText.
-    lsp.InsertTextFormat.PlainText,
-    new lsp.TextEdit(
-      // TODO(dantup): If `clientSupportsSnippets == true` then we should map
-      // `selection` in to a snippet (see how Dart Code does this).
-      toRange(lineInfo, replacementOffset, replacementLength),
-      label,
-    ),
-    [], // additionalTextEdits, used for adding imports, etc.
-    [], // commitCharacters
+    null, // insertTextFormat (we always use plain text so can ommit this)
+    null, // textEdit - added on during resolve
+    null, // additionalTextEdits, used for adding imports, etc.
+    null, // commitCharacters
     null, // command
     // data, used for completionItem/resolve.
     new lsp.CompletionItemResolutionInfo(
-      file,
-      offset,
-      includedSuggestionSet.id,
-      includedSuggestionSet.displayUri ?? library.uri?.toString(),
-    ),
+        file,
+        offset,
+        includedSuggestionSet.id,
+        includedSuggestionSet.displayUri ?? library.uri?.toString(),
+        replacementOffset,
+        replacementLength),
   );
 }
 
@@ -375,7 +374,7 @@ String getCompletionDetail(
   } else if (hasParameterType) {
     return '$prefix${suggestion.parameterType}';
   } else {
-    return prefix;
+    return prefix.isNotEmpty ? prefix : null;
   }
 }
 
@@ -414,7 +413,7 @@ String getDeclarationCompletionDetail(
   } else if (hasReturnType) {
     return '$prefix${declaration.returnType}';
   } else {
-    return prefix;
+    return prefix.isNotEmpty ? prefix : null;
   }
 }
 
@@ -528,6 +527,11 @@ lsp.CompletionItemKind suggestionKindToCompletionItemKind(
   return getKindPreferences().firstWhere(isSupported, orElse: () => null);
 }
 
+lsp.ClosingLabel toClosingLabel(
+        server.LineInfo lineInfo, server.ClosingLabel label) =>
+    lsp.ClosingLabel(
+        toRange(lineInfo, label.offset, label.length), label.label);
+
 lsp.CompletionItem toCompletionItem(
   lsp.TextDocumentClientCapabilitiesCompletion completionCapabilities,
   HashSet<lsp.CompletionItemKind> supportedCompletionItemKinds,
@@ -550,13 +554,16 @@ lsp.CompletionItem toCompletionItem(
       : suggestionKindToCompletionItemKind(
           supportedCompletionItemKinds, suggestion.kind, label);
 
+  // Because we potentially send thousands of these items, we should minimise
+  // the generated JSON as much as possible - for example using nulls in place
+  // of empty lists/false where possible.
   return new lsp.CompletionItem(
     label,
     completionKind,
     getCompletionDetail(suggestion, completionKind, useDeprecated),
     asStringOrMarkupContent(formats, cleanDartdoc(suggestion.docComplete)),
-    useDeprecated ? suggestion.isDeprecated : null,
-    false, // preselect
+    useDeprecated && suggestion.isDeprecated ? true : null,
+    null, // preselect
     // Relevance is a number, highest being best. LSP does text sort so subtract
     // from a large number so that a text sort will result in the correct order.
     // 555 -> 999455
@@ -565,16 +572,15 @@ lsp.CompletionItem toCompletionItem(
     (1000000 - suggestion.relevance).toString(),
     null, // filterText uses label if not set
     null, // insertText is deprecated, but also uses label if not set
-    // We don't have completions that use snippets, so we always return PlainText.
-    lsp.InsertTextFormat.PlainText,
+    null, // insertTextFormat (we always use plain text so can ommit this)
     new lsp.TextEdit(
       // TODO(dantup): If `clientSupportsSnippets == true` then we should map
       // `selection` in to a snippet (see how Dart Code does this).
       toRange(lineInfo, replacementOffset, replacementLength),
       suggestion.completion,
     ),
-    [], // additionalTextEdits, used for adding imports, etc.
-    [], // commitCharacters
+    null, // additionalTextEdits, used for adding imports, etc.
+    null, // commitCharacters
     null, // command
     null, // data, useful for if using lazy resolve, this comes back to us
   );
@@ -644,6 +650,16 @@ List<lsp.DocumentHighlight> toHighlights(
           toRange(lineInfo, offset, occurrences.length), null))
       .toList();
 }
+
+lsp.Location toLocation(server.Location location, server.LineInfo lineInfo) =>
+    lsp.Location(
+      Uri.file(location.file).toString(),
+      toRange(
+        lineInfo,
+        location.offset,
+        location.length,
+      ),
+    );
 
 ErrorOr<int> toOffset(
   server.LineInfo lineInfo,

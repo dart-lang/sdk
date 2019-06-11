@@ -31,6 +31,7 @@ static RawClass* CreateDummyClass(const String& class_name,
   const Class& cls = Class::Handle(Class::New(
       Library::Handle(), class_name, script, TokenPosition::kNoSource));
   cls.set_is_synthesized_class();  // Dummy class for testing.
+  cls.set_is_declaration_loaded();
   return cls.raw();
 }
 

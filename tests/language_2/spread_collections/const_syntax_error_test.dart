@@ -5,7 +5,7 @@
 // Check that 'spread' in const collections is not enabled without the
 // experimental constant-update-2018 flag.
 
-// SharedOptions=--enable-experiment=spread-collections,no-constant-update-2018
+// SharedOptions=--enable-experiment=no-constant-update-2018
 
 const constList = [1, 2, 3, 4];
 const constSet = {1, 2, 3, 4};

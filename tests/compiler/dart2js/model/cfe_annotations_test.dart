@@ -36,7 +36,7 @@ method1() {}
 @noInline
 method2() {}
 
-@pragma('dart2js:tryInline')
+@pragma(const String.fromEnvironment('foo', defaultValue: 'dart2js:tryInline'))
 method3() {}
 
 @tryInline

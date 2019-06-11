@@ -85,7 +85,7 @@ main() {
   }
 
   test_class_notUsed_inClassMember() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class _A {
   static staticMethod() {
     new _A();
@@ -94,45 +94,55 @@ class _A {
     new _A();
   }
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
   }
 
   test_class_notUsed_inConstructorName() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class _A {
   _A() {}
   _A.named() {}
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
   }
 
   test_class_notUsed_isExpression() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class _A {}
 main(p) {
   if (p is _A) {
   }
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
   }
 
   test_class_notUsed_noReference() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class _A {}
 main() {
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
   }
 
   test_class_notUsed_variableDeclaration() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class _A {}
 main() {
   _A v;
   print(v);
 }
 print(x) {}
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
   }
 
   test_enum_isUsed_fieldReference() async {
@@ -145,11 +155,13 @@ main() {
   }
 
   test_enum_notUsed_noReference() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 enum _MyEnum {A, B, C}
 main() {
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 5, 7),
+    ]);
   }
 
   test_functionLocal_isUsed_closure() async {
@@ -181,21 +193,25 @@ print(x) {}
   }
 
   test_functionLocal_notUsed_noReference() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   f() {}
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 11, 1),
+    ]);
   }
 
   test_functionLocal_notUsed_referenceFromItself() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 main() {
   _f(int p) {
     _f(p - 1);
   }
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 11, 2),
+    ]);
   }
 
   test_functionTop_isUsed_invocation() async {
@@ -218,21 +234,25 @@ print(x) {}
   }
 
   test_functionTop_notUsed_noReference() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 _f() {}
 main() {
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 0, 2),
+    ]);
   }
 
   test_functionTop_notUsed_referenceFromItself() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 _f(int p) {
   _f(p - 1);
 }
 main() {
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 0, 2),
+    ]);
   }
 
   test_functionTypeAlias_isUsed_isExpression() async {
@@ -274,11 +294,13 @@ class A {
   }
 
   test_functionTypeAlias_notUsed_noReference() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 typedef _F(a, b);
 main() {
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 8, 2),
+    ]);
   }
 
   test_getter_isUsed_invocation_implicitThis() async {
@@ -315,21 +337,25 @@ main() {
   }
 
   test_getter_notUsed_noReference() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   get _g => null;
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 16, 2),
+    ]);
   }
 
   test_getter_notUsed_referenceFromItself() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   get _g {
     return _g;
   }
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 16, 2),
+    ]);
   }
 
   test_method_isUsed_hasReference_implicitThis() async {
@@ -477,21 +503,25 @@ main() {
   }
 
   test_method_notUsed_noReference() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   static _m() {}
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 19, 2),
+    ]);
   }
 
   test_method_notUsed_referenceFromItself() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   static _m(int p) {
     _m(p - 1);
   }
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 19, 2),
+    ]);
   }
 
   test_setter_isUsed_invocation_implicitThis() async {
@@ -528,15 +558,17 @@ main() {
   }
 
   test_setter_notUsed_noReference() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   set _s(x) {}
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 16, 2),
+    ]);
   }
 
   test_setter_notUsed_referenceFromItself() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   set _s(int x) {
     if (x > 5) {
@@ -544,7 +576,9 @@ class A {
     }
   }
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 16, 2),
+    ]);
   }
 
   test_topLevelVariable_isUsed() async {
@@ -567,11 +601,13 @@ main() {
   }
 
   test_topLevelVariable_notUsed() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 int _a = 1;
 main() {
   _a = 2;
 }
-''', [HintCode.UNUSED_ELEMENT]);
+''', [
+      error(HintCode.UNUSED_ELEMENT, 4, 2),
+    ]);
   }
 }

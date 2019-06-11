@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/analysis/defined_names.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -29,6 +30,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
@@ -119,7 +121,6 @@ class FileState {
   List<int> _apiSignature;
 
   UnlinkedUnit2 _unlinked2;
-  CompilationUnit _unitForLinking;
 
   List<FileState> _importedFiles;
   List<FileState> _exportedFiles;
@@ -340,6 +341,11 @@ class FileState {
   UnlinkedUnit get unlinked => _unlinked;
 
   /**
+   * The [UnlinkedUnit2] of the file.
+   */
+  UnlinkedUnit2 get unlinked2 => _unlinked2;
+
+  /**
    * Return the [uri] string.
    */
   String get uriStr => uri.toString();
@@ -528,18 +534,6 @@ class FileState {
     return apiSignatureChanged;
   }
 
-  /// If the file has a parsed unit from computing unlinked data, return it.
-  /// Otherwise, parse it afresh now.
-  CompilationUnit takeUnitForLinking() {
-    if (_unitForLinking != null) {
-      var result = _unitForLinking;
-      _unitForLinking = null;
-      return result;
-    } else {
-      return parse();
-    }
-  }
-
   @override
   String toString() => path ?? '<unresolved>';
 
@@ -651,9 +645,8 @@ class FileState {
       bytes = _fsState._byteStore.get(_unlinkedKey);
       if (bytes == null || bytes.isEmpty) {
         CompilationUnit unit = parse();
-        _unitForLinking = unit;
         _fsState._logger.run('Create unlinked for $path', () {
-          var unlinkedUnit = serializeAstUnlinked2(contentSignature, unit);
+          var unlinkedUnit = serializeAstUnlinked2(unit);
           var definedNames = computeDefinedNames(unit);
           var referencedNames = computeReferencedNames(unit).toList();
           var subtypedNames = computeSubtypedNames(unit).toList();
@@ -753,8 +746,7 @@ class FileState {
     return apiSignatureChanged;
   }
 
-  static UnlinkedUnit2Builder serializeAstUnlinked2(
-      List<int> contentSignature, CompilationUnit unit) {
+  static UnlinkedUnit2Builder serializeAstUnlinked2(CompilationUnit unit) {
     var exports = <String>[];
     var imports = <String>['dart:core'];
     var parts = <String>[];
@@ -776,14 +768,16 @@ class FileState {
         hasPartOfDirective = true;
       }
     }
+    var informativeData = createInformativeData(unit);
     return UnlinkedUnit2Builder(
-      apiSignature: contentSignature,
+      apiSignature: computeUnlinkedApiSignature(unit),
       exports: exports,
       imports: imports,
       parts: parts,
       hasLibraryDirective: hasLibraryDirective,
       hasPartOfDirective: hasPartOfDirective,
       lineStarts: unit.lineInfo.lineStarts,
+      informativeData: informativeData,
     );
   }
 

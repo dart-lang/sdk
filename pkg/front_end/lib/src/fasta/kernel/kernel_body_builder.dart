@@ -42,7 +42,7 @@ class KernelBodyBuilder extends BodyBuilder {
       : forest = const Fangorn(),
         super.forField(member, typeInferrer);
 
-  KernelBodyBuilder.forAnnotation(
+  KernelBodyBuilder.forOutlineExpression(
       KernelLibraryBuilder library,
       KernelClassBuilder classBuilder,
       ModifierBuilder member,

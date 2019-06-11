@@ -184,6 +184,13 @@ protocol.AvailableSuggestion _protocolAvailableSuggestion(
     label = '${declaration.parent.name}.${declaration.name}';
   }
 
+  String declaringLibraryUri;
+  if (declaration.parent == null) {
+    declaringLibraryUri = '${declaration.locationLibraryUri}';
+  } else {
+    declaringLibraryUri = '${declaration.parent.locationLibraryUri}';
+  }
+
   List<String> relevanceTags;
   if (declaration.relevanceTags == null) {
     relevanceTags = null;
@@ -194,6 +201,7 @@ protocol.AvailableSuggestion _protocolAvailableSuggestion(
 
   return protocol.AvailableSuggestion(
     label,
+    declaringLibraryUri,
     _protocolElement(declaration),
     defaultArgumentListString: declaration.defaultArgumentListString,
     defaultArgumentListTextRanges: declaration.defaultArgumentListTextRanges,

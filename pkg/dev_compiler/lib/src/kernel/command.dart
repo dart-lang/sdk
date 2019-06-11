@@ -93,7 +93,11 @@ Future<CompilerResult> _compile(List<String> args,
             'specified multi-root scheme.',
         defaultsTo: [Uri.base.path])
     ..addOption('dart-sdk',
-        help: '(unsupported with --kernel) path to the Dart SDK.', hide: true);
+        help: '(unsupported with --kernel) path to the Dart SDK.', hide: true)
+    ..addFlag('compile-sdk',
+        help: 'Build an SDK module.', defaultsTo: false, hide: true)
+    ..addOption('libraries-file',
+        help: 'The path to the libraries.json file for the sdk.');
   SharedCompilerOptions.addArguments(argParser);
 
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
@@ -155,15 +159,17 @@ Future<CompilerResult> _compile(List<String> args,
       summaryPaths.map(sourcePathToUri), options.summaryModules.values);
   var useAnalyzer = summaryPaths.any((s) => !s.endsWith('.dill'));
   var sdkSummaryPath = argResults['dart-sdk-summary'] as String;
-  String librarySpecPath;
+  var librarySpecPath = argResults['libraries-file'] as String;
   if (sdkSummaryPath == null) {
     sdkSummaryPath =
         useAnalyzer ? defaultAnalyzerSdkSummaryPath : defaultSdkSummaryPath;
-    librarySpecPath = defaultLibrarySpecPath;
-  } else {
+    librarySpecPath ??= defaultLibrarySpecPath;
+  }
+
+  if (librarySpecPath == null) {
     // TODO(jmesserly): the `isSupported` bit should be included in the SDK
     // summary, but front_end requires a separate file, so we have to work
-    // around that, while avoiding yet another command line option.
+    // around that, while not requiring yet another command line option.
     //
     // Right now we search two locations: one level above the SDK summary
     // (this works for the build and SDK layouts) or next to the SDK summary
@@ -217,6 +223,7 @@ Future<CompilerResult> _compile(List<String> args,
   bool trackWidgetCreation =
       argResults['track-widget-creation'] as bool ?? false;
 
+  var compileSdk = argResults['compile-sdk'] == true;
   var oldCompilerState = compilerState;
   List<Component> doneInputSummaries;
   fe.IncrementalCompiler incrementalCompiler;
@@ -224,7 +231,9 @@ Future<CompilerResult> _compile(List<String> args,
   if (useAnalyzer || !useIncrementalCompiler) {
     compilerState = await fe.initializeCompiler(
         oldCompilerState,
-        sourcePathToUri(sdkSummaryPath),
+        compileSdk,
+        sourcePathToUri(getSdkPath()),
+        compileSdk ? null : sourcePathToUri(sdkSummaryPath),
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
         summaryModules.keys.toList(),
@@ -237,7 +246,9 @@ Future<CompilerResult> _compile(List<String> args,
     compilerState = await fe.initializeIncrementalCompiler(
         oldCompilerState,
         doneInputSummaries,
-        sourcePathToUri(sdkSummaryPath),
+        compileSdk,
+        sourcePathToUri(getSdkPath()),
+        compileSdk ? null : sourcePathToUri(sdkSummaryPath),
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
         summaryModules.keys.toList(),
@@ -456,7 +467,7 @@ final defaultAnalyzerSdkSummaryPath =
 
 bool _checkForDartMirrorsImport(Component component) {
   for (var library in component.libraries) {
-    if (library.isExternal) continue;
+    if (library.isExternal || library.importUri.scheme == 'dart') continue;
     for (var dep in library.dependencies) {
       var uri = dep.targetLibrary.importUri;
       if (uri.scheme == 'dart' && uri.path == 'mirrors') {

@@ -24,11 +24,14 @@ f(Object x) {
   }
 
   test_forElement_inList_outsideElement() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 f() {
   return [for (int x in []) null, x];
 }
-''', [StaticWarningCode.UNDEFINED_IDENTIFIER]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 25, 1),
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 40, 1),
+    ]);
   }
 
   test_forStatement_inBody() async {
@@ -42,11 +45,14 @@ f() {
   }
 
   test_forStatement_outsideBody() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 f() {
   for (int x in []) {}
   x;
 }
-''', [StaticWarningCode.UNDEFINED_IDENTIFIER]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 31, 1),
+    ]);
   }
 }

@@ -43,7 +43,8 @@ Heap::Heap(Isolate* isolate,
       barrier_done_(),
       read_only_(false),
       gc_new_space_in_progress_(false),
-      gc_old_space_in_progress_(false) {
+      gc_old_space_in_progress_(false),
+      gc_on_next_allocation_(false) {
   UpdateGlobalMaxUsed();
   for (int sel = 0; sel < kNumWeakSelectors; sel++) {
     new_weak_tables_[sel] = new WeakTable();
@@ -80,6 +81,7 @@ void Heap::AbandonRemainingTLAB(Thread* thread) {
 
 uword Heap::AllocateNew(intptr_t size) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
+  CollectForDebugging();
   Thread* thread = Thread::Current();
   uword addr = new_space_.TryAllocateInTLAB(thread, size);
   if (addr != 0) {
@@ -125,6 +127,7 @@ uword Heap::AllocateNew(intptr_t size) {
 
 uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
+  CollectForDebugging();
   uword addr = old_space_.TryAllocate(size, type);
   if (addr != 0) {
     return addr;
@@ -652,6 +655,17 @@ void Heap::AddRegionsToObjectSet(ObjectSet* set) const {
   old_space_.AddRegionsToObjectSet(set);
 }
 
+void Heap::CollectOnNextAllocation() {
+  AbandonRemainingTLAB(Thread::Current());
+  gc_on_next_allocation_ = true;
+}
+
+void Heap::CollectForDebugging() {
+  if (!gc_on_next_allocation_) return;
+  CollectAllGarbage(kDebugging);
+  gc_on_next_allocation_ = false;
+}
+
 ObjectSet* Heap::CreateAllocatedObjectSet(
     Zone* zone,
     MarkExpectation mark_expectation) const {
@@ -1015,6 +1029,16 @@ void Heap::PrintStatsToTimeline(TimelineEventScope* event, GCReason reason) {
   event->FormatArgument(arguments + 12, "After.Old.External (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.old_.external_in_words));
 #endif  // !defined(PRODUCT)
+}
+
+Heap::Space Heap::SpaceForExternal(intptr_t size) const {
+  // If 'size' would be a significant fraction of new space, then use old.
+  static const int kExtNewRatio = 16;
+  if (size > (CapacityInWords(Heap::kNew) * kWordSize) / kExtNewRatio) {
+    return Heap::kOld;
+  } else {
+    return Heap::kNew;
+  }
 }
 
 NoHeapGrowthControlScope::NoHeapGrowthControlScope()

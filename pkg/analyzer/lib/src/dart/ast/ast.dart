@@ -4910,7 +4910,8 @@ class FunctionExpressionImpl extends ExpressionImpl
   /// not a generic method.
   TypeParameterListImpl _typeParameters;
 
-  /// The parameters associated with the function.
+  /// The parameters associated with the function, or `null` if the function is
+  /// part of a top-level getter.
   FormalParameterListImpl _parameters;
 
   /// The body of the function, or `null` if this is an external function.
@@ -5172,7 +5173,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
 ///
 ///    functionSignature ::=
 ///        [TypeName]? [SimpleIdentifier] [TypeParameterList]?
-///        [FormalParameterList]
+///        [FormalParameterList] '?'?
 class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     implements FunctionTypedFormalParameter {
   /// The return type of the function, or `null` if the function does not have a

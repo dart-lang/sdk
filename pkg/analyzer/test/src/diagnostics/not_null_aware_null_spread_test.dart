@@ -16,16 +16,20 @@ main() {
 @reflectiveTest
 class NotNullAwareNullSpreadTest extends DriverResolutionTest {
   test_listLiteral_notNullAware_nullLiteral() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var v = [...null];
-''', [CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD]);
+''', [
+      error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 12, 4),
+    ]);
   }
 
   test_listLiteral_notNullAware_nullTyped() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 Null a = null;
 var v = [...a];
-''', [CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD]);
+''', [
+      error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 27, 1),
+    ]);
   }
 
   test_listLiteral_nullAware_nullLiteral() async {
@@ -42,16 +46,20 @@ var v = [...?a];
   }
 
   test_mapLiteral_notNullAware_nullLiteral() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var v = <int, int>{...null};
-''', [CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD]);
+''', [
+      error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 22, 4),
+    ]);
   }
 
   test_mapLiteral_notNullAware_nullType() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 Null a = null;
 var v = <int, int>{...a};
-''', [CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD]);
+''', [
+      error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 37, 1),
+    ]);
   }
 
   test_mapLiteral_nullAware_nullLiteral() async {
@@ -68,16 +76,20 @@ var v = <int, int>{...?a};
   }
 
   test_setLiteral_notNullAware_nullLiteral() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var v = <int>{...null};
-''', [CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD]);
+''', [
+      error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 17, 4),
+    ]);
   }
 
   test_setLiteral_notNullAware_nullTyped() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 Null a = null;
 var v = <int>{...a};
-''', [CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD]);
+''', [
+      error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 32, 1),
+    ]);
   }
 
   test_setLiteral_nullAware_nullLiteral() async {

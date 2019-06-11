@@ -136,6 +136,14 @@ $snippet
           writeError(error, importsLength);
         }
       }
+    } catch (exception, stackTrace) {
+      if (output.isNotEmpty) {
+        output.writeln();
+      }
+      output.writeln('Exception while analyzing "$snippet"');
+      output.writeln();
+      output.writeln(exception);
+      output.writeln(stackTrace);
     } finally {
       provider.removeOverlay(snippetPath);
     }

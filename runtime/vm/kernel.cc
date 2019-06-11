@@ -17,25 +17,6 @@
 namespace dart {
 namespace kernel {
 
-bool FieldHasFunctionLiteralInitializer(const Field& field,
-                                        TokenPosition* start,
-                                        TokenPosition* end) {
-  Zone* zone = Thread::Current()->zone();
-  const Script& script = Script::Handle(zone, field.Script());
-
-  TranslationHelper translation_helper(Thread::Current());
-  translation_helper.InitFromScript(script);
-
-  KernelReaderHelper kernel_reader_helper(
-      zone, &translation_helper, Script::Handle(zone, field.Script()),
-      ExternalTypedData::Handle(zone, field.KernelData()),
-      field.KernelDataProgramOffset());
-  kernel_reader_helper.SetOffset(field.kernel_offset());
-  kernel::FieldHelper field_helper(&kernel_reader_helper);
-  field_helper.ReadUntilExcluding(kernel::FieldHelper::kEnd, true);
-  return field_helper.FieldHasFunctionLiteralInitializer(start, end);
-}
-
 KernelLineStartsReader::KernelLineStartsReader(
     const dart::TypedData& line_starts_data,
     dart::Zone* zone)
@@ -672,18 +653,18 @@ void ReadParameterCovariance(const Function& function,
   TranslationHelper translation_helper(thread);
   translation_helper.InitFromScript(script);
 
-  KernelReaderHelper reader_helper(
-      zone, &translation_helper, script,
-      ExternalTypedData::Handle(zone, function.KernelData()),
-      function.KernelDataProgramOffset());
-
   if (function.is_declared_in_bytecode()) {
-    BytecodeReaderHelper bytecode_reader_helper(&reader_helper, nullptr,
+    BytecodeReaderHelper bytecode_reader_helper(&translation_helper, nullptr,
                                                 nullptr);
     bytecode_reader_helper.ReadParameterCovariance(function, is_covariant,
                                                    is_generic_covariant_impl);
     return;
   }
+
+  KernelReaderHelper reader_helper(
+      zone, &translation_helper, script,
+      ExternalTypedData::Handle(zone, function.KernelData()),
+      function.KernelDataProgramOffset());
 
   reader_helper.SetOffset(function.kernel_offset());
   reader_helper.ReadUntilFunctionNode();

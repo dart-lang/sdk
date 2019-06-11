@@ -656,6 +656,9 @@ class Compiler extends NamedEnum {
         return const [
           Runtime.none,
           Runtime.chrome,
+          Runtime.edge,
+          Runtime.firefox,
+          Runtime.safari,
         ];
 
       case Compiler.dart2analyzer:

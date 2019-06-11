@@ -104,7 +104,8 @@ import '../parser.dart' show Parser, lengthForToken, offsetForToken;
 
 import '../problems.dart' show internalProblem;
 
-import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
+import '../scanner.dart'
+    show ErrorToken, ScannerConfiguration, ScannerResult, Token, scan;
 
 import '../type_inference/interface_resolver.dart' show InterfaceResolver;
 
@@ -200,7 +201,10 @@ class SourceLoader extends Loader<Library> {
       byteCount += rawBytes.length;
     }
 
-    ScannerResult result = scan(bytes, includeComments: includeComments);
+    ScannerResult result = scan(bytes,
+        includeComments: includeComments,
+        configuration: new ScannerConfiguration(
+            enableTripleShift: target.enableTripleShift));
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);
@@ -948,17 +952,17 @@ class SourceLoader extends Loader<Library> {
     ticker.logMs("Checked mixin declaration applications");
   }
 
-  void buildAnnotations() {
+  void buildOutlineExpressions() {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
-        library.buildAnnotations();
+        library.buildOutlineExpressions();
         Iterator<Declaration> iterator = library.iterator;
         while (iterator.moveNext()) {
           Declaration declaration = iterator.current;
           if (declaration is ClassBuilder) {
-            declaration.buildAnnotations(library);
+            declaration.buildOutlineExpressions(library);
           } else if (declaration is MemberBuilder) {
-            declaration.buildAnnotations(library);
+            declaration.buildOutlineExpressions(library);
           }
         }
       }

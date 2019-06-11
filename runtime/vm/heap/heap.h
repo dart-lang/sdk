@@ -301,6 +301,9 @@ class Heap {
   }
   void MakeTLABIterable(Thread* thread);
   void AbandonRemainingTLAB(Thread* thread);
+  Space SpaceForExternal(intptr_t size) const;
+
+  void CollectOnNextAllocation();
 
  private:
   class GCStats : public ValueObject {
@@ -373,6 +376,9 @@ class Heap {
 
   void AddRegionsToObjectSet(ObjectSet* set) const;
 
+  // Trigger major GC if 'gc_on_next_allocation_' is set.
+  void CollectForDebugging();
+
   Isolate* isolate_;
 
   // The different spaces used for allocation.
@@ -395,6 +401,11 @@ class Heap {
   Monitor gc_in_progress_monitor_;
   bool gc_new_space_in_progress_;
   bool gc_old_space_in_progress_;
+
+  // Whether the next heap allocation (new or old) should trigger
+  // CollectAllGarbage. Used within unit tests for testing GC on certain
+  // sensitive codepaths.
+  bool gc_on_next_allocation_;
 
   friend class Become;       // VisitObjectPointers
   friend class GCCompactor;  // VisitObjectPointers

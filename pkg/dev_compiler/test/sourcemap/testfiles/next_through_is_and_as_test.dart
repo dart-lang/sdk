@@ -4,7 +4,7 @@
 
 /*Debugger:stepOver*/
 
-main() {
+void main() {
   /*bl*/
   /*sl:1*/ var i = 42.42;
   /*sl:2*/ var hex = 0x42;

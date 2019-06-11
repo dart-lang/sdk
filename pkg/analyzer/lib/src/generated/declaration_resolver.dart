@@ -32,13 +32,6 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   /// element model.
   ElementWalker _walker;
 
-  /// Is `true` if the current [ClassDeclaration] has a const constructor.
-  bool _hasConstConstructor = false;
-
-  /// The number of [GenericFunctionType] nodes that we encountered so far.
-  /// We use it to request the corresponding resolved node.
-  int _nextGenericFunctionTypeId = 0;
-
   DeclarationResolver();
 
   /// Resolve the declarations within the given compilation [unit] to the
@@ -86,14 +79,6 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _hasConstConstructor = false;
-    for (var member in node.members) {
-      if (member is ConstructorDeclaration && member.constKeyword != null) {
-        _hasConstConstructor = true;
-        break;
-      }
-    }
-
     ClassElement element = _match(node.name, _walker.getClass());
     _walk(new ElementWalker.forClass(element), () {
       super.visitClassDeclaration(node);
@@ -203,10 +188,6 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
     super.visitFieldDeclaration(node);
     FieldElement firstFieldElement = node.fields.variables[0].declaredElement;
     resolveMetadata(node, node.metadata, firstFieldElement);
-    if (node.fields.isConst ||
-        !node.isStatic && node.fields.isFinal && _hasConstConstructor) {
-      _consumeGenericFunctionTypeIds(node.fields);
-    }
   }
 
   @override
@@ -289,19 +270,20 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
+    if (AnalysisDriver.useSummary2 && _enclosingUnit.linkedContext != null) {
+      var builder = new LocalElementBuilder(ElementHolder(), _enclosingUnit);
+      node.accept(builder);
+
+      var nodeImpl = node as GenericFunctionTypeImpl;
+      _enclosingUnit.encloseElement(
+        nodeImpl.declaredElement as GenericFunctionTypeElementImpl,
+      );
+      return;
+    }
     if (_walker.elementBuilder != null) {
       _walker.elementBuilder.visitGenericFunctionType(node);
     } else {
-      Element element;
-      if (AnalysisDriver.useSummary2 && _enclosingUnit.linkedContext != null) {
-        var id = _nextGenericFunctionTypeId++;
-        var context = _enclosingUnit.linkedContext;
-        var linkedNode = context.getGenericFunctionType(id);
-        element = linkedNode.declaredElement;
-        (node as GenericFunctionTypeImpl).declaredElement = element;
-      } else {
-        element = node.type?.element;
-      }
+      var element = node.type?.element;
       if (element is GenericFunctionTypeElement) {
         _setGenericFunctionType(node.returnType, element.returnType);
         _walk(new ElementWalker.forGenericFunctionType(element), () {
@@ -454,9 +436,6 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
     super.visitTopLevelVariableDeclaration(node);
     VariableElement firstElement = node.variables.variables[0].declaredElement;
     resolveMetadata(node, node.metadata, firstElement);
-    if (node.variables.isConst) {
-      _consumeGenericFunctionTypeIds(node.variables);
-    }
   }
 
   @override
@@ -505,14 +484,6 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
           node.parent is! TopLevelVariableDeclaration) {
         resolveMetadata(node, node.metadata, firstVariable);
       }
-    }
-  }
-
-  /// See [_ConsumeGenericFunctionTypeIdsVisitor].
-  void _consumeGenericFunctionTypeIds(VariableDeclarationList node) {
-    if (AnalysisDriver.useSummary2) {
-      var visitor = _ConsumeGenericFunctionTypeIdsVisitor(this);
-      node.variables.accept(visitor);
     }
   }
 
@@ -989,24 +960,6 @@ class ElementWalker {
   }
 
   static bool _isNotSynthetic(Element e) => !e.isSynthetic;
-}
-
-/// For consistency we set identifiers for [GenericFunctionType]s in constant
-/// variable initializers, and instance final fields of classes with constant
-/// constructors. However [DeclarationResolver] does not visit these
-/// initializers, in builds separate local elements. We still need to consume
-/// them to ensure that identifiers expected by the element model, and by
-/// [DeclarationResolver] match.
-class _ConsumeGenericFunctionTypeIdsVisitor extends RecursiveAstVisitor<void> {
-  final DeclarationResolver resolver;
-
-  _ConsumeGenericFunctionTypeIdsVisitor(this.resolver);
-
-  @override
-  void visitGenericFunctionType(GenericFunctionType node) {
-    resolver._nextGenericFunctionTypeId++;
-    super.visitGenericFunctionType(node);
-  }
 }
 
 class _ElementMismatchException extends AnalysisException {

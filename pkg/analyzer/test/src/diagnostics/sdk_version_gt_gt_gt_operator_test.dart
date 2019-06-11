@@ -26,7 +26,9 @@ class SdkVersionGtGtGtOperatorTest extends SdkConstraintVerifierTest {
     //  UNDEFINED_OPERATOR when triple_shift is enabled by default.
     verifyVersion('2.3.2', '''
 const a = 42 >>> 3;
-''', errorCodes: [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', expectedErrors: [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 13, 3),
+    ]);
   }
 
   test_const_lessThan() {
@@ -34,9 +36,9 @@ const a = 42 >>> 3;
     //  UNDEFINED_OPERATOR when triple_shift is enabled by default.
     verifyVersion('2.2.0', '''
 const a = 42 >>> 3;
-''', errorCodes: [
-      StaticTypeWarningCode.UNDEFINED_OPERATOR,
-      HintCode.SDK_VERSION_GT_GT_GT_OPERATOR
+''', expectedErrors: [
+      error(HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, 13, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 13, 3),
     ]);
   }
 
@@ -53,7 +55,9 @@ class A {
 class A {
   A operator >>>(A a) => this;
 }
-''', errorCodes: [HintCode.SDK_VERSION_GT_GT_GT_OPERATOR]);
+''', expectedErrors: [
+      error(HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, 23, 3),
+    ]);
   }
 
   test_nonConst_equals() {
@@ -61,7 +65,9 @@ class A {
     //  UNDEFINED_OPERATOR when constant update is enabled by default.
     verifyVersion('2.3.2', '''
 var a = 42 >>> 3;
-''', errorCodes: [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', expectedErrors: [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 11, 3),
+    ]);
   }
 
   test_nonConst_lessThan() {
@@ -69,9 +75,9 @@ var a = 42 >>> 3;
     //  UNDEFINED_OPERATOR when constant update is enabled by default.
     verifyVersion('2.2.0', '''
 var a = 42 >>> 3;
-''', errorCodes: [
-      StaticTypeWarningCode.UNDEFINED_OPERATOR,
-      HintCode.SDK_VERSION_GT_GT_GT_OPERATOR
+''', expectedErrors: [
+      error(HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, 11, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 11, 3),
     ]);
   }
 }

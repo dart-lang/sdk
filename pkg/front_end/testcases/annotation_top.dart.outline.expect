@@ -16,7 +16,7 @@ class C extends core::Object {
   synthetic constructor •() → self::C
     ;
 }
-static const field core::Object a;
+static const field core::Object a = const core::Object::•();
 @self::a
 @self::A::•(3)
 static field core::int f1;

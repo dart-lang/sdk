@@ -1732,7 +1732,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(Assembler* assembler,
   // when the object initialization should be done as a loop or as
   // straight line code.
   const int kInlineInstanceSize = 12;
-  const intptr_t instance_size = target::Class::InstanceSize(cls);
+  const intptr_t instance_size = target::Class::GetInstanceSize(cls);
   ASSERT(instance_size > 0);
   if (is_cls_parameterized) {
     __ ldr(kTypeArgumentsReg, Address(SP));

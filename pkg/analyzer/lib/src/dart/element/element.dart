@@ -2725,12 +2725,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   void appendTo(StringBuffer buffer) {
     String name;
+    String constructorName = displayName;
     if (enclosingElement == null) {
       String message;
-      String name = displayName;
-      if (name != null && !name.isEmpty) {
+      if (constructorName != null && !constructorName.isEmpty) {
         message =
-            'Found constructor element named $name with no enclosing element';
+            'Found constructor element named $constructorName with no enclosing element';
       } else {
         message = 'Found unnamed constructor element with no enclosing element';
       }
@@ -2739,7 +2739,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
     } else {
       name = enclosingElement.displayName;
     }
-    String constructorName = displayName;
     if (constructorName != null && !constructorName.isEmpty) {
       name = '$name.$constructorName';
     }

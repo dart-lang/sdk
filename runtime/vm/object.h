@@ -916,10 +916,6 @@ class Class : public Object {
   // the super class.
   intptr_t NumTypeArguments() const;
 
-  // Return the number of type arguments that are specific to this class, i.e.
-  // not overlapping with the type arguments of the super class of this class.
-  intptr_t NumOwnTypeArguments() const;
-
   // Return true if this class declares type parameters.
   bool IsGeneric() const { return NumTypeParameters(Thread::Current()) > 0; }
 
@@ -950,7 +946,10 @@ class Class : public Object {
   }
 
   // The super type of this class, Object type if not explicitly specified.
-  RawAbstractType* super_type() const { return raw_ptr()->super_type_; }
+  RawAbstractType* super_type() const {
+    ASSERT(is_declaration_loaded());
+    return raw_ptr()->super_type_;
+  }
   void set_super_type(const AbstractType& value) const;
   static intptr_t super_type_offset() {
     return OFFSET_OF(RawClass, super_type_);
@@ -1117,8 +1116,17 @@ class Class : public Object {
   }
   void set_is_abstract() const;
 
+  RawClass::ClassLoadingState class_loading_state() const {
+    return ClassLoadingBits::decode(raw_ptr()->state_bits_);
+  }
+
+  bool is_declaration_loaded() const {
+    return class_loading_state() >= RawClass::kDeclarationLoaded;
+  }
+  void set_is_declaration_loaded() const;
+
   bool is_type_finalized() const {
-    return TypeFinalizedBit::decode(raw_ptr()->state_bits_);
+    return class_loading_state() >= RawClass::kTypeFinalized;
   }
   void set_is_type_finalized() const;
 
@@ -1146,8 +1154,6 @@ class Class : public Object {
 
   void set_is_prefinalized() const;
 
-  void ResetFinalization() const;
-
   bool is_const() const { return ConstBit::decode(raw_ptr()->state_bits_); }
   void set_is_const() const;
 
@@ -1166,11 +1172,6 @@ class Class : public Object {
     return FieldsMarkedNullableBit::decode(raw_ptr()->state_bits_);
   }
   void set_is_fields_marked_nullable() const;
-
-  bool is_cycle_free() const {
-    return CycleFreeBit::decode(raw_ptr()->state_bits_);
-  }
-  void set_is_cycle_free() const;
 
   bool is_allocated() const {
     return IsAllocatedBit::decode(raw_ptr()->state_bits_);
@@ -1334,41 +1335,44 @@ class Class : public Object {
   enum StateBits {
     kConstBit = 0,
     kImplementedBit = 1,
-    kTypeFinalizedBit = 2,
-    kClassFinalizedPos = 3,
+    kClassFinalizedPos = 2,
     kClassFinalizedSize = 2,
-    kAbstractBit = kClassFinalizedPos + kClassFinalizedSize,  // = 5
-    kPatchBit = 6,
+    kClassLoadingPos = kClassFinalizedPos + kClassFinalizedSize,  // = 4
+    kClassLoadingSize = 2,
+    kAbstractBit = kClassLoadingPos + kClassLoadingSize,  // = 6
+    kPatchBit,
     kSynthesizedClassBit,
     kMixinAppAliasBit,
     kMixinTypeAppliedBit,
     kFieldsMarkedNullableBit,
-    kCycleFreeBit,
     kEnumBit,
     kTransformedMixinApplicationBit,
     kIsAllocatedBit,
     kIsLoadedBit,
+    kHasPragmaBit,
   };
-  class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
-  class ImplementedBit : public BitField<uint16_t, bool, kImplementedBit, 1> {};
-  class TypeFinalizedBit
-      : public BitField<uint16_t, bool, kTypeFinalizedBit, 1> {};
-  class ClassFinalizedBits : public BitField<uint16_t,
+  class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
+  class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
+  class ClassFinalizedBits : public BitField<uint32_t,
                                              RawClass::ClassFinalizedState,
                                              kClassFinalizedPos,
                                              kClassFinalizedSize> {};
-  class AbstractBit : public BitField<uint16_t, bool, kAbstractBit, 1> {};
-  class PatchBit : public BitField<uint16_t, bool, kPatchBit, 1> {};
+  class ClassLoadingBits : public BitField<uint32_t,
+                                           RawClass::ClassLoadingState,
+                                           kClassLoadingPos,
+                                           kClassLoadingSize> {};
+  class AbstractBit : public BitField<uint32_t, bool, kAbstractBit, 1> {};
+  class PatchBit : public BitField<uint32_t, bool, kPatchBit, 1> {};
   class SynthesizedClassBit
-      : public BitField<uint16_t, bool, kSynthesizedClassBit, 1> {};
+      : public BitField<uint32_t, bool, kSynthesizedClassBit, 1> {};
   class FieldsMarkedNullableBit
-      : public BitField<uint16_t, bool, kFieldsMarkedNullableBit, 1> {};
-  class CycleFreeBit : public BitField<uint16_t, bool, kCycleFreeBit, 1> {};
-  class EnumBit : public BitField<uint16_t, bool, kEnumBit, 1> {};
+      : public BitField<uint32_t, bool, kFieldsMarkedNullableBit, 1> {};
+  class EnumBit : public BitField<uint32_t, bool, kEnumBit, 1> {};
   class TransformedMixinApplicationBit
-      : public BitField<uint16_t, bool, kTransformedMixinApplicationBit, 1> {};
-  class IsAllocatedBit : public BitField<uint16_t, bool, kIsAllocatedBit, 1> {};
-  class IsLoadedBit : public BitField<uint16_t, bool, kIsLoadedBit, 1> {};
+      : public BitField<uint32_t, bool, kTransformedMixinApplicationBit, 1> {};
+  class IsAllocatedBit : public BitField<uint32_t, bool, kIsAllocatedBit, 1> {};
+  class IsLoadedBit : public BitField<uint32_t, bool, kIsLoadedBit, 1> {};
+  class HasPragmaBit : public BitField<uint32_t, bool, kHasPragmaBit, 1> {};
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -1386,40 +1390,23 @@ class Class : public Object {
   // functions_hash_table is in use iff there are at least this many functions.
   static const intptr_t kFunctionLookupHashTreshold = 16;
 
-  enum HasPragmaAndNumOwnTypeArgumentsBits {
-    kHasPragmaBit = 0,
-    kNumOwnTypeArgumentsPos = 1,
-    kNumOwnTypeArgumentsSize = 15
-  };
-
-  class HasPragmaBit : public BitField<uint16_t, bool, kHasPragmaBit, 1> {};
-  class NumOwnTypeArguments : public BitField<uint16_t,
-                                              uint16_t,
-                                              kNumOwnTypeArgumentsPos,
-                                              kNumOwnTypeArgumentsSize> {};
-
   // Initial value for the cached number of type arguments.
-  static const intptr_t kUnknownNumTypeArguments =
-      (1U << kNumOwnTypeArgumentsSize) - 1;
+  static const intptr_t kUnknownNumTypeArguments = -1;
 
   int16_t num_type_arguments() const { return raw_ptr()->num_type_arguments_; }
   void set_num_type_arguments(intptr_t value) const;
 
  public:
   bool has_pragma() const {
-    return HasPragmaBit::decode(
-        raw_ptr()->has_pragma_and_num_own_type_arguments_);
+    return HasPragmaBit::decode(raw_ptr()->state_bits_);
   }
   void set_has_pragma(bool has_pragma) const;
 
  private:
-  uint16_t num_own_type_arguments() const {
-    return NumOwnTypeArguments::decode(
-        raw_ptr()->has_pragma_and_num_own_type_arguments_);
-  }
-  void set_num_own_type_arguments(intptr_t value) const;
-
-  void set_has_pragma_and_num_own_type_arguments(uint16_t value) const;
+  // Calculates number of type arguments of this class.
+  // This includes type arguments of a superclass and takes overlapping
+  // of type arguments into account.
+  intptr_t ComputeNumTypeArguments() const;
 
   // Assigns empty array to all raw class array fields.
   void InitEmptyFields();
@@ -5628,7 +5615,7 @@ class Context : public Object {
   }
 
   static bool IsValidLength(intptr_t len) {
-    return 0 <= len && len <= kMaxElements;
+    return 0 <= len && len <= compiler::target::Array::kMaxElements;
   }
 
   static intptr_t InstanceSize() {
@@ -8516,10 +8503,20 @@ class TypedDataBase : public Instance {
     }
   }
 
+  void* DataAddr(intptr_t byte_offset) const {
+    ASSERT((byte_offset == 0) ||
+           ((byte_offset > 0) && (byte_offset < LengthInBytes())));
+    return reinterpret_cast<void*>(Validate(raw_ptr()->data_) + byte_offset);
+  }
+
  protected:
   void SetLength(intptr_t value) const {
     ASSERT(value <= Smi::kMaxValue);
     StoreSmi(&raw_ptr()->length_, Smi::New(value));
+  }
+
+  virtual uint8_t* Validate(uint8_t* data) const {
+    return UnsafeMutableNonPointer(data);
   }
 
  private:
@@ -8544,13 +8541,6 @@ class TypedData : public TypedDataBase {
   // 64-bit architecture stay in Smi range when loaded on a 32-bit
   // architecture.
   static const intptr_t kHashBits = 30;
-
-  void* DataAddr(intptr_t byte_offset) const {
-    ASSERT((byte_offset == 0) ||
-           ((byte_offset > 0) && (byte_offset < LengthInBytes())));
-    return reinterpret_cast<void*>(UnsafeMutableNonPointer(raw_ptr()->data()) +
-                                   byte_offset);
-  }
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const;
@@ -8692,12 +8682,6 @@ class ExternalTypedData : public TypedDataBase {
   // snapshot. Should be independent of word size.
   static const int kDataSerializationAlignment = 8;
 
-  void* DataAddr(intptr_t byte_offset) const {
-    ASSERT((byte_offset == 0) ||
-           ((byte_offset > 0) && (byte_offset < LengthInBytes())));
-    return reinterpret_cast<void*>(raw_ptr()->data_ + byte_offset);
-  }
-
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
     return ReadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
@@ -8751,6 +8735,8 @@ class ExternalTypedData : public TypedDataBase {
   }
 
  protected:
+  virtual uint8_t* Validate(uint8_t* data) const { return data; }
+
   void SetLength(intptr_t value) const {
     ASSERT(value <= Smi::kMaxValue);
     StoreSmi(&raw_ptr()->length_, Smi::New(value));
@@ -8822,6 +8808,9 @@ class TypedDataView : public TypedDataBase {
   }
 
   RawSmi* offset_in_bytes() const { return raw_ptr()->offset_in_bytes_; }
+
+ protected:
+  virtual uint8_t* Validate(uint8_t* data) const { return data; }
 
  private:
   void RecomputeDataField() { raw()->RecomputeDataField(); }
@@ -9186,6 +9175,50 @@ class SendPort : public Instance {
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SendPort, Instance);
+  friend class Class;
+};
+
+// This is allocated when new instance of TransferableTypedData is created in
+// [TransferableTypedData::New].
+class TransferableTypedDataPeer {
+ public:
+  // [data] backing store should be malloc'ed, not new'ed.
+  TransferableTypedDataPeer(uint8_t* data, intptr_t length)
+      : data_(data), length_(length), handle_(nullptr) {}
+
+  ~TransferableTypedDataPeer() { free(data_); }
+
+  uint8_t* data() const { return data_; }
+  intptr_t length() const { return length_; }
+  FinalizablePersistentHandle* handle() const { return handle_; }
+  void set_handle(FinalizablePersistentHandle* handle) { handle_ = handle; }
+
+  void ClearData() {
+    data_ = nullptr;
+    length_ = 0;
+    handle_ = nullptr;
+  }
+
+ private:
+  uint8_t* data_;
+  intptr_t length_;
+  FinalizablePersistentHandle* handle_;
+
+  DISALLOW_COPY_AND_ASSIGN(TransferableTypedDataPeer);
+};
+
+class TransferableTypedData : public Instance {
+ public:
+  static RawTransferableTypedData* New(uint8_t* data,
+                                       intptr_t len,
+                                       Heap::Space space = Heap::kNew);
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawTransferableTypedData));
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TransferableTypedData, Instance);
   friend class Class;
 };
 

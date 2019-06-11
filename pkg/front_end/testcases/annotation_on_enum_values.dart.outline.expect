@@ -22,6 +22,6 @@ class Foo extends core::Object {
   method toString() → core::String
     return this.{=self::Foo::_name};
 }
-static const field core::int hest;
+static const field core::int hest = 42;
 static method main() → dynamic
   ;

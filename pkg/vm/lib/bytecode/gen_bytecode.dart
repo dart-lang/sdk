@@ -1732,8 +1732,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     final int closureFunctionIndex = cp.addClosureFunction(closureIndex);
 
-    _genPrologue(node, function);
     _recordSourcePosition(function.fileOffset);
+    _genPrologue(node, function);
 
     Label continuationSwitchLabel;
     int continuationSwitchVar;

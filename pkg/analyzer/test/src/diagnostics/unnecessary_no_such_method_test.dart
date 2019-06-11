@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class UnnecessaryNoSuchMethodTest extends DriverResolutionTest {
   test_blockBody() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
@@ -26,7 +26,9 @@ class B extends A {
     return super.noSuchMethod(y);
   }
 }
-''', [HintCode.UNNECESSARY_NO_SUCH_METHOD]);
+''', [
+      error(HintCode.UNNECESSARY_NO_SUCH_METHOD, 87, 55),
+    ]);
   }
 
   test_blockBody_notReturnStatement() async {
@@ -59,7 +61,7 @@ class B extends A {
   }
 
   test_expressionBody() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   noSuchMethod(x) => super.noSuchMethod(x);
 }
@@ -67,7 +69,9 @@ class B extends A {
   mmm();
   noSuchMethod(y) => super.noSuchMethod(y);
 }
-''', [HintCode.UNNECESSARY_NO_SUCH_METHOD]);
+''', [
+      error(HintCode.UNNECESSARY_NO_SUCH_METHOD, 87, 41),
+    ]);
   }
 
   test_expressionBody_notNoSuchMethod() async {

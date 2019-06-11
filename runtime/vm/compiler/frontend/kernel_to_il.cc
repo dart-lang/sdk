@@ -1033,13 +1033,13 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   // instructions!
   body += LoadLocal(view_object);
   body += LoadLocal(typed_data);
-  body += LoadUntagged(TypedDataBase::data_field_offset());
+  body += LoadUntagged(compiler::target::TypedDataBase::data_field_offset());
   body += ConvertUntaggedToIntptr();
   body += LoadLocal(offset_in_bytes);
   body += UnboxSmiToIntptr();
   body += AddIntptrIntegers();
   body += ConvertIntptrToUntagged();
-  body += StoreUntagged(TypedDataView::data_field_offset());
+  body += StoreUntagged(compiler::target::TypedDataBase::data_field_offset());
 
   return body;
 }
@@ -1772,9 +1772,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     loop_body += LoadLocal(argument_count);
     loop_body += LoadLocal(index);
     loop_body += SmiBinaryOp(Token::kSUB, /*truncate=*/true);
-    loop_body += LoadFpRelativeSlot(
-        kWordSize * compiler::target::frame_layout.param_end_from_fp,
-        CompileType::Dynamic());
+    loop_body +=
+        LoadFpRelativeSlot(compiler::target::kWordSize *
+                               compiler::target::frame_layout.param_end_from_fp,
+                           CompileType::Dynamic());
     loop_body += StoreIndexed(kArrayCid);
 
     // ++i

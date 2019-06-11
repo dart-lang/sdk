@@ -24,7 +24,7 @@ final sdkSummaryFile = path.join(repoDirectory, 'gen', 'sdk', 'ddc_sdk.sum');
 
 final sdkSummaryArgs = ['--$sdkSummaryPathOption', sdkSummaryFile];
 
-main() {
+void main() {
   test('basic', () {
     var options = AnalyzerOptions.basic()..analysisRoot = optionsDir;
     var driver = CompilerAnalysisDriver(options);

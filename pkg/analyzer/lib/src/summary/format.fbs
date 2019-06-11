@@ -1886,8 +1886,6 @@ table LinkedNode {
 
   variantField_2:[LinkedNode] (id: 2);
 
-  variantField_11:LinkedNode (id: 11);
-
   variantField_4:[LinkedNode] (id: 4);
 
   variantField_6:LinkedNode (id: 6);
@@ -1914,17 +1912,11 @@ table LinkedNode {
 
   variantField_13:LinkedNode (id: 13);
 
-  variantField_33:uint (id: 33);
-
-  variantField_32:uint (id: 32);
-
-  variantField_35:[string] (id: 35);
+  variantField_33:[string] (id: 33);
 
   variantField_29:LinkedNodeCommentType (id: 29);
 
   variantField_3:[LinkedNode] (id: 3);
-
-  variantField_19:uint (id: 19);
 
   variantField_10:LinkedNode (id: 10);
 
@@ -1938,6 +1930,8 @@ table LinkedNode {
 
   variantField_1:string (id: 1);
 
+  variantField_36:uint (id: 36);
+
   variantField_16:uint (id: 16);
 
   variantField_30:string (id: 30);
@@ -1946,17 +1940,23 @@ table LinkedNode {
 
   kind:LinkedNodeKind (id: 0);
 
-  variantField_36:[string] (id: 36);
+  variantField_34:[string] (id: 34);
+
+  name:string (id: 37);
 
   variantField_20:string (id: 20);
 
   variantField_31:bool (id: 31);
 
-  variantField_37:UnlinkedTokenType (id: 37);
+  variantField_35:UnlinkedTokenType (id: 35);
 
-  variantField_34:TopLevelInferenceError (id: 34);
+  variantField_32:TopLevelInferenceError (id: 32);
+
+  variantField_11:LinkedNode (id: 11);
 
   variantField_22:string (id: 22);
+
+  variantField_19:uint (id: 19);
 }
 
 /// Information about a group of libraries linked together, for example because
@@ -2034,20 +2034,9 @@ table LinkedNodeTypeTypeParameter {
 
 /// Information about a single library in a [LinkedNodeLibrary].
 table LinkedNodeUnit {
-  /// All generic function types in the unit - in generic type aliases, or used
-  /// directly as type annotations.
-  ///
-  /// They are requested in two cases: when we are reading a node that contains
-  /// them (e.g. a return type of a method), or when we run over unresolved
-  /// AST in declaration resolver.
-  genericFunctionTypes:[LinkedNode] (id: 5);
-
-  isNNBD:bool (id: 6);
+  isNNBD:bool (id: 4);
 
   isSynthetic:bool (id: 3);
-
-  /// Offsets of the first character of each line in the source code.
-  lineStarts:[uint] (id: 4);
 
   node:LinkedNode (id: 2);
 
@@ -2751,6 +2740,26 @@ table UnlinkedImport {
   uriOffset:uint (id: 3);
 }
 
+table UnlinkedInformativeData {
+  variantField_2:uint (id: 2);
+
+  variantField_3:uint (id: 3);
+
+  variantField_1:uint (id: 1);
+
+  variantField_4:[string] (id: 4);
+
+  /// The kind of the node.
+  kind:LinkedNodeKind (id: 0);
+
+  variantField_5:uint (id: 5);
+
+  variantField_6:uint (id: 6);
+
+  /// Offsets of the first character of each line in the source code.
+  variantField_7:[uint] (id: 7);
+}
+
 /// Unlinked summary information about a function parameter.
 table UnlinkedParam {
   /// Annotations for this parameter.
@@ -3098,6 +3107,8 @@ table UnlinkedUnit2 {
 
   /// URIs of `import` directives.
   imports:[string] (id: 2);
+
+  informativeData:[UnlinkedInformativeData] (id: 7);
 
   /// Offsets of the first character of each line in the source code.
   lineStarts:[uint] (id: 5);

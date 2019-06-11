@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
 import 'package:analyzer/src/summary2/tokens_writer.dart';
@@ -27,9 +28,6 @@ var timerAstBinaryWriterTypedef = Stopwatch();
 /// Serializer of fully resolved ASTs into flat buffers.
 class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   final LinkingBundleContext _linkingContext;
-
-  /// The list stored [GenericFunctionType]s, as visited in depth-first order.
-  final List<LinkedNodeBuilder> genericFunctionTypes = [];
 
   /// Is `true` if the current [ClassDeclaration] has a const constructor,
   /// so initializers of final fields should be written.
@@ -277,8 +275,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       compilationUnit_declarations: _writeNodeList(node.declarations),
       compilationUnit_directives: _writeNodeList(node.directives),
       compilationUnit_scriptTag: node.scriptTag?.accept(this),
+      informativeId: getInformativeId(node),
     );
-    _storeCodeOffsetLength(builder, node);
     return builder;
   }
 
@@ -310,11 +308,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   LinkedNodeBuilder visitConstructorDeclaration(ConstructorDeclaration node) {
     var builder = LinkedNodeBuilder.constructorDeclaration(
       constructorDeclaration_initializers: _writeNodeList(node.initializers),
-      constructorDeclaration_name: node.name?.accept(this),
       constructorDeclaration_parameters: node.parameters.accept(this),
       constructorDeclaration_redirectedConstructor:
           node.redirectedConstructor?.accept(this),
       constructorDeclaration_returnType: node.returnType.accept(this),
+      informativeId: getInformativeId(node),
     );
     builder.flags = AstBinaryFlags.encode(
       hasSeparatorColon: node.separator?.type == TokenType.COLON,
@@ -324,11 +322,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       isExternal: node.externalKeyword != null,
       isFactory: node.factoryKeyword != null,
     );
-    if (node.name != null) {
-      builder..constructorDeclaration_periodOffset = node.period.offset;
-    }
+    builder.name = node.name?.name;
     _storeClassMember(builder, node);
-    _storeCodeOffsetLength(builder, node);
     return builder;
   }
 
@@ -383,15 +378,20 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   @override
   LinkedNodeBuilder visitDefaultFormalParameter(DefaultFormalParameter node) {
+    var defaultValue = node.defaultValue;
+    if (!_isSerializableExpression(defaultValue)) {
+      defaultValue = null;
+    }
+
     var builder = LinkedNodeBuilder.defaultFormalParameter(
-      defaultFormalParameter_defaultValue: node.defaultValue?.accept(this),
+      defaultFormalParameter_defaultValue: defaultValue?.accept(this),
       defaultFormalParameter_kind: _toParameterKind(node),
       defaultFormalParameter_parameter: node.parameter.accept(this),
+      informativeId: getInformativeId(node),
     );
     builder.flags = AstBinaryFlags.encode(
       hasInitializer: node.defaultValue != null,
     );
-    _storeCodeOffsetLength(builder, node);
     return builder;
   }
 
@@ -432,8 +432,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     var builder = LinkedNodeBuilder.enumConstantDeclaration(
-      enumConstantDeclaration_name: node.name.accept(this),
+      informativeId: getInformativeId(node),
     );
+    builder..name = node.name.name;
     _storeDeclaration(builder, node);
     return builder;
   }
@@ -494,6 +495,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   LinkedNodeBuilder visitFieldDeclaration(FieldDeclaration node) {
     var builder = LinkedNodeBuilder.fieldDeclaration(
       fieldDeclaration_fields: node.fields.accept(this),
+      informativeId: getInformativeId(node),
     );
     builder.flags = AstBinaryFlags.encode(
       isCovariant: node.covariantKeyword != null,
@@ -678,10 +680,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   LinkedNodeBuilder visitGenericFunctionType(GenericFunctionType node) {
     var id = LazyAst.getGenericFunctionTypeId(node);
     assert(id != null);
-    assert(genericFunctionTypes.length == id);
-    genericFunctionTypes.add(null);
 
     var builder = LinkedNodeBuilder.genericFunctionType(
+      genericFunctionType_id: id,
       genericFunctionType_returnType: node.returnType?.accept(this),
       genericFunctionType_typeParameters: node.typeParameters?.accept(this),
       genericFunctionType_formalParameters: node.parameters.accept(this),
@@ -692,12 +693,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     );
     _writeActualReturnType(builder, node);
 
-    builder.genericFunctionType_id = id;
-    genericFunctionTypes[id] = builder;
-
-    return LinkedNodeBuilder.genericFunctionType(
-      genericFunctionType_id: id,
-    );
+    return builder;
   }
 
   @override
@@ -864,6 +860,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     timerAstBinaryWriterDirective.start();
     try {
       var builder = LinkedNodeBuilder.libraryDirective(
+        informativeId: getInformativeId(node),
         libraryDirective_name: node.name.accept(this),
       );
       _storeDirective(builder, node);
@@ -903,8 +900,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       methodDeclaration_returnType: node.returnType?.accept(this),
       methodDeclaration_typeParameters: node.typeParameters?.accept(this),
       methodDeclaration_formalParameters: node.parameters?.accept(this),
-      methodDeclaration_name: node.name.accept(this),
     );
+    builder.name = node.name.name;
     builder.flags = AstBinaryFlags.encode(
       isAbstract: node.body is EmptyFunctionBody,
       isAsync: node.body?.isAsynchronous ?? false,
@@ -916,7 +913,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       isStatic: node.isStatic,
     );
     _storeClassMember(builder, node);
-    _storeCodeOffsetLength(builder, node);
+    _storeInformativeId(builder, node);
     _writeActualReturnType(builder, node);
     return builder;
   }
@@ -1152,13 +1149,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     var builder = LinkedNodeBuilder.simpleIdentifier(
       simpleIdentifier_element: elementComponents.rawElement,
       simpleIdentifier_elementType: elementComponents.definingType,
-      simpleIdentifier_name: node.name,
-      simpleIdentifier_offset: node.offset,
       expression_type: _writeType(node.staticType),
     );
     builder.flags = AstBinaryFlags.encode(
       isDeclaration: node is DeclaredSimpleIdentifier,
     );
+    builder.name = node.name;
     return builder;
   }
 
@@ -1263,6 +1259,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     timerAstBinaryWriterTopVar.start();
     try {
       var builder = LinkedNodeBuilder.topLevelVariableDeclaration(
+        informativeId: getInformativeId(node),
         topLevelVariableDeclaration_variableList: node.variables?.accept(this),
       );
       _storeCompilationUnitMember(builder, node);
@@ -1308,10 +1305,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     var builder = LinkedNodeBuilder.typeParameter(
       typeParameter_bound: node.bound?.accept(this),
       typeParameter_defaultType: _writeType(LazyAst.getDefaultType(node)),
-      typeParameter_name: node.name.accept(this),
+      informativeId: getInformativeId(node),
     );
+    builder.name = node.name.name;
     _storeDeclaration(builder, node);
-    _storeCodeOffsetLength(builder, node);
     return builder;
   }
 
@@ -1341,12 +1338,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     }
 
     var builder = LinkedNodeBuilder.variableDeclaration(
-      variableDeclaration_name: node.name.accept(this),
+      informativeId: getInformativeId(node),
       variableDeclaration_initializer: initializer?.accept(this),
     );
     builder.flags = AstBinaryFlags.encode(
       hasInitializer: node.initializer != null,
     );
+    builder.name = node.name.name;
     builder.topLevelTypeInferenceError = LazyAst.getTypeInferenceError(node);
     _writeActualType(builder, node);
     _storeInheritsCovariant(builder, node);
@@ -1366,7 +1364,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       isVar: node.keyword?.keyword == Keyword.VAR,
     );
     _storeAnnotatedNode(builder, node);
-    _storeCodeOffsetLengthVariables(builder, node);
     return builder;
   }
 
@@ -1434,9 +1431,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   void _storeAnnotatedNode(LinkedNodeBuilder builder, AnnotatedNode node) {
-    builder
-      ..annotatedNode_comment = node.documentationComment?.accept(this)
-      ..annotatedNode_metadata = _writeNodeList(node.metadata);
+    builder.annotatedNode_metadata = _writeNodeList(node.metadata);
   }
 
   void _storeClassMember(LinkedNodeBuilder builder, ClassMember node) {
@@ -1455,23 +1450,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     _storeIsSimpleBounded(builder, node);
   }
 
-  void _storeCodeOffsetLength(LinkedNodeBuilder builder, AstNode node) {
-    builder.codeOffset = node.offset;
-    builder.codeLength = node.length;
-  }
-
-  void _storeCodeOffsetLengthVariables(
-      LinkedNodeBuilder builder, VariableDeclarationList node) {
-    var builders = builder.variableDeclarationList_variables;
-    for (var i = 0; i < builders.length; ++i) {
-      var variableBuilder = builders[i];
-      var variableNode = node.variables[i];
-      var offset = (i == 0 ? node.parent : variableNode).offset;
-      variableBuilder.codeOffset = offset;
-      variableBuilder.codeLength = variableNode.end - offset;
-    }
-  }
-
   void _storeCompilationUnitMember(
       LinkedNodeBuilder builder, CompilationUnitMember node) {
     _storeDeclaration(builder, node);
@@ -1486,7 +1464,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
 
   void _storeDirective(LinkedNodeBuilder builder, Directive node) {
     _storeAnnotatedNode(builder, node);
-    builder..directive_keywordOffset = node.keyword.offset;
+    _storeInformativeId(builder, node);
   }
 
   void _storeExpression(LinkedNodeBuilder builder, Expression node) {
@@ -1501,7 +1479,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   void _storeForLoopParts(LinkedNodeBuilder builder, ForLoopParts node) {}
 
   void _storeFormalParameter(LinkedNodeBuilder builder, FormalParameter node) {
-    _storeCodeOffsetLength(builder, node);
     _writeActualType(builder, node);
   }
 
@@ -1520,6 +1497,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   void _storeFunctionBody(LinkedNodeBuilder builder, FunctionBody node) {}
+
+  void _storeInformativeId(LinkedNodeBuilder builder, AstNode node) {
+    builder.informativeId = getInformativeId(node);
+  }
 
   void _storeInheritsCovariant(LinkedNodeBuilder builder, AstNode node) {
     var value = LazyAst.getInheritsCovariant(node);
@@ -1544,8 +1525,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   void _storeNamedCompilationUnitMember(
       LinkedNodeBuilder builder, NamedCompilationUnitMember node) {
     _storeCompilationUnitMember(builder, node);
-    _storeCodeOffsetLength(builder, node);
-    builder.namedCompilationUnitMember_name = node.name.accept(this);
+    _storeInformativeId(builder, node);
+    builder.name = node.name.name;
   }
 
   void _storeNamespaceDirective(
@@ -1561,7 +1542,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       LinkedNodeBuilder builder, NormalFormalParameter node, Token keyword) {
     _storeFormalParameter(builder, node);
     builder
-      ..normalFormalParameter_comment = node.documentationComment?.accept(this)
       ..flags = AstBinaryFlags.encode(
         isConst: keyword?.type == Keyword.CONST,
         isCovariant: node.covariantKeyword != null,
@@ -1569,8 +1549,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
         isRequired: node.requiredKeyword != null,
         isVar: keyword?.type == Keyword.VAR,
       )
-      ..normalFormalParameter_metadata = _writeNodeList(node.metadata)
-      ..normalFormalParameter_identifier = node.identifier?.accept(this);
+      ..informativeId = getInformativeId(node)
+      ..name = node.identifier?.name
+      ..normalFormalParameter_metadata = _writeNodeList(node.metadata);
   }
 
   void _storeStatement(LinkedNodeBuilder builder, Statement node) {}
@@ -1640,6 +1621,20 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     return _linkingContext.writeType(type);
   }
 
+  /// Return `true` if the expression might be successfully serialized.
+  ///
+  /// This does not mean that the expression is constant, it just means that
+  /// we know that it might be serialized and deserialized. For example
+  /// function expressions are problematic, and are not necessary to
+  /// deserialize, so we choose not to do this.
+  static bool _isSerializableExpression(Expression node) {
+    if (node == null) return false;
+
+    var visitor = _IsSerializableExpressionVisitor();
+    node.accept(visitor);
+    return visitor.result;
+  }
+
   static LinkedNodeFormalParameterKind _toParameterKind(FormalParameter node) {
     if (node.isRequiredPositional) {
       return LinkedNodeFormalParameterKind.requiredPositional;
@@ -1661,4 +1656,13 @@ class _ElementComponents {
   final LinkedNodeType definingType;
 
   _ElementComponents(this.rawElement, this.definingType);
+}
+
+class _IsSerializableExpressionVisitor extends RecursiveAstVisitor<void> {
+  bool result = true;
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    result = false;
+  }
 }

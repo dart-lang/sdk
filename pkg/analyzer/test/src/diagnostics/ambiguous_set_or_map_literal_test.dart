@@ -29,6 +29,15 @@ var c = {...set, ...map};
 
 @reflectiveTest
 class AmbiguousSetOrMapLiteralEitherTest extends DriverResolutionTest {
+  test_invalidPrefixOperator() async {
+    // Guard against an exception being thrown.
+    await assertErrorsInCode('''
+union(a, b) => !{...a, ...b};
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 16, 12),
+    ]);
+  }
+
   test_setAndMap() async {
     assertErrorsInCode('''
 var map;

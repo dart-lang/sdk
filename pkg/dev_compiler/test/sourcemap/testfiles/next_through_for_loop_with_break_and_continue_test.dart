@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*Debugger:stepOver*/
-main() {
+void main() {
   /*bl*/ /*sl:1*/ int count = 0;
   for (/*sl:2*/ int i = 0;
       /*sl:3*/ /*sl:8*/ /*sl:13*/ /*sl:17*/ /*nbb:18:21*/ i < 42;

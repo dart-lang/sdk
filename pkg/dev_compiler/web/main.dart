@@ -17,7 +17,7 @@ import 'web_command.dart';
 external set setUpCompilerInBrowser(Function function);
 
 Future<dynamic> _setUpCompilerInBrowser;
-main() {
+void main() {
   var args = ['compile'];
 
   // Avoid race condition when users try to call $setUpDartDevCompilerInBrowser

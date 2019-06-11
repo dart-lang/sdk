@@ -4,6 +4,7 @@
 //
 // Dart test program for testing dart:ffi Pointer subtypes.
 //
+// SharedObjects=ffi_test_functions
 // VMOptions=--verbose-gc
 
 library FfiTest;
@@ -12,21 +13,21 @@ import 'dart:ffi' as ffi;
 
 import "package:expect/expect.dart";
 
-import 'gc_helper.dart';
 import 'cstring.dart';
+import 'dylib_utils.dart';
+
+ffi.DynamicLibrary ffiTestFunctions =
+    dlopenPlatformSpecific("ffi_test_functions");
+
+final triggerGc = ffiTestFunctions
+    .lookupFunction<ffi.Void Function(), void Function()>("TriggerGC");
 
 void main() async {
   testAllocate();
   testSizeOf();
-  await testGC();
+  testGC();
 }
 
-class X {
-  X(this.i);
-  int i;
-}
-
-dynamic foo;
 dynamic bar;
 
 void testAllocate() {
@@ -36,15 +37,10 @@ void testAllocate() {
 }
 
 Future<void> testGC() async {
-  CString cs = ffi.fromAddress<CString>(11);
-  bar = cs;
-  foo = "";
-  final watcher = GCWatcher.ifAvailable();
-  int counts = await watcher.size();
-  for (int i = 0; i < 1000000; ++i) {
-    foo = new X(i);
-  }
-  Expect.isTrue(await watcher.size() > counts);
+  bar = ffi.fromAddress<CString>(11);
+  // Verify that the objects manufactured by 'fromAddress' can be scanned by the
+  // GC.
+  triggerGc();
 }
 
 void testSizeOf() {

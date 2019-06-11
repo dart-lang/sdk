@@ -416,9 +416,7 @@ class FieldHelper {
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
-      : helper_(helper),
-        next_read_(kStart),
-        has_function_literal_initializer_(false) {}
+      : helper_(helper), next_read_(kStart) {}
 
   FieldHelper(KernelReaderHelper* helper, intptr_t offset);
 
@@ -426,8 +424,7 @@ class FieldHelper {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
   }
 
-  void ReadUntilExcluding(Field field,
-                          bool detect_function_literal_initializer = false);
+  void ReadUntilExcluding(Field field);
 
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
@@ -440,15 +437,6 @@ class FieldHelper {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
 
-  bool FieldHasFunctionLiteralInitializer(TokenPosition* start,
-                                          TokenPosition* end) {
-    if (has_function_literal_initializer_) {
-      *start = function_literal_start_;
-      *end = function_literal_end_;
-    }
-    return has_function_literal_initializer_;
-  }
-
   NameIndex canonical_name_;
   TokenPosition position_;
   TokenPosition end_position_;
@@ -459,10 +447,6 @@ class FieldHelper {
  private:
   KernelReaderHelper* helper_;
   intptr_t next_read_;
-
-  bool has_function_literal_initializer_;
-  TokenPosition function_literal_start_;
-  TokenPosition function_literal_end_;
 
   DISALLOW_COPY_AND_ASSIGN(FieldHelper);
 };

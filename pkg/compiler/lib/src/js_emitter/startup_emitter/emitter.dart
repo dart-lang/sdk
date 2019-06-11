@@ -138,6 +138,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
   final DiagnosticReporter _reporter;
   final JClosedWorld _closedWorld;
   final RuntimeTypesEncoder _rtiEncoder;
+  final CompilerTask _task;
   ModelEmitter _emitter;
 
   @override
@@ -152,7 +153,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
       this._closedWorld,
       this._rtiEncoder,
       SourceInformationStrategy sourceInformationStrategy,
-      CompilerTask task,
+      this._task,
       bool shouldGenerateSourceMap)
       : super(namer) {
     _emitter = new ModelEmitter(
@@ -162,7 +163,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
         dumpInfoTask,
         namer,
         _closedWorld,
-        task,
+        _task,
         this,
         sourceInformationStrategy,
         _rtiEncoder,
@@ -174,11 +175,15 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
 
   @override
   int emitProgram(ProgramBuilder programBuilder, CodegenWorld codegenWorld) {
-    Program program = programBuilder.buildProgram();
+    Program program = _task.measureSubtask('build program', () {
+      return programBuilder.buildProgram();
+    });
     if (retainDataForTesting) {
       programForTesting = program;
     }
-    return _emitter.emitProgram(program, codegenWorld);
+    return _task.measureSubtask('emit program', () {
+      return _emitter.emitProgram(program, codegenWorld);
+    });
   }
 
   @override

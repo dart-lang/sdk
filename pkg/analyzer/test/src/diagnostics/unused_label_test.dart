@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class UnusedLabelTest extends DriverResolutionTest {
   test_unused_inSwitch() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 f(x) {
   switch (x) {
     label: case 0:
@@ -25,17 +25,21 @@ f(x) {
       break;
   }
 }
-''', [HintCode.UNUSED_LABEL]);
+''', [
+      error(HintCode.UNUSED_LABEL, 26, 6),
+    ]);
   }
 
   test_unused_onWhile() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 f(condition()) {
   label: while (condition()) {
     break;
   }
 }
-''', [HintCode.UNUSED_LABEL]);
+''', [
+      error(HintCode.UNUSED_LABEL, 19, 6),
+    ]);
   }
 
   test_used_inSwitch() async {

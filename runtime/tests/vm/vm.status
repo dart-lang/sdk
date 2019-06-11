@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-cc/Dart2JSCompileAll: Fail, Crash # Issue 27369
-cc/Dart2JSCompilerStats: Fail, Crash # Issue 27369
 cc/Fail0: Fail # These tests are expected to crash on all platforms.
 cc/Fail1: Fail # These tests are expected to crash on all platforms.
 cc/Fail2: Fail # These tests are expected to crash on all platforms.
@@ -20,6 +18,8 @@ dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-g
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/use_bare_instructions_flag_test: Pass, Slow # Spawns several subprocesses
 
+cc/Profiler_StringInterpolation: Fail # Issue 37208
+
 [ $mode == debug ]
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
 
@@ -28,13 +28,13 @@ dart/appjit*: SkipByDesign # Test needs to a particular opt-counter value
 dart/kernel_determinism_test: SkipSlow
 
 [ $compiler == app_jitk ]
-dart/data_uri_import_test/utf16: MissingRuntimeError
 dart/redirection_type_shuffling_test/none: RuntimeError
 dart/snapshot_version_test: RuntimeError
 
 [ $hot_reload || $hot_reload_rollback ]
 dart/compilation_trace_test: Pass, Slow
 dart/type_feedback_test: Pass, Slow
+dart/issue_31959_31960_test: SkipSlow
 
 [ $compiler != dartk || ($arch != x64 && $arch != simarm && $arch != arm) || $hot_reload || $hot_reload_rollback ]
 dart/entrypoints/jit/*: SkipByDesign  # Only supported in the Dart 2 JIT and AOT, and test optimizations - hence disabled on hotreload bots.
@@ -55,6 +55,12 @@ dart/redirection_type_shuffling_test/none: RuntimeError
 
 [ $runtime != vm && $runtime != dart_precompiled ]
 dart/catch_entry_state: SkipByDesign
+
+[ $builder_tag == asan ]
+dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
+
+[ $system == macos ]
+dart/transferable_throws_oom_test: SkipByDesign # Allocating too much memory to cause OOM doesn't work on mac
 
 [ $compiler != dartk && $compiler != dartkb ]
 cc/IsolateReload_KernelIncrementalCompile: SkipByDesign
@@ -83,7 +89,7 @@ dart/issue32950_test: SkipByDesign # uses spawnUri.
 [ $runtime == vm && $mode == product && $compiler == dartk ]
 cc/CorelibIsolateStartup: Timeout, Pass
 
-[ $runtime != vm ]
+[ $runtime != vm && $runtime != dart_precompiled ]
 dart/*: SkipByDesign # VM specific tests
 
 [ $runtime != dart_precompiled  || $system == android ]
@@ -126,9 +132,6 @@ dart/data_uri_import_test/percentencoded: Crash
 dart/data_uri_import_test/utf16: Crash
 dart/data_uri_import_test/wrongmime: Crash
 
-[ $builder_tag == asan && $mode == debug && ($runtime == dart_precompiled || $runtime == vm) ]
-cc/Dart2JSCompileAll: SkipSlow # Timeout.
-
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
@@ -152,7 +155,6 @@ cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
 cc/IsolateReload_NotTypedefToTypedef: Fail
 cc/IsolateReload_TypedefToNotTypedef: Fail
-dart/data_uri_import_test/utf16: MissingRuntimeError
 dart/spawn_shutdown_test: SkipSlow
 
 [ ($compiler == dartk || $compiler == dartkb) && $runtime == vm && $system == macos ]
@@ -177,6 +179,7 @@ cc/ScriptSnapshotsUpdateSubclasses: Fail, Crash, OK # Script snapshots not suppo
 
 [ ($compiler == dartk || $compiler == dartkb) && ($arch == simarm || $arch == simarm64 || $arch == simdbc || $arch == simdbc64) ]
 dart/appjit*: SkipSlow # DFE too slow
+dart/issue_31959_31960_test: SkipSlow
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
@@ -194,7 +197,6 @@ dart/appjit*: SkipByDesign # Test needs to run from source
 dart/kernel_determinism_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
-dart/data_uri_import_test/utf16: MissingRuntimeError # UTF-16 data URIs work in dartk
 dart/issue32950_test: SkipByDesign # uses spawnUri.
 dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
 dart/spawn_shutdown_test: SkipSlow

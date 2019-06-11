@@ -1963,7 +1963,7 @@ abstract class HttpClientResponse implements Stream<List<int>> {
   /// This specifies whether the response bytes were compressed when they were
   /// received across the wire and whether callers will receive compressed
   /// or uncompressed bytes when they listed to this response's byte stream.
-  @Since("2.3.2")
+  @Since("2.4")
   HttpClientResponseCompressionState get compressionState;
 
   /**
@@ -2055,7 +2055,7 @@ abstract class HttpClientResponse implements Stream<List<int>> {
 ///  * Does the caller need to manually decompress the response's byte stream?
 ///
 /// This enum is accessed via the [HttpClientResponse.compressionState] value.
-@Since("2.3.2")
+@Since("2.4")
 enum HttpClientResponseCompressionState {
   /// The body of the HTTP response was received and remains in an uncompressed
   /// state.

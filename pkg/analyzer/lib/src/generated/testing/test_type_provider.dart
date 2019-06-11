@@ -481,7 +481,8 @@ class TestTypeProvider extends TypeProviderBase {
           _isNonNullableByDefault);
       var unit = new CompilationUnitElementImpl();
       library.definingCompilationUnit = unit;
-      unit.librarySource = unit.source = new StringSource('', null);
+      unit.librarySource =
+          unit.source = new StringSource('', null, uri: Uri.parse('dart:core'));
 
       nullElement.enclosingElement = library;
       _nullType = nullElement.type;

@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,9 +18,6 @@ main() {
 
 @reflectiveTest
 class HoverTest extends AbstractLspAnalysisServerTest {
-  /// If windows, return 'C:/', otherwise return the empty string
-  String get windowsCColon => Platform.isWindows ? 'C:/' : '';
-
   test_dartDoc_macros() async {
     final content = '''
     /// {@template template_name}
@@ -69,14 +63,11 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     String [[a^bc]];
     ''';
 
-    final containingLibraryName =
-        path.normalize("$windowsCColon/project/lib/main.dart");
-
     final expectedHoverContent = '''
 ```dart
 String abc
 ```
-*$containingLibraryName*
+*lib/main.dart*
 
 ---
 This is a string.
@@ -172,14 +163,11 @@ print();
     String [[a^bc]];
     ''';
 
-    final containingLibraryName =
-        path.normalize("$windowsCColon/project/lib/main.dart");
-
     final expectedHoverContent = '''
 ```dart
 String abc
 ```
-*$containingLibraryName*
+*lib/main.dart*
     '''
         .trim();
 

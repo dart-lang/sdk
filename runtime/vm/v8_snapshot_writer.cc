@@ -23,7 +23,7 @@ V8SnapshotProfileWriter::V8SnapshotProfileWriter(Zone* zone)
       node_types_(zone_),
       edge_types_(zone_),
       strings_(zone),
-      roots_(zone_, 100) {
+      roots_(zone_) {
   node_types_.Insert({"Unknown", kUnknown});
   node_types_.Insert({"ArtificialRoot", kArtificialRoot});
 
@@ -128,7 +128,7 @@ void V8SnapshotProfileWriter::WriteNodeInfo(JSONWriter* writer,
   // The artificial root has 'nullptr' edges, it actually points to all the
   // roots.
   writer->PrintValue64(info.edges != nullptr ? info.edges->length()
-                                             : roots_.length());
+                                             : roots_.Size());
   writer->PrintNewline();
 }
 
@@ -142,7 +142,15 @@ void V8SnapshotProfileWriter::WriteEdgeInfo(JSONWriter* writer,
 
 void V8SnapshotProfileWriter::AddRoot(ObjectId object_id) {
   EnsureId(object_id);
-  roots_.Add(object_id);
+  // HeapSnapshotWorker.HeapSnapshot.calculateDistances (from HeapSnapshot.js)
+  // assumes that the root does not have more than one edge to any other node
+  // (most likely an oversight).
+  if (roots_.HasKey(object_id)) return;
+
+  ObjectIdToNodeInfoTraits::Pair pair;
+  pair.key = object_id;
+  pair.value = NodeInfo{0, 0, object_id, 0, nullptr, 0};
+  roots_.Insert(pair);
 }
 
 void V8SnapshotProfileWriter::WriteStringsTable(
@@ -210,7 +218,7 @@ void V8SnapshotProfileWriter::Write(JSONWriter* writer) {
 
     writer->PrintProperty64("node_count",
                             nodes_.Size() + 1 /* artificial root */);
-    writer->PrintProperty64("edge_count", edge_count_ + roots_.length());
+    writer->PrintProperty64("edge_count", edge_count_ + roots_.Size());
   }
   writer->CloseObject();
 
@@ -234,13 +242,14 @@ void V8SnapshotProfileWriter::Write(JSONWriter* writer) {
     writer->OpenArray("edges");
 
     // Write references from the artificial root to the actual roots.
-    for (intptr_t i = 0; i < roots_.length(); ++i) {
-      WriteEdgeInfo(writer, {kElement, i, roots_[i]});
+    ObjectIdToNodeInfoTraits::Pair* entry = nullptr;
+    auto roots_it = roots_.GetIterator();
+    for (int i = 0; (entry = roots_it.Next()) != nullptr; ++i) {
+      WriteEdgeInfo(writer, {kElement, i, entry->key});
     }
 
-    ObjectIdToNodeInfoTraits::Pair* entry = nullptr;
-    auto it = nodes_.GetIterator();
-    while ((entry = it.Next()) != nullptr) {
+    auto nodes_it = nodes_.GetIterator();
+    while ((entry = nodes_it.Next()) != nullptr) {
       for (intptr_t i = 0; i < entry->value.edges->length(); ++i) {
         WriteEdgeInfo(writer, entry->value.edges->At(i));
       }

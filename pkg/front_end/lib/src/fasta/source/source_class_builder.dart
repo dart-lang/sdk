@@ -166,9 +166,16 @@ class SourceClassBuilder extends KernelClassBuilder
           fileUri);
       actualCls.supertype = null;
     }
+    if (actualCls.supertype == null && supertype is! KernelNamedTypeBuilder) {
+      supertype = null;
+    }
     mixedInType = checkSupertype(mixedInType);
     actualCls.mixedInType =
         mixedInType?.buildMixedInType(library, charOffset, fileUri);
+    if (actualCls.mixedInType == null &&
+        mixedInType is! KernelNamedTypeBuilder) {
+      mixedInType = null;
+    }
     actualCls.isMixinDeclaration = isMixinDeclaration;
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
@@ -305,7 +312,7 @@ class SourceClassBuilder extends KernelClassBuilder
 
   List<Declaration> computeDirectSupertypes(ClassBuilder objectClass) {
     final List<Declaration> result = <Declaration>[];
-    final KernelNamedTypeBuilder supertype = this.supertype;
+    final KernelTypeBuilder supertype = this.supertype;
     if (supertype != null) {
       result.add(supertype.declaration);
     } else if (objectClass != this) {
@@ -314,11 +321,11 @@ class SourceClassBuilder extends KernelClassBuilder
     final List<KernelTypeBuilder> interfaces = this.interfaces;
     if (interfaces != null) {
       for (int i = 0; i < interfaces.length; i++) {
-        KernelNamedTypeBuilder interface = interfaces[i];
+        KernelTypeBuilder interface = interfaces[i];
         result.add(interface.declaration);
       }
     }
-    final KernelNamedTypeBuilder mixedInType = this.mixedInType;
+    final KernelTypeBuilder mixedInType = this.mixedInType;
     if (mixedInType != null) {
       result.add(mixedInType.declaration);
     }

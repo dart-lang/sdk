@@ -38,12 +38,14 @@ class B extends A {
   }
 
   test_invalid() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
 }
 class B extends A {
   @override
   set m(int x) {}
-}''', [HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER]);
+}''', [
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER, 50, 1),
+    ]);
   }
 }

@@ -413,6 +413,7 @@ enum _RawSocketOptions {
 /// It allows for fine grained control of the socket options, and its values will
 /// be passed to the underlying platform's implementation of setsockopt and
 /// getsockopt.
+@Since("2.2")
 class RawSocketOption {
   /// Creates a RawSocketOption for getRawOption andSetRawOption.
   ///
@@ -690,6 +691,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    *
    * Throws an [OSError] on failure.
    */
+  @Since("2.2")
   Uint8List getRawOption(RawSocketOption option);
 
   /**
@@ -698,6 +700,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    *
    * Throws an [OSError] on failure.
    */
+  @Since("2.2")
   void setRawOption(RawSocketOption option);
 }
 

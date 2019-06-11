@@ -823,7 +823,7 @@ bool CheckClassInstr::IsCompactCidRange(const Cids& cids) {
 
   intptr_t min = cids.ComputeLowestCid();
   intptr_t max = cids.ComputeHighestCid();
-  return (max - min) < kBitsPerWord;
+  return (max - min) < compiler::target::kBitsPerWord;
 }
 
 bool CheckClassInstr::IsBitTest() const {
@@ -837,7 +837,7 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
   for (intptr_t i = 0; i < cids_.length(); ++i) {
     intptr_t run;
     uintptr_t range = 1ul + cids_[i].Extent();
-    if (range >= static_cast<uintptr_t>(kBitsPerWord)) {
+    if (range >= static_cast<uintptr_t>(compiler::target::kBitsPerWord)) {
       run = -1;
     } else {
       run = (1 << range) - 1;
@@ -1312,6 +1312,7 @@ void Definition::ReplaceUsesWith(Definition* other) {
     while (next != NULL) {
       current = next;
       current->set_definition(other);
+      current->RefineReachingType(other->Type());
       next = current->next_use();
     }
 
@@ -1330,6 +1331,7 @@ void Definition::ReplaceUsesWith(Definition* other) {
     while (next != NULL) {
       current = next;
       current->set_definition(other);
+      current->RefineReachingType(other->Type());
       next = current->next_use();
     }
     next = other->env_use_list();
@@ -1833,7 +1835,7 @@ bool UnboxInt32Instr::ComputeCanDeoptimize() const {
   }
   const intptr_t value_cid = value()->Type()->ToCid();
   if (value_cid == kSmiCid) {
-    return (kSmiBits > 32) && !is_truncating() &&
+    return (compiler::target::kSmiBits > 32) && !is_truncating() &&
            !RangeUtils::Fits(value()->definition()->range(),
                              RangeBoundary::kRangeBoundaryInt32);
   } else if (value_cid == kMintCid) {
@@ -1842,7 +1844,7 @@ bool UnboxInt32Instr::ComputeCanDeoptimize() const {
                              RangeBoundary::kRangeBoundaryInt32);
   } else if (is_truncating() && value()->definition()->IsBoxInteger()) {
     return false;
-  } else if ((kSmiBits < 32) && value()->Type()->IsInt()) {
+  } else if ((compiler::target::kSmiBits < 32) && value()->Type()->IsInt()) {
     return !RangeUtils::Fits(value()->definition()->range(),
                              RangeBoundary::kRangeBoundaryInt32);
   } else {
@@ -1933,7 +1935,7 @@ bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
 static intptr_t RepresentationBits(Representation r) {
   switch (r) {
     case kTagged:
-      return kBitsPerWord - 1;
+      return compiler::target::kBitsPerWord - 1;
     case kUnboxedInt32:
     case kUnboxedUint32:
       return 32;
@@ -3182,7 +3184,7 @@ Definition* UnboxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
 // (on simdbc64 the [UnboxedConstantInstr] handling is only implemented for
 //  doubles and causes a bailout for everthing else)
 #if !defined(TARGET_ARCH_DBC)
-  if (kBitsPerWord == 64) {
+  if (compiler::target::kBitsPerWord == 64) {
     ConstantInstr* c = value()->definition()->AsConstant();
     if (c != NULL && (c->value().IsSmi() || c->value().IsMint())) {
       UnboxedConstantInstr* uc =
@@ -5091,18 +5093,18 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
   if (RawObject::IsTypedDataClassId(class_id) ||
       RawObject::IsTypedDataViewClassId(class_id) ||
       RawObject::IsExternalTypedDataClassId(class_id)) {
-    return TypedDataBase::length_offset();
+    return compiler::target::TypedDataBase::length_offset();
   }
 
   switch (class_id) {
     case kGrowableObjectArrayCid:
-      return GrowableObjectArray::length_offset();
+      return compiler::target::GrowableObjectArray::length_offset();
     case kOneByteStringCid:
     case kTwoByteStringCid:
-      return String::length_offset();
+      return compiler::target::String::length_offset();
     case kArrayCid:
     case kImmutableArrayCid:
-      return Array::length_offset();
+      return compiler::target::Array::length_offset();
     default:
       UNREACHABLE();
       return -1;

@@ -1725,10 +1725,9 @@ class LoadOptimizer : public ValueObject {
               Definition* forward_def = graph_->constant_null();
               if (alloc->ArgumentCount() > 0) {
                 ASSERT(alloc->ArgumentCount() == 1);
-                intptr_t type_args_offset =
-                    alloc->cls().type_arguments_field_offset();
-                if (load->slot().IsTypeArguments() &&
-                    load->slot().offset_in_bytes() == type_args_offset) {
+                const Slot& type_args_slot = Slot::GetTypeArgumentsSlotFor(
+                    graph_->thread(), alloc->cls());
+                if (load->slot().IsIdentical(type_args_slot)) {
                   forward_def = alloc->PushArgumentAt(0)->value()->definition();
                 }
               }

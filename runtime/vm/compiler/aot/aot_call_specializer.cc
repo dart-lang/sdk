@@ -431,7 +431,7 @@ Definition* AotCallSpecializer::TryOptimizeMod(TemplateDartCall<0>* instr,
     return nullptr;  // non-smi mask
   }
   const int64_t modulus = Utils::Abs(value);
-  if (!Utils::IsPowerOfTwo(modulus) || !Smi::IsValid(modulus - 1)) {
+  if (!Utils::IsPowerOfTwo(modulus) || !compiler::target::IsSmi(modulus - 1)) {
     return nullptr;
   }
 

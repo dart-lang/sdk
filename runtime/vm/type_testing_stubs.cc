@@ -322,9 +322,10 @@ void TypeTestingStubGenerator::
   // fall through to continue
 
   // b) Then we'll load the values for the type parameters.
-  __ LoadField(
-      instance_type_args_reg,
-      FieldAddress(instance_reg, type_class.type_arguments_field_offset()));
+  __ LoadField(instance_type_args_reg,
+               FieldAddress(instance_reg,
+                            compiler::target::Class::TypeArgumentsFieldOffset(
+                                type_class)));
 
   // The kernel frontend should fill in any non-assigned type parameters on
   // construction with dynamic/Object, so we should never get the null type
@@ -391,24 +392,27 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     // TODO(kustermann): Even though it should be safe to use TMP here, we
     // should avoid using TMP outside the assembler.  Try to find a free
     // register to use here!
+    __ LoadField(TMP,
+                 FieldAddress(instance_type_args_reg,
+                              compiler::target::TypeArguments::type_at_offset(
+                                  type_param_value_offset_i)));
     __ LoadField(
-        TMP,
-        FieldAddress(instance_type_args_reg,
-                     TypeArguments::type_at_offset(type_param_value_offset_i)));
-    __ LoadField(class_id_reg, FieldAddress(TMP, Type::type_class_id_offset()));
+        class_id_reg,
+        FieldAddress(TMP, compiler::target::Type::type_class_id_offset()));
 
     if (type_arg.IsTypeParameter()) {
       const TypeParameter& type_param = TypeParameter::Cast(type_arg);
       const Register kTypeArgumentsReg = type_param.IsClassTypeParameter()
                                              ? instantiator_type_args_reg
                                              : function_type_args_reg;
-      __ LoadField(
-          own_type_arg_reg,
-          FieldAddress(kTypeArgumentsReg,
-                       TypeArguments::type_at_offset(type_param.index())));
+      __ LoadField(own_type_arg_reg,
+                   FieldAddress(kTypeArgumentsReg,
+                                compiler::target::TypeArguments::type_at_offset(
+                                    type_param.index())));
       __ CompareWithFieldValue(
           class_id_reg,
-          FieldAddress(own_type_arg_reg, Type::type_class_id_offset()));
+          FieldAddress(own_type_arg_reg,
+                       compiler::target::Type::type_class_id_offset()));
       __ BranchIf(NOT_EQUAL, check_failed);
     } else {
       const Class& type_class = Class::Handle(type_arg.type_class());
@@ -483,7 +487,7 @@ void RegisterTypeArgumentsUse(const Function& function,
       const Class& instance_klass =
           Class::Handle(Isolate::Current()->class_table()->At(cid));
       if (load_field->slot().IsTypeArguments() && instance_klass.IsGeneric() &&
-          instance_klass.type_arguments_field_offset() ==
+          compiler::target::Class::TypeArgumentsFieldOffset(instance_klass) ==
               load_field->slot().offset_in_bytes()) {
         // This is a subset of Case c) above, namely forwarding the type
         // argument vector.

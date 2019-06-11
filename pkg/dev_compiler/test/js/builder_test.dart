@@ -13,7 +13,7 @@ _checkStatement(String src) => _check(_parser(src).parseStatement(), src);
 
 _checkExpression(String src) => _check(_parser(src).parseExpression(), src);
 
-main() {
+void main() {
   group('MiniJsParser', () {
     // TODO(ochafik): Add more coverage.
     test('parses classes with complex members', () {

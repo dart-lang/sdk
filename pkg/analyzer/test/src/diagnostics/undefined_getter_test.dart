@@ -16,11 +16,13 @@ main() {
 @reflectiveTest
 class UndefinedGetterTest extends DriverResolutionTest {
   test_ifElement_inList_notPromoted() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 f(int x) {
   return [if (x is String) x.length];
 }
-''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 6),
+    ]);
   }
 
   test_ifElement_inList_promoted() async {
@@ -32,11 +34,13 @@ f(Object x) {
   }
 
   test_ifElement_inMap_notPromoted() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 f(int x) {
   return {if (x is String) x : x.length};
 }
-''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 44, 6),
+    ]);
   }
 
   test_ifElement_inMap_promoted() async {
@@ -48,11 +52,13 @@ f(Object x) {
   }
 
   test_ifElement_inSet_notPromoted() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 f(int x) {
   return {if (x is String) x.length};
 }
-''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 6),
+    ]);
   }
 
   test_ifElement_inSet_promoted() async {
@@ -64,13 +70,15 @@ f(Object x) {
   }
 
   test_ifStatement_notPromoted() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 f(int x) {
   if (x is String) {
     x.length;
   }
 }
-''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 38, 6),
+    ]);
   }
 
   test_ifStatement_promoted() async {
@@ -84,12 +92,14 @@ f(Object x) {
   }
 
   test_promotedTypeParameter_regress35305() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 void f<X extends num, Y extends X>(Y y) {
   if (y is int) {
     y.isEven;
   }
 }
-''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 66, 6),
+    ]);
   }
 }

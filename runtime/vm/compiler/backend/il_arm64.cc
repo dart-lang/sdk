@@ -1079,9 +1079,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
          CallingConventions::ArgumentRegisters[0] != TMP2 &&
          CallingConventions::ArgumentRegisters[0] != R1);
   __ LoadImmediate(CallingConventions::ArgumentRegisters[0], callback_id_);
-  __ LoadFromOffset(
-      R1, THR,
-      compiler::target::Thread::verify_callback_isolate_entry_point_offset());
+  __ LoadFromOffset(R1, THR,
+                    compiler::target::Thread::verify_callback_entry_offset());
   __ blr(R1);
 
   // Load the code object.
@@ -1105,6 +1104,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Smi zero does not work because ARM64 assumes PP to be untagged.
     __ LoadObject(PP, compiler::NullObject());
   }
+
+  // Load a GC-safe value for the arguments descriptor (unused but tagged).
+  __ mov(ARGS_DESC_REG, ZR);
 
   // Load a dummy return address which suggests that we are inside of
   // InvokeDartCodeStub. This is how the stack walker detects an entry frame.

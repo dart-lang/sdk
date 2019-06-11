@@ -913,6 +913,13 @@ DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate);
 DART_EXPORT Dart_Handle Dart_DebugName();
 
 /**
+ * Returns the ID for an isolate which is used to query the service protocol.
+ *
+ * It is the responsibility of the caller to free the returned ID.
+ */
+DART_EXPORT const char* Dart_IsolateServiceId(Dart_Isolate isolate);
+
+/**
  * Enters an isolate. After calling this function,
  * the current isolate will be set to the provided isolate.
  *
@@ -3299,7 +3306,8 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
-                               void* callback_data);
+                               void* callback_data,
+                               bool stripped);
 
 /**
  *  Like Dart_CreateAppAOTSnapshotAsAssembly, but only includes
