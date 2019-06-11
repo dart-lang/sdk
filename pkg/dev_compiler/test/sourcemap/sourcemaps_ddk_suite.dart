@@ -104,4 +104,5 @@ class DevCompilerRunner implements CompilerRunner {
   }
 }
 
-main(List<String> arguments) => runMe(arguments, createContext, "testing.json");
+void main(List<String> arguments) =>
+    runMe(arguments, createContext, "testing.json");

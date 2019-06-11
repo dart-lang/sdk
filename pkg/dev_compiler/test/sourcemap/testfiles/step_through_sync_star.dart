@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-main() {
+void main() {
   /* bl */
   /*sl:1*/ var iterator = naturalsTo(2);
   for (int /*bc:3*/ /*bc:8*/ /*bc:12*/ i in /*bc:2*/ iterator) {

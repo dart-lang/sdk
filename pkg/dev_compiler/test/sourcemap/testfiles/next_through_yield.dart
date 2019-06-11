@@ -4,7 +4,7 @@
 
 /*Debugger:stepOver*/
 
-main() {
+void main() {
   for (int i in naturalsTo(2)) {
     print(i);
   }

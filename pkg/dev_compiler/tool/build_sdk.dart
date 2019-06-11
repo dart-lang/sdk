@@ -13,7 +13,7 @@ import 'dart:io';
 
 import 'package:dev_compiler/src/analyzer/command.dart';
 
-main(List<String> arguments) async {
+void main(List<String> arguments) async {
   var args = ['--no-source-map', '--no-emit-metadata'];
   args.addAll(arguments);
   args.addAll([

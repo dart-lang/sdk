@@ -6,7 +6,7 @@
 
 var bar = 0;
 
-main() {
+void main() {
   bar = /*bc:1*/ foo();
 }
 

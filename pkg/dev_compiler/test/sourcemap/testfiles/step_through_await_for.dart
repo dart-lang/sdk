@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-main() async {
+void main() async {
   /* bl */
   /*sl:1 */ print("About to loop!");
   await for (var /*s:3*/ /*s:5*/ i in foobar /*sl:2*/ ()) {
