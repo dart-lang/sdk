@@ -100,6 +100,7 @@ class Rti {
   static const kindBinding = 9;
   static const kindFunction = 10;
   static const kindGenericFunction = 11;
+  static const kindGenericFunctionParameter = 12;
 
   /// Primary data associated with type.
   ///
@@ -137,6 +138,16 @@ class Rti {
     // The array is a plain JavaScript Array, otherwise we would need the type
     // `JSArray<Rti>` to exist before we could create the type `JSArray<Rti>`.
     assert(_getKind(rti) == kindInterface);
+    return JS('JSUnmodifiableArray', '#', _getRest(rti));
+  }
+
+  static Rti _getBindingBase(Rti rti) {
+    assert(_getKind(rti) == kindBinding);
+    return _castToRti(_getPrimary(rti));
+  }
+
+  static JSArray _getBindingArguments(rti) {
+    assert(_getKind(rti) == kindBinding);
     return JS('JSUnmodifiableArray', '#', _getRest(rti));
   }
 
@@ -317,19 +328,24 @@ class _Universe {
     return _finishRti(universe, rti);
   }
 
+  static String _canonicalRecipeJoin(Object arguments) {
+    String s = '', sep = '';
+    int length = _Utils.arrayLength(arguments);
+    for (int i = 0; i < length; i++) {
+      Rti argument = _castToRti(_Utils.arrayAt(arguments, i));
+      String subrecipe = Rti._getCanonicalRecipe(argument);
+      s += sep + subrecipe;
+      sep = ',';
+    }
+    return s;
+  }
+
   static String _canonicalRecipeOfInterface(String name, Object arguments) {
     assert(_Utils.isString(name));
     String s = _Utils.asString(name);
     int length = _Utils.arrayLength(arguments);
     if (length != 0) {
-      s += '<';
-      for (int i = 0; i < length; i++) {
-        if (i > 0) s += ',';
-        Rti argument = _castToRti(_Utils.arrayAt(arguments, i));
-        String subrecipe = Rti._getCanonicalRecipe(argument);
-        s += subrecipe;
-      }
-      s += '>';
+      s += '<' + _canonicalRecipeJoin(arguments) + '>';
     }
     return s;
   }
@@ -349,6 +365,38 @@ class _Universe {
     Rti._setKind(rti, Rti.kindInterface);
     Rti._setPrimary(rti, name);
     Rti._setRest(rti, typeArguments);
+    Rti._setCanonicalRecipe(rti, key);
+    return _finishRti(universe, rti);
+  }
+
+  static String _canonicalRecipeOfBinding(Rti base, Object arguments) {
+    String s = Rti._getCanonicalRecipe(base);
+    s += ';'; // TODO(sra): Omit when base encoding is Rti without ToType.
+    s += '<' + _canonicalRecipeJoin(arguments) + '>';
+    return s;
+  }
+
+  static Rti _lookupBindingRti(Object universe, Rti base, Object arguments) {
+    var newBase = base;
+    var newArguments = arguments;
+    if (Rti._getKind(base) == Rti.kindBinding) {
+      newBase = Rti._getBindingBase(base);
+      newArguments =
+          _Utils.arrayConcat(Rti._getBindingArguments(base), arguments);
+    }
+    String key = _canonicalRecipeOfBinding(newBase, newArguments);
+    var cache = evalCache(universe);
+    var probe = _cacheGet(cache, key);
+    if (probe != null) return _castToRti(probe);
+    return _createBindingRti(universe, newBase, newArguments, key);
+  }
+
+  static Rti _createBindingRti(
+      Object universe, Rti base, Object arguments, String key) {
+    var rti = Rti.allocate();
+    Rti._setKind(rti, Rti.kindBinding);
+    Rti._setPrimary(rti, base);
+    Rti._setRest(rti, arguments);
     Rti._setCanonicalRecipe(rti, key);
     return _finishRti(universe, rti);
   }
@@ -373,6 +421,10 @@ class _Universe {
 ///
 ///   Used to separate elements.
 ///
+/// ';': item  ---  ToType(item)
+///
+///   Used to separate elements.
+///
 /// '@': --- dynamicType
 ///
 /// '?':  type  ---  type?
@@ -382,10 +434,77 @@ class _Universe {
 ///   Saves (pushes) position register, sets position register to end of stack.
 ///
 /// '>':  name saved-position type ... type  ---  name<type, ..., type>
+/// '>':  type saved-position type ... type  ---  binding(type, type, ..., type)
 ///
-///   Creates interface type from name types pushed since the position register
-///   was last set. Restores position register to previous saved value.
+///   When first element is a String: Creates interface type from string 'name'
+///   and the types pushed since the position register was last set. The types
+///   are converted with a ToType operation. Restores position register to
+///   previous saved value.
 ///
+///   When first element is an Rti: Creates binding Rti wrapping the first
+///   element. Binding Rtis are flattened: if the first element is a binding
+///   Rti, the new binding Rti has the concatentation of the first element
+///   bindings and new type.
+///
+///
+/// The ToType operation coerces an item to an Rti. This saves encoding looking
+/// up simple interface names and indexed variables.
+///
+///   ToType(string): Creates an interface Rti for the non-generic class.
+///   ToType(integer): Indexes into the environment.
+///   ToType(Rti): Same Rti
+///
+///
+/// Notes on enviroments and indexing.
+///
+/// To avoid creating a binding Rti for a single function type parameter, the
+/// type is passed without creating a 1-tuple object. This means that the
+/// interface Rti for, say, `Map<num,dynamic>` serves as two environments with
+/// different shapes. It is a class environment (K=num, V=dynamic) and a simple
+/// 1-tuple environment. This is supported by index '0' refering to the whole
+/// type, and '1 and '2' refering to K and V positionally:
+///
+///     interface("Map", [num,dynamic])
+///     0                 1   2
+///
+/// Thus the type expression `List<K>` encodes as `List<1>` and in this
+/// environment evaluates to `List<num>`. `List<Map<K,V>>` could be encoded as
+/// either `List<0>` or `List<Map<1,2>>` (and in this environment evaluates to
+/// `List<Map<num,dynamic>>`).
+///
+/// When `Map<num,dynamic>` is combined with a binding `<int,bool>` (e.g. inside
+/// the instance method `Map<K,V>.cast<RK,RV>()`), '0' refers to the base object
+/// of the binding, and then the numbering counts the bindings followed by the
+/// class parameters.
+///
+///     binding(interface("Map", [num,dynamic]), [int, bool])
+///             0                 3   4           1    2
+///
+/// Any environment can be reconstructed via a recipe. The above enviroment for
+/// method `cast` can be constructed as the ground term
+/// `Map<num,dynamic><int,bool>`, or (somewhat pointlessly) reconstructed via
+/// `0<1,2>` or `Map<3,4><1,2>`. The ability to construct an environment
+/// directly rather than via `bind` calls is used in folding sequences of `eval`
+/// and `bind` calls.
+///
+/// While a single type parameter is passed as the type, multiple type
+/// parameters are passed as a tuple. Tuples are encoded as a binding with an
+/// ignored base. `dynamic` can be used as the base, giving an encoding like
+/// `@<int,bool>`.
+///
+/// Bindings flatten, so `@<int><bool><num>` is the same as `@<int,bool,num>`.
+///
+/// The base of a binding does not have to have type parameters. Consider
+/// `CodeUnits`, which mixes in `ListMixin<int>`. The environment inside of
+/// `ListMixin.fold` (from the call `x.codeUnits.fold<bool>(...)`) would be
+///
+///     binding(interface("CodeUnits", []), [bool])
+///
+/// This can be encoded as `CodeUnits;<bool>` (note the `;` to force ToType to
+/// avoid creating an interface type Rti with a single class type
+/// argument). Metadata about the supertypes is used to resolve the recipe
+/// `ListMixin.E` to `int`.
+
 class _Parser {
   _Parser._() {
     throw UnimplementedError('_Parser is static methods only');
@@ -451,13 +570,18 @@ class _Parser {
             push(stack, _Universe._lookupDynamicRti(universe(parser)));
             break;
 
+          case $SEMICOLON:
+            push(stack,
+                toType(universe(parser), environment(parser), pop(stack)));
+            break;
+
           case $LT:
             push(stack, position(parser));
             setPosition(parser, _Utils.arrayLength(stack));
             break;
 
           case $GT:
-            handleGenericInterfaceType(parser, stack);
+            handleTypeArguments(parser, stack);
             break;
 
           default:
@@ -506,13 +630,24 @@ class _Parser {
     return i;
   }
 
-  static void handleGenericInterfaceType(Object parser, Object stack) {
+  static void handleTypeArguments(Object parser, Object stack) {
     var universe = _Parser.universe(parser);
-    var arguments = _Utils.arraySplice(stack, position(parser));
-    toTypes(universe, environment(parser), arguments);
+    var arguments = collectArray(parser, stack);
+    var head = pop(stack);
+    if (_Utils.isString(head)) {
+      String name = _Utils.asString(head);
+      push(stack, _Universe._lookupInterfaceRti(universe, name, arguments));
+    } else {
+      Rti base = toType(universe, environment(parser), head);
+      push(stack, _Universe._lookupBindingRti(universe, base, arguments));
+    }
+  }
+
+  static Object collectArray(Object parser, Object stack) {
+    var array = _Utils.arraySplice(stack, position(parser));
+    toTypes(_Parser.universe(parser), environment(parser), array);
     setPosition(parser, _Utils.asInt(pop(stack)));
-    String name = _Utils.asString(pop(stack));
-    push(stack, _Universe._lookupInterfaceRti(universe, name, arguments));
+    return array;
   }
 
   /// Coerce a stack item into an Rti object. Strings are converted to interface
@@ -527,7 +662,7 @@ class _Parser {
       return _Universe._lookupInterfaceRti(
           universe, name, _Universe.sharedEmptyArray(universe));
     } else if (_Utils.isNum(item)) {
-      return _Parser._indexToType(universe, environment, _Utils.asInt(item));
+      return _Parser.indexToType(universe, environment, _Utils.asInt(item));
     } else {
       return _castToRti(item);
     }
@@ -542,20 +677,31 @@ class _Parser {
     }
   }
 
-  static Rti _indexToType(Object universe, Rti environment, int index) {
-    while (true) {
-      int kind = Rti._getKind(environment);
-      if (kind == Rti.kindInterface) {
-        var typeArguments = Rti._getInterfaceTypeArguments(environment);
-        int len = _Utils.arrayLength(typeArguments);
-        if (index < len) {
-          return _castToRti(_Utils.arrayAt(typeArguments, index));
-        }
-        throw AssertionError('Bad index $index for $environment');
+  static Rti indexToType(Object universe, Rti environment, int index) {
+    int kind = Rti._getKind(environment);
+    if (kind == Rti.kindBinding) {
+      if (index == 0) return Rti._getBindingBase(environment);
+      var typeArguments = Rti._getBindingArguments(environment);
+      int len = _Utils.arrayLength(typeArguments);
+      if (index <= len) {
+        return _castToRti(_Utils.arrayAt(typeArguments, index - 1));
       }
-      // TODO(sra): Binding environment.
-      throw AssertionError('Recipe cannot index Rti kind $kind');
+      // Is index into interface Rti in base.
+      index -= len;
+      environment = Rti._getBindingBase(environment);
+      kind = Rti._getKind(environment);
+    } else {
+      if (index == 0) return environment;
     }
+    if (kind != Rti.kindInterface) {
+      throw AssertionError('Indexed base must be an interface type');
+    }
+    var typeArguments = Rti._getInterfaceTypeArguments(environment);
+    int len = _Utils.arrayLength(typeArguments);
+    if (index <= len) {
+      return _castToRti(_Utils.arrayAt(typeArguments, index - 1));
+    }
+    throw AssertionError('Bad index $index for $environment');
   }
 
   static bool isDigit(int ch) => ch >= $0 && ch <= $9;
@@ -566,15 +712,20 @@ class _Parser {
       (ch == $$);
 
   static const int $$ = 0x24;
+  static const int $PLUS = 0x2B;
   static const int $COMMA = 0x2C;
   static const int $PERIOD = 0x2E;
   static const int $0 = 0x30;
   static const int $9 = 0x39;
+  static const int $SEMICOLON = 0x3B;
   static const int $LT = 0x3C;
   static const int $GT = 0x3E;
-  static const int $A = 0x41;
+  static const int $QUESTION = 0x3F;
   static const int $AT = 0x40;
-  static const int $Z = $A + 26 - 1;
+  static const int $A = 0x41;
+  static const int $Z = 0x5A;
+  static const int $LBRACKET = 0x5B;
+  static const int $RBRACKET = 0x5D;
   static const int $a = $A + 32;
   static const int $z = $Z + 32;
   static const int $_ = 0x5F;
@@ -618,6 +769,9 @@ class _Utils {
 
   static JSArray arraySplice(Object array, int position) =>
       JS('JSArray', '#.splice(#)', array, position);
+
+  static JSArray arrayConcat(Object a1, Object a2) =>
+      JS('JSArray', '#.concat(#)', a1, a2);
 
   static String substring(String s, int start, int end) =>
       JS('String', '#.substring(#, #)', s, start, end);

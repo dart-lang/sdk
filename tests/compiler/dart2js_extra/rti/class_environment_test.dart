@@ -16,7 +16,7 @@ testInterface1() {
 
   var env = rti.testingUniverseEval(universe, 'Foo<int>');
   var rti1 = rti.testingUniverseEval(universe, 'int');
-  var rti2 = rti.testingEnvironmentEval(universe, env, '0');
+  var rti2 = rti.testingEnvironmentEval(universe, env, '1');
 
   Expect.equals('int', rti.testingRtiToString(rti1));
   Expect.equals('int', rti.testingRtiToString(rti2));
@@ -28,8 +28,8 @@ testInterface2() {
 
   var env = rti.testingUniverseEval(universe, 'Foo<int,List<int>>');
   var rti1 = rti.testingUniverseEval(universe, 'List<int>');
-  var rti2 = rti.testingEnvironmentEval(universe, env, '1');
-  var rti3 = rti.testingEnvironmentEval(universe, env, 'List<0>');
+  var rti2 = rti.testingEnvironmentEval(universe, env, '2');
+  var rti3 = rti.testingEnvironmentEval(universe, env, 'List<1>');
 
   Expect.equals('List<int>', rti.testingRtiToString(rti1));
   Expect.equals('List<int>', rti.testingRtiToString(rti2));
