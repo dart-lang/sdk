@@ -6,6 +6,8 @@ import 'dart:async' show Future;
 
 import 'package:kernel/kernel.dart' show Component;
 
+import 'package:kernel/ast.dart' as ir;
+
 import 'package:kernel/target/targets.dart' show Target;
 
 import '../api_prototype/compiler_options.dart' show CompilerOptions;
@@ -29,6 +31,8 @@ import '../fasta/severity.dart' show Severity;
 import '../kernel_generator_impl.dart' show generateKernelInternal;
 
 import '../fasta/scanner.dart' show ErrorToken, StringToken, Token;
+
+import '../fasta/kernel/redirecting_factory_body.dart' as redirecting;
 
 import 'compiler_state.dart' show InitializedCompilerState;
 
@@ -60,9 +64,6 @@ export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
 export '../fasta/fasta_codes.dart' show LocatedMessage;
-
-export '../fasta/kernel/redirecting_factory_body.dart'
-    show RedirectingFactoryBody;
 
 export '../fasta/operator.dart' show operatorFromString;
 
@@ -211,4 +212,24 @@ Iterable<String> getSupportedLibraryNames(
       .allLibraries
       .where((l) => l.isSupported)
       .map((l) => l.name);
+}
+
+/// Desugar API to determine whether [member] is a redirecting factory
+/// constructor.
+// TODO(sigmund): Delete this API once `member.isRedirectingFactoryConstructor`
+// is implemented correctly for patch files (Issue #33495).
+bool isRedirectingFactory(ir.Procedure member) {
+  if (member.kind == ir.ProcedureKind.Factory) {
+    var body = member.function.body;
+    if (body is redirecting.RedirectingFactoryBody) return true;
+    if (body is ir.ExpressionStatement) {
+      ir.Expression expression = body.expression;
+      if (expression is ir.Let) {
+        if (expression.variable.name == redirecting.letName) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }
