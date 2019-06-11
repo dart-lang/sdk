@@ -20,6 +20,7 @@ linter:
     - avoid_shadowing_type_parameters
     - avoid_types_as_parameter_names
     - curly_braces_in_flow_control_structures
+    - empty_catches
     - empty_constructor_bodies
     - library_names
     - no_duplicate_case_values
