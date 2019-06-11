@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/pending_error.dart';
@@ -201,6 +202,9 @@ class LibraryAnalyzer {
         }
       });
     }
+
+    assert(units.values.every(LegacyTypeAsserter.assertLegacyTypes));
+
     timerLibraryAnalyzerVerify.stop();
 
     // Return full results.

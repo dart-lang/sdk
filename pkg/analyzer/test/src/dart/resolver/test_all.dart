@@ -5,9 +5,11 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'exit_detector_test.dart' as exit_detector;
+import 'legacy_type_asserter_test.dart' as legacy_type_asserter;
 
 main() {
   defineReflectiveSuite(() {
     exit_detector.main();
+    legacy_type_asserter.main();
   }, name: 'resolver');
 }
