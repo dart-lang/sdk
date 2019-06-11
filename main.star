@@ -180,7 +180,7 @@ def dart_poller(name, bucket="ci", branches=BRANCHES, paths=None):
 
 
 dart_poller("dart-gitiles-trigger", branches=BRANCHES + ["analyzer-stable"])
-dart_poller("dart-vm-gitiles-trigger", paths=[
+dart_poller("dart-vm-gitiles-trigger", branches=["master"], paths=[
     "DEPS",
     "build/.+",
     "pkg/(front_end|kernel|vm)/.+",
@@ -323,10 +323,13 @@ def dart_builder(name,
                 channel_properties['no_approvals'] = True
             if enabled and schedule == "triggered":
                 if not triggered_by:
-                    triggered_by = ["dart-gitiles-trigger-%s" % branch]
-                elif len(triggered_by) == 1:
-                    # triggered_by may not contain a '%s' so we replace.
-                    triggered_by = [triggered_by[0].replace("%s", branch)]
+                    triggered_by = ["dart-gitiles-trigger-%s"]
+                triggered_by = [trigger.replace("%s", branch) for
+                                trigger in triggered_by]
+                if channel in ['dev', 'stable']:
+                    # Always run vm builders on dev and stable.
+                    triggered_by = [trigger.replace("dart-vm-", "dart-")
+                                    for trigger in triggered_by]
             luci.builder(
                 name=builder,
                 build_numbers=True,
