@@ -35,6 +35,7 @@ class Driver {
     showDescriptions('Recommended changes', result.suggestions);
     showDescriptions('Recommended changes that cannot be automatically applied',
         result.otherSuggestions);
+    showDetails(result.details);
     if (result.suggestions.isEmpty) {
       logger.stdout('');
       logger.stdout(result.otherSuggestions.isNotEmpty
@@ -150,10 +151,25 @@ class Driver {
     }
   }
 
+  void showDetails(List<String> details) {
+    if (details == null || details.isEmpty) {
+      return;
+    }
+    logger.stdout('''
+
+Analysis Details:
+''');
+    for (String detail in details) {
+      logger.stdout('''
+ • $detail
+''');
+    }
+  }
+
   void showFix(DartFix fix) {
     logger.stdout('''
 
-* ${fix.name}''');
+• ${fix.name}''');
     if (fix.description != null) {
       for (String line in _indentAndWrapDescription(fix.description)) {
         logger.stdout(line);
