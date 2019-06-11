@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/src/lsp/json_parsing.dart';
 
 const jsonRpcVersion = '2.0';
 
@@ -29,9 +30,9 @@ Object specToJson(Object obj) {
 
 ErrorOr<R> success<R>([R t]) => new ErrorOr<R>.success(t);
 
-Null _alwaysNull(_) => null;
+Null _alwaysNull(_, [__]) => null;
 
-bool _alwaysTrue(_) => true;
+bool _alwaysTrue(_, [__]) => true;
 
 class Either2<T1, T2> {
   final int _which;
@@ -227,7 +228,8 @@ abstract class IncomingMessage {
 /// A helper to allow handlers to declare both a JSON validation function and
 /// parse function.
 class LspJsonHandler<T> {
-  final bool Function(Map<String, Object>) validateParams;
+  final bool Function(Map<String, Object>, LspJsonReporter reporter)
+      validateParams;
   final T Function(Map<String, Object>) convertParams;
 
   const LspJsonHandler(this.validateParams, this.convertParams);

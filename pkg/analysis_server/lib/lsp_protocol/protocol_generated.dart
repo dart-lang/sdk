@@ -17,6 +17,7 @@ import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -55,11 +56,37 @@ class ApplyWorkspaceEditParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['label'] == null || obj['label'] is String) &&
-        obj.containsKey('edit') &&
-        WorkspaceEdit.canParse(obj['edit']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'label';
+        if (obj['label'] != null && !(obj['label'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'edit';
+        if (!obj.containsKey('edit')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['edit'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['edit'] != null &&
+            !(WorkspaceEdit.canParse(obj['edit'], reporter))) {
+          reporter?.reportError("must be of type WorkspaceEdit");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -115,11 +142,36 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('applied') &&
-        obj['applied'] is bool &&
-        (obj['failureReason'] == null || obj['failureReason'] is String);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'applied';
+        if (!obj.containsKey('applied')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['applied'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['applied'] != null && !(obj['applied'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'failureReason';
+        if (obj['failureReason'] != null && !(obj['failureReason'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -171,10 +223,31 @@ class CancelParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('id') &&
-        (obj['id'] is num || obj['id'] is String);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'id';
+        if (!obj.containsKey('id')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['id'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['id'] != null && !((obj['id'] is num || obj['id'] is String))) {
+          reporter?.reportError("must be of type Either2<num, String>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -235,13 +308,38 @@ class ClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['workspace'] == null ||
-            WorkspaceClientCapabilities.canParse(obj['workspace'])) &&
-        (obj['textDocument'] == null ||
-            TextDocumentClientCapabilities.canParse(obj['textDocument'])) &&
-        (obj['experimental'] == null || true);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'workspace';
+        if (obj['workspace'] != null &&
+            !(WorkspaceClientCapabilities.canParse(
+                obj['workspace'], reporter))) {
+          reporter?.reportError("must be of type WorkspaceClientCapabilities");
+          return false;
+        }
+        reporter?.field = 'textDocument';
+        if (obj['textDocument'] != null &&
+            !(TextDocumentClientCapabilities.canParse(
+                obj['textDocument'], reporter))) {
+          reporter
+              ?.reportError("must be of type TextDocumentClientCapabilities");
+          return false;
+        }
+        reporter?.field = 'experimental';
+        if (obj['experimental'] != null && !(true)) {
+          reporter?.reportError("must be of type dynamic");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -333,17 +431,57 @@ class CodeAction implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('title') &&
-        obj['title'] is String &&
-        (obj['kind'] == null || CodeActionKind.canParse(obj['kind'])) &&
-        (obj['diagnostics'] == null ||
-            (obj['diagnostics'] is List &&
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'title';
+        if (!obj.containsKey('title')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['title'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['title'] != null && !(obj['title'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'kind';
+        if (obj['kind'] != null &&
+            !(CodeActionKind.canParse(obj['kind'], reporter))) {
+          reporter?.reportError("must be of type CodeActionKind");
+          return false;
+        }
+        reporter?.field = 'diagnostics';
+        if (obj['diagnostics'] != null &&
+            !((obj['diagnostics'] is List &&
                 (obj['diagnostics']
-                    .every((item) => Diagnostic.canParse(item))))) &&
-        (obj['edit'] == null || WorkspaceEdit.canParse(obj['edit'])) &&
-        (obj['command'] == null || Command.canParse(obj['command']));
+                    .every((item) => Diagnostic.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<Diagnostic>");
+          return false;
+        }
+        reporter?.field = 'edit';
+        if (obj['edit'] != null &&
+            !(WorkspaceEdit.canParse(obj['edit'], reporter))) {
+          reporter?.reportError("must be of type WorkspaceEdit");
+          return false;
+        }
+        reporter?.field = 'command';
+        if (obj['command'] != null &&
+            !(Command.canParse(obj['command'], reporter))) {
+          reporter?.reportError("must be of type Command");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -417,14 +555,42 @@ class CodeActionContext implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('diagnostics') &&
-        (obj['diagnostics'] is List &&
-            (obj['diagnostics'].every((item) => Diagnostic.canParse(item)))) &&
-        (obj['only'] == null ||
-            (obj['only'] is List &&
-                (obj['only'].every((item) => CodeActionKind.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'diagnostics';
+        if (!obj.containsKey('diagnostics')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['diagnostics'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['diagnostics'] != null &&
+            !((obj['diagnostics'] is List &&
+                (obj['diagnostics']
+                    .every((item) => Diagnostic.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<Diagnostic>");
+          return false;
+        }
+        reporter?.field = 'only';
+        if (obj['only'] != null &&
+            !((obj['only'] is List &&
+                (obj['only'].every(
+                    (item) => CodeActionKind.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<CodeActionKind>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -458,7 +624,7 @@ class CodeActionKind {
 
   final String _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     return obj is String;
   }
 
@@ -552,12 +718,26 @@ class CodeActionOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['codeActionKinds'] == null ||
-            (obj['codeActionKinds'] is List &&
-                (obj['codeActionKinds']
-                    .every((item) => CodeActionKind.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'codeActionKinds';
+        if (obj['codeActionKinds'] != null &&
+            !((obj['codeActionKinds'] is List &&
+                (obj['codeActionKinds'].every(
+                    (item) => CodeActionKind.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<CodeActionKind>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -627,14 +807,59 @@ class CodeActionParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']) &&
-        obj.containsKey('range') &&
-        Range.canParse(obj['range']) &&
-        obj.containsKey('context') &&
-        CodeActionContext.canParse(obj['context']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        reporter?.field = 'range';
+        if (!obj.containsKey('range')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        reporter?.field = 'context';
+        if (!obj.containsKey('context')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['context'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['context'] != null &&
+            !(CodeActionContext.canParse(obj['context'], reporter))) {
+          reporter?.reportError("must be of type CodeActionContext");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -699,17 +924,38 @@ class CodeActionRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] == null ||
-            (obj['documentSelector'] is List &&
-                (obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item))))) &&
-        (obj['codeActionKinds'] == null ||
-            (obj['codeActionKinds'] is List &&
-                (obj['codeActionKinds']
-                    .every((item) => CodeActionKind.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'documentSelector';
+        if (!obj.containsKey('documentSelector')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['documentSelector'] != null &&
+            !((obj['documentSelector'] is List &&
+                (obj['documentSelector'].every(
+                    (item) => DocumentFilter.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<DocumentFilter>");
+          return false;
+        }
+        reporter?.field = 'codeActionKinds';
+        if (obj['codeActionKinds'] != null &&
+            !((obj['codeActionKinds'] is List &&
+                (obj['codeActionKinds'].every(
+                    (item) => CodeActionKind.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<CodeActionKind>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -781,12 +1027,42 @@ class CodeLens implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('range') &&
-        Range.canParse(obj['range']) &&
-        (obj['command'] == null || Command.canParse(obj['command'])) &&
-        (obj['data'] == null || true);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'range';
+        if (!obj.containsKey('range')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        reporter?.field = 'command';
+        if (obj['command'] != null &&
+            !(Command.canParse(obj['command'], reporter))) {
+          reporter?.reportError("must be of type Command");
+          return false;
+        }
+        reporter?.field = 'data';
+        if (obj['data'] != null && !(true)) {
+          reporter?.reportError("must be of type dynamic");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -835,9 +1111,24 @@ class CodeLensOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['resolveProvider'] == null || obj['resolveProvider'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'resolveProvider';
+        if (obj['resolveProvider'] != null &&
+            !(obj['resolveProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -885,10 +1176,32 @@ class CodeLensParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -942,14 +1255,36 @@ class CodeLensRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['resolveProvider'] == null || obj['resolveProvider'] is bool) &&
-        obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] == null ||
-            (obj['documentSelector'] is List &&
-                (obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'resolveProvider';
+        if (obj['resolveProvider'] != null &&
+            !(obj['resolveProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'documentSelector';
+        if (!obj.containsKey('documentSelector')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['documentSelector'] != null &&
+            !((obj['documentSelector'] is List &&
+                (obj['documentSelector'].every(
+                    (item) => DocumentFilter.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<DocumentFilter>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -1022,16 +1357,70 @@ class Color implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('red') &&
-        obj['red'] is num &&
-        obj.containsKey('green') &&
-        obj['green'] is num &&
-        obj.containsKey('blue') &&
-        obj['blue'] is num &&
-        obj.containsKey('alpha') &&
-        obj['alpha'] is num;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'red';
+        if (!obj.containsKey('red')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['red'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['red'] != null && !(obj['red'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        reporter?.field = 'green';
+        if (!obj.containsKey('green')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['green'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['green'] != null && !(obj['green'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        reporter?.field = 'blue';
+        if (!obj.containsKey('blue')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['blue'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['blue'] != null && !(obj['blue'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        reporter?.field = 'alpha';
+        if (!obj.containsKey('alpha')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['alpha'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['alpha'] != null && !(obj['alpha'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -1091,12 +1480,44 @@ class ColorInformation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('range') &&
-        Range.canParse(obj['range']) &&
-        obj.containsKey('color') &&
-        Color.canParse(obj['color']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'range';
+        if (!obj.containsKey('range')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        reporter?.field = 'color';
+        if (!obj.containsKey('color')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['color'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['color'] != null && !(Color.canParse(obj['color'], reporter))) {
+          reporter?.reportError("must be of type Color");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -1166,15 +1587,45 @@ class ColorPresentation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('label') &&
-        obj['label'] is String &&
-        (obj['textEdit'] == null || TextEdit.canParse(obj['textEdit'])) &&
-        (obj['additionalTextEdits'] == null ||
-            (obj['additionalTextEdits'] is List &&
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'label';
+        if (!obj.containsKey('label')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['label'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['label'] != null && !(obj['label'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'textEdit';
+        if (obj['textEdit'] != null &&
+            !(TextEdit.canParse(obj['textEdit'], reporter))) {
+          reporter?.reportError("must be of type TextEdit");
+          return false;
+        }
+        reporter?.field = 'additionalTextEdits';
+        if (obj['additionalTextEdits'] != null &&
+            !((obj['additionalTextEdits'] is List &&
                 (obj['additionalTextEdits']
-                    .every((item) => TextEdit.canParse(item)))));
+                    .every((item) => TextEdit.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<TextEdit>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -1244,14 +1695,58 @@ class ColorPresentationParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']) &&
-        obj.containsKey('color') &&
-        Color.canParse(obj['color']) &&
-        obj.containsKey('range') &&
-        Range.canParse(obj['range']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        reporter?.field = 'color';
+        if (!obj.containsKey('color')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['color'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['color'] != null && !(Color.canParse(obj['color'], reporter))) {
+          reporter?.reportError("must be of type Color");
+          return false;
+        }
+        reporter?.field = 'range';
+        if (!obj.containsKey('range')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -1292,8 +1787,18 @@ class ColorProviderOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -1354,15 +1859,51 @@ class Command implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('title') &&
-        obj['title'] is String &&
-        obj.containsKey('command') &&
-        obj['command'] is String &&
-        (obj['arguments'] == null ||
-            (obj['arguments'] is List &&
-                (obj['arguments'].every((item) => true))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'title';
+        if (!obj.containsKey('title')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['title'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['title'] != null && !(obj['title'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'command';
+        if (!obj.containsKey('command')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['command'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['command'] != null && !(obj['command'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'arguments';
+        if (obj['arguments'] != null &&
+            !((obj['arguments'] is List &&
+                (obj['arguments'].every((item) => true))))) {
+          reporter?.reportError("must be of type List<dynamic>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -1426,11 +1967,38 @@ class CompletionContext implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('triggerKind') &&
-        CompletionTriggerKind.canParse(obj['triggerKind']) &&
-        (obj['triggerCharacter'] == null || obj['triggerCharacter'] is String);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'triggerKind';
+        if (!obj.containsKey('triggerKind')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['triggerKind'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['triggerKind'] != null &&
+            !(CompletionTriggerKind.canParse(obj['triggerKind'], reporter))) {
+          reporter?.reportError("must be of type CompletionTriggerKind");
+          return false;
+        }
+        reporter?.field = 'triggerCharacter';
+        if (obj['triggerCharacter'] != null &&
+            !(obj['triggerCharacter'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -1663,33 +2231,114 @@ class CompletionItem implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('label') &&
-        obj['label'] is String &&
-        (obj['kind'] == null || CompletionItemKind.canParse(obj['kind'])) &&
-        (obj['detail'] == null || obj['detail'] is String) &&
-        (obj['documentation'] == null ||
-            (obj['documentation'] is String ||
-                MarkupContent.canParse(obj['documentation']))) &&
-        (obj['deprecated'] == null || obj['deprecated'] is bool) &&
-        (obj['preselect'] == null || obj['preselect'] is bool) &&
-        (obj['sortText'] == null || obj['sortText'] is String) &&
-        (obj['filterText'] == null || obj['filterText'] is String) &&
-        (obj['insertText'] == null || obj['insertText'] is String) &&
-        (obj['insertTextFormat'] == null ||
-            InsertTextFormat.canParse(obj['insertTextFormat'])) &&
-        (obj['textEdit'] == null || TextEdit.canParse(obj['textEdit'])) &&
-        (obj['additionalTextEdits'] == null ||
-            (obj['additionalTextEdits'] is List &&
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'label';
+        if (!obj.containsKey('label')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['label'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['label'] != null && !(obj['label'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'kind';
+        if (obj['kind'] != null &&
+            !(CompletionItemKind.canParse(obj['kind'], reporter))) {
+          reporter?.reportError("must be of type CompletionItemKind");
+          return false;
+        }
+        reporter?.field = 'detail';
+        if (obj['detail'] != null && !(obj['detail'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'documentation';
+        if (obj['documentation'] != null &&
+            !((obj['documentation'] is String ||
+                MarkupContent.canParse(obj['documentation'], reporter)))) {
+          reporter
+              ?.reportError("must be of type Either2<String, MarkupContent>");
+          return false;
+        }
+        reporter?.field = 'deprecated';
+        if (obj['deprecated'] != null && !(obj['deprecated'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'preselect';
+        if (obj['preselect'] != null && !(obj['preselect'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'sortText';
+        if (obj['sortText'] != null && !(obj['sortText'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'filterText';
+        if (obj['filterText'] != null && !(obj['filterText'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'insertText';
+        if (obj['insertText'] != null && !(obj['insertText'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'insertTextFormat';
+        if (obj['insertTextFormat'] != null &&
+            !(InsertTextFormat.canParse(obj['insertTextFormat'], reporter))) {
+          reporter?.reportError("must be of type InsertTextFormat");
+          return false;
+        }
+        reporter?.field = 'textEdit';
+        if (obj['textEdit'] != null &&
+            !(TextEdit.canParse(obj['textEdit'], reporter))) {
+          reporter?.reportError("must be of type TextEdit");
+          return false;
+        }
+        reporter?.field = 'additionalTextEdits';
+        if (obj['additionalTextEdits'] != null &&
+            !((obj['additionalTextEdits'] is List &&
                 (obj['additionalTextEdits']
-                    .every((item) => TextEdit.canParse(item))))) &&
-        (obj['commitCharacters'] == null ||
-            (obj['commitCharacters'] is List &&
-                (obj['commitCharacters'].every((item) => item is String)))) &&
-        (obj['command'] == null || Command.canParse(obj['command'])) &&
-        (obj['data'] == null ||
-            CompletionItemResolutionInfo.canParse(obj['data']));
+                    .every((item) => TextEdit.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<TextEdit>");
+          return false;
+        }
+        reporter?.field = 'commitCharacters';
+        if (obj['commitCharacters'] != null &&
+            !((obj['commitCharacters'] is List &&
+                (obj['commitCharacters'].every((item) => item is String))))) {
+          reporter?.reportError("must be of type List<String>");
+          return false;
+        }
+        reporter?.field = 'command';
+        if (obj['command'] != null &&
+            !(Command.canParse(obj['command'], reporter))) {
+          reporter?.reportError("must be of type Command");
+          return false;
+        }
+        reporter?.field = 'data';
+        if (obj['data'] != null &&
+            !(CompletionItemResolutionInfo.canParse(obj['data'], reporter))) {
+          reporter?.reportError("must be of type CompletionItemResolutionInfo");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -1749,7 +2398,7 @@ class CompletionItemKind {
 
   final num _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     return obj is num;
   }
 
@@ -1828,13 +2477,47 @@ class CompletionList implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('isIncomplete') &&
-        obj['isIncomplete'] is bool &&
-        obj.containsKey('items') &&
-        (obj['items'] is List &&
-            (obj['items'].every((item) => CompletionItem.canParse(item))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'isIncomplete';
+        if (!obj.containsKey('isIncomplete')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['isIncomplete'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['isIncomplete'] != null && !(obj['isIncomplete'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'items';
+        if (!obj.containsKey('items')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['items'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['items'] != null &&
+            !((obj['items'] is List &&
+                (obj['items'].every(
+                    (item) => CompletionItem.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<CompletionItem>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -1893,12 +2576,31 @@ class CompletionOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['resolveProvider'] == null || obj['resolveProvider'] is bool) &&
-        (obj['triggerCharacters'] == null ||
-            (obj['triggerCharacters'] is List &&
-                (obj['triggerCharacters'].every((item) => item is String))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'resolveProvider';
+        if (obj['resolveProvider'] != null &&
+            !(obj['resolveProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'triggerCharacters';
+        if (obj['triggerCharacters'] != null &&
+            !((obj['triggerCharacters'] is List &&
+                (obj['triggerCharacters'].every((item) => item is String))))) {
+          reporter?.reportError("must be of type List<String>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -1971,14 +2673,52 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['context'] == null ||
-            CompletionContext.canParse(obj['context'])) &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']) &&
-        obj.containsKey('position') &&
-        Position.canParse(obj['position']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'context';
+        if (obj['context'] != null &&
+            !(CompletionContext.canParse(obj['context'], reporter))) {
+          reporter?.reportError("must be of type CompletionContext");
+          return false;
+        }
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        reporter?.field = 'position';
+        if (!obj.containsKey('position')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['position'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['position'] != null &&
+            !(Position.canParse(obj['position'], reporter))) {
+          reporter?.reportError("must be of type Position");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -2074,21 +2814,51 @@ class CompletionRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['triggerCharacters'] == null ||
-            (obj['triggerCharacters'] is List &&
-                (obj['triggerCharacters'].every((item) => item is String)))) &&
-        (obj['allCommitCharacters'] == null ||
-            (obj['allCommitCharacters'] is List &&
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'triggerCharacters';
+        if (obj['triggerCharacters'] != null &&
+            !((obj['triggerCharacters'] is List &&
+                (obj['triggerCharacters'].every((item) => item is String))))) {
+          reporter?.reportError("must be of type List<String>");
+          return false;
+        }
+        reporter?.field = 'allCommitCharacters';
+        if (obj['allCommitCharacters'] != null &&
+            !((obj['allCommitCharacters'] is List &&
                 (obj['allCommitCharacters']
-                    .every((item) => item is String)))) &&
-        (obj['resolveProvider'] == null || obj['resolveProvider'] is bool) &&
-        obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] == null ||
-            (obj['documentSelector'] is List &&
-                (obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item)))));
+                    .every((item) => item is String))))) {
+          reporter?.reportError("must be of type List<String>");
+          return false;
+        }
+        reporter?.field = 'resolveProvider';
+        if (obj['resolveProvider'] != null &&
+            !(obj['resolveProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'documentSelector';
+        if (!obj.containsKey('documentSelector')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['documentSelector'] != null &&
+            !((obj['documentSelector'] is List &&
+                (obj['documentSelector'].every(
+                    (item) => DocumentFilter.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<DocumentFilter>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -2126,7 +2896,7 @@ class CompletionTriggerKind {
 
   final num _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     switch (obj) {
       case 1:
       case 2:
@@ -2187,10 +2957,28 @@ class ConfigurationItem implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['scopeUri'] == null || obj['scopeUri'] is String) &&
-        (obj['section'] == null || obj['section'] is String);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'scopeUri';
+        if (obj['scopeUri'] != null && !(obj['scopeUri'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'section';
+        if (obj['section'] != null && !(obj['section'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -2238,11 +3026,34 @@ class ConfigurationParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('items') &&
-        (obj['items'] is List &&
-            (obj['items'].every((item) => ConfigurationItem.canParse(item))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'items';
+        if (!obj.containsKey('items')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['items'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['items'] != null &&
+            !((obj['items'] is List &&
+                (obj['items'].every(
+                    (item) => ConfigurationItem.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<ConfigurationItem>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -2307,13 +3118,50 @@ class CreateFile implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('kind') &&
-        obj['kind'] is String &&
-        obj.containsKey('uri') &&
-        obj['uri'] is String &&
-        (obj['options'] == null || CreateFileOptions.canParse(obj['options']));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'kind';
+        if (!obj.containsKey('kind')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['kind'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['kind'] != null && !(obj['kind'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'uri';
+        if (!obj.containsKey('uri')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['uri'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['uri'] != null && !(obj['uri'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'options';
+        if (obj['options'] != null &&
+            !(CreateFileOptions.canParse(obj['options'], reporter))) {
+          reporter?.reportError("must be of type CreateFileOptions");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -2369,10 +3217,28 @@ class CreateFileOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['overwrite'] == null || obj['overwrite'] is bool) &&
-        (obj['ignoreIfExists'] == null || obj['ignoreIfExists'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'overwrite';
+        if (obj['overwrite'] != null && !(obj['overwrite'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'ignoreIfExists';
+        if (obj['ignoreIfExists'] != null && !(obj['ignoreIfExists'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -2438,13 +3304,50 @@ class DeleteFile implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('kind') &&
-        obj['kind'] is String &&
-        obj.containsKey('uri') &&
-        obj['uri'] is String &&
-        (obj['options'] == null || DeleteFileOptions.canParse(obj['options']));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'kind';
+        if (!obj.containsKey('kind')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['kind'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['kind'] != null && !(obj['kind'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'uri';
+        if (!obj.containsKey('uri')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['uri'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['uri'] != null && !(obj['uri'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'options';
+        if (obj['options'] != null &&
+            !(DeleteFileOptions.canParse(obj['options'], reporter))) {
+          reporter?.reportError("must be of type DeleteFileOptions");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -2500,10 +3403,29 @@ class DeleteFileOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['recursive'] == null || obj['recursive'] is bool) &&
-        (obj['ignoreIfNotExists'] == null || obj['ignoreIfNotExists'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'recursive';
+        if (obj['recursive'] != null && !(obj['recursive'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'ignoreIfNotExists';
+        if (obj['ignoreIfNotExists'] != null &&
+            !(obj['ignoreIfNotExists'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -2599,20 +3521,69 @@ class Diagnostic implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('range') &&
-        Range.canParse(obj['range']) &&
-        (obj['severity'] == null ||
-            DiagnosticSeverity.canParse(obj['severity'])) &&
-        (obj['code'] == null || obj['code'] is String) &&
-        (obj['source'] == null || obj['source'] is String) &&
-        obj.containsKey('message') &&
-        obj['message'] is String &&
-        (obj['relatedInformation'] == null ||
-            (obj['relatedInformation'] is List &&
-                (obj['relatedInformation'].every(
-                    (item) => DiagnosticRelatedInformation.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'range';
+        if (!obj.containsKey('range')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        reporter?.field = 'severity';
+        if (obj['severity'] != null &&
+            !(DiagnosticSeverity.canParse(obj['severity'], reporter))) {
+          reporter?.reportError("must be of type DiagnosticSeverity");
+          return false;
+        }
+        reporter?.field = 'code';
+        if (obj['code'] != null && !(obj['code'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'source';
+        if (obj['source'] != null && !(obj['source'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'message';
+        if (!obj.containsKey('message')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['message'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['message'] != null && !(obj['message'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'relatedInformation';
+        if (obj['relatedInformation'] != null &&
+            !((obj['relatedInformation'] is List &&
+                (obj['relatedInformation'].every((item) =>
+                    DiagnosticRelatedInformation.canParse(item, reporter)))))) {
+          reporter?.reportError(
+              "must be of type List<DiagnosticRelatedInformation>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -2688,12 +3659,45 @@ class DiagnosticRelatedInformation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('location') &&
-        Location.canParse(obj['location']) &&
-        obj.containsKey('message') &&
-        obj['message'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'location';
+        if (!obj.containsKey('location')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['location'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['location'] != null &&
+            !(Location.canParse(obj['location'], reporter))) {
+          reporter?.reportError("must be of type Location");
+          return false;
+        }
+        reporter?.field = 'message';
+        if (!obj.containsKey('message')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['message'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['message'] != null && !(obj['message'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -2722,7 +3726,7 @@ class DiagnosticSeverity {
 
   final num _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     return obj is num;
   }
 
@@ -2769,10 +3773,27 @@ class DidChangeConfigurationParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('settings') &&
-        (obj['settings'] == null || true);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'settings';
+        if (!obj.containsKey('settings')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['settings'] != null && !(true)) {
+          reporter?.reportError("must be of type dynamic");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -2837,14 +3858,52 @@ class DidChangeTextDocumentParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        VersionedTextDocumentIdentifier.canParse(obj['textDocument']) &&
-        obj.containsKey('contentChanges') &&
-        (obj['contentChanges'] is List &&
-            (obj['contentChanges'].every(
-                (item) => TextDocumentContentChangeEvent.canParse(item))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(VersionedTextDocumentIdentifier.canParse(
+                obj['textDocument'], reporter))) {
+          reporter
+              ?.reportError("must be of type VersionedTextDocumentIdentifier");
+          return false;
+        }
+        reporter?.field = 'contentChanges';
+        if (!obj.containsKey('contentChanges')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['contentChanges'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['contentChanges'] != null &&
+            !((obj['contentChanges'] is List &&
+                (obj['contentChanges'].every((item) =>
+                    TextDocumentContentChangeEvent.canParse(
+                        item, reporter)))))) {
+          reporter?.reportError(
+              "must be of type List<TextDocumentContentChangeEvent>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -2902,11 +3961,34 @@ class DidChangeWatchedFilesParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('changes') &&
-        (obj['changes'] is List &&
-            (obj['changes'].every((item) => FileEvent.canParse(item))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'changes';
+        if (!obj.containsKey('changes')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['changes'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['changes'] != null &&
+            !((obj['changes'] is List &&
+                (obj['changes']
+                    .every((item) => FileEvent.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<FileEvent>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -2960,12 +4042,34 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('watchers') &&
-        (obj['watchers'] is List &&
-            (obj['watchers']
-                .every((item) => FileSystemWatcher.canParse(item))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'watchers';
+        if (!obj.containsKey('watchers')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['watchers'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['watchers'] != null &&
+            !((obj['watchers'] is List &&
+                (obj['watchers'].every(
+                    (item) => FileSystemWatcher.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<FileSystemWatcher>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -3015,10 +4119,32 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('event') &&
-        WorkspaceFoldersChangeEvent.canParse(obj['event']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'event';
+        if (!obj.containsKey('event')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['event'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['event'] != null &&
+            !(WorkspaceFoldersChangeEvent.canParse(obj['event'], reporter))) {
+          reporter?.reportError("must be of type WorkspaceFoldersChangeEvent");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -3066,10 +4192,32 @@ class DidCloseTextDocumentParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -3117,10 +4265,32 @@ class DidOpenTextDocumentParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        TextDocumentItem.canParse(obj['textDocument']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentItem.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentItem");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -3176,11 +4346,37 @@ class DidSaveTextDocumentParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']) &&
-        (obj['text'] == null || obj['text'] is String);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        reporter?.field = 'text';
+        if (obj['text'] != null && !(obj['text'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -3250,11 +4446,33 @@ class DocumentFilter implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['language'] == null || obj['language'] is String) &&
-        (obj['scheme'] == null || obj['scheme'] is String) &&
-        (obj['pattern'] == null || obj['pattern'] is String);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'language';
+        if (obj['language'] != null && !(obj['language'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'scheme';
+        if (obj['scheme'] != null && !(obj['scheme'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'pattern';
+        if (obj['pattern'] != null && !(obj['pattern'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -3318,12 +4536,46 @@ class DocumentFormattingParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']) &&
-        obj.containsKey('options') &&
-        FormattingOptions.canParse(obj['options']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        reporter?.field = 'options';
+        if (!obj.containsKey('options')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['options'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['options'] != null &&
+            !(FormattingOptions.canParse(obj['options'], reporter))) {
+          reporter?.reportError("must be of type FormattingOptions");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -3383,11 +4635,37 @@ class DocumentHighlight implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('range') &&
-        Range.canParse(obj['range']) &&
-        (obj['kind'] == null || DocumentHighlightKind.canParse(obj['kind']));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'range';
+        if (!obj.containsKey('range')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        reporter?.field = 'kind';
+        if (obj['kind'] != null &&
+            !(DocumentHighlightKind.canParse(obj['kind'], reporter))) {
+          reporter?.reportError("must be of type DocumentHighlightKind");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -3417,7 +4695,7 @@ class DocumentHighlightKind {
 
   final num _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     return obj is num;
   }
 
@@ -3481,12 +4759,41 @@ class DocumentLink implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('range') &&
-        Range.canParse(obj['range']) &&
-        (obj['target'] == null || obj['target'] is String) &&
-        (obj['data'] == null || true);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'range';
+        if (!obj.containsKey('range')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        reporter?.field = 'target';
+        if (obj['target'] != null && !(obj['target'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'data';
+        if (obj['data'] != null && !(true)) {
+          reporter?.reportError("must be of type dynamic");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -3535,9 +4842,24 @@ class DocumentLinkOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['resolveProvider'] == null || obj['resolveProvider'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'resolveProvider';
+        if (obj['resolveProvider'] != null &&
+            !(obj['resolveProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -3585,10 +4907,32 @@ class DocumentLinkParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -3643,14 +4987,36 @@ class DocumentLinkRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['resolveProvider'] == null || obj['resolveProvider'] is bool) &&
-        obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] == null ||
-            (obj['documentSelector'] is List &&
-                (obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'resolveProvider';
+        if (obj['resolveProvider'] != null &&
+            !(obj['resolveProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'documentSelector';
+        if (!obj.containsKey('documentSelector')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['documentSelector'] != null &&
+            !((obj['documentSelector'] is List &&
+                (obj['documentSelector'].every(
+                    (item) => DocumentFilter.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<DocumentFilter>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -3713,13 +5079,40 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('firstTriggerCharacter') &&
-        obj['firstTriggerCharacter'] is String &&
-        (obj['moreTriggerCharacter'] == null ||
-            (obj['moreTriggerCharacter'] is List &&
-                (obj['moreTriggerCharacter'].every((item) => item is String))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'firstTriggerCharacter';
+        if (!obj.containsKey('firstTriggerCharacter')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['firstTriggerCharacter'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['firstTriggerCharacter'] != null &&
+            !(obj['firstTriggerCharacter'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'moreTriggerCharacter';
+        if (obj['moreTriggerCharacter'] != null &&
+            !((obj['moreTriggerCharacter'] is List &&
+                (obj['moreTriggerCharacter']
+                    .every((item) => item is String))))) {
+          reporter?.reportError("must be of type List<String>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -3803,16 +5196,73 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']) &&
-        obj.containsKey('position') &&
-        Position.canParse(obj['position']) &&
-        obj.containsKey('ch') &&
-        obj['ch'] is String &&
-        obj.containsKey('options') &&
-        FormattingOptions.canParse(obj['options']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        reporter?.field = 'position';
+        if (!obj.containsKey('position')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['position'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['position'] != null &&
+            !(Position.canParse(obj['position'], reporter))) {
+          reporter?.reportError("must be of type Position");
+          return false;
+        }
+        reporter?.field = 'ch';
+        if (!obj.containsKey('ch')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['ch'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['ch'] != null && !(obj['ch'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'options';
+        if (!obj.containsKey('options')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['options'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['options'] != null &&
+            !(FormattingOptions.canParse(obj['options'], reporter))) {
+          reporter?.reportError("must be of type FormattingOptions");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -3889,19 +5339,52 @@ class DocumentOnTypeFormattingRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('firstTriggerCharacter') &&
-        obj['firstTriggerCharacter'] is String &&
-        (obj['moreTriggerCharacter'] == null ||
-            (obj['moreTriggerCharacter'] is List &&
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'firstTriggerCharacter';
+        if (!obj.containsKey('firstTriggerCharacter')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['firstTriggerCharacter'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['firstTriggerCharacter'] != null &&
+            !(obj['firstTriggerCharacter'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'moreTriggerCharacter';
+        if (obj['moreTriggerCharacter'] != null &&
+            !((obj['moreTriggerCharacter'] is List &&
                 (obj['moreTriggerCharacter']
-                    .every((item) => item is String)))) &&
-        obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] == null ||
-            (obj['documentSelector'] is List &&
-                (obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item)))));
+                    .every((item) => item is String))))) {
+          reporter?.reportError("must be of type List<String>");
+          return false;
+        }
+        reporter?.field = 'documentSelector';
+        if (!obj.containsKey('documentSelector')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['documentSelector'] != null &&
+            !((obj['documentSelector'] is List &&
+                (obj['documentSelector'].every(
+                    (item) => DocumentFilter.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<DocumentFilter>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -3975,14 +5458,59 @@ class DocumentRangeFormattingParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']) &&
-        obj.containsKey('range') &&
-        Range.canParse(obj['range']) &&
-        obj.containsKey('options') &&
-        FormattingOptions.canParse(obj['options']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        reporter?.field = 'range';
+        if (!obj.containsKey('range')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        reporter?.field = 'options';
+        if (!obj.containsKey('options')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['options'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['options'] != null &&
+            !(FormattingOptions.canParse(obj['options'], reporter))) {
+          reporter?.reportError("must be of type FormattingOptions");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -4096,22 +5624,90 @@ class DocumentSymbol implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('name') &&
-        obj['name'] is String &&
-        (obj['detail'] == null || obj['detail'] is String) &&
-        obj.containsKey('kind') &&
-        SymbolKind.canParse(obj['kind']) &&
-        (obj['deprecated'] == null || obj['deprecated'] is bool) &&
-        obj.containsKey('range') &&
-        Range.canParse(obj['range']) &&
-        obj.containsKey('selectionRange') &&
-        Range.canParse(obj['selectionRange']) &&
-        (obj['children'] == null ||
-            (obj['children'] is List &&
-                (obj['children']
-                    .every((item) => DocumentSymbol.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'name';
+        if (!obj.containsKey('name')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['name'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['name'] != null && !(obj['name'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'detail';
+        if (obj['detail'] != null && !(obj['detail'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'kind';
+        if (!obj.containsKey('kind')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['kind'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['kind'] != null &&
+            !(SymbolKind.canParse(obj['kind'], reporter))) {
+          reporter?.reportError("must be of type SymbolKind");
+          return false;
+        }
+        reporter?.field = 'deprecated';
+        if (obj['deprecated'] != null && !(obj['deprecated'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'range';
+        if (!obj.containsKey('range')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        reporter?.field = 'selectionRange';
+        if (!obj.containsKey('selectionRange')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['selectionRange'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['selectionRange'] != null &&
+            !(Range.canParse(obj['selectionRange'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        reporter?.field = 'children';
+        if (obj['children'] != null &&
+            !((obj['children'] is List &&
+                (obj['children'].every(
+                    (item) => DocumentSymbol.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<DocumentSymbol>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -4173,10 +5769,32 @@ class DocumentSymbolParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -4204,7 +5822,7 @@ class ErrorCodes {
 
   final num _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     return obj is num;
   }
 
@@ -4260,11 +5878,33 @@ class ExecuteCommandOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('commands') &&
-        (obj['commands'] is List &&
-            (obj['commands'].every((item) => item is String)));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'commands';
+        if (!obj.containsKey('commands')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['commands'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['commands'] != null &&
+            !((obj['commands'] is List &&
+                (obj['commands'].every((item) => item is String))))) {
+          reporter?.reportError("must be of type List<String>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -4320,13 +5960,38 @@ class ExecuteCommandParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('command') &&
-        obj['command'] is String &&
-        (obj['arguments'] == null ||
-            (obj['arguments'] is List &&
-                (obj['arguments'].every((item) => true))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'command';
+        if (!obj.containsKey('command')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['command'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['command'] != null && !(obj['command'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'arguments';
+        if (obj['arguments'] != null &&
+            !((obj['arguments'] is List &&
+                (obj['arguments'].every((item) => true))))) {
+          reporter?.reportError("must be of type List<dynamic>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -4379,11 +6044,33 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('commands') &&
-        (obj['commands'] is List &&
-            (obj['commands'].every((item) => item is String)));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'commands';
+        if (!obj.containsKey('commands')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['commands'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['commands'] != null &&
+            !((obj['commands'] is List &&
+                (obj['commands'].every((item) => item is String))))) {
+          reporter?.reportError("must be of type List<String>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -4413,7 +6100,7 @@ class FailureHandlingKind {
 
   final String _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     switch (obj) {
       case 'abort':
       case 'transactional':
@@ -4461,7 +6148,7 @@ class FileChangeType {
 
   final num _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     return obj is num;
   }
 
@@ -4517,12 +6204,44 @@ class FileEvent implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('uri') &&
-        obj['uri'] is String &&
-        obj.containsKey('type') &&
-        obj['type'] is num;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'uri';
+        if (!obj.containsKey('uri')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['uri'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['uri'] != null && !(obj['uri'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'type';
+        if (!obj.containsKey('type')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['type'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['type'] != null && !(obj['type'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -4589,11 +6308,37 @@ class FileSystemWatcher implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('globPattern') &&
-        obj['globPattern'] is String &&
-        (obj['kind'] == null || WatchKind.canParse(obj['kind']));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'globPattern';
+        if (!obj.containsKey('globPattern')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['globPattern'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['globPattern'] != null && !(obj['globPattern'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'kind';
+        if (obj['kind'] != null &&
+            !(WatchKind.canParse(obj['kind'], reporter))) {
+          reporter?.reportError("must be of type WatchKind");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -4679,15 +6424,60 @@ class FoldingRange implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('startLine') &&
-        obj['startLine'] is num &&
-        (obj['startCharacter'] == null || obj['startCharacter'] is num) &&
-        obj.containsKey('endLine') &&
-        obj['endLine'] is num &&
-        (obj['endCharacter'] == null || obj['endCharacter'] is num) &&
-        (obj['kind'] == null || FoldingRangeKind.canParse(obj['kind']));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'startLine';
+        if (!obj.containsKey('startLine')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['startLine'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['startLine'] != null && !(obj['startLine'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        reporter?.field = 'startCharacter';
+        if (obj['startCharacter'] != null && !(obj['startCharacter'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        reporter?.field = 'endLine';
+        if (!obj.containsKey('endLine')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['endLine'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['endLine'] != null && !(obj['endLine'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        reporter?.field = 'endCharacter';
+        if (obj['endCharacter'] != null && !(obj['endCharacter'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        reporter?.field = 'kind';
+        if (obj['kind'] != null &&
+            !(FoldingRangeKind.canParse(obj['kind'], reporter))) {
+          reporter?.reportError("must be of type FoldingRangeKind");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -4725,7 +6515,7 @@ class FoldingRangeKind {
 
   final String _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     return obj is String;
   }
 
@@ -4775,10 +6565,32 @@ class FoldingRangeParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -4815,8 +6627,18 @@ class FoldingRangeProviderOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -4871,12 +6693,44 @@ class FormattingOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('tabSize') &&
-        obj['tabSize'] is num &&
-        obj.containsKey('insertSpaces') &&
-        obj['insertSpaces'] is bool;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'tabSize';
+        if (!obj.containsKey('tabSize')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['tabSize'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['tabSize'] != null && !(obj['tabSize'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        reporter?.field = 'insertSpaces';
+        if (!obj.containsKey('insertSpaces')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['insertSpaces'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['insertSpaces'] != null && !(obj['insertSpaces'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -4940,12 +6794,39 @@ class Hover implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('contents') &&
-        (obj['contents'] is String ||
-            MarkupContent.canParse(obj['contents'])) &&
-        (obj['range'] == null || Range.canParse(obj['range']));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'contents';
+        if (!obj.containsKey('contents')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['contents'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['contents'] != null &&
+            !((obj['contents'] is String ||
+                MarkupContent.canParse(obj['contents'], reporter)))) {
+          reporter
+              ?.reportError("must be of type Either2<String, MarkupContent>");
+          return false;
+        }
+        reporter?.field = 'range';
+        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -5054,21 +6935,73 @@ class InitializeParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('processId') &&
-        (obj['processId'] == null || obj['processId'] is num) &&
-        (obj['rootPath'] == null || obj['rootPath'] is String) &&
-        obj.containsKey('rootUri') &&
-        (obj['rootUri'] == null || obj['rootUri'] is String) &&
-        (obj['initializationOptions'] == null || true) &&
-        obj.containsKey('capabilities') &&
-        ClientCapabilities.canParse(obj['capabilities']) &&
-        (obj['trace'] == null || obj['trace'] is String) &&
-        (obj['workspaceFolders'] == null ||
-            (obj['workspaceFolders'] is List &&
-                (obj['workspaceFolders']
-                    .every((item) => WorkspaceFolder.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'processId';
+        if (!obj.containsKey('processId')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['processId'] != null && !(obj['processId'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        reporter?.field = 'rootPath';
+        if (obj['rootPath'] != null && !(obj['rootPath'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'rootUri';
+        if (!obj.containsKey('rootUri')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['rootUri'] != null && !(obj['rootUri'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'initializationOptions';
+        if (obj['initializationOptions'] != null && !(true)) {
+          reporter?.reportError("must be of type dynamic");
+          return false;
+        }
+        reporter?.field = 'capabilities';
+        if (!obj.containsKey('capabilities')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['capabilities'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['capabilities'] != null &&
+            !(ClientCapabilities.canParse(obj['capabilities'], reporter))) {
+          reporter?.reportError("must be of type ClientCapabilities");
+          return false;
+        }
+        reporter?.field = 'trace';
+        if (obj['trace'] != null && !(obj['trace'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'workspaceFolders';
+        if (obj['workspaceFolders'] != null &&
+            !((obj['workspaceFolders'] is List &&
+                (obj['workspaceFolders'].every(
+                    (item) => WorkspaceFolder.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<WorkspaceFolder>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -5130,10 +7063,32 @@ class InitializeResult implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('capabilities') &&
-        ServerCapabilities.canParse(obj['capabilities']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'capabilities';
+        if (!obj.containsKey('capabilities')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['capabilities'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['capabilities'] != null &&
+            !(ServerCapabilities.canParse(obj['capabilities'], reporter))) {
+          reporter?.reportError("must be of type ServerCapabilities");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -5168,8 +7123,18 @@ class InitializedParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic>;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -5198,7 +7163,7 @@ class InsertTextFormat {
 
   final num _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     switch (obj) {
       case 1:
       case 2:
@@ -5257,12 +7222,44 @@ class Location implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('uri') &&
-        obj['uri'] is String &&
-        obj.containsKey('range') &&
-        Range.canParse(obj['range']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'uri';
+        if (!obj.containsKey('uri')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['uri'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['uri'] != null && !(obj['uri'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'range';
+        if (!obj.containsKey('range')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -5350,16 +7347,65 @@ class LocationLink implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['originSelectionRange'] == null ||
-            Range.canParse(obj['originSelectionRange'])) &&
-        obj.containsKey('targetUri') &&
-        obj['targetUri'] is String &&
-        obj.containsKey('targetRange') &&
-        Range.canParse(obj['targetRange']) &&
-        obj.containsKey('targetSelectionRange') &&
-        Range.canParse(obj['targetSelectionRange']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'originSelectionRange';
+        if (obj['originSelectionRange'] != null &&
+            !(Range.canParse(obj['originSelectionRange'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        reporter?.field = 'targetUri';
+        if (!obj.containsKey('targetUri')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['targetUri'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['targetUri'] != null && !(obj['targetUri'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'targetRange';
+        if (!obj.containsKey('targetRange')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['targetRange'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['targetRange'] != null &&
+            !(Range.canParse(obj['targetRange'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        reporter?.field = 'targetSelectionRange';
+        if (!obj.containsKey('targetSelectionRange')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['targetSelectionRange'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['targetSelectionRange'] != null &&
+            !(Range.canParse(obj['targetSelectionRange'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -5421,12 +7467,45 @@ class LogMessageParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('type') &&
-        MessageType.canParse(obj['type']) &&
-        obj.containsKey('message') &&
-        obj['message'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'type';
+        if (!obj.containsKey('type')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['type'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['type'] != null &&
+            !(MessageType.canParse(obj['type'], reporter))) {
+          reporter?.reportError("must be of type MessageType");
+          return false;
+        }
+        reporter?.field = 'message';
+        if (!obj.containsKey('message')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['message'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['message'] != null && !(obj['message'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -5503,12 +7582,45 @@ class MarkupContent implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('kind') &&
-        MarkupKind.canParse(obj['kind']) &&
-        obj.containsKey('value') &&
-        obj['value'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'kind';
+        if (!obj.containsKey('kind')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['kind'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['kind'] != null &&
+            !(MarkupKind.canParse(obj['kind'], reporter))) {
+          reporter?.reportError("must be of type MarkupKind");
+          return false;
+        }
+        reporter?.field = 'value';
+        if (!obj.containsKey('value')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['value'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['value'] != null && !(obj['value'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -5542,7 +7654,7 @@ class MarkupKind {
 
   final String _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     switch (obj) {
       case r'plaintext':
       case r'markdown':
@@ -5600,10 +7712,31 @@ class Message implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('jsonrpc') &&
-        obj['jsonrpc'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'jsonrpc';
+        if (!obj.containsKey('jsonrpc')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['jsonrpc'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['jsonrpc'] != null && !(obj['jsonrpc'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -5648,10 +7781,31 @@ class MessageActionItem implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('title') &&
-        obj['title'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'title';
+        if (!obj.containsKey('title')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['title'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['title'] != null && !(obj['title'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -5679,7 +7833,7 @@ class MessageType {
 
   final num _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     return obj is num;
   }
 
@@ -5713,7 +7867,7 @@ class Method {
 
   final String _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     return obj is String;
   }
 
@@ -5935,13 +8089,50 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('method') &&
-        Method.canParse(obj['method']) &&
-        (obj['params'] == null || true) &&
-        obj.containsKey('jsonrpc') &&
-        obj['jsonrpc'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'method';
+        if (!obj.containsKey('method')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['method'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['method'] != null &&
+            !(Method.canParse(obj['method'], reporter))) {
+          reporter?.reportError("must be of type Method");
+          return false;
+        }
+        reporter?.field = 'params';
+        if (obj['params'] != null && !(true)) {
+          reporter?.reportError("must be of type dynamic");
+          return false;
+        }
+        reporter?.field = 'jsonrpc';
+        if (!obj.containsKey('jsonrpc')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['jsonrpc'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['jsonrpc'] != null && !(obj['jsonrpc'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6019,13 +8210,39 @@ class ParameterInformation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('label') &&
-        obj['label'] is String &&
-        (obj['documentation'] == null ||
-            (obj['documentation'] is String ||
-                MarkupContent.canParse(obj['documentation'])));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'label';
+        if (!obj.containsKey('label')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['label'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['label'] != null && !(obj['label'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'documentation';
+        if (obj['documentation'] != null &&
+            !((obj['documentation'] is String ||
+                MarkupContent.canParse(obj['documentation'], reporter)))) {
+          reporter
+              ?.reportError("must be of type Either2<String, MarkupContent>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6087,12 +8304,44 @@ class Position implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('line') &&
-        obj['line'] is num &&
-        obj.containsKey('character') &&
-        obj['character'] is num;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'line';
+        if (!obj.containsKey('line')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['line'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['line'] != null && !(obj['line'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        reporter?.field = 'character';
+        if (!obj.containsKey('character')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['character'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['character'] != null && !(obj['character'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6150,13 +8399,47 @@ class PublishDiagnosticsParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('uri') &&
-        obj['uri'] is String &&
-        obj.containsKey('diagnostics') &&
-        (obj['diagnostics'] is List &&
-            (obj['diagnostics'].every((item) => Diagnostic.canParse(item))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'uri';
+        if (!obj.containsKey('uri')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['uri'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['uri'] != null && !(obj['uri'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'diagnostics';
+        if (!obj.containsKey('diagnostics')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['diagnostics'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['diagnostics'] != null &&
+            !((obj['diagnostics'] is List &&
+                (obj['diagnostics']
+                    .every((item) => Diagnostic.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<Diagnostic>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6214,12 +8497,45 @@ class Range implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('start') &&
-        Position.canParse(obj['start']) &&
-        obj.containsKey('end') &&
-        Position.canParse(obj['end']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'start';
+        if (!obj.containsKey('start')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['start'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['start'] != null &&
+            !(Position.canParse(obj['start'], reporter))) {
+          reporter?.reportError("must be of type Position");
+          return false;
+        }
+        reporter?.field = 'end';
+        if (!obj.containsKey('end')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['end'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['end'] != null && !(Position.canParse(obj['end'], reporter))) {
+          reporter?.reportError("must be of type Position");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6271,12 +8587,44 @@ class RangeAndPlaceholder implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('range') &&
-        Range.canParse(obj['range']) &&
-        obj.containsKey('placeholder') &&
-        obj['placeholder'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'range';
+        if (!obj.containsKey('range')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        reporter?.field = 'placeholder';
+        if (!obj.containsKey('placeholder')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['placeholder'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['placeholder'] != null && !(obj['placeholder'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6323,10 +8671,32 @@ class ReferenceContext implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('includeDeclaration') &&
-        obj['includeDeclaration'] is bool;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'includeDeclaration';
+        if (!obj.containsKey('includeDeclaration')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['includeDeclaration'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['includeDeclaration'] != null &&
+            !(obj['includeDeclaration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6394,14 +8764,60 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('context') &&
-        ReferenceContext.canParse(obj['context']) &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']) &&
-        obj.containsKey('position') &&
-        Position.canParse(obj['position']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'context';
+        if (!obj.containsKey('context')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['context'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['context'] != null &&
+            !(ReferenceContext.canParse(obj['context'], reporter))) {
+          reporter?.reportError("must be of type ReferenceContext");
+          return false;
+        }
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        reporter?.field = 'position';
+        if (!obj.containsKey('position')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['position'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['position'] != null &&
+            !(Position.canParse(obj['position'], reporter))) {
+          reporter?.reportError("must be of type Position");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6468,13 +8884,49 @@ class Registration implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('id') &&
-        obj['id'] is String &&
-        obj.containsKey('method') &&
-        obj['method'] is String &&
-        (obj['registerOptions'] == null || true);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'id';
+        if (!obj.containsKey('id')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['id'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['id'] != null && !(obj['id'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'method';
+        if (!obj.containsKey('method')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['method'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['method'] != null && !(obj['method'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'registerOptions';
+        if (obj['registerOptions'] != null && !(true)) {
+          reporter?.reportError("must be of type dynamic");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6527,12 +8979,34 @@ class RegistrationParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('registrations') &&
-        (obj['registrations'] is List &&
-            (obj['registrations']
-                .every((item) => Registration.canParse(item))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'registrations';
+        if (!obj.containsKey('registrations')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['registrations'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['registrations'] != null &&
+            !((obj['registrations'] is List &&
+                (obj['registrations'].every(
+                    (item) => Registration.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<Registration>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6605,15 +9079,63 @@ class RenameFile implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('kind') &&
-        obj['kind'] is String &&
-        obj.containsKey('oldUri') &&
-        obj['oldUri'] is String &&
-        obj.containsKey('newUri') &&
-        obj['newUri'] is String &&
-        (obj['options'] == null || RenameFileOptions.canParse(obj['options']));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'kind';
+        if (!obj.containsKey('kind')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['kind'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['kind'] != null && !(obj['kind'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'oldUri';
+        if (!obj.containsKey('oldUri')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['oldUri'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['oldUri'] != null && !(obj['oldUri'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'newUri';
+        if (!obj.containsKey('newUri')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['newUri'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['newUri'] != null && !(obj['newUri'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'options';
+        if (obj['options'] != null &&
+            !(RenameFileOptions.canParse(obj['options'], reporter))) {
+          reporter?.reportError("must be of type RenameFileOptions");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6671,10 +9193,28 @@ class RenameFileOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['overwrite'] == null || obj['overwrite'] is bool) &&
-        (obj['ignoreIfExists'] == null || obj['ignoreIfExists'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'overwrite';
+        if (obj['overwrite'] != null && !(obj['overwrite'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'ignoreIfExists';
+        if (obj['ignoreIfExists'] != null && !(obj['ignoreIfExists'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6721,9 +9261,24 @@ class RenameOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['prepareProvider'] == null || obj['prepareProvider'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'prepareProvider';
+        if (obj['prepareProvider'] != null &&
+            !(obj['prepareProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6791,14 +9346,59 @@ class RenameParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']) &&
-        obj.containsKey('position') &&
-        Position.canParse(obj['position']) &&
-        obj.containsKey('newName') &&
-        obj['newName'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        reporter?.field = 'position';
+        if (!obj.containsKey('position')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['position'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['position'] != null &&
+            !(Position.canParse(obj['position'], reporter))) {
+          reporter?.reportError("must be of type Position");
+          return false;
+        }
+        reporter?.field = 'newName';
+        if (!obj.containsKey('newName')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['newName'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['newName'] != null && !(obj['newName'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6856,14 +9456,36 @@ class RenameRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['prepareProvider'] == null || obj['prepareProvider'] is bool) &&
-        obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] == null ||
-            (obj['documentSelector'] is List &&
-                (obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'prepareProvider';
+        if (obj['prepareProvider'] != null &&
+            !(obj['prepareProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'documentSelector';
+        if (!obj.containsKey('documentSelector')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['documentSelector'] != null &&
+            !((obj['documentSelector'] is List &&
+                (obj['documentSelector'].every(
+                    (item) => DocumentFilter.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<DocumentFilter>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6938,15 +9560,63 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('id') &&
-        (obj['id'] is num || obj['id'] is String) &&
-        obj.containsKey('method') &&
-        Method.canParse(obj['method']) &&
-        (obj['params'] == null || true) &&
-        obj.containsKey('jsonrpc') &&
-        obj['jsonrpc'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'id';
+        if (!obj.containsKey('id')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['id'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['id'] != null && !((obj['id'] is num || obj['id'] is String))) {
+          reporter?.reportError("must be of type Either2<num, String>");
+          return false;
+        }
+        reporter?.field = 'method';
+        if (!obj.containsKey('method')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['method'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['method'] != null &&
+            !(Method.canParse(obj['method'], reporter))) {
+          reporter?.reportError("must be of type Method");
+          return false;
+        }
+        reporter?.field = 'params';
+        if (obj['params'] != null && !(true)) {
+          reporter?.reportError("must be of type dynamic");
+          return false;
+        }
+        reporter?.field = 'jsonrpc';
+        if (!obj.containsKey('jsonrpc')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['jsonrpc'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['jsonrpc'] != null && !(obj['jsonrpc'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -6981,7 +9651,7 @@ class ResourceOperationKind {
 
   final String _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     switch (obj) {
       case 'create':
       case 'rename':
@@ -7052,13 +9722,50 @@ class ResponseError<D> implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('code') &&
-        ErrorCodes.canParse(obj['code']) &&
-        obj.containsKey('message') &&
-        obj['message'] is String &&
-        (obj['data'] == null || obj['data'] is String);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'code';
+        if (!obj.containsKey('code')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['code'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['code'] != null &&
+            !(ErrorCodes.canParse(obj['code'], reporter))) {
+          reporter?.reportError("must be of type ErrorCodes");
+          return false;
+        }
+        reporter?.field = 'message';
+        if (!obj.containsKey('message')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['message'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['message'] != null && !(obj['message'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'data';
+        if (obj['data'] != null && !(obj['data'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -7136,14 +9843,51 @@ class ResponseMessage implements Message, ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('id') &&
-        (obj['id'] == null || (obj['id'] is num || obj['id'] is String)) &&
-        (obj['result'] == null || true) &&
-        (obj['error'] == null || ResponseError.canParse(obj['error'])) &&
-        obj.containsKey('jsonrpc') &&
-        obj['jsonrpc'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'id';
+        if (!obj.containsKey('id')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['id'] != null && !((obj['id'] is num || obj['id'] is String))) {
+          reporter?.reportError("must be of type Either2<num, String>");
+          return false;
+        }
+        reporter?.field = 'result';
+        if (obj['result'] != null && !(true)) {
+          reporter?.reportError("must be of type dynamic");
+          return false;
+        }
+        reporter?.field = 'error';
+        if (obj['error'] != null &&
+            !(ResponseError.canParse(obj['error'], reporter))) {
+          reporter?.reportError("must be of type ResponseError<dynamic>");
+          return false;
+        }
+        reporter?.field = 'jsonrpc';
+        if (!obj.containsKey('jsonrpc')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['jsonrpc'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['jsonrpc'] != null && !(obj['jsonrpc'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -7194,9 +9938,23 @@ class SaveOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['includeText'] == null || obj['includeText'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'includeText';
+        if (obj['includeText'] != null && !(obj['includeText'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -7512,53 +10270,169 @@ class ServerCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['textDocumentSync'] == null ||
-            (TextDocumentSyncOptions.canParse(obj['textDocumentSync']) ||
-                obj['textDocumentSync'] is num)) &&
-        (obj['hoverProvider'] == null || obj['hoverProvider'] is bool) &&
-        (obj['completionProvider'] == null ||
-            CompletionOptions.canParse(obj['completionProvider'])) &&
-        (obj['signatureHelpProvider'] == null ||
-            SignatureHelpOptions.canParse(obj['signatureHelpProvider'])) &&
-        (obj['definitionProvider'] == null ||
-            obj['definitionProvider'] is bool) &&
-        (obj['typeDefinitionProvider'] == null || true) &&
-        (obj['implementationProvider'] == null || true) &&
-        (obj['referencesProvider'] == null ||
-            obj['referencesProvider'] is bool) &&
-        (obj['documentHighlightProvider'] == null ||
-            obj['documentHighlightProvider'] is bool) &&
-        (obj['documentSymbolProvider'] == null ||
-            obj['documentSymbolProvider'] is bool) &&
-        (obj['workspaceSymbolProvider'] == null ||
-            obj['workspaceSymbolProvider'] is bool) &&
-        (obj['codeActionProvider'] == null ||
-            (obj['codeActionProvider'] is bool ||
-                CodeActionOptions.canParse(obj['codeActionProvider']))) &&
-        (obj['codeLensProvider'] == null ||
-            CodeLensOptions.canParse(obj['codeLensProvider'])) &&
-        (obj['documentFormattingProvider'] == null ||
-            obj['documentFormattingProvider'] is bool) &&
-        (obj['documentRangeFormattingProvider'] == null ||
-            obj['documentRangeFormattingProvider'] is bool) &&
-        (obj['documentOnTypeFormattingProvider'] == null ||
-            DocumentOnTypeFormattingOptions.canParse(
-                obj['documentOnTypeFormattingProvider'])) &&
-        (obj['renameProvider'] == null ||
-            (obj['renameProvider'] is bool ||
-                RenameOptions.canParse(obj['renameProvider']))) &&
-        (obj['documentLinkProvider'] == null ||
-            DocumentLinkOptions.canParse(obj['documentLinkProvider'])) &&
-        (obj['colorProvider'] == null || true) &&
-        (obj['foldingRangeProvider'] == null || true) &&
-        (obj['declarationProvider'] == null || true) &&
-        (obj['executeCommandProvider'] == null ||
-            ExecuteCommandOptions.canParse(obj['executeCommandProvider'])) &&
-        (obj['workspace'] == null ||
-            ServerCapabilitiesWorkspace.canParse(obj['workspace'])) &&
-        (obj['experimental'] == null || true);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocumentSync';
+        if (obj['textDocumentSync'] != null &&
+            !((TextDocumentSyncOptions.canParse(
+                    obj['textDocumentSync'], reporter) ||
+                obj['textDocumentSync'] is num))) {
+          reporter?.reportError(
+              "must be of type Either2<TextDocumentSyncOptions, num>");
+          return false;
+        }
+        reporter?.field = 'hoverProvider';
+        if (obj['hoverProvider'] != null && !(obj['hoverProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'completionProvider';
+        if (obj['completionProvider'] != null &&
+            !(CompletionOptions.canParse(
+                obj['completionProvider'], reporter))) {
+          reporter?.reportError("must be of type CompletionOptions");
+          return false;
+        }
+        reporter?.field = 'signatureHelpProvider';
+        if (obj['signatureHelpProvider'] != null &&
+            !(SignatureHelpOptions.canParse(
+                obj['signatureHelpProvider'], reporter))) {
+          reporter?.reportError("must be of type SignatureHelpOptions");
+          return false;
+        }
+        reporter?.field = 'definitionProvider';
+        if (obj['definitionProvider'] != null &&
+            !(obj['definitionProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'typeDefinitionProvider';
+        if (obj['typeDefinitionProvider'] != null && !(true)) {
+          reporter?.reportError("must be of type dynamic");
+          return false;
+        }
+        reporter?.field = 'implementationProvider';
+        if (obj['implementationProvider'] != null && !(true)) {
+          reporter?.reportError("must be of type dynamic");
+          return false;
+        }
+        reporter?.field = 'referencesProvider';
+        if (obj['referencesProvider'] != null &&
+            !(obj['referencesProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'documentHighlightProvider';
+        if (obj['documentHighlightProvider'] != null &&
+            !(obj['documentHighlightProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'documentSymbolProvider';
+        if (obj['documentSymbolProvider'] != null &&
+            !(obj['documentSymbolProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'workspaceSymbolProvider';
+        if (obj['workspaceSymbolProvider'] != null &&
+            !(obj['workspaceSymbolProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'codeActionProvider';
+        if (obj['codeActionProvider'] != null &&
+            !((obj['codeActionProvider'] is bool ||
+                CodeActionOptions.canParse(
+                    obj['codeActionProvider'], reporter)))) {
+          reporter
+              ?.reportError("must be of type Either2<bool, CodeActionOptions>");
+          return false;
+        }
+        reporter?.field = 'codeLensProvider';
+        if (obj['codeLensProvider'] != null &&
+            !(CodeLensOptions.canParse(obj['codeLensProvider'], reporter))) {
+          reporter?.reportError("must be of type CodeLensOptions");
+          return false;
+        }
+        reporter?.field = 'documentFormattingProvider';
+        if (obj['documentFormattingProvider'] != null &&
+            !(obj['documentFormattingProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'documentRangeFormattingProvider';
+        if (obj['documentRangeFormattingProvider'] != null &&
+            !(obj['documentRangeFormattingProvider'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'documentOnTypeFormattingProvider';
+        if (obj['documentOnTypeFormattingProvider'] != null &&
+            !(DocumentOnTypeFormattingOptions.canParse(
+                obj['documentOnTypeFormattingProvider'], reporter))) {
+          reporter
+              ?.reportError("must be of type DocumentOnTypeFormattingOptions");
+          return false;
+        }
+        reporter?.field = 'renameProvider';
+        if (obj['renameProvider'] != null &&
+            !((obj['renameProvider'] is bool ||
+                RenameOptions.canParse(obj['renameProvider'], reporter)))) {
+          reporter?.reportError("must be of type Either2<bool, RenameOptions>");
+          return false;
+        }
+        reporter?.field = 'documentLinkProvider';
+        if (obj['documentLinkProvider'] != null &&
+            !(DocumentLinkOptions.canParse(
+                obj['documentLinkProvider'], reporter))) {
+          reporter?.reportError("must be of type DocumentLinkOptions");
+          return false;
+        }
+        reporter?.field = 'colorProvider';
+        if (obj['colorProvider'] != null && !(true)) {
+          reporter?.reportError("must be of type dynamic");
+          return false;
+        }
+        reporter?.field = 'foldingRangeProvider';
+        if (obj['foldingRangeProvider'] != null && !(true)) {
+          reporter?.reportError("must be of type dynamic");
+          return false;
+        }
+        reporter?.field = 'declarationProvider';
+        if (obj['declarationProvider'] != null && !(true)) {
+          reporter?.reportError("must be of type dynamic");
+          return false;
+        }
+        reporter?.field = 'executeCommandProvider';
+        if (obj['executeCommandProvider'] != null &&
+            !(ExecuteCommandOptions.canParse(
+                obj['executeCommandProvider'], reporter))) {
+          reporter?.reportError("must be of type ExecuteCommandOptions");
+          return false;
+        }
+        reporter?.field = 'workspace';
+        if (obj['workspace'] != null &&
+            !(ServerCapabilitiesWorkspace.canParse(
+                obj['workspace'], reporter))) {
+          reporter?.reportError("must be of type ServerCapabilitiesWorkspace");
+          return false;
+        }
+        reporter?.field = 'experimental';
+        if (obj['experimental'] != null && !(true)) {
+          reporter?.reportError("must be of type dynamic");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -7657,11 +10531,26 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['workspaceFolders'] == null ||
-            ServerCapabilitiesWorkspaceFolders.canParse(
-                obj['workspaceFolders']));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'workspaceFolders';
+        if (obj['workspaceFolders'] != null &&
+            !(ServerCapabilitiesWorkspaceFolders.canParse(
+                obj['workspaceFolders'], reporter))) {
+          reporter?.reportError(
+              "must be of type ServerCapabilitiesWorkspaceFolders");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -7719,11 +10608,29 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['supported'] == null || obj['supported'] is bool) &&
-        (obj['changeNotifications'] == null ||
-            obj['changeNotifications'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'supported';
+        if (obj['supported'] != null && !(obj['supported'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'changeNotifications';
+        if (obj['changeNotifications'] != null &&
+            !(obj['changeNotifications'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -7781,12 +10688,45 @@ class ShowMessageParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('type') &&
-        MessageType.canParse(obj['type']) &&
-        obj.containsKey('message') &&
-        obj['message'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'type';
+        if (!obj.containsKey('type')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['type'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['type'] != null &&
+            !(MessageType.canParse(obj['type'], reporter))) {
+          reporter?.reportError("must be of type MessageType");
+          return false;
+        }
+        reporter?.field = 'message';
+        if (!obj.containsKey('message')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['message'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['message'] != null && !(obj['message'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -7852,16 +10792,53 @@ class ShowMessageRequestParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('type') &&
-        MessageType.canParse(obj['type']) &&
-        obj.containsKey('message') &&
-        obj['message'] is String &&
-        (obj['actions'] == null ||
-            (obj['actions'] is List &&
-                (obj['actions']
-                    .every((item) => MessageActionItem.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'type';
+        if (!obj.containsKey('type')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['type'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['type'] != null &&
+            !(MessageType.canParse(obj['type'], reporter))) {
+          reporter?.reportError("must be of type MessageType");
+          return false;
+        }
+        reporter?.field = 'message';
+        if (!obj.containsKey('message')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['message'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['message'] != null && !(obj['message'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'actions';
+        if (obj['actions'] != null &&
+            !((obj['actions'] is List &&
+                (obj['actions'].every(
+                    (item) => MessageActionItem.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<MessageActionItem>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -7943,14 +10920,46 @@ class SignatureHelp implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('signatures') &&
-        (obj['signatures'] is List &&
-            (obj['signatures']
-                .every((item) => SignatureInformation.canParse(item)))) &&
-        (obj['activeSignature'] == null || obj['activeSignature'] is num) &&
-        (obj['activeParameter'] == null || obj['activeParameter'] is num);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'signatures';
+        if (!obj.containsKey('signatures')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['signatures'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['signatures'] != null &&
+            !((obj['signatures'] is List &&
+                (obj['signatures'].every((item) =>
+                    SignatureInformation.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<SignatureInformation>");
+          return false;
+        }
+        reporter?.field = 'activeSignature';
+        if (obj['activeSignature'] != null &&
+            !(obj['activeSignature'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        reporter?.field = 'activeParameter';
+        if (obj['activeParameter'] != null &&
+            !(obj['activeParameter'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -8003,11 +11012,25 @@ class SignatureHelpOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['triggerCharacters'] == null ||
-            (obj['triggerCharacters'] is List &&
-                (obj['triggerCharacters'].every((item) => item is String))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'triggerCharacters';
+        if (obj['triggerCharacters'] != null &&
+            !((obj['triggerCharacters'] is List &&
+                (obj['triggerCharacters'].every((item) => item is String))))) {
+          reporter?.reportError("must be of type List<String>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -8068,16 +11091,37 @@ class SignatureHelpRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['triggerCharacters'] == null ||
-            (obj['triggerCharacters'] is List &&
-                (obj['triggerCharacters'].every((item) => item is String)))) &&
-        obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] == null ||
-            (obj['documentSelector'] is List &&
-                (obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'triggerCharacters';
+        if (obj['triggerCharacters'] != null &&
+            !((obj['triggerCharacters'] is List &&
+                (obj['triggerCharacters'].every((item) => item is String))))) {
+          reporter?.reportError("must be of type List<String>");
+          return false;
+        }
+        reporter?.field = 'documentSelector';
+        if (!obj.containsKey('documentSelector')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['documentSelector'] != null &&
+            !((obj['documentSelector'] is List &&
+                (obj['documentSelector'].every(
+                    (item) => DocumentFilter.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<DocumentFilter>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -8156,17 +11200,47 @@ class SignatureInformation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('label') &&
-        obj['label'] is String &&
-        (obj['documentation'] == null ||
-            (obj['documentation'] is String ||
-                MarkupContent.canParse(obj['documentation']))) &&
-        (obj['parameters'] == null ||
-            (obj['parameters'] is List &&
-                (obj['parameters']
-                    .every((item) => ParameterInformation.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'label';
+        if (!obj.containsKey('label')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['label'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['label'] != null && !(obj['label'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'documentation';
+        if (obj['documentation'] != null &&
+            !((obj['documentation'] is String ||
+                MarkupContent.canParse(obj['documentation'], reporter)))) {
+          reporter
+              ?.reportError("must be of type Either2<String, MarkupContent>");
+          return false;
+        }
+        reporter?.field = 'parameters';
+        if (obj['parameters'] != null &&
+            !((obj['parameters'] is List &&
+                (obj['parameters'].every((item) =>
+                    ParameterInformation.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<ParameterInformation>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -8217,9 +11291,23 @@ class StaticRegistrationOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['id'] == null || obj['id'] is String);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'id';
+        if (obj['id'] != null && !(obj['id'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -8312,16 +11400,69 @@ class SymbolInformation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('name') &&
-        obj['name'] is String &&
-        obj.containsKey('kind') &&
-        SymbolKind.canParse(obj['kind']) &&
-        (obj['deprecated'] == null || obj['deprecated'] is bool) &&
-        obj.containsKey('location') &&
-        Location.canParse(obj['location']) &&
-        (obj['containerName'] == null || obj['containerName'] is String);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'name';
+        if (!obj.containsKey('name')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['name'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['name'] != null && !(obj['name'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'kind';
+        if (!obj.containsKey('kind')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['kind'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['kind'] != null &&
+            !(SymbolKind.canParse(obj['kind'], reporter))) {
+          reporter?.reportError("must be of type SymbolKind");
+          return false;
+        }
+        reporter?.field = 'deprecated';
+        if (obj['deprecated'] != null && !(obj['deprecated'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'location';
+        if (!obj.containsKey('location')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['location'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['location'] != null &&
+            !(Location.canParse(obj['location'], reporter))) {
+          reporter?.reportError("must be of type Location");
+          return false;
+        }
+        reporter?.field = 'containerName';
+        if (obj['containerName'] != null && !(obj['containerName'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -8359,7 +11500,7 @@ class SymbolKind {
 
   final num _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     return obj is num;
   }
 
@@ -8443,15 +11584,44 @@ class TextDocumentChangeRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('syncKind') &&
-        TextDocumentSyncKind.canParse(obj['syncKind']) &&
-        obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] == null ||
-            (obj['documentSelector'] is List &&
-                (obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'syncKind';
+        if (!obj.containsKey('syncKind')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['syncKind'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['syncKind'] != null &&
+            !(TextDocumentSyncKind.canParse(obj['syncKind'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentSyncKind");
+          return false;
+        }
+        reporter?.field = 'documentSelector';
+        if (!obj.containsKey('documentSelector')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['documentSelector'] != null &&
+            !((obj['documentSelector'] is List &&
+                (obj['documentSelector'].every(
+                    (item) => DocumentFilter.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<DocumentFilter>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -8745,68 +11915,186 @@ class TextDocumentClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['synchronization'] == null ||
-            TextDocumentClientCapabilitiesSynchronization.canParse(
-                obj['synchronization'])) &&
-        (obj['completion'] == null ||
-            TextDocumentClientCapabilitiesCompletion.canParse(
-                obj['completion'])) &&
-        (obj['hover'] == null ||
-            TextDocumentClientCapabilitiesHover.canParse(obj['hover'])) &&
-        (obj['signatureHelp'] == null ||
-            TextDocumentClientCapabilitiesSignatureHelp.canParse(
-                obj['signatureHelp'])) &&
-        (obj['references'] == null ||
-            TextDocumentClientCapabilitiesReferences.canParse(
-                obj['references'])) &&
-        (obj['documentHighlight'] == null ||
-            TextDocumentClientCapabilitiesDocumentHighlight.canParse(
-                obj['documentHighlight'])) &&
-        (obj['documentSymbol'] == null ||
-            TextDocumentClientCapabilitiesDocumentSymbol.canParse(
-                obj['documentSymbol'])) &&
-        (obj['formatting'] == null ||
-            TextDocumentClientCapabilitiesFormatting.canParse(
-                obj['formatting'])) &&
-        (obj['rangeFormatting'] == null ||
-            TextDocumentClientCapabilitiesRangeFormatting.canParse(
-                obj['rangeFormatting'])) &&
-        (obj['onTypeFormatting'] == null ||
-            TextDocumentClientCapabilitiesOnTypeFormatting.canParse(
-                obj['onTypeFormatting'])) &&
-        (obj['declaration'] == null ||
-            TextDocumentClientCapabilitiesDeclaration.canParse(
-                obj['declaration'])) &&
-        (obj['definition'] == null ||
-            TextDocumentClientCapabilitiesDefinition.canParse(
-                obj['definition'])) &&
-        (obj['typeDefinition'] == null ||
-            TextDocumentClientCapabilitiesTypeDefinition.canParse(
-                obj['typeDefinition'])) &&
-        (obj['implementation'] == null ||
-            TextDocumentClientCapabilitiesImplementation.canParse(
-                obj['implementation'])) &&
-        (obj['codeAction'] == null ||
-            TextDocumentClientCapabilitiesCodeAction.canParse(
-                obj['codeAction'])) &&
-        (obj['codeLens'] == null ||
-            TextDocumentClientCapabilitiesCodeLens.canParse(obj['codeLens'])) &&
-        (obj['documentLink'] == null ||
-            TextDocumentClientCapabilitiesDocumentLink.canParse(
-                obj['documentLink'])) &&
-        (obj['colorProvider'] == null ||
-            TextDocumentClientCapabilitiesColorProvider.canParse(
-                obj['colorProvider'])) &&
-        (obj['rename'] == null ||
-            TextDocumentClientCapabilitiesRename.canParse(obj['rename'])) &&
-        (obj['publishDiagnostics'] == null ||
-            TextDocumentClientCapabilitiesPublishDiagnostics.canParse(
-                obj['publishDiagnostics'])) &&
-        (obj['foldingRange'] == null ||
-            TextDocumentClientCapabilitiesFoldingRange.canParse(
-                obj['foldingRange']));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'synchronization';
+        if (obj['synchronization'] != null &&
+            !(TextDocumentClientCapabilitiesSynchronization.canParse(
+                obj['synchronization'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesSynchronization");
+          return false;
+        }
+        reporter?.field = 'completion';
+        if (obj['completion'] != null &&
+            !(TextDocumentClientCapabilitiesCompletion.canParse(
+                obj['completion'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesCompletion");
+          return false;
+        }
+        reporter?.field = 'hover';
+        if (obj['hover'] != null &&
+            !(TextDocumentClientCapabilitiesHover.canParse(
+                obj['hover'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesHover");
+          return false;
+        }
+        reporter?.field = 'signatureHelp';
+        if (obj['signatureHelp'] != null &&
+            !(TextDocumentClientCapabilitiesSignatureHelp.canParse(
+                obj['signatureHelp'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesSignatureHelp");
+          return false;
+        }
+        reporter?.field = 'references';
+        if (obj['references'] != null &&
+            !(TextDocumentClientCapabilitiesReferences.canParse(
+                obj['references'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesReferences");
+          return false;
+        }
+        reporter?.field = 'documentHighlight';
+        if (obj['documentHighlight'] != null &&
+            !(TextDocumentClientCapabilitiesDocumentHighlight.canParse(
+                obj['documentHighlight'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesDocumentHighlight");
+          return false;
+        }
+        reporter?.field = 'documentSymbol';
+        if (obj['documentSymbol'] != null &&
+            !(TextDocumentClientCapabilitiesDocumentSymbol.canParse(
+                obj['documentSymbol'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesDocumentSymbol");
+          return false;
+        }
+        reporter?.field = 'formatting';
+        if (obj['formatting'] != null &&
+            !(TextDocumentClientCapabilitiesFormatting.canParse(
+                obj['formatting'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesFormatting");
+          return false;
+        }
+        reporter?.field = 'rangeFormatting';
+        if (obj['rangeFormatting'] != null &&
+            !(TextDocumentClientCapabilitiesRangeFormatting.canParse(
+                obj['rangeFormatting'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesRangeFormatting");
+          return false;
+        }
+        reporter?.field = 'onTypeFormatting';
+        if (obj['onTypeFormatting'] != null &&
+            !(TextDocumentClientCapabilitiesOnTypeFormatting.canParse(
+                obj['onTypeFormatting'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesOnTypeFormatting");
+          return false;
+        }
+        reporter?.field = 'declaration';
+        if (obj['declaration'] != null &&
+            !(TextDocumentClientCapabilitiesDeclaration.canParse(
+                obj['declaration'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesDeclaration");
+          return false;
+        }
+        reporter?.field = 'definition';
+        if (obj['definition'] != null &&
+            !(TextDocumentClientCapabilitiesDefinition.canParse(
+                obj['definition'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesDefinition");
+          return false;
+        }
+        reporter?.field = 'typeDefinition';
+        if (obj['typeDefinition'] != null &&
+            !(TextDocumentClientCapabilitiesTypeDefinition.canParse(
+                obj['typeDefinition'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesTypeDefinition");
+          return false;
+        }
+        reporter?.field = 'implementation';
+        if (obj['implementation'] != null &&
+            !(TextDocumentClientCapabilitiesImplementation.canParse(
+                obj['implementation'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesImplementation");
+          return false;
+        }
+        reporter?.field = 'codeAction';
+        if (obj['codeAction'] != null &&
+            !(TextDocumentClientCapabilitiesCodeAction.canParse(
+                obj['codeAction'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesCodeAction");
+          return false;
+        }
+        reporter?.field = 'codeLens';
+        if (obj['codeLens'] != null &&
+            !(TextDocumentClientCapabilitiesCodeLens.canParse(
+                obj['codeLens'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesCodeLens");
+          return false;
+        }
+        reporter?.field = 'documentLink';
+        if (obj['documentLink'] != null &&
+            !(TextDocumentClientCapabilitiesDocumentLink.canParse(
+                obj['documentLink'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesDocumentLink");
+          return false;
+        }
+        reporter?.field = 'colorProvider';
+        if (obj['colorProvider'] != null &&
+            !(TextDocumentClientCapabilitiesColorProvider.canParse(
+                obj['colorProvider'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesColorProvider");
+          return false;
+        }
+        reporter?.field = 'rename';
+        if (obj['rename'] != null &&
+            !(TextDocumentClientCapabilitiesRename.canParse(
+                obj['rename'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesRename");
+          return false;
+        }
+        reporter?.field = 'publishDiagnostics';
+        if (obj['publishDiagnostics'] != null &&
+            !(TextDocumentClientCapabilitiesPublishDiagnostics.canParse(
+                obj['publishDiagnostics'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesPublishDiagnostics");
+          return false;
+        }
+        reporter?.field = 'foldingRange';
+        if (obj['foldingRange'] != null &&
+            !(TextDocumentClientCapabilitiesFoldingRange.canParse(
+                obj['foldingRange'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesFoldingRange");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -8908,13 +12196,32 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool) &&
-        (obj['codeActionLiteralSupport'] == null ||
-            TextDocumentClientCapabilitiesCodeActionLiteralSupport.canParse(
-                obj['codeActionLiteralSupport']));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'codeActionLiteralSupport';
+        if (obj['codeActionLiteralSupport'] != null &&
+            !(TextDocumentClientCapabilitiesCodeActionLiteralSupport.canParse(
+                obj['codeActionLiteralSupport'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesCodeActionLiteralSupport");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -8970,11 +12277,34 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('valueSet') &&
-        (obj['valueSet'] is List &&
-            (obj['valueSet'].every((item) => CodeActionKind.canParse(item))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'valueSet';
+        if (!obj.containsKey('valueSet')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['valueSet'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['valueSet'] != null &&
+            !((obj['valueSet'] is List &&
+                (obj['valueSet'].every(
+                    (item) => CodeActionKind.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<CodeActionKind>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -9029,11 +12359,34 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('codeActionKind') &&
-        TextDocumentClientCapabilitiesCodeActionKind.canParse(
-            obj['codeActionKind']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'codeActionKind';
+        if (!obj.containsKey('codeActionKind')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['codeActionKind'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['codeActionKind'] != null &&
+            !(TextDocumentClientCapabilitiesCodeActionKind.canParse(
+                obj['codeActionKind'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesCodeActionKind");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -9078,10 +12431,24 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -9129,10 +12496,24 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -9205,17 +12586,45 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool) &&
-        (obj['completionItem'] == null ||
-            TextDocumentClientCapabilitiesCompletionItem.canParse(
-                obj['completionItem'])) &&
-        (obj['completionItemKind'] == null ||
-            TextDocumentClientCapabilitiesCompletionItemKind.canParse(
-                obj['completionItemKind'])) &&
-        (obj['contextSupport'] == null || obj['contextSupport'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'completionItem';
+        if (obj['completionItem'] != null &&
+            !(TextDocumentClientCapabilitiesCompletionItem.canParse(
+                obj['completionItem'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesCompletionItem");
+          return false;
+        }
+        reporter?.field = 'completionItemKind';
+        if (obj['completionItemKind'] != null &&
+            !(TextDocumentClientCapabilitiesCompletionItemKind.canParse(
+                obj['completionItemKind'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesCompletionItemKind");
+          return false;
+        }
+        reporter?.field = 'contextSupport';
+        if (obj['contextSupport'] != null && !(obj['contextSupport'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -9314,18 +12723,49 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['snippetSupport'] == null || obj['snippetSupport'] is bool) &&
-        (obj['commitCharactersSupport'] == null ||
-            obj['commitCharactersSupport'] is bool) &&
-        (obj['documentationFormat'] == null ||
-            (obj['documentationFormat'] is List &&
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'snippetSupport';
+        if (obj['snippetSupport'] != null && !(obj['snippetSupport'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'commitCharactersSupport';
+        if (obj['commitCharactersSupport'] != null &&
+            !(obj['commitCharactersSupport'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'documentationFormat';
+        if (obj['documentationFormat'] != null &&
+            !((obj['documentationFormat'] is List &&
                 (obj['documentationFormat']
-                    .every((item) => MarkupKind.canParse(item))))) &&
-        (obj['deprecatedSupport'] == null ||
-            obj['deprecatedSupport'] is bool) &&
-        (obj['preselectSupport'] == null || obj['preselectSupport'] is bool);
+                    .every((item) => MarkupKind.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<MarkupKind>");
+          return false;
+        }
+        reporter?.field = 'deprecatedSupport';
+        if (obj['deprecatedSupport'] != null &&
+            !(obj['deprecatedSupport'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'preselectSupport';
+        if (obj['preselectSupport'] != null &&
+            !(obj['preselectSupport'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -9389,12 +12829,26 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['valueSet'] == null ||
-            (obj['valueSet'] is List &&
-                (obj['valueSet']
-                    .every((item) => CompletionItemKind.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'valueSet';
+        if (obj['valueSet'] != null &&
+            !((obj['valueSet'] is List &&
+                (obj['valueSet'].every(
+                    (item) => CompletionItemKind.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<CompletionItemKind>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -9455,11 +12909,29 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool) &&
-        (obj['linkSupport'] == null || obj['linkSupport'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'linkSupport';
+        if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -9516,11 +12988,29 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool) &&
-        (obj['linkSupport'] == null || obj['linkSupport'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'linkSupport';
+        if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -9569,10 +13059,24 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -9617,10 +13121,24 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -9685,15 +13203,38 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool) &&
-        (obj['symbolKind'] == null ||
-            TextDocumentClientCapabilitiesSymbolKind.canParse(
-                obj['symbolKind'])) &&
-        (obj['hierarchicalDocumentSymbolSupport'] == null ||
-            obj['hierarchicalDocumentSymbolSupport'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'symbolKind';
+        if (obj['symbolKind'] != null &&
+            !(TextDocumentClientCapabilitiesSymbolKind.canParse(
+                obj['symbolKind'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesSymbolKind");
+          return false;
+        }
+        reporter?.field = 'hierarchicalDocumentSymbolSupport';
+        if (obj['hierarchicalDocumentSymbolSupport'] != null &&
+            !(obj['hierarchicalDocumentSymbolSupport'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -9769,12 +13310,35 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool) &&
-        (obj['rangeLimit'] == null || obj['rangeLimit'] is num) &&
-        (obj['lineFoldingOnly'] == null || obj['lineFoldingOnly'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'rangeLimit';
+        if (obj['rangeLimit'] != null && !(obj['rangeLimit'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        reporter?.field = 'lineFoldingOnly';
+        if (obj['lineFoldingOnly'] != null &&
+            !(obj['lineFoldingOnly'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -9824,10 +13388,24 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -9885,14 +13463,32 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool) &&
-        (obj['contentFormat'] == null ||
-            (obj['contentFormat'] is List &&
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'contentFormat';
+        if (obj['contentFormat'] != null &&
+            !((obj['contentFormat'] is List &&
                 (obj['contentFormat']
-                    .every((item) => MarkupKind.canParse(item)))));
+                    .every((item) => MarkupKind.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<MarkupKind>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -9955,11 +13551,29 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool) &&
-        (obj['linkSupport'] == null || obj['linkSupport'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'linkSupport';
+        if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10008,10 +13622,24 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10060,10 +13688,24 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['labelOffsetSupport'] == null ||
-            obj['labelOffsetSupport'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'labelOffsetSupport';
+        if (obj['labelOffsetSupport'] != null &&
+            !(obj['labelOffsetSupport'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10109,10 +13751,24 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['relatedInformation'] == null ||
-            obj['relatedInformation'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'relatedInformation';
+        if (obj['relatedInformation'] != null &&
+            !(obj['relatedInformation'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10158,10 +13814,24 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10206,10 +13876,24 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10264,11 +13948,29 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool) &&
-        (obj['prepareSupport'] == null || obj['prepareSupport'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'prepareSupport';
+        if (obj['prepareSupport'] != null && !(obj['prepareSupport'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10329,13 +14031,32 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool) &&
-        (obj['signatureInformation'] == null ||
-            TextDocumentClientCapabilitiesSignatureInformation.canParse(
-                obj['signatureInformation']));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'signatureInformation';
+        if (obj['signatureInformation'] != null &&
+            !(TextDocumentClientCapabilitiesSignatureInformation.canParse(
+                obj['signatureInformation'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesSignatureInformation");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10399,15 +14120,34 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['documentationFormat'] == null ||
-            (obj['documentationFormat'] is List &&
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'documentationFormat';
+        if (obj['documentationFormat'] != null &&
+            !((obj['documentationFormat'] is List &&
                 (obj['documentationFormat']
-                    .every((item) => MarkupKind.canParse(item))))) &&
-        (obj['parameterInformation'] == null ||
-            TextDocumentClientCapabilitiesParameterInformation.canParse(
-                obj['parameterInformation']));
+                    .every((item) => MarkupKind.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<MarkupKind>");
+          return false;
+        }
+        reporter?.field = 'parameterInformation';
+        if (obj['parameterInformation'] != null &&
+            !(TextDocumentClientCapabilitiesParameterInformation.canParse(
+                obj['parameterInformation'], reporter))) {
+          reporter?.reportError(
+              "must be of type TextDocumentClientCapabilitiesParameterInformation");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10464,11 +14204,26 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['valueSet'] == null ||
-            (obj['valueSet'] is List &&
-                (obj['valueSet'].every((item) => SymbolKind.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'valueSet';
+        if (obj['valueSet'] != null &&
+            !((obj['valueSet'] is List &&
+                (obj['valueSet']
+                    .every((item) => SymbolKind.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<SymbolKind>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10540,14 +14295,40 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool) &&
-        (obj['willSave'] == null || obj['willSave'] is bool) &&
-        (obj['willSaveWaitUntil'] == null ||
-            obj['willSaveWaitUntil'] is bool) &&
-        (obj['didSave'] == null || obj['didSave'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'willSave';
+        if (obj['willSave'] != null && !(obj['willSave'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'willSaveWaitUntil';
+        if (obj['willSaveWaitUntil'] != null &&
+            !(obj['willSaveWaitUntil'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'didSave';
+        if (obj['didSave'] != null && !(obj['didSave'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10613,11 +14394,29 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool) &&
-        (obj['linkSupport'] == null || obj['linkSupport'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'linkSupport';
+        if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10683,12 +14482,41 @@ class TextDocumentContentChangeEvent implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['range'] == null || Range.canParse(obj['range'])) &&
-        (obj['rangeLength'] == null || obj['rangeLength'] is num) &&
-        obj.containsKey('text') &&
-        obj['text'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'range';
+        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        reporter?.field = 'rangeLength';
+        if (obj['rangeLength'] != null && !(obj['rangeLength'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        reporter?.field = 'text';
+        if (!obj.containsKey('text')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['text'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['text'] != null && !(obj['text'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10752,13 +14580,50 @@ class TextDocumentEdit implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        VersionedTextDocumentIdentifier.canParse(obj['textDocument']) &&
-        obj.containsKey('edits') &&
-        (obj['edits'] is List &&
-            (obj['edits'].every((item) => TextEdit.canParse(item))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(VersionedTextDocumentIdentifier.canParse(
+                obj['textDocument'], reporter))) {
+          reporter
+              ?.reportError("must be of type VersionedTextDocumentIdentifier");
+          return false;
+        }
+        reporter?.field = 'edits';
+        if (!obj.containsKey('edits')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['edits'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['edits'] != null &&
+            !((obj['edits'] is List &&
+                (obj['edits']
+                    .every((item) => TextEdit.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<TextEdit>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10809,10 +14674,31 @@ class TextDocumentIdentifier implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('uri') &&
-        obj['uri'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'uri';
+        if (!obj.containsKey('uri')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['uri'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['uri'] != null && !(obj['uri'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10884,16 +14770,70 @@ class TextDocumentItem implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('uri') &&
-        obj['uri'] is String &&
-        obj.containsKey('languageId') &&
-        obj['languageId'] is String &&
-        obj.containsKey('version') &&
-        obj['version'] is num &&
-        obj.containsKey('text') &&
-        obj['text'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'uri';
+        if (!obj.containsKey('uri')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['uri'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['uri'] != null && !(obj['uri'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'languageId';
+        if (!obj.containsKey('languageId')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['languageId'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['languageId'] != null && !(obj['languageId'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'version';
+        if (!obj.containsKey('version')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['version'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['version'] != null && !(obj['version'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        reporter?.field = 'text';
+        if (!obj.containsKey('text')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['text'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['text'] != null && !(obj['text'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -10964,12 +14904,46 @@ class TextDocumentPositionParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']) &&
-        obj.containsKey('position') &&
-        Position.canParse(obj['position']);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        reporter?.field = 'position';
+        if (!obj.containsKey('position')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['position'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['position'] != null &&
+            !(Position.canParse(obj['position'], reporter))) {
+          reporter?.reportError("must be of type Position");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -11045,13 +15019,30 @@ class TextDocumentRegistrationOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] == null ||
-            (obj['documentSelector'] is List &&
-                (obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'documentSelector';
+        if (!obj.containsKey('documentSelector')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['documentSelector'] != null &&
+            !((obj['documentSelector'] is List &&
+                (obj['documentSelector'].every(
+                    (item) => DocumentFilter.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<DocumentFilter>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -11080,7 +15071,7 @@ class TextDocumentSaveReason {
 
   final num _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     return obj is num;
   }
 
@@ -11139,14 +15130,35 @@ class TextDocumentSaveRegistrationOptions
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['includeText'] == null || obj['includeText'] is bool) &&
-        obj.containsKey('documentSelector') &&
-        (obj['documentSelector'] == null ||
-            (obj['documentSelector'] is List &&
-                (obj['documentSelector']
-                    .every((item) => DocumentFilter.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'includeText';
+        if (obj['includeText'] != null && !(obj['includeText'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'documentSelector';
+        if (!obj.containsKey('documentSelector')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['documentSelector'] != null &&
+            !((obj['documentSelector'] is List &&
+                (obj['documentSelector'].every(
+                    (item) => DocumentFilter.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<DocumentFilter>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -11179,7 +15191,7 @@ class TextDocumentSyncKind {
 
   final num _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     return obj is num;
   }
 
@@ -11265,15 +15277,46 @@ class TextDocumentSyncOptions implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['openClose'] == null || obj['openClose'] is bool) &&
-        (obj['change'] == null ||
-            TextDocumentSyncKind.canParse(obj['change'])) &&
-        (obj['willSave'] == null || obj['willSave'] is bool) &&
-        (obj['willSaveWaitUntil'] == null ||
-            obj['willSaveWaitUntil'] is bool) &&
-        (obj['save'] == null || SaveOptions.canParse(obj['save']));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'openClose';
+        if (obj['openClose'] != null && !(obj['openClose'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'change';
+        if (obj['change'] != null &&
+            !(TextDocumentSyncKind.canParse(obj['change'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentSyncKind");
+          return false;
+        }
+        reporter?.field = 'willSave';
+        if (obj['willSave'] != null && !(obj['willSave'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'willSaveWaitUntil';
+        if (obj['willSaveWaitUntil'] != null &&
+            !(obj['willSaveWaitUntil'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'save';
+        if (obj['save'] != null &&
+            !(SaveOptions.canParse(obj['save'], reporter))) {
+          reporter?.reportError("must be of type SaveOptions");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -11337,12 +15380,44 @@ class TextEdit implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('range') &&
-        Range.canParse(obj['range']) &&
-        obj.containsKey('newText') &&
-        obj['newText'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'range';
+        if (!obj.containsKey('range')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+          reporter?.reportError("must be of type Range");
+          return false;
+        }
+        reporter?.field = 'newText';
+        if (!obj.containsKey('newText')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['newText'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['newText'] != null && !(obj['newText'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -11398,12 +15473,44 @@ class Unregistration implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('id') &&
-        obj['id'] is String &&
-        obj.containsKey('method') &&
-        obj['method'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'id';
+        if (!obj.containsKey('id')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['id'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['id'] != null && !(obj['id'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'method';
+        if (!obj.containsKey('method')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['method'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['method'] != null && !(obj['method'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -11452,12 +15559,34 @@ class UnregistrationParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('unregisterations') &&
-        (obj['unregisterations'] is List &&
-            (obj['unregisterations']
-                .every((item) => Unregistration.canParse(item))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'unregisterations';
+        if (!obj.containsKey('unregisterations')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['unregisterations'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['unregisterations'] != null &&
+            !((obj['unregisterations'] is List &&
+                (obj['unregisterations'].every(
+                    (item) => Unregistration.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<Unregistration>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -11518,12 +15647,40 @@ class VersionedTextDocumentIdentifier
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('version') &&
-        (obj['version'] == null || obj['version'] is num) &&
-        obj.containsKey('uri') &&
-        obj['uri'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'version';
+        if (!obj.containsKey('version')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['version'] != null && !(obj['version'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        reporter?.field = 'uri';
+        if (!obj.containsKey('uri')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['uri'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['uri'] != null && !(obj['uri'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -11552,7 +15709,7 @@ class WatchKind {
 
   final num _value;
 
-  static bool canParse(Object obj) {
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
     return obj is num;
   }
 
@@ -11611,12 +15768,45 @@ class WillSaveTextDocumentParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('textDocument') &&
-        TextDocumentIdentifier.canParse(obj['textDocument']) &&
-        obj.containsKey('reason') &&
-        obj['reason'] is num;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'textDocument';
+        if (!obj.containsKey('textDocument')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['textDocument'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['textDocument'] != null &&
+            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+          reporter?.reportError("must be of type TextDocumentIdentifier");
+          return false;
+        }
+        reporter?.field = 'reason';
+        if (!obj.containsKey('reason')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['reason'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['reason'] != null && !(obj['reason'] is num)) {
+          reporter?.reportError("must be of type num");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -11751,25 +15941,74 @@ class WorkspaceClientCapabilities implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['applyEdit'] == null || obj['applyEdit'] is bool) &&
-        (obj['workspaceEdit'] == null ||
-            WorkspaceClientCapabilitiesWorkspaceEdit.canParse(
-                obj['workspaceEdit'])) &&
-        (obj['didChangeConfiguration'] == null ||
-            WorkspaceClientCapabilitiesDidChangeConfiguration.canParse(
-                obj['didChangeConfiguration'])) &&
-        (obj['didChangeWatchedFiles'] == null ||
-            WorkspaceClientCapabilitiesDidChangeWatchedFiles.canParse(
-                obj['didChangeWatchedFiles'])) &&
-        (obj['symbol'] == null ||
-            WorkspaceClientCapabilitiesSymbol.canParse(obj['symbol'])) &&
-        (obj['executeCommand'] == null ||
-            WorkspaceClientCapabilitiesExecuteCommand.canParse(
-                obj['executeCommand'])) &&
-        (obj['workspaceFolders'] == null || obj['workspaceFolders'] is bool) &&
-        (obj['configuration'] == null || obj['configuration'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'applyEdit';
+        if (obj['applyEdit'] != null && !(obj['applyEdit'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'workspaceEdit';
+        if (obj['workspaceEdit'] != null &&
+            !(WorkspaceClientCapabilitiesWorkspaceEdit.canParse(
+                obj['workspaceEdit'], reporter))) {
+          reporter?.reportError(
+              "must be of type WorkspaceClientCapabilitiesWorkspaceEdit");
+          return false;
+        }
+        reporter?.field = 'didChangeConfiguration';
+        if (obj['didChangeConfiguration'] != null &&
+            !(WorkspaceClientCapabilitiesDidChangeConfiguration.canParse(
+                obj['didChangeConfiguration'], reporter))) {
+          reporter?.reportError(
+              "must be of type WorkspaceClientCapabilitiesDidChangeConfiguration");
+          return false;
+        }
+        reporter?.field = 'didChangeWatchedFiles';
+        if (obj['didChangeWatchedFiles'] != null &&
+            !(WorkspaceClientCapabilitiesDidChangeWatchedFiles.canParse(
+                obj['didChangeWatchedFiles'], reporter))) {
+          reporter?.reportError(
+              "must be of type WorkspaceClientCapabilitiesDidChangeWatchedFiles");
+          return false;
+        }
+        reporter?.field = 'symbol';
+        if (obj['symbol'] != null &&
+            !(WorkspaceClientCapabilitiesSymbol.canParse(
+                obj['symbol'], reporter))) {
+          reporter?.reportError(
+              "must be of type WorkspaceClientCapabilitiesSymbol");
+          return false;
+        }
+        reporter?.field = 'executeCommand';
+        if (obj['executeCommand'] != null &&
+            !(WorkspaceClientCapabilitiesExecuteCommand.canParse(
+                obj['executeCommand'], reporter))) {
+          reporter?.reportError(
+              "must be of type WorkspaceClientCapabilitiesExecuteCommand");
+          return false;
+        }
+        reporter?.field = 'workspaceFolders';
+        if (obj['workspaceFolders'] != null &&
+            !(obj['workspaceFolders'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'configuration';
+        if (obj['configuration'] != null && !(obj['configuration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -11830,10 +16069,24 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -11881,10 +16134,24 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -11929,10 +16196,24 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool);
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -11987,12 +16268,32 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['dynamicRegistration'] == null ||
-            obj['dynamicRegistration'] is bool) &&
-        (obj['symbolKind'] == null ||
-            WorkspaceClientCapabilitiesSymbolKind.canParse(obj['symbolKind']));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'dynamicRegistration';
+        if (obj['dynamicRegistration'] != null &&
+            !(obj['dynamicRegistration'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'symbolKind';
+        if (obj['symbolKind'] != null &&
+            !(WorkspaceClientCapabilitiesSymbolKind.canParse(
+                obj['symbolKind'], reporter))) {
+          reporter?.reportError(
+              "must be of type WorkspaceClientCapabilitiesSymbolKind");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -12048,11 +16349,26 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['valueSet'] == null ||
-            (obj['valueSet'] is List &&
-                (obj['valueSet'].every((item) => SymbolKind.canParse(item)))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'valueSet';
+        if (obj['valueSet'] != null &&
+            !((obj['valueSet'] is List &&
+                (obj['valueSet']
+                    .every((item) => SymbolKind.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<SymbolKind>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -12123,15 +16439,38 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['documentChanges'] == null || obj['documentChanges'] is bool) &&
-        (obj['resourceOperations'] == null ||
-            (obj['resourceOperations'] is List &&
-                (obj['resourceOperations']
-                    .every((item) => ResourceOperationKind.canParse(item))))) &&
-        (obj['failureHandling'] == null ||
-            FailureHandlingKind.canParse(obj['failureHandling']));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'documentChanges';
+        if (obj['documentChanges'] != null &&
+            !(obj['documentChanges'] is bool)) {
+          reporter?.reportError("must be of type bool");
+          return false;
+        }
+        reporter?.field = 'resourceOperations';
+        if (obj['resourceOperations'] != null &&
+            !((obj['resourceOperations'] is List &&
+                (obj['resourceOperations'].every((item) =>
+                    ResourceOperationKind.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<ResourceOperationKind>");
+          return false;
+        }
+        reporter?.field = 'failureHandling';
+        if (obj['failureHandling'] != null &&
+            !(FailureHandlingKind.canParse(obj['failureHandling'], reporter))) {
+          reporter?.reportError("must be of type FailureHandlingKind");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -12225,24 +16564,44 @@ class WorkspaceEdit implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        (obj['changes'] == null ||
-            (obj['changes'] is Map &&
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'changes';
+        if (obj['changes'] != null &&
+            !((obj['changes'] is Map &&
                 (obj['changes'].keys.every((item) =>
                     item is String &&
                     obj['changes'].values.every((item) => (item is List &&
-                        (item.every((item) => TextEdit.canParse(item))))))))) &&
-        (obj['documentChanges'] == null ||
-            ((obj['documentChanges'] is List &&
-                    (obj['documentChanges']
-                        .every((item) => TextDocumentEdit.canParse(item)))) ||
+                        (item.every((item) =>
+                            TextEdit.canParse(item, reporter)))))))))) {
+          reporter?.reportError("must be of type Map<String, List<TextEdit>>");
+          return false;
+        }
+        reporter?.field = 'documentChanges';
+        if (obj['documentChanges'] != null &&
+            !(((obj['documentChanges'] is List &&
+                    (obj['documentChanges'].every((item) =>
+                        TextDocumentEdit.canParse(item, reporter)))) ||
                 (obj['documentChanges'] is List &&
                     (obj['documentChanges'].every((item) =>
-                        (TextDocumentEdit.canParse(item) ||
-                            CreateFile.canParse(item) ||
-                            RenameFile.canParse(item) ||
-                            DeleteFile.canParse(item)))))));
+                        (TextDocumentEdit.canParse(item, reporter) ||
+                            CreateFile.canParse(item, reporter) ||
+                            RenameFile.canParse(item, reporter) ||
+                            DeleteFile.canParse(item, reporter)))))))) {
+          reporter?.reportError(
+              "must be of type Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -12300,12 +16659,44 @@ class WorkspaceFolder implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('uri') &&
-        obj['uri'] is String &&
-        obj.containsKey('name') &&
-        obj['name'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'uri';
+        if (!obj.containsKey('uri')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['uri'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['uri'] != null && !(obj['uri'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        reporter?.field = 'name';
+        if (!obj.containsKey('name')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['name'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['name'] != null && !(obj['name'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -12368,14 +16759,50 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('added') &&
-        (obj['added'] is List &&
-            (obj['added'].every((item) => WorkspaceFolder.canParse(item)))) &&
-        obj.containsKey('removed') &&
-        (obj['removed'] is List &&
-            (obj['removed'].every((item) => WorkspaceFolder.canParse(item))));
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'added';
+        if (!obj.containsKey('added')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['added'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['added'] != null &&
+            !((obj['added'] is List &&
+                (obj['added'].every(
+                    (item) => WorkspaceFolder.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<WorkspaceFolder>");
+          return false;
+        }
+        reporter?.field = 'removed';
+        if (!obj.containsKey('removed')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['removed'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['removed'] != null &&
+            !((obj['removed'] is List &&
+                (obj['removed'].every(
+                    (item) => WorkspaceFolder.canParse(item, reporter)))))) {
+          reporter?.reportError("must be of type List<WorkspaceFolder>");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override
@@ -12426,10 +16853,31 @@ class WorkspaceSymbolParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('query') &&
-        obj['query'] is String;
+  static bool canParse(Object obj, [LspJsonReporter reporter]) {
+    reporter?.push();
+    try {
+      if (obj is Map<String, dynamic>) {
+        reporter?.field = 'query';
+        if (!obj.containsKey('query')) {
+          reporter?.reportError("may not be undefined");
+          return false;
+        }
+        if (obj['query'] == null) {
+          reporter?.reportError("may not be null");
+          return false;
+        }
+        if (obj['query'] != null && !(obj['query'] is String)) {
+          reporter?.reportError("must be of type String");
+          return false;
+        }
+        return true;
+      } else {
+        reporter?.reportError("must be a JavaScript object");
+        return false;
+      }
+    } finally {
+      reporter?.pop();
+    }
   }
 
   @override

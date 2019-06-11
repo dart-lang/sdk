@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:test/test.dart';
 
 main() {
@@ -135,6 +136,79 @@ main() {
           isTrue);
       expect(RenameFileOptions.canParse({'overwrite': 1, 'invalidField': true}),
           isFalse);
+    });
+
+    test('canParse records undefined fields', () {
+      final reporter = LspJsonReporter('params');
+      expect(CreateFile.canParse(<String, dynamic>{}, reporter), isFalse);
+      expect(reporter.errors, hasLength(1));
+      expect(reporter.errors.first, equals("params.kind may not be undefined"));
+    });
+
+    test('canParse records null fields', () {
+      final reporter = LspJsonReporter('params');
+      expect(CreateFile.canParse({'kind': null}, reporter), isFalse);
+      expect(reporter.errors, hasLength(1));
+      expect(reporter.errors.first, equals("params.kind may not be null"));
+    });
+
+    test('canParse records fields of the wrong type', () {
+      final reporter = LspJsonReporter('params');
+      expect(RenameFileOptions.canParse({'overwrite': 1}, reporter), isFalse);
+      expect(reporter.errors, hasLength(1));
+      expect(reporter.errors.first,
+          equals("params.overwrite must be of type bool"));
+    });
+
+    test('canParse records nested undefined fields', () {
+      final reporter = LspJsonReporter('params');
+      expect(
+          CompletionParams.canParse(
+              {'textDocument': <String, dynamic>{}}, reporter),
+          isFalse);
+      expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
+      expect(reporter.errors.first,
+          equals("params.textDocument.uri may not be undefined"));
+    });
+
+    test('canParse records nested null fields', () {
+      final reporter = LspJsonReporter('params');
+      expect(
+          CompletionParams.canParse({
+            'textDocument': {'uri': null}
+          }, reporter),
+          isFalse);
+      expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
+      expect(reporter.errors.first,
+          equals("params.textDocument.uri may not be null"));
+    });
+
+    test('canParse records nested fields of the wrong type', () {
+      final reporter = LspJsonReporter('params');
+      expect(
+          CompletionParams.canParse({
+            'textDocument': {'uri': 1}
+          }, reporter),
+          isFalse);
+      expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
+      expect(reporter.errors.first,
+          equals("params.textDocument.uri must be of type String"));
+    });
+
+    test(
+        'canParse records errors when the type is not in the set of allowed types',
+        () {
+      final reporter = LspJsonReporter('params');
+      expect(
+          WorkspaceEdit.canParse({
+            'documentChanges': {'uri': 1}
+          }, reporter),
+          isFalse);
+      expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
+      expect(
+          reporter.errors.first,
+          equals(
+              "params.documentChanges must be of type Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>"));
     });
 
     test('ResponseMessage can include a null result', () {
