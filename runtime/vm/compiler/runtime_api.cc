@@ -458,10 +458,7 @@ word Context::variable_offset(word n) {
     return clazz##_elements_start_offset + index * clazz##_element_size;       \
   }
 
-#define DEFINE_ARRAY_STRUCTFIELD(clazz, name, element_offset, field_offset)    \
-  word clazz::name(intptr_t index) {                                           \
-    return element_offset(index) + field_offset;                               \
-  }
+#define DEFINE_ARRAY_STRUCTFIELD(clazz, name, element_offset, field_offset)
 
 #define DEFINE_SIZEOF(clazz, name, what)                                       \
   word clazz::name() { return clazz##_##name; }
@@ -555,6 +552,22 @@ bool CanLoadFromThread(const dart::Object& object,
   }
   return false;
 }
+
+#if !defined(PRODUCT)
+word ClassTable::StateOffsetFor(intptr_t cid) {
+  return dart::ClassTable::StateOffsetFor(cid);
+}
+
+word ClassTable::NewSpaceCounterOffsetFor(intptr_t index) {
+  return ClassOffsetFor(index) +
+         ClassHeapStats::allocated_since_gc_new_space_offset();
+}
+
+word ClassTable::NewSpaceSizeOffsetFor(intptr_t index) {
+  return ClassOffsetFor(index) +
+         ClassHeapStats::allocated_size_since_gc_new_space_offset();
+}
+#endif  // !defined(PRODUCT)
 
 static_assert(
     kSmiBits <= dart::kSmiBits,
