@@ -9,9 +9,6 @@ final nullLspJsonReporter = _NullLspJsonReporter();
 /// Tracks a path through a JSON object during validation to allow reporting
 /// validation errors with user-friendly paths to the invalid fields.
 class LspJsonReporter {
-  /// The current field name being validated.
-  String field;
-
   /// A list of errors collected so far.
   final List<String> errors = [];
 
@@ -19,36 +16,26 @@ class LspJsonReporter {
   /// being validated.
   final ListQueue<String> path = new ListQueue<String>();
 
-  LspJsonReporter([this.field]);
+  LspJsonReporter([String initialField]) {
+    if (initialField != null) {
+      path.add(initialField);
+    }
+  }
 
   /// Pops the last field off the stack to become the current gield.
-  void pop() {
-    field = path.removeLast();
-  }
+  void pop() => path.removeLast();
 
   /// Pushes the current field onto a stack to allow reporting errors in child
   /// properties.
-  void push() {
-    path.add(field);
-    field = null;
-  }
+  void push(String field) => path.add(field);
 
   /// Reports an error message for the field represented by [field] at [path].
   void reportError(String message) {
-    if (field != null) {
-      path.add(field);
-    }
     errors.add('${path.join(".")} $message');
-    if (field != null) {
-      path.removeLast();
-    }
   }
 }
 
 class _NullLspJsonReporter implements LspJsonReporter {
-  @override
-  String field;
-
   @override
   final errors = const <String>[];
 
@@ -59,7 +46,7 @@ class _NullLspJsonReporter implements LspJsonReporter {
   void pop() {}
 
   @override
-  void push() {}
+  void push(String field) {}
 
   @override
   void reportError(String message) {}

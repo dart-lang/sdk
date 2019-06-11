@@ -164,9 +164,6 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln(
         'static bool canParse(Object obj, LspJsonReporter reporter) {')
     ..indent()
-    ..writeIndentedln('reporter.push();')
-    ..writeIndentedln('try {')
-    ..indent()
     ..writeIndentedln('if (obj is Map<String, dynamic>) {')
     ..indent();
   // In order to consider this valid for parsing, all fields that may not be
@@ -174,7 +171,10 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
   // Any fields that are optional but present, must still type check.
   final fields = _getAllFields(interface);
   for (var field in fields) {
-    buffer.writeIndentedln("reporter.field = '${field.name}';");
+    buffer
+      ..writeIndentedln("reporter.push('${field.name}');")
+      ..writeIndentedln('try {')
+      ..indent();
     if (!field.allowsUndefined) {
       buffer
         ..writeIndentedln("if (!obj.containsKey('${field.name}')) {")
@@ -203,6 +203,12 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
           'reporter.reportError("must be of type ${field.type.dartTypeWithTypeArgs}");')
       ..writeIndentedln('return false;')
       ..outdent()
+      ..writeIndentedln('}')
+      ..outdent()
+      ..writeIndentedln('} finally {')
+      ..indent()
+      ..writeIndentedln('reporter.pop();')
+      ..outdent()
       ..writeIndentedln('}');
   }
   buffer
@@ -212,12 +218,6 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
     ..indent()
     ..writeIndentedln('reporter.reportError("must be a JavaScript object");')
     ..writeIndentedln('return false;')
-    ..outdent()
-    ..writeIndentedln('}')
-    ..outdent()
-    ..writeIndentedln('} finally {')
-    ..indent()
-    ..writeIndentedln('reporter.pop();')
     ..outdent()
     ..writeIndentedln('}')
     ..outdent()

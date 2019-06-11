@@ -48,10 +48,9 @@ class AnalyzerStatusParams implements ToJsonable {
   }
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    reporter.push();
-    try {
-      if (obj is Map<String, dynamic>) {
-        reporter.field = 'isAnalyzing';
+    if (obj is Map<String, dynamic>) {
+      reporter.push('isAnalyzing');
+      try {
         if (!obj.containsKey('isAnalyzing')) {
           reporter.reportError("may not be undefined");
           return false;
@@ -64,13 +63,13 @@ class AnalyzerStatusParams implements ToJsonable {
           reporter.reportError("must be of type bool");
           return false;
         }
-        return true;
-      } else {
-        reporter.reportError("must be a JavaScript object");
-        return false;
+      } finally {
+        reporter.pop();
       }
-    } finally {
-      reporter.pop();
+      return true;
+    } else {
+      reporter.reportError("must be a JavaScript object");
+      return false;
     }
   }
 
@@ -122,10 +121,9 @@ class ClosingLabel implements ToJsonable {
   }
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    reporter.push();
-    try {
-      if (obj is Map<String, dynamic>) {
-        reporter.field = 'range';
+    if (obj is Map<String, dynamic>) {
+      reporter.push('range');
+      try {
         if (!obj.containsKey('range')) {
           reporter.reportError("may not be undefined");
           return false;
@@ -138,7 +136,11 @@ class ClosingLabel implements ToJsonable {
           reporter.reportError("must be of type Range");
           return false;
         }
-        reporter.field = 'label';
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('label');
+      try {
         if (!obj.containsKey('label')) {
           reporter.reportError("may not be undefined");
           return false;
@@ -151,13 +153,13 @@ class ClosingLabel implements ToJsonable {
           reporter.reportError("must be of type String");
           return false;
         }
-        return true;
-      } else {
-        reporter.reportError("must be a JavaScript object");
-        return false;
+      } finally {
+        reporter.pop();
       }
-    } finally {
-      reporter.pop();
+      return true;
+    } else {
+      reporter.reportError("must be a JavaScript object");
+      return false;
     }
   }
 
@@ -240,10 +242,9 @@ class CompletionItemResolutionInfo implements ToJsonable {
   }
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    reporter.push();
-    try {
-      if (obj is Map<String, dynamic>) {
-        reporter.field = 'file';
+    if (obj is Map<String, dynamic>) {
+      reporter.push('file');
+      try {
         if (!obj.containsKey('file')) {
           reporter.reportError("may not be undefined");
           return false;
@@ -256,7 +257,11 @@ class CompletionItemResolutionInfo implements ToJsonable {
           reporter.reportError("must be of type String");
           return false;
         }
-        reporter.field = 'offset';
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('offset');
+      try {
         if (!obj.containsKey('offset')) {
           reporter.reportError("may not be undefined");
           return false;
@@ -269,7 +274,11 @@ class CompletionItemResolutionInfo implements ToJsonable {
           reporter.reportError("must be of type num");
           return false;
         }
-        reporter.field = 'libId';
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('libId');
+      try {
         if (!obj.containsKey('libId')) {
           reporter.reportError("may not be undefined");
           return false;
@@ -282,7 +291,11 @@ class CompletionItemResolutionInfo implements ToJsonable {
           reporter.reportError("must be of type num");
           return false;
         }
-        reporter.field = 'displayUri';
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('displayUri');
+      try {
         if (!obj.containsKey('displayUri')) {
           reporter.reportError("may not be undefined");
           return false;
@@ -295,7 +308,11 @@ class CompletionItemResolutionInfo implements ToJsonable {
           reporter.reportError("must be of type String");
           return false;
         }
-        reporter.field = 'rOffset';
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('rOffset');
+      try {
         if (!obj.containsKey('rOffset')) {
           reporter.reportError("may not be undefined");
           return false;
@@ -308,7 +325,11 @@ class CompletionItemResolutionInfo implements ToJsonable {
           reporter.reportError("must be of type num");
           return false;
         }
-        reporter.field = 'rLength';
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('rLength');
+      try {
         if (!obj.containsKey('rLength')) {
           reporter.reportError("may not be undefined");
           return false;
@@ -321,13 +342,13 @@ class CompletionItemResolutionInfo implements ToJsonable {
           reporter.reportError("must be of type num");
           return false;
         }
-        return true;
-      } else {
-        reporter.reportError("must be a JavaScript object");
-        return false;
+      } finally {
+        reporter.pop();
       }
-    } finally {
-      reporter.pop();
+      return true;
+    } else {
+      reporter.reportError("must be a JavaScript object");
+      return false;
     }
   }
 
@@ -384,10 +405,9 @@ class DartDiagnosticServer implements ToJsonable {
   }
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    reporter.push();
-    try {
-      if (obj is Map<String, dynamic>) {
-        reporter.field = 'port';
+    if (obj is Map<String, dynamic>) {
+      reporter.push('port');
+      try {
         if (!obj.containsKey('port')) {
           reporter.reportError("may not be undefined");
           return false;
@@ -400,13 +420,13 @@ class DartDiagnosticServer implements ToJsonable {
           reporter.reportError("must be of type num");
           return false;
         }
-        return true;
-      } else {
-        reporter.reportError("must be a JavaScript object");
-        return false;
+      } finally {
+        reporter.pop();
       }
-    } finally {
-      reporter.pop();
+      return true;
+    } else {
+      reporter.reportError("must be a JavaScript object");
+      return false;
     }
   }
 
@@ -461,10 +481,9 @@ class PublishClosingLabelsParams implements ToJsonable {
   }
 
   static bool canParse(Object obj, LspJsonReporter reporter) {
-    reporter.push();
-    try {
-      if (obj is Map<String, dynamic>) {
-        reporter.field = 'uri';
+    if (obj is Map<String, dynamic>) {
+      reporter.push('uri');
+      try {
         if (!obj.containsKey('uri')) {
           reporter.reportError("may not be undefined");
           return false;
@@ -477,7 +496,11 @@ class PublishClosingLabelsParams implements ToJsonable {
           reporter.reportError("must be of type String");
           return false;
         }
-        reporter.field = 'labels';
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('labels');
+      try {
         if (!obj.containsKey('labels')) {
           reporter.reportError("may not be undefined");
           return false;
@@ -493,13 +516,13 @@ class PublishClosingLabelsParams implements ToJsonable {
           reporter.reportError("must be of type List<ClosingLabel>");
           return false;
         }
-        return true;
-      } else {
-        reporter.reportError("must be a JavaScript object");
-        return false;
+      } finally {
+        reporter.pop();
       }
-    } finally {
-      reporter.pop();
+      return true;
+    } else {
+      reporter.reportError("must be a JavaScript object");
+      return false;
     }
   }
 
