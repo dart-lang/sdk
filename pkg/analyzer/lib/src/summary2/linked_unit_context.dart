@@ -87,20 +87,12 @@ class LinkedUnitContext {
   CompilationUnit get unit => _unit;
 
   CompilationUnit get unit_withDeclarations {
-    if (_unit == null) {
-      _unit = _astReader.readNode(data.node);
-
-      var informativeData = getInformativeData(data.node);
-      var lineStarts = informativeData?.compilationUnit_lineStarts ?? [];
-      if (lineStarts.isEmpty) {
-        lineStarts = [0];
-      }
-      _unit.lineInfo = LineInfo(lineStarts);
-    }
+    _ensureUnitWithDeclarations();
     return _unit;
   }
 
   CompilationUnit get unit_withDirectives {
+    _ensureUnitWithDeclarations();
     if (!_hasDirectivesRead) {
       var directiveDataList = data.node.compilationUnit_directives;
       for (var i = 0; i < directiveDataList.length; ++i) {
@@ -110,17 +102,6 @@ class LinkedUnitContext {
       _hasDirectivesRead = true;
     }
     return _unit;
-  }
-
-  void createGenericFunctionTypeElement(int id, GenericFunctionTypeImpl node) {
-    var containerRef = this.reference.getChild('@genericFunctionType');
-    var reference = containerRef.getChild('$id');
-    var element = GenericFunctionTypeElementImpl.forLinkedNode(
-      this.reference.element,
-      reference,
-      node,
-    );
-    node.declaredElement = element;
   }
 
   Comment createComment(LinkedNode data) {
@@ -134,6 +115,17 @@ class LinkedUnitContext {
         .map((lexeme) => TokenFactory.tokenFromString(lexeme))
         .toList();
     return astFactory.documentationComment(tokens);
+  }
+
+  void createGenericFunctionTypeElement(int id, GenericFunctionTypeImpl node) {
+    var containerRef = this.reference.getChild('@genericFunctionType');
+    var reference = containerRef.getChild('$id');
+    var element = GenericFunctionTypeElementImpl.forLinkedNode(
+      this.reference.element,
+      reference,
+      node,
+    );
+    node.declaredElement = element;
   }
 
   /// Return the [LibraryElement] referenced in the [node].
@@ -986,6 +978,19 @@ class LinkedUnitContext {
           yield variable;
         }
       }
+    }
+  }
+
+  void _ensureUnitWithDeclarations() {
+    if (_unit == null) {
+      _unit = _astReader.readNode(data.node);
+
+      var informativeData = getInformativeData(data.node);
+      var lineStarts = informativeData?.compilationUnit_lineStarts ?? [];
+      if (lineStarts.isEmpty) {
+        lineStarts = [0];
+      }
+      _unit.lineInfo = LineInfo(lineStarts);
     }
   }
 
