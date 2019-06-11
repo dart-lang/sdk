@@ -436,24 +436,24 @@ class ProcessStarter {
     }
   }
 
-  // Tries to find path_ relative to the current namespace.
+  // Tries to find path_ relative to the current namespace unless it should be
+  // searched in the PATH.
   // The path that should be passed to exec is returned in realpath.
   // Returns true on success, and false if there was an error that should
   // be reported to the parent.
   bool FindPathInNamespace(char* realpath, intptr_t realpath_size) {
+    // Perform a PATH search if there's no slash in the path.
+    if (strchr(path_, '/') == NULL) {
+      // TODO(zra): If there is a non-default namespace, the entries in PATH
+      // should be treated as relative to the namespace.
+      strncpy(realpath, path_, realpath_size);
+      realpath[realpath_size - 1] = '\0';
+      return true;
+    }
     NamespaceScope ns(namespc_, path_);
     const int fd =
         TEMP_FAILURE_RETRY(openat64(ns.fd(), ns.path(), O_RDONLY | O_CLOEXEC));
     if (fd == -1) {
-      if ((errno == ENOENT) && (strchr(path_, '/') == NULL)) {
-        // path_ was not found relative to the namespace, but since it didn't
-        // contain a '/', we can pass it directly to execvp, which will do a
-        // lookup in PATH.
-        // TODO(zra): If there is a non-default namespace, the entries in PATH
-        // should be treated as relative to the namespace.
-        strncpy(realpath, path_, realpath_size);
-        return true;
-      }
       return false;
     }
     char procpath[PATH_MAX];

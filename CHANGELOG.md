@@ -1,3 +1,34 @@
+## 2.3.2 - 2019-06-11
+
+This is a patch version release with a security improvement.
+
+### Security vulnerability
+
+*  **Security improvement:** On Linux and Android, starting a process with
+   `Process.run`, `Process.runSync`, or `Process.start` would first search the
+   current directory before searching `PATH` (Issue [37101][]). This behavior
+   effectively put the current working directory in the front of `PATH`, even if
+   it wasn't in the `PATH`. This release changes that behavior to only searching
+   the directories in the `PATH` environment variable. Operating systems other
+   than Linux and Android didn't have this behavior and aren't affected by this
+   vulnerability.
+
+   This vulnerability could result in execution of untrusted code if a command
+   without a slash in its name was run inside an untrusted directory containing
+   an executable file with that name:
+
+   ```dart
+   Process.run("ls", workingDirectory: "/untrusted/directory")
+   ```
+
+   This would attempt to run `/untrusted/directory/ls` if it existed, even
+   though it is not in the `PATH`. It was always safe to instead use an absolute
+   path or a path containing a slash.
+
+   This vulnerability was introduced in Dart 2.0.0.
+
+[37101]: https://github.com/dart-lang/sdk/issues/37101
+
 ## 2.3.1 - 2019-05-21
 
 This is a patch version release with bug fixes.
