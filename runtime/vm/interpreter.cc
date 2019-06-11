@@ -1887,6 +1887,7 @@ SwitchDispatch:
 
   {
     BYTECODE(Throw, A);
+    DEBUG_CHECK;
     {
       SP[1] = 0;  // Space for result.
       Exit(thread, FP, SP + 2, pc);
@@ -1951,12 +1952,14 @@ SwitchDispatch:
 
   {
     BYTECODE(StoreLocal, X);
+    DEBUG_CHECK;
     FP[rX] = *SP;
     DISPATCH();
   }
 
   {
     BYTECODE(PopLocal, X);
+    DEBUG_CHECK;
     FP[rX] = *SP--;
     DISPATCH();
   }
@@ -2321,6 +2324,7 @@ SwitchDispatch:
 
   {
     BYTECODE(StoreStaticTOS, D);
+    DEBUG_CHECK;
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);
     field->StorePointer(&field->ptr()->value_.static_value_, value, thread);
@@ -2658,6 +2662,7 @@ SwitchDispatch:
 
   {
     BYTECODE(Jump, T);
+    DEBUG_CHECK;
     LOAD_JUMP_TARGET();
     DISPATCH();
   }

@@ -105,7 +105,11 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
       func.IsRedirectingFactory() || func.is_no_such_method_forwarder()) {
     return true;
   }
-  if (func.IsNonImplicitClosureFunction() &&
+  // Note that context_scope() remains null for closures declared in bytecode,
+  // because the same information is retrieved from the parent's local variable
+  // descriptors.
+  // See IsLocalFunction() case in BytecodeReader::ComputeLocalVarDescriptors.
+  if (!func.is_declared_in_bytecode() && func.IsNonImplicitClosureFunction() &&
       (func.context_scope() == ContextScope::null())) {
     // TODO(iposva): This can arise if we attempt to compile an inner function
     // before we have compiled its enclosing function or if the enclosing
@@ -479,31 +483,53 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   // We skip compiled async functions.  Once an async function has
   // been compiled, there is another function with the same range which
   // actually contains the user code.
-  if (func.IsAsyncFunction() || func.IsAsyncGenerator() ||
-      func.IsSyncGenerator()) {
-    return;
+  if (!func.IsAsyncFunction() && !func.IsAsyncGenerator() &&
+      !func.IsSyncGenerator()) {
+    JSONObject range(jsarr);
+    range.AddProperty("scriptIndex", GetScriptIndex(script));
+    range.AddProperty("startPos", begin_pos);
+    range.AddProperty("endPos", end_pos);
+    range.AddProperty("compiled", true);  // bytecode or code.
+
+    if (IsReportRequested(kCallSites)) {
+      PrintCallSitesData(&range, func, code);
+    }
+    if (IsReportRequested(kCoverage)) {
+      PrintCoverageData(&range, func, code);
+    }
+    if (IsReportRequested(kPossibleBreakpoints)) {
+      PrintPossibleBreakpointsData(&range, func, code);
+    }
+    if (IsReportRequested(kProfile)) {
+      ProfileFunction* profile_function = profile_.FindFunction(func);
+      if ((profile_function != NULL) &&
+          (profile_function->NumSourcePositions() > 0)) {
+        PrintProfileData(&range, profile_function);
+      }
+    }
   }
 
-  JSONObject range(jsarr);
-  range.AddProperty("scriptIndex", GetScriptIndex(script));
-  range.AddProperty("startPos", begin_pos);
-  range.AddProperty("endPos", end_pos);
-  range.AddProperty("compiled", true);  // bytecode or code.
-
-  if (IsReportRequested(kCallSites)) {
-    PrintCallSitesData(&range, func, code);
-  }
-  if (IsReportRequested(kCoverage)) {
-    PrintCoverageData(&range, func, code);
-  }
-  if (IsReportRequested(kPossibleBreakpoints)) {
-    PrintPossibleBreakpointsData(&range, func, code);
-  }
-  if (IsReportRequested(kProfile)) {
-    ProfileFunction* profile_function = profile_.FindFunction(func);
-    if ((profile_function != NULL) &&
-        (profile_function->NumSourcePositions() > 0)) {
-      PrintProfileData(&range, profile_function);
+  // Visit the closures declared in a bytecode function by traversing its object
+  // pool, because they do not appear in the object store's list of closures.
+  // Since local functions share the object pool, only traverse the pool once,
+  // i.e. when func is the outermost function.
+  if (!bytecode.IsNull() && !func.IsLocalFunction()) {
+    const ObjectPool& pool = ObjectPool::Handle(zone(), bytecode.object_pool());
+    Object& object = Object::Handle(zone());
+    Function& closure = Function::Handle(zone());
+    for (intptr_t i = 0; i < pool.Length(); i++) {
+      ObjectPool::EntryType entry_type = pool.TypeAt(i);
+      if (entry_type != ObjectPool::EntryType::kTaggedObject) {
+        continue;
+      }
+      object = pool.ObjectAt(i);
+      if (object.IsFunction()) {
+        closure ^= object.raw();
+        if ((closure.kind() == RawFunction::kClosureFunction) &&
+            (closure.IsLocalFunction())) {
+          VisitFunction(jsarr, closure);
+        }
+      }
     }
   }
 }
@@ -566,6 +592,8 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
 }
 
 void SourceReport::VisitClosures(JSONArray* jsarr) {
+  // Note that closures declared in bytecode are not visited here, but in
+  // VisitFunction while traversing the object pool of their owner functions.
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
       thread()->isolate()->object_store()->closure_functions());
 
