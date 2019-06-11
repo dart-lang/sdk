@@ -557,8 +557,6 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
     const Class& super_class = Class::Handle(super_type.type_class());
     const intptr_t num_super_type_params = super_class.NumTypeParameters();
     const intptr_t num_super_type_args = super_class.NumTypeArguments();
-    ASSERT(num_super_type_args ==
-           (cls.NumTypeArguments() - cls.NumOwnTypeArguments()));
     if (!super_type.IsFinalized() && !super_type.IsBeingFinalized()) {
       super_type = FinalizeType(cls, super_type, kFinalize, pending_types);
       cls.set_super_type(super_type);
@@ -1384,7 +1382,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   cls = class_table.At(kFfiPointerCid);
   error = cls.EnsureIsFinalized(thread);
   ASSERT(error.IsNull());
-  ASSERT(cls.NumOwnTypeArguments() == 1);
+  ASSERT(cls.NumTypeParameters() == 1);
   type_param ^= TypeParameter::RawCast(
       TypeArguments::Handle(cls.type_parameters()).TypeAt(0));
   ASSERT(Pointer::kNativeTypeArgPos == type_param.index());

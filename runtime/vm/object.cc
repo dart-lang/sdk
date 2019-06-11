@@ -537,8 +537,6 @@ void Object::Init(Isolate* isolate) {
     cls.set_is_type_finalized();
     cls.set_type_arguments_field_offset_in_words(Class::kNoTypeArguments);
     cls.set_num_type_arguments(0);
-    cls.set_num_own_type_arguments(0);
-    cls.set_has_pragma(false);
     cls.set_num_native_fields(0);
     cls.InitEmptyFields();
     isolate->RegisterClass(cls);
@@ -547,13 +545,11 @@ void Object::Init(Isolate* isolate) {
   // Allocate and initialize the null class.
   cls = Class::New<Instance>(kNullCid);
   cls.set_num_type_arguments(0);
-  cls.set_num_own_type_arguments(0);
   isolate->object_store()->set_null_class(cls);
 
   // Allocate and initialize the free list element class.
   cls = Class::New<FreeListElement::FakeInstance>(kFreeListElement);
   cls.set_num_type_arguments(0);
-  cls.set_num_own_type_arguments(0);
   cls.set_is_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
@@ -561,7 +557,6 @@ void Object::Init(Isolate* isolate) {
   // Allocate and initialize the forwarding corpse class.
   cls = Class::New<ForwardingCorpse::FakeInstance>(kForwardingCorpse);
   cls.set_num_type_arguments(0);
-  cls.set_num_own_type_arguments(0);
   cls.set_is_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
@@ -688,12 +683,10 @@ void Object::Init(Isolate* isolate) {
   isolate->object_store()->set_array_class(cls);
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   cls.set_num_type_arguments(1);
-  cls.set_num_own_type_arguments(1);
   cls = Class::New<Array>(kImmutableArrayCid);
   isolate->object_store()->set_immutable_array_class(cls);
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   cls.set_num_type_arguments(1);
-  cls.set_num_own_type_arguments(1);
   cls = Class::New<GrowableObjectArray>();
   isolate->object_store()->set_growable_object_array_class(cls);
   cls.set_type_arguments_field_offset(
@@ -830,7 +823,6 @@ void Object::Init(Isolate* isolate) {
   cls = Class::New<Instance>(kDynamicCid);
   cls.set_is_abstract();
   cls.set_num_type_arguments(0);
-  cls.set_num_own_type_arguments(0);
   cls.set_is_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
@@ -838,7 +830,6 @@ void Object::Init(Isolate* isolate) {
 
   cls = Class::New<Instance>(kVoidCid);
   cls.set_num_type_arguments(0);
-  cls.set_num_own_type_arguments(0);
   cls.set_is_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
@@ -1551,7 +1542,6 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_object_class(cls);
     cls.set_name(Symbols::Object());
     cls.set_num_type_arguments(0);
-    cls.set_num_own_type_arguments(0);
     cls.set_is_prefinalized();
     core_lib.AddClass(cls);
     pending_classes.Add(cls);
@@ -1566,7 +1556,6 @@ RawError* Object::Init(Isolate* isolate,
     cls = Class::New<Instance>(kNullCid);
     object_store->set_null_class(cls);
     cls.set_num_type_arguments(0);
-    cls.set_num_own_type_arguments(0);
     cls.set_is_prefinalized();
     RegisterClass(cls, Symbols::Null(), core_lib);
     pending_classes.Add(cls);
@@ -1649,7 +1638,6 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_linked_hash_map_class(cls);
     cls.set_type_arguments_field_offset(LinkedHashMap::type_arguments_offset());
     cls.set_num_type_arguments(2);
-    cls.set_num_own_type_arguments(0);
     RegisterPrivateClass(cls, Symbols::_LinkedHashMap(), lib);
     pending_classes.Add(cls);
 
@@ -1723,7 +1711,6 @@ RawError* Object::Init(Isolate* isolate,
     cls = Class::New<Instance>(kIllegalCid);
     RegisterClass(cls, Symbols::Float32x4(), lib);
     cls.set_num_type_arguments(0);
-    cls.set_num_own_type_arguments(0);
     cls.set_is_prefinalized();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_float32x4_type(type);
@@ -1736,7 +1723,6 @@ RawError* Object::Init(Isolate* isolate,
     cls = Class::New<Instance>(kIllegalCid);
     RegisterClass(cls, Symbols::Int32x4(), lib);
     cls.set_num_type_arguments(0);
-    cls.set_num_own_type_arguments(0);
     cls.set_is_prefinalized();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_int32x4_type(type);
@@ -1749,7 +1735,6 @@ RawError* Object::Init(Isolate* isolate,
     cls = Class::New<Instance>(kIllegalCid);
     RegisterClass(cls, Symbols::Float64x2(), lib);
     cls.set_num_type_arguments(0);
-    cls.set_num_own_type_arguments(0);
     cls.set_is_prefinalized();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_float64x2_type(type);
@@ -1763,7 +1748,6 @@ RawError* Object::Init(Isolate* isolate,
     // Note that this class is implemented by Dart class _AbstractType.
     cls = Class::New<Instance>(kIllegalCid);
     cls.set_num_type_arguments(0);
-    cls.set_num_own_type_arguments(0);
     cls.set_is_prefinalized();
     RegisterClass(cls, Symbols::Type(), core_lib);
     pending_classes.Add(cls);
@@ -1773,7 +1757,6 @@ RawError* Object::Init(Isolate* isolate,
     // Abstract class that represents the Dart class Function.
     cls = Class::New<Instance>(kIllegalCid);
     cls.set_num_type_arguments(0);
-    cls.set_num_own_type_arguments(0);
     cls.set_is_prefinalized();
     RegisterClass(cls, Symbols::Function(), core_lib);
     pending_classes.Add(cls);
@@ -1789,7 +1772,6 @@ RawError* Object::Init(Isolate* isolate,
     cls = Class::New<Instance>(kIllegalCid);
     RegisterClass(cls, Symbols::Int(), core_lib);
     cls.set_num_type_arguments(0);
-    cls.set_num_own_type_arguments(0);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
@@ -1798,7 +1780,6 @@ RawError* Object::Init(Isolate* isolate,
     cls = Class::New<Instance>(kIllegalCid);
     RegisterClass(cls, Symbols::Double(), core_lib);
     cls.set_num_type_arguments(0);
-    cls.set_num_own_type_arguments(0);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
@@ -1808,7 +1789,6 @@ RawError* Object::Init(Isolate* isolate,
     cls = Class::New<Instance>(kIllegalCid);
     RegisterClass(cls, name, core_lib);
     cls.set_num_type_arguments(0);
-    cls.set_num_own_type_arguments(0);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
@@ -1884,7 +1864,6 @@ RawError* Object::Init(Isolate* isolate,
 
     cls = Class::New<Instance>(kFfiNativeTypeCid);
     cls.set_num_type_arguments(0);
-    cls.set_num_own_type_arguments(0);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     object_store->set_ffi_native_type_class(cls);
@@ -1893,7 +1872,6 @@ RawError* Object::Init(Isolate* isolate,
 #define REGISTER_FFI_TYPE_MARKER(clazz)                                        \
   cls = Class::New<Instance>(kFfi##clazz##Cid);                                \
   cls.set_num_type_arguments(0);                                               \
-  cls.set_num_own_type_arguments(0);                                           \
   cls.set_is_prefinalized();                                                   \
   pending_classes.Add(cls);                                                    \
   RegisterClass(cls, Symbols::Ffi##clazz(), lib);
@@ -1903,7 +1881,6 @@ RawError* Object::Init(Isolate* isolate,
     cls = Class::New<Instance>(kFfiNativeFunctionCid);
     cls.set_type_arguments_field_offset(Pointer::type_arguments_offset());
     cls.set_num_type_arguments(1);
-    cls.set_num_own_type_arguments(1);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiNativeFunction(), lib);
@@ -2307,8 +2284,6 @@ RawClass* Class::New() {
   COMPILE_ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
   result.set_num_type_arguments(0);
-  result.set_num_own_type_arguments(0);
-  result.set_has_pragma(false);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
   if ((FakeObject::kClassId < kInstanceCid) ||
@@ -2345,25 +2320,8 @@ void Class::set_num_type_arguments(intptr_t value) const {
   StoreNonPointer(&raw_ptr()->num_type_arguments_, value);
 }
 
-void Class::set_num_own_type_arguments(intptr_t value) const {
-  if (!Utils::IsUint(kNumOwnTypeArgumentsSize, value)) {
-    ReportTooManyTypeArguments(*this);
-  }
-  StoreNonPointer(
-      &raw_ptr()->has_pragma_and_num_own_type_arguments_,
-      NumOwnTypeArguments::update(
-          value, raw_ptr()->has_pragma_and_num_own_type_arguments_));
-}
-
-void Class::set_has_pragma_and_num_own_type_arguments(uint16_t value) const {
-  StoreNonPointer(&raw_ptr()->has_pragma_and_num_own_type_arguments_, value);
-}
-
 void Class::set_has_pragma(bool value) const {
-  StoreNonPointer(
-      &raw_ptr()->has_pragma_and_num_own_type_arguments_,
-      HasPragmaBit::update(value,
-                           raw_ptr()->has_pragma_and_num_own_type_arguments_));
+  set_state_bits(HasPragmaBit::update(value, raw_ptr()->state_bits_));
 }
 
 // Initialize class fields of type Array with empty array.
@@ -2613,7 +2571,7 @@ void Class::set_signature_function(const Function& value) const {
 }
 
 void Class::set_state_bits(intptr_t bits) const {
-  StoreNonPointer(&raw_ptr()->state_bits_, static_cast<uint16_t>(bits));
+  StoreNonPointer(&raw_ptr()->state_bits_, static_cast<uint32_t>(bits));
 }
 
 void Class::set_library(const Library& value) const {
@@ -2621,8 +2579,6 @@ void Class::set_library(const Library& value) const {
 }
 
 void Class::set_type_parameters(const TypeArguments& value) const {
-  ASSERT((num_own_type_arguments() == kUnknownNumTypeArguments) ||
-         is_prefinalized());
   ASSERT((num_type_arguments() == kUnknownNumTypeArguments) ||
          is_prefinalized());
   StorePointer(&raw_ptr()->type_parameters_, value.raw());
@@ -2643,39 +2599,45 @@ intptr_t Class::NumTypeParameters(Thread* thread) const {
   return type_params.Length();
 }
 
-intptr_t Class::NumOwnTypeArguments() const {
-  // Return cached value if already calculated.
-  if (num_own_type_arguments() != kUnknownNumTypeArguments) {
-    return num_own_type_arguments();
-  }
+intptr_t Class::ComputeNumTypeArguments() const {
+  ASSERT(is_declaration_loaded());
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   const intptr_t num_type_params = NumTypeParameters();
-  if ((num_type_params == 0) || (super_type() == AbstractType::null()) ||
+
+  if ((super_type() == AbstractType::null()) ||
       (super_type() == isolate->object_store()->object_type())) {
-    set_num_own_type_arguments(num_type_params);
     return num_type_params;
   }
-  const AbstractType& sup_type = AbstractType::Handle(zone, super_type());
-  const TypeArguments& sup_type_args =
-      TypeArguments::Handle(zone, sup_type.arguments());
+
+  const auto& sup_type = AbstractType::Handle(zone, super_type());
+  ASSERT(sup_type.IsType());
+
+  const auto& sup_class = Class::Handle(zone, sup_type.type_class());
+  ASSERT(!sup_class.IsTypedefClass());
+
+  const intptr_t sup_class_num_type_args = sup_class.NumTypeArguments();
+  if (num_type_params == 0) {
+    return sup_class_num_type_args;
+  }
+
+  const auto& sup_type_args = TypeArguments::Handle(zone, sup_type.arguments());
   if (sup_type_args.IsNull()) {
     // The super type is raw or the super class is non generic.
     // In either case, overlapping is not possible.
-    set_num_own_type_arguments(num_type_params);
-    return num_type_params;
+    return sup_class_num_type_args + num_type_params;
   }
-  const intptr_t num_sup_type_args = sup_type_args.Length();
+
+  const intptr_t sup_type_args_length = sup_type_args.Length();
   // At this point, the super type may or may not be finalized. In either case,
   // the result of this function must remain the same.
   // The value of num_sup_type_args may increase when the super type is
-  // finalized, but the last num_sup_type_args type arguments will not be
+  // finalized, but the last [sup_type_args_length] type arguments will not be
   // modified by finalization, only shifted to higher indices in the vector.
   // The super type may not even be resolved yet. This is not necessary, since
   // we only check for matching type parameters, which are resolved by default.
-  const TypeArguments& type_params =
-      TypeArguments::Handle(zone, type_parameters());
+  const auto& type_params = TypeArguments::Handle(zone, type_parameters());
   // Determine the maximum overlap of a prefix of the vector consisting of the
   // type parameters of this class with a suffix of the vector consisting of the
   // type arguments of the super type of this class.
@@ -2684,58 +2646,38 @@ intptr_t Class::NumOwnTypeArguments() const {
   // Attempt to overlap the whole vector of type parameters; reduce the size
   // of the vector (keeping the first type parameter) until it fits or until
   // its size is zero.
-  TypeParameter& type_param = TypeParameter::Handle(zone);
-  AbstractType& sup_type_arg = AbstractType::Handle(zone);
+  auto& type_param = TypeParameter::Handle(zone);
+  auto& sup_type_arg = AbstractType::Handle(zone);
   for (intptr_t num_overlapping_type_args =
-           (num_type_params < num_sup_type_args) ? num_type_params
-                                                 : num_sup_type_args;
+           (num_type_params < sup_type_args_length) ? num_type_params
+                                                    : sup_type_args_length;
        num_overlapping_type_args > 0; num_overlapping_type_args--) {
     intptr_t i = 0;
     for (; i < num_overlapping_type_args; i++) {
       type_param ^= type_params.TypeAt(i);
-      sup_type_arg = sup_type_args.TypeAt(num_sup_type_args -
+      sup_type_arg = sup_type_args.TypeAt(sup_type_args_length -
                                           num_overlapping_type_args + i);
       if (!type_param.Equals(sup_type_arg)) break;
     }
     if (i == num_overlapping_type_args) {
       // Overlap found.
-      set_num_own_type_arguments(num_type_params - num_overlapping_type_args);
-      return num_type_params - num_overlapping_type_args;
+      return sup_class_num_type_args + num_type_params -
+             num_overlapping_type_args;
     }
   }
   // No overlap found.
-  set_num_own_type_arguments(num_type_params);
-  return num_type_params;
+  return sup_class_num_type_args + num_type_params;
 }
 
 intptr_t Class::NumTypeArguments() const {
   // Return cached value if already calculated.
-  if (num_type_arguments() != kUnknownNumTypeArguments) {
-    return num_type_arguments();
+  intptr_t num_type_args = num_type_arguments();
+  if (num_type_args != kUnknownNumTypeArguments) {
+    return num_type_args;
   }
-  // To work properly, this call requires the super class of this class to be
-  // resolved, which is checked by the type_class() call on the super type.
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  Class& cls = Class::Handle(zone);
-  AbstractType& sup_type = AbstractType::Handle(zone);
-  cls = raw();
-  intptr_t num_type_args = 0;
-  do {
-    num_type_args += cls.NumOwnTypeArguments();
-    // Super type of Object class is null.
-    if ((cls.super_type() == AbstractType::null()) ||
-        (cls.super_type() == isolate->object_store()->object_type())) {
-      break;
-    }
-    sup_type = cls.super_type();
-    // A TypeRef or function type can appear as type argument of
-    // sup_type, but not as sup_type itself.
-    ASSERT(sup_type.IsType());
-    cls = sup_type.type_class();
-    ASSERT(!cls.IsTypedefClass());
-  } while (true);
+
+  num_type_args = ComputeNumTypeArguments();
+  ASSERT(num_type_args != kUnknownNumTypeArguments);
   set_num_type_arguments(num_type_args);
   return num_type_args;
 }
@@ -3693,8 +3635,6 @@ RawClass* Class::NewCommon(intptr_t index) {
   result.set_next_field_offset(FakeInstance::NextFieldOffset());
   result.set_id(index);
   result.set_num_type_arguments(kUnknownNumTypeArguments);
-  result.set_num_own_type_arguments(kUnknownNumTypeArguments);
-  result.set_has_pragma(false);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
   result.InitEmptyFields();

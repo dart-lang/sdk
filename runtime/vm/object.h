@@ -916,10 +916,6 @@ class Class : public Object {
   // the super class.
   intptr_t NumTypeArguments() const;
 
-  // Return the number of type arguments that are specific to this class, i.e.
-  // not overlapping with the type arguments of the super class of this class.
-  intptr_t NumOwnTypeArguments() const;
-
   // Return true if this class declares type parameters.
   bool IsGeneric() const { return NumTypeParameters(Thread::Current()) > 0; }
 
@@ -1353,28 +1349,30 @@ class Class : public Object {
     kTransformedMixinApplicationBit,
     kIsAllocatedBit,
     kIsLoadedBit,
+    kHasPragmaBit,
   };
-  class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
-  class ImplementedBit : public BitField<uint16_t, bool, kImplementedBit, 1> {};
-  class ClassFinalizedBits : public BitField<uint16_t,
+  class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
+  class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
+  class ClassFinalizedBits : public BitField<uint32_t,
                                              RawClass::ClassFinalizedState,
                                              kClassFinalizedPos,
                                              kClassFinalizedSize> {};
-  class ClassLoadingBits : public BitField<uint16_t,
+  class ClassLoadingBits : public BitField<uint32_t,
                                            RawClass::ClassLoadingState,
                                            kClassLoadingPos,
                                            kClassLoadingSize> {};
-  class AbstractBit : public BitField<uint16_t, bool, kAbstractBit, 1> {};
-  class PatchBit : public BitField<uint16_t, bool, kPatchBit, 1> {};
+  class AbstractBit : public BitField<uint32_t, bool, kAbstractBit, 1> {};
+  class PatchBit : public BitField<uint32_t, bool, kPatchBit, 1> {};
   class SynthesizedClassBit
-      : public BitField<uint16_t, bool, kSynthesizedClassBit, 1> {};
+      : public BitField<uint32_t, bool, kSynthesizedClassBit, 1> {};
   class FieldsMarkedNullableBit
-      : public BitField<uint16_t, bool, kFieldsMarkedNullableBit, 1> {};
-  class EnumBit : public BitField<uint16_t, bool, kEnumBit, 1> {};
+      : public BitField<uint32_t, bool, kFieldsMarkedNullableBit, 1> {};
+  class EnumBit : public BitField<uint32_t, bool, kEnumBit, 1> {};
   class TransformedMixinApplicationBit
-      : public BitField<uint16_t, bool, kTransformedMixinApplicationBit, 1> {};
-  class IsAllocatedBit : public BitField<uint16_t, bool, kIsAllocatedBit, 1> {};
-  class IsLoadedBit : public BitField<uint16_t, bool, kIsLoadedBit, 1> {};
+      : public BitField<uint32_t, bool, kTransformedMixinApplicationBit, 1> {};
+  class IsAllocatedBit : public BitField<uint32_t, bool, kIsAllocatedBit, 1> {};
+  class IsLoadedBit : public BitField<uint32_t, bool, kIsLoadedBit, 1> {};
+  class HasPragmaBit : public BitField<uint32_t, bool, kHasPragmaBit, 1> {};
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -1392,40 +1390,23 @@ class Class : public Object {
   // functions_hash_table is in use iff there are at least this many functions.
   static const intptr_t kFunctionLookupHashTreshold = 16;
 
-  enum HasPragmaAndNumOwnTypeArgumentsBits {
-    kHasPragmaBit = 0,
-    kNumOwnTypeArgumentsPos = 1,
-    kNumOwnTypeArgumentsSize = 15
-  };
-
-  class HasPragmaBit : public BitField<uint16_t, bool, kHasPragmaBit, 1> {};
-  class NumOwnTypeArguments : public BitField<uint16_t,
-                                              uint16_t,
-                                              kNumOwnTypeArgumentsPos,
-                                              kNumOwnTypeArgumentsSize> {};
-
   // Initial value for the cached number of type arguments.
-  static const intptr_t kUnknownNumTypeArguments =
-      (1U << kNumOwnTypeArgumentsSize) - 1;
+  static const intptr_t kUnknownNumTypeArguments = -1;
 
   int16_t num_type_arguments() const { return raw_ptr()->num_type_arguments_; }
   void set_num_type_arguments(intptr_t value) const;
 
  public:
   bool has_pragma() const {
-    return HasPragmaBit::decode(
-        raw_ptr()->has_pragma_and_num_own_type_arguments_);
+    return HasPragmaBit::decode(raw_ptr()->state_bits_);
   }
   void set_has_pragma(bool has_pragma) const;
 
  private:
-  uint16_t num_own_type_arguments() const {
-    return NumOwnTypeArguments::decode(
-        raw_ptr()->has_pragma_and_num_own_type_arguments_);
-  }
-  void set_num_own_type_arguments(intptr_t value) const;
-
-  void set_has_pragma_and_num_own_type_arguments(uint16_t value) const;
+  // Calculates number of type arguments of this class.
+  // This includes type arguments of a superclass and takes overlapping
+  // of type arguments into account.
+  intptr_t ComputeNumTypeArguments() const;
 
   // Assigns empty array to all raw class array fields.
   void InitEmptyFields();
