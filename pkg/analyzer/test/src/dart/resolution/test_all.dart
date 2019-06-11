@@ -26,6 +26,7 @@ import 'instance_member_inference_class_test.dart'
     as instance_member_inference_class;
 import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin;
+import 'metadata_test.dart' as metadata;
 import 'method_invocation_test.dart' as method_invocation;
 import 'mixin_test.dart' as mixin_resolution;
 import 'namespace_test.dart' as namespace;
@@ -56,6 +57,7 @@ main() {
     instance_creation.main();
     instance_member_inference_class.main();
     instance_member_inference_mixin.main();
+    metadata.main();
     method_invocation.main();
     mixin_resolution.main();
     namespace.main();

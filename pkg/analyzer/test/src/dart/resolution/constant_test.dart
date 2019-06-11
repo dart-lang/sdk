@@ -20,66 +20,6 @@ main() {
 class ConstantDriverTest extends DriverResolutionTest with ConstantMixin {}
 
 mixin ConstantMixin implements ResolutionTest {
-  test_annotation_constructor_named() async {
-    newFile('/test/lib/a.dart', content: r'''
-class A {
-  final int f;
-  const A.named(this.f);
-}
-''');
-
-    newFile('/test/lib/b.dart', content: r'''
-import 'a.dart';
-
-@A.named(42)
-class B {}
-''');
-
-    addTestFile(r'''
-import 'b.dart';
-
-B b;
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-
-    var classB = findNode.typeName('B b;').name.staticElement;
-    var annotation = classB.metadata.single;
-    var value = annotation.computeConstantValue();
-    expect(value, isNotNull);
-    expect(value.getField('f').toIntValue(), 42);
-  }
-
-  test_annotation_constructor_unnamed() async {
-    newFile('/test/lib/a.dart', content: r'''
-class A {
-  final int f;
-  const A(this.f);
-}
-''');
-
-    newFile('/test/lib/b.dart', content: r'''
-import 'a.dart';
-
-@A(42)
-class B {}
-''');
-
-    addTestFile(r'''
-import 'b.dart';
-
-B b;
-''');
-    await resolveTestFile();
-    assertNoTestErrors();
-
-    var classB = findNode.typeName('B b;').name.staticElement;
-    var annotation = classB.metadata.single;
-    var value = annotation.computeConstantValue();
-    expect(value, isNotNull);
-    expect(value.getField('f').toIntValue(), 42);
-  }
-
   test_constantValue_defaultParameter_noDefaultValue() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {
