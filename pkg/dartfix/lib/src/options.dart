@@ -9,6 +9,19 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:dartfix/src/context.dart';
 import 'package:path/path.dart' as path;
 
+const excludeOption = 'exclude';
+
+const forceOption = 'force';
+const includeOption = 'include';
+const overwriteOption = 'overwrite';
+const requiredOption = 'required';
+const _binaryName = 'dartfix';
+const _colorOption = 'color';
+
+// options only supported by server 1.22.2 and greater
+const _helpOption = 'help';
+const _verboseOption = 'verbose';
+
 /// Command line options for `dartfix`.
 class Options {
   final Context context;
@@ -26,6 +39,29 @@ class Options {
   final bool overwrite;
   final bool useColor;
   final bool verbose;
+
+  Options._fromArgs(this.context, ArgResults results)
+      : force = results[forceOption] as bool,
+        includeFixes =
+            (results[includeOption] as List ?? []).cast<String>().toList(),
+        excludeFixes =
+            (results[excludeOption] as List ?? []).cast<String>().toList(),
+        overwrite = results[overwriteOption] as bool,
+        requiredFixes = results[requiredOption] as bool,
+        sdkPath = _getSdkPath(),
+        showHelp = results[_helpOption] as bool || results.arguments.isEmpty,
+        targets = results.rest,
+        useColor = results.wasParsed(_colorOption)
+            ? results[_colorOption] as bool
+            : null,
+        verbose = results[_verboseOption] as bool;
+
+  String makeAbsoluteAndNormalize(String target) {
+    if (!path.isAbsolute(target)) {
+      target = path.join(context.workingDir, target);
+    }
+    return path.normalize(target);
+  }
 
   static Options parse(List<String> args, Context context, Logger logger) {
     final parser = new ArgParser(allowTrailingOptions: true)
@@ -142,29 +178,6 @@ class Options {
     return options;
   }
 
-  Options._fromArgs(this.context, ArgResults results)
-      : force = results[forceOption] as bool,
-        includeFixes =
-            (results[includeOption] as List ?? []).cast<String>().toList(),
-        excludeFixes =
-            (results[excludeOption] as List ?? []).cast<String>().toList(),
-        overwrite = results[overwriteOption] as bool,
-        requiredFixes = results[requiredOption] as bool,
-        sdkPath = _getSdkPath(),
-        showHelp = results[_helpOption] as bool || results.arguments.isEmpty,
-        targets = results.rest,
-        useColor = results.wasParsed(_colorOption)
-            ? results[_colorOption] as bool
-            : null,
-        verbose = results[_verboseOption] as bool;
-
-  String makeAbsoluteAndNormalize(String target) {
-    if (!path.isAbsolute(target)) {
-      target = path.join(context.workingDir, target);
-    }
-    return path.normalize(target);
-  }
-
   static String _getSdkPath() {
     return Platform.environment['DART_SDK'] != null
         ? Platform.environment['DART_SDK']
@@ -186,15 +199,3 @@ Use --$_helpOption to display the fixes that can be specified using either
         : '');
   }
 }
-
-const _binaryName = 'dartfix';
-const _colorOption = 'color';
-const forceOption = 'force';
-const _helpOption = 'help';
-const overwriteOption = 'overwrite';
-const _verboseOption = 'verbose';
-
-// options only supported by server 1.22.2 and greater
-const excludeOption = 'exclude';
-const includeOption = 'include';
-const requiredOption = 'required';
