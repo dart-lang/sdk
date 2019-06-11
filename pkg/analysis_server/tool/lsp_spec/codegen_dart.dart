@@ -193,7 +193,11 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
         ..outdent()
         ..writeIndentedln('}');
     }
-    buffer..writeIndented("if (obj['${field.name}'] != null && !(");
+    buffer.writeIndented('if (');
+    if (field.allowsNull || field.allowsUndefined) {
+      buffer.write("obj['${field.name}'] != null && ");
+    }
+    buffer.write('!(');
     _writeTypeCheckCondition(
         buffer, "obj['${field.name}']", field.type, 'reporter');
     buffer

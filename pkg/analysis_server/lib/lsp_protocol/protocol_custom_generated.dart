@@ -59,7 +59,7 @@ class AnalyzerStatusParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['isAnalyzing'] != null && !(obj['isAnalyzing'] is bool)) {
+        if (!(obj['isAnalyzing'] is bool)) {
           reporter.reportError("must be of type bool");
           return false;
         }
@@ -132,7 +132,7 @@ class ClosingLabel implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(obj['range'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -149,7 +149,7 @@ class ClosingLabel implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['label'] != null && !(obj['label'] is String)) {
+        if (!(obj['label'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -253,7 +253,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['file'] != null && !(obj['file'] is String)) {
+        if (!(obj['file'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -270,7 +270,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['offset'] != null && !(obj['offset'] is num)) {
+        if (!(obj['offset'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -287,7 +287,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['libId'] != null && !(obj['libId'] is num)) {
+        if (!(obj['libId'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -304,7 +304,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['displayUri'] != null && !(obj['displayUri'] is String)) {
+        if (!(obj['displayUri'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -321,7 +321,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['rOffset'] != null && !(obj['rOffset'] is num)) {
+        if (!(obj['rOffset'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -338,7 +338,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['rLength'] != null && !(obj['rLength'] is num)) {
+        if (!(obj['rLength'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -416,7 +416,7 @@ class DartDiagnosticServer implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['port'] != null && !(obj['port'] is num)) {
+        if (!(obj['port'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -492,7 +492,7 @@ class PublishClosingLabelsParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['uri'] != null && !(obj['uri'] is String)) {
+        if (!(obj['uri'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -509,10 +509,9 @@ class PublishClosingLabelsParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['labels'] != null &&
-            !((obj['labels'] is List &&
-                (obj['labels'].every(
-                    (item) => ClosingLabel.canParse(item, reporter)))))) {
+        if (!((obj['labels'] is List &&
+            (obj['labels']
+                .every((item) => ClosingLabel.canParse(item, reporter)))))) {
           reporter.reportError("must be of type List<ClosingLabel>");
           return false;
         }

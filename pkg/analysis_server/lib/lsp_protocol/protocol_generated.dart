@@ -77,8 +77,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['edit'] != null &&
-            !(WorkspaceEdit.canParse(obj['edit'], reporter))) {
+        if (!(WorkspaceEdit.canParse(obj['edit'], reporter))) {
           reporter.reportError("must be of type WorkspaceEdit");
           return false;
         }
@@ -157,7 +156,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['applied'] != null && !(obj['applied'] is bool)) {
+        if (!(obj['applied'] is bool)) {
           reporter.reportError("must be of type bool");
           return false;
         }
@@ -241,7 +240,7 @@ class CancelParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['id'] != null && !((obj['id'] is num || obj['id'] is String))) {
+        if (!((obj['id'] is num || obj['id'] is String))) {
           reporter.reportError("must be of type Either2<num, String>");
           return false;
         }
@@ -455,7 +454,7 @@ class CodeAction implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['title'] != null && !(obj['title'] is String)) {
+        if (!(obj['title'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -594,10 +593,9 @@ class CodeActionContext implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['diagnostics'] != null &&
-            !((obj['diagnostics'] is List &&
-                (obj['diagnostics']
-                    .every((item) => Diagnostic.canParse(item, reporter)))))) {
+        if (!((obj['diagnostics'] is List &&
+            (obj['diagnostics']
+                .every((item) => Diagnostic.canParse(item, reporter)))))) {
           reporter.reportError("must be of type List<Diagnostic>");
           return false;
         }
@@ -848,8 +846,7 @@ class CodeActionParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -866,7 +863,7 @@ class CodeActionParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(obj['range'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -883,8 +880,7 @@ class CodeActionParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['context'] != null &&
-            !(CodeActionContext.canParse(obj['context'], reporter))) {
+        if (!(CodeActionContext.canParse(obj['context'], reporter))) {
           reporter.reportError("must be of type CodeActionContext");
           return false;
         }
@@ -1078,7 +1074,7 @@ class CodeLens implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(obj['range'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -1233,8 +1229,7 @@ class CodeLensParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -1416,7 +1411,7 @@ class Color implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['red'] != null && !(obj['red'] is num)) {
+        if (!(obj['red'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -1433,7 +1428,7 @@ class Color implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['green'] != null && !(obj['green'] is num)) {
+        if (!(obj['green'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -1450,7 +1445,7 @@ class Color implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['blue'] != null && !(obj['blue'] is num)) {
+        if (!(obj['blue'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -1467,7 +1462,7 @@ class Color implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['alpha'] != null && !(obj['alpha'] is num)) {
+        if (!(obj['alpha'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -1550,7 +1545,7 @@ class ColorInformation implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(obj['range'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -1567,7 +1562,7 @@ class ColorInformation implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['color'] != null && !(Color.canParse(obj['color'], reporter))) {
+        if (!(Color.canParse(obj['color'], reporter))) {
           reporter.reportError("must be of type Color");
           return false;
         }
@@ -1660,7 +1655,7 @@ class ColorPresentation implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['label'] != null && !(obj['label'] is String)) {
+        if (!(obj['label'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -1775,8 +1770,7 @@ class ColorPresentationParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -1793,7 +1787,7 @@ class ColorPresentationParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['color'] != null && !(Color.canParse(obj['color'], reporter))) {
+        if (!(Color.canParse(obj['color'], reporter))) {
           reporter.reportError("must be of type Color");
           return false;
         }
@@ -1810,7 +1804,7 @@ class ColorPresentationParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(obj['range'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -1941,7 +1935,7 @@ class Command implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['title'] != null && !(obj['title'] is String)) {
+        if (!(obj['title'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -1958,7 +1952,7 @@ class Command implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['command'] != null && !(obj['command'] is String)) {
+        if (!(obj['command'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -2056,8 +2050,7 @@ class CompletionContext implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['triggerKind'] != null &&
-            !(CompletionTriggerKind.canParse(obj['triggerKind'], reporter))) {
+        if (!(CompletionTriggerKind.canParse(obj['triggerKind'], reporter))) {
           reporter.reportError("must be of type CompletionTriggerKind");
           return false;
         }
@@ -2323,7 +2316,7 @@ class CompletionItem implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['label'] != null && !(obj['label'] is String)) {
+        if (!(obj['label'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -2624,7 +2617,7 @@ class CompletionList implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['isIncomplete'] != null && !(obj['isIncomplete'] is bool)) {
+        if (!(obj['isIncomplete'] is bool)) {
           reporter.reportError("must be of type bool");
           return false;
         }
@@ -2641,10 +2634,9 @@ class CompletionList implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['items'] != null &&
-            !((obj['items'] is List &&
-                (obj['items'].every(
-                    (item) => CompletionItem.canParse(item, reporter)))))) {
+        if (!((obj['items'] is List &&
+            (obj['items']
+                .every((item) => CompletionItem.canParse(item, reporter)))))) {
           reporter.reportError("must be of type List<CompletionItem>");
           return false;
         }
@@ -2836,8 +2828,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -2854,8 +2845,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['position'] != null &&
-            !(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(obj['position'], reporter))) {
           reporter.reportError("must be of type Position");
           return false;
         }
@@ -3200,10 +3190,9 @@ class ConfigurationParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['items'] != null &&
-            !((obj['items'] is List &&
-                (obj['items'].every(
-                    (item) => ConfigurationItem.canParse(item, reporter)))))) {
+        if (!((obj['items'] is List &&
+            (obj['items'].every(
+                (item) => ConfigurationItem.canParse(item, reporter)))))) {
           reporter.reportError("must be of type List<ConfigurationItem>");
           return false;
         }
@@ -3291,7 +3280,7 @@ class CreateFile implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['kind'] != null && !(obj['kind'] is String)) {
+        if (!(obj['kind'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -3308,7 +3297,7 @@ class CreateFile implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['uri'] != null && !(obj['uri'] is String)) {
+        if (!(obj['uri'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -3487,7 +3476,7 @@ class DeleteFile implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['kind'] != null && !(obj['kind'] is String)) {
+        if (!(obj['kind'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -3504,7 +3493,7 @@ class DeleteFile implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['uri'] != null && !(obj['uri'] is String)) {
+        if (!(obj['uri'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -3714,7 +3703,7 @@ class Diagnostic implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(obj['range'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -3759,7 +3748,7 @@ class Diagnostic implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['message'] != null && !(obj['message'] is String)) {
+        if (!(obj['message'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -3871,8 +3860,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['location'] != null &&
-            !(Location.canParse(obj['location'], reporter))) {
+        if (!(Location.canParse(obj['location'], reporter))) {
           reporter.reportError("must be of type Location");
           return false;
         }
@@ -3889,7 +3877,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['message'] != null && !(obj['message'] is String)) {
+        if (!(obj['message'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -4072,9 +4060,8 @@ class DidChangeTextDocumentParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(VersionedTextDocumentIdentifier.canParse(
-                obj['textDocument'], reporter))) {
+        if (!(VersionedTextDocumentIdentifier.canParse(
+            obj['textDocument'], reporter))) {
           reporter
               .reportError("must be of type VersionedTextDocumentIdentifier");
           return false;
@@ -4092,11 +4079,9 @@ class DidChangeTextDocumentParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['contentChanges'] != null &&
-            !((obj['contentChanges'] is List &&
-                (obj['contentChanges'].every((item) =>
-                    TextDocumentContentChangeEvent.canParse(
-                        item, reporter)))))) {
+        if (!((obj['contentChanges'] is List &&
+            (obj['contentChanges'].every((item) =>
+                TextDocumentContentChangeEvent.canParse(item, reporter)))))) {
           reporter.reportError(
               "must be of type List<TextDocumentContentChangeEvent>");
           return false;
@@ -4178,10 +4163,9 @@ class DidChangeWatchedFilesParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['changes'] != null &&
-            !((obj['changes'] is List &&
-                (obj['changes']
-                    .every((item) => FileEvent.canParse(item, reporter)))))) {
+        if (!((obj['changes'] is List &&
+            (obj['changes']
+                .every((item) => FileEvent.canParse(item, reporter)))))) {
           reporter.reportError("must be of type List<FileEvent>");
           return false;
         }
@@ -4258,10 +4242,9 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['watchers'] != null &&
-            !((obj['watchers'] is List &&
-                (obj['watchers'].every(
-                    (item) => FileSystemWatcher.canParse(item, reporter)))))) {
+        if (!((obj['watchers'] is List &&
+            (obj['watchers'].every(
+                (item) => FileSystemWatcher.canParse(item, reporter)))))) {
           reporter.reportError("must be of type List<FileSystemWatcher>");
           return false;
         }
@@ -4334,8 +4317,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['event'] != null &&
-            !(WorkspaceFoldersChangeEvent.canParse(obj['event'], reporter))) {
+        if (!(WorkspaceFoldersChangeEvent.canParse(obj['event'], reporter))) {
           reporter.reportError("must be of type WorkspaceFoldersChangeEvent");
           return false;
         }
@@ -4406,8 +4388,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -4478,8 +4459,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentItem.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentItem.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentItem");
           return false;
         }
@@ -4558,8 +4538,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -4758,8 +4737,7 @@ class DocumentFormattingParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -4776,8 +4754,7 @@ class DocumentFormattingParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['options'] != null &&
-            !(FormattingOptions.canParse(obj['options'], reporter))) {
+        if (!(FormattingOptions.canParse(obj['options'], reporter))) {
           reporter.reportError("must be of type FormattingOptions");
           return false;
         }
@@ -4860,7 +4837,7 @@ class DocumentHighlight implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(obj['range'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -4987,7 +4964,7 @@ class DocumentLink implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(obj['range'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -5141,8 +5118,7 @@ class DocumentLinkParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -5315,8 +5291,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['firstTriggerCharacter'] != null &&
-            !(obj['firstTriggerCharacter'] is String)) {
+        if (!(obj['firstTriggerCharacter'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -5435,8 +5410,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -5453,8 +5427,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['position'] != null &&
-            !(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(obj['position'], reporter))) {
           reporter.reportError("must be of type Position");
           return false;
         }
@@ -5471,7 +5444,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['ch'] != null && !(obj['ch'] is String)) {
+        if (!(obj['ch'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -5488,8 +5461,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['options'] != null &&
-            !(FormattingOptions.canParse(obj['options'], reporter))) {
+        if (!(FormattingOptions.canParse(obj['options'], reporter))) {
           reporter.reportError("must be of type FormattingOptions");
           return false;
         }
@@ -5589,8 +5561,7 @@ class DocumentOnTypeFormattingRegistrationOptions
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['firstTriggerCharacter'] != null &&
-            !(obj['firstTriggerCharacter'] is String)) {
+        if (!(obj['firstTriggerCharacter'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -5715,8 +5686,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -5733,7 +5703,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(obj['range'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -5750,8 +5720,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['options'] != null &&
-            !(FormattingOptions.canParse(obj['options'], reporter))) {
+        if (!(FormattingOptions.canParse(obj['options'], reporter))) {
           reporter.reportError("must be of type FormattingOptions");
           return false;
         }
@@ -5888,7 +5857,7 @@ class DocumentSymbol implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['name'] != null && !(obj['name'] is String)) {
+        if (!(obj['name'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -5914,8 +5883,7 @@ class DocumentSymbol implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['kind'] != null &&
-            !(SymbolKind.canParse(obj['kind'], reporter))) {
+        if (!(SymbolKind.canParse(obj['kind'], reporter))) {
           reporter.reportError("must be of type SymbolKind");
           return false;
         }
@@ -5941,7 +5909,7 @@ class DocumentSymbol implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(obj['range'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -5958,8 +5926,7 @@ class DocumentSymbol implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['selectionRange'] != null &&
-            !(Range.canParse(obj['selectionRange'], reporter))) {
+        if (!(Range.canParse(obj['selectionRange'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -6056,8 +6023,7 @@ class DocumentSymbolParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -6164,9 +6130,8 @@ class ExecuteCommandOptions implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['commands'] != null &&
-            !((obj['commands'] is List &&
-                (obj['commands'].every((item) => item is String))))) {
+        if (!((obj['commands'] is List &&
+            (obj['commands'].every((item) => item is String))))) {
           reporter.reportError("must be of type List<String>");
           return false;
         }
@@ -6245,7 +6210,7 @@ class ExecuteCommandParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['command'] != null && !(obj['command'] is String)) {
+        if (!(obj['command'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -6332,9 +6297,8 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['commands'] != null &&
-            !((obj['commands'] is List &&
-                (obj['commands'].every((item) => item is String))))) {
+        if (!((obj['commands'] is List &&
+            (obj['commands'].every((item) => item is String))))) {
           reporter.reportError("must be of type List<String>");
           return false;
         }
@@ -6491,7 +6455,7 @@ class FileEvent implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['uri'] != null && !(obj['uri'] is String)) {
+        if (!(obj['uri'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -6508,7 +6472,7 @@ class FileEvent implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['type'] != null && !(obj['type'] is num)) {
+        if (!(obj['type'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -6598,7 +6562,7 @@ class FileSystemWatcher implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['globPattern'] != null && !(obj['globPattern'] is String)) {
+        if (!(obj['globPattern'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -6717,7 +6681,7 @@ class FoldingRange implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['startLine'] != null && !(obj['startLine'] is num)) {
+        if (!(obj['startLine'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -6743,7 +6707,7 @@ class FoldingRange implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['endLine'] != null && !(obj['endLine'] is num)) {
+        if (!(obj['endLine'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -6873,8 +6837,7 @@ class FoldingRangeParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -6995,7 +6958,7 @@ class FormattingOptions implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['tabSize'] != null && !(obj['tabSize'] is num)) {
+        if (!(obj['tabSize'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -7012,7 +6975,7 @@ class FormattingOptions implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['insertSpaces'] != null && !(obj['insertSpaces'] is bool)) {
+        if (!(obj['insertSpaces'] is bool)) {
           reporter.reportError("must be of type bool");
           return false;
         }
@@ -7099,9 +7062,8 @@ class Hover implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['contents'] != null &&
-            !((obj['contents'] is String ||
-                MarkupContent.canParse(obj['contents'], reporter)))) {
+        if (!((obj['contents'] is String ||
+            MarkupContent.canParse(obj['contents'], reporter)))) {
           reporter
               .reportError("must be of type Either2<String, MarkupContent>");
           return false;
@@ -7287,8 +7249,7 @@ class InitializeParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['capabilities'] != null &&
-            !(ClientCapabilities.canParse(obj['capabilities'], reporter))) {
+        if (!(ClientCapabilities.canParse(obj['capabilities'], reporter))) {
           reporter.reportError("must be of type ClientCapabilities");
           return false;
         }
@@ -7394,8 +7355,7 @@ class InitializeResult implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['capabilities'] != null &&
-            !(ServerCapabilities.canParse(obj['capabilities'], reporter))) {
+        if (!(ServerCapabilities.canParse(obj['capabilities'], reporter))) {
           reporter.reportError("must be of type ServerCapabilities");
           return false;
         }
@@ -7547,7 +7507,7 @@ class Location implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['uri'] != null && !(obj['uri'] is String)) {
+        if (!(obj['uri'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -7564,7 +7524,7 @@ class Location implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(obj['range'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -7685,7 +7645,7 @@ class LocationLink implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['targetUri'] != null && !(obj['targetUri'] is String)) {
+        if (!(obj['targetUri'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -7702,8 +7662,7 @@ class LocationLink implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['targetRange'] != null &&
-            !(Range.canParse(obj['targetRange'], reporter))) {
+        if (!(Range.canParse(obj['targetRange'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -7720,8 +7679,7 @@ class LocationLink implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['targetSelectionRange'] != null &&
-            !(Range.canParse(obj['targetSelectionRange'], reporter))) {
+        if (!(Range.canParse(obj['targetSelectionRange'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -7806,8 +7764,7 @@ class LogMessageParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['type'] != null &&
-            !(MessageType.canParse(obj['type'], reporter))) {
+        if (!(MessageType.canParse(obj['type'], reporter))) {
           reporter.reportError("must be of type MessageType");
           return false;
         }
@@ -7824,7 +7781,7 @@ class LogMessageParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['message'] != null && !(obj['message'] is String)) {
+        if (!(obj['message'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -7924,8 +7881,7 @@ class MarkupContent implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['kind'] != null &&
-            !(MarkupKind.canParse(obj['kind'], reporter))) {
+        if (!(MarkupKind.canParse(obj['kind'], reporter))) {
           reporter.reportError("must be of type MarkupKind");
           return false;
         }
@@ -7942,7 +7898,7 @@ class MarkupContent implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['value'] != null && !(obj['value'] is String)) {
+        if (!(obj['value'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -8057,7 +8013,7 @@ class Message implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['jsonrpc'] != null && !(obj['jsonrpc'] is String)) {
+        if (!(obj['jsonrpc'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -8125,7 +8081,7 @@ class MessageActionItem implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['title'] != null && !(obj['title'] is String)) {
+        if (!(obj['title'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -8432,8 +8388,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['method'] != null &&
-            !(Method.canParse(obj['method'], reporter))) {
+        if (!(Method.canParse(obj['method'], reporter))) {
           reporter.reportError("must be of type Method");
           return false;
         }
@@ -8459,7 +8414,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['jsonrpc'] != null && !(obj['jsonrpc'] is String)) {
+        if (!(obj['jsonrpc'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -8560,7 +8515,7 @@ class ParameterInformation implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['label'] != null && !(obj['label'] is String)) {
+        if (!(obj['label'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -8657,7 +8612,7 @@ class Position implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['line'] != null && !(obj['line'] is num)) {
+        if (!(obj['line'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -8674,7 +8629,7 @@ class Position implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['character'] != null && !(obj['character'] is num)) {
+        if (!(obj['character'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -8755,7 +8710,7 @@ class PublishDiagnosticsParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['uri'] != null && !(obj['uri'] is String)) {
+        if (!(obj['uri'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -8772,10 +8727,9 @@ class PublishDiagnosticsParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['diagnostics'] != null &&
-            !((obj['diagnostics'] is List &&
-                (obj['diagnostics']
-                    .every((item) => Diagnostic.canParse(item, reporter)))))) {
+        if (!((obj['diagnostics'] is List &&
+            (obj['diagnostics']
+                .every((item) => Diagnostic.canParse(item, reporter)))))) {
           reporter.reportError("must be of type List<Diagnostic>");
           return false;
         }
@@ -8856,8 +8810,7 @@ class Range implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['start'] != null &&
-            !(Position.canParse(obj['start'], reporter))) {
+        if (!(Position.canParse(obj['start'], reporter))) {
           reporter.reportError("must be of type Position");
           return false;
         }
@@ -8874,7 +8827,7 @@ class Range implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['end'] != null && !(Position.canParse(obj['end'], reporter))) {
+        if (!(Position.canParse(obj['end'], reporter))) {
           reporter.reportError("must be of type Position");
           return false;
         }
@@ -8949,7 +8902,7 @@ class RangeAndPlaceholder implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(obj['range'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -8966,7 +8919,7 @@ class RangeAndPlaceholder implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['placeholder'] != null && !(obj['placeholder'] is String)) {
+        if (!(obj['placeholder'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -9036,8 +8989,7 @@ class ReferenceContext implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['includeDeclaration'] != null &&
-            !(obj['includeDeclaration'] is bool)) {
+        if (!(obj['includeDeclaration'] is bool)) {
           reporter.reportError("must be of type bool");
           return false;
         }
@@ -9128,8 +9080,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['context'] != null &&
-            !(ReferenceContext.canParse(obj['context'], reporter))) {
+        if (!(ReferenceContext.canParse(obj['context'], reporter))) {
           reporter.reportError("must be of type ReferenceContext");
           return false;
         }
@@ -9146,8 +9097,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -9164,8 +9114,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['position'] != null &&
-            !(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(obj['position'], reporter))) {
           reporter.reportError("must be of type Position");
           return false;
         }
@@ -9255,7 +9204,7 @@ class Registration implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['id'] != null && !(obj['id'] is String)) {
+        if (!(obj['id'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -9272,7 +9221,7 @@ class Registration implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['method'] != null && !(obj['method'] is String)) {
+        if (!(obj['method'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -9357,10 +9306,9 @@ class RegistrationParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['registrations'] != null &&
-            !((obj['registrations'] is List &&
-                (obj['registrations'].every(
-                    (item) => Registration.canParse(item, reporter)))))) {
+        if (!((obj['registrations'] is List &&
+            (obj['registrations']
+                .every((item) => Registration.canParse(item, reporter)))))) {
           reporter.reportError("must be of type List<Registration>");
           return false;
         }
@@ -9456,7 +9404,7 @@ class RenameFile implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['kind'] != null && !(obj['kind'] is String)) {
+        if (!(obj['kind'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -9473,7 +9421,7 @@ class RenameFile implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['oldUri'] != null && !(obj['oldUri'] is String)) {
+        if (!(obj['oldUri'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -9490,7 +9438,7 @@ class RenameFile implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['newUri'] != null && !(obj['newUri'] is String)) {
+        if (!(obj['newUri'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -9736,8 +9684,7 @@ class RenameParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -9754,8 +9701,7 @@ class RenameParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['position'] != null &&
-            !(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(obj['position'], reporter))) {
           reporter.reportError("must be of type Position");
           return false;
         }
@@ -9772,7 +9718,7 @@ class RenameParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['newName'] != null && !(obj['newName'] is String)) {
+        if (!(obj['newName'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -9960,7 +9906,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['id'] != null && !((obj['id'] is num || obj['id'] is String))) {
+        if (!((obj['id'] is num || obj['id'] is String))) {
           reporter.reportError("must be of type Either2<num, String>");
           return false;
         }
@@ -9977,8 +9923,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['method'] != null &&
-            !(Method.canParse(obj['method'], reporter))) {
+        if (!(Method.canParse(obj['method'], reporter))) {
           reporter.reportError("must be of type Method");
           return false;
         }
@@ -10004,7 +9949,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['jsonrpc'] != null && !(obj['jsonrpc'] is String)) {
+        if (!(obj['jsonrpc'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -10133,8 +10078,7 @@ class ResponseError<D> implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['code'] != null &&
-            !(ErrorCodes.canParse(obj['code'], reporter))) {
+        if (!(ErrorCodes.canParse(obj['code'], reporter))) {
           reporter.reportError("must be of type ErrorCodes");
           return false;
         }
@@ -10151,7 +10095,7 @@ class ResponseError<D> implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['message'] != null && !(obj['message'] is String)) {
+        if (!(obj['message'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -10293,7 +10237,7 @@ class ResponseMessage implements Message, ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['jsonrpc'] != null && !(obj['jsonrpc'] is String)) {
+        if (!(obj['jsonrpc'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -11210,8 +11154,7 @@ class ShowMessageParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['type'] != null &&
-            !(MessageType.canParse(obj['type'], reporter))) {
+        if (!(MessageType.canParse(obj['type'], reporter))) {
           reporter.reportError("must be of type MessageType");
           return false;
         }
@@ -11228,7 +11171,7 @@ class ShowMessageParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['message'] != null && !(obj['message'] is String)) {
+        if (!(obj['message'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -11317,8 +11260,7 @@ class ShowMessageRequestParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['type'] != null &&
-            !(MessageType.canParse(obj['type'], reporter))) {
+        if (!(MessageType.canParse(obj['type'], reporter))) {
           reporter.reportError("must be of type MessageType");
           return false;
         }
@@ -11335,7 +11277,7 @@ class ShowMessageRequestParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['message'] != null && !(obj['message'] is String)) {
+        if (!(obj['message'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -11452,10 +11394,9 @@ class SignatureHelp implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['signatures'] != null &&
-            !((obj['signatures'] is List &&
-                (obj['signatures'].every((item) =>
-                    SignatureInformation.canParse(item, reporter)))))) {
+        if (!((obj['signatures'] is List &&
+            (obj['signatures'].every(
+                (item) => SignatureInformation.canParse(item, reporter)))))) {
           reporter.reportError("must be of type List<SignatureInformation>");
           return false;
         }
@@ -11741,7 +11682,7 @@ class SignatureInformation implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['label'] != null && !(obj['label'] is String)) {
+        if (!(obj['label'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -11947,7 +11888,7 @@ class SymbolInformation implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['name'] != null && !(obj['name'] is String)) {
+        if (!(obj['name'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -11964,8 +11905,7 @@ class SymbolInformation implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['kind'] != null &&
-            !(SymbolKind.canParse(obj['kind'], reporter))) {
+        if (!(SymbolKind.canParse(obj['kind'], reporter))) {
           reporter.reportError("must be of type SymbolKind");
           return false;
         }
@@ -11991,8 +11931,7 @@ class SymbolInformation implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['location'] != null &&
-            !(Location.canParse(obj['location'], reporter))) {
+        if (!(Location.canParse(obj['location'], reporter))) {
           reporter.reportError("must be of type Location");
           return false;
         }
@@ -12146,8 +12085,7 @@ class TextDocumentChangeRegistrationOptions
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['syncKind'] != null &&
-            !(TextDocumentSyncKind.canParse(obj['syncKind'], reporter))) {
+        if (!(TextDocumentSyncKind.canParse(obj['syncKind'], reporter))) {
           reporter.reportError("must be of type TextDocumentSyncKind");
           return false;
         }
@@ -12924,10 +12862,9 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['valueSet'] != null &&
-            !((obj['valueSet'] is List &&
-                (obj['valueSet'].every(
-                    (item) => CodeActionKind.canParse(item, reporter)))))) {
+        if (!((obj['valueSet'] is List &&
+            (obj['valueSet']
+                .every((item) => CodeActionKind.canParse(item, reporter)))))) {
           reporter.reportError("must be of type List<CodeActionKind>");
           return false;
         }
@@ -13005,9 +12942,8 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['codeActionKind'] != null &&
-            !(TextDocumentClientCapabilitiesCodeActionKind.canParse(
-                obj['codeActionKind'], reporter))) {
+        if (!(TextDocumentClientCapabilitiesCodeActionKind.canParse(
+            obj['codeActionKind'], reporter))) {
           reporter.reportError(
               "must be of type TextDocumentClientCapabilitiesCodeActionKind");
           return false;
@@ -15208,7 +15144,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['text'] != null && !(obj['text'] is String)) {
+        if (!(obj['text'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -15295,9 +15231,8 @@ class TextDocumentEdit implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(VersionedTextDocumentIdentifier.canParse(
-                obj['textDocument'], reporter))) {
+        if (!(VersionedTextDocumentIdentifier.canParse(
+            obj['textDocument'], reporter))) {
           reporter
               .reportError("must be of type VersionedTextDocumentIdentifier");
           return false;
@@ -15315,10 +15250,9 @@ class TextDocumentEdit implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['edits'] != null &&
-            !((obj['edits'] is List &&
-                (obj['edits']
-                    .every((item) => TextEdit.canParse(item, reporter)))))) {
+        if (!((obj['edits'] is List &&
+            (obj['edits']
+                .every((item) => TextEdit.canParse(item, reporter)))))) {
           reporter.reportError("must be of type List<TextEdit>");
           return false;
         }
@@ -15392,7 +15326,7 @@ class TextDocumentIdentifier implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['uri'] != null && !(obj['uri'] is String)) {
+        if (!(obj['uri'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -15487,7 +15421,7 @@ class TextDocumentItem implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['uri'] != null && !(obj['uri'] is String)) {
+        if (!(obj['uri'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -15504,7 +15438,7 @@ class TextDocumentItem implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['languageId'] != null && !(obj['languageId'] is String)) {
+        if (!(obj['languageId'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -15521,7 +15455,7 @@ class TextDocumentItem implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['version'] != null && !(obj['version'] is num)) {
+        if (!(obj['version'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -15538,7 +15472,7 @@ class TextDocumentItem implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['text'] != null && !(obj['text'] is String)) {
+        if (!(obj['text'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -15632,8 +15566,7 @@ class TextDocumentPositionParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -15650,8 +15583,7 @@ class TextDocumentPositionParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['position'] != null &&
-            !(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(obj['position'], reporter))) {
           reporter.reportError("must be of type Position");
           return false;
         }
@@ -16131,7 +16063,7 @@ class TextEdit implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(obj['range'], reporter))) {
           reporter.reportError("must be of type Range");
           return false;
         }
@@ -16148,7 +16080,7 @@ class TextEdit implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['newText'] != null && !(obj['newText'] is String)) {
+        if (!(obj['newText'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -16227,7 +16159,7 @@ class Unregistration implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['id'] != null && !(obj['id'] is String)) {
+        if (!(obj['id'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -16244,7 +16176,7 @@ class Unregistration implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['method'] != null && !(obj['method'] is String)) {
+        if (!(obj['method'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -16316,10 +16248,9 @@ class UnregistrationParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['unregisterations'] != null &&
-            !((obj['unregisterations'] is List &&
-                (obj['unregisterations'].every(
-                    (item) => Unregistration.canParse(item, reporter)))))) {
+        if (!((obj['unregisterations'] is List &&
+            (obj['unregisterations']
+                .every((item) => Unregistration.canParse(item, reporter)))))) {
           reporter.reportError("must be of type List<Unregistration>");
           return false;
         }
@@ -16416,7 +16347,7 @@ class VersionedTextDocumentIdentifier
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['uri'] != null && !(obj['uri'] is String)) {
+        if (!(obj['uri'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -16527,8 +16458,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['textDocument'] != null &&
-            !(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
           reporter.reportError("must be of type TextDocumentIdentifier");
           return false;
         }
@@ -16545,7 +16475,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['reason'] != null && !(obj['reason'] is num)) {
+        if (!(obj['reason'] is num)) {
           reporter.reportError("must be of type num");
           return false;
         }
@@ -17457,7 +17387,7 @@ class WorkspaceFolder implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['uri'] != null && !(obj['uri'] is String)) {
+        if (!(obj['uri'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -17474,7 +17404,7 @@ class WorkspaceFolder implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['name'] != null && !(obj['name'] is String)) {
+        if (!(obj['name'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
@@ -17560,10 +17490,9 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['added'] != null &&
-            !((obj['added'] is List &&
-                (obj['added'].every(
-                    (item) => WorkspaceFolder.canParse(item, reporter)))))) {
+        if (!((obj['added'] is List &&
+            (obj['added']
+                .every((item) => WorkspaceFolder.canParse(item, reporter)))))) {
           reporter.reportError("must be of type List<WorkspaceFolder>");
           return false;
         }
@@ -17580,10 +17509,9 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['removed'] != null &&
-            !((obj['removed'] is List &&
-                (obj['removed'].every(
-                    (item) => WorkspaceFolder.canParse(item, reporter)))))) {
+        if (!((obj['removed'] is List &&
+            (obj['removed']
+                .every((item) => WorkspaceFolder.canParse(item, reporter)))))) {
           reporter.reportError("must be of type List<WorkspaceFolder>");
           return false;
         }
@@ -17657,7 +17585,7 @@ class WorkspaceSymbolParams implements ToJsonable {
           reporter.reportError("must not be null");
           return false;
         }
-        if (obj['query'] != null && !(obj['query'] is String)) {
+        if (!(obj['query'] is String)) {
           reporter.reportError("must be of type String");
           return false;
         }
