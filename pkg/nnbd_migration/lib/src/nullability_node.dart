@@ -273,6 +273,11 @@ abstract class NullabilityNode {
     return node;
   }
 
+  /// Creates a [NullabilityNode] representing the nullability of a variable
+  /// whose type is determined by type inference.
+  factory NullabilityNode.forInferredType() =>
+      _NullabilityNodeSimple('inferred');
+
   /// Creates a [NullabilityNode] representing the nullability of an
   /// expression which is nullable iff both [a] and [b] are nullable.
   ///

@@ -237,6 +237,10 @@ $stackTrace''');
   DecoratedType _decorateImplicitTypeArgument(DartType type) {
     if (type.isDynamic) {
       return DecoratedType(type, _graph.always);
+    } else if (type is InterfaceType) {
+      return DecoratedType(type, NullabilityNode.forInferredType(),
+          typeArguments:
+              type.typeArguments.map(_decorateImplicitTypeArgument).toList());
     }
     throw UnimplementedError('TODO(paulberry): ${type.runtimeType}');
   }

@@ -499,18 +499,27 @@ $stackTrace''');
   DecoratedType visitTypeName(TypeName typeName) {
     var typeArguments = typeName.typeArguments?.arguments;
     var element = typeName.name.staticElement;
-    if (typeArguments != null) {
-      for (int i = 0; i < typeArguments.length; i++) {
-        DecoratedType bound;
-        if (element is TypeParameterizedElement) {
+    if (element is TypeParameterizedElement) {
+      if (typeArguments == null) {
+        var instantiatedType =
+            _variables.decoratedTypeAnnotation(_source, typeName);
+        for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
+          _unionDecoratedTypes(
+              instantiatedType.typeArguments[0],
+              _variables.decoratedElementType(element.typeParameters[i],
+                  create: true));
+        }
+      } else {
+        for (int i = 0; i < typeArguments.length; i++) {
+          DecoratedType bound;
           bound = _variables.decoratedElementType(element.typeParameters[i],
               create: true);
-        } else {
-          throw new UnimplementedError('TODO(paulberry)');
+          _checkAssignment(
+              bound,
+              _variables.decoratedTypeAnnotation(_source, typeArguments[i]),
+              null,
+              hard: true);
         }
-        _checkAssignment(bound,
-            _variables.decoratedTypeAnnotation(_source, typeArguments[i]), null,
-            hard: true);
       }
     }
     return DecoratedType(typeName.type, _graph.never);
@@ -668,6 +677,20 @@ $stackTrace''');
       if (element is ParameterElement) return true;
     }
     return false;
+  }
+
+  void _unionDecoratedTypes(DecoratedType x, DecoratedType y) {
+    _graph.union(x.node, y.node);
+    if (x.typeArguments.isNotEmpty ||
+        y.typeArguments.isNotEmpty ||
+        x.returnType != null ||
+        y.returnType != null ||
+        x.positionalParameters.isNotEmpty ||
+        y.positionalParameters.isNotEmpty ||
+        x.namedParameters.isNotEmpty ||
+        y.namedParameters.isNotEmpty) {
+      throw UnimplementedError('TODO(paulberry): _unionDecoratedTypes($x, $y)');
+    }
   }
 }
 

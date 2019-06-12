@@ -657,6 +657,33 @@ class C<E> {}
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_genericType_noTypeArguments_use_bound() async {
+    var content = '''
+abstract class C<T extends Object> { // (1)
+  void put(T t);
+  T get();
+}
+Object f(C c) => c.get();            // (2)
+void g(C<int> c) {                   // (3)
+  c.put(null);                       // (4)
+}
+''';
+    // (4) forces `...C<int?>...` at (3), which means (1) must be
+    // `...extends Object?`.  Therefore (2) is equivalent to
+    // `...f(C<Object?> c)...`, so the return type of `f` is `Object?`.
+    var expected = '''
+abstract class C<T extends Object?> { // (1)
+  void put(T t);
+  T get();
+}
+Object? f(C c) => c.get();            // (2)
+void g(C<int?> c) {                   // (3)
+  c.put(null);                       // (4)
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_getter_topLevel() async {
     var content = '''
 int get g => 0;

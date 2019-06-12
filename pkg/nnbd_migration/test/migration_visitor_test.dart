@@ -1162,6 +1162,16 @@ Type f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('Type').node);
   }
 
+  test_typeName_union_with_bound() async {
+    await analyze('''
+class C<T extends Object> {}
+void f(C c) {}
+''');
+    var cType = decoratedTypeAnnotation('C c');
+    var cBound = decoratedTypeAnnotation('Object');
+    assertUnion(cType.typeArguments[0].node, cBound.node);
+  }
+
   test_variableDeclaration() async {
     await analyze('''
 void f(int i) {
@@ -1350,6 +1360,40 @@ void f(List x) {}
     expect(decoratedListType.node, isNot(never));
     var decoratedArgType = decoratedListType.typeArguments[0];
     expect(decoratedArgType.node, same(always));
+  }
+
+  test_interfaceType_generic_instantiate_to_generic_type() async {
+    await analyze('''
+class C<T> {}
+class D<T extends C<int>> {}
+void f(D x) {}
+''');
+    var decoratedListType = decoratedTypeAnnotation('D x');
+    expect(decoratedFunctionType('f').positionalParameters[0],
+        same(decoratedListType));
+    expect(decoratedListType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedListType.typeArguments, hasLength(1));
+    var decoratedArgType = decoratedListType.typeArguments[0];
+    expect(decoratedArgType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedArgType.typeArguments, hasLength(1));
+    var decoratedArgArgType = decoratedArgType.typeArguments[0];
+    expect(decoratedArgArgType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedArgArgType.typeArguments, isEmpty);
+  }
+
+  test_interfaceType_generic_instantiate_to_object() async {
+    await analyze('''
+class C<T extends Object> {}
+void f(C x) {}
+''');
+    var decoratedListType = decoratedTypeAnnotation('C x');
+    expect(decoratedFunctionType('f').positionalParameters[0],
+        same(decoratedListType));
+    expect(decoratedListType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedListType.typeArguments, hasLength(1));
+    var decoratedArgType = decoratedListType.typeArguments[0];
+    expect(decoratedArgType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedArgType.typeArguments, isEmpty);
   }
 
   test_interfaceType_typeParameter() async {
