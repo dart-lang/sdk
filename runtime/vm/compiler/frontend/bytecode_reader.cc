@@ -53,6 +53,7 @@ void BytecodeMetadataHelper::ParseBytecodeFunction(
       (function.kind() != RawFunction::kImplicitStaticGetter) &&
       (function.kind() != RawFunction::kMethodExtractor) &&
       (function.kind() != RawFunction::kInvokeFieldDispatcher) &&
+      (function.kind() != RawFunction::kDynamicInvocationForwarder) &&
       (function.kind() != RawFunction::kNoSuchMethodDispatcher)) {
     return;
   }
@@ -267,6 +268,142 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
       }
     }
   }
+}
+
+static intptr_t IndexFor(Zone* zone,
+                         const Function& function,
+                         const String& name) {
+  const Bytecode& bc = Bytecode::Handle(zone, function.bytecode());
+  const ObjectPool& pool = ObjectPool::Handle(zone, bc.object_pool());
+  const KBCInstr* pc = reinterpret_cast<const KBCInstr*>(bc.PayloadStart());
+
+  ASSERT(KernelBytecode::IsEntryOptionalOpcode(pc));
+  ASSERT(KernelBytecode::DecodeB(pc) ==
+         function.NumOptionalPositionalParameters());
+  ASSERT(KernelBytecode::DecodeC(pc) == function.NumOptionalNamedParameters());
+  pc = KernelBytecode::Next(pc);
+
+  const intptr_t num_opt_params = function.NumOptionalParameters();
+  const intptr_t num_fixed_params = function.num_fixed_parameters();
+  for (intptr_t i = 0; i < num_opt_params; i++) {
+    const KBCInstr* load_name = pc;
+    const KBCInstr* load_value = KernelBytecode::Next(load_name);
+    pc = KernelBytecode::Next(load_value);
+    ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name));
+    ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value));
+    if (pool.ObjectAt(KernelBytecode::DecodeE(load_name)) == name.raw()) {
+      return num_fixed_params + i;
+    }
+  }
+
+  UNREACHABLE();
+  return -1;
+}
+
+RawArray* BytecodeReaderHelper::CreateForwarderChecks(
+    const Function& function) {
+  ASSERT(function.kind() != RawFunction::kDynamicInvocationForwarder);
+  ASSERT(function.is_declared_in_bytecode());
+
+  TypeArguments& default_args = TypeArguments::Handle(Z);
+  if (function.bytecode_offset() != 0) {
+    AlternativeReadingScope alt(&reader_, function.bytecode_offset());
+
+    const intptr_t flags = reader_.ReadUInt();
+    const bool has_parameters_flags =
+        (flags & Code::kHasParameterFlagsFlag) != 0;
+    const bool has_forwarding_stub_target =
+        (flags & Code::kHasForwardingStubTargetFlag) != 0;
+    const bool has_default_function_type_args =
+        (flags & Code::kHasDefaultFunctionTypeArgsFlag) != 0;
+
+    if (has_parameters_flags) {
+      intptr_t num_params = reader_.ReadUInt();
+      ASSERT(num_params ==
+             function.NumParameters() - function.NumImplicitParameters());
+      for (intptr_t i = 0; i < num_params; ++i) {
+        reader_.ReadUInt();
+      }
+    }
+
+    if (has_forwarding_stub_target) {
+      reader_.ReadUInt();
+    }
+
+    if (has_default_function_type_args) {
+      const intptr_t index = reader_.ReadUInt();
+      const Bytecode& code = Bytecode::Handle(Z, function.bytecode());
+      const ObjectPool& pool = ObjectPool::Handle(Z, code.object_pool());
+      default_args ^= pool.ObjectAt(index);
+    }
+  }
+
+  auto& name = String::Handle(Z);
+  auto& check = ParameterTypeCheck::Handle(Z);
+  auto& checks = GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+
+  checks.Add(function);
+  checks.Add(default_args);
+
+  const auto& type_params =
+      TypeArguments::Handle(Z, function.type_parameters());
+  if (!type_params.IsNull()) {
+    auto& type_param = TypeParameter::Handle(Z);
+    auto& bound = AbstractType::Handle(Z);
+    for (intptr_t i = 0, n = type_params.Length(); i < n; ++i) {
+      type_param ^= type_params.TypeAt(i);
+      bound = type_param.bound();
+      if (!bound.IsTopType() && !type_param.IsGenericCovariantImpl()) {
+        name = type_param.name();
+        ASSERT(type_param.IsFinalized());
+        check = ParameterTypeCheck::New();
+        check.set_param(type_param);
+        check.set_type_or_bound(bound);
+        check.set_name(name);
+        checks.Add(check);
+      }
+    }
+  }
+
+  const intptr_t num_params = function.NumParameters();
+  const intptr_t num_pos_params = function.HasOptionalNamedParameters()
+                                      ? function.num_fixed_parameters()
+                                      : num_params;
+
+  BitVector is_covariant(Z, num_params);
+  BitVector is_generic_covariant_impl(Z, num_params);
+  ReadParameterCovariance(function, &is_covariant, &is_generic_covariant_impl);
+
+  auto& type = AbstractType::Handle(Z);
+  auto& cache = SubtypeTestCache::Handle(Z);
+  const bool has_optional_parameters = function.HasOptionalParameters();
+  for (intptr_t i = function.NumImplicitParameters(); i < num_params; ++i) {
+    type = function.ParameterTypeAt(i);
+    if (!type.IsTopType() && !is_generic_covariant_impl.Contains(i) &&
+        !is_covariant.Contains(i)) {
+      name = function.ParameterNameAt(i);
+      intptr_t index;
+      if (i >= num_pos_params) {
+        // Named parameter.
+        index = IndexFor(Z, function, name);
+      } else if (has_optional_parameters) {
+        // Fixed or optional parameter.
+        index = i;
+      } else {
+        // Fixed parameter.
+        index = -kKBCParamEndSlotFromFp - num_params + i;
+      }
+      check = ParameterTypeCheck::New();
+      check.set_index(index);
+      check.set_type_or_bound(type);
+      check.set_name(name);
+      cache = SubtypeTestCache::New();
+      check.set_cache(cache);
+      checks.Add(check);
+    }
+  }
+
+  return Array::MakeFixedLength(checks);
 }
 
 void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
@@ -2096,7 +2233,7 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
   VMTagScope tagScope(thread, VMTag::kLoadBytecodeTagId);
 
 #if defined(SUPPORT_TIMELINE)
-  TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
+  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
                             "BytecodeReader::ReadFunctionBytecode");
   // This increases bytecode reading time by ~7%, so only keep it around for
   // debugging.
@@ -2130,7 +2267,7 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
         bytecode = Object::method_extractor_bytecode().raw();
         break;
       case RawFunction::kInvokeFieldDispatcher:
-        if (Class::Handle(function.Owner()).id() == kClosureCid) {
+        if (Class::Handle(zone, function.Owner()).id() == kClosureCid) {
           bytecode = Object::invoke_closure_bytecode().raw();
         } else {
           bytecode = Object::invoke_field_bytecode().raw();
@@ -2139,6 +2276,36 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
       case RawFunction::kNoSuchMethodDispatcher:
         bytecode = Object::nsm_dispatcher_bytecode().raw();
         break;
+      case RawFunction::kDynamicInvocationForwarder: {
+        const Function& target =
+            Function::Handle(zone, function.ForwardingTarget());
+        if (!target.HasBytecode()) {
+          // The forwarder will use the target's bytecode to handle optional
+          // parameters.
+          const Error& error =
+              Error::Handle(zone, ReadFunctionBytecode(thread, target));
+          if (!error.IsNull()) {
+            return error.raw();
+          }
+        }
+        {
+          const Script& script = Script::Handle(zone, target.script());
+          TranslationHelper translation_helper(thread);
+          translation_helper.InitFromScript(script);
+
+          ActiveClass active_class;
+          BytecodeComponentData bytecode_component(
+              Array::Handle(zone, translation_helper.GetBytecodeComponent()));
+          ASSERT(!bytecode_component.IsNull());
+          BytecodeReaderHelper bytecode_reader(
+              &translation_helper, &active_class, &bytecode_component);
+
+          const Array& checks = Array::Handle(
+              zone, bytecode_reader.CreateForwarderChecks(target));
+          function.SetForwardingChecks(checks);
+        }
+        bytecode = Object::dynamic_invocation_forwarder_bytecode().raw();
+      } break;
       default:
         break;
     }
