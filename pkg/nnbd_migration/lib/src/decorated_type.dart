@@ -70,6 +70,8 @@ class DecoratedType {
       decoratedType = decorate(element.type);
     } else if (element is PropertyAccessorElement) {
       decoratedType = decorate(element.type);
+    } else if (element is ConstructorElement) {
+      decoratedType = decorate(element.type);
     } else {
       throw element.runtimeType; // TODO(paulberry)
     }

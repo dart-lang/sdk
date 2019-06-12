@@ -62,6 +62,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.factoryKeyword != null) {
+      // Factory constructors can return null, but we don't want to propagate a
+      // null type if we can prove that null is never returned.
+      throw UnimplementedError('TODO(brianwilkerson)');
+    }
     _handleExecutableDeclaration(
         node.declaredElement, null, node.parameters, node.body, node);
     return null;
@@ -252,7 +257,24 @@ $stackTrace''');
       FormalParameterList parameters,
       FunctionBody body,
       AstNode enclosingNode) {
-    var decoratedReturnType = decorateType(returnType, enclosingNode);
+    var decoratedReturnType;
+    if (returnType == null && declaredElement is ConstructorElement) {
+      // Constructors have no explicit return type annotation, so use the
+      // implicit return type.
+      if (declaredElement.isFactory) {
+        // Factory constructors can return null, but we don't want to propagate
+        // a null type if we can prove that null is never returned.
+        throw UnimplementedError('TODO(brianwilkerson)');
+      }
+      if (declaredElement.enclosingElement.typeParameters.isNotEmpty) {
+        // Need to decorate the type parameters appropriately.
+        throw new UnimplementedError('TODO(paulberry,brianwilkerson)');
+      }
+      decoratedReturnType = new DecoratedType(
+          declaredElement.enclosingElement.type, _graph.never);
+    } else {
+      decoratedReturnType = decorateType(returnType, enclosingNode);
+    }
     var previousFunctionType = _currentFunctionType;
     // TODO(paulberry): test that it's correct to use `null` for the nullability
     // of the function type

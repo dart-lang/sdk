@@ -1272,6 +1272,11 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
 
 @reflectiveTest
 class NodeBuilderTest extends MigrationVisitorTestBase {
+  /// Gets the [DecoratedType] associated with the constructor declaration whose
+  /// name matches [search].
+  DecoratedType decoratedConstructorDeclaration(String search) => _variables
+      .decoratedElementType(findNode.constructor(search).declaredElement);
+
   /// Gets the [DecoratedType] associated with the function declaration whose
   /// name matches [search].
   DecoratedType decoratedFunctionType(String search) =>
@@ -1280,6 +1285,16 @@ class NodeBuilderTest extends MigrationVisitorTestBase {
 
   DecoratedType decoratedTypeParameterBound(String search) => _variables
       .decoratedElementType(findNode.typeParameter(search).declaredElement);
+
+  test_constructor_returnType_implicit_dynamic() async {
+    await analyze('''
+class C {
+  C();
+}
+''');
+    var decoratedType = decoratedConstructorDeclaration('C(').returnType;
+    expect(decoratedType.node, same(never));
+  }
 
   test_dynamic_type() async {
     await analyze('''

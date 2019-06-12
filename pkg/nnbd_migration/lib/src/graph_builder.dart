@@ -346,6 +346,24 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitInstanceCreationExpression(
+      InstanceCreationExpression node) {
+    var callee = node.staticElement;
+    var calleeType = getOrComputeElementType(callee);
+    if (callee.enclosingElement.typeParameters.isNotEmpty) {
+      // If the class has type parameters then we might need to substitute the
+      // appropriate type arguments.
+      throw UnimplementedError('TODO(brianwilkerson)');
+    }
+    if (node.argumentList.arguments.isNotEmpty) {
+      // Extract the argument handling from visitMethodInvocation and invoke it
+      // here.
+      throw UnimplementedError('TODO(brianwilkerson)');
+    }
+    return calleeType.returnType;
+  }
+
+  @override
   DecoratedType visitIntegerLiteral(IntegerLiteral node) {
     return DecoratedType(node.staticType, _graph.never);
   }

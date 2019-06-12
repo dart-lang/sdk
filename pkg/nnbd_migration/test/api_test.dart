@@ -694,6 +694,28 @@ int get g => 0;
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_instanceCreation_noTypeArguments_noParameters() async {
+    var content = '''
+void main() {
+  C c = C();
+  c.length;
+}
+class C {
+  int get length => 0;
+}
+''';
+    var expected = '''
+void main() {
+  C c = C();
+  c.length;
+}
+class C {
+  int get length => 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_named_parameter_no_default_unused() async {
     var content = '''
 void f({String s}) {}
