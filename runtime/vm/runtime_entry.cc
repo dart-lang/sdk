@@ -356,7 +356,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 3) {
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
   const TypeArguments& function_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(2));
-  ASSERT(!type.IsNull() && !type.IsInstantiated());
+  ASSERT(!type.IsNull());
   ASSERT(instantiator_type_arguments.IsNull() ||
          instantiator_type_arguments.IsInstantiated());
   ASSERT(function_type_arguments.IsNull() ||

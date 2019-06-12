@@ -112,6 +112,10 @@ namespace dart {
   F(Bytecode, closures_)                                                       \
   F(ExceptionHandlers, handled_types_data_)                                    \
   F(Context, parent_)                                                          \
+  F(ParameterTypeCheck, param_)                                                \
+  F(ParameterTypeCheck, type_or_bound_)                                        \
+  F(ParameterTypeCheck, name_)                                                 \
+  F(ParameterTypeCheck, cache_)                                                \
   F(SingleTargetCache, target_)                                                \
   F(UnlinkedCall, target_name_)                                                \
   F(UnlinkedCall, args_descriptor_)                                            \

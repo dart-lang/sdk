@@ -54,6 +54,8 @@ class BytecodeReaderHelper : public ValueObject {
 
   void ReadCode(const Function& function, intptr_t code_offset);
 
+  RawArray* CreateForwarderChecks(const Function& function);
+
   void ReadMembers(const Class& cls,
                    intptr_t members_offset,
                    bool discard_fields);
