@@ -480,8 +480,9 @@ abstract class _IntegerImplementation implements int {
 @pragma("vm:entry-point")
 class _Smi extends _IntegerImplementation {
   factory _Smi._uninstantiable() {
-    throw new UnsupportedError("_Smi can only be allocated by the VM");
+    throw "Unreachable";
   }
+
   int get hashCode => this;
   int get _identityHashCode => this;
   @pragma("vm:exact-result-type", "dart:core#_Smi")
@@ -682,8 +683,9 @@ class _Smi extends _IntegerImplementation {
 @pragma("vm:entry-point")
 class _Mint extends _IntegerImplementation {
   factory _Mint._uninstantiable() {
-    throw new UnsupportedError("_Mint can only be allocated by the VM");
+    throw "Unreachable";
   }
+
   int get hashCode => this;
   int get _identityHashCode => this;
   @pragma("vm:non-nullable-result-type")

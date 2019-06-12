@@ -7,7 +7,7 @@
 @pragma("vm:entry-point")
 class _MirrorReference {
   factory _MirrorReference._uninstantiable() {
-    throw new UnsupportedError("class _MirrorReference cannot be instantiated");
+    throw "Unreachable";
   }
 
   bool operator ==(other) native "MirrorReference_equals";
