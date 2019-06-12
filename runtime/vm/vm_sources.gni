@@ -7,7 +7,6 @@
 vm_sources = [
   "allocation.cc",
   "allocation.h",
-  "ast.h",
   "base64.cc",
   "base64.h",
   "base_isolate.h",

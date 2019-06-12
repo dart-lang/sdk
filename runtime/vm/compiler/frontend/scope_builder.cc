@@ -134,8 +134,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
   context_var->set_is_forced_stack();
   scope_->AddVariable(context_var);
 
-  parsed_function_->SetNodeSequence(
-      new SequenceNode(TokenPosition::kNoSource, scope_));
+  parsed_function_->set_scope(scope_);
 
   helper_.SetOffset(function.kernel_offset());
 

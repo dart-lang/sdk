@@ -747,17 +747,6 @@ void AssemblerTest::Assemble() {
 #endif  // !PRODUCT
 }
 
-bool CompilerTest::TestCompileScript(const Library& library,
-                                     const Script& script) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  const Error& error = Error::Handle(Compiler::Compile(library, script));
-  if (!error.IsNull()) {
-    OS::PrintErr("Error compiling test script:\n%s\n", error.ToErrorCString());
-  }
-  return error.IsNull();
-}
-
 bool CompilerTest::TestCompileFunction(const Function& function) {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);

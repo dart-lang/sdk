@@ -1031,8 +1031,8 @@ CompileType ParameterInstr::ComputeType() const {
   }
 
   if (function.HasBytecode() &&
-      graph_entry->parsed_function().node_sequence() == nullptr) {
-    // TODO(alexmarkov): Consider adding node_sequence() and scope.
+      graph_entry->parsed_function().scope() == nullptr) {
+    // TODO(alexmarkov): Consider adding scope.
     return CompileType::Dynamic();
   }
 
@@ -1040,7 +1040,7 @@ CompileType ParameterInstr::ComputeType() const {
       graph_entry->unchecked_entry() == block_;
 
   if (Isolate::Current()->can_use_strong_mode_types()) {
-    LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
+    LocalScope* scope = graph_entry->parsed_function().scope();
     // Note: in catch-blocks we have ParameterInstr for each local variable
     // not only for normal parameters.
     if (index() < scope->num_variables()) {

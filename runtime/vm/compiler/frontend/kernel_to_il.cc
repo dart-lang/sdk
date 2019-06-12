@@ -2320,8 +2320,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
     body += CheckStackOverflowInPrologue(function.token_pos());
   }
 
-  ASSERT(parsed_function_->node_sequence()->scope()->num_context_variables() ==
-         0);
+  ASSERT(parsed_function_->scope()->num_context_variables() == 0);
 
   // Should never build a dynamic invocation forwarder for equality
   // operator.

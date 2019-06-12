@@ -432,7 +432,7 @@ Fragment StreamingFlowGraphBuilder::SetAsyncStackTrace(
          scopes()->yield_jump_variable->owner()->context_level());
 
   Fragment instructions;
-  LocalScope* scope = parsed_function()->node_sequence()->scope();
+  LocalScope* scope = parsed_function()->scope();
 
   const Function& target = Function::ZoneHandle(
       Z, I->object_store()->async_set_thread_stack_trace());
@@ -578,13 +578,13 @@ Fragment StreamingFlowGraphBuilder::CheckStackOverflowInPrologue(
 Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
     const Function& dart_function) {
   Fragment body;
-  const LocalScope* scope = parsed_function()->node_sequence()->scope();
+  const LocalScope* scope = parsed_function()->scope();
   if (scope->num_context_variables() > 0) {
     body += flow_graph_builder_->PushContext(scope);
     LocalVariable* context = MakeTemporary();
 
     // Copy captured parameters from the stack into the context.
-    LocalScope* scope = parsed_function()->node_sequence()->scope();
+    LocalScope* scope = parsed_function()->scope();
     intptr_t parameter_count = dart_function.NumParameters();
     const ParsedFunction& pf = *flow_graph_builder_->parsed_function_;
     const Function& function = pf.function();

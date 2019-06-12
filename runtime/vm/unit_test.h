@@ -598,10 +598,6 @@ class AssemblerTest {
 
 class CompilerTest : public AllStatic {
  public:
-  // Test the Compiler::CompileScript functionality by checking the return
-  // value to see if no parse errors were reported.
-  static bool TestCompileScript(const Library& library, const Script& script);
-
   // Test the Compiler::CompileFunction functionality by checking the return
   // value to see if no parse errors were reported.
   static bool TestCompileFunction(const Function& function);

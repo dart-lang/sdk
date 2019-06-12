@@ -330,11 +330,6 @@ bool Compiler::IsBackgroundCompilation() {
   return !Thread::Current()->IsMutatorThread();
 }
 
-RawError* Compiler::Compile(const Library& library, const Script& script) {
-  UNREACHABLE();
-  return Error::null();
-}
-
 class CompileParsedFunctionHelper : public ValueObject {
  public:
   CompileParsedFunctionHelper(ParsedFunction* parsed_function,
@@ -939,44 +934,6 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
   return Object::null();
 }
 
-static RawError* ParseFunctionHelper(CompilationPipeline* pipeline,
-                                     const Function& function,
-                                     bool optimized,
-                                     intptr_t osr_id) {
-  ASSERT(!FLAG_precompiled_mode);
-  ASSERT(!optimized || function.WasCompiled());
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    Thread* const thread = Thread::Current();
-    StackZone stack_zone(thread);
-    Zone* const zone = stack_zone.GetZone();
-    const bool trace_compiler =
-        FLAG_trace_compiler || (FLAG_trace_optimizing_compiler && optimized);
-
-    if (trace_compiler) {
-      const intptr_t token_size =
-          function.end_token_pos().Pos() - function.token_pos().Pos();
-      THR_Print("Parsing %s%sfunction %s: '%s' @ token %s, size %" Pd "\n",
-                (osr_id == Compiler::kNoOSRDeoptId ? "" : "osr "),
-                (optimized ? "optimized " : ""),
-                (Compiler::IsBackgroundCompilation() ? "(background)" : ""),
-                function.ToFullyQualifiedCString(),
-                function.token_pos().ToCString(), token_size);
-    }
-    ParsedFunction* parsed_function = new (zone)
-        ParsedFunction(thread, Function::ZoneHandle(zone, function.raw()));
-    pipeline->ParseFunction(parsed_function);
-    return Error::null();
-  } else {
-    // We got an error during compilation or it is a bailout from background
-    // compilation (e.g., during parsing with EnsureIsFinalized).
-    // Unoptimized compilation or precompilation may encounter compile-time
-    // errors, but regular optimized compilation should not.
-    ASSERT(!optimized);
-    return Thread::Current()->StealStickyError();
-  }
-}
-
 RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
     !defined(TARGET_ARCH_IA32)
@@ -1010,25 +967,6 @@ RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
 
   const bool optimized = function.ForceOptimize();
   return CompileFunctionHelper(pipeline, function, optimized, kNoOSRDeoptId);
-}
-
-RawError* Compiler::ParseFunction(Thread* thread, const Function& function) {
-  VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
-  TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "ParseFunction", function);
-
-  Isolate* isolate = thread->isolate();
-  if (!isolate->compilation_allowed()) {
-    FATAL3("Precompilation missed function %s (%s, %s)\n",
-           function.ToLibNamePrefixedQualifiedCString(),
-           function.token_pos().ToCString(),
-           Function::KindToCString(function.kind()));
-  }
-
-  CompilationPipeline* pipeline =
-      CompilationPipeline::New(thread->zone(), function);
-
-  return ParseFunctionHelper(pipeline, function,
-                             /* optimized = */ false, kNoOSRDeoptId);
 }
 
 RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
@@ -1086,25 +1024,6 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
                                osr_id);
 }
 
-// This is only used from unit tests.
-RawError* Compiler::CompileParsedFunction(ParsedFunction* parsed_function) {
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    // Non-optimized code generator.
-    DartCompilationPipeline pipeline;
-    CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
-    helper.Compile(&pipeline);
-    if (FLAG_disassemble) {
-      Code& code = Code::Handle(parsed_function->function().CurrentCode());
-      Disassembler::DisassembleCode(parsed_function->function(), code, false);
-    }
-    return Error::null();
-  } else {
-    // We got an error during compilation.
-    return Thread::Current()->StealStickyError();
-  }
-}
-
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(!code.is_optimized());
   const Function& function = Function::Handle(code.function());
@@ -1140,8 +1059,8 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
         /* not inlining */ NULL, false, Compiler::kNoOSRDeoptId);
     builder.BuildGraph();
 
-    const LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle(
-        parsed_function->node_sequence()->scope()->GetVarDescriptors(
+    const LocalVarDescriptors& var_descs =
+        LocalVarDescriptors::Handle(parsed_function->scope()->GetVarDescriptors(
             function, context_level_array));
     ASSERT(!var_descs.IsNull());
     code.set_var_descriptors(var_descs);
@@ -1207,70 +1126,6 @@ RawError* Compiler::ReadAllBytecode(const Class& cls) {
     }
   }
   return Error::null();
-}
-
-RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
-    !defined(TARGET_ARCH_IA32)
-  if (FLAG_precompiled_mode) {
-    UNREACHABLE();
-  }
-#endif
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    Thread* const thread = Thread::Current();
-
-    // Don't allow message interrupts while executing constant
-    // expressions.  They can cause bogus recursive compilation.
-    NoOOBMessageScope no_msg_scope(thread);
-
-    // Don't allow reload requests to come in.
-    NoReloadScope no_reload_scope(thread->isolate(), thread);
-
-    // Create a dummy function object for the code generator.
-    // The function needs to be associated with a named Class: the interface
-    // Function fits the bill.
-    const char* kEvalConst = "eval_const";
-    const Function& func = Function::ZoneHandle(Function::New(
-        String::Handle(Symbols::New(thread, kEvalConst)),
-        RawFunction::kRegularFunction,
-        true,   // static function
-        false,  // not const function
-        false,  // not abstract
-        false,  // not external
-        false,  // not native
-        Class::Handle(Type::Handle(Type::DartFunctionType()).type_class()),
-        fragment->token_pos()));
-
-    func.set_result_type(Object::dynamic_type());
-    func.set_num_fixed_parameters(0);
-    func.SetNumOptionalParameters(0, true);
-    // Manually generated AST, do not recompile.
-    func.SetIsOptimizable(false);
-    func.set_is_debuggable(false);
-
-    // We compile the function here, even though InvokeFunction() below
-    // would compile func automatically. We are checking fewer invariants
-    // here.
-    ParsedFunction* parsed_function = new ParsedFunction(thread, func);
-    parsed_function->SetNodeSequence(fragment);
-    fragment->scope()->AddVariable(parsed_function->EnsureExpressionTemp());
-    fragment->scope()->AddVariable(parsed_function->current_context_var());
-    parsed_function->AllocateVariables();
-
-    // Non-optimized code generator.
-    DartCompilationPipeline pipeline;
-    CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
-    const Code& code = Code::Handle(helper.Compile(&pipeline));
-    if (!code.IsNull()) {
-      NOT_IN_PRODUCT(code.set_var_descriptors(Object::empty_var_descriptors()));
-      const Object& result = PassiveObject::Handle(
-          DartEntry::InvokeFunction(func, Object::empty_array()));
-      return result.raw();
-    }
-  }
-
-  return Thread::Current()->StealStickyError();
 }
 
 void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {
@@ -1603,18 +1458,8 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
   return false;
 }
 
-RawError* Compiler::Compile(const Library& library, const Script& script) {
-  FATAL1("Attempt to compile script %s", script.ToCString());
-  return Error::null();
-}
-
 RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
   FATAL1("Attempt to compile function %s", function.ToCString());
-  return Error::null();
-}
-
-RawError* Compiler::ParseFunction(Thread* thread, const Function& function) {
-  FATAL1("Attempt to parse function %s", function.ToCString());
   return Error::null();
 }
 
@@ -1631,12 +1476,6 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
   return Error::null();
 }
 
-RawError* Compiler::CompileParsedFunction(ParsedFunction* parsed_function) {
-  FATAL1("Attempt to compile function %s",
-         parsed_function->function().ToCString());
-  return Error::null();
-}
-
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   UNREACHABLE();
 }
@@ -1644,11 +1483,6 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
   FATAL1("Attempt to compile class %s", cls.ToCString());
   return Error::null();
-}
-
-RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
-  UNREACHABLE();
-  return Object::null();
 }
 
 void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {

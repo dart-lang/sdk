@@ -83,7 +83,7 @@ static void TryCatchOptimizerTest(
   OptimizeCatchEntryStates(graph, /*is_aot=*/true);
 
   EXPECT_EQ(1, graph->graph_entry()->catch_entries().length());
-  auto scope = graph->parsed_function().node_sequence()->scope();
+  auto scope = graph->parsed_function().scope();
 
   GrowableArray<LocalVariable*> env;
   FlattenScopeIntoEnvironment(graph, scope, &env);

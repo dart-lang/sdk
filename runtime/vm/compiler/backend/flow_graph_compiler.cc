@@ -1125,7 +1125,7 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     // complicated to factor out.
     // TODO(srdjan): Consider canonicalizing and reusing the local var
     // descriptor for IrregexpFunction.
-    ASSERT(parsed_function().node_sequence() == nullptr);
+    ASSERT(parsed_function().scope() == nullptr);
     var_descs = LocalVarDescriptors::New(1);
     RawLocalVarDescriptors::VarInfo info;
     info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
