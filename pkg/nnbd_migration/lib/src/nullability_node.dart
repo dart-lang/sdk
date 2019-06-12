@@ -72,64 +72,10 @@ class NullabilityGraph {
     }
   }
 
-  void debugDump() {
-    for (var source in _allSourceNodes) {
-      var edges = _getDownstreamEdges(source);
-      var destinations =
-          edges.where((edge) => edge.primarySource == source).map((edge) {
-        var suffixes = <Object>[];
-        if (edge.hard) {
-          suffixes.add('hard');
-        }
-        suffixes.addAll(edge.guards);
-        var suffix = suffixes.isNotEmpty ? ' (${suffixes.join(', ')})' : '';
-        return '${edge.destinationNode}$suffix';
-      });
-      var state = source._state;
-      print('$source ($state) -> ${destinations.join(', ')}');
-    }
-  }
-
-  /// Iterates through all nodes that are "upstream" of [node] due to
-  /// unconditional control flow.
-  ///
-  /// There is no guarantee of uniqueness of the iterated nodes.
-  Iterable<NullabilityEdge> getUpstreamEdges(NullabilityNode node) {
-    if (node is NullabilityNodeMutable) {
-      return node._upstreamEdges;
-    } else if (node == NullabilityNode.never) {
-      return _upstreamFromNever;
-    } else {
-      // No nodes are upstream from `always`.
-      assert(node == NullabilityNode.always);
-      return const [];
-    }
-  }
-
-  /// Iterates through all nodes that are "upstream" of [node] (i.e. if
-  /// any of the iterated nodes are nullable, then [node] will either have to be
-  /// nullable, or null checks will have to be added).
-  ///
-  /// There is no guarantee of uniqueness of the iterated nodes.
-  ///
-  /// This method is inefficent since it has to search the entire graph, so it
-  /// is for testing only.
-  @visibleForTesting
-  Iterable<NullabilityNode> getUpstreamNodesForTesting(
-      NullabilityNode node) sync* {
-    for (var source in _allSourceNodes) {
-      for (var edge in _getDownstreamEdges(source)) {
-        if (edge.destinationNode == node) {
-          yield source;
-        }
-      }
-    }
-  }
-
   /// Determines the nullability of each node in the graph by propagating
   /// nullability information from one node to another.
   void propagate() {
-    if (_debugBeforePropagation) debugDump();
+    if (_debugBeforePropagation) _debugDump();
     _propagateUpstream();
     _propagateDownstream();
   }
@@ -149,6 +95,24 @@ class NullabilityGraph {
       // We don't need to track nodes that are downstream from `never` because
       // `never` will never be nullable.
       assert(source == NullabilityNode.never);
+    }
+  }
+
+  void _debugDump() {
+    for (var source in _allSourceNodes) {
+      var edges = _getDownstreamEdges(source);
+      var destinations =
+          edges.where((edge) => edge.primarySource == source).map((edge) {
+        var suffixes = <Object>[];
+        if (edge.hard) {
+          suffixes.add('hard');
+        }
+        suffixes.addAll(edge.guards);
+        var suffix = suffixes.isNotEmpty ? ' (${suffixes.join(', ')})' : '';
+        return '${edge.destinationNode}$suffix';
+      });
+      var state = source._state;
+      print('$source ($state) -> ${destinations.join(', ')}');
     }
   }
 
@@ -224,6 +188,47 @@ class NullabilityGraph {
         // Was not previously in the set of non-null intent nodes, so we need to
         // propagate.
         pendingEdges.addAll(node._upstreamEdges);
+      }
+    }
+  }
+}
+
+/// Same as [NullabilityGraph], but extended with extra methods for easier
+/// testing.
+@visibleForTesting
+class NullabilityGraphForTesting extends NullabilityGraph {
+  /// Iterates through all nodes that are "upstream" of [node] due to
+  /// unconditional control flow.
+  ///
+  /// There is no guarantee of uniqueness of the iterated nodes.
+  @visibleForTesting
+  Iterable<NullabilityEdge> getUpstreamEdges(NullabilityNode node) {
+    if (node is NullabilityNodeMutable) {
+      return node._upstreamEdges;
+    } else if (node == NullabilityNode.never) {
+      return _upstreamFromNever;
+    } else {
+      // No nodes are upstream from `always`.
+      assert(node == NullabilityNode.always);
+      return const [];
+    }
+  }
+
+  /// Iterates through all nodes that are "upstream" of [node] (i.e. if
+  /// any of the iterated nodes are nullable, then [node] will either have to be
+  /// nullable, or null checks will have to be added).
+  ///
+  /// There is no guarantee of uniqueness of the iterated nodes.
+  ///
+  /// This method is inefficent since it has to search the entire graph, so it
+  /// is for testing only.
+  @visibleForTesting
+  Iterable<NullabilityNode> getUpstreamNodes(NullabilityNode node) sync* {
+    for (var source in _allSourceNodes) {
+      for (var edge in _getDownstreamEdges(source)) {
+        if (edge.destinationNode == node) {
+          yield source;
+        }
       }
     }
   }

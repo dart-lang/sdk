@@ -51,7 +51,7 @@ class GraphBuilderTest extends MigrationVisitorTestBase {
     // upstream from it.
     if (node == NullabilityNode.never) return;
 
-    for (var upstreamNode in graph.getUpstreamNodesForTesting(node)) {
+    for (var upstreamNode in graph.getUpstreamNodes(node)) {
       expect(upstreamNode, NullabilityNode.never);
     }
   }
@@ -1188,9 +1188,9 @@ void f(int i) {
 class MigrationVisitorTestBase extends AbstractSingleUnitTest {
   final _Variables _variables;
 
-  final NullabilityGraph graph;
+  final NullabilityGraphForTesting graph;
 
-  MigrationVisitorTestBase() : this._(NullabilityGraph());
+  MigrationVisitorTestBase() : this._(NullabilityGraphForTesting());
 
   MigrationVisitorTestBase._(this.graph) : _variables = _Variables();
 
