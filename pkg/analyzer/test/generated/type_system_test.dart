@@ -1867,19 +1867,41 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
     typeProvider = new NonNullableTypeProvider(coreLibrary, asyncLibrary);
   }
 
+  void test_dynamicType() {
+    List<DartType> equivalents = <DartType>[
+      voidType,
+      _question(objectType),
+      _star(objectType),
+    ];
+    List<DartType> subtypes = <DartType>[bottomType, nullType, objectType];
+    _checkGroups(dynamicType, equivalents: equivalents, subtypes: subtypes);
+  }
+
   void test_int_nullableTypes() {
     List<DartType> equivalents = <DartType>[
       intType,
       _star(intType),
+    ];
+    List<DartType> subtypes = <DartType>[
+      bottomType,
     ];
     List<DartType> supertypes = <DartType>[
       _question(intType),
       objectType,
       _question(objectType),
     ];
-    List<DartType> unrelated = <DartType>[doubleType, nullType];
+    List<DartType> unrelated = <DartType>[
+      doubleType,
+      nullType,
+      _star(nullType),
+      _question(nullType),
+      _question(bottomType),
+    ];
     _checkGroups(intType,
-        equivalents: equivalents, supertypes: supertypes, unrelated: unrelated);
+        equivalents: equivalents,
+        supertypes: supertypes,
+        unrelated: unrelated,
+        subtypes: subtypes);
   }
 
   void test_intQuestion_nullableTypes() {
@@ -1890,6 +1912,11 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
     List<DartType> subtypes = <DartType>[
       intType,
       nullType,
+      _question(nullType),
+      _star(nullType),
+      bottomType,
+      _question(bottomType),
+      _star(bottomType),
     ];
     List<DartType> supertypes = <DartType>[
       _question(numType),
@@ -1911,7 +1938,14 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
       _question(intType),
       _star(intType),
     ];
-    List<DartType> subtypes = <DartType>[nullType];
+    List<DartType> subtypes = <DartType>[
+      nullType,
+      _star(nullType),
+      _question(nullType),
+      bottomType,
+      _star(bottomType),
+      _question(bottomType),
+    ];
     List<DartType> supertypes = <DartType>[
       numType,
       _question(numType),
@@ -1921,6 +1955,61 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
     ];
     List<DartType> unrelated = <DartType>[doubleType];
     _checkGroups(_star(intType),
+        equivalents: equivalents,
+        supertypes: supertypes,
+        unrelated: unrelated,
+        subtypes: subtypes);
+  }
+
+  void test_nullType() {
+    List<DartType> equivalents = <DartType>[
+      nullType,
+      _question(nullType),
+      _star(nullType),
+      _question(bottomType),
+    ];
+    List<DartType> supertypes = <DartType>[
+      _question(intType),
+      _star(intType),
+      _question(objectType),
+      _star(objectType),
+      dynamicType,
+      voidType,
+    ];
+    List<DartType> subtypes = <DartType>[bottomType];
+    List<DartType> unrelated = <DartType>[
+      doubleType,
+      intType,
+      numType,
+      objectType
+    ];
+
+    for (final formOfNull in equivalents) {
+      _checkGroups(formOfNull,
+          equivalents: equivalents,
+          supertypes: supertypes,
+          unrelated: unrelated,
+          subtypes: subtypes);
+    }
+  }
+
+  void test_objectType() {
+    List<DartType> equivalents = <DartType>[
+      _star(objectType),
+    ];
+    List<DartType> supertypes = <DartType>[
+      _question(objectType),
+      dynamicType,
+      voidType,
+    ];
+    List<DartType> subtypes = <DartType>[bottomType];
+    List<DartType> unrelated = <DartType>[
+      _question(doubleType),
+      _question(numType),
+      _question(intType),
+      nullType
+    ];
+    _checkGroups(objectType,
         equivalents: equivalents,
         supertypes: supertypes,
         unrelated: unrelated,
