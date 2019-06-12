@@ -4,8 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
@@ -14,7 +12,6 @@ import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../ast/parse_base.dart';
 import '../resolution/driver_resolution.dart';
 
 main() {
