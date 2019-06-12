@@ -31,6 +31,7 @@ linter:
     - prefer_is_not_empty
     - recursive_getters
     - type_init_formals
+    - unawaited_futures
     - unnecessary_null_in_if_null_operators
     - unrelated_type_equality_checks
     - use_rethrow_when_possible
