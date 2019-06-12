@@ -41,7 +41,8 @@ VM_SNAPSHOT_FILES=[
 ]
 
 def MakeVersionString(quiet, no_git_hash, custom_for_pub=None):
-  if custom_for_pub:
+  channel = utils.GetChannel()
+  if custom_for_pub and channel == 'be':
     latest = utils.GetLatestDevTag()
     if not latest:
       # If grabbing the dev tag fails, then fall back on the VERSION file.
@@ -101,7 +102,8 @@ def main(args):
         action="store",
         type="string",
         help=("Generates a version string that works with pub that includes"
-              "the given string"))
+              "the given string. This is silently ignored on channels other"
+              "than be"))
     parser.add_option("--input",
         action="store",
         type="string",
