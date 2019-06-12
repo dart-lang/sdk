@@ -134,6 +134,7 @@ class NamedTypeBuilder extends TypeBuilder {
       return _buildFormalParameterType(node.parameter);
     } else if (node is FunctionTypedFormalParameter) {
       return _buildFunctionType(
+        null,
         node.typeParameters,
         node.returnType,
         node.parameters,
@@ -146,6 +147,7 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   FunctionType _buildFunctionType(
+    GenericTypeAliasElement typedef,
     TypeParameterList typeParameterList,
     TypeAnnotation returnTypeNode,
     FormalParameterList parameterList,
@@ -174,6 +176,7 @@ class NamedTypeBuilder extends TypeBuilder {
       returnType,
       typeParameters,
       formalParameters,
+      element: typedef,
     );
   }
 
@@ -210,6 +213,7 @@ class NamedTypeBuilder extends TypeBuilder {
     var typedefNode = element.linkedNode;
     if (typedefNode is FunctionTypeAlias) {
       return _buildFunctionType(
+        element,
         null,
         typedefNode.returnType,
         typedefNode.parameters,
@@ -218,6 +222,7 @@ class NamedTypeBuilder extends TypeBuilder {
       var functionNode = typedefNode.functionType;
       if (functionNode != null) {
         return _buildFunctionType(
+          element,
           functionNode.typeParameters,
           functionNode.returnType,
           functionNode.parameters,

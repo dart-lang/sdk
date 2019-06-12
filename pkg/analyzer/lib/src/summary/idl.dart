@@ -1903,6 +1903,10 @@ abstract class LinkedNodeType extends base.SummaryClass {
   @Id(1)
   LinkedNodeType get functionReturnType;
 
+  /// The typedef this function type is created for.
+  @Id(11)
+  int get functionTypedef;
+
   @Id(2)
   List<LinkedNodeTypeTypeParameter> get functionTypeParameters;
 

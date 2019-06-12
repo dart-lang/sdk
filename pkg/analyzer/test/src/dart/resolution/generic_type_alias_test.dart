@@ -7,7 +7,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,10 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class GenericTypeAliasDriverResolutionTest extends DriverResolutionTest
-    with GenericTypeAliasResolutionMixin {}
-
-mixin GenericTypeAliasResolutionMixin implements ResolutionTest {
+class GenericTypeAliasDriverResolutionTest extends DriverResolutionTest {
   test_genericFunctionTypeCannotBeTypeArgument_def_class() async {
     addTestFile(r'''
 class C<T> {}
@@ -122,6 +118,24 @@ C<Function()> x;
 ''');
     await resolveTestFile();
     assertNoTestErrors();
+  }
+
+  test_type_element() async {
+    addTestFile(r'''
+G<int> g;
+
+typedef G<T> = T Function();
+''');
+    await resolveTestFile();
+
+    var type = findElement.topVar('g').type;
+    assertElementTypeString(type, 'int Function()');
+
+    var typedefG = findElement.genericTypeAlias('G');
+    var functionG = typedefG.function;
+
+    expect(type.element?.enclosingElement, typedefG);
+    expect(type.element, functionG);
   }
 
   test_typeParameters() async {

@@ -5616,7 +5616,9 @@ class GenericTypeAliasElementImpl extends ElementImpl
         var function = context.getGeneticTypeAliasFunction(linkedNode);
         if (function != null) {
           var reference = context.getGenericFunctionTypeReference(function);
-          return _function = reference.element;
+          _function = reference.element;
+          encloseElement(_function);
+          return _function;
         } else {
           return null;
         }

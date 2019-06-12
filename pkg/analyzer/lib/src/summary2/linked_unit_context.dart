@@ -890,12 +890,23 @@ class LinkedUnitContext {
         _typeParameters.remove(--_nextSyntheticTypeParameterId);
       }
 
+      var element = bundleContext.elementOfIndex(linkedType.functionTypedef);
+      if (element is GenericTypeAliasElementImpl) {
+        GenericTypeAliasElementImpl aliasElement = element;
+        if (getHasTypedefSelfReference(aliasElement.linkedNode)) {
+          element = null;
+        } else {
+          element = aliasElement.function;
+        }
+      }
+
       var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
 
       return FunctionTypeImpl.synthetic(
         returnType,
         typeParameters,
         formalParameters,
+        element: element,
       ).withNullability(nullabilitySuffix);
     } else if (kind == LinkedNodeTypeKind.interface) {
       var element = bundleContext.elementOfIndex(linkedType.interfaceClass);

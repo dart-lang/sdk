@@ -16035,6 +16035,7 @@ class LinkedNodeTypeBuilder extends Object
     implements idl.LinkedNodeType {
   List<LinkedNodeTypeFormalParameterBuilder> _functionFormalParameters;
   LinkedNodeTypeBuilder _functionReturnType;
+  int _functionTypedef;
   List<LinkedNodeTypeTypeParameterBuilder> _functionTypeParameters;
   int _genericTypeAliasReference;
   List<LinkedNodeTypeBuilder> _genericTypeAliasTypeArguments;
@@ -16059,6 +16060,15 @@ class LinkedNodeTypeBuilder extends Object
 
   set functionReturnType(LinkedNodeTypeBuilder value) {
     this._functionReturnType = value;
+  }
+
+  @override
+  int get functionTypedef => _functionTypedef ??= 0;
+
+  /// The typedef this function type is created for.
+  set functionTypedef(int value) {
+    assert(value == null || value >= 0);
+    this._functionTypedef = value;
   }
 
   @override
@@ -16136,6 +16146,7 @@ class LinkedNodeTypeBuilder extends Object
   LinkedNodeTypeBuilder(
       {List<LinkedNodeTypeFormalParameterBuilder> functionFormalParameters,
       LinkedNodeTypeBuilder functionReturnType,
+      int functionTypedef,
       List<LinkedNodeTypeTypeParameterBuilder> functionTypeParameters,
       int genericTypeAliasReference,
       List<LinkedNodeTypeBuilder> genericTypeAliasTypeArguments,
@@ -16147,6 +16158,7 @@ class LinkedNodeTypeBuilder extends Object
       int typeParameterId})
       : _functionFormalParameters = functionFormalParameters,
         _functionReturnType = functionReturnType,
+        _functionTypedef = functionTypedef,
         _functionTypeParameters = functionTypeParameters,
         _genericTypeAliasReference = genericTypeAliasReference,
         _genericTypeAliasTypeArguments = genericTypeAliasTypeArguments,
@@ -16209,6 +16221,7 @@ class LinkedNodeTypeBuilder extends Object
     }
     signature.addInt(
         this._nullabilitySuffix == null ? 0 : this._nullabilitySuffix.index);
+    signature.addInt(this._functionTypedef ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -16246,6 +16259,9 @@ class LinkedNodeTypeBuilder extends Object
     }
     if (offset_functionReturnType != null) {
       fbBuilder.addOffset(1, offset_functionReturnType);
+    }
+    if (_functionTypedef != null && _functionTypedef != 0) {
+      fbBuilder.addUint32(11, _functionTypedef);
     }
     if (offset_functionTypeParameters != null) {
       fbBuilder.addOffset(2, offset_functionTypeParameters);
@@ -16297,6 +16313,7 @@ class _LinkedNodeTypeImpl extends Object
 
   List<idl.LinkedNodeTypeFormalParameter> _functionFormalParameters;
   idl.LinkedNodeType _functionReturnType;
+  int _functionTypedef;
   List<idl.LinkedNodeTypeTypeParameter> _functionTypeParameters;
   int _genericTypeAliasReference;
   List<idl.LinkedNodeType> _genericTypeAliasTypeArguments;
@@ -16322,6 +16339,13 @@ class _LinkedNodeTypeImpl extends Object
     _functionReturnType ??=
         const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 1, null);
     return _functionReturnType;
+  }
+
+  @override
+  int get functionTypedef {
+    _functionTypedef ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 11, 0);
+    return _functionTypedef;
   }
 
   @override
@@ -16401,6 +16425,7 @@ abstract class _LinkedNodeTypeMixin implements idl.LinkedNodeType {
           functionFormalParameters.map((_value) => _value.toJson()).toList();
     if (functionReturnType != null)
       _result["functionReturnType"] = functionReturnType.toJson();
+    if (functionTypedef != 0) _result["functionTypedef"] = functionTypedef;
     if (functionTypeParameters.isNotEmpty)
       _result["functionTypeParameters"] =
           functionTypeParameters.map((_value) => _value.toJson()).toList();
@@ -16428,6 +16453,7 @@ abstract class _LinkedNodeTypeMixin implements idl.LinkedNodeType {
   Map<String, Object> toMap() => {
         "functionFormalParameters": functionFormalParameters,
         "functionReturnType": functionReturnType,
+        "functionTypedef": functionTypedef,
         "functionTypeParameters": functionTypeParameters,
         "genericTypeAliasReference": genericTypeAliasReference,
         "genericTypeAliasTypeArguments": genericTypeAliasTypeArguments,

@@ -567,9 +567,10 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
   /// element tree.
   factory FunctionTypeImpl.synthetic(DartType returnType,
       List<TypeParameterElement> typeFormals, List<ParameterElement> parameters,
-      {NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star}) {
+      {Element element,
+      NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star}) {
     return new _FunctionTypeImplStrict._(returnType, typeFormals, parameters,
-        nullabilitySuffix: nullabilitySuffix);
+        element: element, nullabilitySuffix: nullabilitySuffix);
   }
 
   FunctionTypeImpl._(Element element, String name, this.nullabilitySuffix)
@@ -3774,8 +3775,9 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
   final List<ParameterElement> parameters;
 
   _FunctionTypeImplStrict._(this.returnType, this.typeFormals, this.parameters,
-      {NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star})
-      : super._(null, null, nullabilitySuffix);
+      {Element element,
+      NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star})
+      : super._(element, null, nullabilitySuffix);
 
   @override
   List<TypeParameterElement> get boundTypeParameters => typeFormals;
@@ -3833,6 +3835,7 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
         returnType.substitute2(argumentTypes, parameterTypes),
         const [],
         _transformOrShare(parameters, transformParameter),
+        element: element,
         nullabilitySuffix: nullabilitySuffix);
   }
 
@@ -3893,14 +3896,14 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
     }
     return new _FunctionTypeImplStrict._(
         newReturnType, newTypeFormals, newParameters,
-        nullabilitySuffix: nullabilitySuffix);
+        element: element, nullabilitySuffix: nullabilitySuffix);
   }
 
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
     return _FunctionTypeImplStrict._(returnType, typeFormals, parameters,
-        nullabilitySuffix: nullabilitySuffix);
+        element: element, nullabilitySuffix: nullabilitySuffix);
   }
 
   @override

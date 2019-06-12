@@ -213,6 +213,12 @@ class _ElementRequest {
       return reference.element;
     }
 
+    if (reference.name == '@function' && parent2.name == '@typeAlias') {
+      var parent = reference.parent;
+      GenericTypeAliasElementImpl alias = elementOfReference(parent);
+      return alias.function;
+    }
+
     throw StateError('Not found: $input');
   }
 

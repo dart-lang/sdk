@@ -178,6 +178,7 @@ class LinkingBundleContext {
           .toList(),
       functionReturnType: writeType(type.returnType),
       functionTypeParameters: typeParameterBuilders,
+      functionTypedef: indexOfElement(type.element),
       nullabilitySuffix: _nullabilitySuffix(type),
     );
 

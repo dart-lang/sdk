@@ -321,7 +321,8 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
     if (this.useCounter == before) return type;
 
-    return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters);
+    return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters,
+        element: type.element);
   }
 
   @override
