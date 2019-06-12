@@ -235,9 +235,8 @@
   NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(                                            \
       ClassTable, NewSpaceCounterOffsetFor, ClassOffsetFor,                    \
       ClassHeapStats::allocated_since_gc_new_space_offset()))                  \
-  NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(                                            \
-      ClassTable, StateOffsetFor, ClassOffsetFor,                              \
-      ClassHeapStats::allocated_since_gc_new_space_offset()))                  \
+  NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(ClassTable, StateOffsetFor, ClassOffsetFor, \
+                                   ClassHeapStats::state_offset()))            \
   NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(                                            \
       ClassTable, NewSpaceSizeOffsetFor, ClassOffsetFor,                       \
       ClassHeapStats::allocated_size_since_gc_new_space_offset()))             \
