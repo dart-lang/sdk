@@ -63,11 +63,6 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover> {
     if (hover.containingLibraryName != null &&
         hover.containingLibraryName.isNotEmpty) {
       content..writeln('*${hover.containingLibraryName}*')..writeln();
-    } else if (hover.containingLibraryPath != null) {
-      // TODO(dantup): Support displaying the package name (probably by adding
-      // containingPackageName to the main hover?) once the analyzer work to
-      // support this (inc Bazel/Gn) is done.
-      // content..writeln('*${hover.containingPackageName}*')..writeln();
     }
 
     // Doc comments.
