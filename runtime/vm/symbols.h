@@ -330,8 +330,6 @@ class ObjectPointerVisitor;
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_Double, "_Double")                                                        \
-  V(_EnumHelper, "_EnumHelper")                                                \
-  V(_EnumNames, "_enum_names")                                                 \
   V(_ExternalFloat32Array, "_ExternalFloat32Array")                            \
   V(_ExternalFloat32x4Array, "_ExternalFloat32x4Array")                        \
   V(_ExternalFloat64Array, "_ExternalFloat64Array")                            \
