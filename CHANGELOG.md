@@ -2,6 +2,8 @@
 (Add new changes here, and they will be copied to the change section for the
  next dev version)
 
+## 2.3.3 - 2019-06-24
+
 ### Core libraries
 
 #### `dart:isolate`
@@ -9,34 +11,15 @@
 * `TransferableTypedData` class was added to facilitate faster cross-isolate
 communication of `Uint8List` data.
 
-#### Linter
+* **Breaking change**: `Isolate.resolvePackageUri` will always throw an
+  `UnsupportedError` when compiled with dart2js or DDC. This was the only
+  remaining API in `dart:isolate` that didn't automatically throw since we
+  dropped support for this library in [Dart 2.0.0][1]. Note that the API already
+  throws in dart2js if the API is used directly without setting up manually a
+  `defaultPackagesBase` hook.
 
-The Linter was updated to `0.1.91`, which includes the following changes:
+[1]: https://github.com/dart-lang/sdk/blob/master/CHANGELOG.md#200---2018-08-07
 
-* fixed missed cases in `prefer_const_constructors`
-* fixed `prefer_initializing_formals` to no longer suggest API breaking changes
-* updated `omit_local_variable_types` to allow explicit `dynamic`s
-* (internal) migration from deprecated analyzer APIs
-
-## 2.3.2-dev.0.1
-
-### Language
-
-*   **Breaking change:** Covariance of type variables used in super-interfaces
-    is now enforced (issue [35097][]).  For example, the following code was
-    previously accepted and will now be rejected:
-
-```dart
-class A<X> {};
-class B<X> extends A<void Function(X)> {};
-```
-
-* The identifier `async` can now be used in asynchronous and generator
-  functions.
-
-[35097]: https://github.com/dart-lang/sdk/issues/35097
-
-### Core libraries
 
 #### `dart:developer`
 * Exposed `result`, `errorCode` and `errorDetail` getters in
@@ -66,55 +49,10 @@ class B<X> extends A<void Function(X)> {};
     interface, this is a breaking change, as implementing classes will need to
     implement the new getter.
 
-#### `dart:isolate`
-
-* **Breaking change**: `Isolate.resolvePackageUri` will always throw an
-  `UnsupportedError` when compiled with dart2js or DDC. This was the only
-  remaining API in `dart:isolate` that didn't automatically throw since we
-  dropped support for this library in [Dart 2.0.0][1]. Note that the API already
-  throws in dart2js if the API is used directly without setting up manually a
-  `defaultPackagesBase` hook.
-
-[1]: https://github.com/dart-lang/sdk/blob/master/CHANGELOG.md#200---2018-08-07
-
-### Dart VM
-
-### Tools
-
-#### Linter
-
-The Linter was updated to `0.1.90`, which includes the following changes:
-
-* fixed null-reference in `unrelated_type_equality_checks`
-* new lint: `unsafe_html`
-
-#### Pub
-
-* `pub publish` will no longer warn about missing dependencies for import
-   statements in `example/`.
-* OAuth2 authentication will explicitely ask for the `openid` scope.
-
-## 2.3.2-dev.0.0
-
-### Tools
-
-#### Linter
-
-Updated the linter to `0.1.89`, which includes the following changes:
-
-* Broadened `prefer_null_aware_operators` to work beyond local variables.
-* Added `prefer_if_null_operators`.
-* Fixed `prefer_contains` false positives.
-* Fixed `unnecessary_parenthesis` false positives.
-
-## 2.3.1-dev.0.0
-
-### Core libraries
-
 #### `dart:async`
-* **Breaking change:**
-  Fixed bug in `StreamIterator` that allowed constructor argument to be `null`
-  and allowed `await for` on a `null` stream. This is now a runtime error.
+  
+* **Breaking change:** The `await for` allowed `null` as a stream due to a bug
+  in `StreamIterator` class. This bug has now been fixed.
 
 #### `dart:core`
 
@@ -139,10 +77,46 @@ Updated the linter to `0.1.89`, which includes the following changes:
   This change only affects implementers of the `RegExp` interface; current
   code using Dart regular expressions will not be affected.
 
-#### `dart:isolate`
+### Language
 
-* **Breaking change:** The `await for` allowed `null` as a stream due to a bug
-  in `StreamIterator` class. This bug has now been fixed.
+*   **Breaking change:** Covariance of type variables used in super-interfaces
+    is now enforced (issue [35097][]).  For example, the following code was
+    previously accepted and will now be rejected:
+
+```dart
+class A<X> {};
+class B<X> extends A<void Function(X)> {};
+```
+
+* The identifier `async` can now be used in asynchronous and generator
+  functions.
+
+[35097]: https://github.com/dart-lang/sdk/issues/35097
+
+### Dart VM
+
+### Tools
+
+#### Linter
+
+The Linter was updated to `0.1.91`, which includes the following changes:
+
+* fixed missed cases in `prefer_const_constructors`
+* fixed `prefer_initializing_formals` to no longer suggest API breaking changes
+* updated `omit_local_variable_types` to allow explicit `dynamic`s
+* (internal) migration from deprecated analyzer APIs
+* fixed null-reference in `unrelated_type_equality_checks`
+* new lint: `unsafe_html`
+* Broadened `prefer_null_aware_operators` to work beyond local variables.
+* Added `prefer_if_null_operators`.
+* Fixed `prefer_contains` false positives.
+* Fixed `unnecessary_parenthesis` false positives.
+
+#### Pub
+
+* `pub publish` will no longer warn about missing dependencies for import
+   statements in `example/`.
+* OAuth2 authentication will explicitely ask for the `openid` scope.
 
 ## 2.3.2 - 2019-06-11
 
