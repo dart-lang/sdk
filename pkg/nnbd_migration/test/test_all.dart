@@ -6,10 +6,12 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'api_test.dart' as api_test;
 import 'migration_visitor_test.dart' as migration_visitor_test;
+import 'nullability_node_test.dart' as nullability_node_test;
 
 main() {
   defineReflectiveSuite(() {
-    migration_visitor_test.main();
     api_test.main();
+    migration_visitor_test.main();
+    nullability_node_test.main();
   });
 }

@@ -277,7 +277,7 @@ abstract class NullabilityNode {
   /// [joinNullabilities] callback.  TODO(paulberry): this should become
   /// unnecessary once constraint solving is performed directly using
   /// [NullabilityNode] objects.
-  factory NullabilityNode.forLUB(NullabilityNode a, NullabilityNode b) =
+  factory NullabilityNode.forLUB(NullabilityNode left, NullabilityNode right) =
       NullabilityNodeForLUB._;
 
   /// Creates a [NullabilityNode] representing the nullability of a type

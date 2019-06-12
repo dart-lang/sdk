@@ -92,12 +92,6 @@ class GraphBuilderTest extends MigrationVisitorTestBase {
     return _variables.decoratedExpressionType(findNode.expression(text));
   }
 
-  test_always() async {
-    await analyze('');
-
-    expect(NullabilityNode.always.isNullable, isTrue);
-  }
-
   test_assert_demonstrates_non_null_intent() async {
     await analyze('''
 void f(int i) {
