@@ -53,13 +53,15 @@ class Rti {
   /// `this` type environment.
   Rti _eval(String recipe) => _rtiEval(this, recipe);
 
-  /// Method called from generated code to extend `this` type environment with a
-  /// function type parameter.
-  Rti _bind1(Rti type) => _rtiBind1(this, type);
+  /// Method called from generated code to extend `this` type environment (an
+  /// interface or binding Rti) with function type arguments (a singleton
+  /// argument or tuple of arguments).
+  Rti _bind(Rti typeOrTuple) => _rtiBind(this, typeOrTuple);
 
-  /// Method called from generated code to extend `this` type environment with a
-  /// tuple of function type parameters.
-  Rti _bind(Rti typeTuple) => _rtiBind(this, typeTuple);
+  /// Method called from generated code to extend `this` type (as a singleton
+  /// type environment) with function type arguments (a singleton argument or
+  /// tuple of arguments).
+  Rti _bind1(Rti typeOrTuple) => _rtiBind1(this, typeOrTuple);
 
   // Precomputed derived types. These fields are used to hold derived types that
   // are computed eagerly.
@@ -151,14 +153,35 @@ class Rti {
     return JS('JSUnmodifiableArray', '#', _getRest(rti));
   }
 
-  /// On [Rti]s that are type environments, derived types are cached on the
+  /// On [Rti]s that are type environments*, derived types are cached on the
   /// environment to ensure fast canonicalization. Ground-term types (i.e. not
   /// dependent on class or function type parameters) are cached in the
   /// universe. This field starts as `null` and the cache is created on demand.
+  ///
+  /// *Any Rti can be a type environment, since we use the type for a function
+  /// type environment. The ambiguity between 'generic class is the environment'
+  /// and 'generic class is a singleton type argument' is resolved by using
+  /// different indexing in the recipe.
   Object _evalCache;
 
   static Object _getEvalCache(Rti rti) => rti._evalCache;
   static void _setEvalCache(Rti rti, value) {
+    rti._evalCache = value;
+  }
+
+  /// On [Rti]s that are type environments*, extended environments are cached on
+  /// the base environment to ensure fast canonicalization.
+  ///
+  /// This field starts as `null` and the cache is created on demand.
+  ///
+  /// *This is valid only on kindInterface and kindBinding Rtis. The ambiguity
+  /// between 'generic class is the base environment' and 'generic class is a
+  /// singleton type argument' is resolved [TBD] (either (1) a bind1 cache, or
+  /// (2)using `env._eval("@<0>")._bind(args)` in place of `env._bind1(args)`).
+  Object _bindCache;
+
+  static Object _getBindCache(Rti rti) => rti._evalCache;
+  static void _setBindCache(Rti rti, value) {
     rti._evalCache = value;
   }
 
@@ -180,14 +203,17 @@ class Rti {
 }
 
 Rti _rtiEval(Rti environment, String recipe) {
+  // TODO(sra): return _Universe.eval(the-universe, environment, recipe);
   throw UnimplementedError('_rtiEval');
 }
 
-Rti _rtiBind1(Rti environment, Rti type) {
+Rti _rtiBind1(Rti environment, Rti types) {
+  // TODO(sra): return _Universe.bind1(the-universe, environment, types);
   throw UnimplementedError('_rtiBind1');
 }
 
 Rti _rtiBind(Rti environment, Rti typeTuple) {
+  // TODO(sra): return _Universe.bind(the-universe, environment, types);
   throw UnimplementedError('_rtiBind');
 }
 
@@ -197,7 +223,9 @@ Type getRuntimeType(object) {
 
 String _rtiToString(Rti rti, List<String> genericContext) {
   int kind = Rti._getKind(rti);
+
   if (kind == Rti.kindDynamic) return 'dynamic';
+
   if (kind == Rti.kindInterface) {
     String name = Rti._getInterfaceName(rti);
     var arguments = Rti._getInterfaceTypeArguments(rti);
@@ -211,7 +239,41 @@ String _rtiToString(Rti rti, List<String> genericContext) {
     }
     return name;
   }
+
   return '?';
+}
+
+String _rtiToDebugString(Rti rti) {
+  String arrayToString(Object array) {
+    String s = '[', sep = '';
+    for (int i = 0; i < _Utils.arrayLength(array); i++) {
+      s += sep + _rtiToDebugString(_castToRti(_Utils.arrayAt(array, i)));
+      sep = ', ';
+    }
+    return s + ']';
+  }
+
+  int kind = Rti._getKind(rti);
+
+  if (kind == Rti.kindDynamic) return 'dynamic';
+
+  if (kind == Rti.kindInterface) {
+    String name = Rti._getInterfaceName(rti);
+    var arguments = Rti._getInterfaceTypeArguments(rti);
+    if (_Utils.arrayLength(arguments) == 0) {
+      return 'interface("$name")';
+    } else {
+      return 'interface("$name", ${arrayToString(arguments)})';
+    }
+  }
+
+  if (kind == Rti.kindBinding) {
+    var base = Rti._getBindingBase(rti);
+    var arguments = Rti._getBindingArguments(rti);
+    return 'binding(${_rtiToDebugString(base)}, ${arrayToString(arguments)})';
+  }
+
+  return 'other(kind=$kind)';
 }
 
 /// Class of static methods for the universe of Rti objects.
@@ -269,6 +331,27 @@ class _Universe {
     if (probe != null) return _castToRti(probe);
     var rti = _parseRecipe(universe, environment, recipe);
     _cacheSet(cache, recipe, rti);
+    return rti;
+  }
+
+  static Rti bind(Object universe, Rti environment, Rti argumentsRti) {
+    var cache = Rti._getBindCache(environment);
+    if (cache == null) {
+      cache = JS('', 'new Map()');
+      Rti._setBindCache(environment, cache);
+    }
+    var argumentsRecipe = Rti._getCanonicalRecipe(argumentsRti);
+    var probe = _cacheGet(cache, argumentsRecipe);
+    if (probe != null) return _castToRti(probe);
+    var argumentsArray;
+    if (Rti._getKind(argumentsRti) == Rti.kindBinding) {
+      argumentsArray = Rti._getBindingArguments(argumentsRti);
+    } else {
+      argumentsArray = JS('', '[]');
+      _Utils.arrayPush(argumentsArray, argumentsRti);
+    }
+    var rti = _lookupBindingRti(universe, environment, argumentsArray);
+    _cacheSet(cache, argumentsRecipe, rti);
     return rti;
   }
 
@@ -376,6 +459,7 @@ class _Universe {
     return s;
   }
 
+  /// [arguments] becomes owned by the created Rti.
   static Rti _lookupBindingRti(Object universe, Rti base, Object arguments) {
     var newBase = base;
     var newArguments = arguments;
@@ -773,6 +857,10 @@ class _Utils {
   static JSArray arrayConcat(Object a1, Object a2) =>
       JS('JSArray', '#.concat(#)', a1, a2);
 
+  static void arrayPush(Object array, Object value) {
+    JS('', '#.push(#)', array, value);
+  }
+
   static String substring(String s, int start, int end) =>
       JS('String', '#.substring(#, #)', s, start, end);
 
@@ -789,8 +877,7 @@ String testingRtiToString(rti) {
 }
 
 String testingRtiToDebugString(rti) {
-  // TODO(sra): Create entty point for structural formatting of Rti tree.
-  return 'Rti';
+  return _rtiToDebugString(_castToRti(rti));
 }
 
 Object testingCreateUniverse() {
@@ -811,4 +898,9 @@ Object testingUniverseEval(universe, String recipe) {
 
 Object testingEnvironmentEval(universe, environment, String recipe) {
   return _Universe.evalInEnvironment(universe, _castToRti(environment), recipe);
+}
+
+Object testingEnvironmentBind(universe, environment, arguments) {
+  return _Universe.bind(
+      universe, _castToRti(environment), _castToRti(arguments));
 }
