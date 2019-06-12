@@ -1216,6 +1216,17 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
     }
   }
 
+  void assertUnion(NullabilityNode x, NullabilityNode y) {
+    var edges = getEdges(x, y);
+    for (var edge in edges) {
+      if (edge.isUnion) {
+        expect(edge.sources, hasLength(1));
+        return;
+      }
+    }
+    fail('Expected union between $x and $y, not found');
+  }
+
   /// Gets the [DecoratedType] associated with the generic function type
   /// annotation whose text is [text].
   DecoratedType decoratedGenericFunctionTypeAnnotation(String text) {
@@ -1352,7 +1363,7 @@ void f(x) {}
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
     expect(decoratedType.type.isDynamic, isTrue);
-    expect(decoratedType.node.isNullable, isTrue);
+    assertUnion(always, decoratedType.node);
   }
 
   test_topLevelFunction_parameterType_named_no_default() async {
@@ -1423,7 +1434,7 @@ f() {}
 ''');
     var decoratedType = decoratedFunctionType('f').returnType;
     expect(decoratedType.type.isDynamic, isTrue);
-    expect(decoratedType.node.isNullable, isTrue);
+    assertUnion(always, decoratedType.node);
   }
 
   test_topLevelFunction_returnType_simple() async {
@@ -1468,7 +1479,7 @@ class C<T extends Object> {}
 class C<T> {}
 ''');
     var bound = decoratedTypeParameterBound('T');
-    expect(bound.node.isNullable, isTrue);
+    assertUnion(always, bound.node);
     expect(bound.type, same(typeProvider.objectType));
   }
 
