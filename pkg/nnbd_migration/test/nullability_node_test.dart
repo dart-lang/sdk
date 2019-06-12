@@ -16,9 +16,9 @@ main() {
 class NullabilityNodeTest {
   final graph = NullabilityGraph();
 
-  NullabilityNode get always => NullabilityNode.always;
+  NullabilityNode get always => graph.always;
 
-  NullabilityNode get never => NullabilityNode.never;
+  NullabilityNode get never => graph.never;
 
   void connect(NullabilityNode source, NullabilityNode destination,
       {bool hard = false, List<NullabilityNode> guards = const []}) {

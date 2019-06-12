@@ -78,14 +78,12 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   GraphBuilder(TypeProvider typeProvider, this._variables, this._graph,
       this._source, this.listener)
-      : _notNullType =
-            DecoratedType(typeProvider.objectType, NullabilityNode.never),
+      : _notNullType = DecoratedType(typeProvider.objectType, _graph.never),
         _nonNullableBoolType =
-            DecoratedType(typeProvider.boolType, NullabilityNode.never),
+            DecoratedType(typeProvider.boolType, _graph.never),
         _nonNullableTypeType =
-            DecoratedType(typeProvider.typeType, NullabilityNode.never),
-        _nullType =
-            DecoratedType(typeProvider.nullType, NullabilityNode.always);
+            DecoratedType(typeProvider.typeType, _graph.never),
+        _nullType = DecoratedType(typeProvider.nullType, _graph.always);
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -120,13 +118,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
       var decoratedElementType =
           _variables.decoratedElementType(variable, create: true);
       if (baseElement.isGetter) {
-        decoratedBaseType = DecoratedType(
-            baseElement.type, NullabilityNode.never,
+        decoratedBaseType = DecoratedType(baseElement.type, _graph.never,
             returnType: decoratedElementType);
       } else {
         assert(baseElement.isSetter);
-        decoratedBaseType = DecoratedType(
-            baseElement.type, NullabilityNode.never,
+        decoratedBaseType = DecoratedType(baseElement.type, _graph.never,
             positionalParameters: [decoratedElementType]);
       }
     } else {
@@ -220,7 +216,7 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitBooleanLiteral(BooleanLiteral node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
@@ -258,7 +254,7 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
         // Nothing to do; the implicit default value of `null` will never be
         // reached.
       } else {
-        NullabilityNode.recordAssignment(NullabilityNode.always,
+        NullabilityNode.recordAssignment(_graph.always,
             getOrComputeElementType(node.declaredElement).node, _guards, _graph,
             hard: false);
       }
@@ -351,7 +347,7 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitIntegerLiteral(IntegerLiteral node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
@@ -484,19 +480,19 @@ $stackTrace''');
 
   @override
   DecoratedType visitStringLiteral(StringLiteral node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
   DecoratedType visitThisExpression(ThisExpression node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
   DecoratedType visitThrowExpression(ThrowExpression node) {
     node.expression.accept(this);
     // TODO(paulberry): do we need to check the expression type?  I think not.
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
@@ -517,7 +513,7 @@ $stackTrace''');
             hard: true);
       }
     }
-    return DecoratedType(typeName.type, NullabilityNode.never);
+    return DecoratedType(typeName.type, _graph.never);
   }
 
   @override

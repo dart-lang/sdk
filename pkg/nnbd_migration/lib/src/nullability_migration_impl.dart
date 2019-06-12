@@ -18,9 +18,9 @@ import 'package:nnbd_migration/src/variables.dart';
 class NullabilityMigrationImpl implements NullabilityMigration {
   final NullabilityMigrationListener listener;
 
-  final _variables = Variables();
+  final Variables _variables;
 
-  final _graph = NullabilityGraph();
+  final NullabilityGraph _graph;
 
   final bool _permissive;
 
@@ -30,8 +30,12 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// as far as possible even though the migration algorithm is not yet
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
-  NullabilityMigrationImpl(this.listener, {bool permissive: false})
-      : _permissive = permissive;
+  NullabilityMigrationImpl(NullabilityMigrationListener listener,
+      {bool permissive: false})
+      : this._(listener, NullabilityGraph(), permissive);
+
+  NullabilityMigrationImpl._(this.listener, this._graph, this._permissive)
+      : _variables = Variables(_graph);
 
   void finish() {
     _graph.propagate();

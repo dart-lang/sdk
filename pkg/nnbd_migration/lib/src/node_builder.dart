@@ -140,7 +140,7 @@ $stackTrace''');
     var type = node.type;
     if (type.isVoid || type.isDynamic) {
       var nullabilityNode = NullabilityNode.forTypeAnnotation(node.end);
-      _graph.connect(NullabilityNode.always, nullabilityNode);
+      _graph.connect(_graph.always, nullabilityNode);
       var decoratedType =
           DecoratedTypeAnnotation(type, nullabilityNode, node.offset);
       _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType,
@@ -186,10 +186,10 @@ $stackTrace''');
     }
     switch (_classifyComment(node.endToken.next.precedingComments)) {
       case _NullabilityComment.bang:
-        _graph.connect(decoratedType.node, NullabilityNode.never, hard: true);
+        _graph.connect(decoratedType.node, _graph.never, hard: true);
         break;
       case _NullabilityComment.question:
-        _graph.connect(NullabilityNode.always, decoratedType.node);
+        _graph.connect(_graph.always, decoratedType.node);
         break;
       case _NullabilityComment.none:
         break;
@@ -238,8 +238,7 @@ $stackTrace''');
     var previousFunctionType = _currentFunctionType;
     // TODO(paulberry): test that it's correct to use `null` for the nullability
     // of the function type
-    var functionType = DecoratedType(
-        declaredElement.type, NullabilityNode.never,
+    var functionType = DecoratedType(declaredElement.type, _graph.never,
         returnType: decoratedReturnType,
         positionalParameters: [],
         namedParameters: {});

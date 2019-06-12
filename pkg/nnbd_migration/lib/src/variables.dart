@@ -13,6 +13,8 @@ import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
 
 class Variables implements VariableRecorder, VariableRepository {
+  final NullabilityGraph _graph;
+
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
   final _decoratedTypeAnnotations =
@@ -20,10 +22,12 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final _potentialModifications = <Source, List<PotentialModification>>{};
 
+  Variables(this._graph);
+
   @override
   DecoratedType decoratedElementType(Element element, {bool create: false}) =>
       _decoratedElementTypes[element] ??= create
-          ? DecoratedType.forElement(element)
+          ? DecoratedType.forElement(element, _graph)
           : throw StateError('No element found');
 
   @override
