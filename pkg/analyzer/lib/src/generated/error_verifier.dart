@@ -1293,6 +1293,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSpreadElement(SpreadElement node) {
+    if (node.spreadOperator.type != TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
+      _checkForNullableDereference(node.expression);
+    }
+    super.visitSpreadElement(node);
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     DartType type =
         resolutionMap.staticElementForConstructorReference(node)?.type;
