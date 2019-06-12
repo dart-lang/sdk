@@ -571,6 +571,10 @@ void StubCodeCompiler::GenerateCallStaticFunctionStub(Assembler* assembler) {
 // (invalid because its function was optimized or deoptimized).
 // R10: arguments descriptor array.
 void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
+  Label monomorphic;
+  __ BranchOnMonomorphicCheckedEntryJIT(&monomorphic);
+
+  // This was a static call.
   // Load code pointer to this stub from the thread:
   // The one that is passed in, is not correct - it points to the code object
   // that needs to be replaced.
@@ -584,6 +588,27 @@ void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ popq(CODE_REG);  // Get Code object.
   __ popq(R10);       // Restore arguments descriptor array.
   __ movq(RAX, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  __ LeaveStubFrame();
+  __ jmp(RAX);
+  __ int3();
+
+  __ Bind(&monomorphic);
+  // This was a switchable call.
+  // Load code pointer to this stub from the thread:
+  // The one that is passed in, is not correct - it points to the code object
+  // that needs to be replaced.
+  __ movq(CODE_REG,
+          Address(THR, target::Thread::fix_callers_target_code_offset()));
+  __ EnterStubFrame();
+  __ pushq(RBX);           // Preserve cache (guarded CID as Smi).
+  __ pushq(RDX);           // Preserve receiver.
+  __ pushq(Immediate(0));  // Result slot.
+  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 0);
+  __ popq(CODE_REG);  // Get Code object.
+  __ popq(RDX);       // Restore receiver.
+  __ popq(RBX);       // Restore cache (guarded CID as Smi).
+  __ movq(RAX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
+                                          CodeEntryKind::kMonomorphic)));
   __ LeaveStubFrame();
   __ jmp(RAX);
   __ int3();
@@ -2500,6 +2525,26 @@ void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
 #endif  // defined(PRODUCT)
 }
 
+void StubCodeCompiler::GenerateUnoptStaticCallBreakpointStub(
+    Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
+  __ EnterStubFrame();
+  __ pushq(RDX);           // Preserve receiver.
+  __ pushq(RBX);           // Preserve IC data.
+  __ pushq(Immediate(0));  // Result slot.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ popq(CODE_REG);  // Original stub.
+  __ popq(RBX);       // Restore IC data.
+  __ popq(RDX);       // Restore receiver.
+  __ LeaveStubFrame();
+
+  __ movq(RAX, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  __ jmp(RAX);  // Jump to original stub.
+#endif  // defined(PRODUCT)
+}
+
 //  TOS(0): return address (Dart code).
 void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 #if defined(PRODUCT)
@@ -3284,18 +3329,18 @@ void StubCodeCompiler::GenerateUnlinkedCallStub(Assembler* assembler) {
   __ pushq(RDX);  // Preserve receiver.
 
   __ pushq(Immediate(0));  // Result slot.
-  __ pushq(RDX);           // Arg0: Receiver
-  __ pushq(RBX);           // Arg1: UnlinkedCall
-  __ CallRuntime(kUnlinkedCallRuntimeEntry, 2);
+  __ pushq(Immediate(0));  // Arg0: stub out.
+  __ pushq(RDX);           // Arg1: Receiver
+  __ pushq(RBX);           // Arg2: UnlinkedCall
+  __ CallRuntime(kUnlinkedCallRuntimeEntry, 3);
   __ popq(RBX);
   __ popq(RBX);
+  __ popq(CODE_REG);  // result = stub
   __ popq(RBX);  // result = IC
 
   __ popq(RDX);  // Restore receiver.
   __ LeaveStubFrame();
 
-  __ movq(CODE_REG,
-          Address(THR, target::Thread::ic_lookup_through_code_stub_offset()));
   __ movq(RCX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                           CodeEntryKind::kMonomorphic)));
   __ jmp(RCX);
@@ -3328,16 +3373,16 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ pushq(RDX);  // Preserve receiver.
 
   __ pushq(Immediate(0));  // Result slot.
-  __ pushq(RDX);           // Arg0: Receiver
-  __ CallRuntime(kSingleTargetMissRuntimeEntry, 1);
+  __ pushq(Immediate(0));  // Arg0: stub out
+  __ pushq(RDX);           // Arg1: Receiver
+  __ CallRuntime(kSingleTargetMissRuntimeEntry, 2);
   __ popq(RBX);
+  __ popq(CODE_REG);  // result = stub
   __ popq(RBX);  // result = IC
 
   __ popq(RDX);  // Restore receiver.
   __ LeaveStubFrame();
 
-  __ movq(CODE_REG,
-          Address(THR, target::Thread::ic_lookup_through_code_stub_offset()));
   __ movq(RCX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                           CodeEntryKind::kMonomorphic)));
   __ jmp(RCX);
@@ -3352,16 +3397,16 @@ void StubCodeCompiler::GenerateMonomorphicMissStub(Assembler* assembler) {
   __ pushq(RDX);  // Preserve receiver.
 
   __ pushq(Immediate(0));  // Result slot.
-  __ pushq(RDX);           // Arg0: Receiver
-  __ CallRuntime(kMonomorphicMissRuntimeEntry, 1);
+  __ pushq(Immediate(0));  // Arg0: stub out.
+  __ pushq(RDX);           // Arg1: Receiver
+  __ CallRuntime(kMonomorphicMissRuntimeEntry, 2);
   __ popq(RBX);
+  __ popq(CODE_REG);  // result = stub
   __ popq(RBX);  // result = IC
 
   __ popq(RDX);  // Restore receiver.
   __ LeaveStubFrame();
 
-  __ movq(CODE_REG,
-          Address(THR, target::Thread::ic_lookup_through_code_stub_offset()));
   __ movq(RCX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                           CodeEntryKind::kMonomorphic)));
   __ jmp(RCX);

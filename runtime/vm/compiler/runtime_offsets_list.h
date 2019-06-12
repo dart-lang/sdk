@@ -35,8 +35,10 @@
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
   CONSTANT(ClassTable, kSizeOfClassPairLog2)                                   \
-  CONSTANT(Instructions, kMonomorphicEntryOffset)                              \
-  CONSTANT(Instructions, kPolymorphicEntryOffset)                              \
+  CONSTANT(Instructions, kMonomorphicEntryOffsetJIT)                           \
+  CONSTANT(Instructions, kPolymorphicEntryOffsetJIT)                           \
+  CONSTANT(Instructions, kMonomorphicEntryOffsetAOT)                           \
+  CONSTANT(Instructions, kPolymorphicEntryOffsetAOT)                           \
   CONSTANT(HeapPage, kBytesPerCardLog2)                                        \
   CONSTANT(NativeEntry, kNumCallWrapperArguments)                              \
   CONSTANT(String, kMaxElements)                                               \
@@ -170,7 +172,6 @@
   FIELD(Thread, float_not_address_offset)                                      \
   FIELD(Thread, float_zerow_address_offset)                                    \
   FIELD(Thread, global_object_pool_offset)                                     \
-  NOT_IN_DBC(FIELD(Thread, ic_lookup_through_code_stub_offset))                \
   NOT_IN_DBC(FIELD(Thread, interpret_call_entry_point_offset))                 \
   NOT_IN_DBC(FIELD(Thread, invoke_dart_code_from_bytecode_stub_offset))        \
   NOT_IN_DBC(FIELD(Thread, invoke_dart_code_stub_offset))                      \

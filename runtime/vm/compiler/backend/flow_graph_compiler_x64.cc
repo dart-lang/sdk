@@ -1051,17 +1051,25 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const Code& stub,
   __ Drop(ic_data.CountWithTypeArgs(), RCX);
 }
 
-void FlowGraphCompiler::EmitInstanceCall(const Code& stub,
-                                         const ICData& ic_data,
-                                         intptr_t deopt_id,
-                                         TokenPosition token_pos,
-                                         LocationSummary* locs) {
+void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
+                                            const ICData& ic_data,
+                                            intptr_t deopt_id,
+                                            TokenPosition token_pos,
+                                            LocationSummary* locs,
+                                            Code::EntryKind entry_kind) {
+  ASSERT(entry_kind == Code::EntryKind::kNormal ||
+         entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
   // Load receiver into RDX.
   __ movq(RDX, Address(RSP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
   __ LoadUniqueObject(RBX, ic_data);
-  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs,
-                   Code::EntryKind::kMonomorphic);
+  __ LoadUniqueObject(CODE_REG, stub);
+  const intptr_t entry_point_offset =
+      entry_kind == Code::EntryKind::kNormal
+          ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
+          : Code::entry_point_offset(Code::EntryKind::kMonomorphicUnchecked);
+  __ call(FieldAddress(CODE_REG, entry_point_offset));
+  EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kIcCall, locs);
   __ Drop(ic_data.CountWithTypeArgs(), RCX);
 }
 
@@ -1107,24 +1115,24 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ Drop(args_desc.CountWithTypeArgs(), RCX);
 }
 
-void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
-                                                   intptr_t deopt_id,
-                                                   TokenPosition token_pos,
-                                                   LocationSummary* locs,
-                                                   Code::EntryKind entry_kind) {
+void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
+                                            intptr_t deopt_id,
+                                            TokenPosition token_pos,
+                                            LocationSummary* locs,
+                                            Code::EntryKind entry_kind) {
   ASSERT(entry_kind == Code::EntryKind::kNormal ||
          entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(ic_data.NumArgsTested() == 1);
   const Code& initial_stub = StubCode::ICCallThroughFunction();
 
-  __ Comment("SwitchableCall");
+  __ Comment("InstanceCallAOT");
   __ movq(RDX, Address(RSP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see clustered_snapshot.cc.
     __ LoadUniqueObject(RCX, initial_stub);
   } else {
-    intptr_t entry_point_offset =
+    const intptr_t entry_point_offset =
         entry_kind == Code::EntryKind::kNormal
             ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
             : Code::entry_point_offset(Code::EntryKind::kMonomorphicUnchecked);

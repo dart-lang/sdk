@@ -339,7 +339,8 @@ intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
 
   // Intrinsification happened.
   if (parsed_function().function().IsDynamicFunction()) {
-    return Instructions::kMonomorphicEntryOffset;
+    return FLAG_precompiled_mode ? Instructions::kPolymorphicEntryOffsetAOT
+                                 : Instructions::kPolymorphicEntryOffsetJIT;
   }
 
   return 0;
@@ -1360,7 +1361,7 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
   if (FLAG_precompiled_mode) {
     // TODO(#34162): Support unchecked entry-points in precompiled mode.
     ic_data = ic_data.AsUnaryClassChecks();
-    EmitSwitchableInstanceCall(ic_data, deopt_id, token_pos, locs, entry_kind);
+    EmitInstanceCallAOT(ic_data, deopt_id, token_pos, locs, entry_kind);
     return;
   }
   ASSERT(!ic_data.IsNull());
@@ -1382,8 +1383,8 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
     return;
   }
 
-  EmitInstanceCall(StubEntryFor(ic_data, /*optimized=*/false), ic_data,
-                   deopt_id, token_pos, locs);
+  EmitInstanceCallJIT(StubEntryFor(ic_data, /*optimized=*/false), ic_data,
+                      deopt_id, token_pos, locs, entry_kind);
 }
 
 void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
@@ -2087,7 +2088,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
           zone(), original_call.ic_data()->AsUnaryClassChecks());
       // TODO(sjindel/entrypoints): Support skiping type checks on switchable
       // calls.
-      EmitSwitchableInstanceCall(unary_checks, deopt_id, token_pos, locs);
+      EmitInstanceCallAOT(unary_checks, deopt_id, token_pos, locs);
     }
   }
 }

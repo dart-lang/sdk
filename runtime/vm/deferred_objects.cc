@@ -124,15 +124,15 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   if (pc != 0) {
     // If the deoptimization happened at an IC call, update the IC data
     // to avoid repeated deoptimization at the same site next time around.
-    ICData& ic_data = ICData::Handle(zone);
-    CodePatcher::GetInstanceCallAt(pc, code, &ic_data);
-    if (!ic_data.IsNull()) {
-      ic_data.AddDeoptReason(deopt_context->deopt_reason());
-      // Propagate the reason to all ICData-s with same deopt_id since
-      // only unoptimized-code ICData (IC calls) are propagated.
-      function.SetDeoptReasonForAll(ic_data.deopt_id(),
-                                    deopt_context->deopt_reason());
-    }
+    // We cannot use CodePatcher::GetInstanceCallAt because the call site
+    // may have switched to from referencing an ICData to a target Code or
+    // MegamorphicCache.
+    ICData& ic_data = ICData::Handle(zone, function.FindICData(deopt_id_));
+    ic_data.AddDeoptReason(deopt_context->deopt_reason());
+    // Propagate the reason to all ICData-s with same deopt_id since
+    // only unoptimized-code ICData (IC calls) are propagated.
+    function.SetDeoptReasonForAll(ic_data.deopt_id(),
+                                  deopt_context->deopt_reason());
   } else {
     if (deopt_context->HasDeoptFlag(ICData::kHoisted)) {
       // Prevent excessive deoptimization.

@@ -3262,7 +3262,7 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* CheckStackOverflowInstr::MakeLocationSummary(Zone* zone,
                                                               bool opt) const {
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 2;
   const bool using_shared_stub = UseSharedSlowPathStub(opt);
   ASSERT((kReservedCpuRegisters & (1 << LR)) != 0);
   LocationSummary* summary = new (zone)
@@ -3270,6 +3270,7 @@ LocationSummary* CheckStackOverflowInstr::MakeLocationSummary(Zone* zone,
                       using_shared_stub ? LocationSummary::kCallOnSharedSlowPath
                                         : LocationSummary::kCallOnSlowPath);
   summary->set_temp(0, Location::RequiresRegister());
+  summary->set_temp(1, Location::RequiresRegister());
   return summary;
 }
 
@@ -3377,16 +3378,22 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddSlowPathCode(slow_path);
   __ b(slow_path->entry_label(), LS);
   if (compiler->CanOSRFunction() && in_loop()) {
-    const Register temp = locs()->temp(0).reg();
+    const Register function = locs()->temp(0).reg();
+    const Register count = locs()->temp(1).reg();
     // In unoptimized code check the usage counter to trigger OSR at loop
     // stack checks.  Use progressively higher thresholds for more deeply
     // nested loops to attempt to hit outer loops with OSR when possible.
-    __ LoadObject(temp, compiler->parsed_function().function());
+    __ LoadObject(function, compiler->parsed_function().function());
     intptr_t threshold =
         FLAG_optimization_counter_threshold * (loop_depth() + 1);
-    __ ldr(temp, FieldAddress(
-                     temp, compiler::target::Function::usage_counter_offset()));
-    __ CompareImmediate(temp, threshold);
+    __ ldr(count,
+           FieldAddress(function,
+                        compiler::target::Function::usage_counter_offset()));
+    __ add(count, count, Operand(1));
+    __ str(count,
+           FieldAddress(function,
+                        compiler::target::Function::usage_counter_offset()));
+    __ CompareImmediate(count, threshold);
     __ b(slow_path->osr_entry_label(), GE);
   }
   if (compiler->ForceSlowPathForStackOverflow()) {

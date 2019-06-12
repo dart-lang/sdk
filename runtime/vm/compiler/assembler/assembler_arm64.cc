@@ -1461,9 +1461,44 @@ void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
 }
 
+// R0 receiver, R5 ICData entries array
+// Preserve R4 (ARGS_DESC_REG), not required today, but maybe later.
+void Assembler::MonomorphicCheckedEntryJIT() {
+  ASSERT(has_single_entry_point_);
+  has_single_entry_point_ = false;
+  const bool saved_use_far_branches = use_far_branches();
+  set_use_far_branches(false);
+
+  Label immediate, miss;
+  Bind(&miss);
+  ldr(IP0, Address(THR, Thread::monomorphic_miss_entry_offset()));
+  br(IP0);
+
+  Comment("MonomorphicCheckedEntry");
+  ASSERT(CodeSize() == Instructions::kMonomorphicEntryOffsetJIT);
+
+  const intptr_t cid_offset = target::Array::element_offset(0);
+  const intptr_t count_offset = target::Array::element_offset(1);
+
+  // Sadly this cannot use ldp because ldp requires aligned offsets.
+  ldr(R1, FieldAddress(R5, cid_offset));
+  ldr(R2, FieldAddress(R5, count_offset));
+  LoadClassIdMayBeSmi(IP0, R0);
+  add(R2, R2, Operand(target::ToRawSmi(1)));
+  cmp(R1, Operand(IP0, LSL, 1));
+  b(&miss, NE);
+  str(R2, FieldAddress(R5, count_offset));
+  LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction.
+
+  // Fall through to unchecked entry.
+  ASSERT(CodeSize() == Instructions::kPolymorphicEntryOffsetJIT);
+
+  set_use_far_branches(saved_use_far_branches);
+}
+
 // R0 receiver, R5 guarded cid as Smi.
 // Preserve R4 (ARGS_DESC_REG), not required today, but maybe later.
-void Assembler::MonomorphicCheckedEntry() {
+void Assembler::MonomorphicCheckedEntryAOT() {
   ASSERT(has_single_entry_point_);
   has_single_entry_point_ = false;
   bool saved_use_far_branches = use_far_branches();
@@ -1477,15 +1512,26 @@ void Assembler::MonomorphicCheckedEntry() {
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffsetAOT);
   LoadClassIdMayBeSmi(IP0, R0);
   cmp(R5, Operand(IP0, LSL, 1));
   b(&miss, NE);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffsetAOT);
 
   set_use_far_branches(saved_use_far_branches);
+}
+
+void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
+  has_single_entry_point_ = false;
+  while (CodeSize() < Instructions::kMonomorphicEntryOffsetJIT) {
+    brk(0);
+  }
+  b(label);
+  while (CodeSize() < Instructions::kPolymorphicEntryOffsetJIT) {
+    brk(0);
+  }
 }
 
 #ifndef PRODUCT

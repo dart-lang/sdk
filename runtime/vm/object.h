@@ -1697,6 +1697,18 @@ class ICData : public Object {
   RebindRule rebind_rule() const;
   void set_rebind_rule(uint32_t rebind_rule) const;
 
+  // This bit is set when a call site becomes megamorphic and starts using a
+  // MegamorphicCache instead of ICData. It means that the entries in the
+  // ICData are incomplete and the MegamorphicCache needs to also be consulted
+  // to list the call site's observed receiver classes and targets.
+  bool is_megamorphic() const {
+    return MegamorphicBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_megamorphic(bool value) const {
+    StoreNonPointer(&raw_ptr()->state_bits_,
+                    MegamorphicBit::update(value, raw_ptr()->state_bits_));
+  }
+
   // The length of the array. This includes all sentinel entries including
   // the final one.
   intptr_t Length() const;
@@ -1826,9 +1838,9 @@ class ICData : public Object {
   // Used for printing and optimizations.
   RawICData* AsUnaryClassChecksSortedByCount() const;
 
+  RawMegamorphicCache* AsMegamorphicCache() const;
+
   // Consider only used entries.
-  bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
-  bool AllReceiversAreNumbers() const;
   bool HasOneTarget() const;
   bool HasReceiverClassId(intptr_t class_id) const;
 
@@ -1889,12 +1901,12 @@ class ICData : public Object {
 
   intptr_t FindCheck(const GrowableArray<intptr_t>& cids) const;
 
- private:
-  static RawICData* New();
-
   RawArray* entries() const {
     return AtomicOperations::LoadAcquire(&raw_ptr()->entries_);
   }
+
+ private:
+  static RawICData* New();
 
   // Grows the array and also sets the argument to the index that should be used
   // for the new entry.
@@ -1918,7 +1930,9 @@ class ICData : public Object {
     kDeoptReasonPos = kTrackingExactnessPos + kTrackingExactnessSize,
     kDeoptReasonSize = kLastRecordedDeoptReason + 1,
     kRebindRulePos = kDeoptReasonPos + kDeoptReasonSize,
-    kRebindRuleSize = 3
+    kRebindRuleSize = 3,
+    kMegamorphicPos = kRebindRulePos + kRebindRuleSize,
+    kMegamorphicSize = 1,
   };
 
   COMPILE_ASSERT(kNumRebindRules <= (1 << kRebindRuleSize));
@@ -1939,6 +1953,9 @@ class ICData : public Object {
                                          uint32_t,
                                          ICData::kRebindRulePos,
                                          ICData::kRebindRuleSize> {};
+  class MegamorphicBit
+      : public BitField<uint32_t, bool, kMegamorphicPos, kMegamorphicSize> {};
+
 #if defined(DEBUG)
   // Used in asserts to verify that a check is not added twice.
   bool HasCheck(const GrowableArray<intptr_t>& cids) const;
@@ -2863,6 +2880,7 @@ class Function : public Object {
 
   RawArray* ic_data_array() const;
   void ClearICDataArray() const;
+  RawICData* FindICData(intptr_t deopt_id) const;
 
   // Sets deopt reason in all ICData-s with given deopt_id.
   void SetDeoptReasonForAll(intptr_t deopt_id, ICData::DeoptReasonId reason);
@@ -4488,20 +4506,30 @@ class Instructions : public Object {
   // Note: We keep the checked entrypoint offsets even (emitting NOPs if
   // necessary) to allow them to be seen as Smis by the GC.
 #if defined(TARGET_ARCH_IA32)
-  static const intptr_t kPolymorphicEntryOffset = 0;
-  static const intptr_t kMonomorphicEntryOffset = 0;
+  static const intptr_t kMonomorphicEntryOffsetJIT = 6;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 34;
+  static const intptr_t kMonomorphicEntryOffsetAOT = 0;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 0;
 #elif defined(TARGET_ARCH_X64)
-  static const intptr_t kPolymorphicEntryOffset = 8;
-  static const intptr_t kMonomorphicEntryOffset = 32;
+  static const intptr_t kMonomorphicEntryOffsetJIT = 8;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 40;
+  static const intptr_t kMonomorphicEntryOffsetAOT = 8;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 32;
 #elif defined(TARGET_ARCH_ARM)
-  static const intptr_t kPolymorphicEntryOffset = 0;
-  static const intptr_t kMonomorphicEntryOffset = 20;
+  static const intptr_t kMonomorphicEntryOffsetJIT = 0;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 40;
+  static const intptr_t kMonomorphicEntryOffsetAOT = 0;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 20;
 #elif defined(TARGET_ARCH_ARM64)
-  static const intptr_t kPolymorphicEntryOffset = 8;
-  static const intptr_t kMonomorphicEntryOffset = 28;
+  static const intptr_t kMonomorphicEntryOffsetJIT = 8;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 48;
+  static const intptr_t kMonomorphicEntryOffsetAOT = 8;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 28;
 #elif defined(TARGET_ARCH_DBC)
-  static const intptr_t kPolymorphicEntryOffset = 0;
-  static const intptr_t kMonomorphicEntryOffset = 0;
+  static const intptr_t kMonomorphicEntryOffsetJIT = 0;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 0;
+  static const intptr_t kMonomorphicEntryOffsetAOT = 0;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 0;
 #else
 #error Missing entry offsets for current architecture
 #endif
@@ -4509,7 +4537,8 @@ class Instructions : public Object {
   static uword MonomorphicEntryPoint(const RawInstructions* instr) {
     uword entry = PayloadStart(instr);
     if (!HasSingleEntryPoint(instr)) {
-      entry += kPolymorphicEntryOffset;
+      entry += !FLAG_precompiled_mode ? kMonomorphicEntryOffsetJIT
+                                      : kMonomorphicEntryOffsetAOT;
     }
     return entry;
   }
@@ -4517,7 +4546,8 @@ class Instructions : public Object {
   static uword EntryPoint(const RawInstructions* instr) {
     uword entry = PayloadStart(instr);
     if (!HasSingleEntryPoint(instr)) {
-      entry += kMonomorphicEntryOffset;
+      entry += !FLAG_precompiled_mode ? kPolymorphicEntryOffsetJIT
+                                      : kPolymorphicEntryOffsetAOT;
     }
     return entry;
   }
@@ -4526,7 +4556,8 @@ class Instructions : public Object {
     uword entry =
         PayloadStart(instr) + instr->ptr()->unchecked_entrypoint_pc_offset_;
     if (!HasSingleEntryPoint(instr)) {
-      entry += kMonomorphicEntryOffset;
+      entry += !FLAG_precompiled_mode ? kPolymorphicEntryOffsetJIT
+                                      : kPolymorphicEntryOffsetAOT;
     }
     return entry;
   }
@@ -4535,7 +4566,8 @@ class Instructions : public Object {
     uword entry =
         PayloadStart(instr) + instr->ptr()->unchecked_entrypoint_pc_offset_;
     if (!HasSingleEntryPoint(instr)) {
-      entry += kPolymorphicEntryOffset;
+      entry += !FLAG_precompiled_mode ? kMonomorphicEntryOffsetJIT
+                                      : kMonomorphicEntryOffsetAOT;
     }
     return entry;
   }
@@ -5038,6 +5070,10 @@ class Code : public Object {
     return OptimizedBit::decode(raw_ptr()->state_bits_);
   }
   void set_is_optimized(bool value) const;
+  static bool IsOptimized(RawCode* code) {
+    return Code::OptimizedBit::decode(code->ptr()->state_bits_);
+  }
+
   bool is_alive() const { return AliveBit::decode(raw_ptr()->state_bits_); }
   void set_is_alive(bool value) const;
 
@@ -5090,6 +5126,7 @@ class Code : public Object {
   // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas
   // that are embedded inside the Code or ObjecPool objects.
   void ResetICDatas(Zone* zone) const;
+  void ResetSwitchableCalls(Zone* zone) const;
 
   // Array of DeoptInfo objects.
   RawArray* deopt_info_array() const {
@@ -5416,10 +5453,6 @@ class Code : public Object {
 
     DISALLOW_COPY_AND_ASSIGN(SlowFindRawCodeVisitor);
   };
-
-  static bool IsOptimized(RawCode* code) {
-    return Code::OptimizedBit::decode(code->ptr()->state_bits_);
-  }
 
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
 
@@ -5771,6 +5804,12 @@ class MegamorphicCache : public Object {
   static const intptr_t kSpreadFactor = 7;
   static const double kLoadFactor;
 
+  enum EntryType {
+    kClassIdIndex,
+    kTargetFunctionIndex,
+    kEntryLength,
+  };
+
   RawArray* buckets() const;
   void set_buckets(const Array& buckets) const;
 
@@ -5816,12 +5855,6 @@ class MegamorphicCache : public Object {
 
   void set_target_name(const String& value) const;
   void set_arguments_descriptor(const Array& value) const;
-
-  enum {
-    kClassIdIndex,
-    kTargetFunctionIndex,
-    kEntryLength,
-  };
 
   static inline void SetEntry(const Array& array,
                               intptr_t index,
@@ -9959,6 +9992,9 @@ using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
                                                            TypeArguments,
                                                            TypeArguments,
                                                            TypeArguments>>;
+
+using MegamorphicCacheEntries =
+    ArrayOfTuplesView<MegamorphicCache::EntryType, std::tuple<Smi, Object>>;
 
 void DumpTypeTable(Isolate* isolate);
 void DumpTypeArgumentsTable(Isolate* isolate);

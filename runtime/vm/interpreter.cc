@@ -565,6 +565,12 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
       USE(entrypoint);
       UNIMPLEMENTED();
 #elif defined(USING_SIMULATOR)
+      // We need to beware that bouncing between the interpreter and the
+      // simulator may exhaust the C stack before exhausting either the
+      // interpreter or simulator stacks.
+      if (!thread->os_thread()->HasStackHeadroom()) {
+        thread->SetStackLimit(-1);
+      }
       result = bit_copy<RawObject*, int64_t>(
           Simulator::Current()->Call(reinterpret_cast<intptr_t>(entrypoint),
                                      reinterpret_cast<intptr_t>(code),

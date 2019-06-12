@@ -1742,9 +1742,9 @@ void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
 }
 
-// RDX receiver, RBX guarded cid as Smi.
+// RDX receiver, RBX ICData entries array
 // Preserve R10 (ARGS_DESC_REG), not required today, but maybe later.
-void Assembler::MonomorphicCheckedEntry() {
+void Assembler::MonomorphicCheckedEntryJIT() {
   has_single_entry_point_ = false;
   intptr_t start = CodeSize();
   Label have_cid, miss;
@@ -1756,7 +1756,38 @@ void Assembler::MonomorphicCheckedEntry() {
   nop(1);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffsetJIT);
+  ASSERT((CodeSize() & kSmiTagMask) == kSmiTag);
+
+  const intptr_t cid_offset = target::Array::element_offset(0);
+  const intptr_t count_offset = target::Array::element_offset(1);
+
+  LoadTaggedClassIdMayBeSmi(RAX, RDX);
+
+  cmpq(RAX, FieldAddress(RBX, cid_offset));
+  j(NOT_EQUAL, &miss, Assembler::kNearJump);
+  addl(FieldAddress(RBX, count_offset), Immediate(target::ToRawSmi(1)));
+  xorq(R10, R10);  // GC-safe for OptimizeInvokedFunction.
+  nop(1);
+
+  // Fall through to unchecked entry.
+  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffsetJIT);
+  ASSERT(((CodeSize() - start) & kSmiTagMask) == kSmiTag);
+}
+
+void Assembler::MonomorphicCheckedEntryAOT() {
+  has_single_entry_point_ = false;
+  intptr_t start = CodeSize();
+  Label have_cid, miss;
+  Bind(&miss);
+  jmp(Address(THR, Thread::monomorphic_miss_entry_offset()));
+
+  // Ensure the monomorphic entry is 2-byte aligned (so GC can see them if we
+  // store them in ICData / MegamorphicCache arrays)
+  nop(1);
+
+  Comment("MonomorphicCheckedEntry");
+  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffsetAOT);
   ASSERT((CodeSize() & kSmiTagMask) == kSmiTag);
 
   movq(RAX, Immediate(kSmiCid));
@@ -1774,8 +1805,19 @@ void Assembler::MonomorphicCheckedEntry() {
   nop(1);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffsetAOT);
   ASSERT(((CodeSize() - start) & kSmiTagMask) == kSmiTag);
+}
+
+void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
+  has_single_entry_point_ = false;
+  while (CodeSize() < Instructions::kMonomorphicEntryOffsetJIT) {
+    int3();
+  }
+  jmp(label);
+  while (CodeSize() < Instructions::kPolymorphicEntryOffsetJIT) {
+    int3();
+  }
 }
 
 #ifndef PRODUCT

@@ -101,6 +101,14 @@ class NativeArguments {
     return *arg_ptr;
   }
 
+  void SetArgAt(int index, const Object& value) const {
+    ASSERT(thread_->execution_state() == Thread::kThreadInVM);
+    ASSERT((index >= 0) && (index < ArgCount()));
+    RawObject** arg_ptr =
+        &(argv_[ReverseArgOrderBit::decode(argc_tag_) ? index : -index]);
+    *arg_ptr = value.raw();
+  }
+
   // Does not include hidden type arguments vector.
   int NativeArgCount() const {
     int function_bits = FunctionBits::decode(argc_tag_);
@@ -157,8 +165,6 @@ class NativeArguments {
     }
     return type_args.TypeAt(index);
   }
-
-  RawObject** ReturnValueAddress() const { return retval_; }
 
   void SetReturn(const Object& value) const {
     ASSERT(thread_->execution_state() == Thread::kThreadInVM);

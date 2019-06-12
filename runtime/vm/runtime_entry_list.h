@@ -18,6 +18,7 @@ namespace dart {
   V(GetFieldForDispatch)                                                       \
   V(ResolveCallFunction)                                                       \
   V(FixCallersTarget)                                                          \
+  V(FixCallersTargetMonomorphic)                                               \
   V(FixAllocationStubTarget)                                                   \
   V(InlineCacheMissHandlerOneArg)                                              \
   V(InlineCacheMissHandlerTwoArgs)                                             \

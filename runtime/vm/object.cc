@@ -8006,6 +8006,18 @@ void Function::ClearICDataArray() const {
   set_ic_data_array(Array::null_array());
 }
 
+RawICData* Function::FindICData(intptr_t deopt_id) const {
+  const Array& array = Array::Handle(ic_data_array());
+  ICData& ic_data = ICData::Handle();
+  for (intptr_t i = 1; i < array.Length(); i++) {
+    ic_data ^= array.At(i);
+    if (ic_data.deopt_id() == deopt_id) {
+      return ic_data.raw();
+    }
+  }
+  return ICData::null();
+}
+
 void Function::SetDeoptReasonForAll(intptr_t deopt_id,
                                     ICData::DeoptReasonId reason) {
   const Array& array = Array::Handle(ic_data_array());
@@ -8049,6 +8061,10 @@ RawCode* Function::EnsureHasCode() const {
   const Object& result =
       Object::Handle(zone, Compiler::CompileFunction(thread, *this));
   if (result.IsError()) {
+    if (result.IsLanguageError()) {
+      Exceptions::ThrowCompileTimeError(LanguageError::Cast(result));
+      UNREACHABLE();
+    }
     Exceptions::PropagateError(Error::Cast(result));
     UNREACHABLE();
   }
@@ -14121,19 +14137,10 @@ RawICData* ICData::AsUnaryClassChecksSortedByCount() const {
   return result.raw();
 }
 
-bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
-  if (NumberOfChecksIs(0)) return false;
-  Class& cls = Class::Handle();
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    if (IsUsedAt(i)) {
-      cls = Function::Handle(GetTargetAt(i)).Owner();
-      if (cls.id() != owner_cid) {
-        return false;
-      }
-    }
-  }
-  return true;
+RawMegamorphicCache* ICData::AsMegamorphicCache() const {
+  const String& name = String::Handle(target_name());
+  const Array& descriptor = Array::Handle(arguments_descriptor());
+  return MegamorphicCacheTable::Lookup(Isolate::Current(), name, descriptor);
 }
 
 bool ICData::HasReceiverClassId(intptr_t class_id) const {
@@ -14152,6 +14159,8 @@ bool ICData::HasReceiverClassId(intptr_t class_id) const {
 
 // Returns true if all targets are the same.
 // TODO(srdjan): if targets are native use their C_function to compare.
+// TODO(rmacnak): this question should only be asked against a CallTargets,
+// not an ICData.
 bool ICData::HasOneTarget() const {
   ASSERT(!NumberOfChecksIs(0));
   const Function& first_target = Function::Handle(GetTargetAt(0));
@@ -14159,6 +14168,23 @@ bool ICData::HasOneTarget() const {
   for (intptr_t i = 1; i < len; i++) {
     if (IsUsedAt(i) && (GetTargetAt(i) != first_target.raw())) {
       return false;
+    }
+  }
+  if (is_megamorphic()) {
+    const MegamorphicCache& cache =
+        MegamorphicCache::Handle(AsMegamorphicCache());
+    SafepointMutexLocker ml(Isolate::Current()->megamorphic_lookup_mutex());
+    MegamorphicCacheEntries entries(Array::Handle(cache.buckets()));
+    for (intptr_t i = 0; i < entries.Length(); i++) {
+      const intptr_t id =
+          Smi::Value(entries[i].Get<MegamorphicCache::kClassIdIndex>());
+      if (id == kIllegalCid) {
+        continue;
+      }
+      if (entries[i].Get<MegamorphicCache::kTargetFunctionIndex>() !=
+          first_target.raw()) {
+        return false;
+      }
     }
   }
   return true;
@@ -14319,6 +14345,7 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
       AbstractType::Handle(from.receivers_static_type())));
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
+  result.set_is_megamorphic(from.is_megamorphic());
   return result.raw();
 }
 
@@ -14343,6 +14370,7 @@ RawICData* ICData::Clone(const ICData& from) {
   result.set_entries(cloned_array);
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
+  result.set_is_megamorphic(from.is_megamorphic());
   return result.raw();
 }
 #endif
@@ -15675,6 +15703,7 @@ void MegamorphicCache::EnsureCapacity() const {
 void MegamorphicCache::Insert(const Smi& class_id, const Object& target) const {
   ASSERT(static_cast<double>(filled_entry_count() + 1) <=
          (kLoadFactor * static_cast<double>(mask() + 1)));
+  SafepointMutexLocker ml(Isolate::Current()->megamorphic_lookup_mutex());
   const Array& backing_array = Array::Handle(buckets());
   intptr_t id_mask = mask();
   intptr_t index = (class_id.Value() * kSpreadFactor) & id_mask;

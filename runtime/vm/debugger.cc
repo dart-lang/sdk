@@ -1860,18 +1860,26 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 // that inline the function that contains the newly created breakpoint.
 // We currently don't have this info so we deoptimize all functions.
 void Debugger::DeoptimizeWorld() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   BackgroundCompiler::Stop(isolate_);
   if (FLAG_trace_deoptimization) {
     THR_Print("Deopt for debugger\n");
   }
+  isolate_->set_has_attempted_stepping(true);
+
   DeoptimizeFunctionsOnStack();
+
   // Iterate over all classes, deoptimize functions.
   // TODO(hausner): Could possibly be combined with RemoveOptimizedCode()
   const ClassTable& class_table = *isolate_->class_table();
-  Class& cls = Class::Handle();
-  Array& functions = Array::Handle();
-  GrowableObjectArray& closures = GrowableObjectArray::Handle();
-  Function& function = Function::Handle();
+  Zone* zone = Thread::Current()->zone();
+  Class& cls = Class::Handle(zone);
+  Array& functions = Array::Handle(zone);
+  GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
+  Function& function = Function::Handle(zone);
+  Code& code = Code::Handle(zone);
   intptr_t num_classes = class_table.NumCids();
   for (intptr_t i = 1; i < num_classes; i++) {
     if (class_table.HasValidClassAt(i)) {
@@ -1887,11 +1895,19 @@ void Debugger::DeoptimizeWorld() {
           if (function.HasOptimizedCode()) {
             function.SwitchToUnoptimizedCode();
           }
+          code = function.unoptimized_code();
+          if (!code.IsNull()) {
+            code.ResetSwitchableCalls(zone);
+          }
           // Also disable any optimized implicit closure functions.
           if (function.HasImplicitClosureFunction()) {
             function = function.ImplicitClosureFunction();
             if (function.HasOptimizedCode()) {
               function.SwitchToUnoptimizedCode();
+            }
+            code = function.unoptimized_code();
+            if (!code.IsNull()) {
+              code.ResetSwitchableCalls(zone);
             }
           }
         }
@@ -1908,7 +1924,12 @@ void Debugger::DeoptimizeWorld() {
     if (function.HasOptimizedCode()) {
       function.SwitchToUnoptimizedCode();
     }
+    code = function.unoptimized_code();
+    if (!code.IsNull()) {
+      code.ResetSwitchableCalls(zone);
+    }
   }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Debugger::NotifySingleStepping(bool value) const {

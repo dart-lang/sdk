@@ -616,11 +616,12 @@ class FlowGraphCompiler : public ValueObject {
       LocationSummary* locs,
       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
-  void EmitInstanceCall(const Code& stub,
-                        const ICData& ic_data,
-                        intptr_t deopt_id,
-                        TokenPosition token_pos,
-                        LocationSummary* locs);
+  void EmitInstanceCallJIT(const Code& stub,
+                           const ICData& ic_data,
+                           intptr_t deopt_id,
+                           TokenPosition token_pos,
+                           LocationSummary* locs,
+                           Code::EntryKind entry_kind);
 
   void EmitPolymorphicInstanceCall(
       const CallTargets& targets,
@@ -641,7 +642,7 @@ class FlowGraphCompiler : public ValueObject {
                                    intptr_t try_index,
                                    intptr_t slow_path_argument_count = 0);
 
-  void EmitSwitchableInstanceCall(
+  void EmitInstanceCallAOT(
       const ICData& ic_data,
       intptr_t deopt_id,
       TokenPosition token_pos,
