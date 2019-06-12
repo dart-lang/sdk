@@ -645,6 +645,18 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_genericType_noTypeArguments() async {
+    var content = '''
+void f(C c) {}
+class C<E> {}
+''';
+    var expected = '''
+void f(C c) {}
+class C<E> {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_getter_topLevel() async {
     var content = '''
 int get g => 0;

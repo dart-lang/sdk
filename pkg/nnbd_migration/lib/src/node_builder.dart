@@ -153,9 +153,13 @@ $stackTrace''');
     var namedParameters = const <String, DecoratedType>{};
     if (type is InterfaceType && type.typeParameters.isNotEmpty) {
       if (node is TypeName) {
-        assert(node.typeArguments != null);
-        typeArguments =
-            node.typeArguments.arguments.map((t) => t.accept(this)).toList();
+        if (node.typeArguments == null) {
+          typeArguments =
+              type.typeArguments.map(_decorateImplicitTypeArgument).toList();
+        } else {
+          typeArguments =
+              node.typeArguments.arguments.map((t) => t.accept(this)).toList();
+        }
       } else {
         assert(false); // TODO(paulberry): is this possible?
       }
@@ -225,6 +229,16 @@ $stackTrace''');
       if (token.lexeme == '/*?*/') return _NullabilityComment.question;
     }
     return _NullabilityComment.none;
+  }
+
+  /// Creates a DecoratedType corresponding to [type], with fresh nullability
+  /// nodes everywhere that don't correspond to any source location.  These
+  /// nodes can later be unioned with other nodes.
+  DecoratedType _decorateImplicitTypeArgument(DartType type) {
+    if (type.isDynamic) {
+      return DecoratedType(type, _graph.always);
+    }
+    throw UnimplementedError('TODO(paulberry): ${type.runtimeType}');
   }
 
   /// Common handling of function and method declarations.

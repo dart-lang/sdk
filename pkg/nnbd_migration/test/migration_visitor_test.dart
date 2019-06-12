@@ -1339,6 +1339,19 @@ void f(void Function(int) x) {}
     expect(decoratedIntType.node, isNot(never));
   }
 
+  test_interfaceType_generic_instantiate_to_dynamic() async {
+    await analyze('''
+void f(List x) {}
+''');
+    var decoratedListType = decoratedTypeAnnotation('List');
+    expect(decoratedFunctionType('f').positionalParameters[0],
+        same(decoratedListType));
+    expect(decoratedListType.node, isNotNull);
+    expect(decoratedListType.node, isNot(never));
+    var decoratedArgType = decoratedListType.typeArguments[0];
+    expect(decoratedArgType.node, same(always));
+  }
+
   test_interfaceType_typeParameter() async {
     await analyze('''
 void f(List<int> x) {}
