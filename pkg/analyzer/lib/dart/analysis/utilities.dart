@@ -6,9 +6,17 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:meta/meta.dart';
 
 /// Return the result of parsing the file at the given [path].
@@ -23,6 +31,36 @@ ParsedUnitResult parseFile(
   AnalysisContext context =
       _createAnalysisContext(path: path, resourceProvider: resourceProvider);
   return context.currentSession.getParsedUnit(path);
+}
+
+/// Returns the result of parsing the given [content] as a compilation unit.
+///
+/// If a [featureSet] is provided, it will be the default set of features that
+/// will be assumed by the parser.
+///
+/// If [throwIfDiagnostics] is `true` (the default), then if any diagnostics are
+/// produced because of syntactic errors in the [content] an `ArgumentError`
+/// will be thrown. If the parameter is `false`, then the caller can check the
+/// result to see whether there are any `errors`.
+ParseStringResult parseString(
+    {@required String content,
+    FeatureSet featureSet,
+    bool throwIfDiagnostics: true}) {
+  featureSet ??= FeatureSet.fromEnableFlags([]);
+  var source = StringSource(content, null);
+  var reader = CharSequenceReader(content);
+  var errorCollector = RecordingErrorListener();
+  var scanner = Scanner(source, reader, errorCollector)
+    ..configureFeatures(featureSet);
+  var token = scanner.tokenize();
+  var parser = Parser(source, errorCollector, featureSet: scanner.featureSet);
+  var unit = parser.parseCompilationUnit(token);
+  ParseStringResult result = ParseStringResultImpl(
+      content, LineInfo(scanner.lineStarts), unit, errorCollector.errors);
+  if (throwIfDiagnostics && result.errors.isNotEmpty) {
+    throw new ArgumentError('Content produced diagnostics when parsed');
+  }
+  return result;
 }
 
 /// Return the result of resolving the file at the given [path].
