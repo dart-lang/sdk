@@ -273,28 +273,15 @@ ir.FunctionNode getFunctionNode(
   MemberDefinition definition = elementMap.getMemberDefinition(member);
   switch (definition.kind) {
     case MemberKind.regular:
-      ir.Node node = definition.node;
-      if (node is ir.Procedure) {
-        return node.function;
-      }
-      break;
+      ir.Member node = definition.node;
+      return node.function;
     case MemberKind.constructor:
     case MemberKind.constructorBody:
-      ir.Node node = definition.node;
-      if (node is ir.Procedure) {
-        return node.function;
-      } else if (node is ir.Constructor) {
-        return node.function;
-      }
-      break;
+      ir.Member node = definition.node;
+      return node.function;
     case MemberKind.closureCall:
-      ir.Node node = definition.node;
-      if (node is ir.FunctionDeclaration) {
-        return node.function;
-      } else if (node is ir.FunctionExpression) {
-        return node.function;
-      }
-      break;
+      ir.LocalFunction node = definition.node;
+      return node.function;
     default:
   }
   return null;
@@ -303,23 +290,29 @@ ir.FunctionNode getFunctionNode(
 // TODO(johnniwinther,efortuna): Add more when needed.
 // TODO(johnniwinther): Should we split regular into method, field, etc.?
 enum MemberKind {
-  // A regular member defined by an [ir.Node].
+  /// A regular member defined by an [ir.Node].
   regular,
-  // A constructor whose initializer is defined by an [ir.Constructor] node.
+
+  /// A constructor whose initializer is defined by an [ir.Constructor] node.
   constructor,
-  // A constructor whose body is defined by an [ir.Constructor] node.
+
+  /// A constructor whose body is defined by an [ir.Constructor] node.
   constructorBody,
-  // A closure class `call` method whose body is defined by an
-  // [ir.FunctionExpression] or [ir.FunctionDeclaration].
+
+  /// A closure class `call` method whose body is defined by an
+  /// [ir.LocalFunction].
   closureCall,
-  // A field corresponding to a captured variable in the closure. It does not
-  // have a corresponding ir.Node.
+
+  /// A field corresponding to a captured variable in the closure. It does not
+  /// have a corresponding ir.Node.
   closureField,
-  // A method that describes the type of a function (in this case the type of
-  // the closure class. It does not have a corresponding ir.Node or a method
-  // body.
+
+  /// A method that describes the type of a function (in this case the type of
+  /// the closure class. It does not have a corresponding ir.Node or a method
+  /// body.
   signature,
-  // A separated body of a generator (sync*/async/async*) function.
+
+  /// A separated body of a generator (sync*/async/async*) function.
   generatorBody,
 }
 
@@ -588,17 +581,10 @@ void forEachOrderedParameter(JsToElementMap elementMap, FunctionEntity function,
       }
       break;
     case MemberKind.closureCall:
-      ir.Node node = definition.node;
-      if (node is ir.FunctionDeclaration) {
-        forEachOrderedParameterByFunctionNode(
-            node.function, parameterStructure, handleParameter);
-        return;
-      } else if (node is ir.FunctionExpression) {
-        forEachOrderedParameterByFunctionNode(
-            node.function, parameterStructure, handleParameter);
-        return;
-      }
-      break;
+      ir.LocalFunction node = definition.node;
+      forEachOrderedParameterByFunctionNode(
+          node.function, parameterStructure, handleParameter);
+      return;
     default:
   }
   failedAt(function, "Unexpected function definition $definition.");

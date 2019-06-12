@@ -484,9 +484,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
   }
 
   void visitInvokable(ir.TreeNode node, void f()) {
-    assert(node is ir.Member ||
-        node is ir.FunctionExpression ||
-        node is ir.FunctionDeclaration);
+    assert(node is ir.Member || node is ir.LocalFunction);
     bool oldIsInsideClosure = _isInsideClosure;
     ir.TreeNode oldExecutableContext = _executableContext;
     KernelScopeInfo oldScopeInfo = _currentScopeInfo;
@@ -866,8 +864,7 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
     if (node.arguments.types.isNotEmpty) {
       VariableUse usage;
       if (receiver is ir.VariableGet &&
-          (receiver.variable.parent is ir.FunctionDeclaration ||
-              receiver.variable.parent is ir.FunctionExpression)) {
+          (receiver.variable.parent is ir.LocalFunction)) {
         usage =
             new VariableUse.localTypeArgument(receiver.variable.parent, node);
       } else {

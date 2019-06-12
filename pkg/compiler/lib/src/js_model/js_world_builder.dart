@@ -143,20 +143,18 @@ class JsClosedWorldBuilder {
           callMethods);
     } else {
       RuntimeTypesNeedImpl kernelRtiNeed = closedWorld.rtiNeed;
-      Set<ir.Node> localFunctionsNodesNeedingSignature = new Set<ir.Node>();
+      Set<ir.LocalFunction> localFunctionsNodesNeedingSignature =
+          new Set<ir.LocalFunction>();
       for (KLocalFunction localFunction
           in kernelRtiNeed.localFunctionsNeedingSignature) {
-        ir.Node node = localFunction.node;
-        assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression,
-            "Unexpected local function node: $node");
+        ir.LocalFunction node = localFunction.node;
         localFunctionsNodesNeedingSignature.add(node);
       }
-      Set<ir.Node> localFunctionsNodesNeedingTypeArguments = new Set<ir.Node>();
+      Set<ir.LocalFunction> localFunctionsNodesNeedingTypeArguments =
+          new Set<ir.LocalFunction>();
       for (KLocalFunction localFunction
           in kernelRtiNeed.localFunctionsNeedingTypeArguments) {
-        ir.Node node = localFunction.node;
-        assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression,
-            "Unexpected local function node: $node");
+        ir.LocalFunction node = localFunction.node;
         localFunctionsNodesNeedingTypeArguments.add(node);
       }
 
@@ -172,12 +170,12 @@ class JsClosedWorldBuilder {
           callMethods);
 
       List<FunctionEntity> callMethodsNeedingSignature = <FunctionEntity>[];
-      for (ir.Node node in localFunctionsNodesNeedingSignature) {
+      for (ir.LocalFunction node in localFunctionsNodesNeedingSignature) {
         callMethodsNeedingSignature
             .add(closureData.getClosureInfo(node).callMethod);
       }
       List<FunctionEntity> callMethodsNeedingTypeArguments = <FunctionEntity>[];
-      for (ir.Node node in localFunctionsNodesNeedingTypeArguments) {
+      for (ir.LocalFunction node in localFunctionsNodesNeedingTypeArguments) {
         callMethodsNeedingTypeArguments
             .add(closureData.getClosureInfo(node).callMethod);
       }
@@ -533,15 +531,14 @@ class TrivialClosureRtiNeed implements ClosureRtiNeed {
 
 class JsClosureRtiNeed implements ClosureRtiNeed {
   final RuntimeTypesNeed rtiNeed;
-  final Set<ir.Node> localFunctionsNodesNeedingTypeArguments;
-  final Set<ir.Node> localFunctionsNodesNeedingSignature;
+  final Set<ir.LocalFunction> localFunctionsNodesNeedingTypeArguments;
+  final Set<ir.LocalFunction> localFunctionsNodesNeedingSignature;
 
   JsClosureRtiNeed(this.rtiNeed, this.localFunctionsNodesNeedingTypeArguments,
       this.localFunctionsNodesNeedingSignature);
 
   @override
-  bool localFunctionNeedsSignature(ir.Node node) {
-    assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression);
+  bool localFunctionNeedsSignature(ir.LocalFunction node) {
     return localFunctionsNodesNeedingSignature.contains(node);
   }
 
@@ -554,8 +551,7 @@ class JsClosureRtiNeed implements ClosureRtiNeed {
       rtiNeed.methodNeedsTypeArguments(method);
 
   @override
-  bool localFunctionNeedsTypeArguments(ir.Node node) {
-    assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression);
+  bool localFunctionNeedsTypeArguments(ir.LocalFunction node) {
     return localFunctionsNodesNeedingTypeArguments.contains(node);
   }
 

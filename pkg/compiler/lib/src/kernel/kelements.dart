@@ -281,7 +281,7 @@ class KLocalFunction implements Local {
   final String name;
   final MemberEntity memberContext;
   final Entity executableContext;
-  final ir.Node node;
+  final ir.LocalFunction node;
   FunctionType functionType;
 
   KLocalFunction(

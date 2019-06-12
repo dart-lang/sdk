@@ -1206,8 +1206,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
                   getMethodInternal(procedure), node.name, index),
               new KTypeVariableData(node));
         }
-      } else if (func.parent is ir.FunctionDeclaration ||
-          func.parent is ir.FunctionExpression) {
+      } else if (func.parent is ir.LocalFunction) {
         // Ensure that local function type variables have been created.
         getLocalFunction(func.parent);
         return typeVariableMap[node];
@@ -1417,11 +1416,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   @override
-  Local getLocalFunction(ir.TreeNode node) {
-    assert(
-        node is ir.FunctionDeclaration || node is ir.FunctionExpression,
-        failedAt(
-            CURRENT_ELEMENT_SPANNABLE, 'Invalid local function node: $node'));
+  Local getLocalFunction(ir.LocalFunction node) {
     KLocalFunction localFunction = localFunctionMap[node];
     if (localFunction == null) {
       MemberEntity memberContext;
@@ -1432,8 +1427,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
           executableContext = memberContext = getMember(parent);
           break;
         }
-        if (parent is ir.FunctionDeclaration ||
-            parent is ir.FunctionExpression) {
+        if (parent is ir.LocalFunction) {
           KLocalFunction localFunction = getLocalFunction(parent);
           executableContext = localFunction;
           memberContext = localFunction.memberContext;

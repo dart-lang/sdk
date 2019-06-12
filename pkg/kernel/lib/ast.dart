@@ -3737,10 +3737,15 @@ class AwaitExpression extends Expression {
   }
 }
 
+/// Common super-interface for [FunctionExpression] and [FunctionDeclaration].
+abstract class LocalFunction implements TreeNode {
+  FunctionNode get function;
+}
+
 /// Expression of form `(x,y) => ...` or `(x,y) { ... }`
 ///
 /// The arrow-body form `=> e` is desugared into `return e;`.
-class FunctionExpression extends Expression {
+class FunctionExpression extends Expression implements LocalFunction {
   FunctionNode function;
 
   FunctionExpression(this.function) {
@@ -4676,7 +4681,7 @@ class VariableDeclaration extends Statement {
 /// Declaration a local function.
 ///
 /// The body of the function may use [variable] as its self-reference.
-class FunctionDeclaration extends Statement {
+class FunctionDeclaration extends Statement implements LocalFunction {
   VariableDeclaration variable; // Is final and has no initializer.
   FunctionNode function;
 

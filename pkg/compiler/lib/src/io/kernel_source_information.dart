@@ -137,32 +137,24 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
   SourceInformation _buildFunctionEnd(MemberEntity member, [ir.TreeNode base]) {
     MemberDefinition definition = _elementMap.getMemberDefinition(member);
     String name = computeKernelElementNameForSourceMaps(_elementMap, member);
-    ir.Node node = definition.node;
     switch (definition.kind) {
       case MemberKind.regular:
+        ir.Member node = definition.node;
         if (node is ir.Procedure) {
           return _buildFunction(name, base ?? node, node.function);
         }
         break;
       case MemberKind.constructor:
       case MemberKind.constructorBody:
-        if (node is ir.Procedure) {
-          return _buildFunction(name, base ?? node, node.function);
-        } else if (node is ir.Constructor) {
-          return _buildFunction(name, base ?? node, node.function);
-        }
-        break;
+        ir.Member node = definition.node;
+        return _buildFunction(name, base ?? node, node.function);
       case MemberKind.closureCall:
-        if (node is ir.FunctionDeclaration) {
-          return _buildFunction(name, base ?? node, node.function);
-        } else if (node is ir.FunctionExpression) {
-          return _buildFunction(name, base ?? node, node.function);
-        }
-        break;
+        ir.LocalFunction node = definition.node;
+        return _buildFunction(name, base ?? node, node.function);
       // TODO(sra): generatorBody
       default:
     }
-    return _buildTreeNode(base ?? node, name: name);
+    return _buildTreeNode(base ?? definition.node, name: name);
   }
 
   /// Creates the source information for exiting a function definition defined
@@ -220,18 +212,11 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
         }
         break;
       case MemberKind.closureCall:
-        ir.Node node = definition.node;
-        if (node is ir.FunctionDeclaration) {
-          return _buildBody(node, node.function.body);
-        } else if (node is ir.FunctionExpression) {
-          return _buildBody(node, node.function.body);
-        }
-        break;
+        ir.LocalFunction node = definition.node;
+        return _buildBody(node, node.function.body);
       case MemberKind.generatorBody:
         ir.Node node = definition.node;
-        if (node is ir.FunctionDeclaration) {
-          return _buildBody(node, node.function.body);
-        } else if (node is ir.FunctionExpression) {
+        if (node is ir.LocalFunction) {
           return _buildBody(node, node.function.body);
         } else if (node is ir.Member && node.function != null) {
           return _buildBody(node, node.function.body);
@@ -254,21 +239,11 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
         break;
       case MemberKind.constructor:
       case MemberKind.constructorBody:
-        ir.Node node = definition.node;
-        if (node is ir.Procedure) {
-          return _buildFunctionExit(node, node.function);
-        } else if (node is ir.Constructor) {
-          return _buildFunctionExit(node, node.function);
-        }
-        break;
+        ir.Member node = definition.node;
+        return _buildFunctionExit(node, node.function);
       case MemberKind.closureCall:
-        ir.Node node = definition.node;
-        if (node is ir.FunctionDeclaration) {
-          return _buildFunctionExit(node, node.function);
-        } else if (node is ir.FunctionExpression) {
-          return _buildFunctionExit(node, node.function);
-        }
-        break;
+        ir.LocalFunction node = definition.node;
+        return _buildFunctionExit(node, node.function);
       default:
     }
     return _buildTreeNode(definition.node);
