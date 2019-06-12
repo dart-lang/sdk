@@ -20,6 +20,8 @@ class DevCompilerTarget extends Target {
 
   ClassHierarchy hierarchy;
 
+  WidgetCreatorTracker _widgetTracker;
+
   @override
   bool get legacyMode => false;
 
@@ -117,7 +119,10 @@ class DevCompilerTarget extends Target {
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
     if (flags.trackWidgetCreation) {
-      WidgetCreatorTracker().transform(component, libraries);
+      if (_widgetTracker == null) {
+        _widgetTracker = WidgetCreatorTracker();
+      }
+      _widgetTracker.transform(component, libraries);
     }
   }
 

@@ -12,6 +12,8 @@ import 'package:vm/target/vm.dart' show VmTarget;
 class FlutterTarget extends VmTarget {
   FlutterTarget(TargetFlags flags) : super(flags);
 
+  WidgetCreatorTracker _widgetTracker;
+
   @override
   String get name => 'flutter';
 
@@ -53,7 +55,10 @@ class FlutterTarget extends VmTarget {
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
     if (flags.trackWidgetCreation) {
-      new WidgetCreatorTracker().transform(component, libraries);
+      if (_widgetTracker == null) {
+        _widgetTracker = WidgetCreatorTracker();
+      }
+      _widgetTracker.transform(component, libraries);
     }
   }
 }
