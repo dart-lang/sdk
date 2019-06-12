@@ -2234,13 +2234,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
                          function.IsImplicitSetterFunction();
   const bool is_method = !function.IsStaticFunction();
 
-  Field& field = Field::ZoneHandle(Z);
-  if (function.IsDynamicInvocationForwarder()) {
-    Function& target = Function::Handle(function.ForwardingTarget());
-    field = target.accessor_field();
-  } else {
-    field = function.accessor_field();
-  }
+  Field& field = Field::ZoneHandle(Z, function.accessor_field());
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);

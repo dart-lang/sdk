@@ -2104,71 +2104,6 @@ class ContextScopeDeserializationCluster : public DeserializationCluster {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-class ParameterTypeCheckSerializationCluster : public SerializationCluster {
- public:
-  ParameterTypeCheckSerializationCluster()
-      : SerializationCluster("ParameterTypeCheck") {}
-  ~ParameterTypeCheckSerializationCluster() {}
-
-  void Trace(Serializer* s, RawObject* object) {
-    RawParameterTypeCheck* unlinked = ParameterTypeCheck::RawCast(object);
-    objects_.Add(unlinked);
-    PushFromTo(unlinked);
-  }
-
-  void WriteAlloc(Serializer* s) {
-    s->WriteCid(kParameterTypeCheckCid);
-    intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      RawParameterTypeCheck* check = objects_[i];
-      s->AssignRef(check);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      RawParameterTypeCheck* check = objects_[i];
-      s->Write<intptr_t>(check->ptr()->index_);
-      WriteFromTo(check);
-    }
-  }
-
- private:
-  GrowableArray<RawParameterTypeCheck*> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class ParameterTypeCheckDeserializationCluster : public DeserializationCluster {
- public:
-  ParameterTypeCheckDeserializationCluster() {}
-  ~ParameterTypeCheckDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d) {
-    start_index_ = d->next_index();
-    PageSpace* old_space = d->heap()->old_space();
-    intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(
-          AllocateUninitialized(old_space, ParameterTypeCheck::InstanceSize()));
-    }
-    stop_index_ = d->next_index();
-  }
-
-  void ReadFill(Deserializer* d) {
-    for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawParameterTypeCheck* check =
-          reinterpret_cast<RawParameterTypeCheck*>(d->Ref(id));
-      Deserializer::InitializeHeader(check, kParameterTypeCheckCid,
-                                     ParameterTypeCheck::InstanceSize());
-      check->ptr()->index_ = d->Read<intptr_t>();
-      ReadFromTo(check);
-    }
-  }
-};
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 class UnlinkedCallSerializationCluster : public SerializationCluster {
  public:
   UnlinkedCallSerializationCluster() : SerializationCluster("UnlinkedCall") {}
@@ -4340,8 +4275,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) ContextSerializationCluster();
     case kContextScopeCid:
       return new (Z) ContextScopeSerializationCluster();
-    case kParameterTypeCheckCid:
-      return new (Z) ParameterTypeCheckSerializationCluster();
     case kUnlinkedCallCid:
       return new (Z) UnlinkedCallSerializationCluster();
     case kICDataCid:
@@ -4779,8 +4712,6 @@ void Serializer::AddVMIsolateBaseObjects() {
                 "<invoke field>");
   AddBaseObject(Object::nsm_dispatcher_bytecode().raw(), "Bytecode",
                 "<nsm dispatcher>");
-  AddBaseObject(Object::dynamic_invocation_forwarder_bytecode().raw(),
-                "Bytecode", "<dyn forwarder>");
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
@@ -4974,8 +4905,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) ContextDeserializationCluster();
     case kContextScopeCid:
       return new (Z) ContextScopeDeserializationCluster();
-    case kParameterTypeCheckCid:
-      return new (Z) ParameterTypeCheckDeserializationCluster();
     case kUnlinkedCallCid:
       return new (Z) UnlinkedCallDeserializationCluster();
     case kICDataCid:
@@ -5245,7 +5174,6 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::invoke_closure_bytecode().raw());
   AddBaseObject(Object::invoke_field_bytecode().raw());
   AddBaseObject(Object::nsm_dispatcher_bytecode().raw());
-  AddBaseObject(Object::dynamic_invocation_forwarder_bytecode().raw());
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);
