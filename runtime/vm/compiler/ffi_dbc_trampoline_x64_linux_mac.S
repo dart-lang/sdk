@@ -12,20 +12,33 @@ FfiTrampolineCall:
 _FfiTrampolineCall:
 #endif
 
-push  rbx
+/* Save argument in scratch register. */
+push  rbx              /* Backup caller saved register. */
 mov   rbx,  rdi        /* Save argument in scratch register. */
 
+/* Enter frame. */
+push  rbp
+mov   rbp,  rsp
+
+/* Reserve framespace for arguments. */
+mov   rax,  [rbx+0x80] /* Load number of stack arguments. */
+shl   rax,  3          /* Multiply by size (8 bytes). */
+sub   rsp,  rax        /* Reserve num_stack_args stack slots. */
+
+/* Stack alignment. */
+and   rsp,  [rbx+0x78] /* Align stack with stack alignment mask. */
+
 /* Copy stack arguments. */
-mov   rax,  [rbx+0x78] /* Load number of stack arguments. */
 cmp   rax,  0x0        /* Check if number of stack arguments is 0. */
 jz    .done            /* Skip loop if no stack arguments. */
-add   rbx,  0x78       /* Offset RBX to point to stack arguments */
+add   rsp,  rax        /* Unreserve stack slots so we can push arguments. */
+add   rbx,  0x80       /* Offset RBX to point to stack arguments */
 .loop:                 /* Copy stack arguments loop. */
-push  [rbx+0x8*rax]    /* Push stack argument. */
-sub   rax,  0x1        /* Decrement stack argument iterator. */
+push  [rbx+rax]        /* Push stack argument. */
+sub   rax,  0x8        /* Decrement stack argument iterator. */
 cmp   rax,  0x0        /* Compare iterator with 0 */
 jnz   .loop            /* Loop while iterator is not 0 */
-sub   rbx,  0x78       /* Restore RBX to original value. */
+sub   rbx,  0x80       /* Restore RBX to original value. */
 .done:                 /* End stack arguments loop. */
 
 /* Copy registers and fpu registers. */
@@ -52,12 +65,13 @@ call  rax         /* Call the function. */
 mov   [rbx],   rax  /* Move integer result in kOffsetIntResult */
 movsd [rbx+8], xmm0 /* Move double result in kOffsetDoubleResult */
 
-/* Clean up stack arguments. */
-mov   rax,  [rbx+0x78] /* Load number of stack arguments. */
-imul  rax,  0x8        /* Multiply by stack argument size. */
-add   rsp,  rax        /* Clean up the stack. */
+/* leave frame */
+mov   rsp,  rbp
+pop   rbp
 
+/* Restore caller saved register. */
 pop   rbx
+
 ret
 
 #endif /* HOST_ARCH_X64 */

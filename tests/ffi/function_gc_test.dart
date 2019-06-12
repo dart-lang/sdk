@@ -23,6 +23,7 @@ main() async {
   testBoxDouble();
   testBoxPointer();
   testAllocateInNative();
+  testRegress37069();
   testAllocateInDart();
 }
 
@@ -35,11 +36,25 @@ typedef NativeNullaryOpDouble = ffi.Double Function();
 typedef NativeNullaryOpPtr = ffi.Pointer<ffi.Void> Function();
 typedef NativeNullaryOp = ffi.Void Function();
 typedef NativeUnaryOp = ffi.Void Function(ffi.Uint64);
+typedef NativeUndenaryOp = ffi.Uint64 Function(
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64);
 typedef NullaryOp = int Function();
 typedef NullaryOpDbl = double Function();
 typedef NullaryOpPtr = ffi.Pointer<ffi.Void> Function();
 typedef UnaryOp = void Function(int);
 typedef NullaryOpVoid = void Function();
+typedef UndenaryOp = int Function(
+    int, int, int, int, int, int, int, int, int, int, int);
 
 //// These functions return values that require boxing into different types.
 
@@ -88,6 +103,21 @@ final triggerGc = ffiTestFunctions
 // Test GC in the FFI call path by calling a C function which triggers GC
 // directly.
 void testAllocateInNative() => triggerGc();
+// This also works as a regression test for 37176.
+
+final regress37069 = ffiTestFunctions
+    .lookupFunction<NativeUndenaryOp, UndenaryOp>("Regress37069");
+
+// Test GC in the FFI call path by calling a C function which triggers GC
+// directly.
+void testRegress37069() {
+  regress37069(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+}
+
+class C {
+  final int i;
+  C(this.i);
+}
 
 @pragma("vm:entry-point", "call")
 void testAllocationsInDartHelper() => triggerGc();
