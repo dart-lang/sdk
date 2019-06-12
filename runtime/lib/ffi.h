@@ -47,7 +47,6 @@ class FfiMarshalledArguments : public ValueObject {
   void SetFunctionAddress(uint64_t value) const;
   void SetRegister(::dart::host::Register reg, uint64_t value) const;
   void SetFpuRegister(::dart::host::FpuRegister reg, uint64_t value) const;
-  void SetAlignmentMask(uint64_t kOffsetAlignmentMask) const;
   void SetNumStackSlots(intptr_t num_args) const;
   intptr_t GetNumStackSlots() const;
   void SetStackSlotValue(intptr_t index, uint64_t value) const;
@@ -60,9 +59,8 @@ class FfiMarshalledArguments : public ValueObject {
   static const intptr_t kOffsetRegisters = 1;
   static const intptr_t kOffsetFpuRegisters =
       kOffsetRegisters + ::dart::host::CallingConventions::kNumArgRegs;
-  static const intptr_t kOffsetAlignmentMask =
+  static const intptr_t kOffsetNumStackSlots =
       kOffsetFpuRegisters + ::dart::host::CallingConventions::kNumFpuArgRegs;
-  static const intptr_t kOffsetNumStackSlots = kOffsetAlignmentMask + 1;
   static const intptr_t kOffsetStackSlotValues = kOffsetNumStackSlots + 1;
 
   static const intptr_t kOffsetIntResult = 0;

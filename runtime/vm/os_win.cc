@@ -175,11 +175,9 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 }
 
 intptr_t OS::ActivationFrameAlignment() {
-#if defined(TARGET_ARCH_ARM64) ||                                              \
-    defined(TARGET_ARCH_DBC) && defined(HOST_ARCH_ARM64)
+#if defined(TARGET_ARCH_ARM64)
   return 16;
-#elif defined(TARGET_ARCH_ARM) ||                                              \
-    defined(TARGET_ARCH_DBC) && defined(HOST_ARCH_ARM)
+#elif defined(TARGET_ARCH_ARM)
   return 8;
 #elif defined(_WIN64)
   // Windows 64-bit ABI requires the stack to be 16-byte aligned.
