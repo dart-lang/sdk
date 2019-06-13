@@ -1062,6 +1062,21 @@ void test(C c) {
     assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true);
   }
 
+  test_prefixExpression_bang2() async {
+    await analyze('''
+bool f(bool b) {
+  return !b;
+}
+''');
+
+    var nullable_b = decoratedTypeAnnotation('bool b').node;
+    var check_b = checkExpression('b;');
+    assertNullCheck(check_b, nullable_b);
+
+    var return_f = decoratedTypeAnnotation('bool f').node;
+    assertEdge(never, return_f, hard: false);
+  }
+
   test_propertyAccess_return_type() async {
     await analyze('''
 class C {

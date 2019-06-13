@@ -462,6 +462,12 @@ $stackTrace''');
 
   @override
   DecoratedType visitPrefixExpression(PrefixExpression node) {
+    /* DecoratedType operandType = */
+    _handleAssignment(_notNullType, node.operand);
+    if (node.operator.type == TokenType.BANG) {
+      return _nonNullableBoolType;
+    }
+    // TODO(brianwilkerson) The remaining cases are invocations.
     throw new UnimplementedError('TODO(brianwilkerson)');
   }
 

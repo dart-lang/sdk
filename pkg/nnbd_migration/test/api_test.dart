@@ -1021,6 +1021,32 @@ int f(int x, int Function(int i) g) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_prefixExpression_bang() async {
+    var content = '''
+bool f(bool b) => !b;
+void g(bool b1, bool b2) {
+  if (b1) {
+    f(b2);
+  }
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+bool f(bool b) => !b;
+void g(bool b1, bool? b2) {
+  if (b1) {
+    f(b2!);
+  }
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_single_file_multiple_changes() async {
     var content = '''
 int f() => null;
