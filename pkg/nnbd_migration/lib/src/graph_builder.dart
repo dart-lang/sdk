@@ -523,7 +523,7 @@ $stackTrace''');
             _variables.decoratedTypeAnnotation(_source, typeName);
         for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
           _unionDecoratedTypes(
-              instantiatedType.typeArguments[0],
+              instantiatedType.typeArguments[i],
               _variables.decoratedElementType(element.typeParameters[i],
                   create: true));
         }
