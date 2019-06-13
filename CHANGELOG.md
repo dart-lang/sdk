@@ -117,12 +117,11 @@ class B<X> extends A<void Function(X)> {};
 
 The Linter was updated to `0.1.91`, which includes the following changes:
 
-* fixed missed cases in `prefer_const_constructors`
-* fixed `prefer_initializing_formals` to no longer suggest API breaking changes
-* updated `omit_local_variable_types` to allow explicit `dynamic`s
-* (internal) migration from deprecated analyzer APIs
-* fixed null-reference in `unrelated_type_equality_checks`
-* new lint: `unsafe_html`
+* Fixed missed cases in `prefer_const_constructors`
+* Fixed `prefer_initializing_formals` to no longer suggest API breaking changes
+* Updated `omit_local_variable_types` to allow explicit `dynamic`s
+* Fixed null-reference in `unrelated_type_equality_checks`
+* New lint: `unsafe_html`
 * Broadened `prefer_null_aware_operators` to work beyond local variables.
 * Added `prefer_if_null_operators`.
 * Fixed `prefer_contains` false positives.
