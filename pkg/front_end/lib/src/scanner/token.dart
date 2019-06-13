@@ -51,6 +51,7 @@ class BeginToken extends SimpleToken {
         type == TokenType.OPEN_CURLY_BRACKET ||
         type == TokenType.OPEN_PAREN ||
         type == TokenType.OPEN_SQUARE_BRACKET ||
+        type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET ||
         type == TokenType.STRING_INTERPOLATION_EXPRESSION);
   }
 

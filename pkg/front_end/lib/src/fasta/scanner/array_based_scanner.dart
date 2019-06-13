@@ -16,6 +16,8 @@ import 'token_constants.dart'
         LT_TOKEN,
         OPEN_CURLY_BRACKET_TOKEN,
         OPEN_PAREN_TOKEN,
+        OPEN_SQUARE_BRACKET_TOKEN,
+        QUESTION_PERIOD_OPEN_SQUARE_BRACKET_TOKEN,
         STRING_INTERPOLATION_TOKEN;
 
 import 'characters.dart' show $LF, $STX;
@@ -148,7 +150,9 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     appendPrecedenceToken(type);
     Token close = tail;
     BeginToken begin = groupingStack.head;
-    if (!identical(begin.kind, openKind)) {
+    if (!identical(begin.kind, openKind) &&
+        !(begin.kind == QUESTION_PERIOD_OPEN_SQUARE_BRACKET_TOKEN &&
+            openKind == OPEN_SQUARE_BRACKET_TOKEN)) {
       assert(begin.kind == STRING_INTERPOLATION_TOKEN &&
           openKind == OPEN_CURLY_BRACKET_TOKEN);
       // We're ending an interpolated expression.
@@ -181,7 +185,9 @@ abstract class ArrayBasedScanner extends AbstractScanner {
       BeginToken begin = groupingStack.head;
       if (openKind == begin.kind ||
           (openKind == OPEN_CURLY_BRACKET_TOKEN &&
-              begin.kind == STRING_INTERPOLATION_TOKEN)) {
+              begin.kind == STRING_INTERPOLATION_TOKEN) ||
+          (openKind == OPEN_SQUARE_BRACKET_TOKEN &&
+              begin.kind == QUESTION_PERIOD_OPEN_SQUARE_BRACKET_TOKEN)) {
         if (first) {
           // If the expected opener has been found on the first pass
           // then no recovery necessary.

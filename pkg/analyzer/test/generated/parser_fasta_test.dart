@@ -2472,6 +2472,8 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
     ExpressionStatement statement = body.block.statements[0];
     IndexExpression expression = statement.expression;
     expect(expression.leftBracket.lexeme, '?.[');
+    expect(expression.rightBracket.lexeme, ']');
+    expect(expression.leftBracket.endGroup, expression.rightBracket);
   }
 
   void test_indexed_nullAware_optOut() {
