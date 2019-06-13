@@ -29,6 +29,7 @@ void main() {
     testNativeFunctionManyArguments1();
     testNativeFunctionManyArguments2();
     testNativeFunctionManyArguments3();
+    testNativeFunctionManyArguments4();
     testNativeFunctionPointer();
     testNullInt();
     testNullDouble();
@@ -225,7 +226,7 @@ void testNativeFunctionFloats() {
   Expect.approxEquals(1337.0, times1_337Float(1000.0));
 }
 
-typedef NativeOctenaryOp = ffi.IntPtr Function(
+typedef NativeDecenaryOp = ffi.IntPtr Function(
     ffi.IntPtr,
     ffi.IntPtr,
     ffi.IntPtr,
@@ -236,17 +237,39 @@ typedef NativeOctenaryOp = ffi.IntPtr Function(
     ffi.IntPtr,
     ffi.IntPtr,
     ffi.IntPtr);
-typedef OctenaryOp = int Function(
+typedef DecenaryOp = int Function(
     int, int, int, int, int, int, int, int, int, int);
 
-OctenaryOp sumManyInts = ffiTestFunctions
-    .lookupFunction<NativeOctenaryOp, OctenaryOp>("SumManyInts");
+DecenaryOp sumManyInts = ffiTestFunctions
+    .lookupFunction<NativeDecenaryOp, DecenaryOp>("SumManyInts");
 
 void testNativeFunctionManyArguments1() {
   Expect.equals(55, sumManyInts(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
 }
 
-typedef NativeDoubleOctenaryOp = ffi.Double Function(
+typedef NativeUndenaryOp = ffi.IntPtr Function(
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr);
+typedef UndenaryOp = int Function(
+    int, int, int, int, int, int, int, int, int, int, int);
+
+UndenaryOp sumManyIntsOdd = ffiTestFunctions
+    .lookupFunction<NativeUndenaryOp, UndenaryOp>("SumManyIntsOdd");
+
+void testNativeFunctionManyArguments4() {
+  Expect.equals(66, sumManyIntsOdd(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11));
+}
+
+typedef NativeDoubleDecenaryOp = ffi.Double Function(
     ffi.Double,
     ffi.Double,
     ffi.Double,
@@ -257,11 +280,11 @@ typedef NativeDoubleOctenaryOp = ffi.Double Function(
     ffi.Double,
     ffi.Double,
     ffi.Double);
-typedef DoubleOctenaryOp = double Function(double, double, double, double,
+typedef DoubleDecenaryOp = double Function(double, double, double, double,
     double, double, double, double, double, double);
 
-DoubleOctenaryOp sumManyDoubles = ffiTestFunctions
-    .lookupFunction<NativeDoubleOctenaryOp, DoubleOctenaryOp>("SumManyDoubles");
+DoubleDecenaryOp sumManyDoubles = ffiTestFunctions
+    .lookupFunction<NativeDoubleDecenaryOp, DoubleDecenaryOp>("SumManyDoubles");
 
 void testNativeFunctionManyArguments2() {
   Expect.approxEquals(

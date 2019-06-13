@@ -149,7 +149,7 @@ DART_EXPORT float Times1_337Float(float a) {
 }
 
 // Sums many ints.
-// Used for testing calling conventions. With so many doubles we are using all
+// Used for testing calling conventions. With so many integers we are using all
 // normal parameter registers and some stack slots.
 DART_EXPORT intptr_t SumManyInts(intptr_t a,
                                  intptr_t b,
@@ -165,6 +165,28 @@ DART_EXPORT intptr_t SumManyInts(intptr_t a,
             << ", " << e << ", " << f << ", " << g << ", " << h << ", " << i
             << ", " << j << ")\n";
   intptr_t retval = a + b + c + d + e + f + g + h + i + j;
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
+// Sums an odd number of ints.
+// Used for testing calling conventions. With so many arguments, and an odd
+// number of arguments, we are testing stack alignment on various architectures.
+DART_EXPORT intptr_t SumManyIntsOdd(intptr_t a,
+                                    intptr_t b,
+                                    intptr_t c,
+                                    intptr_t d,
+                                    intptr_t e,
+                                    intptr_t f,
+                                    intptr_t g,
+                                    intptr_t h,
+                                    intptr_t i,
+                                    intptr_t j,
+                                    intptr_t k) {
+  std::cout << "SumManyInts(" << a << ", " << b << ", " << c << ", " << d
+            << ", " << e << ", " << f << ", " << g << ", " << h << ", " << i
+            << ", " << j << ", " << k << ")\n";
+  intptr_t retval = a + b + c + d + e + f + g + h + i + j + k;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -482,6 +504,22 @@ DART_EXPORT void* LargePointer() {
 }
 
 DART_EXPORT void TriggerGC(uint64_t count) {
+  Dart_ExecuteInternalCommand("gc-now");
+}
+
+// Triggers GC. Has 11 dummy arguments as unboxed odd integers which should be
+// ignored by GC.
+DART_EXPORT void Regress37069(uint64_t a,
+                              uint64_t b,
+                              uint64_t c,
+                              uint64_t d,
+                              uint64_t e,
+                              uint64_t f,
+                              uint64_t g,
+                              uint64_t h,
+                              uint64_t i,
+                              uint64_t j,
+                              uint64_t k) {
   Dart_ExecuteInternalCommand("gc-now");
 }
 

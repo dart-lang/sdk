@@ -5,6 +5,7 @@
 #include "lib/ffi.h"
 
 #include "include/dart_api.h"
+#include "platform/globals.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler/assembler/assembler.h"
@@ -677,6 +678,10 @@ void FfiMarshalledArguments::SetNumStackSlots(intptr_t num_args) const {
   data_[kOffsetNumStackSlots] = num_args;
 }
 
+void FfiMarshalledArguments::SetAlignmentMask(uint64_t alignment_mask) const {
+  data_[kOffsetAlignmentMask] = alignment_mask;
+}
+
 intptr_t FfiMarshalledArguments::GetNumStackSlots() const {
   return data_[kOffsetNumStackSlots];
 }
@@ -691,6 +696,7 @@ uint64_t* FfiMarshalledArguments::New(
     const compiler::ffi::FfiSignatureDescriptor& signature,
     const uint64_t* arg_values) {
   const intptr_t num_stack_slots = signature.num_stack_slots();
+  const uint64_t alignment_mask = ~(OS::ActivationFrameAlignment() - 1);
   const intptr_t size =
       FfiMarshalledArguments::kOffsetStackSlotValues + num_stack_slots;
   uint64_t* data = Thread::Current()->GetFfiMarshalledArguments(size);
@@ -699,6 +705,7 @@ uint64_t* FfiMarshalledArguments::New(
   descr.SetFunctionAddress(arg_values[compiler::ffi::kFunctionAddressRegister]);
   const intptr_t num_args = signature.length();
   descr.SetNumStackSlots(num_stack_slots);
+  descr.SetAlignmentMask(alignment_mask);
   for (int i = 0; i < num_args; i++) {
     uint64_t arg_value = arg_values[compiler::ffi::kFirstArgumentRegister + i];
     HostLocation loc = signature.LocationAt(i);
@@ -737,10 +744,12 @@ void FfiMarshalledArguments::Print() const {
                  RegisterNames::FpuRegisterName(
                      host::CallingConventions::FpuArgumentRegisters[i]));
   }
-  const intptr_t index = kOffsetNumStackSlots;
-  const intptr_t num_stack_slots = data_[index];
-  OS::PrintErr("  %02" Pd " 0x%" Pp " (number of stack slots)\n", index,
-               num_stack_slots);
+  const intptr_t alignment_mask = data_[kOffsetAlignmentMask];
+  OS::PrintErr("  %02" Pd " 0x%" Pp " (stack alignment mask)\n",
+               kOffsetAlignmentMask, alignment_mask);
+  const intptr_t num_stack_slots = data_[kOffsetNumStackSlots];
+  OS::PrintErr("  %02" Pd " 0x%" Pp " (number of stack slots)\n",
+               kOffsetNumStackSlots, num_stack_slots);
   for (intptr_t i = 0; i < num_stack_slots; i++) {
     const intptr_t index = kOffsetStackSlotValues + i;
     OS::PrintErr("  %02" Pd " 0x%016" Px64 " (stack slot %" Pd ")\n", index,
