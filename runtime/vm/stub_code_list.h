@@ -46,6 +46,7 @@ namespace dart {
   V(UnoptimizedIdenticalWithNumberCheck)                                       \
   V(OptimizedIdenticalWithNumberCheck)                                         \
   V(ICCallBreakpoint)                                                          \
+  V(UnoptStaticCallBreakpoint)                                                 \
   V(RuntimeCallBreakpoint)                                                     \
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \

@@ -676,7 +676,6 @@ class Thread : public AllStatic {
   static word fix_allocation_stub_code_offset();
 
   static word monomorphic_miss_stub_offset();
-  static word ic_lookup_through_code_stub_offset();
   static word lazy_specialize_type_test_stub_offset();
   static word slow_type_test_stub_offset();
   static word call_to_runtime_stub_offset();
@@ -775,8 +774,10 @@ class ClassHeapStats : public AllStatic {
 
 class Instructions : public AllStatic {
  public:
-  static const word kPolymorphicEntryOffset;
-  static const word kMonomorphicEntryOffset;
+  static const word kMonomorphicEntryOffsetJIT;
+  static const word kPolymorphicEntryOffsetJIT;
+  static const word kMonomorphicEntryOffsetAOT;
+  static const word kPolymorphicEntryOffsetAOT;
   static word HeaderSize();
   static word UnalignedHeaderSize();
 };

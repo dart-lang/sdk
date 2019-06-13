@@ -8,6 +8,7 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js/js.dart' as js;
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import '../helpers/d8_helper.dart';
@@ -178,6 +179,7 @@ main(List<String> args) {
       Flags.disableRtiOptimization,
     ], expectedOutput: OUTPUT, printJs: args.contains('-v'));
     Compiler compiler = result.compilationResult.compiler;
+    JsBackendStrategy backendStrategy = compiler.backendStrategy;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
@@ -195,7 +197,7 @@ main(List<String> args) {
             elementEnvironment.mainLibrary, methodName);
         Expect.isNotNull(method, "Method '$methodName' not found.");
       }
-      js.Fun fun = compiler.backend.generatedCode[method];
+      js.Fun fun = backendStrategy.generatedCode[method];
       Expect.equals(expectedParameterCount, fun.params.length,
           "Unexpected parameter count for $method:\n${js.nodeToString(fun)}");
     }

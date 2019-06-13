@@ -1592,8 +1592,9 @@ class BinaryBuilder {
         for (int i = 0; i < assertCount; i++) {
           asserts[i] = readStatement();
         }
-        return new InstanceCreation(
-            classReference, typeArguments, fieldValues, asserts)
+        List<Expression> unusedArguments = readExpressionList();
+        return new InstanceCreation(classReference, typeArguments, fieldValues,
+            asserts, unusedArguments)
           ..fileOffset = offset;
       case Tag.IsExpression:
         int offset = readOffset();

@@ -578,9 +578,19 @@ class Parser {
       // as an identifier such as "abstract<T>() => 0;"
       // or as a prefix such as "abstract.A b() => 0;".
       String nextValue = keyword.next.stringValue;
-      if (identical(nextValue, '(') ||
-          identical(nextValue, '<') ||
-          identical(nextValue, '.')) {
+      if (identical(nextValue, '(') || identical(nextValue, '.')) {
+        directiveState?.checkDeclaration();
+        return parseTopLevelMemberImpl(start);
+      } else if (identical(nextValue, '<')) {
+        if (identical(value, 'extension')) {
+          // The neame in an extension declaration is optional:
+          // `extension<T> on ...`
+          Token endGroup = keyword.next.endGroup;
+          if (endGroup != null && optional('on', endGroup.next)) {
+            directiveState?.checkDeclaration();
+            return parseExtension(keyword);
+          }
+        }
         directiveState?.checkDeclaration();
         return parseTopLevelMemberImpl(start);
       } else {
@@ -2058,16 +2068,21 @@ class Parser {
   }
 
   /// ```
-  /// 'extension' <identifier><typeParameters>? 'on' <type> '?'?
+  /// 'extension' <identifier>? <typeParameters>? 'on' <type> '?'?
   //   `{'
   //     <memberDeclaration>*
   //   `}'
   /// ```
   Token parseExtension(Token extensionKeyword) {
     assert(optional('extension', extensionKeyword));
-    Token name = ensureIdentifier(
-        extensionKeyword, IdentifierContext.classOrMixinOrExtensionDeclaration);
-    Token token = computeTypeParamOrArg(name, true).parseVariables(name, this);
+    Token token = extensionKeyword;
+    Token name = token.next;
+    if (name.isIdentifier && !optional('on', name)) {
+      token = name;
+    } else {
+      name = null;
+    }
+    token = computeTypeParamOrArg(token, true).parseVariables(token, this);
     listener.beginExtensionDeclaration(extensionKeyword, name);
     Token onKeyword = token.next;
     if (!optional('on', onKeyword)) {
@@ -2118,20 +2133,9 @@ class Parser {
   Token parseStringPart(Token token) {
     Token next = token.next;
     if (next.kind != STRING_TOKEN) {
-      bool errorReported = false;
-      while (next is ErrorToken) {
-        errorReported = true;
-        reportErrorToken(next);
-        token = next;
-        next = token.next;
-      }
-      if (next.kind != STRING_TOKEN) {
-        if (!errorReported) {
-          reportRecoverableErrorWithToken(next, fasta.templateExpectedString);
-        }
-        next = rewriter.insertToken(token,
-            new SyntheticStringToken(TokenType.STRING, '', next.charOffset));
-      }
+      reportRecoverableErrorWithToken(next, fasta.templateExpectedString);
+      next = rewriter.insertToken(token,
+          new SyntheticStringToken(TokenType.STRING, '', next.charOffset));
     }
     listener.handleStringPart(next);
     return next;
@@ -4005,8 +4009,9 @@ class Parser {
             token = parsePrimary(
                 token.next, IdentifierContext.expressionContinuation);
             listener.endBinaryExpression(operator);
-          } else if ((identical(type, TokenType.OPEN_PAREN)) ||
-              (identical(type, TokenType.OPEN_SQUARE_BRACKET))) {
+          } else if (identical(type, TokenType.OPEN_PAREN) ||
+              identical(type, TokenType.OPEN_SQUARE_BRACKET) ||
+              identical(type, TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET)) {
             token = parseArgumentOrIndexStar(token, typeArg);
           } else if (identical(type, TokenType.INDEX)) {
             BeginToken replacement = link(
@@ -4176,7 +4181,7 @@ class Parser {
     Token next = token.next;
     Token beginToken = next;
     while (true) {
-      if (optional('[', next)) {
+      if (optional('[', next) || optional('?.[', next)) {
         assert(typeArg == noTypeParamOrArg);
         Token openSquareBracket = next;
         bool old = mayParseFunctionExpressions;

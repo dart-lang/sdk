@@ -14,14 +14,26 @@ abstract class _AbstractType implements Type {
 // Equivalent of RawType.
 @pragma("vm:entry-point")
 class _Type extends _AbstractType {
+  factory _Type._uninstantiable() {
+    throw "Unreachable";
+  }
+
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get hashCode native "Type_getHashCode";
 }
 
 // Equivalent of RawTypeRef.
 @pragma("vm:entry-point")
-class _TypeRef extends _AbstractType {}
+class _TypeRef extends _AbstractType {
+  factory _TypeRef._uninstantiable() {
+    throw "Unreachable";
+  }
+}
 
 // Equivalent of RawTypeParameter.
 @pragma("vm:entry-point")
-class _TypeParameter extends _AbstractType {}
+class _TypeParameter extends _AbstractType {
+  factory _TypeParameter._uninstantiable() {
+    throw "Unreachable";
+  }
+}

@@ -143,7 +143,7 @@ void runTests(bool isKernel) {
       argsFile.writeAsStringSync(compilerArgs.join('\n'));
       var args = executableArgs.toList()..add('@${argsFile.path}');
       var process = await Process.start(executable, args);
-      stderr.addStream(process.stderr);
+      await stderr.addStream(process.stderr);
       var futureProcessOutput = process.stdout.map(utf8.decode).toList();
 
       expect(await process.exitCode, EXIT_CODE_OK);

@@ -11,9 +11,10 @@ import '../constants/values.dart';
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
-import '../js_backend/backend.dart' show CodegenInputs, JavaScriptBackend;
+import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/inferred_data.dart';
 import '../js_backend/namer.dart' show Namer;
+import '../js_model/js_strategy.dart';
 import '../universe/codegen_world_builder.dart';
 import '../world.dart' show JClosedWorld;
 import 'program_builder/program_builder.dart';
@@ -36,7 +37,7 @@ class CodeEmitterTask extends CompilerTask {
   final Compiler _compiler;
   final bool _generateSourceMap;
 
-  JavaScriptBackend get _backend => _compiler.backend;
+  JsBackendStrategy get _backendStrategy => _compiler.backendStrategy;
 
   @deprecated
   // This field should be removed. It's currently only needed for dump-info and
@@ -69,18 +70,18 @@ class CodeEmitterTask extends CompilerTask {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
     typeTestRegistry.computeRequiredTypeChecks(
-        _backend.rtiChecksBuilder, codegenWorld);
+        _backendStrategy.rtiChecksBuilder, codegenWorld);
     // Compute the classes needed by RTI.
     typeTestRegistry.computeRtiNeededClasses(
-        codegen.rtiSubstitutions, _backend.generatedCode.keys);
+        codegen.rtiSubstitutions, _backendStrategy.generatedCode.keys);
   }
 
   /// Creates the [Emitter] for this task.
   void createEmitter(
       Namer namer, CodegenInputs codegen, JClosedWorld closedWorld) {
     measure(() {
-      _nativeEmitter =
-          new NativeEmitter(this, closedWorld, _backend.nativeCodegenEnqueuer);
+      _nativeEmitter = new NativeEmitter(
+          this, closedWorld, _backendStrategy.nativeCodegenEnqueuer);
       _emitter = new startup_js_emitter.EmitterImpl(
           _compiler.options,
           _compiler.reporter,
@@ -89,7 +90,7 @@ class CodeEmitterTask extends CompilerTask {
           namer,
           closedWorld,
           codegen.rtiEncoder,
-          _backend.sourceInformationStrategy,
+          _backendStrategy.sourceInformationStrategy,
           this,
           _generateSourceMap);
       metadataCollector = new MetadataCollector(
@@ -120,7 +121,7 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.commonElements,
           closedWorld.outputUnitData,
           codegenWorld,
-          _backend.nativeCodegenEnqueuer,
+          _backendStrategy.nativeCodegenEnqueuer,
           closedWorld.backendUsage,
           closedWorld.nativeData,
           closedWorld.rtiNeed,
@@ -128,14 +129,14 @@ class CodeEmitterTask extends CompilerTask {
           typeTestRegistry.rtiChecks,
           codegenInputs.rtiEncoder,
           codegenWorld.oneShotInterceptorData,
-          _backend.customElementsCodegenAnalysis,
-          _backend.generatedCode,
+          _backendStrategy.customElementsCodegenAnalysis,
+          _backendStrategy.generatedCode,
           namer,
           this,
           closedWorld,
           closedWorld.fieldAnalysis,
           inferredData,
-          _backend.sourceInformationStrategy,
+          _backendStrategy.sourceInformationStrategy,
           closedWorld.sorter,
           typeTestRegistry.rtiNeededClasses,
           closedWorld.elementEnvironment.mainFunction);

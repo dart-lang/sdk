@@ -2113,11 +2113,11 @@ abstract class ExtendsClause implements AstNode {
 /// The declaration of an extension of a type.
 ///
 ///    extension ::=
-///        'extension' [SimpleIdentifier] [TypeParameterList]?
+///        'extension' [SimpleIdentifier]? [TypeParameterList]?
 ///        'on' [TypeAnnotation] '{' [ClassMember]* '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ExtensionDeclaration implements NamedCompilationUnitMember {
+abstract class ExtensionDeclaration implements CompilationUnitMember {
   /// Return the type that is being extended.
   TypeAnnotation get extendedType;
 
@@ -2129,6 +2129,10 @@ abstract class ExtensionDeclaration implements NamedCompilationUnitMember {
 
   /// Return the members being added to the extended class.
   NodeList<ClassMember> get members;
+
+  /// Return the name of the extension, or `null` if the extension does not have
+  /// a name.
+  SimpleIdentifier get name;
 
   /// Return the token representing the 'on' keyword.
   Token get onKeyword;

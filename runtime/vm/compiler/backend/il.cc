@@ -723,6 +723,23 @@ Cids* Cids::CreateAndExpand(Zone* zone,
   return cids;
 }
 
+static intptr_t Usage(const Function& function) {
+  intptr_t count = function.usage_counter();
+  if (count < 0) {
+    if (function.HasCode()) {
+      // 'function' is queued for optimized compilation
+      count = FLAG_optimization_counter_threshold;
+    } else {
+      // 'function' is queued for unoptimized compilation
+      count = FLAG_compilation_counter_threshold;
+    }
+  } else if (Code::IsOptimized(function.CurrentCode())) {
+    // 'function' was optimized and stopped counting
+    count = FLAG_optimization_counter_threshold;
+  }
+  return count;
+}
+
 void Cids::CreateHelper(Zone* zone,
                         const ICData& ic_data,
                         int argument_number,
@@ -748,10 +765,34 @@ void Cids::CreateHelper(Zone* zone,
     }
     if (include_targets) {
       Function& function = Function::ZoneHandle(zone, ic_data.GetTargetAt(i));
-      cid_ranges_.Add(new (zone) TargetInfo(
-          id, id, &function, ic_data.GetCountAt(i), ic_data.GetExactnessAt(i)));
+      intptr_t count = ic_data.GetCountAt(i);
+      cid_ranges_.Add(new (zone) TargetInfo(id, id, &function, count,
+                                            ic_data.GetExactnessAt(i)));
     } else {
       cid_ranges_.Add(new (zone) CidRange(id, id));
+    }
+  }
+
+  if (ic_data.is_megamorphic()) {
+    const MegamorphicCache& cache =
+        MegamorphicCache::Handle(zone, ic_data.AsMegamorphicCache());
+    SafepointMutexLocker ml(Isolate::Current()->megamorphic_lookup_mutex());
+    MegamorphicCacheEntries entries(Array::Handle(zone, cache.buckets()));
+    for (intptr_t i = 0; i < entries.Length(); i++) {
+      const intptr_t id =
+          Smi::Value(entries[i].Get<MegamorphicCache::kClassIdIndex>());
+      if (id == kIllegalCid) {
+        continue;
+      }
+      if (include_targets) {
+        Function& function = Function::ZoneHandle(zone);
+        function ^= entries[i].Get<MegamorphicCache::kTargetFunctionIndex>();
+        cid_ranges_.Add(new (zone) TargetInfo(
+            id, id, &function, Usage(function) / cache.filled_entry_count(),
+            StaticTypeExactnessState::NotTracking()));
+      } else {
+        cid_ranges_.Add(new (zone) CidRange(id, id));
+      }
     }
   }
 }
@@ -3824,6 +3865,14 @@ void CallTargets::MergeIntoRanges() {
   Sort(OrderByFrequency);
 }
 
+void CallTargets::Print() const {
+  for (intptr_t i = 0; i < length(); i++) {
+    THR_Print("cid = [%" Pd ", %" Pd "], count = %" Pd ", target = %s\n",
+              TargetAt(i)->cid_start, TargetAt(i)->cid_end, TargetAt(i)->count,
+              TargetAt(i)->target->ToQualifiedCString());
+  }
+}
+
 // Shared code generation methods (EmitNativeCode and
 // MakeLocationSummary). Only assembly code that can be shared across all
 // architectures can be used. Machine specific register allocation and code
@@ -3914,7 +3963,11 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Function& function = compiler->parsed_function().function();
   if (function.IsDynamicFunction()) {
     compiler->SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
-    __ MonomorphicCheckedEntry();
+    if (!FLAG_precompiled_mode) {
+      __ MonomorphicCheckedEntryJIT();
+    } else {
+      __ MonomorphicCheckedEntryAOT();
+    }
     compiler->SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
   }
 
@@ -4349,8 +4402,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     if (is_smi_two_args_op) {
       ASSERT(ArgumentCount() == 2);
-      compiler->EmitInstanceCall(stub, *call_ic_data, deopt_id(), token_pos(),
-                                 locs());
+      compiler->EmitInstanceCallJIT(stub, *call_ic_data, deopt_id(),
+                                    token_pos(), locs(), entry_kind());
     } else {
       compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
                                      *call_ic_data);
@@ -4532,8 +4585,8 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
 
   ASSERT(new_target->HasSingleTarget());
   const Function& target = new_target->FirstTarget();
-  StaticCallInstr* specialized =
-      StaticCallInstr::FromCall(flow_graph->zone(), this, target);
+  StaticCallInstr* specialized = StaticCallInstr::FromCall(
+      flow_graph->zone(), this, target, new_target->AggregateCallCount());
   flow_graph->InsertBefore(this, specialized, env(), FlowGraph::kValue);
   return specialized;
 }

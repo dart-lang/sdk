@@ -564,8 +564,13 @@ abstract class AbstractScanner implements Scanner {
       return select(
           $EQ, TokenType.QUESTION_QUESTION_EQ, TokenType.QUESTION_QUESTION);
     } else if (identical(next, $PERIOD)) {
+      next = advance();
+      if (_enableNonNullable && identical($OPEN_SQUARE_BRACKET, next)) {
+        appendBeginGroup(TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET);
+        return advance();
+      }
       appendPrecedenceToken(TokenType.QUESTION_PERIOD);
-      return advance();
+      return next;
     } else {
       appendPrecedenceToken(TokenType.QUESTION);
       return next;
@@ -1454,6 +1459,7 @@ TokenType closeBraceInfoFor(BeginToken begin) {
     '{': TokenType.CLOSE_CURLY_BRACKET,
     '<': TokenType.GT,
     r'${': TokenType.CLOSE_CURLY_BRACKET,
+    '?.[': TokenType.CLOSE_SQUARE_BRACKET,
   }[begin.lexeme];
 }
 

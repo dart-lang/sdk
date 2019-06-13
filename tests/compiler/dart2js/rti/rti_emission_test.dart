@@ -13,6 +13,7 @@ import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_backend/runtime_types.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/element_map.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/util/features.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -43,11 +44,13 @@ abstract class ComputeValueMixin {
   Compiler get compiler;
   ProgramLookup lookup;
 
+  JsBackendStrategy get backendStrategy => compiler.backendStrategy;
+
   RuntimeTypesImpl get checksBuilder =>
-      compiler.backend.rtiChecksBuilderForTesting;
+      backendStrategy.rtiChecksBuilderForTesting;
 
   String getClassValue(ClassEntity element) {
-    lookup ??= new ProgramLookup(compiler);
+    lookup ??= new ProgramLookup(backendStrategy);
     Class cls = lookup.getClass(element);
     Features features = new Features();
     if (cls != null) {

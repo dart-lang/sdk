@@ -16,9 +16,9 @@ main() {
 class NullabilityNodeTest {
   final graph = NullabilityGraph();
 
-  NullabilityNode get always => NullabilityNode.always;
+  NullabilityNode get always => graph.always;
 
-  NullabilityNode get never => NullabilityNode.never;
+  NullabilityNode get never => graph.never;
 
   void connect(NullabilityNode source, NullabilityNode destination,
       {bool hard = false, List<NullabilityNode> guards = const []}) {
@@ -75,6 +75,54 @@ class NullabilityNodeTest {
     // Downstream propagation of nullability ignores edges originating at
     // `never`, so n1 should be non-nullable.
     expect(n1.isNullable, false);
+  }
+
+  test_propagation_always_union() {
+    // always == 1
+    // 1 -(hard)-> never
+    // 1 -> 2
+    // 1 -> 3
+    // 3 -(hard)-> never
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    var n3 = newNode(3);
+    union(always, n1);
+    connect(n1, never, hard: true);
+    connect(n1, n2);
+    connect(n1, n3);
+    connect(n3, never, hard: true);
+    graph.propagate();
+    // Union edges take precedence over hard ones, so n1 should be nullable.
+    expect(n1.isNullable, true);
+    // And nullability should be propagated to n2.
+    expect(n2.isNullable, true);
+    // But it should not be propagated to n3 because non-nullability propagation
+    // takes precedence over ordinary nullability propagation.
+    expect(n3.isNullable, false);
+  }
+
+  test_propagation_always_union_reversed() {
+    // always == 1
+    // 1 -(hard)-> never
+    // 1 -> 2
+    // 1 -> 3
+    // 3 -(hard)-> never
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    var n3 = newNode(3);
+    union(n1, always);
+    connect(n1, never, hard: true);
+    connect(n1, n2);
+    connect(n1, n3);
+    connect(n3, never, hard: true);
+    graph.propagate();
+    // Union edges take precedence over hard ones, so n1 should be nullable.
+    expect(n1.isNullable, true);
+    // And nullability should be propagated to n2.
+    expect(n2.isNullable, true);
+    // But it should not be propagated to n3 because non-nullability propagation
+    // takes precedence over ordinary nullability propagation.
+    expect(n3.isNullable, false);
   }
 
   test_propagation_downstream_guarded_multiple_guards_all_satisfied() {
@@ -283,6 +331,38 @@ class NullabilityNodeTest {
     expect(n3.isNullable, true);
   }
 
+  test_propagation_downstream_through_union() {
+    // always -> 1
+    // 1 == 2
+    // 2 -> 3
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    var n3 = newNode(3);
+    connect(always, n1);
+    union(n1, n2);
+    connect(n2, n3);
+    graph.propagate();
+    expect(n1.isNullable, true);
+    expect(n2.isNullable, true);
+    expect(n3.isNullable, true);
+  }
+
+  test_propagation_downstream_through_union_reversed() {
+    // always -> 1
+    // 2 == 1
+    // 2 -> 3
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    var n3 = newNode(3);
+    connect(always, n1);
+    union(n2, n1);
+    connect(n2, n3);
+    graph.propagate();
+    expect(n1.isNullable, true);
+    expect(n2.isNullable, true);
+    expect(n3.isNullable, true);
+  }
+
   test_propagation_simple() {
     // always -(soft)-> 1 -(soft)-> 2 -(hard) -> 3 -(hard)-> never
     var n1 = newNode(1);
@@ -298,9 +378,57 @@ class NullabilityNodeTest {
     expect(n3.isNullable, false);
   }
 
+  test_propagation_upstream_through_union() {
+    // always -> 1
+    // always -> 2
+    // always -> 3
+    // 1 -(hard)-> 2
+    // 2 == 3
+    // 3 -(hard)-> never
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    var n3 = newNode(3);
+    connect(always, n1);
+    connect(always, n2);
+    connect(always, n3);
+    connect(n1, n2, hard: true);
+    union(n2, n3);
+    connect(n3, never, hard: true);
+    graph.propagate();
+    expect(n1.isNullable, false);
+    expect(n2.isNullable, false);
+    expect(n3.isNullable, false);
+  }
+
+  test_propagation_upstream_through_union_reversed() {
+    // always -> 1
+    // always -> 2
+    // always -> 3
+    // 1 -(hard)-> 2
+    // 3 == 2
+    // 3 -(hard)-> never
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    var n3 = newNode(3);
+    connect(always, n1);
+    connect(always, n2);
+    connect(always, n3);
+    connect(n1, n2, hard: true);
+    union(n3, n2);
+    connect(n3, never, hard: true);
+    graph.propagate();
+    expect(n1.isNullable, false);
+    expect(n2.isNullable, false);
+    expect(n3.isNullable, false);
+  }
+
   test_unconstrainted_node_non_nullable() {
     var n1 = newNode(1);
     graph.propagate();
     expect(n1.isNullable, false);
+  }
+
+  void union(NullabilityNode x, NullabilityNode y) {
+    graph.union(x, y);
   }
 }

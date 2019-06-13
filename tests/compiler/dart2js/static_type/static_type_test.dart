@@ -48,7 +48,7 @@ class StaticTypeDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
-    KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+    KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
     StaticTypeCache staticTypeCache = elementMap.getCachedStaticTypes(member);
     ir.Member node = elementMap.getMemberNode(member);

@@ -1032,16 +1032,32 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const Code& stub,
   __ Drop(ic_data.CountWithTypeArgs());
 }
 
-void FlowGraphCompiler::EmitInstanceCall(const Code& stub,
-                                         const ICData& ic_data,
-                                         intptr_t deopt_id,
-                                         TokenPosition token_pos,
-                                         LocationSummary* locs) {
+void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
+                                            const ICData& ic_data,
+                                            intptr_t deopt_id,
+                                            TokenPosition token_pos,
+                                            LocationSummary* locs,
+                                            Code::EntryKind entry_kind) {
+  ASSERT(entry_kind == Code::EntryKind::kNormal ||
+         entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
   __ LoadFromOffset(R0, SP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
-  __ LoadUniqueObject(R5, ic_data);
-  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs,
-                   Code::EntryKind::kMonomorphic);
+
+  ObjectPoolBuilder& op = __ object_pool_builder();
+  const intptr_t ic_data_index =
+      op.AddObject(ic_data, ObjectPool::Patchability::kPatchable);
+  const intptr_t stub_index =
+      op.AddObject(stub, ObjectPool::Patchability::kPatchable);
+  ASSERT((ic_data_index + 1) == stub_index);
+  __ LoadDoubleWordFromPoolOffset(R5, CODE_REG,
+                                  ObjectPool::element_offset(ic_data_index));
+  const intptr_t entry_point_offset =
+      entry_kind == Code::EntryKind::kNormal
+          ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
+          : Code::entry_point_offset(Code::EntryKind::kMonomorphicUnchecked);
+  __ ldr(LR, FieldAddress(CODE_REG, entry_point_offset));
+  __ blr(LR);
+  EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kIcCall, locs);
   __ Drop(ic_data.CountWithTypeArgs());
 }
 
@@ -1090,18 +1106,18 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ Drop(args_desc.CountWithTypeArgs());
 }
 
-void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
-                                                   intptr_t deopt_id,
-                                                   TokenPosition token_pos,
-                                                   LocationSummary* locs,
-                                                   Code::EntryKind entry_kind) {
+void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
+                                            intptr_t deopt_id,
+                                            TokenPosition token_pos,
+                                            LocationSummary* locs,
+                                            Code::EntryKind entry_kind) {
   // TODO(34162): Support multiple entry-points on ARM64.
   ASSERT(ic_data.NumArgsTested() == 1);
   const Code& initial_stub = StubCode::ICCallThroughFunction();
 
-  auto& op = __ object_pool_builder();
+  ObjectPoolBuilder& op = __ object_pool_builder();
 
-  __ Comment("SwitchableCall");
+  __ Comment("InstanceCallAOT");
   __ LoadFromOffset(R0, SP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
 
   const intptr_t ic_data_index =

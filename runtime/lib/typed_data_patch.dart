@@ -40,14 +40,14 @@ class ByteData implements TypedData {
   factory ByteData(int length) {
     final list = new Uint8List(length) as _TypedList;
     _rangeCheck(list.lengthInBytes, 0, length);
-    return new _ByteDataView(list, 0, length);
+    return new _ByteDataView._(list, 0, length);
   }
 
   // Called directly from C code.
   @pragma("vm:entry-point")
   factory ByteData._view(_TypedList typedData, int offsetInBytes, int length) {
     _rangeCheck(typedData.lengthInBytes, offsetInBytes, length);
-    return new _ByteDataView(typedData, offsetInBytes, length);
+    return new _ByteDataView._(typedData, offsetInBytes, length);
   }
 }
 
@@ -1907,14 +1907,14 @@ class _ByteBuffer implements ByteBuffer {
   ByteData asByteData([int offsetInBytes = 0, int length]) {
     length ??= this.lengthInBytes - offsetInBytes;
     _rangeCheck(this._data.lengthInBytes, offsetInBytes, length);
-    return new _ByteDataView(this._data, offsetInBytes, length);
+    return new _ByteDataView._(this._data, offsetInBytes, length);
   }
 
   Int8List asInt8List([int offsetInBytes = 0, int length]) {
     length ??= (this.lengthInBytes - offsetInBytes) ~/ Int8List.bytesPerElement;
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Int8List.bytesPerElement);
-    return new _Int8ArrayView(this._data, offsetInBytes, length);
+    return new _Int8ArrayView._(this._data, offsetInBytes, length);
   }
 
   Uint8List asUint8List([int offsetInBytes = 0, int length]) {
@@ -1922,7 +1922,7 @@ class _ByteBuffer implements ByteBuffer {
         (this.lengthInBytes - offsetInBytes) ~/ Uint8List.bytesPerElement;
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Uint8List.bytesPerElement);
-    return new _Uint8ArrayView(this._data, offsetInBytes, length);
+    return new _Uint8ArrayView._(this._data, offsetInBytes, length);
   }
 
   Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int length]) {
@@ -1930,7 +1930,7 @@ class _ByteBuffer implements ByteBuffer {
         Uint8ClampedList.bytesPerElement;
     _rangeCheck(this.lengthInBytes, offsetInBytes,
         length * Uint8ClampedList.bytesPerElement);
-    return new _Uint8ClampedArrayView(this._data, offsetInBytes, length);
+    return new _Uint8ClampedArrayView._(this._data, offsetInBytes, length);
   }
 
   Int16List asInt16List([int offsetInBytes = 0, int length]) {
@@ -1939,7 +1939,7 @@ class _ByteBuffer implements ByteBuffer {
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Int16List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Int16List.bytesPerElement);
-    return new _Int16ArrayView(this._data, offsetInBytes, length);
+    return new _Int16ArrayView._(this._data, offsetInBytes, length);
   }
 
   Uint16List asUint16List([int offsetInBytes = 0, int length]) {
@@ -1948,7 +1948,7 @@ class _ByteBuffer implements ByteBuffer {
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Uint16List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Uint16List.bytesPerElement);
-    return new _Uint16ArrayView(this._data, offsetInBytes, length);
+    return new _Uint16ArrayView._(this._data, offsetInBytes, length);
   }
 
   Int32List asInt32List([int offsetInBytes = 0, int length]) {
@@ -1957,7 +1957,7 @@ class _ByteBuffer implements ByteBuffer {
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Int32List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Int32List.bytesPerElement);
-    return new _Int32ArrayView(this._data, offsetInBytes, length);
+    return new _Int32ArrayView._(this._data, offsetInBytes, length);
   }
 
   Uint32List asUint32List([int offsetInBytes = 0, int length]) {
@@ -1966,7 +1966,7 @@ class _ByteBuffer implements ByteBuffer {
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Uint32List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Uint32List.bytesPerElement);
-    return new _Uint32ArrayView(this._data, offsetInBytes, length);
+    return new _Uint32ArrayView._(this._data, offsetInBytes, length);
   }
 
   Int64List asInt64List([int offsetInBytes = 0, int length]) {
@@ -1975,7 +1975,7 @@ class _ByteBuffer implements ByteBuffer {
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Int64List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Int64List.bytesPerElement);
-    return new _Int64ArrayView(this._data, offsetInBytes, length);
+    return new _Int64ArrayView._(this._data, offsetInBytes, length);
   }
 
   Uint64List asUint64List([int offsetInBytes = 0, int length]) {
@@ -1984,7 +1984,7 @@ class _ByteBuffer implements ByteBuffer {
     _rangeCheck(
         this.lengthInBytes, offsetInBytes, length * Uint64List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Uint64List.bytesPerElement);
-    return new _Uint64ArrayView(this._data, offsetInBytes, length);
+    return new _Uint64ArrayView._(this._data, offsetInBytes, length);
   }
 
   Float32List asFloat32List([int offsetInBytes = 0, int length]) {
@@ -1993,7 +1993,7 @@ class _ByteBuffer implements ByteBuffer {
     _rangeCheck(this.lengthInBytes, offsetInBytes,
         length * Float32List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Float32List.bytesPerElement);
-    return new _Float32ArrayView(this._data, offsetInBytes, length);
+    return new _Float32ArrayView._(this._data, offsetInBytes, length);
   }
 
   Float64List asFloat64List([int offsetInBytes = 0, int length]) {
@@ -2002,7 +2002,7 @@ class _ByteBuffer implements ByteBuffer {
     _rangeCheck(this.lengthInBytes, offsetInBytes,
         length * Float64List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Float64List.bytesPerElement);
-    return new _Float64ArrayView(this._data, offsetInBytes, length);
+    return new _Float64ArrayView._(this._data, offsetInBytes, length);
   }
 
   Float32x4List asFloat32x4List([int offsetInBytes = 0, int length]) {
@@ -2011,7 +2011,7 @@ class _ByteBuffer implements ByteBuffer {
     _rangeCheck(this.lengthInBytes, offsetInBytes,
         length * Float32x4List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Float32x4List.bytesPerElement);
-    return new _Float32x4ArrayView(this._data, offsetInBytes, length);
+    return new _Float32x4ArrayView._(this._data, offsetInBytes, length);
   }
 
   Int32x4List asInt32x4List([int offsetInBytes = 0, int length]) {
@@ -2020,7 +2020,7 @@ class _ByteBuffer implements ByteBuffer {
     _rangeCheck(this.lengthInBytes, offsetInBytes,
         length * Int32x4List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Int32x4List.bytesPerElement);
-    return new _Int32x4ArrayView(this._data, offsetInBytes, length);
+    return new _Int32x4ArrayView._(this._data, offsetInBytes, length);
   }
 
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int length]) {
@@ -2029,7 +2029,7 @@ class _ByteBuffer implements ByteBuffer {
     _rangeCheck(this.lengthInBytes, offsetInBytes,
         length * Float64x2List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Float64x2List.bytesPerElement);
-    return new _Float64x2ArrayView(this._data, offsetInBytes, length);
+    return new _Float64x2ArrayView._(this._data, offsetInBytes, length);
   }
 }
 
@@ -2139,6 +2139,10 @@ class Int8List {
 
 @pragma("vm:entry-point")
 class _Int8List extends _TypedList with _IntListMixin implements Int8List {
+  factory _Int8List._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Method(s) implementing List interface.
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
@@ -2181,6 +2185,10 @@ class Uint8List {
 
 @pragma("vm:entry-point")
 class _Uint8List extends _TypedList with _IntListMixin implements Uint8List {
+  factory _Uint8List._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Methods implementing List interface.
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
@@ -2225,6 +2233,10 @@ class Uint8ClampedList {
 class _Uint8ClampedList extends _TypedList
     with _IntListMixin
     implements Uint8ClampedList {
+  factory _Uint8ClampedList._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Methods implementing List interface.
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
@@ -2267,6 +2279,10 @@ class Int16List {
 
 @pragma("vm:entry-point")
 class _Int16List extends _TypedList with _IntListMixin implements Int16List {
+  factory _Int16List._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Method(s) implementing List interface.
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
@@ -2328,6 +2344,10 @@ class Uint16List {
 
 @pragma("vm:entry-point")
 class _Uint16List extends _TypedList with _IntListMixin implements Uint16List {
+  factory _Uint16List._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Method(s) implementing the List interface.
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
@@ -2389,6 +2409,10 @@ class Int32List {
 
 @pragma("vm:entry-point")
 class _Int32List extends _TypedList with _IntListMixin implements Int32List {
+  factory _Int32List._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -2438,6 +2462,10 @@ class Uint32List {
 
 @pragma("vm:entry-point")
 class _Uint32List extends _TypedList with _IntListMixin implements Uint32List {
+  factory _Uint32List._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -2487,6 +2515,10 @@ class Int64List {
 
 @pragma("vm:entry-point")
 class _Int64List extends _TypedList with _IntListMixin implements Int64List {
+  factory _Int64List._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -2536,6 +2568,10 @@ class Uint64List {
 
 @pragma("vm:entry-point")
 class _Uint64List extends _TypedList with _IntListMixin implements Uint64List {
+  factory _Uint64List._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -2587,6 +2623,10 @@ class Float32List {
 class _Float32List extends _TypedList
     with _DoubleListMixin
     implements Float32List {
+  factory _Float32List._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Method(s) implementing the List interface.
   @pragma("vm:exact-result-type", "dart:core#_Double")
   double operator [](int index) {
@@ -2639,6 +2679,10 @@ class Float64List {
 class _Float64List extends _TypedList
     with _DoubleListMixin
     implements Float64List {
+  factory _Float64List._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Method(s) implementing the List interface.
   @pragma("vm:exact-result-type", "dart:core#_Double")
   double operator [](int index) {
@@ -2691,6 +2735,10 @@ class Float32x4List {
 class _Float32x4List extends _TypedList
     with _Float32x4ListMixin
     implements Float32x4List {
+  factory _Float32x4List._uninstantiable() {
+    throw "Unreachable";
+  }
+
   @pragma("vm:exact-result-type", _Float32x4)
   Float32x4 operator [](int index) {
     if (index < 0 || index >= length) {
@@ -2742,6 +2790,10 @@ class Int32x4List {
 class _Int32x4List extends _TypedList
     with _Int32x4ListMixin
     implements Int32x4List {
+  factory _Int32x4List._uninstantiable() {
+    throw "Unreachable";
+  }
+
   @pragma("vm:exact-result-type", _Int32x4)
   Int32x4 operator [](int index) {
     if (index < 0 || index >= length) {
@@ -2793,6 +2845,10 @@ class Float64x2List {
 class _Float64x2List extends _TypedList
     with _Float64x2ListMixin
     implements Float64x2List {
+  factory _Float64x2List._uninstantiable() {
+    throw "Unreachable";
+  }
+
   @pragma("vm:exact-result-type", _Float64x2)
   Float64x2 operator [](int index) {
     if (index < 0 || index >= length) {
@@ -2831,6 +2887,10 @@ class _Float64x2List extends _TypedList
 class _ExternalInt8Array extends _TypedList
     with _IntListMixin
     implements Int8List {
+  factory _ExternalInt8Array._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -2861,6 +2921,10 @@ class _ExternalInt8Array extends _TypedList
 class _ExternalUint8Array extends _TypedList
     with _IntListMixin
     implements Uint8List {
+  factory _ExternalUint8Array._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Method(s) implementing the List interface.
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
@@ -2892,6 +2956,10 @@ class _ExternalUint8Array extends _TypedList
 class _ExternalUint8ClampedArray extends _TypedList
     with _IntListMixin
     implements Uint8ClampedList {
+  factory _ExternalUint8ClampedArray._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Method(s) implementing the List interface.
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
@@ -2923,8 +2991,11 @@ class _ExternalUint8ClampedArray extends _TypedList
 class _ExternalInt16Array extends _TypedList
     with _IntListMixin
     implements Int16List {
-  // Method(s) implementing the List interface.
+  factory _ExternalInt16Array._uninstantiable() {
+    throw "Unreachable";
+  }
 
+  // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -2962,8 +3033,11 @@ class _ExternalInt16Array extends _TypedList
 class _ExternalUint16Array extends _TypedList
     with _IntListMixin
     implements Uint16List {
-  // Method(s) implementing the List interface.
+  factory _ExternalUint16Array._uninstantiable() {
+    throw "Unreachable";
+  }
 
+  // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3001,6 +3075,10 @@ class _ExternalUint16Array extends _TypedList
 class _ExternalInt32Array extends _TypedList
     with _IntListMixin
     implements Int32List {
+  factory _ExternalInt32Array._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -3039,8 +3117,11 @@ class _ExternalInt32Array extends _TypedList
 class _ExternalUint32Array extends _TypedList
     with _IntListMixin
     implements Uint32List {
-  // Method(s) implementing the List interface.
+  factory _ExternalUint32Array._uninstantiable() {
+    throw "Unreachable";
+  }
 
+  // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3078,8 +3159,11 @@ class _ExternalUint32Array extends _TypedList
 class _ExternalInt64Array extends _TypedList
     with _IntListMixin
     implements Int64List {
-  // Method(s) implementing the List interface.
+  factory _ExternalInt64Array._uninstantiable() {
+    throw "Unreachable";
+  }
 
+  // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3117,8 +3201,11 @@ class _ExternalInt64Array extends _TypedList
 class _ExternalUint64Array extends _TypedList
     with _IntListMixin
     implements Uint64List {
-  // Method(s) implementing the List interface.
+  factory _ExternalUint64Array._uninstantiable() {
+    throw "Unreachable";
+  }
 
+  // Method(s) implementing the List interface.
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3156,8 +3243,11 @@ class _ExternalUint64Array extends _TypedList
 class _ExternalFloat32Array extends _TypedList
     with _DoubleListMixin
     implements Float32List {
-  // Method(s) implementing the List interface.
+  factory _ExternalFloat32Array._uninstantiable() {
+    throw "Unreachable";
+  }
 
+  // Method(s) implementing the List interface.
   double operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3195,8 +3285,11 @@ class _ExternalFloat32Array extends _TypedList
 class _ExternalFloat64Array extends _TypedList
     with _DoubleListMixin
     implements Float64List {
-  // Method(s) implementing the List interface.
+  factory _ExternalFloat64Array._uninstantiable() {
+    throw "Unreachable";
+  }
 
+  // Method(s) implementing the List interface.
   double operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3234,8 +3327,11 @@ class _ExternalFloat64Array extends _TypedList
 class _ExternalFloat32x4Array extends _TypedList
     with _Float32x4ListMixin
     implements Float32x4List {
-  // Method(s) implementing the List interface.
+  factory _ExternalFloat32x4Array._uninstantiable() {
+    throw "Unreachable";
+  }
 
+  // Method(s) implementing the List interface.
   Float32x4 operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3273,8 +3369,11 @@ class _ExternalFloat32x4Array extends _TypedList
 class _ExternalInt32x4Array extends _TypedList
     with _Int32x4ListMixin
     implements Int32x4List {
-  // Method(s) implementing the List interface.
+  factory _ExternalInt32x4Array._uninstantiable() {
+    throw "Unreachable";
+  }
 
+  // Method(s) implementing the List interface.
   Int32x4 operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3312,6 +3411,10 @@ class _ExternalInt32x4Array extends _TypedList
 class _ExternalFloat64x2Array extends _TypedList
     with _Float64x2ListMixin
     implements Float64x2List {
+  factory _ExternalFloat64x2Array._uninstantiable() {
+    throw "Unreachable";
+  }
+
   // Method(s) implementing the List interface.
   Float64x2 operator [](int index) {
     if (index < 0 || index >= length) {
@@ -3599,7 +3702,7 @@ class _Int8ArrayView extends _TypedListView
     implements Int8List {
   // Constructor.
   @pragma("vm:exact-result-type", _Int8ArrayView)
-  factory _Int8ArrayView(_TypedList buffer, int offsetInBytes, int length)
+  factory _Int8ArrayView._(_TypedList buffer, int offsetInBytes, int length)
       native "TypedDataView_Int8ArrayView_new";
 
   // Method(s) implementing List interface.
@@ -3636,7 +3739,7 @@ class _Uint8ArrayView extends _TypedListView
     implements Uint8List {
   // Constructor.
   @pragma("vm:exact-result-type", _Uint8ArrayView)
-  factory _Uint8ArrayView(_TypedList buffer, int offsetInBytes, int length)
+  factory _Uint8ArrayView._(_TypedList buffer, int offsetInBytes, int length)
       native "TypedDataView_Uint8ArrayView_new";
 
   // Method(s) implementing List interface.
@@ -3673,7 +3776,7 @@ class _Uint8ClampedArrayView extends _TypedListView
     implements Uint8ClampedList {
   // Constructor.
   @pragma("vm:exact-result-type", _Uint8ClampedArrayView)
-  factory _Uint8ClampedArrayView(_TypedList buffer, int offsetInBytes,
+  factory _Uint8ClampedArrayView._(_TypedList buffer, int offsetInBytes,
       int length) native "TypedDataView_Uint8ClampedArrayView_new";
 
   // Method(s) implementing List interface.
@@ -3710,7 +3813,7 @@ class _Int16ArrayView extends _TypedListView
     implements Int16List {
   // Constructor.
   @pragma("vm:exact-result-type", _Int16ArrayView)
-  factory _Int16ArrayView(_TypedList buffer, int offsetInBytes, int length)
+  factory _Int16ArrayView._(_TypedList buffer, int offsetInBytes, int length)
       native "TypedDataView_Int16ArrayView_new";
 
   // Method(s) implementing List interface.
@@ -3759,7 +3862,7 @@ class _Uint16ArrayView extends _TypedListView
     implements Uint16List {
   // Constructor.
   @pragma("vm:exact-result-type", _Uint16ArrayView)
-  factory _Uint16ArrayView(_TypedList buffer, int offsetInBytes, int length)
+  factory _Uint16ArrayView._(_TypedList buffer, int offsetInBytes, int length)
       native "TypedDataView_Uint16ArrayView_new";
 
   // Method(s) implementing List interface.
@@ -3809,7 +3912,7 @@ class _Int32ArrayView extends _TypedListView
     implements Int32List {
   // Constructor.
   @pragma("vm:exact-result-type", _Int32ArrayView)
-  factory _Int32ArrayView(_TypedList buffer, int offsetInBytes, int length)
+  factory _Int32ArrayView._(_TypedList buffer, int offsetInBytes, int length)
       native "TypedDataView_Int32ArrayView_new";
 
   // Method(s) implementing List interface.
@@ -3846,7 +3949,7 @@ class _Uint32ArrayView extends _TypedListView
     implements Uint32List {
   // Constructor.
   @pragma("vm:exact-result-type", _Uint32ArrayView)
-  factory _Uint32ArrayView(_TypedList buffer, int offsetInBytes, int length)
+  factory _Uint32ArrayView._(_TypedList buffer, int offsetInBytes, int length)
       native "TypedDataView_Uint32ArrayView_new";
 
   // Method(s) implementing List interface.
@@ -3883,7 +3986,7 @@ class _Int64ArrayView extends _TypedListView
     implements Int64List {
   // Constructor.
   @pragma("vm:exact-result-type", _Int64ArrayView)
-  factory _Int64ArrayView(_TypedList buffer, int offsetInBytes, int length)
+  factory _Int64ArrayView._(_TypedList buffer, int offsetInBytes, int length)
       native "TypedDataView_Int64ArrayView_new";
 
   // Method(s) implementing List interface.
@@ -3920,7 +4023,7 @@ class _Uint64ArrayView extends _TypedListView
     implements Uint64List {
   // Constructor.
   @pragma("vm:exact-result-type", _Uint64ArrayView)
-  factory _Uint64ArrayView(_TypedList buffer, int offsetInBytes, int length)
+  factory _Uint64ArrayView._(_TypedList buffer, int offsetInBytes, int length)
       native "TypedDataView_Uint64ArrayView_new";
 
   // Method(s) implementing List interface.
@@ -3957,7 +4060,7 @@ class _Float32ArrayView extends _TypedListView
     implements Float32List {
   // Constructor.
   @pragma("vm:exact-result-type", _Float32ArrayView)
-  factory _Float32ArrayView(_TypedList buffer, int offsetInBytes, int length)
+  factory _Float32ArrayView._(_TypedList buffer, int offsetInBytes, int length)
       native "TypedDataView_Float32ArrayView_new";
 
   // Method(s) implementing List interface.
@@ -3994,7 +4097,7 @@ class _Float64ArrayView extends _TypedListView
     implements Float64List {
   // Constructor.
   @pragma("vm:exact-result-type", _Float64ArrayView)
-  factory _Float64ArrayView(_TypedList buffer, int offsetInBytes, int length)
+  factory _Float64ArrayView._(_TypedList buffer, int offsetInBytes, int length)
       native "TypedDataView_Float64ArrayView_new";
 
   // Method(s) implementing List interface.
@@ -4031,8 +4134,8 @@ class _Float32x4ArrayView extends _TypedListView
     implements Float32x4List {
   // Constructor.
   @pragma("vm:exact-result-type", _Float32x4ArrayView)
-  factory _Float32x4ArrayView(_TypedList buffer, int offsetInBytes, int length)
-      native "TypedDataView_Float32x4ArrayView_new";
+  factory _Float32x4ArrayView._(_TypedList buffer, int offsetInBytes,
+      int length) native "TypedDataView_Float32x4ArrayView_new";
 
   // Method(s) implementing List interface.
   Float32x4 operator [](int index) {
@@ -4068,7 +4171,7 @@ class _Int32x4ArrayView extends _TypedListView
     implements Int32x4List {
   // Constructor.
   @pragma("vm:exact-result-type", _Int32x4ArrayView)
-  factory _Int32x4ArrayView(_TypedList buffer, int offsetInBytes, int length)
+  factory _Int32x4ArrayView._(_TypedList buffer, int offsetInBytes, int length)
       native "TypedDataView_Int32x4ArrayView_new";
 
   // Method(s) implementing List interface.
@@ -4105,8 +4208,8 @@ class _Float64x2ArrayView extends _TypedListView
     implements Float64x2List {
   // Constructor.
   @pragma("vm:exact-result-type", _Float64x2ArrayView)
-  factory _Float64x2ArrayView(_TypedList buffer, int offsetInBytes, int length)
-      native "TypedDataView_Float64x2ArrayView_new";
+  factory _Float64x2ArrayView._(_TypedList buffer, int offsetInBytes,
+      int length) native "TypedDataView_Float64x2ArrayView_new";
 
   // Method(s) implementing List interface.
   Float64x2 operator [](int index) {
@@ -4139,7 +4242,7 @@ class _Float64x2ArrayView extends _TypedListView
 @pragma("vm:entry-point")
 class _ByteDataView implements ByteData {
   @pragma("vm:exact-result-type", _ByteDataView)
-  factory _ByteDataView(_TypedList buffer, int offsetInBytes, int length)
+  factory _ByteDataView._(_TypedList buffer, int offsetInBytes, int length)
       native "TypedDataView_ByteDataView_new";
 
   // Method(s) implementing TypedData interface.

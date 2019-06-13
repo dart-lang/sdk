@@ -47,12 +47,12 @@ class GraphBuilderTest extends MigrationVisitorTestBase {
   /// Checks that there are no nullability nodes upstream from [node] that could
   /// cause it to become nullable.
   void assertNoUpstreamNullability(NullabilityNode node) {
-    // NullabilityNode.never can never become nullable, even if it has nodes
+    // never can never become nullable, even if it has nodes
     // upstream from it.
-    if (node == NullabilityNode.never) return;
+    if (node == never) return;
 
     for (var upstreamNode in graph.getUpstreamNodes(node)) {
-      expect(upstreamNode, NullabilityNode.never);
+      expect(upstreamNode, never);
     }
   }
 
@@ -71,7 +71,7 @@ class GraphBuilderTest extends MigrationVisitorTestBase {
       {NullabilityNode contextNode, List<NullabilityNode> guards = const []}) {
     expect(expressionChecks.valueNode, same(valueNode));
     if (contextNode == null) {
-      expect(expressionChecks.contextNode, same(NullabilityNode.never));
+      expect(expressionChecks.contextNode, same(never));
     } else {
       expect(expressionChecks.contextNode, same(contextNode));
     }
@@ -417,7 +417,7 @@ int f(bool b, int i) {
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
-    assertConditional(nullable_conditional, NullabilityNode.always, nullable_i);
+    assertConditional(nullable_conditional, always, nullable_i);
   }
 
   test_conditionalExpression_right_non_null() async {
@@ -444,7 +444,7 @@ int f(bool b, int i) {
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
-    assertConditional(nullable_conditional, nullable_i, NullabilityNode.always);
+    assertConditional(nullable_conditional, nullable_i, always);
   }
 
   test_functionDeclaration_expression_body() async {
@@ -470,8 +470,7 @@ void f({int i = 1}) {}
 void f({int i = null}) {}
 ''');
 
-    assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
-        hard: false);
+    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
   }
 
   test_functionDeclaration_parameter_named_no_default() async {
@@ -479,8 +478,7 @@ void f({int i = null}) {}
 void f({int i}) {}
 ''');
 
-    assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
-        hard: false);
+    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
   }
 
   test_functionDeclaration_parameter_named_no_default_required() async {
@@ -506,8 +504,7 @@ void f([int i = 1]) {}
 void f([int i = null]) {}
 ''');
 
-    assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
-        hard: false);
+    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
   }
 
   test_functionDeclaration_parameter_positionalOptional_no_default() async {
@@ -515,8 +512,7 @@ void f([int i = null]) {}
 void f([int i]) {}
 ''');
 
-    assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
-        hard: false);
+    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
   }
 
   test_functionDeclaration_resets_unconditional_control_flow() async {
@@ -571,7 +567,7 @@ void g() {
 }
 ''');
     var optional_i = possiblyOptionalParameter('int i');
-    expect(getEdges(NullabilityNode.always, optional_i), isNotEmpty);
+    expect(getEdges(always, optional_i), isNotEmpty);
   }
 
   test_functionInvocation_parameter_named_missing_required() async {
@@ -599,7 +595,7 @@ void test() {
 }
 ''');
 
-    assertNullCheck(checkExpression('null'), NullabilityNode.always,
+    assertNullCheck(checkExpression('null'), always,
         contextNode: decoratedTypeAnnotation('int').node);
   }
 
@@ -956,7 +952,7 @@ void test(C c) {
   test_never() async {
     await analyze('');
 
-    expect(NullabilityNode.never.isNullable, isFalse);
+    expect(never.isNullable, isFalse);
   }
 
   test_parenthesizedExpression() async {
@@ -966,7 +962,7 @@ int f() {
 }
 ''');
 
-    assertNullCheck(checkExpression('(null)'), NullabilityNode.always,
+    assertNullCheck(checkExpression('(null)'), always,
         contextNode: decoratedTypeAnnotation('int').node);
   }
 
@@ -1069,8 +1065,7 @@ int f() {
 }
 ''');
 
-    assertEdge(NullabilityNode.always, decoratedTypeAnnotation('int').node,
-        hard: false);
+    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
   }
 
   test_return_null() async {
@@ -1080,7 +1075,7 @@ int f() {
 }
 ''');
 
-    assertNullCheck(checkExpression('null'), NullabilityNode.always,
+    assertNullCheck(checkExpression('null'), always,
         contextNode: decoratedTypeAnnotation('int').node);
   }
 
@@ -1167,6 +1162,28 @@ Type f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('Type').node);
   }
 
+  test_typeName_union_with_bound() async {
+    await analyze('''
+class C<T extends Object> {}
+void f(C c) {}
+''');
+    var cType = decoratedTypeAnnotation('C c');
+    var cBound = decoratedTypeAnnotation('Object');
+    assertUnion(cType.typeArguments[0].node, cBound.node);
+  }
+
+  test_typeName_union_with_bounds() async {
+    await analyze('''
+class C<T extends Object, U extends Object> {}
+void f(C c) {}
+''');
+    var cType = decoratedTypeAnnotation('C c');
+    var tBound = decoratedTypeAnnotation('Object,');
+    var uBound = decoratedTypeAnnotation('Object>');
+    assertUnion(cType.typeArguments[0].node, tBound.node);
+    assertUnion(cType.typeArguments[1].node, uBound.node);
+  }
+
   test_variableDeclaration() async {
     await analyze('''
 void f(int i) {
@@ -1186,11 +1203,11 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
 
   MigrationVisitorTestBase() : this._(NullabilityGraphForTesting());
 
-  MigrationVisitorTestBase._(this.graph) : _variables = _Variables();
+  MigrationVisitorTestBase._(this.graph) : _variables = _Variables(graph);
 
-  NullabilityNode get always => NullabilityNode.always;
+  NullabilityNode get always => graph.always;
 
-  NullabilityNode get never => NullabilityNode.never;
+  NullabilityNode get never => graph.never;
 
   TypeProvider get typeProvider => testAnalysisResult.typeProvider;
 
@@ -1219,6 +1236,17 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
     if (edges.isNotEmpty) {
       fail('Expected no edge $source -> $destination, found ${edges.length}');
     }
+  }
+
+  void assertUnion(NullabilityNode x, NullabilityNode y) {
+    var edges = getEdges(x, y);
+    for (var edge in edges) {
+      if (edge.isUnion) {
+        expect(edge.sources, hasLength(1));
+        return;
+      }
+    }
+    fail('Expected union between $x and $y, not found');
   }
 
   /// Gets the [DecoratedType] associated with the generic function type
@@ -1256,6 +1284,11 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
 
 @reflectiveTest
 class NodeBuilderTest extends MigrationVisitorTestBase {
+  /// Gets the [DecoratedType] associated with the constructor declaration whose
+  /// name matches [search].
+  DecoratedType decoratedConstructorDeclaration(String search) => _variables
+      .decoratedElementType(findNode.constructor(search).declaredElement);
+
   /// Gets the [DecoratedType] associated with the function declaration whose
   /// name matches [search].
   DecoratedType decoratedFunctionType(String search) =>
@@ -1264,6 +1297,16 @@ class NodeBuilderTest extends MigrationVisitorTestBase {
 
   DecoratedType decoratedTypeParameterBound(String search) => _variables
       .decoratedElementType(findNode.typeParameter(search).declaredElement);
+
+  test_constructor_returnType_implicit_dynamic() async {
+    await analyze('''
+class C {
+  C();
+}
+''');
+    var decoratedType = decoratedConstructorDeclaration('C(').returnType;
+    expect(decoratedType.node, same(never));
+  }
 
   test_dynamic_type() async {
     await analyze('''
@@ -1300,7 +1343,7 @@ void f(void Function({int y}) x) {}
     var decoratedIntType = decoratedTypeAnnotation('int');
     expect(decoratedType.namedParameters['y'], same(decoratedIntType));
     expect(decoratedIntType.node, isNotNull);
-    expect(decoratedIntType.node, isNot(NullabilityNode.never));
+    expect(decoratedIntType.node, isNot(never));
   }
 
   test_genericFunctionType_returnType() async {
@@ -1315,7 +1358,7 @@ void f(int Function() x) {}
     var decoratedIntType = decoratedTypeAnnotation('int');
     expect(decoratedType.returnType, same(decoratedIntType));
     expect(decoratedIntType.node, isNotNull);
-    expect(decoratedIntType.node, isNot(NullabilityNode.never));
+    expect(decoratedIntType.node, isNot(never));
   }
 
   test_genericFunctionType_unnamedParameterType() async {
@@ -1330,7 +1373,85 @@ void f(void Function(int) x) {}
     var decoratedIntType = decoratedTypeAnnotation('int');
     expect(decoratedType.positionalParameters[0], same(decoratedIntType));
     expect(decoratedIntType.node, isNotNull);
-    expect(decoratedIntType.node, isNot(NullabilityNode.never));
+    expect(decoratedIntType.node, isNot(never));
+  }
+
+  test_interfaceType_generic_instantiate_to_dynamic() async {
+    await analyze('''
+void f(List x) {}
+''');
+    var decoratedListType = decoratedTypeAnnotation('List');
+    expect(decoratedFunctionType('f').positionalParameters[0],
+        same(decoratedListType));
+    expect(decoratedListType.node, isNotNull);
+    expect(decoratedListType.node, isNot(never));
+    var decoratedArgType = decoratedListType.typeArguments[0];
+    expect(decoratedArgType.node, same(always));
+  }
+
+  test_interfaceType_generic_instantiate_to_generic_type() async {
+    await analyze('''
+class C<T> {}
+class D<T extends C<int>> {}
+void f(D x) {}
+''');
+    var decoratedListType = decoratedTypeAnnotation('D x');
+    expect(decoratedFunctionType('f').positionalParameters[0],
+        same(decoratedListType));
+    expect(decoratedListType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedListType.typeArguments, hasLength(1));
+    var decoratedArgType = decoratedListType.typeArguments[0];
+    expect(decoratedArgType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedArgType.typeArguments, hasLength(1));
+    var decoratedArgArgType = decoratedArgType.typeArguments[0];
+    expect(decoratedArgArgType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedArgArgType.typeArguments, isEmpty);
+  }
+
+  test_interfaceType_generic_instantiate_to_generic_type_2() async {
+    await analyze('''
+class C<T, U> {}
+class D<T extends C<int, String>, U extends C<num, double>> {}
+void f(D x) {}
+''');
+    var decoratedDType = decoratedTypeAnnotation('D x');
+    expect(decoratedFunctionType('f').positionalParameters[0],
+        same(decoratedDType));
+    expect(decoratedDType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedDType.typeArguments, hasLength(2));
+    var decoratedArg0Type = decoratedDType.typeArguments[0];
+    expect(decoratedArg0Type.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedArg0Type.typeArguments, hasLength(2));
+    var decoratedArg0Arg0Type = decoratedArg0Type.typeArguments[0];
+    expect(decoratedArg0Arg0Type.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedArg0Arg0Type.typeArguments, isEmpty);
+    var decoratedArg0Arg1Type = decoratedArg0Type.typeArguments[1];
+    expect(decoratedArg0Arg1Type.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedArg0Arg1Type.typeArguments, isEmpty);
+    var decoratedArg1Type = decoratedDType.typeArguments[1];
+    expect(decoratedArg1Type.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedArg1Type.typeArguments, hasLength(2));
+    var decoratedArg1Arg0Type = decoratedArg1Type.typeArguments[0];
+    expect(decoratedArg1Arg0Type.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedArg1Arg0Type.typeArguments, isEmpty);
+    var decoratedArg1Arg1Type = decoratedArg1Type.typeArguments[1];
+    expect(decoratedArg1Arg1Type.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedArg1Arg1Type.typeArguments, isEmpty);
+  }
+
+  test_interfaceType_generic_instantiate_to_object() async {
+    await analyze('''
+class C<T extends Object> {}
+void f(C x) {}
+''');
+    var decoratedListType = decoratedTypeAnnotation('C x');
+    expect(decoratedFunctionType('f').positionalParameters[0],
+        same(decoratedListType));
+    expect(decoratedListType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedListType.typeArguments, hasLength(1));
+    var decoratedArgType = decoratedListType.typeArguments[0];
+    expect(decoratedArgType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedArgType.typeArguments, isEmpty);
   }
 
   test_interfaceType_typeParameter() async {
@@ -1341,11 +1462,11 @@ void f(List<int> x) {}
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedListType));
     expect(decoratedListType.node, isNotNull);
-    expect(decoratedListType.node, isNot(NullabilityNode.never));
+    expect(decoratedListType.node, isNot(never));
     var decoratedIntType = decoratedTypeAnnotation('int');
     expect(decoratedListType.typeArguments[0], same(decoratedIntType));
     expect(decoratedIntType.node, isNotNull);
-    expect(decoratedIntType.node, isNot(NullabilityNode.never));
+    expect(decoratedIntType.node, isNot(never));
   }
 
   test_topLevelFunction_parameterType_implicit_dynamic() async {
@@ -1357,7 +1478,7 @@ void f(x) {}
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
     expect(decoratedType.type.isDynamic, isTrue);
-    expect(decoratedType.node.isNullable, isTrue);
+    assertUnion(always, decoratedType.node);
   }
 
   test_topLevelFunction_parameterType_named_no_default() async {
@@ -1368,8 +1489,8 @@ void f({String s}) {}
     var functionType = decoratedFunctionType('f');
     expect(functionType.namedParameters['s'], same(decoratedType));
     expect(decoratedType.node, isNotNull);
-    expect(decoratedType.node, isNot(NullabilityNode.never));
-    expect(decoratedType.node, isNot(NullabilityNode.always));
+    expect(decoratedType.node, isNot(never));
+    expect(decoratedType.node, isNot(always));
     expect(functionType.namedParameters['s'].node.isPossiblyOptional, true);
   }
 
@@ -1383,8 +1504,8 @@ void f({@required String s}) {}
     var functionType = decoratedFunctionType('f');
     expect(functionType.namedParameters['s'], same(decoratedType));
     expect(decoratedType.node, isNotNull);
-    expect(decoratedType.node, isNot(NullabilityNode.never));
-    expect(decoratedType.node, isNot(NullabilityNode.always));
+    expect(decoratedType.node, isNot(never));
+    expect(decoratedType.node, isNot(always));
     expect(functionType.namedParameters['s'].node.isPossiblyOptional, false);
   }
 
@@ -1396,7 +1517,7 @@ void f({String s: 'x'}) {}
     var functionType = decoratedFunctionType('f');
     expect(functionType.namedParameters['s'], same(decoratedType));
     expect(decoratedType.node, isNotNull);
-    expect(decoratedType.node, isNot(NullabilityNode.never));
+    expect(decoratedType.node, isNot(never));
     expect(functionType.namedParameters['s'].node.isPossiblyOptional, false);
   }
 
@@ -1408,7 +1529,7 @@ void f([int i]) {}
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
     expect(decoratedType.node, isNotNull);
-    expect(decoratedType.node, isNot(NullabilityNode.never));
+    expect(decoratedType.node, isNot(never));
   }
 
   test_topLevelFunction_parameterType_simple() async {
@@ -1419,7 +1540,7 @@ void f(int i) {}
     expect(decoratedFunctionType('f').positionalParameters[0],
         same(decoratedType));
     expect(decoratedType.node, isNotNull);
-    expect(decoratedType.node, isNot(NullabilityNode.never));
+    expect(decoratedType.node, isNot(never));
   }
 
   test_topLevelFunction_returnType_implicit_dynamic() async {
@@ -1428,7 +1549,7 @@ f() {}
 ''');
     var decoratedType = decoratedFunctionType('f').returnType;
     expect(decoratedType.type.isDynamic, isTrue);
-    expect(decoratedType.node.isNullable, isTrue);
+    assertUnion(always, decoratedType.node);
   }
 
   test_topLevelFunction_returnType_simple() async {
@@ -1438,7 +1559,7 @@ int f() => 0;
     var decoratedType = decoratedTypeAnnotation('int');
     expect(decoratedFunctionType('f').returnType, same(decoratedType));
     expect(decoratedType.node, isNotNull);
-    expect(decoratedType.node, isNot(NullabilityNode.never));
+    expect(decoratedType.node, isNot(never));
   }
 
   test_type_comment_bang() async {
@@ -1461,7 +1582,7 @@ class C<T extends Object> {}
 ''');
     var bound = decoratedTypeParameterBound('T');
     expect(decoratedTypeAnnotation('Object'), same(bound));
-    expect(bound.node, isNot(NullabilityNode.always));
+    expect(bound.node, isNot(always));
     expect(bound.type, typeProvider.objectType);
   }
 
@@ -1473,7 +1594,7 @@ class C<T extends Object> {}
 class C<T> {}
 ''');
     var bound = decoratedTypeParameterBound('T');
-    expect(bound.node.isNullable, isTrue);
+    assertUnion(always, bound.node);
     expect(bound.type, same(typeProvider.objectType));
   }
 
@@ -1506,6 +1627,8 @@ class _Variables extends Variables {
   final _expressionChecks = <Expression, ExpressionChecks>{};
 
   final _possiblyOptional = <DefaultFormalParameter, NullabilityNode>{};
+
+  _Variables(NullabilityGraph graph) : super(graph);
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
   ExpressionChecks checkExpression(Expression expression) =>

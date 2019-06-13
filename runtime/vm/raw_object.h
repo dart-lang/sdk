@@ -1705,6 +1705,18 @@ class RawContextScope : public RawObject {
   friend class SnapshotReader;
 };
 
+class RawParameterTypeCheck : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ParameterTypeCheck);
+  intptr_t index_;
+  VISIT_FROM(RawObject*, param_);
+  RawAbstractType* param_;
+  RawAbstractType* type_or_bound_;
+  RawString* name_;
+  RawSubtypeTestCache* cache_;
+  VISIT_TO(RawObject*, cache_);
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+};
+
 class RawSingleTargetCache : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SingleTargetCache);
   VISIT_FROM(RawObject*, target_);

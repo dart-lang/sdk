@@ -4,27 +4,16 @@
 
 library dart2js.frontend_strategy;
 
-import 'common/backend_api.dart';
 import 'common.dart';
+import 'common/tasks.dart';
 import 'common_elements.dart';
 import 'compiler.dart' show Compiler;
 import 'deferred_load.dart' show DeferredLoadTask;
 import 'elements/entities.dart';
-import 'elements/types.dart';
 import 'enqueue.dart';
-import 'js_backend/annotations.dart';
-import 'js_backend/field_analysis.dart' show KFieldAnalysis;
-import 'js_backend/backend_usage.dart';
-import 'js_backend/interceptor_data.dart';
 import 'js_backend/native_data.dart';
 import 'js_backend/no_such_method_registry.dart';
-import 'js_backend/runtime_types.dart';
 import 'kernel/loader.dart';
-import 'native/enqueue.dart' show NativeResolutionEnqueuer;
-import 'native/resolver.dart';
-import 'universe/class_hierarchy.dart';
-import 'universe/resolution_world_builder.dart';
-import 'universe/world_builder.dart';
 import 'universe/world_impact.dart';
 
 /// Strategy pattern that defines the connection between the input format and
@@ -41,62 +30,26 @@ abstract class FrontendStrategy {
   /// strategy.
   CommonElements get commonElements;
 
-  /// Returns the [DartTypes] for the element model used in this strategy.
-  DartTypes get dartTypes;
-
-  /// Returns the [AnnotationProcessor] for this strategy.
-  AnnotationProcessor get annotationProcessor;
-
   NativeBasicData get nativeBasicData;
 
   /// Creates a [DeferredLoadTask] for the element model used in this strategy.
   DeferredLoadTask createDeferredLoadTask(Compiler compiler);
 
-  /// Creates the [NativeClassFinder] for this strategy.
-  NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData);
+  /// Support for classifying `noSuchMethod` implementations.
+  NoSuchMethodRegistry get noSuchMethodRegistry;
 
-  /// Creates the [NoSuchMethodResolver] corresponding the resolved model of
-  /// this strategy.
-  NoSuchMethodResolver createNoSuchMethodResolver();
+  /// Called before processing of the resolution queue is started.
+  void onResolutionStart();
 
-  /// Returns the [RuntimeTypesNeedBuilder] used by this frontend strategy.
-  RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting;
+  ResolutionEnqueuer createResolutionEnqueuer(
+      CompilerTask task, Compiler compiler);
 
-  /// Creates the [ResolutionWorldBuilder] corresponding to the element model
-  /// used in this strategy.
-  ResolutionWorldBuilder createResolutionWorldBuilder(
-      NativeBasicData nativeBasicData,
-      NativeDataBuilder nativeDataBuilder,
-      InterceptorDataBuilder interceptorDataBuilder,
-      BackendUsageBuilder backendUsageBuilder,
-      RuntimeTypesNeedBuilder rtiNeedBuilder,
-      KFieldAnalysis allocatorAnalysis,
-      NativeResolutionEnqueuer nativeResolutionEnqueuer,
-      NoSuchMethodRegistry noSuchMethodRegistry,
-      AnnotationsDataBuilder annotationsDataBuilder,
-      SelectorConstraintsStrategy selectorConstraintsStrategy,
-      ClassHierarchyBuilder classHierarchyBuilder,
-      ClassQueries classQueries);
-
-  /// Creates the [WorkItemBuilder] corresponding to how a resolved model for
-  /// a single member is obtained in this strategy.
-  WorkItemBuilder createResolutionWorkItemBuilder(
-      NativeBasicData nativeBasicData,
-      NativeDataBuilder nativeDataBuilder,
-      AnnotationsDataBuilder annotationsDataBuilder,
-      ImpactTransformer impactTransformer,
-      Map<Entity, WorldImpact> impactCache,
-      KFieldAnalysis fieldAnalysis);
+  /// Called when the resolution queue has been closed.
+  void onResolutionEnd();
 
   /// Computes the main function from [mainLibrary] adding additional world
   /// impact to [impactBuilder].
   FunctionEntity computeMain(WorldImpactBuilder impactBuilder);
-
-  /// Creates the [RuntimeTypesNeedBuilder] for this strategy.
-  RuntimeTypesNeedBuilder createRuntimeTypesNeedBuilder();
-
-  /// Creates the [ClassQueries] for this strategy.
-  ClassQueries createClassQueries();
 
   /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement);
@@ -110,24 +63,6 @@ abstract class AnnotationProcessor {
 
   void processJsInteropAnnotations(
       NativeBasicData nativeBasicData, NativeDataBuilder nativeDataBuilder);
-}
-
-abstract class FrontendStrategyBase implements FrontendStrategy {
-  final NativeBasicDataBuilderImpl nativeBasicDataBuilder =
-      new NativeBasicDataBuilderImpl();
-  NativeBasicData _nativeBasicData;
-
-  @override
-  NativeBasicData get nativeBasicData {
-    if (_nativeBasicData == null) {
-      _nativeBasicData = nativeBasicDataBuilder.close(elementEnvironment);
-      assert(
-          _nativeBasicData != null,
-          failedAt(NO_LOCATION_SPANNABLE,
-              "NativeBasicData has not been computed yet."));
-    }
-    return _nativeBasicData;
-  }
 }
 
 /// Class that deletes the contents of an [WorldImpact] cache.

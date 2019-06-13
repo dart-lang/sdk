@@ -565,6 +565,12 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
       USE(entrypoint);
       UNIMPLEMENTED();
 #elif defined(USING_SIMULATOR)
+      // We need to beware that bouncing between the interpreter and the
+      // simulator may exhaust the C stack before exhausting either the
+      // interpreter or simulator stacks.
+      if (!thread->os_thread()->HasStackHeadroom()) {
+        thread->SetStackLimit(-1);
+      }
       result = bit_copy<RawObject*, int64_t>(
           Simulator::Current()->Call(reinterpret_cast<intptr_t>(entrypoint),
                                      reinterpret_cast<intptr_t>(code),
@@ -1186,6 +1192,120 @@ static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
   }
 #endif  // PRODUCT
 
+bool Interpreter::CopyParameters(Thread* thread,
+                                 const KBCInstr** pc,
+                                 RawObject*** FP,
+                                 RawObject*** SP,
+                                 const intptr_t num_fixed_params,
+                                 const intptr_t num_opt_pos_params,
+                                 const intptr_t num_opt_named_params) {
+  const intptr_t min_num_pos_args = num_fixed_params;
+  const intptr_t max_num_pos_args = num_fixed_params + num_opt_pos_params;
+
+  // Decode arguments descriptor.
+  const intptr_t arg_count = InterpreterHelpers::ArgDescArgCount(argdesc_);
+  const intptr_t pos_count = InterpreterHelpers::ArgDescPosCount(argdesc_);
+  const intptr_t named_count = (arg_count - pos_count);
+
+  // Check that got the right number of positional parameters.
+  if ((min_num_pos_args > pos_count) || (pos_count > max_num_pos_args)) {
+    return false;
+  }
+
+  // Copy all passed position arguments.
+  RawObject** first_arg = FrameArguments(*FP, arg_count);
+  memmove(*FP, first_arg, pos_count * kWordSize);
+
+  if (num_opt_named_params != 0) {
+    // This is a function with named parameters.
+    // Walk the list of named parameters and their
+    // default values encoded as pairs of LoadConstant instructions that
+    // follows the entry point and find matching values via arguments
+    // descriptor.
+    RawObject** argdesc_data = argdesc_->ptr()->data();
+
+    intptr_t i = 0;  // argument position
+    intptr_t j = 0;  // parameter position
+    while ((j < num_opt_named_params) && (i < named_count)) {
+      // Fetch formal parameter information: name, default value, target slot.
+      const KBCInstr* load_name = *pc;
+      const KBCInstr* load_value = KernelBytecode::Next(load_name);
+      *pc = KernelBytecode::Next(load_value);
+      ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name));
+      ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value));
+      const uint8_t reg = KernelBytecode::DecodeA(load_name);
+      ASSERT(reg == KernelBytecode::DecodeA(load_value));
+
+      RawString* name = static_cast<RawString*>(
+          LOAD_CONSTANT(KernelBytecode::DecodeE(load_name)));
+      if (name == argdesc_data[ArgumentsDescriptor::name_index(i)]) {
+        // Parameter was passed. Fetch passed value.
+        const intptr_t arg_index = Smi::Value(static_cast<RawSmi*>(
+            argdesc_data[ArgumentsDescriptor::position_index(i)]));
+        (*FP)[reg] = first_arg[arg_index];
+        ++i;  // Consume passed argument.
+      } else {
+        // Parameter was not passed. Fetch default value.
+        (*FP)[reg] = LOAD_CONSTANT(KernelBytecode::DecodeE(load_value));
+      }
+      ++j;  // Next formal parameter.
+    }
+
+    // If we have unprocessed formal parameters then initialize them all
+    // using default values.
+    while (j < num_opt_named_params) {
+      const KBCInstr* load_name = *pc;
+      const KBCInstr* load_value = KernelBytecode::Next(load_name);
+      *pc = KernelBytecode::Next(load_value);
+      ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name));
+      ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value));
+      const uint8_t reg = KernelBytecode::DecodeA(load_name);
+      ASSERT(reg == KernelBytecode::DecodeA(load_value));
+
+      (*FP)[reg] = LOAD_CONSTANT(KernelBytecode::DecodeE(load_value));
+      ++j;
+    }
+
+    // If we have unprocessed passed arguments that means we have mismatch
+    // between formal parameters and concrete arguments. This can only
+    // occur if the current function is a closure.
+    if (i < named_count) {
+      return false;
+    }
+
+    // SP points past copied arguments.
+    *SP = *FP + num_fixed_params + num_opt_named_params - 1;
+  } else {
+    ASSERT(num_opt_pos_params != 0);
+    if (named_count != 0) {
+      // Function can't have both named and optional positional parameters.
+      // This kind of mismatch can only occur if the current function
+      // is a closure.
+      return false;
+    }
+
+    // Process the list of default values encoded as a sequence of
+    // LoadConstant instructions after EntryOpt bytecode.
+    // Execute only those that correspond to parameters that were not passed.
+    for (intptr_t i = num_fixed_params; i < pos_count; ++i) {
+      ASSERT(KernelBytecode::IsLoadConstantOpcode(*pc));
+      *pc = KernelBytecode::Next(*pc);
+    }
+    for (intptr_t i = pos_count; i < max_num_pos_args; ++i) {
+      const KBCInstr* load_value = *pc;
+      *pc = KernelBytecode::Next(load_value);
+      ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value));
+      ASSERT(KernelBytecode::DecodeA(load_value) == i);
+      (*FP)[i] = LOAD_CONSTANT(KernelBytecode::DecodeE(load_value));
+    }
+
+    // SP points past the last copied parameter.
+    *SP = *FP + max_num_pos_args - 1;
+  }
+
+  return true;
+}
+
 bool Interpreter::AssertAssignable(Thread* thread,
                                    const KBCInstr* pc,
                                    RawObject** FP,
@@ -1651,114 +1771,11 @@ SwitchDispatch:
 
   {
     BYTECODE(EntryOptional, A_B_C);
-    const intptr_t num_fixed_params = rA;
-    const intptr_t num_opt_pos_params = rB;
-    const intptr_t num_opt_named_params = rC;
-    const intptr_t min_num_pos_args = num_fixed_params;
-    const intptr_t max_num_pos_args = num_fixed_params + num_opt_pos_params;
-
-    // Decode arguments descriptor.
-    const intptr_t arg_count = InterpreterHelpers::ArgDescArgCount(argdesc_);
-    const intptr_t pos_count = InterpreterHelpers::ArgDescPosCount(argdesc_);
-    const intptr_t named_count = (arg_count - pos_count);
-
-    // Check that got the right number of positional parameters.
-    if ((min_num_pos_args > pos_count) || (pos_count > max_num_pos_args)) {
+    if (CopyParameters(thread, &pc, &FP, &SP, rA, rB, rC)) {
+      DISPATCH();
+    } else {
       goto NoSuchMethodFromPrologue;
     }
-
-    // Copy all passed position arguments.
-    RawObject** first_arg = FrameArguments(FP, arg_count);
-    memmove(FP, first_arg, pos_count * kWordSize);
-
-    if (num_opt_named_params != 0) {
-      // This is a function with named parameters.
-      // Walk the list of named parameters and their
-      // default values encoded as pairs of LoadConstant instructions that
-      // follows the entry point and find matching values via arguments
-      // descriptor.
-      RawObject** argdesc_data = argdesc_->ptr()->data();
-
-      intptr_t i = 0;  // argument position
-      intptr_t j = 0;  // parameter position
-      while ((j < num_opt_named_params) && (i < named_count)) {
-        // Fetch formal parameter information: name, default value, target slot.
-        const KBCInstr* load_name = pc;
-        const KBCInstr* load_value = KernelBytecode::Next(load_name);
-        pc = KernelBytecode::Next(load_value);
-        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name));
-        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value));
-        const uint8_t reg = KernelBytecode::DecodeA(load_name);
-        ASSERT(reg == KernelBytecode::DecodeA(load_value));
-
-        RawString* name = static_cast<RawString*>(
-            LOAD_CONSTANT(KernelBytecode::DecodeE(load_name)));
-        if (name == argdesc_data[ArgumentsDescriptor::name_index(i)]) {
-          // Parameter was passed. Fetch passed value.
-          const intptr_t arg_index = Smi::Value(static_cast<RawSmi*>(
-              argdesc_data[ArgumentsDescriptor::position_index(i)]));
-          FP[reg] = first_arg[arg_index];
-          ++i;  // Consume passed argument.
-        } else {
-          // Parameter was not passed. Fetch default value.
-          FP[reg] = LOAD_CONSTANT(KernelBytecode::DecodeE(load_value));
-        }
-        ++j;  // Next formal parameter.
-      }
-
-      // If we have unprocessed formal parameters then initialize them all
-      // using default values.
-      while (j < num_opt_named_params) {
-        const KBCInstr* load_name = pc;
-        const KBCInstr* load_value = KernelBytecode::Next(load_name);
-        pc = KernelBytecode::Next(load_value);
-        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name));
-        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value));
-        const uint8_t reg = KernelBytecode::DecodeA(load_name);
-        ASSERT(reg == KernelBytecode::DecodeA(load_value));
-
-        FP[reg] = LOAD_CONSTANT(KernelBytecode::DecodeE(load_value));
-        ++j;
-      }
-
-      // If we have unprocessed passed arguments that means we have mismatch
-      // between formal parameters and concrete arguments. This can only
-      // occur if the current function is a closure.
-      if (i < named_count) {
-        goto NoSuchMethodFromPrologue;
-      }
-
-      // SP points past copied arguments.
-      SP = FP + num_fixed_params + num_opt_named_params - 1;
-    } else {
-      ASSERT(num_opt_pos_params != 0);
-      if (named_count != 0) {
-        // Function can't have both named and optional positional parameters.
-        // This kind of mismatch can only occur if the current function
-        // is a closure.
-        goto NoSuchMethodFromPrologue;
-      }
-
-      // Process the list of default values encoded as a sequence of
-      // LoadConstant instructions after EntryOpt bytecode.
-      // Execute only those that correspond to parameters that were not passed.
-      for (intptr_t i = num_fixed_params; i < pos_count; ++i) {
-        ASSERT(KernelBytecode::IsLoadConstantOpcode(pc));
-        pc = KernelBytecode::Next(pc);
-      }
-      for (intptr_t i = pos_count; i < max_num_pos_args; ++i) {
-        const KBCInstr* load_value = pc;
-        pc = KernelBytecode::Next(load_value);
-        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value));
-        ASSERT(KernelBytecode::DecodeA(load_value) == i);
-        FP[i] = LOAD_CONSTANT(KernelBytecode::DecodeE(load_value));
-      }
-
-      // SP points past the last copied parameter.
-      SP = FP + max_num_pos_args - 1;
-    }
-
-    DISPATCH();
   }
 
   {
@@ -3469,8 +3486,101 @@ SwitchDispatch:
     RawFunction* function = FrameFunction(FP);
     ASSERT(Function::kind(function) ==
            RawFunction::kDynamicInvocationForwarder);
-    UNIMPLEMENTED();
-    DISPATCH();
+
+    BUMP_USAGE_COUNTER_ON_ENTRY(function);
+
+    RawArray* checks = Array::RawCast(function->ptr()->data_);
+    RawFunction* target = Function::RawCast(checks->ptr()->data()[0]);
+    ASSERT(Function::kind(target) != RawFunction::kDynamicInvocationForwarder);
+    RawBytecode* target_bytecode = target->ptr()->bytecode_;
+    ASSERT(target_bytecode != Bytecode::null());
+    ASSERT(target_bytecode->IsBytecode());
+
+    const KBCInstr* pc2 = reinterpret_cast<const KBCInstr*>(
+        target_bytecode->ptr()->instructions_);
+    if (KernelBytecode::IsEntryOptionalOpcode(pc2)) {
+      pp_ = target_bytecode->ptr()->object_pool_;
+      uint32_t rA, rB, rC;
+      rA = KernelBytecode::DecodeA(pc2);
+      rB = KernelBytecode::DecodeB(pc2);
+      rC = KernelBytecode::DecodeC(pc2);
+      pc2 = KernelBytecode::Next(pc2);
+      if (!CopyParameters(thread, &pc2, &FP, &SP, rA, rB, rC)) {
+        goto NoSuchMethodFromPrologue;
+      }
+    }
+
+    intptr_t len = Smi::Value(checks->ptr()->length_);
+    SP[1] = checks;
+    SP[2] = argdesc_;
+
+    const intptr_t type_args_len =
+        InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+    const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+    const intptr_t argc =
+        InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
+
+    RawInstance* receiver =
+        Instance::RawCast(FrameArguments(FP, argc)[receiver_idx]);
+    SP[5] = InterpreterHelpers::GetTypeArguments(thread, receiver);
+
+    if (type_args_len > 0) {
+      SP[6] = FrameArguments(FP, argc)[0];
+    } else {
+      SP[6] = TypeArguments::RawCast(checks->ptr()->data()[1]);
+      if (SP[5] != null_value && SP[6] != null_value) {
+        SP[7] = SP[6];       // type_arguments
+        SP[8] = SP[5];       // instantiator_type_args
+        SP[9] = null_value;  // function_type_args
+        Exit(thread, FP, SP + 10, pc);
+        NativeArguments args(thread, 3, SP + 7, SP + 7);
+        INVOKE_RUNTIME(DRT_InstantiateTypeArguments, args);
+        SP[6] = SP[7];
+      }
+    }
+
+    for (intptr_t i = 2; i < len; i++) {
+      RawParameterTypeCheck* check =
+          ParameterTypeCheck::RawCast(checks->ptr()->data()[i]);
+
+      if (LIKELY(check->ptr()->index_ != 0)) {
+        ASSERT(&FP[check->ptr()->index_] <= SP);
+        SP[3] = Instance::RawCast(FP[check->ptr()->index_]);
+        if (SP[3] == null_value) {
+          continue;  // Not handled by AssertAssignable for some reason...
+        }
+        SP[4] = check->ptr()->type_or_bound_;
+        // SP[5]: Instantiator type args.
+        // SP[6]: Function type args.
+        SP[7] = check->ptr()->name_;
+        if (!AssertAssignable(thread, pc, FP, SP, SP + 3,
+                              check->ptr()->cache_)) {
+          HANDLE_EXCEPTION;
+        }
+      } else {
+        SP[3] = 0;
+        SP[4] = 0;
+        // SP[5]: Instantiator type args.
+        // SP[6]: Function type args.
+        SP[7] = check->ptr()->param_;
+        SP[8] = check->ptr()->type_or_bound_;
+        SP[9] = check->ptr()->name_;
+        SP[10] = 0;
+        Exit(thread, FP, SP + 11, pc);
+        NativeArguments native_args(thread, 5, SP + 5, SP + 10);
+        INVOKE_RUNTIME(DRT_SubtypeCheck, native_args);
+      }
+
+      checks = Array::RawCast(SP[1]);  // Reload after runtime call.
+    }
+
+    target = Function::RawCast(checks->ptr()->data()[0]);
+    argdesc_ = Array::RawCast(SP[2]);
+
+    SP = FP - 1;  // Unmarshall optional parameters.
+
+    SP[1] = target;
+    goto TailCallSP1;
   }
 
   {

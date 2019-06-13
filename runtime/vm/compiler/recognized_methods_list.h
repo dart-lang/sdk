@@ -47,21 +47,21 @@ namespace dart {
   V(_ByteDataView, get:_typedData, ByteDataViewTypedData, 0x0)                 \
   V(_TypedListView, get:offsetInBytes, TypedDataViewOffsetInBytes, 0x0)        \
   V(_TypedListView, get:_typedData, TypedDataViewTypedData, 0x0)               \
-  V(_ByteDataView, ., TypedData_ByteDataView_factory, 0x0)                     \
-  V(_Int8ArrayView, ., TypedData_Int8ArrayView_factory, 0x0)                   \
-  V(_Uint8ArrayView, ., TypedData_Uint8ArrayView_factory, 0x0)                 \
-  V(_Uint8ClampedArrayView, ., TypedData_Uint8ClampedArrayView_factory, 0x0)   \
-  V(_Int16ArrayView, ., TypedData_Int16ArrayView_factory, 0x0)                 \
-  V(_Uint16ArrayView, ., TypedData_Uint16ArrayView_factory, 0x0)               \
-  V(_Int32ArrayView, ., TypedData_Int32ArrayView_factory, 0x0)                 \
-  V(_Uint32ArrayView, ., TypedData_Uint32ArrayView_factory, 0x0)               \
-  V(_Int64ArrayView, ., TypedData_Int64ArrayView_factory, 0x0)                 \
-  V(_Uint64ArrayView, ., TypedData_Uint64ArrayView_factory, 0x0)               \
-  V(_Float32ArrayView, ., TypedData_Float32ArrayView_factory, 0x0)             \
-  V(_Float64ArrayView, ., TypedData_Float64ArrayView_factory, 0x0)             \
-  V(_Float32x4ArrayView, ., TypedData_Float32x4ArrayView_factory, 0x0)         \
-  V(_Int32x4ArrayView, ., TypedData_Int32x4ArrayView_factory, 0x0)             \
-  V(_Float64x2ArrayView, ., TypedData_Float64x2ArrayView_factory, 0x0)         \
+  V(_ByteDataView, ._, TypedData_ByteDataView_factory, 0x0)                    \
+  V(_Int8ArrayView, ._, TypedData_Int8ArrayView_factory, 0x0)                  \
+  V(_Uint8ArrayView, ._, TypedData_Uint8ArrayView_factory, 0x0)                \
+  V(_Uint8ClampedArrayView, ._, TypedData_Uint8ClampedArrayView_factory, 0x0)  \
+  V(_Int16ArrayView, ._, TypedData_Int16ArrayView_factory, 0x0)                \
+  V(_Uint16ArrayView, ._, TypedData_Uint16ArrayView_factory, 0x0)              \
+  V(_Int32ArrayView, ._, TypedData_Int32ArrayView_factory, 0x0)                \
+  V(_Uint32ArrayView, ._, TypedData_Uint32ArrayView_factory, 0x0)              \
+  V(_Int64ArrayView, ._, TypedData_Int64ArrayView_factory, 0x0)                \
+  V(_Uint64ArrayView, ._, TypedData_Uint64ArrayView_factory, 0x0)              \
+  V(_Float32ArrayView, ._, TypedData_Float32ArrayView_factory, 0x0)            \
+  V(_Float64ArrayView, ._, TypedData_Float64ArrayView_factory, 0x0)            \
+  V(_Float32x4ArrayView, ._, TypedData_Float32x4ArrayView_factory, 0x0)        \
+  V(_Int32x4ArrayView, ._, TypedData_Int32x4ArrayView_factory, 0x0)            \
+  V(_Float64x2ArrayView, ._, TypedData_Float64x2ArrayView_factory, 0x0)        \
   V(::, _toClampedUint8, ConvertIntToClampedUint8, 0x564b0435)                 \
   V(_StringBase, _interpolate, StringBaseInterpolate, 0x01ecb15a)              \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x05da96ed)             \

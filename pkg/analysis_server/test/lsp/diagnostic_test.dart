@@ -81,4 +81,19 @@ class DiagnosticTest extends AbstractLspAnalysisServerTest {
     // transmitted.
     expect(diagnostics, isNull);
   }
+
+  test_todos() async {
+    // TODOs only show up if there's also some code in the file.
+    const initialContents = '''
+    // TODO: This
+    String a = "";
+    ''';
+    newFile(mainFilePath, content: initialContents);
+
+    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await initialize();
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    // TODOs should not be sent by LSP.
+    expect(initialDiagnostics, hasLength(0));
+  }
 }

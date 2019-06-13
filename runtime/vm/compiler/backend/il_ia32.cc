@@ -2858,6 +2858,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadObject(EDI, compiler->parsed_function().function());
     intptr_t threshold =
         FLAG_optimization_counter_threshold * (loop_depth() + 1);
+    __ incl(FieldAddress(EDI, Function::usage_counter_offset()));
     __ cmpl(FieldAddress(EDI, Function::usage_counter_offset()),
             Immediate(threshold));
     __ j(GREATER_EQUAL, slow_path->osr_entry_label());

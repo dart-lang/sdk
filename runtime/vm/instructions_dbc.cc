@@ -54,15 +54,14 @@ static bool GetLoadedObjectAt(uword pc,
 CallPattern::CallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       end_(pc),
-      ic_data_load_end_(0),
-      target_code_pool_index_(-1),
-      ic_data_(ICData::Handle()) {
+      data_pool_index_(-1),
+      target_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(end_));
   const uword call_pc = end_ - sizeof(Instr);
   Instr call_instr = SimulatorBytecode::At(call_pc);
   ASSERT(SimulatorBytecode::IsCallOpcode(call_instr));
-  ic_data_load_end_ = call_pc;
-  target_code_pool_index_ = SimulatorBytecode::DecodeD(call_instr);
+  data_pool_index_ = SimulatorBytecode::DecodeD(call_instr);
+  target_pool_index_ = SimulatorBytecode::DecodeD(call_instr);
 }
 
 NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
@@ -143,21 +142,20 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   return GetLoadedObjectAt(pc, pool, obj);
 }
 
-RawICData* CallPattern::IcData() {
-  if (ic_data_.IsNull()) {
-    bool found = GetLoadedObjectAt(ic_data_load_end_, object_pool_, &ic_data_);
-    ASSERT(found);
-  }
-  return ic_data_.raw();
+RawObject* CallPattern::Data() const {
+  return object_pool_.ObjectAt(data_pool_index_);
+}
+
+void CallPattern::SetData(const Object& data) const {
+  object_pool_.SetObjectAt(data_pool_index_, data);
 }
 
 RawCode* CallPattern::TargetCode() const {
-  return reinterpret_cast<RawCode*>(
-      object_pool_.ObjectAt(target_code_pool_index_));
+  return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_pool_index_));
 }
 
-void CallPattern::SetTargetCode(const Code& target_code) const {
-  object_pool_.SetObjectAt(target_code_pool_index_, target_code);
+void CallPattern::SetTargetCode(const Code& target) const {
+  object_pool_.SetObjectAt(target_pool_index_, target);
 }
 
 void CallPattern::InsertDeoptCallAt(uword pc) {

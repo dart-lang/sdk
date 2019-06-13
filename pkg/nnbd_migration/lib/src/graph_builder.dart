@@ -78,14 +78,12 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   GraphBuilder(TypeProvider typeProvider, this._variables, this._graph,
       this._source, this.listener)
-      : _notNullType =
-            DecoratedType(typeProvider.objectType, NullabilityNode.never),
+      : _notNullType = DecoratedType(typeProvider.objectType, _graph.never),
         _nonNullableBoolType =
-            DecoratedType(typeProvider.boolType, NullabilityNode.never),
+            DecoratedType(typeProvider.boolType, _graph.never),
         _nonNullableTypeType =
-            DecoratedType(typeProvider.typeType, NullabilityNode.never),
-        _nullType =
-            DecoratedType(typeProvider.nullType, NullabilityNode.always);
+            DecoratedType(typeProvider.typeType, _graph.never),
+        _nullType = DecoratedType(typeProvider.nullType, _graph.always);
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -120,13 +118,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
       var decoratedElementType =
           _variables.decoratedElementType(variable, create: true);
       if (baseElement.isGetter) {
-        decoratedBaseType = DecoratedType(
-            baseElement.type, NullabilityNode.never,
+        decoratedBaseType = DecoratedType(baseElement.type, _graph.never,
             returnType: decoratedElementType);
       } else {
         assert(baseElement.isSetter);
-        decoratedBaseType = DecoratedType(
-            baseElement.type, NullabilityNode.never,
+        decoratedBaseType = DecoratedType(baseElement.type, _graph.never,
             positionalParameters: [decoratedElementType]);
       }
     } else {
@@ -220,7 +216,7 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitBooleanLiteral(BooleanLiteral node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
@@ -258,7 +254,7 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
         // Nothing to do; the implicit default value of `null` will never be
         // reached.
       } else {
-        NullabilityNode.recordAssignment(NullabilityNode.always,
+        NullabilityNode.recordAssignment(_graph.always,
             getOrComputeElementType(node.declaredElement).node, _guards, _graph,
             hard: false);
       }
@@ -350,8 +346,26 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitInstanceCreationExpression(
+      InstanceCreationExpression node) {
+    var callee = node.staticElement;
+    var calleeType = getOrComputeElementType(callee);
+    if (callee.enclosingElement.typeParameters.isNotEmpty) {
+      // If the class has type parameters then we might need to substitute the
+      // appropriate type arguments.
+      throw UnimplementedError('TODO(brianwilkerson)');
+    }
+    if (node.argumentList.arguments.isNotEmpty) {
+      // Extract the argument handling from visitMethodInvocation and invoke it
+      // here.
+      throw UnimplementedError('TODO(brianwilkerson)');
+    }
+    return calleeType.returnType;
+  }
+
+  @override
   DecoratedType visitIntegerLiteral(IntegerLiteral node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
@@ -484,40 +498,49 @@ $stackTrace''');
 
   @override
   DecoratedType visitStringLiteral(StringLiteral node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
   DecoratedType visitThisExpression(ThisExpression node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
   DecoratedType visitThrowExpression(ThrowExpression node) {
     node.expression.accept(this);
     // TODO(paulberry): do we need to check the expression type?  I think not.
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
   DecoratedType visitTypeName(TypeName typeName) {
     var typeArguments = typeName.typeArguments?.arguments;
     var element = typeName.name.staticElement;
-    if (typeArguments != null) {
-      for (int i = 0; i < typeArguments.length; i++) {
-        DecoratedType bound;
-        if (element is TypeParameterizedElement) {
+    if (element is TypeParameterizedElement) {
+      if (typeArguments == null) {
+        var instantiatedType =
+            _variables.decoratedTypeAnnotation(_source, typeName);
+        for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
+          _unionDecoratedTypes(
+              instantiatedType.typeArguments[i],
+              _variables.decoratedElementType(element.typeParameters[i],
+                  create: true));
+        }
+      } else {
+        for (int i = 0; i < typeArguments.length; i++) {
+          DecoratedType bound;
           bound = _variables.decoratedElementType(element.typeParameters[i],
               create: true);
-        } else {
-          throw new UnimplementedError('TODO(paulberry)');
+          _checkAssignment(
+              bound,
+              _variables.decoratedTypeAnnotation(_source, typeArguments[i]),
+              null,
+              hard: true);
         }
-        _checkAssignment(bound,
-            _variables.decoratedTypeAnnotation(_source, typeArguments[i]), null,
-            hard: true);
       }
     }
-    return DecoratedType(typeName.type, NullabilityNode.never);
+    return _nonNullableTypeType;
   }
 
   @override
@@ -672,6 +695,20 @@ $stackTrace''');
       if (element is ParameterElement) return true;
     }
     return false;
+  }
+
+  void _unionDecoratedTypes(DecoratedType x, DecoratedType y) {
+    _graph.union(x.node, y.node);
+    if (x.typeArguments.isNotEmpty ||
+        y.typeArguments.isNotEmpty ||
+        x.returnType != null ||
+        y.returnType != null ||
+        x.positionalParameters.isNotEmpty ||
+        y.positionalParameters.isNotEmpty ||
+        x.namedParameters.isNotEmpty ||
+        y.namedParameters.isNotEmpty) {
+      throw UnimplementedError('TODO(paulberry): _unionDecoratedTypes($x, $y)');
+    }
   }
 }
 

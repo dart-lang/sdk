@@ -10,6 +10,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
 import 'package:compiler/compiler_new.dart' as api;
+import 'package:compiler/src/backend_strategy.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/common/work.dart';
@@ -19,9 +20,9 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
-import 'package:compiler/src/apiimpl.dart' as apiimpl;
+import 'package:compiler/src/apiimpl.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/js_backend/js_backend.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
@@ -29,7 +30,7 @@ import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/world.dart';
 import 'diagnostic_reporter_helper.dart';
 
-class TestCompiler extends apiimpl.CompilerImpl {
+class TestCompiler extends CompilerImpl {
   final String testMarker;
   final String testType;
   final Function onTest;
@@ -52,8 +53,8 @@ class TestCompiler extends apiimpl.CompilerImpl {
   }
 
   @override
-  JavaScriptBackend createBackend() {
-    return new TestBackend(this);
+  BackendStrategy createBackendStrategy() {
+    return new TestBackendStrategy(this);
   }
 
   @override
@@ -100,15 +101,12 @@ class TestCompiler extends apiimpl.CompilerImpl {
   }
 }
 
-class TestBackend extends JavaScriptBackend {
-  @override
+class TestBackendStrategy extends JsBackendStrategy {
   final TestCompiler compiler;
-  TestBackend(TestCompiler compiler)
+
+  TestBackendStrategy(TestCompiler compiler)
       : this.compiler = compiler,
-        super(compiler,
-            generateSourceMap: compiler.options.generateSourceMap,
-            useMultiSourceInfo: compiler.options.useMultiSourceInfo,
-            useNewSourceInfo: compiler.options.useNewSourceInfo);
+        super(compiler);
 
   @override
   WorldImpact generateCode(

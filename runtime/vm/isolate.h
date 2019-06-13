@@ -795,6 +795,13 @@ class Isolate : public BaseIsolate {
         UsingNewBytecodeInstructionsBit::update(value, isolate_flags_);
   }
 
+  bool has_attempted_stepping() const {
+    return HasAttemptedSteppingBit::decode(isolate_flags_);
+  }
+  void set_has_attempted_stepping(bool value) {
+    isolate_flags_ = HasAttemptedSteppingBit::update(value, isolate_flags_);
+  }
+
   static void KillAllIsolates(LibMsgId msg_id);
   static void KillIfExists(Isolate* isolate, LibMsgId msg_id);
 
@@ -909,6 +916,7 @@ class Isolate : public BaseIsolate {
   V(RemappingCids)                                                             \
   V(ResumeRequest)                                                             \
   V(HasAttemptedReload)                                                        \
+  V(HasAttemptedStepping)                                                      \
   V(ShouldPausePostServiceRequest)                                             \
   V(EnableTypeChecks)                                                          \
   V(EnableAsserts)                                                             \

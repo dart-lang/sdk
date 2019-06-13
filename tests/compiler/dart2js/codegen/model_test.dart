@@ -84,7 +84,7 @@ class ModelIrComputer extends IrDataExtractor<Features> {
       MemberEntity member,
       Compiler compiler,
       this._closureDataLookup)
-      : _programLookup = new ProgramLookup(compiler),
+      : _programLookup = new ProgramLookup(compiler.backendStrategy),
         super(reporter, actualMap);
 
   void registerCalls(Features features, String tag, js.Node node,

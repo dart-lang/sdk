@@ -626,6 +626,33 @@ m() {
     ]);
   }
 
+  test_spread_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+m() {
+  var list = [];
+  [...list];
+}
+''');
+  }
+
+  test_spread_nullable() async {
+    await assertErrorCodesInCode(r'''
+m() {
+  List? list;
+  [...list];
+}
+''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+  }
+
+  test_spread_nullable_question() async {
+    await assertNoErrorsInCode(r'''
+m() {
+  List? list;
+  [...?list];
+}
+''');
+  }
+
   test_ternary_condition_nullable() async {
     await assertErrorsInCode(r'''
 m() {

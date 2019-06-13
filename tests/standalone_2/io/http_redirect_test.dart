@@ -8,7 +8,7 @@ import "dart:async";
 import "dart:io";
 
 Future<HttpServer> setupServer() {
-  Completer completer = new Completer();
+  Completer completer = new Completer<HttpServer>();
   HttpServer.bind("127.0.0.1", 0).then((server) {
     var handlers = new Map<String, Function>();
     addRequestHandler(
@@ -426,8 +426,8 @@ void testRedirectRelativeToAbsolute() {
     }
 
     client
-        .getUrl(Uri
-            .parse("http://127.0.0.1:${server.port}/some/relativeToAbsolute"))
+        .getUrl(Uri.parse(
+            "http://127.0.0.1:${server.port}/some/relativeToAbsolute"))
         .then((HttpClientRequest request) {
       request.followRedirects = false;
       return request.close();

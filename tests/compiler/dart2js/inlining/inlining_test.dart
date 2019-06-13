@@ -9,8 +9,8 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/js_backend/backend.dart';
 import 'package:compiler/src/js_model/element_map.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/ssa/builder_kernel.dart';
 import 'package:compiler/src/universe/world_impact.dart';
@@ -40,7 +40,7 @@ class InliningDataComputer extends DataComputer<String> {
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new InliningIrComputer(compiler.reporter, actualMap, elementMap, member,
-            compiler.backend, closedWorld.closureDataLookup)
+            compiler.backendStrategy, closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
@@ -50,7 +50,7 @@ class InliningDataComputer extends DataComputer<String> {
 
 /// AST visitor for computing inference data for a member.
 class InliningIrComputer extends IrDataExtractor<String> {
-  final JavaScriptBackend backend;
+  final JsBackendStrategy _backendStrategy;
   final JsToElementMap _elementMap;
   final ClosureData _closureDataLookup;
   final InlineDataCache _inlineDataCache;
@@ -60,7 +60,7 @@ class InliningIrComputer extends IrDataExtractor<String> {
       Map<Id, ActualData<String>> actualMap,
       this._elementMap,
       MemberEntity member,
-      this.backend,
+      this._backendStrategy,
       this._closureDataLookup)
       : this._inlineDataCache = new InlineDataCache(enableUserAssertions: true),
         super(reporter, actualMap);
@@ -72,7 +72,7 @@ class InliningIrComputer extends IrDataExtractor<String> {
         constructorBody = getConstructorBody(member);
       }
       List<String> inlinedIn = <String>[];
-      backend.codegenImpactsForTesting
+      _backendStrategy.codegenImpactsForTesting
           .forEach((MemberEntity user, WorldImpact impact) {
         for (StaticUse use in impact.staticUses) {
           if (use.kind == StaticUseKind.INLINING) {

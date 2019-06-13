@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart.io;
+library dart._http;
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
@@ -99,7 +99,7 @@ void testFullMessages() {
     int messageCount = 0;
     // Use the same web socket protocol transformer for all frames.
     var transformer = new _WebSocketProtocolTransformer();
-    var controller = new StreamController(sync: true);
+    var controller = new StreamController<List<int>>(sync: true);
     WebSocketMessageCollector mc = new WebSocketMessageCollector(
         controller.stream.transform(transformer), message);
 
@@ -161,7 +161,7 @@ void testFullMessages() {
 void testFragmentedMessages() {
   // Use the same web socket protocol transformer for all frames.
   var transformer = new _WebSocketProtocolTransformer();
-  var controller = new StreamController(sync: true);
+  var controller = new StreamController<List<int>>(sync: true);
   WebSocketMessageCollector mc =
       new WebSocketMessageCollector(controller.stream.transform(transformer));
 
@@ -222,7 +222,7 @@ void testFragmentedMessages() {
 
 void testUnmaskedMessage() {
   var transformer = new _WebSocketProtocolTransformer(true);
-  var controller = new StreamController(sync: true);
+  var controller = new StreamController<List<int>>(sync: true);
   asyncStart();
   controller.stream.transform(transformer).listen((_) {}, onError: (e) {
     asyncEnd();

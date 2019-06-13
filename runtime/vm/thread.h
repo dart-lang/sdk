@@ -112,8 +112,6 @@ class Zone;
   V(RawCode*, stack_overflow_shared_with_fpu_regs_stub_,                       \
     StubCode::StackOverflowSharedWithFPURegs().raw(), NULL)                    \
   V(RawCode*, monomorphic_miss_stub_, StubCode::MonomorphicMiss().raw(), NULL) \
-  V(RawCode*, ic_lookup_through_code_stub_,                                    \
-    StubCode::ICCallThroughCode().raw(), NULL)                                 \
   V(RawCode*, optimize_stub_, StubCode::OptimizeFunction().raw(), NULL)        \
   V(RawCode*, deoptimize_stub_, StubCode::Deoptimize().raw(), NULL)            \
   V(RawCode*, lazy_deopt_from_return_stub_,                                    \

@@ -3828,13 +3828,17 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 ///        'on' [TypeAnnotation] '{' [ClassMember]* '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
-class ExtensionDeclarationImpl extends NamedCompilationUnitMemberImpl
+class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     implements ExtensionDeclaration {
   @override
   Token extensionKeyword;
 
-  /// The type parameters for the extension, or `null` if the extension
-  /// does not have any type parameters.
+  /// The name of the extension, or `null` if the extension does not have a
+  /// name.
+  SimpleIdentifierImpl _name;
+
+  /// The type parameters for the extension, or `null` if the extension does not
+  /// have any type parameters.
   TypeParameterListImpl _typeParameters;
 
   @override
@@ -3856,14 +3860,14 @@ class ExtensionDeclarationImpl extends NamedCompilationUnitMemberImpl
       CommentImpl comment,
       List<Annotation> metadata,
       this.extensionKeyword,
-      SimpleIdentifierImpl name,
+      this._name,
       TypeParameterListImpl typeParameters,
       this.onKeyword,
       TypeAnnotationImpl extendedType,
       this.leftBracket,
       List<ClassMember> members,
       this.rightBracket)
-      : super(comment, metadata, name) {
+      : super(comment, metadata) {
     _typeParameters = _becomeParentOf(typeParameters);
     _extendedType = _becomeParentOf(extendedType);
     _members = new NodeListImpl<ClassMember>(this, members);
@@ -3904,6 +3908,14 @@ class ExtensionDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   NodeList<ClassMember> get members => _members;
+
+  @override
+  SimpleIdentifier get name => _name;
+
+  @override
+  void set name(SimpleIdentifier identifier) {
+    _name = _becomeParentOf(identifier as SimpleIdentifierImpl);
+  }
 
   @override
   TypeParameterList get typeParameters => _typeParameters;

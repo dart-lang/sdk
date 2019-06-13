@@ -209,6 +209,14 @@ class Interpreter {
                      RawObject*** SP,
                      bool optimized);
 
+  bool CopyParameters(Thread* thread,
+                      const KBCInstr** pc,
+                      RawObject*** FP,
+                      RawObject*** SP,
+                      const intptr_t num_fixed_params,
+                      const intptr_t num_opt_pos_params,
+                      const intptr_t num_opt_named_params);
+
   bool AssertAssignable(Thread* thread,
                         const KBCInstr* pc,
                         RawObject** FP,

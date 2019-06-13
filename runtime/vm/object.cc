@@ -153,6 +153,8 @@ RawClass* Object::exception_handlers_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::dyncalltypecheck_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::singletargetcache_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unlinkedcall_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -648,6 +650,9 @@ void Object::Init(Isolate* isolate) {
   cls = Class::New<ContextScope>();
   context_scope_class_ = cls.raw();
 
+  cls = Class::New<ParameterTypeCheck>();
+  dyncalltypecheck_class_ = cls.raw();
+
   cls = Class::New<SingleTargetCache>();
   singletargetcache_class_ = cls.raw();
 
@@ -907,6 +912,9 @@ void Object::Init(Isolate* isolate) {
   *nsm_dispatcher_bytecode_ = CreateVMInternalBytecode(
       KernelBytecode::kVMInternal_NoSuchMethodDispatcher);
 
+  *dynamic_invocation_forwarder_bytecode_ = CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_ForwardDynamicInvocation);
+
   // Some thread fields need to be reinitialized as null constants have not been
   // initialized until now.
   Thread* thr = Thread::Current();
@@ -978,6 +986,8 @@ void Object::Init(Isolate* isolate) {
   ASSERT(invoke_field_bytecode_->IsBytecode());
   ASSERT(!nsm_dispatcher_bytecode_->IsSmi());
   ASSERT(nsm_dispatcher_bytecode_->IsBytecode());
+  ASSERT(!dynamic_invocation_forwarder_bytecode_->IsSmi());
+  ASSERT(dynamic_invocation_forwarder_bytecode_->IsBytecode());
 }
 
 void Object::FinishInit(Isolate* isolate) {
@@ -1021,6 +1031,7 @@ void Object::Cleanup() {
   exception_handlers_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  dyncalltypecheck_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   singletargetcache_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   unlinkedcall_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -1120,6 +1131,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(exception_handlers, ExceptionHandlers);
   SET_CLASS_NAME(context, Context);
   SET_CLASS_NAME(context_scope, ContextScope);
+  SET_CLASS_NAME(dyncalltypecheck, ParameterTypeCheck);
   SET_CLASS_NAME(singletargetcache, SingleTargetCache);
   SET_CLASS_NAME(unlinkedcall, UnlinkedCall);
   SET_CLASS_NAME(icdata, ICData);
@@ -3058,6 +3070,10 @@ RawFunction* Function::CreateDynamicInvocationForwarder(
 
   forwarder.InheritBinaryDeclarationFrom(*this);
 
+  const Array& checks = Array::Handle(zone, Array::New(1));
+  checks.SetAt(0, *this);
+  forwarder.SetForwardingChecks(checks);
+
   return forwarder.raw();
 }
 
@@ -3893,6 +3909,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::Context().raw();
     case kContextScopeCid:
       return Symbols::ContextScope().raw();
+    case kParameterTypeCheckCid:
+      return Symbols::ParameterTypeCheck().raw();
     case kSingleTargetCacheCid:
       return Symbols::SingleTargetCache().raw();
     case kICDataCid:
@@ -5655,6 +5673,7 @@ bool Function::IsBytecodeAllowed(Zone* zone) const {
   }
   switch (kind()) {
     case RawFunction::kDynamicInvocationForwarder:
+      return is_declared_in_bytecode();
     case RawFunction::kImplicitClosureFunction:
     case RawFunction::kIrregexpFunction:
     case RawFunction::kFfiTrampoline:
@@ -5877,8 +5896,7 @@ RawField* Function::accessor_field() const {
   ASSERT(kind() == RawFunction::kImplicitGetter ||
          kind() == RawFunction::kImplicitSetter ||
          kind() == RawFunction::kImplicitStaticGetter ||
-         kind() == RawFunction::kStaticFieldInitializer ||
-         kind() == RawFunction::kDynamicInvocationForwarder);
+         kind() == RawFunction::kStaticFieldInitializer);
   return Field::RawCast(raw_ptr()->data_);
 }
 
@@ -6217,6 +6235,20 @@ void Function::SetRedirectionTarget(const Function& target) const {
   RedirectionData::Cast(obj).set_target(target);
 }
 
+RawFunction* Function::ForwardingTarget() const {
+  ASSERT(kind() == RawFunction::kDynamicInvocationForwarder);
+  Array& checks = Array::Handle();
+  checks ^= raw_ptr()->data_;
+  return Function::RawCast(checks.At(0));
+}
+
+void Function::SetForwardingChecks(const Array& checks) const {
+  ASSERT(kind() == RawFunction::kDynamicInvocationForwarder);
+  ASSERT(checks.Length() >= 1);
+  ASSERT(Object::Handle(checks.At(0)).IsFunction());
+  set_data(checks);
+}
+
 // This field is heavily overloaded:
 //   eval function:           Script expression source
 //   kernel eval function:    Array[0] = Script
@@ -6238,6 +6270,9 @@ void Function::SetRedirectionTarget(const Function& target) const {
 //                            Array[1] = Function implicit closure function
 //   regular function:        Function for implicit closure function
 //   ffi trampoline function: FfiTrampolineData  (Dart->C)
+//   dyn inv forwarder:       Array[0] = Function target
+//                            Array[1] = TypeArguments default type args
+//                            Array[i] = ParameterTypeCheck
 void Function::set_data(const Object& value) const {
   StorePointer(&raw_ptr()->data_, value.raw());
 }
@@ -7971,6 +8006,18 @@ void Function::ClearICDataArray() const {
   set_ic_data_array(Array::null_array());
 }
 
+RawICData* Function::FindICData(intptr_t deopt_id) const {
+  const Array& array = Array::Handle(ic_data_array());
+  ICData& ic_data = ICData::Handle();
+  for (intptr_t i = 1; i < array.Length(); i++) {
+    ic_data ^= array.At(i);
+    if (ic_data.deopt_id() == deopt_id) {
+      return ic_data.raw();
+    }
+  }
+  return ICData::null();
+}
+
 void Function::SetDeoptReasonForAll(intptr_t deopt_id,
                                     ICData::DeoptReasonId reason) {
   const Array& array = Array::Handle(ic_data_array());
@@ -8014,6 +8061,10 @@ RawCode* Function::EnsureHasCode() const {
   const Object& result =
       Object::Handle(zone, Compiler::CompileFunction(thread, *this));
   if (result.IsError()) {
+    if (result.IsLanguageError()) {
+      Exceptions::ThrowCompileTimeError(LanguageError::Cast(result));
+      UNREACHABLE();
+    }
     Exceptions::PropagateError(Error::Cast(result));
     UNREACHABLE();
   }
@@ -13186,6 +13237,43 @@ const char* ExceptionHandlers::ToCString() const {
 #undef FORMAT2
 }
 
+void ParameterTypeCheck::set_type_or_bound(const AbstractType& value) const {
+  StorePointer(&raw_ptr()->type_or_bound_, value.raw());
+}
+
+void ParameterTypeCheck::set_param(const AbstractType& value) const {
+  StorePointer(&raw_ptr()->param_, value.raw());
+}
+
+void ParameterTypeCheck::set_name(const String& value) const {
+  StorePointer(&raw_ptr()->name_, value.raw());
+}
+
+void ParameterTypeCheck::set_cache(const SubtypeTestCache& value) const {
+  StorePointer(&raw_ptr()->cache_, value.raw());
+}
+
+const char* ParameterTypeCheck::ToCString() const {
+  Zone* zone = Thread::Current()->zone();
+  return zone->PrintToString("ParameterTypeCheck(%" Pd " %s %s %s)", index(),
+                             Object::Handle(zone, param()).ToCString(),
+                             Object::Handle(zone, type_or_bound()).ToCString(),
+                             Object::Handle(zone, name()).ToCString());
+}
+
+RawParameterTypeCheck* ParameterTypeCheck::New() {
+  ParameterTypeCheck& result = ParameterTypeCheck::Handle();
+  {
+    RawObject* raw =
+        Object::Allocate(ParameterTypeCheck::kClassId,
+                         ParameterTypeCheck::InstanceSize(), Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+  result.set_index(0);
+  return result.raw();
+}
+
 void SingleTargetCache::set_target(const Code& value) const {
   StorePointer(&raw_ptr()->target_, value.raw());
 }
@@ -13252,14 +13340,14 @@ void ICData::ResetSwitchable(Zone* zone) const {
 }
 
 const char* ICData::ToCString() const {
-  const String& name = String::Handle(target_name());
+  Zone* zone = Thread::Current()->zone();
+  const String& name = String::Handle(zone, target_name());
   const intptr_t num_args = NumArgsTested();
   const intptr_t num_checks = NumberOfChecks();
   const intptr_t type_args_len = TypeArgsLen();
-  return OS::SCreate(Thread::Current()->zone(),
-                     "ICData target:'%s' num-args: %" Pd " num-checks: %" Pd
-                     " type-args-len: %" Pd "",
-                     name.ToCString(), num_args, num_checks, type_args_len);
+  return zone->PrintToString(
+      "ICData(%s num-args: %" Pd " num-checks: %" Pd " type-args-len: %" Pd ")",
+      name.ToCString(), num_args, num_checks, type_args_len);
 }
 
 RawFunction* ICData::Owner() const {
@@ -14049,19 +14137,10 @@ RawICData* ICData::AsUnaryClassChecksSortedByCount() const {
   return result.raw();
 }
 
-bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
-  if (NumberOfChecksIs(0)) return false;
-  Class& cls = Class::Handle();
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    if (IsUsedAt(i)) {
-      cls = Function::Handle(GetTargetAt(i)).Owner();
-      if (cls.id() != owner_cid) {
-        return false;
-      }
-    }
-  }
-  return true;
+RawMegamorphicCache* ICData::AsMegamorphicCache() const {
+  const String& name = String::Handle(target_name());
+  const Array& descriptor = Array::Handle(arguments_descriptor());
+  return MegamorphicCacheTable::Lookup(Isolate::Current(), name, descriptor);
 }
 
 bool ICData::HasReceiverClassId(intptr_t class_id) const {
@@ -14080,6 +14159,8 @@ bool ICData::HasReceiverClassId(intptr_t class_id) const {
 
 // Returns true if all targets are the same.
 // TODO(srdjan): if targets are native use their C_function to compare.
+// TODO(rmacnak): this question should only be asked against a CallTargets,
+// not an ICData.
 bool ICData::HasOneTarget() const {
   ASSERT(!NumberOfChecksIs(0));
   const Function& first_target = Function::Handle(GetTargetAt(0));
@@ -14087,6 +14168,23 @@ bool ICData::HasOneTarget() const {
   for (intptr_t i = 1; i < len; i++) {
     if (IsUsedAt(i) && (GetTargetAt(i) != first_target.raw())) {
       return false;
+    }
+  }
+  if (is_megamorphic()) {
+    const MegamorphicCache& cache =
+        MegamorphicCache::Handle(AsMegamorphicCache());
+    SafepointMutexLocker ml(Isolate::Current()->megamorphic_lookup_mutex());
+    MegamorphicCacheEntries entries(Array::Handle(cache.buckets()));
+    for (intptr_t i = 0; i < entries.Length(); i++) {
+      const intptr_t id =
+          Smi::Value(entries[i].Get<MegamorphicCache::kClassIdIndex>());
+      if (id == kIllegalCid) {
+        continue;
+      }
+      if (entries[i].Get<MegamorphicCache::kTargetFunctionIndex>() !=
+          first_target.raw()) {
+        return false;
+      }
     }
   }
   return true;
@@ -14247,6 +14345,7 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
       AbstractType::Handle(from.receivers_static_type())));
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
+  result.set_is_megamorphic(from.is_megamorphic());
   return result.raw();
 }
 
@@ -14271,6 +14370,7 @@ RawICData* ICData::Clone(const ICData& from) {
   result.set_entries(cloned_array);
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
+  result.set_is_megamorphic(from.is_megamorphic());
   return result.raw();
 }
 #endif
@@ -15603,6 +15703,7 @@ void MegamorphicCache::EnsureCapacity() const {
 void MegamorphicCache::Insert(const Smi& class_id, const Object& target) const {
   ASSERT(static_cast<double>(filled_entry_count() + 1) <=
          (kLoadFactor * static_cast<double>(mask() + 1)));
+  SafepointMutexLocker ml(Isolate::Current()->megamorphic_lookup_mutex());
   const Array& backing_array = Array::Handle(buckets());
   intptr_t id_mask = mask();
   intptr_t index = (class_id.Value() * kSpreadFactor) & id_mask;
