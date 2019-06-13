@@ -77,6 +77,16 @@ class B<X> extends A<void Function(X)> {};
 
 [1]: https://github.com/dart-lang/sdk/blob/master/CHANGELOG.md#200---2018-08-07
 
+#### `dart:core`
+
+* Update `Uri` class to support RFC6874: https://tools.ietf.org/html/rfc6874
+  "%25" or "%" can be appended to the end of a valid IPv6 representing a Zone
+  Identifier. A valid zone ID consists of unreversed character or Percent
+  encoded octet, which was defined in RFC3986.
+  IPv6addrz = IPv6address "%25" ZoneID
+
+  [29456]: https://github.com/dart-lang/sdk/issues/29456
+
 ### Dart VM
 
 ### Tools
