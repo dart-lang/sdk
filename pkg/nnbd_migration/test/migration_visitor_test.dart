@@ -788,7 +788,37 @@ C f(C c) => c..[0];
     assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true);
   }
 
-  test_instanceCreation_parameter() async {
+  test_instanceCreation_parameter_named_optional() async {
+    await analyze('''
+class C {
+  C({int x = 0});
+}
+void f(int y) {
+  C(x: y);
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
+  test_instanceCreation_parameter_positional_optional() async {
+    await analyze('''
+class C {
+  C([int x]);
+}
+void f(int y) {
+  C(y);
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
+  test_instanceCreation_parameter_positional_required() async {
     await analyze('''
 class C {
   C(int x);
