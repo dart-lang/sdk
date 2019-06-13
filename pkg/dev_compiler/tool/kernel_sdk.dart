@@ -31,7 +31,8 @@ Future main(List<String> args) async {
   var parser = ArgParser()
     ..addOption('output')
     ..addOption('libraries',
-        defaultsTo: path.join(ddcPath, '../../sdk/lib/libraries.json'));
+        defaultsTo: path.join(ddcPath, '../../sdk/lib/libraries.json'))
+    ..addOption('packages', defaultsTo: path.join(ddcPath, '../../.packages'));
   var parserOptions = parser.parse(args);
 
   var outputPath = parserOptions['output'] as String;
@@ -43,7 +44,7 @@ Future main(List<String> args) async {
   }
 
   var librarySpecPath = parserOptions['libraries'] as String;
-  var packagesPath = path.join(ddcPath, '../../.packages');
+  var packagesPath = parserOptions['packages'] as String;
 
   var target = DevCompilerTarget(TargetFlags());
   void onDiagnostic(DiagnosticMessage message) {
