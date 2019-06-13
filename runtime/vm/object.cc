@@ -6863,27 +6863,29 @@ static intptr_t ConstructFunctionFullyQualifiedCString(
     intptr_t reserve_len,
     bool with_lib,
     QualifiedFunctionLibKind lib_kind) {
-  const char* name = String::Handle(function.name()).ToCString();
+  Zone* zone = Thread::Current()->zone();
+  const char* name = String::Handle(zone, function.name()).ToCString();
   const char* function_format = (reserve_len == 0) ? "%s" : "%s_";
   reserve_len += Utils::SNPrint(NULL, 0, function_format, name);
-  const Function& parent = Function::Handle(function.parent_function());
+  const Function& parent = Function::Handle(zone, function.parent_function());
   intptr_t written = 0;
   if (parent.IsNull()) {
-    const Class& function_class = Class::Handle(function.Owner());
+    const Class& function_class = Class::Handle(zone, function.Owner());
     ASSERT(!function_class.IsNull());
-    const char* class_name = String::Handle(function_class.Name()).ToCString();
+    const char* class_name =
+        String::Handle(zone, function_class.Name()).ToCString();
     ASSERT(class_name != NULL);
-    const Library& library = Library::Handle(function_class.library());
-    ASSERT(!library.IsNull());
     const char* library_name = NULL;
     const char* lib_class_format = NULL;
     if (with_lib) {
+      const Library& library = Library::Handle(zone, function_class.library());
+      ASSERT(!library.IsNull());
       switch (lib_kind) {
         case kQualifiedFunctionLibKindLibUrl:
-          library_name = String::Handle(library.url()).ToCString();
+          library_name = String::Handle(zone, library.url()).ToCString();
           break;
         case kQualifiedFunctionLibKindLibName:
-          library_name = String::Handle(library.name()).ToCString();
+          library_name = String::Handle(zone, library.name()).ToCString();
           break;
         default:
           UNREACHABLE();
@@ -6897,7 +6899,7 @@ static intptr_t ConstructFunctionFullyQualifiedCString(
     reserve_len +=
         Utils::SNPrint(NULL, 0, lib_class_format, library_name, class_name);
     ASSERT(chars != NULL);
-    *chars = Thread::Current()->zone()->Alloc<char>(reserve_len + 1);
+    *chars = zone->Alloc<char>(reserve_len + 1);
     written = Utils::SNPrint(*chars, reserve_len + 1, lib_class_format,
                              library_name, class_name);
   } else {
