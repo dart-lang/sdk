@@ -214,7 +214,8 @@ class CloneVisitor implements TreeVisitor {
         node.classReference,
         node.typeArguments.map(visitType).toList(),
         fieldValues,
-        node.asserts.map(clone).toList());
+        node.asserts.map(clone).toList(),
+        node.unusedArguments.map(clone).toList());
   }
 
   visitIsExpression(IsExpression node) {

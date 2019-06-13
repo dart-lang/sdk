@@ -1330,6 +1330,14 @@ class Printer extends Visitor<Null> {
         writeExpression(assert_.message);
       }
       write(')');
+      first = false;
+    }
+    for (Expression unusedArgument in node.unusedArguments) {
+      if (!first) {
+        writeComma();
+      }
+      writeExpression(unusedArgument);
+      first = false;
     }
 
     write('}');

@@ -2139,8 +2139,9 @@ class InstanceBuilder {
     fields.forEach((Field field, Constant value) {
       fieldValues[field.reference] = evaluator.extract(value);
     });
+    // TODO(askesc): Put actual unused arguments.
     return new InstanceCreation(
-        klass.reference, typeArguments, fieldValues, asserts);
+        klass.reference, typeArguments, fieldValues, asserts, []);
   }
 }
 

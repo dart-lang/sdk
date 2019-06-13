@@ -1544,6 +1544,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeNode(value);
     });
     writeNodeList(node.asserts);
+    writeNodeList(node.unusedArguments);
   }
 
   @override
