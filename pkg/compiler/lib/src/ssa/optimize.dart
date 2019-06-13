@@ -1322,6 +1322,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // convention, but is not a call on an interceptor.
     HInstruction value = node.inputs.last;
     if (_options.parameterCheckPolicy.isEmitted) {
+      if (_options.experimentNewRti) {
+        // TODO(sra): Implement inlining of setters with checks for new rti.
+        node.needsCheck = true;
+        return node;
+      }
       DartType type = _closedWorld.elementEnvironment.getFieldType(field);
       if (!type.treatAsRaw ||
           type.isTypeVariable ||

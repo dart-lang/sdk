@@ -69,10 +69,11 @@ abstract class TypeBuilder {
 
   /// Produces code that checks the runtime type is actually the type specified
   /// by attempting a type conversion.
-  HInstruction _checkType(HInstruction original, DartType type, int kind) {
+  HInstruction _checkType(HInstruction original, DartType type) {
     assert(type != null);
     type = builder.localsHandler.substInContext(type);
-    HInstruction other = buildTypeConversion(original, type, kind);
+    HInstruction other =
+        buildTypeConversion(original, type, HTypeConversion.TYPE_CHECK);
     // TODO(johnniwinther): This operation on `registry` may be inconsistent.
     // If it is needed then it seems likely that similar invocations of
     // `buildTypeConversion` in `SsaBuilder.visitAs` should also be followed by
@@ -116,7 +117,7 @@ abstract class TypeBuilder {
     if (builder.options.parameterCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, type);
     } else if (builder.options.parameterCheckPolicy.isEmitted) {
-      checkedOrTrusted = _checkType(original, type, HTypeConversion.TYPE_CHECK);
+      checkedOrTrusted = _checkType(original, type);
     }
     if (checkedOrTrusted == original) return original;
     builder.add(checkedOrTrusted);
@@ -127,14 +128,13 @@ abstract class TypeBuilder {
   /// instruction that checks the type is what we expect or automatically
   /// trusts the written type.
   HInstruction potentiallyCheckOrTrustTypeOfAssignment(
-      HInstruction original, DartType type,
-      {int kind: HTypeConversion.TYPE_CHECK}) {
+      HInstruction original, DartType type) {
     if (type == null) return original;
     HInstruction checkedOrTrusted = original;
     if (builder.options.assignmentCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, type);
     } else if (builder.options.assignmentCheckPolicy.isEmitted) {
-      checkedOrTrusted = _checkType(original, type, kind);
+      checkedOrTrusted = _checkType(original, type);
     }
     if (checkedOrTrusted == original) return original;
     builder.add(checkedOrTrusted);
@@ -273,6 +273,28 @@ abstract class TypeBuilder {
     return result;
   }
 
+  HInstruction analyzeTypeArgumentNewRti(
+      DartType argument, MemberEntity sourceElement,
+      {SourceInformation sourceInformation}) {
+    argument = argument.unaliased;
+
+    if (argument.containsFreeTypeVariables) {
+      // TODO(sra): Locate type environment.
+      HInstruction environment =
+          builder.graph.addConstantString("env", _closedWorld);
+      HInstruction rti =
+          HTypeEval(environment, argument, _abstractValueDomain.dynamicType)
+            ..sourceInformation = sourceInformation;
+      builder.add(rti);
+      return rti;
+    }
+
+    HInstruction rti = HLoadType(argument, _abstractValueDomain.dynamicType)
+      ..sourceInformation = sourceInformation;
+    builder.add(rti);
+    return rti;
+  }
+
   /// Build a [HTypeConversion] for converting [original] to type [type].
   ///
   /// Invariant: [type] must be valid in the context.
@@ -280,6 +302,12 @@ abstract class TypeBuilder {
   HInstruction buildTypeConversion(
       HInstruction original, DartType type, int kind,
       {SourceInformation sourceInformation}) {
+    if (builder.options.experimentNewRti) {
+      return buildAsCheck(original, type,
+          isTypeError: kind == HTypeConversion.TYPE_CHECK,
+          sourceInformation: sourceInformation);
+    }
+
     if (type == null) return original;
     type = type.unaliased;
     if (type.isInterfaceType && !type.treatAsRaw) {
@@ -309,6 +337,32 @@ abstract class TypeBuilder {
         ..sourceInformation = sourceInformation;
     } else {
       return original.convertType(_closedWorld, type, kind)
+        ..sourceInformation = sourceInformation;
+    }
+  }
+
+  /// Build a [HAsCheck] for converting [original] to type [type].
+  ///
+  /// Invariant: [type] must be valid in the context.
+  /// See [LocalsHandler.substInContext].
+  HInstruction buildAsCheck(HInstruction original, DartType type,
+      {bool isTypeError, SourceInformation sourceInformation}) {
+    if (type == null) return original;
+    type = type.unaliased;
+
+    HInstruction reifiedType =
+        analyzeTypeArgumentNewRti(type, builder.sourceElement);
+    if (type is InterfaceType) {
+      // TODO(sra): Under NNDB opt-in, this will be NonNullable.
+      AbstractValue subtype =
+          _abstractValueDomain.createNullableSubtype(type.element);
+      return HAsCheck(original, reifiedType, isTypeError, subtype)
+        ..sourceInformation = sourceInformation;
+    } else {
+      // TypeMasks don't encode function types or FutureOr types or type
+      // variable types.
+      AbstractValue abstractValue = original.instructionType;
+      return HAsCheck(original, reifiedType, isTypeError, abstractValue)
         ..sourceInformation = sourceInformation;
     }
   }

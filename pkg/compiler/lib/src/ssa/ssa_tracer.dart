@@ -696,13 +696,13 @@ class HInstructionStringifier implements HVisitor<String> {
   @override
   visitLoadType(HLoadType node) {
     var inputs = node.inputs.map(temporaryId).join(', ');
-    return "LoadType: $inputs";
+    return "LoadType: ${node.typeExpression}  $inputs";
   }
 
   @override
   visitTypeEval(HTypeEval node) {
     var inputs = node.inputs.map(temporaryId).join(', ');
-    return "TypeEval: $inputs";
+    return "TypeEval: ${node.typeExpression}  $inputs";
   }
 
   @override

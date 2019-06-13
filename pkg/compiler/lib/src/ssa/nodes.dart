@@ -4373,7 +4373,8 @@ class HAsCheck extends HCheck {
 
   HAsCheck(HInstruction checked, HInstruction rti, this.isTypeError,
       AbstractValue type)
-      : super([rti, checked], type) {}
+      : assert(isTypeError != null),
+        super([rti, checked], type);
 
   // The type input is first to facilitate the `type.as(value)` codegen pattern.
   HInstruction get typeInput => inputs[0];
