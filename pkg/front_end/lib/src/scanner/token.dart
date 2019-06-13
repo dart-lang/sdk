@@ -1443,6 +1443,12 @@ class TokenType {
       NO_PRECEDENCE,
       PERIOD_PERIOD_PERIOD_QUESTION_TOKEN);
 
+  static const TokenType QUESTION_PERIOD_OPEN_SQUARE_BRACKET = const TokenType(
+      '?.[',
+      'QUESTION_PERIOD_OPEN_SQUARE_BRACKET',
+      SELECTOR_PRECEDENCE,
+      QUESTION_PERIOD_OPEN_SQUARE_BRACKET_TOKEN);
+
   static const TokenType AS = Keyword.AS;
 
   static const TokenType IS = Keyword.IS;

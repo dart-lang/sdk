@@ -2482,7 +2482,8 @@ class AstBuilder extends StackListener {
   }
 
   void handleIndexedExpression(Token leftBracket, Token rightBracket) {
-    assert(optional('[', leftBracket));
+    assert(optional('[', leftBracket) ||
+        (enableNonNullable && optional('?.[', leftBracket)));
     assert(optional(']', rightBracket));
     debugEvent("IndexedExpression");
 

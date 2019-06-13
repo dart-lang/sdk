@@ -2456,6 +2456,37 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
     parseCompilationUnit('main() { C.a? Function()? x = 7; }');
   }
 
+  void test_indexed() {
+    CompilationUnit unit = parseCompilationUnit('main() { a[7]; }');
+    FunctionDeclaration method = unit.declarations[0];
+    BlockFunctionBody body = method.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    IndexExpression expression = statement.expression;
+    expect(expression.leftBracket.lexeme, '[');
+  }
+
+  void test_indexed_nullAware() {
+    CompilationUnit unit = parseCompilationUnit('main() { a?.[7]; }');
+    FunctionDeclaration method = unit.declarations[0];
+    BlockFunctionBody body = method.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    IndexExpression expression = statement.expression;
+    expect(expression.leftBracket.lexeme, '?.[');
+  }
+
+  void test_indexed_nullAware_optOut() {
+    CompilationUnit unit = parseCompilationUnit('''
+// @dart = 2.2
+main() { a?.[7]; }''',
+        errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 27, 1)]);
+    FunctionDeclaration method = unit.declarations[0];
+    BlockFunctionBody body = method.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    PropertyAccess expression = statement.expression;
+    expect(expression.target.toSource(), 'a');
+    expect(expression.operator.lexeme, '?.');
+  }
+
   void test_is_nullable() {
     CompilationUnit unit =
         parseCompilationUnit('main() { x is String? ? (x + y) : z; }');

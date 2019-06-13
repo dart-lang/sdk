@@ -4009,8 +4009,9 @@ class Parser {
             token = parsePrimary(
                 token.next, IdentifierContext.expressionContinuation);
             listener.endBinaryExpression(operator);
-          } else if ((identical(type, TokenType.OPEN_PAREN)) ||
-              (identical(type, TokenType.OPEN_SQUARE_BRACKET))) {
+          } else if (identical(type, TokenType.OPEN_PAREN) ||
+              identical(type, TokenType.OPEN_SQUARE_BRACKET) ||
+              identical(type, TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET)) {
             token = parseArgumentOrIndexStar(token, typeArg);
           } else if (identical(type, TokenType.INDEX)) {
             BeginToken replacement = link(
@@ -4180,7 +4181,7 @@ class Parser {
     Token next = token.next;
     Token beginToken = next;
     while (true) {
-      if (optional('[', next)) {
+      if (optional('[', next) || optional('?.[', next)) {
         assert(typeArg == noTypeParamOrArg);
         Token openSquareBracket = next;
         bool old = mayParseFunctionExpressions;
