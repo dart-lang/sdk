@@ -65,15 +65,32 @@ class GoodMutable {
 }
 ```
 
+**BAD:**
+```
+class AssignedInAllConstructors {
+  var _label; // LINT
+  AssignedInAllConstructors(this._label);
+  AssignedInAllConstructors.withDefault() : _label = 'Hello';
+}
+```
+
+**GOOD:**
+```
+class NotAssignedInAllConstructors {
+  var _label; // OK
+  NotAssignedInAllConstructors();
+  NotAssignedInAllConstructors.withDefault() : _label = 'Hello';
+}
+```
 ''';
 
 class PreferFinalFields extends LintRule implements NodeLintRule {
   PreferFinalFields()
       : super(
-            name: 'prefer_final_fields',
-            description: _desc,
-            details: _details,
-            group: Group.style);
+      name: 'prefer_final_fields',
+      description: _desc,
+      details: _details,
+      group: Group.style);
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
@@ -109,7 +126,7 @@ class _MutatedFieldsCollector extends RecursiveAstVisitor<void> {
 
   void _addMutatedFieldElement(Expression expression) {
     final element =
-        DartTypeUtilities.getCanonicalElementFromIdentifier(expression);
+    DartTypeUtilities.getCanonicalElementFromIdentifier(expression);
     if (element is FieldElement) {
       _mutatedFields.add(element);
     }
@@ -135,21 +152,44 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    fields.variables.forEach((VariableDeclaration variable) {
+    for (var variable in fields.variables) {
       final element = variable.declaredElement;
-      if (!element.isPrivate) {
-        return;
-      }
 
-      if (variable.initializer == null) {
-        return;
-      }
+      if (element.isPrivate && !_mutatedFields.contains(element)) {
+        bool fieldInConstructor(constructor) =>
+            constructor.initializers.any((initializer) =>
+                _containedInInitializer(element, initializer)) ||
+                constructor.parameters.parameters
+                    .any((formal) => _containedInFormal(element, formal));
 
-      if (_mutatedFields.contains(element)) {
-        return;
-      }
+        final classDeclaration = node.parent;
+        final constructors = (classDeclaration is ClassDeclaration
+            ? classDeclaration.members
+            .whereType<ConstructorDeclaration>()
+            .toSet()
+            : <ConstructorDeclaration>{});
+        final isFieldInConstructors = constructors.any(fieldInConstructor);
+        final isFieldInAllConstructors = constructors.every(fieldInConstructor);
 
-      rule.reportLint(variable);
-    });
+        if (isFieldInConstructors) {
+          if (isFieldInAllConstructors) {
+            rule.reportLint(variable);
+          }
+        } else if (element.initializer != null) {
+          rule.reportLint(variable);
+        }
+      }
+    }
   }
 }
+
+bool _containedInInitializer(
+    Element element, ConstructorInitializer initializer) =>
+    initializer is ConstructorFieldInitializer &&
+        DartTypeUtilities.getCanonicalElementFromIdentifier(
+            initializer.fieldName) ==
+            element;
+
+bool _containedInFormal(Element element, FormalParameter formal) =>
+    formal is FieldFormalParameter &&
+        formal.declaredElement.toString() == element.toString();
