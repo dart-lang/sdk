@@ -257,7 +257,7 @@ $stackTrace''');
       FormalParameterList parameters,
       FunctionBody body,
       AstNode enclosingNode) {
-    var decoratedReturnType;
+    DecoratedType decoratedReturnType;
     if (returnType == null && declaredElement is ConstructorElement) {
       // Constructors have no explicit return type annotation, so use the
       // implicit return type.
