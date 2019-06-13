@@ -536,7 +536,7 @@ Future testData(TestData data) async {
       '${Flags.enableLanguageExperiments}=constant-update-2018',
     ]);
     Compiler compiler = result.compiler;
-    KernelFrontEndStrategy frontEndStrategy = compiler.frontendStrategy;
+    KernelFrontendStrategy frontEndStrategy = compiler.frontendStrategy;
     KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
     KElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;

@@ -57,10 +57,11 @@ class Tags {
 abstract class ComputeValueMixin {
   Compiler get compiler;
 
+  KernelFrontendStrategy get frontendStrategy => compiler.frontendStrategy;
   ResolutionWorldBuilder get resolutionWorldBuilder =>
       compiler.resolutionWorldBuilder;
   RuntimeTypesNeedBuilderImpl get rtiNeedBuilder =>
-      compiler.frontendStrategy.runtimeTypesNeedBuilderForTesting;
+      frontendStrategy.runtimeTypesNeedBuilderForTesting;
   RuntimeTypesNeedImpl get rtiNeed =>
       compiler.backendClosedWorldForTesting.rtiNeed;
   ClassEntity getFrontendClass(ClassEntity cls);
@@ -308,7 +309,7 @@ abstract class IrMixin implements ComputeValueMixin {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     ir.Node node = closedWorld.elementMap.getMemberDefinition(member).node;
     if (node is ir.FunctionDeclaration || node is ir.FunctionExpression) {
-      KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+      KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
       KernelToElementMap frontendElementMap = frontendStrategy.elementMap;
       return frontendElementMap.getLocalFunction(node);
     }

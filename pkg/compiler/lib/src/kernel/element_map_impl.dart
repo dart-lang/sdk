@@ -41,7 +41,6 @@ import '../ir/visitors.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/annotations.dart';
-import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
@@ -1486,13 +1485,13 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (commonElements.isForeignHelper(getMember(node.target))) {
       switch (node.target.name.name) {
-        case JavaScriptBackend.JS:
+        case Identifiers.JS:
           return ForeignKind.JS;
-        case JavaScriptBackend.JS_BUILTIN:
+        case Identifiers.JS_BUILTIN:
           return ForeignKind.JS_BUILTIN;
-        case JavaScriptBackend.JS_EMBEDDED_GLOBAL:
+        case Identifiers.JS_EMBEDDED_GLOBAL:
           return ForeignKind.JS_EMBEDDED_GLOBAL;
-        case JavaScriptBackend.JS_INTERCEPTOR_CONSTANT:
+        case Identifiers.JS_INTERCEPTOR_CONSTANT:
           return ForeignKind.JS_INTERCEPTOR_CONSTANT;
       }
     }

@@ -12,9 +12,9 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/js/js.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/js_backend/backend.dart' show JavaScriptBackend;
 import 'package:compiler/src/js_backend/runtime_types.dart'
     show RuntimeTypeTags, TypeRepresentationGenerator;
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import '../helpers/element_lookup.dart';
@@ -65,7 +65,7 @@ main() {
       await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
-  JavaScriptBackend backend = compiler.backend;
+  JsBackendStrategy backendStrategy = compiler.backendStrategy;
 
   RuntimeTypeTags rtiTags = const RuntimeTypeTags();
   TypeRepresentationGenerator typeRepresentation =
@@ -86,7 +86,7 @@ main() {
       [String expectedTypedefRepresentation]) {
     bool encodeTypedefName = false;
     Expression expression = typeRepresentation.getTypeRepresentation(
-        backend.emitterTask.emitter,
+        backendStrategy.emitterTask.emitter,
         type,
         onVariable,
         (x) => encodeTypedefName);
@@ -94,7 +94,7 @@ main() {
 
     encodeTypedefName = true;
     expression = typeRepresentation.getTypeRepresentation(
-        backend.emitterTask.emitter,
+        backendStrategy.emitterTask.emitter,
         type,
         onVariable,
         (x) => encodeTypedefName);
@@ -106,7 +106,7 @@ main() {
 
   String getJsName(Entity cls) {
     Expression name = typeRepresentation.getJavaScriptClassName(
-        cls, backend.emitterTask.emitter);
+        cls, backendStrategy.emitterTask.emitter);
     return stringify(name);
   }
 

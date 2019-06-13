@@ -79,7 +79,7 @@ main() {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;
-    ProgramLookup programLookup = new ProgramLookup(compiler);
+    ProgramLookup programLookup = new ProgramLookup(compiler.backendStrategy);
 
     List<ClassEntity> closures = <ClassEntity>[];
 

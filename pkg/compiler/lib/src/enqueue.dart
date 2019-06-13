@@ -61,7 +61,7 @@ class EnqueueTask extends CompilerTask {
   }
 
   ResolutionEnqueuer createResolutionEnqueuer() {
-    return _resolution ??= compiler.backend
+    return _resolution ??= compiler.frontendStrategy
         .createResolutionEnqueuer(this, compiler)
           ..onEmptyForTesting = compiler.onResolutionQueueEmptyForTesting;
   }
@@ -71,7 +71,7 @@ class EnqueueTask extends CompilerTask {
       GlobalTypeInferenceResults globalInferenceResults,
       CodegenInputs codegenInputs,
       CodegenResults codegenResults) {
-    Enqueuer enqueuer = compiler.backend.createCodegenEnqueuer(this, compiler,
+    Enqueuer enqueuer = compiler.backendStrategy.createCodegenEnqueuer(this,
         closedWorld, globalInferenceResults, codegenInputs, codegenResults)
       ..onEmptyForTesting = compiler.onCodegenQueueEmptyForTesting;
     if (retainDataForTesting) {

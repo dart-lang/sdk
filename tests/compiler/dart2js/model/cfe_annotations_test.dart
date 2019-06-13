@@ -197,7 +197,7 @@ main(List<String> args) {
             ..addAll(options));
       Expect.isTrue(result.isSuccess);
       Compiler compiler = result.compiler;
-      KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+      KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
       KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
       ir.Component component = elementMap.env.mainComponent;
       IrAnnotationData annotationData =

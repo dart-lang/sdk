@@ -35,9 +35,9 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
     if (member.isField) {
-      KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+      KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
       KFieldAnalysis allocatorAnalysis =
-          compiler.backend.fieldAnalysisForTesting;
+          frontendStrategy.fieldAnalysisForTesting;
       ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
       Features features = new Features();
       if (member.isInstanceMember) {

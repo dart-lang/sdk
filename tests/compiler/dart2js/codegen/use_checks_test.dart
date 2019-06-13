@@ -31,7 +31,7 @@ main() {
     var compiler = result.compiler;
     var element =
         compiler.backendClosedWorldForTesting.elementEnvironment.mainFunction;
-    var code = compiler.backend.getGeneratedCode(element);
+    var code = compiler.backendStrategy.getGeneratedCodeForTesting(element);
     Expect.isTrue(code.contains('+'), code);
   }
 

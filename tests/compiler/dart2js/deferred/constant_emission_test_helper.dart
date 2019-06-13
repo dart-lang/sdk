@@ -37,7 +37,7 @@ run(Map<String, String> sourceFiles, List<OutputUnitDescriptor> outputUnits,
           ? ['${Flags.enableLanguageExperiments}=constant-update-2018']
           : ['${Flags.enableLanguageExperiments}=no-constant-update-2018']);
   Compiler compiler = result.compiler;
-  ProgramLookup lookup = new ProgramLookup(compiler);
+  ProgramLookup lookup = new ProgramLookup(compiler.backendStrategy);
   var closedWorld = compiler.backendClosedWorldForTesting;
   var elementEnvironment = closedWorld.elementEnvironment;
 

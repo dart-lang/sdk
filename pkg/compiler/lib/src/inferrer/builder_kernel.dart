@@ -17,7 +17,6 @@ import '../inferrer/types.dart';
 import '../ir/constants.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
-import '../js_backend/backend.dart';
 import '../js_backend/field_analysis.dart';
 import '../js_model/element_map.dart';
 import '../js_model/locals.dart' show JumpVisitor;
@@ -1244,22 +1243,22 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       AbstractValue mask) {
     String name = function.name;
     handleStaticInvoke(node, selector, mask, function, arguments);
-    if (name == JavaScriptBackend.JS) {
+    if (name == Identifiers.JS) {
       NativeBehavior nativeBehavior =
           _elementMap.getNativeBehaviorForJsCall(node);
       _sideEffectsBuilder.add(nativeBehavior.sideEffects);
       return _inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == JavaScriptBackend.JS_EMBEDDED_GLOBAL) {
+    } else if (name == Identifiers.JS_EMBEDDED_GLOBAL) {
       NativeBehavior nativeBehavior =
           _elementMap.getNativeBehaviorForJsEmbeddedGlobalCall(node);
       _sideEffectsBuilder.add(nativeBehavior.sideEffects);
       return _inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == JavaScriptBackend.JS_BUILTIN) {
+    } else if (name == Identifiers.JS_BUILTIN) {
       NativeBehavior nativeBehavior =
           _elementMap.getNativeBehaviorForJsBuiltinCall(node);
       _sideEffectsBuilder.add(nativeBehavior.sideEffects);
       return _inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == JavaScriptBackend.JS_STRING_CONCAT) {
+    } else if (name == Identifiers.JS_STRING_CONCAT) {
       return _types.stringType;
     } else {
       _sideEffectsBuilder.setAllSideEffects();
