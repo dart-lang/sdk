@@ -16,6 +16,7 @@ linter:
     - annotate_overrides
     - avoid_empty_else
     - avoid_init_to_null
+    - avoid_relative_lib_imports
     - avoid_return_types_on_setters
     - avoid_shadowing_type_parameters
     - avoid_types_as_parameter_names

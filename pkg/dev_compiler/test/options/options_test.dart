@@ -7,13 +7,13 @@ import 'dart:io';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:dev_compiler/src/analyzer/context.dart';
+import 'package:dev_compiler/src/analyzer/command.dart';
+import 'package:dev_compiler/src/analyzer/driver.dart';
+import 'package:dev_compiler/src/analyzer/module_compiler.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-import '../../lib/src/analyzer/context.dart';
-import '../../lib/src/analyzer/command.dart';
-import '../../lib/src/analyzer/driver.dart';
-import '../../lib/src/analyzer/module_compiler.dart';
 import '../testing.dart' show repoDirectory, testDirectory;
 
 /// The `test/options` directory.
