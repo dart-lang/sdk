@@ -16,7 +16,10 @@ const _knownFeatures = <String, ExperimentalFeature>{
   EnableString.set_literals: ExperimentalFeatures.set_literals,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
+
+  // ignore: deprecated_member_use_from_same_package
   EnableString.bogus_disabled: ExperimentalFeatures.bogus_disabled,
+  // ignore: deprecated_member_use_from_same_package
   EnableString.bogus_enabled: ExperimentalFeatures.bogus_enabled,
 };
 
@@ -57,9 +60,11 @@ class EnableString {
   static const String triple_shift = 'triple-shift';
 
   /// String to enable the experiment "bogus-disabled"
+  @deprecated
   static const String bogus_disabled = 'bogus-disabled';
 
   /// String to enable the experiment "bogus-enabled"
+  @deprecated
   static const String bogus_enabled = 'bogus-enabled';
 }
 
@@ -116,15 +121,19 @@ class ExperimentalFeatures {
       IsExpired.triple_shift,
       'Triple-shift operator');
 
+  @deprecated
   static const bogus_disabled = const ExperimentalFeature(
       7,
+      // ignore: deprecated_member_use_from_same_package
       EnableString.bogus_disabled,
       IsEnabledByDefault.bogus_disabled,
       IsExpired.bogus_disabled,
       null);
 
+  @deprecated
   static const bogus_enabled = const ExperimentalFeature(
       8,
+      // ignore: deprecated_member_use_from_same_package
       EnableString.bogus_enabled,
       IsEnabledByDefault.bogus_enabled,
       IsExpired.bogus_enabled,
@@ -157,9 +166,11 @@ class IsEnabledByDefault {
   static const bool triple_shift = false;
 
   /// Default state of the experiment "bogus-disabled"
+  @deprecated
   static const bool bogus_disabled = false;
 
   /// Default state of the experiment "bogus-enabled"
+  @deprecated
   static const bool bogus_enabled = true;
 }
 
@@ -197,9 +208,11 @@ class IsExpired {
 
 mixin _CurrentState {
   /// Current state for the flag "bogus-disabled"
+  @deprecated
   bool get bogus_disabled => isEnabled(ExperimentalFeatures.bogus_disabled);
 
   /// Current state for the flag "bogus-enabled"
+  @deprecated
   bool get bogus_enabled => isEnabled(ExperimentalFeatures.bogus_enabled);
 
   /// Current state for the flag "constant-update-2018"

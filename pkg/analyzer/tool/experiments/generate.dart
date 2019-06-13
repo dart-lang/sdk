@@ -101,9 +101,11 @@ List<bool> _buildExperimentalFlagsArray() => <bool>[
 
 mixin _CurrentState {
   /// Current state for the flag "bogus-disabled"
+  @deprecated
   bool get bogus_disabled => isEnabled(ExperimentalFeatures.bogus_disabled);
 
   /// Current state for the flag "bogus-enabled"
+  @deprecated
   bool get bogus_enabled => isEnabled(ExperimentalFeatures.bogus_enabled);
 ''');
     for (var key in keysSorted) {
@@ -136,9 +138,11 @@ class EnableString {
     out.write('''
 
       /// String to enable the experiment "bogus-disabled"
+      @deprecated
       static const String bogus_disabled = 'bogus-disabled';
 
       /// String to enable the experiment "bogus-enabled"
+      @deprecated
       static const String bogus_enabled = 'bogus-enabled';
     }''');
   }
@@ -174,15 +178,19 @@ class ExperimentalFeatures {
     // TODO(danrubel): Remove bogus entries
     out.write('''
 
+      @deprecated
       static const bogus_disabled = const ExperimentalFeature(
         $index,
+        // ignore: deprecated_member_use_from_same_package
         EnableString.bogus_disabled,
         IsEnabledByDefault.bogus_disabled,
         IsExpired.bogus_disabled,
         null);
 
+      @deprecated
       static const bogus_enabled = const ExperimentalFeature(
         ${index + 1},
+        // ignore: deprecated_member_use_from_same_package
         EnableString.bogus_enabled,
         IsEnabledByDefault.bogus_enabled,
         IsExpired.bogus_enabled,
@@ -210,9 +218,11 @@ class IsEnabledByDefault {
     out.write('''
 
       /// Default state of the experiment "bogus-disabled"
+      @deprecated
       static const bool bogus_disabled = false;
 
       /// Default state of the experiment "bogus-enabled"
+      @deprecated
       static const bool bogus_enabled = true;
     }''');
   }
@@ -263,7 +273,9 @@ const _knownFeatures = <String, ExperimentalFeature>{
     // TODO(danrubel): Remove bogus entries
     out.write('''
 
+  // ignore: deprecated_member_use_from_same_package
   EnableString.bogus_disabled: ExperimentalFeatures.bogus_disabled,
+  // ignore: deprecated_member_use_from_same_package
   EnableString.bogus_enabled: ExperimentalFeatures.bogus_enabled,
 };
 ''');
