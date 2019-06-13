@@ -1156,7 +1156,7 @@ def NooptContextManager():
 
 def CoreDumpArchiver(args):
   enabled = '--copy-coredumps' in args
-  prefix = '--output_directory='
+  prefix = '--output-directory='
   output_directory = next((arg[len(prefix):] for arg in args if arg.startswith(prefix)), None)
 
   if not enabled:
