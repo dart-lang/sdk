@@ -169,7 +169,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
     const ClassHeapStats* stats = class_table->StatsWithUpdatedSize(id());
     if (stats != NULL) {
       JSONObject allocation_stats(&jsobj, "_allocationStats");
-      stats->PrintToJSONObject(*this, &allocation_stats);
+      stats->PrintToJSONObject(*this, &allocation_stats, /*internal*/ true);
     }
   }
 }

@@ -16,7 +16,7 @@ class AllocationProfileRepository implements M.AllocationProfileRepository {
     assert(isolate != null);
     var params = {};
     if (gc) {
-      params['gc'] = 'full';
+      params['gc'] = 'true';
     }
     if (reset) {
       params['reset'] = true;
@@ -27,14 +27,14 @@ class AllocationProfileRepository implements M.AllocationProfileRepository {
       defaults = await isolate.vm.invokeRpcNoUpgrade(_defaultsApi, {});
       defaults = defaults['map'];
     }
-    isolate.updateHeapsFromMap(response['heaps']);
+    isolate.updateHeapsFromMap(response['_heaps']);
     for (S.ServiceMap clsAllocations in response['members']) {
       S.Class cls = clsAllocations['class'];
       if (cls == null) {
         continue;
       }
-      cls.newSpace.update(clsAllocations['new']);
-      cls.oldSpace.update(clsAllocations['old']);
+      cls.newSpace.update(clsAllocations['_new']);
+      cls.oldSpace.update(clsAllocations['_old']);
     }
     return new AllocationProfile(response, defaults: defaults);
   }

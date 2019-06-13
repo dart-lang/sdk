@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19,21 +19,19 @@ var tests = <IsolateTest>[
   (Isolate isolate) async {
     var params = {};
     var result =
-        await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
+        await isolate.invokeRpcNoUpgrade('getAllocationProfile', params);
     expect(result['type'], equals('AllocationProfile'));
     expect(result.containsKey('dateLastAccumulatorReset'), isFalse);
     expect(result.containsKey('dateLastServiceGC'), isFalse);
-    expect(result['_heaps'].length, isPositive);
-    expect(result['_heaps']['new']['type'], equals('HeapSpace'));
-    expect(result['_heaps']['old']['type'], equals('HeapSpace'));
+    expect(result.containsKey('_heaps'), isFalse);
     expect(result['members'].length, isPositive);
 
     var member = result['members'][0];
     expect(member['type'], equals('ClassHeapStats'));
-    expect(member.containsKey('_new'), isTrue);
-    expect(member.containsKey('_old'), isTrue);
-    expect(member.containsKey('_promotedInstances'), isTrue);
-    expect(member.containsKey('_promotedBytes'), isTrue);
+    expect(member.containsKey('_new'), isFalse);
+    expect(member.containsKey('_old'), isFalse);
+    expect(member.containsKey('_promotedInstances'), isFalse);
+    expect(member.containsKey('_promotedBytes'), isFalse);
     expect(member.containsKey('instancesAccumulated'), isTrue);
     expect(member.containsKey('instancesCurrent'), isTrue);
     expect(member.containsKey('bytesCurrent'), isTrue);
@@ -43,22 +41,20 @@ var tests = <IsolateTest>[
     params = {
       'reset': 'true',
     };
-    result = await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
+    result = await isolate.invokeRpcNoUpgrade('getAllocationProfile', params);
     expect(result['type'], equals('AllocationProfile'));
     var firstReset = result['dateLastAccumulatorReset'];
     expect(firstReset, new isInstanceOf<String>());
     expect(result.containsKey('dateLastServiceGC'), isFalse);
-    expect(result['_heaps'].length, isPositive);
-    expect(result['_heaps']['new']['type'], equals('HeapSpace'));
-    expect(result['_heaps']['old']['type'], equals('HeapSpace'));
+    expect(result.containsKey('_heaps'), isFalse);
     expect(result['members'].length, isPositive);
 
     member = result['members'][0];
     expect(member['type'], equals('ClassHeapStats'));
-    expect(member.containsKey('_new'), isTrue);
-    expect(member.containsKey('_old'), isTrue);
-    expect(member.containsKey('_promotedInstances'), isTrue);
-    expect(member.containsKey('_promotedBytes'), isTrue);
+    expect(member.containsKey('_new'), isFalse);
+    expect(member.containsKey('_old'), isFalse);
+    expect(member.containsKey('_promotedInstances'), isFalse);
+    expect(member.containsKey('_promotedBytes'), isFalse);
     expect(member.containsKey('instancesAccumulated'), isTrue);
     expect(member.containsKey('instancesCurrent'), isTrue);
     expect(member.containsKey('bytesCurrent'), isTrue);
@@ -66,7 +62,7 @@ var tests = <IsolateTest>[
 
     await sleep(1000);
 
-    result = await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
+    result = await isolate.invokeRpcNoUpgrade('getAllocationProfile', params);
     var secondReset = result['dateLastAccumulatorReset'];
     expect(secondReset, isNot(equals(firstReset)));
 
@@ -74,22 +70,20 @@ var tests = <IsolateTest>[
     params = {
       'gc': 'true',
     };
-    result = await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
+    result = await isolate.invokeRpcNoUpgrade('getAllocationProfile', params);
     expect(result['type'], equals('AllocationProfile'));
     expect(result['dateLastAccumulatorReset'], equals(secondReset));
     var firstGC = result['dateLastServiceGC'];
     expect(firstGC, new isInstanceOf<String>());
-    expect(result['_heaps'].length, isPositive);
-    expect(result['_heaps']['new']['type'], equals('HeapSpace'));
-    expect(result['_heaps']['old']['type'], equals('HeapSpace'));
+    expect(result.containsKey('_heaps'), isFalse);
     expect(result['members'].length, isPositive);
 
     member = result['members'][0];
     expect(member['type'], equals('ClassHeapStats'));
-    expect(member.containsKey('_new'), isTrue);
-    expect(member.containsKey('_old'), isTrue);
-    expect(member.containsKey('_promotedInstances'), isTrue);
-    expect(member.containsKey('_promotedBytes'), isTrue);
+    expect(member.containsKey('_new'), isFalse);
+    expect(member.containsKey('_old'), isFalse);
+    expect(member.containsKey('_promotedInstances'), isFalse);
+    expect(member.containsKey('_promotedBytes'), isFalse);
     expect(member.containsKey('instancesAccumulated'), isTrue);
     expect(member.containsKey('instancesCurrent'), isTrue);
     expect(member.containsKey('bytesCurrent'), isTrue);
@@ -97,7 +91,7 @@ var tests = <IsolateTest>[
 
     await sleep(1000);
 
-    result = await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
+    result = await isolate.invokeRpcNoUpgrade('getAllocationProfile', params);
     var secondGC = result['dateLastAccumulatorReset'];
     expect(secondGC, isNot(equals(firstGC)));
   },
@@ -107,13 +101,13 @@ var tests = <IsolateTest>[
     };
     bool caughtException;
     try {
-      await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
+      await isolate.invokeRpcNoUpgrade('getAllocationProfile', params);
       expect(false, isTrue, reason: 'Unreachable');
     } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
       expect(e.data['details'],
-          "_getAllocationProfile: invalid \'reset\' parameter: banana");
+          "getAllocationProfile: invalid \'reset\' parameter: banana");
     }
     expect(caughtException, isTrue);
   },
@@ -123,13 +117,13 @@ var tests = <IsolateTest>[
     };
     bool caughtException;
     try {
-      await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
+      await isolate.invokeRpcNoUpgrade('getAllocationProfile', params);
       expect(false, isTrue, reason: 'Unreachable');
     } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
       expect(e.data['details'],
-          "_getAllocationProfile: invalid \'gc\' parameter: banana");
+          "getAllocationProfile: invalid \'gc\' parameter: banana");
     }
     expect(caughtException, isTrue);
   },

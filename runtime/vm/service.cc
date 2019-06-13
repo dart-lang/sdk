@@ -3958,11 +3958,9 @@ static bool ClearCpuProfile(Thread* thread, JSONStream* js) {
   return true;
 }
 
-static const MethodParameter* get_allocation_profile_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
-};
-
-static bool GetAllocationProfile(Thread* thread, JSONStream* js) {
+static bool GetAllocationProfileImpl(Thread* thread,
+                                     JSONStream* js,
+                                     bool internal) {
   bool should_reset_accumulator = false;
   bool should_collect = false;
   if (js->HasParam("reset")) {
@@ -3974,7 +3972,7 @@ static bool GetAllocationProfile(Thread* thread, JSONStream* js) {
     }
   }
   if (js->HasParam("gc")) {
-    if (js->ParamIs("gc", "full")) {
+    if (js->ParamIs("gc", "true")) {
       should_collect = true;
     } else {
       PrintInvalidParamError(js, "gc");
@@ -3990,8 +3988,21 @@ static bool GetAllocationProfile(Thread* thread, JSONStream* js) {
     isolate->UpdateLastAllocationProfileGCTimestamp();
     isolate->heap()->CollectAllGarbage();
   }
-  isolate->class_table()->AllocationProfilePrintJSON(js);
+  isolate->class_table()->AllocationProfilePrintJSON(js, internal);
   return true;
+}
+
+static const MethodParameter* get_allocation_profile_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
+static bool GetAllocationProfilePublic(Thread* thread, JSONStream* js) {
+  return GetAllocationProfileImpl(thread, js, false);
+}
+
+static bool GetAllocationProfile(Thread* thread, JSONStream* js) {
+  return GetAllocationProfileImpl(thread, js, true);
 }
 
 static const MethodParameter* collect_all_garbage_params[] = {
@@ -4881,6 +4892,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
   { "evaluateInFrame", EvaluateInFrame,
     evaluate_in_frame_params },
   { "_getAllocationProfile", GetAllocationProfile,
+    get_allocation_profile_params },
+  { "getAllocationProfile", GetAllocationProfilePublic,
     get_allocation_profile_params },
   { "_getAllocationSamples", GetAllocationSamples,
       get_allocation_samples_params },

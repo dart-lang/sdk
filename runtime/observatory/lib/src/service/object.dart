@@ -2569,8 +2569,8 @@ class Class extends HeapObject implements M.Class {
 
     var allocationStats = map['_allocationStats'];
     if (allocationStats != null) {
-      newSpace.update(allocationStats['new']);
-      oldSpace.update(allocationStats['old']);
+      newSpace.update(allocationStats['_new']);
+      oldSpace.update(allocationStats['_old']);
       promotedByLastNewGC.instances = allocationStats['promotedInstances'];
       promotedByLastNewGC.bytes = allocationStats['promotedBytes'];
     }

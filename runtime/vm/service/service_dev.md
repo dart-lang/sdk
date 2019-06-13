@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.18-dev
+# Dart VM Service Protocol 3.19-dev
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.18-dev_ of the Dart VM Service Protocol. This
+This document describes of _version 3.19-dev_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -29,6 +29,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [addBreakpointAtEntry](#addbreakpointatentry)
   - [evaluate](#evaluate)
   - [evaluateInFrame](#evaluateinframe)
+  - [getAllocationProfile](#getallocationprofile)
   - [getFlagList](#getflaglist)
   - [getIsolate](#getisolate)
   - [getMemoryUsage](#getmemoryusage)
@@ -52,10 +53,12 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [streamCancel](#streamcancel)
   - [streamListen](#streamlisten)
 - [Public Types](#public-types)
+  - [AllocationProfile](#allocationprofile)
   - [BoundField](#boundfield)
   - [BoundVariable](#boundvariable)
   - [Breakpoint](#breakpoint)
   - [Class](#class)
+  - [ClassHeapStats](#classheapstats)
   - [ClassList](#classlist)
   - [Code](#code)
   - [CodeKind](#codekind)
@@ -589,6 +592,24 @@ reference will be returned.
 If the expression is evaluated successfully, an [@Instance](#instance)
 reference will be returned.
 
+### getAllocationProfile
+
+```
+AllocationProfile getAllocationProfile(string isolateId,
+                                       boolean reset [optional],
+                                       boolean gc [optional])
+```
+
+The _getAllocationProfile_ RPC is used to retrieve allocation information for a
+given isolate.
+
+If _reset_ is provided and is set to true, the allocation accumulators will be reset
+before collecting allocation information.
+
+If _gc_ is provided and is set to true, a garbage collection will be attempted
+before collecting allocation information. There is no guarantee that a garbage
+collection will be actually be performed.
+
 ### getFlagList
 
 ```
@@ -1047,6 +1068,28 @@ enum PermittedValues {
 This means that _PermittedValues_ is a _string_ with two potential values,
 _Value1_ and _Value2_.
 
+### AllocationProfile
+
+```
+class AllocationProfile extends Response {
+  // Allocation information for all class types.
+  ClassHeapStats[] members;
+
+  // Information about memory usage for the isolate.
+  MemoryUsage memoryUsage;
+
+  // The timestamp of the last accumulator reset.
+  //
+  // If the accumulators have not been reset, this field is not present.
+  int dateLastAccumulatorReset [optional];
+
+  // The timestamp of the last manually triggered GC.
+  //
+  // If a GC has not been triggered manually, this field is not present.
+  int dateLastServiceGC [optional];
+}
+```
+
 ### BoundField
 
 ```
@@ -1185,6 +1228,29 @@ class Class extends Object {
 ```
 
 A _Class_ provides information about a Dart language class.
+
+### ClassHeapStats
+
+```
+class ClassHeapStats extends Response {
+  // The class for which this memory information is associated.
+  @Class class;
+
+  // The number of bytes allocated for instances of class since the
+  // accumulator was last reset.
+  int accumulatedSize;
+
+  // The number of bytes currently allocated for instances of class.
+  int bytesCurrent;
+
+  // The number of instances of class which have been allocated since
+  // the accumulator was last reset.
+  int instancesAccumulated;
+
+  // The number of instances of class which are currently alive.
+  int instancesCurrent;
+}
+```
 
 ### ClassList
 
@@ -2855,5 +2921,6 @@ version | comments
 3.15 | Added `disableBreakpoints` parameter to `invoke`, `evaluate`, and `evaluateInFrame`.
 3.16 | Add 'getMemoryUsage' RPC and 'MemoryUsage' object.
 3.17 | Add 'Logging' event kind and the LogRecord class.
+3.18 | Add 'getAllocationProfile' RPC and 'AllocationProfile' and 'ClassHeapStats' objects.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

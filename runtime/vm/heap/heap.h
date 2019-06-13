@@ -275,6 +275,7 @@ class Heap {
   // Returns a JSON object with total memory usage statistics for both new and
   // old space combined.
   void PrintMemoryUsageJSON(JSONStream* stream) const;
+  void PrintMemoryUsageJSON(JSONObject* jsobj) const;
 
   // The heap map contains the sizes and class ids for the objects in each page.
   void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
