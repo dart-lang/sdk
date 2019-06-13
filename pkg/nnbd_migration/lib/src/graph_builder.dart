@@ -540,7 +540,7 @@ $stackTrace''');
         }
       }
     }
-    return DecoratedType(typeName.type, _graph.never);
+    return _nonNullableTypeType;
   }
 
   @override
