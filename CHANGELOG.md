@@ -8,7 +8,7 @@
 
 #### `dart:core`
 
-* Update `Uri` class to support RFC6874: https://tools.ietf.org/html/rfc6874
+* Update `Uri` class to support [RFC6874](https://tools.ietf.org/html/rfc6874):
   "%25" or "%" can be appended to the end of a valid IPv6 representing a Zone
   Identifier. A valid zone ID consists of unreversed character or Percent
   encoded octet, which was defined in RFC3986.
@@ -33,7 +33,7 @@ communication of `Uint8List` data.
   `UnsupportedError` when compiled with dart2js or DDC. This was the only
   remaining API in `dart:isolate` that didn't automatically throw since we
   dropped support for this library in [Dart 2.0.0][1]. Note that the API already
-  throws in dart2js if the API is used directly without setting up manually a
+  throws in dart2js if the API is used directly without manually setting up a
   `defaultPackagesBase` hook.
 
 [1]: https://github.com/dart-lang/sdk/blob/master/CHANGELOG.md#200---2018-08-07
