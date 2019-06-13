@@ -344,21 +344,28 @@ Uri sourcePathToRelativeUri(String source, {bool windows}) {
 
 /// Adjusts the source paths in [sourceMap] to be relative to [sourceMapPath],
 /// and returns the new map.  Relative paths are in terms of URIs ('/'), not
-/// local OS paths (e.g., windows '\').
+/// local OS paths (e.g., windows '\'). Sources with a multi-root scheme
+/// matching [multiRootScheme] are adjusted to be relative to
+/// [multiRootOutputPath].
 // TODO(jmesserly): find a new home for this.
 Map placeSourceMap(Map sourceMap, String sourceMapPath,
-    Map<String, String> bazelMappings, String customScheme) {
+    Map<String, String> bazelMappings, String multiRootScheme,
+    {String multiRootOutputPath}) {
   var map = Map.from(sourceMap);
   // Convert to a local file path if it's not.
   sourceMapPath = path.fromUri(sourcePathToUri(sourceMapPath));
   var sourceMapDir = path.dirname(path.absolute(sourceMapPath));
   var list = (map['sources'] as List).toList();
-  map['sources'] = list;
 
   String makeRelative(String sourcePath) {
     var uri = sourcePathToUri(sourcePath);
     var scheme = uri.scheme;
-    if (scheme == 'dart' || scheme == 'package' || scheme == customScheme) {
+    if (scheme == 'dart' || scheme == 'package' || scheme == multiRootScheme) {
+      if (scheme == multiRootScheme) {
+        var multiRootPath = '$multiRootOutputPath${uri.path}';
+        multiRootPath = path.relative(multiRootPath, from: sourceMapDir);
+        return multiRootPath;
+      }
       return sourcePath;
     }
 
@@ -379,6 +386,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
   for (int i = 0; i < list.length; i++) {
     list[i] = makeRelative(list[i] as String);
   }
+  map['sources'] = list;
   map['file'] = makeRelative(map['file'] as String);
   return map;
 }

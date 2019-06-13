@@ -130,13 +130,14 @@ Future<CompilerResult> _compile(List<String> args,
   // the correct location and keeps the real file location hidden from the
   // front end.
   var multiRootScheme = argResults['multi-root-scheme'] as String;
+  var multiRootPaths = (argResults['multi-root'] as Iterable<String>)
+      .map(Uri.base.resolve)
+      .toList();
+  var multiRootOutputPath =
+      _longestPrefixingPath(path.absolute(output), multiRootPaths);
 
   var fileSystem = MultiRootFileSystem(
-      multiRootScheme,
-      (argResults['multi-root'] as Iterable<String>)
-          .map(Uri.base.resolve)
-          .toList(),
-      fe.StandardFileSystem.instance);
+      multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
 
   Uri toCustomUri(Uri uri) {
     if (uri.scheme == '') {
@@ -354,7 +355,8 @@ Future<CompilerResult> _compile(List<String> args,
       jsUrl: path.toUri(output).toString(),
       mapUrl: path.toUri(output + '.map').toString(),
       bazelMapping: options.bazelMapping,
-      customScheme: multiRootScheme);
+      customScheme: multiRootScheme,
+      multiRootOutputPath: multiRootOutputPath);
 
   outFiles.add(file.writeAsString(jsCode.code));
   if (jsCode.sourceMap != null) {
@@ -390,7 +392,8 @@ JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
     String jsUrl,
     String mapUrl,
     Map<String, String> bazelMapping,
-    String customScheme}) {
+    String customScheme,
+    String multiRootOutputPath}) {
   var opts = JS.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
   JS.SimpleJavaScriptPrintingContext printer;
@@ -409,7 +412,8 @@ JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
   Map builtMap;
   if (buildSourceMap && sourceMap != null) {
     builtMap = placeSourceMap(
-        sourceMap.build(jsUrl), mapUrl, bazelMapping, customScheme);
+        sourceMap.build(jsUrl), mapUrl, bazelMapping, customScheme,
+        multiRootOutputPath: multiRootOutputPath);
     var jsDir = path.dirname(path.fromUri(jsUrl));
     var relative = path.relative(path.fromUri(mapUrl), from: jsDir);
     var relativeMapUrl = path.toUri(relative).toString();
@@ -504,4 +508,15 @@ String _findPackagesFilePath() {
     if (dir.path == parent.path) return null;
     dir = parent;
   }
+}
+
+/// Inputs must be absolute paths. Returns null if no prefixing path is found.
+String _longestPrefixingPath(String basePath, List<Uri> prefixingPaths) {
+  return prefixingPaths.fold(null, (String previousValue, Uri element) {
+    if (basePath.startsWith(element.path) &&
+        (previousValue == null || previousValue.length < element.path.length)) {
+      return element.path;
+    }
+    return previousValue;
+  });
 }
