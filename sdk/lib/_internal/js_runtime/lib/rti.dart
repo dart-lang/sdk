@@ -110,7 +110,6 @@ class Rti {
   /// - Underlying type for unary terms.
   /// - Class part of a type environment inside a generic class, or `null` for
   ///   type tuple.
-  /// - Return type of function types.
   dynamic _primary;
 
   static Object _getPrimary(Rti rti) => rti._primary;
@@ -225,6 +224,9 @@ String _rtiToString(Rti rti, List<String> genericContext) {
   int kind = Rti._getKind(rti);
 
   if (kind == Rti.kindDynamic) return 'dynamic';
+  if (kind == Rti.kindVoid) return 'void';
+  if (kind == Rti.kindNever) return 'Never';
+  if (kind == Rti.kindAny) return 'any';
 
   if (kind == Rti.kindInterface) {
     String name = Rti._getInterfaceName(rti);
@@ -256,6 +258,9 @@ String _rtiToDebugString(Rti rti) {
   int kind = Rti._getKind(rti);
 
   if (kind == Rti.kindDynamic) return 'dynamic';
+  if (kind == Rti.kindVoid) return 'void';
+  if (kind == Rti.kindNever) return 'Never';
+  if (kind == Rti.kindAny) return 'any';
 
   if (kind == Rti.kindInterface) {
     String name = Rti._getInterfaceName(rti);
@@ -396,18 +401,39 @@ class _Universe {
   // * `createXXX` to create the type if it does not exist.
 
   static String _canonicalRecipeOfDynamic() => '@';
+  static String _canonicalRecipeOfVoid() => '~';
+  static String _canonicalRecipeOfNever() => '0&';
+  static String _canonicalRecipeOfAny() => '1&';
 
   static Rti _lookupDynamicRti(universe) {
-    var cache = evalCache(universe);
-    var probe = _cacheGet(cache, _canonicalRecipeOfDynamic());
-    if (probe != null) return _castToRti(probe);
-    return _createDynamicRti(universe);
+    return _lookupTerminalRti(
+        universe, Rti.kindDynamic, _canonicalRecipeOfDynamic());
   }
 
-  static Rti _createDynamicRti(Object universe) {
+  static Rti _lookupVoidRti(universe) {
+    return _lookupTerminalRti(universe, Rti.kindVoid, _canonicalRecipeOfVoid());
+  }
+
+  static Rti _lookupNeverRti(universe) {
+    return _lookupTerminalRti(
+        universe, Rti.kindNever, _canonicalRecipeOfNever());
+  }
+
+  static Rti _lookupAnyRti(universe) {
+    return _lookupTerminalRti(universe, Rti.kindAny, _canonicalRecipeOfAny());
+  }
+
+  static Rti _lookupTerminalRti(universe, int kind, String canonicalRecipe) {
+    var cache = evalCache(universe);
+    var probe = _cacheGet(cache, canonicalRecipe);
+    if (probe != null) return _castToRti(probe);
+    return _createTerminalRti(universe, kind, canonicalRecipe);
+  }
+
+  static Rti _createTerminalRti(universe, int kind, String canonicalRecipe) {
     var rti = Rti.allocate();
-    Rti._setKind(rti, Rti.kindDynamic);
-    Rti._setCanonicalRecipe(rti, _canonicalRecipeOfDynamic());
+    Rti._setKind(rti, kind);
+    Rti._setCanonicalRecipe(rti, canonicalRecipe);
     return _finishRti(universe, rti);
   }
 
@@ -501,9 +527,9 @@ class _Universe {
 ///
 ///   Period may be in any position, including first and last e.g. `.x`.
 ///
-/// ',': ignored
+/// ',':  ---
 ///
-///   Used to separate elements.
+///   Ignored. Used to separate elements.
 ///
 /// ';': item  ---  ToType(item)
 ///
@@ -511,7 +537,14 @@ class _Universe {
 ///
 /// '@': --- dynamicType
 ///
+/// '~': --- voidType
+///
 /// '?':  type  ---  type?
+///
+/// '&':  0  ---  NeverType
+/// '&':  1  ---  anyType
+///
+///   Escape op-code with small integer values for encoding rare operations.
 ///
 /// '<':  --- position
 ///
@@ -650,13 +683,17 @@ class _Parser {
             // ignored
             break;
 
+          case $SEMICOLON:
+            push(stack,
+                toType(universe(parser), environment(parser), pop(stack)));
+            break;
+
           case $AT:
             push(stack, _Universe._lookupDynamicRti(universe(parser)));
             break;
 
-          case $SEMICOLON:
-            push(stack,
-                toType(universe(parser), environment(parser), pop(stack)));
+          case $TILDE:
+            push(stack, _Universe._lookupVoidRti(universe(parser)));
             break;
 
           case $LT:
@@ -666,6 +703,10 @@ class _Parser {
 
           case $GT:
             handleTypeArguments(parser, stack);
+            break;
+
+          case $AMPERSAND:
+            handleExtendedOperations(parser, stack);
             break;
 
           default:
@@ -725,6 +766,19 @@ class _Parser {
       Rti base = toType(universe, environment(parser), head);
       push(stack, _Universe._lookupBindingRti(universe, base, arguments));
     }
+  }
+
+  static void handleExtendedOperations(Object parser, Object stack) {
+    var top = pop(stack);
+    if (0 == top) {
+      push(stack, _Universe._lookupNeverRti(universe(parser)));
+      return;
+    }
+    if (1 == top) {
+      push(stack, _Universe._lookupAnyRti(universe(parser)));
+      return;
+    }
+    throw AssertionError('Unexpected extended operation $top');
   }
 
   static Object collectArray(Object parser, Object stack) {
@@ -796,6 +850,7 @@ class _Parser {
       (ch == $$);
 
   static const int $$ = 0x24;
+  static const int $AMPERSAND = 0x26;
   static const int $PLUS = 0x2B;
   static const int $COMMA = 0x2C;
   static const int $PERIOD = 0x2E;
@@ -813,6 +868,7 @@ class _Parser {
   static const int $a = $A + 32;
   static const int $z = $Z + 32;
   static const int $_ = 0x5F;
+  static const int $TILDE = 0x7E;
 }
 
 // -------- Subtype tests ------------------------------------------------------
