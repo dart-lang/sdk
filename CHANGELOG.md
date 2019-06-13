@@ -68,7 +68,7 @@ communication of `Uint8List` data.
     implement the new getter.
 
 #### `dart:async`
-  
+
 * **Breaking change:** The `await for` allowed `null` as a stream due to a bug
   in `StreamIterator` class. This bug has now been fixed.
 
