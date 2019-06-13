@@ -1143,8 +1143,11 @@ class Dart2TypeSystem extends TypeSystem {
       }
 
       return new FunctionTypeImpl.synthetic(
-          newReturnType, type.typeFormals, newParameters,
-          nullabilitySuffix: (type as TypeImpl).nullabilitySuffix);
+        newReturnType,
+        type.typeFormals,
+        newParameters,
+        nullabilitySuffix: (type as TypeImpl).nullabilitySuffix,
+      );
     }
     return type;
   }

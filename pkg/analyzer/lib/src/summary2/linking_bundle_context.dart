@@ -167,6 +167,16 @@ class LinkingBundleContext {
       typeParameterBuilders[i].bound = writeType(typeParameter.bound);
     }
 
+    GenericTypeAliasElement typeAliasElement;
+    {
+      var element = type.element;
+      if (element is GenericTypeAliasElement) {
+        typeAliasElement = element;
+      } else if (element?.enclosingElement is GenericTypeAliasElement) {
+        typeAliasElement = element.enclosingElement;
+      }
+    }
+
     var result = LinkedNodeTypeBuilder(
       kind: LinkedNodeTypeKind.function,
       functionFormalParameters: type.parameters
@@ -178,7 +188,7 @@ class LinkingBundleContext {
           .toList(),
       functionReturnType: writeType(type.returnType),
       functionTypeParameters: typeParameterBuilders,
-      functionTypedef: indexOfElement(type.element),
+      functionTypedef: indexOfElement(typeAliasElement),
       nullabilitySuffix: _nullabilitySuffix(type),
     );
 
