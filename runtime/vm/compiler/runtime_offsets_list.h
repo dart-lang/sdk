@@ -157,6 +157,8 @@
   NOT_IN_DBC(FIELD(Thread, call_to_runtime_entry_point_offset))                \
   NOT_IN_DBC(FIELD(Thread, call_to_runtime_stub_offset))                       \
   FIELD(Thread, dart_stream_offset)                                            \
+  NOT_IN_DBC(FIELD(Thread, optimize_entry_offset))                             \
+  NOT_IN_DBC(FIELD(Thread, optimize_stub_offset))                              \
   NOT_IN_DBC(FIELD(Thread, deoptimize_entry_offset))                           \
   NOT_IN_DBC(FIELD(Thread, deoptimize_stub_offset))                            \
   FIELD(Thread, double_abs_address_offset)                                     \

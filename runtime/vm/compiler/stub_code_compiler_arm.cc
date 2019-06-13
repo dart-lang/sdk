@@ -2960,7 +2960,7 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
 // R8: function to be reoptimized.
 // R4: argument descriptor (preserved).
 void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
-  __ ldr(CODE_REG, Address(THR, Thread::optimize_stub_offset()));
+  __ ldr(CODE_REG, Address(THR, target::Thread::optimize_stub_offset()));
   __ EnterStubFrame();
   __ Push(R4);
   __ LoadImmediate(IP, 0);

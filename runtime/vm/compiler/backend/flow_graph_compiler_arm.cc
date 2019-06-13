@@ -883,7 +883,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
     }
     __ CompareImmediate(R3, GetOptimizationThreshold());
     ASSERT(function_reg == R8);
-    __ Branch(Address(THR, Thread::optimize_entry_offset()), GE);
+    __ Branch(Address(THR, compiler::target::Thread::optimize_entry_offset()),
+              GE);
   }
   __ Comment("Enter frame");
   if (flow_graph().IsCompiledForOsr()) {

@@ -2484,7 +2484,7 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
 // EBX: function to be reoptimized.
 // EDX: argument descriptor (preserved).
 void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
-  __ movl(CODE_REG, Address(THR, Thread::optimize_stub_offset()));
+  __ movl(CODE_REG, Address(THR, target::Thread::optimize_stub_offset()));
   __ EnterStubFrame();
   __ pushl(EDX);
   __ pushl(Immediate(0));  // Setup space on stack for return value.

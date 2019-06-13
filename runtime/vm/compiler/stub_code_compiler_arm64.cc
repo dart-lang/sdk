@@ -3032,7 +3032,7 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
 // R6: function to be re-optimized.
 // R4: argument descriptor (preserved).
 void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
-  __ LoadFromOffset(CODE_REG, THR, Thread::optimize_stub_offset());
+  __ LoadFromOffset(CODE_REG, THR, target::Thread::optimize_stub_offset());
   __ EnterStubFrame();
   __ Push(R4);
   // Setup space on stack for the return value.

@@ -211,6 +211,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 132;
 static constexpr dart::compiler::target::word Thread_dart_stream_offset = 644;
+static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
+    224;
+static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 156;
 static constexpr dart::compiler::target::word Thread_deoptimize_entry_offset =
     228;
 static constexpr dart::compiler::target::word Thread_deoptimize_stub_offset =
@@ -561,6 +564,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 256;
 static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1296;
+static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
+    440;
+static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 304;
 static constexpr dart::compiler::target::word Thread_deoptimize_entry_offset =
     448;
 static constexpr dart::compiler::target::word Thread_deoptimize_stub_offset =
@@ -912,6 +918,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 132;
 static constexpr dart::compiler::target::word Thread_dart_stream_offset = 608;
+static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
+    224;
+static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 156;
 static constexpr dart::compiler::target::word Thread_deoptimize_entry_offset =
     228;
 static constexpr dart::compiler::target::word Thread_deoptimize_stub_offset =
@@ -1258,6 +1267,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 256;
 static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1384;
+static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
+    440;
+static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 304;
 static constexpr dart::compiler::target::word Thread_deoptimize_entry_offset =
     448;
 static constexpr dart::compiler::target::word Thread_deoptimize_stub_offset =
