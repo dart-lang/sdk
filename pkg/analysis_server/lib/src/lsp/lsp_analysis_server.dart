@@ -32,6 +32,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -601,7 +602,9 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
         final serverErrors = protocol.mapEngineErrors(
             result.session.analysisContext.analysisOptions,
             result.lineInfo,
-            result.errors,
+            result.errors
+                .where((e) => e.errorCode.type != ErrorType.TODO)
+                .toList(),
             toDiagnostic);
 
         analysisServer.publishDiagnostics(result.path, serverErrors);
